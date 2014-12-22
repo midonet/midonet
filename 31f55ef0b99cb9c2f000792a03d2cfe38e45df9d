@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1af78d9a_3137a8b2",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/C3PODaemonTest.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-12-22T06:43:47Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1af78d9a_d130e4ea",
+      "range": {
+        "startLine": 67,
+        "startChar": 0,
+        "endLine": 83,
+        "endChar": 5
+      },
+      "revId": "31f55ef0b99cb9c2f000792a03d2cfe38e45df9d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1af78d9a_515cf425",
         "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/C3PODaemonTest.scala",
         "patchSetId": 8
@@ -36,6 +60,30 @@
       "writtenOn": "2014-12-22T05:14:13Z",
       "side": 1,
       "message": "It doesn\u0027t hurt, but is there any particular reason for this to be protected? I can\u0027t really see any reason you\u0027d want to extend this class, since any child class would inherit all the tests and run them again.",
+      "range": {
+        "startLine": 93,
+        "startChar": 4,
+        "endLine": 93,
+        "endChar": 63
+      },
+      "revId": "31f55ef0b99cb9c2f000792a03d2cfe38e45df9d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_113c2c93",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/C3PODaemonTest.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-12-22T06:43:47Z",
+      "side": 1,
+      "message": "Changed to private as there is no particular reason to keep it protected. I do see a possibility to factor out the part common to testing a Minion that talks to ZK into an abstract class, though.",
+      "parentUuid": "1af78d9a_515cf425",
       "range": {
         "startLine": 93,
         "startChar": 4,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "1af78d9a_91477c1d",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/C3PODaemonTest.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-12-22T06:43:47Z",
+      "side": 1,
+      "message": "I thought I needed it because JDBC drivers were loaded dynamically, but it seems to run without this. Removed.",
+      "parentUuid": "1af78d9a_913dbcbe",
+      "range": {
+        "startLine": 95,
+        "startChar": 4,
+        "endLine": 95,
+        "endChar": 27
+      },
+      "revId": "31f55ef0b99cb9c2f000792a03d2cfe38e45df9d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1af78d9a_d15e2412",
         "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/C3PODaemonTest.scala",
         "patchSetId": 8
@@ -82,6 +154,30 @@
       "writtenOn": "2014-12-22T05:14:13Z",
       "side": 1,
       "message": "We have this defined in a few places now. Maybe we should put it in FutureOps in MidonetUtil, so that you can call it as f.await(), with an optional timeout argument.",
+      "range": {
+        "startLine": 126,
+        "startChar": 0,
+        "endLine": 127,
+        "endChar": 61
+      },
+      "revId": "31f55ef0b99cb9c2f000792a03d2cfe38e45df9d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_f15400cc",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/C3PODaemonTest.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-12-22T06:43:47Z",
+      "side": 1,
+      "message": "I know that there were duplicates. I\u0027ll get to that in a separate patch.",
+      "parentUuid": "1af78d9a_d15e2412",
       "range": {
         "startLine": 126,
         "startChar": 0,
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "1af78d9a_d15104da",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/C3PODaemonTest.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 129,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-12-22T06:43:47Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1af78d9a_319b28cb",
+      "range": {
+        "startLine": 129,
+        "startChar": 16,
+        "endLine": 129,
+        "endChar": 27
+      },
+      "revId": "31f55ef0b99cb9c2f000792a03d2cfe38e45df9d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1af78d9a_11a0acf3",
         "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/C3PODaemonTest.scala",
         "patchSetId": 8
@@ -128,6 +248,30 @@
       "writtenOn": "2014-12-22T05:14:13Z",
       "side": 1,
       "message": "Maybe this is a stupid question, but can getConnection() open the connection and then fail after that for some reason, causing us not to close the connection?",
+      "range": {
+        "startLine": 130,
+        "startChar": 16,
+        "endLine": 130,
+        "endChar": 39
+      },
+      "revId": "31f55ef0b99cb9c2f000792a03d2cfe38e45df9d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_315e88ea",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/C3PODaemonTest.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 130,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-12-22T06:43:47Z",
+      "side": 1,
+      "message": "That would probably depend on its internal implementation. With the scenario that getConnection() created a connection, but then throws an exception just before returning, 1st of all that should be caught inside getConnection() so that the created connection would be closed internally. In this case the getConnection() doesn\u0027t return and c is not initialised, so I don\u0027t think there\u0027s anything we can do here. If the getConnection() call returned some normal/broken connection to c, then whatever happened after that doesn\u0027t prevent us from calling close(), so I think we\u0027re OK, here.",
+      "parentUuid": "1af78d9a_11a0acf3",
       "range": {
         "startLine": 130,
         "startChar": 16,
@@ -163,6 +307,30 @@
     },
     {
       "key": {
+        "uuid": "1af78d9a_5114f4f4",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/C3PODaemonTest.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 140,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-12-22T06:43:47Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1af78d9a_11870c63",
+      "range": {
+        "startLine": 140,
+        "startChar": 8,
+        "endLine": 140,
+        "endChar": 20
+      },
+      "revId": "31f55ef0b99cb9c2f000792a03d2cfe38e45df9d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1af78d9a_51aa34d5",
         "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/C3PODaemonTest.scala",
         "patchSetId": 8
@@ -174,6 +342,30 @@
       "writtenOn": "2014-12-22T05:14:13Z",
       "side": 1,
       "message": "This isn\u0027t needed. See below.",
+      "range": {
+        "startLine": 141,
+        "startChar": 0,
+        "endLine": 147,
+        "endChar": 9
+      },
+      "revId": "31f55ef0b99cb9c2f000792a03d2cfe38e45df9d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_715810fb",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/C3PODaemonTest.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 147,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-12-22T06:43:47Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1af78d9a_51aa34d5",
       "range": {
         "startLine": 141,
         "startChar": 0,
@@ -209,6 +401,30 @@
     },
     {
       "key": {
+        "uuid": "1af78d9a_515d14e9",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/C3PODaemonTest.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 152,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-12-22T06:43:47Z",
+      "side": 1,
+      "message": "Thank you for the SQL tip! I\u0027m really bad with SQL:P",
+      "parentUuid": "1af78d9a_71a5b003",
+      "range": {
+        "startLine": 152,
+        "startChar": 32,
+        "endLine": 152,
+        "endChar": 58
+      },
+      "revId": "31f55ef0b99cb9c2f000792a03d2cfe38e45df9d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1af78d9a_91abfcd5",
         "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/C3PODaemonTest.scala",
         "patchSetId": 8
@@ -220,6 +436,30 @@
       "writtenOn": "2014-12-22T05:14:13Z",
       "side": 1,
       "message": "The preferred way to do this is to use prepared statements, as I do in NeutronImporter. With so few statements, though, I guess it doesn\u0027t really matter.",
+      "range": {
+        "startLine": 171,
+        "startChar": 0,
+        "endLine": 173,
+        "endChar": 26
+      },
+      "revId": "31f55ef0b99cb9c2f000792a03d2cfe38e45df9d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_3105e8c2",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/C3PODaemonTest.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 173,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-12-22T06:43:47Z",
+      "side": 1,
+      "message": "Noted. I\u0027ll address this later if you want. Right now I don\u0027t want to change this since I won\u0027t be able to test this as the base refactoring patch is broken.",
+      "parentUuid": "1af78d9a_91abfcd5",
       "range": {
         "startLine": 171,
         "startChar": 0,
@@ -255,6 +495,30 @@
     },
     {
       "key": {
+        "uuid": "1af78d9a_b171d879",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/C3PODaemonTest.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 229,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-12-22T06:43:47Z",
+      "side": 1,
+      "message": "You\u0027re right.  Removed the try-catch clause.",
+      "parentUuid": "1af78d9a_717c9073",
+      "range": {
+        "startLine": 221,
+        "startChar": 0,
+        "endLine": 229,
+        "endChar": 9
+      },
+      "revId": "31f55ef0b99cb9c2f000792a03d2cfe38e45df9d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1af78d9a_51819449",
         "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/C3PODaemonTest.scala",
         "patchSetId": 8
@@ -278,6 +542,30 @@
     },
     {
       "key": {
+        "uuid": "1af78d9a_916e5c95",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/C3PODaemonTest.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 243,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-12-22T06:43:47Z",
+      "side": 1,
+      "message": "I assume that if deleting the DB file fails, it\u0027s most likely by a temporary issue with the file system, therefore I chose just to log the IO error and not to fail the test.",
+      "parentUuid": "1af78d9a_51819449",
+      "range": {
+        "startLine": 243,
+        "startChar": 21,
+        "endLine": 243,
+        "endChar": 30
+      },
+      "revId": "31f55ef0b99cb9c2f000792a03d2cfe38e45df9d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1af78d9a_31e9681b",
         "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/C3PODaemonTest.scala",
         "patchSetId": 8
@@ -289,6 +577,30 @@
       "writtenOn": "2014-12-22T05:14:13Z",
       "side": 1,
       "message": "These would be more readable if you used the enums defined in NeutronService.",
+      "range": {
+        "startLine": 256,
+        "startChar": 20,
+        "endLine": 256,
+        "endChar": 28
+      },
+      "revId": "31f55ef0b99cb9c2f000792a03d2cfe38e45df9d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_f16b6083",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/C3PODaemonTest.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 256,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-12-22T06:43:47Z",
+      "side": 1,
+      "message": "I considered that, but is there a good way to convert from Create/Update/Delete to their corresponding values? \"vals\" is private field, so it seems we need to add reverse conversion function with the enum, don\u0027t we? We can do that but that seemed an overkill to do just for this patch. What do you think?",
+      "parentUuid": "1af78d9a_31e9681b",
       "range": {
         "startLine": 256,
         "startChar": 20,
