@@ -247,6 +247,10 @@ configure(subprojects.findAll {!it.name.contains('ovsdb')}) {
     version = midonetVersion
     group = 'org.midonet'
 
+    tasks.withType(JavaCompile) {
+        options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
+    }
+
     configurations {
         provided
         perfCompile.extendsFrom compile
