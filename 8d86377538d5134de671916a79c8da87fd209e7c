@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1af78d9a_1f3c3393",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/C3POStorageManager.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-12-23T06:50:44Z",
+      "side": 1,
+      "message": "After all, we still cannot serialize Scala class... :P When I tried, I got the following message:\n\norg.codehaus.jackson.map.JsonMappingException: No serializer found for class org.midonet.brain.services.c3po.C3POStorageManager$C3POState and no properties discovered to create BeanSerializer (to avoid exception, disable SerializationConfig.Feature.FAIL_ON_EMPTY_BEANS) )",
+      "range": {
+        "startLine": 77,
+        "startChar": 3,
+        "endLine": 85,
+        "endChar": 5
+      },
+      "revId": "8d86377538d5134de671916a79c8da87fd209e7c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
