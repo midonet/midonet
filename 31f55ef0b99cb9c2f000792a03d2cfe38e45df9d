@@ -284,6 +284,30 @@
     },
     {
       "key": {
+        "uuid": "1af78d9a_da4599b4",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/C3PODaemonTest.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 130,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-12-24T07:03:34Z",
+      "side": 1,
+      "message": "I guess that it\u0027s possible that some run time exception may be thrown, so I moved getConnection() inside the try-catch.",
+      "parentUuid": "1af78d9a_315e88ea",
+      "range": {
+        "startLine": 130,
+        "startChar": 16,
+        "endLine": 130,
+        "endChar": 39
+      },
+      "revId": "31f55ef0b99cb9c2f000792a03d2cfe38e45df9d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1af78d9a_11870c63",
         "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/C3PODaemonTest.scala",
         "patchSetId": 8
@@ -472,6 +496,30 @@
     },
     {
       "key": {
+        "uuid": "1af78d9a_7a0c6595",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/C3PODaemonTest.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 173,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-12-24T07:03:34Z",
+      "side": 1,
+      "message": "I tried to do it in the preferred way, but it turned out that it\u0027d require significant structural changes. I\u0027d prefer to keep it as is unless you insist.",
+      "parentUuid": "1af78d9a_3105e8c2",
+      "range": {
+        "startLine": 171,
+        "startChar": 0,
+        "endLine": 173,
+        "endChar": 26
+      },
+      "revId": "31f55ef0b99cb9c2f000792a03d2cfe38e45df9d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1af78d9a_717c9073",
         "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/C3PODaemonTest.scala",
         "patchSetId": 8
@@ -625,6 +673,30 @@
       "side": 1,
       "message": "Oh. I didn\u0027t realize the IDs weren\u0027t accessible. In the case of NeutronResourceType, you can just change \"id: Int\" to \"val id: Int\" in the constructor.\n\nTaskType doesn\u0027t use the same pattern, but I think it could easily be modified to do so. That is, add a case class TaskType(val id: Int), get rid of \"type TaskType \u003d Value,\" and then replace all the Value(n) initializers with TaskType(n).",
       "parentUuid": "1af78d9a_f16b6083",
+      "range": {
+        "startLine": 256,
+        "startChar": 20,
+        "endLine": 256,
+        "endChar": 28
+      },
+      "revId": "31f55ef0b99cb9c2f000792a03d2cfe38e45df9d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_3a12ddb4",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/C3PODaemonTest.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 256,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-12-24T07:03:34Z",
+      "side": 1,
+      "message": "Thank you for the suggestion. Modified as you suggested.",
+      "parentUuid": "1af78d9a_11d8ac52",
       "range": {
         "startLine": 256,
         "startChar": 20,
