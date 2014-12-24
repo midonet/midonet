@@ -18,19 +18,17 @@ package org.midonet.midolman.simulation
 import java.util.UUID
 
 import akka.actor.ActorSystem
-
 import org.midonet.cluster.client.RouterPort
-import org.midonet.midolman.{NotYetException, PacketsEntryPoint}
-import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
+import org.midonet.midolman.NotYetException
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.rules.RuleResult
 import org.midonet.midolman.simulation.Icmp._
+import org.midonet.midolman.topology.{RouterConfig, RoutingTableWrapper, TagManager}
 import org.midonet.midolman.topology.VirtualTopologyActor._
-import org.midonet.midolman.topology.{RoutingTableWrapper, TagManager, RouterConfig}
 import org.midonet.odp.FlowMatch
 import org.midonet.odp.FlowMatch.Field
-import org.midonet.packets.{MAC, Unsigned, Ethernet, IPAddr}
 import org.midonet.odp.flows.IPFragmentType
+import org.midonet.packets.{Ethernet, IPAddr, MAC, Unsigned}
 import org.midonet.sdn.flows.FlowTagger
 
 /**
@@ -361,11 +359,10 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
     }
 
     def sendAnswer(portId: UUID, eth: Option[Ethernet])
-                      (implicit context: PacketContext) {
-        if (eth.nonEmpty)
-            PacketsEntryPoint !
-                EmitGeneratedPacket(portId, eth.get, context.flowCookie)
-    }
+                  (implicit context: PacketContext): Unit =
+        if (eth.nonEmpty) {
+            context.addGeneratedPacket(portId, eth.get)
+        }
 
     /**
      * This method will be executed after outbound filter rules are applied.

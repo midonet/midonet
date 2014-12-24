@@ -202,8 +202,7 @@ class LoadBalancerManagerTest extends TestKit(ActorSystem("LoadBalancerManagerTe
                 .setNetworkSrc(IPv4Addr.fromString("1.1.1.1"))
                 .setSrcPort(1)
                 .setNetworkProto(TCP.PROTOCOL_NUMBER)
-            val pktContextIngress = new PacketContext(Left(1), null, None,
-                                                      ingressMatch)
+            val pktContextIngress = new PacketContext(1, null, ingressMatch)
 
             intercept[NotYetException] {
                 lb.processInbound(pktContextIngress)(actorSystem)

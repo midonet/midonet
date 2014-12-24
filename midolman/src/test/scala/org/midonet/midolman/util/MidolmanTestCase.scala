@@ -40,7 +40,7 @@ import org.midonet.cluster.data.host.Host
 import org.midonet.cluster.data.{Port => VPort}
 import org.midonet.cluster.services.StorageService
 import org.midonet.midolman.DatapathController.{DatapathReady, Initialize}
-import org.midonet.midolman.DeduplicationActor.{DiscardPacket, EmitGeneratedPacket, HandlePackets}
+import org.midonet.midolman.DeduplicationActor.{DiscardPacket, HandlePackets}
 import org.midonet.midolman.FlowController.{AddWildcardFlow, FlowUpdateCompleted, WildcardFlowAdded, WildcardFlowRemoved}
 import org.midonet.midolman.PacketWorkflow.PacketIn
 import org.midonet.midolman._
@@ -138,9 +138,7 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
 
     private def prepareAllProbes() {
         sProbe = new TestProbe(actors)
-        for (klass <- List(classOf[PacketIn], classOf[EmitGeneratedPacket])) {
-            registerProbe(sProbe, klass, actors.eventStream)
-        }
+        registerProbe(sProbe, classOf[PacketIn], actors.eventStream)
         datapathEventsProbe = makeEventProbe(classOf[DatapathReady])
         packetInProbe = makeEventProbe(classOf[PacketIn])
         packetsEventsProbe = makeEventProbe(classOf[PacketsExecute])
@@ -515,7 +513,7 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
             override implicit protected def system: ActorSystem = actors
             override protected val dpState: DatapathState = self.dpState
         }
-        val pktCtx = new PacketContext(Left(-1), null, None, wcMatch)
+        val pktCtx = new PacketContext(-1, null, wcMatch)
         pktCtx.inputPort = inputPort
         pktCtx.addVirtualAction(action)
         dpState.getDpPortNumberForVport(pktCtx.inputPort) map { port =>

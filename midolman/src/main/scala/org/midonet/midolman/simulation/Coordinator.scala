@@ -23,13 +23,12 @@ import scala.collection.JavaConversions._
 import akka.actor.ActorSystem
 
 import org.midonet.cluster.client._
-import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
+import org.midonet.midolman.PacketWorkflow
 import org.midonet.midolman.PacketWorkflow._
 import org.midonet.midolman.rules.RuleResult
 import org.midonet.midolman.simulation.Icmp.IPv4Icmp._
 import org.midonet.midolman.state.FlowState
 import org.midonet.midolman.topology.VirtualTopologyActor._
-import org.midonet.midolman.{PacketWorkflow, PacketsEntryPoint}
 import org.midonet.odp.FlowMatch
 import org.midonet.odp.flows._
 import org.midonet.sdn.flows.VirtualActions.{FlowActionOutputToVrnBridge, FlowActionOutputToVrnPort}
@@ -139,12 +138,10 @@ class Coordinator(context: PacketContext)
      */
     def simulate(): SimulationResult = {
         log.debug("Simulating a packet")
-        context.cookieOrEgressPort match {
-            case Left(_) => // This is a packet from the datapath
-                val inPortId = context.inputPort
-                packetIngressesPort(inPortId, getPortGroups = true)
-            case Right(egressID) =>
-                packetEgressesPort(egressID)
+        if (context.ingressed) {
+            packetIngressesPort(context.inputPort, getPortGroups = true)
+        } else {
+            packetEgressesPort(context.egressPort)
         }
     }
 
@@ -403,10 +400,10 @@ class Coordinator(context: PacketContext)
         Drop
     }
 
-    private def sendIcmpProhibited(port: RouterPort) {
+    private def sendIcmpProhibited(port: RouterPort): Unit = {
         val ethOpt = unreachableProhibitedIcmp(port, context.wcmatch, context.ethernet)
-        if (ethOpt.nonEmpty)
-            PacketsEntryPoint !
-                EmitGeneratedPacket(port.id, ethOpt.get, context.flowCookie)
+        if (ethOpt.nonEmpty) {
+            context.addGeneratedPacket(port.id, ethOpt.get)
+        }
     }
 }

@@ -22,7 +22,10 @@ import scala.collection.JavaConversions._
 import scala.collection.mutable
 
 import com.typesafe.scalalogging.Logger
+import org.slf4j.LoggerFactory
 
+import org.midonet.midolman.CallbackExecutor
+import org.midonet.midolman.simulation.PacketEmitter.GeneratedPacket
 import org.midonet.midolman.state.FlowStatePackets
 import org.midonet.odp.{FlowMatch, Packet}
 import org.midonet.odp.flows.FlowActions._
@@ -30,7 +33,6 @@ import org.midonet.odp.flows.{FlowAction, FlowActions, FlowKeys}
 import org.midonet.packets._
 import org.midonet.sdn.flows.FlowTagger.{FlowStateTag, FlowTag}
 import org.midonet.util.functors.Callback0
-import org.slf4j.LoggerFactory
 
 object PacketContext {
     val defaultLog =
@@ -193,10 +195,10 @@ trait FlowContext { this: PacketContext =>
  * used to pass state between different simulation stages, or between virtual
  * devices.
  */
-class PacketContext(val cookieOrEgressPort: Either[Int, UUID],
+class PacketContext(val cookie: Int,
                     val packet: Packet,
-                    val parentCookie: Option[Int],
-                    val origMatch: FlowMatch) extends FlowContext {
+                    val origMatch: FlowMatch,
+                    val egressPort: UUID = null) extends FlowContext {
     var log = PacketContext.defaultLog
 
     def jlog = log.underlying
@@ -217,6 +219,9 @@ class PacketContext(val cookieOrEgressPort: Either[Int, UUID],
 
     var inputPort: UUID = _
 
+    var callbackExecutor: CallbackExecutor = _
+    var packetEmitter: PacketEmitter = _
+
     // Stores the callback to call when this flow is removed.
     val flowRemovedCallbacks = new ArrayList[Callback0]()
     def addFlowRemovedCallback(cb: Callback0): Unit = {
@@ -234,14 +239,17 @@ class PacketContext(val cookieOrEgressPort: Either[Int, UUID],
 
     def ethernet = packet.getEthernet
 
-    def isGenerated = cookieOrEgressPort.isRight
-    def ingressed = cookieOrEgressPort.isLeft
+    def isGenerated = egressPort ne null
+    def ingressed = egressPort eq null
     def isStateMessage = origMatch.getTunnelKey == FlowStatePackets.TUNNEL_KEY
 
-    def flowCookie = cookieOrEgressPort.left.toOption
+    def cookieStr = s"[cookie:$cookie]"
 
-    def cookieStr = (if (isGenerated) "[genPkt:" else "[cookie:") +
-                    flowCookie.getOrElse(parentCookie.getOrElse("No Cookie")) + "]"
+    def reset(callbackExecutor: CallbackExecutor,
+              packetEmitter: PacketEmitter): Unit = {
+        this.callbackExecutor = callbackExecutor
+        this.packetEmitter = packetEmitter
+    }
 
     def prepareForSimulation(lastInvalidationSeen: Long) {
         idle = false
@@ -265,6 +273,9 @@ class PacketContext(val cookieOrEgressPort: Either[Int, UUID],
         wcmatch.reset(origMatch)
         inputPort = null
     }
+
+    def addGeneratedPacket(uuid: UUID, ethernet: Ethernet): Unit =
+        packetEmitter.schedule(GeneratedPacket(uuid, ethernet))
 
     override def toString = s"PacketContext[$cookieStr]"
 }

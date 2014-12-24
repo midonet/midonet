@@ -24,25 +24,27 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
 import akka.actor._
-
 import com.typesafe.scalalogging.Logger
-import org.midonet.midolman.config.MidolmanConfig
 import org.slf4j.MDC
+
+import org.jctools.queues.MpscArrayQueue
 
 import org.midonet.Util
 import org.midonet.cluster.DataClient
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman.HostRequestProxy.FlowStateBatch
+import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.DatapathChannel
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.management.PacketTracing
 import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
-import org.midonet.midolman.simulation.{ArpTimeoutException, DeviceQueryTimeoutException, DhcpException, PacketContext}
+import org.midonet.midolman.simulation.PacketEmitter.GeneratedPacket
+import org.midonet.midolman.simulation._
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackKey, ConnTrackValue}
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
 import org.midonet.midolman.state.{FlowStatePackets, FlowStateReplicator, FlowStateStorage, NatLeaser}
-import org.midonet.odp.flows.{FlowKeys, FlowAction}
-import org.midonet.odp.{FlowMatch, Packet}
+import org.midonet.odp.{FlowMatches, FlowMatch, Packet}
+import org.midonet.odp.flows.FlowAction
 import org.midonet.packets.Ethernet
 import org.midonet.sdn.state.{FlowStateTable, FlowStateTransaction}
 import org.midonet.util.collection.Reducer
@@ -53,12 +55,6 @@ object DeduplicationActor {
     case class HandlePackets(packet: Array[Packet])
 
     case class DiscardPacket(cookie: Int)
-
-    /* This message is sent by simulations that result in packets being
-     * generated that in turn need to be simulated before they can correctly
-     * be forwarded. */
-    case class EmitGeneratedPacket(egressPort: UUID, eth: Ethernet,
-                                   parentCookie: Option[Int] = None)
 
     case class RestartWorkflow(pktCtx: PacketContext)
 
@@ -163,6 +159,7 @@ class DeduplicationActor(
                                         (simulationExpireMillis millis).toNanos)
 
     private val cbExecutor = new CallbackExecutor(2048, self)
+    private val genPacketEmitter = new PacketEmitter(new MpscArrayQueue(512), self)
     protected val actionsCache = new ActionsCache(cbExecutor = cbExecutor, log = log)
 
     protected val connTrackTx = new FlowStateTransaction(connTrackStateTable)
@@ -199,8 +196,7 @@ class DeduplicationActor(
                                                  config.getControlPacketsTos.toByte)
             pendingFlowStateBatches foreach (self ! _)
             workflow = new PacketWorkflow(dpState, dp, clusterDataClient,
-                                          dpChannel, cbExecutor, actionsCache,
-                                          replicator)
+                                          dpChannel, actionsCache, replicator)
 
         case m: FlowStateBatch =>
             if (replicator ne null)
@@ -222,9 +218,11 @@ class DeduplicationActor(
             }
 
             cbExecutor.run()
+            genPacketEmitter.process(runGeneratedPacket)
 
-        case CallbackExecutor.CheckCallbacks =>
+        case CheckBackchannels =>
             cbExecutor.run()
+            genPacketEmitter.process(runGeneratedPacket)
 
         case RestartWorkflow(pktCtx) =>
             MDC.put("cookie", pktCtx.cookieStr)
@@ -237,12 +235,6 @@ class DeduplicationActor(
                 drop(pktCtx)
             }
             MDC.remove("cookie")
-
-        // This creates a new PacketWorkflow and
-        // executes the simulation method directly.
-        case EmitGeneratedPacket(egressPort, ethernet, parentCookie) =>
-            val fmatch = new FlowMatch(FlowKeys.fromEthernetPacket(ethernet))
-            startWorkflow(new Packet(ethernet, fmatch), Right(egressPort))
     }
 
     // We return collection.Set so we can return an empty immutable set
@@ -257,17 +249,23 @@ class DeduplicationActor(
         }
     }
 
-    protected def packetContext(packet: Packet,
-                                cookieOrEgressPort: Either[Int, UUID],
-                                parentCookie: Option[Int] = None)
-    : PacketContext = {
-        log.debug("Creating new PacketContext for {}", cookieOrEgressPort)
+    protected def packetContext(packet: Packet): PacketContext =
+        initialize(packet, packet.getMatch, null)
 
-        val pktCtx = new PacketContext(cookieOrEgressPort, packet,
-                                       parentCookie, packet.getMatch)
-        pktCtx.state.initialize(connTrackTx, natTx, natLeaser)
-        pktCtx.log = PacketTracing.loggerFor(packet.getMatch)
-        pktCtx
+    protected def generatedPacketContext(egressPort: UUID, eth: Ethernet) = {
+        val fmatch = FlowMatches.fromEthernetPacket(eth)
+        val packet = new Packet(eth, fmatch)
+        initialize(packet, fmatch, egressPort)
+    }
+
+    private def initialize(packet: Packet, fmatch: FlowMatch, egressPort: UUID) = {
+        val cookie = cookieGen.next
+        log.debug(s"Creating new PacketContext for cookie $cookie")
+        val context = new PacketContext(cookie, packet, fmatch, egressPort)
+        context.reset(cbExecutor, genPacketEmitter)
+        context.state.initialize(connTrackTx, natTx, natLeaser)
+        context.log = PacketTracing.loggerFor(fmatch)
+        context
     }
 
     /**
@@ -323,26 +321,24 @@ class DeduplicationActor(
         pktCtx.log.debug("Packet processed")
         if (pktCtx.runs > 1)
             waitingRoom leave pktCtx
-        pktCtx.cookieOrEgressPort match {
-            case Left(cookie) =>
-                applyFlow(cookie, pktCtx)
-                val latency = (NanoClock.DEFAULT.tick -
-                               pktCtx.packet.startTimeNanos).toInt
-                metrics.packetsProcessed.mark()
-                path match {
-                    case WildcardTableHit =>
-                        metrics.wildcardTableHit(latency)
-                    case PacketToPortSet =>
-                        metrics.packetToPortSet(latency)
-                    case Simulation =>
-                        metrics.packetSimulated(latency)
-                    case _ =>
-                }
-            case _ => // do nothing
+        if (pktCtx.ingressed) {
+            applyFlow(pktCtx)
+            val latency = (NanoClock.DEFAULT.tick -
+                           pktCtx.packet.startTimeNanos).toInt
+            metrics.packetsProcessed.mark()
+            path match {
+                case WildcardTableHit =>
+                    metrics.wildcardTableHit(latency)
+                case PacketToPortSet =>
+                    metrics.packetToPortSet(latency)
+                case Simulation =>
+                    metrics.packetSimulated(latency)
+                case _ =>
+            }
         }
     }
 
-    private def applyFlow(cookie: Int, pktCtx: PacketContext): Unit = {
+    private def applyFlow(pktCtx: PacketContext): Unit = {
         val flowMatch = pktCtx.packet.getMatch
         val actions = actionsCache.actions.get(flowMatch)
         val suspendedPackets = removeSuspendedPackets(flowMatch)
@@ -355,7 +351,7 @@ class DeduplicationActor(
         }
 
         if (!pktCtx.isStateMessage && actions.isEmpty) {
-            system.eventStream.publish(DiscardPacket(cookie))
+            system.eventStream.publish(DiscardPacket(pktCtx.cookie))
         }
     }
 
@@ -376,19 +372,16 @@ class DeduplicationActor(
         drop(pktCtx)
     }
 
-    protected def startWorkflow(packet: Packet,
-                                cookieOrEgressPort: Either[Int, UUID],
-                                parentCookie: Option[Int] = None): Unit =
+    protected def startWorkflow(context: PacketContext): Unit =
         try {
-            val ctx = packetContext(packet, cookieOrEgressPort, parentCookie)
-            MDC.put("cookie", ctx.cookieStr)
-            log.debug(s"New cookie for new match ${packet.getMatch}")
-            runWorkflow(ctx)
+            MDC.put("cookie", context.cookieStr)
+            log.debug(s"New cookie for new match ${context.origMatch}")
+            runWorkflow(context)
         } catch {
             case ex: Exception =>
                 log.error("Unable to execute workflow", ex)
         } finally {
-            if (cookieOrEgressPort.isLeft)
+            if (context.ingressed)
                 packetOut(1)
             MDC.remove("cookie")
         }
@@ -427,12 +420,13 @@ class DeduplicationActor(
         }
     }
 
-    // No simulation is in progress for the flow match. Create a new
-    // cookie and start the packet workflow.
-    private def processPacket(packet: Packet): Unit = {
-        val newCookie = cookieGen.next
-        startWorkflow(packet, Left(newCookie))
+    private val runGeneratedPacket = (p: GeneratedPacket) => {
+        log.debug(s"Executing generated packet $p")
+        startWorkflow(generatedPacketContext(p.egressPort, p.eth))
     }
+
+    private def processPacket(packet: Packet): Unit =
+        startWorkflow(packetContext(packet))
 
     private def flushTransactions(): Unit = {
         connTrackTx.flush()

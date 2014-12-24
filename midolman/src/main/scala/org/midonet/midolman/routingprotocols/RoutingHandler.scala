@@ -883,7 +883,7 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
         def addVirtualWildcardFlow(wcMatch: FlowMatch,
                                    actions: List[FlowAction],
                                    inputPort: UUID = null): Unit = {
-            val pktCtx = new PacketContext(Left(-1), null, None, wcMatch)
+            val pktCtx = new PacketContext(-1, null, wcMatch)
             pktCtx.addFlowTag(FlowTagger.tagForBgp(bgp.getId))
             pktCtx.inputPort = inputPort
             pktCtx.virtualFlowActions.addAll(actions)

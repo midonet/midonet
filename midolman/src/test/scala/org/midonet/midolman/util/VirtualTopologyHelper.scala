@@ -15,6 +15,7 @@
  */
 package org.midonet.midolman.util
 
+import java.util
 import java.util.UUID
 
 import scala.concurrent.duration._
@@ -25,11 +26,12 @@ import akka.actor.ActorSystem
 import akka.pattern.ask
 import akka.util.Timeout
 import akka.util.Timeout.durationToTimeout
+
 import org.midonet.cluster.data._
 import org.midonet.midolman.NotYetException
 import org.midonet.midolman.PacketWorkflow.SimulationResult
 import org.midonet.midolman.simulation.Coordinator.{Action, Device}
-import org.midonet.midolman.simulation.{Coordinator, PacketContext}
+import org.midonet.midolman.simulation.{Coordinator, PacketContext, PacketEmitter}
 import org.midonet.midolman.state.ConnTrackState._
 import org.midonet.midolman.state.HappyGoLuckyLeaser
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
@@ -76,8 +78,8 @@ trait VirtualTopologyHelper {
                                   natTx: FlowStateTransaction[NatKey, NatBinding] = NO_NAT)
     : PacketContext = {
         val fmatch = new FlowMatch(FlowKeys.fromEthernetPacket(frame))
-        val context = new PacketContext(Left(1), new Packet(frame, fmatch),
-                                        None, fmatch)
+        val context = new PacketContext(-1, new Packet(frame, fmatch), fmatch)
+        context.packetEmitter = new PacketEmitter(new util.LinkedList, actorSystem.deadLetters)
         context.state.initialize(conntrackTx, natTx, HappyGoLuckyLeaser)
         context.prepareForSimulation(0)
         context.inputPort = inPort
@@ -89,11 +91,11 @@ trait VirtualTopologyHelper {
                       (implicit conntrackTx: FlowStateTransaction[ConnTrackKey, ConnTrackValue] = NO_CONNTRACK,
                                 natTx: FlowStateTransaction[NatKey, NatBinding] = NO_NAT)
     : (PacketContext, Action) = {
-        val ctx = packetContextFor(frame, inPort)
+        val context = packetContextFor(frame, inPort)
         force {
             flushTransactions(conntrackTx, natTx)
-            ctx.state.clear()
-            (ctx, device.process(ctx))
+            context.state.clear()
+            (context, device.process(context))
         }
     }
 
