@@ -47,8 +47,6 @@ class Router(override val id: UUID,
     override def isValidEthertype(ether: Short) =
         ether == IPv4.ETHERTYPE || ether == ARP.ETHERTYPE
 
-    override def unsupportedPacketAction = NotIPv4Action
-
     private def processArp(pkt: IPacket, inPort: RouterPort)
                           (implicit context: PacketContext): Action =
         pkt match {
