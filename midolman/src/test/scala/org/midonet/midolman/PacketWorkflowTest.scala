@@ -74,7 +74,8 @@ object PacketWorkflowTest {
         }
         val dpState = new DatapathStateManager(null)(null, null)
         val wcMatch = pkt.getMatch
-        val pktCtx = new PacketContext(Left(cookie), pkt, None, wcMatch)
+        val pktCtx = new PacketContext(cookie, pkt, wcMatch)
+        pktCtx.callbackExecutor = CallbackExecutor.Immediate
         pktCtx.initialize(new FlowStateTransaction(conntrackTable),
                           new FlowStateTransaction(natTable),
                           HappyGoLuckyLeaser)
@@ -98,7 +99,6 @@ object PacketWorkflowTest {
                           callbacks: ArrayList[Callback0]): Unit = { }
         }
         val wf = new PacketWorkflow(dpState, null, null, dpChannel,
-                                    CallbackExecutor.Immediate,
                                     new ActionsCache(4, CallbackExecutor.Immediate,
                                                      log = NoLogging),
                                     replicator) {

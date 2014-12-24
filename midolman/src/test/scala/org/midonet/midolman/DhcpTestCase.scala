@@ -31,7 +31,7 @@ import org.midonet.cluster.data.dhcp.Subnet
 import org.midonet.cluster.data.host.Host
 import org.midonet.cluster.data.ports.BridgePort
 import org.midonet.cluster.data.{TunnelZone, Bridge, Router}
-import org.midonet.midolman.DeduplicationActor.{HandlePackets, EmitGeneratedPacket}
+import org.midonet.midolman.DeduplicationActor.HandlePackets
 import org.midonet.midolman.PacketWorkflow.PacketIn
 import org.midonet.midolman.util.guice.OutgoingMessage
 import org.midonet.midolman.host.interfaces.InterfaceDescription
@@ -329,14 +329,14 @@ class DhcpTestCase extends MidolmanTestCase
     def testMultipleSubnets() {
         injectDhcpDiscover(vm1PortName, vm1Mac)
         requestOfType[PacketIn](packetInProbe)
-        var returnPkt = fishForRequestOfType[EmitGeneratedPacket](dedupProbe()).eth
+        var returnPkt = requestOfType[PacketsExecute](packetsEventsProbe).packet.getEthernet
         extractDhcpReply(returnPkt)
             .getServerIPAddress should be (routerIp2.getIntAddress)
         drainProbes()
 
         injectDhcpDiscover(vm2PortName, vm2Mac)
         requestOfType[PacketIn](packetInProbe)
-        returnPkt = fishForRequestOfType[EmitGeneratedPacket](dedupProbe()).eth
+        returnPkt = requestOfType[PacketsExecute](packetsEventsProbe).packet.getEthernet
         extractDhcpReply(returnPkt)
             .getServerIPAddress should be (routerIp3.getIntAddress)
         drainProbes()

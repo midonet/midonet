@@ -35,8 +35,6 @@ object CallbackExecutor {
             }
         }
     }
-
-    case object CheckCallbacks
 }
 
 sealed class CallbackExecutor(capacity: Int, alert: ActorRef)
@@ -53,7 +51,7 @@ sealed class CallbackExecutor(capacity: Int, alert: ActorRef)
             }
             i += 1
         }
-        alert ! CallbackExecutor.CheckCallbacks
+        alert ! CheckBackchannels
     }
 
     def run(): Unit = {

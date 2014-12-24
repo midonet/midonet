@@ -22,11 +22,11 @@ import scala.concurrent.ExecutionContext
 import akka.actor.ActorSystem
 
 import org.midonet.midolman.topology.devices.{Port, RouterPort}
-import org.midonet.midolman.{NotYetException, PacketsEntryPoint}
-import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
+import org.midonet.midolman.NotYetException
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.rules.RuleResult
 import org.midonet.midolman.simulation.Coordinator._
+import org.midonet.midolman.simulation.PacketEmitter.GeneratedPacket
 import org.midonet.midolman.topology.VirtualTopologyActor._
 import org.midonet.midolman.topology._
 import org.midonet.odp.flows.FlowKeys
@@ -116,17 +116,16 @@ class Router(override val id: UUID,
             return
         }
 
+        val packetEmitter = context.packetEmitter
         // Attempt to refresh the router's arp table.
         arpTable.setAndGet(spa, pkt.getSenderHardwareAddress, inPort).onSuccess { case _ =>
-            context.log.debug("replying to ARP request from {} for {} with own mac {}",
-                Array[Object](spa, tpa, inPort.portMac))
+            context.log.debug(s"replying to ARP request from $spa for $tpa " +
+                              s"with own mac ${inPort.portMac}")
 
             // Construct the reply, reversing src/dst fields from the request.
             val eth = ARP.makeArpReply(inPort.portMac, sha,
                 pkt.getTargetProtocolAddress, pkt.getSenderProtocolAddress)
-            PacketsEntryPoint ! EmitGeneratedPacket(
-                inPort.id, eth,
-                if (context != null) context.flowCookie else None)
+            packetEmitter.schedule(GeneratedPacket(inPort.id, eth))
         }(ExecutionContext.callingThread)
     }
 
@@ -328,8 +327,8 @@ class Router(override val id: UUID,
                     eth.setDestinationMACAddress(mac)
                     // Apply post-routing (egress) chain.
                     val egrMatch = new FlowMatch(FlowKeys.fromEthernetPacket(eth))
-                    val egrPktContext = new PacketContext(
-                        Right(outPort.id), new Packet(eth, egrMatch), None, egrMatch)
+                    val egrPktContext = new PacketContext(0,
+                        new Packet(eth, egrMatch), egrMatch, outPort.id)
                     egrPktContext.outPortId = outPort.id
 
                     // Try to apply the outFilter
@@ -342,10 +341,7 @@ class Router(override val id: UUID,
                     _applyPostActions(eth, postRoutingResult, egrPktContext)
                     postRoutingResult.action match {
                         case RuleResult.Action.ACCEPT =>
-                            val cookie = if (context == null) None
-                                         else context.flowCookie
-                            PacketsEntryPoint !
-                            EmitGeneratedPacket(rt.nextHopPort, eth, cookie)
+                            context.addGeneratedPacket(rt.nextHopPort, eth)
                         case RuleResult.Action.DROP =>
                         case RuleResult.Action.REJECT =>
                         case other =>
