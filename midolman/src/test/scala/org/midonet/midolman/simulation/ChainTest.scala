@@ -53,7 +53,7 @@ class ChainTest extends Suite
         pktMatch.setEthDst("01:02:03:04:05:06")
         pktMatch.setNetworkDst(IPAddr.fromString("1.2.3.4"))
 
-        pktCtx = new PacketContext(Left(1), null, None, pktMatch)
+        pktCtx = new PacketContext(1, null, pktMatch)
     }
 
     def testNullChain() {

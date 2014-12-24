@@ -25,7 +25,6 @@ import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.data.{Bridge => ClusterBridge, Router => ClusterRouter, Entity, Port}
 import org.midonet.midolman._
-import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
 import org.midonet.midolman.PacketWorkflow.{TemporaryDrop, SimulationResult}
 import org.midonet.midolman.rules.FragmentPolicy
 import org.midonet.midolman.rules.FragmentPolicy._
@@ -180,7 +179,7 @@ class IPFragmentationTest extends MidolmanSpec {
             assertDropFlowCreated(simRes, temporary = true)
 
             And("An ICMP_FRAG_NEEDED message should be received.")
-            assertIcmpFragNeededMessageReceived()
+            assertIcmpFragNeededMessageReceived(simRes._2)
         }
 
         scenario("Nonheader fragments silently dropped by router") {
@@ -249,14 +248,13 @@ class IPFragmentationTest extends MidolmanSpec {
             FlowTagger.tagForDevice(device.getId))
     }
 
-    private def assertIcmpFragNeededMessageReceived() {
-        PacketsEntryPoint.messages should not be empty
-        val msg = PacketsEntryPoint.messages.head.asInstanceOf[EmitGeneratedPacket]
-        msg should not be null
+    private def assertIcmpFragNeededMessageReceived(context: PacketContext) {
+        context.packetEmitter.pendingPackets should be (1)
+        val generatedPacket = context.packetEmitter.poll()
 
-        msg.egressPort should be(srcPort.getId)
+        generatedPacket.egressPort should be(srcPort.getId)
 
-        val ipPkt = msg.eth.getPayload.asInstanceOf[IPv4]
+        val ipPkt = generatedPacket.eth.getPayload.asInstanceOf[IPv4]
         ipPkt should not be null
 
         ipPkt.getProtocol should be(ICMP.PROTOCOL_NUMBER)
