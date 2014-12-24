@@ -21,7 +21,6 @@ import java.util.UUID
 import scala.collection.JavaConversions._
 
 import akka.actor.ActorSystem
-
 import org.midonet.cluster.client._
 import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
 import org.midonet.midolman.PacketWorkflow._
@@ -30,7 +29,6 @@ import org.midonet.midolman.simulation.Icmp.IPv4Icmp._
 import org.midonet.midolman.state.FlowState
 import org.midonet.midolman.topology.VirtualTopologyActor._
 import org.midonet.midolman.{PacketWorkflow, PacketsEntryPoint}
-import org.midonet.odp.FlowMatch
 import org.midonet.odp.flows._
 import org.midonet.sdn.flows.VirtualActions.{FlowActionOutputToVrnBridge, FlowActionOutputToVrnPort}
 import org.midonet.sdn.flows.WildcardFlow
@@ -56,12 +54,6 @@ object Coordinator {
         override val temporary = true
     }
 
-    // NotIPv4Action implies a DROP flow. However, it differs from DropAction
-    // in that the installed flow match can have all fields >L2 wildcarded.
-    // TODO(pino): make the installed flow computation smarter so that it
-    // TODO:       wildcards any field that wasn't used by the simulation. Then
-    // TODO:       remove NotIPv4Action
-    case object NotIPv4Action extends Action
     case object ConsumedAction extends Action
 
     sealed trait ForwardAction extends Action
@@ -245,23 +237,6 @@ class Coordinator(context: PacketContext)
             case DropAction =>
                 log.debug("Device returned DropAction")
                 Drop
-
-            case NotIPv4Action =>
-                log.debug("Device returned NotIPv4Action")
-                    if (context.isGenerated) {
-                        NoOp
-                    } else {
-                        val notIPv4Match =
-                            new FlowMatch()
-                                .setEthSrc(
-                                        context.origMatch.getEthSrc)
-                                .setEthDst(
-                                        context.origMatch.getEthDst)
-                                .setEtherType(
-                                        context.origMatch.getEtherType)
-                        virtualWildcardFlowResult(
-                            WildcardFlow(wcmatch = notIPv4Match))
-                    }
 
             case action =>
                 log.error(s"Device returned unexpected action - $action")
