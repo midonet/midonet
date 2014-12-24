@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1af78d9a_5a8889e7",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/C3PODaemonTest.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 224,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-12-24T10:19:24Z",
+      "side": 1,
+      "message": "Using an in-memory database might be a better solution to this problem.\n\nhttps://www.sqlite.org/inmemorydb.html\n\nJust change dbName to \"taskdb?mode\u003dmemory\u0026cache\u003dshared\"\n\nThen there\u0027s no need to delete the database at all.",
+      "range": {
+        "startLine": 222,
+        "startChar": 12,
+        "endLine": 224,
+        "endChar": 28
+      },
+      "revId": "9867a76b91c8fd516e6c9382759b5fb0fb7986d0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_ba6c0d38",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/neutron/NeutronImporter.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-12-24T10:19:24Z",
+      "side": 1,
+      "message": "I was wrong about adding \"val\". Since public val is the default for fields in a case class, it\u0027s not needed.",
+      "range": {
+        "startLine": 39,
+        "startChar": 20,
+        "endLine": 39,
+        "endChar": 23
+      },
+      "revId": "9867a76b91c8fd516e6c9382759b5fb0fb7986d0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
