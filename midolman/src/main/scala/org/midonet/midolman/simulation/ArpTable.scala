@@ -23,11 +23,10 @@ import scala.concurrent.duration.Duration
 
 import akka.actor.ActorSystem
 import com.typesafe.scalalogging.Logger
-
 import org.midonet.cluster.client.{ArpCache, RouterPort}
 import org.midonet.midolman._
 import org.midonet.midolman.config.MidolmanConfig
-import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
+import org.midonet.midolman.simulation.PacketEmitter.GeneratedPacket
 import org.midonet.midolman.state.ArpCacheEntry
 import org.midonet.packets.{ARP, Ethernet, IPv4Addr, MAC}
 import org.midonet.util.UnixClock
@@ -168,14 +167,12 @@ class ArpTableImpl(val arpCache: ArpCache, cfg: MidolmanConfig,
             arpForAddress(ip, arpCacheEntry, port)
         }
 
-        // macPromise may complete with a Left(TimeoutException). Use
-        // fallbackTo so that exceptions don't escape the ArpTable class.
         if (arpCacheEntry != null && arpCacheEntry.macAddr != null &&
             arpCacheEntry.expiry >= clock.time) {
             arpCacheEntry.macAddr
         } else {
             throw new NotYetException(waitForArpEntry(ip, ARP_TIMEOUT_MILLIS).future,
-                             s"MAC for IP $ip unknown, suspending during ARP")
+                                      s"MAC for IP $ip unknown, suspending during ARP")
         }
     }
 
@@ -244,6 +241,7 @@ class ArpTableImpl(val arpCache: ArpCache, cfg: MidolmanConfig,
     private def arpForAddress(ip: IPv4Addr, entry: ArpCacheEntry,
                               port: RouterPort)
                              (implicit pktContext: PacketContext) {
+        val packetEmitter = pktContext.packetEmitter
         def retryLoopBottomHalf(cacheEntry: ArpCacheEntry, arp: Ethernet,
                                 previous: Long) {
             val now = clock.time
@@ -262,9 +260,11 @@ class ArpTableImpl(val arpCache: ArpCache, cfg: MidolmanConfig,
             cacheEntry.lastArp = now
             arpCache.add(ip, cacheEntry)
             log.debug("generateArpRequest: sending {}", arp)
-            PacketsEntryPoint !
-                    EmitGeneratedPacket(port.id, arp,
-                        if (pktContext != null) pktContext.flowCookie else None)
+
+            // If the queue of pending generated packets is full, we'll
+            // retry later.
+            packetEmitter.schedule(GeneratedPacket(port.id, arp))
+
             // we don't retry for stale entries.
             if (cacheEntry.macAddr == null) {
                 waitForArpEntry(ip, ARP_RETRY_MILLIS).future onFailure {

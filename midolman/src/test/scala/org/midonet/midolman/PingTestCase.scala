@@ -15,29 +15,24 @@
  */
 package org.midonet.midolman
 
-import scala.Some
 import scala.collection.JavaConversions._
-import scala.collection.mutable.{ListBuffer, HashMap}
+import scala.collection.mutable.{HashMap, ListBuffer}
 
 import org.junit.experimental.categories.Category
 import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
-import org.slf4j.LoggerFactory
-
-import org.midonet.cluster.data.dhcp.Opt121
-import org.midonet.cluster.data.dhcp.Subnet
+import org.midonet.cluster.data.dhcp.{Opt121, Subnet}
 import org.midonet.cluster.data.ports.{BridgePort, RouterPort}
 import org.midonet.midolman.DeduplicationActor.DiscardPacket
-import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.layer3.Route.NextHop
 import org.midonet.midolman.topology.LocalPortActive
 import org.midonet.midolman.topology.VirtualToPhysicalMapper.HostRequest
-import org.midonet.midolman.util.MidolmanTestCase
-import org.midonet.midolman.util.RouterHelper
+import org.midonet.midolman.util.{MidolmanTestCase, RouterHelper}
 import org.midonet.midolman.util.guice.OutgoingMessage
-import org.midonet.odp.flows.{FlowAction, FlowActionOutput}
+import org.midonet.odp.flows.FlowActionOutput
 import org.midonet.packets._
+import org.scalatest.junit.JUnitRunner
+import org.slf4j.LoggerFactory
 
 @Category(Array(classOf[SimulationTests]))
 @RunWith(classOf[JUnitRunner])
@@ -230,7 +225,7 @@ class PingTestCase extends MidolmanTestCase
     }
 
     private def expectEmitDhcpReply(expectedMsgType : Byte) = {
-        val returnPkt = fishForRequestOfType[EmitGeneratedPacket](dedupProbe()).eth
+        val returnPkt = fishForRequestOfType[PacketsExecute](packetsEventsProbe).packet.getEthernet
         returnPkt.getEtherType should be (IPv4.ETHERTYPE)
         val ipPkt = returnPkt.getPayload.asInstanceOf[IPv4]
         ipPkt.getProtocol should be (UDP.PROTOCOL_NUMBER)
@@ -270,13 +265,12 @@ class PingTestCase extends MidolmanTestCase
 
         log.info("Check ICMP Echo Reply")
 
-        val pkt = fishForRequestOfType[EmitGeneratedPacket](dedupProbe()).eth
+        val pkt = requestOfType[PacketsExecute](packetsEventsProbe).packet.getEthernet
 
         // Due to timing issues (how long it takes for ARP entry to be stored
         // on router side), we may get an ARP message before the ICMP message
         if (pkt.getEtherType == ARP.ETHERTYPE){
             log.info("Got an ARP, ignore")
-            expectPacketOut(getPortNumber(fromPort))
             // Ignore this ARP packet and do a regular expect emit ICMP
             expectEmitIcmp(dstMac, dstIp, srcMac, srcIp,
                            ICMP.TYPE_ECHO_REPLY, ICMP.CODE_NONE)
@@ -287,7 +281,6 @@ class PingTestCase extends MidolmanTestCase
                                      ICMP.TYPE_ECHO_REPLY, ICMP.CODE_NONE, pkt)
         }
 
-        expectPacketOut(getPortNumber(fromPort))
         fishForRequestOfType[DiscardPacket](discardPacketProbe)
         drainProbes()
     }
@@ -301,7 +294,6 @@ class PingTestCase extends MidolmanTestCase
         log.info("Expecting MidoNet to respond with DHCP offer")
         // verify DHCP OFFER
         expectEmitDhcpReply(DHCPOption.MsgType.OFFER.value)
-        expectPacketOut(vm2PortNumber)
 
         log.info("Got DHCPOFFER, broadcast DHCP Request")
         injectDhcpRequest(vm2PortName, vm2Mac)
@@ -309,7 +301,6 @@ class PingTestCase extends MidolmanTestCase
         log.info("Expecting MidoNet to respond with DHCP Reply/Ack")
         // verify DHCP Reply
         expectEmitDhcpReply(DHCPOption.MsgType.ACK.value)
-        expectPacketOut(vm2PortNumber)
 
         val vm2IpInt = vm2Ip.getAddress.addr
         dhcpClientIp should be (vm2IpInt)
@@ -334,8 +325,8 @@ class PingTestCase extends MidolmanTestCase
         expectPacketIn()
         // This generated packet is an ARP request, the ICMP echo will not be
         // delivered because this ARP will go unanswered
-        fishForRequestOfType[EmitGeneratedPacket](dedupProbe())
-        expectPacketOut(rtrPort1Num)
+        val packet = fishForRequestOfType[PacketsExecute](packetsEventsProbe).packet.getEthernet
+        packet.getEtherType should be (ARP.ETHERTYPE)
         drainProbes()
 
         log.info("Send Ping reply on behalf of VM1")
