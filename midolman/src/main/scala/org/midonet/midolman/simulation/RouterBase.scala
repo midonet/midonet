@@ -53,8 +53,6 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
     val routeBalancer = new RouteBalancer(rTable)
     val deviceTag = FlowTagger.tagForDevice(id)
 
-    protected def unsupportedPacketAction: Action
-
     /**
      * Process the packet. Will validate first the ethertype and ensure that
      * traffic is not vlan-tagged.
@@ -77,7 +75,7 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
 
         if (!isValidEthertype(context.wcmatch.getEtherType)) {
             context.log.debug(s"Dropping unsupported EtherType ${context.wcmatch.getEtherType}")
-            return unsupportedPacketAction
+            return DropAction
         }
 
         tryAsk[RouterPort](context.inPortId) match {
