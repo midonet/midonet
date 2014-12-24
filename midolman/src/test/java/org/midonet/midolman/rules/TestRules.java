@@ -185,13 +185,13 @@ public class TestRules {
 
     @Before
     public void setup() {
-        pktCtx = new PacketContext(new Left<Object, UUID>(1),
-                                   null, Option.empty(), pktMatch, ActorSystem$.MODULE$.create());
+        pktCtx = new PacketContext(1, null, pktMatch, null,
+                                   ActorSystem$.MODULE$.create());
         @SuppressWarnings("unchecked")
         ShardedFlowStateTable<ConnTrackState.ConnTrackKey, Boolean> shardedConntrack =
                 ShardedFlowStateTable.create();
-        pktCtx = new PacketContext(new Left<Object, UUID>(1),
-                null, Option.empty(), pktMatch, ActorSystem$.MODULE$.create());
+        pktCtx = new PacketContext(1, null, pktMatch, null,
+                                   ActorSystem$.MODULE$.create());
         FlowStateTable<ConnTrackState.ConnTrackKey, Boolean> conntrackTable =
                 shardedConntrack.addShard(Logger$.MODULE$.apply(NOPLogger.NOP_LOGGER));
         ShardedFlowStateTable<NatState.NatKey, NatState.NatBinding> shardedNat =

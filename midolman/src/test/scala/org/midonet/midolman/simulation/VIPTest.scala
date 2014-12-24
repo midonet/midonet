@@ -18,20 +18,17 @@ package org.midonet.midolman.simulation
 
 import java.util.UUID
 
-import compat.Platform
 import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
-
-import org.midonet.cluster.data.l4lb
 import org.midonet.midolman.util.MidolmanTestCase
-import org.midonet.packets.{TCP, UDP, IPv4Addr}
+import org.midonet.packets.{IPv4Addr, TCP, UDP}
 import org.midonet.sdn.flows.WildcardMatch
+import org.scalatest.junit.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
 class VIPTest extends MidolmanTestCase {
 
     def testVipMatching() {
-        import VIPTest.createTestVip
+        import org.midonet.midolman.simulation.VIPTest.createTestVip
         val addr1 = IPv4Addr.fromString("10.0.0.1")
         val port1 = 22
 
@@ -43,12 +40,10 @@ class VIPTest extends MidolmanTestCase {
                 .setDstPort(port1)
                 .setNetworkProto(TCP.PROTOCOL_NUMBER)
 
-        val tcpContext = new PacketContext(Left(1), null, None,
-                                           tcpIngressMatch)(actors)
+        val tcpContext = new PacketContext(1, null, tcpIngressMatch)(actors)
 
         val udpIngressMatch = tcpIngressMatch.clone().setNetworkProto(UDP.PROTOCOL_NUMBER)
-        val udpContext = new PacketContext(Left(1), null, None,
-                                           udpIngressMatch)(actors)
+        val udpContext = new PacketContext(1, null, udpIngressMatch)(actors)
 
         // Admin state up VIP with same addr / port should match
         val vip1Up = createTestVip(true, addr1, port1)

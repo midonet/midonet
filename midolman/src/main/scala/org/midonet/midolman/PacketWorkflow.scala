@@ -17,20 +17,17 @@ package org.midonet.midolman
 
 import java.util.{UUID, List => JList}
 
-import org.midonet.midolman.PacketWorkflow.{TemporaryDrop, PipelinePath}
-
 import scala.collection.JavaConversions._
 import scala.reflect.ClassTag
 
 import akka.actor._
-
 import com.typesafe.scalalogging.Logger
-import org.midonet.sdn.flows.WildcardMatch.Field
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.DataClient
 import org.midonet.cluster.client.Port
 import org.midonet.midolman.DeduplicationActor.ActionsCache
+import org.midonet.midolman.PacketWorkflow.{PipelinePath, TemporaryDrop}
 import org.midonet.midolman.datapath.DatapathChannel
 import org.midonet.midolman.simulation.{Coordinator, DhcpImpl, PacketContext}
 import org.midonet.midolman.state.FlowStateReplicator
@@ -40,6 +37,7 @@ import org.midonet.odp.flows._
 import org.midonet.packets._
 import org.midonet.sdn.flows.{FlowTagger, WildcardFlow, WildcardMatch}
 import org.midonet.sdn.flows.FlowTagger.tagForDpPort
+import org.midonet.sdn.flows.WildcardMatch.Field
 
 trait PacketHandler {
     def start(context: PacketContext): PacketWorkflow.PipelinePath
@@ -127,15 +125,13 @@ class PacketWorkflow(protected val dpState: DatapathState,
                      val datapath: Datapath,
                      val dataClient: DataClient,
                      val dpChannel: DatapathChannel,
-                     val cbExecutor: CallbackExecutor,
                      val actionsCache: ActionsCache,
                      val replicator: FlowStateReplicator)
                     (implicit val system: ActorSystem)
         extends FlowTranslator with PacketHandler with UnderlayTrafficHandler {
 
-    import DeduplicationActor._
-    import FlowController.{AddWildcardFlow, FlowAdded}
-    import PacketWorkflow._
+    import org.midonet.midolman.FlowController.{AddWildcardFlow, FlowAdded}
+    import org.midonet.midolman.PacketWorkflow._
 
     val ERROR_CONDITION_HARD_EXPIRATION = 10000
 
@@ -247,7 +243,7 @@ class PacketWorkflow(protected val dpState: DatapathState,
             idleExpirationMillis = context.idleExpirationMillis,
             actions = context.flowActions.toList,
             priority = 0,
-            cbExecutor = cbExecutor)
+            cbExecutor = context.callbackExecutor)
 
         if (context.wcmatch.userspaceFieldsSeen) {
             logResultNewFlow("will create userspace flow", context, wildFlow)
@@ -395,7 +391,7 @@ class PacketWorkflow(protected val dpState: DatapathState,
                 PacketIn(context.origMatch.clone(), context.inputPort,
                          packet.getEthernet,
                          packet.getMatch, packet.getReason,
-                         context.cookieOrEgressPort.left getOrElse 0))
+                         context.cookie))
 
             if (handleDHCP(context)) {
                 NoOp
@@ -453,8 +449,7 @@ class PacketWorkflow(protected val dpState: DatapathState,
             case Some(dhcpReply) =>
                 context.log.debug(
                     "sending DHCP reply {} to port {}", dhcpReply, inPort.id)
-                PacketsEntryPoint !
-                    EmitGeneratedPacket(inPort.id, dhcpReply, context.flowCookie)
+                context.addGeneratedPacket(inPort.id, dhcpReply)
                 true
             case None =>
                 false
