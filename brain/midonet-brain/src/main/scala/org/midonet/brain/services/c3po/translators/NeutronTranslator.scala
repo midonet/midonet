@@ -14,14 +14,17 @@
  * limitations under the License.
  */
 
-package org.midonet.brain.services.c3po
+package org.midonet.brain.services.c3po.translators
+
+import scala.util.control.NonFatal
 
 import com.google.protobuf.Message
 
 import org.midonet.brain.services.c3po.C3POStorageManager.Operation
 import org.midonet.brain.services.c3po.midonet.MidoOp
+import org.midonet.brain.services.c3po.neutron
 import org.midonet.brain.services.c3po.neutron.NeutronOp
-import org.midonet.cluster.models.Commons
+import org.midonet.cluster.models.Commons.UUID
 
 /** Defines a class that is able to translate from an operation on the Neutron
   * model to a set of operations on the MidoNet model. */
@@ -31,17 +34,23 @@ trait NeutronTranslator[NeutronModel <: Message] {
       * to a different model that represent the complete translation of the
       * first to the latter. */
     @throws[TranslationException]
-    def translate(op: neutron.NeutronOp[NeutronModel]): List[Operation[_]]
-
-    /** Unified exception handling. */
-    protected def processExceptions(e: Throwable, op: neutron.NeutronOp[_]) = {
-        throw new TranslationException(op, e)
+    def translate(op: NeutronOp[NeutronModel]): List[Operation[_]] = try {
+        op match {
+            case neutron.Create(nm) => translateCreate(nm)
+            case neutron.Update(nm) => translateUpdate(nm)
+            case neutron.Delete(_, id) => translateDelete(id)
+        }
+    } catch {
+        case NonFatal(ex) => throw new TranslationException(op, ex)
     }
 
+    protected def translateCreate(nm: NeutronModel): List[MidoOp[_ <: Message]]
+    protected def translateUpdate(nm: NeutronModel): List[MidoOp[_ <: Message]]
+    protected def translateDelete(id: UUID): List[MidoOp[_ <: Message]]
 }
 
 /** Thrown by by implementations when they fail to perform the requested
   * operation on the source model. */
 class TranslationException(val op: neutron.NeutronOp[_],
-                           val cause: Throwable = null, val msg: String = "")
+                           val cause: Throwable = null, val msg: String = null)
     extends RuntimeException (s"Failed to $op; $msg", cause)

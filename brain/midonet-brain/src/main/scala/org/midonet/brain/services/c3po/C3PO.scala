@@ -23,16 +23,11 @@ import com.google.protobuf.Message
 import org.apache.curator.framework.recipes.leader.LeaderLatch
 
 import org.midonet.brain.services.c3po.NeutronDeserializer.toMessage
+import org.midonet.brain.services.c3po.translators._
 import org.midonet.brain.{ScheduledClusterMinion, ScheduledMinionConfig}
 import org.midonet.cluster.data.neutron.{SqlNeutronImporter, importer}
 import org.midonet.cluster.data.storage.Storage
-import org.midonet.cluster.models.Neutron.FloatingIp
-import org.midonet.cluster.models.Neutron.NeutronHealthMonitor
-import org.midonet.cluster.models.Neutron.NeutronLoadBalancerPool
-import org.midonet.cluster.models.Neutron.NeutronLoadBalancerPoolHealthMonitor
-import org.midonet.cluster.models.Neutron.NeutronLoadBalancerPoolMember
-import org.midonet.cluster.models.Neutron.NeutronNetwork
-import org.midonet.cluster.models.Neutron.VIP
+import org.midonet.cluster.models.Neutron._
 import org.midonet.cluster.util.UUIDUtil
 import org.midonet.config._
 
@@ -99,22 +94,20 @@ class C3PO @Inject()(config: C3POConfig,
 
     private def initDataManager(): C3POStorageManager = {
         val dataMgr = new C3POStorageManager(storage)
-        dataMgr.registerTranslator(classOf[NeutronNetwork],
-                                   new NetworkTranslator)
-        dataMgr.registerTranslator(classOf[FloatingIp],
-                                   new FloatingIpTranslator)
-        dataMgr.registerTranslator(classOf[NeutronHealthMonitor],
-                                   new HealthMonitorTranslator)
-        dataMgr.registerTranslator(classOf[NeutronLoadBalancerPool],
-                                   new NeutronLoadBalancerPoolTranslator)
-        dataMgr.registerTranslator(
-                classOf[NeutronLoadBalancerPoolHealthMonitor],
-                new NeutronLoadBalancerPoolHealthMonitorTranslator)
-        dataMgr.registerTranslator(
-                classOf[NeutronLoadBalancerPoolMember],
-                new NeutronLoadBalancerPoolMemberTranslator)
-        dataMgr.registerTranslator(classOf[VIP],
-                                   new VipTranslator)
+        List(classOf[FloatingIp] -> new FloatingIpTranslator,
+             classOf[NeutronHealthMonitor] -> new HealthMonitorTranslator,
+             classOf[NeutronLoadBalancerPool] -> new LoadBalancerPoolTranslator,
+             classOf[NeutronLoadBalancerPoolHealthMonitor] ->
+                new LoadBalancerPoolHealthMonitorTranslator,
+             classOf[NeutronLoadBalancerPoolMember] ->
+                new LoadBalancerPoolMemberTranslator,
+             classOf[NeutronNetwork] -> new NetworkTranslator,
+             classOf[NeutronRouter] -> new RouterTranslator,
+             classOf[NeutronSubnet] -> new SubnetTranslator,
+             classOf[NeutronPort] -> new PortTranslator,
+             classOf[VIP] -> new VipTranslator
+        ).asInstanceOf[List[(Class[Message], NeutronTranslator[Message])]]
+         .foreach(pair => dataMgr.registerTranslator(pair._1, pair._2))
 
         dataMgr.init()
         dataMgr

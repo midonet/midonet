@@ -14,16 +14,22 @@
  * limitations under the License.
  */
 
-package org.midonet.brain.services.c3po
+package org.midonet.brain.services.c3po.translators
 
+import com.google.protobuf.Message
+
+import org.midonet.brain.services.c3po.midonet.MidoOp
+import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.Neutron.VIP
 
 /** Provides a Neutron model translator for VIP. */
 class VipTranslator extends NeutronTranslator[VIP]{
-    @throws[TranslationException]
-    override def translate(op: neutron.NeutronOp[VIP])
-    : List[midonet.MidoOp[_]] = {
-        // TODO Implement!
-        List()
-    }
+    override protected def translateCreate(nm: VIP)
+    : List[MidoOp[_ <: Message]] = List()
+
+    override protected def translateDelete(id: UUID)
+    : List[MidoOp[_ <: Message]] = List()
+
+    override protected def translateUpdate(nm: VIP)
+    : List[MidoOp[_ <: Message]] = List()
 }

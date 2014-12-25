@@ -14,18 +14,24 @@
  * limitations under the License.
  */
 
-package org.midonet.brain.services.c3po
+package org.midonet.brain.services.c3po.translators
 
+import com.google.protobuf.Message
+
+import org.midonet.brain.services.c3po.midonet.MidoOp
+import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.Neutron.NeutronLoadBalancerPoolMember
 
 /** Provides a Neutron model translator for NeutronLoadBalancerPoolMember. */
-class NeutronLoadBalancerPoolMemberTranslator
+class LoadBalancerPoolMemberTranslator
         extends NeutronTranslator[NeutronLoadBalancerPoolMember]{
 
-    @throws[TranslationException]
-    override def translate(op: neutron.NeutronOp[NeutronLoadBalancerPoolMember])
-    : List[midonet.MidoOp[_]] = {
-        // TODO Implement!
-        List()
-    }
+    override protected def translateCreate(nm: NeutronLoadBalancerPoolMember)
+    : List[MidoOp[_ <: Message]] = List()
+
+    override protected def translateDelete(id: UUID)
+    : List[MidoOp[_ <: Message]] = List()
+
+    override protected def translateUpdate(nm: NeutronLoadBalancerPoolMember)
+    : List[MidoOp[_ <: Message]] = List()
 }

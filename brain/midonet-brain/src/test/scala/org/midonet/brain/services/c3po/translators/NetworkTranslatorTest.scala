@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.brain.services.c3po
+package org.midonet.brain.services.c3po.translators
 
 import org.junit.runner.RunWith
 import org.mockito.Mockito.mock
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{FlatSpec, Matchers}
 
+import org.midonet.brain.services.c3po.{midonet, neutron}
 import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.models.Neutron.NeutronNetwork
 import org.midonet.cluster.models.Topology.Network

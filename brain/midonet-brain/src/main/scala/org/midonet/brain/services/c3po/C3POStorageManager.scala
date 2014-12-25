@@ -26,6 +26,7 @@ import com.google.protobuf.Message
 
 import org.slf4j.LoggerFactory
 
+import org.midonet.brain.services.c3po.translators.{TranslationException, NeutronTranslator}
 import org.midonet.cluster.data.storage._
 import org.midonet.cluster.models.C3PO.C3POState
 import org.midonet.cluster.util.UUIDUtil.toProto
