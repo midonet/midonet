@@ -2,6 +2,23 @@
   "comments": [
     {
       "key": {
+        "uuid": "1af78d9a_c5ae5ee7",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/StorageModule.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-12-25T08:44:45Z",
+      "side": 1,
+      "message": "This needs to go away.",
+      "revId": "8c9cdace5bc9b515062357ff6ade135f9b5a2d53",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1af78d9a_454d4e72",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/NeutronImporter.scala",
         "patchSetId": 1
@@ -47,6 +64,24 @@
       "writtenOn": "2014-12-25T03:35:51Z",
       "side": 1,
       "message": "Doesn\u0027t this add extra empty spaces at the end if o is a text string that ends with a new line?",
+      "revId": "8c9cdace5bc9b515062357ff6ade135f9b5a2d53",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_a5c0727d",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/StringUtils.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-12-25T08:44:45Z",
+      "side": 1,
+      "message": "Yes, but I think that\u0027s fine. Strings rarely end with a newline, and this is mostly for logging purposes. I don\u0027t really see a good way to deal with it. I could use regular expressions, but that would probably be a lot slower.",
+      "parentUuid": "1af78d9a_85573602",
       "revId": "8c9cdace5bc9b515062357ff6ade135f9b5a2d53",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
