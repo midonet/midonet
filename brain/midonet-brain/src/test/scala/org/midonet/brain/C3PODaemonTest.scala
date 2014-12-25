@@ -25,8 +25,6 @@ import java.util.concurrent.TimeUnit
 
 import javax.sql.DataSource
 
-import scala.concurrent.{Await, ExecutionContext, Future}
-import scala.concurrent.duration.Duration
 import scala.util.Random
 import scala.util.control.NonFatal
 
@@ -55,6 +53,7 @@ import org.midonet.cluster.data.storage.Storage
 import org.midonet.cluster.util.UUIDUtil
 import org.midonet.cluster.models.Topology.Network
 import org.midonet.config.ConfigProvider
+import org.midonet.util.concurrent.toFutureOps
 
 /**
  * Tests the Neutron data importer daemon.
@@ -142,9 +141,6 @@ class C3PODaemonTest extends FlatSpec with BeforeAndAfter with Matchers {
         config.setProperty("password", "")
         config
     }
-
-    def await[T](f: Future[T]) =
-        Await.result(f, Duration.create(1, TimeUnit.SECONDS))
 
     private def executeSqlStmts(sqls: String*) {
         var c: Connection = null
@@ -244,15 +240,15 @@ class C3PODaemonTest extends FlatSpec with BeforeAndAfter with Matchers {
     "C3PO" should "poll DB and update ZK via C3POStorageMgr" in {
         val sleadSleepMs = 2000
         // Initially the Storage is empty.
-        await(storage.exists(classOf[Network], network1Uuid)) should be (false)
+        storage.exists(classOf[Network], network1Uuid).await() should be (false)
 
         // Creates Network 1
         executeSqlStmts(insertMidoNetTaskSql(
                 2, Create, NetworkType, network1Json, network1Uuid, "tx1"))
         Thread.sleep(sleadSleepMs)
 
-        await(storage.exists(classOf[Network], network1Uuid)) should be (true)
-        val network1 = await(storage.get(classOf[Network], network1Uuid))
+        storage.exists(classOf[Network], network1Uuid).await() should be (true)
+        val network1 = storage.get(classOf[Network], network1Uuid).await()
         network1.getId should be (UUIDUtil.toProto(network1Uuid))
         network1.getName should be ("private-network")
         network1.getAdminStateUp should be (true)
@@ -265,11 +261,11 @@ class C3PODaemonTest extends FlatSpec with BeforeAndAfter with Matchers {
                                      network1Uuid, "tx2"))
         Thread.sleep(sleadSleepMs)
 
-        await(storage.exists(classOf[Network], network2Uuid)) should be (true)
-        val network2 = await(storage.get(classOf[Network], network2Uuid))
+        storage.exists(classOf[Network], network2Uuid).await() should be (true)
+        val network2 = storage.get(classOf[Network], network2Uuid).await()
         network2.getId should be (UUIDUtil.toProto(network2Uuid))
         network2.getName should be ("corporate-network")
-        val network1a = await(storage.get(classOf[Network], network1Uuid))
+        val network1a = storage.get(classOf[Network], network1Uuid).await()
         network1a.getId should be (UUIDUtil.toProto(network1Uuid))
         network1a.getName should be ("public-network")
         network1a.getAdminStateUp should be (false)
@@ -279,7 +275,7 @@ class C3PODaemonTest extends FlatSpec with BeforeAndAfter with Matchers {
                 5, Delete, NetworkType, "", network1Uuid, "tx3"))
         Thread.sleep(sleadSleepMs)
 
-        await(storage.exists(classOf[Network], network1Uuid)) should be (false)
+        storage.exists(classOf[Network], network1Uuid).await() should be (false)
 
         // Truncates the Task table and flushes the Storage.
         executeSqlStmts(TRUNCATE_TASK_TABLE,
@@ -287,7 +283,7 @@ class C3PODaemonTest extends FlatSpec with BeforeAndAfter with Matchers {
                                 1, Flush, NoData, "", null, "tx4"))
         Thread.sleep(sleadSleepMs)
 
-        await(storage.exists(classOf[Network], network2Uuid)) should be (false)
+        storage.exists(classOf[Network], network2Uuid).await() should be (false)
 
         // Can create Network 1 & 2 again.
         executeSqlStmts(
@@ -297,7 +293,7 @@ class C3PODaemonTest extends FlatSpec with BeforeAndAfter with Matchers {
                                      network2Uuid, "tx5"))
         Thread.sleep(sleadSleepMs)
 
-        await(storage.exists(classOf[Network], network1Uuid)) should be (true)
-        await(storage.exists(classOf[Network], network2Uuid)) should be (true)
+        storage.exists(classOf[Network], network1Uuid).await() should be (true)
+        storage.exists(classOf[Network], network2Uuid).await() should be (true)
     }
 }
