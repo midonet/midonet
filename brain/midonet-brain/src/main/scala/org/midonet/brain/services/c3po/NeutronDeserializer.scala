@@ -77,7 +77,7 @@ object NeutronDeserializer {
                 case FieldType.INT32 => (n: JsonNode) => n.asInt
                 case FieldType.MESSAGE => parseNestedMsg(fd.getMessageType) _
                 case FieldType.STRING => (n: JsonNode) => n.asText
-                case FieldType.UINT32 => (n: JsonNode) => n.asLong
+                case FieldType.UINT32 => (n: JsonNode) => n.asInt
                 // Those are the only types we currently use. May need to add
                 // others as we implement more Neutron types.
                 case _ => throw new NeutronDeserializationException(
