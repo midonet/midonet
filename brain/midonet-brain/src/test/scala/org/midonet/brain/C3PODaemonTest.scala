@@ -17,7 +17,6 @@
 package org.midonet.brain
 
 import java.io.PrintWriter
-import java.nio.file.{FileSystems, Files, Paths}
 import java.sql.Connection
 import java.sql.DriverManager
 import java.util.UUID
@@ -64,8 +63,8 @@ class C3PODaemonTest extends FlatSpec with BeforeAndAfter with Matchers {
 
     private val zkPort = 50000 + Random.nextInt(15000)
     private val zkHost = s"127.0.0.1:$zkPort"
-    private val dbFile = "taskdb?mode=memory&cache=shared"
-    private val dbConnectStr = s"jdbc:sqlite:$dbFile"
+    private val dbName = "taskdb"
+    private val dbConnectStr = s"jdbc:sqlite:file:$dbName?mode=memory&cache=shared"
     private val dbDriver = "org.sqlite.JDBC"
 
     private val CREATE_TASK_TABLE =
@@ -107,6 +106,10 @@ class C3PODaemonTest extends FlatSpec with BeforeAndAfter with Matchers {
         override def isWrapperFor(clazz: Class[_]) = false
         override def unwrap[T](x: Class[T]): T = null.asInstanceOf[T]
     }
+
+    // We need to keep one connection open to maintain the shared
+    // in-memory DB during the test.
+    private val dummyConnection = dataSrc.getConnection()
 
     private val clusterNodeTestModule = new AbstractModule {
         override def configure(): Unit = {
@@ -235,6 +238,8 @@ class C3PODaemonTest extends FlatSpec with BeforeAndAfter with Matchers {
         } finally {
             zk.stop()
         }
+
+        if (dummyConnection != null) dummyConnection.close()
     }
 
     "C3PO" should "poll DB and update ZK via C3POStorageMgr" in {
