@@ -77,7 +77,7 @@ message NeutronPort {
         ROUTER_GW = 2;
         ROUTER_INTF = 3;
     }
-    optional string device_owner = 8;
+    optional DeviceOwner device_owner = 8;
     optional string device_id = 9;
     optional string status = 10;
 
