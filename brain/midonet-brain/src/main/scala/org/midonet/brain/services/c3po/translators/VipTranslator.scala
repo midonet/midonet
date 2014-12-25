@@ -14,16 +14,15 @@
  * limitations under the License.
  */
 
-package org.midonet.brain.services.c3po
+package org.midonet.brain.services.c3po.translators
 
-import org.midonet.cluster.models.Neutron.NeutronLoadBalancerPool
+import org.midonet.brain.services.c3po.{midonet, neutron}
+import org.midonet.cluster.models.Neutron.VIP
 
-/** Provides a Neutron model translator for NeutronLoadBalancerPool. */
-class NeutronLoadBalancerPoolTranslator
-        extends NeutronTranslator[NeutronLoadBalancerPool]{
-
+/** Provides a Neutron model translator for VIP. */
+class VipTranslator extends NeutronTranslator[VIP]{
     @throws[TranslationException]
-    override def translate(op: neutron.NeutronOp[NeutronLoadBalancerPool])
+    override def translate(op: neutron.NeutronOp[VIP])
     : List[midonet.MidoOp[_]] = {
         // TODO Implement!
         List()

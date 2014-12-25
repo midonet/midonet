@@ -14,21 +14,19 @@
  * limitations under the License.
  */
 
-package org.midonet.brain.services.c3po
+package org.midonet.brain.services.c3po.translators
 
-import org.midonet.cluster.models.Neutron.NeutronLoadBalancerPoolHealthMonitor
+import org.midonet.brain.services.c3po.C3POStorageManager.Operation
+import org.midonet.brain.services.c3po.neutron.NeutronOp
+import org.midonet.cluster.models.Neutron.NeutronPort
 
-/**
- * Provides a Neutron model translator for NeutronLoadBalancerPoolHealthMonitor.
- */
-class NeutronLoadBalancerPoolHealthMonitorTranslator
-        extends NeutronTranslator[NeutronLoadBalancerPoolHealthMonitor]{
+class PortTranslator extends NeutronTranslator[NeutronPort] {
 
-    @throws[TranslationException]
-    override def translate(
-            op: neutron.NeutronOp[NeutronLoadBalancerPoolHealthMonitor])
-    : List[midonet.MidoOp[_]] = {
-        // TODO Implement!
+    /** Translate the operation on NeutronModel to a list of operations applied
+      * to a different model that represent the complete translation of the
+      * first to the latter. */
+    override def translate(op: NeutronOp[NeutronPort]): List[Operation[_]] = {
+        //TODO: Magic goes here.
         List()
     }
 }

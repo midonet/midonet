@@ -14,14 +14,16 @@
  * limitations under the License.
  */
 
-package org.midonet.brain.services.c3po
+package org.midonet.brain.services.c3po.translators
 
 import scala.util.control.NonFatal
 
 import com.google.protobuf.Message
 
 import org.midonet.brain.services.c3po.C3POStorageManager.Operation
+import org.midonet.brain.services.c3po.midonet
 import org.midonet.brain.services.c3po.midonet.MidoOp
+import org.midonet.brain.services.c3po.neutron
 import org.midonet.brain.services.c3po.neutron.NeutronOp
 
 /** Defines a class that is able to translate from an operation on the Neutron

@@ -30,6 +30,7 @@ import org.scalatest.junit.JUnitRunner
 import org.scalatest.{BeforeAndAfterEach, FlatSpec}
 
 import org.midonet.brain.services.c3po.midonet.Create
+import org.midonet.brain.services.c3po.translators.{TranslationException, NeutronTranslator, NetworkTranslator}
 import org.midonet.cluster.data.storage.{CreateOp, DeleteOp, PersistenceOp, Storage, StorageException, UpdateOp}
 import org.midonet.cluster.models.C3PO.C3POState
 import org.midonet.cluster.models.Commons

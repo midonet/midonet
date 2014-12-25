@@ -13,21 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.brain.services.c3po
 
-import org.midonet.cluster.models.Neutron.NeutronNetwork
-import org.midonet.cluster.models.Topology.Network
+package org.midonet.brain.services.c3po.translators
 
-/** Provides a Neutron model translator for Network. */
-class NetworkTranslator extends
-OneToOneNeutronTranslator[NeutronNetwork, Network](classOf[Network]) {
+import org.midonet.brain.services.c3po.{midonet, neutron}
+import org.midonet.cluster.models.Neutron.FloatingIp
 
-    @inline
-    def translate(network: NeutronNetwork) = Network.newBuilder()
-        .setId(network.getId)
-        .setTenantId(network.getTenantId)
-        .setName(network.getName)
-        .setAdminStateUp(network.getAdminStateUp)
-        .build
-
+/** Provides a Neutron model translator for FloatingIp. */
+class FloatingIpTranslator extends NeutronTranslator[FloatingIp]{
+    @throws[TranslationException]
+    override def translate(op: neutron.NeutronOp[FloatingIp])
+    : List[midonet.MidoOp[_]] = {
+        // TODO Implement!
+        List()
+    }
 }

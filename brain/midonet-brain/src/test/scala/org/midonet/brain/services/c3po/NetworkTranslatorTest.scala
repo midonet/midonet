@@ -20,6 +20,7 @@ import org.mockito.Mockito.mock
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{FlatSpec, Matchers}
 
+import org.midonet.brain.services.c3po.translators.NetworkTranslator
 import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.models.Neutron.NeutronNetwork
 import org.midonet.cluster.models.Topology.Network
