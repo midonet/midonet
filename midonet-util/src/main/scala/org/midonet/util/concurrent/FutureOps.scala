@@ -15,6 +15,8 @@
  */
 package org.midonet.util.concurrent
 
+import java.util.concurrent.TimeUnit
+
 import scala.concurrent._
 import scala.concurrent.duration.Duration
 import scala.util.{Failure, Success, Try}
@@ -66,5 +68,9 @@ class FutureOps[+T](val f: Future[T]) extends AnyVal {
                 p failure t
         }(CallingThreadExecutionContext)
         p.future
+    }
+
+    def await(timeout: Duration = Duration(1, TimeUnit.SECONDS)): T = {
+        Await.result(f, timeout)
     }
 }
