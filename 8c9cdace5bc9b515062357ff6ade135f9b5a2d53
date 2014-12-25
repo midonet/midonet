@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1af78d9a_454d4e72",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/NeutronImporter.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-12-25T03:35:51Z",
+      "side": 1,
+      "message": "Because of the line below, this import is unnecessary.",
+      "revId": "8c9cdace5bc9b515062357ff6ade135f9b5a2d53",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_2552c213",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/NeutronImporter.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-12-25T03:35:51Z",
+      "side": 1,
+      "message": "Out-of-order.",
+      "revId": "8c9cdace5bc9b515062357ff6ade135f9b5a2d53",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_85573602",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/StringUtils.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-12-25T03:35:51Z",
+      "side": 1,
+      "message": "Doesn\u0027t this add extra empty spaces at the end if o is a text string that ends with a new line?",
+      "revId": "8c9cdace5bc9b515062357ff6ade135f9b5a2d53",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
