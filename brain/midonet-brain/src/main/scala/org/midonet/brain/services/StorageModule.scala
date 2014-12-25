@@ -16,21 +16,15 @@
 package org.midonet.brain.services
 
 import com.google.inject.AbstractModule
+
 import org.apache.curator.framework.recipes.leader.LeaderLatch
 import org.apache.curator.framework.{CuratorFramework, CuratorFrameworkFactory}
 import org.apache.curator.retry.ExponentialBackoffRetry
 
-import org.midonet.brain.services.c3po.C3POStorageManager
 import org.midonet.cluster.data.storage.{Storage, ZookeeperObjectMapper}
 import org.midonet.cluster.models.C3PO.C3POState
-import org.midonet.cluster.models.Neutron.FloatingIp
-import org.midonet.cluster.models.Neutron.NeutronHealthMonitor
-import org.midonet.cluster.models.Neutron.NeutronLoadBalancerPool
-import org.midonet.cluster.models.Neutron.NeutronLoadBalancerPoolHealthMonitor
-import org.midonet.cluster.models.Neutron.NeutronLoadBalancerPoolMember
-import org.midonet.cluster.models.Neutron.NeutronNetwork
-import org.midonet.cluster.models.Neutron.VIP
-import org.midonet.cluster.models.Topology.Network
+import org.midonet.cluster.models.Neutron._
+import org.midonet.cluster.models.Topology.{Chain, IpAddrGroup, Network, Rule}
 import org.midonet.config.{ConfigGroup, ConfigInt, ConfigProvider, ConfigString}
 
 class StorageModule(cfgProvider: ConfigProvider) extends AbstractModule {
@@ -55,14 +49,21 @@ class StorageModule(cfgProvider: ConfigProvider) extends AbstractModule {
 
     def initStorage(curator: CuratorFramework, basePath: String): Storage = {
         val storage = new ZookeeperObjectMapper(basePath, curator)
-        List(classOf[FloatingIp],
+        List(classOf[C3POState],
+             classOf[Chain],
+             classOf[FloatingIp],
+             classOf[IpAddrGroup],
              classOf[Network],
              classOf[NeutronHealthMonitor],
              classOf[NeutronLoadBalancerPool],
              classOf[NeutronLoadBalancerPoolHealthMonitor],
              classOf[NeutronLoadBalancerPoolMember],
              classOf[NeutronNetwork],
-             classOf[C3POState],
+             classOf[NeutronPort],
+             classOf[NeutronRouter],
+             classOf[NeutronSubnet],
+             classOf[Rule],
+             classOf[SecurityGroup],
              classOf[VIP]
              ).foreach(storage.registerClass)
         storage.build()
@@ -75,7 +76,7 @@ trait CuratorConfig {
     @ConfigString(key = "zookeeper_hosts", defaultValue = "127.0.0.1:2181")
     def zkHosts: String
 
-    @ConfigString(key = "base_path")
+    @ConfigString(key = "topology_path")
     def basePath: String
 
     @ConfigInt(key = "base_retry_ms", defaultValue = 1000)

@@ -132,7 +132,7 @@ class C3PODaemonTest extends FlatSpec with BeforeAndAfter with Matchers {
         config.setProperty("curator.zookeeper_hosts", zkHost)
         config.setProperty("curator.base_retry_ms", 100)
         config.setProperty("curator.max_retries", 20)
-        config.setProperty("curator.topology_path", "midonet/v2")
+        config.setProperty("curator.topology_path", "/midonet/v2")
         config.setProperty("neutron-importer.enabled", true)
         config.setProperty("neutron-importer.with",
                            "org.midonet.brain.services.c3po.C3PO")

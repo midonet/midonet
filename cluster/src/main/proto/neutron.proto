@@ -41,8 +41,8 @@ message NeutronSubnet {
     optional IPAddress gateway_ip = 7;
 
     message IPAllocationPool {
-        optional IPAddress first_ip = 1;
-        optional IPAddress last_ip = 2;
+        optional IPAddress start = 1;
+        optional IPAddress end = 2;
     }
     repeated IPAllocationPool allocation_pools = 8;
     repeated string dns_nameservers = 9;
