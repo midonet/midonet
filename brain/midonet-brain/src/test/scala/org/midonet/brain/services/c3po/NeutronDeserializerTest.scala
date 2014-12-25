@@ -129,12 +129,12 @@ class NeutronDeserializerTest extends FunSuite with Matchers {
               |    "gateway_ip": "123.45.67.89",
               |    "allocation_pools": [
               |        {
-              |            "first_ip": "10.0.0.1",
-              |            "last_ip": "10.0.0.255"
+              |            "start": "10.0.0.1",
+              |            "end": "10.0.0.255"
               |        },
               |        {
-              |            "first_ip": "1234::1",
-              |            "last_ip": "1234::ffff"
+              |            "start": "1234::1",
+              |            "end": "1234::ffff"
               |        }
               |    ],
               |    "dns_nameservers": [
@@ -153,15 +153,15 @@ class NeutronDeserializerTest extends FunSuite with Matchers {
         subnet.getAllocationPoolsCount shouldBe 2
 
         val pool1 = subnet.getAllocationPools(0)
-        pool1.getFirstIp.getVersion shouldBe Commons.IPVersion.V4
-        pool1.getFirstIp.getAddress shouldBe "10.0.0.1"
-        pool1.getLastIp.getVersion shouldBe Commons.IPVersion.V4
-        pool1.getLastIp.getAddress shouldBe "10.0.0.255"
+        pool1.getStart.getVersion shouldBe Commons.IPVersion.V4
+        pool1.getStart.getAddress shouldBe "10.0.0.1"
+        pool1.getEnd.getVersion shouldBe Commons.IPVersion.V4
+        pool1.getEnd.getAddress shouldBe "10.0.0.255"
 
         val pool2 = subnet.getAllocationPools(1)
-        pool2.getFirstIp.getVersion shouldBe Commons.IPVersion.V6
-        pool2.getFirstIp.getAddress shouldBe "1234:0:0:0:0:0:0:1"
-        pool2.getLastIp.getVersion shouldBe Commons.IPVersion.V6
-        pool2.getLastIp.getAddress shouldBe "1234:0:0:0:0:0:0:ffff"
+        pool2.getStart.getVersion shouldBe Commons.IPVersion.V6
+        pool2.getStart.getAddress shouldBe "1234:0:0:0:0:0:0:1"
+        pool2.getEnd.getVersion shouldBe Commons.IPVersion.V6
+        pool2.getEnd.getAddress shouldBe "1234:0:0:0:0:0:0:ffff"
     }
 }

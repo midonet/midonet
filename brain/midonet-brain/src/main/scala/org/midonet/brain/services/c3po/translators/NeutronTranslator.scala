@@ -20,6 +20,8 @@ import scala.util.control.NonFatal
 
 import com.google.protobuf.Message
 
+import org.slf4j.LoggerFactory
+
 import org.midonet.brain.services.c3po.C3POStorageManager.Operation
 import org.midonet.brain.services.c3po.midonet.MidoOp
 import org.midonet.brain.services.c3po.neutron
@@ -29,6 +31,8 @@ import org.midonet.cluster.models.Commons.UUID
 /** Defines a class that is able to translate from an operation on the Neutron
   * model to a set of operations on the MidoNet model. */
 trait NeutronTranslator[NeutronModel <: Message] {
+
+    protected val log = LoggerFactory.getLogger(this.getClass)
 
     /** Translate the operation on NeutronModel to a list of operations applied
       * to a different model that represent the complete translation of the

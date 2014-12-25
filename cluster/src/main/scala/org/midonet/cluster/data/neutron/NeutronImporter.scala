@@ -24,6 +24,7 @@ import javax.sql.DataSource
 import scala.collection.mutable.ListBuffer
 
 import com.google.protobuf.Message
+
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.data.neutron.importer.Transaction
