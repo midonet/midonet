@@ -16,12 +16,13 @@
 
 package org.midonet.brain.services.c3po
 
+import scala.util.control.NonFatal
+
 import com.google.protobuf.Message
 
 import org.midonet.brain.services.c3po.C3POStorageManager.Operation
 import org.midonet.brain.services.c3po.midonet.MidoOp
 import org.midonet.brain.services.c3po.neutron.NeutronOp
-import org.midonet.cluster.models.Commons
 
 /** Defines a class that is able to translate from an operation on the Neutron
   * model to a set of operations on the MidoNet model. */
@@ -37,7 +38,31 @@ trait NeutronTranslator[NeutronModel <: Message] {
     protected def processExceptions(e: Throwable, op: neutron.NeutronOp[_]) = {
         throw new TranslationException(op, e)
     }
+}
 
+/**
+ * Boilerplate for translating Neutron model messages that always translate to
+ * exactly one Midonet model message.
+ *
+ * Subclasses need only implement translate(nm: NeutronModel).
+ */
+abstract class OneToOneNeutronTranslator[NeutronModel <: Message,
+                                         MidonetModel <: Message]
+    (midonetClass: Class[MidonetModel])
+    extends NeutronTranslator[NeutronModel] {
+
+    @throws[TranslationException]
+    override def translate(op: NeutronOp[NeutronModel])
+    : List[MidoOp[MidonetModel]] = try op match {
+        case neutron.Create(nm) => List(midonet.Create(translate(nm)))
+        case neutron.Update(nm) => List(midonet.Update(translate(nm)))
+        case neutron.Delete(_, id) => List(midonet.Delete(midonetClass, id))
+    } catch {
+        case NonFatal(ex) => processExceptions(ex, op)
+    }
+
+    /** Model translation */
+    def translate(nm: NeutronModel): MidonetModel
 }
 
 /** Thrown by by implementations when they fail to perform the requested
