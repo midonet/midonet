@@ -17,7 +17,7 @@
 package org.midonet.brain
 
 import java.io.PrintWriter
-import java.nio.file.{FileSystems, Files, Paths}
+import java.nio.file.{FileSystems, Files}
 import java.sql.Connection
 import java.sql.DriverManager
 import java.util.UUID
@@ -65,7 +65,7 @@ class C3PODaemonTest extends FlatSpec with BeforeAndAfter with Matchers {
 
     private val zkPort = 50000 + Random.nextInt(15000)
     private val zkHost = s"127.0.0.1:$zkPort"
-    private val dbFile = "taskdb?mode=memory&cache=shared"
+    private val dbFile = "taskdb"
     private val dbConnectStr = s"jdbc:sqlite:$dbFile"
     private val dbDriver = "org.sqlite.JDBC"
 
@@ -238,6 +238,14 @@ class C3PODaemonTest extends FlatSpec with BeforeAndAfter with Matchers {
             daemon.awaitTerminated(5000, TimeUnit.MILLISECONDS)
         } finally {
             zk.stop()
+        }
+
+        try {
+            Files.deleteIfExists(FileSystems.getDefault.getPath(dbFile))
+        } catch {
+            case th: Throwable =>
+                log.warn("Failed to delete the test SQLite DB file: {}",
+                         th.getMessage)
         }
     }
 
