@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1af78d9a_e5eefab3",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/util/IPSubnetUtil.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-12-26T00:54:25Z",
+      "side": 1,
+      "message": "Seems redundant.",
+      "range": {
+        "startLine": 46,
+        "startChar": 52,
+        "endLine": 46,
+        "endChar": 64
+      },
+      "revId": "b17e76975485684bafe5b7dd86ad27a0e10a3812",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_a5f4f287",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/util/IPSubnetUtil.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-12-26T00:54:25Z",
+      "side": 1,
+      "message": "Necessary?",
+      "range": {
+        "startLine": 50,
+        "startChar": 8,
+        "endLine": 50,
+        "endChar": 22
+      },
+      "revId": "b17e76975485684bafe5b7dd86ad27a0e10a3812",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_452b8eeb",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/util/IPSubnetUtil.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-12-26T00:54:25Z",
+      "side": 1,
+      "message": "Ditto.",
+      "range": {
+        "startLine": 55,
+        "startChar": 10,
+        "endLine": 55,
+        "endChar": 27
+      },
+      "revId": "b17e76975485684bafe5b7dd86ad27a0e10a3812",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_05f2269a",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/util/IPSubnetUtil.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-12-26T00:54:25Z",
+      "side": 1,
+      "message": "Necessary?",
+      "range": {
+        "startLine": 58,
+        "startChar": 39,
+        "endLine": 58,
+        "endChar": 53
+      },
+      "revId": "b17e76975485684bafe5b7dd86ad27a0e10a3812",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
