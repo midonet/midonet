@@ -1,5 +1,5 @@
 //
-// Copyright 2014 Midokura SARL
+// Copyright 2015 Midokura SARL
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -148,7 +148,13 @@ message PortGroup {
 message IpAddrGroup {
     optional UUID id = 1;
     optional string name = 2;
-    repeated IPAddress ip_addrs = 3;
+
+    message IpAddrPorts {
+        optional IPAddress ip_address = 1;
+        repeated UUID port_id = 2;
+    }
+    repeated IpAddrPorts ip_addr_ports = 3;
+
     optional UUID inbound_chain_id = 4;
     optional UUID outbound_chain_id = 5;
 
@@ -234,6 +240,16 @@ message Rule {
     optional bool nw_dst_inv = 34;
     optional bool tp_src_inv = 35;
     optional bool tp_dst_inv = 36;
+
+    enum FragmentPolicy {
+        ANY = 1;
+        NONHEADER = 2;
+        HEADER = 3;
+        UNFRAGMENTED = 4;
+    }
+    optional FragmentPolicy fragment_policy = 37;
+
+    optional UUID jump_to = 38;
 }
 
 message TunnelZone {
