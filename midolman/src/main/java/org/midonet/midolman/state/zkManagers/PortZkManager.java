@@ -286,9 +286,11 @@ public class PortZkManager extends AbstractZkManager<UUID, PortConfig> {
 
     public UUID create(PortConfig port) throws StateAccessException,
             SerializationException {
-        UUID id = UUID.randomUUID();
+        if (port.id == null) {
+            port.id = UUID.randomUUID();
+        }
         try {
-            zk.multi(prepareCreate(id, port));
+            zk.multi(prepareCreate(port.id, port));
         } catch (StatePathExistsException e) {
             // Give clearer error in case where bridge interior port
             // was created with already-existing VLAN
@@ -308,7 +310,7 @@ public class PortZkManager extends AbstractZkManager<UUID, PortConfig> {
             }
             throw e;
         }
-        return id;
+        return port.id;
     }
 
     /**
