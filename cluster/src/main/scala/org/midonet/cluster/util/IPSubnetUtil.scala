@@ -39,12 +39,24 @@ object IPSubnetUtil {
         }
     }
 
-    implicit def richIPSubnet(subnet: IPSubnet[_]) = new {
-        def asProto: Commons.IPSubnet = subnet
+    def toProto(cidr: String): Commons.IPSubnet = {
+        toProto(IPSubnet.fromString(cidr))
     }
 
-    implicit def richProtoIPSubnet(subnet: Commons.IPSubnet) = new {
-        def asJava: IPSubnet[_] = subnet
+    implicit def richIPSubnet(subnet: IPSubnet[_]): RichIPSubnet =
+        new RichIPSubnet(subnet)
+
+    class RichIPSubnet protected[IPSubnetUtil](val subnet: IPSubnet[_])
+        extends AnyVal {
+        def asProto: Commons.IPSubnet = toProto(subnet)
+    }
+
+    implicit def richProtoIPSubnet(subnet: Commons.IPSubnet)
+        : RichProtoIPSubnet = new RichProtoIPSubnet(subnet)
+
+    class RichProtoIPSubnet protected[IPSubnetUtil]
+        (val subnet: Commons.IPSubnet) extends AnyVal {
+        def asJava: IPSubnet[_] = fromProto(subnet)
     }
 
     sealed class Converter

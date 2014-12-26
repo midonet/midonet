@@ -18,6 +18,8 @@ package org.midonet.cluster.util
 import java.lang.reflect.Type
 import java.util.{UUID => JUUID}
 
+import scala.util.Random
+
 import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.models.Commons.{UUID => PUUID}
 
@@ -43,12 +45,38 @@ object UUIDUtil {
         new JUUID(uuid.getMsb, uuid.getLsb)
     }
 
-    implicit def richJavaUuid(uuid: JUUID) = new {
-        def asProto: PUUID = uuid
+    implicit def asRichJavaUuid(uuid: JUUID): RichJavaUuid =
+        new RichJavaUuid(uuid)
+
+    class RichJavaUuid private[UUIDUtil](val uuid: JUUID) extends AnyVal {
+        def asProto: PUUID = toProto(uuid)
     }
 
-    implicit def richProtoUuid(uuid: PUUID) = new {
-        def asJava: JUUID = uuid
+    implicit def asRichProtoUuid(uuid: PUUID): RichProtoUuid =
+        new RichProtoUuid(uuid)
+
+    class RichProtoUuid private[UUIDUtil](val uuid: PUUID) extends AnyVal {
+        def asJava: JUUID = fromProto(uuid)
+
+        /**
+         * Deterministically generate a new Protobuf UUID from an existing one.
+         * Calls can be chained to generate a deterministic series of UUIDs
+         * from a single seed, e.g.:
+         *
+         * val uuid0 = randomUuidProto
+         * val uuid1 = uuid0.nextUuid
+         * val uuid2 = uuid1.nextUuid
+         *
+         * val uuid3 = uuid0.nextUuid // uuid1 == uuid3
+         * val uuid4 = uuid3.nextUuid // uuid2 == uuid4
+         */
+        def nextUuid: PUUID = {
+            val rand = new Random(uuid.getMsb)
+            val msb = rand.nextLong()
+            rand.setSeed(uuid.getLsb)
+            val lsb = rand.nextLong()
+            PUUID.newBuilder().setMsb(msb).setLsb(lsb).build()
+        }
     }
 
     def toString(id: PUUID) = if (id == null) "null" else fromProto(id).toString
