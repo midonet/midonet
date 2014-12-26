@@ -89,6 +89,10 @@ class Port(resource_base.ResourceBase,
     def get_vni(self):
         return self.dto['vni']
 
+    def id(self, id):
+        self.dto['id'] = id
+        return self
+
     def inbound_filter_id(self, id_):
         self.dto['inboundFilterId'] = id_
         return self
