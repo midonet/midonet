@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1af78d9a_e5f8ba4b",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/util/IPSubnetUtil.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-12-26T03:53:46Z",
+      "side": 1,
+      "message": "IDEA was complaining if I omitted it.",
+      "parentUuid": "1af78d9a_e5eefab3",
+      "range": {
+        "startLine": 46,
+        "startChar": 52,
+        "endLine": 46,
+        "endChar": 64
+      },
+      "revId": "b17e76975485684bafe5b7dd86ad27a0e10a3812",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1af78d9a_a5f4f287",
         "filename": "cluster/src/main/scala/org/midonet/cluster/util/IPSubnetUtil.scala",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2014-12-26T00:54:25Z",
       "side": 1,
       "message": "Necessary?",
+      "range": {
+        "startLine": 50,
+        "startChar": 8,
+        "endLine": 50,
+        "endChar": 22
+      },
+      "revId": "b17e76975485684bafe5b7dd86ad27a0e10a3812",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_45954ee3",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/util/IPSubnetUtil.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-12-26T03:53:46Z",
+      "side": 1,
+      "message": "Not strictly necessary, but helpful. Making a class extend AnyVal allows it to become a value class, provided that it meets certain other conditions. This makes it a pure compile-time construct that doesn\u0027t incur the cost of object creation at run-time.\n\nhttp://docs.scala-lang.org/overviews/core/value-classes.html",
+      "parentUuid": "1af78d9a_a5f4f287",
       "range": {
         "startLine": 50,
         "startChar": 8,
