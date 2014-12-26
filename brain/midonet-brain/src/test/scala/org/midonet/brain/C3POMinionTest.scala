@@ -377,12 +377,9 @@ class C3POMinionTest extends FlatSpec with BeforeAndAfter
 
     it should "manage port binding to a Network" in {
         val threadSleepMs = 1000
-        // Creates Network 1 & 2.
-        executeSqlStmts(
-                insertMidoNetTaskSql(id = 2, Create, NetworkType, network1Json,
-                                     network1Uuid, "tx1"),
-                insertMidoNetTaskSql(id = 3, Create, NetworkType, network2Json,
-                                     network2Uuid, "tx1"))
+        // Creates Network 1.
+        executeSqlStmts(insertMidoNetTaskSql(
+                id = 2, Create, NetworkType, network1Json, network1Uuid, "tx1"))
         Thread.sleep(threadSleepMs)
 
         val vifPortUuid = UUID.randomUUID()
@@ -394,7 +391,7 @@ class C3POMinionTest extends FlatSpec with BeforeAndAfter
                                    networkId = network1Uuid,
                                    adminStateUp = true).toString
         executeSqlStmts(insertMidoNetTaskSql(
-                id = 4, Create, PortType, vifPortJson, vifPortUuid, "tx2"))
+                id = 3, Create, PortType, vifPortJson, vifPortUuid, "tx2"))
         Thread.sleep(threadSleepMs)
 
         storage.exists(classOf[Port], vifPortId).await() should be (true)
@@ -406,39 +403,34 @@ class C3POMinionTest extends FlatSpec with BeforeAndAfter
         val network1 = storage.get(classOf[Network], network1Uuid).await()
         network1.getPortIdsList should contain (vifPortId)
 
-        // Update the port and move it to network 2.
+        // Update the port admin status. Through the Neutron API, you cannot
+        // change the Network the port is attached to.
         val vifPortUpdate = portJson(name = "port1", id = vifPortUuid,
-                                     networkId = network2Uuid, // Moved.
+                                     networkId = network1Uuid,
                                      adminStateUp = false      // Down now.
                                      ).toString
         executeSqlStmts(insertMidoNetTaskSql(
-                id = 5, Update, PortType, vifPortUpdate, vifPortUuid, "tx3"))
+                id = 4, Update, PortType, vifPortUpdate, vifPortUuid, "tx3"))
         Thread.sleep(threadSleepMs)
 
         val updatedVifPort = storage.get(classOf[Port], vifPortId).await()
-        updatedVifPort.getNetworkId should be (toProto(network2Uuid))
         updatedVifPort.getAdminStateUp should be (false)
-        // Check back references are updated.
-        val updatedNw1 = storage.get(classOf[Network], network1Uuid).await()
-        updatedNw1.getPortIdsList should not contain (vifPortId)
-        val updatedNw2 = storage.get(classOf[Network], network2Uuid).await()
-        updatedNw2.getPortIdsList should contain (vifPortId)
         // Deleting a network while ports are attached should throw exception.
         intercept[ObjectReferencedException] {
-            storage.delete(classOf[Network], network2Uuid)
+            storage.delete(classOf[Network], network1Uuid)
         }
 
         // Delete the VIF port.
         executeSqlStmts(insertMidoNetTaskSql(
-                id = 6, Delete, PortType, json = null, vifPortUuid, "tx4"))
+                id = 5, Delete, PortType, json = null, vifPortUuid, "tx4"))
         Thread.sleep(threadSleepMs)
 
         storage.exists(classOf[Port], vifPortId).await() should be (false)
         // Back reference was cleared.
-        val finalNw2 = storage.get(classOf[Network], network2Uuid).await()
-        finalNw2.getPortIdsList should not contain (vifPortId)
-        // You can delete the Network2 now.
-        storage.delete(classOf[Network], network2Uuid)
+        val finalNw1 = storage.get(classOf[Network], network1Uuid).await()
+        finalNw1.getPortIdsList should not contain (vifPortId)
+        // You can delete the Network1 now.
+        storage.delete(classOf[Network], network1Uuid)
     }
 
     it should "handle security group CRUD" in {
