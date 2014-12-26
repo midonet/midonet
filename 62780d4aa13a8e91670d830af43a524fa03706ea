@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1af78d9a_c525be0b",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/services/c3po/NetworkTranslatorTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-12-26T01:19:27Z",
+      "side": 1,
+      "message": "This should also move to org.midonet.brain.services.c3po.translators, so that we won\u0027t need the following import.",
+      "revId": "62780d4aa13a8e91670d830af43a524fa03706ea",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
