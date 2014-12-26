@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1af78d9a_80dd6445",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/StorageModule.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-12-26T16:07:47Z",
+      "side": 1,
+      "message": "This seems to be breaking the C3PODaemonTest. You need to either revert to the old name or also change the key string in C3PODemonTest.",
+      "revId": "a10170f00aeaa427c0a25a0d6ac0255371adaac0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
