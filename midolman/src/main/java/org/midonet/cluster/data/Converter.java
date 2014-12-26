@@ -327,6 +327,7 @@ public class Converter {
         if (portConfig == null)
             return null;
 
+        portConfig.id = port.getId();
         portConfig.device_id = port.getDeviceId();
         portConfig.adminStateUp = port.isAdminStateUp();
         portConfig.peerId = port.getPeerId();
