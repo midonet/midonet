@@ -357,6 +357,24 @@
     },
     {
       "key": {
+        "uuid": "1af78d9a_a008602e",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-12-29T11:07:19Z",
+      "side": 1,
+      "message": "Yes currently you have to load all tunnel zones to understand which tunnel a host is a member of. At least that\u0027s what I got from reading the code.\nIf I understood the current code correctly, the new design will be faster since you don\u0027t need to load all zones.",
+      "parentUuid": "1af78d9a_404a5c84",
+      "revId": "438d0c379d622862a1909ddb6f07317bf35745c0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1af78d9a_2b4d7973",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
         "patchSetId": 8
@@ -658,6 +676,30 @@
       "side": 1,
       "message": "I was just pointing out that a case class generates structural equality for you.",
       "parentUuid": "1af78d9a_60a4b857",
+      "range": {
+        "startLine": 56,
+        "startChar": 21,
+        "endLine": 56,
+        "endChar": 23
+      },
+      "revId": "438d0c379d622862a1909ddb6f07317bf35745c0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_00069420",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/TunnelZone.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-12-29T11:07:19Z",
+      "side": 1,
+      "message": "ok!",
+      "parentUuid": "1af78d9a_204f5094",
       "range": {
         "startLine": 56,
         "startChar": 21,
