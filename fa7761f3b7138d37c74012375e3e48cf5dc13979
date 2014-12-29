@@ -104,6 +104,23 @@
       "revId": "fa7761f3b7138d37c74012375e3e48cf5dc13979",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_54a17da8",
+        "filename": "odp/src/main/java/org/midonet/odp/FlowMatch.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-12-29T20:18:38Z",
+      "side": 1,
+      "message": "change tostring",
+      "revId": "fa7761f3b7138d37c74012375e3e48cf5dc13979",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
