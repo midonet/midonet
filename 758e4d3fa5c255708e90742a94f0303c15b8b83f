@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1af78d9a_5474dd9b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/io/UpcallDatapathConnectionManager.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 198,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2014-12-29T12:05:32Z",
+      "side": 0,
+      "message": "why?",
+      "revId": "758e4d3fa5c255708e90742a94f0303c15b8b83f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
