@@ -393,6 +393,24 @@
     },
     {
       "key": {
+        "uuid": "1af78d9a_d4956d89",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-12-29T13:17:36Z",
+      "side": 1,
+      "message": "No in the new design we only need to observe the tunnel zones we are part of. Host contains a field named tunnelZoneIds that contains this information.",
+      "parentUuid": "1af78d9a_740e3936",
+      "revId": "438d0c379d622862a1909ddb6f07317bf35745c0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1af78d9a_2b4d7973",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
         "patchSetId": 8
