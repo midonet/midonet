@@ -105,6 +105,7 @@ class C3PO @Inject()(config: C3POConfig,
              classOf[NeutronRouter] -> new RouterTranslator,
              classOf[NeutronSubnet] -> new SubnetTranslator,
              classOf[NeutronPort] -> new PortTranslator,
+             classOf[SecurityGroup] -> new SecurityGroupTranslator(storage),
              classOf[VIP] -> new VipTranslator
         ).asInstanceOf[List[(Class[Message], NeutronTranslator[Message])]]
          .foreach(pair => dataMgr.registerTranslator(pair._1, pair._2))
