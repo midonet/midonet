@@ -411,6 +411,24 @@
     },
     {
       "key": {
+        "uuid": "1af78d9a_34d5d143",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-12-29T13:36:03Z",
+      "side": 1,
+      "message": "Hum.. let me try and write this more clearly: before, to change the ip of a tunnel zone, you had to delete and re-create it. That way, the host watcher would fire. In the watcher, you would simply load up the tunnel zones corresponding to the IDs in the host object. That\u0027s why I was originally asking if zoom/the new storage module doesn\u0027t expose a simple get operation. That way this logic could be simplified as you wouldn\u0027t need to manage streams of tunnel zone updates. It\u0027s cool if you do it like this, I was just trying to understand the why :)",
+      "parentUuid": "1af78d9a_d4956d89",
+      "revId": "438d0c379d622862a1909ddb6f07317bf35745c0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1af78d9a_2b4d7973",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
         "patchSetId": 8
