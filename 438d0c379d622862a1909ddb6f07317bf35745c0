@@ -375,6 +375,24 @@
     },
     {
       "key": {
+        "uuid": "1af78d9a_740e3936",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-12-29T11:11:37Z",
+      "side": 1,
+      "message": "No, with the current/old design, the tunnel zones a host belongs to are kept under that host\u0027s node. That\u0027s why if you change a membership, a watcher fires for the host node. You\u0027re telling me there\u0027s a new design where we need to load all of the tunnel zones to find out where a host belongs - which explains why you\u0027re observing all the tunnel zones -, that\u0027s less direct than the current/old structure.",
+      "parentUuid": "1af78d9a_a008602e",
+      "revId": "438d0c379d622862a1909ddb6f07317bf35745c0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1af78d9a_2b4d7973",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
         "patchSetId": 8
