@@ -1,0 +1,257 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1af78d9a_54ba1de2",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-12-29T18:17:34Z",
+      "side": 1,
+      "message": "TunnelZoneState",
+      "range": {
+        "startLine": 51,
+        "startChar": 24,
+        "endLine": 51,
+        "endChar": 35
+      },
+      "revId": "d566ad808cedc22e495939fe2c95800795a3c66b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_f416a9f0",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-12-29T18:17:34Z",
+      "side": 1,
+      "message": "Is this subject needed?",
+      "range": {
+        "startLine": 53,
+        "startChar": 8,
+        "endLine": 53,
+        "endChar": 64
+      },
+      "revId": "d566ad808cedc22e495939fe2c95800795a3c66b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_34d83153",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-12-29T18:17:34Z",
+      "side": 1,
+      "message": "Why not expose this as observable?",
+      "range": {
+        "startLine": 54,
+        "startChar": 8,
+        "endLine": 56,
+        "endChar": 28
+      },
+      "revId": "d566ad808cedc22e495939fe2c95800795a3c66b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_f4ed09f1",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-12-29T18:17:34Z",
+      "side": 1,
+      "message": "Here, host should already be a new instance because it\u0027s received from ZoomConvert. Cloning may not be necessary, see comment below.",
+      "range": {
+        "startLine": 99,
+        "startChar": 8,
+        "endLine": 99,
+        "endChar": 30
+      },
+      "revId": "d566ad808cedc22e495939fe2c95800795a3c66b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_14f1b5cd",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-12-29T18:17:34Z",
+      "side": 1,
+      "message": "Here is looks like it\u0027s possible to change the fields of a previously emitted host object. It should be here where clone() is needed.\n\nAlso, wouldn\u0027t be more efficient to add the host IP to the TunnelState, and build the immutable map only when all tunnel zones were received?",
+      "range": {
+        "startLine": 107,
+        "startChar": 12,
+        "endLine": 110,
+        "endChar": 68
+      },
+      "revId": "d566ad808cedc22e495939fe2c95800795a3c66b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_b41c2115",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-12-29T18:17:34Z",
+      "side": 1,
+      "message": "I don\u0027t think is is necessary. There may be a few more, above and below.",
+      "range": {
+        "startLine": 124,
+        "startChar": 51,
+        "endLine": 124,
+        "endChar": 54
+      },
+      "revId": "d566ad808cedc22e495939fe2c95800795a3c66b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_343151a3",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 138,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-12-29T18:17:34Z",
+      "side": 1,
+      "message": "In principle, we shouldn\u0027t make blocking calls to storage when retrieving observables. Data from storage should arrive asynchronously on the observables. However, I favor on fixing this when the zoom status patch is ready, which already exposes a non-blocking observable.",
+      "range": {
+        "startLine": 138,
+        "startChar": 31,
+        "endLine": 138,
+        "endChar": 72
+      },
+      "revId": "d566ad808cedc22e495939fe2c95800795a3c66b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_94264567",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 139,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-12-29T18:17:34Z",
+      "side": 1,
+      "message": "Then, we can also make this a val.",
+      "range": {
+        "startLine": 139,
+        "startChar": 8,
+        "endLine": 139,
+        "endChar": 24
+      },
+      "revId": "d566ad808cedc22e495939fe2c95800795a3c66b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_141a5517",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 143,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-12-29T18:17:34Z",
+      "side": 1,
+      "message": "Maybe this one too.",
+      "range": {
+        "startLine": 143,
+        "startChar": 39,
+        "endLine": 143,
+        "endChar": 42
+      },
+      "revId": "d566ad808cedc22e495939fe2c95800795a3c66b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_34bf91d2",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/Host.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 63,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-12-29T18:17:34Z",
+      "side": 1,
+      "message": "Why tunnels, when they are zones? :)\nI liked the old names.",
+      "range": {
+        "startLine": 63,
+        "startChar": 8,
+        "endLine": 63,
+        "endChar": 15
+      },
+      "revId": "d566ad808cedc22e495939fe2c95800795a3c66b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_d41f2d08",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/devices/HostMapperTest.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-12-29T18:17:34Z",
+      "side": 1,
+      "message": "Should it be in topology?",
+      "range": {
+        "startLine": 17,
+        "startChar": 38,
+        "endLine": 17,
+        "endChar": 45
+      },
+      "revId": "d566ad808cedc22e495939fe2c95800795a3c66b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
