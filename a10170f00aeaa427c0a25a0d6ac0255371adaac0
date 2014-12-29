@@ -16,6 +16,24 @@
       "revId": "a10170f00aeaa427c0a25a0d6ac0255371adaac0",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_20cc7035",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/StorageModule.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-12-29T04:17:32Z",
+      "side": 1,
+      "message": "Ah. All right. For some reason they were out of sync, with \"topology_path\" in the conf file and \"base_path\" here. \"Topology_path\" seems more descriptive, so I guess I\u0027ll go with that.",
+      "parentUuid": "1af78d9a_80dd6445",
+      "revId": "a10170f00aeaa427c0a25a0d6ac0255371adaac0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
