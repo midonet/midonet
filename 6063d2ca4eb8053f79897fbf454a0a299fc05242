@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "1af78d9a_144b755a",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-12-29T12:00:40Z",
+      "side": 1,
+      "message": "oki!",
+      "parentUuid": "1af78d9a_742599aa",
+      "revId": "6063d2ca4eb8053f79897fbf454a0a299fc05242",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1af78d9a_9420059d",
         "filename": "midolman/src/main/scala/org/midonet/midolman/PacketWorkflow.scala",
         "patchSetId": 2
@@ -30,6 +48,24 @@
       "writtenOn": "2014-12-29T11:34:09Z",
       "side": 1,
       "message": "but the simulation works on the clone of origMatch where are the seenFields in the clone copied over to origMatch so that the flow mask will be calculated based on them?\n\nUPDATE: found it, but see my comment in coordinator. This is subtle and the two pieces are far apart from each other. It\u0027s not obvious at all.",
+      "revId": "6063d2ca4eb8053f79897fbf454a0a299fc05242",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_f43069ea",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/PacketWorkflow.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 200,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-12-29T12:00:40Z",
+      "side": 1,
+      "message": "yeah, I moved it out of there in this patch of the disruptor branch: https://review.gerrithub.io/#/c/14084/5/midolman/src/main/scala/org/midonet/midolman/PacketWorkflow.scala",
+      "parentUuid": "1af78d9a_9420059d",
       "revId": "6063d2ca4eb8053f79897fbf454a0a299fc05242",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -53,6 +89,24 @@
     },
     {
       "key": {
+        "uuid": "1af78d9a_94576502",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/PacketWorkflow.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 451,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-12-29T12:00:40Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1af78d9a_b40f012e",
+      "revId": "6063d2ca4eb8053f79897fbf454a0a299fc05242",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1af78d9a_141d3567",
         "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Coordinator.scala",
         "patchSetId": 2
@@ -64,6 +118,24 @@
       "writtenOn": "2014-12-29T11:34:09Z",
       "side": 1,
       "message": "this is semantically quite different. Two thoughts:\n\n * Why are we not propagating userspace fields anymore?\n * PW is using origMatch to create the flow. Seems wrong that we propagate the seen fields to wcFlow.wcmatch, which may or may not be origMatch. Moreover, failure to propagate means we wildcard too much, which is a correctness bug, doesn\u0027t packet workflow query flow match fields in Coordiantor-less code paths?",
+      "revId": "6063d2ca4eb8053f79897fbf454a0a299fc05242",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_745c7926",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Coordinator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 441,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-12-29T12:00:40Z",
+      "side": 1,
+      "message": "We are propagating userspace fields as well as all the others, which we were not.\n\nThere are no instances where wcFlow.wcmatch is not the origMatch (at the tip of this branch). I have a patch in the disruptor branch where I take this out of here closer to where it\u0027s needed.\n\nWhen we miss the wildcard flow table, only the simulation path works on the wcmatch (clone of the original match).\n\nWhen we hit the wildcard flow table, we create a new mask from the stored flow match, which retains the seen fields.",
+      "parentUuid": "1af78d9a_141d3567",
       "revId": "6063d2ca4eb8053f79897fbf454a0a299fc05242",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
