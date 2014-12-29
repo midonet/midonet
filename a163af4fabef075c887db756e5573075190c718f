@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1af78d9a_e0738813",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/DhcpImpl.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 264,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2014-12-29T02:54:39Z",
+      "side": 1,
+      "message": "nit: \u0027information\u0027",
+      "revId": "a163af4fabef075c887db756e5573075190c718f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_40609c35",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/DhcpImpl.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 494,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2014-12-29T02:54:39Z",
+      "side": 1,
+      "message": "This calls getHostAndAssignedSubnet method for the second time, which is inefficient.  Also, shouldn\u0027t this call be inside the block above, the same place where CLASSLESS_ROUTES option is added?  If you move it up there, would you be able to save the extra call to getHostAndAssignedSubnet?",
+      "revId": "a163af4fabef075c887db756e5573075190c718f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_20659045",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/DhcpImpl.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 522,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2014-12-29T02:54:39Z",
+      "side": 1,
+      "message": "Continuing from the comment above, is it possible to define this method without needing to call getHostAndAssignedSubnet?",
+      "revId": "a163af4fabef075c887db756e5573075190c718f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
