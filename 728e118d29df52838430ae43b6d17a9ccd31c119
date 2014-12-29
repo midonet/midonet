@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1af78d9a_20c110e5",
+        "filename": "midolman/src/main/java/org/midonet/sdn/flows/WildcardMatch.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2014-12-29T10:06:48Z",
+      "side": 1,
+      "message": "i don\u0027t see that you use getLayer anywhere. Shouldn\u0027t this be static and used in the static block above?",
+      "revId": "728e118d29df52838430ae43b6d17a9ccd31c119",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_60bb1873",
+        "filename": "midolman/src/main/java/org/midonet/sdn/flows/WildcardMatch.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2014-12-29T10:06:48Z",
+      "side": 1,
+      "message": "was this necessary? \n\nhttp://docs.oracle.com/javase/7/docs/api/java/util/EnumSet.html\n\n\"ted. Enum sets are represented internally as bit vectors. This representation is extremely compact and efficient. The space and time performance of this class should be good enough to allow its use as a high-quality, typesafe alternative to traditional int-based \"bit flags.\" Even bulk operations (such as containsAll and retainAll) should run very quickly if their argument is also an enum set.\"\n\nMy guess is this is about avoiding boxing. I\u0027m not sure it was happening. (EA :D). Was there something else to this?",
+      "revId": "728e118d29df52838430ae43b6d17a9ccd31c119",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
