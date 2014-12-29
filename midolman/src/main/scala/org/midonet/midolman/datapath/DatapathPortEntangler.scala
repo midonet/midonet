@@ -17,13 +17,11 @@ package org.midonet.midolman.datapath
 
 import java.util.{UUID, Set => JSet}
 
-import org.midonet.midolman.topology.rcu.PortBinding
-
-import scala.concurrent.{Future, ExecutionContext}
+import scala.concurrent.Future
 
 import com.typesafe.scalalogging.Logger
-
 import org.midonet.midolman.host.interfaces.InterfaceDescription
+import org.midonet.midolman.topology.rcu.PortBinding
 import org.midonet.odp.DpPort
 import org.midonet.odp.ports.InternalPort
 import org.midonet.util.collection.Bimap
@@ -214,7 +212,6 @@ trait DatapathPortEntangler {
      * add tap, bind it to a vport, remove the tap. The dp port gets destroyed.
      */
     private def updateInterface(itf: InterfaceDescription, ifname: String): Future[_] = {
-        log.debug(s"Updating interface: $itf")
         val isUp = itf.isUp
         val wasUp = interfaceToDescription(ifname).isUp
         interfaceToDescription += ifname -> itf
