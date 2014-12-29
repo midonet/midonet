@@ -321,6 +321,24 @@
     },
     {
       "key": {
+        "uuid": "1af78d9a_a0fea036",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-12-29T10:06:02Z",
+      "side": 1,
+      "message": "This membership information is stored in the tunnel zones in the hosts field. If we want to change the membership of a tunnel zone, we can modify this field. What you are referring to is the old design, right? I\u0027m not sure I understand what the problem is here.\n\nAlso note that there is a general desire of fields in zoom objects to be immutable.",
+      "parentUuid": "1af78d9a_6e094f2c",
+      "revId": "438d0c379d622862a1909ddb6f07317bf35745c0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1af78d9a_2b4d7973",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
         "patchSetId": 8
@@ -574,6 +592,30 @@
       "side": 1,
       "message": "Like pattern matching? It doesn\u0027t need to be a case class, it needs to define an unapply method. \n\nIf these objects will live in a map and have an id, you probably want to define your own equals method instead of relying on what case classes generate.",
       "parentUuid": "1af78d9a_cb02f50a",
+      "range": {
+        "startLine": 56,
+        "startChar": 21,
+        "endLine": 56,
+        "endChar": 23
+      },
+      "revId": "438d0c379d622862a1909ddb6f07317bf35745c0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_60a4b857",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/TunnelZone.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-12-29T10:06:02Z",
+      "side": 1,
+      "message": "So it turns out I just need type matching and not pattern matching so I removed the case classes altogether. \n\nAs for inserting tunnel zones in maps, the key type used in the VTPM is UUID, so no need to redefine hashCode here. The same goes for Hosts.",
+      "parentUuid": "1af78d9a_6e6e6fcb",
       "range": {
         "startLine": 56,
         "startChar": 21,
