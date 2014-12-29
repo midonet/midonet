@@ -87,8 +87,8 @@ class DeduplicationActorTestCase extends MidolmanSpec {
             override def host = new ResolvedHost(UUID.randomUUID(), true, 0, "",
                                                  Map(), Map())
             override def peerTunnelInfo(peer: UUID): Option[Route] = ???
-            override def isVtepTunnellingPort(portNumber: Short): Boolean = ???
-            override def isOverlayTunnellingPort(portNumber: Short): Boolean = ???
+            override def isVtepTunnellingPort(portNumber: Integer): Boolean = ???
+            override def isOverlayTunnellingPort(portNumber: Integer): Boolean = ???
             override def vtepTunnellingOutputAction: FlowActionOutput = ???
             override def getDescForInterface(itfName: String) = ???
         })
