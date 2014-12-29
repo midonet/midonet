@@ -16,6 +16,24 @@
       "revId": "46e0c91cb6b1eaf7241878088988b89e3fd1b8ad",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_4031bc0a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/PacketWorkflow.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-12-29T10:34:28Z",
+      "side": 1,
+      "message": "I can\u0027t tell you how many times I\u0027ve sorted this out. I just can\u0027t get intellij to stop messing with imports :( I think this is fixed on a later patch though.",
+      "parentUuid": "1af78d9a_009334fb",
+      "revId": "46e0c91cb6b1eaf7241878088988b89e3fd1b8ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
