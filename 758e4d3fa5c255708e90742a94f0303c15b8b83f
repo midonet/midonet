@@ -16,6 +16,24 @@
       "revId": "758e4d3fa5c255708e90742a94f0303c15b8b83f",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_f45ea911",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/io/UpcallDatapathConnectionManager.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 198,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-12-29T12:19:41Z",
+      "side": 0,
+      "message": "so, we had all these different ways of build flowmatches, flowkeys, packets, etc. it was a mess and i\u0027ve fixed it a little. \n\nnow we process userspace keys when we build a packet, it\u0027s all encapsulated there.",
+      "parentUuid": "1af78d9a_5474dd9b",
+      "revId": "758e4d3fa5c255708e90742a94f0303c15b8b83f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
