@@ -142,6 +142,24 @@
     },
     {
       "key": {
+        "uuid": "1af78d9a_94a5a506",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Coordinator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 441,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2014-12-29T12:20:28Z",
+      "side": 1,
+      "message": "\u003e We are propagating userspace fields as well as all the others, which we were not.\n\ngot it.\n\n\u003e There are no instances where wcFlow.wcmatch is not the origMatch (at the tip of this branch). I have a patch in the disruptor branch where I take this out of here closer to where it\u0027s needed\n\nEven if there aren\u0027t, it\u0027s an ugly assumption. But it\u0027s fine by me if you tighten things up on the disruptor branch.",
+      "parentUuid": "1af78d9a_745c7926",
+      "revId": "6063d2ca4eb8053f79897fbf454a0a299fc05242",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1af78d9a_f419897a",
         "filename": "odp/build.gradle",
         "patchSetId": 2
