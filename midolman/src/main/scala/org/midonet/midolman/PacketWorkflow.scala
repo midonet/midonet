@@ -183,9 +183,9 @@ class PacketWorkflow(protected val dpState: DatapathState,
                 FlowController ! AddWildcardFlow(wf, flow,
                                 context.flowRemovedCallbacks,
                                 context.flowTags, context.lastInvalidation,
-                                context.packet.getMatch, actionsCache.pending,
+                                context.origMatch, actionsCache.pending,
                                 actionsCache.getSlot())
-                actionsCache.actions.put(context.packet.getMatch, flow.getActions)
+                actionsCache.actions.put(context.origMatch, flow.getActions)
         }
     }
 
@@ -218,6 +218,7 @@ class PacketWorkflow(protected val dpState: DatapathState,
             resultLogger.debug("packet came up due to userspace dp action, " +
                                s"match ${wildFlow.getMatch}")
             context.runFlowRemovedCallbacks()
+            addToActionsCacheAndInvalidate(context, wildFlow.actions)
         } else {
             // ApplyState needs to happen before we add the wildcard flow
             // because it adds callbacks to the PacketContext and it can also
@@ -238,9 +239,9 @@ class PacketWorkflow(protected val dpState: DatapathState,
             context.log.debug("Adding wildcard flow {} for match with userspace " +
                               "only fields, without a datapath flow", wildFlow)
             FlowController ! AddWildcardFlow(wildFlow, null, context.flowRemovedCallbacks,
-                context.flowTags, context.lastInvalidation, context.packet.getMatch,
+                context.flowTags, context.lastInvalidation, context.origMatch,
                 actionsCache.pending, actionsCache.getSlot())
-            actionsCache.actions.put(context.packet.getMatch, wildFlow.actions)
+            actionsCache.actions.put(context.origMatch, wildFlow.actions)
         } else {
             logResultNewFlow("will create flow", context, wildFlow)
             createFlow(context, wildFlow, Some(wildFlow))
@@ -479,11 +480,11 @@ class PacketWorkflow(protected val dpState: DatapathState,
 
     private def addToActionsCacheAndInvalidate(context: PacketContext,
                                                actions: JList[FlowAction]): Unit = {
-        val wm = context.packet.getMatch
+        val wm = context.origMatch
         actionsCache.actions.put(wm, actions)
         actionsCache.pending(actionsCache.getSlot()) = wm
     }
 
     private def datapathConn(context: PacketContext) =
-        dpConnPool.get(context.packet.getMatch.hashCode)
+        dpConnPool.get(context.origMatch.hashCode)
 }
