@@ -30,6 +30,7 @@ import scala.concurrent.{ExecutionContext, Future, Promise}
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.ArrayListMultimap
 import com.google.protobuf.{Message, TextFormat}
+
 import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.api.transaction.CuratorTransactionFinal
 import org.apache.curator.framework.api.{BackgroundCallback, CuratorEvent, CuratorEventType}
@@ -42,6 +43,7 @@ import org.apache.zookeeper.{CreateMode, KeeperException, WatchedEvent, Watcher}
 import org.codehaus.jackson.JsonFactory
 import org.codehaus.jackson.map.ObjectMapper
 import org.slf4j.LoggerFactory
+
 import rx.Observable
 
 import org.midonet.cluster.data.storage.FieldBinding.DeleteAction

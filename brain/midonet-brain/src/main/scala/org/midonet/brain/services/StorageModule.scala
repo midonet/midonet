@@ -66,6 +66,7 @@ class StorageModule(cfgProvider: ConfigProvider) extends AbstractModule {
              classOf[SecurityGroup],
              classOf[VIP]
              ).foreach(storage.registerClass)
+
         storage.build()
         storage
     }
