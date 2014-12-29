@@ -1,0 +1,89 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1af78d9a_742599aa",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2014-12-29T11:34:09Z",
+      "side": 1,
+      "message": "i was going to suggest a bigger commit msg. But a small to-the-point write up in docs/ would be much better.",
+      "revId": "6063d2ca4eb8053f79897fbf454a0a299fc05242",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_9420059d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/PacketWorkflow.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 200,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2014-12-29T11:34:09Z",
+      "side": 1,
+      "message": "but the simulation works on the clone of origMatch where are the seenFields in the clone copied over to origMatch so that the flow mask will be calculated based on them?\n\nUPDATE: found it, but see my comment in coordinator. This is subtle and the two pieces are far apart from each other. It\u0027s not obvious at all.",
+      "revId": "6063d2ca4eb8053f79897fbf454a0a299fc05242",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_b40f012e",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/PacketWorkflow.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 451,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2014-12-29T11:34:09Z",
+      "side": 1,
+      "message": "this is noise, IMHO there was nothing wrong with having a utility method. Making it a list filter was less than stellar though.",
+      "revId": "6063d2ca4eb8053f79897fbf454a0a299fc05242",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_141d3567",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Coordinator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 441,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2014-12-29T11:34:09Z",
+      "side": 1,
+      "message": "this is semantically quite different. Two thoughts:\n\n * Why are we not propagating userspace fields anymore?\n * PW is using origMatch to create the flow. Seems wrong that we propagate the seen fields to wcFlow.wcmatch, which may or may not be origMatch. Moreover, failure to propagate means we wildcard too much, which is a correctness bug, doesn\u0027t packet workflow query flow match fields in Coordiantor-less code paths?",
+      "revId": "6063d2ca4eb8053f79897fbf454a0a299fc05242",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_f419897a",
+        "filename": "odp/build.gradle",
+        "patchSetId": 2
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2014-12-29T11:34:09Z",
+      "side": 1,
+      "message": "nice!",
+      "revId": "6063d2ca4eb8053f79897fbf454a0a299fc05242",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
