@@ -339,6 +339,24 @@
     },
     {
       "key": {
+        "uuid": "1af78d9a_404a5c84",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-12-29T10:31:09Z",
+      "side": 1,
+      "message": "I was referring to the old structure, I guess. Carry on then :p\n\nDon\u0027t we now index tunnel zones by host? To find out to which tunnel zone a host belongs we have to first load them? (Which is ok, since there is usually just 1)",
+      "parentUuid": "1af78d9a_a0fea036",
+      "revId": "438d0c379d622862a1909ddb6f07317bf35745c0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1af78d9a_2b4d7973",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
         "patchSetId": 8
@@ -616,6 +634,30 @@
       "side": 1,
       "message": "So it turns out I just need type matching and not pattern matching so I removed the case classes altogether. \n\nAs for inserting tunnel zones in maps, the key type used in the VTPM is UUID, so no need to redefine hashCode here. The same goes for Hosts.",
       "parentUuid": "1af78d9a_6e6e6fcb",
+      "range": {
+        "startLine": 56,
+        "startChar": 21,
+        "endLine": 56,
+        "endChar": 23
+      },
+      "revId": "438d0c379d622862a1909ddb6f07317bf35745c0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_204f5094",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/TunnelZone.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-12-29T10:31:09Z",
+      "side": 1,
+      "message": "I was just pointing out that a case class generates structural equality for you.",
+      "parentUuid": "1af78d9a_60a4b857",
       "range": {
         "startLine": 56,
         "startChar": 21,
