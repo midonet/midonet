@@ -20,6 +20,11 @@ package org.midonet.cluster.models;
 option java_package = "org.midonet.cluster.models";
 option java_outer_classname = "Neutron";
 
+message NeutronDeployment {
+    optional UUID id = 1;
+    optional UUID provider_router_id = 2;
+}
+
 message NeutronNetwork {
     optional UUID id = 1;
     optional string tenant_id = 2;
