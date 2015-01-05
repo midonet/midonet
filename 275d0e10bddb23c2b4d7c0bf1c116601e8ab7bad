@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "1af78d9a_aa22fafe",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/Aggregator.scala",
+        "patchSetId": 48
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-01-05T11:26:48Z",
+      "side": 1,
+      "message": "As far as I see, the code should be thread-safe now... I\u0027ll remove that comment",
+      "parentUuid": "9a0b7d60_af3e9927",
+      "revId": "275d0e10bddb23c2b4d7c0bf1c116601e8ab7bad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a0b7d60_4f3a8d37",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/Aggregator.scala",
         "patchSetId": 48
@@ -30,6 +48,24 @@
       "writtenOn": "2014-12-17T11:20:37Z",
       "side": 1,
       "message": "nit: indentation",
+      "revId": "275d0e10bddb23c2b4d7c0bf1c116601e8ab7bad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_0a206ef6",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/Aggregator.scala",
+        "patchSetId": 48
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-01-05T11:26:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9a0b7d60_4f3a8d37",
       "revId": "275d0e10bddb23c2b4d7c0bf1c116601e8ab7bad",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -59,6 +95,30 @@
     },
     {
       "key": {
+        "uuid": "1af78d9a_ea1c02c4",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/Aggregator.scala",
+        "patchSetId": 48
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-01-05T11:26:48Z",
+      "side": 1,
+      "message": "The ConnectableObservable is the control observable to shut down the correponding data Observable: the controlled observable is terminated when the control observable emits an item and completes itself. Using a ConnectableObservable is a trick to to both things (emitting and completting) in a single shot, via the \u0027connect\u0027 operation.",
+      "parentUuid": "9a0b7d60_cf1cbdc4",
+      "range": {
+        "startLine": 54,
+        "startChar": 25,
+        "endLine": 54,
+        "endChar": 46
+      },
+      "revId": "275d0e10bddb23c2b4d7c0bf1c116601e8ab7bad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a0b7d60_6f8311cd",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/Aggregator.scala",
         "patchSetId": 48
@@ -70,6 +130,30 @@
       "writtenOn": "2014-12-17T11:20:37Z",
       "side": 1,
       "message": "Not sure I get this. Why not just:\n\nval cancelation \u003d PublishSubject.create()\nsources.add(what, cancellation)\ncollector.onNext(o.takeUntil(cancellation)",
+      "range": {
+        "startLine": 65,
+        "startChar": 8,
+        "endLine": 65,
+        "endChar": 11
+      },
+      "revId": "275d0e10bddb23c2b4d7c0bf1c116601e8ab7bad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_4a79d6fb",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/Aggregator.scala",
+        "patchSetId": 48
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-01-05T11:26:48Z",
+      "side": 1,
+      "message": "Because we also need to prevent the aggregated observable from completing when one of the sub-observables completes or produces an error, so we have to add the onErrorResumeNext and doOnCompleted operations. Additionally, we want to automatically remove the entry from the observable map on completion.",
+      "parentUuid": "9a0b7d60_6f8311cd",
       "range": {
         "startLine": 65,
         "startChar": 8,
@@ -122,6 +206,30 @@
     },
     {
       "key": {
+        "uuid": "1af78d9a_2a7e0ae5",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/Aggregator.scala",
+        "patchSetId": 48
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-01-05T11:26:48Z",
+      "side": 1,
+      "message": "That\u0027s equivalent to what ctl.connect() does. I\u0027ll rename the control observable to \u0027terminator\u0027 (maybe the effects will be less confusing...)",
+      "parentUuid": "9a0b7d60_ef1f01b6",
+      "range": {
+        "startLine": 90,
+        "startChar": 12,
+        "endLine": 90,
+        "endChar": 15
+      },
+      "revId": "275d0e10bddb23c2b4d7c0bf1c116601e8ab7bad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a0b7d60_8f691528",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/Aggregator.scala",
         "patchSetId": 48
@@ -145,6 +253,30 @@
     },
     {
       "key": {
+        "uuid": "1af78d9a_8a83becb",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/Aggregator.scala",
+        "patchSetId": 48
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-01-05T11:26:48Z",
+      "side": 1,
+      "message": "Yes, but additionally it sets the \u0027done\u0027 flag to true, so that the aggregator cannot be used again.",
+      "parentUuid": "9a0b7d60_8f691528",
+      "range": {
+        "startLine": 100,
+        "startChar": 8,
+        "endLine": 100,
+        "endChar": 15
+      },
+      "revId": "275d0e10bddb23c2b4d7c0bf1c116601e8ab7bad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a0b7d60_4f11edab",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/Aggregator.scala",
         "patchSetId": 48
@@ -156,6 +288,30 @@
       "writtenOn": "2014-12-17T11:20:37Z",
       "side": 1,
       "message": "when is this needed?",
+      "range": {
+        "startLine": 109,
+        "startChar": 8,
+        "endLine": 109,
+        "endChar": 14
+      },
+      "revId": "275d0e10bddb23c2b4d7c0bf1c116601e8ab7bad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_6a8812e8",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/Aggregator.scala",
+        "patchSetId": 48
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-01-05T11:26:48Z",
+      "side": 1,
+      "message": "E.g. when the session operation does not involve connecting to a zoom observable (e.g. get, or when there is an error) and we need to emit something anyway (e.g. a nack).",
+      "parentUuid": "9a0b7d60_4f11edab",
       "range": {
         "startLine": 109,
         "startChar": 8,
