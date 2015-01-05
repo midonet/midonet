@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "1af78d9a_ca3e6629",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-01-05T11:01:51Z",
+      "side": 1,
+      "message": "Was it my commented? I don\u0027t think i got the regex wrong, but I meant to say to replace tunnel with tunnel zone all over the patch. They are two different things!",
+      "parentUuid": "1af78d9a_4a88b622",
+      "range": {
+        "startLine": 51,
+        "startChar": 24,
+        "endLine": 51,
+        "endChar": 35
+      },
+      "revId": "d566ad808cedc22e495939fe2c95800795a3c66b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1af78d9a_f416a9f0",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
         "patchSetId": 14
