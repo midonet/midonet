@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1af78d9a_4a88b622",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-05T09:26:00Z",
+      "side": 1,
+      "message": "I received a previous review suggesting to replace TunnelZone... with Tunnel...",
+      "parentUuid": "1af78d9a_54ba1de2",
+      "range": {
+        "startLine": 51,
+        "startChar": 24,
+        "endLine": 51,
+        "endChar": 35
+      },
+      "revId": "d566ad808cedc22e495939fe2c95800795a3c66b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1af78d9a_f416a9f0",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
         "patchSetId": 14
@@ -36,6 +60,30 @@
       "writtenOn": "2014-12-29T18:17:34Z",
       "side": 1,
       "message": "Is this subject needed?",
+      "range": {
+        "startLine": 53,
+        "startChar": 8,
+        "endLine": 53,
+        "endChar": 64
+      },
+      "revId": "d566ad808cedc22e495939fe2c95800795a3c66b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_2a8d6a32",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-05T09:26:00Z",
+      "side": 1,
+      "message": "removed",
+      "parentUuid": "1af78d9a_f416a9f0",
       "range": {
         "startLine": 53,
         "startChar": 8,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "1af78d9a_8a829efe",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-05T09:26:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1af78d9a_34d83153",
+      "range": {
+        "startLine": 54,
+        "startChar": 8,
+        "endLine": 56,
+        "endChar": 28
+      },
+      "revId": "d566ad808cedc22e495939fe2c95800795a3c66b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1af78d9a_f4ed09f1",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
         "patchSetId": 14
@@ -82,6 +154,30 @@
       "writtenOn": "2014-12-29T18:17:34Z",
       "side": 1,
       "message": "Here, host should already be a new instance because it\u0027s received from ZoomConvert. Cloning may not be necessary, see comment below.",
+      "range": {
+        "startLine": 99,
+        "startChar": 8,
+        "endLine": 99,
+        "endChar": 30
+      },
+      "revId": "d566ad808cedc22e495939fe2c95800795a3c66b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_cad026fa",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-05T09:26:00Z",
+      "side": 1,
+      "message": "removed",
+      "parentUuid": "1af78d9a_f4ed09f1",
       "range": {
         "startLine": 99,
         "startChar": 8,
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "1af78d9a_caa2e699",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-05T09:26:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1af78d9a_14f1b5cd",
+      "range": {
+        "startLine": 107,
+        "startChar": 12,
+        "endLine": 110,
+        "endChar": 68
+      },
+      "revId": "d566ad808cedc22e495939fe2c95800795a3c66b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1af78d9a_b41c2115",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
         "patchSetId": 14
@@ -128,6 +248,30 @@
       "writtenOn": "2014-12-29T18:17:34Z",
       "side": 1,
       "message": "I don\u0027t think is is necessary. There may be a few more, above and below.",
+      "range": {
+        "startLine": 124,
+        "startChar": 51,
+        "endLine": 124,
+        "endChar": 54
+      },
+      "revId": "d566ad808cedc22e495939fe2c95800795a3c66b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_0aad0e89",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-05T09:26:00Z",
+      "side": 1,
+      "message": "It\u0027s a personal taste but removing the _ makes it harder to read for me.",
+      "parentUuid": "1af78d9a_b41c2115",
       "range": {
         "startLine": 124,
         "startChar": 51,
@@ -163,6 +307,30 @@
     },
     {
       "key": {
+        "uuid": "1af78d9a_eaa9a27c",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 138,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-05T09:26:00Z",
+      "side": 1,
+      "message": "This is legacy code from when I did not use the aliveStatusReceived boolean. Previously I had to make a blocking call to obtain the alive status right away.\n\nI\u0027ll leave this as is until your patch is ready.",
+      "parentUuid": "1af78d9a_343151a3",
+      "range": {
+        "startLine": 138,
+        "startChar": 31,
+        "endLine": 138,
+        "endChar": 72
+      },
+      "revId": "d566ad808cedc22e495939fe2c95800795a3c66b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1af78d9a_94264567",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
         "patchSetId": 14
@@ -174,6 +342,30 @@
       "writtenOn": "2014-12-29T18:17:34Z",
       "side": 1,
       "message": "Then, we can also make this a val.",
+      "range": {
+        "startLine": 139,
+        "startChar": 8,
+        "endLine": 139,
+        "endChar": 24
+      },
+      "revId": "d566ad808cedc22e495939fe2c95800795a3c66b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_8ae73ee4",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 139,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-05T09:26:00Z",
+      "side": 1,
+      "message": "This will be called only once, the first time the observable is created. Is it really necessary to create a val for the observable then?",
+      "parentUuid": "1af78d9a_94264567",
       "range": {
         "startLine": 139,
         "startChar": 8,
@@ -209,6 +401,30 @@
     },
     {
       "key": {
+        "uuid": "1af78d9a_4ab6f6dd",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 143,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-05T09:26:00Z",
+      "side": 1,
+      "message": "same comment as above",
+      "parentUuid": "1af78d9a_141a5517",
+      "range": {
+        "startLine": 143,
+        "startChar": 39,
+        "endLine": 143,
+        "endChar": 42
+      },
+      "revId": "d566ad808cedc22e495939fe2c95800795a3c66b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1af78d9a_34bf91d2",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/Host.scala",
         "patchSetId": 14
@@ -232,6 +448,30 @@
     },
     {
       "key": {
+        "uuid": "1af78d9a_aacdda5f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/Host.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 63,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-05T09:26:00Z",
+      "side": 1,
+      "message": "I made the names shorter as per Duarte\u0027s comment. I prefer not swinging back and forth between two solutions ;-)",
+      "parentUuid": "1af78d9a_34bf91d2",
+      "range": {
+        "startLine": 63,
+        "startChar": 8,
+        "endLine": 63,
+        "endChar": 15
+      },
+      "revId": "d566ad808cedc22e495939fe2c95800795a3c66b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1af78d9a_d41f2d08",
         "filename": "midolman/src/test/scala/org/midonet/midolman/topology/devices/HostMapperTest.scala",
         "patchSetId": 14
@@ -243,6 +483,30 @@
       "writtenOn": "2014-12-29T18:17:34Z",
       "side": 1,
       "message": "Should it be in topology?",
+      "range": {
+        "startLine": 17,
+        "startChar": 38,
+        "endLine": 17,
+        "endChar": 45
+      },
+      "revId": "d566ad808cedc22e495939fe2c95800795a3c66b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_ead7e2eb",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/devices/HostMapperTest.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-05T09:26:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1af78d9a_d41f2d08",
       "range": {
         "startLine": 17,
         "startChar": 38,
