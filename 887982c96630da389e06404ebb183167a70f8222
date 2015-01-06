@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "1af78d9a_45826e53",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 9
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-01-06T08:38:09Z",
+      "side": 1,
+      "message": "The FPM feature is a compile-time option, so we do indeed need to provide our own Quagga packages. I have already uploaded the Ubuntu packages, and they are being used in mdts (including the mdts tests for this patch)",
+      "parentUuid": "9a0b7d60_0f6365b2",
+      "revId": "887982c96630da389e06404ebb183167a70f8222",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a0b7d60_aff7b98b",
         "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingHandler.scala",
         "patchSetId": 9
@@ -30,6 +48,24 @@
       "writtenOn": "2014-12-17T10:42:32Z",
       "side": 1,
       "message": "Suggestion: this class has always been brittle and convoluted, I\u0027d break it up in two, one that handles bgpd (or any other routing protocol) controlled/launched by one that handles just zebra and gets route notifications.",
+      "revId": "887982c96630da389e06404ebb183167a70f8222",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_25876263",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingHandler.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-01-06T08:38:09Z",
+      "side": 1,
+      "message": "I like your suggestion, but I have plans for this class that would make that distinction moot: I am going to dockerize the whole Quagga namespace which would remove quite a bit of this class (maybe remove it entirely?).",
+      "parentUuid": "9a0b7d60_aff7b98b",
       "revId": "887982c96630da389e06404ebb183167a70f8222",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -53,6 +89,24 @@
     },
     {
       "key": {
+        "uuid": "1af78d9a_857c5674",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingHandler.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 149,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-01-06T08:38:09Z",
+      "side": 1,
+      "message": "woops. Removed those configs.",
+      "parentUuid": "9a0b7d60_6f0f91e2",
+      "revId": "887982c96630da389e06404ebb183167a70f8222",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a0b7d60_8f78f52c",
         "filename": "midolman/src/main/scala/org/midonet/quagga/FpmServer.scala",
         "patchSetId": 9
@@ -70,6 +124,24 @@
     },
     {
       "key": {
+        "uuid": "1af78d9a_65816a4a",
+        "filename": "midolman/src/main/scala/org/midonet/quagga/FpmServer.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-01-06T08:38:09Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9a0b7d60_8f78f52c",
+      "revId": "887982c96630da389e06404ebb183167a70f8222",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a0b7d60_cf72fd48",
         "filename": "midolman/src/main/scala/org/midonet/quagga/FpmServer.scala",
         "patchSetId": 9
@@ -81,6 +153,24 @@
       "writtenOn": "2014-12-17T10:42:32Z",
       "side": 1,
       "message": "ditto.",
+      "revId": "887982c96630da389e06404ebb183167a70f8222",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_c595be89",
+        "filename": "midolman/src/main/scala/org/midonet/quagga/FpmServer.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-01-06T08:38:09Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9a0b7d60_cf72fd48",
       "revId": "887982c96630da389e06404ebb183167a70f8222",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -122,6 +212,42 @@
     },
     {
       "key": {
+        "uuid": "1af78d9a_25ee4223",
+        "filename": "midolman/src/main/scala/org/midonet/quagga/FpmServer.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-01-06T08:38:09Z",
+      "side": 1,
+      "message": "Yeah we can use the same thread pool, good idea.",
+      "parentUuid": "9a0b7d60_8f9f5550",
+      "revId": "887982c96630da389e06404ebb183167a70f8222",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_85f3b609",
+        "filename": "midolman/src/main/scala/org/midonet/quagga/FpmServer.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-01-06T08:38:09Z",
+      "side": 1,
+      "message": "A newCachedThreadPool will use as little threads as needed, so I think it is good enough. Would you agree?",
+      "parentUuid": "9a0b7d60_6f35d145",
+      "revId": "887982c96630da389e06404ebb183167a70f8222",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a0b7d60_4fb56dcc",
         "filename": "midolman/src/main/scala/org/midonet/quagga/FpmServer.scala",
         "patchSetId": 9
@@ -133,6 +259,24 @@
       "writtenOn": "2014-12-17T10:42:32Z",
       "side": 1,
       "message": "this actor doesn\u0027t handle any messages, or otherwise do anything else besides its pre/post start. Why is it an actor then?",
+      "revId": "887982c96630da389e06404ebb183167a70f8222",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_6dedcc8b",
+        "filename": "midolman/src/main/scala/org/midonet/quagga/FpmServer.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-01-06T08:38:09Z",
+      "side": 1,
+      "message": "It does not have to be an actor. Being an actor has the benefit that when the actor system is shutdown, this postStop method is called and the routes are removed. pretty weak reasoning, I am aware.",
+      "parentUuid": "9a0b7d60_4fb56dcc",
       "revId": "887982c96630da389e06404ebb183167a70f8222",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -156,6 +300,24 @@
     },
     {
       "key": {
+        "uuid": "1af78d9a_a592329d",
+        "filename": "midolman/src/main/scala/org/midonet/quagga/FpmServer.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-01-06T08:38:09Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9a0b7d60_8fc63548",
+      "revId": "887982c96630da389e06404ebb183167a70f8222",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a0b7d60_efc38136",
         "filename": "midolman/src/main/scala/org/midonet/quagga/FpmServer.scala",
         "patchSetId": 9
@@ -167,6 +329,24 @@
       "writtenOn": "2014-12-17T10:42:32Z",
       "side": 1,
       "message": "please use a hand-picked logger name that follows the convention (see around the code or logback.xml).\n\nI\u0027d just use the same you are using above in FpmServer.",
+      "revId": "887982c96630da389e06404ebb183167a70f8222",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_05bea6ff",
+        "filename": "midolman/src/main/scala/org/midonet/quagga/FpmServer.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-01-06T08:38:09Z",
+      "side": 1,
+      "message": "I defined a logSource that includes fpm-server in the name. Is that what you mean?",
+      "parentUuid": "9a0b7d60_efc38136",
       "revId": "887982c96630da389e06404ebb183167a70f8222",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -190,6 +370,24 @@
     },
     {
       "key": {
+        "uuid": "1af78d9a_c5c3fe88",
+        "filename": "midolman/src/main/scala/org/midonet/quagga/FpmServer.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 139,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-01-06T08:38:09Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9a0b7d60_6fe791e5",
+      "revId": "887982c96630da389e06404ebb183167a70f8222",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a0b7d60_4fec4dc8",
         "filename": "midolman/src/main/scala/org/midonet/quagga/FpmServer.scala",
         "patchSetId": 9
@@ -201,6 +399,24 @@
       "writtenOn": "2014-12-17T10:42:32Z",
       "side": 1,
       "message": "why assume LITTLE_ENDIAN? would it be more correct to use host byte order then?",
+      "revId": "887982c96630da389e06404ebb183167a70f8222",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_e5ba7a09",
+        "filename": "midolman/src/main/scala/org/midonet/quagga/FpmServer.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 152,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-01-06T08:38:09Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9a0b7d60_4fec4dc8",
       "revId": "887982c96630da389e06404ebb183167a70f8222",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -224,6 +440,24 @@
     },
     {
       "key": {
+        "uuid": "1af78d9a_cd01603b",
+        "filename": "midolman/src/main/scala/org/midonet/quagga/FpmServer.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 162,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-01-06T08:38:09Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9a0b7d60_efda6116",
+      "revId": "887982c96630da389e06404ebb183167a70f8222",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a0b7d60_8f22b5ff",
         "filename": "midolman/src/main/scala/org/midonet/quagga/FpmServer.scala",
         "patchSetId": 9
@@ -235,6 +469,24 @@
       "writtenOn": "2014-12-17T11:01:29Z",
       "side": 1,
       "message": "the the",
+      "revId": "887982c96630da389e06404ebb183167a70f8222",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_05906694",
+        "filename": "midolman/src/main/scala/org/midonet/quagga/FpmServer.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 168,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-01-06T08:38:09Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9a0b7d60_8f22b5ff",
       "revId": "887982c96630da389e06404ebb183167a70f8222",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -258,6 +510,24 @@
     },
     {
       "key": {
+        "uuid": "1af78d9a_adfe9436",
+        "filename": "midolman/src/main/scala/org/midonet/quagga/FpmServer.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 183,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-01-06T08:38:09Z",
+      "side": 1,
+      "message": "I have added a general exception handler to catch all exceptions and close the channel.\n\nThis \"length\" actually comes from the netlink header and not the FPM header.",
+      "parentUuid": "9a0b7d60_8fcd9560",
+      "revId": "887982c96630da389e06404ebb183167a70f8222",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a0b7d60_cfd79dec",
         "filename": "midolman/src/main/scala/org/midonet/quagga/FpmServer.scala",
         "patchSetId": 9
@@ -269,6 +539,24 @@
       "writtenOn": "2014-12-17T10:42:32Z",
       "side": 1,
       "message": "these variable names look hard to grasp in a log message, can we make them more readable?",
+      "revId": "887982c96630da389e06404ebb183167a70f8222",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_45370eb1",
+        "filename": "midolman/src/main/scala/org/midonet/quagga/FpmServer.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 206,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-01-06T08:38:09Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9a0b7d60_cfd79dec",
       "revId": "887982c96630da389e06404ebb183167a70f8222",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -292,6 +580,24 @@
     },
     {
       "key": {
+        "uuid": "1af78d9a_4d9570e3",
+        "filename": "midolman/src/main/scala/org/midonet/quagga/FpmServer.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 227,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-01-06T08:38:09Z",
+      "side": 1,
+      "message": "good point.",
+      "parentUuid": "9a0b7d60_0f7ec5e4",
+      "revId": "887982c96630da389e06404ebb183167a70f8222",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a0b7d60_0f09a595",
         "filename": "midolman/src/main/scala/org/midonet/quagga/FpmServer.scala",
         "patchSetId": 9
@@ -303,6 +609,24 @@
       "writtenOn": "2014-12-17T10:42:32Z",
       "side": 1,
       "message": "this doesn\u0027t make sense, the default route through which gateway? Isn\u0027t the _destination_ address where this should apply?",
+      "revId": "887982c96630da389e06404ebb183167a70f8222",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_8541f60d",
+        "filename": "midolman/src/main/scala/org/midonet/quagga/FpmServer.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 249,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-01-06T08:38:09Z",
+      "side": 1,
+      "message": "I don\u0027t understand what the route means, but it came from the kernel (not BGP). I have added checks to make sure we only process BGP/Zebra routes, so this case is never hit.",
+      "parentUuid": "9a0b7d60_0f09a595",
       "revId": "887982c96630da389e06404ebb183167a70f8222",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
