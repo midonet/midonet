@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "1af78d9a_ed7d3cb3",
+        "filename": "midolman/src/main/java/org/midonet/cluster/data/Converter.java",
+        "patchSetId": 6
+      },
+      "lineNbr": 587,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-01-06T09:54:22Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1af78d9a_605f9873",
+      "revId": "0c9f29eb42617b771ab109e534a2cdcf5ccd995a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1af78d9a_c053ec6a",
         "filename": "midolman/src/main/java/org/midonet/midolman/state/zkManagers/BridgeDhcpZkManager.java",
         "patchSetId": 6
@@ -30,6 +48,24 @@
       "writtenOn": "2014-12-29T03:12:59Z",
       "side": 1,
       "message": "Only take it as a suggestion.  Because I\u0027m in favor of avoiding a member variable getting set in two ways that seemingly mean the same thing (here, \u0027null\u0027 and an empty list), consider:\n\n1. Not allowing \u0027null\u0027 to be passed in for extraDhcpOpts (add a PreCondition check)\n2. Not allowing setting of extraDhcpOpts in the constructor but define a separate method (\u0027addDhcpOpts\u0027 that also guards against a null argument).\n\nBy doing so, you can be sure that extraDhcpOpts would never be set to null. It should also simplify the \u0027equals\u0027 method below.",
+      "revId": "0c9f29eb42617b771ab109e534a2cdcf5ccd995a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_4d4a9084",
+        "filename": "midolman/src/main/java/org/midonet/midolman/state/zkManagers/BridgeDhcpZkManager.java",
+        "patchSetId": 6
+      },
+      "lineNbr": 225,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-01-06T09:54:22Z",
+      "side": 1,
+      "message": "I used Preconditions#checkNotNull in Guava.",
+      "parentUuid": "1af78d9a_c053ec6a",
       "revId": "0c9f29eb42617b771ab109e534a2cdcf5ccd995a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -53,6 +89,24 @@
     },
     {
       "key": {
+        "uuid": "1af78d9a_2d4f4494",
+        "filename": "midonet-api/src/main/java/org/midonet/api/VendorMediaType.java",
+        "patchSetId": 6
+      },
+      "lineNbr": 134,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-01-06T09:54:22Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1af78d9a_004e94c1",
+      "revId": "0c9f29eb42617b771ab109e534a2cdcf5ccd995a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1af78d9a_e04a68ab",
         "filename": "midonet-api/src/main/java/org/midonet/api/VendorMediaType.java",
         "patchSetId": 6
@@ -70,6 +124,24 @@
     },
     {
       "key": {
+        "uuid": "1af78d9a_8d447875",
+        "filename": "midonet-api/src/main/java/org/midonet/api/VendorMediaType.java",
+        "patchSetId": 6
+      },
+      "lineNbr": 136,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-01-06T09:54:22Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1af78d9a_e04a68ab",
+      "revId": "0c9f29eb42617b771ab109e534a2cdcf5ccd995a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1af78d9a_a050605f",
         "filename": "midonet-api/src/main/java/org/midonet/api/dhcp/DhcpHost.java",
         "patchSetId": 6
@@ -81,6 +153,24 @@
       "writtenOn": "2014-12-29T03:12:59Z",
       "side": 1,
       "message": "Also just a suggestion, but in the API, IMO it\u0027s better for the users to see an empty list than a null.  And also for consistency, consider initializing to an empty list and not allowing \u0027null\u0027 to be set.",
+      "revId": "0c9f29eb42617b771ab109e534a2cdcf5ccd995a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_6d494c8b",
+        "filename": "midonet-api/src/main/java/org/midonet/api/dhcp/DhcpHost.java",
+        "patchSetId": 6
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-01-06T09:54:22Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1af78d9a_a050605f",
       "revId": "0c9f29eb42617b771ab109e534a2cdcf5ccd995a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
