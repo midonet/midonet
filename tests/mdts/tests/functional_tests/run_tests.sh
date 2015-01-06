@@ -24,6 +24,7 @@ tests are run.
 
 OPTIONS:
  -h          This help message
+ -e TEST     Exclude this test (can be specified multiple times)
  -t TEST     Runs this test(s)
  -s          Runs only fast tests
  -S          Runs only slow tests
@@ -46,12 +47,16 @@ EOF
 }
 
 ATTR=""
-while getopts ":ht:sSv:V:xX" OPTION
+ARGS=""  # passed directly to nosetests runner
+while getopts "e:ht:sSv:V:xX" OPTION
 do
     case $OPTION in
         h)
             usage
             exit 0
+            ;;
+        e)
+            ARGS="$ARGS -e $OPTARG"
             ;;
         s)
             if [ -z "$ATTR" ]
@@ -111,4 +116,4 @@ then
     exit 1
 fi
 
-sudo PYTHONPATH=../../../ ./runner.py -c nose.cfg ${ATTR:+"-A $ATTR"} $TESTS 2>&1 | tee nosetests.`date +%Y%m%d-%H%M`.log
+sudo PYTHONPATH=../../../ ./runner.py -c nose.cfg ${ATTR:+"-A $ATTR"} $TESTS $ARGS 2>&1 | tee nosetests.`date +%Y%m%d-%H%M`.log
