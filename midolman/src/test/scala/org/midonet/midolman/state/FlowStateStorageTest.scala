@@ -17,7 +17,6 @@
 package org.midonet.midolman.state
 
 import java.util.UUID
-import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
 import scala.concurrent.Await
 import scala.concurrent.duration._
@@ -28,10 +27,11 @@ import org.junit.runner.RunWith
 import org.scalatest.concurrent.Eventually._
 import org.scalatest.junit.JUnitRunner
 import org.scalatest._
+import org.scalatest.time.{Millis, Span}
 
 import org.midonet.midolman.state.ConnTrackState.ConnTrackKey
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
-import org.midonet.packets.{IPAddr, IPv4Addr}
+import org.midonet.packets.IPv4Addr
 import org.midonet.cassandra.CassandraClient
 
 
@@ -46,7 +46,7 @@ class FlowStateStorageTest extends FeatureSpec
     implicit val actors = ActorSystem.create()
     import actors.dispatcher
 
-    val timeout: Duration = 3 seconds
+    val timeoutDuration: Duration = 3 seconds
 
     val connTrackKeys =
         List(ConnTrackKey("10.0.0.1", 1234, "10.0.0.2", 22, 1, UUID.randomUUID()),
@@ -87,29 +87,33 @@ class FlowStateStorageTest extends FeatureSpec
             var strongConn: java.util.Set[ConnTrackKey] = null
             eventually {
                 val future = storage.fetchStrongConnTrackRefs(ingressPort)
-                strongConn = Await.result(future, timeout)
+                strongConn = Await.result(future, timeoutDuration)
                 strongConn should not be null
                 strongConn should have size connTrackKeys.size
-            }
+            } (new PatienceConfig(timeout = scaled(Span(timeoutDuration.toMillis, Millis)),
+                                  interval = scaled(Span(15, Millis))))
 
             for (k <- connTrackKeys) {
                 strongConn should contain (k)
             }
 
             for (port <- egressPorts) {
-                val weakRefs = Await.result(storage.fetchWeakConnTrackRefs(port), timeout)
+                val weakRefs = Await.result(storage.fetchWeakConnTrackRefs(port),
+                                            timeoutDuration)
                 for (k <- connTrackKeys) {
                     weakRefs should contain (k)
                 }
             }
 
-            val strongNat = Await.result(storage.fetchStrongNatRefs(ingressPort), timeout)
+            val strongNat = Await.result(storage.fetchStrongNatRefs(ingressPort),
+                                         timeoutDuration)
             for ((k, v) <- natMappings) {
                 strongNat.get(k) should === (v)
             }
 
             for (port <- egressPorts) {
-                val weakRefs = Await.result(storage.fetchWeakNatRefs(port), timeout)
+                val weakRefs = Await.result(storage.fetchWeakNatRefs(port),
+                                            timeoutDuration)
                 for ((k, v) <- natMappings) {
                     weakRefs.get(k) should === (v)
                 }
