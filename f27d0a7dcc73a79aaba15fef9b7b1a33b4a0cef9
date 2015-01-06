@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "1af78d9a_0dfc083e",
+        "filename": "midolman/src/main/java/org/midonet/midolman/host/state/HostZkManager.java",
+        "patchSetId": 15
+      },
+      "lineNbr": 444,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-06T08:16:22Z",
+      "side": 1,
+      "message": "It\u0027s a method that I added. I has to be public otherwise I cannot access it from the test. I thus added the annotation to clarify the use of the method. If you still don\u0027t like this annotation I\u0027ll remove it, let me know.",
+      "parentUuid": "1af78d9a_0dc4083f",
+      "revId": "f27d0a7dcc73a79aaba15fef9b7b1a33b4a0cef9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1af78d9a_adcdf45f",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
         "patchSetId": 15
@@ -30,6 +48,24 @@
       "writtenOn": "2015-01-06T04:31:44Z",
       "side": 1,
       "message": "I don\u0027t think this makes the code particularly more readable, and am a bit concerned if this actually mixes implementation details with semantics.",
+      "revId": "f27d0a7dcc73a79aaba15fef9b7b1a33b4a0cef9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_2d9aa414",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-06T08:16:22Z",
+      "side": 1,
+      "message": "This was used to avoid a name conflict (a package object named topology exists in org.midonet.midolman). I now just import the proto host class.",
+      "parentUuid": "1af78d9a_adcdf45f",
       "revId": "f27d0a7dcc73a79aaba15fef9b7b1a33b4a0cef9",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -59,6 +95,30 @@
     },
     {
       "key": {
+        "uuid": "1af78d9a_edf89c4b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-06T08:16:22Z",
+      "side": 1,
+      "message": "Is there a way to make the import optimizer abide by the import rules used at Midokura?",
+      "parentUuid": "1af78d9a_edc09c2c",
+      "range": {
+        "startLine": 30,
+        "startChar": 0,
+        "endLine": 33,
+        "endChar": 31
+      },
+      "revId": "f27d0a7dcc73a79aaba15fef9b7b1a33b4a0cef9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1af78d9a_4ddd7014",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
         "patchSetId": 15
@@ -76,6 +136,24 @@
     },
     {
       "key": {
+        "uuid": "1af78d9a_8d9f5803",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-06T08:16:22Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1af78d9a_4ddd7014",
+      "revId": "f27d0a7dcc73a79aaba15fef9b7b1a33b4a0cef9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1af78d9a_8de758e4",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
         "patchSetId": 15
@@ -87,6 +165,30 @@
       "writtenOn": "2015-01-06T04:31:44Z",
       "side": 1,
       "message": "Please rename to avoid confusion with the field of the same name.",
+      "range": {
+        "startLine": 97,
+        "startChar": 13,
+        "endLine": 97,
+        "endChar": 20
+      },
+      "revId": "f27d0a7dcc73a79aaba15fef9b7b1a33b4a0cef9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_6da4ac57",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-06T08:16:22Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1af78d9a_8de758e4",
       "range": {
         "startLine": 97,
         "startChar": 13,
@@ -122,6 +224,30 @@
     },
     {
       "key": {
+        "uuid": "1af78d9a_cd8840c9",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-06T08:16:22Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1af78d9a_2de2a4d5",
+      "range": {
+        "startLine": 106,
+        "startChar": 15,
+        "endLine": 106,
+        "endChar": 20
+      },
+      "revId": "f27d0a7dcc73a79aaba15fef9b7b1a33b4a0cef9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1af78d9a_8dfe386a",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
         "patchSetId": 15
@@ -133,6 +259,30 @@
       "writtenOn": "2015-01-06T04:31:44Z",
       "side": 1,
       "message": "Maybe a matter of taste, but using the lambda notation I think is slightly more readable.",
+      "range": {
+        "startLine": 149,
+        "startChar": 26,
+        "endLine": 149,
+        "endChar": 35
+      },
+      "revId": "f27d0a7dcc73a79aaba15fef9b7b1a33b4a0cef9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_ad85f4ae",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 149,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-06T08:16:22Z",
+      "side": 1,
+      "message": "We have to pass a java object of class Func1 here, I\u0027m not sure if we can convert a lambda to Func1.",
+      "parentUuid": "1af78d9a_8dfe386a",
       "range": {
         "startLine": 149,
         "startChar": 26,
@@ -168,6 +318,30 @@
     },
     {
       "key": {
+        "uuid": "1af78d9a_0d9368fb",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 150,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-06T08:16:22Z",
+      "side": 1,
+      "message": "same comment.",
+      "parentUuid": "1af78d9a_6d030c74",
+      "range": {
+        "startLine": 150,
+        "startChar": 20,
+        "endLine": 150,
+        "endChar": 29
+      },
+      "revId": "f27d0a7dcc73a79aaba15fef9b7b1a33b4a0cef9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1af78d9a_adf4d487",
         "filename": "midolman/src/test/scala/org/midonet/midolman/topology/DeviceMapperTest.scala",
         "patchSetId": 15
@@ -185,6 +359,24 @@
     },
     {
       "key": {
+        "uuid": "1af78d9a_ed8ffcca",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/DeviceMapperTest.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-06T08:16:22Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1af78d9a_adf4d487",
+      "revId": "f27d0a7dcc73a79aaba15fef9b7b1a33b4a0cef9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1af78d9a_0df2489a",
         "filename": "midolman/src/test/scala/org/midonet/midolman/topology/HostMapperTest.scala",
         "patchSetId": 15
@@ -196,6 +388,30 @@
       "writtenOn": "2015-01-06T04:31:44Z",
       "side": 1,
       "message": "The org.midonet imports should be placed at the end.",
+      "range": {
+        "startLine": 22,
+        "startChar": 0,
+        "endLine": 32,
+        "endChar": 51
+      },
+      "revId": "f27d0a7dcc73a79aaba15fef9b7b1a33b4a0cef9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_4dbc506d",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/HostMapperTest.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-06T08:16:22Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1af78d9a_0df2489a",
       "range": {
         "startLine": 22,
         "startChar": 0,
@@ -231,6 +447,30 @@
     },
     {
       "key": {
+        "uuid": "1af78d9a_2dc104e5",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/HostMapperTest.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-06T08:16:22Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1af78d9a_edeedcb3",
+      "range": {
+        "startLine": 35,
+        "startChar": 0,
+        "endLine": 36,
+        "endChar": 44
+      },
+      "revId": "f27d0a7dcc73a79aaba15fef9b7b1a33b4a0cef9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1af78d9a_4d2bb0eb",
         "filename": "midolman/src/test/scala/org/midonet/midolman/topology/VirtualDeviceMapperTest.scala",
         "patchSetId": 15
@@ -242,6 +482,24 @@
       "writtenOn": "2015-01-06T04:31:44Z",
       "side": 1,
       "message": "Ditto.",
+      "revId": "f27d0a7dcc73a79aaba15fef9b7b1a33b4a0cef9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_8db63889",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/VirtualDeviceMapperTest.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-06T08:16:22Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1af78d9a_4d2bb0eb",
       "revId": "f27d0a7dcc73a79aaba15fef9b7b1a33b4a0cef9",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
