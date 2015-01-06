@@ -73,6 +73,30 @@
     },
     {
       "key": {
+        "uuid": "1af78d9a_ede1bc9b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-06T07:42:00Z",
+      "side": 1,
+      "message": "OK, I may have gotten your regexp wrong. I\u0027m fine replacing \u003ctunnel...\u003e with \u003cTunnelZone...\u003e.",
+      "parentUuid": "1af78d9a_ca3e6629",
+      "range": {
+        "startLine": 51,
+        "startChar": 24,
+        "endLine": 51,
+        "endChar": 35
+      },
+      "revId": "d566ad808cedc22e495939fe2c95800795a3c66b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1af78d9a_f416a9f0",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
         "patchSetId": 14
