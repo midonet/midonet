@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1af78d9a_439a6115",
+        "filename": "midonet-api/src/main/webapp/WEB-INF/web.xml.rhel6.prod",
+        "patchSetId": 1
+      },
+      "lineNbr": 139,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-07T08:10:50Z",
+      "side": 1,
+      "message": "Duplicated parameter?",
+      "range": {
+        "startLine": 131,
+        "startChar": 2,
+        "endLine": 139,
+        "endChar": 18
+      },
+      "revId": "f35fd2adfcf849b9176defa0b57e3df85a0114fa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
