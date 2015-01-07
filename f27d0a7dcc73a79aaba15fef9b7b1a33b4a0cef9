@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "1af78d9a_632b1dec",
+        "filename": "midolman/src/main/java/org/midonet/midolman/host/state/HostZkManager.java",
+        "patchSetId": 15
+      },
+      "lineNbr": 444,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-07T00:46:32Z",
+      "side": 1,
+      "message": "Sorry, I misinterpreted the intention of the annotation. It\u0027s fine, please keep it.",
+      "parentUuid": "1af78d9a_0dfc083e",
+      "revId": "f27d0a7dcc73a79aaba15fef9b7b1a33b4a0cef9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1af78d9a_adcdf45f",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
         "patchSetId": 15
