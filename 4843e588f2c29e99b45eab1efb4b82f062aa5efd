@@ -153,6 +153,30 @@
     },
     {
       "key": {
+        "uuid": "1af78d9a_e301cd3a",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/C3PODaemonTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 286,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-01-07T08:08:04Z",
+      "side": 1,
+      "message": "The tests run much faster this way, though.",
+      "parentUuid": "1af78d9a_cd6cc039",
+      "range": {
+        "startLine": 286,
+        "startChar": 61,
+        "endLine": 286,
+        "endChar": 67
+      },
+      "revId": "4843e588f2c29e99b45eab1efb4b82f062aa5efd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1af78d9a_ad697427",
         "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/C3PODaemonTest.scala",
         "patchSetId": 1
