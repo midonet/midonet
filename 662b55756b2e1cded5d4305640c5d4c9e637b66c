@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "9a0b7d60_d55e0c12",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/services/c3po/C3POStorageManagerTest.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-07T10:53:44Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9a0b7d60_b539c8da",
+      "revId": "662b55756b2e1cded5d4305640c5d4c9e637b66c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a0b7d60_f53350f4",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/SubscriptionCache.scala",
         "patchSetId": 6
@@ -30,6 +48,30 @@
       "writtenOn": "2014-12-17T15:44:55Z",
       "side": 1,
       "message": "This one can go to.",
+      "range": {
+        "startLine": 120,
+        "startChar": 4,
+        "endLine": 120,
+        "endChar": 81
+      },
+      "revId": "662b55756b2e1cded5d4305640c5d4c9e637b66c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a0b7d60_b5aee8e5",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/SubscriptionCache.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 120,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-07T10:53:44Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9a0b7d60_f53350f4",
       "range": {
         "startLine": 120,
         "startChar": 4,
