@@ -1,0 +1,164 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1af78d9a_9e413c0e",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-07T14:08:02Z",
+      "side": 1,
+      "message": "Given that this is private and doesn\u0027t have many usages, I\u0027d probably remove the Option so we spare the extra object and just use null.",
+      "range": {
+        "startLine": 50,
+        "startChar": 12,
+        "endLine": 50,
+        "endChar": 18
+      },
+      "revId": "7ca1d0faa52eafb687316ded7c86480f96edc5c2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_7ecf30b1",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-07T14:08:02Z",
+      "side": 1,
+      "message": "A couple of indices might be worth here to spare the .filter calls here and below.",
+      "revId": "7ca1d0faa52eafb687316ded7c86480f96edc5c2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_1e554cc6",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-07T14:08:02Z",
+      "side": 1,
+      "message": "I\u0027d add some docs here explaining the purpose of this, when it runs, etc.. It\u0027s not too hard to figure out, but I guess these first classes are the ones people will be using as reference so it helps future devs.\n\nAlso, maybe something like rebuildHost(update: Any) is better than onNextDevice, since it already tells you what happens.",
+      "revId": "7ca1d0faa52eafb687316ded7c86480f96edc5c2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_fe5160d9",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-07T14:08:02Z",
+      "side": 1,
+      "message": "Ditto, something like rebuildHost seems more informative.",
+      "range": {
+        "startLine": 98,
+        "startChar": 30,
+        "endLine": 98,
+        "endChar": 40
+      },
+      "revId": "7ca1d0faa52eafb687316ded7c86480f96edc5c2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_5e5eb4ea",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-07T14:08:02Z",
+      "side": 1,
+      "message": "These case clauses seem a great place to add a log.debug with \"Host became alive/dead\", etc.",
+      "revId": "7ca1d0faa52eafb687316ded7c86480f96edc5c2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_3e3c8893",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-07T14:08:02Z",
+      "side": 1,
+      "message": "Do we need to send the exception (which will break the observable) or are we ok with a log.error() ?",
+      "revId": "7ca1d0faa52eafb687316ded7c86480f96edc5c2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_de4aa426",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-07T14:08:02Z",
+      "side": 1,
+      "message": "areAll..",
+      "range": {
+        "startLine": 122,
+        "startChar": 16,
+        "endLine": 122,
+        "endChar": 19
+      },
+      "revId": "7ca1d0faa52eafb687316ded7c86480f96edc5c2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_dec3c488",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 145,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-07T14:08:02Z",
+      "side": 1,
+      "message": "This will return a different observable for every caller. Shouldn\u0027t we have one fixed observable and return that one?",
+      "range": {
+        "startLine": 145,
+        "startChar": 17,
+        "endLine": 145,
+        "endChar": 27
+      },
+      "revId": "7ca1d0faa52eafb687316ded7c86480f96edc5c2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
