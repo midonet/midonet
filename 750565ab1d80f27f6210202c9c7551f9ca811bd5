@@ -1,0 +1,113 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1af78d9a_9e7c9c74",
+        "filename": "midolman/src/main/java/org/midonet/midolman/host/state/HostZkManager.java",
+        "patchSetId": 18
+      },
+      "lineNbr": 452,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-07T13:48:31Z",
+      "side": 1,
+      "message": "Do we need a multi since it looks like a single op? Would a zk.SingleCreateOp work?",
+      "range": {
+        "startLine": 452,
+        "startChar": 15,
+        "endLine": 452,
+        "endChar": 20
+      },
+      "revId": "750565ab1d80f27f6210202c9c7551f9ca811bd5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_3ed5a843",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 18
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-07T13:48:31Z",
+      "side": 1,
+      "message": "Question: we can\u0027t use takeWhile() and check a private boolean flag (which would be better, it spares the whole Observable overhead) because takeUntil completes the observable immediately as soon as mark() emits, whereas takeWhile will only complete after the observable emits an item after the flag. Is that right?",
+      "range": {
+        "startLine": 55,
+        "startChar": 12,
+        "endLine": 55,
+        "endChar": 28
+      },
+      "revId": "750565ab1d80f27f6210202c9c7551f9ca811bd5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_5e823453",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/Host.scala",
+        "patchSetId": 18
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-07T13:48:31Z",
+      "side": 1,
+      "message": "is this list immutable?",
+      "range": {
+        "startLine": 73,
+        "startChar": 33,
+        "endLine": 73,
+        "endChar": 46
+      },
+      "revId": "750565ab1d80f27f6210202c9c7551f9ca811bd5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_feb5e031",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/Host.scala",
+        "patchSetId": 18
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-07T13:48:31Z",
+      "side": 1,
+      "message": "IPAddr objects are immutable if I recall correctly so it should be fine to reuse the reference.",
+      "revId": "750565ab1d80f27f6210202c9c7551f9ca811bd5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_3eee4823",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/devices/HostConversionTest.scala",
+        "patchSetId": 18
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-07T13:48:31Z",
+      "side": 1,
+      "message": "no need to change it now, but for reference, you can use \"shouldBe Map.Empty\", which doesn\u0027t need the brackets.",
+      "range": {
+        "startLine": 71,
+        "startChar": 33,
+        "endLine": 71,
+        "endChar": 48
+      },
+      "revId": "750565ab1d80f27f6210202c9c7551f9ca811bd5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
