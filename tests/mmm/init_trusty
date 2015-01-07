@@ -25,7 +25,8 @@ sudo apt-get update
 sudo apt-get install curl screen tmux bridge-utils iproute quagga -y
 
 # add midokura apt source
-echo 'deb [arch=amd64] http://repo.midonet.org/midonet/current unstable precise main' |sudo tee /etc/apt/sources.list.d/midokura.list
+echo 'deb http://repo.midonet.org/midonet/current unstable main' |sudo tee -a /etc/apt/sources.list.d/midokura.list
+echo 'deb http://repo.midonet.org/misc stable main' |sudo tee -a /etc/apt/sources.list.d/midokura.list
 curl -k http://repo.midonet.org/packages.midokura.key | sudo apt-key add -
 
 # add apt source for cassandra
@@ -77,7 +78,7 @@ cd -
 
 # Install midonet-api
 sudo apt-get install -y --force-yes tomcat7
-# Commented out as the repo is not updated 
+# Commented out as the repo is not updated
 #sudo apt-get -o Dpkg::Options::="--force-confnew" install -y --force-yes midonet-api
 
 sudo service tomcat7 stop
@@ -90,12 +91,12 @@ sudo service tomcat7 start
 #echo "Install midonet-cp if available"
 #set +e
 #sudo apt-get -o Dpkg::Options::="--force-confnew" install -q -y --force-yes midonet-cp
-#if [ $? -ne 0 ]; then 
+#if [ $? -ne 0 ]; then
 #     echo "Warning midonet-cp not installed."
 #fi
-#set -e 
+#set -e
 
-sudo service apache2 restart
+#sudo service apache2 restart
 
 # use java7 by default for mm-dpctl
 sudo update-alternatives --set java /usr/lib/jvm/java-7-openjdk-amd64/jre/bin/java

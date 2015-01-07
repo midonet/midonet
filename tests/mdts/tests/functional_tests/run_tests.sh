@@ -24,11 +24,10 @@ tests are run.
 
 OPTIONS:
  -h          This help message
+ -e TEST     Exclude this test (can be specified multiple times)
  -t TEST     Runs this test(s)
  -s          Runs only fast tests
  -S          Runs only slow tests
- -v VERSION  Runs tests compatible with this and following MidoNet versions
- -V VERSION  Runs only tests compatible with this MidoNet version
  -x          Runs all tests but flaky ones
  -X          Runs only flaky tests
 
@@ -44,24 +43,20 @@ $0 -t test_bridge:test_icmp -t test_router -t test_l2gw:test_icmp_from_mn
 Fast tests
 $0 -s
 
-Tests compatible with v1.2.0, v1.2.1, v1.3.0 ...
-$0 -v v1.2.0
-
-Tests compatible only with v1.2.1
-$0 -V v1.2.1
-
-Fast tests compatible with v1.2.1 and onwards
-$0 -s -v v1.2.1
 EOF
 }
 
 ATTR=""
-while getopts ":ht:sSv:V:xX" OPTION
+ARGS=""  # passed directly to nosetests runner
+while getopts "e:ht:sSv:V:xX" OPTION
 do
     case $OPTION in
         h)
             usage
             exit 0
+            ;;
+        e)
+            ARGS="$ARGS -e $OPTARG"
             ;;
         s)
             if [ -z "$ATTR" ]
@@ -87,22 +82,6 @@ do
             fi
 
             TESTS="$TESTS $TEST"
-            ;;
-        v)
-            if [ -z "$ATTR" ]
-            then
-                ATTR="(version >= \"$OPTARG\")"
-            else
-                ATTR="$ATTR and (version >= \"$OPTARG\")"
-            fi
-            ;;
-        V)
-            if [ -z "$ATTR" ]
-            then
-                ATTR="(version == \"$OPTARG\")"
-            else
-                ATTR="$ATTR and (version == \"$OPTARG\")"
-            fi
             ;;
         x)
             if [ -z "$ATTR" ]
@@ -137,4 +116,4 @@ then
     exit 1
 fi
 
-sudo PYTHONPATH=../../../ ./runner.py -c nose.cfg ${ATTR:+"-A $ATTR"} $TESTS 2>&1 | tee nosetests.`date +%Y%m%d-%H%M`.log
+sudo PYTHONPATH=../../../ ./runner.py -c nose.cfg ${ATTR:+"-A $ATTR"} $TESTS $ARGS 2>&1 | tee nosetests.`date +%Y%m%d-%H%M`.log
