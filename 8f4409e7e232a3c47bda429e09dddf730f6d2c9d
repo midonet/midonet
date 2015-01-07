@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1af78d9a_83bba971",
+        "filename": "midonet-api/src/main/webapp/WEB-INF/web.xml.dev",
+        "patchSetId": 2
+      },
+      "lineNbr": 157,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-07T09:43:14Z",
+      "side": 1,
+      "message": "Sorry I missed this. If I recall well, this path does not exist on ubuntu (where it should be tomcat7); is it fine like this? Or is it documented that the user must change it?",
+      "range": {
+        "startLine": 157,
+        "startChar": 17,
+        "endLine": 157,
+        "endChar": 41
+      },
+      "revId": "8f4409e7e232a3c47bda429e09dddf730f6d2c9d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_e3af0d2a",
+        "filename": "midonet-api/src/main/webapp/WEB-INF/web.xml.prod",
+        "patchSetId": 2
+      },
+      "lineNbr": 149,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-07T09:43:14Z",
+      "side": 1,
+      "message": "Same comment as in the dev xml.",
+      "range": {
+        "startLine": 149,
+        "startChar": 26,
+        "endLine": 149,
+        "endChar": 32
+      },
+      "revId": "8f4409e7e232a3c47bda429e09dddf730f6d2c9d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
