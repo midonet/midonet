@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1af78d9a_7e3a9037",
+        "filename": "midolman/src/main/java/org/midonet/midolman/host/state/HostZkManager.java",
+        "patchSetId": 18
+      },
+      "lineNbr": 452,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-07T17:15:19Z",
+      "side": 1,
+      "message": "I changed this to:\n            zk.add(paths.getHostPath(hostIdentifier), null /*data*/,\n                   CreateMode.PERSISTENT);",
+      "parentUuid": "1af78d9a_9e7c9c74",
+      "range": {
+        "startLine": 452,
+        "startChar": 15,
+        "endLine": 452,
+        "endChar": 20
+      },
+      "revId": "750565ab1d80f27f6210202c9c7551f9ca811bd5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1af78d9a_3ed5a843",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
         "patchSetId": 18
@@ -36,6 +60,30 @@
       "writtenOn": "2015-01-07T13:48:31Z",
       "side": 1,
       "message": "Question: we can\u0027t use takeWhile() and check a private boolean flag (which would be better, it spares the whole Observable overhead) because takeUntil completes the observable immediately as soon as mark() emits, whereas takeWhile will only complete after the observable emits an item after the flag. Is that right?",
+      "range": {
+        "startLine": 55,
+        "startChar": 12,
+        "endLine": 55,
+        "endChar": 28
+      },
+      "revId": "750565ab1d80f27f6210202c9c7551f9ca811bd5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_7e88d0e7",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 18
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-07T17:15:19Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1af78d9a_3ed5a843",
       "range": {
         "startLine": 55,
         "startChar": 12,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "1af78d9a_7e5f3073",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/Host.scala",
+        "patchSetId": 18
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-07T17:15:19Z",
+      "side": 1,
+      "message": "it will be :-)",
+      "parentUuid": "1af78d9a_5e823453",
+      "range": {
+        "startLine": 73,
+        "startChar": 33,
+        "endLine": 73,
+        "endChar": 46
+      },
+      "revId": "750565ab1d80f27f6210202c9c7551f9ca811bd5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1af78d9a_feb5e031",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/Host.scala",
         "patchSetId": 18
@@ -88,6 +160,24 @@
     },
     {
       "key": {
+        "uuid": "1af78d9a_9ed13cd0",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/Host.scala",
+        "patchSetId": 18
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-07T17:15:19Z",
+      "side": 1,
+      "message": "The string inside is mutable that\u0027s how I got confused. But you are right, the integer that represents the address is a constant.",
+      "parentUuid": "1af78d9a_feb5e031",
+      "revId": "750565ab1d80f27f6210202c9c7551f9ca811bd5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1af78d9a_3eee4823",
         "filename": "midolman/src/test/scala/org/midonet/midolman/topology/devices/HostConversionTest.scala",
         "patchSetId": 18
@@ -99,6 +189,30 @@
       "writtenOn": "2015-01-07T13:48:31Z",
       "side": 1,
       "message": "no need to change it now, but for reference, you can use \"shouldBe Map.Empty\", which doesn\u0027t need the brackets.",
+      "range": {
+        "startLine": 71,
+        "startChar": 33,
+        "endLine": 71,
+        "endChar": 48
+      },
+      "revId": "750565ab1d80f27f6210202c9c7551f9ca811bd5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_7ed610c7",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/devices/HostConversionTest.scala",
+        "patchSetId": 18
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-07T17:15:19Z",
+      "side": 1,
+      "message": "While I\u0027m at it, let me change it!",
+      "parentUuid": "1af78d9a_3eee4823",
       "range": {
         "startLine": 71,
         "startChar": 33,
