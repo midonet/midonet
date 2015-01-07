@@ -115,15 +115,15 @@ sleep 5
 echo "Install midonet-cp if available"
 set +e
 sudo apt-get -o Dpkg::Options::="--force-confnew" install -q -y --force-yes midonet-cp
-if [ $? -ne 0 ]; then 
+if [ $? -ne 0 ]; then
 	echo "Warning midonet-cp not installed."
 fi
-set -e 
+set -e
 
 sudo service tomcat7 start
 sudo update-rc.d tomcat7 enable
 
-sudo service apache2 restart
+#sudo service apache2 restart
 
 # use java7 by default for mm-dpctl
 sudo update-alternatives --set java /usr/lib/jvm/java-7-openjdk-amd64/jre/bin/java
