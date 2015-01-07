@@ -1,0 +1,106 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1af78d9a_be919854",
+        "filename": "midolman/src/main/java/org/midonet/cluster/data/Converter.java",
+        "patchSetId": 8
+      },
+      "lineNbr": 589,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-01-07T15:35:38Z",
+      "side": 1,
+      "message": "This isn\u0027t exactly what I was suggesting.  I was suggesting that we don\u0027t need to change this at all because the extra dhcp option member variable always gets initialized to an empty ArrayList.  So why not just do:\n\nnew BridgeDhcpZkManager.Host(host.getMAC(), host.getIp(),\n                host.getName())\n\nBasically this file would be unchanged.",
+      "revId": "d7f671bdf0d8e343d5664d3f654313f9380a9a05",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_3e948836",
+        "filename": "midolman/src/main/java/org/midonet/midolman/state/zkManagers/BridgeDhcpZkManager.java",
+        "patchSetId": 8
+      },
+      "lineNbr": 233,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-01-07T15:35:38Z",
+      "side": 1,
+      "message": "While this message is accurate, it is still weird that we would even mention passing in an empty array into this constructor when there is already a constructor defined above that does the same thing (but more concisely).  Perhaps suggesting that you use the other constructor is more helpful.",
+      "revId": "d7f671bdf0d8e343d5664d3f654313f9380a9a05",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_be9fd84f",
+        "filename": "midolman/src/main/java/org/midonet/midolman/state/zkManagers/BridgeDhcpZkManager.java",
+        "patchSetId": 8
+      },
+      "lineNbr": 238,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-01-07T15:35:38Z",
+      "side": 1,
+      "message": "Let me explain why I find this undesirable. Before, you could have constructed this object as:\n\nnew Host(mac, ip)\n\nwhich is all you need in most cases for a DHCP host, but now this constructor is taken away and instead requires:\n\nnew Host(mac, ip, new ArrayList\u003cDhcpExtraOption\u003e())\n\nwhich is verbose and awkward.  Requiring an empty list for optional values to construct this object is undesirable to me.  If we must add this to a constructor, could we just add it to ONLY the one with the longest arg list (the one at the top)?  I personally think it\u0027s easier just to add \u0027setDhcpOptions()\u0027 method instead, and not touch the constructors at all, but that is just my opinion.",
+      "revId": "d7f671bdf0d8e343d5664d3f654313f9380a9a05",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_1ead4c89",
+        "filename": "midonet-api/src/main/java/org/midonet/api/VendorMediaType.java",
+        "patchSetId": 8
+      },
+      "lineNbr": 134,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-01-07T15:35:38Z",
+      "side": 1,
+      "message": "should be v2",
+      "revId": "d7f671bdf0d8e343d5664d3f654313f9380a9a05",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_fea9607c",
+        "filename": "midonet-api/src/main/java/org/midonet/api/VendorMediaType.java",
+        "patchSetId": 8
+      },
+      "lineNbr": 136,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-01-07T15:35:38Z",
+      "side": 1,
+      "message": "should be v2",
+      "revId": "d7f671bdf0d8e343d5664d3f654313f9380a9a05",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_7eb570cc",
+        "filename": "midonet-api/src/main/java/org/midonet/api/dhcp/DhcpHost.java",
+        "patchSetId": 8
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-01-07T15:35:38Z",
+      "side": 1,
+      "message": "IMHO, having setExtraDhcpOptions (below) makes it unnecessary to require passing dhcp options in the constructor.  These are optional values after all.  I don\u0027t personally think you need two ways to set this member variable given its nature.  I think if you insist on having this in the constructor, it would be better to define a new one so that the old one can still be used without requiring this arg.",
+      "revId": "d7f671bdf0d8e343d5664d3f654313f9380a9a05",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
