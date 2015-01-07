@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "1af78d9a_835f2972",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-07T02:55:17Z",
+      "side": 1,
+      "message": "Alternatively, to make this a bit more consistent with other Mappers:\n\n\ns\"${classOf[org.midonet.midolman.topology.devices.Host].getName}-$id\"\n\n\nIf the class changed its name or package, compiler would let us know.",
+      "range": {
+        "startLine": 40,
+        "startChar": 29,
+        "endLine": 40,
+        "endChar": 60
+      },
+      "revId": "9ef2092d38c3857113e2a678a3017485c3542fa6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1af78d9a_23775504",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/Host.scala",
         "patchSetId": 16
