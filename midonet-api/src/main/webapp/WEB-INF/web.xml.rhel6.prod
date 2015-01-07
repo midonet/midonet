@@ -126,6 +126,12 @@
     <param-name>zookeeper-curator_enabled</param-name>
     <param-value>true</param-value>
   </context-param>
+
+  <!-- Used to uniquely identify an API process for cluster services -->
+  <context-param>
+    <param-name>midobrain-properties_file</param-name>
+    <param-value>/var/lib/tomcat/webapps/host_uuid.properties</param-value>
+  </context-param>
   <context-param>
     <!-- must be explicitly set, default goes to tomcat7 -->
     <param-name>midobrain-properties_file</param-name>
