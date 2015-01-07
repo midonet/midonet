@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1af78d9a_634afd84",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 10
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-07T10:53:38Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1af78d9a_2b4a9983",
+      "range": {
+        "startLine": 16,
+        "startChar": 10,
+        "endLine": 16,
+        "endChar": 13
+      },
+      "revId": "2c75d305cc6a49d4a1ca42b74e676be9bb89457d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1af78d9a_cb7dd5b3",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
         "patchSetId": 10
@@ -60,6 +84,30 @@
       "side": 1,
       "message": "\"newVersion()\" is more like it, but we can keep it as is as that\u0027s outside the scope of this change and the current implementation doesn\u0027t support all the needed functionality for \"newVersion()\".",
       "parentUuid": "1af78d9a_cb7dd5b3",
+      "range": {
+        "startLine": 781,
+        "startChar": 17,
+        "endLine": 781,
+        "endChar": 22
+      },
+      "revId": "2c75d305cc6a49d4a1ca42b74e676be9bb89457d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_434f0193",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 781,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-07T10:53:38Z",
+      "side": 1,
+      "message": "Agree, let\u0027s change it in a separate patch.",
+      "parentUuid": "1af78d9a_f13360f4",
       "range": {
         "startLine": 781,
         "startChar": 17,
@@ -118,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "1af78d9a_8349e98d",
+        "filename": "cluster/src/test/scala/org/midonet/cluster/util/CuratorTestFramework.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 120,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-07T10:53:38Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1af78d9a_eb57f124",
+      "range": {
+        "startLine": 120,
+        "startChar": 57,
+        "endLine": 120,
+        "endChar": 61
+      },
+      "revId": "2c75d305cc6a49d4a1ca42b74e676be9bb89457d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1af78d9a_2b31f90b",
         "filename": "cluster/src/test/scala/org/midonet/cluster/util/CuratorTestFramework.scala",
         "patchSetId": 10
@@ -152,6 +224,30 @@
       "writtenOn": "2014-12-19T16:54:59Z",
       "side": 1,
       "message": "same",
+      "range": {
+        "startLine": 124,
+        "startChar": 47,
+        "endLine": 124,
+        "endChar": 51
+      },
+      "revId": "2c75d305cc6a49d4a1ca42b74e676be9bb89457d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_a344e574",
+        "filename": "cluster/src/test/scala/org/midonet/cluster/util/CuratorTestFramework.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-07T10:53:38Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1af78d9a_cb54b523",
       "range": {
         "startLine": 124,
         "startChar": 47,
