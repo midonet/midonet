@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1af78d9a_beab58d5",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/common/Connection.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-07T13:13:49Z",
+      "side": 1,
+      "message": "Aren\u0027t we planning on using a transport protocol like TCP or something netty-specific that has built-in flow control?",
+      "range": {
+        "startLine": 52,
+        "startChar": 7,
+        "endLine": 52,
+        "endChar": 64
+      },
+      "revId": "85bbd913ee892b0bf04639cefc53c4e5efc95ac2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_7eaa90d5",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/common/Connection.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-07T13:13:49Z",
+      "side": 1,
+      "message": "Should there be a TODO if things are currently fine?",
+      "range": {
+        "startLine": 71,
+        "startChar": 7,
+        "endLine": 72,
+        "endChar": 63
+      },
+      "revId": "85bbd913ee892b0bf04639cefc53c4e5efc95ac2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_9ea5bc06",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/common/Connection.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-07T13:13:49Z",
+      "side": 1,
+      "message": "encoding",
+      "range": {
+        "startLine": 86,
+        "startChar": 39,
+        "endLine": 86,
+        "endChar": 48
+      },
+      "revId": "85bbd913ee892b0bf04639cefc53c4e5efc95ac2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
