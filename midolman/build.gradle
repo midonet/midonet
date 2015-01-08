@@ -118,6 +118,9 @@ task preparePkg(type: Copy, dependsOn: installApp) {
     from("src/deb/quagga/bgpd.conf") {
         into "etc/quagga"
     }
+    from("src/deb/bin/wdog") {
+        into "usr/bin"
+    }
     from("src/deb/bin/mm-dpctl") {
         into "usr/bin"
     }
