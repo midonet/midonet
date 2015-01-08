@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1af78d9a_003a0acd",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/C3PODaemonTest.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 167,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-08T14:09:19Z",
+      "side": 1,
+      "message": "Thank you for the feedback. Renamed as suggested. \"Truncate\" was an internal term we were using.",
+      "parentUuid": "1af78d9a_6004ae15",
+      "range": {
+        "startLine": 167,
+        "startChar": 8,
+        "endLine": 167,
+        "endChar": 25
+      },
+      "revId": "495345f4c29fc28b392aaff0c8af4087584f6b4b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1af78d9a_c009222e",
         "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/C3PODaemonTest.scala",
         "patchSetId": 6
@@ -36,6 +60,30 @@
       "writtenOn": "2015-01-08T14:02:06Z",
       "side": 1,
       "message": "same comment",
+      "range": {
+        "startLine": 168,
+        "startChar": 24,
+        "endLine": 168,
+        "endChar": 43
+      },
+      "revId": "495345f4c29fc28b392aaff0c8af4087584f6b4b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_e036dee6",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/C3PODaemonTest.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 168,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-08T14:09:19Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1af78d9a_c009222e",
       "range": {
         "startLine": 168,
         "startChar": 24,
