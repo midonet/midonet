@@ -38,11 +38,10 @@ class ConnectionManagerTest extends FeatureSpec with Matchers {
         scenario("register a new connection") {
             val ctx = Mockito.mock(classOf[ChannelHandlerContext])
             val protocol = Mockito.mock(classOf[ProtocolFactory])
-            val start = (Mockito.mock(classOf[State]),
-                Promise[Option[Subscription]]().success(None).future)
-            Mockito.stub(
+            val start = Mockito.mock(classOf[State])
+            Mockito.when(
                 protocol.start(org.mockito.Matchers.anyObject[Observer[Message]])
-            ).toReturn(start)
+            ).thenReturn(start)
 
             val cMgr = new ConnectionManager(protocol)
             val conn = cMgr.get(ctx)
@@ -54,11 +53,10 @@ class ConnectionManagerTest extends FeatureSpec with Matchers {
             val ctx1 = Mockito.mock(classOf[ChannelHandlerContext])
             val ctx2 = Mockito.mock(classOf[ChannelHandlerContext])
             val protocol = Mockito.mock(classOf[ProtocolFactory])
-            val start = (Mockito.mock(classOf[State]),
-                Promise[Option[Subscription]]().success(None).future)
-            Mockito.stub(
+            val start = Mockito.mock(classOf[State])
+            Mockito.when(
                 protocol.start(org.mockito.Matchers.anyObject[Observer[Message]])
-            ).toReturn(start)
+            ).thenReturn(start)
 
             val cMgr = new ConnectionManager(protocol)
             val conn1 = cMgr.get(ctx1)
@@ -72,11 +70,10 @@ class ConnectionManagerTest extends FeatureSpec with Matchers {
         scenario("retrieve the same connection several times") {
             val ctx1 = Mockito.mock(classOf[ChannelHandlerContext])
             val protocol = Mockito.mock(classOf[ProtocolFactory])
-            val start = (Mockito.mock(classOf[State]),
-                Promise[Option[Subscription]]().success(None).future)
-            Mockito.stub(
+            val start = Mockito.mock(classOf[State])
+            Mockito.when(
                 protocol.start(org.mockito.Matchers.anyObject[Observer[Message]])
-            ).toReturn(start)
+            ).thenReturn(start)
 
             val cMgr = new ConnectionManager(protocol)
             val conn1 = cMgr.get(ctx1)
@@ -90,11 +87,10 @@ class ConnectionManagerTest extends FeatureSpec with Matchers {
         scenario("unregister and register a connection") {
             val ctx1 = Mockito.mock(classOf[ChannelHandlerContext])
             val protocol = Mockito.mock(classOf[ProtocolFactory])
-            val start = (Mockito.mock(classOf[State]),
-                Promise[Option[Subscription]]().success(None).future)
-            Mockito.stub(
+            val start = Mockito.mock(classOf[State])
+            Mockito.when(
                 protocol.start(org.mockito.Matchers.anyObject[Observer[Message]])
-            ).toReturn(start)
+            ).thenReturn(start)
 
             val cMgr = new ConnectionManager(protocol)
             val conn1 = cMgr.get(ctx1)
