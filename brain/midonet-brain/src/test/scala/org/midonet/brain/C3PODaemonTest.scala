@@ -34,10 +34,8 @@ import org.apache.commons.configuration.HierarchicalConfiguration
 import org.apache.commons.dbcp2.BasicDataSource
 import org.apache.curator.test.TestingServer
 import org.junit.runner.RunWith
-import org.scalatest.BeforeAndAfter
-import org.scalatest.FlatSpec
-import org.scalatest.Matchers
 import org.scalatest.junit.JUnitRunner
+import org.scalatest.{BeforeAndAfter, BeforeAndAfterAll, FlatSpec, Matchers}
 import org.slf4j.LoggerFactory
 
 import org.midonet.brain.ClusterNode.MinionDef
@@ -58,7 +56,9 @@ import org.midonet.util.concurrent.toFutureOps
  * Tests the Neutron data importer daemon.
  */
 @RunWith(classOf[JUnitRunner])
-class C3PODaemonTest extends FlatSpec with BeforeAndAfter with Matchers {
+class C3PODaemonTest extends FlatSpec with BeforeAndAfter
+                                      with BeforeAndAfterAll
+                                      with Matchers {
     private val log = LoggerFactory.getLogger(this.getClass)
 
     private val zkPort = 50000 + Random.nextInt(15000)
@@ -164,6 +164,11 @@ class C3PODaemonTest extends FlatSpec with BeforeAndAfter with Matchers {
         log.info("Created the midonet_tasks table.")
     }
 
+    def truncateTaskTable() = {
+        executeSqlStmts(TRUNCATE_TASK_TABLE)
+        log.info("Truncated the task table.")
+    }
+
     private def insertMidoNetTaskSql(
             id: Int, taskType: TaskType, dataType: NeutronResourceType[_],
             json: String, resourceId: UUID, txnId: String) : String = {
@@ -207,7 +212,7 @@ class C3PODaemonTest extends FlatSpec with BeforeAndAfter with Matchers {
             "router:external": false
         }"""
 
-    before {
+    override protected def beforeAll() {
         try {
             ClusterNode.injector = injector
             createTaskTable()
@@ -226,7 +231,16 @@ class C3PODaemonTest extends FlatSpec with BeforeAndAfter with Matchers {
         }
     }
 
-    after {
+    before {
+        // Initialize the task table before each test run.
+        truncateTaskTable()
+
+        // Clear the ZK test server contents.
+        zk.restart()
+        Thread.sleep(100)
+    }
+
+    override protected def afterAll() {
         cleanup()
     }
 
@@ -283,8 +297,8 @@ class C3PODaemonTest extends FlatSpec with BeforeAndAfter with Matchers {
         storage.exists(classOf[Network], network1Uuid).await() should be (false)
 
         // Truncates the Task table and flushes the Storage.
-        executeSqlStmts(TRUNCATE_TASK_TABLE,
-                        insertMidoNetTaskSql(
+        truncateTaskTable()
+        executeSqlStmts(insertMidoNetTaskSql(
                                 1, Flush, NoData, "", null, "tx4"))
         Thread.sleep(sleadSleepMs)
 
