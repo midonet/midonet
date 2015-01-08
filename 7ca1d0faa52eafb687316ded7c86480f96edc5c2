@@ -25,6 +25,53 @@
     },
     {
       "key": {
+        "uuid": "1af78d9a_fd716578",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-08T13:38:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1af78d9a_9e413c0e",
+      "range": {
+        "startLine": 50,
+        "startChar": 12,
+        "endLine": 50,
+        "endChar": 18
+      },
+      "revId": "7ca1d0faa52eafb687316ded7c86480f96edc5c2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_3d580d56",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-08T13:38:01Z",
+      "side": 1,
+      "message": "I ended up keeping this as a way to complete the observable. With takeWhile, I haven\u0027t found a way to do that.",
+      "range": {
+        "startLine": 52,
+        "startChar": 7,
+        "endLine": 52,
+        "endChar": 65
+      },
+      "revId": "7ca1d0faa52eafb687316ded7c86480f96edc5c2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1af78d9a_7ecf30b1",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
         "patchSetId": 19
@@ -60,6 +107,24 @@
     },
     {
       "key": {
+        "uuid": "1af78d9a_9d72e1e3",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-08T13:38:01Z",
+      "side": 1,
+      "message": "Leaving this as is, as discussed (the added complexity would be too high compared to the speedup).",
+      "parentUuid": "1af78d9a_7ecf30b1",
+      "revId": "7ca1d0faa52eafb687316ded7c86480f96edc5c2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1af78d9a_1e554cc6",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
         "patchSetId": 19
@@ -71,6 +136,24 @@
       "writtenOn": "2015-01-07T14:08:02Z",
       "side": 1,
       "message": "I\u0027d add some docs here explaining the purpose of this, when it runs, etc.. It\u0027s not too hard to figure out, but I guess these first classes are the ones people will be using as reference so it helps future devs.\n\nAlso, maybe something like rebuildHost(update: Any) is better than onNextDevice, since it already tells you what happens.",
+      "revId": "7ca1d0faa52eafb687316ded7c86480f96edc5c2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_3d776d04",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-08T13:38:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1af78d9a_1e554cc6",
       "revId": "7ca1d0faa52eafb687316ded7c86480f96edc5c2",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -100,6 +183,30 @@
     },
     {
       "key": {
+        "uuid": "1af78d9a_1d7431fc",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-08T13:38:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1af78d9a_fe5160d9",
+      "range": {
+        "startLine": 98,
+        "startChar": 30,
+        "endLine": 98,
+        "endChar": 40
+      },
+      "revId": "7ca1d0faa52eafb687316ded7c86480f96edc5c2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1af78d9a_5e5eb4ea",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
         "patchSetId": 19
@@ -117,6 +224,24 @@
     },
     {
       "key": {
+        "uuid": "1af78d9a_9d5f8172",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-08T13:38:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1af78d9a_5e5eb4ea",
+      "revId": "7ca1d0faa52eafb687316ded7c86480f96edc5c2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1af78d9a_3e3c8893",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
         "patchSetId": 19
@@ -128,6 +253,24 @@
       "writtenOn": "2015-01-07T14:08:02Z",
       "side": 1,
       "message": "Do we need to send the exception (which will break the observable) or are we ok with a log.error() ?",
+      "revId": "7ca1d0faa52eafb687316ded7c86480f96edc5c2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_7dc73513",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-08T13:38:01Z",
+      "side": 1,
+      "message": "I think I prefer breaking the observable because something went really wrong if we don\u0027t know how to handle the update.",
+      "parentUuid": "1af78d9a_3e3c8893",
       "revId": "7ca1d0faa52eafb687316ded7c86480f96edc5c2",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -157,6 +300,30 @@
     },
     {
       "key": {
+        "uuid": "1af78d9a_3d4e4dc2",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-08T13:38:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1af78d9a_de4aa426",
+      "range": {
+        "startLine": 122,
+        "startChar": 16,
+        "endLine": 122,
+        "endChar": 19
+      },
+      "revId": "7ca1d0faa52eafb687316ded7c86480f96edc5c2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1af78d9a_dec3c488",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
         "patchSetId": 19
@@ -168,6 +335,30 @@
       "writtenOn": "2015-01-07T14:08:02Z",
       "side": 1,
       "message": "This will return a different observable for every caller. Shouldn\u0027t we have one fixed observable and return that one?",
+      "range": {
+        "startLine": 145,
+        "startChar": 17,
+        "endLine": 145,
+        "endChar": 27
+      },
+      "revId": "7ca1d0faa52eafb687316ded7c86480f96edc5c2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_5dccf935",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 145,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-08T13:38:01Z",
+      "side": 1,
+      "message": "observable is only called once by the VirtualTopology, upon first creation. From then on it\u0027s stored in a map.",
+      "parentUuid": "1af78d9a_dec3c488",
       "range": {
         "startLine": 145,
         "startChar": 17,
