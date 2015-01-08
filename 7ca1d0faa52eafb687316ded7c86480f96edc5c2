@@ -42,6 +42,24 @@
     },
     {
       "key": {
+        "uuid": "1af78d9a_5d6879f5",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-08T12:54:56Z",
+      "side": 1,
+      "message": "Nah, you\u0027re still forced to add more maintenance burden to the tunnelzone map. Looks ok for me.",
+      "parentUuid": "1af78d9a_7ecf30b1",
+      "revId": "7ca1d0faa52eafb687316ded7c86480f96edc5c2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1af78d9a_1e554cc6",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
         "patchSetId": 19
