@@ -48,3 +48,7 @@ host_uuid.properties
 
 # python files (might be generated if running mmm)
 *.pyc
+
+python-midonetclient/doc/*.gz
+python-midonetclient/*.deb
+python-midonetclient/*.rpm

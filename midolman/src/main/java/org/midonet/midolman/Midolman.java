@@ -60,6 +60,8 @@ public class Midolman {
 
     private Injector injector;
 
+    WatchedProcess watchedProcess = new WatchedProcess();
+
     private Midolman() {
     }
 
@@ -76,6 +78,7 @@ public class Midolman {
     }
 
     private void run(String[] args) throws Exception {
+        watchedProcess.start();
         // log git commit info
         Properties properties = new Properties();
         properties.load(
