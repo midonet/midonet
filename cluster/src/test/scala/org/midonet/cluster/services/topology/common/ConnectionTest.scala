@@ -42,10 +42,8 @@ class ConnectionTest extends FeatureSpec with Matchers {
                     this
             }
         }
-        override def start(output: Observer[Message]):
-            (State,Future[Option[Subscription]]) =
-            (new Loop(output),
-                Promise[Option[Subscription]]().success(None).future)
+        override def start(output: Observer[Message]): State =
+            new Loop(output)
     }
 
     feature("connection behavior")
@@ -54,11 +52,10 @@ class ConnectionTest extends FeatureSpec with Matchers {
             val ctx = Mockito.mock(classOf[ChannelHandlerContext])
             val cMgr = Mockito.mock(classOf[ConnectionManager])
             val protocol = Mockito.mock(classOf[ProtocolFactory])
-            val start = (Mockito.mock(classOf[State]),
-                Promise[Option[Subscription]]().success(None).future)
-            Mockito.stub(
+            val start = Mockito.mock(classOf[State])
+            Mockito.when(
                 protocol.start(org.mockito.Matchers.anyObject[Observer[Message]])
-            ).toReturn(start)
+            ).thenReturn(start)
             val conn = new Connection(ctx, protocol)(cMgr)
         }
 
