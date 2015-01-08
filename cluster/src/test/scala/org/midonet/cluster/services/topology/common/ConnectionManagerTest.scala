@@ -25,6 +25,8 @@ import org.scalatest.junit.JUnitRunner
 import org.scalatest.{FeatureSpec, Matchers}
 import rx.Observer
 
+import org.midonet.cluster.services.topology.common.ProtocolFactory.State
+
 @RunWith(classOf[JUnitRunner])
 class ConnectionManagerTest extends FeatureSpec with Matchers {
 
