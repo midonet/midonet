@@ -30,6 +30,7 @@ import org.scalatest.{FeatureSpec, Matchers}
 import rx.Observer
 
 import org.midonet.cluster.rpc.Commands
+import org.midonet.cluster.services.topology.common.ProtocolFactory.State
 
 
 @RunWith(classOf[JUnitRunner])
