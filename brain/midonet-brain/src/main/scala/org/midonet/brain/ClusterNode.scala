@@ -28,6 +28,7 @@ import org.slf4j.LoggerFactory
 
 import org.midonet.brain.services.c3po.C3POConfig
 import org.midonet.brain.services.heartbeat.HeartbeatConfig
+import org.midonet.brain.services.topology.TopologyApiServiceConfig
 import org.midonet.brain.services.vxgw.VxLanGatewayService.VxGWServiceConfig
 import org.midonet.cluster.config.ZookeeperConfig
 import org.midonet.cluster.data.storage.Storage
@@ -91,6 +92,8 @@ object ClusterNode extends App {
     private val heartbeatCfg = cfgProvider.getConfig(classOf[HeartbeatConfig])
     private val c3poConfig= cfgProvider.getConfig(classOf[C3POConfig])
     private val vxgwCfg = cfgProvider.getConfig(classOf[VxGWServiceConfig])
+    private val topologyCfg =
+        cfgProvider.getConfig(classOf[TopologyApiServiceConfig])
 
     // Prepare the Cluster node context for injection
     private val nodeContext = new Context(HostIdGenerator.getHostId(nodeCfg))
@@ -98,7 +101,8 @@ object ClusterNode extends App {
     private val minionDefs: List[MinionDef[ClusterMinion]] =
         List (new MinionDef("heartbeat", heartbeatCfg),
               new MinionDef("vxgw", vxgwCfg),
-              new MinionDef("neutron-importer", c3poConfig))
+              new MinionDef("neutron-importer", c3poConfig),
+              new MinionDef("topology", topologyCfg))
 
     // TODO: move this out to a Guice module that provides access to the
     // NeutronDB
@@ -124,6 +128,8 @@ object ClusterNode extends App {
             bind(classOf[C3POConfig]).toInstance(c3poConfig)
             bind(classOf[HeartbeatConfig]).toInstance(heartbeatCfg)
             bind(classOf[VxGWServiceConfig]).toInstance(vxgwCfg)
+            bind(classOf[TopologyApiServiceConfig]).toInstance(topologyCfg)
+
             bind(classOf[Storage]).toProvider(classOf[ZoomProvider])
                                   .asEagerSingleton()
 
