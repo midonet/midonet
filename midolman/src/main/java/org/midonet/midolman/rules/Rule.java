@@ -93,7 +93,10 @@ public abstract class Rule {
     public void process(PacketContext pktCtx, RuleResult res, UUID ownerId,
                         boolean isPortFilter) {
         if (condition.matches(pktCtx, isPortFilter)) {
-            log.debug("Condition matched");
+            pktCtx.jlog().debug(
+                    "Condition matched on device {} chain {} with action {}",
+                    ownerId, chainId, action);
+
             if (meter != null)
                 pktCtx.addFlowTag(meter);
             apply(pktCtx, res, ownerId);
