@@ -16,20 +16,23 @@
 
 package org.midonet.cluster.services.topology.common
 
-import scala.concurrent.Future
-
 import com.google.protobuf.Message
 
-import rx.{Observer, Subscription}
+import rx.Observer
 
 /**
  * A factory generating the first state of a protocol
+ * This is used to obtain the first state and a potential subscription to a
+ * backend provider. If completed, this subscription must be unsubscribed by
+ * the caller if the protocol is dropped for any reason.
  */
 trait ProtocolFactory {
     /**
-     * Get the initial state of the protocol and connect to the outgoing stream
+     * Provide an observer for any outgoing messages, and return the
+     * initial state of the protocol and a potential subscription to a
+     * backend provider.
      */
-    def start(output: Observer[Message]): (State, Future[Option[Subscription]])
+    def start(output: Observer[Message]): State
 }
 
 /**
