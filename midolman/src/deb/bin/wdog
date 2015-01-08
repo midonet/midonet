@@ -1,0 +1,258 @@
+#!/usr/bin/python
+#
+# Copyright 2015 Midokura SARL
+# 
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+# 
+#     http://www.apache.org/licenses/LICENSE-2.0
+# 
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# 
+
+from __future__ import print_function
+from sys import argv
+import errno
+import fcntl
+import os
+import select
+import signal
+import struct
+import sys
+import tempfile
+import time
+
+
+def err(s):
+    print('[wdog] ' + s, file=sys.stderr)
+
+def msg(s):
+    print('[wdog] ' + s, file=sys.stdout)
+
+class ISelectLoopObserver:
+    def __init__(self):
+        pass
+
+    def on_signal(self, signum):
+        pass
+
+    def on_ready(self, fd):
+        pass
+
+class SignalsPipe:
+    def __init__(self, observer):
+        self.observer = observer
+        r, w = os.pipe()
+        self.rd = r
+        self.wd = w
+
+        self.handlers = {}
+
+        flags = fcntl.fcntl(self.rd, fcntl.F_GETFL)
+        fcntl.fcntl(self.rd, fcntl.F_SETFL, flags | os.O_NONBLOCK)
+        flags = fcntl.fcntl(self.wd, fcntl.F_GETFL)
+        fcntl.fcntl(self.wd, fcntl.F_SETFL, flags | os.O_NONBLOCK)
+
+        signal.signal(signal.SIGINT, self._handler)
+        signal.signal(signal.SIGTERM, self._handler)
+        signal.signal(signal.SIGCHLD, self._handler)
+
+    def _handler(self, signum, frame):
+        os.write(self.wd, struct.pack('1B', signum))
+
+    def read(self):
+        while True:
+            try:
+                data = os.read(self.rd, 1)
+                if len(data) > 0:
+                    signum, = struct.unpack('1B', data)
+                    self.observer.on_signal(signum)
+            except OSError as e:
+                if e.errno != errno.EINTR and e.errno != errno.EAGAIN:
+                    raise e
+
+class SelectLoop:
+    def __init__(self, observer):
+        self.selfpipe = SignalsPipe(observer)
+        self.fds = []
+        self.fds.append(self.selfpipe.rd)
+        self.observer = observer
+
+    def add_fd(self, fd):
+        self.fds.append(fd)
+
+    def loop(self, timeout):
+        try:
+            rr, wr, er = select.select(self.fds, [], [], timeout)
+            for fd in rr:
+                if fd == self.selfpipe.rd:
+                    self.selfpipe.read()
+                else:
+                    self.observer.on_ready(fd)
+        except select.error as e:
+            err, message = e.args
+            if err != errno.EAGAIN and err != errno.EINTR:
+                raise e
+
+class ProcMon(ISelectLoopObserver):
+    def __init__(self, grace, args):
+        self.ticks_left = grace
+        self.grace = grace
+        self.pipe_dir = tempfile.mkdtemp(prefix = 'wdog.')
+        self.pipe_path = self.pipe_dir + '/wdog.fifo'
+        self.args = args
+        self.child_pid = 0
+        self.pipe = 0
+        self.running = True
+
+    def run(self):
+        self.select_loop = SelectLoop(self)
+        try:
+            self.select_loop.add_fd(self.open_pipe())
+            self.spawn()
+            killed = False
+            while self.running and self.child_pid > 0:
+                self.select_loop.loop(1.0)
+                self.ticks_left -= 1
+                if self.ticks_left <= 0 and not killed:
+                    err('child is unresponsive, killing')
+                    os.kill(self.child_pid, signal.SIGKILL)
+                    killed = True
+        finally:
+            try:
+                if self.pipe > 0:
+                    os.close(self.pipe)
+                    os.unlink(self.pipe_path)
+                os.rmdir(self.pipe_dir)
+                if self.running and self.child_pid > 0:
+                    err('unexpected error: killing child process')
+                    os.kill(self.child_pid, signal.SIGKILL)
+                    pid, status = os.waitpid(self.child_pid)
+            except OSError:
+                pass
+
+
+    def on_sigchld(self):
+        pid, status = os.waitpid(self.child_pid, os.WNOHANG)
+        if (pid == self.child_pid):
+            self.running = False
+            if os.WIFEXITED(status):
+                code = os.WEXITSTATUS(status)
+                if code != 0:
+                    err('child died with status %d' % code)
+                else:
+                    msg('child exited')
+                sys.exit(code)
+            elif os.WIFSIGNALED(status):
+                if os.WTERMSIG(status) == signal.SIGTERM:
+                    msg('child received SIGTERM and exited gracefully')
+                    sys.exit(0)
+                else:
+                    err('child received signal: %d' % os.WTERMSIG(status))
+                    sys.exit(254)
+            else:
+                msg('child crashed')
+                sys.exit(253)
+
+    def on_sigterm(self):
+        msg('signal received, exiting')
+        self.terminate(5)
+
+    def terminate(self, timeout):
+        pid = self.child_pid
+        if pid > 0:
+            os.kill(pid, signal.SIGTERM)
+            for i in range(timeout):
+                self.select_loop.loop(1.0)
+            err('Child did not stop gracefully in 5 seconds, killing')
+            os.kill(pid, signal.SIGKILL)
+
+    def on_signal(self, signum):
+        if signum == signal.SIGINT or signum == signal.SIGTERM:
+            self.on_sigterm()
+        elif signum == signal.SIGCHLD:
+            self.on_sigchld()
+
+    def on_ready(self, fd):
+        nbytes = 0
+
+        while True:
+            try:
+                buf = os.read(fd, 1)
+                if len(buf) == 0:
+                    break
+                nbytes += len(buf)
+            except OSError as e:
+                if e.errno == errno.EINTR:
+                    pass
+                elif e.errno == errno.EAGAIN:
+                    break
+                else:
+                    raise e
+
+        if nbytes > 0:
+            self.ticks_left = self.grace
+
+    def open_pipe(self):
+        try:
+            res = os.stat(self.pipe_path)
+        except OSError as e:
+            if e.errno != errno.ENOENT:
+                raise e
+            else:
+                os.mkfifo(self.pipe_path, 0600)
+
+        self.pipe = os.open(self.pipe_path, os.O_RDONLY | os.O_NONBLOCK)
+        return self.pipe
+
+    def spawn(self):
+        self.child_pid = os.fork()
+        if self.child_pid > 0:
+            return self.child_pid
+        elif self.child_pid == 0:
+            os.putenv('WDOG_PIPE', self.pipe_path)
+            os.putenv('WDOG_TIMEOUT', str(self.grace))
+            os.execvp(self.args[0], self.args)
+
+        return -1 # not reached
+
+usage_string = """wdog: Runs and monitors a process
+
+Usage: wdog <TIMEOUT> -- <CMD> <CMD_ARGS>
+
+wdog will run CMD with CMD_ARGS as a child process. And it will expect it
+to periodically write to named pipe whose path it will put in the WDOG_PIPE
+environment variable of the child process. If the child goes TIMEOUT seconds
+without writing to the pipe, wdog will deliver a KILL signal to it. The
+monitored process can read the timeout interval value from the WDOG_TIMEOUT
+environment variable.
+
+If the child exits on its own, wdog will immediately exit with the same exit
+status as the child.
+"""
+
+def usage():
+    err(usage_string)
+    sys.exit(1)
+
+def main():
+    argv.pop(0)
+    if (len(argv) < 3 or argv[1] != "--"):
+        usage()
+
+    timeout = 10
+    try:
+        timeout = int(argv.pop(0))
+        argv.pop(0)
+    except ValueError:
+        usage()
+
+    ProcMon(timeout, argv).run()
+
+if __name__ == '__main__':
+    main()
