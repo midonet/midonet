@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1af78d9a_9d178151",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/C3PODaemonTest.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 239,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-08T14:02:51Z",
+      "side": 1,
+      "message": "Oh, you\u0027re correct. I should have double-checked it. Closing zk will delete the contents, but it also seems to close curator\u0027s  connection as well. Changed to use storage.flush().",
+      "parentUuid": "1af78d9a_bd419d0d",
+      "range": {
+        "startLine": 239,
+        "startChar": 11,
+        "endLine": 239,
+        "endChar": 18
+      },
+      "revId": "7f41ad603eb9e88150d6b413f903e4b886a3bc29",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1af78d9a_9d466122",
         "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/C3PODaemonTest.scala",
         "patchSetId": 5
@@ -36,6 +60,30 @@
       "writtenOn": "2015-01-08T08:51:07Z",
       "side": 1,
       "message": "some try- catch would make sense here if we might lose the dummyConnection.close() below",
+      "range": {
+        "startLine": 253,
+        "startChar": 15,
+        "endLine": 253,
+        "endChar": 19
+      },
+      "revId": "7f41ad603eb9e88150d6b413f903e4b886a3bc29",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_fd0b2529",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/C3PODaemonTest.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 253,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-08T14:02:51Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1af78d9a_9d466122",
       "range": {
         "startLine": 253,
         "startChar": 15,
