@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1af78d9a_bd419d0d",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/C3PODaemonTest.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 239,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-08T08:51:07Z",
+      "side": 1,
+      "message": "I believe restart doesn\u0027t clean the contents, is that expected?",
+      "range": {
+        "startLine": 239,
+        "startChar": 11,
+        "endLine": 239,
+        "endChar": 18
+      },
+      "revId": "7f41ad603eb9e88150d6b413f903e4b886a3bc29",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_9d466122",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/C3PODaemonTest.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 253,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-08T08:51:07Z",
+      "side": 1,
+      "message": "some try- catch would make sense here if we might lose the dummyConnection.close() below",
+      "range": {
+        "startLine": 253,
+        "startChar": 15,
+        "endLine": 253,
+        "endChar": 19
+      },
+      "revId": "7f41ad603eb9e88150d6b413f903e4b886a3bc29",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
