@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1af78d9a_a09e9654",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/common/Connection.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-08T16:40:38Z",
+      "side": 1,
+      "message": "Aren\u0027t we going to use TCP as the transport protocol? If yes, then the flow control protocol of TCP should do the job, isn\u0027t it?",
+      "range": {
+        "startLine": 47,
+        "startChar": 7,
+        "endLine": 47,
+        "endChar": 64
+      },
+      "revId": "e21f731f624b6b80aa945393a1b797088041c8ac",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_00a32a9f",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/common/Connection.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-08T16:40:38Z",
+      "side": 1,
+      "message": "actions?",
+      "range": {
+        "startLine": 90,
+        "startChar": 12,
+        "endLine": 90,
+        "endChar": 18
+      },
+      "revId": "e21f731f624b6b80aa945393a1b797088041c8ac",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_e0c6de48",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/common/ProtocolFactory.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-08T16:40:38Z",
+      "side": 1,
+      "message": "Do you want to do protocol stacking with this? Meaning that a higher-level protocol calls onNext for the protocol just below to handle the message?\n\nI\u0027m asking this because in RequestHandler, you say:\nIt represents an observer receiving communication events from the low-level communication engine, via onNext. \n\nFrom this I understand that onNext is called for *incoming messages* instead of *outgoing ones*. Thanks for clarifying this.",
+      "range": {
+        "startLine": 31,
+        "startChar": 7,
+        "endLine": 31,
+        "endChar": 52
+      },
+      "revId": "e21f731f624b6b80aa945393a1b797088041c8ac",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
