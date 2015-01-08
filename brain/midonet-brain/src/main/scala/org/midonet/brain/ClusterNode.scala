@@ -17,19 +17,18 @@
 package org.midonet.brain
 
 import java.nio.file.{Files, Paths}
-
+import java.util.UUID
 import javax.sql.DataSource
 
 import com.codahale.metrics.{JmxReporter, MetricRegistry}
 import com.google.inject.{AbstractModule, Guice}
-
 import org.apache.commons.dbcp2.BasicDataSource
 import org.slf4j.LoggerFactory
-
-import org.midonet.brain.services.StorageModule
 import org.midonet.brain.services.c3po.C3POConfig
 import org.midonet.brain.services.heartbeat.HeartbeatConfig
-import org.midonet.config.{ConfigString, ConfigGroup, ConfigProvider}
+import org.midonet.cluster.data.storage.Storage
+import org.midonet.cluster.storage._
+import org.midonet.config._
 
 /**
  * Base exception for all MidoNet Cluster errors.
@@ -45,6 +44,12 @@ object ClusterNode extends App {
 
     /** Defines a Minion with a name, config, and implementing class */
     case class MinionDef[D <: ClusterMinion](name: String, cfg: MinionConfig[D])
+
+    /** Encapsulates node-wide context that might be of use for minions
+      *
+      * @param nodeId the UUID of this cluster node
+      */
+    case class Context(nodeId: UUID)
 
     private val log = LoggerFactory.getLogger(this.getClass)
 
@@ -62,47 +67,61 @@ object ClusterNode extends App {
     private val cfg = ConfigProvider fromConfigFile configFile
     private val cfgProvider = ConfigProvider.providerForIniConfig(cfg)
 
-    // Load configurations for all supported Minions
+    // Load configurations for Cluster Node supported Minions
+    private val nodeCfg = cfgProvider.getConfig(classOf[ClusterNodeConfig])
+    private val backendCfg = cfgProvider.getConfig(classOf[MidonetBackendConfig])
     private val heartbeatCfg = cfgProvider.getConfig(classOf[HeartbeatConfig])
-    private val neutronPollingCfg =
-        cfgProvider.getConfig(classOf[C3POConfig])
+    private val c3poConfig= cfgProvider.getConfig(classOf[C3POConfig])
+    private val neutronPollingCfg = cfgProvider.getConfig(classOf[NeutronDbConfig])
+
+    // Prepare the Cluster Node context for injection
+    private val nodeContext = new Context(HostIdGenerator.getHostId(nodeCfg))
 
     private val minionDefs: List[MinionDef[ClusterMinion]] =
         List (new MinionDef("heartbeat", heartbeatCfg),
-              new MinionDef("neutron-importer", neutronPollingCfg))
+              new MinionDef("neutron-importer", c3poConfig))
 
+    // TODO: move this out to a Guice module that provides access to the
+    // NeutronDB
     private val dataSrc = new BasicDataSource()
     dataSrc.setDriverClassName(neutronPollingCfg.jdbcDriver)
     dataSrc.setUrl(neutronPollingCfg.connectionString)
     dataSrc.setUsername(neutronPollingCfg.user)
     dataSrc.setPassword(neutronPollingCfg.password)
 
+    // All done, now start the Cluster
     log.info("Initialising MidoNet Cluster..")
-    // Expose the known minions to the Daemon, without starting them
     private val daemon = new Daemon(minionDefs)
-
     private val clusterNodeModule = new AbstractModule {
         override def configure(): Unit = {
 
-            bind(classOf[ConfigProvider]).toInstance(cfgProvider)
+            // These are made available to all Minions
             bind(classOf[MetricRegistry]).toInstance(metrics)
+            bind(classOf[DataSource]).toInstance(dataSrc)
 
+            //  Minion configurations
             bind(classOf[HeartbeatConfig]).toInstance(heartbeatCfg)
-            bind(classOf[C3POConfig]).toInstance(neutronPollingCfg)
+            bind(classOf[C3POConfig]).toInstance(c3poConfig)
+            bind(classOf[ClusterNode.Context]).toInstance(nodeContext)
+
+            bind(classOf[Storage]).toProvider(classOf[ZoomProvider])
+                                  .asEagerSingleton()
+
+            // Minion definitions, used by the Daemon to start when appropriate
             minionDefs foreach { m =>
                 log.info(s"Register minion: ${m.name}")
                 install(MinionConfig.module(m.cfg))
             }
 
-            bind(classOf[DataSource]).toInstance(dataSrc)
-
+            // The Daemon itself
             bind(classOf[Daemon]).toInstance(daemon)
         }
     }
 
     protected[brain] var injector = Guice.createInjector(
-        clusterNodeModule,
-        new StorageModule(cfgProvider))
+        new MidonetBackendModule(backendCfg),
+        clusterNodeModule
+    )
 
     log info "Registering shutdown hook"
     sys addShutdownHook {
@@ -129,14 +148,12 @@ object ClusterNode extends App {
     }
 }
 
-/** Configuration for the Heartbeat Minion. */
-@ConfigGroup("cluster_node")
-trait ClusterNodeConfig {
-
+@ConfigGroup("cluster-node")
+trait ClusterNodeConfig extends HostIdConfig {
     @ConfigString(key = "node_uuid", defaultValue = "")
-    def nodeUuid: String
+    def getHostId: String
 
-    @ConfigString(key = "properties_file",
-                  defaultValue = "/tmp/midonet_cluster_node.properties")
-    def propertiesFile: String
+    @ConfigString(key = "properties_file")
+    def getHostPropertiesFilePath: String
 }
+
