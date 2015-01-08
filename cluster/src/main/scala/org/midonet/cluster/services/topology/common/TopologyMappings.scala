@@ -44,8 +44,5 @@ object TopologyMappings {
 
     /** Retrieve the type corresponding to a given class */
     def typeOf(k: Class[_ <: Message]): Option[Topology.Type] =
-        typeToKlass.find(_._2 == k) match {
-        case Some(entry) => Some(entry._1)
-        case None => None
-    }
+        typeToKlass.find(_._2 == k).map(_._1)
 }

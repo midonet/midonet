@@ -18,14 +18,15 @@ package org.midonet.cluster.services.topology.common
 
 import com.google.protobuf.Message
 
+import io.netty.channel.ChannelHandler.Sharable
+import io.netty.channel.{ChannelHandlerContext, SimpleChannelInboundHandler}
+import io.netty.util.ReferenceCountUtil
+
 import org.slf4j.LoggerFactory
 
 import rx.Observer
 
 import org.midonet.cluster.rpc.Commands
-
-import io.netty.channel.{ChannelHandlerContext, SimpleChannelInboundHandler}
-import io.netty.util.ReferenceCountUtil
 
 /**
  * Protocol buffer message handler.
@@ -38,6 +39,7 @@ import io.netty.util.ReferenceCountUtil
  * actions on them.
  * NOTE: currently, the supported
  */
+@Sharable
 class ApiHandler[Expected <: Message](private val observer: Observer[CommEvent])
     extends SimpleChannelInboundHandler[Expected] {
     private val log = LoggerFactory.getLogger(classOf[ApiHandler[Expected]])
@@ -67,6 +69,12 @@ class ApiHandler[Expected <: Message](private val observer: Observer[CommEvent])
         observer.onNext(Error(ctx, cause))
     }
 }
+
+class ApiServerHandler(observer: Observer[CommEvent])
+    extends ApiHandler[Commands.Request](observer)
+class ApiClientHandler(observer: Observer[CommEvent])
+    extends ApiHandler[Commands.Response](observer)
+
 
 /**
  * Communication events from netty

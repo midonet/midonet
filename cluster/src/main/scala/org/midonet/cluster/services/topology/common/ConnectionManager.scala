@@ -22,7 +22,6 @@ import scala.concurrent.{Await, Promise, Future}
 import scala.util.Try
 
 import io.netty.channel.ChannelHandlerContext
-import org.slf4j.LoggerFactory
 
 /**
  * Connector between the low-level netty channels and the API rpc
@@ -31,7 +30,6 @@ import org.slf4j.LoggerFactory
  *                 the new connections.
  */
 class ConnectionManager(protocol: ProtocolFactory) {
-    private val log = LoggerFactory.getLogger(classOf[ConnectionManager])
     private val channels: TrieMap[ChannelHandlerContext, Future[Connection]] =
         new TrieMap()
 
