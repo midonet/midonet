@@ -50,6 +50,12 @@ if [ "xyes" = "x$DEBUG" ] ; then
     JAVA_OPTS="$JAVA_OPTS -Xdebug -Xrunjdwp:transport=dt_socket,address=$MIDO_DEBUG_PORT,server=y,suspend=y"
 fi
 
-exec $JAVA $JAVA_LIBRARY_PATH -Xbootclasspath/p:$MIDO_BOOTSTRAP_JAR \
+if [ -x /usr/bin/wdog ] ; then
+    exec /usr/bin/wdog 5 -- $JAVA $JAVA_LIBRARY_PATH -Xbootclasspath/p:$MIDO_BOOTSTRAP_JAR \
                 -cp $MIDO_ETC:$MIDO_JAR:$MIDO_DEP_CLASS_PATH \
                 $JAVA_OPTS $MIDO_MAIN -c $MIDO_CFG/$MIDO_CFG_FILE
+else
+    exec $JAVA $JAVA_LIBRARY_PATH -Xbootclasspath/p:$MIDO_BOOTSTRAP_JAR \
+                -cp $MIDO_ETC:$MIDO_JAR:$MIDO_DEP_CLASS_PATH \
+                $JAVA_OPTS $MIDO_MAIN -c $MIDO_CFG/$MIDO_CFG_FILE
+fi
