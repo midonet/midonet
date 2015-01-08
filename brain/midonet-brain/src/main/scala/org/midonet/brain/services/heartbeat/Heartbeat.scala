@@ -23,14 +23,15 @@ import scala.collection.JavaConversions._
 import com.codahale.metrics.{Counter, Metric, MetricRegistry, MetricSet}
 import com.google.inject.Inject
 
-import org.midonet.brain.{ScheduledClusterMinion, ScheduledMinionConfig}
+import org.midonet.brain.{ClusterNode, ScheduledClusterMinion, ScheduledMinionConfig}
 import org.midonet.config._
 import org.midonet.util.functors.makeRunnable
 
 /** A sample Minion that executes a periodic heartbeat on a period determined by
   * configuration. */
-class Heartbeat @Inject()(config: HeartbeatConfig, metrics: MetricRegistry)
-    extends ScheduledClusterMinion(config) {
+class Heartbeat @Inject()(nodeContext: ClusterNode.Context,
+                          config: HeartbeatConfig, metrics: MetricRegistry)
+    extends ScheduledClusterMinion(nodeContext, config) {
 
     protected override val runnable = makeRunnable(beat())
     private val counter = new Counter()
@@ -56,7 +57,8 @@ trait HeartbeatConfig extends ScheduledMinionConfig[Heartbeat] {
     @ConfigBool(key = "enabled", defaultValue = false)
     override def isEnabled: Boolean
 
-    @ConfigString(key = "with")
+    @ConfigString(key = "with",
+                  defaultValue="org.midonet.brain.services.heartbeat.Heartbeat")
     override def minionClass: String
 
     @ConfigInt(key = "num_threads", defaultValue = 1)
