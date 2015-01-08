@@ -121,7 +121,9 @@ message Request {
     message Handshake {
         required UUID req_id = 1;         // Request id
         required UUID cnxn_id = 2;        // Connection identifier
-        optional string last_tx_id = 3;   // Last heard from the cluster,
+        optional int64 seqno = 3;         // Last seen session sequence number
+                                          // (for session recovery)
+        optional string last_tx_id = 4;   // Last heard from the cluster,
                                           // if set, the cluster will
                                           // try to resend missed
                                           // updates
@@ -191,11 +193,12 @@ message Response {
             VtepBinding vtep_binding = 13;
         }
     }
+    optional int64 seqno = 1; // Session sequence number
     oneof response {
-        string name = 1;
-        Ack ack = 2;
-        NAck nack = 3;
-        Deletion deletion = 4;
-        Update update = 5;
+        string name = 2;
+        Ack ack = 3;
+        NAck nack = 4;
+        Deletion deletion = 5;
+        Update update = 6;
     }
 }
