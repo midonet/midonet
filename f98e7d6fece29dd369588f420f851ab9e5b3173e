@@ -16,6 +16,24 @@
       "revId": "f98e7d6fece29dd369588f420f851ab9e5b3173e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_5d651944",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/state/FlowStateStorageTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-08T11:06:18Z",
+      "side": 1,
+      "message": "So that the scale factor is respected (see PatienceConfig).",
+      "parentUuid": "1af78d9a_dd3bc936",
+      "revId": "f98e7d6fece29dd369588f420f851ab9e5b3173e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
