@@ -34,10 +34,8 @@ import org.apache.commons.configuration.HierarchicalConfiguration
 import org.apache.commons.dbcp2.BasicDataSource
 import org.apache.curator.test.TestingServer
 import org.junit.runner.RunWith
-import org.scalatest.BeforeAndAfter
-import org.scalatest.FlatSpec
-import org.scalatest.Matchers
 import org.scalatest.junit.JUnitRunner
+import org.scalatest.{BeforeAndAfter, BeforeAndAfterAll, FlatSpec, Matchers}
 import org.slf4j.LoggerFactory
 
 import org.midonet.brain.ClusterNode.MinionDef
@@ -58,7 +56,9 @@ import org.midonet.util.concurrent.toFutureOps
  * Tests the Neutron data importer daemon.
  */
 @RunWith(classOf[JUnitRunner])
-class C3PODaemonTest extends FlatSpec with BeforeAndAfter with Matchers {
+class C3PODaemonTest extends FlatSpec with BeforeAndAfter
+                                      with BeforeAndAfterAll
+                                      with Matchers {
     private val log = LoggerFactory.getLogger(this.getClass)
 
     private val zkPort = 50000 + Random.nextInt(15000)
@@ -81,7 +81,7 @@ class C3PODaemonTest extends FlatSpec with BeforeAndAfter with Matchers {
 
     private val DROP_TASK_TABLE = "DROP TABLE IF EXISTS midonet_tasks"
 
-    private val TRUNCATE_TASK_TABLE = "DELETE FROM midonet_tasks"
+    private val EMPTY_TASK_TABLE = "DELETE FROM midonet_tasks"
 
     private val cfg = fillConfig(new HierarchicalConfiguration)
     private val cfgProvider = ConfigProvider.providerForIniConfig(cfg)
@@ -164,6 +164,17 @@ class C3PODaemonTest extends FlatSpec with BeforeAndAfter with Matchers {
         log.info("Created the midonet_tasks table.")
     }
 
+    def emptyTaskTableAndSendFlushTask() = {
+        executeSqlStmts(EMPTY_TASK_TABLE)
+        log.info("Emptied the task table.")
+
+        // A flush task must have an id of 1 by spec.
+        executeSqlStmts(insertMidoNetTaskSql(
+                id = 1, Flush, NoData, json = "", null, "flush_txn"))
+        log.info("Inserted a flush task.")
+        Thread.sleep(1000)
+    }
+
     private def insertMidoNetTaskSql(
             id: Int, taskType: TaskType, dataType: NeutronResourceType[_],
             json: String, resourceId: UUID, txnId: String) : String = {
@@ -207,7 +218,7 @@ class C3PODaemonTest extends FlatSpec with BeforeAndAfter with Matchers {
             "router:external": false
         }"""
 
-    before {
+    override protected def beforeAll() {
         try {
             ClusterNode.injector = injector
             createTaskTable()
@@ -226,7 +237,17 @@ class C3PODaemonTest extends FlatSpec with BeforeAndAfter with Matchers {
         }
     }
 
-    after {
+    before {
+        // Empties the task table and flush the topology before each test run.
+        // NOTE: Closing the ZK Testing Server doesn't work because the Curator
+        // client loses the connection. If we convert the test so that it runs
+        // C3PO alone, we can instead just call C3PO.flushTopology() on C3PO.
+        // Calling Storage.flush() doesn't do the job as it doesn't do necessary
+        // initialization.
+        emptyTaskTableAndSendFlushTask()
+    }
+
+    override protected def afterAll() {
         cleanup()
     }
 
@@ -236,7 +257,12 @@ class C3PODaemonTest extends FlatSpec with BeforeAndAfter with Matchers {
             daemon.stopAsync()
             daemon.awaitTerminated(5000, TimeUnit.MILLISECONDS)
         } finally {
-            zk.stop()
+            try {
+                zk.stop()
+            } catch {
+                case NonFatal(t) =>
+                    log.warn("ZK Testing Server failed to stop.", t)
+            }
         }
 
         if (dummyConnection != null) dummyConnection.close()
@@ -249,7 +275,7 @@ class C3PODaemonTest extends FlatSpec with BeforeAndAfter with Matchers {
 
         // Creates Network 1
         executeSqlStmts(insertMidoNetTaskSql(
-                2, Create, NetworkType, network1Json, network1Uuid, "tx1"))
+                id = 2, Create, NetworkType, network1Json, network1Uuid, "tx1"))
         Thread.sleep(sleadSleepMs)
 
         storage.exists(classOf[Network], network1Uuid).await() should be (true)
@@ -260,9 +286,9 @@ class C3PODaemonTest extends FlatSpec with BeforeAndAfter with Matchers {
 
         // Creates Network 2 and updates Network 1
         executeSqlStmts(
-                insertMidoNetTaskSql(3, Create, NetworkType, network2Json,
+                insertMidoNetTaskSql(id = 3, Create, NetworkType, network2Json,
                                      network2Uuid, "tx2"),
-                insertMidoNetTaskSql(4, Update, NetworkType, network1Json2,
+                insertMidoNetTaskSql(id = 4, Update, NetworkType, network1Json2,
                                      network1Uuid, "tx2"))
         Thread.sleep(sleadSleepMs)
 
@@ -277,25 +303,22 @@ class C3PODaemonTest extends FlatSpec with BeforeAndAfter with Matchers {
 
         // Deletes Network 1
         executeSqlStmts(insertMidoNetTaskSql(
-                5, Delete, NetworkType, "", network1Uuid, "tx3"))
+                id = 5, Delete, NetworkType, json = "", network1Uuid, "tx3"))
         Thread.sleep(sleadSleepMs)
 
         storage.exists(classOf[Network], network1Uuid).await() should be (false)
 
-        // Truncates the Task table and flushes the Storage.
-        executeSqlStmts(TRUNCATE_TASK_TABLE,
-                        insertMidoNetTaskSql(
-                                1, Flush, NoData, "", null, "tx4"))
-        Thread.sleep(sleadSleepMs)
+        // Empties the Task table and flushes the Topology.
+        emptyTaskTableAndSendFlushTask()
 
         storage.exists(classOf[Network], network2Uuid).await() should be (false)
 
         // Can create Network 1 & 2 again.
         executeSqlStmts(
-                insertMidoNetTaskSql(2, Create, NetworkType, network1Json,
-                                     network1Uuid, "tx5"),
-                insertMidoNetTaskSql(3, Create, NetworkType, network2Json,
-                                     network2Uuid, "tx5"))
+                insertMidoNetTaskSql(id = 2, Create, NetworkType, network1Json,
+                                     network1Uuid, "tx4"),
+                insertMidoNetTaskSql(id = 3, Create, NetworkType, network2Json,
+                                     network2Uuid, "tx4"))
         Thread.sleep(sleadSleepMs)
 
         storage.exists(classOf[Network], network1Uuid).await() should be (true)
