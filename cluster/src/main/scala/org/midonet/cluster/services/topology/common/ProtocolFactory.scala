@@ -34,16 +34,18 @@ trait ProtocolFactory {
      * initial state of the protocol and a potential subscription to a
      * backend provider.
      */
-    def start(output: Observer[Message]): State
+    def start(output: Observer[Message]): ProtocolFactory.State
 }
 
-/**
- * The state machine of a Connection to the Topology Cluster. Not sealed just
- * to allow mocking.
- */
-trait State {
-    /** Process a message and yield the next state */
-    def process(msg: Any): State
+object ProtocolFactory {
+    /**
+     * The state machine of a Connection to the Topology Cluster. Not sealed just
+     * to allow mocking.
+     */
+    trait State {
+        /** Process a message and yield the next state */
+        def process(msg: Any): State
+    }
 }
 
 /**
