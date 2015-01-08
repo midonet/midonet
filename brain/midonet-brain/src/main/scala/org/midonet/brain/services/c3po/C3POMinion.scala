@@ -20,11 +20,12 @@ import javax.sql.DataSource
 
 import com.google.inject.Inject
 import com.google.protobuf.Message
+import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.recipes.leader.LeaderLatch
 
 import org.midonet.brain.services.c3po.NeutronDeserializer.toMessage
 import org.midonet.brain.services.c3po.translators._
-import org.midonet.brain.{ScheduledClusterMinion, ScheduledMinionConfig}
+import org.midonet.brain.{ClusterNode, ScheduledClusterMinion, ScheduledMinionConfig}
 import org.midonet.cluster.data.neutron.{SqlNeutronImporter, importer}
 import org.midonet.cluster.data.storage.Storage
 import org.midonet.cluster.models.Neutron._
@@ -32,16 +33,29 @@ import org.midonet.cluster.util.UUIDUtil
 import org.midonet.config._
 
 /** The service that translates and imports neutron models into the MidoNet
-  * backend storage */
-class C3PO @Inject()(config: C3POConfig,
-                     dataSrc: DataSource,
-                     storage: Storage,
-                     leaderLatch: LeaderLatch)
-    extends ScheduledClusterMinion(config) {
+  * backend storage
+  *
+  * @param nodeContext metadata of the Cluster Node where we're running
+  * @param config the configuration of the C3PO service
+  * @param dataSrc API for access to the the Neutron DB
+  * @param storage API for access to the MidoNet topology storage
+  * @param curator API for access to ZK for internal uses of the C3PO service
+  */
+class C3POMinion @Inject()(nodeContext: ClusterNode.Context,
+                           config: C3POConfig,
+                           dataSrc: DataSource,
+                           storage: Storage,
+                           curator: CuratorFramework)
+    extends ScheduledClusterMinion(nodeContext, config) {
 
     val dataMgr = initDataManager()
 
+    val LEADER_LATCH_PATH = "/leader-latch"
+
     val neutronImporter = new SqlNeutronImporter(dataSrc)
+    val leaderLatch = new LeaderLatch(curator, LEADER_LATCH_PATH,
+                                      nodeContext.nodeId.toString)
+    leaderLatch.start()
 
     protected override val runnable = new Runnable {
         override def run(): Unit = try {
@@ -51,16 +65,18 @@ class C3PO @Inject()(config: C3POConfig,
                 return
             }
 
+            log.debug("Cluster leader; syncing from Neutron DB..")
+
             val lastTaskId = dataMgr.lastProcessedTaskId
-            log.debug("Got last processed task ID: {}.", lastTaskId)
+            log.debug(".. last processed task ID: {}.", lastTaskId)
 
             val txns = neutronImporter.getTasksSince(lastTaskId)
-            log.debug("Got {} transaction(s) from Neutron: {}", txns.size, txns)
+            log.debug(".. {} transaction(s) to import: {}", txns.size, txns)
 
             for (txn <- txns) {
                 if (txn.isFlushTxn) {
+                    log.info(".. flushing storage")
                     dataMgr.flushTopology()
-                    log.info("Deleting flush task from Neutron database.")
                     neutronImporter.deleteTask(txn.lastTaskId)
                 } else {
                     dataMgr.interpretAndExecTxn(translateTxn(txn))
@@ -116,11 +132,13 @@ class C3PO @Inject()(config: C3POConfig,
 }
 
 @ConfigGroup("neutron-importer")
-trait C3POConfig extends ScheduledMinionConfig[C3PO] {
+trait C3POConfig extends ScheduledMinionConfig[C3POMinion] {
+
     @ConfigBool(key = "enabled")
     override def isEnabled: Boolean
 
-    @ConfigString(key = "with")
+    @ConfigString(key = "with",
+                  defaultValue = "org.midonet.brain.services.c3po.C3POMinion")
     override def minionClass: String
 
     @ConfigInt(defaultValue = 1)
@@ -131,16 +149,6 @@ trait C3POConfig extends ScheduledMinionConfig[C3PO] {
 
     @ConfigLong(key = "period_ms", defaultValue = 1000)
     override def periodMs: Long
-
-    @ConfigString(key = "connection_str")
-    def connectionString: String
-
-    @ConfigString(key = "jdbc_driver_class")
-    def jdbcDriver: String
-
-    @ConfigString(key = "user")
-    def user: String
-
-    @ConfigString(key = "password", defaultValue = "")
-    def password: String
 }
+
+
