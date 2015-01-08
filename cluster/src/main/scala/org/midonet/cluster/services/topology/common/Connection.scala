@@ -16,15 +16,12 @@
 
 package org.midonet.cluster.services.topology.common
 
-import scala.util.Success
+import java.util.concurrent.atomic.AtomicBoolean
 
 import com.google.protobuf.Message
 
 import io.netty.channel.ChannelHandlerContext
-import org.slf4j.LoggerFactory
-import rx.Subscriber
-import rx.subjects.{PublishSubject, Subject}
-
+import rx.Observer
 
 /**
  * Connection state holder
@@ -41,27 +38,17 @@ import rx.subjects.{PublishSubject, Subject}
 class Connection(private val ctx: ChannelHandlerContext,
                  private val protocol: ProtocolFactory)
                 (implicit val mgr: ConnectionManager)
-    extends Subscriber[Message] {
-    private val log = LoggerFactory.getLogger(classOf[Connection])
+    extends Observer[Message] {
 
-    // Stream of messages to be sent back through the communication channel;
-    // this object 'subscribes' to this stream to actually send out the
-    // outgoing messages
-    private val outgoing: Subject[Message, Message] =
-        PublishSubject.create()
-    outgoing.subscribe(this)
+    // Connection has already been disconnected
+    private val done = new AtomicBoolean(false)
 
     // Send a message through the low level channel
     // TODO: some backpressure mechanism is probably needed here
-    private def send(rsp: Message) = ctx.writeAndFlush(rsp)
+    private def send(rsp: Message) = if (!done.get()) ctx.writeAndFlush(rsp)
 
     // Terminate this connection
-    private def terminate() = {
-        backendSubscription.value match {
-            case Some(Success(Some(subs))) => subs.unsubscribe()
-            case _ =>
-        }
-        this.unsubscribe()
+    private def terminate() = if (done.compareAndSet(false, true)) {
         ctx.close()
         mgr.unregister(ctx)
     }
@@ -72,20 +59,37 @@ class Connection(private val ctx: ChannelHandlerContext,
     override def onNext(rsp: Message): Unit = send(rsp)
 
     // State engine
-    // TODO: This is not thread-safe, which is currently fine
-    // as each channel is currently handled by a single thread at most.
-    private var (state, backendSubscription) = protocol.start(outgoing)
+    // NOTE: This is not thread-safe, which is currently fine
+    // as each channel is currently handled by a single thread.
+    private var state = protocol.start(this)
+
+    /**
+     * Dismiss the connection state (called upon netty disconnection)
+     */
     def disconnect() = {
         state = state.process(Interruption)
         // in case protocol does not honor the disconnect request:
-        outgoing.onCompleted()
+        terminate()
     }
+
+    /**
+     * Process a protobuf message received from netty
+     * @param req is a protobuf message encoding either a request or a
+     *            response in a given protocol. Note that it is not safe
+     *            to keep this protobuf for future use without increasing
+     *            its reference counter via 'retain' (and releasing for it
+     *            when no longer needed via 'ReferenceCountUtils.release'
+     */
     def msg(req: Message) = {
         state = state.process(req)
-        // note: the req message is being released by the caller;
-        // its refcount should be increased (via 'retain') by the
-        // protocol, if needed)
     }
+
+    /**
+     * Process exceptions originated in the netty pipeline (normally they
+     * are not recuperable, but the high level protocol may want to take
+     * some action).
+     * @param e the captured exception
+     */
     def error(e: Throwable) = {
         state = state.process(e)
     }
