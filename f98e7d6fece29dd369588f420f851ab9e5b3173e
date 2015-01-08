@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1af78d9a_dd3bc936",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/state/FlowStateStorageTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-01-08T10:45:02Z",
+      "side": 1,
+      "message": "why the call to scaled?",
+      "revId": "f98e7d6fece29dd369588f420f851ab9e5b3173e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
