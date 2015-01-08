@@ -20,54 +20,53 @@ import java.io.PrintWriter
 import java.sql.{Connection, DriverManager}
 import java.util.UUID
 import java.util.concurrent.TimeUnit
-
 import javax.sql.DataSource
 
 import scala.collection.JavaConverters._
-import scala.util.Random
-import scala.util.control.NonFatal
+import scala.util.{Random, Try}
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.JsonNodeFactory
-import com.google.inject.{AbstractModule, Guice}
-
-import org.apache.commons.configuration.HierarchicalConfiguration
+import org.apache.curator.framework.{CuratorFramework, CuratorFrameworkFactory}
+import org.apache.curator.retry.ExponentialBackoffRetry
 import org.apache.curator.test.TestingServer
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{BeforeAndAfter, BeforeAndAfterAll, FlatSpec, Matchers}
 import org.slf4j.LoggerFactory
 
-import org.midonet.brain.ClusterNode.MinionDef
-import org.midonet.brain.services.StorageModule
-import org.midonet.brain.services.c3po.C3POConfig
+import org.midonet.brain.ClusterNode.Context
+import org.midonet.brain.services.c3po.{C3POConfig, C3POMinion}
 import org.midonet.cluster.data.neutron.NeutronResourceType.{Network => NetworkType, NoData, SecurityGroup => SecurityGroupType}
 import org.midonet.cluster.data.neutron.TaskType._
 import org.midonet.cluster.data.neutron.{NeutronResourceType, TaskType}
 import org.midonet.cluster.data.storage.Storage
+import org.midonet.cluster.models.C3PO
 import org.midonet.cluster.models.Commons.{EtherType, Protocol, RuleDirection}
 import org.midonet.cluster.models.Neutron.SecurityGroup
 import org.midonet.cluster.models.Topology.{Chain, IpAddrGroup, Network, Rule}
+import org.midonet.cluster.storage.ZoomProvider
 import org.midonet.cluster.util.UUIDUtil
-import org.midonet.config.ConfigProvider
 import org.midonet.packets.{IPSubnet, IPv4Subnet, UDP}
 import org.midonet.util.concurrent.toFutureOps
 
-/**
- * Tests the Neutron data importer daemon.
- */
+/** Tests the service that synces the Neutron DB into Midonet's backend. */
 @RunWith(classOf[JUnitRunner])
-class C3PODaemonTest extends FlatSpec with BeforeAndAfter
+class C3POMinionTest extends FlatSpec with BeforeAndAfter
                                       with BeforeAndAfterAll
                                       with Matchers {
+
     private val log = LoggerFactory.getLogger(this.getClass)
 
-    private val zkPort = 50000 + Random.nextInt(15000)
-    private val zkHost = s"127.0.0.1:$zkPort"
-    private val dbConnectStr =
-        s"jdbc:sqlite:file:taskdb?mode=memory&cache=shared"
-    private val dbDriver = "org.sqlite.JDBC"
+    private val ZK_PORT = 50000 + Random.nextInt(15000)
+    private val ZK_HOST = s"127.0.0.1:$ZK_PORT"
 
+    private val DB_NAME = "taskdb"
+    private val DB_CONNECT_STR =
+        s"jdbc:sqlite:file:$DB_NAME?mode=memory&cache=shared"
+
+    private val DROP_TASK_TABLE = "DROP TABLE IF EXISTS midonet_tasks"
+    private val EMPTY_TASK_TABLE = "DELETE FROM midonet_tasks"
     private val CREATE_TASK_TABLE =
         "CREATE TABLE midonet_tasks (" +
         "    id int(11) NOT NULL," +
@@ -80,73 +79,40 @@ class C3PODaemonTest extends FlatSpec with BeforeAndAfter
         "    PRIMARY KEY (id)" +
         ")"
 
-    private val DROP_TASK_TABLE = "DROP TABLE IF EXISTS midonet_tasks"
+    private val c3poCfg = new C3POConfig {
+        override def periodMs: Long = 1000
+        override def delayMs: Long = 0
+        override def isEnabled: Boolean = true
+        override def minionClass: String = classOf[C3PO].getName
+        override def numThreads: Int = 1
+    }
 
-    private val EMPTY_TASK_TABLE = "DELETE FROM midonet_tasks"
-
-    private val cfg = fillConfig(new HierarchicalConfiguration)
-    private val cfgProvider = ConfigProvider.providerForIniConfig(cfg)
-
-    private val c3poCfg =
-        cfgProvider.getConfig(classOf[C3POConfig])
-    private val minionDefs: List[MinionDef[ClusterMinion]] =
-        List (new MinionDef("neutron-importer", c3poCfg))
-    private val daemon = new Daemon(minionDefs)
-    private val zk: TestingServer = new TestingServer(zkPort)
+    // Data sources
+    private val zk: TestingServer = new TestingServer(ZK_PORT)
 
     private val nodeFactory = new JsonNodeFactory(true)
 
     // Adapt the DriverManager interface to DataSource interface.
     // SQLite doesn't seem to provide JDBC 2.0 API.
     private val dataSrc = new DataSource() {
-        override def getConnection() = DriverManager.getConnection(dbConnectStr)
+        override def getConnection() = DriverManager.getConnection(DB_CONNECT_STR)
         override def getConnection(username: String, password: String) = null
-        override def getLoginTimeout() = -1
-        override def getLogWriter() = null
+        override def getLoginTimeout = -1
+        override def getLogWriter = null
         override def setLoginTimeout(seconds: Int) {}
         override def setLogWriter(out: PrintWriter) {}
-        override def getParentLogger() = null
+        override def getParentLogger = null
         override def isWrapperFor(clazz: Class[_]) = false
         override def unwrap[T](x: Class[T]): T = null.asInstanceOf[T]
     }
 
-    // We need to keep one connection open to maintain the shared
-    // in-memory DB during the test.
+    // We need to keep one connection open to maintain the shared in-memory DB
+    // during the test.
     private val dummyConnection = dataSrc.getConnection()
 
-    private val clusterNodeTestModule = new AbstractModule {
-        override def configure(): Unit = {
-            bind(classOf[ConfigProvider]).toInstance(cfgProvider)
-            bind(classOf[C3POConfig]).toInstance(c3poCfg)
-            minionDefs foreach { m =>
-                install(MinionConfig.module(m.cfg))
-            }
-            bind(classOf[DataSource]).toInstance(dataSrc)
-            bind(classOf[Daemon]).toInstance(daemon)
-        }
-    }
-
-    val injector = Guice.createInjector(clusterNodeTestModule,
-                                        new StorageModule(cfgProvider))
-    private val storage = injector.getInstance(classOf[Storage])
-
-    protected def fillConfig(config: HierarchicalConfiguration)
-            : HierarchicalConfiguration = {
-        config.setProperty("curator.zookeeper_hosts", zkHost)
-        config.setProperty("curator.base_retry_ms", 100)
-        config.setProperty("curator.max_retries", 20)
-        config.setProperty("curator.topology_path", "/midonet/v2")
-        config.setProperty("neutron-importer.enabled", true)
-        config.setProperty("neutron-importer.with",
-                           "org.midonet.brain.services.c3po.C3PO")
-        config.setProperty("neutron-importer.period_ms", 100)
-        config.setProperty("neutron-importer.delay_ms", 0)
-        config.setProperty("neutron-importer.connection_str", dbConnectStr)
-        config.setProperty("neutron-importer.jdbc_driver_class", dbDriver)
-        config.setProperty("user", "")
-        config.setProperty("password", "")
-        config
-    }
+    // ---------------------
+    // DATA FIXTURES
+    // ---------------------
 
     private def executeSqlStmts(sqls: String*) {
         var c: Connection = null
@@ -160,7 +126,7 @@ class C3PODaemonTest extends FlatSpec with BeforeAndAfter
         }
     }
 
-    def createTaskTable() = {
+    private def createTaskTable() = {
         // Just in case an old DB file / table exits.
         executeSqlStmts(DROP_TASK_TABLE)
         executeSqlStmts(CREATE_TASK_TABLE)
@@ -172,8 +138,8 @@ class C3PODaemonTest extends FlatSpec with BeforeAndAfter
         log.info("Emptied the task table.")
 
         // A flush task must have an id of 1 by spec.
-        executeSqlStmts(insertMidoNetTaskSql(
-                id = 1, Flush, NoData, json = "", null, "flush_txn"))
+        executeSqlStmts(insertMidoNetTaskSql(id = 1, Flush, NoData, json = "",
+                                             null, "flush_txn"))
         log.info("Inserted a flush task.")
         Thread.sleep(1000)
     }
@@ -221,24 +187,39 @@ class C3PODaemonTest extends FlatSpec with BeforeAndAfter
             "router:external": false
         }"""
 
+    private var curator: CuratorFramework = _
+    private var storage: Storage = _
+    private var c3po: C3POMinion = _
+
+    // ---------------------
+    // TEST SETUP
+    // ---------------------
+
     override protected def beforeAll() {
         try {
-            ClusterNode.injector = injector
+            val retryPolicy = new ExponentialBackoffRetry(1000, 10)
+            curator = CuratorFrameworkFactory.newClient(ZK_HOST, retryPolicy)
+
+            // Populate test data
             createTaskTable()
 
-            log info "Test ZK server starts.."
+            // Move this to a beforeAll when more test cases are added
             zk.start()
+            curator.start()
+            curator.blockUntilConnected()
 
-            log info "MidoNet Cluster daemon starts.."
-            daemon.startAsync().awaitRunning()
-            log info "MidoNet Cluster is up"
+            storage = new ZoomProvider(curator).get()
+
+            val nodeCtx = new Context(UUID.randomUUID())
+            c3po = new C3POMinion(nodeCtx, c3poCfg, dataSrc, storage, curator)
+            c3po.startAsync()
+            c3po.awaitRunning(2, TimeUnit.SECONDS)
         } catch {
-            case NonFatal(t) =>
-                log.error("Test setup failed.", t)
+            case e: Throwable =>
+                log.error("Failing setting up environment", e)
                 cleanup()
-                throw t
         }
-    }
+   }
 
     before {
         // Empties the task table and flush the topology before each test run.
@@ -250,25 +231,21 @@ class C3PODaemonTest extends FlatSpec with BeforeAndAfter
         emptyTaskTableAndSendFlushTask()
     }
 
+    after {
+        // curator.delete().deletingChildrenIfNeeded().forPath("/")
+    }
+
     override protected def afterAll() {
         cleanup()
+
     }
 
     private def cleanup(): Unit = {
-        try {
-            log.error("\n\n\n\nCleaning up!\n\n\n\n")
-            daemon.stopAsync()
-            daemon.awaitTerminated(5000, TimeUnit.MILLISECONDS)
-        } finally {
-            try {
-                zk.stop()
-            } catch {
-                case NonFatal(t) =>
-                    log.warn("ZK Testing Server failed to stop.", t)
-            }
-        }
-
-        if (dummyConnection != null) dummyConnection.close()
+        Try(c3po.stopAsync()).getOrElse(log.error("Failed stopping c3po"))
+        Try(curator.close()).getOrElse(log.error("Failed stopping curator"))
+        Try(zk.stop()).getOrElse(log.error("Failed stopping zk"))
+        Try(if (dummyConnection != null) dummyConnection.close())
+            .getOrElse(log.error("Failed stopping zk"))
     }
 
     private def sgJson(name: String, id: UUID,
@@ -315,18 +292,18 @@ class C3PODaemonTest extends FlatSpec with BeforeAndAfter
     "C3PO" should "poll DB and update ZK via C3POStorageMgr" in {
         val threadSleepMs = 2000
         // Initially the Storage is empty.
-        storage.exists(classOf[Network], network1Uuid).await() should be (false)
+        storage.exists(classOf[Network], network1Uuid).await() shouldBe false
 
         // Creates Network 1
-        executeSqlStmts(insertMidoNetTaskSql(
-                id = 2, Create, NetworkType, network1Json, network1Uuid, "tx1"))
+        executeSqlStmts(insertMidoNetTaskSql(2, Create, NetworkType,
+                                             network1Json, network1Uuid, "tx1"))
         Thread.sleep(threadSleepMs)
 
-        storage.exists(classOf[Network], network1Uuid).await() should be (true)
+        storage.exists(classOf[Network], network1Uuid).await() shouldBe true
         val network1 = storage.get(classOf[Network], network1Uuid).await()
-        network1.getId should be (UUIDUtil.toProto(network1Uuid))
-        network1.getName should be ("private-network")
-        network1.getAdminStateUp should be (true)
+        network1.getId shouldBe UUIDUtil.toProto(network1Uuid)
+        network1.getName shouldBe "private-network"
+        network1.getAdminStateUp shouldBe true
 
         // Creates Network 2 and updates Network 1
         executeSqlStmts(
@@ -336,26 +313,26 @@ class C3PODaemonTest extends FlatSpec with BeforeAndAfter
                                      network1Uuid, "tx2"))
         Thread.sleep(threadSleepMs)
 
-        storage.exists(classOf[Network], network2Uuid).await() should be (true)
+        storage.exists(classOf[Network], network2Uuid).await() shouldBe true
         val network2 = storage.get(classOf[Network], network2Uuid).await()
-        network2.getId should be (UUIDUtil.toProto(network2Uuid))
-        network2.getName should be ("corporate-network")
+        network2.getId shouldBe UUIDUtil.toProto(network2Uuid)
+        network2.getName shouldBe "corporate-network"
         val network1a = storage.get(classOf[Network], network1Uuid).await()
-        network1a.getId should be (UUIDUtil.toProto(network1Uuid))
-        network1a.getName should be ("public-network")
-        network1a.getAdminStateUp should be (false)
+        network1a.getId shouldBe UUIDUtil.toProto(network1Uuid)
+        network1a.getName shouldBe "public-network"
+        network1a.getAdminStateUp shouldBe false
 
         // Deletes Network 1
         executeSqlStmts(insertMidoNetTaskSql(
                 id = 5, Delete, NetworkType, json = "", network1Uuid, "tx3"))
         Thread.sleep(threadSleepMs)
 
-        storage.exists(classOf[Network], network1Uuid).await() should be (false)
+        storage.exists(classOf[Network], network1Uuid).await() shouldBe false
 
         // Empties the Task table and flushes the Topology.
         emptyTaskTableAndSendFlushTask()
 
-        storage.exists(classOf[Network], network2Uuid).await() should be (false)
+        storage.exists(classOf[Network], network2Uuid).await() shouldBe false
 
         // Can create Network 1 & 2 again.
         executeSqlStmts(
@@ -365,8 +342,8 @@ class C3PODaemonTest extends FlatSpec with BeforeAndAfter
                                      network2Uuid, "tx4"))
         Thread.sleep(threadSleepMs)
 
-        storage.exists(classOf[Network], network1Uuid).await() should be (true)
-        storage.exists(classOf[Network], network2Uuid).await() should be (true)
+        storage.exists(classOf[Network], network1Uuid).await() shouldBe true
+        storage.exists(classOf[Network], network2Uuid).await() shouldBe true
     }
 
     "C3PO" should "handle security group CRUD" in {
@@ -398,8 +375,8 @@ class C3PODaemonTest extends FlatSpec with BeforeAndAfter
         inChain1.getRuleIdsCount should be(0)
         outChain1.getRuleIdsCount should be(2)
         val outChain1Rules = storage.getAll(classOf[Rule],
-                                   outChain1.getRuleIdsList.asScala)
-                             .map(_.await())
+                                            outChain1.getRuleIdsList.asScala)
+                                    .map(_.await())
         outChain1Rules(0).getId should be(UUIDUtil.toProto(rule1Id))
         outChain1Rules(0).getTpDst.getStart should be(15000)
         outChain1Rules(0).getTpDst.getEnd should be(15500)
