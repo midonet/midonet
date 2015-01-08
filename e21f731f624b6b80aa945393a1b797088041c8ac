@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1af78d9a_00f84a7b",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/common/Connection.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-01-08T17:10:01Z",
+      "side": 1,
+      "message": "Not exactly... the issue here is with netty itself. Using writeAndFlush should work, but avoiding the \u0027flush\u0027 part should probably allow increasing the performance (in case we have a performance issue); Netty also allows avoiding the \u0027flush\u0027 and accumulate things to write, but then you must make sure explicitly that the new data to send has been accepted, and otherwise buffer it somewhere else and retry (this is what I was meaning by \u0027backpressure\u0027)",
+      "parentUuid": "1af78d9a_a09e9654",
+      "range": {
+        "startLine": 47,
+        "startChar": 7,
+        "endLine": 47,
+        "endChar": 64
+      },
+      "revId": "e21f731f624b6b80aa945393a1b797088041c8ac",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1af78d9a_00a32a9f",
         "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/common/Connection.scala",
         "patchSetId": 1
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "1af78d9a_e0f41e89",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/common/Connection.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-01-08T17:10:01Z",
+      "side": 1,
+      "message": "Yes, it may take more than one action :-)\nI\u0027ll change it.",
+      "parentUuid": "1af78d9a_00a32a9f",
+      "range": {
+        "startLine": 90,
+        "startChar": 12,
+        "endLine": 90,
+        "endChar": 18
+      },
+      "revId": "e21f731f624b6b80aa945393a1b797088041c8ac",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1af78d9a_e0c6de48",
         "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/common/ProtocolFactory.scala",
         "patchSetId": 1
@@ -59,6 +107,30 @@
       "writtenOn": "2015-01-08T16:40:38Z",
       "side": 1,
       "message": "Do you want to do protocol stacking with this? Meaning that a higher-level protocol calls onNext for the protocol just below to handle the message?\n\nI\u0027m asking this because in RequestHandler, you say:\nIt represents an observer receiving communication events from the low-level communication engine, via onNext. \n\nFrom this I understand that onNext is called for *incoming messages* instead of *outgoing ones*. Thanks for clarifying this.",
+      "range": {
+        "startLine": 31,
+        "startChar": 7,
+        "endLine": 31,
+        "endChar": 52
+      },
+      "revId": "e21f731f624b6b80aa945393a1b797088041c8ac",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_a01176ae",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/common/ProtocolFactory.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-01-08T17:10:01Z",
+      "side": 1,
+      "message": "In fact, there are two observers: the \u0027RequestHandler\u0027 is an observer for the incoming messages (as you mention), which fans out (via the connection manager) to different \u0027Connection\u0027 objects, which are observers for the \u0027outgoing\u0027 messages. The protocol factory is associated to the connection (in fact, the output observer in the start method is the Connection itself), so, in this case, the observer is actually for the outgoing messages.\n\nMaybe the following will clarify it a little bit:\nThe \u0027incoming\u0027 path is:\n\nNetty -(observable)-\u003e RequestHandler -\u003e ConnectionManager -\u003e Connection -\u003e Protocol State Transitions\n\nand the \u0027outgoing\u0027 path is:\n\nProtocol -(observable)-\u003e Connection -\u003e Netty",
+      "parentUuid": "1af78d9a_e0c6de48",
       "range": {
         "startLine": 31,
         "startChar": 7,
