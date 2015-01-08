@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1af78d9a_e03b7e36",
+        "filename": "specs/2015.02/cluster_design.md",
+        "patchSetId": 8
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-08T17:06:52Z",
+      "side": 1,
+      "message": "insertion?",
+      "range": {
+        "startLine": 68,
+        "startChar": 25,
+        "endLine": 68,
+        "endChar": 35
+      },
+      "revId": "ad9c440d3f9b9df8c640b7871bcd618fd9fcb224",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
