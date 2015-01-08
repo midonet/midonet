@@ -116,6 +116,30 @@
       "revId": "495345f4c29fc28b392aaff0c8af4087584f6b4b",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_a05cd626",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/C3PODaemonTest.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 315,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-08T14:15:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1af78d9a_00132a5d",
+      "range": {
+        "startLine": 315,
+        "startChar": 37,
+        "endLine": 315,
+        "endChar": 38
+      },
+      "revId": "495345f4c29fc28b392aaff0c8af4087584f6b4b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
