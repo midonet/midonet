@@ -36,3 +36,12 @@ Note that in order to compile Midonet successfully, you will need to execute:
 
 before the build. This will fetch the right version of the submodule code and
 use it to build the right dependency packages.
+
+## Running the Cluster Daemon
+
+Simply execute the following command from the root directory of the clone:
+
+    ./gradlew brain:midonet-brain:run -Pbrain/midonet-brain/conf/cluster.conf
+
+You want to have a logback.xml file in the classpath. You'll find a sample one
+in brain/midonet-brain/conf/logback.xml.

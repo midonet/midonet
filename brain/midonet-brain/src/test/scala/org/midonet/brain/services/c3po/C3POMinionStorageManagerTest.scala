@@ -38,7 +38,7 @@ import org.midonet.cluster.models.Neutron.{NeutronNetwork, NeutronPort, NeutronR
 import org.midonet.cluster.models.Topology.{Network, Port}
 import org.midonet.cluster.util.UUIDUtil.randomUuidProto
 
-object C3POStorageManagerTest {
+object C3POMinionStorageManagerTest {
     /* Matches with a list starting with specified PersistenceOps. */
     def startsWith(pOps: PersistenceOp*) = {
         argThat(new ArgumentMatcher[Seq[PersistenceOp]] {
@@ -51,9 +51,9 @@ object C3POStorageManagerTest {
 }
 
 @RunWith(classOf[JUnitRunner])
-class C3POStorageManagerTest extends FlatSpec with BeforeAndAfterEach {
+class C3POMinionStorageManagerTest extends FlatSpec with BeforeAndAfterEach {
     import org.midonet.brain.services.c3po.C3POStorageManager._
-    import org.midonet.brain.services.c3po.C3POStorageManagerTest._
+    import org.midonet.brain.services.c3po.C3POMinionStorageManagerTest._
     val networkId = randomUuidProto
     val portId = randomUuidProto
     val tenantId = "neutron tenant"
