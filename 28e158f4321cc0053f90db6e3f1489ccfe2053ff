@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "1af78d9a_5d8d1931",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/state/FlowStateStorageTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-08T10:42:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1af78d9a_3d03edb9",
+      "revId": "28e158f4321cc0053f90db6e3f1489ccfe2053ff",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1af78d9a_ddf589cc",
         "filename": "midolman/src/test/scala/org/midonet/midolman/state/FlowStateStorageTest.scala",
         "patchSetId": 1
@@ -30,6 +48,24 @@
       "writtenOn": "2015-01-08T09:03:15Z",
       "side": 1,
       "message": "eventually(timeout(expiration), interval(15 millis)) {\n  ....\n}",
+      "revId": "28e158f4321cc0053f90db6e3f1489ccfe2053ff",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_bd999d70",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/state/FlowStateStorageTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-08T10:42:00Z",
+      "side": 1,
+      "message": "I changed the code as you suggested but also added the scaled function so that it works with the spanScaleFactor.",
+      "parentUuid": "1af78d9a_ddf589cc",
       "revId": "28e158f4321cc0053f90db6e3f1489ccfe2053ff",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
