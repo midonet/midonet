@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1af78d9a_995af681",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/StorageModule.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-08T03:12:30Z",
+      "side": 1,
+      "message": "Can you revert this unrelated change? It\u0027s adding noise.",
+      "revId": "2a8944c3d9cf7f623ce33919b96b7201ce2e05c8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_79d62ac7",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/SecurityGroupTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 155,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-08T03:12:30Z",
+      "side": 1,
+      "message": "I believe you don\u0027t need this since this is taken care of by C3POStorageManager.",
+      "revId": "2a8944c3d9cf7f623ce33919b96b7201ce2e05c8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_99d156d0",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/C3PODaemonTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 368,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-08T03:12:30Z",
+      "side": 1,
+      "message": "When I was testing, 500ms resulted in flaky failures in 1 out of runs or so.",
+      "revId": "2a8944c3d9cf7f623ce33919b96b7201ce2e05c8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
