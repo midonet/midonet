@@ -52,6 +52,24 @@
       "revId": "f98e7d6fece29dd369588f420f851ab9e5b3173e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_bd3b5dea",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/state/FlowStateStorageTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-08T13:40:36Z",
+      "side": 1,
+      "message": "final def scaled(span: Span): Span \u003d span scaledBy spanScaleFactor\n\nI kept the scale factor to respect what is done in the default parameters for timeout and interval in PatienceConfig. As I understand spanScaleFactor is used to scale up/down the time intervals during tests.",
+      "parentUuid": "1af78d9a_3de5ada8",
+      "revId": "f98e7d6fece29dd369588f420f851ab9e5b3173e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
