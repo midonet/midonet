@@ -108,7 +108,7 @@ class Connection(private val ctx: ChannelHandlerContext,
 
     /**
      * Process exceptions originated in the netty pipeline (normally they
-     * are not recuperable, but the high level protocol may want to take
+     * are not recoverable, but the high level protocol may want to take
      * some action).
      * @param e the captured exception
      */
@@ -126,9 +126,9 @@ class Connection(private val ctx: ChannelHandlerContext,
  * @param start is a future that must be completed before starting data writes
  */
 class MessageSender(val ctx: ChannelHandlerContext,
-                       val start: Future[Boolean] = Future.successful(true),
-                       val writeExecutor: ExecutionContext =
-                       MessageSender.getWriteExecutionContext) {
+                    val start: Future[Boolean] = Future.successful(true),
+                    val writeExecutor: ExecutionContext =
+                    MessageSender.getWriteExecutionContext) {
 
     private implicit val ec = writeExecutor
     private val log = LoggerFactory.getLogger(classOf[MessageSender])
