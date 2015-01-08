@@ -387,7 +387,7 @@ class DeduplicationActor(
         try {
             val ctx = packetContext(packet, cookieOrEgressPort, parentCookie)
             MDC.put("cookie", ctx.cookieStr)
-            log.debug(s"New cookie for new match ${packet.getMatch}")
+            ctx.log.debug(s"New cookie for new match ${packet.getMatch}")
             runWorkflow(ctx)
         } catch {
             case ex: Exception =>
