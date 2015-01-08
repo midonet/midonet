@@ -379,7 +379,7 @@ class DeduplicationActor(
     protected def startWorkflow(context: PacketContext): Unit =
         try {
             MDC.put("cookie", context.cookieStr)
-            log.debug(s"New cookie for new match ${context.origMatch}")
+            context.log.debug(s"New cookie for new match ${context.origMatch}")
             runWorkflow(context)
         } catch {
             case ex: Exception =>
