@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1af78d9a_6004ae15",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/C3PODaemonTest.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 167,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-08T14:02:06Z",
+      "side": 1,
+      "message": "emptyTaskTable?\n\nHere\u0027s what I have for truncate from the mac dictionary:\nshorten (something) by cutting off the top or the end",
+      "range": {
+        "startLine": 167,
+        "startChar": 8,
+        "endLine": 167,
+        "endChar": 25
+      },
+      "revId": "495345f4c29fc28b392aaff0c8af4087584f6b4b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_c009222e",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/C3PODaemonTest.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 168,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-08T14:02:06Z",
+      "side": 1,
+      "message": "same comment",
+      "range": {
+        "startLine": 168,
+        "startChar": 24,
+        "endLine": 168,
+        "endChar": 43
+      },
+      "revId": "495345f4c29fc28b392aaff0c8af4087584f6b4b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_00132a5d",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/C3PODaemonTest.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 315,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-08T14:02:06Z",
+      "side": 1,
+      "message": "id\u003d2 makes it clearer. The same comment goes for null or empty string parameter values throughout this class.",
+      "range": {
+        "startLine": 315,
+        "startChar": 37,
+        "endLine": 315,
+        "endChar": 38
+      },
+      "revId": "495345f4c29fc28b392aaff0c8af4087584f6b4b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
