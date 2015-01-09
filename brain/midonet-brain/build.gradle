@@ -99,6 +99,17 @@ task runTopologyApi(type: JavaExec) {
     }
 }
 
+task runTopologyTester(type: JavaExec) {
+    description = 'Run the Topology API tester app'
+    classpath sourceSets.main.runtimeClasspath
+    main = "org.midonet.brain.services.topology.TopologyTesterApp"
+    if (project.hasProperty("conf")) {
+        args = [conf]
+    } else {
+        args = ["conf/cluster.conf"]
+    }
+}
+
 cobertura {
     coverageSourceDirs << sourceSets.main.java.srcDirs
     coverageSourceDirs << sourceSets.main.scala.srcDirs
