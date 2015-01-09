@@ -99,6 +99,17 @@ task runTopologyApi(type: JavaExec) {
     }
 }
 
+task runTopologyZoomUpdater(type: JavaExec) {
+    description = 'Run the Topology API Zoom updater app'
+    classpath sourceSets.main.runtimeClasspath
+    main = "org.midonet.brain.services.topology.TopologyZoomUpdaterApp"
+    if (project.hasProperty("conf")) {
+        args = [conf]
+    } else {
+        args = ["conf/tester.conf"]
+    }
+}
+
 cobertura {
     coverageSourceDirs << sourceSets.main.java.srcDirs
     coverageSourceDirs << sourceSets.main.scala.srcDirs
