@@ -22,6 +22,30 @@
       "revId": "5a467afa4e810c9011a78c1d132eae2068444f50",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_3162f6d8",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/C3PODaemonTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 401,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-09T09:26:29Z",
+      "side": 1,
+      "message": "Fixing in a later review.",
+      "parentUuid": "1af78d9a_e6fef637",
+      "range": {
+        "startLine": 401,
+        "startChar": 35,
+        "endLine": 401,
+        "endChar": 68
+      },
+      "revId": "5a467afa4e810c9011a78c1d132eae2068444f50",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
