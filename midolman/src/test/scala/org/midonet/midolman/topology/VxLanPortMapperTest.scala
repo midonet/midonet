@@ -16,27 +16,31 @@
 
 package org.midonet.midolman.topology
 
-import java.util.{UUID, Set => JSet}
+import java.util.{Set => JSet, UUID}
+
+import scala.concurrent.duration.{Duration, _}
 
 import akka.actor._
 import akka.testkit._
 import org.apache.zookeeper.KeeperException
 import org.junit.runner.RunWith
+import org.scalatest._
+import org.scalatest.junit.JUnitRunner
+
 import org.midonet.midolman.state.Directory.TypedWatcher
 import org.midonet.midolman.state.DirectoryCallback
 import org.midonet.midolman.topology.VxLanPortMapper.VxLanPorts
-import org.midonet.midolman.topology.devices.{Port, VxLanPort, BridgePort}
+import org.midonet.midolman.topology.devices.{BridgePort, Port, VxLanPort}
 import org.midonet.packets.IPv4Addr
-import org.scalatest._
-import org.scalatest.concurrent.Eventually._
-import org.scalatest.junit.JUnitRunner
-
-import scala.concurrent.duration.{Duration, _}
+import org.midonet.util.MidonetEventually
 
 @RunWith(classOf[JUnitRunner])
 class VxLanPortMapperTest extends TestKit(ActorSystem("VxLanPortMapperTest"))
-                          with ImplicitSender with Suite
-                          with FunSpecLike with Matchers {
+                          with ImplicitSender
+                          with Suite
+                          with FunSpecLike
+                          with Matchers
+                          with MidonetEventually {
 
     import org.midonet.midolman.topology.VirtualTopologyActor.PortRequest
 

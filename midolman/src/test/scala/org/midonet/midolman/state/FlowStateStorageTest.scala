@@ -20,7 +20,6 @@ import java.util.UUID
 
 import scala.collection.JavaConverters._
 import scala.concurrent.Await
-import scala.concurrent.duration._
 
 import akka.actor.ActorSystem
 import org.cassandraunit.utils.EmbeddedCassandraServerHelper
@@ -33,20 +32,20 @@ import org.midonet.cassandra.CassandraClient
 import org.midonet.midolman.state.ConnTrackState.ConnTrackKey
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
 import org.midonet.packets.IPv4Addr
-
+import org.midonet.util.MidonetEventually
 
 @RunWith(classOf[JUnitRunner])
 class FlowStateStorageTest extends FeatureSpec
                             with BeforeAndAfter
                             with ShouldMatchers
                             with OneInstancePerTest
-                            with GivenWhenThen {
+                            with GivenWhenThen
+                            with MidonetEventually {
+
     implicit def stringToIp(str: String): IPv4Addr = IPv4Addr.fromString(str)
 
     implicit val actors = ActorSystem.create()
     import actors.dispatcher
-
-    val expiration: Duration = 3 seconds
 
     val connTrackKeys =
         List(ConnTrackKey("10.0.0.1", 1234, "10.0.0.2", 22, 1, UUID.randomUUID()),
@@ -85,7 +84,7 @@ class FlowStateStorageTest extends FeatureSpec
             storage.submit()
 
             var strongConn: java.util.Set[ConnTrackKey] = null
-            eventually(timeout(scaled(expiration)), interval(scaled(15 millis))) {
+            eventually {
                 val future = storage.fetchStrongConnTrackRefs(ingressPort)
                 strongConn = Await.result(future, expiration)
                 strongConn should not be null
