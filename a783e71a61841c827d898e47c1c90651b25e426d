@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1af78d9a_f4b50932",
+        "filename": "netlink/src/main/java/org/midonet/netlink/AbstractNetlinkConnection.java",
+        "patchSetId": 31
+      },
+      "lineNbr": 537,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-01-09T16:57:54Z",
+      "side": 0,
+      "message": "this change made the comment above obsolete.",
+      "revId": "a783e71a61841c827d898e47c1c90651b25e426d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}

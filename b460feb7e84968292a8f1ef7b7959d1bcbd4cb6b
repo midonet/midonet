@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1af78d9a_14b9b52e",
+        "filename": "netlink/src/main/java/org/midonet/netlink/AbstractNetlinkConnection.java",
+        "patchSetId": 31
+      },
+      "lineNbr": 190,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-01-09T16:57:54Z",
+      "side": 1,
+      "message": "unrelated to this patch (was like this before) but I fail to understand why getFamilyId and getMulticastGroup make the exact same netlink request. Looks fishy to me.",
+      "revId": "b460feb7e84968292a8f1ef7b7959d1bcbd4cb6b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_947c8574",
+        "filename": "netlink/src/main/scala/org.midonet.netlink/NetlinkMessageWrapper.scala",
+        "patchSetId": 31
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-01-09T16:57:54Z",
+      "side": 1,
+      "message": "very nice!",
+      "revId": "b460feb7e84968292a8f1ef7b7959d1bcbd4cb6b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_97d63ac4",
+        "filename": "odp/src/perf/scala/org/midonet/odp/OvsOpsBenchmark.scala",
+        "patchSetId": 31
+      },
+      "lineNbr": 138,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-01-09T16:57:54Z",
+      "side": 1,
+      "message": "this looks empty, i bet it\u0027s fast!",
+      "revId": "b460feb7e84968292a8f1ef7b7959d1bcbd4cb6b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
