@@ -24,6 +24,8 @@ import akka.actor.{Actor, ActorRef, Props}
 import akka.testkit.TestActorRef
 import akka.util.Timeout
 import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
+
 import org.midonet.midolman.DatapathController.DatapathReady
 import org.midonet.midolman.PacketsEntryPoint.{GetWorkers, Workers}
 import org.midonet.midolman.util.MidolmanSpec
@@ -32,11 +34,11 @@ import org.midonet.odp.{Datapath, FlowMatches, Packet}
 import org.midonet.packets.Ethernet
 import org.midonet.packets.util.EthBuilder
 import org.midonet.packets.util.PacketBuilder._
-import org.scalatest.concurrent.Eventually._
-import org.scalatest.junit.JUnitRunner
+import org.midonet.util.MidonetEventually
 
 @RunWith(classOf[JUnitRunner])
-class PacketsEntryPointTestCase extends MidolmanSpec {
+class PacketsEntryPointTestCase extends MidolmanSpec
+                                with MidonetEventually {
     var datapath: Datapath = null
     var packetsSeen = List[(Packet, Either[Int, UUID])]()
     var testablePep: TestablePEP = _
