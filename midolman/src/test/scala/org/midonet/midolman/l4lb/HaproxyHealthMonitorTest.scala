@@ -18,23 +18,20 @@ package org.midonet.midolman.l4lb
 import java.nio.channels.spi.SelectorProvider
 import java.util.UUID
 
-import akka.actor.{Actor, ActorRef, Props, ActorSystem}
+import akka.actor.{Actor, ActorRef, ActorSystem, Props}
 import akka.testkit._
-import com.typesafe.config.ConfigFactory
 import org.junit.runner.RunWith
-import org.mockito.Mockito.{verify, reset, times}
+import org.mockito.Mockito.{reset, times, verify}
 import org.scalatest._
-import org.scalatest.concurrent.Eventually._
 import org.scalatest.junit.JUnitRunner
-import org.scalatest.matchers.ShouldMatchers
 import org.scalatest.mock.MockitoSugar
-import org.scalatest.time.{Span, Seconds}
 
-import org.midonet.cluster.{LocalDataClientImpl, DataClient, LocalClientImpl}
+import org.midonet.cluster.{DataClient, LocalDataClientImpl}
 import org.midonet.midolman.l4lb.HaproxyHealthMonitor.SetupFailure
 import org.midonet.midolman.state.PoolHealthMonitorMappingStatus
 import org.midonet.netlink.AfUnix.Address
 import org.midonet.netlink.{AfUnix, UnixDomainChannel}
+import org.midonet.util.MidonetEventually
 
 @RunWith(classOf[JUnitRunner])
 class HaproxyHealthMonitorTest extends TestKit(ActorSystem("HaproxyActorTest"))
@@ -44,10 +41,10 @@ class HaproxyHealthMonitorTest extends TestKit(ActorSystem("HaproxyActorTest"))
                                with GivenWhenThen
                                with BeforeAndAfter
                                with OneInstancePerTest
-                               with MockitoSugar {
+                               with MockitoSugar
+                               with MidonetEventually {
 
-    import HaproxyHealthMonitor.SockReadFailure
-    import HaproxyHealthMonitor.ConfigUpdate
+    import org.midonet.midolman.l4lb.HaproxyHealthMonitor.{ConfigUpdate, SockReadFailure}
 
     case object MonitorActorUp
 
@@ -146,8 +143,7 @@ class HaproxyHealthMonitorTest extends TestKit(ActorSystem("HaproxyActorTest"))
             healthMonitorUT ! ConfigUpdate(createFakePoolConfig(NormalIp,
                 goodSocketPath))
             Then ("The last IP written should be the last config sent")
-            eventually (timeout(Span(3, Seconds)))
-                { lastIpWritten should equal (NormalIp) }
+            eventually { lastIpWritten should equal (NormalIp) }
             verify(mockClient, times(3)).poolSetMapStatus(poolId,
                 PoolHealthMonitorMappingStatus.ACTIVE)
             And ("The there is a problem with the update")
@@ -169,7 +165,7 @@ class HaproxyHealthMonitorTest extends TestKit(ActorSystem("HaproxyActorTest"))
         scenario ("HaproxyHealthMonitor reads the haproxy socket") {
             When ("HaproxyHealthMonitor is started")
             Then ("then socket should read.")
-            eventually (timeout(Span(2, Seconds))) { socketReads should be > 0}
+            eventually { socketReads should be > 0}
             verify(mockClient, times(1)).poolSetMapStatus(poolId,
                 PoolHealthMonitorMappingStatus.ACTIVE)
         }
@@ -178,8 +174,7 @@ class HaproxyHealthMonitorTest extends TestKit(ActorSystem("HaproxyActorTest"))
             healthMonitorUT ! ConfigUpdate(createFakePoolConfig("10.10.10.10",
                                                                 badSocketPath))
             Then ("The manager should receive a failure notification")
-            eventually (timeout(Span(2, Seconds)))
-                { sockReadFailures should be > 0 }
+            eventually { sockReadFailures should be > 0 }
             verify(mockClient, times(1)).poolSetMapStatus(poolId,
                 PoolHealthMonitorMappingStatus.ERROR)
         }

@@ -25,7 +25,8 @@ dependencies {
             libraries.infinispan, libraries.jackson_core,
             libraries.jackson_mapper, libraries.jsch, libraries.netty,
             libraries.protobuf, libraries.rx, libraries.scala,
-            libraries.servlet, libraries.sun_tools, libraries.scala_logging
+            libraries.servlet, libraries.sun_tools, libraries.scala_logging,
+            libraries.scalatest
 }
 
 jar {
