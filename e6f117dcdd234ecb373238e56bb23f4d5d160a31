@@ -1,0 +1,72 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1af78d9a_8c1111af",
+        "filename": "midolman/src/main/java/org/midonet/midolman/config/DatapathConfig.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-01-09T15:08:26Z",
+      "side": 1,
+      "message": "tos.",
+      "revId": "e6f117dcdd234ecb373238e56bb23f4d5d160a31",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_ec25350b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/DeduplicationActor.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 214,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-01-09T15:08:26Z",
+      "side": 1,
+      "message": "tos",
+      "revId": "e6f117dcdd234ecb373238e56bb23f4d5d160a31",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_cc22f900",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/FlowStateReplicator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-01-09T15:08:26Z",
+      "side": 1,
+      "message": "tso.",
+      "revId": "e6f117dcdd234ecb373238e56bb23f4d5d160a31",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_2c20ddf6",
+        "filename": "odp/src/main/java/org/midonet/odp/flows/FlowKeyTunnel.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-01-09T15:08:26Z",
+      "side": 1,
+      "message": "well done.",
+      "revId": "e6f117dcdd234ecb373238e56bb23f4d5d160a31",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
