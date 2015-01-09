@@ -237,6 +237,30 @@
     },
     {
       "key": {
+        "uuid": "1af78d9a_ec2415c8",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 21
+      },
+      "lineNbr": 123,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-09T15:37:49Z",
+      "side": 1,
+      "message": "Yes, the point was the using ZoomConvert is a bit redundant, since we generate most fields without it.",
+      "parentUuid": "1af78d9a_ec953589",
+      "range": {
+        "startLine": 123,
+        "startChar": 12,
+        "endLine": 123,
+        "endChar": 28
+      },
+      "revId": "d3592da010dadcf0f3af37533d09da9bf1d38253",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1af78d9a_31c4b63f",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
         "patchSetId": 21
