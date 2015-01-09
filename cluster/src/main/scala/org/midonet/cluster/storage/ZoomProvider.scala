@@ -34,6 +34,7 @@ class ZoomProvider @Inject()(val curator: CuratorFramework)
         List(classOf[C3POState],
              classOf[Chain],
              classOf[FloatingIp],
+             classOf[Host],
              classOf[IpAddrGroup],
              classOf[Network],
              classOf[NeutronHealthMonitor],
