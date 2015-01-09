@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1af78d9a_d191f253",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/concurrent/OneToOneRwdRingBuffer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-01-09T11:22:29Z",
+      "side": 1,
+      "message": "I\u0027ll change the name (it\u0027s shorter :-)).\n\nRegarding the use of the rx classes as a potential superclass, I think SpscArrayQueue is quite similar to what we need, but I see two issues:\n- I\u0027m using the internal indices to provide sequence numbers for the emitted items; basing the sequence counter on the SpscArrayQueue indices could break the feature if the authors decide to change the implementation... It would be possible to implement the sequence numbers externally, of course.\n- The rewind mechanism relies on altering the internal indices, and again, that could break the implementation if the authors of SpscArrayQueue decide to change their implementation (e.g. to introduce further optimizations)\n\nIn summary, I think it is safer to keep our own implementation, even if it is not so efficent (in our use case - API service buffers - these low-level optimizations are not so important, as we much bigger performance penalties such as network communication and zookeeper access)",
+      "parentUuid": "1af78d9a_719bdec9",
+      "range": {
+        "startLine": 45,
+        "startChar": 6,
+        "endLine": 45,
+        "endChar": 14
+      },
+      "revId": "c6417850fdba4b58a36dbfde952767a97c5a50a1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1af78d9a_b1f38609",
         "filename": "midonet-util/src/main/scala/org/midonet/util/concurrent/OneToOneRwdRingBuffer.scala",
         "patchSetId": 1
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "1af78d9a_119c1a69",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/concurrent/OneToOneRwdRingBuffer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-01-09T11:22:29Z",
+      "side": 1,
+      "message": "It is safe, as far as reads occur in the same processor core, but now that you mention it, maybe it could occur that the single reader thread gets preempted and scheduled in a different proc... I\u0027ll change it to \u0027set\u0027 to be safe (we should no have performance issues here...)",
+      "parentUuid": "1af78d9a_b1f38609",
+      "range": {
+        "startLine": 102,
+        "startChar": 12,
+        "endLine": 102,
+        "endChar": 33
+      },
+      "revId": "c6417850fdba4b58a36dbfde952767a97c5a50a1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1af78d9a_63795893",
         "filename": "midonet-util/src/main/scala/org/midonet/util/concurrent/OneToOneRwdRingBuffer.scala",
         "patchSetId": 1
@@ -59,6 +107,30 @@
       "writtenOn": "2015-01-09T09:54:09Z",
       "side": 1,
       "message": "Message to std out.",
+      "range": {
+        "startLine": 160,
+        "startChar": 8,
+        "endLine": 160,
+        "endChar": 56
+      },
+      "revId": "c6417850fdba4b58a36dbfde952767a97c5a50a1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_7188fe22",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/concurrent/OneToOneRwdRingBuffer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 160,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-01-09T11:22:29Z",
+      "side": 1,
+      "message": "Ooops! Remains of the debugging phase... :-)\nRemoved.",
+      "parentUuid": "1af78d9a_63795893",
       "range": {
         "startLine": 160,
         "startChar": 8,
