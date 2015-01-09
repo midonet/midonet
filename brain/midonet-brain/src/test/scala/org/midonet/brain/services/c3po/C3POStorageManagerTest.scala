@@ -104,7 +104,7 @@ class C3POStorageManagerTest extends FlatSpec with BeforeAndAfterEach {
 
     def setUpNetworkTranslator() = {
         val translators: TranslatorMap = new util.HashMap()
-        translators.put(classOf[NeutronNetwork], new NetworkTranslator)
+        translators.put(classOf[NeutronNetwork], new NetworkTranslator(storage))
         storageManager.registerTranslators(translators)
     }
 

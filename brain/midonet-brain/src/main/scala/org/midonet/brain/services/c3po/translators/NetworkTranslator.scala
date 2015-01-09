@@ -15,22 +15,44 @@
  */
 package org.midonet.brain.services.c3po.translators
 
+import scala.collection.mutable.ListBuffer
+
+import com.google.protobuf.Message
+
+import org.midonet.brain.services.c3po.midonet.{Create, Delete, MidoOp, Update}
+import org.midonet.brain.services.c3po.translators.RouterTranslator.{providerRouterId, providerRouterName}
+import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.Neutron.NeutronNetwork
-import org.midonet.cluster.models.Topology.Network
-import org.midonet.brain.services.c3po.midonet.{Create, Delete, Update}
+import org.midonet.cluster.models.Topology.{Network, Router}
+import org.midonet.util.concurrent.toFutureOps
 
 /** Provides a Neutron model translator for Network. */
-class NetworkTranslator extends NeutronTranslator[NeutronNetwork] {
+class NetworkTranslator(storage: ReadOnlyStorage)
+    extends NeutronTranslator[NeutronNetwork] {
 
-    override protected def translateCreate(nn: NeutronNetwork) =
-        List(Create(translate(nn)))
+    override protected def translateCreate(nn: NeutronNetwork)
+    : List[MidoOp[_ <: Message]] = {
+        val ops = new ListBuffer[MidoOp[_ <: Message]]()
+        ops += Create(translate(nn))
+        ops.toList
+    }
 
-    override protected def translateUpdate(nn: NeutronNetwork) =
-        List(Update(translate(nn)))
+    override protected def translateUpdate(nn: NeutronNetwork)
+    : List[MidoOp[_ <: Message]] = {
+        val ops = new ListBuffer[MidoOp[_ <: Message]]()
 
-    override protected def translateDelete(id: UUID) =
-        List(Delete(classOf[Network], id))
+        ops ++= ensureProviderRouterExists()
+        ops += Update(translate(nn))
+        ops.toList
+    }
+
+    override protected def translateDelete(id: UUID)
+    : List[MidoOp[_ <: Message]] = {
+        val ops = new ListBuffer[MidoOp[_ <: Message]]()
+        ops += Delete(classOf[Network], id)
+        ops.toList
+    }
 
     @inline
     private def translate(network: NeutronNetwork) = Network.newBuilder()
@@ -39,4 +61,19 @@ class NetworkTranslator extends NeutronTranslator[NeutronNetwork] {
         .setName(network.getName)
         .setAdminStateUp(network.getAdminStateUp)
         .build
+
+    /**
+     * Return an Option which has an operation to create the provider router
+     * iff it does not already exist.
+     */
+    private def ensureProviderRouterExists(): Option[Create[Router]] = {
+        if (storage.exists(classOf[Router], providerRouterId).await()) {
+            None
+        } else {
+            Some(Create(Router.newBuilder()
+                              .setAdminStateUp(true)
+                              .setId(providerRouterId)
+                              .setName(providerRouterName).build()))
+        }
+    }
 }

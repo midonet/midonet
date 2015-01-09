@@ -16,6 +16,7 @@
 
 package org.midonet.brain.services.c3po.translators
 
+import scala.collection.mutable.ListBuffer
 import scala.util.control.NonFatal
 
 import com.google.protobuf.Message
@@ -31,6 +32,9 @@ import org.midonet.cluster.models.Commons.UUID
 /** Defines a class that is able to translate from an operation on the Neutron
   * model to a set of operations on the MidoNet model. */
 trait NeutronTranslator[NeutronModel <: Message] {
+
+    protected type MidoOpList = List[MidoOp[_ <: Message]]
+    protected type MidoOpListBuffer = ListBuffer[MidoOp[_ <: Message]]
 
     protected val log = LoggerFactory.getLogger(this.getClass)
 
@@ -48,9 +52,9 @@ trait NeutronTranslator[NeutronModel <: Message] {
         case NonFatal(ex) => throw new TranslationException(op, ex)
     }
 
-    protected def translateCreate(nm: NeutronModel): List[MidoOp[_ <: Message]]
-    protected def translateUpdate(nm: NeutronModel): List[MidoOp[_ <: Message]]
-    protected def translateDelete(id: UUID): List[MidoOp[_ <: Message]]
+    protected def translateCreate(nm: NeutronModel): MidoOpList
+    protected def translateUpdate(nm: NeutronModel): MidoOpList
+    protected def translateDelete(id: UUID): MidoOpList
 }
 
 /** Thrown by by implementations when they fail to perform the requested
