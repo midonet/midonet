@@ -19,16 +19,18 @@ package org.midonet.util.concurrent
 import java.lang.Thread.State
 
 import com.lmax.disruptor._
-
 import org.junit.runner.RunWith
 import org.scalatest.concurrent.Eventually.eventually
 import org.scalatest.junit.JUnitRunner
-import org.scalatest.{OneInstancePerTest, FeatureSpec, Matchers}
+import org.scalatest.{FeatureSpec, Matchers, OneInstancePerTest}
+
+import org.midonet.util.MidonetEventually
 
 @RunWith(classOf[JUnitRunner])
 class BackchannelEventProcessorTest extends FeatureSpec
                                     with Matchers
-                                    with OneInstancePerTest {
+                                    with OneInstancePerTest
+                                    with MidonetEventually {
 
     feature ("BackchannelEventProcessor receives events from the " +
              "ring buffer and backchannel") {

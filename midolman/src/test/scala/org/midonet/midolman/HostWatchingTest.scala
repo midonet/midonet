@@ -29,9 +29,12 @@ import org.midonet.midolman.topology.{VirtualToPhysicalMapper => VTPM}
 import org.midonet.midolman.topology.VirtualToPhysicalMapper.HostRequest
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.MessageAccumulator
+import org.midonet.util.MidonetEventually
 
 @RunWith(classOf[JUnitRunner])
-class HostWatchingTest extends MidolmanSpec {
+class HostWatchingTest extends MidolmanSpec
+                       with MidonetEventually {
+
     implicit val askTimeout: Timeout = 1 second
 
     registerActors(VTPM -> (() => new VTPM with MessageAccumulator))

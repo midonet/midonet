@@ -18,28 +18,28 @@ package org.midonet.midolman
 import java.util.UUID
 
 import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
 import org.scalatest.concurrent.Eventually._
-import org.scalatest._
+import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cluster.data.{Router => ClusterRouter}
 import org.midonet.cluster.data.ports.RouterPort
+import org.midonet.cluster.data.{Router => ClusterRouter}
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.layer3.Route.NextHop
-import org.midonet.midolman.services.{HostIdProviderService}
-import org.midonet.midolman.simulation.Router
+import org.midonet.midolman.services.HostIdProviderService
 import org.midonet.midolman.simulation.Coordinator.{TemporaryDropAction, ToPortAction}
-import org.midonet.midolman.simulation.CustomMatchers
+import org.midonet.midolman.simulation.Router
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.MessageAccumulator
 import org.midonet.packets.{IPv4Addr, MAC}
 import org.midonet.sdn.flows.FlowTagger
-
+import org.midonet.util.MidonetEventually
 
 @RunWith(classOf[JUnitRunner])
-class BlackholeRouteFlowTrackingTest extends MidolmanSpec {
+class BlackholeRouteFlowTrackingTest extends MidolmanSpec
+                                     with MidonetEventually {
+
     val leftRouterMac = "01:01:01:10:10:aa"
     val leftOtherMac = "01:01:01:10:10:bb"
     val leftRouterIp = "192.168.1.1"

@@ -31,10 +31,11 @@ import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.MessageAccumulator
 import org.midonet.midolman.topology.VirtualTopologyActor.PortGroupRequest
 import org.midonet.packets.{IPv4Subnet, MAC, IPv4Addr}
-
+import org.midonet.util.MidonetEventually
 
 @RunWith(classOf[JUnitRunner])
-class PortGroupTest extends MidolmanSpec {
+class PortGroupTest extends MidolmanSpec
+                    with MidonetEventually {
     implicit val askTimeout: Timeout = 1 second
 
     registerActors(VirtualTopologyActor -> (() => new VirtualTopologyActor

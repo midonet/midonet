@@ -20,6 +20,7 @@ import java.util.ArrayList
 import java.util.concurrent.TimeUnit
 
 import scala.Predef._
+import scala.concurrent.duration.Duration
 
 import org.apache.commons.configuration.HierarchicalConfiguration
 import org.junit.experimental.categories.Category
@@ -29,21 +30,20 @@ import org.scalatest.junit.JUnitRunner
 
 import org.midonet.midolman.FlowController._
 import org.midonet.midolman.PacketWorkflow.PacketIn
-import org.midonet.midolman.topology.VirtualTopologyActor.BridgeRequest
-import org.midonet.midolman.topology.VirtualTopologyActor.PortRequest
+import org.midonet.midolman.topology.VirtualTopologyActor.{BridgeRequest, PortRequest}
 import org.midonet.midolman.topology.{LocalPortActive, VirtualTopologyActor}
-import org.midonet.midolman.util.Dilation
-import org.midonet.midolman.util.MidolmanTestCase
-import org.midonet.midolman.util.TestHelpers
+import org.midonet.midolman.util.{Dilation, MidolmanTestCase}
 import org.midonet.odp._
 import org.midonet.packets.{IPv4Addr, MAC, Packets}
 import org.midonet.sdn.flows.WildcardFlow
-import scala.concurrent.duration.Duration
+import org.midonet.util.MidonetEventually
 import org.midonet.util.functors.Callback0
 
 @Category(Array(classOf[SimulationTests]))
 @RunWith(classOf[JUnitRunner])
-class FlowsExpirationTestCase extends MidolmanTestCase with Dilation {
+class FlowsExpirationTestCase extends MidolmanTestCase
+                              with Dilation
+                              with MidonetEventually {
 
     var datapath: Datapath = null
 
