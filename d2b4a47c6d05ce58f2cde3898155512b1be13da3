@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1af78d9a_97a47a58",
+        "filename": "midolman/src/main/java/org/midonet/midolman/io/BlockingTransactorDatapathConnection.java",
+        "patchSetId": 30
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-01-09T17:03:14Z",
+      "side": 1,
+      "message": "Are we using this class?",
+      "revId": "d2b4a47c6d05ce58f2cde3898155512b1be13da3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
