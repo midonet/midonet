@@ -137,7 +137,7 @@ class PortConversionTest extends FeatureSpec with Matchers {
             .setId(UUID.randomUUID.asProto)
             .setInboundFilterId(UUID.randomUUID.asProto)
             .setOutboundFilterId(UUID.randomUUID.asProto)
-            .setTunnelKey(random.nextLong())
+            .setTunnelKey(random.nextInt())
             .addPortGroupIds(UUID.randomUUID.asProto)
             .addPortGroupIds(UUID.randomUUID.asProto)
             .setPeerId(UUID.randomUUID.asProto)
@@ -166,7 +166,7 @@ class PortConversionTest extends FeatureSpec with Matchers {
         port.id = UUID.randomUUID
         port.inboundFilter = UUID.randomUUID
         port.outboundFilter = UUID.randomUUID
-        port.tunnelKey = random.nextLong()
+        port.tunnelKey = random.nextInt()
         port.portGroups = Set(UUID.randomUUID, UUID.randomUUID)
         port.peerId = UUID.randomUUID
         port.hostId = UUID.randomUUID
