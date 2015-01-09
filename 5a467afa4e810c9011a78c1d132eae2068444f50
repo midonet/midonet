@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1af78d9a_e6fef637",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/C3PODaemonTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 401,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-09T07:17:38Z",
+      "side": 1,
+      "message": "Weird indentation.",
+      "range": {
+        "startLine": 401,
+        "startChar": 35,
+        "endLine": 401,
+        "endChar": 68
+      },
+      "revId": "5a467afa4e810c9011a78c1d132eae2068444f50",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
