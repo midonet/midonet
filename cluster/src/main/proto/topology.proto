@@ -96,6 +96,8 @@ message Router {
     optional UUID inbound_filter_id = 5;
     optional UUID outbound_filter_id = 6;
     optional UUID load_balancer_id = 7;
+    optional UUID gw_port_id = 8;
+    repeated Route routes = 9;
 
     // Backreferences
     repeated UUID port_ids = 101;
@@ -107,7 +109,7 @@ message Port {
     optional UUID router_id = 3;
     optional UUID inbound_filter_id = 4;
     optional UUID outbound_filter_id = 5;
-    optional int64 tunnel_key = 6;
+    optional uint64 tunnel_key = 6;
     optional UUID peer_id = 7;
     optional UUID vif_id = 8;
     optional UUID host_id = 9;
