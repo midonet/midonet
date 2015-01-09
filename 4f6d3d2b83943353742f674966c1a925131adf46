@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1af78d9a_0c1a416e",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/MidonetEventually.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-09T13:52:04Z",
+      "side": 1,
+      "message": "If I do not specify patienceConfig in the call to super.eventually, the compiler says that it does not know which implicit to use even though it\u0027s overridden just above.",
+      "range": {
+        "startLine": 33,
+        "startChar": 8,
+        "endLine": 33,
+        "endChar": 45
+      },
+      "revId": "4f6d3d2b83943353742f674966c1a925131adf46",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
