@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1af78d9a_57d5f241",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/Storage.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-09T17:25:49Z",
+      "side": 1,
+      "message": "By default argument passed to a class constructor are private vals.",
+      "range": {
+        "startLine": 68,
+        "startChar": 24,
+        "endLine": 68,
+        "endChar": 48
+      },
+      "revId": "9ca05f370d44c7149cbffcc1fc335d7a1906c510",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_b741b60d",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/Storage.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-09T17:25:49Z",
+      "side": 1,
+      "message": "Did you forget to delete this?",
+      "range": {
+        "startLine": 69,
+        "startChar": 4,
+        "endLine": 69,
+        "endChar": 48
+      },
+      "revId": "9ca05f370d44c7149cbffcc1fc335d7a1906c510",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
