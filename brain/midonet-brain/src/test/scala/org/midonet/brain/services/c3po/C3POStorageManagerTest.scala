@@ -22,6 +22,7 @@ import java.util.{Map => JMap}
 import scala.concurrent.Promise
 
 import com.google.protobuf.Message
+
 import org.junit.runner.RunWith
 import org.mockito.ArgumentMatcher
 import org.mockito.Matchers.{any, anyObject, argThat}
@@ -30,7 +31,7 @@ import org.scalatest.junit.JUnitRunner
 import org.scalatest.{BeforeAndAfterEach, FlatSpec}
 
 import org.midonet.brain.services.c3po.midonet.Create
-import org.midonet.brain.services.c3po.translators.{TranslationException, NeutronTranslator, NetworkTranslator}
+import org.midonet.brain.services.c3po.translators.{NetworkTranslator, NeutronTranslator, TranslationException}
 import org.midonet.cluster.data.storage.{CreateOp, DeleteOp, PersistenceOp, Storage, StorageException, UpdateOp}
 import org.midonet.cluster.models.C3PO.C3POState
 import org.midonet.cluster.models.Commons
@@ -104,7 +105,7 @@ class C3POStorageManagerTest extends FlatSpec with BeforeAndAfterEach {
 
     def setUpNetworkTranslator() = {
         val translators: TranslatorMap = new util.HashMap()
-        translators.put(classOf[NeutronNetwork], new NetworkTranslator)
+        translators.put(classOf[NeutronNetwork], new NetworkTranslator(storage))
         storageManager.registerTranslators(translators)
     }
 
@@ -135,6 +136,7 @@ class C3POStorageManagerTest extends FlatSpec with BeforeAndAfterEach {
     "NeutronNetwork CREATE" should "call ZOOM.multi with CreateOp on " +
     "Mido Network" in {
         setUpNetworkTranslator()
+
         storageManager.interpretAndExecTxn(
                 txn("txn1", c3poCreate(2, neutronNetwork)))
 
@@ -180,8 +182,10 @@ class C3POStorageManagerTest extends FlatSpec with BeforeAndAfterEach {
                 txn("txn1", c3poDelete(2, classOf[NeutronNetwork], networkId)))
 
         verify(storage).multi(startsWith(
-                DeleteOp(classOf[NeutronNetwork], networkId, true),
-                DeleteOp(classOf[Network], networkId, true)))
+                DeleteOp(classOf[NeutronNetwork], networkId,
+                         ignoreIfNotExists = true),
+                DeleteOp(classOf[Network], networkId,
+                         ignoreIfNotExists = true)))
     }
 
     "A flush request" should "call Storage.flush() and initialize " +
