@@ -24,7 +24,7 @@ import org.apache.curator.retry.ExponentialBackoffRetry
 import org.midonet.cluster.data.storage.{Storage, ZookeeperObjectMapper}
 import org.midonet.cluster.models.C3PO.C3POState
 import org.midonet.cluster.models.Neutron._
-import org.midonet.cluster.models.Topology.{Chain, IpAddrGroup, Network, Rule}
+import org.midonet.cluster.models.Topology._
 import org.midonet.config.{ConfigGroup, ConfigInt, ConfigProvider, ConfigString}
 
 class StorageModule(cfgProvider: ConfigProvider) extends AbstractModule {
@@ -62,6 +62,8 @@ class StorageModule(cfgProvider: ConfigProvider) extends AbstractModule {
              classOf[NeutronPort],
              classOf[NeutronRouter],
              classOf[NeutronSubnet],
+             classOf[Port],
+             classOf[Router],
              classOf[Rule],
              classOf[SecurityGroup],
              classOf[VIP]
