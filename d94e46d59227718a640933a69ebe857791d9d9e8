@@ -1,0 +1,90 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1af78d9a_661de673",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/util/ObservablePathChildrenCache.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 176,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-09T08:36:15Z",
+      "side": 1,
+      "message": "Probably \"if (!connectionLost) {\" ?",
+      "revId": "d94e46d59227718a640933a69ebe857791d9d9e8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_062502c2",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/util/ObservablePathChildrenCache.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 195,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-09T08:36:15Z",
+      "side": 1,
+      "message": "I don\u0027t think it\u0027s thread safe. \"connectionLost \u003d true\" should come above \"cache.getListenable.remove...\", but it\u0027ll still be not thread safe. Arguably there may not be serious damages, though.",
+      "range": {
+        "startLine": 188,
+        "startChar": 0,
+        "endLine": 195,
+        "endChar": 29
+      },
+      "revId": "d94e46d59227718a640933a69ebe857791d9d9e8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_060ce241",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/util/ObservablePathChildrenCache.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 235,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-09T08:36:15Z",
+      "side": 1,
+      "message": "Can you be a bit specific?",
+      "range": {
+        "startLine": 235,
+        "startChar": 27,
+        "endLine": 235,
+        "endChar": 74
+      },
+      "revId": "d94e46d59227718a640933a69ebe857791d9d9e8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_2603de10",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/util/ObservablePathChildrenCache.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 240,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-09T08:36:15Z",
+      "side": 1,
+      "message": "Do we need to check if connectionLost is true, here?",
+      "range": {
+        "startLine": 239,
+        "startChar": 8,
+        "endLine": 240,
+        "endChar": 55
+      },
+      "revId": "d94e46d59227718a640933a69ebe857791d9d9e8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
