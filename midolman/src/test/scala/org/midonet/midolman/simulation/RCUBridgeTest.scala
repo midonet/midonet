@@ -83,9 +83,9 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with Matchers {
 
         bridge = new Bridge(bridgeID, true, 0, macLearningTables, ip4MacMap,
                             flowCount, Option(inFilterId), Option(outFilterId),
-                            vlanBridgePortId, None, flowRemovedCallbackGen,
-                            rtrMacToLogicalPortId, rtrIpToMac, vlanToPort,
-                            List(brPort.id))
+                            vlanBridgePortId, List.empty,
+                            flowRemovedCallbackGen, rtrMacToLogicalPortId,
+                            rtrIpToMac, vlanToPort, List(brPort.id))
 
         brPort.hostId = UUID.randomUUID()
         brPort.interfaceName = "eth0"

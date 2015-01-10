@@ -90,12 +90,14 @@ public class Converter {
 
     public static BridgeConfig toBridgeConfig(Bridge bridge) {
         BridgeConfig bridgeConfig = new BridgeConfig();
+        org.slf4j.LoggerFactory.getLogger(Converter.class).error("TO BC {} {}", bridge.getVxLanPortIds(), bridge.getVxLanPortId());
 
         bridgeConfig.name = bridge.getName();
         bridgeConfig.adminStateUp = bridge.isAdminStateUp();
         bridgeConfig.inboundFilter = bridge.getInboundFilter();
         bridgeConfig.outboundFilter = bridge.getOutboundFilter();
         bridgeConfig.vxLanPortId = bridge.getVxLanPortId();
+        bridgeConfig.vxLanPortIds = bridge.getVxLanPortIds();
         bridgeConfig.tunnelKey = bridge.getTunnelKey();
         bridgeConfig.properties = new HashMap<>(bridge.getProperties());
 
@@ -106,6 +108,7 @@ public class Converter {
         if (bridge == null)
             return null;
 
+        org.slf4j.LoggerFactory.getLogger(Converter.class).error("HELLO {} {}", bridge.vxLanPortIds, bridge.vxLanPortId);
         return new Bridge()
                 .setName(bridge.name)
                 .setAdminStateUp(bridge.adminStateUp)
@@ -113,6 +116,7 @@ public class Converter {
                 .setInboundFilter(bridge.inboundFilter)
                 .setOutboundFilter(bridge.outboundFilter)
                 .setVxLanPortId(bridge.vxLanPortId)
+                .setVxLanPortIds(bridge.vxLanPortIds)
                 .setProperties(bridge.properties);
     }
 
