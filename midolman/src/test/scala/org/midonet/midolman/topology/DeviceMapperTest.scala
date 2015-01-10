@@ -184,7 +184,7 @@ class DeviceMapperTest extends MidolmanSpec {
             val subscription = observable subscribe observer
 
             Then("The subscription should be the empty subscription")
-            subscription should be (Subscriptions.empty)
+            subscription should be (Subscriptions.unsubscribed())
 
             And("The observer should have received an IllegalStateException")
             observer.getOnNextEvents shouldBe empty
@@ -208,7 +208,7 @@ class DeviceMapperTest extends MidolmanSpec {
             val subscription = observable.subscribe(observer)
 
             Then("The subscription should be the empty subscription")
-            subscription should be (Subscriptions.empty)
+            subscription should be (Subscriptions.unsubscribed)
 
             And("The observer should have received the exception")
             observer.getOnErrorEvents should contain only (e)
