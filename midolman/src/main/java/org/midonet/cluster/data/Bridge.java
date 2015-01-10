@@ -15,7 +15,9 @@
  */
 package org.midonet.cluster.data;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
@@ -104,6 +106,13 @@ public class Bridge extends Entity.Base<UUID, Bridge.Data, Bridge>
         return this;
     }
 
+    public List<UUID> getVxLanPortIds() { return getData().vxLanPortIds; }
+
+    public Bridge setVxLanPortIds(List<UUID> vxlanPortIds) {
+        getData().vxLanPortIds = vxlanPortIds;
+        return this;
+    }
+
     public Bridge setProperty(Property property, String value) {
         getData().properties.put(property.name(), value);
         return this;
@@ -133,7 +142,8 @@ public class Bridge extends Entity.Base<UUID, Bridge.Data, Bridge>
         public UUID inboundFilter;
         public UUID outboundFilter;
         public UUID vxLanPortId;
-        public Map<String, String> properties = new HashMap<String, String>();
+        public List<UUID> vxLanPortIds = new ArrayList<>();
+        public Map<String, String> properties = new HashMap<>();
 
         @Override
         public boolean equals(Object o) {
@@ -164,6 +174,7 @@ public class Bridge extends Entity.Base<UUID, Bridge.Data, Bridge>
                    ", inboundFilter=" + inboundFilter +
                    ", outboundFilter=" + outboundFilter +
                    ", vxLanPortId=" + vxLanPortId +
+                   ", vxLanPortIds=" + vxLanPortIds +
                    ", name=" + name +
                     ", adminStateUp=" + adminStateUp + '}';
         }

@@ -17,25 +17,20 @@
 package org.midonet.midolman.topology.builders
 
 import java.lang.{Short => JShort}
-import java.util.{Map => JMap, Set => JSet, UUID, List => JList}
-import scala.Some
+import java.util.{List => JList, Map => JMap, Set => JSet, UUID}
+
 import scala.collection.JavaConversions._
 import scala.collection.mutable
 
 import akka.actor.ActorRef
 import org.slf4j.LoggerFactory
 
-import org.midonet.cluster.client.BridgeBuilder
-import org.midonet.cluster.client.IpMacMap
-import org.midonet.cluster.client.MacLearningTable
-import org.midonet.cluster.client.VlanPortMap
+import org.midonet.cluster.client.{BridgeBuilder, IpMacMap, MacLearningTable, VlanPortMap}
 import org.midonet.cluster.data.Bridge
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
-import org.midonet.midolman.topology.BridgeConfig
-import org.midonet.midolman.topology.BridgeManager
-import org.midonet.packets.{IPv4Addr, IPAddr, MAC}
+import org.midonet.midolman.topology.{BridgeConfig, BridgeManager}
+import org.midonet.packets.{IPAddr, IPv4Addr, MAC}
 import org.midonet.sdn.flows.FlowTagger
-
 
 /**
  *  This class will be called by the Client to notify
@@ -58,7 +53,7 @@ class BridgeBuilderImpl(val id: UUID, val flowController: ActorRef,
     private var oldMacToLogicalPortId: mutable.Map[MAC, UUID] = null
     private var ipToMac: mutable.Map[IPAddr, MAC] = null
     private var vlanBridgePeerPortId: Option[UUID] = None
-    private var exteriorVxlanPortId: Option[UUID] = None
+    private var exteriorVxlanPortIds: List[UUID] = List.empty
     private var vlanPortMap: VlanPortMap = null
     private var exteriorPorts: List[UUID] = List.empty
     private var oldExteriorPorts: List[UUID] = List.empty
@@ -100,8 +95,8 @@ class BridgeBuilderImpl(val id: UUID, val flowController: ActorRef,
         vlanBridgePeerPortId = portId
     }
 
-    def setExteriorVxlanPortId(vxlanId: Option[UUID]) {
-        exteriorVxlanPortId = vxlanId
+    def setExteriorVxlanPortIds(vxlanIds: java.util.List[UUID]) {
+        exteriorVxlanPortIds = asScalaBuffer(vxlanIds).toList
     }
 
     def setVlanPortMap(map: VlanPortMap) {
@@ -127,7 +122,6 @@ class BridgeBuilderImpl(val id: UUID, val flowController: ActorRef,
      * send flow invalidation.
      */
     private def sendFlowInvalidation() {
-        import collection.JavaConversions._
         log.debug("Diffing the maps.")
         // calculate diff between the 2 maps
         if (null != oldMacToLogicalPortId) {
@@ -168,7 +162,8 @@ class BridgeBuilderImpl(val id: UUID, val flowController: ActorRef,
             collection.immutable.HashMap(vlanMacTableMap.toSeq: _*), ip4MacMap,
             collection.immutable.HashMap(macToLogicalPortId.toSeq: _*),
             collection.immutable.HashMap(ipToMac.toSeq: _*),
-            vlanBridgePeerPortId, exteriorVxlanPortId, vlanPortMap, exteriorPorts)
+            vlanBridgePeerPortId, exteriorVxlanPortIds, vlanPortMap,
+            exteriorPorts)
 
          sendFlowInvalidation()
     }
