@@ -21,18 +21,17 @@ import java.util.UUID
 import scala.collection.{Map => ROMap}
 
 import akka.actor.ActorSystem
+
 import org.midonet.cluster.client._
 import org.midonet.cluster.data
-import org.midonet.midolman.topology.devices.BridgePort
 import org.midonet.midolman.NotYetException
 import org.midonet.midolman.rules.RuleResult
 import org.midonet.midolman.topology.VirtualTopologyActor._
+import org.midonet.midolman.topology.devices.BridgePort
 import org.midonet.midolman.topology.{MacFlowCount, RemoveFlowCallbackGenerator}
 import org.midonet.odp.flows.FlowActions.popVLAN
 import org.midonet.packets._
-import org.midonet.sdn.flows.FlowTagger.{tagForArpRequests, tagForBridgePort,
-                                         tagForBroadcast, tagForDevice,
-                                         tagForFloodedFlowsByDstMac, tagForVlanPort}
+import org.midonet.sdn.flows.FlowTagger.{tagForArpRequests, tagForBridgePort, tagForBroadcast, tagForDevice, tagForFloodedFlowsByDstMac, tagForVlanPort}
 
 /**
   * A bridge.
@@ -68,9 +67,9 @@ import org.midonet.sdn.flows.FlowTagger.{tagForArpRequests, tagForBridgePort,
   *                    considered to be on VLAN X, Note that a vlan-unaware
   *                    bridge can only be connected to a single vlan-aware device
   *                    (thus having only a single optional value)
-  * @param vxlanPortId uuid of an optional virtual exterior port logically
+  * @param vxlanPortIds uuids of optional virtual exterior ports logically
                        connected to a virtual switch running on a vtep gateway.
-                       If defined, the UUID will point in the virtual topology
+                       If defined, the UUIDs will point in the virtual topology
                        to an exterior vport of subtype VxLanPort that
                        contains the information needed for tunnelling traffic to
                        the peer vtep.
@@ -91,7 +90,7 @@ class Bridge(val id: UUID,
              val inFilterId: Option[UUID],
              val outFilterId: Option[UUID],
              val vlanPortId: Option[UUID],
-             val vxlanPortId: Option[UUID],
+             val vxlanPortIds: List[UUID],
              val flowRemovedCallbackGen: RemoveFlowCallbackGenerator,
              val macToLogicalPortId: ROMap[MAC, UUID],
              val ipToMac: ROMap[IPAddr, MAC],
@@ -99,7 +98,7 @@ class Bridge(val id: UUID,
              val exteriorPorts: List[UUID])
             (implicit val actorSystem: ActorSystem) extends Coordinator.Device {
 
-    import Coordinator._
+    import org.midonet.midolman.simulation.Coordinator._
 
     val deviceTag = tagForDevice(id)
     val floodAction = FloodBridgeAction(id, exteriorPorts)
