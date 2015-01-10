@@ -16,6 +16,7 @@
 
 package org.midonet.cluster;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -253,7 +254,7 @@ public class LocalClientImplTest {
     class TestBridgeBuilder implements BridgeBuilder, BuildCallCounter {
         int buildCallsCount = 0;
         Option<UUID> vlanBridgePeerPortId = Option.apply(null);
-        Option<UUID> exteriorVxlanPortId = Option.apply(null);
+        List<UUID> exteriorVxlanPortIds = new ArrayList<>(0);
         MacLearningTable mlTable;
         IpMacMap<IPv4Addr> ipMacMap;
         MAC[] notifiedMAC = new MAC[1];
@@ -339,8 +340,8 @@ public class LocalClientImplTest {
         }
 
         @Override
-        public void setExteriorVxlanPortId(Option<UUID> id) {
-            exteriorVxlanPortId = id;
+        public void setExteriorVxlanPortIds(List<UUID> ids) {
+            exteriorVxlanPortIds = ids;
         }
 
         @Override

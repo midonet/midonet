@@ -3396,10 +3396,20 @@ public class LocalDataClientImpl implements DataClient {
             throws StateAccessException, SerializationException {
 
         BridgeConfig bridgeConfig = bridgeZkManager.get(bridgeId);
+
         if (bridgeConfig.vxLanPortId != null) {
-            throw new IllegalStateException(
-                    "Attempted to create VxLanPort for bridge " + bridgeId +
-                    ", which already has one: " + bridgeConfig.vxLanPortId);
+            if (!bridgeConfig.vxLanPortIds.contains(bridgeConfig.vxLanPortId)) {
+                bridgeConfig.vxLanPortIds.add(bridgeConfig.vxLanPortId);
+                log.info("Migrate legacy vxlanPortId on bridge {}", bridgeId);
+            }
+        }
+
+        for (UUID id: bridgeConfig.vxLanPortIds) {
+            VxLanPort p = (VxLanPort)portsGet(id);
+            if (p.getMgmtIpAddr().equals(mgmtIp)) {
+                throw new IllegalStateException(
+                    "Not expected to find a port for vtep " + mgmtIp);
+            }
         }
 
         VxLanPort port = new VxLanPort(bridgeId, mgmtIp, mgmtPort, vni,
@@ -3409,7 +3419,7 @@ public class LocalDataClientImpl implements DataClient {
         List<Op> ops = new ArrayList<>();
         ops.addAll(portZkManager.prepareCreate(port.getId(), portConfig));
 
-        bridgeConfig.vxLanPortId = port.getId();
+        bridgeConfig.vxLanPortIds.add(port.getId());
         ops.addAll(bridgeZkManager.prepareUpdate(bridgeId, bridgeConfig));
 
         zkManager.multi(ops);
