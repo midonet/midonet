@@ -393,8 +393,12 @@ public class MidoVxLanPeer implements VxLanPeer {
 
         UUID vxLanPortId = bridge.getVxLanPortId();
         if (vxLanPortId == null) { // Probably race again with a port removal
-            log.warn("Network {} appears unbound to VTEP", bridgeId);
-            return null;
+            if (bridge.getVxLanPortIds() == null ||
+                bridge.getVxLanPortIds().isEmpty()) {
+                log.warn("Network {} appears unbound to VTEP", bridgeId);
+                return null;
+            }
+            vxLanPortId = bridge.getVxLanPortIds().get(0);
         }
 
         /* Create and activate the mac tables watcher, which may start pushing
