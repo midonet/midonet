@@ -19,11 +19,10 @@ import java.util.UUID
 
 import scala.collection.JavaConversions._
 import scala.collection.immutable.List
-import scala.collection.{mutable, Set => ROSet}
+import scala.collection.{Set => ROSet, mutable}
 import scala.concurrent.ExecutionContext
 
 import akka.actor.ActorSystem
-
 import akka.event.{Logging, LoggingAdapter}
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
@@ -40,12 +39,12 @@ import org.midonet.midolman.topology.{LocalPortActive, VirtualToPhysicalMapper, 
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.odp.flows.FlowActions.{output, pushVLAN, setKey, userspace}
 import org.midonet.odp.flows.{FlowAction, FlowActionOutput, FlowActions, FlowKeys}
-import org.midonet.odp.{FlowMatch, DpPort, Packet}
+import org.midonet.odp.{DpPort, FlowMatch, Packet}
 import org.midonet.packets.util.PacketBuilder._
 import org.midonet.packets.{Ethernet, ICMP, IPv4Addr}
+import org.midonet.sdn.flows.FlowTagger
 import org.midonet.sdn.flows.FlowTagger.FlowTag
 import org.midonet.sdn.flows.VirtualActions.{FlowActionOutputToVrnBridge, FlowActionOutputToVrnPort}
-import org.midonet.sdn.flows.FlowTagger
 import org.midonet.util.concurrent.ExecutionContextOps
 
 @RunWith(classOf[JUnitRunner])
@@ -108,13 +107,14 @@ class FlowTranslatorTest extends MidolmanSpec {
         port
     }
 
-    def makeVxLanPort(host: UUID, bridge: Bridge, vni: Int, vtepIp: IPv4Addr,
-                      vtepTunIp: IPv4Addr, tzId: UUID)
+    case class VtepDef(tunIp: IPv4Addr, mgmtIp: IPv4Addr, vni: Int)
+    def makeVxLanPort(host: UUID, bridge: Bridge, vtep: VtepDef, tzId: UUID)
                      (f: VxLanPort => VxLanPort): VxLanPort = {
 
         val port = clusterDataClient.bridgeCreateVxLanPort(bridge.getId,
-                                                           vtepIp, 4789, vni,
-                                                           vtepTunIp, tzId)
+                                                             vtep.mgmtIp, 4789,
+                                                             vtep.vni,
+                                                             vtep.tunIp, tzId)
         fetchTopology(port, bridge)
         port
     }
@@ -200,15 +200,13 @@ class FlowTranslatorTest extends MidolmanSpec {
 
     feature("FlowActionOutputToVrnBridge is translated") {
         translationScenario("The bridge has local ports, from VTEP") { ctx =>
-            val vtepIp = IPv4Addr("192.167.34.1")
-            val vtepTunIp = IPv4Addr("102.32.2.1")
-            val hostIp = IPv4Addr("102.32.2.2")
-            val vni = 394
+            val vtep = new VtepDef(IPv4Addr("192.167.34.1"),
+                                   IPv4Addr("102.32.2.1"),
+                                   394)
             val tzId = UUID.randomUUID()
             val bridge = newBridge("floodBridge")
 
-            val inPort = makeVxLanPort(hostId, bridge, vni, vtepIp,
-                                       vtepTunIp, tzId)(identity)
+            val inPort = makeVxLanPort(hostId, bridge, vtep, tzId)(identity)
             val port0 = makePort(hostId, bridge)(identity) // code assumes
             val port1 = makePort(hostId, bridge)(identity) // them exterior
 
@@ -275,21 +273,25 @@ class FlowTranslatorTest extends MidolmanSpec {
                             FlowTagger.tagForTunnelRoute(3, 4)))
         }
 
-        translationScenario("The bridge has a vxlan port") { ctx =>
+        translationScenario("The bridge has vxlan ports") { ctx =>
 
             val hostIp = IPv4Addr("172.167.3.3")
             val hostTunIp = IPv4Addr("10.0.2.1")
-            val vtepTunIp = IPv4Addr("10.0.2.2")
-            val vtepIp = IPv4Addr("192.168.20.2")
-            val vni = 11
+
             val tzId = UUID.randomUUID()
+
+            val vtep1 = new VtepDef(IPv4Addr("10.0.2.2"),
+                                    IPv4Addr("192.168.20.2"), 11)
+
+            val vtep2 = new VtepDef(IPv4Addr("10.0.2.4"),
+                                    IPv4Addr("192.168.20.4"), 44)
 
             val host = clusterDataClient.hostsGet(hostId)
             var bridge = newBridge("floodBridge")
             val inPort = makePort(hostId, bridge)(identity)
             val port0 = makePort(hostId, bridge)(identity)
-            val vxlanPort = makeVxLanPort(hostId, bridge, vni, vtepIp,
-                                          vtepTunIp, tzId)(identity)
+            val vxlanPort1 = makeVxLanPort(hostId, bridge, vtep1, tzId)(identity)
+            val vxlanPort2 = makeVxLanPort(hostId, bridge, vtep2, tzId)(identity)
 
             // refetch bridge, it was updated with the vxlan port
             bridge = clusterDataClient.bridgesGet(bridge.getId)
@@ -320,20 +322,27 @@ class FlowTranslatorTest extends MidolmanSpec {
             ctx grePort 1342
             ctx host rcuHost
 
-            val brPorts = brPortIds(port0, vxlanPort)
+            val brPorts = brPortIds(port0, vxlanPort1, vxlanPort2)
             ctx translate FlowActionOutputToVrnBridge(bridge.getId, brPorts)
             ctx verify (
                 List(
                     output(8),
                     setKey(
-                        FlowKeys.tunnel(vni.toLong, hostTunIp.toInt,
-                                        vtepTunIp.toInt, 0)
+                        FlowKeys.tunnel(vtep1.vni.toLong, hostTunIp.toInt,
+                                        vtep1.tunIp.toInt, 0)
                     ),
+                    output(666),
+                    setKey(
+                        FlowKeys.tunnel(vtep2.vni.toLong, hostTunIp.toInt,
+                                        vtep2.tunIp.toInt, 0)
+                        ),
                     output(666)
                 ),
                 Set(
                     FlowTagger.tagForTunnelRoute(hostTunIp.toInt,
-                                                 vtepTunIp.toInt),
+                                                 vtep1.tunIp.toInt),
+                    FlowTagger.tagForTunnelRoute(hostTunIp.toInt,
+                                                 vtep2.tunIp.toInt),
                     FlowTagger.tagForDpPort(8)
                 )
             )

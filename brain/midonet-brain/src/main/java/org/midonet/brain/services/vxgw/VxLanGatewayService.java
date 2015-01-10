@@ -362,9 +362,14 @@ public class VxLanGatewayService extends ClusterMinion {
         // Get the VXLAN port identifier for this bridge.
         UUID vxLanPortId = bridge.getVxLanPortId();
         if (null == vxLanPortId) {
-            log.debug("Bridge {} does not have a VXLAN port (ignoring)",
-                      bridgeId);
-            return;
+            if (bridge.getVxLanPortIds() == null ||
+                bridge.getVxLanPortIds().isEmpty()) {
+                log.debug("Bridge {} does not have ports to VTEPs, ignoring",
+                          bridgeId);
+                return;
+            } else {
+                vxLanPortId = bridge.getVxLanPortIds().get(0);
+            }
         }
 
         VxLanPort vxLanPort = (VxLanPort)midoClient.portsGet(vxLanPortId);

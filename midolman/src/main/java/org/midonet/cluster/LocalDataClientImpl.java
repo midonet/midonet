@@ -3396,10 +3396,21 @@ public class LocalDataClientImpl implements DataClient {
             throws StateAccessException, SerializationException {
 
         BridgeConfig bridgeConfig = bridgeZkManager.get(bridgeId);
+
         if (bridgeConfig.vxLanPortId != null) {
-            throw new IllegalStateException(
-                    "Attempted to create VxLanPort for bridge " + bridgeId +
-                    ", which already has one: " + bridgeConfig.vxLanPortId);
+            if (!bridgeConfig.vxLanPortIds.contains(bridgeConfig.vxLanPortId)) {
+                bridgeConfig.vxLanPortIds.add(bridgeConfig.vxLanPortId);
+                log.debug("Lazy update of Bridge schema: existing VTEP"
+                          + "binding migrated to new schema in {}", bridgeId);
+            }
+        }
+
+        for (UUID id: bridgeConfig.vxLanPortIds) {
+            VxLanPort p = (VxLanPort)portsGet(id);
+            if (p.getMgmtIpAddr().equals(mgmtIp)) {
+                throw new IllegalStateException(
+                    "Not expected to find a port for vtep " + mgmtIp);
+            }
         }
 
         VxLanPort port = new VxLanPort(bridgeId, mgmtIp, mgmtPort, vni,
@@ -3409,7 +3420,10 @@ public class LocalDataClientImpl implements DataClient {
         List<Op> ops = new ArrayList<>();
         ops.addAll(portZkManager.prepareCreate(port.getId(), portConfig));
 
-        bridgeConfig.vxLanPortId = port.getId();
+        if (bridgeConfig.vxLanPortId == null) {
+            bridgeConfig.vxLanPortId = port.getId();
+        }
+        bridgeConfig.vxLanPortIds.add(port.getId());
         ops.addAll(bridgeZkManager.prepareUpdate(bridgeId, bridgeConfig));
 
         zkManager.multi(ops);
@@ -3422,29 +3436,40 @@ public class LocalDataClientImpl implements DataClient {
 
         // Make sure the bridge has a VXLAN port.
         BridgeConfig bridgeConfig = bridgeZkManager.get(bridgeId);
+        // Legacy schema
         UUID vxLanPortId = bridgeConfig.vxLanPortId;
-        if (vxLanPortId == null) {
+        List<UUID> vxLanPortIds = (bridgeConfig.vxLanPortIds == null)
+                                  ? new ArrayList<UUID>(0)
+                                  : bridgeConfig.vxLanPortIds;
+        if (vxLanPortId == null && vxLanPortIds.isEmpty()) {
             throw new IllegalStateException(
-                    "Attempted to delete VxLanPort for bridge " +
-                    bridgeId + ", which has no VxLanPort.");
+                    "Attempted to delete VTEP binding port for bridge " +
+                    bridgeId + ", which has no port associated.");
         }
 
         List<Op> ops = new ArrayList<>();
 
         // Clear bridge's vxLanPortId property.
         bridgeConfig.vxLanPortId = null;
+        bridgeConfig.vxLanPortIds = new ArrayList<>(0);
         ops.addAll(bridgeZkManager.prepareUpdate(bridgeId, bridgeConfig));
 
-        // Delete the port.
-        VxLanPortConfig portConfig =
-                (VxLanPortConfig)portZkManager.get(vxLanPortId);
+        Set<UUID> toDelete = new HashSet<>();
+        toDelete.addAll(vxLanPortIds);
+        if (vxLanPortId != null) {
+            toDelete.add(vxLanPortId);
+        }
 
-        ops.addAll(portZkManager.prepareDelete(vxLanPortId));
-
-        // Delete its bindings in Zookeeper.
-        ops.addAll(vtepZkManager.prepareDeleteAllBindings(
-                IPv4Addr.fromString(portConfig.mgmtIpAddr),
-                portConfig.device_id));
+        // Delete the vxlan ports
+        for (UUID id : toDelete) {
+            VxLanPortConfig portConfig = (VxLanPortConfig)portZkManager.get(id);
+            if (portConfig != null) {
+                ops.addAll(portZkManager.prepareDelete(id));
+                ops.addAll(vtepZkManager.prepareDeleteAllBindings(
+                    IPv4Addr.fromString(portConfig.mgmtIpAddr),
+                    portConfig.device_id));
+            }
+        }
 
         zkManager.multi(ops);
     }
