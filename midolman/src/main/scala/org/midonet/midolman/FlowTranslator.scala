@@ -20,7 +20,7 @@ import java.lang.{Integer => JInteger}
 import java.util.UUID
 import java.util.concurrent.TimeUnit
 
-import concurrent.ExecutionContextExecutor
+import scala.concurrent.ExecutionContextExecutor
 
 import akka.actor.ActorSystem
 import akka.util.Timeout
@@ -185,18 +185,23 @@ trait FlowTranslator {
          *   through the dpPort dedicated to vxLan tunnels to VTEPs, and inject
          *   this action in the result set
          */
-        def addVtepActions(br: Bridge): Unit =
-            if (br.vxlanPortId.isDefined && br.vxlanPortId.get != context.inputPort) {
-                val vxlanPortId = br.vxlanPortId.get
+        def addVtepActions(br: Bridge): Unit = {
+            if (br.vxlanPortIds == null) {
+                return
+            }
+            val it = br.vxlanPortIds.iterator
+            while (it.hasNext) {
+                val vxlanPortId = it.next()
                 tryAsk[Port](vxlanPortId) match {
                     case p: VxLanPort =>
                         outputActionsToVtep(p.vtepVni, p.vtepTunnelIp,
                                             p.vtepTunnelZoneId, context)
                     case _ =>
-                        context.log.warn("could not find VxLanPort {} of bridge {}",
-                            vxlanPortId, br)
+                        context.log.warn("Didn't find VxLanPort {} of bridge {}",
+                                         vxlanPortId, br)
                 }
             }
+        }
 
         val ports = portIds.map(tryAsk[Port])
         addLocal(ports)

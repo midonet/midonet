@@ -15,11 +15,12 @@
  */
 package org.midonet.midolman.topology
 
-import collection.{Map => ROMap}
-import compat.Platform
 import java.lang.{Short => JShort}
-import java.util.concurrent.TimeUnit
 import java.util.UUID
+import java.util.concurrent.TimeUnit
+
+import scala.collection.{Map => ROMap}
+import scala.compat.Platform
 import scala.concurrent.duration._
 
 import com.typesafe.scalalogging.Logger
@@ -30,12 +31,12 @@ import org.midonet.midolman.FlowController
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.simulation.Bridge
+import org.midonet.midolman.topology.BridgeManager.MacPortMapping
 import org.midonet.midolman.topology.builders.BridgeBuilderImpl
-import org.midonet.packets.{IPv4Addr, IPAddr, MAC}
+import org.midonet.packets.{IPAddr, IPv4Addr, MAC}
+import org.midonet.util.collection.Reducer
 import org.midonet.util.concurrent.TimedExpirationMap
 import org.midonet.util.functors.Callback0
-import org.midonet.util.collection.Reducer
-import org.midonet.midolman.topology.BridgeManager.MacPortMapping
 
 /* The MacFlowCount is called from the Coordinators' actors and dispatches
  * to the BridgeManager's actor to get/modify the flow counts.  */
@@ -62,7 +63,7 @@ object BridgeManager {
                              macToLogicalPortId: ROMap[MAC, UUID],
                              ipToMac: ROMap[IPAddr, MAC],
                              vlanBridgePeerPortId: Option[UUID],
-                             exteriorVxlanPortId: Option[UUID],
+                             exteriorVxlanPortIds: List[UUID],
                              vlanPortMap: VlanPortMap,
                              exteriorPorts: List[UUID])
 
@@ -112,8 +113,9 @@ class MacLearningManager(log: Logger, ttlMillis: Duration) {
 
 class BridgeManager(id: UUID, val clusterClient: Client,
                     val config: MidolmanConfig) extends DeviceWithChains {
-    import BridgeManager._
     import context.system
+
+    import org.midonet.midolman.topology.BridgeManager._
 
     override def logSource = s"org.midonet.devices.bridge.bridge-$id"
 
@@ -128,7 +130,7 @@ class BridgeManager(id: UUID, val clusterClient: Client,
     private var ip4MacMap: IpMacMap[IPv4Addr] = null
 
     private var vlanBridgePeerPortId: Option[UUID] = None
-    private var exteriorVxlanPortId: Option[UUID] = None
+    private var exteriorVxlanPortIds: List[UUID] = List.empty
 
     private val macPortExpiration: Int = config.getMacPortMappingExpireMillis
     private val learningMgr = new MacLearningManager(
@@ -143,7 +145,7 @@ class BridgeManager(id: UUID, val clusterClient: Client,
             learningMgr.vlanMacTableMap,
             if (config.getMidolmanBridgeArpEnabled) ip4MacMap else null,
             flowCounts, Option(cfg.inboundFilter), Option(cfg.outboundFilter),
-            vlanBridgePeerPortId, exteriorVxlanPortId, flowRemovedCallback,
+            vlanBridgePeerPortId, exteriorVxlanPortIds, flowRemovedCallback,
             macToLogicalPortId, rtrIpToMac, vlanToPort, exteriorPorts)
 
         VirtualTopologyActor ! bridge
@@ -170,7 +172,7 @@ class BridgeManager(id: UUID, val clusterClient: Client,
 
         case TriggerUpdate(newCfg, vlanMacTableMap, newIp4MacMap,
                            newMacToLogicalPortId, newRtrIpToMac,
-                           newVlanBridgePeerPortId, newExteriorVxlanPortId,
+                           newVlanBridgePeerPortId, newExteriorVxlanPortIds,
                            newVlanToPortMap, newExteriorPorts) =>
             log.debug("Received a Bridge update from the data store.")
 
@@ -183,7 +185,7 @@ class BridgeManager(id: UUID, val clusterClient: Client,
             macToLogicalPortId = newMacToLogicalPortId
             rtrIpToMac = newRtrIpToMac
             vlanBridgePeerPortId = newVlanBridgePeerPortId
-            exteriorVxlanPortId = newExteriorVxlanPortId
+            exteriorVxlanPortIds = newExteriorVxlanPortIds
             vlanToPort = newVlanToPortMap
             exteriorPorts = newExteriorPorts
             // Notify that the update finished
