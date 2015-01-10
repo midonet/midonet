@@ -110,13 +110,14 @@ class FlowTranslatorTest extends MidolmanSpec {
         port
     }
 
-    def makeVxLanPort(host: UUID, bridge: Bridge, vni: Int, vtepIp: IPv4Addr,
-                      vtepTunIp: IPv4Addr, tzId: UUID)
+    case class VtepDef(tunIp: IPv4Addr, mgmtIp: IPv4Addr, vni: Int)
+    def makeVxLanPort(host: UUID, bridge: Bridge, vtep: VtepDef, tzId: UUID)
                      (f: VxLanPort => VxLanPort): VxLanPort = {
 
         val port = clusterDataClient().bridgeCreateVxLanPort(bridge.getId,
-                                                             vtepIp, 4789, vni,
-                                                             vtepTunIp, tzId)
+                                                             vtep.mgmtIp, 4789,
+                                                             vtep.vni,
+                                                             vtep.tunIp, tzId)
         fetchTopology(port, bridge)
         port
     }
@@ -202,15 +203,13 @@ class FlowTranslatorTest extends MidolmanSpec {
 
     feature("FlowActionOutputToVrnBridge is translated") {
         translationScenario("The bridge has local ports, from VTEP") { ctx =>
-            val vtepIp = IPv4Addr("192.167.34.1")
-            val vtepTunIp = IPv4Addr("102.32.2.1")
-            val hostIp = IPv4Addr("102.32.2.2")
-            val vni = 394
+            val vtep = new VtepDef(IPv4Addr("192.167.34.1"),
+                                   IPv4Addr("102.32.2.1"),
+                                   394)
             val tzId = UUID.randomUUID()
             val bridge = newBridge("floodBridge")
 
-            val inPort = makeVxLanPort(hostId(), bridge, vni, vtepIp,
-                                       vtepTunIp, tzId)(identity)
+            val inPort = makeVxLanPort(hostId(), bridge, vtep, tzId)(identity)
             val port0 = makePort(hostId(), bridge)(identity) // code assumes
             val port1 = makePort(hostId(), bridge)(identity) // them exterior
 
@@ -277,21 +276,25 @@ class FlowTranslatorTest extends MidolmanSpec {
                             FlowTagger.tagForTunnelRoute(3, 4)))
         }
 
-        translationScenario("The bridge has a vxlan port") { ctx =>
+        translationScenario("The bridge has vxlan ports") { ctx =>
 
             val hostIp = IPv4Addr("172.167.3.3")
             val hostTunIp = IPv4Addr("10.0.2.1")
-            val vtepTunIp = IPv4Addr("10.0.2.2")
-            val vtepIp = IPv4Addr("192.168.20.2")
-            val vni = 11
+
             val tzId = UUID.randomUUID()
+
+            val vtep1 = new VtepDef(IPv4Addr("10.0.2.2"),
+                                    IPv4Addr("192.168.20.2"), 11)
+
+            val vtep2 = new VtepDef(IPv4Addr("10.0.2.4"),
+                                    IPv4Addr("192.168.20.4"), 44)
 
             val host = clusterDataClient().hostsGet(hostId())
             var bridge = newBridge("floodBridge")
             val inPort = makePort(hostId(), bridge)(identity)
             val port0 = makePort(hostId(), bridge)(identity)
-            val vxlanPort = makeVxLanPort(hostId(), bridge, vni, vtepIp,
-                                          vtepTunIp, tzId)(identity)
+            val vxlanPort1 = makeVxLanPort(hostId(), bridge, vtep1, tzId)(identity)
+            val vxlanPort2 = makeVxLanPort(hostId(), bridge, vtep2, tzId)(identity)
 
             // refetch bridge, it was updated with the vxlan port
             bridge = clusterDataClient().bridgesGet(bridge.getId)
@@ -304,10 +307,8 @@ class FlowTranslatorTest extends MidolmanSpec {
                 Map(inPort.getId -> PortBinding(inPort.getId, clientInPort.tunnelKey, "inPort"),
                     port0.getId -> PortBinding(port0.getId, clientPort0.tunnelKey, "port0")),
                 Map(
-                    UUID.randomUUID() -> new TunnelZone.HostConfig()
-                                             .setIp(hostIp),
-                    tzId -> new TunnelZone.HostConfig()
-                            .setIp(hostTunIp)
+                    UUID.randomUUID() -> new TunnelZone.HostConfig().setIp(hostIp),
+                    tzId -> new TunnelZone.HostConfig().setIp(hostTunIp)
                 )
             )
 
@@ -318,20 +319,27 @@ class FlowTranslatorTest extends MidolmanSpec {
             ctx grePort 1342
             ctx host rcuHost
 
-            val brPorts = brPortIds(port0, vxlanPort)
+            val brPorts = brPortIds(port0, vxlanPort1, vxlanPort2)
             ctx translate FlowActionOutputToVrnBridge(bridge.getId, brPorts)
             ctx verify (
                 List(
                     output(8),
                     setKey(
-                        FlowKeys.tunnel(vni.toLong, hostTunIp.toInt,
-                                        vtepTunIp.toInt, 0)
+                        FlowKeys.tunnel(vtep1.vni.toLong, hostTunIp.toInt,
+                                        vtep1.tunIp.toInt, 0)
                     ),
+                    output(666),
+                    setKey(
+                        FlowKeys.tunnel(vtep2.vni.toLong, hostTunIp.toInt,
+                                        vtep2.tunIp.toInt)
+                        ),
                     output(666)
                 ),
                 Set(
                     FlowTagger.tagForTunnelRoute(hostTunIp.toInt,
-                                                 vtepTunIp.toInt),
+                                                 vtep1.tunIp.toInt),
+                    FlowTagger.tagForTunnelRoute(hostTunIp.toInt,
+                                                 vtep2.tunIp.toInt),
                     FlowTagger.tagForDpPort(8)
                 )
             )
@@ -399,7 +407,7 @@ class FlowTranslatorTest extends MidolmanSpec {
                             { icmp.unreach.host}
             ctx.translate(
                 setKey(FlowKeys.icmpError(
-                    ICMP.TYPE_UNREACH, ICMP.UNREACH_CODE.UNREACH_HOST.toByte(), data)),
+                    ICMP.TYPE_UNREACH, ICMP.UNREACH_CODE.UNREACH_HOST.toByte, data)),
                 pkt)
             ctx verify (List(), Set.empty)
             pkt.getPayload.getPayload.asInstanceOf[ICMP].getData should be (data)
@@ -410,7 +418,7 @@ class FlowTranslatorTest extends MidolmanSpec {
             val pkt = { eth addr "02:02:02:01:01:01" -> eth_zero }
             ctx.translate(
                 setKey(FlowKeys.icmpError(
-                    ICMP.TYPE_UNREACH, ICMP.UNREACH_CODE.UNREACH_HOST.toByte(), data)),
+                    ICMP.TYPE_UNREACH, ICMP.UNREACH_CODE.UNREACH_HOST.toByte, data)),
                 pkt)
             ctx verify (List(), Set.empty)
             pkt.getPayload should be (null)
