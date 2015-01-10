@@ -110,6 +110,7 @@ public class Converter {
         bridgeConfig.inboundFilter = bridge.getInboundFilter();
         bridgeConfig.outboundFilter = bridge.getOutboundFilter();
         bridgeConfig.vxLanPortId = bridge.getVxLanPortId();
+        bridgeConfig.vxLanPortIds = bridge.getVxLanPortIds();
         bridgeConfig.tunnelKey = bridge.getTunnelKey();
         bridgeConfig.properties = new HashMap<>(bridge.getProperties());
 
@@ -127,6 +128,7 @@ public class Converter {
                 .setInboundFilter(bridge.inboundFilter)
                 .setOutboundFilter(bridge.outboundFilter)
                 .setVxLanPortId(bridge.vxLanPortId)
+                .setVxLanPortIds(bridge.vxLanPortIds)
                 .setProperties(bridge.properties);
     }
 

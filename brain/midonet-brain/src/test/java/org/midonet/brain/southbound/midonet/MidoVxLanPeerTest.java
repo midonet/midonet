@@ -328,7 +328,12 @@ public class MidoVxLanPeerTest {
         UUID bridgeId = makeBridge("bridge");
         String  lsName = VtepConstants.bridgeIdToLogicalSwitchName(bridgeId);
         assertTrue(midoVxLanPeer.watch(bridgeId));
-        UUID vxLanPortId = dataClient.bridgesGet(bridgeId).getVxLanPortId();
+        Bridge br = dataClient.bridgesGet(bridgeId);
+        UUID vxLanPortId = br.getVxLanPortId();
+        if (vxLanPortId == null &&
+            (br.getVxLanPortIds() != null && !br.getVxLanPortIds().isEmpty())) {
+                vxLanPortId = br.getVxLanPortIds().get(0);
+        }
 
         MacLocation ml;
 
