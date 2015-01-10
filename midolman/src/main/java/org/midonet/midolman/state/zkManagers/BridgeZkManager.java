@@ -80,6 +80,7 @@ public class BridgeZkManager
         public UUID inboundFilter;
         public UUID outboundFilter;
         public UUID vxLanPortId;
+        public List<UUID> vxLanPortIds = new ArrayList<>(0);
         public String name;
         public boolean adminStateUp;
 
@@ -97,13 +98,14 @@ public class BridgeZkManager
                     Objects.equals(inboundFilter, that.inboundFilter) &&
                     Objects.equals(outboundFilter, that.outboundFilter) &&
                     Objects.equals(vxLanPortId, that.vxLanPortId) &&
+                    Objects.equals(vxLanPortIds, that.vxLanPortIds) &&
                     Objects.equals(name, that.name);
         }
 
         @Override
         public int hashCode() {
             return Objects.hash(tunnelKey, adminStateUp, inboundFilter,
-                                outboundFilter, vxLanPortId, name);
+                                outboundFilter, vxLanPortId, vxLanPortIds, name);
         }
 
         @Override
@@ -112,6 +114,7 @@ public class BridgeZkManager
                    ", inboundFilter=" + inboundFilter +
                    ", outboundFilter=" + outboundFilter +
                    ", vxLanPortId=" + vxLanPortId +
+                   ", vxLanPortIds=" + vxLanPortIds +
                    ", name=" + name +
                    ", adminStateUp=" + adminStateUp + '}';
         }
@@ -125,13 +128,6 @@ public class BridgeZkManager
     /**
      * Initializes a BridgeZkManager object with a ZooKeeper client and the root
      * path of the ZooKeeper directory.
-     *
-     * @param zk
-     *         Zk data access class
-     * @param paths
-     *         PathBuilder class to construct ZK paths
-     * @param serializer
-     *         ZK data serialization class
      */
     public BridgeZkManager(ZkManager zk, PathBuilder paths,
                            Serializer serializer) {
@@ -251,8 +247,16 @@ public class BridgeZkManager
         }
 
         if (!Objects.equals(oldConfig.vxLanPortId, newConfig.vxLanPortId)) {
-            log.debug("The vxLanPortId of bridge {} changed from {} to {}",
-                      id, oldConfig.vxLanPortId, newConfig.vxLanPortId);
+            log.debug("VTEP bindings on bridge {} changed, port to VTEP changes"
+                      + " from {} to {}", id, oldConfig.vxLanPortId,
+                      newConfig.vxLanPortId);
+            dataChanged = true;
+        }
+
+        if (!Objects.equals(oldConfig.vxLanPortIds, newConfig.vxLanPortIds)) {
+            log.debug("VTEP bindings on bridge {} changed, ports to VTEP were "
+                      + " {}, now: {}", id, oldConfig.vxLanPortIds,
+                      newConfig.vxLanPortIds);
             dataChanged = true;
         }
 
