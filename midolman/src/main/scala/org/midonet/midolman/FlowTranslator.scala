@@ -136,6 +136,7 @@ trait FlowTranslator {
                                     dpTags: mutable.Set[FlowTag],
                                     context: PacketContext): Unit = {
         val tzMembership = dpState.host.zones.get(tzId)
+        org.slf4j.LoggerFactory.getLogger(getClass).info("ADDING VTEP ACTION 2")
         if (tzMembership eq None) {
             context.log.warn(s"Can't output to VTEP with tunnel IP: $vtepIp, host not in "
                              + s"VTEP's tunnel zone: $tzId")
@@ -186,19 +187,25 @@ trait FlowTranslator {
          *   through the dpPort dedicated to vxLan tunnels to VTEPs, and inject
          *   this action in the result set
          */
-        def addVtepActions(br: Bridge, actions: ListBuffer[FlowAction]): Unit =
-            if (br.vxlanPortId.isDefined && br.vxlanPortId.get != context.inputPort) {
-                val vxlanPortId = br.vxlanPortId.get
-                tryAsk[Port](vxlanPortId) match {
-                    case p: VxLanPort =>
-                        outputActionsToVtep(p.vni, p.vtepTunAddr.addr,
-                            p.tunnelZoneId, actions,
-                            context.flowTags, context)
-                    case _ =>
-                        context.log.warn("could not find VxLanPort {} of bridge {}",
-                            vxlanPortId, br)
+        def addVtepActions(br: Bridge, actions: ListBuffer[FlowAction]): Unit = {
+            org.slf4j.LoggerFactory.getLogger(getClass()).error("THE PORTS ARE {}", br.vxlanPortIds)
+            br.vxlanPortIds foreach { vxlanPortId =>
+                if (vxlanPortId != context.inputPort) {
+                    tryAsk[Port](vxlanPortId) match {
+                        case p: VxLanPort =>
+                            outputActionsToVtep(p.vni, p.vtepTunAddr.addr,
+                                                p.tunnelZoneId, actions,
+                                                context.flowTags, context)
+                        case _ =>
+                            context.log
+                                .warn(
+                                    "could not find VxLanPort {} of bridge {}",
+                                    vxlanPortId, br)
+                    }
                 }
             }
+        }
+
 
         val actions = ListBuffer[FlowAction]()
         val ports = portIds.map(tryAsk[Port])

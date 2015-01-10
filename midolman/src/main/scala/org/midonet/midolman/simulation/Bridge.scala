@@ -17,23 +17,22 @@ package org.midonet.midolman.simulation
 
 import java.lang.{Short => JShort}
 import java.util.UUID
+
 import scala.collection.{Map => ROMap}
 
 import akka.actor.ActorSystem
 
 import org.midonet.cluster.client._
 import org.midonet.cluster.data
-import org.midonet.midolman.{NotYetException, PacketsEntryPoint}
 import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
 import org.midonet.midolman.rules.RuleResult
-import org.midonet.midolman.topology.MacFlowCount
-import org.midonet.midolman.topology.RemoveFlowCallbackGenerator
+import org.midonet.midolman.topology.{MacFlowCount, RemoveFlowCallbackGenerator}
 import org.midonet.midolman.topology.VirtualTopologyActor._
+import org.midonet.midolman.{NotYetException, PacketsEntryPoint}
 import org.midonet.odp.flows.FlowActions.popVLAN
 import org.midonet.packets._
 import org.midonet.sdn.flows.FlowTagger
-import FlowTagger.{tagForArpRequests, tagForBridgePort, tagForBroadcast, tagForDevice,
-                   tagForFloodedFlowsByDstMac, tagForVlanPort}
+import org.midonet.sdn.flows.FlowTagger.{tagForArpRequests, tagForBridgePort, tagForBroadcast, tagForDevice, tagForFloodedFlowsByDstMac, tagForVlanPort}
 
 /**
   * A bridge.
@@ -92,7 +91,7 @@ class Bridge(val id: UUID,
              val inFilterId: Option[UUID],
              val outFilterId: Option[UUID],
              val vlanPortId: Option[UUID],
-             val vxlanPortId: Option[UUID],
+             val vxlanPortIds: List[UUID],
              val flowRemovedCallbackGen: RemoveFlowCallbackGenerator,
              val macToLogicalPortId: ROMap[MAC, UUID],
              val ipToMac: ROMap[IPAddr, MAC],
@@ -100,7 +99,7 @@ class Bridge(val id: UUID,
              val exteriorPorts: List[UUID])
             (implicit val actorSystem: ActorSystem) extends Coordinator.Device {
 
-    import Coordinator._
+    import org.midonet.midolman.simulation.Coordinator._
 
     val deviceTag = tagForDevice(id)
     val floodAction = FloodBridgeAction(id, exteriorPorts)
