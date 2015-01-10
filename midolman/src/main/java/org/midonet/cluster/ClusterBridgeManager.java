@@ -114,7 +114,7 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
         builder.setInFilter(config.inboundFilter)
                .setOutFilter(config.outboundFilter);
         builder.setTunnelKey(config.tunnelKey);
-        builder.setExteriorVxlanPortId(Option.apply(config.vxLanPortId));
+        builder.setExteriorVxlanPortIds(config.vxLanPortIds);
         builder.build();
         log.info("Added watcher for bridge {}", id);
     }
