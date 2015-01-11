@@ -16,6 +16,24 @@
       "revId": "6c95490304b0c582f45a43b1ccd78bf6738abbad",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_5f06a421",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/PacketContext.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-01-11T11:53:02Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1af78d9a_0c7401fc",
+      "revId": "6c95490304b0c582f45a43b1ccd78bf6738abbad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
