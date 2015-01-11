@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "1af78d9a_7a044e15",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/datapath/DatapathChannel.scala",
+        "patchSetId": 40
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-01-11T12:22:17Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1af78d9a_d2abb0d4",
+      "revId": "769779554c23722f0b04e7a3e4389b2350f149dc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1af78d9a_52eea023",
         "filename": "midolman/src/main/scala/org/midonet/midolman/datapath/FlowProcessor.scala",
         "patchSetId": 40
@@ -30,6 +48,24 @@
       "writtenOn": "2015-01-09T17:49:13Z",
       "side": 1,
       "message": "isn\u0027t NLRequestReply a misleading name?",
+      "revId": "769779554c23722f0b04e7a3e4389b2350f149dc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_9aff7a01",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/datapath/FlowProcessor.scala",
+        "patchSetId": 40
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-01-11T12:22:17Z",
+      "side": 1,
+      "message": "I\u0027ll write another patch renaming this",
+      "parentUuid": "1af78d9a_52eea023",
       "revId": "769779554c23722f0b04e7a3e4389b2350f149dc",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
