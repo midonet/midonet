@@ -362,16 +362,16 @@ public class VxLanGatewayService extends AbstractService {
         throws StateAccessException, SerializationException,
                VxLanPeerConsolidationException, VtepNotConnectedException {
 
-        final UUID bridgeId = bridge.getId();
+        final UUID id = bridge.getId();
 
         // Get the VXLAN port identifier for this bridge.
-        UUID vxLanPortId = bridge.getVxLanPortId();
-        if (null == vxLanPortId) {
-            log.debug("Bridge {} does not have a VXLAN port (ignoring)",
-                      bridgeId);
+        List<UUID> vxlanPortIds = bridge.getVxLanPortIds();
+        if (vxlanPortIds == null || vxlanPortIds.isEmpty()) {
+            log.debug("Bridge {} does not have a VXLAN port (ignoring)", id);
             return;
         }
 
+        UUID vxLanPortId = vxlanPortIds.get(0);
         VxLanPort vxLanPort = (VxLanPort)midoClient.portsGet(vxLanPortId);
         if (null == vxLanPort) {
             log.warn("Cannot retrieve VXLAN port for port ID {} (aborting)",
@@ -387,13 +387,13 @@ public class VxLanGatewayService extends AbstractService {
             return;
         }
 
-        if (!broker.midoPeer.knowsBridgeId(bridgeId)) {
+        if (!broker.midoPeer.knowsBridgeId(id)) {
             log.info("Consolidating VTEP configuration for new bridge "
-                     + "{}", bridgeId);
-            String lsName = VtepConstants.bridgeIdToLogicalSwitchName(bridgeId);
+                     + "{}", id);
+            String lsName = VtepConstants.bridgeIdToLogicalSwitchName(id);
+            int vni = vxLanPort.getVni();
             org.opendaylight.ovsdb.lib.notation.UUID lsUuid =
-                broker.vtepPeer.ensureLogicalSwitchExists(lsName,
-                                                          vxLanPort.getVni());
+                broker.vtepPeer.ensureLogicalSwitchExists(lsName, vni);
 
             broker.vtepPeer.renewBindings(
                 lsUuid,
@@ -402,18 +402,17 @@ public class VxLanGatewayService extends AbstractService {
                     new Predicate<VtepBinding>() {
                         @Override
                         public boolean apply(VtepBinding b) {
-                            return b != null && bridgeId.equals(
-                                b.getNetworkId());
+                            return b != null && id.equals(b.getNetworkId());
                         }
                     }
                 )
             );
         }
 
-        log.info("Monitoring bridge {} for mac updates", bridgeId);
-        if (broker.midoPeer.watch(bridgeId)) {
+        log.info("Monitoring bridge {} for mac updates", id);
+        if (broker.midoPeer.watch(id)) {
             broker.vtepPeer.advertiseMacs();
-            broker.midoPeer.advertiseFloodingProxy(bridgeId);
+            broker.midoPeer.advertiseFloodingProxy(id);
         }
     }
 
