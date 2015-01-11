@@ -16,7 +16,8 @@
 package org.midonet.api.vtep;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -31,22 +32,70 @@ import org.midonet.brain.southbound.vtep.VtepDataClientMock;
 import org.midonet.brain.southbound.vtep.VtepStateException;
 import org.midonet.packets.IPv4Addr;
 
+import static java.util.Arrays.*;
+
 /**
  * A VtepDataClientFactory that provides a Mock implementation.
  */
 public class VtepMockableDataClientFactory extends VtepDataClientFactory {
 
-    public static final String MOCK_VTEP_MGMT_IP = "250.132.36.225";
-    public static final int MOCK_VTEP_MGMT_PORT = 12345;
-    public static final String MOCK_VTEP_NAME = "Mock VTEP";
-    public static final String MOCK_VTEP_DESC = "This is a mock VTEP";
-    public static final Set<String> MOCK_VTEP_TUNNEL_IPS = Sets.newHashSet(
-            "32.213.81.62", "197.132.120.121", "149.150.232.204");
-    public static final String[] MOCK_VTEP_PORT_NAMES =
-            new String[]{"eth0", "eth1", "eth_2", "Te 0/2"};
+    public abstract static class MockableVtep {
+        abstract public String mgmtIp();
+        abstract public int mgmtPort();
+        abstract public String name();
+        abstract public String desc();
+        abstract public Set<String> tunnelIps();
+        abstract public String[] portNames();
+    }
 
-    private VtepDataClientMock mockInstance = null;
-    private Subscription mockSubscription = null;
+    /** This VTEP is always mockable by default */
+    public static final MockableVtep MOCK_VTEP1 = new MockableVtep() {
+        public String mgmtIp() { return "250.132.36.225"; }
+        public int mgmtPort() { return 12345; }
+        public String name() { return "Mock Vtep"; }
+        public String desc() { return "The mock vtep description"; }
+        public Set<String> tunnelIps() {
+            return Sets.newHashSet("32.213.81.62",
+                                   "197.132.120.121",
+                                   "149.150.232.204");
+        }
+        public String[] portNames() {
+            return new String[]{"eth0", "eth1", "eth_2", "Te 0/2"};
+        }
+    };
+
+    public static final MockableVtep MOCK_VTEP2 = new MockableVtep() {
+        public String mgmtIp() { return "30.20.3.99"; }
+        public int mgmtPort() { return 3388; }
+        public String name() { return "TestVtep-mock-vtep-2"; }
+        public String desc() { return "From TestVtep"; }
+        public Set<String> tunnelIps() {
+            return Sets.newHashSet("197.22.120.100");
+        }
+        public String[] portNames() {
+            return new String[]{"eth0", "eth1", "eth_2", "Te 0/2"};
+        }
+    };
+
+    private Map<String, MockableVtep> mockableVteps = new HashMap<>();
+    private Map<String, VtepDataClientMock> mockInstances = new HashMap<>();
+    private Map<String, Subscription> mockSubscriptions = new HashMap<>();
+
+    public VtepMockableDataClientFactory() {
+        allowMocking(MOCK_VTEP1);
+        allowMocking(MOCK_VTEP2);
+    }
+
+    /** Allow mocking the given VTEP in this Factory, after this is called
+     * connect() will return a mocked VtepDataClient for the VTEP defined in
+     * def. Otherwise, connect will fail. */
+    public void allowMocking(MockableVtep def) {
+        if (mockableVteps.containsKey(def.mgmtIp())) {
+            throw new IllegalStateException(
+                "We already have a mock vtep with that mgmt ip");
+        }
+        mockableVteps.put(def.mgmtIp(), def);
+    }
 
     /**
      * Connects to the VTEP with the specified IP address and transport port
@@ -66,38 +115,49 @@ public class VtepMockableDataClientFactory extends VtepDataClientFactory {
      */
     public VtepDataClient connect(IPv4Addr mgmtIp, int mgmtPort, UUID owner)
         throws VtepStateException {
-        // Currently support mock only for MOCK_VTEP_MGMT_IP.
-        if (!mgmtIp.toString().equals(MOCK_VTEP_MGMT_IP) ||
-            mgmtPort != MOCK_VTEP_MGMT_PORT) {
-            throw new IllegalArgumentException("Could not connect to VTEP");
+        MockableVtep mockVtep = mockableVteps.get(mgmtIp.toString());
+        if (mockVtep == null) {
+            throw new IllegalArgumentException(
+                "VTEP at " + mgmtIp + " not mockable. Did you forget to " +
+                "register it via allowMocking()?");
+        } else if (mockVtep.mgmtPort() != mgmtPort) {
+            throw new IllegalArgumentException("VTEP at " + mgmtIp +
+                                               " registered with different port "
+                                               + mockVtep.mgmtPort());
         }
-        if (mockInstance == null) {
-            mockInstance = new VtepDataClientMock(
-                MOCK_VTEP_MGMT_IP, MOCK_VTEP_MGMT_PORT,
-                MOCK_VTEP_NAME, MOCK_VTEP_DESC,
-                MOCK_VTEP_TUNNEL_IPS,
-                Arrays.asList(MOCK_VTEP_PORT_NAMES));
-            mockSubscription = mockInstance.stateObservable().subscribe(
+
+        final String ip = mgmtIp.toString();
+        VtepDataClientMock mockClient = mockInstances.get(ip);
+        if (mockClient == null) {
+            mockInstances.put(
+                mgmtIp.toString(),
+                mockClient = new VtepDataClientMock(ip, mockVtep.mgmtPort(),
+                                        mockVtep.name(), mockVtep.desc(),
+                                        mockVtep.tunnelIps(),
+                                        asList(mockVtep.portNames()))
+            );
+            final Subscription s = mockClient.stateObservable().subscribe(
                 new Action1<VtepDataClient.State>() {
                     @Override
                     public void call(VtepDataClient.State state) {
                         if (state == VtepDataClient.State.DISCONNECTED) {
-                            mockSubscription.unsubscribe();
-                            mockInstance = null;
-                            mockSubscription = null;
+                            mockSubscriptions.get(ip).unsubscribe();
+                            mockInstances.remove(ip);
+                            mockSubscriptions.remove(ip);
                         }
                     }
                 });
+            mockSubscriptions.put(ip, s);
 
             // Add a non-Midonet switch and binding to test that the
             // Midonet API properly ignores these. Need to call connect()
             // so the mock doesn't throw not-connected errors.
-            mockInstance.connect(IPv4Addr.fromString(MOCK_VTEP_MGMT_IP),
-                                 MOCK_VTEP_MGMT_PORT);
-            mockInstance.addLogicalSwitch("NonMidonetLS", 123456);
-            mockInstance.bindVlan("NonMidonetLS", "eth2", (short)4000,
-                                  123456, new ArrayList<IPv4Addr>());
+            mockClient.connect(mgmtIp, mgmtPort);
+            mockClient.addLogicalSwitch("NonMidonetLS", 123456);
+            mockClient.bindVlan("NonMidonetLS", "eth2", (short) 4000,
+                                123456, new ArrayList<IPv4Addr>());
         }
-        return mockInstance;
+
+        return mockClient;
     }
 }

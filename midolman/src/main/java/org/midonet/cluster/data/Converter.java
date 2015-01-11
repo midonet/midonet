@@ -90,7 +90,6 @@ public class Converter {
 
     public static BridgeConfig toBridgeConfig(Bridge bridge) {
         BridgeConfig bridgeConfig = new BridgeConfig();
-        org.slf4j.LoggerFactory.getLogger(Converter.class).error("TO BC {} {}", bridge.getVxLanPortIds(), bridge.getVxLanPortId());
 
         bridgeConfig.name = bridge.getName();
         bridgeConfig.adminStateUp = bridge.isAdminStateUp();
@@ -108,7 +107,6 @@ public class Converter {
         if (bridge == null)
             return null;
 
-        org.slf4j.LoggerFactory.getLogger(Converter.class).error("HELLO {} {}", bridge.vxLanPortIds, bridge.vxLanPortId);
         return new Bridge()
                 .setName(bridge.name)
                 .setAdminStateUp(bridge.adminStateUp)
