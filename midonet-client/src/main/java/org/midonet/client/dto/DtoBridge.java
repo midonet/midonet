@@ -16,11 +16,13 @@
 
 package org.midonet.client.dto;
 
-import com.google.common.base.Objects;
+import java.net.URI;
+import java.util.List;
+import java.util.UUID;
 
 import javax.xml.bind.annotation.XmlRootElement;
-import java.net.URI;
-import java.util.UUID;
+
+import com.google.common.base.Objects;
 
 @XmlRootElement
 public class DtoBridge {
@@ -30,10 +32,12 @@ public class DtoBridge {
     private String tenantId;
     private UUID inboundFilterId;
     private UUID outboundFilterId;
-    private UUID vxLanPortId;
+    private UUID vxLanPortId; // legacy
+    private List<UUID> vxLanPortIds;
     private URI inboundFilter;
     private URI outboundFilter;
     private URI vxLanPort;
+    private List<URI> vxLanPorts;
     private URI uri;
     private URI ports;
     private URI peerPorts;
@@ -101,6 +105,14 @@ public class DtoBridge {
         this.vxLanPortId = vxLanPortId;
     }
 
+    public List<UUID> getVxLanPortIds() {
+        return this.vxLanPortIds;
+    }
+
+    public void setVxLanPortIds(List<UUID> vxLanPortIds) {
+        this.vxLanPortIds = vxLanPortIds;
+    }
+
     public URI getInboundFilter() {
         return inboundFilter;
     }
@@ -123,6 +135,14 @@ public class DtoBridge {
 
     public void setVxLanPort(URI vxLanPort) {
         this.vxLanPort = vxLanPort;
+    }
+
+    public List<URI> getVxLanPorts() {
+        return vxLanPorts;
+    }
+
+    public void setVxLanPorts(List<URI> vxLanPorts) {
+        this.vxLanPorts = vxLanPorts;
     }
 
     public URI getUri() {
@@ -225,7 +245,9 @@ public class DtoBridge {
                 Objects.equal(outboundFilterId, that.getOutboundFilterId()) &&
                 Objects.equal(outboundFilter, that.getOutboundFilter()) &&
                 Objects.equal(vxLanPortId, that.getVxLanPortId()) &&
+                Objects.equal(vxLanPortIds, that.getVxLanPortIds()) &&
                 Objects.equal(vxLanPort, that.getVxLanPort()) &&
+                Objects.equal(vxLanPorts, that.getVxLanPorts()) &&
                 Objects.equal(uri, that.getUri()) &&
                 Objects.equal(ports, that.getPorts()) &&
                 Objects.equal(peerPorts, that.getPeerPorts()) &&
