@@ -149,16 +149,15 @@ public class VxLanGwBrokerTest {
 
             vtepClient.onConnected(
                 (Callback<VtepDataClient, VtepException>)any); times = 1;
-
-            vtepClient.getTunnelIp(); times = 1;
         }};
 
         VTEP vtep = new VTEP();
         vtep.setId(vtepMgmtIp);
         vtep.setMgmtPort(vtepMgmtPort);
 
-        new VxLanGwBroker(midoClient, vtepDataClientFactory, vtep,
-                          new MockTunnelZoneState(), UUID.randomUUID());
+        new VxLanGwBroker(midoClient, vtepDataClientFactory,
+                          Arrays.asList(vtep), new MockTunnelZoneState(),
+                          UUID.randomUUID());
     }
 
     /**
