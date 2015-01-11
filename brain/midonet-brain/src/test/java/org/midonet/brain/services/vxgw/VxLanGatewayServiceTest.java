@@ -23,10 +23,6 @@ import java.util.UUID;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 
-import mockit.Expectations;
-import mockit.Mocked;
-import mockit.integration.junit4.JMockit;
-
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.junit.Before;
 import org.junit.Test;
@@ -51,6 +47,10 @@ import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZookeeperConnectionWatcher;
 import org.midonet.packets.IPv4Addr;
+
+import mockit.Expectations;
+import mockit.Mocked;
+import mockit.integration.junit4.JMockit;
 
 @RunWith(JMockit.class)
 public class VxLanGatewayServiceTest {
@@ -157,9 +157,9 @@ public class VxLanGatewayServiceTest {
             MidoVxLanPeer mP = new MidoVxLanPeer(dataClient); times = 1;
 
             vB.pruneUnwantedLogicalSwitches(new HashSet<UUID>()); times = 1;
+            vtepClient.getTunnelIp(); times = 1;
 
             vB.observableUpdates(); result = Observable.empty(); times = 1;
-            vtepClient.getTunnelIp(); times = 1;
         }};
 
         VxLanGatewayService gwsrv = new VxLanGatewayService(
@@ -192,13 +192,14 @@ public class VxLanGatewayServiceTest {
                                            (UUID)any);
             result = vtepClient.connect(vtepMgmtIp, vtepMgmntPort); times = 1;
             VtepBroker vB = new VtepBroker(vtepClient); times = 1;
-            MidoVxLanPeer mP = new MidoVxLanPeer(dataClient); times = 1;
 
             vB.pruneUnwantedLogicalSwitches(new HashSet<UUID>());
+            vtepClient.getTunnelIp(); times = 1;
+
+            MidoVxLanPeer mP = new MidoVxLanPeer(dataClient); times = 1;
 
             mP.observableUpdates(); result = Observable.empty(); times = 1;
             vB.observableUpdates(); result = Observable.empty(); times = 1;
-            vtepClient.getTunnelIp(); times = 1;
 
             mP.subscribeToFloodingProxy(
                 (Observable<TunnelZoneState.FloodingProxyEvent>) any);
@@ -256,13 +257,14 @@ public class VxLanGatewayServiceTest {
                                            (UUID)any);
             result = vtepClient.connect(vtepMgmtIp, vtepMgmntPort); times = 1;
             VtepBroker vB = new VtepBroker(vtepClient); times = 1;
-            MidoVxLanPeer mP = new MidoVxLanPeer(dataClient); times = 1;
 
             vB.pruneUnwantedLogicalSwitches(preexistingBridgeIds);
+            vtepClient.getTunnelIp(); times = 1;
+
+            MidoVxLanPeer mP = new MidoVxLanPeer(dataClient); times = 1;
 
             mP.observableUpdates(); result = Observable.empty(); times = 1;
             vB.observableUpdates(); result = Observable.empty(); times = 1;
-            vtepClient.getTunnelIp(); times = 1;
 
             mP.subscribeToFloodingProxy(
                 (Observable<TunnelZoneState.FloodingProxyEvent>) any);
@@ -322,13 +324,14 @@ public class VxLanGatewayServiceTest {
                                            (UUID)any);
             result = vtepClient.connect(vtepMgmtIp, vtepMgmntPort); times = 1;
             VtepBroker vB = new VtepBroker(vtepClient); times = 1;
-            MidoVxLanPeer mP = new MidoVxLanPeer(dataClient); times = 1;
 
             vB.pruneUnwantedLogicalSwitches(new HashSet<UUID>());
+            vtepClient.getTunnelIp(); times = 1;
+
+            MidoVxLanPeer mP = new MidoVxLanPeer(dataClient); times = 1;
 
             mP.observableUpdates(); result = Observable.empty(); times = 1;
             vB.observableUpdates(); result = Observable.empty(); times = 1;
-            vtepClient.getTunnelIp(); times = 1;
 
             mP.subscribeToFloodingProxy(
                 (Observable<TunnelZoneState.FloodingProxyEvent>) any);
@@ -386,29 +389,32 @@ public class VxLanGatewayServiceTest {
                                            (UUID)any);
             result = vtepClient1.connect(vtepMgmtIp, vtepMgmntPort); times = 1;
             VtepBroker vB = new VtepBroker(vtepClient1); times = 1;
-            MidoVxLanPeer mP = new MidoVxLanPeer(dataClient); times = 1;
 
             vB.pruneUnwantedLogicalSwitches(new HashSet<UUID>());
+            vtepClient1.getTunnelIp(); times = 1;
+
+            MidoVxLanPeer mP = new MidoVxLanPeer(dataClient); times = 1;
 
             vB.observableUpdates(); result = Observable.empty(); times = 1;
-            vtepClient1.getTunnelIp(); times = 1;
 
             vtepDataClientFactory.connect(vtepMgmtIp2, vtepMgmntPort2,
                                            (UUID)any);
             result = vtepClient2.connect(vtepMgmtIp2, vtepMgmntPort2);
             times = 1;
             VtepBroker vBAlt = new VtepBroker(vtepClient2); times = 1;
-            MidoVxLanPeer mPAlt = new MidoVxLanPeer(dataClient); times = 1;
 
             vBAlt.pruneUnwantedLogicalSwitches(new HashSet<UUID>());
+            vtepClient2.getTunnelIp(); times = 1;
 
             vBAlt.observableUpdates(); result = Observable.empty(); times = 1;
             vtepClient2.getTunnelIp(); times = 1;
+
+            MidoVxLanPeer mPAlt = new MidoVxLanPeer(dataClient); times = 1;
         }};
 
         VxLanGatewayService gwsrv1 =
-            new VxLanGatewayService(
-                dataClient, vtepDataClientFactory, zkConnWatcher, config);
+            new VxLanGatewayService(dataClient, vtepDataClientFactory,
+                                    zkConnWatcher, config);
         // the initial vtep should be detected
         gwsrv1.startAsync().awaitRunning();
 
@@ -442,9 +448,9 @@ public class VxLanGatewayServiceTest {
             new MidoVxLanPeer(dataClient); times = 1;
 
             vB.pruneUnwantedLogicalSwitches(new HashSet<UUID>());
+            vtepClient.getTunnelIp(); times = 1;
 
             vB.observableUpdates(); result = Observable.empty(); times = 1;
-            vtepClient.getTunnelIp(); times = 1;
         }};
 
         VxLanGatewayService gwsrv1 =

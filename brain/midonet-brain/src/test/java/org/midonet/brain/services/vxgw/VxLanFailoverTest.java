@@ -103,7 +103,6 @@ public class VxLanFailoverTest {
                 (Callback<VtepDataClient, VtepException>)any);
             result = emptySubscription; times = 1;
             vB1.observableUpdates(); result = Observable.empty(); times = 1;
-            vtepClient.getTunnelIp(); times = 1;
 
             vtepClient.disconnect((UUID)any, true);
             times = 1;
@@ -117,7 +116,6 @@ public class VxLanFailoverTest {
                 (Callback<VtepDataClient, VtepException>)any);
             result = emptySubscription; times = 1;
             vB2.observableUpdates(); result = Observable.empty(); times = 1;
-            vtepClient.getTunnelIp(); times = 1;
 
             vtepClient.disconnect((UUID)any, true);
             times = 1;
@@ -165,7 +163,6 @@ public class VxLanFailoverTest {
                 (Callback<VtepDataClient, VtepException>)any);
             result = emptySubscription; times = 1;
             vB1_1.observableUpdates(); result = Observable.empty(); times = 1;
-            vtepClient.getTunnelIp(); times = 1;
 
             vtepDataClientFactory.connect((IPv4Addr)any, VTEP_MGMT_PORT,
                                            (UUID)any);
@@ -176,7 +173,6 @@ public class VxLanFailoverTest {
                 (Callback<VtepDataClient, VtepException>)any);
             result = emptySubscription; times = 1;
             vB1_2.observableUpdates(); result = Observable.empty(); times = 1;
-            vtepClient.getTunnelIp(); times = 1;
 
             vtepDataClientFactory.connect((IPv4Addr)any, VTEP_MGMT_PORT,
                                            (UUID)any);
@@ -187,7 +183,6 @@ public class VxLanFailoverTest {
                 (Callback<VtepDataClient, VtepException>)any);
             result = emptySubscription; times = 1;
             vB1_3.observableUpdates(); result = Observable.empty(); times = 1;
-            vtepClient.getTunnelIp(); times = 1;
 
             vtepClient.disconnect((UUID)any, true);
             times = 1;
@@ -201,7 +196,6 @@ public class VxLanFailoverTest {
                 (Callback<VtepDataClient, VtepException>)any);
             result = emptySubscription; times = 1;
             vB2_1.observableUpdates(); result = Observable.empty(); times = 1;
-            vtepClient.getTunnelIp(); times = 1;
 
             vtepClient.disconnect((UUID)any, true);
             times = 1;
@@ -215,7 +209,6 @@ public class VxLanFailoverTest {
                 (Callback<VtepDataClient, VtepException>)any);
             result = emptySubscription; times = 1;
             vB2_2.observableUpdates(); result = Observable.empty(); times = 1;
-            vtepClient.getTunnelIp(); times = 1;
 
             vtepClient.disconnect((UUID)any, true);
             times = 1;
@@ -229,7 +222,6 @@ public class VxLanFailoverTest {
                 (Callback<VtepDataClient, VtepException>)any);
             result = emptySubscription; times = 1;
             vB2_3.observableUpdates(); result = Observable.empty(); times = 1;
-            vtepClient.getTunnelIp(); times = 1;
 
             vtepClient.disconnect((UUID)any, true);
             times = 3;
@@ -278,7 +270,6 @@ public class VxLanFailoverTest {
                 (Callback<VtepDataClient, VtepException>)any);
             result = emptySubscription; times = 1;
             vB1.observableUpdates(); result = Observable.empty(); times = 1;
-            vtepClient.getTunnelIp(); times = 1;
 
             vtepDataClientFactory.connect(getVtepAddress(2), VTEP_MGMT_PORT,
                                            (UUID)any);
@@ -289,7 +280,6 @@ public class VxLanFailoverTest {
                 (Callback<VtepDataClient, VtepException>)any);
             result = emptySubscription; times = 1;
             vB2.observableUpdates(); result = Observable.empty(); times = 1;
-            vtepClient.getTunnelIp(); times = 1;
 
             vtepDataClientFactory.connect(getVtepAddress(3), VTEP_MGMT_PORT,
                                            (UUID)any);
@@ -300,7 +290,6 @@ public class VxLanFailoverTest {
                 (Callback<VtepDataClient, VtepException>)any);
             result = emptySubscription; times = 1;
             vB3.observableUpdates(); result = Observable.empty(); times = 1;
-            vtepClient.getTunnelIp(); times = 1;
 
             vtepClient.disconnect((UUID)any, true);
             times = 3;

@@ -16,6 +16,7 @@
 package org.midonet.brain.services.vxgw;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -26,7 +27,6 @@ import java.util.UUID;
 import javax.annotation.Nonnull;
 
 import com.google.common.base.Predicate;
-import com.google.common.collect.Collections2;
 import com.google.common.util.concurrent.AbstractService;
 import com.google.inject.Inject;
 
@@ -39,6 +39,7 @@ import rx.functions.Action1;
 import org.midonet.brain.configuration.MidoBrainConfig;
 import org.midonet.brain.services.vxgw.monitor.BridgeMonitor;
 import org.midonet.brain.services.vxgw.monitor.DeviceMonitor;
+import org.midonet.brain.southbound.vtep.VtepBroker;
 import org.midonet.brain.southbound.vtep.VtepConstants;
 import org.midonet.brain.southbound.vtep.VtepDataClientFactory;
 import org.midonet.brain.southbound.vtep.VtepNotConnectedException;
@@ -55,6 +56,8 @@ import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZookeeperConnectionWatcher;
 import org.midonet.packets.IPv4Addr;
+
+import static com.google.common.collect.Collections2.filter;
 
 /**
  * A service to integrate a Midonet cloud with hardware VTEPs.
@@ -288,9 +291,11 @@ public class VxLanGatewayService extends AbstractService {
         }
 
         // Initialize the VTEP and wire peers.
-        VxLanGwBroker vxGwBroker = new VxLanGwBroker(
-            midoClient, vtepDataClientFactory, vtep,
-            tunnelZone, UUID.randomUUID());
+        VxLanGwBroker vxGwBroker = new VxLanGwBroker(midoClient,
+                                                     vtepDataClientFactory,
+                                                     Arrays.asList(vtep),
+                                                     tunnelZone,
+                                                     UUID.randomUUID());
         vxlanGwBrokers.put(mgmtIp, vxGwBroker);
 
         return vxGwBroker;
@@ -391,27 +396,29 @@ public class VxLanGatewayService extends AbstractService {
             log.info("Consolidating VTEP configuration for new bridge "
                      + "{}", id);
             String lsName = VtepConstants.bridgeIdToLogicalSwitchName(id);
-            int vni = vxLanPort.getVni();
-            org.opendaylight.ovsdb.lib.notation.UUID lsUuid =
-                broker.vtepPeer.ensureLogicalSwitchExists(lsName, vni);
-
-            broker.vtepPeer.renewBindings(
-                lsUuid,
-                Collections2.filter(
-                    midoClient.vtepGetBindings(vtepIp),
-                    new Predicate<VtepBinding>() {
-                        @Override
-                        public boolean apply(VtepBinding b) {
-                            return b != null && id.equals(b.getNetworkId());
-                        }
-                    }
-                )
-            );
+            for (VtepBroker vtepPeer : broker.vtepPeers.values()) {
+                final int vni = vxLanPort.getVni();
+                org.opendaylight.ovsdb.lib.notation.UUID lsUuid =
+                    vtepPeer.ensureLogicalSwitchExists(lsName, vni);
+                vtepPeer.renewBindings(
+                    lsUuid,
+                    filter(midoClient.vtepGetBindings(vtepIp),
+                           new Predicate<VtepBinding>() {
+                               @Override
+                               public boolean apply(VtepBinding b) {
+                                   return b != null && id.equals(b.getNetworkId());
+                               }
+                           }
+                    )
+                );
+            }
         }
 
         log.info("Monitoring bridge {} for mac updates", id);
         if (broker.midoPeer.watch(id)) {
-            broker.vtepPeer.advertiseMacs();
+            for (VtepBroker vtepPeer : broker.vtepPeers.values()) {
+                vtepPeer.advertiseMacs();
+            }
             broker.midoPeer.advertiseFloodingProxy(id);
         }
     }
