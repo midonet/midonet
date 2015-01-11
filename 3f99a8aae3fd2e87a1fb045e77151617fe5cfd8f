@@ -1,0 +1,72 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1af78d9a_9a265ab9",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/concurrent/SpscRwdRingBuffer.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-01-11T12:43:29Z",
+      "side": 1,
+      "message": "Util::findNextPositivePowerOfTwo",
+      "revId": "3f99a8aae3fd2e87a1fb045e77151617fe5cfd8f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_7a2bae82",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/concurrent/SpscRwdRingBuffer.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-01-11T12:43:29Z",
+      "side": 1,
+      "message": "can be a lazy set",
+      "revId": "3f99a8aae3fd2e87a1fb045e77151617fe5cfd8f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_da20e29d",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/concurrent/SpscRwdRingBuffer.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-01-11T12:43:29Z",
+      "side": 1,
+      "message": "i would strongly consider setting the position to null to avoid gc problems\ncan be a lazy set",
+      "revId": "3f99a8aae3fd2e87a1fb045e77151617fe5cfd8f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_ba2516ad",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/concurrent/SpscRwdRingBuffer.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 123,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-01-11T12:43:29Z",
+      "side": 1,
+      "message": "if a reader calls poll, then it will fetch a possibly invalid entry",
+      "revId": "3f99a8aae3fd2e87a1fb045e77151617fe5cfd8f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
