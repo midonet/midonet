@@ -15,6 +15,7 @@
  */
 package org.midonet.brain.southbound.midonet;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -391,15 +392,12 @@ public class MidoVxLanPeer implements VxLanPeer {
             return null;
         }
 
-        UUID vxLanPortId = bridge.getVxLanPortId();
-        if (vxLanPortId == null) { // Probably race again with a port removal
-            if (bridge.getVxLanPortIds() == null ||
-                bridge.getVxLanPortIds().isEmpty()) {
-                log.warn("Network {} appears unbound to VTEP", bridgeId);
-                return null;
-            }
-            vxLanPortId = bridge.getVxLanPortIds().get(0);
+        if (bridge.getVxLanPortIds() == null ||
+            bridge.getVxLanPortIds().isEmpty()) {
+            log.warn("Network {} appears unbound to VTEP", bridgeId);
+            return null;
         }
+        UUID vxLanPortId = bridge.getVxLanPortIds().get(0);
 
         /* Create and activate the mac tables watcher, which may start pushing
          * values to the subject *after* the initial ones set just above */
