@@ -16,6 +16,24 @@
       "revId": "b460feb7e84968292a8f1ef7b7959d1bcbd4cb6b",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_1f0c1c42",
+        "filename": "odp/src/test/java/org/midonet/odp/protos/NetlinkConnectionTest.java",
+        "patchSetId": 30
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-01-11T11:48:07Z",
+      "side": 0,
+      "message": "I\u0027ll clean this up later!",
+      "parentUuid": "1af78d9a_f7885ec8",
+      "revId": "b460feb7e84968292a8f1ef7b7959d1bcbd4cb6b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
