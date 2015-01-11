@@ -131,7 +131,6 @@ public class VxLanFloodingProxyTest {
                 (Callback<VtepDataClient, VtepException>)any);
             result = emptySubscription; times = 1;
             vB.observableUpdates(); result = Observable.empty(); times = 1;
-            vtepClient.getTunnelIp(); times = 1;
 
             vtepClient.disconnect((UUID)any, true);
             times = 1;
@@ -174,7 +173,6 @@ public class VxLanFloodingProxyTest {
                 (Callback<VtepDataClient, VtepException>)any);
             result = emptySubscription; times = 1;
             vB.observableUpdates(); result = Observable.empty(); times = 1;
-            vtepClient.getTunnelIp(); times = 1;
 
             vB.ensureLogicalSwitchExists(
                 VtepConstants.bridgeIdToLogicalSwitchName(bridgeId), anyInt);
@@ -222,7 +220,6 @@ public class VxLanFloodingProxyTest {
                 (Callback<VtepDataClient, VtepException>)any);
             result = emptySubscription; times = 1;
             vB.observableUpdates(); result = Observable.empty(); times = 1;
-            vtepClient.getTunnelIp(); times = 1;
 
             vB.ensureLogicalSwitchExists(
                 VtepConstants.bridgeIdToLogicalSwitchName(bridgeId), anyInt);
@@ -271,7 +268,6 @@ public class VxLanFloodingProxyTest {
                 (Callback<VtepDataClient, VtepException>)any);
             result = emptySubscription; times = 1;
             vB.observableUpdates(); result = Observable.empty(); times = 1;
-            vtepClient.getTunnelIp(); times = 1;
 
             vB.ensureLogicalSwitchExists(
                 VtepConstants.bridgeIdToLogicalSwitchName(bridgeId), anyInt);
@@ -327,7 +323,6 @@ public class VxLanFloodingProxyTest {
                 (Callback<VtepDataClient, VtepException>)any);
             result = emptySubscription; times = 1;
             vB.observableUpdates(); result = Observable.empty(); times = 1;
-            vtepClient.getTunnelIp(); times = 1;
 
             vB.ensureLogicalSwitchExists(
                 VtepConstants.bridgeIdToLogicalSwitchName(bridgeId), anyInt);
@@ -378,7 +373,6 @@ public class VxLanFloodingProxyTest {
                 (Callback<VtepDataClient, VtepException>)any);
             result = emptySubscription; times = 1;
             vB.observableUpdates(); result = Observable.empty(); times = 1;
-            vtepClient.getTunnelIp(); times = 1;
 
             vB.ensureLogicalSwitchExists(
                 VtepConstants.bridgeIdToLogicalSwitchName(bridgeId), anyInt);
@@ -437,7 +431,6 @@ public class VxLanFloodingProxyTest {
                 (Callback<VtepDataClient, VtepException>)any);
             result = emptySubscription; times = 1;
             vB.observableUpdates(); result = Observable.empty(); times = 1;
-            vtepClient.getTunnelIp(); times = 1;
 
             vB.ensureLogicalSwitchExists(
                 VtepConstants.bridgeIdToLogicalSwitchName(bridgeId), anyInt);
@@ -512,7 +505,6 @@ public class VxLanFloodingProxyTest {
                 (Callback<VtepDataClient, VtepException>)any);
             result = emptySubscription; times = 1;
             vB.observableUpdates(); result = Observable.empty(); times = 1;
-            vtepClient.getTunnelIp(); times = 1;
 
             vB.ensureLogicalSwitchExists(
                 VtepConstants.bridgeIdToLogicalSwitchName(bridgeId), anyInt);
@@ -580,7 +572,6 @@ public class VxLanFloodingProxyTest {
                 (Callback<VtepDataClient, VtepException>)any);
             result = emptySubscription; times = 1;
             vB.observableUpdates(); result = Observable.empty(); times = 1;
-            vtepClient.getTunnelIp(); times = 1;
 
             vB.ensureLogicalSwitchExists(
                 VtepConstants.bridgeIdToLogicalSwitchName(bridgeId), anyInt);
@@ -654,7 +645,6 @@ public class VxLanFloodingProxyTest {
                 (Callback<VtepDataClient, VtepException>)any);
             result = emptySubscription; times = 1;
             vB.observableUpdates(); result = Observable.empty(); times = 1;
-            vtepClient.getTunnelIp(); times = 1;
 
             vB.ensureLogicalSwitchExists(
                 VtepConstants.bridgeIdToLogicalSwitchName(bridgeId), anyInt);
@@ -726,7 +716,6 @@ public class VxLanFloodingProxyTest {
                 (Callback<VtepDataClient, VtepException>)any);
             result = emptySubscription; times = 1;
             vB.observableUpdates(); result = Observable.empty(); times = 1;
-            vtepClient.getTunnelIp(); times = 1;
 
             vB.ensureLogicalSwitchExists(
                 VtepConstants.bridgeIdToLogicalSwitchName(bridgeId), anyInt);
@@ -800,7 +789,6 @@ public class VxLanFloodingProxyTest {
                 (Callback<VtepDataClient, VtepException>)any);
             result = emptySubscription; times = 1;
             vB.observableUpdates(); result = Observable.empty(); times = 1;
-            vtepClient.getTunnelIp(); times = 1;
 
             vB.ensureLogicalSwitchExists(anyString, anyInt); times = 1;
             vB.renewBindings((org.opendaylight.ovsdb.lib.notation.UUID)any,
@@ -868,7 +856,6 @@ public class VxLanFloodingProxyTest {
                 (Callback<VtepDataClient, VtepException>)any);
             result = emptySubscription; times = 1;
             vB.observableUpdates(); result = Observable.empty(); times = 1;
-            vtepClient.getTunnelIp(); times = 1;
 
             vB.ensureLogicalSwitchExists(
                 VtepConstants.bridgeIdToLogicalSwitchName(bridgeId), anyInt);
@@ -937,7 +924,6 @@ public class VxLanFloodingProxyTest {
                 (Callback<VtepDataClient, VtepException>)any);
             result = emptySubscription; times = 1;
             vB.observableUpdates(); result = Observable.empty(); times = 1;
-            vtepClient.getTunnelIp(); times = 1;
 
             vB.ensureLogicalSwitchExists(
                 VtepConstants.bridgeIdToLogicalSwitchName(bridgeId), anyInt);
@@ -1019,7 +1005,6 @@ public class VxLanFloodingProxyTest {
                 (Callback<VtepDataClient, VtepException>)any);
             result = emptySubscription; times = 1;
             vB1.observableUpdates(); result = Observable.empty(); times = 1;
-            vtepClient.getTunnelIp(); times = 1;
 
             vtepDataClientFactory.connect((IPv4Addr)any, VTEP_MGMT_PORT,
                                            (UUID)any);
@@ -1030,7 +1015,6 @@ public class VxLanFloodingProxyTest {
                 (Callback<VtepDataClient, VtepException>)any);
             result = emptySubscription; times = 1;
             vB2.observableUpdates(); result = Observable.empty(); times = 1;
-            vtepClient.getTunnelIp(); times = 1;
 
             vB1.ensureLogicalSwitchExists(
                 VtepConstants.bridgeIdToLogicalSwitchName(bridgeId), anyInt);
@@ -1136,7 +1120,6 @@ public class VxLanFloodingProxyTest {
                 (Callback<VtepDataClient, VtepException>)any);
             result = emptySubscription; times = 1;
             vB.observableUpdates(); result = Observable.empty(); times = 1;
-            vtepClient.getTunnelIp(); times = 1;
 
             vB.ensureLogicalSwitchExists(
                 VtepConstants.bridgeIdToLogicalSwitchName(bridgeId), anyInt);
@@ -1240,7 +1223,6 @@ public class VxLanFloodingProxyTest {
                 (Callback<VtepDataClient, VtepException>)any);
             result = emptySubscription; times = 1;
             vB.observableUpdates(); result = Observable.empty(); times = 1;
-            vtepClient.getTunnelIp(); times = 1;
 
             vB.ensureLogicalSwitchExists(
                 VtepConstants.bridgeIdToLogicalSwitchName(bridgeId), anyInt);

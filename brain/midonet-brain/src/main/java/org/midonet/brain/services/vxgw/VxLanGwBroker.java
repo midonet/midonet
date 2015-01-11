@@ -16,6 +16,9 @@
 package org.midonet.brain.services.vxgw;
 
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import org.slf4j.Logger;
@@ -35,11 +38,12 @@ import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.VTEP;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
+import org.midonet.packets.IPv4Addr;
 import org.midonet.util.functors.Callback;
 
 /**
- * This class orchestrates synchronisation across logical switch
- * components comprising a vtep and midonet bridges.
+ * This class orchestrates synchronisation across logical switch participants
+ * comprising a vtep and midonet bridges.
  */
 public class VxLanGwBroker {
 
@@ -49,25 +53,18 @@ public class VxLanGwBroker {
     // The connection UUID
     private final java.util.UUID connectionId;
 
-    // Vtep configuration store client provider
-    private final VtepDataClientFactory vtepDataClientFactory;
+    // VTEP Configuration store clients, peers, and conection subscriptions
+    private final Map<IPv4Addr, VtepDataClient> vtepClients = new HashMap<>();
+    public final Map<IPv4Addr, VtepBroker> vtepPeers = new HashMap<>();
+    private final Map<IPv4Addr, Subscription> cnxnSubscriptions = new HashMap<>();
 
-    // VTEP Configuration store client
-    private final VtepDataClient vtepClient;
-
-    // VTEP peer
-    public final VtepBroker vtepPeer;
+    private final Map<IPv4Addr, Subscription> midoSubscriptions = new HashMap<>();
+    private final Map<IPv4Addr, Subscription> vtepSubscriptions = new HashMap<>();
 
     // Midonet peer
     public final MidoVxLanPeer midoPeer;
 
-    private final Subscription midoSubscription;
-    private final Subscription vtepSubscription;
-    private final Subscription connectSubscription;
-
-    /**
-     * Error handler for each rx.Observable.
-     */
+    // Error handler for each rx.Observable.
     private final Action1<Throwable> errorHandler = new Action1<Throwable>() {
         @Override
         public void call(Throwable throwable) {
@@ -75,9 +72,7 @@ public class VxLanGwBroker {
         }
     };
 
-    /**
-     * Finalizer for rx.Observables.
-     */
+    // Finalizer for rx.Observables.
     private final Action0 completionHandler = new Action0() {
         @Override
         public void call() {
@@ -91,21 +86,50 @@ public class VxLanGwBroker {
      */
     public VxLanGwBroker(final DataClient midoClient,
                          VtepDataClientFactory vtepDataClientFactory,
-                         final VTEP vtep,
+                         final List<VTEP> vteps,
                          TunnelZoneState tunnelZone,
-                         UUID connectionId) throws VtepStateException {
-        log.info("Setup VXGW broker for VTEP {}", vtep.getId());
-        this.vtepDataClientFactory = vtepDataClientFactory;
-        this.connectionId = connectionId;
+                         UUID cnxnId) throws VtepStateException {
+        connectionId = cnxnId;
 
-        vtepClient = this.vtepDataClientFactory
-            .connect(vtep.getId(), vtep.getMgmtPort(), connectionId);
+        for (final VTEP vtep : vteps) {
+            final VtepDataClient vtepClient = vtepDataClientFactory.connect(
+                                                  vtep.getId(),
+                                                  vtep.getMgmtPort(), cnxnId);
+            final VtepBroker vtepPeer = new VtepBroker(vtepClient);
 
-        this.vtepPeer = new VtepBroker(this.vtepClient);
-        this.midoPeer = new MidoVxLanPeer(midoClient);
+            vtepPeers.put(vtep.getId(), vtepPeer);
+            vtepClients.put(vtep.getId(), vtepClient);
 
-        // Set a callback method for when the VTEP becomes connected.
-        connectSubscription = vtepClient.onConnected(
+            // Set a callback method for when the VTEP becomes connected.
+            Subscription cnxnSubscription = setCnxnSubscription(
+                vtepClient, midoClient, vtep, vtepPeer);
+
+            cnxnSubscriptions.put(vtep.getId(), cnxnSubscription);
+
+        }
+
+        midoPeer = new MidoVxLanPeer(midoClient);
+
+        // Wire peers
+        for (Map.Entry<IPv4Addr, VtepBroker> e : vtepPeers.entrySet()) {
+            IPv4Addr vtepIp = e.getKey();
+            VtepBroker vtepPeer = e.getValue();
+            midoSubscriptions.put(vtepIp, wirePeers(midoPeer, vtepPeer));
+            vtepSubscriptions.put(vtepIp, wirePeers(vtepPeer, midoPeer));
+        }
+
+        // TODO: wire vteps to each other
+
+        // Subscribe to the tunnel zone flooding proxy.
+        midoPeer.subscribeToFloodingProxy(tunnelZone
+                                              .getFloodingProxyObservable());
+
+    }
+
+    private Subscription setCnxnSubscription(
+        final VtepDataClient vtepClient, final DataClient midoClient,
+        final VTEP vtep, final VtepBroker vtepPeer) {
+        return vtepClient.onConnected(
             new Callback<VtepDataClient, VtepException>() {
                 @Override
                 public void onSuccess(VtepDataClient client) {
@@ -116,12 +140,19 @@ public class VxLanGwBroker {
                         Collection<UUID> boundNetworks =
                             midoClient.bridgesBoundToVtep(vtep.getId());
                         vtepPeer.pruneUnwantedLogicalSwitches(boundNetworks);
+                        try {
+                            // Try and update the VTEP data.
+                            if (null == vtep.getTunnelIp()) {
+                                vtep.setTunnelIp(vtepClient.getTunnelIp());
+                                midoClient.vtepUpdate(vtep);
+                            }
+                        } catch (StateAccessException | SerializationException e) {
+                            log.warn("VTEP {}: config update failed", e.getMessage());
+                        }
                     } catch (StateAccessException | SerializationException e) {
-                        log.error("Cannot clear logical switches for VTEP {}: "
-                                  + "retrieving state failed.", client, e);
+                        log.error("VTEP {}: retrieving state failed.", client, e);
                     } catch (VtepNotConnectedException e) {
-                        log.warn("Cannot clear logical switches for VTEP {}: "
-                                 + "connectoin failed (retrying)", client);
+                        log.warn("VTEP {}: connection failed (will retry)", client);
                         client.onConnected(this);
                     }
                 }
@@ -131,38 +162,31 @@ public class VxLanGwBroker {
 
                 @Override
                 public void onError(VtepException e) {
-                    log.error("Connection to VTEP {} was disposed.", e.vtep);
+                    log.error("VTEP {}: conection closed after error.", e.vtep);
                 }
             });
-
-        // Wire peers
-        midoSubscription = wirePeers(midoPeer, vtepPeer);
-        vtepSubscription = wirePeers(vtepPeer, midoPeer);
-
-        // Subscribe to the tunnel zone flooding proxy.
-        midoPeer.subscribeToFloodingProxy(
-            tunnelZone.getFloodingProxyObservable());
-
-        // Try and update the VTEP data.
-        try {
-            if (null == vtep.getTunnelIp()) {
-                vtep.setTunnelIp(vtepClient.getTunnelIp());
-                midoClient.vtepUpdate(vtep);
-            }
-        } catch (StateAccessException | SerializationException e) {
-            log.warn("Failed to update VTEP configuration: {}", e.getMessage());
-        }
     }
 
-    /**
-     * Clean up state.
-     */
+    /** Clean up state. */
     public void terminate() throws VtepStateException {
-        log.info("Terminating VXGW broker for VTEP {}", vtepClient);
-        midoSubscription.unsubscribe();
-        vtepSubscription.unsubscribe();
-        connectSubscription.unsubscribe();
-        vtepClient.disconnect(connectionId, true);
+        for (Map.Entry<IPv4Addr, VtepDataClient> e : vtepClients.entrySet()) {
+            IPv4Addr ip = e.getKey();
+            VtepDataClient client = e.getValue();
+            log.info("VTEP {}: disconnecting", client);
+            for (Subscription s : midoSubscriptions.values()) {
+                s.unsubscribe();
+            }
+            for (Subscription s : vtepSubscriptions.values()) {
+                s.unsubscribe();
+            }
+            midoSubscriptions.clear();
+            vtepSubscriptions.clear();
+            Subscription s = cnxnSubscriptions.remove(ip);
+            if (s != null) {
+                s.unsubscribe();
+            }
+            client.disconnect(connectionId, true);
+        }
         midoPeer.stop();
     }
 
