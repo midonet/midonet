@@ -350,7 +350,7 @@ public class BridgeMonitorTest extends DeviceMonitorTestBase<UUID, Bridge> {
         UUID bridgeId = makeBoundBridge("bridge1");
 
         // Remove vxlan port
-        dataClient.bridgeDeleteVxLanPort(bridgeId);
+        dataClient.bridgeDeleteVxLanPort(bridgeId, vtepMgmtIp);
 
         creations.unsubscribe();
         updates.unsubscribe();
