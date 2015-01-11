@@ -42,7 +42,8 @@ public class JerseyGuiceTestServletContextListener extends
         try {
             testZk = new TestingServer(FuncTest.ZK_TEST_PORT);
         } catch (Exception e) {
-            throw new IllegalStateException("Cannot start zookeeper server");
+            throw new IllegalStateException("Can't start Zookeeper server at " +
+                                             FuncTest.ZK_TEST_PORT);
         }
     }
 

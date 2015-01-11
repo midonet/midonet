@@ -132,13 +132,13 @@ public class VtepZkManager
     }
 
     public VtepBinding getBinding(IPv4Addr ipAddr, String portName,
-                                  short vlanId)
-            throws StateAccessException {
+                                  short vlanId) throws StateAccessException {
         List<VtepBinding> bindings = getBindings(ipAddr);
         for (VtepBinding binding : bindings) {
             if (vlanId == binding.getVlanId() &&
-                    portName.equals(binding.getPortName()))
+                portName.equals(binding.getPortName())) {
                 return binding;
+            }
         }
 
         return null;
