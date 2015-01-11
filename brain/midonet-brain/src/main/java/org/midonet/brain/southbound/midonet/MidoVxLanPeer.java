@@ -391,7 +391,7 @@ public class MidoVxLanPeer implements VxLanPeer {
             return null;
         }
 
-        UUID vxLanPortId = bridge.getVxLanPortId();
+        UUID vxLanPortId = bridge.getVxLanPortIds().get(0);
         if (vxLanPortId == null) { // Probably race again with a port removal
             if (bridge.getVxLanPortIds() == null ||
                 bridge.getVxLanPortIds().isEmpty()) {

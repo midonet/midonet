@@ -99,14 +99,6 @@ public class BridgeResource extends AbstractResource {
         this.factory = factory;
     }
 
-    /**
-     * Handler to deleting a bridge.
-     *
-     * @param id
-     *            Bridge ID from the request.
-     * @throws StateAccessException
-     *             Data access error.
-     */
     @DELETE
     @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })
     @Path("{id}")
@@ -129,21 +121,13 @@ public class BridgeResource extends AbstractResource {
         bridgeEvent.delete(id);
     }
 
-    /**
-     * Handler to getting a bridge.
-     *
-     * @param id
-     *            Bridge ID from the request.
-     * @throws StateAccessException
-     *             Data access error.
-     * @return A Bridge object.
-     */
     @GET
     @PermitAll
     @Path("{id}")
     @Produces({ VendorMediaType.APPLICATION_BRIDGE_JSON,
-            VendorMediaType.APPLICATION_BRIDGE_JSON_V2,
-            MediaType.APPLICATION_JSON })
+                VendorMediaType.APPLICATION_BRIDGE_JSON_V2,
+                VendorMediaType.APPLICATION_BRIDGE_JSON_V3,
+                MediaType.APPLICATION_JSON })
     public Bridge get(@PathParam("id") UUID id)
             throws StateAccessException, SerializationException {
 
@@ -156,8 +140,21 @@ public class BridgeResource extends AbstractResource {
 
         // Convert to the REST API DTO
         Bridge bridge = new Bridge(bridgeData);
+        bridge = populateLegacyVxlanPortId(bridge);
         bridge.setBaseUri(getBaseUri());
 
+        return bridge;
+    }
+
+    /*
+     * Copy the first vxlan port id from the new list at vxlanPortIds to the
+     * old property vxlanPortId, so V2 clients work.
+     */
+    private Bridge populateLegacyVxlanPortId(Bridge bridge) {
+        List<UUID> vxlanPortIds = bridge.getVxLanPortIds();
+        if (vxlanPortIds != null && !vxlanPortIds.isEmpty()) {
+            bridge.setVxLanPortId(vxlanPortIds.get(0));
+        }
         return bridge;
     }
 
@@ -173,15 +170,34 @@ public class BridgeResource extends AbstractResource {
         if (bridge.getVxLanPortId() == null) {
             throw new NotFoundHttpException(getMessage(NO_VXLAN_PORT));
         }
+        List<UUID> vxlanPortIds = bridge.getVxLanPortIds();
+        if (vxlanPortIds == null || !vxlanPortIds.contains(id)) {
+            throw new NotFoundHttpException(getMessage(NO_VXLAN_PORT));
+        }
 
         return factory.getPortResource().get(bridge.getVxLanPortId());
     }
 
+    @GET
+    @RolesAllowed({AuthRole.ADMIN})
+    @Path("/{id}" + ResourceUriBuilder.VXLAN_PORTS)
+    @Produces({ VendorMediaType.APPLICATION_PORT_JSON,
+                MediaType.APPLICATION_JSON})
+    public List<Port> getVxLanPorts(@PathParam("id") UUID id)
+        throws StateAccessException, SerializationException {
+        org.midonet.cluster.data.Bridge bridge = getBridgeOrThrow(id, false);
+        List<UUID> vxlanPortIds = bridge.getVxLanPortIds();
+        if (vxlanPortIds == null || !vxlanPortIds.contains(id)) {
+            throw new NotFoundHttpException(getMessage(NO_VXLAN_PORT));
+        }
+        List<Port> ports = new ArrayList<>(vxlanPortIds.size());
+        for (UUID portId : vxlanPortIds) {
+            ports.add(factory.getPortResource().get(portId));
+        }
+        return ports;
+    }
+
     /**
-     * Port resource locator for bridges.
-     *
-     * @param id
-     *            Bridge ID from the request.
      * @return BridgePortResource object to handle sub-resource requests.
      */
     @Path("/{id}" + ResourceUriBuilder.PORTS)
@@ -192,8 +208,6 @@ public class BridgeResource extends AbstractResource {
     /**
      * DHCP resource locator for bridges.
      *
-     * @param id
-     *            Bridge ID from the request.
      * @return BridgeDhcpResource object to handle sub-resource requests.
      */
     @Path("/{id}" + ResourceUriBuilder.DHCP)
@@ -204,8 +218,7 @@ public class BridgeResource extends AbstractResource {
     /**
      * DHCPV6 resource locator for bridges.
      *
-     * @param id
-     *            Bridge ID from the request.
+     * @param id Bridge ID from the request.
      * @return BridgeDhcpV6Resource object to handle sub-resource requests.
      */
     @Path("/{id}" + ResourceUriBuilder.DHCPV6)
@@ -216,8 +229,7 @@ public class BridgeResource extends AbstractResource {
     /**
      * Peer port resource locator for bridges.
      *
-     * @param id
-     *            Bridge ID from the request.
+     * @param id Bridge ID from the request.
      * @return BridgePeerPortResource object to handle sub-resource requests.
      */
     @Path("/{id}" + ResourceUriBuilder.PEER_PORTS)
@@ -229,10 +241,8 @@ public class BridgeResource extends AbstractResource {
     /**
      * Handler to updating a bridge.
      *
-     * @param id
-     *            Bridge ID from the request.
-     * @param bridge
-     *            Bridge object.
+     * @param id Bridge ID from the request.
+     * @param bridge Bridge object.
      * @throws StateAccessException
      *             Data access error.
      */
@@ -240,7 +250,8 @@ public class BridgeResource extends AbstractResource {
     @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })
     @Path("{id}")
     @Consumes({ VendorMediaType.APPLICATION_BRIDGE_JSON,
-            VendorMediaType.APPLICATION_BRIDGE_JSON_V2,
+                VendorMediaType.APPLICATION_BRIDGE_JSON_V2,
+                VendorMediaType.APPLICATION_BRIDGE_JSON_V3,
             MediaType.APPLICATION_JSON })
     public void update(@PathParam("id") UUID id, Bridge bridge)
             throws StateAccessException,
@@ -271,6 +282,7 @@ public class BridgeResource extends AbstractResource {
     @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })
     @Consumes({ VendorMediaType.APPLICATION_BRIDGE_JSON,
             VendorMediaType.APPLICATION_BRIDGE_JSON_V2,
+            VendorMediaType.APPLICATION_BRIDGE_JSON_V3,
             MediaType.APPLICATION_JSON })
     public Response create(Bridge bridge)
             throws StateAccessException, SerializationException{
@@ -299,6 +311,7 @@ public class BridgeResource extends AbstractResource {
     @RolesAllowed({ AuthRole.ADMIN })
     @Produces({ VendorMediaType.APPLICATION_BRIDGE_COLLECTION_JSON,
             VendorMediaType.APPLICATION_BRIDGE_COLLECTION_JSON_V2,
+            VendorMediaType.APPLICATION_BRIDGE_COLLECTION_JSON_V3,
             MediaType.APPLICATION_JSON })
     public List<Bridge> list(@QueryParam("tenant_id") String tenantId)
             throws StateAccessException, SerializationException {
@@ -315,6 +328,7 @@ public class BridgeResource extends AbstractResource {
                     dataBridges) {
                 Bridge bridge = new Bridge(dataBridge);
                 bridge.setBaseUri(getBaseUri());
+                bridge = populateLegacyVxlanPortId(bridge);
                 bridges.add(bridge);
             }
         }
