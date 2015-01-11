@@ -37,7 +37,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.midonet.api.validation.MessageProperty.getMessage;
 import static org.midonet.client.VendorMediaType.APPLICATION_BRIDGE_JSON;
-import static org.midonet.client.VendorMediaType.APPLICATION_BRIDGE_JSON_V2;
+import static org.midonet.client.VendorMediaType.APPLICATION_BRIDGE_JSON_V3;
 import static org.midonet.client.VendorMediaType.APPLICATION_PORT_V2_JSON;
 
 public abstract class RestApiTestBase extends JerseyTest {
@@ -113,7 +113,7 @@ public abstract class RestApiTestBase extends JerseyTest {
         bridge.setTenantId("tenant1");
         bridge = dtoResource.postAndVerifyCreated(
                 topology.getApplication().getBridges(),
-                APPLICATION_BRIDGE_JSON, bridge, DtoBridge.class);
+                APPLICATION_BRIDGE_JSON_V3, bridge, DtoBridge.class);
         assertNotNull(bridge.getId());
         assertNotNull(bridge.getUri());
         return bridge;
@@ -122,7 +122,7 @@ public abstract class RestApiTestBase extends JerseyTest {
     protected DtoBridge getBridge(UUID id) {
         URI uri = UriBuilder.fromPath(app.getBridgeTemplate()).build(id);
         return dtoResource.getAndVerifyOk(
-                uri, APPLICATION_BRIDGE_JSON_V2, DtoBridge.class);
+                uri, APPLICATION_BRIDGE_JSON_V3, DtoBridge.class);
     }
 
     protected DtoBridge getBridgeV1(UUID id) {
