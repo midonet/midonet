@@ -362,7 +362,7 @@ public class VxLanGatewayServiceTest {
                                          vni, vtepMgmtIp, tzId);
 
         // remove binding from the bridge
-        dataClient.bridgeDeleteVxLanPort(bridgeId);
+        dataClient.bridgeDeleteVxLanPort(bridgeId, vtepMgmtIp);
 
         gwsrv.stopAsync().awaitTerminated();
     }
@@ -439,7 +439,7 @@ public class VxLanGatewayServiceTest {
                                            (UUID)any);
             result = vtepClient.connect(vtepMgmtIp, vtepMgmntPort); times = 1;
             VtepBroker vB = new VtepBroker(vtepClient); times = 1;
-            MidoVxLanPeer mP = new MidoVxLanPeer(dataClient); times = 1;
+            new MidoVxLanPeer(dataClient); times = 1;
 
             vB.pruneUnwantedLogicalSwitches(new HashSet<UUID>());
 
@@ -448,8 +448,8 @@ public class VxLanGatewayServiceTest {
         }};
 
         VxLanGatewayService gwsrv1 =
-            new VxLanGatewayService(
-                dataClient, vtepDataClientFactory, zkConnWatcher, config);
+            new VxLanGatewayService(dataClient,vtepDataClientFactory,
+                                    zkConnWatcher, config);
         // the initial vtep should be detected
         gwsrv1.startAsync().awaitRunning();
 

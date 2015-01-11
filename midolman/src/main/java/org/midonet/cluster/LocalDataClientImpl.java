@@ -630,7 +630,18 @@ public class LocalDataClientImpl implements DataClient {
 
         Bridge bridge = null;
         if (bridgeZkManager.exists(id)) {
-            bridge = Converter.fromBridgeConfig(bridgeZkManager.get(id));
+            BridgeConfig bridgeCfg = bridgeZkManager.get(id);
+            if (bridgeCfg.vxLanPortId != null) {
+                log.info("Migrating legacy vxlanPortId property to " +
+                         "vxlanPortIds on bridge {}", id);
+                if (!bridgeCfg.vxLanPortIds.contains(bridgeCfg.vxLanPortId)) {
+                    bridgeCfg.vxLanPortIds.set(0, bridgeCfg.vxLanPortId);
+                }
+                bridgeCfg.vxLanPortId = null;
+                bridgeZkManager.update(id, bridgeCfg);
+                bridgeCfg = bridgeZkManager.get(id);
+            }
+            bridge = Converter.fromBridgeConfig(bridgeCfg);
             bridge.setId(id);
         }
 
@@ -3247,24 +3258,36 @@ public class LocalDataClientImpl implements DataClient {
     @Override
     public List<VtepBinding> bridgeGetVtepBindings(@Nonnull UUID bridgeId)
         throws StateAccessException, SerializationException {
+        return bridgeGetVtepBindings(bridgeId, null);
+    }
+
+    @Override
+    public List<VtepBinding> bridgeGetVtepBindings(@Nonnull UUID bridgeId,
+                                                   IPv4Addr vtepMgmtIp)
+        throws StateAccessException, SerializationException {
         List<VtepBinding> bindings = new ArrayList<>();
         Bridge br = bridgesGet(bridgeId);
-        if ((br == null) || (br.getVxLanPortId() == null)) {
+        if ((br == null) || br.getVxLanPortIds() == null) {
             return bindings;
         }
-        VxLanPort vxLanPort = (VxLanPort)portsGet(br.getVxLanPortId());
-        if (vxLanPort == null) {
-            return bindings;
-        }
-        List<VtepBinding> all = vtepZkManager
-                                .getBindings(vxLanPort.getMgmtIpAddr());
 
-        for (VtepBinding b : all) {
-            if (b.getNetworkId().equals(bridgeId)) {
-                bindings.add(b);
+        for (UUID id : br.getVxLanPortIds()) {
+            VxLanPort vxLanPort = (VxLanPort)portsGet(id);
+            if (vxLanPort == null) {
+                continue;
+            }
+            IPv4Addr portMgmtIp = vxLanPort.getMgmtIpAddr();
+            if (vtepMgmtIp != null &&
+                !portMgmtIp.equals(vtepMgmtIp)) {
+                continue;
+            }
+            List<VtepBinding> all = vtepZkManager.getBindings(portMgmtIp);
+            for (VtepBinding b : all) {
+                if (b.getNetworkId().equals(bridgeId)) {
+                    bindings.add(b);
+                }
             }
         }
-
         return bindings;
     }
 
@@ -3307,9 +3330,9 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
-    public IPv4Addr vxlanTunnelEndpointFor(UUID id)
+    public IPv4Addr vxlanTunnelEndpointFor(UUID bridgePort)
         throws SerializationException, StateAccessException {
-        BridgePort port = (BridgePort) portsGet(id);
+        BridgePort port = (BridgePort) portsGet(bridgePort);
         if (port == null) {
             return null;
         }
@@ -3332,28 +3355,33 @@ public class LocalDataClientImpl implements DataClient {
     /*
      * Utility method to use internaly. It assumes that the caller has verified
      * that both the bridge and port are non-null.
+     *
      * It's convenient to slice this out so other methods can fetch the
      * parameters as they prefer, and then use this to retrieve the vxlan
      * tunnel endpoint. The method returns a null IP if the endpoint cannot
      * be retrieved for any reason (bridge unbound, etc.)
      *
      * @param b a bridge, expected to exist, be bound to a VTEP, and contain the
-     *          given port
+     *          given port.
      * @param port a bridge port on the given bridge, that must be exterior
      * @return the IP address of the bound host's membership in the VTEP's
-     * tunnel zone.
+     *         tunnel zone.
      */
     private IPv4Addr vxlanTunnelEndpointForInternal(Bridge b, BridgePort port)
         throws SerializationException, StateAccessException {
 
-        if (b.getVxLanPortId() == null) {
+        if (b.getVxLanPortIds() == null || b.getVxLanPortIds().isEmpty()) {
             log.warn("Bridge {} is not bound to a vtep", b.getId());
             return null;
         }
-        VxLanPort vxlanPort = (VxLanPort)this.portsGet(b.getVxLanPortId());
+        // TODO: add this check below to the validation
+        // We can take a random vxlan port, since all are forced to be in the
+        // same tz
+        VxLanPort vxlanPort = (VxLanPort)this.portsGet(b.getVxLanPortIds()
+                                                        .get(0));
         if (vxlanPort == null) {
             log.warn("VxLanPort {} at bridge {} does not exist anymore",
-                     b.getVxLanPortId(), b.getId());
+                     b.getVxLanPortIds(), b.getId());
             return null;
         }
         IPv4Addr vtepMgmtIp = vxlanPort.getMgmtIpAddr();
@@ -3375,6 +3403,7 @@ public class LocalDataClientImpl implements DataClient {
                      vtepMgmtIp, b.getId());
             return null;
         }
+
         UUID tzId = vtep.getTunnelZoneId();
         TunnelZone.HostConfig hostCfg =
             this.tunnelZonesGetMembership(tzId, hostId);
@@ -3395,17 +3424,20 @@ public class LocalDataClientImpl implements DataClient {
             IPv4Addr tunnelIp, UUID tunnelZoneId)
             throws StateAccessException, SerializationException {
 
+        // the get below migrates from legacy schema if needed
         BridgeConfig bridgeConfig = bridgeZkManager.get(bridgeId);
 
-        if (bridgeConfig.vxLanPortId != null) {
-            if (!bridgeConfig.vxLanPortIds.contains(bridgeConfig.vxLanPortId)) {
-                bridgeConfig.vxLanPortIds.add(bridgeConfig.vxLanPortId);
-                log.info("Migrate legacy vxlanPortId on bridge {}", bridgeId);
-            }
+        if (bridgeConfig.vxLanPortIds == null) {
+            bridgeConfig.vxLanPortIds = new ArrayList<>(2);
         }
 
-        for (UUID id: bridgeConfig.vxLanPortIds) {
-            VxLanPort p = (VxLanPort)portsGet(id);
+        // migrate legacy data
+        if (bridgeConfig.vxLanPortId != null) {
+            bridgeConfig.vxLanPortIds.add(0, bridgeConfig.vxLanPortId);
+        }
+
+        for (UUID id : bridgeConfig.vxLanPortIds) {
+            VxLanPort p = (VxLanPort) portsGet(id);
             if (p.getMgmtIpAddr().equals(mgmtIp)) {
                 throw new IllegalStateException(
                     "Not expected to find a port for vtep " + mgmtIp);
@@ -3427,34 +3459,56 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
-    public void bridgeDeleteVxLanPort(UUID bridgeId)
+    public void bridgeDeleteVxLanPort(UUID bridgeId, IPv4Addr mgmtIp)
+        throws SerializationException, StateAccessException {
+        Bridge b = bridgesGet(bridgeId);
+        if (b == null || b.getVxLanPortIds() == null) {
+            return;
+        }
+        for (UUID portId : b.getVxLanPortIds()) {
+            VxLanPort p = (VxLanPort)portsGet(portId);
+            if (p.getMgmtIpAddr().equals(mgmtIp)) {
+                bridgeDeleteVxLanPort(p);
+                return;
+            }
+        }
+    }
+
+    @Override
+    public void bridgeDeleteVxLanPort(@Nonnull VxLanPort port)
             throws SerializationException, StateAccessException {
 
         // Make sure the bridge has a VXLAN port.
-        BridgeConfig bridgeConfig = bridgeZkManager.get(bridgeId);
-        UUID vxLanPortId = bridgeConfig.vxLanPortId;
-        if (vxLanPortId == null) {
-            throw new IllegalStateException(
-                    "Attempted to delete VxLanPort for bridge " +
-                    bridgeId + ", which has no VxLanPort.");
-        }
+        BridgeConfig bridgeCfg = bridgeZkManager.get(port.getDeviceId());
+        UUID vxlanPortId = port.getId();
 
         List<Op> ops = new ArrayList<>();
+        // Let's locate this id in the legacy or new vxlanPortIds of the bridge
+        if (bridgeCfg.vxLanPortId != null &&
+            bridgeCfg.vxLanPortId.equals(vxlanPortId)) {
+            bridgeCfg.vxLanPortId = null;
+        } else if (bridgeCfg.vxLanPortIds != null &&
+                   bridgeCfg.vxLanPortIds.contains(vxlanPortId)) {
+            bridgeCfg.vxLanPortIds.remove(vxlanPortId);
+            // Take advantage and migrate legacy data if necessary
+            if (bridgeCfg.vxLanPortId != null) {
+                bridgeCfg.vxLanPortIds.add(bridgeCfg.vxLanPortId);
+                bridgeCfg.vxLanPortId = null;
+            }
+        }
 
-        // Clear bridge's vxLanPortId property.
-        bridgeConfig.vxLanPortId = null;
-        ops.addAll(bridgeZkManager.prepareUpdate(bridgeId, bridgeConfig));
+        ops.addAll(bridgeZkManager.prepareUpdate(bridgeCfg.id, bridgeCfg));
 
         // Delete the port.
         VxLanPortConfig portConfig =
-                (VxLanPortConfig)portZkManager.get(vxLanPortId);
+                (VxLanPortConfig)portZkManager.get(vxlanPortId);
 
-        ops.addAll(portZkManager.prepareDelete(vxLanPortId));
+        ops.addAll(portZkManager.prepareDelete(vxlanPortId));
 
         // Delete its bindings in Zookeeper.
         ops.addAll(vtepZkManager.prepareDeleteAllBindings(
-                IPv4Addr.fromString(portConfig.mgmtIpAddr),
-                portConfig.device_id));
+            IPv4Addr.fromString(portConfig.mgmtIpAddr),
+            portConfig.device_id));
 
         zkManager.multi(ops);
     }

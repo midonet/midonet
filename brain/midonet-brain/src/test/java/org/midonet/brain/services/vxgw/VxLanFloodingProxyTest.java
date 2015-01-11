@@ -57,7 +57,6 @@ import org.midonet.util.functors.Callback;
 import mockit.Expectations;
 import mockit.Mocked;
 import mockit.integration.junit4.JMockit;
-
 import static org.junit.Assert.assertEquals;
 
 @RunWith(JMockit.class)
@@ -828,11 +827,11 @@ public class VxLanFloodingProxyTest {
         assertEquals(vxgwService.getFloodingProxy(tzId), hostId);
         createBridge(bridgeId, 1);
         assertEquals(vxgwService.getFloodingProxy(tzId), hostId);
-        midoClient.bridgeCreateVxLanPort(
-            bridgeId, vtepId, VTEP_MGMT_PORT, VTEP_VNI, getVtepAddress(1),
-            tzId);
+        midoClient.bridgeCreateVxLanPort(bridgeId, vtepId,
+                                         VTEP_MGMT_PORT, VTEP_VNI,
+                                         getVtepAddress(1), tzId);
         assertEquals(vxgwService.getFloodingProxy(tzId), hostId);
-        midoClient.bridgeDeleteVxLanPort(bridgeId);
+        midoClient.bridgeDeleteVxLanPort(bridgeId, vtepId);
         assertEquals(vxgwService.getFloodingProxy(tzId), hostId);
         midoClient.bridgesDelete(bridgeId);
         assertEquals(vxgwService.getFloodingProxy(tzId), hostId);
@@ -898,11 +897,11 @@ public class VxLanFloodingProxyTest {
         assertEquals(vxgwService.getFloodingProxy(tzId), hostId);
         IPv4Addr vtepId = createVtep(1, tzId);
         assertEquals(vxgwService.getFloodingProxy(tzId), hostId);
-        midoClient.bridgeCreateVxLanPort(
-            bridgeId, vtepId, VTEP_MGMT_PORT, VTEP_VNI, getVtepAddress(1),
-            tzId);
+        midoClient.bridgeCreateVxLanPort(bridgeId, vtepId,
+                                         VTEP_MGMT_PORT, VTEP_VNI,
+                                         getVtepAddress(1), tzId);
         assertEquals(vxgwService.getFloodingProxy(tzId), hostId);
-        midoClient.bridgeDeleteVxLanPort(bridgeId);
+        midoClient.bridgeDeleteVxLanPort(bridgeId, vtepId);
         assertEquals(vxgwService.getFloodingProxy(tzId), hostId);
         midoClient.vtepDelete(vtepId);
         assertEquals(vxgwService.getFloodingProxy(tzId), hostId);
@@ -970,11 +969,11 @@ public class VxLanFloodingProxyTest {
         assertEquals(vxgwService.getFloodingProxy(tzId), hostId);
         IPv4Addr vtepId = createVtep(1, tzId);
         assertEquals(vxgwService.getFloodingProxy(tzId), hostId);
-        midoClient.bridgeCreateVxLanPort(
-            bridgeId, vtepId, VTEP_MGMT_PORT, VTEP_VNI, getVtepAddress(1),
-            tzId);
+        midoClient.bridgeCreateVxLanPort(bridgeId, vtepId,
+                                         VTEP_MGMT_PORT, VTEP_VNI,
+                                         getVtepAddress(1), tzId);
         assertEquals(vxgwService.getFloodingProxy(tzId), hostId);
-        midoClient.bridgeDeleteVxLanPort(bridgeId);
+        midoClient.bridgeDeleteVxLanPort(bridgeId, vtepId);
         assertEquals(vxgwService.getFloodingProxy(tzId), hostId);
         midoClient.vtepDelete(vtepId);
         assertEquals(vxgwService.getFloodingProxy(tzId), hostId);
@@ -1083,11 +1082,11 @@ public class VxLanFloodingProxyTest {
         midoClient.bridgeCreateVxLanPort(
             bridgeId, vtepId1, VTEP_MGMT_PORT, VTEP_VNI, getVtepAddress(1),
             tzId1);
-        midoClient.bridgeDeleteVxLanPort(bridgeId);
+        midoClient.bridgeDeleteVxLanPort(bridgeId, vtepId1);
         midoClient.bridgeCreateVxLanPort(
             bridgeId, vtepId2, VTEP_MGMT_PORT, VTEP_VNI, getVtepAddress(2),
             tzId2);
-        midoClient.bridgeDeleteVxLanPort(bridgeId);
+        midoClient.bridgeDeleteVxLanPort(bridgeId, vtepId2);
         vxgwService.stopAsync().awaitTerminated();
     }
 
