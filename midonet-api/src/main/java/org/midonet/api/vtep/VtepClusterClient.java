@@ -53,9 +53,9 @@ import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.packets.IPv4Addr;
 
-import static org.midonet.api.validation.MessageProperty.NETWORK_ALREADY_BOUND;
 import static org.midonet.api.validation.MessageProperty.VTEP_BINDING_NOT_FOUND;
 import static org.midonet.api.validation.MessageProperty.VTEP_INACCESSIBLE;
+import static org.midonet.api.validation.MessageProperty.VTEP_MUST_USE_SAME_TUNNEL_ZONE;
 import static org.midonet.api.validation.MessageProperty.VTEP_NOT_FOUND;
 import static org.midonet.api.validation.MessageProperty.VTEP_PORT_NOT_FOUND;
 import static org.midonet.api.validation.MessageProperty.VTEP_PORT_VLAN_PAIR_ALREADY_USED;
@@ -381,19 +381,40 @@ public class VtepClusterClient {
         VTEP vtep = getVtepOrThrow(mgmtIp, true);
 
         try {
-            // Let's see if the bridge is already bound to a VTEP
-            if (bridge.getVxLanPortId() == null) {
+            // We're assuming here that Bridge has been retrieved migrating the
+            // data in old vxlanPortId property to vxlanPortIds, this should've
+            // been done by the BridgeZkManager. We therefore don't need to
+            // inspect vxlanPortId at all.
+            List<java.util.UUID> vxlanPortIds = bridge.getVxLanPortIds();
+            VxLanPort vxlanPort = null;  // for the vtep of the new binding
+            java.util.UUID tzId = null;
+            if (vxlanPortIds != null) {
+                for (java.util.UUID id : vxlanPortIds) {
+                    VxLanPort port = (VxLanPort) dataClient.portsGet(id);
+                    tzId = port.getTunnelZoneId();
+                    if (port.getMgmtIpAddr().equals(mgmtIp)) {
+                        // got the same vtep, not the first binding then
+                        vxlanPort = port;
+                        break;
+                    }
+                }
+            }
+
+            if (vxlanPort == null) {
+                log.debug("First binding to VTEP at {}", mgmtIp);
+                // For new VTEPs, let's validate the tunnel zone
+                if (tzId != null && vtep.getTunnelZoneId().equals(tzId)) {
+                    log.error("Tunnel zones must match");
+                    throw new BadRequestHttpException(
+                        getMessage(VTEP_MUST_USE_SAME_TUNNEL_ZONE, tzId)
+                    );
+                }
                 createFirstNetworkBinding(vtep, bridge, binding);
             } else {
-                VxLanPort vxlanPort =
-                    (VxLanPort) dataClient.portsGet(bridge.getVxLanPortId());
-                if (!vxlanPort.getMgmtIpAddr().equals(mgmtIp)) {
-                    throw new ConflictHttpException(getMessage(
-                        NETWORK_ALREADY_BOUND, binding.getNetworkId(), mgmtIp));
-                }
-                createAdditionalNetworkBinding(vtep, bridge, vxlanPort,
-                                               binding);
+                log.debug("Additional binding to VTEP at {}", mgmtIp);
+                createAdditionalNetworkBinding(vtep, bridge, vxlanPort, binding);
             }
+
         } catch (VtepNotConnectedException e) {
             throw new GatewayTimeoutHttpException(
                 getMessage(VTEP_INACCESSIBLE, mgmtIp, vtep.getMgmtPort()), e);
@@ -509,7 +530,7 @@ public class VtepClusterClient {
             tryStoreBinding(mgmtIp, mgmtPort, binding.getPortName(),
                             binding.getVlanId(), binding.getNetworkId());
         } catch (ConflictHttpException e) {
-            dataClient.bridgeDeleteVxLanPort(bridge.getId()); // rollback
+            dataClient.bridgeDeleteVxLanPort(vxlanPort); // rollback
             throw e;
         }
 
@@ -565,12 +586,14 @@ public class VtepClusterClient {
                                                        mgmtIp, vlan, portName));
         }
 
-        java.util.UUID bridgeId = binding.getNetworkId();
-
         dataClient.vtepDeleteBinding(mgmtIp, portName, vlan);
-        boolean lastBinding = dataClient.bridgeGetVtepBindings(bridgeId).isEmpty();
+
+        java.util.UUID bridgeId = binding.getNetworkId();
+        boolean lastBinding =
+            dataClient.bridgeGetVtepBindings(bridgeId, mgmtIp).isEmpty();
+
         if (lastBinding) {
-            dataClient.bridgeDeleteVxLanPort(bridgeId);
+            dataClient.bridgeDeleteVxLanPort(bridgeId, mgmtIp);
         }
 
         log.debug("Delete binding on VTEP {}, port {}, VLAN {} persisted",
@@ -610,22 +633,21 @@ public class VtepClusterClient {
         VtepDataClient client = connect(vxLanPort.getMgmtIpAddr(),
                                         vxLanPort.getMgmtPort());
         try {
-            deleteVxLanPort(client, vxLanPort.getDeviceId());
+            deleteVxLanPort(client, vxLanPort);
         } finally {
             disconnect(client);
         }
     }
 
-    private void deleteVxLanPort(VtepDataClient vtepClient,
-                                 java.util.UUID networkId)
+    private void deleteVxLanPort(VtepDataClient vtepClient, VxLanPort vxlanPort)
             throws SerializationException, StateAccessException {
 
         // Delete Midonet VXLAN port. This also deletes all
         // associated bindings.
-        dataClient.bridgeDeleteVxLanPort(networkId);
+        dataClient.bridgeDeleteVxLanPort(vxlanPort);
 
         // Delete the corresponding logical switch on the VTEP.
-        String ls = bridgeIdToLogicalSwitchName(networkId);
+        String ls = bridgeIdToLogicalSwitchName(vxlanPort.getDeviceId());
         Status st = vtepClient.deleteLogicalSwitch(ls);
         if (st.getCode() == StatusCode.NOTFOUND) {
             log.warn("Logical Switch {} was already gone from the VTEP", ls);
