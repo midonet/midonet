@@ -73,6 +73,7 @@ public class ResourceUriBuilder {
     public static final String BINDINGS = "/bindings";
     public static final String PORT_NAME = "/{portName}";
     public static final String VXLAN_PORT = "/vxlan_port";
+    public static final String VXLAN_PORTS = "/vxlan_ports";
     public static final String MAC_ADDR = "/{macAddress}";
     public static final String PORT_ID_NO_SLASH = "{portId}";
     public static final String TENANT_ID_PARAM = "tenant_id";
