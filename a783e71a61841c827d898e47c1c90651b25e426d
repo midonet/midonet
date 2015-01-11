@@ -16,6 +16,24 @@
       "revId": "a783e71a61841c827d898e47c1c90651b25e426d",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_9f180c86",
+        "filename": "netlink/src/main/java/org/midonet/netlink/AbstractNetlinkConnection.java",
+        "patchSetId": 31
+      },
+      "lineNbr": 537,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-01-11T11:45:03Z",
+      "side": 0,
+      "message": "Done",
+      "parentUuid": "1af78d9a_f4b50932",
+      "revId": "a783e71a61841c827d898e47c1c90651b25e426d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
