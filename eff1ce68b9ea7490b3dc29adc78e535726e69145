@@ -1,0 +1,90 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa2559ec_ca19437b",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/TopologyApiServiceApp.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-12T10:02:49Z",
+      "side": 1,
+      "message": "Tab",
+      "revId": "eff1ce68b9ea7490b3dc29adc78e535726e69145",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_0a799b93",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/Aggregator.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-12T10:02:49Z",
+      "side": 1,
+      "message": "Just a question related to the use case: the observable exposed by the aggregator disconnects when its current subscribers unsubscribe, make it unusable for future subscribers. Is that what\u0027s intended here?",
+      "range": {
+        "startLine": 50,
+        "startChar": 48,
+        "endLine": 50,
+        "endChar": 53
+      },
+      "revId": "eff1ce68b9ea7490b3dc29adc78e535726e69145",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_4a2553aa",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/Aggregator.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-12T10:02:49Z",
+      "side": 1,
+      "message": "Minor comment: here we could use makeFunc1 from midonet-util.",
+      "range": {
+        "startLine": 68,
+        "startChar": 31,
+        "endLine": 68,
+        "endChar": 69
+      },
+      "revId": "eff1ce68b9ea7490b3dc29adc78e535726e69145",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_aa396fda",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/Aggregator.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-12T10:02:49Z",
+      "side": 1,
+      "message": "Minor comment: here we could use makeAction0 from midonet-util.",
+      "range": {
+        "startLine": 74,
+        "startChar": 27,
+        "endLine": 74,
+        "endChar": 40
+      },
+      "revId": "eff1ce68b9ea7490b3dc29adc78e535726e69145",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
