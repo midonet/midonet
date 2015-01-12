@@ -254,7 +254,7 @@ trait FlowTranslator {
                                   dpTags: mutable.Set[FlowTag],
                                   context: PacketContext): Seq[FlowAction] = {
         context.log.debug(
-            s"Emitting towards remote host $peerHostId with tunnek key $tunnelKey")
+            s"Emitting towards remote host $peerHostId with tunnel key $tunnelKey")
         val actions = ListBuffer[FlowAction]()
         outputActionsToPeer(tunnelKey, peerHostId, actions, dpTags, context)
         actions
