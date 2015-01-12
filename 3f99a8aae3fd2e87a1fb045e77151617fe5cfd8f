@@ -90,6 +90,24 @@
     },
     {
       "key": {
+        "uuid": "fa2559ec_ea9ec762",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/concurrent/SpscRwdRingBuffer.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-01-12T16:34:05Z",
+      "side": 1,
+      "message": "Thanks for the explanation, Duarte. As you say, lazySet should be correct here, as there will not be two simultaneous \u0027offers\u0027.\nChanged.",
+      "parentUuid": "fa2559ec_4a5c3326",
+      "revId": "3f99a8aae3fd2e87a1fb045e77151617fe5cfd8f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1af78d9a_da20e29d",
         "filename": "midonet-util/src/main/scala/org/midonet/util/concurrent/SpscRwdRingBuffer.scala",
         "patchSetId": 3
@@ -161,6 +179,24 @@
     },
     {
       "key": {
+        "uuid": "fa2559ec_ca9b0371",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/concurrent/SpscRwdRingBuffer.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-01-12T16:34:05Z",
+      "side": 1,
+      "message": "Unfortunately, the objects should remain there for the rewinding (the use case is a kind of pipeline, and the original source objects are not available anymore, so they cannot be resubmitted). As discussed off-line, one possibility would be using expiration times, and a reaper thread clearing the references (but this would be implemented in a different patch).\n\nAnyway, changing to lazySet as suggested.",
+      "parentUuid": "fa2559ec_aa404f36",
+      "revId": "3f99a8aae3fd2e87a1fb045e77151617fe5cfd8f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1af78d9a_ba2516ad",
         "filename": "midonet-util/src/main/scala/org/midonet/util/concurrent/SpscRwdRingBuffer.scala",
         "patchSetId": 3
@@ -208,6 +244,24 @@
       "side": 1,
       "message": "If it confined to the reading thread, then the problem I mentioned doesn\u0027t happen. But I don\u0027t know exactly the semantincs of this method:\n\nImagine rd is 1 and you want to rewind to 0. wr is 1. capacity is 1.\nrdCur \u003d 1\n// writer reads rd at 1, thinks there is space\nrd.set(0)\nif ((wr.get() /* 1 */ - 0 \u003e capcity) // false\n// writer writes to the only position the new value\n// reader will never see the old value, so rewind did nothing",
       "parentUuid": "fa2559ec_0a2b5b83",
+      "revId": "3f99a8aae3fd2e87a1fb045e77151617fe5cfd8f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_6a82d701",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/concurrent/SpscRwdRingBuffer.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 123,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-01-12T16:34:05Z",
+      "side": 1,
+      "message": "You are right: if a rewind occurs while an \u0027offer\u0027 is in progress, it is possible that both the rewind and the offer think they have enough room... (in fact, rewind can be considered like \u0027offering\u0027 at the other side of the queue, creating conflicts).\n\nI think I\u0027ve solved it by introducing a new counter: a \u0027write intent index\u0027 (wrIntent) that gets updated before the actual write; this is the one used to check if the rewind is successful or not. There is a chance of a false \u0027full buffer\u0027 situation for a simultaneous offer and rewind, but that is not a problem for our use case.",
+      "parentUuid": "fa2559ec_ea4a4754",
       "revId": "3f99a8aae3fd2e87a1fb045e77151617fe5cfd8f",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
