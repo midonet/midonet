@@ -48,6 +48,30 @@
     },
     {
       "key": {
+        "uuid": "fa2559ec_4aaa73d5",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/Storage.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 358,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-12T17:13:32Z",
+      "side": 1,
+      "message": "Done.",
+      "parentUuid": "fa2559ec_2a261fbb",
+      "range": {
+        "startLine": 358,
+        "startChar": 8,
+        "endLine": 358,
+        "endChar": 19
+      },
+      "revId": "d3c69d0d6597769e8a51a5abdba58f922d82e2d9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa2559ec_2a745f9b",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
         "patchSetId": 11
@@ -59,6 +83,30 @@
       "writtenOn": "2015-01-12T10:40:27Z",
       "side": 1,
       "message": "Should more logging be added to this class (at least for the added methods)?",
+      "range": {
+        "startLine": 113,
+        "startChar": 6,
+        "endLine": 113,
+        "endChar": 27
+      },
+      "revId": "d3c69d0d6597769e8a51a5abdba58f922d82e2d9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_4ad6f3c6",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 113,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-12T17:13:32Z",
+      "side": 1,
+      "message": "Maybe we should add logging to ZOOM as a different patch, in order to keep the size of the changes manageable?",
+      "parentUuid": "fa2559ec_2a745f9b",
       "range": {
         "startLine": 113,
         "startChar": 6,
@@ -94,6 +142,30 @@
     },
     {
       "key": {
+        "uuid": "fa2559ec_4a5f1373",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 174,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-12T17:13:32Z",
+      "side": 1,
+      "message": "Maybe it should rather be referencePath, because it\u0027s not related to a timestamp either. I left it as is for now, maybe other reviewers can comment here with suggestions.",
+      "parentUuid": "1af78d9a_35b6593e",
+      "range": {
+        "startLine": 174,
+        "startChar": 21,
+        "endLine": 174,
+        "endChar": 29
+      },
+      "revId": "d3c69d0d6597769e8a51a5abdba58f922d82e2d9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1af78d9a_9582ad50",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
         "patchSetId": 11
@@ -105,6 +177,30 @@
       "writtenOn": "2015-01-12T10:40:27Z",
       "side": 1,
       "message": "ditto",
+      "range": {
+        "startLine": 177,
+        "startChar": 39,
+        "endLine": 177,
+        "endChar": 48
+      },
+      "revId": "d3c69d0d6597769e8a51a5abdba58f922d82e2d9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_aa532f6b",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 177,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-12T17:13:32Z",
+      "side": 1,
+      "message": "See above.",
+      "parentUuid": "1af78d9a_9582ad50",
       "range": {
         "startLine": 177,
         "startChar": 39,
@@ -140,6 +236,30 @@
     },
     {
       "key": {
+        "uuid": "fa2559ec_0a17dba4",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 423,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-12T17:13:32Z",
+      "side": 1,
+      "message": "I commented the ops map member above, because these cases are used in all operations. Otherwise, there is nothing special for this updateOwner() method. Are the cases straightforward?",
+      "parentUuid": "1af78d9a_f5ab31d4",
+      "range": {
+        "startLine": 406,
+        "startChar": 0,
+        "endLine": 423,
+        "endChar": 74
+      },
+      "revId": "d3c69d0d6597769e8a51a5abdba58f922d82e2d9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1af78d9a_556205d9",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
         "patchSetId": 11
@@ -151,6 +271,30 @@
       "writtenOn": "2015-01-12T10:40:27Z",
       "side": 1,
       "message": "I know this method existed before this patch, but why not renaming it cacheGet? CachedGet sounds like the get is cached.",
+      "range": {
+        "startLine": 433,
+        "startChar": 21,
+        "endLine": 433,
+        "endChar": 30
+      },
+      "revId": "d3c69d0d6597769e8a51a5abdba58f922d82e2d9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_2a88df21",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 433,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-12T17:13:32Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1af78d9a_556205d9",
       "range": {
         "startLine": 433,
         "startChar": 21,
@@ -186,6 +330,30 @@
     },
     {
       "key": {
+        "uuid": "fa2559ec_0a8d1b32",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 448,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-12T17:13:32Z",
+      "side": 1,
+      "message": "Done, thanks!",
+      "parentUuid": "1af78d9a_b5aa49d2",
+      "range": {
+        "startLine": 448,
+        "startChar": 12,
+        "endLine": 448,
+        "endChar": 24
+      },
+      "revId": "d3c69d0d6597769e8a51a5abdba58f922d82e2d9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa2559ec_8a0f4b2e",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
         "patchSetId": 11
@@ -197,6 +365,30 @@
       "writtenOn": "2015-01-12T10:40:27Z",
       "side": 1,
       "message": "I\u0027m not sure I get this. You delete the previous owners that are contained in the \"owner\" string. Isn\u0027t owner supposed to represent a single owner? If yes why do you use .contain and not .equals?",
+      "range": {
+        "startLine": 457,
+        "startChar": 35,
+        "endLine": 458,
+        "endChar": 47
+      },
+      "revId": "d3c69d0d6597769e8a51a5abdba58f922d82e2d9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_aa7b2f28",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 458,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-12T17:13:32Z",
+      "side": 1,
+      "message": "Yes, it should be equals. I missed here owner is not an Option.",
+      "parentUuid": "fa2559ec_8a0f4b2e",
       "range": {
         "startLine": 457,
         "startChar": 35,
@@ -232,6 +424,30 @@
     },
     {
       "key": {
+        "uuid": "fa2559ec_ca72e348",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 465,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-12T17:13:32Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fa2559ec_ea1c076d",
+      "range": {
+        "startLine": 465,
+        "startChar": 24,
+        "endLine": 465,
+        "endChar": 75
+      },
+      "revId": "d3c69d0d6597769e8a51a5abdba58f922d82e2d9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1af78d9a_15afdde4",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
         "patchSetId": 11
@@ -243,6 +459,30 @@
       "writtenOn": "2015-01-12T10:40:27Z",
       "side": 1,
       "message": "Short comments explaining the different cases would probably ease the reading here.",
+      "range": {
+        "startLine": 449,
+        "startChar": 16,
+        "endLine": 469,
+        "endChar": 63
+      },
+      "revId": "d3c69d0d6597769e8a51a5abdba58f922d82e2d9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_2a8f3f25",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 469,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-12T17:13:32Z",
+      "side": 1,
+      "message": "See above.",
+      "parentUuid": "1af78d9a_15afdde4",
       "range": {
         "startLine": 449,
         "startChar": 16,
@@ -278,6 +518,30 @@
     },
     {
       "key": {
+        "uuid": "fa2559ec_6a99376e",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 513,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-12T17:13:32Z",
+      "side": 1,
+      "message": "Yes, that\u0027s right, corresponding to the delete method without owners. Those method should take precedence, I believe. I update the comment.",
+      "parentUuid": "fa2559ec_aa67afe9",
+      "range": {
+        "startLine": 513,
+        "startChar": 16,
+        "endLine": 513,
+        "endChar": 28
+      },
+      "revId": "d3c69d0d6597769e8a51a5abdba58f922d82e2d9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa2559ec_4a7393b1",
         "filename": "cluster/src/test/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapperTests.scala",
         "patchSetId": 11
@@ -301,6 +565,30 @@
     },
     {
       "key": {
+        "uuid": "fa2559ec_8ad74bbf",
+        "filename": "cluster/src/test/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapperTests.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 533,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-12T17:13:32Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fa2559ec_4a7393b1",
+      "range": {
+        "startLine": 501,
+        "startChar": 0,
+        "endLine": 533,
+        "endChar": 5
+      },
+      "revId": "d3c69d0d6597769e8a51a5abdba58f922d82e2d9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa2559ec_2a9bbfca",
         "filename": "cluster/src/test/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapperTests.scala",
         "patchSetId": 11
@@ -312,6 +600,30 @@
       "writtenOn": "2015-01-12T10:40:27Z",
       "side": 1,
       "message": "add         obs.getOnNextEvents shouldBe empty",
+      "range": {
+        "startLine": 1025,
+        "startChar": 8,
+        "endLine": 1026,
+        "endChar": 35
+      },
+      "revId": "d3c69d0d6597769e8a51a5abdba58f922d82e2d9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_eae407ae",
+        "filename": "cluster/src/test/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapperTests.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 1026,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-12T17:13:32Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fa2559ec_2a9bbfca",
       "range": {
         "startLine": 1025,
         "startChar": 8,
