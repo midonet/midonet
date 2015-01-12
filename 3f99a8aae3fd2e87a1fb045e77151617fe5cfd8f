@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "1af78d9a_75874162",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/concurrent/SpscRwdRingBuffer.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-01-12T09:38:14Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1af78d9a_9a265ab9",
+      "revId": "3f99a8aae3fd2e87a1fb045e77151617fe5cfd8f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1af78d9a_7a2bae82",
         "filename": "midonet-util/src/main/scala/org/midonet/util/concurrent/SpscRwdRingBuffer.scala",
         "patchSetId": 3
@@ -30,6 +48,24 @@
       "writtenOn": "2015-01-11T12:43:29Z",
       "side": 1,
       "message": "can be a lazy set",
+      "revId": "3f99a8aae3fd2e87a1fb045e77151617fe5cfd8f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_4a0ef335",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/concurrent/SpscRwdRingBuffer.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-01-12T09:38:14Z",
+      "side": 1,
+      "message": "Are you sure? the use case for this structure is that there will not be simultaneous offers, but they may come from different threads (potentially in different processors). In that case, couldn\u0027t it happen that the second thread gets and old value for wrPos?",
+      "parentUuid": "1af78d9a_7a2bae82",
       "revId": "3f99a8aae3fd2e87a1fb045e77151617fe5cfd8f",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -71,6 +107,24 @@
     },
     {
       "key": {
+        "uuid": "fa2559ec_aa120f56",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/concurrent/SpscRwdRingBuffer.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-01-12T09:38:14Z",
+      "side": 1,
+      "message": "Do you mean rdPos? (it\u0027s just an int...)\nRegarding the lazyset, couldn\u0027t it be that a following \u0027poll\u0027 from a different processors gets an old value (if we use \u0027lazySet\u0027)?",
+      "parentUuid": "1af78d9a_da20e29d",
+      "revId": "3f99a8aae3fd2e87a1fb045e77151617fe5cfd8f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1af78d9a_ba2516ad",
         "filename": "midonet-util/src/main/scala/org/midonet/util/concurrent/SpscRwdRingBuffer.scala",
         "patchSetId": 3
@@ -82,6 +136,24 @@
       "writtenOn": "2015-01-11T12:43:29Z",
       "side": 1,
       "message": "if a reader calls poll, then it will fetch a possibly invalid entry",
+      "revId": "3f99a8aae3fd2e87a1fb045e77151617fe5cfd8f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_0a2b5b83",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/concurrent/SpscRwdRingBuffer.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 123,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-01-12T09:38:14Z",
+      "side": 1,
+      "message": "The rewind is part of the \u0027consumer\u0027 interface, and there will be no simultaneous \u0027rewind\u0027 and \u0027poll\u0027 operations. I will change the documentation to state this more clearly...\n\nI think in this situation there is no risk of getting an old value, as far as \u0027set\u0027 is used, and not \u0027lazySet\u0027, right?",
+      "parentUuid": "1af78d9a_ba2516ad",
       "revId": "3f99a8aae3fd2e87a1fb045e77151617fe5cfd8f",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
