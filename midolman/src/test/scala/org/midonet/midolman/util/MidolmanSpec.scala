@@ -129,6 +129,7 @@ trait MidolmanSpec extends FeatureSpecLike
                 }
             },
             new ClusterClientModule(),
+            new ClusterModule(),
             new MockMidolmanModule(),
             new MidolmanActorsModule {
                 override def configure() {

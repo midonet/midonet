@@ -22,8 +22,7 @@ import akka.actor.ActorSystem
 
 import com.google.inject.Injector
 
-import org.midonet.cluster.Client
-import org.midonet.cluster.DataClient
+import org.midonet.cluster.{ClusterState, Client, DataClient}
 import org.midonet.midolman.datapath.DatapathChannel
 import org.midonet.midolman.flows.FlowEjector
 import org.midonet.midolman.io.UpcallDatapathConnectionManager
@@ -39,6 +38,9 @@ trait MidolmanServices {
 
     def clusterDataClient() =
         injector.getInstance(classOf[DataClient])
+
+    def clusterState =
+        injector.getInstance(classOf[ClusterState])
 
     def hostId() =
         injector.getInstance(classOf[HostIdProviderService]).getHostId

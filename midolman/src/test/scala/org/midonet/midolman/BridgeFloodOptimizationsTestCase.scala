@@ -23,11 +23,11 @@ import org.junit.experimental.categories.Category
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
+import org.midonet.cluster.ClusterState.LocalPortActive
 import org.midonet.cluster.data.Bridge
 import org.midonet.cluster.data.ports.BridgePort
 import org.midonet.cluster.data.{Bridge => ClusterBridge}
 import org.midonet.midolman.FlowController.WildcardFlowAdded
-import org.midonet.midolman.topology.LocalPortActive
 import org.midonet.midolman.util.MidolmanTestCase
 import org.midonet.midolman.util.SimulationHelper
 import org.midonet.packets._

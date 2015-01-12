@@ -237,9 +237,6 @@ public class LocalDataClientImpl implements DataClient {
     @Named(ZKConnectionProvider.DIRECTORY_REACTOR_TAG)
     private Reactor reactor;
 
-    final Queue<Callback2<UUID, Boolean>> subscriptionPortsActive =
-        new ConcurrentLinkedQueue<>();
-
     private final static Logger log =
             LoggerFactory.getLogger(LocalDataClientImpl.class);
 
@@ -728,11 +725,6 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
-    public void subscribeToLocalActivePorts(@Nonnull Callback2<UUID, Boolean> cb) {
-        subscriptionPortsActive.offer(cb);
-    }
-
-    @Override
     public UUID tunnelZonesCreate(@Nonnull TunnelZone zone)
             throws StateAccessException, SerializationException {
         return zonesZkManager.createZone(zone, null);
@@ -877,39 +869,6 @@ public class LocalDataClientImpl implements DataClient {
                     return null;
                 }
             }, zkConnection);
-    }
-
-    @Override
-    public void portsSetLocalAndActive(final UUID portID,
-                                       final UUID host,
-                                       final boolean active) {
-        // use the reactor thread for this operations
-        reactor.submit(new Runnable() {
-
-            @Override
-            public void run() {
-                PortConfig config = null;
-                try {
-                    portZkManager.setActivePort(portID, host, active);
-                    config = portZkManager.get(portID);
-                } catch (StateAccessException e) {
-                    log.error("Error retrieving the configuration for port {}",
-                            portID, e);
-                } catch (SerializationException e) {
-                    log.error("Error serializing the configuration for port " +
-                            "{}", portID, e);
-                }
-                // update the subscribers
-                for (Callback2<UUID, Boolean> cb : subscriptionPortsActive) {
-                    cb.call(portID, active);
-                }
-                if (config instanceof PortDirectory.RouterPortConfig) {
-                    UUID deviceId = config.device_id;
-                    routerManager.updateRoutesBecauseLocalPortChangedStatus(
-                            deviceId, portID, active);
-                }
-            }
-        });
     }
 
     @Override

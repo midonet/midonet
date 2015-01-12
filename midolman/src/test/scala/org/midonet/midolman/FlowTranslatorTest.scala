@@ -105,7 +105,7 @@ class FlowTranslatorTest extends MidolmanSpec {
     def makePort(host: UUID, bridge: Bridge)(f: BridgePort => BridgePort)
     : BridgePort = {
         val port = newBridgePort(bridge, f(new BridgePort().setHostId(host)))
-        clusterDataClient().portsSetLocalAndActive(port.getId, host, true)
+        clusterState.setPortLocalAndActive(port.getId, host, true)
         fetchTopology(port)
         port
     }

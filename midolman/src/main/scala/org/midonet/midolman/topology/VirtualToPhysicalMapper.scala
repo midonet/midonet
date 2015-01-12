@@ -28,7 +28,7 @@ import akka.actor._
 import akka.util.Timeout
 import com.google.inject.Inject
 import org.midonet.cluster.data.TunnelZone
-import org.midonet.cluster.{Client, DataClient}
+import org.midonet.cluster.{Client, ClusterState, DataClient}
 import org.midonet.midolman._
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.services.HostIdProviderService
@@ -268,13 +268,13 @@ class DeviceHandlersManager[T <: AnyRef](handler: DeviceHandler,
 trait DataClientLink {
 
     @Inject
-    val cluster: DataClient = null
+    val state: ClusterState = null
 
     @Inject
     val hostIdProvider : HostIdProviderService = null
 
     def notifyLocalPortActive(vportID: UUID, active: Boolean) {
-        cluster.portsSetLocalAndActive(vportID, hostIdProvider.getHostId, active)
+        state.setPortLocalAndActive(vportID, hostIdProvider.getHostId, active)
     }
 }
 
@@ -311,7 +311,8 @@ trait DeviceManagement {
  */
 abstract class VirtualToPhysicalMapperBase extends Actor with ActorLogWithoutPath {
 
-    val cluster: DataClient
+    @Inject
+    val cluster: DataClient = null
 
     import context.system
     import org.midonet.midolman.topology.VirtualToPhysicalMapper._

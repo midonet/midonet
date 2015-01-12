@@ -73,11 +73,10 @@ import org.midonet.odp._
 import org.midonet.odp.flows.FlowKeys.inPort
 import org.midonet.odp.flows.{FlowAction, FlowActionOutput, FlowActionSetKey, FlowKeyTunnel}
 import org.midonet.odp.protos.MockOvsDatapathConnection
-import org.midonet.odp.protos.MockOvsDatapathConnection.FlowListener
 import org.midonet.packets.Ethernet
 import org.midonet.sdn.flows.WildcardFlow
 import org.midonet.util.concurrent.MockClock
-import org.midonet.util.functors.{Callback0, Callback2}
+import org.midonet.util.functors.Callback0
 
 object MidolmanTestCaseLock {
     val sequential: ReentrantLock = new ReentrantLock()
@@ -241,6 +240,7 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
                 }
             },
             new ClusterClientModule(),
+            new ClusterModule(),
             new MockMidolmanModule(),
             new TestableMidolmanActorsModule(probesByName, actorsByName, clock),
             new ResourceProtectionModule(),
@@ -270,7 +270,7 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
             clusterDataClient()
                 .hostsAddVrnPortMappingAndReturnPort(host.getId, port.getId, name)
 
-        clusterDataClient().portsSetLocalAndActive(port.getId, host.getId, true)
+        clusterState.setPortLocalAndActive(port.getId, host.getId, true)
 
         if (host.getId == hostId()) {
             val itf = new InterfaceDescription(name)

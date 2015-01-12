@@ -21,8 +21,9 @@ import scala.collection.mutable
 
 import akka.actor._
 import com.google.inject.Inject
+import org.midonet.cluster.ClusterState.LocalPortActive
 import org.midonet.cluster.client.{Port, RouterPort}
-import org.midonet.cluster.{Client, DataClient}
+import org.midonet.cluster.{ClusterState, Client, DataClient}
 import org.midonet.midolman.DatapathController.DatapathReady
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.guice.MidolmanActorsModule.ZEBRA_SERVER_LOOP
@@ -35,8 +36,9 @@ import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.topology.VirtualTopologyActor.PortRequest
 import org.midonet.midolman.{DatapathReadySubscriberActor, DatapathState, Referenceable}
 import org.midonet.odp.Datapath
+import org.midonet.util.concurrent.ReactiveActor
+import org.midonet.util.concurrent.ReactiveActor.OnNext
 import org.midonet.util.eventloop.SelectLoop
-import org.midonet.util.functors.Callback2
 
 object RoutingManagerActor extends Referenceable {
     override val Name = "RoutingManager"
@@ -45,7 +47,8 @@ object RoutingManagerActor extends Referenceable {
     case class BgpStatus(status : Array[String])
 }
 
-class RoutingManagerActor extends Actor with ActorLogWithoutPath
+class RoutingManagerActor extends ReactiveActor[LocalPortActive]
+                          with ActorLogWithoutPath
         with DatapathReadySubscriberActor {
     import context.system
 
@@ -60,6 +63,8 @@ class RoutingManagerActor extends Actor with ActorLogWithoutPath
     var config: MidolmanConfig = null
     @Inject
     val client: Client = null
+    @Inject
+    val state: ClusterState = null
     @Inject
     var zkConnWatcher: ZkConnectionAwareWatcher = null
     @Inject
@@ -77,19 +82,10 @@ class RoutingManagerActor extends Actor with ActorLogWithoutPath
     @Inject
     var upcallConnManager: UpcallDatapathConnectionManager = null
 
-    private case class LocalPortActive(portID: UUID, active: Boolean)
-
-    val localPortsCB = new Callback2[UUID, java.lang.Boolean]() {
-        def call(portID: UUID, active: java.lang.Boolean) {
-            log.debug("LocalPortActive received from callback")
-            self ! LocalPortActive(portID, active)
-        }
-    }
-
     override def preStart() {
         super.preStart()
         if (config.getMidolmanBGPEnabled) {
-            dataClient.subscribeToLocalActivePorts(localPortsCB)
+            state.observableLocalPortActive.subscribe(this)
             bgpPortIdx = config.getMidolmanBGPPortStartIndex
         }
     }
@@ -98,7 +94,7 @@ class RoutingManagerActor extends Actor with ActorLogWithoutPath
         case DatapathReady(dp, state) =>
             datapath = dp
             dpState = state
-        case LocalPortActive(portID, true) =>
+        case OnNext(LocalPortActive(portID, true)) =>
             log.debug(s"port $portID became active")
             if (!activePorts.contains(portID)) {
                 activePorts.add(portID)
@@ -110,7 +106,7 @@ class RoutingManagerActor extends Actor with ActorLogWithoutPath
                 case Some(routingHandler) => routingHandler ! PortActive(true)
             }
 
-        case LocalPortActive(portID, false) =>
+        case OnNext(LocalPortActive(portID, false)) =>
             log.debug(s"port $portID became inactive")
             if (!activePorts.contains(portID)) {
                 log.error("we should have had information about port {}",
