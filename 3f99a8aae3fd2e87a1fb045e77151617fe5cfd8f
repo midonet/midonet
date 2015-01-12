@@ -72,6 +72,24 @@
     },
     {
       "key": {
+        "uuid": "fa2559ec_4a5c3326",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/concurrent/SpscRwdRingBuffer.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-01-12T09:58:07Z",
+      "side": 1,
+      "message": "I don\u0027t think so. Remember that memory barriers only enforce ordering within the same processor, and for that the lazy set suffices. If different threads can call into offer(), then you need some sort of synchronization to avoid concurrent calls. That synchronization must be there, or the algorithm would be wrong. It gives you transitive visibility of the store (that is, the call to offer() by the second thread will happen after the store has been issued.)",
+      "parentUuid": "fa2559ec_4a0ef335",
+      "revId": "3f99a8aae3fd2e87a1fb045e77151617fe5cfd8f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1af78d9a_da20e29d",
         "filename": "midonet-util/src/main/scala/org/midonet/util/concurrent/SpscRwdRingBuffer.scala",
         "patchSetId": 3
@@ -125,6 +143,24 @@
     },
     {
       "key": {
+        "uuid": "fa2559ec_aa404f36",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/concurrent/SpscRwdRingBuffer.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-01-12T09:58:07Z",
+      "side": 1,
+      "message": "I mean the contents of the ring buffer. I guess that will play bad with the rewind feature, but isn\u0027t a rewind just resubmitting things to the queue? I\u0027m worried that objects can be long enough in the queue to start being promoted. Will this be used within the agent?",
+      "parentUuid": "fa2559ec_aa120f56",
+      "revId": "3f99a8aae3fd2e87a1fb045e77151617fe5cfd8f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1af78d9a_ba2516ad",
         "filename": "midonet-util/src/main/scala/org/midonet/util/concurrent/SpscRwdRingBuffer.scala",
         "patchSetId": 3
@@ -154,6 +190,24 @@
       "side": 1,
       "message": "The rewind is part of the \u0027consumer\u0027 interface, and there will be no simultaneous \u0027rewind\u0027 and \u0027poll\u0027 operations. I will change the documentation to state this more clearly...\n\nI think in this situation there is no risk of getting an old value, as far as \u0027set\u0027 is used, and not \u0027lazySet\u0027, right?",
       "parentUuid": "1af78d9a_ba2516ad",
+      "revId": "3f99a8aae3fd2e87a1fb045e77151617fe5cfd8f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_ea4a4754",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/concurrent/SpscRwdRingBuffer.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 123,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-01-12T09:58:07Z",
+      "side": 1,
+      "message": "If it confined to the reading thread, then the problem I mentioned doesn\u0027t happen. But I don\u0027t know exactly the semantincs of this method:\n\nImagine rd is 1 and you want to rewind to 0. wr is 1. capacity is 1.\nrdCur \u003d 1\n// writer reads rd at 1, thinks there is space\nrd.set(0)\nif ((wr.get() /* 1 */ - 0 \u003e capcity) // false\n// writer writes to the only position the new value\n// reader will never see the old value, so rewind did nothing",
+      "parentUuid": "fa2559ec_0a2b5b83",
       "revId": "3f99a8aae3fd2e87a1fb045e77151617fe5cfd8f",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
