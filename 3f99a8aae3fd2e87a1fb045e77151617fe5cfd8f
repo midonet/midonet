@@ -53,6 +53,24 @@
     },
     {
       "key": {
+        "uuid": "fa2559ec_0a04fb13",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/concurrent/SpscRwdRingBuffer.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-12T09:23:32Z",
+      "side": 1,
+      "message": "Okay, so maybe Duarte knows better :)",
+      "parentUuid": "1af78d9a_da20e29d",
+      "revId": "3f99a8aae3fd2e87a1fb045e77151617fe5cfd8f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1af78d9a_ba2516ad",
         "filename": "midonet-util/src/main/scala/org/midonet/util/concurrent/SpscRwdRingBuffer.scala",
         "patchSetId": 3
