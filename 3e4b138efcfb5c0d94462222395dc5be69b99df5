@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "fa2559ec_bef7f18b",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/Storage.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 358,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-13T16:54:55Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fa2559ec_73e772e5",
+      "range": {
+        "startLine": 358,
+        "startChar": 27,
+        "endLine": 358,
+        "endChar": 28
+      },
+      "revId": "3e4b138efcfb5c0d94462222395dc5be69b99df5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa2559ec_53eceec7",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/Storage.scala",
         "patchSetId": 14
@@ -71,6 +95,54 @@
     },
     {
       "key": {
+        "uuid": "fa2559ec_fef16996",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/Storage.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 362,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-13T16:54:55Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fa2559ec_b3d0caf8",
+      "range": {
+        "startLine": 362,
+        "startChar": 45,
+        "endLine": 362,
+        "endChar": 71
+      },
+      "revId": "3e4b138efcfb5c0d94462222395dc5be69b99df5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_9ef4ad88",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/Storage.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 362,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-13T16:54:55Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fa2559ec_53eceec7",
+      "range": {
+        "startLine": 361,
+        "startChar": 41,
+        "endLine": 362,
+        "endChar": 43
+      },
+      "revId": "3e4b138efcfb5c0d94462222395dc5be69b99df5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa2559ec_d3d73eec",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
         "patchSetId": 14
@@ -82,6 +154,30 @@
       "writtenOn": "2015-01-13T11:35:46Z",
       "side": 1,
       "message": "an",
+      "range": {
+        "startLine": 173,
+        "startChar": 16,
+        "endLine": 173,
+        "endChar": 17
+      },
+      "revId": "3e4b138efcfb5c0d94462222395dc5be69b99df5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_3e2b01ed",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 173,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-13T16:54:55Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fa2559ec_d3d73eec",
       "range": {
         "startLine": 173,
         "startChar": 16,
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "fa2559ec_5e3a3537",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 190,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-13T16:54:55Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fa2559ec_1309d695",
+      "range": {
+        "startLine": 180,
+        "startChar": 0,
+        "endLine": 190,
+        "endChar": 55
+      },
+      "revId": "3e4b138efcfb5c0d94462222395dc5be69b99df5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa2559ec_332b3aed",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
         "patchSetId": 14
@@ -128,6 +248,30 @@
       "writtenOn": "2015-01-13T11:35:46Z",
       "side": 1,
       "message": "Maybe add comment to say that this happens only to refresh owner ephemeral node?",
+      "range": {
+        "startLine": 431,
+        "startChar": 24,
+        "endLine": 432,
+        "endChar": 48
+      },
+      "revId": "3e4b138efcfb5c0d94462222395dc5be69b99df5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_de1c65c4",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 432,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-13T16:54:55Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fa2559ec_332b3aed",
       "range": {
         "startLine": 431,
         "startChar": 24,
@@ -163,6 +307,30 @@
     },
     {
       "key": {
+        "uuid": "fa2559ec_3e7941fd",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 474,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-13T16:54:55Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fa2559ec_533a2e37",
+      "range": {
+        "startLine": 473,
+        "startChar": 20,
+        "endLine": 474,
+        "endChar": 50
+      },
+      "revId": "3e4b138efcfb5c0d94462222395dc5be69b99df5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa2559ec_7335b245",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
         "patchSetId": 14
@@ -186,6 +354,30 @@
     },
     {
       "key": {
+        "uuid": "fa2559ec_1e7efde4",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 488,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-13T16:54:55Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fa2559ec_7335b245",
+      "range": {
+        "startLine": 488,
+        "startChar": 41,
+        "endLine": 488,
+        "endChar": 55
+      },
+      "revId": "3e4b138efcfb5c0d94462222395dc5be69b99df5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa2559ec_730c9295",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
         "patchSetId": 14
@@ -197,6 +389,30 @@
       "writtenOn": "2015-01-13T11:35:46Z",
       "side": 1,
       "message": "Is this needed? Deleting the only owner of an exclusive object is not allowed, isn\u0027t it?",
+      "range": {
+        "startLine": 624,
+        "startChar": 59,
+        "endLine": 624,
+        "endChar": 76
+      },
+      "revId": "3e4b138efcfb5c0d94462222395dc5be69b99df5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_9e694d28",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 624,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-13T16:54:55Z",
+      "side": 1,
+      "message": "True, removed.",
+      "parentUuid": "fa2559ec_730c9295",
       "range": {
         "startLine": 624,
         "startChar": 59,
