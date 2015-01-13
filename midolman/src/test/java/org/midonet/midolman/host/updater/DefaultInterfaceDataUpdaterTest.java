@@ -39,6 +39,8 @@ import org.junit.Before;
 import org.junit.Test;
 
 import org.midonet.cluster.config.ZookeeperConfig;
+import org.midonet.midolman.guice.ClusterModule;
+import org.midonet.midolman.guice.InMemoryStorageModule;
 import org.midonet.midolman.guice.InterfaceScannerModule;
 import org.midonet.midolman.guice.ResourceProtectionModule;
 import org.midonet.midolman.guice.cluster.ClusterClientModule;
@@ -99,11 +101,13 @@ public class DefaultInterfaceDataUpdaterTest {
         Injector injector = Guice.createInjector(
             new SerializationModule(),
             new ConfigProviderModule(configuration),
+            new InMemoryStorageModule(),
             new MockFlowStateStorageModule(),
             new MockDatapathModule(),
             new MockZookeeperConnectionModule(),
             new HostModule(),
             new ClusterClientModule(),
+            new ClusterModule(),
             new MockMidolmanModule(),
             new TestableMidolmanActorsModule(
                 JavaConversions.mapAsScalaMap(new HashMap<String, TestKit>()),
