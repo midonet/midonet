@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,18 +17,26 @@ package org.midonet.midolman.guice
 
 import com.google.inject.PrivateModule
 
-import org.midonet.cluster.data.storage.{Storage, InMemoryStorage, StorageWithOwnership}
+import org.midonet.cluster.data.storage.StorageWithOwnership
+import org.midonet.cluster.{ClusterState, ClusterStateImpl}
 
-class InMemoryStorageModule extends PrivateModule {
+object ClusterModule {
+    // WARN: should this string change, also replace it in ZKConnectionProvider
+    final val StorageReactorTag = "storageReactor"
+}
+
+/**
+ * Guice module to install dependencies for cluster topology and state access.
+ */
+class ClusterModule extends PrivateModule {
 
     protected override def configure(): Unit = {
-        bind(classOf[StorageWithOwnership])
-            .to(classOf[InMemoryStorage])
+        requireBinding(classOf[StorageWithOwnership])
+
+        bind(classOf[ClusterState])
+            .to(classOf[ClusterStateImpl])
             .asEagerSingleton()
-        expose(classOf[StorageWithOwnership])
-        bind(classOf[Storage])
-            .to(classOf[StorageWithOwnership])
-            .asEagerSingleton()
-        expose(classOf[Storage])
+        expose(classOf[ClusterState])
     }
+
 }
