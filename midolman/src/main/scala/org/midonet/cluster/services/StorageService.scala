@@ -39,10 +39,10 @@ class StorageService @Inject() (directory: Directory,
             Setup.ensureZkDirectoryStructureExists(directory, rootKey)
             verifyVersion()
             verifySystemState()
-            if (config.getCuratorEnabled) {
+            if (config.isCuratorEnabled) {
                 curator.start()
             }
-            if (config.getClusterStorageEnabled) {
+            if (config.isClusterStorageEnabled) {
                 buildStorage()
             }
             notifyStarted()

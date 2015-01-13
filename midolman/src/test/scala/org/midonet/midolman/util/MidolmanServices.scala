@@ -16,20 +16,21 @@
 
 package org.midonet.midolman.util
 
+import java.util.UUID
+
 import scala.concurrent.ExecutionContext
 
 import akka.actor.ActorSystem
 
 import com.google.inject.Injector
 
-import org.midonet.cluster.Client
-import org.midonet.cluster.DataClient
+import org.midonet.cluster.{Client, ClusterState, DataClient}
 import org.midonet.midolman.datapath.DatapathChannel
 import org.midonet.midolman.flows.FlowEjector
 import org.midonet.midolman.io.UpcallDatapathConnectionManager
 import org.midonet.midolman.services.HostIdProviderService
-import org.midonet.midolman.util.mock.{MockFlowEjector, MockDatapathChannel, MockUpcallDatapathConnectionManager}
-import org.midonet.odp.protos.{OvsDatapathConnection, MockOvsDatapathConnection}
+import org.midonet.midolman.util.mock.{MockDatapathChannel, MockFlowEjector, MockUpcallDatapathConnectionManager}
+import org.midonet.odp.protos.{MockOvsDatapathConnection, OvsDatapathConnection}
 
 trait MidolmanServices {
     var injector: Injector
@@ -37,10 +38,13 @@ trait MidolmanServices {
     def clusterClient =
         injector.getInstance(classOf[Client])
 
-    implicit def clusterDataClient =
+    implicit def clusterDataClient: DataClient =
         injector.getInstance(classOf[DataClient])
 
-    implicit def hostId =
+    def clusterState =
+        injector.getInstance(classOf[ClusterState])
+
+    implicit def hostId: UUID =
         injector.getInstance(classOf[HostIdProviderService]).getHostId
 
     def mockDpConn()(implicit ec: ExecutionContext, as: ActorSystem) = {
