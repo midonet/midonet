@@ -24,7 +24,7 @@ import scala.util.Random
 
 import scala.collection.JavaConversions._
 
-import org.midonet.cluster.DataClient
+import org.midonet.cluster.{ClusterState, DataClient}
 import org.midonet.cluster.data.{Bridge => ClusterBridge,
                                  Router => ClusterRouter,
                                  PortGroup => ClusterPortGroup,
@@ -49,6 +49,8 @@ import org.midonet.midolman.state.l4lb.{PoolLBMethod, VipSessionPersistence, LBS
 trait VirtualConfigurationBuilders {
 
     protected def clusterDataClient(): DataClient
+
+    protected def clusterState: ClusterState
 
     def newHost(name: String, id: UUID, tunnelZones: Set[UUID]): Host = {
         val host = new Host().setName(name).setTunnelZones(tunnelZones)
@@ -395,7 +397,7 @@ trait VirtualConfigurationBuilders {
         clusterDataClient().hostsAddVrnPortMappingAndReturnPort(hostId,
             port.getId, portName)
 
-        clusterDataClient().portsSetLocalAndActive(port.getId, hostId, true)
+        clusterState.setPortLocalAndActive(port.getId, hostId, true)
     }
 
     def newCondition(
