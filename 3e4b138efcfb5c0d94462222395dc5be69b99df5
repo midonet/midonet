@@ -1,0 +1,211 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa2559ec_73e772e5",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/Storage.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 358,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-13T11:35:46Z",
+      "side": 1,
+      "message": "...that...",
+      "range": {
+        "startLine": 358,
+        "startChar": 27,
+        "endLine": 358,
+        "endChar": 28
+      },
+      "revId": "3e4b138efcfb5c0d94462222395dc5be69b99df5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_53eceec7",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/Storage.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 362,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-13T11:35:46Z",
+      "side": 1,
+      "message": "you mean \"if the conditions for an update are met\"? It might be could to add that these conditions depend on the ownership type.",
+      "range": {
+        "startLine": 361,
+        "startChar": 41,
+        "endLine": 362,
+        "endChar": 43
+      },
+      "revId": "3e4b138efcfb5c0d94462222395dc5be69b99df5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_b3d0caf8",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/Storage.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 362,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-13T11:35:46Z",
+      "side": 1,
+      "message": "incomplete sentence.",
+      "range": {
+        "startLine": 362,
+        "startChar": 45,
+        "endLine": 362,
+        "endChar": 71
+      },
+      "revId": "3e4b138efcfb5c0d94462222395dc5be69b99df5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_d3d73eec",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 173,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-13T11:35:46Z",
+      "side": 1,
+      "message": "an",
+      "range": {
+        "startLine": 173,
+        "startChar": 16,
+        "endLine": 173,
+        "endChar": 17
+      },
+      "revId": "3e4b138efcfb5c0d94462222395dc5be69b99df5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_1309d695",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 190,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-13T11:35:46Z",
+      "side": 1,
+      "message": "nice! :-) Maybe you could recall this above the updateCacheAndOp method? Add ownership operations",
+      "range": {
+        "startLine": 180,
+        "startChar": 0,
+        "endLine": 190,
+        "endChar": 55
+      },
+      "revId": "3e4b138efcfb5c0d94462222395dc5be69b99df5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_332b3aed",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 432,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-13T11:35:46Z",
+      "side": 1,
+      "message": "Maybe add comment to say that this happens only to refresh owner ephemeral node?",
+      "range": {
+        "startLine": 431,
+        "startChar": 24,
+        "endLine": 432,
+        "endChar": 48
+      },
+      "revId": "3e4b138efcfb5c0d94462222395dc5be69b99df5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_533a2e37",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 474,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-13T11:35:46Z",
+      "side": 1,
+      "message": "As in updateCacheAndOp it\u0027s probably good to add a comment that this is to refresh the ownership of the object. The same goes for all such operations in this method.",
+      "range": {
+        "startLine": 473,
+        "startChar": 20,
+        "endLine": 474,
+        "endChar": 50
+      },
+      "revId": "3e4b138efcfb5c0d94462222395dc5be69b99df5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_7335b245",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 488,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-13T11:35:46Z",
+      "side": 1,
+      "message": "This should be owner.equals as above.",
+      "range": {
+        "startLine": 488,
+        "startChar": 41,
+        "endLine": 488,
+        "endChar": 55
+      },
+      "revId": "3e4b138efcfb5c0d94462222395dc5be69b99df5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_730c9295",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 624,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-13T11:35:46Z",
+      "side": 1,
+      "message": "Is this needed? Deleting the only owner of an exclusive object is not allowed, isn\u0027t it?",
+      "range": {
+        "startLine": 624,
+        "startChar": 59,
+        "endLine": 624,
+        "endChar": 76
+      },
+      "revId": "3e4b138efcfb5c0d94462222395dc5be69b99df5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
