@@ -285,11 +285,9 @@ class PacketWorkflowTest extends TestKit(ActorSystem("PacketWorkflowTest"))
             pkfw.processSimulationResult(pktCtx, result)
 
             Then("action translation is performed")
-            And("the FlowController gets an AddWildcardFlow request")
-            And("the DeduplicationActor gets an ApplyFlow request")
+            And("the FlowController does not get an AddWildcardFlow request")
             And("the current packet gets executed")
-            runChecks(pktCtx, pkfw,
-                checkTranslate _ :: checkAddWildcard _ :: applyOutputActions)
+            runChecks(pktCtx, pkfw, checkTranslate _)
 
             And("state is pushed")
             statePushed should be (true)
