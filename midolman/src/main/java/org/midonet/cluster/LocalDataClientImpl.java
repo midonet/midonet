@@ -3019,7 +3019,7 @@ public class LocalDataClientImpl implements DataClient {
     public UUID rulesCreate(@Nonnull Rule<?, ?> rule)
             throws StateAccessException, RuleIndexOutOfBoundsException,
             SerializationException {
-        return ruleZkManager.create(Converter.toRuleConfig(rule),
+        return ruleZkManager.create(rule.getId(), Converter.toRuleConfig(rule),
                 rule.getPosition());
     }
 
