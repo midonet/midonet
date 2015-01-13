@@ -333,6 +333,7 @@ trait NatState extends FlowState { this: PacketContext =>
                 val dataSize = data.length
                 val bb = ByteBuffer.wrap(data)
                 val header = new IPv4
+                log.debug(s"$header")
                 header.deserializeHeader(bb)
                 if (isSnat) {
                     header.setSourceAddress(binding.networkAddress)
