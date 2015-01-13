@@ -1,0 +1,142 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa2559ec_532b4e30",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/util/ObservablePathChildrenCache.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 152,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-13T08:57:31Z",
+      "side": 1,
+      "message": "A typo?",
+      "range": {
+        "startLine": 152,
+        "startChar": 30,
+        "endLine": 152,
+        "endChar": 34
+      },
+      "revId": "fc7c13c6ae1801b8c90c03233875c2c9048dafcf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_33d33a3a",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/util/ObservablePathChildrenCache.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 177,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-13T08:57:31Z",
+      "side": 1,
+      "message": "Do you mean compared against \"foreach { s.onNext(_) }\" in a concurrent modification case? Is that true?",
+      "range": {
+        "startLine": 177,
+        "startChar": 57,
+        "endLine": 177,
+        "endChar": 65
+      },
+      "revId": "fc7c13c6ae1801b8c90c03233875c2c9048dafcf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_93e30605",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/util/ObservablePathChildrenCache.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 216,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-13T08:57:31Z",
+      "side": 1,
+      "message": "This may still get called twice. I\u0027m assuming that there\u0027s no practical impact, correct?",
+      "range": {
+        "startLine": 216,
+        "startChar": 8,
+        "endLine": 216,
+        "endChar": 25
+      },
+      "revId": "fc7c13c6ae1801b8c90c03233875c2c9048dafcf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_d3ed7ef1",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/util/ObservablePathChildrenCache.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 249,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-13T08:57:31Z",
+      "side": 1,
+      "message": "Again, this is not thread-safe, but probably fine in practice.",
+      "range": {
+        "startLine": 248,
+        "startChar": 8,
+        "endLine": 249,
+        "endChar": 78
+      },
+      "revId": "fc7c13c6ae1801b8c90c03233875c2c9048dafcf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_b3e60a15",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/util/ObservablePathChildrenCache.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 314,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-13T08:57:31Z",
+      "side": 1,
+      "message": "This is no longer correct.",
+      "range": {
+        "startLine": 313,
+        "startChar": 3,
+        "endLine": 314,
+        "endChar": 30
+      },
+      "revId": "fc7c13c6ae1801b8c90c03233875c2c9048dafcf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_f3f082cb",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/util/ObservablePathChildrenCache.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 323,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-13T08:57:31Z",
+      "side": 1,
+      "message": "Is there still any value to this class? Can we just collapse this and OnSubscribeToPathChildren?",
+      "range": {
+        "startLine": 323,
+        "startChar": 0,
+        "endLine": 323,
+        "endChar": 73
+      },
+      "revId": "fc7c13c6ae1801b8c90c03233875c2c9048dafcf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
