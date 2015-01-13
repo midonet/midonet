@@ -16,7 +16,7 @@
 
 package org.midonet.midolman
 
-import java.util.{UUID, HashMap => JHashMap, List => JList}
+import java.util.{ArrayList, HashMap => JHashMap, List => JList, UUID}
 
 import scala.collection.mutable
 import scala.concurrent.duration._
@@ -61,6 +61,8 @@ object DeduplicationActor {
                                    parentCookie: Option[Int] = None)
 
     case class RestartWorkflow(pktCtx: PacketContext)
+
+    val SIMULATE = new ArrayList[FlowAction]()
 
     // This class holds a cache of actions we use to apply the result of a
     // simulation to pending packets while that result isn't written into
@@ -348,7 +350,9 @@ class DeduplicationActor(
         val actions = actionsCache.actions.get(flowMatch)
         val suspendedPackets = removeSuspendedPackets(flowMatch)
         val numSuspendedPackets = suspendedPackets.size
-        if (numSuspendedPackets > 0) {
+        if (actions eq SIMULATE) {
+            suspendedPackets foreach processPacket
+        } else if (numSuspendedPackets > 0) {
             log.debug(s"Sending ${suspendedPackets.size} pended packets")
             suspendedPackets foreach (dpChannel.executePacket(_, actions))
             metrics.packetsProcessed.mark(numSuspendedPackets)

@@ -253,13 +253,9 @@ class PacketWorkflow(protected val dpState: DatapathState,
             context.log.warn(s"Tried to add a flow for a generated packet ${wildFlow.getMatch}")
             context.runFlowRemovedCallbacks()
         } else if (wildFlow.wcmatch.userspaceFieldsSeen) {
-            logResultNewFlow("will create userspace flow", context, wildFlow)
-            context.log.debug("Adding wildcard flow {} for match with userspace " +
-                              "only fields, without a datapath flow", wildFlow)
-            FlowController ! AddWildcardFlow(wildFlow, null, context.flowRemovedCallbacks,
-                context.flowTags, context.lastInvalidation, context.origMatch,
-                actionsCache.pending, actionsCache.getSlot())
-            actionsCache.actions.put(context.origMatch, wildFlow.actions)
+            context.log.debug("Userspace fields seen; skipping flow creation")
+            context.runFlowRemovedCallbacks()
+            addToActionsCacheAndInvalidate(context, SIMULATE)
         } else {
             logResultNewFlow("will create flow", context, wildFlow)
             createFlow(context, wildFlow, Some(wildFlow))
@@ -324,16 +320,8 @@ class PacketWorkflow(protected val dpState: DatapathState,
     def handleWildcardTableMatch(context: PacketContext,
                                  wildFlow: WildcardFlow): Unit = {
         context.log.debug("matched a wildcard flow with actions {}", wildFlow.actions)
-        if (wildFlow.wcmatch.userspaceFieldsSeen) {
-            logResultMatchedFlow("matched a userspace flow", context, wildFlow)
-            context.log.debug("no datapath flow for match {} with userspace only fields",
-                      wildFlow.wcmatch)
-            addToActionsCacheAndInvalidate(context, wildFlow.getActions)
-        } else {
-            logResultMatchedFlow("matched a wildcard flow", context, wildFlow)
-            createFlow(context, wildFlow)
-        }
-
+        logResultMatchedFlow("matched a wildcard flow", context, wildFlow)
+        createFlow(context, wildFlow)
         dpChannel.executePacket(context.packet, wildFlow.getActions)
     }
 
