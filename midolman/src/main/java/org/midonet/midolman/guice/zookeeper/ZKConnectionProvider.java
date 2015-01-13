@@ -30,9 +30,8 @@ import org.midonet.util.eventloop.Reactor;
  */
 public class ZKConnectionProvider implements Provider<ZkConnection> {
 
-    // WARN: should this string change, also replace it in
-    // BridgeBuilderStateFeeder
-    public static final String DIRECTORY_REACTOR_TAG = "directoryReactor";
+    // WARN: should this string change, also replace it in ClusterModule
+    public static final String DIRECTORY_REACTOR_TAG = "storageReactor";
 
     @Inject
     ZookeeperConfig config;

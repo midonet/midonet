@@ -31,7 +31,6 @@ import akka.testkit.TestKit;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import com.codahale.metrics.Clock;
 
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.zookeeper.CreateMode;
@@ -40,8 +39,9 @@ import org.junit.Before;
 import org.junit.Test;
 
 import org.midonet.cluster.config.ZookeeperConfig;
+import org.midonet.midolman.guice.ClusterModule;
+import org.midonet.midolman.guice.InMemoryStorageModule;
 import org.midonet.midolman.guice.InterfaceScannerModule;
-import org.midonet.midolman.guice.MidolmanModule;
 import org.midonet.midolman.guice.ResourceProtectionModule;
 import org.midonet.midolman.guice.cluster.ClusterClientModule;
 import org.midonet.midolman.guice.config.ConfigProviderModule;
@@ -62,7 +62,6 @@ import org.midonet.midolman.util.guice.MockMidolmanModule;
 import org.midonet.midolman.util.guice.TestableMidolmanActorsModule;
 import org.midonet.midolman.version.DataWriteVersion;
 import org.midonet.midolman.version.guice.VersionModule;
-import org.midonet.util.concurrent.NanoClock;
 import org.midonet.util.concurrent.NanoClock$;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -104,11 +103,13 @@ public class DefaultInterfaceDataUpdaterTest {
             new VersionModule(),
             new SerializationModule(),
             new ConfigProviderModule(configuration),
+            new InMemoryStorageModule(),
             new MockFlowStateStorageModule(),
             new MockDatapathModule(),
             new MockZookeeperConnectionModule(),
             new HostModule(),
             new ClusterClientModule(),
+            new ClusterModule(),
             new MockMidolmanModule(),
             new TestableMidolmanActorsModule(
                 JavaConversions.mapAsScalaMap(new HashMap<String, TestKit>()),
