@@ -75,7 +75,6 @@ import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IPv4Subnet;
 import org.midonet.packets.IPv6Subnet;
 import org.midonet.packets.MAC;
-import org.midonet.util.functors.Callback2;
 
 import static org.midonet.cluster.data.Rule.RuleIndexOutOfBoundsException;
 
@@ -359,27 +358,6 @@ public interface DataClient {
     List<V6Host> dhcpV6HostsGetByPrefix(
             UUID bridgeId, IPv6Subnet prefix)
             throws StateAccessException, SerializationException;
-
-
-    /**
-     * Inform the storage cluster that the port is active. This may be used by
-     * the cluster to do trigger related processing e.g. updating the router's
-     * forwarding table if this port belongs to a router.
-     *
-     * @param portID the id of the port
-     * @param host the id of the host where it's active
-     * @param active true / false depending on what state we want in the end
-     *               for the port
-     */
-    void portsSetLocalAndActive(UUID portID, UUID host, boolean active);
-
-    /**
-     * Register a callback to be called whenever a port becomes "local and
-     * active" or stops being so. This may be used e.g. by the BGP Manager
-     * to discover the local ports, so that it may then watch those specific
-     * ports and manage their BGPs (if any).
-     */
-    void subscribeToLocalActivePorts(@Nonnull Callback2<UUID, Boolean> cb);
 
     UUID tunnelZonesCreate(@Nonnull TunnelZone zone)
             throws StateAccessException, SerializationException;
