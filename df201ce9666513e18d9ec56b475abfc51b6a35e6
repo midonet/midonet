@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "fa2559ec_be76d1d6",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/DatapathController.scala",
+        "patchSetId": 18
+      },
+      "lineNbr": 188,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-13T17:40:13Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fa2559ec_7ed1f9cc",
+      "revId": "df201ce9666513e18d9ec56b475abfc51b6a35e6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa2559ec_5ed6b5c6",
         "filename": "midolman/src/main/scala/org/midonet/midolman/FlowTranslator.scala",
         "patchSetId": 18
@@ -30,6 +48,24 @@
       "writtenOn": "2015-01-13T17:17:36Z",
       "side": 1,
       "message": "remove if you get the chance",
+      "revId": "df201ce9666513e18d9ec56b475abfc51b6a35e6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_9e730de7",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/FlowTranslator.scala",
+        "patchSetId": 18
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-13T17:40:13Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fa2559ec_5ed6b5c6",
       "revId": "df201ce9666513e18d9ec56b475abfc51b6a35e6",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -53,6 +89,24 @@
     },
     {
       "key": {
+        "uuid": "fa2559ec_fe80498d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/PacketWorkflow.scala",
+        "patchSetId": 18
+      },
+      "lineNbr": 146,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-13T17:40:13Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fa2559ec_9ed78dbf",
+      "revId": "df201ce9666513e18d9ec56b475abfc51b6a35e6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa2559ec_7ee8d97c",
         "filename": "midolman/src/main/scala/org/midonet/midolman/state/ConnTrackState.scala",
         "patchSetId": 18
@@ -64,6 +118,24 @@
       "writtenOn": "2015-01-13T17:17:36Z",
       "side": 1,
       "message": "intellij is a PITA :/",
+      "revId": "df201ce9666513e18d9ec56b475abfc51b6a35e6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_de7d85b3",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/ConnTrackState.scala",
+        "patchSetId": 18
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-13T17:40:13Z",
+      "side": 1,
+      "message": "Agree. Fixed.",
+      "parentUuid": "fa2559ec_7ee8d97c",
       "revId": "df201ce9666513e18d9ec56b475abfc51b6a35e6",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -93,6 +165,30 @@
     },
     {
       "key": {
+        "uuid": "fa2559ec_3e4ae183",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopologyActor.scala",
+        "patchSetId": 18
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-13T17:40:13Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fa2559ec_7e9f3904",
+      "range": {
+        "startLine": 49,
+        "startChar": 27,
+        "endLine": 49,
+        "endChar": 31
+      },
+      "revId": "df201ce9666513e18d9ec56b475abfc51b6a35e6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa2559ec_9e85cdaf",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMapper.scala",
         "patchSetId": 18
@@ -104,6 +200,24 @@
       "writtenOn": "2015-01-13T17:17:36Z",
       "side": 1,
       "message": "move block up?",
+      "revId": "df201ce9666513e18d9ec56b475abfc51b6a35e6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_7e129963",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMapper.scala",
+        "patchSetId": 18
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-13T17:40:13Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fa2559ec_9e85cdaf",
       "revId": "df201ce9666513e18d9ec56b475abfc51b6a35e6",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
