@@ -15,23 +15,22 @@
  */
 package org.midonet.midolman.guice
 
-import com.google.inject.name.{Named, Names}
+import com.google.inject.name.Named
 import com.google.inject.{Inject, PrivateModule, Provider}
 
-import org.midonet.cluster.data.storage.{InMemoryStorage, Storage}
-import org.midonet.util.eventloop.{CallingThreadReactor, Reactor}
+import org.midonet.cluster.data.storage.{InMemoryStorage, Storage, StorageWithOwnership}
+import org.midonet.midolman.guice.ClusterModule.StorageReactorTag
+import org.midonet.util.eventloop.Reactor
 
 object InMemoryStorageModule {
 
-    final val StorageReactorTag = "storageReactor"
-
-    private class StorageProvider extends Provider[Storage] {
+    private class StorageProvider extends Provider[StorageWithOwnership] {
 
         @Inject
         @Named(StorageReactorTag)
         var reactor: Reactor = _
 
-        override def get: Storage = new InMemoryStorage(reactor)
+        override def get: StorageWithOwnership = new InMemoryStorage(reactor)
     }
 }
 
@@ -40,12 +39,14 @@ class InMemoryStorageModule extends PrivateModule {
     import org.midonet.midolman.guice.InMemoryStorageModule._
 
     protected override def configure(): Unit = {
-        bind(classOf[Reactor])
-            .annotatedWith(Names.named(StorageReactorTag))
-            .to(classOf[CallingThreadReactor])
-            .asEagerSingleton()
-        bind(classOf[Storage])
+
+        bind(classOf[StorageWithOwnership])
             .toProvider(classOf[StorageProvider])
+            .asEagerSingleton()
+        expose(classOf[StorageWithOwnership])
+
+        bind(classOf[Storage])
+            .to(classOf[StorageWithOwnership])
             .asEagerSingleton()
         expose(classOf[Storage])
     }
