@@ -22,30 +22,90 @@ import javax.annotation.Nonnull
 import com.google.inject.Inject
 import com.google.inject.name.Named
 
-import org.midonet.cluster.DataClient
-import org.midonet.cluster.state.ZookeeperStateStorage.REACTOR_TAG
-import org.midonet.midolman.state.{Ip4ToMacReplicatedMap, MacPortMap, StateAccessException, ZkConnectionAwareWatcher}
+import rx.Observable
+import rx.subjects.PublishSubject
+
+import org.midonet.cluster.{ClusterRouterManager, DataClient}
+import org.midonet.cluster.config.ZookeeperConfig
+import org.midonet.cluster.data.storage.{StorageWithOwnership, NotFoundException, OwnershipConflictException}
+import org.midonet.cluster.models.Topology.Port
+import org.midonet.midolman.logging.MidolmanLogging
+import org.midonet.midolman.serialization.SerializationException
+import org.midonet.midolman.state.zkManagers.PortZkManager
+import org.midonet.midolman.state.{PortConfig, PortDirectory, StateAccessException, _}
 import org.midonet.util.eventloop.Reactor
+import org.midonet.util.functors.makeRunnable
 
-object ZookeeperStateStorage {
-    private[state] final val REACTOR_TAG = "directoryReactor"
-}
+class ZookeeperStateStorage @Inject() (config: ZookeeperConfig,
+                                       storage: StorageWithOwnership,
+                                       dataClient: DataClient,
+                                       @Named("directoryReactor") reactor: Reactor,
+                                       connectionWatcher: ZkConnectionAwareWatcher,
+                                       // Legacy
+                                       portZkManager: PortZkManager,
+                                       routerManager: ClusterRouterManager)
+        extends StateStorage with MidolmanLogging {
 
-class ZookeeperStateStorage @Inject() (dataClient: DataClient,
-                                       @Named(REACTOR_TAG) val reactor: Reactor,
-                                       val connectionWatcher:
-                                           ZkConnectionAwareWatcher)
-        extends StateStorage {
+    private val subjectLocalPortActive = PublishSubject.create[LocalPortActive]
+
+    override def logSource = ""
 
     @throws[StateAccessException]
-    override def getBridgeMacTable(@Nonnull bridgeId: UUID,
-                          vlanId: Short,
-                          ephemeral: Boolean): MacPortMap = {
+    override def bridgeMacTable(@Nonnull bridgeId: UUID, vlanId: Short,
+                                ephemeral: Boolean): MacPortMap = {
         dataClient.bridgeGetMacTable(bridgeId, vlanId, ephemeral)
     }
 
     @throws[StateAccessException]
-    def getBridgeIp4MacMap(@Nonnull bridgeId: UUID): Ip4ToMacReplicatedMap = {
+    override def bridgeIp4MacMap(@Nonnull bridgeId: UUID): Ip4ToMacReplicatedMap = {
         dataClient.getIp4MacMap(bridgeId)
     }
+
+    override def setPortLocalAndActive(portId: UUID, hostId: UUID,
+                                       active: Boolean): Unit = runOnReactor {
+        // Activate the port for legacy ZK storage.
+        if (config.isLegacyStorageEnabled) {
+            var portConfig: PortConfig = null
+            try {
+                portZkManager.setActivePort(portId, hostId, active)
+                portConfig = portZkManager.get(portId)
+            }
+            catch {
+                case e: StateAccessException =>
+                    log.error("Error retrieving the configuration for port {}",
+                              portId, e)
+                case e: SerializationException =>
+                    log.error("Error serializing the configuration for port {}",
+                              portId, e)
+            }
+            if (portConfig.isInstanceOf[PortDirectory.RouterPortConfig]) {
+                val deviceId: UUID = portConfig.device_id
+                routerManager.updateRoutesBecauseLocalPortChangedStatus(
+                    deviceId, portId, active)
+            }
+        }
+        // Activate the port for cluster storage.
+        if (config.isClusterStorageEnabled) {
+            try {
+                if (active) {
+                    storage.updateOwner(classOf[Port], portId, hostId,
+                                        throwIfExists = true)
+                } else {
+                    storage.deleteOwner(classOf[Port], portId, hostId)
+                }
+            } catch {
+                case e: NotFoundException =>
+                    log.error("Port {} does not exist", portId)
+                case e: OwnershipConflictException =>
+                    log.error("Host {} does not have permission to activate " +
+                              "or deactivate port {}", hostId, portId)
+            }
+        }
+        subjectLocalPortActive.onNext(LocalPortActive(portId, active))
+    }
+
+    override def observableLocalPortActive: Observable[LocalPortActive] =
+        subjectLocalPortActive.asObservable
+
+    private def runOnReactor(fn: => Unit) = reactor.submit(makeRunnable(fn))
 }

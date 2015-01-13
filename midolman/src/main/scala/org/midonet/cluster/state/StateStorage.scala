@@ -19,8 +19,18 @@ import java.util.UUID
 
 import javax.annotation.Nonnull
 
+import rx.Observable
+
 import org.midonet.midolman.state.{ZkConnectionAwareWatcher, Ip4ToMacReplicatedMap, StateAccessException, MacPortMap}
 import org.midonet.util.eventloop.Reactor
+
+/**
+ * Indicates when a virtual network port becomes active.
+ * @param portId The identifier of the port that is to be changed to active
+ *               or inactive.
+ * @param active True if the port is ready to emit/receive, false otherwise.
+ */
+case class LocalPortActive(portId: UUID, active: Boolean)
 
 /**
  * A trait defining the cluster state API. Currently, this trait represents a
@@ -28,16 +38,41 @@ import org.midonet.util.eventloop.Reactor
  */
 trait StateStorage {
 
-    val reactor: Reactor
-
-    val connectionWatcher: ZkConnectionAwareWatcher
-
+    /**
+     * Gets the MAC-port table for the specified bridge.
+     */
     @throws[StateAccessException]
-    def getBridgeMacTable(@Nonnull bridgeId: UUID,
-                          vlanId: Short,
-                          ephemeral: Boolean): MacPortMap
+    def bridgeMacTable(@Nonnull bridgeId: UUID,
+                       vlanId: Short, ephemeral: Boolean): MacPortMap
 
 
+    /**
+     * Gets the IP-MAC table for the specified bridge.
+     */
     @throws[StateAccessException]
-    def getBridgeIp4MacMap(@Nonnull bridgeId: UUID): Ip4ToMacReplicatedMap
+    def bridgeIp4MacMap(@Nonnull bridgeId: UUID): Ip4ToMacReplicatedMap
+
+    /**
+     * Inform the storage cluster that the port is active. This may be used by
+     * the cluster to do trigger related processing e.g. updating the router's
+     * forwarding table if this port belongs to a router.
+     *
+     * @param portId The identifier of the port
+     * @param host The identifier of the host where it's active
+     * @param active True / false depending on what state we want in the end
+     *               for the port
+     */
+    def setPortLocalAndActive(portId: UUID, host: UUID, active: Boolean): Unit
+
+    /**
+     * An observable that emits notifications when a local port becomes active,
+     * or inactive. This can be used, e.g. by the BGP manager, to discover local
+     * ports, such that it may then observe those specific ports and manage
+     * their BGP entries, if any.
+     *
+     * The notifications are emitted on the thread specified by the storage
+     * reactor.
+     */
+    def observableLocalPortActive: Observable[LocalPortActive]
+
 }

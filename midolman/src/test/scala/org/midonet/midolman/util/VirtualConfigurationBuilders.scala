@@ -18,8 +18,6 @@ package org.midonet.midolman.util
 import java.util.UUID
 import java.util.{HashSet => JSet}
 
-import org.midonet.cluster.data.neutron.ExtraDhcpOpt
-
 import scala.util.Random
 
 import scala.collection.JavaConversions._
@@ -36,12 +34,11 @@ import org.midonet.cluster.data.host.Host
 import org.midonet.cluster.data.ports.{RouterPort, BridgePort, VxLanPort}
 import org.midonet.cluster.data.rules.{ForwardNatRule, ReverseNatRule}
 import org.midonet.cluster.data.rules.{JumpRule, LiteralRule}
+import org.midonet.cluster.state.StateStorage
 import org.midonet.midolman.layer3.Route.NextHop
 import org.midonet.midolman.rules.{FragmentPolicy, Condition, NatTarget}
 import org.midonet.midolman.rules.RuleResult.Action
-import org.midonet.packets.{IPv4Addr, IPv4Subnet, TCP, MAC}
-import org.midonet.midolman.state.DirectoryCallback
-import org.apache.zookeeper.KeeperException
+import org.midonet.packets.{IPv4Subnet, TCP, MAC}
 import org.midonet.cluster.data.l4lb.{PoolMember, Pool, VIP, LoadBalancer,
                                       HealthMonitor}
 import org.midonet.midolman.state.l4lb.{PoolLBMethod, VipSessionPersistence, LBStatus}
@@ -49,6 +46,8 @@ import org.midonet.midolman.state.l4lb.{PoolLBMethod, VipSessionPersistence, LBS
 trait VirtualConfigurationBuilders {
 
     protected def clusterDataClient(): DataClient
+
+    protected def stateStorage: StateStorage
 
     def newHost(name: String, id: UUID, tunnelZones: Set[UUID]): Host = {
         val host = new Host().setName(name).setTunnelZones(tunnelZones)
@@ -395,7 +394,7 @@ trait VirtualConfigurationBuilders {
         clusterDataClient().hostsAddVrnPortMappingAndReturnPort(hostId,
             port.getId, portName)
 
-        clusterDataClient().portsSetLocalAndActive(port.getId, hostId, true)
+        stateStorage.setPortLocalAndActive(port.getId, hostId, true)
     }
 
     def newCondition(
@@ -493,7 +492,7 @@ trait VirtualConfigurationBuilders {
     }
 
     def createRandomVip(pool: Pool): VIP = {
-        val rand = new Random();
+        val rand = new Random()
         val vip = new VIP()
         vip.setId(UUID.randomUUID)
         vip.setAddress("10.10.10." + Integer.toString(rand.nextInt(200) +1))
@@ -624,10 +623,10 @@ trait VirtualConfigurationBuilders {
                          adminStateUp: Option[Boolean] = None,
                          weight: Option[Integer] = None,
                          status: Option[LBStatus] = None) {
-        poolId.foreach(poolMember.setPoolId(_))
-        adminStateUp.foreach(poolMember.setAdminStateUp(_))
+        poolId.foreach(poolMember.setPoolId)
+        adminStateUp.foreach(poolMember.setAdminStateUp)
         weight.foreach(poolMember.setWeight(_))
-        status.foreach(poolMember.setStatus(_))
+        status.foreach(poolMember.setStatus)
         clusterDataClient().poolMemberUpdate(poolMember)
     }
 
