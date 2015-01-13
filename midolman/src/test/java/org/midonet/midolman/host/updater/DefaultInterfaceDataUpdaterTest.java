@@ -39,6 +39,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import org.midonet.cluster.config.ZookeeperConfig;
+import org.midonet.midolman.guice.ClusterModule;
 import org.midonet.midolman.guice.InMemoryStorageModule;
 import org.midonet.midolman.guice.InterfaceScannerModule;
 import org.midonet.midolman.guice.ResourceProtectionModule;
@@ -106,6 +107,7 @@ public class DefaultInterfaceDataUpdaterTest {
             new InMemoryStorageModule(),
             new HostModule(),
             new ClusterClientModule(),
+            new ClusterModule(),
             new MockMidolmanModule(),
             new TestableMidolmanActorsModule(
                 JavaConversions.mapAsScalaMap(new HashMap<String, TestKit>()),

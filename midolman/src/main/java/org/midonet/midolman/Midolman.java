@@ -34,6 +34,7 @@ import org.slf4j.LoggerFactory;
 
 import org.midonet.cluster.services.StorageService;
 import org.midonet.event.agent.ServiceEvent;
+import org.midonet.midolman.guice.ClusterModule;
 import org.midonet.midolman.guice.InterfaceScannerModule;
 import org.midonet.midolman.guice.MidolmanActorsModule;
 import org.midonet.midolman.guice.MidolmanModule;
@@ -129,6 +130,7 @@ public class Midolman {
             new StateStorageModule(),
             new DatapathModule(),
             new ClusterClientModule(),
+            new ClusterModule(),
             new MidolmanActorsModule(),
             new ResourceProtectionModule(),
             new MidolmanModule(),

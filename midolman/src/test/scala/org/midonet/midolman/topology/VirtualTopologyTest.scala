@@ -47,7 +47,8 @@ class VirtualTopologyTest extends MidolmanSpec with TopologyBuilder {
         store.create(createBridge(id = bridgeId))
     }
 
-    override protected def fillConfig(config: HierarchicalConfiguration) = {
+    protected override def fillConfig(config: HierarchicalConfiguration)
+    : HierarchicalConfiguration = {
         super.fillConfig(config)
         config.setProperty("zookeeper.cluster_storage_enabled", true)
         config
