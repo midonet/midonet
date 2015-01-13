@@ -37,7 +37,7 @@ public class ZkConnectionProvider implements Provider<ZkConnection> {
     private final static Logger log = getLogger(ZkConnectionProvider.class);
 
     // WARN: should this string change, also replace it in
-    // BridgeBuilderStateFeeder
+    // BridgeBuilderStateFeeder and ZookeeperStateStorage
     public static final String DIRECTORY_REACTOR_TAG = "directoryReactor";
 
     @Inject
