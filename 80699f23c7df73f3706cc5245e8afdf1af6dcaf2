@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa2559ec_9ec66d48",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/Host.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-13T16:11:12Z",
+      "side": 1,
+      "message": "I don\u0027t think we should have an old and new Host. I think we can decide to use either the old or the new one, where:\n- if we use the old one, then the HostMapper should emit rcu.Host on its observable\n- if we use the new one, then the HostMapper stays as is, this method is not needed, and MM should be refactored to use the new devices.Host\n\nOtherwise, I don\u0027t see what is the advantage of converting:\nTopology.Host \u003e devices.Host \u003e rcu.Host \u003e simulation",
+      "range": {
+        "startLine": 81,
+        "startChar": 8,
+        "endLine": 81,
+        "endChar": 27
+      },
+      "revId": "80699f23c7df73f3706cc5245e8afdf1af6dcaf2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
