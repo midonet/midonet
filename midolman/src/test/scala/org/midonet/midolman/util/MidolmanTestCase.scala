@@ -228,6 +228,7 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
                 }
             },
             new ClusterClientModule(),
+            new ClusterModule(),
             new MockMidolmanModule(),
             new TestableMidolmanActorsModule(probesByName, actorsByName, clock),
             new ResourceProtectionModule(),
@@ -257,7 +258,7 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
             clusterDataClient
                 .hostsAddVrnPortMappingAndReturnPort(host.getId, port.getId, name)
 
-        clusterDataClient.portsSetLocalAndActive(port.getId, host.getId, true)
+        clusterState.setPortLocalAndActive(port.getId, host.getId, true)
 
         if (host.getId == hostId) {
             val itf = new InterfaceDescription(name)
