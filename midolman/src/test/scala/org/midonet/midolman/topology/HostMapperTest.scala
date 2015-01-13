@@ -53,11 +53,9 @@ class HostMapperTest extends MidolmanSpec
         store = injector.getInstance(classOf[Storage])
     }
 
-    override protected def fillConfig(config: HierarchicalConfiguration) = {
+    protected override def fillConfig(config: HierarchicalConfiguration)
+    : HierarchicalConfiguration = {
         super.fillConfig(config)
-
-        // Tests to cover the cases when the new cluster is disabled are
-        // present in VirtualToPhysicalMapperTest
         config.setProperty("zookeeper.cluster_storage_enabled", true)
         config
     }

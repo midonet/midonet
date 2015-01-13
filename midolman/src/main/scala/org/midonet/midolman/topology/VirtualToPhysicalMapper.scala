@@ -30,9 +30,9 @@ import com.google.inject.Inject
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.data.TunnelZone
+import org.midonet.cluster.state.StateStorage
 import org.midonet.cluster.{Client, DataClient}
 import org.midonet.midolman._
-import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.services.HostIdProviderService
 import org.midonet.midolman.state.Directory.TypedWatcher
 import org.midonet.midolman.state.DirectoryCallback
@@ -290,12 +290,15 @@ trait DataClientLink {
 
     @Inject
     val cluster: DataClient = null
+    @Inject
+    val stateStorage: StateStorage = null
 
     @Inject
     val hostIdProvider : HostIdProviderService = null
 
     def notifyLocalPortActive(vportID: UUID, active: Boolean) {
-        cluster.portsSetLocalAndActive(vportID, hostIdProvider.getHostId, active)
+        stateStorage.setPortLocalAndActive(vportID, hostIdProvider.getHostId,
+                                           active)
     }
 }
 
