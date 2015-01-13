@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa2559ec_feda0916",
+        "filename": "midolman/src/main/scala/org/midonet/cluster/ClusterState.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-13T16:20:10Z",
+      "side": 1,
+      "message": "Can this be merged with the LocalPortActive case class from the VTPM?",
+      "range": {
+        "startLine": 28,
+        "startChar": 11,
+        "endLine": 28,
+        "endChar": 26
+      },
+      "revId": "7c70a6b4cd57aa013b623596847e32a84fe5c176",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_bed091f8",
+        "filename": "midolman/src/main/scala/org/midonet/cluster/ClusterStateImpl.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-13T16:20:10Z",
+      "side": 1,
+      "message": "Previously, the notification of changes to port active status was done before calling the updateRoutesBecauseLocalPortChangedStatus() method of the router manager.\n\nAlthough the refactor does not break any unit tests, confirm with the agent team whether moving the notification after is okay.",
+      "range": {
+        "startLine": 86,
+        "startChar": 8,
+        "endLine": 86,
+        "endChar": 70
+      },
+      "revId": "7c70a6b4cd57aa013b623596847e32a84fe5c176",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
