@@ -1,0 +1,89 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa2559ec_febde903",
+        "filename": "midonet-util/src/main/java/org/midonet/packets/FlowStateEthernet.java",
+        "patchSetId": 28
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-01-13T15:58:50Z",
+      "side": 1,
+      "message": "i would put this class in the midolman module. (but please don\u0027t rebase for this, not on this patch.",
+      "revId": "0c41e89fa94e5416ddb9f150b983d0c1150b0847",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_9e478d1d",
+        "filename": "midonet-util/src/main/java/org/midonet/packets/FlowStateEthernet.java",
+        "patchSetId": 28
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-01-13T15:58:50Z",
+      "side": 1,
+      "message": "shouldn\u0027t this just be zero?",
+      "revId": "0c41e89fa94e5416ddb9f150b983d0c1150b0847",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_1e639db2",
+        "filename": "midonet-util/src/main/java/org/midonet/packets/FlowStateEthernet.java",
+        "patchSetId": 28
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-01-13T15:58:50Z",
+      "side": 1,
+      "message": "why a TTL of 1? There could be a router in between two mm agents.",
+      "revId": "0c41e89fa94e5416ddb9f150b983d0c1150b0847",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_7e26196a",
+        "filename": "midonet-util/src/main/java/org/midonet/packets/FlowStateEthernet.java",
+        "patchSetId": 28
+      },
+      "lineNbr": 216,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-01-13T15:58:50Z",
+      "side": 1,
+      "message": "shouldn\u0027t this update the length in the IPv4 header?",
+      "revId": "0c41e89fa94e5416ddb9f150b983d0c1150b0847",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_9e782d2d",
+        "filename": "odp/src/main/java/org/midonet/odp/protos/MockOvsDatapathConnection.java",
+        "patchSetId": 28
+      },
+      "lineNbr": 362,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-01-13T15:58:50Z",
+      "side": 1,
+      "message": "s/Stete/State/",
+      "revId": "0c41e89fa94e5416ddb9f150b983d0c1150b0847",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
