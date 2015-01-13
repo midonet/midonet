@@ -19,7 +19,7 @@ package org.midonet.midolman.guice
 import com.google.inject.{Inject, PrivateModule, Provider}
 import org.apache.curator.framework.CuratorFramework
 import org.midonet.cluster.config.ZookeeperConfig
-import org.midonet.cluster.data.storage.{Storage, ZookeeperObjectMapper}
+import org.midonet.cluster.data.storage.{StorageWithOwnership, Storage, ZookeeperObjectMapper}
 
 /**
  * Guice module to install dependencies for ZOOM-based data access.
@@ -28,9 +28,9 @@ object StorageModule {
 
     private class StorageServiceProvider @Inject() (cfg: ZookeeperConfig,
                                                     curator: CuratorFramework)
-            extends Provider[Storage] {
+            extends Provider[StorageWithOwnership] {
 
-        override def get: Storage =
+        override def get: StorageWithOwnership =
             new ZookeeperObjectMapper(cfg.getZkRootPath + "/zoom", curator)
     }
 
@@ -39,8 +39,13 @@ object StorageModule {
 class StorageModule extends PrivateModule {
 
     protected override def configure(): Unit = {
-        bind(classOf[Storage])
+        bind(classOf[StorageWithOwnership])
             .toProvider(classOf[StorageModule.StorageServiceProvider])
+            .asEagerSingleton()
+        expose(classOf[StorageWithOwnership])
+
+        bind(classOf[Storage])
+            .to(classOf[StorageWithOwnership])
             .asEagerSingleton()
         expose(classOf[Storage])
     }
