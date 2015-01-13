@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa2559ec_f3752233",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/concurrent/SpscRwdRingBuffer.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 133,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-01-13T09:41:14Z",
+      "side": 1,
+      "message": "I think the synchronization is correct now. You can still overwrite old values though if the producer thread adds a new element over an old one just before the consumer thread calls rewind.",
+      "revId": "68d7e9bbccf7d6922f2b13fe9048d67b804f6fd2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
