@@ -453,12 +453,12 @@ public class RuleZkManager extends AbstractZkManager<UUID, Rule> {
      * @throws StateAccessException
      * @throws RuleIndexOutOfBoundsException
      */
-    public UUID create(Rule rule, int position)
+    public UUID create(UUID id, Rule rule, int position)
             throws RuleIndexOutOfBoundsException,
             StateAccessException, SerializationException {
-        UUID id = UUID.randomUUID();
-        zk.multi(prepareInsertPositionOrdering(id, rule, position));
-        return id;
+        UUID ruleId = id == null ? UUID.randomUUID() : id;
+        zk.multi(prepareInsertPositionOrdering(ruleId, rule, position));
+        return ruleId;
     }
 
     public void getRuleIdListAsync(
