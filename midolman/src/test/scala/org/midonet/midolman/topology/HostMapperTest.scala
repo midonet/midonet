@@ -22,6 +22,7 @@ import scala.collection.JavaConversions._
 import scala.concurrent.Await
 import scala.concurrent.duration.DurationInt
 
+import org.apache.commons.configuration.HierarchicalConfiguration
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
@@ -54,6 +55,12 @@ class HostMapperTest extends MidolmanSpec
             store.registerClass(clazz)
         )
         dataClient = clusterDataClient()
+    }
+
+    protected override def fillConfig(config: HierarchicalConfiguration)
+    : HierarchicalConfiguration = {
+        config.setProperty("zookeeper.cluster_storage_enabled", true)
+        config
     }
 
     feature("A host should come with its tunnel zones membership") {

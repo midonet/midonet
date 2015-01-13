@@ -23,10 +23,8 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Queue;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
@@ -136,7 +134,6 @@ import org.midonet.packets.IPv4Subnet;
 import org.midonet.packets.IPv6Subnet;
 import org.midonet.packets.MAC;
 import org.midonet.util.eventloop.Reactor;
-import org.midonet.util.functors.Callback2;
 import org.midonet.util.functors.CollectionFunctors;
 import org.midonet.util.functors.Functor;
 
@@ -236,9 +233,6 @@ public class LocalDataClientImpl implements DataClient {
     @Inject
     @Named(ZKConnectionProvider.DIRECTORY_REACTOR_TAG)
     private Reactor reactor;
-
-    final Queue<Callback2<UUID, Boolean>> subscriptionPortsActive =
-        new ConcurrentLinkedQueue<>();
 
     private final static Logger log =
             LoggerFactory.getLogger(LocalDataClientImpl.class);
@@ -728,11 +722,6 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
-    public void subscribeToLocalActivePorts(@Nonnull Callback2<UUID, Boolean> cb) {
-        subscriptionPortsActive.offer(cb);
-    }
-
-    @Override
     public UUID tunnelZonesCreate(@Nonnull TunnelZone zone)
             throws StateAccessException, SerializationException {
         return zonesZkManager.createZone(zone, null);
@@ -877,39 +866,6 @@ public class LocalDataClientImpl implements DataClient {
                     return null;
                 }
             }, zkConnection);
-    }
-
-    @Override
-    public void portsSetLocalAndActive(final UUID portID,
-                                       final UUID host,
-                                       final boolean active) {
-        // use the reactor thread for this operations
-        reactor.submit(new Runnable() {
-
-            @Override
-            public void run() {
-                PortConfig config = null;
-                try {
-                    portZkManager.setActivePort(portID, host, active);
-                    config = portZkManager.get(portID);
-                } catch (StateAccessException e) {
-                    log.error("Error retrieving the configuration for port {}",
-                            portID, e);
-                } catch (SerializationException e) {
-                    log.error("Error serializing the configuration for port " +
-                            "{}", portID, e);
-                }
-                // update the subscribers
-                for (Callback2<UUID, Boolean> cb : subscriptionPortsActive) {
-                    cb.call(portID, active);
-                }
-                if (config instanceof PortDirectory.RouterPortConfig) {
-                    UUID deviceId = config.device_id;
-                    routerManager.updateRoutesBecauseLocalPortChangedStatus(
-                            deviceId, portID, active);
-                }
-            }
-        });
     }
 
     @Override

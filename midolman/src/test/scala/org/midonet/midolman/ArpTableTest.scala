@@ -71,7 +71,7 @@ class ArpTableTest extends MidolmanSpec {
         newHost("myself", hostId())
         val clusterRouter = newRouter("router")
         val clusterPort = newRouterPort(clusterRouter, myMac, myIp, nwAddr, 24)
-        clusterDataClient().portsSetLocalAndActive(clusterPort.getId, hostId(), true)
+        clusterState.setPortLocalAndActive(clusterPort.getId, hostId(), true)
         newRoute(clusterRouter, "0.0.0.0", 0, "0.0.0.0", 0, NextHop.PORT, clusterPort.getId, hisIp, 1)
 
         router = fetchDevice(clusterRouter)
