@@ -16,6 +16,24 @@
       "revId": "68d7e9bbccf7d6922f2b13fe9048d67b804f6fd2",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_fe1cc96c",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/concurrent/SpscRwdRingBuffer.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 133,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-01-13T14:13:49Z",
+      "side": 1,
+      "message": "Ok, but in this case the rewind should fail with a \u0027false\u0027, and the reader index is rolled back to its original value (if I\u0027m not wrong...)",
+      "parentUuid": "fa2559ec_f3752233",
+      "revId": "68d7e9bbccf7d6922f2b13fe9048d67b804f6fd2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
