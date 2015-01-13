@@ -65,7 +65,7 @@ class IcmpThroughNatTest extends MidolmanSpec {
     var clusterRouter: ClusterRouter = null
 
     private def setActive(id: UUID) {
-        clusterDataClient().portsSetLocalAndActive(id, hostId(), true)
+        clusterState.setPortLocalAndActive(id, hostId(), true)
     }
 
     private def buildTopology() {

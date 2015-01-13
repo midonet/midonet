@@ -20,6 +20,7 @@ import javax.inject.Named
 
 import com.google.inject.Inject
 import org.midonet.cluster.client.{BridgeBuilder, IpMacMap, MacLearningTable}
+import org.midonet.midolman.guice.ClusterModule.StorageReactorTag
 import org.midonet.midolman.state._
 import org.midonet.packets.{IPv4Addr, MAC}
 import org.midonet.util.eventloop.Reactor
@@ -39,10 +40,10 @@ class BridgeBuilderStateFeeder {
     var connWatcher: ZkConnectionAwareWatcher = _
 
     @Inject // the same reactor as ZkDirectory
-    @Named("directoryReactor") // ZKConnectionProvider.DIRECTORY_REACTOR_TAG)
-    var reactor: Reactor = _   // for some reason the constant doesn't work
+    @Named(StorageReactorTag)
+    var reactor: Reactor = _
 
-    /** An implementation of a repliated mac learning table */
+    /** An implementation of a replicated mac learning table */
     class MacLearningTableImpl(val map: MacPortMap,
                                val bridgeId: UUID,
                                val vlanId: Short,
