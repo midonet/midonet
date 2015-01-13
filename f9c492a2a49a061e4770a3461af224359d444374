@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa2559ec_be95318a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/PacketWorkflow.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-01-13T15:10:02Z",
+      "side": 1,
+      "message": "s/wmatch/origMatch/",
+      "revId": "f9c492a2a49a061e4770a3461af224359d444374",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_9e92ed9d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/PacketWorkflow.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-01-13T15:10:02Z",
+      "side": 1,
+      "message": "s/context\\.//",
+      "revId": "f9c492a2a49a061e4770a3461af224359d444374",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_3ee9411b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/PacketContext.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-01-13T15:10:02Z",
+      "side": 1,
+      "message": "default idleExp should be 5 secs. Just in case. Let workflows overwrite it.",
+      "revId": "f9c492a2a49a061e4770a3461af224359d444374",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
