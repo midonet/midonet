@@ -145,7 +145,7 @@ abstract class VTPMRedirector extends Actor
         removeFromCache[D](deviceId)
     }
 
-    def receive = if (!config.getClusterStorageEnabled) Actor.emptyBehavior else {
+    def receive = if (!config.isClusterStorageEnabled) Actor.emptyBehavior else {
         case r: TunnelZoneRequest =>
             log.debug("Request for tunnel zone with id {}", r.zoneId)
             onRequest[TunnelZone](r)
@@ -154,11 +154,11 @@ abstract class VTPMRedirector extends Actor
             onRequest[Host](r)
         case r: TunnelZoneUnsubscribe =>
             log.debug("Unsubscribe request for tunnel zone {} from {}",
-                      r.zoneId, sender)
+                      r.zoneId, sender())
             onUnsubscribe[TunnelZone](r, sender())
         case r: HostUnsubscribe =>
             log.debug("Unsubscribe request for host {} from {}", r.hostId,
-                      sender)
+                      sender())
             onUnsubscribe[Host](r, sender())
         case OnCompleted(deviceId: UUID, t: ClassTag[_]) =>
             log.debug("Device {} update stream completed", deviceId)
