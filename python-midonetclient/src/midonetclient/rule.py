@@ -162,6 +162,10 @@ class Rule(resource_base.ResourceBase):
     def get_fragment_policy(self):
         return self.dto['fragmentPolicy']
 
+    def id(self, id):
+        self.dto['id'] = id
+        return self
+
     def inv_port_group(self, inv_port_group):
         self.dto['invPortGroup'] = inv_port_group
         return self
