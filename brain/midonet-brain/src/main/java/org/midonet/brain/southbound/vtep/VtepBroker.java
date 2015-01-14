@@ -213,7 +213,8 @@ public class VtepBroker implements VxLanPeer {
         if (st.getCode().equals(StatusCode.CONFLICT)) {
             log.info("Conflict writing {}, not expected", ml);
         } else if (!st.isSuccess()) {
-            throw new VxLanPeerSyncException("VTEP replied: " + st, ml);
+            throw new VxLanPeerSyncException("OVSDB error: " + st, ml,
+                                             st.getCode());
         }
     }
 
@@ -238,7 +239,8 @@ public class VtepBroker implements VxLanPeer {
         if (st.getCode().equals(StatusCode.NOTFOUND)) {
             log.debug("Trying to delete entry but not present {}", ml);
         } else if (!st.isSuccess()) {
-            throw new VxLanPeerSyncException("VTEP OVSDB error: " + st, ml);
+            throw new VxLanPeerSyncException("OVSDB error: " + st, ml,
+                                             st.getCode());
         }
     }
 
@@ -254,9 +256,9 @@ public class VtepBroker implements VxLanPeer {
             if (st.getCode().equals(StatusCode.CONFLICT)) {
                 log.info("Conflict writing {}, not expected", ml);
             } else {
-                throw new VxLanPeerSyncException(
-                    String.format("VTEP replied: %s, %s",
-                                  st.getCode(), st.getDescription()), ml);
+                throw new VxLanPeerSyncException("OVSDB error: " + st.getCode()
+                                                 + ", " + st.getDescription(),
+                                                 ml, st.getCode());
             }
         }
     }
@@ -269,9 +271,9 @@ public class VtepBroker implements VxLanPeer {
         Status st = vtepDataClient.deleteAllMcastMacRemote(
             ml.logicalSwitchName(), ml.mac());
         if (!st.isSuccess() && !st.getCode().equals(StatusCode.NOTFOUND)) {
-            throw new VxLanPeerSyncException(
-                String.format("VTEP replied: %s, %s",
-                              st.getCode(), st.getDescription()), ml);
+            throw new VxLanPeerSyncException("OVSDB error " + st.getCode() +
+                                             ", " + st.getDescription(), ml,
+                                             st.getCode());
         }
     }
 
@@ -451,7 +453,7 @@ public class VtepBroker implements VxLanPeer {
     /**
      * Some utility methods to parse OVSDB Row updates.
      */
-    private static class RowParser {
+    public static class RowParser {
         // Methods below extract individual fields, watching for nulls.
         public static UUID logicalSwitch(Ucast_Macs_Local row) {
             if (row == null) {
