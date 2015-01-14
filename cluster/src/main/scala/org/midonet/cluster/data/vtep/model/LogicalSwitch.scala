@@ -30,8 +30,9 @@ import java.util.{Objects, UUID}
  * @param lsDesc is the description associated to this switch
  */
 final class LogicalSwitch(id: UUID, lsName: String,
-                          val tunnelKey: Integer, lsDesc: String) {
-    val uuid = if (id == null) UUID.randomUUID() else id
+                          val tunnelKey: Integer, lsDesc: String)
+    extends VtepEntry {
+    override val uuid = if (id == null) UUID.randomUUID() else id
     val name = if (lsName == null) "" else lsName
     val description = if (lsDesc == null || lsDesc.isEmpty) null else lsDesc
 
@@ -50,8 +51,6 @@ final class LogicalSwitch(id: UUID, lsName: String,
             Objects.equals(tunnelKey, ls.tunnelKey)
         case other => false
     }
-
-    override def hashCode: Int = uuid.hashCode
 }
 
 object LogicalSwitch {

@@ -1,0 +1,103 @@
+/*
+ * Copyright 2015 Midokura SARL
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.midonet.vtep
+
+import java.util.UUID
+import java.util.concurrent.Executor
+
+import scala.concurrent.{ExecutionContext, Promise, Future}
+import scala.util.{Failure, Success}
+
+import org.opendaylight.ovsdb.lib.OvsdbClient
+import org.slf4j.LoggerFactory
+import rx.schedulers.Schedulers
+import rx.Observer
+
+import org.midonet.cluster.data.vtep.model.VtepEntry
+import org.midonet.vtep.schema.Table
+
+/**
+ * A local mirror of a VTEP cache
+ * This is not thread-safe, and updates should be run inside the vtep thread
+ */
+class OvsdbCachedTable[T <: Table, Entry <: VtepEntry](val client: OvsdbClient,
+                                                       val table: T,
+                                                       val vtepThread: Executor)
+    extends VtepCachedTable[T, Entry] {
+
+    case class Data(value: Entry, owner: UUID)
+
+    private val log = LoggerFactory.getLogger(this.getClass)
+    private val vtepContext = ExecutionContext.fromExecutor(vtepThread)
+    private val vtepScheduler = Schedulers.from(vtepThread)
+
+    private var map: Map[UUID, List[Data]] = Map()
+    private val filled = Promise[Boolean]()
+    private val monitor = new OvsdbTableMonitor[T, Entry](client, table)
+    monitor.observable.observeOn(vtepScheduler)
+        .subscribe(new Observer[VtepTableUpdate[Entry]] {
+        override def onCompleted(): Unit = {
+            log.debug("vtep monitor closed")
+            filled.tryFailure(new IllegalStateException("vtep monitor closed"))
+            map = Map()
+        }
+        override def onError(e: Throwable): Unit = {
+            log.error("vtep monitor failed", e)
+            filled.tryFailure(e)
+            map = Map()
+        }
+        override def onNext(u: VtepTableUpdate[Entry]): Unit = u match {
+            case VtepTableReady() => filled.success(true)
+            case VtepEntryUpdate(null, null) => // ignore
+            case VtepEntryUpdate(row, null) => map = map - row.uuid
+            case VtepEntryUpdate(_, row) =>
+                // Data from VTEP is authoritative
+                map = map updated (row.uuid, List(Data(row, null)))
+            case _ => // ignore
+        }
+    })
+
+    // NOTE: this is not thread safe: it must be executed by the same thread
+    // monitoring the vtep table
+    override def insert(row: Entry): Future[UUID] = {
+        val result = Promise[UUID]()
+        val hint = UUID.randomUUID()
+        map = map updated (row.uuid,
+            Data(row, hint) :: map.getOrElse(row.uuid, Nil))
+        OvsdbUtil.modify(client, table, table.insert(row, classOf[Entry]))
+            .future.onComplete({
+            case Failure(exc) =>
+                map.getOrElse(row.uuid, Nil).filterNot(_.owner == hint) match {
+                    case Nil => map = map - row.uuid
+                    case entries => map = map updated (row.uuid, entries)
+                }
+                result.failure(exc)
+            case Success(uuid) =>
+                result.success(uuid)
+        })(vtepContext)
+        result.future
+    }
+
+    override def get(id: UUID): Option[Entry] = map.get(id).map(_.head.value)
+    override def getAll: Map[UUID, Entry] = map.mapValues(_.head.value)
+
+    override def ready: Future[Boolean] = filled.future
+    override def isReady: Boolean = filled.future.value.collect[Boolean]({
+        case Success(available) => available
+        case Failure(_) => false
+    }).getOrElse(false)
+}
