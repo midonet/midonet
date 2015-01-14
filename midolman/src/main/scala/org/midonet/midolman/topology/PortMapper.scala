@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2014-2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,19 +17,53 @@ package org.midonet.midolman.topology
 
 import java.util.UUID
 
+import rx.Observable
+
 import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.models.Topology.{Port => TopologyPort}
 import org.midonet.midolman.topology.devices.{Port => SimulationPort}
 import org.midonet.util.functors._
 
-sealed class PortMapper(id: UUID, vt: VirtualTopology)
+/**
+ * A device mapper that exposes an [[rx.Observable]] with notifications for
+ * a device port. The port observable combines the latest updates from both the
+ * topology port object, and the topology port ownership indicating the active
+ * state of the port.
+ *
+ * +------------------------+                            +----------------+
+ * |    Port observable     |--------------------------->| take(distinct) |
+ * +------------------------+                            +----------------+
+ *                                                               | port
+ *                                                       +----------------+
+ *                                                       |   combinator   |->
+ *                                                       +----------------+
+ *                                                               | active
+ * +------------------------+  +----------------------+  +----------------+
+ * | Port owners observable |->| map(owners.nonEmpty) |->| take(distinct) |
+ * +------------------------+  +----------------------+  +----------------+
+ */
+final class PortMapper(id: UUID, vt: VirtualTopology)
         extends VirtualDeviceMapper[SimulationPort](id, vt) {
 
     override def logSource = s"org.midonet.midolman.topology.port-$id"
 
-    protected override def observable = {
-        vt.store.observable(classOf[TopologyPort], id)
-            .map[SimulationPort](
-                makeFunc1(ZoomConvert.fromProto(_, classOf[SimulationPort])))
-    }
+    private lazy val combinator =
+        makeFunc2[TopologyPort, Boolean, SimulationPort](
+            (port: TopologyPort, active: Boolean) => {
+                val simPort = ZoomConvert.fromProto(port, classOf[SimulationPort])
+                simPort.active = active
+                simPort
+            })
+
+    private lazy val deviceObservable =
+        Observable.combineLatest[TopologyPort, Boolean, SimulationPort](
+            vt.store.observable(classOf[TopologyPort], id)
+                .distinctUntilChanged,
+            vt.store.ownersObservable(classOf[TopologyPort], id)
+                .map[Boolean](makeFunc1 { _.nonEmpty })
+                .distinctUntilChanged
+                .onErrorResumeNext(Observable.empty),
+            combinator)
+
+    protected override def observable = deviceObservable
 }
