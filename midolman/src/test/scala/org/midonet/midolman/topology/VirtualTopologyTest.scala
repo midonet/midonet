@@ -78,7 +78,7 @@ class VirtualTopologyTest extends MidolmanSpec with TopologyBuilder {
         }
 
         scenario("The port exists in the topology and is not cached") {
-            Given("A network port")
+            Given("A bridge port")
             val id = UUID.randomUUID
             val port = createBridgePort(id = id, bridgeId = Some(bridgeId))
             store.create(port)
@@ -100,7 +100,7 @@ class VirtualTopologyTest extends MidolmanSpec with TopologyBuilder {
         }
 
         scenario("The port exists in the topology and is cached") {
-            Given("A network port")
+            Given("A bridge port")
             val id = UUID.randomUUID
             val port = createBridgePort(id = id, bridgeId = Some(bridgeId))
             store.create(port)
@@ -130,7 +130,7 @@ class VirtualTopologyTest extends MidolmanSpec with TopologyBuilder {
         }
 
         scenario("The VT returns the latest port version") {
-            Given("A network port")
+            Given("A bridge port")
             val id = UUID.randomUUID
             val port1 = createBridgePort(id = id, bridgeId = Some(bridgeId),
                                          tunnelKey = 1)
@@ -173,7 +173,7 @@ class VirtualTopologyTest extends MidolmanSpec with TopologyBuilder {
         }
 
         scenario("The VT removes the port from cache on port deletion") {
-            Given("A network port")
+            Given("A bridge port")
             val id = UUID.randomUUID
             val port = createBridgePort(id = id, bridgeId = Some(bridgeId))
             store.create(port)
@@ -237,7 +237,7 @@ class VirtualTopologyTest extends MidolmanSpec with TopologyBuilder {
         }
 
         scenario("The port exists in the topology and is not cached") {
-            Given("A network port")
+            Given("A bridge port")
             val id = UUID.randomUUID
             val port = createBridgePort(id = id, bridgeId = Some(bridgeId))
             store.create(port)
@@ -258,7 +258,7 @@ class VirtualTopologyTest extends MidolmanSpec with TopologyBuilder {
         }
 
         scenario("The port exists in the topology and is cached") {
-            Given("A network port")
+            Given("A bridge port")
             val id = UUID.randomUUID
             val port = createBridgePort(id = id, bridgeId = Some(bridgeId))
             store.create(port)
@@ -285,7 +285,7 @@ class VirtualTopologyTest extends MidolmanSpec with TopologyBuilder {
         }
 
         scenario("The observer receives update notifications") {
-            Given("A network port")
+            Given("A bridge port")
             val id = UUID.randomUUID
             val port1 = createBridgePort(id = id, bridgeId = Some(bridgeId),
                                          tunnelKey = 1)
@@ -314,7 +314,7 @@ class VirtualTopologyTest extends MidolmanSpec with TopologyBuilder {
         }
 
         scenario("The observer should not receive updated after unsubscribe") {
-            Given("A network port")
+            Given("A bridge port")
             val id = UUID.randomUUID
             val port1 = createBridgePort(id = id, bridgeId = Some(bridgeId),
                                          tunnelKey = 1)
@@ -346,7 +346,7 @@ class VirtualTopologyTest extends MidolmanSpec with TopologyBuilder {
         }
 
         scenario("The observer unsubscribing should not affect other observers") {
-            Given("A network port")
+            Given("A bridge port")
             val id = UUID.randomUUID
             val port1 = createBridgePort(id = id, bridgeId = Some(bridgeId),
                                          tunnelKey = 1)
@@ -393,7 +393,7 @@ class VirtualTopologyTest extends MidolmanSpec with TopologyBuilder {
         }
 
         scenario("The observer should receive a deletion notification") {
-            Given("A network port")
+            Given("A bridge port")
             val id = UUID.randomUUID
             val port1 = createBridgePort(id = id, bridgeId = Some(bridgeId),
                                          tunnelKey = 1)
