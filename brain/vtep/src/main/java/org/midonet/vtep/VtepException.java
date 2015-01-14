@@ -14,15 +14,27 @@
  * limitations under the License.
  */
 
-package org.midonet.util.executors
-
-import java.util.concurrent.Executor
+package org.midonet.vtep;
 
 /**
- * A simple executor that executes the runnable directly in the same thread
- * that is submitting it.
+ * An exception class for vtep-specific issues
  */
-object SameThreadExecutor extends Executor {
-    override def execute(runnable: Runnable): Unit = runnable.run()
+public class VtepException extends Exception {
+    private final VtepEndPoint vtep;
+
+    public VtepException(VtepEndPoint vtep, String msg) {
+        super("VTEP " + vtep + ": " + msg);
+        this.vtep = vtep;
+    }
+
+    public VtepException(VtepEndPoint vtep, Throwable cause) {
+        super("VTEP " + vtep + " exception: " + cause.getMessage(), cause);
+        this.vtep = vtep;
+    }
+
+    public VtepEndPoint getVtep() {
+        return vtep;
+    }
 }
+
 
