@@ -7,12 +7,14 @@ import java.util.Set;
 import org.opendaylight.ovsdb.lib.notation.Condition;
 import org.opendaylight.ovsdb.lib.notation.Function;
 import org.opendaylight.ovsdb.lib.notation.Row;
+import org.opendaylight.ovsdb.lib.operations.Delete;
 import org.opendaylight.ovsdb.lib.operations.Insert;
 import org.opendaylight.ovsdb.lib.schema.ColumnSchema;
 import org.opendaylight.ovsdb.lib.schema.DatabaseSchema;
 import org.opendaylight.ovsdb.lib.schema.GenericTableSchema;
 
 import org.midonet.cluster.data.vtep.model.LogicalSwitch;
+import org.midonet.cluster.data.vtep.model.VtepEntry;
 
 /**
  * Schema for the Ovsdb logical switch table
@@ -28,6 +30,7 @@ public final class LogicalSwitchTable extends Table {
     }
 
     /** Get the schema of the columns of this table */
+    @Override
     public List<ColumnSchema<GenericTableSchema, ?>> getColumnSchemas() {
         List<ColumnSchema<GenericTableSchema, ?>> cols = super.getColumnSchemas();
         cols.add(getNameSchema());
@@ -48,7 +51,6 @@ public final class LogicalSwitchTable extends Table {
 
     /** Get the schema for the optional tunnel key (vxlan vni) */
     protected ColumnSchema<GenericTableSchema, Set> getTunnelKeySchema() {
-
         return tableSchema.column(COL_TUNNEL_KEY, Set.class);
     }
 
@@ -84,15 +86,29 @@ public final class LogicalSwitchTable extends Table {
     /**
      * Extract a complete logical switch from a table row
      */
-    public LogicalSwitch parseLogicalSwitch(Row<GenericTableSchema> row) {
-        return new LogicalSwitch(parseUuid(row), parseName(row),
-                                 parseTunnelKey(row), parseDescription(row));
+    @Override
+    @SuppressWarnings(value = "unckecked")
+    public <E extends VtepEntry>
+    E parseEntry(Row<GenericTableSchema> row, Class<E> clazz)
+        throws IllegalArgumentException {
+        if (!clazz.isAssignableFrom(LogicalSwitch.class))
+            throw new IllegalArgumentException("wrong entry type " + clazz +
+                                               " for table " + this.getClass());
+        return (E)LogicalSwitch.apply(parseUuid(row), parseName(row),
+                                      parseTunnelKey(row),
+                                      parseDescription(row));
     }
 
     /**
      * Generate an insertion operation for a logical switch
      */
-    public Insert<GenericTableSchema> insert(LogicalSwitch ls) {
+    @Override
+    public <E extends VtepEntry> OvsdbInsert insert(E entry, Class<E> clazz)
+        throws IllegalArgumentException {
+        if (!LogicalSwitch.class.isAssignableFrom(clazz))
+            throw new IllegalArgumentException("wrong entry type " + clazz +
+                                               " for table " + this.getClass());
+        LogicalSwitch ls = (LogicalSwitch)entry;
         Insert<GenericTableSchema> op = super.insert(ls.uuid());
         Set<Long> vni = new HashSet<>();
         if (ls.tunnelKey() != null)
@@ -100,7 +116,12 @@ public final class LogicalSwitchTable extends Table {
         op.value(getNameSchema(), ls.name());
         op.value(getDescriptionSchema(), ls.description());
         op.value(getTunnelKeySchema(), vni);
-        return op;
+        return new OvsdbInsert(op);
     }
 
+    public OvsdbDelete deleteByName(String name) {
+        Delete<GenericTableSchema> op = new Delete<>(tableSchema);
+        op.where(getNameMatcher(name));
+        return new OvsdbDelete(op);
+    }
 }
