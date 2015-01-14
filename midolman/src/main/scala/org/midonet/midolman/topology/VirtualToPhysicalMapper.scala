@@ -34,7 +34,8 @@ import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.services.HostIdProviderService
 import org.midonet.midolman.state.Directory.TypedWatcher
 import org.midonet.midolman.state.DirectoryCallback
-import org.midonet.midolman.topology.rcu.Host
+import org.midonet.midolman.topology.devices.{Host => NewHost}
+import org.midonet.midolman.topology.rcu.{Host => OldHost}
 import org.midonet.util.concurrent._
 import org.slf4j.LoggerFactory
 
@@ -70,8 +71,8 @@ object VirtualToPhysicalMapper extends Referenceable {
 
     override val Name = "VirtualToPhysicalMapper"
 
-    case class HostRequest(hostId: UUID, update: Boolean = true) extends VTPMRequest[Host] {
-        protected[topology] val tag = classTag[Host]
+    case class HostRequest(hostId: UUID, update: Boolean = true) extends VTPMRequest[NewHost] {
+        protected[topology] val tag = classTag[NewHost]
         override def getCached = DeviceCaches.host(hostId)
     }
 
@@ -130,14 +131,14 @@ object VirtualToPhysicalMapper extends Referenceable {
      */
     object DeviceCaches {
 
-        @volatile private var hosts: Map[UUID, Host] = Map.empty
+        @volatile private var hosts: Map[UUID, NewHost] = Map.empty
         @volatile private var tunnelZones: Map[UUID, ZoneMembers] = Map.empty
 
         def host(id: UUID) = hosts get id
         def tunnelZone(id: UUID) = tunnelZones get id
 
         protected[topology]
-        def addhost(id: UUID, h: Host) { hosts += id -> h }
+        def addhost(id: UUID, h: NewHost) { hosts += id -> h }
 
         protected[topology]
         def putTunnelZone(id: UUID, tz: ZoneMembers) {
@@ -324,7 +325,7 @@ abstract class VirtualToPhysicalMapperBase extends Actor with ActorLogWithoutPat
     def makeTunnelZoneManager(actor: ActorRef) : DeviceHandler
 
     private lazy val hostsMgr =
-        new DeviceHandlersManager[Host](
+        new DeviceHandlersManager[NewHost](
             makeHostManager(self),
             DeviceCaches.host,
             DeviceCaches.addhost
@@ -363,8 +364,8 @@ abstract class VirtualToPhysicalMapperBase extends Actor with ActorLogWithoutPat
         case HostRequest(hostId, updates) =>
             hostsMgr.addSubscriber(hostId, sender, updates)
 
-        case host: Host =>
-            hostsMgr.updateAndNotifySubscribers(host.id, host)
+        case host: OldHost =>
+            hostsMgr.updateAndNotifySubscribers(host.id, NewHost.toNewHost(host))
 
         case HostUnsubscribe(hostId) =>
             hostsMgr.removeSubscriber(hostId, sender)
