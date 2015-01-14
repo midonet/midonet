@@ -166,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "fa2559ec_840c5a96",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 174,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-01-14T09:55:02Z",
+      "side": 1,
+      "message": "This technique is often referred to as \"optimistic locking.\" It\u0027s not really a lock, but that\u0027s why I called it that.",
+      "parentUuid": "fa2559ec_4a5f1373",
+      "range": {
+        "startLine": 174,
+        "startChar": 21,
+        "endLine": 174,
+        "endChar": 29
+      },
+      "revId": "d3c69d0d6597769e8a51a5abdba58f922d82e2d9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1af78d9a_9582ad50",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
         "patchSetId": 11
@@ -294,6 +318,30 @@
       "writtenOn": "2015-01-12T17:13:32Z",
       "side": 1,
       "message": "Done",
+      "parentUuid": "1af78d9a_556205d9",
+      "range": {
+        "startLine": 433,
+        "startChar": 21,
+        "endLine": 433,
+        "endChar": 30
+      },
+      "revId": "d3c69d0d6597769e8a51a5abdba58f922d82e2d9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_641166ac",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 433,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-01-14T09:55:02Z",
+      "side": 1,
+      "message": "It\u0027s a get operation backed by a cache. It\u0027s fine either way, though.",
       "parentUuid": "1af78d9a_556205d9",
       "range": {
         "startLine": 433,
