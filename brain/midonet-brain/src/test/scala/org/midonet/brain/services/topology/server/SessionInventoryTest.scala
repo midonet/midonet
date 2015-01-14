@@ -588,7 +588,7 @@ class SessionInventoryTest extends FeatureSpec
             store.create(bridge(oId, "bridge"))
             session.watch(oId, classOf[Network], req1)
             store.update(bridge(oId, "bridge-1"))
-            collector.awaitOnNext(1, WAIT_TIME)
+            collector.awaitOnNext(3, WAIT_TIME) shouldBe true
             session.terminate()
             store.update(bridge(oId, "bridge-2"))
             store.delete(classOf[Network], UUIDUtil.toProto(oId))

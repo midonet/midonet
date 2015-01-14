@@ -39,31 +39,32 @@ class OvsdbTranslatorTest extends FeatureSpec with Matchers {
             OvsdbTranslator.fromOvsdb(ovs) shouldBe id
         }
         scenario("uuid set translations") {
-            val idSet = new util.HashSet[UUID]()
-            idSet.add(UUID.randomUUID())
-            idSet.add(UUID.randomUUID())
-            idSet.add(UUID.randomUUID())
-            idSet.add(UUID.randomUUID())
+            val idSet = Set(
+                UUID.randomUUID(),
+                UUID.randomUUID(),
+                UUID.randomUUID(),
+                UUID.randomUUID()
+            )
             val ovsSet = OvsdbTranslator.toOvsdb(idSet)
-            OvsdbTranslator.fromOvsdb(ovsSet) shouldBe idSet
+            OvsdbTranslator.fromOvsdb(ovsSet) shouldBe setAsJavaSet(idSet)
 
             val nullSet: util.Set[UUID] = null
             OvsdbTranslator.fromOvsdb(nullSet).isEmpty shouldBe true
         }
         scenario("uuid map translations") {
-            val idMap = new util.HashMap[Integer, UUID]()
-            idMap.put(random.nextInt(), UUID.randomUUID())
-            idMap.put(random.nextInt(), UUID.randomUUID())
-            idMap.put(random.nextInt(), UUID.randomUUID())
-            idMap.put(random.nextInt(), UUID.randomUUID())
-
+            val idMap = Map(
+                (random.nextInt(), UUID.randomUUID()),
+                (random.nextInt(), UUID.randomUUID()),
+                (random.nextInt(), UUID.randomUUID()),
+                (random.nextInt(), UUID.randomUUID())
+            )
             val ovsMap = new util.HashMap[Long, OvsdbUUID]()
             for (e <- idMap) {
                 ovsMap.put(e._1.longValue(), OvsdbTranslator.toOvsdb(e._2))
             }
-            OvsdbTranslator.fromOvsdb(ovsMap) shouldBe idMap
+            OvsdbTranslator.fromOvsdb(ovsMap) shouldBe mapAsJavaMap(idMap)
 
-            val nullMap: util.Map[Integer, UUID] = null
+            val nullMap: util.Map[Long, OvsdbUUID] = null
             OvsdbTranslator.fromOvsdb(nullMap).isEmpty shouldBe true
         }
     }
@@ -79,9 +80,13 @@ class OvsdbTranslatorTest extends FeatureSpec with Matchers {
                 .fromOvsdbIpSet(strSet)
             ipSet.toSet shouldBe strSet.toSet.map(IPv4Addr.fromString)
             ipSet.toSet[IPv4Addr].map(_.toString) shouldBe strSet.toSet
+            OvsdbTranslator.toOvsdbIpSet(ipSet.toSet) shouldBe strSet
 
-            val nullSet: util.Set[IPv4Addr] = null
+            val nullSet: util.Set[String] = null
             OvsdbTranslator.fromOvsdbIpSet(nullSet).isEmpty shouldBe true
+
+            val nullIps: Set[IPv4Addr] = null
+            OvsdbTranslator.toOvsdbIpSet(nullIps).isEmpty shouldBe true
         }
     }
 }
