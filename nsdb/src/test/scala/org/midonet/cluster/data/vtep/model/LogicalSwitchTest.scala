@@ -101,4 +101,16 @@ class LogicalSwitchTest extends FeatureSpec with Matchers {
             ls2.hashCode shouldBe lsUuid.hashCode()
         }
     }
+    feature("name translation") {
+        scenario("logical switch name to networkId") {
+            val networkId = UUID.randomUUID()
+            val lsName = LogicalSwitch.networkIdToLsName(networkId)
+            "mn-" + networkId shouldBe lsName
+            LogicalSwitch.lsNameToNetworkId(lsName) shouldBe networkId
+        }
+        scenario("non-midonet logical switch") {
+            val lsName = "some_logical_switch"
+            LogicalSwitch.lsNameToNetworkId(lsName) shouldBe null
+        }
+    }
 }

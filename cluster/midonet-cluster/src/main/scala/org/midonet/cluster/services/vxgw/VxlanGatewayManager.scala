@@ -30,12 +30,12 @@ import rx.subscriptions.CompositeSubscription
 import rx.{Observable, Observer}
 
 import org.midonet.cluster.services.vxgw
-import org.midonet.cluster.southbound.vtep.VtepConstants.bridgeIdToLogicalSwitchName
 import org.midonet.cluster.DataClient
 import org.midonet.cluster.data.Bridge
 import org.midonet.cluster.data.Bridge.UNTAGGED_VLAN_ID
 import org.midonet.cluster.data.ports.VxLanPort
 import org.midonet.cluster.data.vtep.VtepNotConnectedException
+import org.midonet.cluster.data.vtep.model.LogicalSwitch.networkIdToLsName
 import org.midonet.cluster.data.vtep.model.MacLocation
 import org.midonet.midolman.serialization.SerializationException
 import org.midonet.midolman.state.Directory.DefaultTypedWatcher
@@ -72,7 +72,7 @@ final class VxlanGateway(val networkId: UUID) {
     protected[midonet] var tzId: UUID = _
 
     /** The name of the Logical Switch associated to this VxGateway */
-    val name = bridgeIdToLogicalSwitchName(networkId)
+    val name = networkIdToLsName(networkId)
 
     /** This is the entry point to dump observables */
     def asObserver: Observer[MacLocation] = new Observer[MacLocation] {
@@ -148,7 +148,7 @@ class VxlanGatewayManager(networkId: UUID,
     /** The name of the Logical Switch that is created on all Hardware VTEPs to
       * configure the bindings to this Neutron Network in order to implement a
       * VxLAN Gateway. */
-    val lsName = bridgeIdToLogicalSwitchName(networkId)
+    val lsName = networkIdToLsName(networkId)
 
     class NetworkNotInVxlanGatewayException(m: String)
         extends RuntimeException(m)

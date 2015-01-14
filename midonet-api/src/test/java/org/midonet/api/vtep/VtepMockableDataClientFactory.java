@@ -15,7 +15,6 @@
  */
 package org.midonet.api.vtep;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -26,7 +25,9 @@ import com.google.common.collect.Sets;
 import rx.Subscription;
 import rx.functions.Action1;
 
-import org.midonet.cluster.southbound.vtep.VtepDataClient;
+import org.midonet.cluster.data.vtep.VtepConfigException;
+import org.midonet.cluster.data.vtep.VtepConnection;
+import org.midonet.cluster.data.vtep.VtepDataClient;
 import org.midonet.cluster.southbound.vtep.VtepDataClientFactory;
 import org.midonet.cluster.southbound.vtep.VtepDataClientMock;
 import org.midonet.cluster.data.vtep.VtepStateException;
@@ -114,7 +115,7 @@ public class VtepMockableDataClientFactory extends VtepDataClientFactory {
      * are not allowed for the mock instance.
      */
     public VtepDataClient connect(IPv4Addr mgmtIp, int mgmtPort, UUID owner)
-        throws VtepStateException {
+        throws VtepStateException, VtepConfigException {
         MockableVtep mockVtep = mockableVteps.get(mgmtIp.toString());
         if (mockVtep == null) {
             throw new IllegalArgumentException(
@@ -136,11 +137,11 @@ public class VtepMockableDataClientFactory extends VtepDataClientFactory {
                                         mockVtep.tunnelIps(),
                                         asList(mockVtep.portNames()))
             );
-            final Subscription s = mockClient.stateObservable().subscribe(
-                new Action1<VtepDataClient.State>() {
+            final Subscription s = mockClient.observable().subscribe(
+                new Action1<VtepConnection.State$.Value>() {
                     @Override
-                    public void call(VtepDataClient.State state) {
-                        if (state == VtepDataClient.State.DISCONNECTED) {
+                    public void call(VtepConnection.State$.Value state) {
+                        if (state == VtepConnection.State$.MODULE$.DISPOSED()) {
                             mockSubscriptions.get(ip).unsubscribe();
                             mockInstances.remove(ip);
                             mockSubscriptions.remove(ip);
@@ -153,9 +154,11 @@ public class VtepMockableDataClientFactory extends VtepDataClientFactory {
             // Midonet API properly ignores these. Need to call connect()
             // so the mock doesn't throw not-connected errors.
             mockClient.connect(mgmtIp, mgmtPort);
-            mockClient.addLogicalSwitch("NonMidonetLS", 123456);
-            mockClient.bindVlan("NonMidonetLS", "eth2", (short) 4000,
-                                123456, new ArrayList<IPv4Addr>());
+            mockClient.createNonMidonetSwitch("NonMidonetLS", 123456);
+            mockClient.createNonMidonetBinding("eth_2", (short) 4000,
+                                               "NonMidonetLS");
+        } else {
+            mockClient.connect(mgmtIp, mgmtPort);
         }
 
         return mockClient;

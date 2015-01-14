@@ -33,6 +33,7 @@ import org.opendaylight.ovsdb.lib.schema.{DatabaseSchema, GenericTableSchema, Co
 import rx.subjects.PublishSubject
 
 import org.midonet.cluster.data.vtep.model._
+import org.midonet.packets.IPv4Addr
 import org.midonet.vtep.OvsdbTranslator.toOvsdb
 import org.midonet.vtep.mock.MockOvsdbClient.{TransactionEngine, MonitorRegistration}
 import org.midonet.vtep.mock.MockOvsdbColumn.{mkColumnSchema, mkMapColumnSchema, mkSetColumnSchema}
@@ -186,7 +187,9 @@ object MockOvsdbVtep {
  * rollback if some operations in a transaction cannot be successfully
  * completed.
  */
-class InMemoryOvsdbVtep extends MockOvsdbVtep {
+class InMemoryOvsdbVtep(mgmtIp: IPv4Addr = InMemoryOvsdbVtep.DEFAULT_IP,
+                        mgmtPort: Int = InMemoryOvsdbVtep.DEFAULT_PORT)
+    extends MockOvsdbVtep {
 
     // A subject to publish the names of tables requested for monitoring
     private val monitorSubject = PublishSubject.create[String]()
@@ -203,7 +206,7 @@ class InMemoryOvsdbVtep extends MockOvsdbVtep {
 
     override def getHandle: OvsdbClient =
         new MockOvsdbClient(databaseSchema, monitorRegistration,
-                            transactionEngine)
+                            transactionEngine, mgmtIp, mgmtPort)
 
     // Table schemas
     private val tableParsers = Map[String, Table](
@@ -342,7 +345,7 @@ class InMemoryOvsdbVtep extends MockOvsdbVtep {
                 result.setError("unknown table")
                 result.setDetails("unknown table " + op.getTable)
             case Some(MockData(data, clazz)) => op match {
-                case ins: Insert[GenericTableSchema] =>
+                case ins: Insert[_] =>
                     val t = tableParsers(op.getTable)
                     val row = t.generateRow(ins.getRow)
                     val entry = t.parseEntry(row, clazz)
@@ -358,7 +361,7 @@ class InMemoryOvsdbVtep extends MockOvsdbVtep {
                     data.put(entry.uuid, entry)
                     result.setCount(1)
                     result.setRows(Lists.newArrayList(row))
-                case del: Delete[GenericTableSchema] =>
+                case del: Delete[_] =>
                     val t = tableParsers(op.getTable)
                     val conditions = del.getWhere.toIterable
                     val removed = new util.ArrayList[Row[GenericTableSchema]]()
@@ -372,7 +375,7 @@ class InMemoryOvsdbVtep extends MockOvsdbVtep {
                         })
                     result.setCount(removed.size())
                     result.setRows(removed)
-                case upd: Update[GenericTableSchema] =>
+                case upd: Update[_] =>
                     val t = tableParsers(op.getTable)
                     val conditions = upd.getWhere.toIterable
                     val updated = new util.ArrayList[Row[GenericTableSchema]]()
@@ -390,7 +393,7 @@ class InMemoryOvsdbVtep extends MockOvsdbVtep {
                     })
                     result.setCount(updated.size())
                     result.setRows(updated)
-                case sel: Select[GenericTableSchema] =>
+                case sel: Select[_] =>
                     val t = tableParsers(op.getTable)
                     val conditions = sel.getWhere.toIterable
                     val out = data.values
@@ -410,4 +413,9 @@ class InMemoryOvsdbVtep extends MockOvsdbVtep {
 
         result
     }
+}
+
+object InMemoryOvsdbVtep {
+    val DEFAULT_IP = IPv4Addr.fromString("127.0.0.1")
+    val DEFAULT_PORT = 6632
 }

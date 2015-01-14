@@ -17,7 +17,7 @@
 package org.midonet.vtep
 
 import java.util.UUID
-import java.util.concurrent.Executors
+import java.util.concurrent.{ExecutorService, Executors}
 import java.util.concurrent.atomic.AtomicReference
 
 import scala.util.Try
@@ -27,8 +27,8 @@ import org.slf4j.LoggerFactory
 import rx.{Observable, Observer}
 
 import org.midonet.cluster.data.vtep.VtepConnection.State
-import org.midonet.cluster.data.vtep.model.{LogicalSwitch, MacLocation, VtepEndPoint}
-import org.midonet.cluster.data.vtep.{VtepData, VtepDataClient, VtepStateException}
+import org.midonet.cluster.data.vtep.model._
+import org.midonet.cluster.data.vtep._
 import org.midonet.packets.IPv4Addr
 import org.midonet.util.concurrent.NamedThreadFactory
 import org.midonet.util.functors.{makeAction0, makeAction1}
@@ -37,18 +37,21 @@ import org.midonet.util.functors.{makeAction0, makeAction1}
  * This class handles the connection to an ovsdb-compliant vtep
  */
 class OvsdbVtepDataClient(val endPoint: VtepEndPoint,
-                      val retryMs: Long, val maxRetries: Long)
+                          val retryMs: Long, val maxRetries: Long,
+                          connectionService: VtepConnectionFactory)
     extends VtepDataClient {
+
+    // Java compatibility
+    def this(endPoint: VtepEndPoint, retryMs: Long, maxRetries: Long) =
+        this(endPoint, retryMs, maxRetries, OvsdbVtepConnectionFactory)
 
     private val log = LoggerFactory.getLogger(classOf[OvsdbVtepDataClient])
 
     private val vtepThread = Executors.newSingleThreadExecutor(
         new NamedThreadFactory("vtep-thread"))
-    private val connectionService = OvsdbConnectionService.getService
 
-    private val connection =
-        new OvsdbVtepConnection(endPoint, vtepThread, connectionService,
-                                retryMs, maxRetries)
+    private val connection = connectionService.getVtepConnection(
+        endPoint, vtepThread, retryMs, maxRetries)
 
     private val data = new AtomicReference[Option[VtepData]](None)
 
@@ -59,6 +62,7 @@ class OvsdbVtepDataClient(val endPoint: VtepEndPoint,
     override def getManagementPort = connection.getManagementPort
     override def connect(user: UUID) = connection.connect(user)
     override def disconnect(user: UUID) = connection.disconnect(user)
+    override def dispose() = connection.dispose()
     override def getState = connection.getState
     override def getHandle = connection.getHandle
     override def observable = connection.observable
@@ -96,28 +100,73 @@ class OvsdbVtepDataClient(val endPoint: VtepEndPoint,
         case Some(backend) => backend.currentMacLocal
     }
 
+    override def currentMacLocal(networkId: UUID): Seq[MacLocation] =
+        data.get match {
+            case None => throw StateException("vtep not ready")
+            case Some(backend) => backend.currentMacLocal(networkId)
+        }
+
     override def macRemoteUpdater: Observer[MacLocation] = data.get match {
         case None => throw StateException("vtep not ready")
         case Some(backend) => backend.macRemoteUpdater
     }
-    override def ensureLogicalSwitch(name: String, vni: Int):
+    override def ensureLogicalSwitch(networkId: UUID, vni: Int):
         Try[LogicalSwitch] = data.get match {
         case None => throw StateException("vtep not ready")
-        case Some(backend) => backend.ensureLogicalSwitch(name, vni)
+        case Some(backend) => backend.ensureLogicalSwitch(networkId, vni)
     }
 
-    override def ensureBindings(lsName: String,
-                                bindings: Iterable[(String, Short)])
+    override def ensureBindings(networkId: UUID,
+                                bindings: Iterable[VtepBinding])
         : Try[Unit] = data.get match {
         case None => throw StateException("vtep not ready")
-        case Some(backend) => backend.ensureBindings(lsName, bindings)
+        case Some(backend) => backend.ensureBindings(networkId, bindings)
     }
 
-    override def removeLogicalSwitch(name: String): Try[Unit] = data.get match {
+    override def removeBinding(portName: String, vlanId: Short)
+    : Try[Unit] = data.get match {
         case None => throw StateException("vtep not ready")
-        case Some(backend) => backend.removeLogicalSwitch(name)
+        case Some(backend) => backend.removeBinding(portName, vlanId)
     }
 
+    override def createBinding(portName: String, vlanId: Short, networkId: UUID)
+    : Try[Unit] = data.get match {
+        case None => throw StateException("vtep not ready")
+        case Some(backend) => backend.createBinding(portName, vlanId, networkId)
+    }
 
+    override def removeLogicalSwitch(networkId: UUID): Try[Unit] = data.get match {
+        case None => throw StateException("vtep not ready")
+        case Some(backend) => backend.removeLogicalSwitch(networkId)
+    }
+
+    override def listLogicalSwitches: Set[LogicalSwitch] = data.get match {
+        case None => throw StateException("vtep not ready")
+        case Some(backend) => backend.listLogicalSwitches
+    }
+
+    override def listPhysicalSwitches: Set[PhysicalSwitch] = data.get match {
+        case None => throw StateException("vtep not ready")
+        case Some(backend) => backend.listPhysicalSwitches
+    }
+
+    override def physicalPorts(psId: UUID): Set[PhysicalPort] = data.get match {
+        case None => throw StateException("vtep not ready")
+        case Some(backend) => backend.physicalPorts(psId)
+    }
+}
+
+trait VtepConnectionFactory {
+    def getVtepConnection(endPoint: VtepEndPoint, vtepThread: ExecutorService,
+                          retryMs: Long, maxRetries: Long): OvsdbVtepConnection
+}
+
+object OvsdbVtepConnectionFactory extends VtepConnectionFactory {
+    def getVtepConnection(endPoint: VtepEndPoint, vtepThread: ExecutorService,
+                          retryMs: Long, maxRetries: Long): OvsdbVtepConnection = {
+        new OvsdbVtepConnection(endPoint, vtepThread,
+                                OvsdbConnectionService.getService,
+                                retryMs, maxRetries)
+    }
 }
 

@@ -149,9 +149,19 @@ public abstract class MacsTable extends Table {
     /**
      * Generate a delete operation matching logical switch
      */
-    public Table.OvsdbDelete deleteByLogicalSwitchId(
-        java.util.UUID lsId) {
+    public Table.OvsdbDelete deleteByLogicalSwitchId(java.util.UUID lsId) {
         Delete<GenericTableSchema> op = new Delete<>(tableSchema);
+        op.where(getLogicalSwitchMatcher(lsId));
+        return new OvsdbDelete(op);
+    }
+
+    /**
+     * Generate a delete operation matching mac and logical switch
+     * (all ip mappings)
+     */
+    public Table.OvsdbDelete deleteByMac(VtepMAC mac, java.util.UUID lsId) {
+        Delete<GenericTableSchema> op = new Delete<>(tableSchema);
+        op.where(getMacMatcher(mac));
         op.where(getLogicalSwitchMatcher(lsId));
         return new OvsdbDelete(op);
     }

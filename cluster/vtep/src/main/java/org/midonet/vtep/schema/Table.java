@@ -251,6 +251,7 @@ public abstract class Table {
         op.setUuidName(COL_UUID);
         op.setUuid(rowId.toString());
         op.value(getUuidSchema(), toOvsdb(rowId));
+        op.value(getVersionSchema(), null);
         return op;
     }
 
@@ -289,7 +290,9 @@ public abstract class Table {
         E entry) throws IllegalArgumentException {
         ensureInputClass(entry.getClass());
         Row<GenericTableSchema> row = new Row<>(tableSchema);
-        return addToRow(row, getUuidSchema(), toOvsdb(entry.uuid()));
+        addToRow(row, getUuidSchema(), toOvsdb(entry.uuid()));
+        addToRow(row, getVersionSchema(), null);
+        return row;
     }
 
     /**
