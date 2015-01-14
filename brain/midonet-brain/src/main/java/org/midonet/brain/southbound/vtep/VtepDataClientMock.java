@@ -23,6 +23,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Nonnull;
@@ -36,7 +37,6 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.opendaylight.controller.sal.utils.Status;
 import org.opendaylight.controller.sal.utils.StatusCode;
 import org.opendaylight.ovsdb.lib.message.TableUpdates;
-import org.opendaylight.ovsdb.lib.notation.UUID;
 import org.opendaylight.ovsdb.plugin.StatusWithUuid;
 
 import rx.Observable;
@@ -44,14 +44,18 @@ import rx.Subscription;
 import rx.subjects.PublishSubject;
 import rx.subjects.Subject;
 
-import org.midonet.brain.southbound.vtep.model.LogicalSwitch;
-import org.midonet.brain.southbound.vtep.model.McastMac;
-import org.midonet.brain.southbound.vtep.model.PhysicalPort;
-import org.midonet.brain.southbound.vtep.model.PhysicalSwitch;
-import org.midonet.brain.southbound.vtep.model.UcastMac;
+import org.midonet.cluster.data.vtep.model.McastMac;
+import org.midonet.cluster.data.vtep.model.PhysicalPort;
+import org.midonet.cluster.data.vtep.model.UcastMac;
+import org.midonet.cluster.data.vtep.model.VtepEndPoint;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
 import org.midonet.util.functors.Callback;
+import org.midonet.cluster.data.vtep.model.LogicalSwitch;
+import org.midonet.cluster.data.vtep.model.PhysicalSwitch;
+import org.midonet.cluster.data.vtep.model.VtepMAC;
+
+import static org.midonet.brain.southbound.vtep.model.VtepModelTranslator.fromMido;
 
 public class VtepDataClientMock implements VtepDataClient {
 
@@ -86,13 +90,17 @@ public class VtepDataClientMock implements VtepDataClient {
         this.mgmtIp = mgmtIp;
         this.mgmtPort = mgmtPort;
         this.tunnelIps = tunnelIps;
+        Set<IPv4Addr> tunnels = new HashSet<>();
+        for (String str: tunnelIps) {
+            tunnels.add(IPv4Addr.fromString(str));
+        }
         PhysicalSwitch ps = new PhysicalSwitch(
-                new UUID(java.util.UUID.randomUUID().toString()),
-                desc, name, portNames, Sets.newHashSet(mgmtIp), tunnelIps);
+            UUID.randomUUID(), name, desc, portNames,
+            Sets.newHashSet(IPv4Addr.fromString(mgmtIp)), tunnels);
         physicalSwitches.put(mgmtIp, ps);
 
         for (String portName : portNames) {
-            PhysicalPort pp = new PhysicalPort(portName + "-desc", portName);
+            PhysicalPort pp = PhysicalPort.apply(portName + "-desc", portName);
             physicalPorts.put(portName, pp);
         }
     }
@@ -263,7 +271,7 @@ public class VtepDataClientMock implements VtepDataClient {
     public LogicalSwitch getLogicalSwitch(@Nonnull UUID lsId) {
         assertConnected();
         for (LogicalSwitch ls : this.logicalSwitches.values()) {
-            if (ls.uuid.equals(lsId)) {
+            if (ls.uuid().equals(lsId)) {
                 return ls;
             }
         }
@@ -286,11 +294,11 @@ public class VtepDataClientMock implements VtepDataClient {
                     "A logical switch named " + lsName + " already exists.");
         }
 
-        UUID uuid = new UUID(java.util.UUID.randomUUID().toString());
-        ls = new LogicalSwitch(uuid, lsName + "-desc", lsName, vni);
+        UUID uuid = UUID.randomUUID();
+        ls = new LogicalSwitch(uuid, lsName, vni, lsName + "-desc");
         logicalSwitches.put(lsName, ls);
         logicalSwitchUuids.put(lsName, uuid);
-        return new StatusWithUuid(StatusCode.SUCCESS, uuid);
+        return new StatusWithUuid(StatusCode.SUCCESS, fromMido(uuid));
     }
 
     @Override
@@ -309,11 +317,11 @@ public class VtepDataClientMock implements VtepDataClient {
             this.addLogicalSwitch(lsName, vni);
         }
 
-        pp.vlanBindings.put(vlan, logicalSwitchUuids.get(lsName));
+        pp.vlanBindings().put((int)vlan, logicalSwitchUuids.get(lsName));
 
         if (null != floodIps) {
             for (IPv4Addr floodIp : floodIps)
-                addMcastMacRemote(lsName, VtepMAC.UNKNOWN_DST, floodIp);
+                addMcastMacRemote(lsName, VtepMAC.UNKNOWN_DST(), floodIp);
         }
 
         return new Status(StatusCode.SUCCESS);
@@ -344,8 +352,8 @@ public class VtepDataClientMock implements VtepDataClient {
 
         // Remove all bindings to the given logical switch
         for (Map.Entry<String, PhysicalPort> pport : physicalPorts.entrySet()) {
-            Iterator<Map.Entry<Short, UUID>> it =
-                pport.getValue().vlanBindings.entrySet().iterator();
+            Iterator<Map.Entry<Integer, UUID>> it =
+                pport.getValue().vlanBindings().entrySet().iterator();
             while (it.hasNext()) {
                 if (lsId.equals(it.next().getValue()))
                     it.remove();
@@ -366,8 +374,10 @@ public class VtepDataClientMock implements VtepDataClient {
             return new Status(StatusCode.BADREQUEST,
                               "Logical switch not found.");
 
-        UcastMac ucastMac = new UcastMac(
-            mac, lsUuid, getLocatorUuid(tunnelEndPoint.toString()), macIp);
+        UcastMac ucastMac = UcastMac.apply(
+            lsUuid, VtepMAC.fromMac(mac), macIp,
+            getLocatorUuid(tunnelEndPoint.toString()));
+
         Set<UcastMac> set = ucastMacsRemote.get(mac.toString());
         if (set == null) {
             set = new HashSet<>();
@@ -392,8 +402,8 @@ public class VtepDataClientMock implements VtepDataClient {
         // uses it as a locator set UUID. If this mock ever actually needs
         // to distinguish between locators and locator sets, this will
         // need to change.
-        McastMac mcastMac = new McastMac(
-            mac.toString(), lsUuid, getLocatorUuid(ip.toString()), null);
+        McastMac mcastMac = McastMac.apply(
+            lsUuid, mac, getLocatorUuid(ip.toString()));
         mcastMacsRemote.put(mac.toString(), mcastMac);
         return new Status(StatusCode.SUCCESS);
     }
@@ -413,9 +423,9 @@ public class VtepDataClientMock implements VtepDataClient {
             return st;
         }
         for (UcastMac umr: set) {
-            if (umr.mac.equals(mac.toString()) &&
-                umr.logicalSwitch.equals(lsUuid) &&
-                macIp.toString().equals(umr.ipAddr)) {
+            if (umr.mac().mac().equals(mac) &&
+                umr.logicalSwitchId().equals(lsUuid) &&
+                macIp.equals(umr.ipAddr())) {
                 set.remove(umr);
                 if (set.isEmpty()) {
                     this.ucastMacsRemote.remove(mac.toString());
@@ -441,8 +451,8 @@ public class VtepDataClientMock implements VtepDataClient {
             return st;
         }
         for (UcastMac umr: set) {
-            if (umr.mac.equals(mac.toString()) &&
-                umr.logicalSwitch.equals(lsUuid)) {
+            if (umr.mac().mac().equals(mac) &&
+                umr.logicalSwitchId().equals(lsUuid)) {
                 set.remove(umr);
                 if (set.isEmpty()) {
                     this.ucastMacsRemote.remove(mac.toString());
@@ -473,7 +483,7 @@ public class VtepDataClientMock implements VtepDataClient {
         if (pport == null) {
             return new Status(StatusCode.NOTFOUND, "Port not found");
         }
-        if (pport.vlanBindings.remove(vlan) == null) {
+        if (pport.vlanBindings().remove((int)vlan) == null) {
             return new Status(StatusCode.NOTFOUND);
         } else {
             return new Status(StatusCode.SUCCESS);
@@ -495,7 +505,7 @@ public class VtepDataClientMock implements VtepDataClient {
 
         UUID locatorUuid = locatorUuids.get(ip);
         if (locatorUuid == null) {
-            locatorUuid = new UUID(java.util.UUID.randomUUID().toString());
+            locatorUuid = UUID.randomUUID();
             locatorUuids.put(ip, locatorUuid);
         }
         return locatorUuid;
