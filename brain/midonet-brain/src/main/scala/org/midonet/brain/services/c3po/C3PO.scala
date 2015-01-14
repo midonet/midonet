@@ -104,7 +104,7 @@ class C3PO @Inject()(config: C3POConfig,
              classOf[NeutronNetwork] -> new NetworkTranslator,
              classOf[NeutronRouter] -> new RouterTranslator,
              classOf[NeutronSubnet] -> new SubnetTranslator,
-             classOf[NeutronPort] -> new PortTranslator,
+             classOf[NeutronPort] -> new PortTranslator(storage),
              classOf[SecurityGroup] -> new SecurityGroupTranslator(storage),
              classOf[VIP] -> new VipTranslator
         ).asInstanceOf[List[(Class[Message], NeutronTranslator[Message])]]
