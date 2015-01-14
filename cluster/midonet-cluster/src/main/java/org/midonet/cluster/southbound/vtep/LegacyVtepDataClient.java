@@ -52,7 +52,7 @@ import org.midonet.util.functors.Callback;
  * while monitoring the connection for possible failure and including a
  * recovery mechanism.
  */
-public interface VtepDataClient {
+public interface LegacyVtepDataClient {
 
     @Immutable
     public enum State {
@@ -300,7 +300,7 @@ public interface VtepDataClient {
      * can no longer become connected.
      */
     @SuppressWarnings("unused")
-    public VtepDataClient awaitConnected() throws VtepStateException;
+    public LegacyVtepDataClient awaitConnected() throws VtepStateException;
 
     /**
      * Waits for the VTEP data client to be connected to the VTEP for the
@@ -313,7 +313,7 @@ public interface VtepDataClient {
      * @throws TimeoutException The timeout interval expired.
      */
     @SuppressWarnings("unused")
-    public VtepDataClient awaitConnected(long timeout, TimeUnit unit)
+    public LegacyVtepDataClient awaitConnected(long timeout, TimeUnit unit)
         throws VtepStateException, TimeoutException;
 
     /**
@@ -323,7 +323,7 @@ public interface VtepDataClient {
      * can no longer become discconnected.
      */
     @SuppressWarnings("unused")
-    public VtepDataClient awaitDisconnected() throws VtepStateException;
+    public LegacyVtepDataClient awaitDisconnected() throws VtepStateException;
 
     /**
      * Waits for the VTEP data client to be disconnected from the VTEP for the
@@ -336,7 +336,7 @@ public interface VtepDataClient {
      * @throws TimeoutException The timeout interval expired.
      */
     @SuppressWarnings("unused")
-    public VtepDataClient awaitDisconnected(long timeout, TimeUnit unit)
+    public LegacyVtepDataClient awaitDisconnected(long timeout, TimeUnit unit)
         throws VtepStateException, TimeoutException;
 
     /**
@@ -345,7 +345,7 @@ public interface VtepDataClient {
      * @param state The state.
      */
     @SuppressWarnings("unused")
-    public VtepDataClient awaitState(State state) throws VtepStateException;
+    public LegacyVtepDataClient awaitState(State state) throws VtepStateException;
 
     /**
      * Waits for the VTEP data client to reach the specified state an amount of
@@ -355,7 +355,7 @@ public interface VtepDataClient {
      * @param unit The interval unit.
      */
     @SuppressWarnings("unused")
-    public VtepDataClient awaitState(State state, long timeout, TimeUnit unit)
+    public LegacyVtepDataClient awaitState(State state, long timeout, TimeUnit unit)
         throws TimeoutException;
 
 
@@ -371,7 +371,7 @@ public interface VtepDataClient {
      */
     @SuppressWarnings("unused")
     public Subscription onConnected(
-        @Nonnull Callback<VtepDataClient, VtepException> callback);
+        @Nonnull Callback<LegacyVtepDataClient, VtepException> callback);
 
     /**
      * Provides an observable notifying of the changes to the connection state.

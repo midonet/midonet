@@ -24,7 +24,7 @@ import scala.util.Try
 
 import rx.{Observable, Observer}
 
-import org.midonet.cluster.data.vtep.model.{MacLocation, LogicalSwitch}
+import org.midonet.cluster.data.vtep.model._
 import org.midonet.packets.IPv4Addr
 import org.midonet.util.functors.makeFunc1
 
@@ -61,6 +61,11 @@ trait VtepConnection {
     def disconnect(user: UUID): Unit
 
     /**
+     * Close all connections and set to a disposed state
+     */
+    def dispose(): Unit
+
+    /**
      * Get a observable to get the current state and monitor connection changes
      */
     def observable: Observable[VtepConnection.State.Value]
@@ -86,6 +91,8 @@ trait VtepConnection {
             .toBlocking
             .toFuture
             .get(timeout.toMillis, TimeUnit.MILLISECONDS)
+
+    def awaitReady() = awaitState(Set(VtepConnection.State.READY))
 }
 
 object VtepConnection {
@@ -121,6 +128,7 @@ trait VtepData {
     /** Provide a snapshot with the current contents of the Mac_Local tables
       * in the VTEP's OVSDB. */
     def currentMacLocal: Seq[MacLocation]
+    def currentMacLocal(networkId: UUID): Seq[MacLocation]
 
     /** Ensure that the hardware VTEP's config contains a Logical Switch with
       * the given name and VNI. */
@@ -132,7 +140,22 @@ trait VtepData {
 
     /** Ensure that the hardware VTEP's config for the given Logical Switch
       * contains these and only these bindings. */
-    def ensureBindings(lsName: String, bindings: Iterable[(String, Short)]): Try[Unit]
+    def ensureBindings(lsName: String, bindings: Iterable[VtepBinding]): Try[Unit]
+
+    /** Remove the binding corresponding to the given port and Vlan Id */
+    def removeBinding(portName: String, vlanId: Short): Try[Unit]
+
+    /** Create binding */
+    def createBinding(portName: String, vlanId: Short, networkId: UUID): Try[Unit]
+
+    /** Get the current set of logical switches */
+    def listLogicalSwitches: Set[LogicalSwitch]
+
+    /** Get the current set of physical switches */
+    def listPhysicalSwitches: Set[PhysicalSwitch]
+
+    /** Get the physical ports of a physical switch */
+    def physicalPorts(psId: UUID): Set[PhysicalPort]
 }
 
 

@@ -75,10 +75,10 @@ import org.midonet.util.functors.Callback;
  * to monitor the connection, wait for reaching a specific state, and install
  * connection callbacks.
  */
-public abstract class VtepDataClientBase implements VtepDataClient {
+public abstract class LegacyVtepDataClientBase implements LegacyVtepDataClient {
 
     private static final Logger log =
-        LoggerFactory.getLogger(VtepDataClientBase.class);
+        LoggerFactory.getLogger(LegacyVtepDataClientBase.class);
 
     // Static configuration
 
@@ -89,10 +89,10 @@ public abstract class VtepDataClientBase implements VtepDataClient {
 
     private static class CallbackSubscription implements Subscription {
         private boolean subscribed = true;
-        private final Callback<VtepDataClient, VtepException> callback;
+        private final Callback<LegacyVtepDataClient, VtepException> callback;
 
         public CallbackSubscription(
-            Callback<VtepDataClient, VtepException> callback) {
+            Callback<LegacyVtepDataClient, VtepException> callback) {
             this.callback = callback;
         }
 
@@ -110,7 +110,7 @@ public abstract class VtepDataClientBase implements VtepDataClient {
             @Override
             @GuardedBy("monitor")
             public Boolean call(NodeUpdateNotification notification) {
-                Node node = VtepDataClientBase.this.node;
+                Node node = LegacyVtepDataClientBase.this.node;
                 return node != null && node.equals(notification.node);
             }
         };
@@ -170,7 +170,7 @@ public abstract class VtepDataClientBase implements VtepDataClient {
 
     private final Monitor monitor = new Monitor();
     @GuardedBy("monitor")
-    private volatile VtepDataClient.State state =
+    private volatile LegacyVtepDataClient.State state =
         State.DISCONNECTED;
 
     private final Monitor.Guard isConnectable = new Monitor.Guard(monitor) {
@@ -222,7 +222,7 @@ public abstract class VtepDataClientBase implements VtepDataClient {
     private final Map<ConnectionConstants, String> params = new HashMap<>();
     private final Set<UUID> users = new HashSet<>();
 
-    private final PublishSubject<VtepDataClient.State>
+    private final PublishSubject<LegacyVtepDataClient.State>
         stateSubject = PublishSubject.create();
 
     // State variables
@@ -250,9 +250,9 @@ public abstract class VtepDataClientBase implements VtepDataClient {
      * @param configurationService The OVS-DB configuration service.
      * @param connectionService The OVS-DB connection service.
      */
-    VtepDataClientBase(VtepEndPoint endPoint,
-                       ConfigurationService configurationService,
-                       ConnectionService connectionService) {
+    LegacyVtepDataClientBase(VtepEndPoint endPoint,
+                             ConfigurationService configurationService,
+                             ConnectionService connectionService) {
         // A unique identifier for this client in the OVS-DB service.
         connectionId = java.util.UUID.randomUUID();
 
@@ -334,7 +334,7 @@ public abstract class VtepDataClientBase implements VtepDataClient {
      * can no longer become connected.
      */
     @Override
-    public VtepDataClient awaitConnected() throws VtepStateException {
+    public LegacyVtepDataClient awaitConnected() throws VtepStateException {
         monitor.enterWhenUninterruptibly(isNotConnecting);
         try {
             assertState(State.CONNECTED);
@@ -355,7 +355,7 @@ public abstract class VtepDataClientBase implements VtepDataClient {
      * @throws TimeoutException The timeout interval expired.
      */
     @Override
-    public VtepDataClient awaitConnected(long timeout, TimeUnit unit)
+    public LegacyVtepDataClient awaitConnected(long timeout, TimeUnit unit)
         throws VtepStateException, TimeoutException {
         if (monitor.enterWhenUninterruptibly(isNotConnecting, timeout, unit)) {
             try {
@@ -376,7 +376,7 @@ public abstract class VtepDataClientBase implements VtepDataClient {
      * can no longer become disconnected.
      */
     @Override
-    public VtepDataClient awaitDisconnected() throws VtepStateException {
+    public LegacyVtepDataClient awaitDisconnected() throws VtepStateException {
         monitor.enterWhenUninterruptibly(isDisconnected);
         try {
             assertAnyState(State.DISCONNECTED,
@@ -399,7 +399,7 @@ public abstract class VtepDataClientBase implements VtepDataClient {
      * @throws TimeoutException The timeout interval expired.
      */
     @Override
-    public VtepDataClient awaitDisconnected(long timeout, TimeUnit unit)
+    public LegacyVtepDataClient awaitDisconnected(long timeout, TimeUnit unit)
         throws VtepStateException, TimeoutException {
         if (monitor.enterWhenUninterruptibly(isDisconnected, timeout, unit)) {
             try {
@@ -419,7 +419,7 @@ public abstract class VtepDataClientBase implements VtepDataClient {
      * @param state The state.
      */
     @SuppressWarnings("unused")
-    public VtepDataClient awaitState(final VtepDataClient.State state)
+    public LegacyVtepDataClient awaitState(final LegacyVtepDataClient.State state)
         throws VtepStateException {
         if (State.DISPOSED == this.state &&
             State.DISPOSED != state) {
@@ -428,7 +428,7 @@ public abstract class VtepDataClientBase implements VtepDataClient {
         monitor.enterWhenUninterruptibly(new Monitor.Guard(monitor) {
             @Override
             public boolean isSatisfied() {
-                return state == VtepDataClientBase.this.state;
+                return state == LegacyVtepDataClientBase.this.state;
             }
         });
         monitor.leave();
@@ -443,14 +443,14 @@ public abstract class VtepDataClientBase implements VtepDataClient {
      * @param unit The interval unit.
      */
     @Override
-    public VtepDataClient awaitState(final VtepDataClient.State state,
+    public LegacyVtepDataClient awaitState(final LegacyVtepDataClient.State state,
                                      long timeout, TimeUnit unit)
         throws TimeoutException {
         if (monitor.enterWhenUninterruptibly(
             new Monitor.Guard(monitor) {
                 @Override
                 public boolean isSatisfied() {
-                    return state == VtepDataClientBase.this.state;
+                    return state == LegacyVtepDataClientBase.this.state;
                 }
             }, timeout, unit)) {
             monitor.leave();
@@ -474,7 +474,7 @@ public abstract class VtepDataClientBase implements VtepDataClient {
      * @param callback A callback instance.
      */
     public Subscription onConnected(
-        @Nonnull Callback<VtepDataClient, VtepException> callback) {
+        @Nonnull Callback<LegacyVtepDataClient, VtepException> callback) {
         CallbackSubscription subscription = new CallbackSubscription(callback);
 
         monitor.enter();
@@ -496,7 +496,7 @@ public abstract class VtepDataClientBase implements VtepDataClient {
      */
     @Override
     @GuardedBy("monitor")
-    public VtepDataClient.State getState() {
+    public LegacyVtepDataClient.State getState() {
         return state;
     }
 
@@ -504,7 +504,7 @@ public abstract class VtepDataClientBase implements VtepDataClient {
      * Provides an observable notifying of the changes to the connection state.
      */
     @Override
-    public Observable<VtepDataClient.State> stateObservable() {
+    public Observable<LegacyVtepDataClient.State> stateObservable() {
         return stateSubject.asObservable();
     }
 
@@ -668,7 +668,7 @@ public abstract class VtepDataClientBase implements VtepDataClient {
      * state are not equal.
      */
     @GuardedBy("monitor")
-    private void assertState(VtepDataClient.State expected)
+    private void assertState(LegacyVtepDataClient.State expected)
         throws VtepStateException {
         if (expected != state) {
             throw new VtepStateException(
@@ -686,7 +686,7 @@ public abstract class VtepDataClientBase implements VtepDataClient {
     @GuardedBy("monitor")
     private void assertAnyState(State... expected)
         throws VtepStateException {
-        for (VtepDataClient.State st : expected) {
+        for (LegacyVtepDataClient.State st : expected) {
             if (st == state) return;
         }
         throw new VtepStateException(

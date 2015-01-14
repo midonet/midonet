@@ -24,18 +24,13 @@ import java.util.UUID;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.opendaylight.controller.sal.utils.Status;
-import org.opendaylight.controller.sal.utils.StatusCode;
 import org.opendaylight.ovsdb.lib.message.TableUpdate;
 import org.opendaylight.ovsdb.lib.message.TableUpdates;
-import org.opendaylight.ovsdb.lib.notation.OvsDBSet;
-import org.opendaylight.ovsdb.lib.table.vtep.Physical_Switch;
-import org.opendaylight.ovsdb.lib.table.vtep.Ucast_Macs_Local;
 
 import rx.subjects.PublishSubject;
 import rx.subjects.Subject;
 
-import org.midonet.cluster.services.vxgw.VxLanPeerSyncException;
+import org.midonet.cluster.data.vtep.VtepDataClient;
 import org.midonet.cluster.test.RxTestUtils;
 import org.midonet.cluster.data.vtep.model.LogicalSwitch;
 import org.midonet.cluster.data.vtep.model.MacLocation;
@@ -47,7 +42,7 @@ import org.midonet.packets.IPv4Addr;
 import mockit.Expectations;
 import mockit.Mocked;
 import mockit.NonStrictExpectations;
-import static org.midonet.cluster.southbound.vtep.VtepConstants.bridgeIdToLogicalSwitchName;
+import static org.midonet.cluster.data.vtep.model.LogicalSwitch.networkIdToLogicalSwitchName;
 
 public class VtepTest {
 
@@ -501,9 +496,9 @@ public class VtepTest {
         final java.util.UUID boundNetworkId = java.util.UUID.randomUUID();
 
         final String oldLs =
-            bridgeIdToLogicalSwitchName(java.util.UUID.randomUUID());
+            networkIdToLogicalSwitchName(java.util.UUID.randomUUID());
         final String nonMidoLs = "private_logical_switch";
-        final String curLs = bridgeIdToLogicalSwitchName(boundNetworkId);
+        final String curLs = networkIdToLogicalSwitchName(boundNetworkId);
 
         // The id of the network that does have a binding
         List<java.util.UUID> ids = Collections.singletonList(boundNetworkId);

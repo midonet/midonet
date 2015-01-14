@@ -98,13 +98,14 @@ public class VtepDataClientImplTest {
         }
     }
 
-    private class TestVtepDataClientImpl extends VtepDataClientImpl {
+    private class TestLegacyVtepDataClientImpl
+        extends LegacyVtepDataClientImpl {
         public final Connection connection;
         private final Executor executor;
 
-        public TestVtepDataClientImpl(VtepEndPoint endPoint,
-                                      ConfigurationService configurationService,
-                                      ConnectionService connectionService) {
+        public TestLegacyVtepDataClientImpl(VtepEndPoint endPoint,
+                                            ConfigurationService configurationService,
+                                            ConnectionService connectionService) {
             super(endPoint, configurationService, connectionService);
             connection = new Connection(connectionId.toString(), null);
             executor = Executors.newSingleThreadExecutor();
@@ -177,7 +178,7 @@ public class VtepDataClientImplTest {
         provider.dispose();
     }
 
-    private TestVtepDataClientImpl testConnect(
+    private TestLegacyVtepDataClientImpl testConnect(
         final Map<String, ConcurrentMap<String, Table<?>>> cache,
         java.util.UUID user) throws VtepStateException {
 
@@ -205,7 +206,7 @@ public class VtepDataClientImplTest {
         }};
 
 
-        TestVtepDataClientImpl client = new TestVtepDataClientImpl(
+        TestLegacyVtepDataClientImpl client = new TestLegacyVtepDataClientImpl(
             MOCK_END_POINT, cfgSrv, cnxnSrv);
         client.connect(user);
         client.simulateConnect();
@@ -213,7 +214,7 @@ public class VtepDataClientImplTest {
         return client;
     }
 
-    private void testDisconnect(TestVtepDataClientImpl client,
+    private void testDisconnect(TestLegacyVtepDataClientImpl client,
                                 java.util.UUID user) throws VtepStateException {
         // Disconnect
         new Expectations() {{
@@ -274,7 +275,7 @@ public class VtepDataClientImplTest {
             this.createMockCache();
         final java.util.UUID user = java.util.UUID.randomUUID();
 
-        TestVtepDataClientImpl client = testConnect(cache, user);
+        TestLegacyVtepDataClientImpl client = testConnect(cache, user);
 
         testDisconnect(client, user);
     }
@@ -285,7 +286,7 @@ public class VtepDataClientImplTest {
             this.createMockCache();
         final java.util.UUID user = java.util.UUID.randomUUID();
 
-        TestVtepDataClientImpl client = testConnect(cache, user);
+        TestLegacyVtepDataClientImpl client = testConnect(cache, user);
 
         new Expectations() {{
             cnxnSrv.getInventoryServiceInternal(); times = 1; result = invSrv;
@@ -312,7 +313,7 @@ public class VtepDataClientImplTest {
             this.createMockCache();
         final java.util.UUID user = java.util.UUID.randomUUID();
 
-        TestVtepDataClientImpl client = testConnect(cache, user);
+        TestLegacyVtepDataClientImpl client = testConnect(cache, user);
 
         new Expectations() {{
             cnxnSrv.getInventoryServiceInternal(); times = 1; result = invSrv;
@@ -338,7 +339,7 @@ public class VtepDataClientImplTest {
             this.createMockCache();
         final java.util.UUID user = java.util.UUID.randomUUID();
 
-        TestVtepDataClientImpl client = testConnect(cache, user);
+        TestLegacyVtepDataClientImpl client = testConnect(cache, user);
 
         new Expectations() {{
             cfgSrv.vtepAddLogicalSwitch(node, "ls", 10); times = 1;
@@ -357,7 +358,7 @@ public class VtepDataClientImplTest {
             this.createMockCache();
         final java.util.UUID user = java.util.UUID.randomUUID();
 
-        TestVtepDataClientImpl client = testConnect(cache, user);
+        TestLegacyVtepDataClientImpl client = testConnect(cache, user);
 
         new Expectations() {{
             cfgSrv.vtepAddLogicalSwitch(node, "ls", 10); times = 1;
@@ -377,7 +378,7 @@ public class VtepDataClientImplTest {
             this.createMockCache();
         final java.util.UUID user = java.util.UUID.randomUUID();
 
-        TestVtepDataClientImpl client = testConnect(cache, user);
+        TestLegacyVtepDataClientImpl client = testConnect(cache, user);
 
         new Expectations() {{
             cfgSrv.vtepBindVlan(
@@ -400,7 +401,7 @@ public class VtepDataClientImplTest {
             this.createMockCache();
         final java.util.UUID user = java.util.UUID.randomUUID();
 
-        TestVtepDataClientImpl client = testConnect(cache, user);
+        TestLegacyVtepDataClientImpl client = testConnect(cache, user);
 
         new Expectations() {{
             cfgSrv.vtepAddMcastMacRemote(node, "ls", mac.toString(),
@@ -432,7 +433,7 @@ public class VtepDataClientImplTest {
             this.createMockCache();
         final java.util.UUID user = java.util.UUID.randomUUID();
 
-        TestVtepDataClientImpl client = testConnect(cache, user);
+        TestLegacyVtepDataClientImpl client = testConnect(cache, user);
 
         new Expectations() {{
             cfgSrv.vtepAddUcastMacRemote(node, "ls", mac.toString(),
@@ -472,7 +473,7 @@ public class VtepDataClientImplTest {
         final MAC mac = MAC.fromString("aa:bb:cc:dd:ee:ff");
         final IPv4Addr ip = IPv4Addr.apply("10.0.3.3");
 
-        TestVtepDataClientImpl client = testConnect(cache, user);
+        TestLegacyVtepDataClientImpl client = testConnect(cache, user);
 
         new Expectations() {{
             cfgSrv.vtepDelUcastMacRemote(node, "ls", mac.toString(),
@@ -494,7 +495,7 @@ public class VtepDataClientImplTest {
         final java.util.UUID user = java.util.UUID.randomUUID();
         final MAC mac = MAC.fromString("aa:bb:cc:dd:ee:ff");
 
-        TestVtepDataClientImpl client = testConnect(cache, user);
+        TestLegacyVtepDataClientImpl client = testConnect(cache, user);
 
         new Expectations() {{
             cfgSrv.vtepDelUcastMacRemote(node, "ls", mac.toString());
@@ -514,7 +515,7 @@ public class VtepDataClientImplTest {
             this.createMockCache();
         final java.util.UUID user = java.util.UUID.randomUUID();
 
-        TestVtepDataClientImpl client = testConnect(cache, user);
+        TestLegacyVtepDataClientImpl client = testConnect(cache, user);
 
         new Expectations() {{
             cfgSrv.vtepDelBinding(node, fromMido(MOCK_PHYSICAL_SWITCH_ID),
@@ -535,7 +536,7 @@ public class VtepDataClientImplTest {
             this.createMockCache();
         final java.util.UUID user = java.util.UUID.randomUUID();
 
-        TestVtepDataClientImpl client = testConnect(cache, user);
+        TestLegacyVtepDataClientImpl client = testConnect(cache, user);
 
         testDisconnect(client, user);
 
@@ -556,20 +557,20 @@ public class VtepDataClientImplTest {
     public void testConnectionLifecycleWithoutWait() throws Exception {
         java.util.UUID owner = java.util.UUID.randomUUID();
 
-        VtepDataClient client = provider.connect(
+        LegacyVtepDataClient client = provider.connect(
             END_POINT.mgmtIp(), END_POINT.mgmtPort(), owner);
 
         client.awaitConnected();
 
-        assertTrue(VtepDataClient.State.CONNECTED == client.getState());
+        assertTrue(LegacyVtepDataClient.State.CONNECTED == client.getState());
 
         client.disconnect(owner, false);
 
-        assertTrue(VtepDataClient.State.DISPOSED == client.getState());
+        assertTrue(LegacyVtepDataClient.State.DISPOSED == client.getState());
 
         client.awaitDisconnected();
 
-        assertTrue(VtepDataClient.State.DISPOSED == client.getState());
+        assertTrue(LegacyVtepDataClient.State.DISPOSED == client.getState());
     }
 
     /**
@@ -579,18 +580,18 @@ public class VtepDataClientImplTest {
     public void testConnectionLifecycleWithLazyDisconnect() throws Exception {
         java.util.UUID owner = java.util.UUID.randomUUID();
 
-        VtepDataClient client = provider.connect(
+        LegacyVtepDataClient client = provider.connect(
             END_POINT.mgmtIp(), END_POINT.mgmtPort(), owner);
 
         client.awaitConnected();
 
-        assertTrue(VtepDataClient.State.CONNECTED == client.getState());
+        assertTrue(LegacyVtepDataClient.State.CONNECTED == client.getState());
 
         client.disconnect(owner, true);
 
         client.awaitDisconnected();
 
-        assertTrue(VtepDataClient.State.DISPOSED == client.getState());
+        assertTrue(LegacyVtepDataClient.State.DISPOSED == client.getState());
     }
 
     @Ignore @Test
@@ -598,9 +599,9 @@ public class VtepDataClientImplTest {
         java.util.UUID owner1 = java.util.UUID.randomUUID();
         java.util.UUID owner2 = java.util.UUID.randomUUID();
 
-        VtepDataClient client1 = provider.connect(
+        LegacyVtepDataClient client1 = provider.connect(
             END_POINT.mgmtIp(), END_POINT.mgmtPort(), owner1);
-        VtepDataClient client2 = provider.connect(
+        LegacyVtepDataClient client2 = provider.connect(
             END_POINT.mgmtIp(), END_POINT.mgmtPort(), owner2);
 
         client1.awaitConnected();
@@ -618,9 +619,9 @@ public class VtepDataClientImplTest {
         java.util.UUID owner1 = java.util.UUID.randomUUID();
         java.util.UUID owner2 = java.util.UUID.randomUUID();
 
-        VtepDataClient client1 = provider.connect(
+        LegacyVtepDataClient client1 = provider.connect(
             END_POINT.mgmtIp(), END_POINT.mgmtPort(), owner1);
-        VtepDataClient client2 = provider.connect(
+        LegacyVtepDataClient client2 = provider.connect(
             END_POINT.mgmtIp(), END_POINT.mgmtPort(), owner2);
 
         client1.awaitConnected();
@@ -638,9 +639,9 @@ public class VtepDataClientImplTest {
         java.util.UUID owner1 = java.util.UUID.randomUUID();
         java.util.UUID owner2 = java.util.UUID.randomUUID();
 
-        VtepDataClient client1 = provider.connect(
+        LegacyVtepDataClient client1 = provider.connect(
             END_POINT.mgmtIp(), END_POINT.mgmtPort(), owner1);
-        VtepDataClient client2 = provider.connect(
+        LegacyVtepDataClient client2 = provider.connect(
             END_POINT.mgmtIp(), END_POINT.mgmtPort(), owner2);
 
         client1.awaitConnected();
@@ -657,20 +658,20 @@ public class VtepDataClientImplTest {
         java.util.UUID owner = java.util.UUID.randomUUID();
 
         for (int index = 0; index < STRESS_COUNT; index++) {
-            VtepDataClient client = provider.connect(
+            LegacyVtepDataClient client = provider.connect(
                 END_POINT.mgmtIp(), END_POINT.mgmtPort(), owner);
 
             log.info("TEST {}", index);
 
             client.awaitConnected();
 
-            assertTrue(VtepDataClient.State.CONNECTED == client.getState());
+            assertTrue(LegacyVtepDataClient.State.CONNECTED == client.getState());
 
             client.disconnect(owner, false);
 
             client.awaitDisconnected();
 
-            assertTrue(VtepDataClient.State.DISPOSED == client.getState());
+            assertTrue(LegacyVtepDataClient.State.DISPOSED == client.getState());
         }
     }
 
@@ -681,7 +682,7 @@ public class VtepDataClientImplTest {
     public void testConnectionFailure() throws Exception {
         java.util.UUID owner = java.util.UUID.randomUUID();
 
-        VtepDataClient client = provider.connect(
+        LegacyVtepDataClient client = provider.connect(
             END_POINT.mgmtIp(), END_POINT.mgmtPort(), owner);
 
         try {
@@ -691,7 +692,7 @@ public class VtepDataClientImplTest {
             assertTrue(true);
         }
 
-        client.awaitState(VtepDataClient.State.CONNECTED);
+        client.awaitState(LegacyVtepDataClient.State.CONNECTED);
 
         client.disconnect(owner, false);
 
@@ -702,7 +703,7 @@ public class VtepDataClientImplTest {
     public void testVtepListPhysicalSwitchesAndPorts() throws Exception {
         java.util.UUID owner = java.util.UUID.randomUUID();
 
-        VtepDataClient client = provider.connect(
+        LegacyVtepDataClient client = provider.connect(
             END_POINT.mgmtIp(), END_POINT.mgmtPort(), owner);
 
         client.awaitConnected();
@@ -723,7 +724,7 @@ public class VtepDataClientImplTest {
     public void testVtepListLogicalSwitches() throws Exception {
         java.util.UUID owner = java.util.UUID.randomUUID();
 
-        VtepDataClient client = provider.connect(
+        LegacyVtepDataClient client = provider.connect(
             END_POINT.mgmtIp(), END_POINT.mgmtPort(), owner);
 
         client.awaitConnected();
@@ -742,7 +743,7 @@ public class VtepDataClientImplTest {
     public void testVtepListUcastMacsLocal() throws Exception {
         java.util.UUID owner = java.util.UUID.randomUUID();
 
-        VtepDataClient client = provider.connect(
+        LegacyVtepDataClient client = provider.connect(
             END_POINT.mgmtIp(), END_POINT.mgmtPort(), owner);
 
         client.awaitConnected();
@@ -759,7 +760,7 @@ public class VtepDataClientImplTest {
     public void testVtepListMcastMacLocal() throws Exception {
         java.util.UUID owner = java.util.UUID.randomUUID();
 
-        VtepDataClient client = provider.connect(
+        LegacyVtepDataClient client = provider.connect(
             END_POINT.mgmtIp(), END_POINT.mgmtPort(), owner);
 
         client.awaitConnected();
@@ -776,7 +777,7 @@ public class VtepDataClientImplTest {
     public void testVtepListUcastMacsRemote() throws Exception {
         java.util.UUID owner = java.util.UUID.randomUUID();
 
-        VtepDataClient client = provider.connect(
+        LegacyVtepDataClient client = provider.connect(
             END_POINT.mgmtIp(), END_POINT.mgmtPort(), owner);
 
         client.awaitConnected();
@@ -793,7 +794,7 @@ public class VtepDataClientImplTest {
     public void testVtepListMcastMacRemote() throws Exception {
         java.util.UUID owner = java.util.UUID.randomUUID();
 
-        VtepDataClient client = provider.connect(
+        LegacyVtepDataClient client = provider.connect(
             END_POINT.mgmtIp(), END_POINT.mgmtPort(), owner);
 
         client.awaitConnected();
@@ -810,7 +811,7 @@ public class VtepDataClientImplTest {
     public void testVtepGetAddDeleteLogicalSwitch() throws Exception {
         java.util.UUID owner = java.util.UUID.randomUUID();
 
-        VtepDataClient client = provider.connect(
+        LegacyVtepDataClient client = provider.connect(
             END_POINT.mgmtIp(), END_POINT.mgmtPort(), owner);
 
         client.awaitConnected();
@@ -831,7 +832,7 @@ public class VtepDataClientImplTest {
     public void testClearLogicalSwitches() throws Exception {
         java.util.UUID owner = java.util.UUID.randomUUID();
 
-        VtepDataClient client = provider.connect(
+        LegacyVtepDataClient client = provider.connect(
             END_POINT.mgmtIp(), END_POINT.mgmtPort(), owner);
 
         client.awaitConnected();
@@ -856,7 +857,7 @@ public class VtepDataClientImplTest {
     public void testVtepAddDeleteBinding() throws Exception {
         java.util.UUID owner = java.util.UUID.randomUUID();
 
-        VtepDataClient client = provider.connect(
+        LegacyVtepDataClient client = provider.connect(
             END_POINT.mgmtIp(), END_POINT.mgmtPort(), owner);
 
         client.awaitConnected();
@@ -896,7 +897,7 @@ public class VtepDataClientImplTest {
         IPv4Addr macIp = IPv4Addr.fromString("192.168.1.1");
         IPv4Addr tunnelIp = IPv4Addr.fromString("10.0.0.1");
 
-        VtepDataClient client = provider.connect(
+        LegacyVtepDataClient client = provider.connect(
             END_POINT.mgmtIp(), END_POINT.mgmtPort(), owner);
 
         client.awaitConnected();
@@ -925,7 +926,7 @@ public class VtepDataClientImplTest {
         VtepMAC mac = VtepMAC.UNKNOWN_DST();
         IPv4Addr tunnelIp = IPv4Addr.fromString("10.0.0.1");
 
-        VtepDataClient client = provider.connect(
+        LegacyVtepDataClient client = provider.connect(
             END_POINT.mgmtIp(), END_POINT.mgmtPort(), owner);
 
         client.awaitConnected();
@@ -947,7 +948,7 @@ public class VtepDataClientImplTest {
         client.awaitDisconnected();
     }
 
-    public static LogicalSwitch addLogicalSwitch(VtepDataClient client)
+    public static LogicalSwitch addLogicalSwitch(LegacyVtepDataClient client)
         throws VtepNotConnectedException {
         StatusWithUuid status = client.addLogicalSwitch(
             "mn-" + java.util.UUID.randomUUID(), 1);
@@ -962,7 +963,7 @@ public class VtepDataClientImplTest {
         return ls;
     }
 
-    public static void deleteLogicalSwitch(VtepDataClient client,
+    public static void deleteLogicalSwitch(LegacyVtepDataClient client,
                                            LogicalSwitch ls) {
         Status status = client.deleteLogicalSwitch(ls.name());
         assertTrue(status.isSuccess());

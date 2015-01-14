@@ -30,9 +30,9 @@ import rx.{Observer, Subscription}
 
 import org.midonet.cluster.services.vxgw
 import org.midonet.cluster.services.vxgw.TunnelZoneState.FloodingProxyEvent
-import org.midonet.cluster.southbound.vtep.VtepConstants.logicalSwitchNameToBridgeId
 import org.midonet.cluster.DataClient
 import org.midonet.cluster.data.VTEP
+import org.midonet.cluster.data.vtep.model.LogicalSwitch.lsNameToNetworkId
 import org.midonet.cluster.data.vtep.model.MacLocation
 import org.midonet.midolman.state.{StateAccessException, ZookeeperConnectionWatcher}
 import org.midonet.packets.IPv4Addr
@@ -229,7 +229,7 @@ class VtepController(vtepOvsdb: VtepConfig, midoDb: DataClient,
       *       consolidation only happens at startup. We can change this fairly
       *       easily with a watcher and reinvoking this method. */
     private def consolidate(vxgw: VxlanGateway): Try[UUID] = {
-        val nwId = logicalSwitchNameToBridgeId(vxgw.name)
+        val nwId = lsNameToNetworkId(vxgw.name)
         log.info(s"Consolidate state into OVSDB for $vxgw")
         vtepOvsdb.ensureLogicalSwitch(vxgw.name, vxgw.vni) map { ls =>
             log.info(s"Logical switch ${vxgw.name} exists: $ls")

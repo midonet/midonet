@@ -81,8 +81,6 @@ class VtepFromOldOvsdbClient(nodeId: UUID, ip: IPv4Addr, port: Int,
             try {
                 oldVtepBroker.apply(ml)
             } catch {
-                case e: VxLanPeerSyncException if e.statusCode != null =>
-                    log.warn(s"VTEP unreachable when applying $ml")
                 case e: Throwable =>
                     log.warn(s"Could not apply $ml", e)
             }

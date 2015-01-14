@@ -60,7 +60,7 @@ import static scala.collection.JavaConversions.setAsJavaSet;
 import static scala.collection.JavaConversions.mapAsJavaMap;
 import static org.midonet.cluster.southbound.vtep.model.VtepModelTranslator.fromMido;
 
-public class VtepDataClientMock implements VtepDataClient {
+public class LegacyVtepDataClientMock implements LegacyVtepDataClient {
 
     protected String mgmtIp;
     protected int mgmtPort;
@@ -86,10 +86,10 @@ public class VtepDataClientMock implements VtepDataClient {
 
     private final Subject<State, State> stateSubject = PublishSubject.create();
 
-    public VtepDataClientMock(String mgmtIp, int mgmtPort,
-                              String name, String desc,
-                              Set<String> tunnelIps,
-                              Collection<String> portNames) {
+    public LegacyVtepDataClientMock(String mgmtIp, int mgmtPort,
+                                    String name, String desc,
+                                    Set<String> tunnelIps,
+                                    Collection<String> portNames) {
         this.mgmtIp = mgmtIp;
         this.mgmtPort = mgmtPort;
         this.tunnelIps = tunnelIps;
@@ -129,7 +129,7 @@ public class VtepDataClientMock implements VtepDataClient {
         return mgmtPort;
     }
 
-    public VtepDataClient connect(IPv4Addr mgmtIp, int port)
+    public LegacyVtepDataClient connect(IPv4Addr mgmtIp, int port)
         throws VtepStateException {
         if (!this.mgmtIp.equals(mgmtIp.toString()) || this.mgmtPort != port)
             throw new VtepStateException(new VtepEndPoint(mgmtIp, port),
@@ -152,7 +152,7 @@ public class VtepDataClientMock implements VtepDataClient {
     }
 
     @Override
-    public VtepDataClient awaitConnected() {
+    public LegacyVtepDataClient awaitConnected() {
         if (!connected)
             throw new UnsupportedOperationException(
                 "Cannot await asynchronously on a mock client.");
@@ -160,7 +160,7 @@ public class VtepDataClientMock implements VtepDataClient {
     }
 
     @Override
-    public VtepDataClient awaitConnected(long time, TimeUnit unit) {
+    public LegacyVtepDataClient awaitConnected(long time, TimeUnit unit) {
         if (!connected)
             throw new UnsupportedOperationException(
                 "Cannot await asynchronously on a mock client.");
@@ -168,7 +168,7 @@ public class VtepDataClientMock implements VtepDataClient {
     }
 
     @Override
-    public VtepDataClient awaitDisconnected() {
+    public LegacyVtepDataClient awaitDisconnected() {
         if (connected)
             throw new UnsupportedOperationException(
                 "Cannot await asynchronously on a mock client.");
@@ -176,7 +176,7 @@ public class VtepDataClientMock implements VtepDataClient {
     }
 
     @Override
-    public VtepDataClient awaitDisconnected(long time, TimeUnit unit) {
+    public LegacyVtepDataClient awaitDisconnected(long time, TimeUnit unit) {
         if (connected)
             throw new UnsupportedOperationException(
                 "Cannot await asynchronously on a mock client.");
@@ -184,13 +184,13 @@ public class VtepDataClientMock implements VtepDataClient {
     }
 
     @Override
-    public VtepDataClient awaitState(State state) {
+    public LegacyVtepDataClient awaitState(State state) {
         throw new UnsupportedOperationException(
             "Cannot await asynchronously on a mock client.");
     }
 
     @Override
-    public VtepDataClient awaitState(State state, long timeout, TimeUnit unit) {
+    public LegacyVtepDataClient awaitState(State state, long timeout, TimeUnit unit) {
         throw new UnsupportedOperationException(
             "Cannot await asynchronously on a mock client.");
     }
@@ -202,7 +202,7 @@ public class VtepDataClientMock implements VtepDataClient {
      */
     @Override
     public Subscription onConnected(
-        @Nonnull Callback<VtepDataClient, VtepException> callback) {
+        @Nonnull Callback<LegacyVtepDataClient, VtepException> callback) {
         if (connected) {
             callback.onSuccess(this);
         } else {
