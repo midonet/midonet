@@ -24,32 +24,30 @@ import akka.actor.Props
 import akka.testkit.TestActorRef
 
 import com.codahale.metrics.{MetricFilter, MetricRegistry}
-
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.DataClient
 import org.midonet.midolman.DeduplicationActor.ActionsCache
-import org.midonet.midolman.PacketWorkflow.{StateMessage, Simulation}
+import org.midonet.midolman.PacketWorkflow.{Simulation, StateMessage}
 import org.midonet.midolman.UnderlayResolver.Route
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.DatapathChannel
 import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
 import org.midonet.midolman.simulation.PacketContext
-import org.midonet.midolman.state.{FlowStatePackets, HappyGoLuckyLeaser, MockStateStorage}
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackKey, ConnTrackValue}
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
+import org.midonet.midolman.state.{FlowStatePackets, HappyGoLuckyLeaser, MockStateStorage}
 import org.midonet.midolman.topology.rcu.ResolvedHost
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.MessageAccumulator
+import org.midonet.odp.flows.FlowActions._
+import org.midonet.odp.flows.FlowKeys.tunnel
+import org.midonet.odp.flows.{FlowAction, FlowActionOutput}
 import org.midonet.odp.{Datapath, DpPort, FlowMatch, FlowMatches, Packet}
 import org.midonet.packets.Ethernet
 import org.midonet.packets.util.EthBuilder
-import org.midonet.packets.util.PacketBuilder.udp
-import org.midonet.packets.util.PacketBuilder._
-import org.midonet.odp.flows.{FlowAction, FlowActionOutput}
-import org.midonet.odp.flows.FlowActions._
-import org.midonet.odp.flows.FlowKeys.tunnel
+import org.midonet.packets.util.PacketBuilder.{udp, _}
 import org.midonet.sdn.state.ShardedFlowStateTable
 
 @RunWith(classOf[JUnitRunner])
@@ -90,7 +88,7 @@ class DeduplicationActorTestCase extends MidolmanSpec {
             override def getVportForDpPortNumber(portNum: Integer): Option[UUID] = ???
             override def getDpPortNumberForVport(vportId: UUID): Option[Integer] = ???
             override def getDpPortName(num: Integer): Option[String] = ???
-            override def host = new ResolvedHost(UUID.randomUUID(), true, 0, "",
+            override def host = new ResolvedHost(UUID.randomUUID(), true, "",
                                                  Map(), Map())
             override def peerTunnelInfo(peer: UUID): Option[Route] = ???
             override def isVtepTunnellingPort(portNumber: Integer): Boolean = ???

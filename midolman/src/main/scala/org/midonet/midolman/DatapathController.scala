@@ -18,7 +18,7 @@ package org.midonet.midolman
 import java.lang.{Boolean => JBoolean, Integer => JInteger}
 import java.net.InetAddress
 import java.nio.ByteBuffer
-import java.util.{UUID, Set => JSet}
+import java.util.{Set => JSet, UUID}
 
 import scala.collection.JavaConverters._
 import scala.concurrent.Future
@@ -29,7 +29,6 @@ import akka.actor._
 import akka.pattern.{after, pipe}
 
 import com.google.inject.Inject
-
 import com.typesafe.scalalogging.Logger
 import org.slf4j.LoggerFactory
 
@@ -53,9 +52,9 @@ import org.midonet.netlink.exceptions.NetlinkException.ErrorCode
 import org.midonet.odp.flows.FlowActionOutput
 import org.midonet.odp.ports._
 import org.midonet.odp.{Datapath, DpPort, OvsConnectionOps}
-import org.midonet.packets.IPv4Addr
-import org.midonet.sdn.flows.FlowTagger.FlowTag
+import org.midonet.packets.{IPAddr, IPv4Addr}
 import org.midonet.sdn.flows.FlowTagger
+import org.midonet.sdn.flows.FlowTagger.FlowTag
 import org.midonet.util.concurrent._
 
 object UnderlayResolver {
@@ -183,8 +182,8 @@ class DatapathController extends Actor
                          with SingleThreadExecutionContextProvider {
 
     import context.system
-    import org.midonet.midolman.DatapathController._
-    import org.midonet.midolman.FlowController.AddWildcardFlow
+
+import org.midonet.midolman.DatapathController._
     import org.midonet.midolman.topology.VirtualToPhysicalMapper.TunnelZoneUnsubscribe
 
     override def logSource = "org.midonet.datapath-control"
@@ -390,8 +389,8 @@ class DatapathController extends Actor
     }
 
     private def doDatapathZonesUpdate(
-            oldZones: Map[UUID, TZHostConfig],
-            newZones: Map[UUID, TZHostConfig]) {
+            oldZones: Map[UUID, IPAddr],
+            newZones: Map[UUID, IPAddr]) {
         val dropped = oldZones.keySet.diff(newZones.keySet)
         for (zone <- dropped) {
             VirtualToPhysicalMapper ! TunnelZoneUnsubscribe(zone)
@@ -463,7 +462,7 @@ class DatapathController extends Actor
             processTags(dpState.removePeer(peerUUID, zone))
 
         def processAddPeer() =
-            host.zones.get(zone) map { _.getIp.toInt } match {
+            host.zones.get(zone) map { _.asInstanceOf[IPv4Addr].toInt } match {
                 case Some(srcIp) =>
                     val dstIp = config.getIp.toInt
                     processTags(dpState.addPeer(peerUUID, zone, srcIp, dstIp, t))
@@ -498,8 +497,7 @@ class DatapathController extends Actor
               inetAddress <- intf.getInetAddresses.asScala
               if inetAddress.getAddress.length == 4
               zone <- host.zones
-              if addressesMatch(inetAddress, zone._2.getIp) &&
-                 zone._2.isInstanceOf[TZHostConfig]
+              if addressesMatch(inetAddress, zone._2.asInstanceOf[IPv4Addr])
         } {
             val tunnelMtu = (intf.getMtu - overhead).toShort
             minMtu = minMtu.min(tunnelMtu)

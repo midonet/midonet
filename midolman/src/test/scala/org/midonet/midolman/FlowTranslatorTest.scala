@@ -194,11 +194,11 @@ class FlowTranslatorTest extends MidolmanSpec {
 
     def makeHost(bindings: Map[UUID, String],
                  hostIp: IPv4Addr = IPv4Addr("102.32.2.2")) = new ResolvedHost(
-            hostId(), true, 0L, "midonet",
+            hostId(), true, "midonet",
             bindings.map{
                 case (id, iface) => makeBinding(id, iface)
             }.toMap,
-            Map(UUID.randomUUID() -> new TunnelZone.HostConfig().setIp(hostIp)))
+            Map(UUID.randomUUID() -> hostIp))
 
     feature("FlowActionOutputToVrnBridge is translated") {
         translationScenario("The bridge has local ports, from VTEP") { ctx =>
@@ -300,14 +300,12 @@ class FlowTranslatorTest extends MidolmanSpec {
             val clientPort0 = new ClientPort().setID(port0.getId).setInterfaceName("port0")
             val clientInPort = new ClientPort().setID(inPort.getId).setInterfaceName("in")
             val rcuHost = new ResolvedHost(
-                hostId(), true, 0L, "midonet",
+                hostId(), true, "midonet",
                 Map(inPort.getId -> PortBinding(inPort.getId, clientInPort.tunnelKey, "inPort"),
                     port0.getId -> PortBinding(port0.getId, clientPort0.tunnelKey, "port0")),
                 Map(
-                    UUID.randomUUID() -> new TunnelZone.HostConfig()
-                                             .setIp(hostIp),
-                    tzId -> new TunnelZone.HostConfig()
-                            .setIp(hostTunIp)
+                    UUID.randomUUID() -> hostIp,
+                    tzId -> hostTunIp
                 )
             )
 
