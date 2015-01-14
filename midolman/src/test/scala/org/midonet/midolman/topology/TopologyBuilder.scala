@@ -106,7 +106,6 @@ trait TopologyBuilder {
         builder.build
     }
 
-
     protected def createTunnelZone(id: UUID = UUID.randomUUID,
                                    name: String = "tunnel-zone",
                                    hosts: Map[UUID, IPAddr] = Map.empty)
