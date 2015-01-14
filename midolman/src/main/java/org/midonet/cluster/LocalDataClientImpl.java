@@ -3376,7 +3376,7 @@ public class LocalDataClientImpl implements DataClient {
         }
         // TODO: add this check below to the validation
         // We can take a random vxlan port, since all are forced to be in the
-        // same tz
+        // same tz by the API. Or should!
         VxLanPort vxlanPort = (VxLanPort)this.portsGet(b.getVxLanPortIds()
                                                         .get(0));
         if (vxlanPort == null) {
@@ -3487,8 +3487,9 @@ public class LocalDataClientImpl implements DataClient {
         if (bridgeCfg.vxLanPortId != null &&
             bridgeCfg.vxLanPortId.equals(vxlanPortId)) {
             bridgeCfg.vxLanPortId = null;
-        } else if (bridgeCfg.vxLanPortIds != null &&
-                   bridgeCfg.vxLanPortIds.contains(vxlanPortId)) {
+        }
+        if (bridgeCfg.vxLanPortIds != null &&
+            bridgeCfg.vxLanPortIds.contains(vxlanPortId)) {
             bridgeCfg.vxLanPortIds.remove(vxlanPortId);
             // Take advantage and migrate legacy data if necessary
             if (bridgeCfg.vxLanPortId != null) {
@@ -3538,6 +3539,19 @@ public class LocalDataClientImpl implements DataClient {
             return null != portZkManager.get(portId, typedWatcher);
         } catch (NoStatePathException e) {
             return false;
+        }
+    }
+
+    @Override
+    public Bridge bridgeGetAndWatch(UUID id, Directory.TypedWatcher watcher)
+        throws StateAccessException, SerializationException {
+        try {
+            BridgeConfig bc = bridgeZkManager.get(id, watcher);
+            Bridge b = Converter.fromBridgeConfig(bc);
+            b.setId(id);
+            return b;
+        } catch (NoStatePathException e) {
+            return null;
         }
     }
 
