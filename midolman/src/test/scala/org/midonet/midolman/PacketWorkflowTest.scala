@@ -43,7 +43,6 @@ import org.midonet.midolman.topology.rcu.ResolvedHost
 import org.midonet.midolman.util.mock.MockDatapathChannel
 import org.midonet.odp._
 import org.midonet.odp.flows._
-import org.midonet.odp.protos.{OvsDatapathConnection, MockOvsDatapathConnection}
 import org.midonet.packets.Ethernet
 import org.midonet.sdn.flows.FlowTagger.FlowTag
 import org.midonet.sdn.flows.WildcardFlow
@@ -81,7 +80,7 @@ object PacketWorkflowTest {
                           HappyGoLuckyLeaser)
 
         val replicator = new FlowStateReplicator(null, null, null, new UnderlayResolver {
-            override def host: ResolvedHost = new ResolvedHost(UUID.randomUUID(), true, 1, "", Map(), Map())
+            override def host: ResolvedHost = new ResolvedHost(UUID.randomUUID(), true, "", Map(), Map())
             override def peerTunnelInfo(peer: UUID): Option[Route] = ???
             override def vtepTunnellingOutputAction: FlowActionOutput = ???
             override def isVtepTunnellingPort(portNumber: Integer): Boolean = ???
