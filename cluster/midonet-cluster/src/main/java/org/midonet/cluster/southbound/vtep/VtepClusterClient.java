@@ -23,34 +23,38 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
+import scala.util.Try;
+
 import com.google.inject.Inject;
 
-import org.opendaylight.controller.sal.utils.Status;
-import org.opendaylight.controller.sal.utils.StatusCode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.midonet.cluster.rest_api.models.VTEPPort;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.Bridge;
 import org.midonet.cluster.data.VTEP;
 import org.midonet.cluster.data.ports.VxLanPort;
+import org.midonet.cluster.data.vtep.VtepConfigException;
+import org.midonet.cluster.data.vtep.VtepDataClient;
 import org.midonet.cluster.data.vtep.VtepNotConnectedException;
 import org.midonet.cluster.data.vtep.VtepStateException;
 import org.midonet.cluster.data.vtep.model.LogicalSwitch;
 import org.midonet.cluster.data.vtep.model.PhysicalPort;
 import org.midonet.cluster.data.vtep.model.PhysicalSwitch;
+import org.midonet.cluster.data.vtep.model.VtepStatus;
 import org.midonet.cluster.rest_api.BadGatewayHttpException;
 import org.midonet.cluster.rest_api.BadRequestHttpException;
 import org.midonet.cluster.rest_api.ConflictHttpException;
 import org.midonet.cluster.rest_api.GatewayTimeoutHttpException;
 import org.midonet.cluster.rest_api.NotFoundHttpException;
 import org.midonet.cluster.rest_api.models.VTEPBinding;
+import org.midonet.cluster.rest_api.models.VTEPPort;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.packets.IPv4Addr;
 
+import static org.midonet.cluster.data.vtep.model.LogicalSwitch.nameToNetworkId;
 import static org.midonet.cluster.rest_api.validation.MessageProperty.VTEP_BINDING_NOT_FOUND;
 import static org.midonet.cluster.rest_api.validation.MessageProperty.VTEP_INACCESSIBLE;
 import static org.midonet.cluster.rest_api.validation.MessageProperty.VTEP_MUST_USE_SAME_TUNNEL_ZONE;
@@ -59,9 +63,8 @@ import static org.midonet.cluster.rest_api.validation.MessageProperty.VTEP_PORT_
 import static org.midonet.cluster.rest_api.validation.MessageProperty.VTEP_PORT_VLAN_PAIR_ALREADY_USED;
 import static org.midonet.cluster.rest_api.validation.MessageProperty.VTEP_TUNNEL_IP_NOT_FOUND;
 import static org.midonet.cluster.rest_api.validation.MessageProperty.getMessage;
-import static org.midonet.cluster.southbound.vtep.VtepConstants.bridgeIdToLogicalSwitchName;
-import static org.midonet.cluster.southbound.vtep.VtepConstants.logicalSwitchNameToBridgeId;
 import static scala.collection.JavaConversions.mapAsJavaMap;
+import static scala.collection.JavaConversions.setAsJavaSet;
 
 /**
  * Coordinates VtepDataClient and DataClient (Zookeeper) operations.
@@ -91,9 +94,10 @@ public class VtepClusterClient {
      */
     private VtepDataClient connect(IPv4Addr mgmtIp, int mgmtPort) {
         try {
-            return provider.connect(mgmtIp, mgmtPort, clientId)
-                .awaitConnected();
-        } catch (VtepStateException e) {
+            VtepDataClient vtep = provider.connect(mgmtIp, mgmtPort, clientId);
+            vtep.awaitReady();
+            return vtep;
+        } catch (VtepStateException | VtepConfigException e) {
             log.warn("Unable to connect to VTEP {}:{}", mgmtIp, mgmtPort);
             throw new GatewayTimeoutHttpException(
                     getMessage(VTEP_INACCESSIBLE, mgmtIp, mgmtPort), e);
@@ -111,11 +115,7 @@ public class VtepClusterClient {
     private void disconnect(VtepDataClient client) {
         if (null == client)
             return;
-        try {
-            client.disconnect(clientId, true);
-        } catch (VtepStateException ex) {
-            log.debug("Unable to disconnect from VTEP: {}", client, ex);
-        }
+        client.disconnect(clientId);
     }
 
     /**
@@ -126,7 +126,7 @@ public class VtepClusterClient {
      */
     private VtepDataClient connectAndUpdate(VTEP vtep) {
         VtepDataClient client = connect(vtep.getId(), vtep.getMgmtPort());
-        IPv4Addr tunnelIp = client.getTunnelIp();
+        IPv4Addr tunnelIp = client.vxlanTunnelIp().getOrElse(null);
         if (!Objects.equals(vtep.getTunnelIp(), tunnelIp)) {
             try {
                 dataClient.vtepUpdate(vtep.setTunnelIp(tunnelIp));
@@ -179,9 +179,7 @@ public class VtepClusterClient {
     protected final PhysicalSwitch getPhysicalSwitch(VtepDataClient vtepClient,
                                                      IPv4Addr mgmtIp)
         throws VtepNotConnectedException {
-        Collection<PhysicalSwitch> switches = vtepClient.listPhysicalSwitches();
-
-        for (PhysicalSwitch ps : switches)
+        for (PhysicalSwitch ps : setAsJavaSet(vtepClient.listPhysicalSwitches()))
             if (ps.mgmtIps() != null && ps.mgmtIps().contains(mgmtIp))
                 return ps;
 
@@ -223,7 +221,7 @@ public class VtepClusterClient {
         }
 
         // TODO: Handle error if this fails or returns null.
-        return vtepClient.listPhysicalPorts(ps.uuid());
+        return setAsJavaSet(vtepClient.physicalPorts(ps.uuid()));
     }
 
 
@@ -319,8 +317,8 @@ public class VtepClusterClient {
 
         // Build map from OVSDB LogicalSwitch ID to Midonet Bridge ID.
         Map<UUID, UUID> lsToBridge = new HashMap<>();
-        for (LogicalSwitch ls : vtepClient.listLogicalSwitches()) {
-            lsToBridge.put(ls.uuid(), logicalSwitchNameToBridgeId(ls.name()));
+        for (LogicalSwitch ls : setAsJavaSet(vtepClient.listLogicalSwitches())) {
+            lsToBridge.put(ls.uuid(), nameToNetworkId(ls.name()));
         }
 
         List<VTEPBinding> bindings = new ArrayList<>();
@@ -464,17 +462,22 @@ public class VtepClusterClient {
                     "Binding stored in Midonet, but could not be written to "
                     + "VTEP {}, will be done by VxLanGatewayService", mgmtIp);
             } else {
-                String lsName = bridgeIdToLogicalSwitchName(bridge.getId());
-                Status status = client.bindVlan(lsName, binding.portName,
-                                                binding.vlanId,
-                                                vxlanPort.getVni(),
-                                                new ArrayList<IPv4Addr>());
-                if (StatusCode.CONFLICT.equals(status.getCode())) {
+                Try<LogicalSwitch> ls =
+                    client.ensureLogicalSwitch(bridge.getId(), vxlanPort.getVni());
+                VtepStatus st = VtepStatus.fromTry(ls);
+
+                if (st.isSuccess()) {
+                    st = VtepStatus.fromTry(client.createBinding(
+                        binding.portName, binding.vlanId,
+                        ls.get().networkId()));
+
+                }
+                if (st.code() == VtepStatus.StatusCode$.MODULE$.CONFLICT()) {
                     log.warn("Binding was already present in VTEP");
-                } else if (status.isSuccess()) {
+                } else if (!st.isSuccess()) {
                     log.warn("Binding persisted, but could not be written to "
                              + "VTEP {}, relying on VxlanGatewayService to "
-                             + "consolidate", status);
+                             + "consolidate", st);
                 }
             }
         } finally {
@@ -501,7 +504,7 @@ public class VtepClusterClient {
         try {
             // Try to connect to the VTEP to get the latest tunnel IP.
             client = connectAndUpdate(vtep);
-            tunnelIp = client.getTunnelIp();
+            tunnelIp = client.vxlanTunnelIp().getOrElse(null);
 
             // Validate that the physical port does exist
             getPhysicalPortOrThrow(client, mgmtIp, mgmtPort, binding.portName);
@@ -631,13 +634,15 @@ public class VtepClusterClient {
 
         try {
             // Delete the binding on the VTEP
-            Status st = client.deleteBinding(portName, vlan);
+            VtepStatus st =
+                VtepStatus.fromTry(client.removeBinding(portName, vlan));
+
             if (!st.isSuccess()) {
                 log.warn("Error deleting binding from VTEP {}", st);
             }
-            if (lastBinding && !st.getCode().equals(StatusCode.NOSERVICE)) {
-                String lsName = bridgeIdToLogicalSwitchName(bridgeId);
-                st = client.deleteLogicalSwitch(lsName);
+            if (lastBinding && !st.code().equals(
+                VtepStatus.StatusCode$.MODULE$.NOSERVICE())) {
+                st = VtepStatus.fromTry(client.removeLogicalSwitch(bridgeId));
                 if (!st.isSuccess()) {
                     log.warn("Error deleting logical switch from VTEP {}", st);
                 }
@@ -666,10 +671,12 @@ public class VtepClusterClient {
         dataClient.bridgeDeleteVxLanPort(vxlanPort);
 
         // Delete the corresponding logical switch on the VTEP.
-        String ls = bridgeIdToLogicalSwitchName(vxlanPort.getDeviceId());
-        Status st = vtepClient.deleteLogicalSwitch(ls);
-        if (st.getCode() == StatusCode.NOTFOUND) {
-            log.warn("Logical Switch {} was already gone from the VTEP", ls);
+        VtepStatus st = VtepStatus.fromTry(
+            vtepClient.removeLogicalSwitch(vxlanPort.getDeviceId()));
+
+        if (st.getCode() == VtepStatus.StatusCode$.MODULE$.NOTFOUND()) {
+            log.warn("Logical Switch {} was already gone from the VTEP",
+                     vxlanPort.getDeviceId());
         } else {
             throwIfFailed(st);
         }
@@ -686,21 +693,19 @@ public class VtepClusterClient {
      * Converts the provided ODL Status object to the corresponding HTTP
      * exception and throws it. Does nothing if Status indicates success.
      */
-    private void throwIfFailed(Status status) {
-
+    private void throwIfFailed(VtepStatus status) {
         if (status.isSuccess())
             return;
 
-        switch(status.getCode()) {
-            case BADREQUEST:
-                throw new BadRequestHttpException(status.getDescription());
-            case CONFLICT:
-                throw new ConflictHttpException(status.getDescription());
-            case NOTFOUND:
-                throw new NotFoundHttpException(status.getDescription());
-            default:
-                log.error("Unexpected response from VTEP: " + status);
-                throw new BadGatewayHttpException(status.getDescription());
+        if (status.code() == VtepStatus.StatusCode$.MODULE$.BADREQUEST()) {
+            throw new BadRequestHttpException(status.description());
+        } else if (status.code() == VtepStatus.StatusCode$.MODULE$.CONFLICT()) {
+            throw new ConflictHttpException(status.description());
+        } else if (status.code() == VtepStatus.StatusCode$.MODULE$.NOTFOUND()) {
+            throw new NotFoundHttpException(status.description());
+        } else {
+            log.error("Unexpected response from VTEP: " + status);
+            throw new BadGatewayHttpException(status.description());
         }
     }
 }

@@ -70,12 +70,18 @@ final class PhysicalPort(id: UUID, ppName: String, desc: String,
     private val str: String = "PhysicalPort{" +
         "uuid=" + uuid + ", " +
         "name='" + name + "', " +
-        "description='" + description + "'}"
+        "description='" + description + ", " +
+        "bindings='" + vlanBindings + "'}"
 
     override def toString = str
 
     override def equals(o: Any): Boolean = o match {
-        case that: PhysicalPort => Objects.equals(name, that.name)
+        case that: PhysicalPort =>
+            Objects.equals(name, that.name) &&
+            Objects.equals(description, that.description) &&
+            Objects.equals(vlanBindings, that.vlanBindings) &&
+            Objects.equals(vlanStats, that.vlanStats) &&
+            Objects.equals(portFaultStatus, that.portFaultStatus)
         case other => false
     }
 }

@@ -131,6 +131,7 @@ class OvsdbVtepConnection(val endPoint: VtepEndPoint, vtepThread: Executor,
                 state.set(Broken(retryMs, maxRetries))
             case Ready(handle) if handle.client == ovsdbClient =>
                 state.set(Broken(retryMs, maxRetries))
+            case Disposed => // ignore
             case other =>
                 log.debug("unexpected vtep client close event: " + ovsdbClient +
                           ", state: " + other)
@@ -258,6 +259,23 @@ class OvsdbVtepConnection(val endPoint: VtepEndPoint, vtepThread: Executor,
         }
     }
 
+    /** Disconnect from vtep and set state to disposed
+      * This must bue executed from the vtep execution thread. */
+    private def onDispose() = {
+        users.clear()
+        state.get() match {
+            case Connected(client) if users.isEmpty =>
+                state.set(Disposed)
+                connectionService.disconnect(client)
+            case Ready(handle) if users.isEmpty =>
+                state.set(Disposed)
+                connectionService.disconnect(handle.client)
+            case other =>
+                state.set(Disposed)
+        }
+        stateSubject.onNext(state.get())
+    }
+
     /**
      * Connect to vtep, registering the given user reference
      */
@@ -272,6 +290,11 @@ class OvsdbVtepConnection(val endPoint: VtepEndPoint, vtepThread: Executor,
      */
     override def disconnect(user: UUID): Unit = {
         vtepThread.execute(makeRunnable(onDeactivate(user)))
+    }
+
+    /** Disconnect from vtep and set state to disposed */
+    override def dispose(): Unit = {
+        vtepThread.execute(makeRunnable(onDispose()))
     }
 
     /**

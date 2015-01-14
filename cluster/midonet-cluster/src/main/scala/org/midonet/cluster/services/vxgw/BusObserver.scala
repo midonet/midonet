@@ -26,8 +26,7 @@ import rx.Observer
 
 import org.midonet.cluster.DataClient
 import org.midonet.cluster.data.Bridge.UNTAGGED_VLAN_ID
-import org.midonet.cluster.data.vtep.model.MacLocation
-import org.midonet.cluster.southbound.vtep.VtepConstants
+import org.midonet.cluster.data.vtep.model.{LogicalSwitch, MacLocation}
 import org.midonet.midolman.state._
 import org.midonet.packets.{IPv4Addr, MAC}
 import org.midonet.util.functors.makeRunnable
@@ -55,7 +54,7 @@ class BusObserver(dataClient: DataClient, networkId: UUID,
     extends Observer[MacLocation] {
 
     private val log = LoggerFactory.getLogger(vxgwMacSyncingLog(networkId))
-    private val lsName = VtepConstants.bridgeIdToLogicalSwitchName(networkId)
+    private val lsName = LogicalSwitch.networkIdToLsName(networkId)
 
     override def onCompleted(): Unit = {
         log.warn(s"Bus for logical switch is terminated. Unexpected.")
