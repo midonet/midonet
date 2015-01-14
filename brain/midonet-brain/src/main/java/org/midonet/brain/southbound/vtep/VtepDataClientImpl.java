@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -27,7 +28,6 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.opendaylight.controller.sal.core.Node;
 import org.opendaylight.controller.sal.utils.Status;
 import org.opendaylight.controller.sal.utils.StatusCode;
-import org.opendaylight.ovsdb.lib.notation.UUID;
 import org.opendaylight.ovsdb.lib.table.internal.Table;
 import org.opendaylight.ovsdb.lib.table.vtep.Logical_Switch;
 import org.opendaylight.ovsdb.lib.table.vtep.Mcast_Macs_Local;
@@ -42,14 +42,19 @@ import org.opendaylight.ovsdb.plugin.StatusWithUuid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.midonet.brain.southbound.vtep.model.LogicalSwitch;
-import org.midonet.brain.southbound.vtep.model.McastMac;
 import org.midonet.brain.southbound.vtep.model.PhysicalPort;
-import org.midonet.brain.southbound.vtep.model.PhysicalSwitch;
 import org.midonet.brain.southbound.vtep.model.UcastMac;
 import org.midonet.brain.southbound.vtep.model.VtepModelTranslator;
+import org.midonet.cluster.data.vtep.model.McastMac;
+import org.midonet.cluster.data.vtep.model.PhysicalSwitch;
+import org.midonet.cluster.data.vtep.model.VtepEndPoint;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
+import org.midonet.cluster.data.vtep.model.LogicalSwitch;
+import org.midonet.cluster.data.vtep.model.VtepMAC;
+
+import static org.midonet.brain.southbound.vtep.model.VtepModelTranslator.fromMido;
+import static org.midonet.brain.southbound.vtep.model.VtepModelTranslator.toMido;
 
 /**
  * The implementation of the VTEP data client interface, providing methods to
@@ -119,7 +124,8 @@ public class VtepDataClientImpl extends VtepDataClientBase {
         List<PhysicalPort> result = new ArrayList<>();
         for (Map.Entry<String, Table<?>> e : tableCachePorts.entrySet()) {
             log.debug("Found Physical Port {} {}", e.getKey(), e.getValue());
-            if (ps.getPorts().contains(new UUID(e.getKey()))) {
+            if (ps.getPorts().contains(
+                new org.opendaylight.ovsdb.lib.notation.UUID(e.getKey()))) {
                 Physical_Port ovsdbPort = (Physical_Port) e.getValue();
                 result.add(VtepModelTranslator.toMido(ovsdbPort));
             }
@@ -142,7 +148,7 @@ public class VtepDataClientImpl extends VtepDataClientBase {
         for (Map.Entry<String, Table<?>> e : tableCache.entrySet()) {
             log.debug("Found Logical Switch {} {}", e.getKey(), e.getValue());
             res.add(VtepModelTranslator.toMido((Logical_Switch)e.getValue(),
-                                               new UUID(e.getKey())));
+                                               UUID.fromString(e.getKey())));
         }
         return res;
     }
@@ -248,7 +254,7 @@ public class VtepDataClientImpl extends VtepDataClientBase {
                 log.debug("Found logical switch {} {}", e.getKey(),
                           e.getValue());
                 return VtepModelTranslator.toMido(
-                    (Logical_Switch)e.getValue(), new UUID(e.getKey()));
+                    (Logical_Switch)e.getValue(), UUID.fromString(e.getKey()));
             }
         }
         return null;
@@ -264,7 +270,7 @@ public class VtepDataClientImpl extends VtepDataClientBase {
         Logical_Switch ls = configurationService.vtepGetLogicalSwitch(
             getConnectionNodeOrThrow(), lsName);
 
-        return ls != null ? VtepModelTranslator.toMido(ls, ls.getId()) : null;
+        return ls != null ? VtepModelTranslator.toMido(ls, toMido(ls.getId())) : null;
     }
 
     /**
@@ -355,7 +361,7 @@ public class VtepDataClientImpl extends VtepDataClientBase {
 
         log.debug("Adding bindings to logical switch {} port-VLAN pairs {}",
                   lsId, bindings);
-        Status status = configurationService.vtepAddBindings(node, lsId,
+        Status status = configurationService.vtepAddBindings(node, fromMido(lsId),
                                                              bindings);
         if (!status.isSuccess()) {
             log.warn("Adding bindings failed: {}", status);
@@ -523,7 +529,8 @@ public class VtepDataClientImpl extends VtepDataClientBase {
         }
 
         Status status =
-            configurationService.vtepDelBinding(node, ps.uuid, portName, vlan);
+            configurationService.vtepDelBinding(node, fromMido(ps.uuid()),
+                                                portName, vlan);
         if (!status.isSuccess()) {
             log.warn("Delete binding failed: {}", status);
         }
@@ -563,8 +570,13 @@ public class VtepDataClientImpl extends VtepDataClientBase {
     @Override
     public List<Pair<UUID, Short>> listPortVlanBindings(UUID lsId)
         throws VtepNotConnectedException {
-        return configurationService.vtepPortVlanBindings(
-            getConnectionNodeOrThrow(), lsId);
+        List<Pair<UUID, Short>> bindings = new ArrayList<>();
+        for (Pair<org.opendaylight.ovsdb.lib.notation.UUID, Short> b:
+             configurationService.vtepPortVlanBindings(
+                 getConnectionNodeOrThrow(), fromMido(lsId))) {
+            bindings.add(Pair.of(toMido(b.getLeft()), b.getRight()));
+        }
+        return bindings;
     }
 
     /**
@@ -579,7 +591,7 @@ public class VtepDataClientImpl extends VtepDataClientBase {
         if(null == node) {
             return new Status(StatusCode.NOSERVICE, "VTEP not connected");
         } else {
-            return configurationService.vtepClearBindings(node, lsId);
+            return configurationService.vtepClearBindings(node, fromMido(lsId));
         }
     }
 }

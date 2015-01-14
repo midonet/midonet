@@ -23,14 +23,14 @@ import java.util.UUID
 import scala.collection.mutable.ListBuffer
 import scala.util.{Failure, Success, Try}
 
-import com.google.common.base.Strings.isNullOrEmpty
 import org.apache.commons.lang3.tuple.{Pair => JPair}
-import org.opendaylight.ovsdb.lib.notation.{UUID => OdlUUID}
 import org.slf4j.LoggerFactory
 import rx.{Observable, Observer}
 
-import org.midonet.brain.southbound.vtep.model.{LogicalSwitch, McastMac, UcastMac}
-import org.midonet.brain.southbound.vtep.{VtepBroker, VtepDataClientFactory, VtepMAC}
+import org.midonet.brain.southbound.vtep.model.UcastMac
+import org.midonet.brain.southbound.vtep.{VtepBroker, VtepDataClientFactory}
+import org.midonet.brain.southbound.vtep.model.VtepModelTranslator.{fromMido, toMido}
+import org.midonet.cluster.data.vtep.model.{McastMac, VtepMAC, MacLocation, LogicalSwitch}
 import org.midonet.packets.IPv4Addr
 
 /** This class abstracts low-level details of the connection to an OVSDB
@@ -55,7 +55,7 @@ class VtepFromOvsdb(ip: IPv4Addr, port: Int) extends VtepConfig(ip, port) {
     override def ensureLogicalSwitch(name: String,
                                      vni: Int): Try[LogicalSwitch] = ???
     override def removeLogicalSwitch(name: String): Try[Unit] = ???
-    override def currentMacLocal(ls: OdlUUID): Seq[MacLocation] = ???
+    override def currentMacLocal(ls: UUID): Seq[MacLocation] = ???
     override def vxlanTunnelIp: Option[IPv4Addr] = ???
 }
 
@@ -90,29 +90,23 @@ class VtepFromOldOvsdbClient(nodeId: UUID, ip: IPv4Addr, port: Int,
         }
     }
 
-    private def macLocation(mac: String, ip: String, lsId: OdlUUID)
+    private def macLocation(mac: VtepMAC, ipAddr: IPv4Addr, lsId: UUID)
     : Seq[MacLocation] = {
         val tunIp = ovsdbClient.getTunnelIp
         if (tunIp == null) {
             log.warn(s"VTEP's tunnel IP unknown, can't process mac")
             return Seq.empty
         }
-        val ipAddr: IPv4Addr = try {
-                                   if (isNullOrEmpty(ip)) null else IPv4Addr(ip)
-                               } catch { case t: Throwable =>
-                                   log.info(s"Failed to translate IP '$ip''", t)
-                                   null
-                               }
         val ls = ovsdbClient.getLogicalSwitch(lsId)
-        Seq(MacLocation(VtepMAC.fromString(mac), ipAddr, ls.name, tunIp))
+        Seq(MacLocation(mac, ipAddr, ls.name, tunIp))
     }
 
     private def toMacLocation(ucast: UcastMac): Seq[MacLocation] = {
-        macLocation(ucast.mac, ucast.ipAddr, ucast.logicalSwitch)
+        macLocation(VtepMAC.fromString(ucast.mac), IPv4Addr.fromString(ucast.ipAddr), toMido(ucast.logicalSwitch))
     }
 
     private def toMacLocation(mcast: McastMac): Seq[MacLocation] = {
-        macLocation(mcast.mac, mcast.ipAddr, mcast.logicalSwitch)
+        macLocation(mcast.mac, mcast.ipAddr, mcast.logicalSwitchId)
     }
 
     override def macLocalUpdates
@@ -120,19 +114,19 @@ class VtepFromOldOvsdbClient(nodeId: UUID, ip: IPv4Addr, port: Int,
 
     override def macRemoteUpdater: Observer[MacLocation] = applyInOldBroker
 
-    override def currentMacLocal(ls: OdlUUID): Seq[MacLocation] = {
+    override def currentMacLocal(ls: UUID): Seq[MacLocation] = {
         val macLocations = ListBuffer[MacLocation]()
         val ucastMacs = ovsdbClient.listUcastMacsLocal().iterator()
         while (ucastMacs.hasNext) {
             val ucm = ucastMacs.next()
-            if (ucm.logicalSwitch.equals(ls)) {
+            if (ucm.logicalSwitch.equals(fromMido(ls))) {
                 macLocations ++= toMacLocation(ucm)
             }
         }
         val mcastMacs = ovsdbClient.listMcastMacsLocal().iterator()
         while (mcastMacs.hasNext) {
             val mcm = mcastMacs.next()
-            if (mcm.logicalSwitch.equals(ls)) {
+            if (mcm.logicalSwitchId.equals(ls)) {
                 macLocations ++= toMacLocation(mcm)
             }
         }
@@ -152,7 +146,7 @@ class VtepFromOldOvsdbClient(nodeId: UUID, ip: IPv4Addr, port: Int,
         if (ls == null) {
             val res = ovsdbClient.addLogicalSwitch(name, vni)
             if (res.isSuccess) {
-                Success(ovsdbClient.getLogicalSwitch(res.getUuid))
+                Success(ovsdbClient.getLogicalSwitch(toMido(res.getUuid)))
             } else {
                 val msg = "Failed to create logical switch " +
                          s"$name with vni $vni: ${res.toString}"

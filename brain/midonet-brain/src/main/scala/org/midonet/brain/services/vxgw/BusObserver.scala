@@ -26,6 +26,7 @@ import rx.Observer
 
 import org.midonet.brain.southbound.vtep.VtepConstants
 import org.midonet.cluster.DataClient
+import org.midonet.cluster.data.vtep.model.MacLocation
 import org.midonet.midolman.state._
 import org.midonet.packets.{IPv4Addr, MAC}
 import org.midonet.util.functors.makeRunnable
@@ -71,7 +72,7 @@ class BusObserver(dataClient: DataClient, networkId: UUID,
             return
         }
         if (ml.vxlanTunnelEndpoint == null) {
-            val portId = macPortMap.get(ml.mac.IEEE802())
+            val portId = macPortMap.get(ml.mac.IEEE802)
             if (portId != null) {
                 applyMacRemoval(ml, portId)
             } // else it's already gone so don't bother
@@ -81,7 +82,7 @@ class BusObserver(dataClient: DataClient, networkId: UUID,
     }
 
     private def applyMacRemoval(ml: MacLocation, vxPort: UUID): Unit = {
-        val mac = ml.mac.IEEE802()
+        val mac = ml.mac.IEEE802
         try {
             macPortMap.removeIfOwnerAndValue(mac, vxPort)
             dataClient.bridgeGetIp4ByMac(networkId, mac) foreach { ip =>
@@ -112,7 +113,7 @@ class BusObserver(dataClient: DataClient, networkId: UUID,
             // The change didn't happen in a VTEP, ignore
             return
         }
-        val mac = ml.mac.IEEE802()
+        val mac = ml.mac.IEEE802
         val currPortId = macPortMap.get(mac)
         val isNew = currPortId == null
         val isChanged = isNew || !currPortId.equals(newVxPortId)
