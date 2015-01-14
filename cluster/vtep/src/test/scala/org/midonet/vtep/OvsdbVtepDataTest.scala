@@ -63,13 +63,13 @@ class OvsdbVtepDataTest extends FeatureSpec with Matchers
     var vtepThread: ExecutorService = _
 
     def newLogicalSwitch() = {
-        val lsName = LogicalSwitch.networkIdToLogicalSwitchName(UUID.randomUUID())
+        val lsName = LogicalSwitch.networkIdToLsName(UUID.randomUUID())
         new LogicalSwitch(UUID.randomUUID(), lsName, random.nextInt(4095),
                           lsName + "-desc")
     }
 
     before {
-        vtep = new InMemoryOvsdbVtep()
+        vtep = new InMemoryOvsdbVtep
         client = vtep.getHandle
         endPoint = OvsdbTools.endPointFromOvsdbClient(client)
         db = OvsdbTools.getDbSchema(client, OvsdbTools.DB_HARDWARE_VTEP)
@@ -122,13 +122,172 @@ class OvsdbVtepDataTest extends FeatureSpec with Matchers
             } shouldBe Some(vxlanIp)
         }
     }
+    feature("Physical switches") {
+        scenario("list physical switches") {
+            val vtepHandle = new OvsdbVtepData(endPoint, client, db, vtepThread)
+            timed(timeout) {
+                vtepHandle.listPhysicalSwitches
+            } shouldBe Some(vtep.getTable(psTable).values.toSet)
+        }
+        scenario("list physical ports") {
+            val vtepHandle = new OvsdbVtepData(endPoint, client, db, vtepThread)
+            val ps = vtep.getTable(psTable).values.head
+            timed(timeout) {
+                vtepHandle.physicalPorts(ps.uuid)
+            } shouldBe Some(vtep.getTable(portTable).values.toSet)
+        }
+    }
+    feature("Logical switches") {
+        scenario("add logical switch") {
+            val vtepHandle = new OvsdbVtepData(endPoint, client, db, vtepThread)
+            val nwId = UUID.randomUUID()
+            val vni = random.nextInt(4096)
+            val ls = timed(timeout) {
+                vtepHandle.ensureLogicalSwitch(nwId, vni)
+            }
+            ls shouldBe Some(vtep.getTable(lsTable).values.head)
+            ls.get.networkId shouldBe nwId
+            ls.get.tunnelKey shouldBe vni
+        }
+        scenario("add repeated logical switch") {
+            val vtepHandle = new OvsdbVtepData(endPoint, client, db, vtepThread)
+            val nwId = UUID.randomUUID()
+            val vni = random.nextInt(4096)
+            val ls1 = timed(timeout) {
+                vtepHandle.ensureLogicalSwitch(nwId, vni)
+            }
+            ls1 shouldBe Some(vtep.getTable(lsTable).values.head)
+            ls1.get.networkId shouldBe nwId
+            ls1.get.tunnelKey shouldBe vni
+            val ls2 = timed(timeout) {
+                vtepHandle.ensureLogicalSwitch(nwId, vni)
+            }
+            ls2 shouldBe ls1
+        }
+        scenario("overwrite vni") {
+            val vtepHandle = new OvsdbVtepData(endPoint, client, db, vtepThread)
+            val nwId = UUID.randomUUID()
+            val vni1 = random.nextInt(4096)
+            val ls1 = timed(timeout) {
+                vtepHandle.ensureLogicalSwitch(nwId, vni1)
+            }
+            ls1 shouldBe Some(vtep.getTable(lsTable).values.head)
+            ls1.get.networkId shouldBe nwId
+            ls1.get.tunnelKey shouldBe vni1
+            val vni2 = random.nextInt(4096)
+            val ls2 = timed(timeout) {
+                vtepHandle.ensureLogicalSwitch(nwId, vni2)
+            }
+            ls2 shouldBe Some(vtep.getTable(lsTable).values.head)
+            ls2.get.networkId shouldBe nwId
+            ls2.get.tunnelKey shouldBe vni2
+            vtep.getTable(lsTable).size shouldBe 1
+        }
+        scenario("bind vlan") {
+            val vtepHandle = new OvsdbVtepData(endPoint, client, db, vtepThread)
+            val nwId = UUID.randomUUID()
+            val vni = random.nextInt(4096)
+            val ls = timed(timeout) {
+                vtepHandle.ensureLogicalSwitch(nwId, vni)
+            }
+            ls shouldBe Some(vtep.getTable(lsTable).values.head)
+            val b = VtepBinding("p1", random.nextInt(4096).toShort, nwId)
+            val result = timed(timeout) {
+                vtepHandle.createBinding(b.portName, b.vlanId, b.networkId)
+            }
+            result.isSuccess shouldBe true
+
+            eventually {
+                val port = vtep.getTable(portTable).values
+                    .map(_.asInstanceOf[PhysicalPort])
+                    .find(_.name == "p1").get
+
+                port.vlanBindings.size shouldBe 1
+                port.vlanBindings.head shouldBe (b.vlanId, ls.get.uuid)
+            }
+        }
+        scenario("remove binding") {
+            val vtepHandle = new OvsdbVtepData(endPoint, client, db, vtepThread)
+            val nwId = UUID.randomUUID()
+            val vni = random.nextInt(4096)
+            val ls = timed(timeout) {
+                vtepHandle.ensureLogicalSwitch(nwId, vni)
+            }
+            ls shouldBe Some(vtep.getTable(lsTable).values.head)
+            val b = VtepBinding("p1", random.nextInt(4096).toShort, nwId)
+            val result = timed(timeout) {
+                vtepHandle.createBinding(b.portName, b.vlanId, b.networkId)
+            }
+            result.isSuccess shouldBe true
+
+            eventually {
+                val port = vtep.getTable(portTable).values
+                    .map(_.asInstanceOf[PhysicalPort])
+                    .find(_.name == "p1").get
+
+                port.vlanBindings.size shouldBe 1
+                port.vlanBindings.head shouldBe (b.vlanId, ls.get.uuid)
+            }
+
+            val removal = timed(timeout) {
+                vtepHandle.removeBinding(b.portName, b.vlanId)
+            }
+            removal.isSuccess shouldBe true
+
+            eventually {
+                val port = vtep.getTable(portTable).values
+                    .map(_.asInstanceOf[PhysicalPort])
+                    .find(_.name == "p1").get
+
+                port.vlanBindings.isEmpty shouldBe true
+            }
+        }
+        scenario("remove logical switch and bindings") {
+            val vtepHandle = new OvsdbVtepData(endPoint, client, db, vtepThread)
+            val nwId = UUID.randomUUID()
+            val vni = random.nextInt(4096)
+            val ls = timed(timeout) {
+                vtepHandle.ensureLogicalSwitch(nwId, vni)
+            }
+            ls shouldBe Some(vtep.getTable(lsTable).values.head)
+            val b = VtepBinding("p1", random.nextInt(4096).toShort, nwId)
+            val result = timed(timeout) {
+                vtepHandle.createBinding(b.portName, b.vlanId, b.networkId)
+            }
+            result.isSuccess shouldBe true
+
+            eventually {
+                val port = vtep.getTable(portTable).values
+                    .map(_.asInstanceOf[PhysicalPort])
+                    .find(_.name == "p1").get
+
+                port.vlanBindings.size shouldBe 1
+                port.vlanBindings.head shouldBe (b.vlanId, ls.get.uuid)
+            }
+
+            val removal = timed(timeout) {
+                vtepHandle.removeLogicalSwitch(ls.get.networkId)
+            }
+            removal.isSuccess shouldBe true
+
+            eventually {
+                vtep.getTable(lsTable).isEmpty shouldBe true
+
+                val port = vtep.getTable(portTable).values
+                    .map(_.asInstanceOf[PhysicalPort])
+                    .find(_.name == "p1").get
+
+                port.vlanBindings.isEmpty shouldBe true
+            }
+        }
+    }
     feature("Mac remote updater") {
         scenario("ucast mac updates") {
             val ls = newLogicalSwitch()
             vtep.putEntry(lsTable, ls, ls.getClass)
 
             val unknownLsName =
-                LogicalSwitch.networkIdToLogicalSwitchName(UUID.randomUUID())
+                LogicalSwitch.networkIdToLsName(UUID.randomUUID())
 
             val vtepHandle = new OvsdbVtepData(endPoint, client, db, vtepThread)
             val updates = PublishSubject.create[MacLocation]()
@@ -152,6 +311,7 @@ class OvsdbVtepDataTest extends FeatureSpec with Matchers
             (macLocations ++ unknown).toSet.foreach(updates.onNext)
 
             eventually {
+                vtepHandle.currentMacLocal.toSet shouldBe macLocations.toSet
                 val t = vtep.getTable(uRemoteTable)
                 val l = vtep.getTable(locTable)
                 t.size shouldBe macLocations.size
@@ -171,7 +331,7 @@ class OvsdbVtepDataTest extends FeatureSpec with Matchers
             vtep.putEntry(lsTable, ls, ls.getClass)
 
             val unknownLsName =
-                LogicalSwitch.networkIdToLogicalSwitchName(UUID.randomUUID())
+                LogicalSwitch.networkIdToLsName(UUID.randomUUID())
 
             val vtepHandle = new OvsdbVtepData(endPoint, client, db, vtepThread)
             val updates = PublishSubject.create[MacLocation]()
@@ -179,7 +339,10 @@ class OvsdbVtepDataTest extends FeatureSpec with Matchers
 
             val macLocations = List(
                 MacLocation.unknownAt(vxlanTunnelEndpoint = IPv4Addr.random,
-                                      ls.name)
+                                      ls.name),
+                MacLocation(MAC.fromString("ff:ff:ff:ff:ff:ff"),
+                            ipAddr = IPv4Addr.random, ls.name,
+                            vxlanTunnelEndpoint = IPv4Addr.random)
             )
             val unknown = List(
                 MacLocation.unknownAt(vxlanTunnelEndpoint = IPv4Addr.random,
@@ -204,6 +367,116 @@ class OvsdbVtepDataTest extends FeatureSpec with Matchers
                 ls.values.map({case s: PhysicalLocatorSet =>
                     l(s.locatorIds.head).asInstanceOf[PhysicalLocator].dstIp
                 }).toSet shouldBe macLocations.map(_.vxlanTunnelEndpoint).toSet
+            }
+        }
+        scenario("ucast mac removal") {
+            val ls = newLogicalSwitch()
+            vtep.putEntry(lsTable, ls, ls.getClass)
+
+            val vtepHandle = new OvsdbVtepData(endPoint, client, db, vtepThread)
+            val updates = PublishSubject.create[MacLocation]()
+            val subscription = updates.subscribe(vtepHandle.macRemoteUpdater)
+
+            val macLocations = List(
+                MacLocation(MAC.random, ipAddr = IPv4Addr.random, ls.name,
+                            vxlanTunnelEndpoint = IPv4Addr.random),
+                MacLocation(MAC.random, ipAddr = IPv4Addr.random, ls.name,
+                            vxlanTunnelEndpoint = IPv4Addr.random),
+                MacLocation(MAC.random, ipAddr = IPv4Addr.random, ls.name,
+                            vxlanTunnelEndpoint = IPv4Addr.random)
+            )
+
+            macLocations.foreach(updates.onNext)
+
+            eventually {
+                val t = vtep.getTable(uRemoteTable)
+                val l = vtep.getTable(locTable)
+                t.size shouldBe macLocations.size
+                t.values.map({case e: UcastMac => e.macAddr}).toSet shouldBe
+                    macLocations.map(_.mac).toSet
+                t.values.map({case e: UcastMac => e.ipAddr}).toSet shouldBe
+                    macLocations.map(_.ipAddr).toSet
+                t.values.map({case e: UcastMac =>
+                    l(e.locator).asInstanceOf[PhysicalLocator].dstIp
+                }).toSet shouldBe macLocations.map(_.vxlanTunnelEndpoint).toSet
+                l.values.map({case l: PhysicalLocator => l.dstIp}).toSet shouldBe
+                    macLocations.map(_.vxlanTunnelEndpoint).toSet
+            }
+
+            val removals = macLocations.map(ml =>
+                new MacLocation(ml.mac, ml.ipAddr, ml.logicalSwitchName, null))
+
+            removals.foreach(updates.onNext)
+
+            eventually {
+                val t = vtep.getTable(uRemoteTable)
+                t.size shouldBe 0
+            }
+        }
+        scenario("remove logical switch") {
+            val ls1 = newLogicalSwitch()
+            vtep.putEntry(lsTable, ls1, ls1.getClass)
+            val ls2 = newLogicalSwitch()
+            vtep.putEntry(lsTable, ls2, ls2.getClass)
+
+            val vtepHandle = new OvsdbVtepData(endPoint, client, db, vtepThread)
+            val updates = PublishSubject.create[MacLocation]()
+            val subscription = updates.subscribe(vtepHandle.macRemoteUpdater)
+
+            val macLocations = List(
+                MacLocation(MAC.random, ipAddr = IPv4Addr.random, ls1.name,
+                            vxlanTunnelEndpoint = IPv4Addr.random),
+                MacLocation(MAC.random, ipAddr = IPv4Addr.random, ls1.name,
+                            vxlanTunnelEndpoint = IPv4Addr.random),
+                MacLocation(MAC.random, ipAddr = IPv4Addr.random, ls1.name,
+                            vxlanTunnelEndpoint = IPv4Addr.random)
+            )
+
+            val other = List(
+                MacLocation(MAC.random, ipAddr = IPv4Addr.random, ls2.name,
+                            vxlanTunnelEndpoint = IPv4Addr.random),
+                MacLocation(MAC.random, ipAddr = IPv4Addr.random, ls2.name,
+                            vxlanTunnelEndpoint = IPv4Addr.random),
+                MacLocation(MAC.random, ipAddr = IPv4Addr.random, ls2.name,
+                            vxlanTunnelEndpoint = IPv4Addr.random)
+            )
+
+            val all = (macLocations ++ other).toSet
+            all.foreach(updates.onNext)
+
+            eventually {
+                vtepHandle.currentMacLocal.toSet shouldBe all
+                vtepHandle.currentMacLocal(ls1.networkId).toSet shouldBe
+                    macLocations.toSet
+                vtepHandle.currentMacLocal(ls2.networkId).toSet shouldBe
+                    other.toSet
+                val t = vtep.getTable(uRemoteTable)
+                val l = vtep.getTable(locTable)
+                t.size shouldBe macLocations.size
+                t.values.map({case e: UcastMac => e.macAddr}).toSet shouldBe
+                    all.map(_.mac)
+                t.values.map({case e: UcastMac => e.ipAddr}).toSet shouldBe
+                    all.map(_.ipAddr)
+                t.values.map({case e: UcastMac =>
+                    l(e.locator).asInstanceOf[PhysicalLocator].dstIp
+                }).toSet shouldBe all.map(_.vxlanTunnelEndpoint)
+                l.values.map({case l: PhysicalLocator => l.dstIp}).toSet shouldBe
+                    all.map(_.vxlanTunnelEndpoint)
+            }
+
+            vtepHandle.removeLogicalSwitch(ls1.networkId)
+
+            eventually {
+                eventually {
+                    vtep.getTable(lsTable).size shouldBe 1
+                    vtep.getTable(lsTable).values.head shouldBe ls2
+                    val t = vtep.getTable(uRemoteTable)
+                    t.size shouldBe other.size
+                    t.values.map({case e: UcastMac => e.macAddr}).toSet shouldBe
+                        other.map(_.mac)
+                    t.values.map({case e: UcastMac => e.ipAddr}).toSet shouldBe
+                        other.map(_.ipAddr)
+                }
             }
         }
     }

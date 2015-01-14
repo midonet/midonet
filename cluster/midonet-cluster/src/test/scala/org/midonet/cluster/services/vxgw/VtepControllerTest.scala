@@ -27,10 +27,9 @@ import org.scalatest.junit.JUnitRunner
 import org.scalatest.{BeforeAndAfter, FlatSpec, GivenWhenThen, Matchers}
 
 import org.midonet.cluster.BrainTestUtils._
-import org.midonet.cluster.southbound.vtep.VtepConstants
 import org.midonet.cluster.util.TestZkTools
 import org.midonet.cluster.DataClient
-import org.midonet.cluster.data.vtep.model.{VtepMAC, MacLocation}
+import org.midonet.cluster.data.vtep.model.{LogicalSwitch, VtepMAC, MacLocation}
 import org.midonet.cluster.util.ObservableTestUtils._
 import org.midonet.midolman.host.state.HostZkManager
 import org.midonet.midolman.state.Directory
@@ -48,7 +47,7 @@ class VtepControllerTest extends FlatSpec with Matchers
     var injector: Injector = _
 
     val nwId = UUID.randomUUID()
-    val lsName = VtepConstants.bridgeIdToLogicalSwitchName(nwId)
+    val lsName = LogicalSwitch.networkIdToLsName(nwId)
 
     var someIp = IPv4Addr("22.0.0.0")
 
