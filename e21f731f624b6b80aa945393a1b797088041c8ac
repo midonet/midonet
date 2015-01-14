@@ -73,6 +73,30 @@
     },
     {
       "key": {
+        "uuid": "fa2559ec_444a6284",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/common/Connection.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-01-14T10:57:38Z",
+      "side": 1,
+      "message": "Yes, but I\u0027ll add the comment in a following related patch (it\u0027s so hard to get a +1 that I don\u0027t want to risk loosing it :-)",
+      "parentUuid": "fa2559ec_1e8d5d32",
+      "range": {
+        "startLine": 47,
+        "startChar": 7,
+        "endLine": 47,
+        "endChar": 64
+      },
+      "revId": "e21f731f624b6b80aa945393a1b797088041c8ac",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1af78d9a_00a32a9f",
         "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/common/Connection.scala",
         "patchSetId": 1
