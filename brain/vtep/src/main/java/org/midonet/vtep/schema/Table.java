@@ -24,15 +24,21 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
 
+import org.opendaylight.ovsdb.lib.notation.Column;
 import org.opendaylight.ovsdb.lib.notation.Condition;
 import org.opendaylight.ovsdb.lib.notation.Function;
 import org.opendaylight.ovsdb.lib.notation.Row;
 import org.opendaylight.ovsdb.lib.notation.UUID;
+import org.opendaylight.ovsdb.lib.operations.Delete;
 import org.opendaylight.ovsdb.lib.operations.Insert;
+import org.opendaylight.ovsdb.lib.operations.Operation;
 import org.opendaylight.ovsdb.lib.operations.Select;
+import org.opendaylight.ovsdb.lib.operations.Update;
 import org.opendaylight.ovsdb.lib.schema.ColumnSchema;
 import org.opendaylight.ovsdb.lib.schema.DatabaseSchema;
 import org.opendaylight.ovsdb.lib.schema.GenericTableSchema;
+
+import org.midonet.cluster.data.vtep.model.VtepEntry;
 
 import static org.midonet.vtep.OvsdbTranslator.fromOvsdb;
 import static org.midonet.vtep.OvsdbTranslator.toOvsdb;
@@ -46,6 +52,42 @@ import static org.midonet.vtep.OvsdbTranslator.toOvsdb;
 public abstract class Table {
     static private final String COL_UUID = "_uuid";
     static private final String COL_VERSION = "_version";
+
+    // Wrappers for scala interaction
+    static public class OvsdbOperation {
+        public final Operation<GenericTableSchema> op;
+        public OvsdbOperation(Operation<GenericTableSchema> op) {
+            this.op = op;
+        }
+    }
+    static public class OvsdbInsert extends OvsdbOperation {
+        public OvsdbInsert(Insert<GenericTableSchema> op) {
+            super(op);
+        }
+    }
+    static public class OvsdbDelete extends OvsdbOperation {
+        public OvsdbDelete(Delete<GenericTableSchema> op) {
+            super(op);
+        }
+    }
+    static public class OvsdbUpdate extends OvsdbOperation {
+        public OvsdbUpdate(Update<GenericTableSchema> op) {
+            super(op);
+        }
+    }
+    static public class OvsdbSelect extends OvsdbOperation {
+        public OvsdbSelect(Select<GenericTableSchema> op) {
+            super(op);
+        }
+    }
+
+    private void checkColumnSchemas(String tblName) throws NoSuchElementException {
+        for (ColumnSchema<GenericTableSchema, ?> col : getColumnSchemas()) {
+            if (col == null)
+                throw new NoSuchElementException(
+                    "missing column in ovsdb table: " + tblName);
+        }
+    }
 
     /** Retrieve the table schema from the containing database schema */
     static private GenericTableSchema getTblSchema(DatabaseSchema dbs,
@@ -63,6 +105,7 @@ public abstract class Table {
     protected Table(DatabaseSchema databaseSchema, String tableName) {
         this.databaseSchema = databaseSchema;
         this.tableSchema = getTblSchema(databaseSchema, tableName);
+        checkColumnSchemas(tableName);
     }
 
     /** Get the database schema where this table is contained */
@@ -76,7 +119,9 @@ public abstract class Table {
     }
 
     /** Get the schema of the columns of this table */
-    protected List<ColumnSchema<GenericTableSchema, ?>> getColumnSchemas() {
+    abstract public List<ColumnSchema<GenericTableSchema, ?>> getColumnSchemas();
+
+    protected List<ColumnSchema<GenericTableSchema, ?>> partialColumnSchemas() {
         List<ColumnSchema<GenericTableSchema, ?>> cols = new ArrayList<>();
         cols.add(getUuidSchema());
         cols.add(getVersionSchema());
@@ -155,12 +200,12 @@ public abstract class Table {
     /**
      * Generate a select operation including all known columns
      */
-    public Select<GenericTableSchema> selectAll() {
+    public OvsdbSelect selectAll() {
         Select<GenericTableSchema> op = new Select<>(getSchema());
         for (ColumnSchema<GenericTableSchema, ?> col: getColumnSchemas()) {
             op.column(col);
         }
-        return op;
+        return new OvsdbSelect(op);
     }
 
     /**
@@ -178,6 +223,38 @@ public abstract class Table {
     }
 
     protected Insert<GenericTableSchema> insert() {
-        return insert(null);
+        return insert((java.util.UUID)null);
+    }
+
+    abstract public <E extends VtepEntry> OvsdbInsert insert(E entry);
+
+    abstract public <E extends VtepEntry>
+    E parseEntry(Row<GenericTableSchema> row, Class<E> clazz);
+
+    // Generate a row from a set of columns expressed as a map
+    // (column_name -> column_value). This is a convenience method
+    // for some low-level ovsdb data manipulations.
+    public Row<GenericTableSchema> generateRow(Map<String, Object> rowValues) {
+        Row<GenericTableSchema> row = new Row<>();
+        for (ColumnSchema<GenericTableSchema, ?> c: getColumnSchemas()) {
+            if (rowValues.containsKey(c.getName())) {
+                row.addColumn(c.getName(),
+                              new Column(c, rowValues.get(c.getName())));
+            }
+        }
+        return row;
+    }
+
+    public <E extends VtepEntry> Row<GenericTableSchema> generateRow(
+        E entry, Class<?> clazz) {
+        Row<GenericTableSchema> row = new Row<>();
+        return addToRow(row, getUuidSchema(), toOvsdb(entry.uuid()));
+    }
+
+    static protected <D> Row<GenericTableSchema> addToRow(
+        Row<GenericTableSchema> row,
+        ColumnSchema<GenericTableSchema, D> schema, D value) {
+        row.addColumn(schema.getName(), new Column<>(schema, value));
+        return row;
     }
 }
