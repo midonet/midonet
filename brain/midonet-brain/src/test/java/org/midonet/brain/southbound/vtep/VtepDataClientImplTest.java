@@ -63,6 +63,8 @@ import rx.subjects.PublishSubject;
 import mockit.Expectations;
 import mockit.Mocked;
 
+import org.midonet.cluster.data.vtep.VtepNotConnectedException;
+import org.midonet.cluster.data.vtep.VtepStateException;
 import org.midonet.cluster.data.vtep.model.LogicalSwitch;
 import org.midonet.cluster.data.vtep.model.McastMac;
 import org.midonet.cluster.data.vtep.model.PhysicalPort;
