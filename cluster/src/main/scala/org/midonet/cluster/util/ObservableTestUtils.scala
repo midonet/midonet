@@ -55,5 +55,4 @@ object ObservableTestUtils {
             }
         }
     }
-
 }
