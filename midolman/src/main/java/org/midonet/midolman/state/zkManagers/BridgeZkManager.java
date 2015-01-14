@@ -254,7 +254,7 @@ public class BridgeZkManager
 
         if (!Objects.equals(oldConfig.vxLanPortIds, newConfig.vxLanPortIds)) {
             log.debug("The vxLanPortIds of bridge {} changed from {} to {}",
-                      id, oldConfig.vxLanPortId, newConfig.vxLanPortId);
+                      id, oldConfig.vxLanPortIds, newConfig.vxLanPortIds);
             dataChanged = true;
         }
 

@@ -21,6 +21,13 @@ import org.midonet.packets.IPv4Addr
 import com.google.common.base.Objects
 
 
+object MacLocation {
+    def apply(mac: VtepMAC, ipAddr: IPv4Addr, logicalSwitchName: String,
+              vxlanTunnelEndpoint: IPv4Addr): MacLocation = {
+        new MacLocation(mac, ipAddr, logicalSwitchName, vxlanTunnelEndpoint)
+    }
+}
+
 /**
  * Represents the association of a MAC in the given logical switch to one
  * VxLAN Tunnel Endpoint with the given IP.
@@ -35,26 +42,26 @@ import com.google.common.base.Objects
  *                             indicating that the MAC is no longer associated
  *                             to a particular port or a particular IP.
  */
-class MacLocation (val mac: VtepMAC,
-                   val ipAddr: IPv4Addr,
+class MacLocation (val mac: VtepMAC, val ipAddr: IPv4Addr,
                    val logicalSwitchName: String,
                    val vxlanTunnelEndpoint: IPv4Addr) {
 
-    if (mac == null)
-        throw new IllegalArgumentException("MAC cannot be null")
+    private val str = "MacLocation { logicalSwitchName=" + logicalSwitchName +
+                      ", mac=" + mac + ", ipAddr=" + ipAddr +
+                      ", vxlanTunnelEndpoint=" + vxlanTunnelEndpoint + " } "
 
-    if (logicalSwitchName == null)
+    if (mac == null) {
+        throw new IllegalArgumentException("MAC cannot be null")
+    }
+
+    if (logicalSwitchName == null) {
         throw new IllegalArgumentException("Logical Switch cannot be null")
+    }
 
     override def hashCode() = Objects.hashCode(mac, ipAddr, logicalSwitchName,
                                                vxlanTunnelEndpoint)
 
-    override def toString = "MacLocation{" +
-                            "logicalSwitchName=" + logicalSwitchName +
-                            ", mac=" + mac +
-                            ", ipAddr=" + ipAddr +
-                            ", vxlanTunnelEndpoint=" + vxlanTunnelEndpoint + "}"
-
+    override def toString = str
     override def equals(o: Any): Boolean = {
         o match {
             case that: MacLocation =>
