@@ -33,13 +33,14 @@ import org.opendaylight.ovsdb.lib.table.vtep.Ucast_Macs_Local;
 import rx.subjects.PublishSubject;
 import rx.subjects.Subject;
 
-import org.midonet.brain.services.vxgw.MacLocation;
+import org.midonet.vtep.model.MacLocation;
 import org.midonet.brain.services.vxgw.VxLanPeerSyncException;
-import org.midonet.brain.southbound.vtep.model.LogicalSwitch;
 import org.midonet.brain.southbound.vtep.model.McastMac;
 import org.midonet.brain.southbound.vtep.model.UcastMac;
 import org.midonet.brain.test.RxTestUtils;
 import org.midonet.packets.IPv4Addr;
+import org.midonet.vtep.model.LogicalSwitch;
+import org.midonet.vtep.model.VtepMAC;
 
 import mockit.Expectations;
 import mockit.Mocked;
@@ -146,11 +147,11 @@ public class VtepTest {
         final UUID lsId = new UUID(java.util.UUID.randomUUID().toString());
         new Expectations() {{
             vtepDataClient.listMcastMacsRemote();
-            times = 1; result = Arrays.asList(new McastMac(VtepMAC.UNKNOWN_DST,
+            times = 1; result = Arrays.asList(new McastMac(VtepMAC.UNKNOWN_DST(),
                                                            lsId, locatorId,
                                                            macIp1));
         }};
-        vtepBroker.apply(new MacLocation(VtepMAC.UNKNOWN_DST, macIp1, lsName,
+        vtepBroker.apply(new MacLocation(VtepMAC.UNKNOWN_DST(), macIp1, lsName,
                                          midoVxTunIp));
     }
 
@@ -160,11 +161,11 @@ public class VtepTest {
         final UUID lsId = new UUID(java.util.UUID.randomUUID().toString());
         new Expectations() {{
             vtepDataClient.listMcastMacsRemote();
-            times = 1; result = Arrays.asList(new McastMac(VtepMAC.UNKNOWN_DST,
+            times = 1; result = Arrays.asList(new McastMac(VtepMAC.UNKNOWN_DST(),
                                                            lsId, locatorId,
                                                            null));
         }};
-        vtepBroker.apply(new MacLocation(VtepMAC.UNKNOWN_DST, null, lsName,
+        vtepBroker.apply(new MacLocation(VtepMAC.UNKNOWN_DST(), null, lsName,
                                          midoVxTunIp));
     }
 
@@ -236,8 +237,8 @@ public class VtepTest {
     public void testObservableUpdatesMacAddition() throws Exception {
 
         // Our logical switch
-        final LogicalSwitch ls = new LogicalSwitch(new UUID("meh"), "dsc",
-                                                   "ls0", 111);
+        final LogicalSwitch ls = new LogicalSwitch(new UUID("meh"), "ls0", 111,
+                                                   "dsc");
 
         // Prepare an update consisting of a new row being added
         TableUpdates ups = makeLocalMacsUpdate(
@@ -259,7 +260,7 @@ public class VtepTest {
 
         RxTestUtils.TestedObservable obs =
             RxTestUtils.test(vtepBroker.observableUpdates())
-                       .expect(new MacLocation(mac1, macIp1, ls.name,
+                       .expect(new MacLocation(mac1, macIp1, ls.name(),
                                                vxTunEndpoint))
                        .noErrors()
                        .notCompleted()
@@ -320,8 +321,8 @@ public class VtepTest {
         );
         feedPhysicalSwitchUpdate(ups);
 
-        final LogicalSwitch ls = new LogicalSwitch(new UUID("meh"),
-                                                  "Description", "ls0", 111);
+        final LogicalSwitch ls = new LogicalSwitch(new UUID("meh"), "ls0", 111,
+                                                  "Description");
 
         // The VtepBroker should process the update, fetching the logical switch
         // to which the update belongs to, since it's necessary to construct
@@ -335,7 +336,7 @@ public class VtepTest {
 
         RxTestUtils.TestedObservable obs =
             RxTestUtils.test(vtepBroker.observableUpdates())
-                       .expect(new MacLocation(mac1, macIp1, ls.name, null))
+                       .expect(new MacLocation(mac1, macIp1, ls.name(), null))
                        .noErrors()
                        .notCompleted()
                        .subscribe();
@@ -414,8 +415,8 @@ public class VtepTest {
             vtepDataClient.getLogicalSwitch(withAny(new UUID("")));
             times = 2;
             result = new Object[] {
-                new LogicalSwitch(lsId1, "dd", "meh1", 1),
-                new LogicalSwitch(lsId2, "oo", "meh2", 2)
+                new LogicalSwitch(lsId1, "meh1", 1, "dd"),
+                new LogicalSwitch(lsId2, "meh2", 2, "oo")
             };
         }};
 
@@ -465,7 +466,7 @@ public class VtepTest {
             vtepDataClient.getLogicalSwitch(withAny(new UUID("")));
             times = 2;
             result = new Object[] {
-                new LogicalSwitch(lsId, "oo", "meh2", 2),
+                new LogicalSwitch(lsId, "meh2", 2, "oo"),
                 null // the switch goes away on the second call
             };
         }};
@@ -501,9 +502,9 @@ public class VtepTest {
         List<java.util.UUID> ids = Arrays.asList(boundNetworkId);
 
         final List<LogicalSwitch> lsList = Arrays.asList(
-            new LogicalSwitch(new UUID("ls1"), "midonet unwanted", oldLs, 1),
-            new LogicalSwitch(new UUID("ls2"), "non midonet", nonMidoLs, 2),
-            new LogicalSwitch(new UUID("ls3"), "midonet wanted", curLs, 3)
+            new LogicalSwitch(new UUID("ls1"), oldLs, 1, "midonet unwanted"),
+            new LogicalSwitch(new UUID("ls2"), nonMidoLs, 2, "non midonet"),
+            new LogicalSwitch(new UUID("ls3"), curLs, 3, "midonet wanted")
         );
 
         new Expectations() {{

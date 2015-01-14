@@ -19,8 +19,8 @@ import java.util.Objects;
 
 import org.opendaylight.ovsdb.lib.notation.UUID;
 
-import org.midonet.brain.southbound.vtep.VtepMAC;
 import org.midonet.packets.IPv4Addr;
+import org.midonet.vtep.model.VtepMAC;
 
 /**
  * Represents an entry in any of the Mcast_Mac tables.

@@ -41,7 +41,6 @@ import org.midonet.brain.southbound.vtep.VtepDataClient;
 import org.midonet.brain.southbound.vtep.VtepDataClientFactory;
 import org.midonet.brain.southbound.vtep.VtepNotConnectedException;
 import org.midonet.brain.southbound.vtep.VtepStateException;
-import org.midonet.brain.southbound.vtep.model.LogicalSwitch;
 import org.midonet.brain.southbound.vtep.model.PhysicalPort;
 import org.midonet.brain.southbound.vtep.model.PhysicalSwitch;
 import org.midonet.cluster.DataClient;
@@ -52,6 +51,7 @@ import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.packets.IPv4Addr;
+import org.midonet.vtep.model.LogicalSwitch;
 
 import static org.midonet.api.validation.MessageProperty.VTEP_BINDING_NOT_FOUND;
 import static org.midonet.api.validation.MessageProperty.VTEP_INACCESSIBLE;
@@ -318,7 +318,7 @@ public class VtepClusterClient {
         // Build map from OVSDB LogicalSwitch ID to Midonet Bridge ID.
         Map<UUID, java.util.UUID> lsToBridge = new HashMap<>();
         for (LogicalSwitch ls : vtepClient.listLogicalSwitches()) {
-            lsToBridge.put(ls.uuid, logicalSwitchNameToBridgeId(ls.name));
+            lsToBridge.put(ls.uuid(), logicalSwitchNameToBridgeId(ls.name()));
         }
 
         List<VtepBinding> bindings = new ArrayList<>();

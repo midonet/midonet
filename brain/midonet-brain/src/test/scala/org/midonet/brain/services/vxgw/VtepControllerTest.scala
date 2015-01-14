@@ -28,13 +28,14 @@ import org.scalatest.junit.JUnitRunner
 import org.scalatest.{BeforeAndAfter, FlatSpec, GivenWhenThen, Matchers}
 
 import org.midonet.brain.BrainTestUtils._
-import org.midonet.brain.southbound.vtep.{VtepConstants, VtepMAC}
+import org.midonet.brain.southbound.vtep.VtepConstants
 import org.midonet.brain.util.TestZkTools
 import org.midonet.cluster.DataClient
 import org.midonet.cluster.util.ObservableTestUtils._
 import org.midonet.midolman.host.state.HostZkManager
 import org.midonet.midolman.state.Directory
 import org.midonet.packets.{IPv4Addr, MAC}
+import org.midonet.vtep.model.{VtepMAC, MacLocation}
 
 @RunWith(classOf[JUnitRunner])
 class VtepControllerTest extends FlatSpec with Matchers

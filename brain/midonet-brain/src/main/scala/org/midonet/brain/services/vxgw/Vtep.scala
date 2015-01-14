@@ -24,10 +24,11 @@ import scala.util.Try
 import rx.{Observable, Observer}
 
 import org.midonet.brain.southbound.vtep.VtepDataClientFactory
-import org.midonet.brain.southbound.vtep.model.LogicalSwitch
+import org.midonet.vtep.model.LogicalSwitch
 import org.midonet.cluster.DataClient
 import org.midonet.midolman.state.ZookeeperConnectionWatcher
 import org.midonet.packets.IPv4Addr
+import org.midonet.vtep.model.MacLocation
 
 /** Defines the interface that any VTEP would offer to a VxGW manager in order
   * to participate in a VxGW among several other VTEPs (either hardware or a

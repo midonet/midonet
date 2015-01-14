@@ -42,7 +42,6 @@ import org.opendaylight.ovsdb.plugin.StatusWithUuid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.midonet.brain.southbound.vtep.model.LogicalSwitch;
 import org.midonet.brain.southbound.vtep.model.McastMac;
 import org.midonet.brain.southbound.vtep.model.PhysicalPort;
 import org.midonet.brain.southbound.vtep.model.PhysicalSwitch;
@@ -50,6 +49,8 @@ import org.midonet.brain.southbound.vtep.model.UcastMac;
 import org.midonet.brain.southbound.vtep.model.VtepModelTranslator;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
+import org.midonet.vtep.model.LogicalSwitch;
+import org.midonet.vtep.model.VtepMAC;
 
 /**
  * The implementation of the VTEP data client interface, providing methods to

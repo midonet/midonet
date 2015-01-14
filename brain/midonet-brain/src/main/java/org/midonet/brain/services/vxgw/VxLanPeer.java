@@ -17,6 +17,8 @@ package org.midonet.brain.services.vxgw;
 
 import rx.Observable;
 
+import org.midonet.vtep.model.MacLocation;
+
 /**
  * A VxLanPeer is able to a) apply the relevant configuration changes in
  * the underlying device to reflect the given MacLocation; b) provide an

@@ -30,6 +30,8 @@ import org.opendaylight.ovsdb.lib.table.vtep.Physical_Switch;
 import org.opendaylight.ovsdb.lib.table.vtep.Ucast_Macs_Local;
 import org.opendaylight.ovsdb.lib.table.vtep.Ucast_Macs_Remote;
 
+import org.midonet.vtep.model.LogicalSwitch;
+
 /**
  * Collection of translators between VTEP entities between the OVSDB schema and
  * the Midonet schema.
@@ -39,15 +41,15 @@ public class VtepModelTranslator {
     public static LogicalSwitch toMido(Logical_Switch ovsdbLs, UUID uuid) {
         return new LogicalSwitch(
             uuid,
-            ovsdbLs.getDescription(),
             ovsdbLs.getName(),
             // NOTE: this complicated thing is necessary because for some
             // reason the tunnel_key OvsdbSet<Integer> contains an array of
-            // BigInteger which breaks when trying to use an interator.
+            // BigInteger which breaks when trying to use an iterator.
             ovsdbLs.getTunnel_key().isEmpty()
                 ? null
                 :  ((BigInteger)ovsdbLs.getTunnel_key()
-                                       .toArray()[0]).intValue()
+                                       .toArray()[0]).intValue(),
+            ovsdbLs.getDescription()
         );
     }
 
