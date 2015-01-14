@@ -18,12 +18,13 @@ package org.midonet.brain.services.vxgw
 
 import java.util.UUID
 
+import org.midonet.vtep.model.MacLocation
+
 import scala.util.{Success, Try}
 
 import org.opendaylight.ovsdb.lib.notation.{UUID => OdlUUID}
 import rx.subjects.PublishSubject
 
-import org.midonet.brain.southbound.vtep.model.LogicalSwitch
 import org.midonet.cluster.DataClient
 import org.midonet.cluster.data.Bridge.UNTAGGED_VLAN_ID
 import org.midonet.cluster.data.host.Host
@@ -32,6 +33,7 @@ import org.midonet.cluster.data.{Bridge, TunnelZone, VTEP}
 import org.midonet.cluster.util.ObservableTestUtils._
 import org.midonet.midolman.host.state.HostZkManager
 import org.midonet.packets.{IPv4Addr, MAC}
+import org.midonet.vtep.model.LogicalSwitch
 
 trait VxlanGatewayTest {
 
@@ -51,7 +53,7 @@ trait VxlanGatewayTest {
         override def currentMacLocal(id: OdlUUID) = initialState
         override def ensureLogicalSwitch(name: String, vni: Int)
             = Success(new LogicalSwitch(new OdlUUID(UUID.randomUUID().toString),
-                                        "random description", name, vni))
+                                        name, vni, "random description"))
         override def ensureBindings(lsName: String,
                                     bs: Iterable[(String, Short)]) =  Success(Unit)
         override def removeLogicalSwitch(name: String): Try[Unit] = Success(Unit)

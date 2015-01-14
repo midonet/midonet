@@ -17,6 +17,8 @@ package org.midonet.brain.services.vxgw;
 
 import org.opendaylight.controller.sal.utils.StatusCode;
 
+import org.midonet.vtep.model.MacLocation;
+
 /**
  * An update to a VxLanPeer could not be applied.
  */
