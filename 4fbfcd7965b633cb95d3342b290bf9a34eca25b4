@@ -1,0 +1,257 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa2559ec_449b82c9",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 255,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-01-14T06:42:02Z",
+      "side": 1,
+      "message": "Eh...I don\u0027t know about that. I\u0027m not 100% sure, but I think that the mzxid in second request will always be \u003e\u003d the first one, since you\u0027re querying the same node.\n\nIt may also be worth doing both queries asynchronously and then waiting for them, to reduce the amount of time spent waiting on network latency.\n\nI\u0027m also not terribly keen on doing an extra query for every retrieval. Is having owners something that, in practice, will be restricted to certain classes? Can we indicate that during class registration and skip it for classes that don\u0027t need it?",
+      "range": {
+        "startLine": 255,
+        "startChar": 12,
+        "endLine": 255,
+        "endChar": 56
+      },
+      "revId": "4fbfcd7965b633cb95d3342b290bf9a34eca25b4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_a4ab5ed5",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 269,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-01-14T06:42:02Z",
+      "side": 1,
+      "message": "There are two reasons you can use \u003d\u003d instead of equals() here:\n\n1. In Scala, \u003d\u003d is an alias for equals(), and I think generally preferred.\n2. Pretty sure identity comparisons are fine for class objects anyway.",
+      "range": {
+        "startLine": 269,
+        "startChar": 45,
+        "endLine": 269,
+        "endChar": 51
+      },
+      "revId": "4fbfcd7965b633cb95d3342b290bf9a34eca25b4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_04b98a2e",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 323,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-01-14T06:42:02Z",
+      "side": 1,
+      "message": "You could inline this and save a line of code.",
+      "range": {
+        "startLine": 323,
+        "startChar": 12,
+        "endLine": 323,
+        "endChar": 39
+      },
+      "revId": "4fbfcd7965b633cb95d3342b290bf9a34eca25b4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_64f846e6",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 358,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-01-14T06:42:02Z",
+      "side": 1,
+      "message": "This code is duplicated unnecessarily. There are three different places where you get the class, id, and snapshot, and that could be done just once. You could define this method as update(obj, None, validator) and the other overload as update(obj, Some(owner), validator), and then do the validation inside the private update method.\n\nOr not. No big deal either way.",
+      "range": {
+        "startLine": 353,
+        "startChar": 0,
+        "endLine": 358,
+        "endChar": 59
+      },
+      "revId": "4fbfcd7965b633cb95d3342b290bf9a34eca25b4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_24ee4e23",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 368,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-01-14T06:42:02Z",
+      "side": 1,
+      "message": "What exactly does this mean? The JavaDoc makes it sound like overwrite \u003d true allows you to specify a new owner. But in the actual implementation, the only effect of overwrite seems to be that it allows you to specify owner \u003d x when x is already one of the owners.",
+      "range": {
+        "startLine": 368,
+        "startChar": 44,
+        "endLine": 368,
+        "endChar": 53
+      },
+      "revId": "4fbfcd7965b633cb95d3342b290bf9a34eca25b4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_c4dc9277",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 437,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-01-14T06:42:02Z",
+      "side": 1,
+      "message": "Would it make sense to integrate objCache and ops by giving ObjSnapshot an Op property?",
+      "range": {
+        "startLine": 437,
+        "startChar": 12,
+        "endLine": 437,
+        "endChar": 40
+      },
+      "revId": "4fbfcd7965b633cb95d3342b290bf9a34eca25b4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_a4d99e85",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 443,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-01-14T06:42:02Z",
+      "side": 1,
+      "message": "I\u0027m confused about what\u0027s going on here. If the object already has an owner \"x\", you\u0027re deleting the child named \"x\" and then recreating another child named \"x\"?",
+      "range": {
+        "startLine": 441,
+        "startChar": 0,
+        "endLine": 443,
+        "endChar": 48
+      },
+      "revId": "4fbfcd7965b633cb95d3342b290bf9a34eca25b4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_04e7ca41",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 452,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-01-14T06:42:02Z",
+      "side": 1,
+      "message": "Same question as above, but also, if we\u0027re creating the object, then won\u0027t o contain the create owner op for this owner already? Now we\u0027re creating, deleting, and recreating it in a single transaction, right?",
+      "range": {
+        "startLine": 450,
+        "startChar": 0,
+        "endLine": 452,
+        "endChar": 48
+      },
+      "revId": "4fbfcd7965b633cb95d3342b290bf9a34eca25b4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_e4e39631",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 461,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-01-14T06:42:02Z",
+      "side": 1,
+      "message": "Maybe this could be broken out into a helper function explaining what\u0027s going on.",
+      "range": {
+        "startLine": 460,
+        "startChar": 0,
+        "endLine": 461,
+        "endChar": 48
+      },
+      "revId": "4fbfcd7965b633cb95d3342b290bf9a34eca25b4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_64cfa6b1",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 486,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-01-14T06:42:02Z",
+      "side": 1,
+      "message": "This looks copy-pasted from above, except the first clause doesn\u0027t allow this if owners.nonEmpty is true. Is that difference intended? If so, why?",
+      "range": {
+        "startLine": 476,
+        "startChar": 0,
+        "endLine": 486,
+        "endChar": 13
+      },
+      "revId": "4fbfcd7965b633cb95d3342b290bf9a34eca25b4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_c4c3f288",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 520,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-01-14T06:42:02Z",
+      "side": 1,
+      "message": "Is it possible to combine this with the nearly identical code in updateCacheAndOp()? I get that this takes a String and the other takes an Option[String], but you could wrap this string in Some(). I see a couple of other minor differences, but I\u0027m not sure whether they\u0027re reconcilable.",
+      "range": {
+        "startLine": 488,
+        "startChar": 0,
+        "endLine": 520,
+        "endChar": 13
+      },
+      "revId": "4fbfcd7965b633cb95d3342b290bf9a34eca25b4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
