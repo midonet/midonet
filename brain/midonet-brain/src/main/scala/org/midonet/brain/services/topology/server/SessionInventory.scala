@@ -45,7 +45,7 @@ import org.midonet.cluster.services.topology.common.TopologyMappings.typeOf
 import org.midonet.cluster.util.UUIDUtil.{fromProto, toProto}
 import org.midonet.util.concurrent.{NamedThreadFactory, BlockingSpscRwdRingBuffer}
 import org.midonet.util.concurrent.SpscRwdRingBuffer.SequencedItem
-import org.midonet.util.executors.SameThreadExecutor
+import org.midonet.util.executors.CallingThreadExecutor
 import org.midonet.util.functors.{makeAction0, makeFunc1}
 import org.midonet.util.reactivex.HermitObservable.HermitOversubscribedException
 
@@ -374,7 +374,7 @@ class SessionInventory(private val store: Storage,
         setExpiration(gracePeriod)
 
         private val sameContext =
-            ExecutionContext.fromExecutor(SameThreadExecutor)
+            ExecutionContext.fromExecutor(CallingThreadExecutor)
 
         class SessionTimeout(ms: Long) {
             val status = new AtomicInteger(0)
