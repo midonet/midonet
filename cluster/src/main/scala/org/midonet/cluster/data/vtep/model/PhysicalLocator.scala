@@ -28,6 +28,7 @@ import org.midonet.packets.IPv4Addr
  */
 final class PhysicalLocator(val uuid: UUID, val dstIp: IPv4Addr,
                             val encapsulation: String) {
+    val dstIpString: String = if (dstIp == null) null else dstIp.toString
     private val str: String = "PhysicalLocator{" +
                                   "uuid=" + uuid + ", " +
                                   "dstIp=" + dstIp + ", " +
