@@ -20,13 +20,16 @@ import java.util.UUID
 
 import scala.util.{Success, Try}
 
+import rx.Observable
 import rx.subjects.PublishSubject
 
 import org.midonet.cluster.DataClient
 import org.midonet.cluster.data.Bridge.UNTAGGED_VLAN_ID
 import org.midonet.cluster.data.host.Host
 import org.midonet.cluster.data.ports.BridgePort
-import org.midonet.cluster.data.vtep.model.{MacLocation, LogicalSwitch}
+import org.midonet.cluster.data.vtep.VtepConnection.{VtepHandle, State}
+import org.midonet.cluster.data.vtep.VtepDataClient
+import org.midonet.cluster.data.vtep.model._
 import org.midonet.cluster.data.{Bridge, TunnelZone, VTEP}
 import org.midonet.cluster.util.ObservableTestUtils._
 import org.midonet.midolman.host.state.HostZkManager
@@ -39,21 +42,37 @@ trait VxlanGatewayTest {
 
     // A fake proxy to the OVSDB
     class MockVtepConfig(ip: IPv4Addr, port: Int, tunIp: IPv4Addr,
-                        initialState: Seq[MacLocation])
-        extends VtepConfig(ip, port) {
-
+                         initialState: Seq[MacLocation])
+        extends VtepDataClient {
         val updatesFromVtep = PublishSubject.create[MacLocation]()
         val updatesToVtep = observer[MacLocation](0, 0, 0)
         override def macLocalUpdates = updatesFromVtep
         override def macRemoteUpdater = updatesToVtep
         override def vxlanTunnelIp = Option(tunIp)
+        override def currentMacLocal = initialState
         override def currentMacLocal(id: UUID) = initialState
-        override def ensureLogicalSwitch(name: String, vni: Int)
-            = Success(new LogicalSwitch(UUID.randomUUID(), name, vni,
-                                        "random description"))
-        override def ensureBindings(lsName: String,
-                                    bs: Iterable[(String, Short)]) =  Success(Unit)
-        override def removeLogicalSwitch(name: String): Try[Unit] = Success(Unit)
+        override def ensureLogicalSwitch(networkId: UUID, vni: Int)
+        : Try[LogicalSwitch] =
+            Success(LogicalSwitch(networkId, vni, "random description"))
+        override def removeLogicalSwitch(networkId: UUID) = Success(Unit)
+        override def listLogicalSwitches: Set[LogicalSwitch] = Set.empty
+        override def ensureBindings(networkId: UUID,
+                                    bindings: Iterable[VtepBinding])
+        : Try[Unit] = Success(Unit)
+        override def removeBinding(portName: String,
+                                   vlanId: Short): Try[Unit] = Success(Unit)
+        override def createBinding(portName: String, vlanId: Short,
+                                   networkId: UUID): Try[Unit] = Success(Unit)
+        override def listPhysicalSwitches: Set[PhysicalSwitch] = Set.empty
+        override def physicalPorts(psId: UUID): Set[PhysicalPort] = Set.empty
+        override def getManagementIp: IPv4Addr = ip
+        override def getManagementPort: Int = port
+        override def getHandle: Option[VtepHandle] = None
+        override def disconnect(user: UUID): Unit = {}
+        override def observable: Observable[State.Value] = Observable.empty()
+        override def dispose(): Unit = {}
+        override def getState: State.Value = State.READY
+        override def connect(user: UUID): Unit = {}
     }
 
     class HostOnVtepTunnelZone(floodingProxyWeight: Int) {

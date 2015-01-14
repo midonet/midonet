@@ -17,21 +17,21 @@ package org.midonet.cluster.southbound.vtep;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Timer;
 import java.util.UUID;
 
-import org.opendaylight.ovsdb.plugin.ConfigurationService;
-import org.opendaylight.ovsdb.plugin.ConnectionService;
-import org.opendaylight.ovsdb.plugin.InventoryService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import rx.Subscription;
 import rx.functions.Action1;
 
+import org.midonet.cluster.data.vtep.VtepConfigException;
+import org.midonet.cluster.data.vtep.VtepConnection;
+import org.midonet.cluster.data.vtep.VtepDataClient;
 import org.midonet.cluster.data.vtep.VtepStateException;
 import org.midonet.cluster.data.vtep.model.VtepEndPoint;
 import org.midonet.packets.IPv4Addr;
+import org.midonet.vtep.OvsdbVtepDataClient;
 
 public class VtepDataClientFactory {
 
@@ -40,18 +40,17 @@ public class VtepDataClientFactory {
      * state changed handler for each client.
      */
     private final class Entry {
-        private final VtepDataClientImpl client;
+        private final OvsdbVtepDataClient client;
         private final Subscription subscription;
 
-        private Entry(VtepDataClientImpl client) {
+        private Entry(OvsdbVtepDataClient client) {
             this.client = client;
-            this.subscription = client.stateObservable()
-                .subscribe(new Action1<VtepDataClient.State>() {
+            this.subscription = client.observable()
+                .subscribe(new Action1<VtepConnection.State$.Value>() {
                     @Override
-                    public void call(VtepDataClient.State state) {
-                        if (VtepDataClient.State.DISPOSED == state) {
+                    public void call(VtepConnection.State$.Value state) {
+                        if (state == VtepConnection.State$.MODULE$.DISPOSED())
                             onClientDisposed(Entry.this);
-                        }
                     }
                 });
         }
@@ -61,24 +60,13 @@ public class VtepDataClientFactory {
         LoggerFactory.getLogger(VtepDataClientFactory.class);
 
     private static final int CONNECT_ATTEMPTS_ON_STATE_EXCEPTION = 3;
-
-    protected static final Timer timer = new Timer(true);
-
-    private final ConnectionService connectionService;
-    private final ConfigurationService configurationService;
+    private static final int DELAY_MS_ON_RETRY = 100;
 
     private final Map<VtepEndPoint, Entry> clients = new HashMap<>();
 
     private boolean disposed = false;
 
     public VtepDataClientFactory() {
-        connectionService = new ConnectionService();
-        configurationService = new ConfigurationService();
-        InventoryService inventoryService = new InventoryService();
-
-        connectionService.setInventoryServiceInternal(inventoryService);
-        configurationService.setInventoryServiceInternal(inventoryService);
-        configurationService.setConnectionServiceInternal(connectionService);
     }
 
     /**
@@ -107,7 +95,7 @@ public class VtepDataClientFactory {
      */
     public synchronized VtepDataClient connect(IPv4Addr mgmtIp, int mgmtPort,
                                                UUID userId)
-        throws VtepStateException {
+        throws VtepStateException, VtepConfigException {
 
         if (null == mgmtIp)
             throw new IllegalArgumentException("mgmtIp cannot be null");
@@ -124,29 +112,15 @@ public class VtepDataClientFactory {
         Entry entry = clients.get(endPoint);
         if (null == entry) {
             log.debug("Creating new client for VTEP {}", endPoint);
-
-            VtepDataClientImpl client = new VtepDataClientImpl(
-                endPoint, configurationService, connectionService);
+            OvsdbVtepDataClient client = new OvsdbVtepDataClient(
+                endPoint, DELAY_MS_ON_RETRY, CONNECT_ATTEMPTS_ON_STATE_EXCEPTION);
             entry = new Entry(client);
             clients.put(endPoint, entry);
         } else {
             log.debug("Using existing client for VTEP {}", endPoint);
         }
 
-        // Try to connect the client.
-        for (int attempt = 0; true; ) {
-            try {
-                log.debug("Connecting to VTEP {} (attempt {})",
-                          endPoint, attempt);
-
-                entry.client.connect(userId);
-                break;
-            } catch (VtepStateException e) {
-                if (++attempt == CONNECT_ATTEMPTS_ON_STATE_EXCEPTION)
-                    throw e;
-            }
-        }
-
+        entry.client.connect(userId);
         return entry.client;
     }
 
@@ -168,9 +142,6 @@ public class VtepDataClientFactory {
             entry.client.dispose();
         }
         clients.clear();
-
-        // Destroy the connection service to shutdown the netty event loop.
-        connectionService.destroy();
     }
 
     /**
@@ -181,11 +152,11 @@ public class VtepDataClientFactory {
      */
     private synchronized void onClientDisposed(Entry entry) {
         log.info("Disposing VTEP client {}", entry.client);
-        if (clients.remove(entry.client.endPoint) == entry) {
+        if (clients.remove(entry.client.endPoint()) == entry) {
             entry.subscription.unsubscribe();
             log.debug("Disposed VTEP client {}", entry.client);
         } else {
-            clients.put(entry.client.endPoint, entry);
+            clients.put(entry.client.endPoint(), entry);
             log.warn("Internal error: unknown VTEP client {} was disposed",
                      entry.client);
         }
