@@ -18,6 +18,7 @@ package org.midonet.midolman.topology
 import scala.collection.JavaConverters._
 
 import com.google.protobuf.MessageOrBuilder
+
 import org.scalatest.Matchers
 
 import org.midonet.cluster.models.Topology.{Network => TopologyBridge, Port => TopologyPort}
@@ -25,8 +26,8 @@ import org.midonet.cluster.util.IPAddressUtil._
 import org.midonet.cluster.util.IPSubnetUtil._
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.simulation.Bridge
-import org.midonet.midolman.topology.TopologyMatchers.{BridgeMatcher, BridgePortMatcher, RouterPortMatcher}
-import org.midonet.midolman.topology.devices.{BridgePort, Port, RouterPort}
+import org.midonet.midolman.topology.TopologyMatchers._
+import org.midonet.midolman.topology.devices.{BridgePort, Port, RouterPort, VxLanPort}
 import org.midonet.packets.MAC
 
 object TopologyMatchers {
@@ -39,14 +40,17 @@ object TopologyMatchers {
                                                with DeviceMatcher[TopologyPort] {
         override def shouldBeDeviceOf(p: TopologyPort) = {
             port.id shouldBe p.getId.asJava
-            port.inboundFilter shouldBe p.getInboundFilterId.asJava
-            port.outboundFilter shouldBe p.getOutboundFilterId.asJava
+            port.inboundFilter shouldBe (if (p.hasInboundFilterId)
+                p.getInboundFilterId.asJava else null)
+            port.outboundFilter shouldBe (if (p.hasOutboundFilterId)
+                p.getOutboundFilterId.asJava else null)
             port.tunnelKey shouldBe p.getTunnelKey
             port.portGroups shouldBe p.getPortGroupIdsList.asScala.map(_.asJava)
                 .toSet
-            port.peerId shouldBe p.getPeerId.asJava
-            port.hostId shouldBe p.getHostId.asJava
-            port.interfaceName shouldBe p.getInterfaceName
+            port.peerId shouldBe (if (p.hasPeerId) p.getPeerId.asJava else null)
+            port.hostId shouldBe (if (p.hasHostId) p.getHostId.asJava else null)
+            port.interfaceName shouldBe (if (p.hasInterfaceName)
+                p.getInterfaceName else null)
             port.adminStateUp shouldBe p.getAdminStateUp
             port.vlanId shouldBe p.getVlanId
         }
@@ -56,7 +60,8 @@ object TopologyMatchers {
         extends PortMatcher(port) {
         override def shouldBeDeviceOf(p: TopologyPort): Unit = {
             super.shouldBeDeviceOf(p)
-            port.networkId shouldBe p.getNetworkId.asJava
+            port.networkId shouldBe (if (p.hasNetworkId)
+                p.getNetworkId.asJava else null)
         }
     }
 
@@ -64,10 +69,22 @@ object TopologyMatchers {
         extends PortMatcher(port) {
         override def shouldBeDeviceOf(p: TopologyPort): Unit = {
             super.shouldBeDeviceOf(p)
-            port.routerId shouldBe p.getRouterId.asJava
-            port.portSubnet shouldBe p.getPortSubnet.asJava
-            port.portIp shouldBe p.getPortAddress.asIPv4Address
-            port.portMac shouldBe MAC.fromString(p.getPortMac)
+            port.routerId shouldBe (if (p.hasRouterId)
+                p.getRouterId.asJava else null)
+            port.portSubnet shouldBe (if (p.hasPortSubnet)
+                p.getPortSubnet.asJava else null)
+            port.portIp shouldBe (if (p.hasPortAddress)
+                p.getPortAddress.asIPv4Address else null)
+            port.portMac shouldBe (if (p.hasPortMac)
+                MAC.fromString(p.getPortMac) else null)
+        }
+    }
+
+    class VxLanPortMatcher(port: VxLanPort)
+        extends PortMatcher(port) {
+        override def shouldBeDeviceOf(p: TopologyPort): Unit = {
+            super.shouldBeDeviceOf(p)
+            port.vtepId shouldBe (if (p.hasVtepId) p.getVtepId.asJava else null)
         }
     }
 
@@ -90,11 +107,22 @@ object TopologyMatchers {
 
 trait TopologyMatchers {
 
+    implicit def asMatcher(port: Port): DeviceMatcher[TopologyPort] = {
+        port match {
+            case p: BridgePort => asMatcher(p)
+            case p: RouterPort => asMatcher(p)
+            case p: VxLanPort => asMatcher(p)
+        }
+    }
+
     implicit def asMatcher(port: BridgePort): BridgePortMatcher =
         new BridgePortMatcher(port)
 
     implicit def asMatcher(port: RouterPort): RouterPortMatcher =
         new RouterPortMatcher(port)
+
+    implicit def asMatcher(port: VxLanPort): VxLanPortMatcher =
+        new VxLanPortMatcher(port)
 
     implicit def asMatcher(bridge: Bridge): BridgeMatcher =
         new BridgeMatcher(bridge)
