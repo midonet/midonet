@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -195,7 +195,7 @@ final class HostMapper(hostId: UUID, vt: VirtualTopology)
             .doOnCompleted(makeAction0(hostDeleted()))
 
     private lazy val aliveObservable =
-        vt.ownershipStore.ownersObservable(classOf[TopologyHost], hostId)
+        vt.store.ownersObservable(classOf[TopologyHost], hostId)
             .observeOn(vt.scheduler)
             .map[Boolean](makeFunc1(aliveUpdated))
             .distinctUntilChanged

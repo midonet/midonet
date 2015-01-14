@@ -58,7 +58,7 @@ sealed trait Port extends ZoomObject with VirtualDevice with Cloneable {
     @ZoomField(name = "vlan_id")
     var vlanId: Short = _
 
-    private var _active: Boolean = false
+    private[topology] var _active: Boolean = false
 
     private var _deviceTag: FlowTag = _
     private var _txTag: FlowTag = _
@@ -80,8 +80,8 @@ sealed trait Port extends ZoomObject with VirtualDevice with Cloneable {
     }
 
     override def deviceTag = _deviceTag
-    def txTag = _deviceTag
-    def rxTag = _deviceTag
+    def txTag = _txTag
+    def rxTag = _rxTag
 
     def deviceId: UUID
 
@@ -103,13 +103,20 @@ class VxLanPort extends Port {
 
     @ZoomField(name = "network_id", converter = classOf[UUIDConverter])
     var networkId: UUID = _
+    @ZoomField(name = "vtep_id", converter = classOf[UUIDConverter])
+    var vtepId: UUID = _
 
     // These are legacy fields that will not be present in the Proto-based
     // models, and instead be replaced with a vtepId: UUID
+    @Deprecated
     var vtepMgmtIp: IPv4Addr = _
+    @Deprecated
     var vtepMgmtPort: Int = _
+    @Deprecated
     var vtepTunnelIp: IPv4Addr = _
+    @Deprecated
     var vtepTunnelZoneId: UUID = _
+    @Deprecated
     var vtepVni: Int = _
 
     override def deviceId = networkId
