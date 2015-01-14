@@ -388,13 +388,15 @@ public class VtepClusterClient {
             List<java.util.UUID> vxlanPortIds = bridge.getVxLanPortIds();
             VxLanPort vxlanPort = null;  // for the vtep of the new binding
             java.util.UUID tzId = null;
-            for (java.util.UUID id : vxlanPortIds) {
-                VxLanPort port = (VxLanPort) dataClient.portsGet(id);
-                tzId = port.getTunnelZoneId();
-                if (port.getMgmtIpAddr().equals(mgmtIp)) {
-                    // got the same vtep, not the first binding then
-                    vxlanPort = port;
-                    break;
+            if (vxlanPortIds != null) {
+                for (java.util.UUID id : vxlanPortIds) {
+                    VxLanPort port = (VxLanPort) dataClient.portsGet(id);
+                    tzId = port.getTunnelZoneId();
+                    if (port.getMgmtIpAddr().equals(mgmtIp)) {
+                        // got the same vtep, not the first binding then
+                        vxlanPort = port;
+                        break;
+                    }
                 }
             }
 
