@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-
 import org.opendaylight.ovsdb.lib.notation.Condition;
 import org.opendaylight.ovsdb.lib.notation.Function;
 import org.opendaylight.ovsdb.lib.notation.Row;
@@ -93,7 +92,6 @@ public final class PhysicalSwitchTable extends Table {
     /**
      * Extract the set of physical port names
      */
-    @SuppressWarnings(value = "unckecked")
     public Set<UUID> parsePorts(Row<GenericTableSchema> row) {
         return fromOvsdb(extractSet(row, getPortsSchema()));
     }
