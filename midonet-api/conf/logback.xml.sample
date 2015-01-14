@@ -56,6 +56,37 @@
         </encoder>
     </appender>
 
+    <!-- Service loggers -->
+
+    <!-- Top level logger for the VxGW service, enable for general logging from
+         the service, fine tune for specific networks or vteps using the loogers
+         below.
+         -->
+    <!-- <logger name="org.midonet.vxgw" level="DEBUG" /> -->
+
+    <!-- Loggers for specific VxGW processes -->
+
+    <!-- Information about hardware VTEP controllers bound to networks.
+         Replace $VTEP with the management IP and port in this format:
+         10_2_4_4:6632 (an ordinary IPv4, with _ instead of .)
+         -->
+    <!-- <logger name="org.midonet.vxgw.vxgw-controller-vtep_$VTEP" level="DEBUG"/> -->
+
+    <!-- Information about the controller of networks bound to VTEPs.
+         Replace $NETWORK_ID with a given neutron network UUID
+        -->
+    <!-- <logger name="org.midonet.vxgw.vxgw-controller-midonet-$NETWORK_ID" level="DEBUG" /> -->
+
+    <!-- Information about MAC table syncing among hardware VTEPs and networks
+         inside MidoNet.
+         Replace $NETWORK_ID with a given neutron network UUID -->
+    <!-- <logger name="org.midonet.vxgw.vxgw-mac-sync-" level="DEBUG" /> -->
+
+    <!-- Information about the control process that monitors newly bound to VTEPs.
+         Replace $NETWORK_ID with a given neutron network UUID
+         -->
+    <!-- <logger name="org.midonet.vxgw.vxgw-manager-$NETWORK_ID" level="DEBUG"/> -->
+
     <!-- logs under "org.midonet.event" logger also goes to EVENT-FILE appender as well as those defined in <root> -->
     <logger name="org.midonet.event" level="INFO">
          <appender-ref ref="EVENT-FILE"/>
