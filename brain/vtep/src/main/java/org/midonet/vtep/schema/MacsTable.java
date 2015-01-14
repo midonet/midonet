@@ -12,6 +12,7 @@ import org.opendaylight.ovsdb.lib.schema.ColumnSchema;
 import org.opendaylight.ovsdb.lib.schema.DatabaseSchema;
 import org.opendaylight.ovsdb.lib.schema.GenericTableSchema;
 
+import org.midonet.cluster.data.vtep.model.VtepEntry;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.cluster.data.vtep.model.MacEntry;
 import org.midonet.cluster.data.vtep.model.VtepMAC;
@@ -30,9 +31,8 @@ public abstract class MacsTable extends Table {
         super(databaseSchema, tableName);
     }
 
-    abstract public Boolean isUcastTable();
-
     /** Get the schema of the columns of this table */
+    @Override
     public List<ColumnSchema<GenericTableSchema, ?>> getColumnSchemas() {
         List<ColumnSchema<GenericTableSchema, ?>> cols = super.getColumnSchemas();
         cols.add(getMacSchema());
@@ -102,31 +102,42 @@ public abstract class MacsTable extends Table {
     }
 
     /**
-     * Extract the mac entry from the row
-     */
-    abstract public MacEntry parseMacEntry(Row<GenericTableSchema> row);
-
-    /**
      * Generate an insert operation
      */
-    public Insert<GenericTableSchema> insert(MacEntry entry) {
+    @Override
+    public <E extends VtepEntry> Table.OvsdbInsert insert(E row, Class<E> clazz)
+        throws IllegalArgumentException {
+        if (!MacEntry.class.isAssignableFrom(clazz))
+            throw new IllegalArgumentException("wrong entry type " + clazz +
+                                               " for table " + this.getClass());
+        MacEntry entry = (MacEntry)row;
         Insert<GenericTableSchema> op = super.insert(entry.uuid());
         op.value(getMacSchema(), entry.macString());
         op.value(getLogicalSwitchSchema(), toOvsdb(entry.logicalSwitchId()));
         op.value(getIpaddrSchema(), entry.ipString());
         op.value(getLocationIdSchema(), toOvsdb(entry.locationId()));
-        return op;
+        return new OvsdbInsert(op);
     }
 
     /**
      * Generate a delete operation matching mac, logical switch and ip of the
      * entry.
      */
-    public Delete<GenericTableSchema> delete(MacEntry entry) {
+    public Table.OvsdbDelete delete(MacEntry entry) {
         Delete<GenericTableSchema> op = new Delete<>(tableSchema);
         op.where(getMacMatcher(entry.mac()));
         op.where(getLogicalSwitchMatcher(entry.logicalSwitchId()));
         op.where(getIpaddrMatcher(entry.ip()));
-        return op;
+        return new OvsdbDelete(op);
+    }
+
+    /**
+     * Generate a delete operation matching logical switch
+     */
+    public Table.OvsdbDelete deleteByLogicalSwitchId(
+        java.util.UUID lsId) {
+        Delete<GenericTableSchema> op = new Delete<>(tableSchema);
+        op.where(getLogicalSwitchMatcher(lsId));
+        return new OvsdbDelete(op);
     }
 }

@@ -40,8 +40,8 @@ import scala.collection.JavaConversions.{asScalaSet, mapAsScalaMap}
 final class PhysicalPort(id: UUID, ppName: String, desc: String,
                          bindings: Map[Integer, UUID],
                          stats: Map[Integer, UUID],
-                         faultStatus: Set[String]) {
-    val uuid = if (id == null) UUID.randomUUID() else id
+                         faultStatus: Set[String]) extends VtepEntry {
+    override val uuid = if (id == null) UUID.randomUUID() else id
     val name: String = if (ppName == null) "" else ppName
     val description: String = if (desc == null || desc.isEmpty) null else desc
 
@@ -52,6 +52,21 @@ final class PhysicalPort(id: UUID, ppName: String, desc: String,
     val portFaultStatus: Set[String] =
         if (faultStatus == null) Set() else faultStatus
 
+    def newBinding(vni: Integer, lsId: UUID) =
+        PhysicalPort(uuid, name, description, vlanBindings updated (vni, lsId),
+                     vlanStats, portFaultStatus)
+    def clearBinding(vni: Integer) =
+        PhysicalPort(uuid, name, description, vlanBindings - vni,
+                     vlanStats - vni, portFaultStatus)
+    def clearBindings(lsId: UUID) =
+        PhysicalPort(uuid, name, description,
+                     vlanBindings.filterNot(_._2 == lsId),
+                     vlanStats.filterNot(
+                         e => vlanBindings.getOrElse(e._1, null) == lsId),
+                     portFaultStatus)
+    def isBoundToLogicalSwitchId(lsId: UUID): Boolean =
+        vlanBindings.exists(_._2 == lsId)
+
     private val str: String = "PhysicalPort{" +
         "uuid=" + uuid + ", " +
         "name='" + name + "', " +
@@ -60,12 +75,9 @@ final class PhysicalPort(id: UUID, ppName: String, desc: String,
     override def toString = str
 
     override def equals(o: Any): Boolean = o match {
-        case null => false
         case that: PhysicalPort => Objects.equals(name, that.name)
         case other => false
     }
-
-    override def hashCode: Int = uuid.hashCode()
 }
 
 object PhysicalPort {

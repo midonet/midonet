@@ -18,7 +18,6 @@ package org.midonet.cluster.data.vtep
 
 import java.util.UUID
 
-import scala.concurrent.Future
 import scala.util.Try
 
 import rx.{Observable, Observer}
@@ -68,7 +67,8 @@ object VtepConnection {
     /** VTEP connection states */
     object State extends Enumeration {
         type State = Value
-        val DISCONNECTED, CONNECTED, DISCONNECTING, BROKEN, CONNECTING = Value
+        val DISCONNECTED, CONNECTED, READY, DISCONNECTING, BROKEN, CONNECTING
+            = Value
     }
 }
 
