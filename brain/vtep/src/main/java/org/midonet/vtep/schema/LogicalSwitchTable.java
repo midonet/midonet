@@ -13,6 +13,7 @@ import org.opendaylight.ovsdb.lib.schema.DatabaseSchema;
 import org.opendaylight.ovsdb.lib.schema.GenericTableSchema;
 
 import org.midonet.cluster.data.vtep.model.LogicalSwitch;
+import org.midonet.cluster.data.vtep.model.VtepEntry;
 
 /**
  * Schema for the Ovsdb logical switch table
@@ -48,7 +49,6 @@ public final class LogicalSwitchTable extends Table {
 
     /** Get the schema for the optional tunnel key (vxlan vni) */
     protected ColumnSchema<GenericTableSchema, Set> getTunnelKeySchema() {
-
         return tableSchema.column(COL_TUNNEL_KEY, Set.class);
     }
 
@@ -88,6 +88,17 @@ public final class LogicalSwitchTable extends Table {
         return new LogicalSwitch(parseUuid(row), parseName(row),
                                  parseTunnelKey(row), parseDescription(row));
     }
+
+    @SuppressWarnings(value = "unckecked")
+    public <E extends VtepEntry> E parseEntry(Row<GenericTableSchema> row,
+                                              Class<E> clazz)
+        throws IllegalArgumentException {
+        if (!clazz.isAssignableFrom(LogicalSwitch.class))
+            throw new IllegalArgumentException("wrong entry type " + clazz +
+                                               " for table " + this.getClass());
+        return (E)parseLogicalSwitch(row);
+    }
+
 
     /**
      * Generate an insertion operation for a logical switch

@@ -30,17 +30,18 @@ import org.midonet.packets.IPv4Addr
  * empty strings to indicate unset string values, this class unifies both
  * representations. Note that 'name', as an identifier, is not allowed to
  * be null.
- * @param uuid is UUID of this switch in OVSDB
+ * @param id is UUID of this switch in OVSDB
  * @param psName is the name of the switch
  * @param desc is the description associated to this switch
  * @param pList is the list of physical port names in the VTEP
  * @param mgmtList is the list of management ips for this physical switch
  * @param tunnelList is set of tunnel ips (may be empty)
  */
-final class PhysicalSwitch(val uuid: UUID, psName: String, desc: String,
+final class PhysicalSwitch(id: UUID, psName: String, desc: String,
                            pList: Set[UUID],
                            mgmtList: Set[IPv4Addr],
-                           tunnelList: Set[IPv4Addr]) {
+                           tunnelList: Set[IPv4Addr]) extends VtepEntry {
+    override val uuid = if (id == null) UUID.randomUUID() else id
     val name: String = if (psName == null) "" else psName
     val description: String = if (desc == null || desc.isEmpty) null else desc
     val ports: Set[UUID] = if (pList == null) Set() else pList
@@ -79,9 +80,6 @@ final class PhysicalSwitch(val uuid: UUID, psName: String, desc: String,
             Objects.equals(tunnelIps, that.tunnelIps)
         case other => false
     }
-
-    override def hashCode: Int =
-        if (uuid == null) Objects.hash(name, mgmtIps) else uuid.hashCode
 }
 
 object PhysicalSwitch {

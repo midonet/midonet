@@ -27,8 +27,9 @@ import scala.collection.JavaConversions.asScalaSet
  * @param id is UUID of this locator set in OVSDB
  * @param locators is the (immutable) set of the ids of locators in this set
  */
-final class PhysicalLocatorSet(id: UUID, locators: Set[UUID]) {
-    val uuid = if (id == null) UUID.randomUUID() else id
+final class PhysicalLocatorSet(id: UUID, locators: Set[UUID])
+    extends VtepEntry {
+    override val uuid = if (id == null) UUID.randomUUID() else id
     val locatorIds: Set[UUID] = if (locators == null) Set() else locators
 
     override def toString: String = "PhysicalLocatorSet{" +
@@ -42,8 +43,6 @@ final class PhysicalLocatorSet(id: UUID, locators: Set[UUID]) {
             Objects.equals(locatorIds, that.locatorIds)
         case other => false
     }
-
-    override def hashCode: Int = uuid.hashCode()
 }
 
 object PhysicalLocatorSet {
