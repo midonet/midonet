@@ -30,9 +30,9 @@ import org.scalatest.junit.JUnitRunner
 import org.midonet.cluster.ClusterTestUtils._
 import org.midonet.cluster.DataClient
 import org.midonet.cluster.data.Bridge.UNTAGGED_VLAN_ID
+import org.midonet.cluster.data.vtep.model.LogicalSwitch.networkIdToLsName
 import org.midonet.cluster.data.vtep.model.MacLocation
 import org.midonet.cluster.data.vtep.model.VtepMAC.UNKNOWN_DST
-import org.midonet.cluster.southbound.vtep.VtepConstants.bridgeIdToLogicalSwitchName
 import org.midonet.cluster.util.TestZkTools
 import org.midonet.midolman.host.state.HostZkManager
 import org.midonet.midolman.state._
@@ -107,7 +107,7 @@ class VxlanGatewayManagerTest extends FlatSpec with Matchers
         val mgr = new VxlanGatewayManager(ctx.nwId, dataClient, null,
                                           tzState, zkConnWatcher,
                                           () => mgrClosedLatch.countDown() )
-        mgr.lsName shouldBe bridgeIdToLogicalSwitchName(ctx.nwId)
+        mgr.lsName shouldBe networkIdToLsName(ctx.nwId)
 
         mgr.terminate()
 

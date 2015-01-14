@@ -43,7 +43,7 @@ sourceSets {
 }
 
 dependencies {
-    compile project(':cluster:odl-ovsdb:ovsdb'),
+    compile project(':cluster:vtep'),
             project(':nsdb'),
             project(':midolman'),
             project(':midonet-util'),
@@ -54,6 +54,7 @@ dependencies {
             "equinoxSDK381:org.eclipse.osgi:3.8.1.v20120830-144521",
             "org.opendaylight.ovsdb:ovsdb:0.5.0",
             "org.reflections:reflections:0.9.10",
+            "equinoxSDK381:org.eclipse.osgi:3.8.1.v20120830-144521",
             libraries.metrics,
             libraries.validation,
             libraries.hibernate_validator,

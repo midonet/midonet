@@ -19,6 +19,7 @@ package org.midonet.cluster.services.vxgw
 import java.util.concurrent.TimeUnit.SECONDS
 import java.util.concurrent.TimeoutException
 import java.util.{Random, UUID}
+
 import scala.concurrent.duration._
 
 import com.google.inject.{Guice, Injector}
@@ -30,12 +31,11 @@ import org.scalatest.{BeforeAndAfter, FlatSpec, GivenWhenThen, Matchers}
 import rx.observers.TestObserver
 
 import org.midonet.cluster.ClusterTestUtils._
-import org.midonet.cluster.services.vxgw.TunnelZoneState.{FloodingProxyOp, FloodingProxyEvent}
-import org.midonet.cluster.southbound.vtep.VtepConstants
-import org.midonet.cluster.util.TestZkTools
 import org.midonet.cluster.DataClient
-import org.midonet.cluster.data.vtep.model.{VtepMAC, MacLocation}
+import org.midonet.cluster.data.vtep.model.{LogicalSwitch, MacLocation, VtepMAC}
+import org.midonet.cluster.services.vxgw.TunnelZoneState.{FloodingProxyEvent, FloodingProxyOp}
 import org.midonet.cluster.util.ObservableTestUtils._
+import org.midonet.cluster.util.TestZkTools
 import org.midonet.midolman.host.state.HostZkManager
 import org.midonet.midolman.state.Directory
 import org.midonet.packets.{IPv4Addr, MAC}
@@ -55,7 +55,7 @@ class VtepControllerTest extends FlatSpec with Matchers
     var injector: Injector = _
 
     val nwId = UUID.randomUUID()
-    val lsName = VtepConstants.bridgeIdToLogicalSwitchName(nwId)
+    val lsName = LogicalSwitch.networkIdToLsName(nwId)
 
     var someIp = IPv4Addr("22.0.0.0")
 
