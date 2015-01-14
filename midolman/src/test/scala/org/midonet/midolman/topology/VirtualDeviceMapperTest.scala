@@ -26,7 +26,7 @@ import org.scalatest.junit.JUnitRunner
 import rx.Observable
 import rx.subjects.BehaviorSubject
 
-import org.midonet.cluster.data.storage.Storage
+import org.midonet.cluster.data.storage.StorageWithOwnership
 import org.midonet.midolman.FlowController
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman.topology.VirtualTopology.VirtualDevice
@@ -82,7 +82,7 @@ class VirtualDeviceMapperTest extends MidolmanSpec {
     type TestableObserver = AwaitableObserver[TestableDevice]
 
     @Mocked
-    var storage: Storage = _
+    var storage: StorageWithOwnership = _
     implicit var vt: VirtualTopology = _
 
     registerActors(FlowController -> (() => new FlowController

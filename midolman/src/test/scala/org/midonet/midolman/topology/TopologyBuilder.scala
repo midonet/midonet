@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2014-2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,19 +17,15 @@ package org.midonet.midolman.topology
 
 import java.util.UUID
 
-import scala.collection.mutable
+import scala.collection.JavaConverters._
 import scala.util.Random
 
-import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.models.Topology.Host.PortToInterface
 import org.midonet.cluster.models.Topology.TunnelZone.HostToIp
 import org.midonet.cluster.models.Topology.{Host, Port, TunnelZone}
 import org.midonet.cluster.util.IPAddressUtil._
 import org.midonet.cluster.util.IPSubnetUtil._
-import org.midonet.cluster.util.MapConverter
 import org.midonet.cluster.util.UUIDUtil._
-import org.midonet.midolman.topology.devices.PortInterfaceConverter
-import org.midonet.midolman.topology.devices.TunnelZone.HostIpConverter
 import org.midonet.packets._
 
 trait TopologyBuilder {
@@ -48,15 +44,16 @@ trait TopologyBuilder {
                                    adminStateUp: Boolean = true,
                                    portGroupIds: Set[UUID] = Set.empty,
                                    vlanId: Int = 0): Port = {
-        createPortBuilder(id, bridgeId, inboundFilterId, outboundFilterId,
-                          tunnelKey, peerId, vifId, hostId, interfaceName,
-                          adminStateUp, portGroupIds)
+        createPortBuilder(id, inboundFilterId, outboundFilterId, tunnelKey,
+                          peerId, vifId, hostId, interfaceName, adminStateUp,
+                          portGroupIds)
+            .setNetworkId(bridgeId.asProto)
             .setVlanId(vlanId)
             .build
     }
 
     protected def createRouterPort(id: UUID = UUID.randomUUID,
-                                   bridgeId: UUID = UUID.randomUUID,
+                                   routerId: UUID = UUID.randomUUID,
                                    inboundFilterId: UUID = UUID.randomUUID,
                                    outboundFilterId: UUID = UUID.randomUUID,
                                    tunnelKey: Long = -1L,
@@ -69,9 +66,10 @@ trait TopologyBuilder {
                                    portSubnet: IPSubnet[_] = randomIPv4Subnet,
                                    portAddress: IPAddr = IPv4Addr.random,
                                    portMac: MAC = MAC.random): Port = {
-        createPortBuilder(id, bridgeId, inboundFilterId, outboundFilterId,
-                          tunnelKey, peerId, vifId, hostId, interfaceName,
-                          adminStateUp, portGroupIds)
+        createPortBuilder(id, inboundFilterId, outboundFilterId, tunnelKey,
+                          peerId, vifId, hostId, interfaceName, adminStateUp,
+                          portGroupIds)
+            .setRouterId(routerId.asProto)
             .setPortSubnet(portSubnet.asProto)
             .setPortAddress(portAddress.asProto)
             .setPortMac(portMac.toString)
@@ -79,7 +77,6 @@ trait TopologyBuilder {
     }
 
     protected def createVxLanPort(id: UUID = UUID.randomUUID,
-                                  bridgeId: UUID = UUID.randomUUID,
                                   inboundFilterId: UUID = UUID.randomUUID,
                                   outboundFilterId: UUID = UUID.randomUUID,
                                   tunnelKey: Long = -1L,
@@ -94,9 +91,9 @@ trait TopologyBuilder {
                                   vtepVni: Int = random.nextInt(),
                                   vtepTunnelIp: IPAddr = IPv4Addr.random,
                                   vtepTunnelZoneId: UUID = UUID.randomUUID): Port = {
-        createPortBuilder(id, bridgeId, inboundFilterId, outboundFilterId,
-                          tunnelKey, peerId, vifId, hostId, interfaceName,
-                          adminStateUp, portGroupIds)
+        createPortBuilder(id, inboundFilterId, outboundFilterId, tunnelKey,
+                          peerId, vifId, hostId, interfaceName, adminStateUp,
+                          portGroupIds)
             .setVtepMgmtIp(vtepMgmtIp.asProto)
             .setVtepMgmtPort(vtepMgmtPort)
             .setVtepVni(vtepVni)
@@ -106,7 +103,6 @@ trait TopologyBuilder {
     }
 
     private def createPortBuilder(id: UUID,
-                                  bridgeId: UUID,
                                   inboundFilterId: UUID,
                                   outboundFilterId: UUID,
                                   tunnelKey: Long,
@@ -116,9 +112,8 @@ trait TopologyBuilder {
                                   interfaceName: String,
                                   adminStateUp: Boolean,
                                   portGroupIds: Set[UUID]): Port.Builder = {
-        val builder = Port.newBuilder
+        Port.newBuilder
             .setId(id.asProto)
-            .setNetworkId(bridgeId.asProto)
             .setInboundFilterId(inboundFilterId.asProto)
             .setOutboundFilterId(outboundFilterId.asProto)
             .setTunnelKey(tunnelKey)
@@ -127,42 +122,32 @@ trait TopologyBuilder {
             .setHostId(hostId.asProto)
             .setInterfaceName(interfaceName)
             .setAdminStateUp(adminStateUp)
-        portGroupIds foreach { id => builder.addPortGroupIds(id.asProto) }
-        builder
+            .addAllPortGroupIds(portGroupIds.map(_.asProto).asJava)
     }
 
-    protected def createTunnelZoneBuilder(id: UUID, name: String,
-                                          hosts: Map[UUID, IPAddr]): TunnelZone.Builder = {
-        val builder = TunnelZone.newBuilder
+    protected def createTunnelZone(id: UUID,
+                                   name: String,
+                                   hosts: Map[UUID, IPAddr] = Map.empty)
+    : TunnelZone = {
+        TunnelZone.newBuilder
             .setId(id.asProto)
             .setName(name)
-        val converter = getConverter(classOf[HostIpConverter])
-        val hostsList = converter.asInstanceOf[MapConverter[UUID, IPAddr, HostToIp]]
-            .toProto(hosts, classOf[HostToIp])
-        builder.addAllHosts(hostsList)
-
-        builder
+            .addAllHosts(hosts.map(e => HostToIp.newBuilder
+                .setHostId(e._1.asProto).setIp(e._2.asProto).build()).asJava)
+            .build()
     }
 
-    protected def createHostBuilder(id: UUID,
-                                    portInterfaceMapping: Map[UUID, String],
-                                    tunnelZoneIds: Set[UUID]): Host.Builder = {
-        val builder = Host.newBuilder
+    protected def createHost(id: UUID,
+                             portInterfaceMapping: Map[UUID, String] = Map.empty,
+                             tunnelZoneIds: Set[UUID] = Set.empty): Host = {
+        Host.newBuilder
             .setId(id.asProto)
-        val converter = getConverter(classOf[PortInterfaceConverter])
-        val portToInterfaceList = converter.asInstanceOf[MapConverter[UUID, String, PortToInterface]]
-            .toProto(portInterfaceMapping, classOf[PortToInterface])
-        builder.addAllPortInterfaceMapping(portToInterfaceList)
-
-        tunnelZoneIds foreach { tunnelId => builder.addTunnelZoneIds(tunnelId.asProto) }
-        builder
-    }
-
-    private def getConverter(clazz: Class[_ <: ZoomConvert.Converter[_,_]])
-        :ZoomConvert.Converter[_,_] = {
-
-        converters.getOrElseUpdate(clazz, clazz.newInstance()
-            .asInstanceOf[ZoomConvert.Converter[_,_]])
+            .addAllPortInterfaceMapping(
+                portInterfaceMapping.map(e => PortToInterface.newBuilder
+                    .setPortId(e._1.asProto).setInterfaceName(e._2).build())
+                    .asJava)
+            .addAllTunnelZoneIds(tunnelZoneIds.map(_.asProto).asJava)
+            .build()
     }
 }
 
@@ -172,6 +157,4 @@ object TopologyBuilder {
 
     def randomIPv4Subnet = new IPv4Subnet(random.nextInt(), random.nextInt(32))
 
-    val converters = mutable.Map[Class[_ <: ZoomConvert.Converter[_,_]],
-                                 ZoomConvert.Converter[_,_]]()
 }
