@@ -37,6 +37,7 @@ import scala.collection.JavaConversions.{asScalaSet, mapAsScalaMap}
  *              binding, if supported by switch
  * @param faultStatus (undocumented feature from ovsdb)
  */
+<<<<<<< HEAD
 final class PhysicalPort(id: UUID, ppName: String, desc: String,
                          bindings: Map[Integer, UUID],
                          stats: Map[Integer, UUID],
@@ -87,7 +88,6 @@ object PhysicalPort {
     // For testing purposes
     def apply(id: UUID, name: String, desc: String): PhysicalPort =
         new PhysicalPort(id, name, desc, null, null, null)
-
 }
 
 

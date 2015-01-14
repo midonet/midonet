@@ -43,6 +43,8 @@ import rx.Subscription;
 import rx.subjects.PublishSubject;
 import rx.subjects.Subject;
 
+import org.midonet.cluster.data.vtep.VtepException;
+import org.midonet.cluster.data.vtep.VtepStateException;
 import org.midonet.cluster.data.vtep.model.LogicalSwitch;
 import org.midonet.cluster.data.vtep.model.McastMac;
 import org.midonet.cluster.data.vtep.model.PhysicalPort;
@@ -95,6 +97,10 @@ public class VtepDataClientMock implements VtepDataClient {
         for (String str: tunnelIps) {
             tunnels.add(IPv4Addr.fromString(str));
         }
+        PhysicalSwitch ps = new PhysicalSwitch(
+            UUID.randomUUID(), name, desc, portNames,
+            Sets.newHashSet(IPv4Addr.fromString(mgmtIp)), tunnels);
+        physicalSwitches.put(mgmtIp, ps);
 
         Set<UUID> portIds = new HashSet<>();
         for (String portName : portNames) {
