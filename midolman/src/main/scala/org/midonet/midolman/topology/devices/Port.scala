@@ -56,7 +56,7 @@ sealed trait Port extends ZoomObject with VirtualDevice with Cloneable {
     @ZoomField(name = "vlan_id")
     var vlanId: Short = _
 
-    private var _active: Boolean = false
+    private[topology] var _active: Boolean = false
 
     private var _deviceTag: FlowTag = _
     private var _txTag: FlowTag = _
