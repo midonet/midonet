@@ -35,7 +35,6 @@ import org.midonet.packets.IPAddr
 import org.midonet.util.functors._
 
 final class HostMapper(id: UUID, vt: VirtualTopology)
-                (implicit actorSystem: ActorSystem)
     extends DeviceMapper[SimHost](id, vt) {
 
     override def logSource = s"org.midonet.devices.host.host-$id"

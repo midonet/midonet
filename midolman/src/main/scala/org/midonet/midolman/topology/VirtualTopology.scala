@@ -26,7 +26,7 @@ import com.google.inject.Inject
 import rx.Observable
 
 import org.midonet.cluster.DataClient
-import org.midonet.cluster.data.storage.Storage
+import org.midonet.cluster.data.storage.{StorageWithOwnership, Storage}
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman.{FlowController, NotYetException}
 import org.midonet.midolman.logging.MidolmanLogging
@@ -153,7 +153,7 @@ object VirtualTopology extends MidolmanLogging {
  * | Port/Network/RouterMapper extends DeviceMapper | (1 per device)
  * +------------------------------------------------+
  */
-class VirtualTopology @Inject() (val store: Storage,
+class VirtualTopology @Inject() (val store: StorageWithOwnership,
                                  val dataClient: DataClient,
                                  val actorsService: MidolmanActorsService)
         extends MidolmanLogging {

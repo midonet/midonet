@@ -1,5 +1,9 @@
 /*
+<<<<<<< HEAD
  * Copyright 2015 Midokura SARL
+=======
+ * Copyright 2014-2015 Midokura SARL
+>>>>>>> e0367f7... Rearch: Detect the port state in the PortMapper
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -106,7 +110,6 @@ trait TopologyBuilder {
         builder.build
     }
 
-
     protected def createTunnelZone(id: UUID = UUID.randomUUID,
                                    name: String = "tunnel-zone",
                                    hosts: Map[UUID, IPAddr] = Map.empty)
@@ -195,15 +198,13 @@ trait TopologyBuilder {
                               routerId: UUID = UUID.randomUUID): Route = {
         val builder = Route.newBuilder
             .setId(id.asProto)
-            .setSrcNetworkAddr(srcNetwork.getAddress.toString)
-            .setSrcNetworkLength(srcNetwork.getPrefixLen)
-            .setDstNetworkAddr(dstNetwork.getAddress.toString)
-            .setDstNetworkLength(dstNetwork.getPrefixLen)
+            .setSrcSubnet(srcNetwork.asProto)
+            .setDstSubnet(dstNetwork.asProto)
             .setNextHop(nextHop)
             .setNextHopPortId(nextHopPortId.asProto)
             .setRouterId(routerId.asProto)
         if (nextHopGateway.isDefined)
-            builder.setNextHopGateway(nextHopGateway.get)
+            builder.setNextHopGateway(nextHopGateway.get.asProtoIPAddress)
         if (weight.isDefined) builder.setWeight(weight.get)
         if (attributes.isDefined) builder.setAttributes(attributes.get)
         builder.build()
