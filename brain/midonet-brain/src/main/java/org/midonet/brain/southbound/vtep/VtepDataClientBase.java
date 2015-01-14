@@ -61,6 +61,9 @@ import rx.functions.Func1;
 import rx.subjects.PublishSubject;
 
 import org.midonet.brain.southbound.vtep.model.VtepModelTranslator;
+import org.midonet.cluster.data.vtep.VtepException;
+import org.midonet.cluster.data.vtep.VtepNotConnectedException;
+import org.midonet.cluster.data.vtep.VtepStateException;
 import org.midonet.cluster.data.vtep.model.PhysicalSwitch;
 import org.midonet.cluster.data.vtep.model.VtepEndPoint;
 import org.midonet.packets.IPv4Addr;
