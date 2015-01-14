@@ -56,3 +56,19 @@ cobertura {
     coverageSourceDirs << sourceSets.main.scala.srcDirs
 }
 
+// Runs the vtep data dump test application
+// Use -Pvtep=<ip> [-Pport=<port>] to start it up pointing at the requested vtep
+task runVtepDump(type: JavaExec) {
+    description = 'Run the Vtep dump application'
+    classpath sourceSets.main.runtimeClasspath
+    main = "org.midonet.vtep.VtepDumpApp"
+    if (project.hasProperty("port")) {
+        if (project.hasProperty("vtep")) {
+            args = [vtep, port]
+        }
+    } else {
+        if (project.hasProperty("vtep")) {
+            args = [vtep, "6632"]
+        }
+    }
+}
