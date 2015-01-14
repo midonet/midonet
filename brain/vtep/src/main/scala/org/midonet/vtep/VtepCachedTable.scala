@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,19 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.brain.southbound.vtep;
 
-import org.midonet.cluster.data.vtep.model.VtepEndPoint;
+package org.midonet.vtep
+
+import java.util.UUID
+
+import scala.concurrent.Future
+import scala.concurrent.duration.Duration
+
+import org.midonet.cluster.data.vtep.model.VtepEntry
+import org.midonet.vtep.schema.Table
 
 /**
- * A checked exception for an unconnected VTEP data vtep.
+ * A local mirror of a VTEP cache
  */
-public class VtepNotConnectedException extends VtepException {
-
-    private static final long serialVersionUID = 2817256740296080692L;
-
-    public VtepNotConnectedException(VtepEndPoint vtep) {
-        super(vtep);
-    }
-
+trait VtepCachedTable[T <: Table, Entry <: VtepEntry] {
+    def get(id: UUID): Option[Entry]
+    def getAll: Map[UUID, Entry]
+    def insert(row: Entry): Future[UUID]
+    def ready: Future[Boolean]
+    def isReady: Boolean
 }
