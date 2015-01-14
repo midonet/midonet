@@ -451,7 +451,7 @@ public class VtepBroker implements VxLanPeer {
     /**
      * Some utility methods to parse OVSDB Row updates.
      */
-    private static class RowParser {
+    public static class RowParser {
         // Methods below extract individual fields, watching for nulls.
         public static UUID logicalSwitch(Ucast_Macs_Local row) {
             if (row == null) {
