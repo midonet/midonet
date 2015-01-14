@@ -246,13 +246,13 @@ class HostMapperTest extends MidolmanSpec
 
         val newProtoTunnelZone = newTunnelZone(protoHost.getId.asJava)
         store.create(newProtoTunnelZone)
-        val host2 = Await.result(store.get(classOf[Host], protoHost.getId), 1.second)
+        Await.result(store.get(classOf[Host], protoHost.getId), 1.second)
         val oldTZId = protoHost.getTunnelZoneIds(0).asJava
         val newTZId = newProtoTunnelZone.getId.asJava
         val updatedHost = newHost(protoHost.getId,
                                   Set(oldTZId, newTZId))
         store.update(updatedHost)
-        val host3 = Await.result(store.get(classOf[Host], protoHost.getId), 1.second)
+        Await.result(store.get(classOf[Host], protoHost.getId), 1.second)
 
         (updatedHost, newProtoTunnelZone)
     }
