@@ -16,6 +16,7 @@
 
 package org.midonet.packets
 
+import java.net.InetAddress
 import java.util.Random
 
 /**
@@ -47,26 +48,36 @@ trait IPAddr {
     /** Returns an inclusive range of IPAddr as a Java Iterable, up to
      *  the given argument, or starting from it (order does not matter). */
     def range(that: T): java.lang.Iterable[T]
+
+    /**
+     * Returns true iff the inet address passed as an argument is equal to this
+     * IPAddr.
+     */
+    def equalsInetAddress(inetAddress: InetAddress): Boolean
 }
 
 object IPAddr {
+
     def fromString(s: String): IPAddr =
         if (s.contains(":")) IPv6Addr.fromString(s) else IPv4Addr.fromString(s)
 
     def fromBytes(addr: Array[Byte]) =
-        if (addr.length == 4) IPv4Addr.fromBytes(addr) else IPv6Addr.fromBytes(addr)
+        if (addr.length == 4) IPv4Addr.fromBytes(addr)
+        else IPv6Addr.fromBytes(addr)
 
     def canonicalize(s: String): String = fromString(s).toString
 
     /** Helper function to create ranges of IPAddr as java Iterable. The range
-     *  is inclusive of both arguments. */
+      * is inclusive of both arguments. */
     def range[T <: IPAddr](from: T, to: T) = {
         new java.lang.Iterable[T]() {
             override def iterator() =
                 new java.util.Iterator[T]() {
                     var currentAddr = from
                     var isDone = false
+
                     override def hasNext() = !isDone
+
                     override def next() = {
                         val ip = currentAddr
                         if (isDone)
@@ -77,6 +88,7 @@ object IPAddr {
                             currentAddr = currentAddr.next.asInstanceOf[T]
                         ip
                     }
+
                     override def remove() {
                         throw new UnsupportedOperationException;
                     }
@@ -84,3 +96,4 @@ object IPAddr {
         }
     }
 }
+
