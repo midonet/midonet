@@ -25,6 +25,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import org.midonet.api.ResourceUriBuilder;
+import org.midonet.cluster.data.vtep.model.LogicalSwitch;
 import org.midonet.cluster.rest_api.VendorMediaType;
 import org.midonet.api.rest_api.FuncTest;
 import org.midonet.api.rest_api.RestApiTestBase;
@@ -73,7 +74,6 @@ import static org.midonet.api.validation.MessageProperty.VTEP_HAS_BINDINGS;
 import static org.midonet.api.validation.MessageProperty.VTEP_NOT_FOUND;
 import static org.midonet.api.validation.MessageProperty.VTEP_PORT_NOT_FOUND;
 import static org.midonet.api.validation.MessageProperty.VTEP_PORT_VLAN_PAIR_ALREADY_USED;
-import static org.midonet.cluster.southbound.vtep.VtepConstants.bridgeIdToLogicalSwitchName;
 
 public class TestVtep extends RestApiTestBase {
 
@@ -868,7 +868,7 @@ public class TestVtep extends RestApiTestBase {
                                                     String portName, int vlan,
                                                     int vni) {
         DtoVtepBinding b = addAndVerifyBinding(vtep, network, portName, vlan);
-        String lsName = bridgeIdToLogicalSwitchName(network.getId());
+        String lsName = LogicalSwitch.networkIdToLogicalSwitchName(network.getId());
         // This creates the logical switch by itself
         // bindVlan(lsName, portName, vlan, vni, new ArrayList<String>());
         return b;

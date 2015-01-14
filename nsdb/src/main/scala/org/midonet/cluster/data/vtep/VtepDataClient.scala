@@ -24,7 +24,7 @@ import scala.util.Try
 
 import rx.{Observable, Observer}
 
-import org.midonet.cluster.data.vtep.model.{MacLocation, LogicalSwitch}
+import org.midonet.cluster.data.vtep.model.{PhysicalSwitch, VtepBinding, MacLocation, LogicalSwitch}
 import org.midonet.packets.IPv4Addr
 import org.midonet.util.functors.makeFunc1
 
@@ -59,6 +59,11 @@ trait VtepConnection {
      * @param user The user that previously asked for this connection
      */
     def disconnect(user: UUID): Unit
+
+    /**
+     * Close all connections and set to a disposed state
+     */
+    def dispose(): Unit
 
     /**
      * Get a observable to get the current state and monitor connection changes
@@ -132,7 +137,13 @@ trait VtepData {
 
     /** Ensure that the hardware VTEP's config for the given Logical Switch
       * contains these and only these bindings. */
-    def ensureBindings(lsName: String, bindings: Iterable[(String, Short)]): Try[Unit]
+    def ensureBindings(lsName: String, bindings: Iterable[VtepBinding]): Try[Unit]
+
+    /** Get the current set of logical switches */
+    def listLogicalSwitches(): Set[LogicalSwitch]
+
+    /** Get the current set of physical switches */
+    def listPhysicalSwitches(): Set[PhysicalSwitch]
 }
 
 

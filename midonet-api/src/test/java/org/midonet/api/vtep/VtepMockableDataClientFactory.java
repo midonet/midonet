@@ -26,9 +26,9 @@ import com.google.common.collect.Sets;
 import rx.Subscription;
 import rx.functions.Action1;
 
-import org.midonet.cluster.southbound.vtep.VtepDataClient;
+import org.midonet.cluster.southbound.vtep.LegacyVtepDataClient;
 import org.midonet.cluster.southbound.vtep.VtepDataClientFactory;
-import org.midonet.cluster.southbound.vtep.VtepDataClientMock;
+import org.midonet.cluster.southbound.vtep.LegacyVtepDataClientMock;
 import org.midonet.cluster.data.vtep.VtepStateException;
 import org.midonet.packets.IPv4Addr;
 
@@ -78,7 +78,7 @@ public class VtepMockableDataClientFactory extends VtepDataClientFactory {
     };
 
     private Map<String, MockableVtep> mockableVteps = new HashMap<>();
-    private Map<String, VtepDataClientMock> mockInstances = new HashMap<>();
+    private Map<String, LegacyVtepDataClientMock> mockInstances = new HashMap<>();
     private Map<String, Subscription> mockSubscriptions = new HashMap<>();
 
     public VtepMockableDataClientFactory() {
@@ -113,7 +113,7 @@ public class VtepMockableDataClientFactory extends VtepDataClientFactory {
      * @throws java.lang.IllegalArgumentException The management address or port
      * are not allowed for the mock instance.
      */
-    public VtepDataClient connect(IPv4Addr mgmtIp, int mgmtPort, UUID owner)
+    public LegacyVtepDataClient connect(IPv4Addr mgmtIp, int mgmtPort, UUID owner)
         throws VtepStateException {
         MockableVtep mockVtep = mockableVteps.get(mgmtIp.toString());
         if (mockVtep == null) {
@@ -127,20 +127,20 @@ public class VtepMockableDataClientFactory extends VtepDataClientFactory {
         }
 
         final String ip = mgmtIp.toString();
-        VtepDataClientMock mockClient = mockInstances.get(ip);
+        LegacyVtepDataClientMock mockClient = mockInstances.get(ip);
         if (mockClient == null) {
             mockInstances.put(
                 mgmtIp.toString(),
-                mockClient = new VtepDataClientMock(ip, mockVtep.mgmtPort(),
+                mockClient = new LegacyVtepDataClientMock(ip, mockVtep.mgmtPort(),
                                         mockVtep.name(), mockVtep.desc(),
                                         mockVtep.tunnelIps(),
                                         asList(mockVtep.portNames()))
             );
             final Subscription s = mockClient.stateObservable().subscribe(
-                new Action1<VtepDataClient.State>() {
+                new Action1<LegacyVtepDataClient.State>() {
                     @Override
-                    public void call(VtepDataClient.State state) {
-                        if (state == VtepDataClient.State.DISCONNECTED) {
+                    public void call(LegacyVtepDataClient.State state) {
+                        if (state == LegacyVtepDataClient.State.DISCONNECTED) {
                             mockSubscriptions.get(ip).unsubscribe();
                             mockInstances.remove(ip);
                             mockSubscriptions.remove(ip);

@@ -130,12 +130,18 @@ class OvsdbVtepData(val endPoint: VtepEndPoint, val client: OvsdbClient,
         Try(Await.result(acquireLogicalSwitch(name, vni), Duration.Inf))
 
     override def ensureBindings(lsName: String,
-                                bindings: Iterable[(String, Short)])
+                                bindings: Iterable[VtepBinding])
     : Try[Unit] =
         Try(Await.result(setBindings(lsName, bindings), Duration.Inf))
 
     override def removeLogicalSwitch(name: String): Try[Unit] =
         Try(Await.result(deleteLogicalSwitch(name), Duration.Inf))
+
+    override def listLogicalSwitches(): Set[LogicalSwitch] =
+        Await.result(getCurrentLogicalSwitches, Duration.Inf)
+
+    override def listPhysicalSwitches(): Set[PhysicalSwitch] =
+        Await.result(getCurrentPhysicalSwitches, Duration.Inf)
 
     private class MacRemoteUpdater extends Subscriber[MacLocation] {
         private val self = this
@@ -178,10 +184,14 @@ class OvsdbVtepData(val endPoint: VtepEndPoint, val client: OvsdbClient,
             val entries = macLocationToMacEntries(macLocation)
             val ops = new util.ArrayList[OvsdbOperation]()
             entries.foreach({
-                case u: UcastMac =>
+                case u: UcastMac if u.ipAddr == null =>
+                    ops.add(uRemoteTable.table.deleteByMac(
+                        u.macAddr, u.logicalSwitchId))
+                case u: UcastMac if u.ipAddr == null =>
                     ops.add(uRemoteTable.table.delete(u))
                 case m: McastMac =>
-                    ops.add(mRemoteTable.table.delete(m))
+                    ops.add(mRemoteTable.table.deleteByMac(
+                        m.macAddr, m.logicalSwitchId))
             })
             OvsdbTools.multiOp(client, dbSchema, ops).future.onComplete({
                 case Failure(err) =>
@@ -218,6 +228,18 @@ class OvsdbVtepData(val endPoint: VtepEndPoint, val client: OvsdbClient,
                     m => macUpdateToMacLocations(VtepEntryUpdate.addition(m))}
         })(vtepContext)
 
+    private def getCurrentLogicalSwitches: Future[Set[LogicalSwitch]] =
+        ready.collect({
+            case true =>
+                lsTable.getAll.values.toSet
+        })(vtepContext)
+
+    private def getCurrentPhysicalSwitches: Future[Set[PhysicalSwitch]] =
+        ready.collect({
+            case true =>
+                psTable.getAll.values.toSet
+        })(vtepContext)
+
     private def psSwitch: Option[PhysicalSwitch] =
         psTable.getAll.values.find(_.mgmtIps.contains(endPoint.mgmtIp))
 
@@ -248,6 +270,37 @@ class OvsdbVtepData(val endPoint: VtepEndPoint, val client: OvsdbClient,
             entry => Observable.from(macUpdateToMacLocations(entry))
         }
 
+    /**
+     * Converts a Row update notification from the OVSDB client to a stream of
+     * MacLocation updates that can be applied to a VxGW Peer. A change
+     * in a given row is interpreted as follows:
+     *
+     * - Addition: when r.getOld is null and r.getNew isn't. The MAC
+     *   contained in r.getNew is now located at the ucast_local table
+     *   of the monitored vtep. In this case, the resulting MacLocation
+     *   will contain the new MAC, plus the vxlan tunnel endpoint IP of the
+     *   VTEP being monitored by this VtepBroker.
+     * - Deletion: when r.getOld is not null, and r.getNew is null. The MAC
+     *   contained in the r.getOld ceased to be located at the VTEP
+     *   we're now monitoring, so the resulting MacLocation will contain
+     *   the MAC and a null vxlan tunnel endpoint IP.
+     * - Update: when both the r.getOld and r.getNew values are not
+     *   null. In the new row, only fields that changed would be populated. An
+     *   update would happen for several reasons:
+     *   - The MAC changes: ignored, because MN doesn't update the mac
+     *     so this means an operator wrongly manipulated the VTEP's database.
+     *   - The IP changes: only relevant for ARP supression. In this case we
+     *     have to add the mac's ip to the MacLocation and will have to update
+     *     it accordingly.
+     *   - The logical switch changes: again, MN will never trigger this
+     *     change so it will be ignored.
+     *   - The locator changed: this refers to the local tunnel IP,
+     *     which being local should remain the same.
+     *
+     *   @return a sequence containing the corresponding MacLocation
+     *           instances, empty if the logical switch doesn't exist (e.g.
+     *           because it is deleted during the call)
+     */
     private def macUpdateToMacLocations(entry: VtepTableUpdate[_ <: MacEntry])
         : Seq[MacLocation] = entry match {
             case VtepEntryUpdate(null, null) => List()
@@ -353,7 +406,7 @@ class OvsdbVtepData(val endPoint: VtepEndPoint, val client: OvsdbClient,
                 lsTable.insert(ls).collect {case id => ls} (vtepContext)
         }(vtepContext)
 
-    private def setBindings(lsName: String, bindings: Iterable[(String, Short)])
+    private def setBindings(lsName: String, bindings: Iterable[VtepBinding])
         :Future[Unit] = ready.flatMap {case _ =>
             (psSwitch, lsSwitch(lsName)) match {
                 case (None, _) =>
@@ -361,16 +414,16 @@ class OvsdbVtepData(val endPoint: VtepEndPoint, val client: OvsdbClient,
                 case (_, None) =>
                     throw ConfigException("Logical Switch not found: " + lsName)
                 case (Some(ps), Some(ls)) =>
-                    val boundPorts = bindings.map(_._1).toSet
+                    val boundPorts = bindings.map(_.portName).toSet
                     var ports = ps.ports.flatMap(portTable.get)
                         .filter(p => boundPorts.contains(p.name))
                         .map(p => (p.name, p)).toMap
-                    for (b <- bindings) ports.get(b._1) match {
+                    for (b <- bindings) ports.get(b.portName) match {
                         case None =>
-                            log.warn("Physical port {} not found", b._1)
+                            log.warn("Physical port {} not found", b.portName)
                         case Some(p) =>
                             ports = ports updated
-                                    (p.name, p.newBinding(b._2.toInt, ls.uuid))
+                                    (p.name, p.newBinding(b.vlanId.toInt, ls.uuid))
                     }
                     val ops = new util.ArrayList[OvsdbOperation]()
                     val hint = UUID.randomUUID()

@@ -59,6 +59,7 @@ class OvsdbVtepDataClient(val endPoint: VtepEndPoint,
     override def getManagementPort = connection.getManagementPort
     override def connect(user: UUID) = connection.connect(user)
     override def disconnect(user: UUID) = connection.disconnect(user)
+    override def dispose() = connection.disconnect()
     override def getState = connection.getState
     override def getHandle = connection.getHandle
     override def observable = connection.observable

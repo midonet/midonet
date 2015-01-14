@@ -82,7 +82,7 @@ public class VtepTest {
     private UUID mehUuid = new UUID(0, 111);
 
     @Mocked
-    private VtepDataClient vtepDataClient;
+    private LegacyVtepDataClient vtepDataClient;
 
     @Before
     public void before() {

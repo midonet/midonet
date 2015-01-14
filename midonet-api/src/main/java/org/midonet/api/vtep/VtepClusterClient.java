@@ -38,7 +38,7 @@ import org.midonet.api.rest_api.BadRequestHttpException;
 import org.midonet.api.rest_api.ConflictHttpException;
 import org.midonet.api.rest_api.GatewayTimeoutHttpException;
 import org.midonet.api.rest_api.NotFoundHttpException;
-import org.midonet.cluster.southbound.vtep.VtepDataClient;
+import org.midonet.cluster.southbound.vtep.LegacyVtepDataClient;
 import org.midonet.cluster.southbound.vtep.VtepDataClientFactory;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.Bridge;
@@ -93,7 +93,7 @@ public class VtepClusterClient {
      *
      * @throws GatewayTimeoutHttpException when failing to connect to the VTEP.
      */
-    private VtepDataClient connect(IPv4Addr mgmtIp, int mgmtPort) {
+    private LegacyVtepDataClient connect(IPv4Addr mgmtIp, int mgmtPort) {
         try {
             return provider.connect(mgmtIp, mgmtPort, clientId)
                 .awaitConnected();
@@ -112,7 +112,7 @@ public class VtepClusterClient {
     /**
      * Disconnects the VTEP client.
      */
-    private void disconnect(VtepDataClient client) {
+    private void disconnect(LegacyVtepDataClient client) {
         if (null == client)
             return;
         try {
@@ -128,8 +128,8 @@ public class VtepClusterClient {
      *
      * @throws GatewayTimeoutHttpException when failing to connect to the VTEP.
      */
-    private VtepDataClient connectAndUpdate(VTEP vtep) {
-        VtepDataClient client = connect(vtep.getId(), vtep.getMgmtPort());
+    private LegacyVtepDataClient connectAndUpdate(VTEP vtep) {
+        LegacyVtepDataClient client = connect(vtep.getId(), vtep.getMgmtPort());
         IPv4Addr tunnelIp = client.getTunnelIp();
         if (!Objects.equals(vtep.getTunnelIp(), tunnelIp)) {
             try {
@@ -168,7 +168,7 @@ public class VtepClusterClient {
     public final PhysicalSwitch getPhysicalSwitch(IPv4Addr mgmtIp,
                                                   int mgmtPort)
         throws VtepNotConnectedException {
-        VtepDataClient client = connect(mgmtIp, mgmtPort);
+        LegacyVtepDataClient client = connect(mgmtIp, mgmtPort);
         try {
             return getPhysicalSwitch(client, mgmtIp);
         } finally {
@@ -180,7 +180,7 @@ public class VtepClusterClient {
      * Gets the PhysicalSwitch record with the specified managementIp
      * address using the provided VtepDataClient.
      */
-    protected final PhysicalSwitch getPhysicalSwitch(VtepDataClient vtepClient,
+    protected final PhysicalSwitch getPhysicalSwitch(LegacyVtepDataClient vtepClient,
                                                      IPv4Addr mgmtIp)
         throws VtepNotConnectedException {
         Collection<PhysicalSwitch> switches = vtepClient.listPhysicalSwitches();
@@ -195,7 +195,7 @@ public class VtepClusterClient {
     public final List<VTEPPort> listPorts(IPv4Addr ipAddr)
             throws SerializationException, StateAccessException {
         VTEP vtep = getVtepOrThrow(ipAddr, false);
-        VtepDataClient client = connectAndUpdate(vtep);
+        LegacyVtepDataClient client = connectAndUpdate(vtep);
 
         try {
             Collection<PhysicalPort> pports =
@@ -217,7 +217,7 @@ public class VtepClusterClient {
      * provided VtepDataClient.
      */
     protected final Collection<PhysicalPort> listPhysicalPorts(
-            VtepDataClient vtepClient, IPv4Addr mgmtIp, int mgmtPort)
+            LegacyVtepDataClient vtepClient, IPv4Addr mgmtIp, int mgmtPort)
             throws StateAccessException, VtepNotConnectedException {
         // Get the physical switch.
         PhysicalSwitch ps = getPhysicalSwitch(vtepClient, mgmtIp);
@@ -236,7 +236,7 @@ public class VtepClusterClient {
      * using the provided VtepDataClient.
      */
     protected final PhysicalPort getPhysicalPortOrThrow(
-        VtepDataClient vtepClient,
+        LegacyVtepDataClient vtepClient,
         IPv4Addr mgmtIp, int mgmtPort, String portName)
             throws StateAccessException, SerializationException,
                    VtepNotConnectedException {
@@ -313,7 +313,7 @@ public class VtepClusterClient {
      * deletBinding) can reuse the VTEP and VtepDataClient.
      */
     @SuppressWarnings("unused")
-    private List<VtepBinding> listVtepBindings(VtepDataClient vtepClient,
+    private List<VtepBinding> listVtepBindings(LegacyVtepDataClient vtepClient,
             IPv4Addr mgmtIp, int mgmtPort, UUID bridgeId)
             throws SerializationException, StateAccessException,
                    VtepNotConnectedException {
@@ -442,7 +442,7 @@ public class VtepClusterClient {
                  bridge.getId(), mgmtIp, vxlanPort.getVni());
 
         // Try to validate the port if the VTEP is reachable.
-        VtepDataClient client = null;
+        LegacyVtepDataClient client = null;
         try {
             client = connectAndUpdate(vtep);
         } catch (GatewayTimeoutHttpException e) {
@@ -497,7 +497,7 @@ public class VtepClusterClient {
         int mgmtPort = vtep.getMgmtPort();
         IPv4Addr tunnelIp = vtep.getTunnelIp();
 
-        VtepDataClient client = null;
+        LegacyVtepDataClient client = null;
         try {
             // Try to connect to the VTEP to get the latest tunnel IP.
             client = connectAndUpdate(vtep);
@@ -622,7 +622,7 @@ public class VtepClusterClient {
 
         // Now try to write it to the VTEP
         VTEP vtep = getVtepOrThrow(mgmtIp, true);
-        VtepDataClient client;
+        LegacyVtepDataClient client;
         try {
             client = connectAndUpdate(vtep);
         } catch (GatewayTimeoutHttpException e) {
@@ -651,7 +651,7 @@ public class VtepClusterClient {
 
     public void deleteVxLanPort(VxLanPort vxLanPort)
             throws SerializationException, StateAccessException {
-        VtepDataClient client = connect(vxLanPort.getMgmtIpAddr(),
+        LegacyVtepDataClient client = connect(vxLanPort.getMgmtIpAddr(),
                                         vxLanPort.getMgmtPort());
         try {
             deleteVxLanPort(client, vxLanPort);
@@ -660,7 +660,7 @@ public class VtepClusterClient {
         }
     }
 
-    private void deleteVxLanPort(VtepDataClient vtepClient, VxLanPort vxlanPort)
+    private void deleteVxLanPort(LegacyVtepDataClient vtepClient, VxLanPort vxlanPort)
             throws SerializationException, StateAccessException {
 
         // Delete Midonet VXLAN port. This also deletes all

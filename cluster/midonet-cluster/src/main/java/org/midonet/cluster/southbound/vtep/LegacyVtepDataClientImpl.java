@@ -63,10 +63,10 @@ import static org.midonet.cluster.southbound.vtep.model.VtepModelTranslator.toMi
  * allowing multiple users to share the same connection and to recover
  * automatically from a connection failure.
  */
-public class VtepDataClientImpl extends VtepDataClientBase {
+public class LegacyVtepDataClientImpl extends LegacyVtepDataClientBase {
 
     private static final Logger log =
-        LoggerFactory.getLogger(VtepDataClientImpl.class);
+        LoggerFactory.getLogger(LegacyVtepDataClientImpl.class);
 
     /**
      * Constructor.
@@ -74,9 +74,9 @@ public class VtepDataClientImpl extends VtepDataClientBase {
      * @param configurationService The OVS-DB configuration service.
      * @param connectionService The OVS-DB connection service.
      */
-    protected VtepDataClientImpl(VtepEndPoint endPoint,
-                                 ConfigurationService configurationService,
-                                 ConnectionService connectionService) {
+    protected LegacyVtepDataClientImpl(VtepEndPoint endPoint,
+                                       ConfigurationService configurationService,
+                                       ConnectionService connectionService) {
         super(endPoint, configurationService, connectionService);
     }
 
