@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,24 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.brain.southbound.vtep;
 
-import org.midonet.cluster.data.vtep.model.VtepEndPoint;
+package org.midonet.vtep.schema;
+
+import org.opendaylight.ovsdb.lib.schema.DatabaseSchema;
 
 /**
- * A checked exception for a VTEP data vtep.
+ * Remote multicast mac table
  */
-public class VtepException extends Exception {
+public final class McastMacsRemoteTable extends McastMacsTable {
+    static private final String TB_NAME = "Mcast_Macs_Remote";
 
-    private static final long serialVersionUID = -7802562175020274399L;
-    public final VtepEndPoint vtep;
-
-    public VtepException(VtepEndPoint vtep) {
-        this.vtep = vtep;
-    }
-
-    public VtepException(VtepEndPoint vtep, String message) {
-        super(message);
-        this.vtep = vtep;
+    public McastMacsRemoteTable(DatabaseSchema databaseSchema) {
+        super(databaseSchema, TB_NAME);
     }
 }

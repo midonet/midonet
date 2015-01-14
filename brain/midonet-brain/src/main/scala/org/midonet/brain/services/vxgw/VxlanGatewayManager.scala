@@ -35,6 +35,7 @@ import org.midonet.cluster.DataClient
 import org.midonet.cluster.data.Bridge
 import org.midonet.cluster.data.Bridge.UNTAGGED_VLAN_ID
 import org.midonet.cluster.data.ports.VxLanPort
+import org.midonet.cluster.data.vtep.model.MacLocation
 import org.midonet.midolman.serialization.SerializationException
 import org.midonet.midolman.state.Directory.DefaultTypedWatcher
 import org.midonet.midolman.state.ReplicatedMap.Watcher
