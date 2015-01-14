@@ -81,8 +81,6 @@ abstract class VtepConfig(val mgmtIp: IPv4Addr, val mgmtPort: Int) {
     def removeLogicalSwitch(name: String): Try[Unit]
 }
 
-class VtepConfigException(msg: String) extends RuntimeException(msg)
-
 /** Offers a pool of interfaces to hardware VTEPs. */
 class VtepPool(nodeId: UUID, midoDb: DataClient,
                zkConnWatcher: ZookeeperConnectionWatcher,
