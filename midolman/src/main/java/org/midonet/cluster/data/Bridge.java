@@ -164,13 +164,15 @@ public class Bridge extends Entity.Base<UUID, Bridge.Data, Bridge>
                     Objects.equals(inboundFilter, that.inboundFilter) &&
                     Objects.equals(outboundFilter, that.outboundFilter) &&
                     Objects.equals(vxLanPortId, that.vxLanPortId) &&
+                    Objects.equals(vxLanPortIds, that.vxLanPortIds) &&
                     Objects.equals(name, that.name);
         }
 
         @Override
         public int hashCode() {
             return Objects.hash(tunnelKey, adminStateUp, inboundFilter,
-                                outboundFilter, vxLanPortId, name);
+                                outboundFilter, vxLanPortId, vxLanPortIds,
+                                name);
         }
 
         @Override
@@ -181,7 +183,7 @@ public class Bridge extends Entity.Base<UUID, Bridge.Data, Bridge>
                    ", vxLanPortId=" + vxLanPortId +
                    ", vxLanPortIds=" + vxLanPortIds +
                    ", name=" + name +
-                    ", adminStateUp=" + adminStateUp + '}';
+                   ", adminStateUp=" + adminStateUp + '}';
         }
     }
 }
