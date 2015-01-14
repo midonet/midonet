@@ -11,6 +11,7 @@ import org.opendaylight.ovsdb.lib.schema.ColumnSchema;
 import org.opendaylight.ovsdb.lib.schema.DatabaseSchema;
 import org.opendaylight.ovsdb.lib.schema.GenericTableSchema;
 
+import org.midonet.cluster.data.vtep.model.VtepEntry;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.cluster.data.vtep.model.PhysicalLocator;
 
@@ -29,6 +30,7 @@ public final class PhysicalLocatorTable extends Table {
     }
 
     /** Get the schema of the columns of this table */
+    @Override
     public List<ColumnSchema<GenericTableSchema, ?>> getColumnSchemas() {
         List<ColumnSchema<GenericTableSchema, ?>> cols = super.getColumnSchemas();
         cols.add(getEncapsulationSchema());
@@ -81,18 +83,31 @@ public final class PhysicalLocatorTable extends Table {
     /**
      * Extract the physical switch information from the table entry
      */
-    public PhysicalLocator parsePhysicalLocator(Row<GenericTableSchema> row) {
-        return new PhysicalLocator(parseUuid(row), parseDstIp(row),
-                                   parseEncapsulation(row));
+    @Override
+    @SuppressWarnings(value = "unckecked")
+    public <E extends VtepEntry>
+    E parseEntry(Row<GenericTableSchema> row, Class<E> clazz)
+        throws IllegalArgumentException {
+        if (!clazz.isAssignableFrom(PhysicalLocator.class))
+            throw new IllegalArgumentException("wrong entry type " + clazz +
+                                               " for table " + this.getClass());
+        return (E)PhysicalLocator.apply(parseUuid(row), parseDstIp(row),
+                                        parseEncapsulation(row));
     }
 
     /**
      * Generate an insert command
      */
-    public Insert<GenericTableSchema> insert(PhysicalLocator loc) {
+    @Override
+    public <E extends VtepEntry> OvsdbInsert insert(E row, Class<E> clazz)
+        throws IllegalArgumentException {
+        if (!PhysicalLocator.class.isAssignableFrom(clazz))
+            throw new IllegalArgumentException("wrong entry type " + clazz +
+                                               " for table " + this.getClass());
+        PhysicalLocator loc = (PhysicalLocator)row;
         Insert<GenericTableSchema> op = super.insert(loc.uuid());
         op.value(getEncapsulationSchema(), loc.encapsulation());
         op.value(getDstIpSchema(), loc.dstIpString());
-        return op;
+        return new OvsdbInsert(op);
     }
 }
