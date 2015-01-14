@@ -1,0 +1,95 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa2559ec_9f92e79d",
+        "filename": "midolman/src/deb/bin/wdog",
+        "patchSetId": 4
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-01-14T14:32:29Z",
+      "side": 1,
+      "message": "Oh, you\u0027re following .NET\u0027s naming convention. Neat!",
+      "revId": "38751294f7ea9c6f9210885e1d0cbaeaebd6a911",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_9fd94786",
+        "filename": "midolman/src/deb/bin/wdog",
+        "patchSetId": 4
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-01-14T14:32:29Z",
+      "side": 1,
+      "message": "shouldn\u0027t we break the loop?",
+      "revId": "38751294f7ea9c6f9210885e1d0cbaeaebd6a911",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_7ff3b30a",
+        "filename": "midolman/src/deb/bin/wdog",
+        "patchSetId": 4
+      },
+      "lineNbr": 143,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-01-14T14:32:29Z",
+      "side": 1,
+      "message": "do we need running if we always do sys.exit?",
+      "revId": "38751294f7ea9c6f9210885e1d0cbaeaebd6a911",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_3fe93b1b",
+        "filename": "midolman/src/deb/bin/wdog",
+        "patchSetId": 4
+      },
+      "lineNbr": 229,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-01-14T14:32:29Z",
+      "side": 1,
+      "message": "to a named",
+      "revId": "38751294f7ea9c6f9210885e1d0cbaeaebd6a911",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_1feef722",
+        "filename": "midolman/src/deb/bin/wdog",
+        "patchSetId": 4
+      },
+      "lineNbr": 229,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-01-14T14:32:29Z",
+      "side": 1,
+      "message": "WDOG PIPE IN THE HOUSE!",
+      "range": {
+        "startLine": 229,
+        "startChar": 66,
+        "endLine": 229,
+        "endChar": 75
+      },
+      "revId": "38751294f7ea9c6f9210885e1d0cbaeaebd6a911",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
