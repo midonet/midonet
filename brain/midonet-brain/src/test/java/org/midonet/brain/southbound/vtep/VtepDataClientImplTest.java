@@ -61,13 +61,14 @@ import rx.subjects.PublishSubject;
 import mockit.Expectations;
 import mockit.Mocked;
 
-import org.midonet.brain.southbound.vtep.model.LogicalSwitch;
 import org.midonet.brain.southbound.vtep.model.McastMac;
 import org.midonet.brain.southbound.vtep.model.PhysicalPort;
 import org.midonet.brain.southbound.vtep.model.PhysicalSwitch;
 import org.midonet.brain.southbound.vtep.model.UcastMac;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
+import org.midonet.cluster.data.vtep.model.LogicalSwitch;
+import org.midonet.cluster.data.vtep.model.VtepMAC;
 
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.Assert.assertEquals;
@@ -407,7 +408,7 @@ public class VtepDataClientImplTest {
 
     @Test
     public void testAddMcastMacRemoteUnknownDst() throws Exception {
-        testAddMcastMacRemote(VtepMAC.UNKNOWN_DST, IPv4Addr.apply("10.2.1.3"));
+        testAddMcastMacRemote(VtepMAC.UNKNOWN_DST(), IPv4Addr.apply("10.2.1.3"));
     }
 
     private void testAddUcastMacRemote(final MAC mac, final IPv4Addr macIp,
@@ -825,9 +826,9 @@ public class VtepDataClientImplTest {
         log.info("Logical switches : {}", lsList);
 
         for (LogicalSwitch ls : lsList) {
-            if (ls.name.startsWith("mn-")) {
-                log.info("Deleting logical switch {}", ls.name);
-                Status status = client.deleteLogicalSwitch(ls.name);
+            if (ls.name().startsWith("mn-")) {
+                log.info("Deleting logical switch {}", ls.name());
+                Status status = client.deleteLogicalSwitch(ls.name());
                 assertTrue(status.isSuccess());
             }
         }
@@ -854,12 +855,12 @@ public class VtepDataClientImplTest {
         bindings.add(new ImmutablePair<>(PHYSICAL_PORT_0, (short) 101));
         bindings.add(new ImmutablePair<>(PHYSICAL_PORT_0, (short)102));
 
-        Status status = client.addBindings(ls.uuid, bindings);
+        Status status = client.addBindings(ls.uuid(), bindings);
         assertTrue(status.isSuccess());
 
         Collection<Pair<org.opendaylight.ovsdb.lib.notation.UUID, Short>> bList
-            = client.listPortVlanBindings(ls.uuid);
-        log.info("Bindings for logical switch {} : {}", ls.uuid, bList);
+            = client.listPortVlanBindings(ls.uuid());
+        log.info("Bindings for logical switch {} : {}", ls.uuid(), bList);
 
         status = client.deleteBinding(PHYSICAL_PORT_0, (short)100);
         assertTrue(status.isSuccess());
@@ -889,13 +890,13 @@ public class VtepDataClientImplTest {
         LogicalSwitch ls = addLogicalSwitch(client);
         assertNotNull(ls);
 
-        Status status = client.addUcastMacRemote(ls.name, mac, macIp, tunnelIp);
+        Status status = client.addUcastMacRemote(ls.name(), mac, macIp, tunnelIp);
         assertTrue(status.isSuccess());
 
-        status = client.deleteAllUcastMacRemote(ls.name, mac);
+        status = client.deleteAllUcastMacRemote(ls.name(), mac);
         assertTrue(status.isSuccess());
 
-        status = client.deleteLogicalSwitch(ls.name);
+        status = client.deleteLogicalSwitch(ls.name());
         assertTrue(status.isSuccess());
 
         client.disconnect(owner, false);
@@ -907,7 +908,7 @@ public class VtepDataClientImplTest {
     public void testVtepAddDeleteMcastMacRemote() throws Exception {
         java.util.UUID owner = java.util.UUID.randomUUID();
 
-        VtepMAC mac = VtepMAC.UNKNOWN_DST;
+        VtepMAC mac = VtepMAC.UNKNOWN_DST();
         IPv4Addr tunnelIp = IPv4Addr.fromString("10.0.0.1");
 
         VtepDataClient client = provider.connect(
@@ -918,13 +919,13 @@ public class VtepDataClientImplTest {
         LogicalSwitch ls = addLogicalSwitch(client);
         assertNotNull(ls);
 
-        Status status = client.addMcastMacRemote(ls.name, mac, tunnelIp);
+        Status status = client.addMcastMacRemote(ls.name(), mac, tunnelIp);
         assertTrue(status.isSuccess());
 
-        status = client.deleteAllMcastMacRemote(ls.name, mac);
+        status = client.deleteAllMcastMacRemote(ls.name(), mac);
         assertTrue(status.isSuccess());
 
-        status = client.deleteLogicalSwitch(ls.name);
+        status = client.deleteLogicalSwitch(ls.name());
         assertTrue(status.isSuccess());
 
         client.disconnect(owner, false);
@@ -942,14 +943,14 @@ public class VtepDataClientImplTest {
         LogicalSwitch ls = client.getLogicalSwitch(status.getUuid());
         log.info("Logical switch: {}", ls);
         assertNotNull(ls);
-        assertEquals(ls.uuid, status.getUuid());
+        assertEquals(ls.uuid(), status.getUuid());
 
         return ls;
     }
 
     public static void deleteLogicalSwitch(VtepDataClient client,
                                            LogicalSwitch ls) {
-        Status status = client.deleteLogicalSwitch(ls.name);
+        Status status = client.deleteLogicalSwitch(ls.name());
         assertTrue(status.isSuccess());
     }
 

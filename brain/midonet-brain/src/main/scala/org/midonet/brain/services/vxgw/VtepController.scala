@@ -17,6 +17,7 @@
 package org.midonet.brain.services.vxgw
 
 import java.util
+import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 
 import scala.collection.JavaConversions._
@@ -24,7 +25,6 @@ import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.util.{Failure, Success, Try}
 
-import org.opendaylight.ovsdb.lib.notation.UUID
 import org.slf4j.LoggerFactory.getLogger
 import rx.{Observer, Subscription}
 
@@ -33,6 +33,7 @@ import org.midonet.brain.services.vxgw.TunnelZoneState.FloodingProxyEvent
 import org.midonet.brain.southbound.vtep.VtepConstants.logicalSwitchNameToBridgeId
 import org.midonet.cluster.DataClient
 import org.midonet.cluster.data.VTEP
+import org.midonet.cluster.data.vtep.model.MacLocation
 import org.midonet.midolman.state.{StateAccessException, ZookeeperConnectionWatcher}
 import org.midonet.packets.IPv4Addr
 import org.midonet.util.functors._

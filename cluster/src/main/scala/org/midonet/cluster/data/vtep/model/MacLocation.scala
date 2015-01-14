@@ -13,12 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.brain.services.vxgw
-
-import org.midonet.brain.southbound.vtep.VtepMAC
-import org.midonet.packets.{MAC, IPv4Addr}
+package org.midonet.cluster.data.vtep.model
 
 import com.google.common.base.Objects
+import org.midonet.packets.{IPv4Addr, MAC}
 
 
 object MacLocation {
@@ -70,9 +68,9 @@ class MacLocation (val mac: VtepMAC, val ipAddr: IPv4Addr,
                    val logicalSwitchName: String,
                    val vxlanTunnelEndpoint: IPv4Addr) {
 
-    private val str = "MacLocation { logicalSwitchName=" + logicalSwitchName +
-                      ", mac=" + mac + ", ipAddr=" + ipAddr +
-                      ", vxlanTunnelEndpoint=" + vxlanTunnelEndpoint + " } "
+    private val str = "MacLocation{logicalSwitchName='" + logicalSwitchName +
+                      "', mac=" + mac + ", ipAddr=" + ipAddr +
+                      ", vxlanTunnelEndpoint=" + vxlanTunnelEndpoint + "}"
 
     if (mac == null) {
         throw new NullPointerException("MAC is null")

@@ -60,8 +60,8 @@ import rx.functions.Action1;
 import rx.functions.Func1;
 import rx.subjects.PublishSubject;
 
-import org.midonet.brain.southbound.vtep.model.PhysicalSwitch;
 import org.midonet.brain.southbound.vtep.model.VtepModelTranslator;
+import org.midonet.cluster.data.vtep.model.PhysicalSwitch;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.util.functors.Callback;
 
@@ -774,11 +774,10 @@ public abstract class VtepDataClientBase implements VtepDataClient {
             if (null != physicalSwitch) {
                 // If there is a physical switch, search the updates by UUID.
                 for (TableUpdate.Row<Physical_Switch> row : update.getRows()) {
-                    if (row.getId().equals(physicalSwitch.uuid.toString())) {
+                    if (row.getId().equals(physicalSwitch.uuid().toString())) {
                         physicalSwitch = VtepModelTranslator.toMido(
                             row.getNew(),
-                            new org.opendaylight.ovsdb.lib.notation.UUID(
-                                row.getId()));
+                            UUID.fromString(row.getId()));
                         physicalSwitchTunnelIp = getCurrentTunnelIp();
                         break;
                     }
@@ -790,8 +789,7 @@ public abstract class VtepDataClientBase implements VtepDataClient {
                         .contains(endPoint.mgmtIp.toString())) {
                         physicalSwitch = VtepModelTranslator.toMido(
                             row.getNew(),
-                            new org.opendaylight.ovsdb.lib.notation.UUID(
-                                row.getId()));
+                            UUID.fromString(row.getId()));
                         physicalSwitchTunnelIp = getCurrentTunnelIp();
                         break;
                     }
@@ -973,8 +971,9 @@ public abstract class VtepDataClientBase implements VtepDataClient {
         log.debug("Available physical switches for VTEP {}: {}",
                   endPoint, psList);
         for (PhysicalSwitch ps : psList) {
-            if (ps.mgmtIps.contains(mgmtIp)) {
-                log.debug("Physical switch for VTEP {}: {}", endPoint, ps.uuid);
+            if (ps.mgmtIps().contains(IPv4Addr.fromString(mgmtIp))) {
+                log.debug("Physical switch for VTEP {}: {}",
+                          endPoint, ps.uuid());
                 return ps;
             }
         }
@@ -999,7 +998,7 @@ public abstract class VtepDataClientBase implements VtepDataClient {
             Physical_Switch ovsdbPs = (Physical_Switch)e.getValue();
             res.add(VtepModelTranslator.toMido(
                 ovsdbPs,
-                new org.opendaylight.ovsdb.lib.notation.UUID(e.getKey())));
+                UUID.fromString(e.getKey())));
         }
         return res;
     }
@@ -1009,11 +1008,11 @@ public abstract class VtepDataClientBase implements VtepDataClient {
      */
     @Nullable
     IPv4Addr getCurrentTunnelIp() {
-        if (physicalSwitch == null || physicalSwitch.tunnelIps == null ||
-            physicalSwitch.tunnelIps.isEmpty()) {
+        if (physicalSwitch == null || physicalSwitch.tunnelIps() == null ||
+            physicalSwitch.tunnelIps().isEmpty()) {
             return null;
         }
-        return IPv4Addr.apply(physicalSwitch.tunnelIps.iterator().next());
+        return physicalSwitch.tunnelIps().iterator().next();
     }
 
     @Override
