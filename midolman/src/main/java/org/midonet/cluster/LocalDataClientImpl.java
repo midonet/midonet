@@ -3542,6 +3542,19 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
+    public Bridge bridgeGetAndWatch(UUID id, Directory.TypedWatcher watcher)
+        throws StateAccessException, SerializationException {
+        try {
+            BridgeConfig bc = bridgeZkManager.get(id, watcher);
+            Bridge b = Converter.fromBridgeConfig(bc);
+            b.setId(id);
+            return b;
+        } catch (NoStatePathException e) {
+            return null;
+        }
+    }
+
+    @Override
     public void vxLanPortIdsAsyncGet(DirectoryCallback<Set<UUID>> callback,
                                      Directory.TypedWatcher watcher)
             throws StateAccessException {

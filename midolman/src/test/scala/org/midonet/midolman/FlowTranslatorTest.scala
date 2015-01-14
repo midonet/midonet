@@ -331,7 +331,7 @@ class FlowTranslatorTest extends MidolmanSpec {
                     output(666),
                     setKey(
                         FlowKeys.tunnel(vtep2.vni.toLong, hostTunIp.toInt,
-                                        vtep2.tunIp.toInt)
+                                        vtep2.tunIp.toInt, 0)
                         ),
                     output(666)
                 ),
