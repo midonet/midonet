@@ -1097,6 +1097,9 @@ public interface DataClient {
     public boolean portWatch(UUID portId, Directory.TypedWatcher watcher)
         throws StateAccessException, SerializationException;
 
+    public Bridge bridgeGetAndWatch(UUID id, Directory.TypedWatcher watcher)
+        throws StateAccessException, SerializationException;
+
     public void vxLanPortIdsAsyncGet(DirectoryCallback<Set<UUID>> callback,
                                      Directory.TypedWatcher watcher)
         throws StateAccessException;

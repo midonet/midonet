@@ -21,6 +21,13 @@ import org.midonet.packets.IPv4Addr
 import com.google.common.base.Objects
 
 
+object MacLocation {
+    def apply(mac: VtepMAC, ipAddr: IPv4Addr, logicalSwitchName: String,
+              vxlanTunnelEndpoint: IPv4Addr): MacLocation = {
+        new MacLocation(mac, ipAddr, logicalSwitchName, vxlanTunnelEndpoint)
+    }
+}
+
 /**
  * Represents the association of a MAC in the given logical switch to one
  * VxLAN Tunnel Endpoint with the given IP.
@@ -40,11 +47,13 @@ class MacLocation (val mac: VtepMAC,
                    val logicalSwitchName: String,
                    val vxlanTunnelEndpoint: IPv4Addr) {
 
-    if (mac == null)
+    if (mac == null) {
         throw new IllegalArgumentException("MAC cannot be null")
+    }
 
-    if (logicalSwitchName == null)
+    if (logicalSwitchName == null) {
         throw new IllegalArgumentException("Logical Switch cannot be null")
+    }
 
     override def hashCode() = Objects.hashCode(mac, ipAddr, logicalSwitchName,
                                                vxlanTunnelEndpoint)

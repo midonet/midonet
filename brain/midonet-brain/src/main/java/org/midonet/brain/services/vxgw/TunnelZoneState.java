@@ -403,7 +403,7 @@ public class TunnelZoneState {
     }
 
     /**
-     * Handles chanhes to a host's is alive property.
+     * Handles changes to a host's is alive property.
      * @param host The host state that issued the notification.
      */
     private void onHostIsAliveChanged(HostState host) {
