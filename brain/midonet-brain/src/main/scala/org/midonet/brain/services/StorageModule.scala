@@ -22,6 +22,7 @@ import org.apache.curator.framework.{CuratorFramework, CuratorFrameworkFactory}
 import org.apache.curator.retry.ExponentialBackoffRetry
 
 import org.midonet.cluster.data.storage.{Storage, ZookeeperObjectMapper}
+import org.midonet.cluster.data.storage.FieldBinding.DeleteAction.{CLEAR, ERROR}
 import org.midonet.cluster.models.C3PO.C3POState
 import org.midonet.cluster.models.Neutron._
 import org.midonet.cluster.models.Topology._
@@ -68,6 +69,8 @@ class StorageModule(cfgProvider: ConfigProvider) extends AbstractModule {
              classOf[SecurityGroup],
              classOf[VIP]
              ).foreach(storage.registerClass)
+        storage.declareBinding(classOf[Network], "port_ids", ERROR,
+                               classOf[Port], "network_id", CLEAR)
         storage.build()
         storage
     }
