@@ -55,16 +55,19 @@ class OvsdbTranslatorTest extends FeatureSpec with Matchers {
         }
         scenario("uuid map translations") {
             val idMap = Map(
-                (random.nextInt(), UUID.randomUUID()),
-                (random.nextInt(), UUID.randomUUID()),
-                (random.nextInt(), UUID.randomUUID()),
-                (random.nextInt(), UUID.randomUUID())
+                (random.nextInt().asInstanceOf[Integer], UUID.randomUUID()),
+                (random.nextInt().asInstanceOf[Integer], UUID.randomUUID()),
+                (random.nextInt().asInstanceOf[Integer], UUID.randomUUID()),
+                (random.nextInt().asInstanceOf[Integer], UUID.randomUUID())
             )
+            val converted = OvsdbTranslator.toOvsdb(idMap)
             val ovsMap = new util.HashMap[Long, OvsdbUUID]()
             for (e <- idMap) {
                 ovsMap.put(e._1.longValue(), OvsdbTranslator.toOvsdb(e._2))
             }
+            converted shouldBe ovsMap
             OvsdbTranslator.fromOvsdb(ovsMap) shouldBe mapAsJavaMap(idMap)
+            OvsdbTranslator.fromOvsdb(converted) shouldBe mapAsJavaMap(idMap)
 
             val nullMap: util.Map[Long, OvsdbUUID] = null
             OvsdbTranslator.fromOvsdb(nullMap).isEmpty shouldBe true

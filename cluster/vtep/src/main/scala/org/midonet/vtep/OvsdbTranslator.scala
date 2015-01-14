@@ -19,8 +19,6 @@ package org.midonet.vtep
 import java.util
 import java.util.UUID
 
-import scala.collection.JavaConversions.{asScalaSet, mapAsJavaMap, mapAsScalaMap, setAsJavaSet}
-
 import org.opendaylight.ovsdb.lib.notation.{UUID => OvsdbUUID}
 
 import org.midonet.packets.IPv4Addr
@@ -44,16 +42,29 @@ object OvsdbTranslator {
 
     /** Convert a set of OvsdbUUIDs to a set of Java UUIDs
       * The input set can be a null value, resulting in an empty output set */
-    def fromOvsdb(inSet: util.Set[_]): util.Set[UUID] =
-        if (inSet == null) new util.HashSet[UUID]()
-        else setAsJavaSet(asScalaSet[OvsdbUUID](
-            inSet.asInstanceOf[util.Set[OvsdbUUID]]).map(fromOvsdb))
+    def fromOvsdb(inSet: util.Set[_]): util.Set[UUID] = {
+        val outSet = new util.HashSet[UUID]()
+        if (inSet != null) {
+            val it = inSet.iterator()
+            while (it.hasNext) {
+                val id = it.next().asInstanceOf[OvsdbUUID]
+                outSet.add(fromOvsdb(id))
+            }
+        }
+        outSet
+    }
 
     /** Convert a set of Java UUIDs to a set of ovsdb UUIDs
       * The input set can be a null value, resulting in an empty output set */
-    def toOvsdb(inSet: Set[util.UUID]): util.Set[OvsdbUUID] =
-        if (inSet == null) new util.HashSet[OvsdbUUID]()
-        else setAsJavaSet(inSet.map(toOvsdb))
+    def toOvsdb(inSet: Set[UUID]): util.Set[OvsdbUUID] = {
+        val outSet = new util.HashSet[OvsdbUUID]()
+        if (inSet != null) {
+            for (id: util.UUID <- inSet) {
+                outSet.add(toOvsdb(id))
+            }
+        }
+        outSet
+    }
 
     /** Convert from (Long -> OvsdbUUID) to a map of (Integer -> java UUID)
       * The input map can be a null value, resulting in an empty output set
@@ -67,31 +78,52 @@ object OvsdbTranslator {
       * compatible with the existing Midonet code. Note that this is not
       * true for other unused ovsdb tables (such as the maps in the
       * Logical_Router table) */
-    def fromOvsdb(inMap: util.Map[_, _]): util.Map[Integer, UUID] =
-        if (inMap == null) new util.HashMap[Integer, UUID]()
-        else mapAsJavaMap(
-            mapAsScalaMap(inMap.asInstanceOf[util.Map[Integer, OvsdbUUID]])
-                .map(e => (e._1, fromOvsdb(e._2)))
-                .toMap
-        )
+    def fromOvsdb(inMap: util.Map[_, _]): util.Map[Integer, UUID] = {
+        val outMap = new util.HashMap[Integer, UUID]()
+        if (inMap != null) {
+            val it = inMap.entrySet().iterator()
+            while (it.hasNext) {
+                val e = it.next().asInstanceOf[util.Map.Entry[Long, OvsdbUUID]]
+                outMap.put(e.getKey.toInt, fromOvsdb(e.getValue))
+            }
+        }
+        outMap
+    }
 
     /** Convert from (Integer -> java UUID) to a map of (Long -> OvsdbUUID)
       * The input map can be a null value, resulting in an empty output map */
-    def toOvsdb(inMap: Map[Integer, util.UUID]): util.Map[Long, OvsdbUUID] =
-        if (inMap == null) new util.HashMap[Long, OvsdbUUID]()
-        else mapAsJavaMap(inMap.map(e => (e._1.toLong, toOvsdb(e._2))))
+    def toOvsdb(inMap: Map[Integer, util.UUID]): util.Map[Long, OvsdbUUID] = {
+        val outMap = new util.HashMap[Long, OvsdbUUID]()
+        if (inMap != null) {
+            for (e <- inMap) {
+                outMap.put(e._1.toLong, toOvsdb(e._2))
+            }
+        }
+        outMap
+    }
 
     /** Convert from a set of strings to a set of the ip addresses */
-    def fromOvsdbIpSet(inSet: util.Set[_]): util.Set[IPv4Addr] =
-        if (inSet == null) new util.HashSet[IPv4Addr]()
-        else setAsJavaSet(
-            asScalaSet(inSet.asInstanceOf[util.Set[String]]).collect({
-                case s: String if s.nonEmpty => IPv4Addr.fromString(s)
-            })
-        )
+    def fromOvsdbIpSet(inSet: util.Set[_]): util.Set[IPv4Addr] = {
+        val outSet = new util.HashSet[IPv4Addr]()
+        if (inSet != null) {
+            val it = inSet.iterator()
+            while (it.hasNext) {
+                val s = it.next().asInstanceOf[String]
+                if (s.nonEmpty)
+                    outSet.add(IPv4Addr.fromString(s))
+            }
+        }
+        outSet
+    }
 
     /** Convert from a set of IP addresses to a set of ovsdb strings */
-    def toOvsdbIpSet(inSet: Set[IPv4Addr]): util.Set[String] =
-        if (inSet == null) new util.HashSet[String]()
-        else setAsJavaSet(inSet.collect{case s: IPv4Addr => s.toString})
+    def toOvsdbIpSet(inSet: Set[IPv4Addr]): util.Set[String] = {
+        val outSet = new util.HashSet[String]()
+        if (inSet != null) {
+            for (ip <- inSet) {
+                outSet.add(ip.toString)
+            }
+        }
+        outSet
+    }
 }
