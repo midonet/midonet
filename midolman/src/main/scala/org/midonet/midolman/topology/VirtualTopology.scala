@@ -16,7 +16,7 @@
 package org.midonet.midolman.topology
 
 import java.util.UUID
-import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.{ThreadFactory, Executors, ConcurrentHashMap}
 
 import scala.concurrent.{Future, Promise}
 import scala.reflect._
@@ -24,9 +24,10 @@ import scala.reflect._
 import com.google.inject.Inject
 
 import rx.Observable
+import rx.schedulers.Schedulers
 
 import org.midonet.cluster.DataClient
-import org.midonet.cluster.data.storage.Storage
+import org.midonet.cluster.data.storage.StorageWithOwnership
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.midolman.services.MidolmanActorsService
@@ -36,8 +37,7 @@ import org.midonet.sdn.flows.FlowTagger.FlowTag
 import org.midonet.util.reactivex._
 
 /**
- * This is a companion object of the
- * [[org.midonet.midolman.topology.VirtualTopology]] class, allowing the
+ * This is a companion object of the [[VirtualTopology]] class, allowing the
  * callers to query the topology using a static method call. The agent should
  * create a single instance of the class, with references to the cluster/storage
  * and the agent actor system.
@@ -57,9 +57,8 @@ object VirtualTopology extends MidolmanLogging {
     /**
      * Tries to get the virtual device with the specified identifier.
      * @return The topology device if it is found in the cache of the virtual
-     *         topology manager. The method throws a
-     *         [[org.midonet.midolman.NotYetException]] if the device is not yet
-     *         available in the cache, or an [[java.lang.Exception]] if
+     *         topology manager. The method throws a [[NotYetException]] if the
+     *         device is not yet available in the cache, or an [[Exception]] if
      *         retrieving the device failed.
      */
     @throws[NotYetException]
@@ -153,7 +152,7 @@ object VirtualTopology extends MidolmanLogging {
  * | Port/Network/RouterMapper extends DeviceMapper | (1 per device)
  * +------------------------------------------------+
  */
-class VirtualTopology @Inject() (val store: Storage,
+class VirtualTopology @Inject() (val store: StorageWithOwnership,
                                  val dataClient: DataClient,
                                  val actorsService: MidolmanActorsService)
         extends MidolmanLogging {
@@ -161,6 +160,17 @@ class VirtualTopology @Inject() (val store: Storage,
     import org.midonet.midolman.topology.VirtualTopology._
 
     override def logSource = "org.midonet.devices.devices-service"
+
+    @volatile private[topology] var threadId: Long = _
+    private[topology] val executor = Executors.newSingleThreadExecutor(
+        new ThreadFactory {
+            override def newThread(r: Runnable): Thread = {
+                val thread = new Thread(r, "devices-service")
+                threadId = thread.getId
+                thread
+            }
+        })
+    private[topology] val scheduler = Schedulers.from(executor)
 
     private[topology] val devices =
         new ConcurrentHashMap[UUID, Device]()

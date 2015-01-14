@@ -27,7 +27,7 @@ import rx.Observable
 import rx.subjects.BehaviorSubject
 import rx.subscriptions.Subscriptions
 
-import org.midonet.cluster.data.storage.Storage
+import org.midonet.cluster.data.storage.StorageWithOwnership
 import org.midonet.midolman.topology.VirtualTopology.Device
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.util.functors._
@@ -78,7 +78,7 @@ class DeviceMapperTest extends MidolmanSpec {
     type TestableObserver = AwaitableObserver[TestableDevice]
 
     @Mocked
-    var storage: Storage = _
+    var storage: StorageWithOwnership = _
     implicit var vt: VirtualTopology = _
 
     override def beforeTest(): Unit = {
