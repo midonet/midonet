@@ -13,43 +13,42 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.brain.services.vxgw
-
-import org.midonet.brain.southbound.vtep.VtepMAC
-import org.midonet.packets.{MAC, IPv4Addr}
+package org.midonet.cluster.data.vtep.model
 
 import com.google.common.base.Objects
+import org.midonet.packets.{IPv4Addr, MAC}
 
 
 object MacLocation {
 
-    /** A Mac Location with all fields */
+    /** A Vtep-Mac Location with all fields */
     def apply(mac: VtepMAC, ipAddr: IPv4Addr, logicalSwitchName: String,
               vxlanTunnelEndpoint: IPv4Addr): MacLocation = {
         new MacLocation(mac, ipAddr, logicalSwitchName, vxlanTunnelEndpoint)
     }
 
+    /** A Vtep-Mac Location without an associated IP */
+    def apply(mac: VtepMAC, logicalSwitchName: String,
+              vxlanTunnelEndpoint: IPv4Addr): MacLocation = {
+        new MacLocation(mac, null, logicalSwitchName, vxlanTunnelEndpoint)
+    }
+
     /** A Mac Location that also has the given IP */
     def apply(mac: MAC, ipAddr: IPv4Addr, logicalSwitchName: String,
-              vxlanTunnelEndpoint: IPv4Addr): MacLocation = {
-        new MacLocation(VtepMAC.fromMac(mac), ipAddr, logicalSwitchName,
-                        vxlanTunnelEndpoint)
-    }
+              vxlanTunnelEndpoint: IPv4Addr): MacLocation =
+        apply(VtepMAC.fromMac(mac), ipAddr, logicalSwitchName,
+              vxlanTunnelEndpoint)
 
     /** A Mac Location that is not associated to any IP */
     def apply(mac: MAC, logicalSwitchName: String,
-              vxlanTunnelEndpoint: IPv4Addr): MacLocation = {
-        new MacLocation(VtepMAC.fromMac(mac), null, logicalSwitchName,
-                        vxlanTunnelEndpoint)
-    }
+              vxlanTunnelEndpoint: IPv4Addr): MacLocation =
+        apply(mac, null, logicalSwitchName, vxlanTunnelEndpoint)
 
     /** A MacLocation for the "unknown-dst" MAC is at the given IP for the given
       * logical switch name. */
-    def unknownAt(vxlanTunnelEndpoint: IPv4Addr, logicalSwitchName: String) = {
-        new MacLocation(VtepMAC.UNKNOWN_DST, null, logicalSwitchName,
-                        vxlanTunnelEndpoint)
-    }
-
+    def unknownAt(vxlanTunnelEndpoint: IPv4Addr, logicalSwitchName: String)
+        : MacLocation =
+        apply(VtepMAC.UNKNOWN_DST, null, logicalSwitchName, vxlanTunnelEndpoint)
 }
 
 /**
@@ -70,9 +69,9 @@ class MacLocation (val mac: VtepMAC, val ipAddr: IPv4Addr,
                    val logicalSwitchName: String,
                    val vxlanTunnelEndpoint: IPv4Addr) {
 
-    private val str = "MacLocation { logicalSwitchName=" + logicalSwitchName +
-                      ", mac=" + mac + ", ipAddr=" + ipAddr +
-                      ", vxlanTunnelEndpoint=" + vxlanTunnelEndpoint + " } "
+    private val str = "MacLocation{logicalSwitchName='" + logicalSwitchName +
+                      "', mac=" + mac + ", ipAddr='" + ipAddr +
+                      "', vxlanTunnelEndpoint=" + vxlanTunnelEndpoint + "}"
 
     if (mac == null) {
         throw new NullPointerException("MAC is null")
@@ -86,15 +85,12 @@ class MacLocation (val mac: VtepMAC, val ipAddr: IPv4Addr,
                                              vxlanTunnelEndpoint)
 
     override def toString = str
-    override def equals(o: Any): Boolean = {
-        o match {
-            case that: MacLocation =>
-                Objects.equal(mac, that.mac) &&
-                Objects.equal(logicalSwitchName, that.logicalSwitchName) &&
-                Objects.equal(ipAddr, that.ipAddr) &&
-                Objects.equal(vxlanTunnelEndpoint, that.vxlanTunnelEndpoint)
-            case _ => false
-        }
+    override def equals(o: Any): Boolean = o match {
+        case that: MacLocation =>
+            Objects.equal(mac, that.mac) &&
+            Objects.equal(logicalSwitchName, that.logicalSwitchName) &&
+            Objects.equal(ipAddr, that.ipAddr) &&
+            Objects.equal(vxlanTunnelEndpoint, that.vxlanTunnelEndpoint)
+        case _ => false
     }
-
 }
