@@ -14,10 +14,28 @@
  * limitations under the License.
  */
 
-package org.midonet.cluster.data.storage
+package org.midonet.cluster.data.vtep.model
 
-import rx.observers.TestObserver
+import java.util.{Objects, UUID}
 
-import org.midonet.util.reactivex.AwaitableObserver
+import org.midonet.packets.IPv4Addr
 
-class TestAwaitableObserver[T] extends TestObserver[T] with AwaitableObserver[T]
+/**
+ * A class to represent a VTEP's table entry
+ */
+abstract class VtepEntry {
+    /** All entries from vtep tables must have a uuid */
+    val uuid: UUID
+
+    /** The hash code is based on uuid */
+    override def hashCode: Int = uuid.hashCode()
+}
+
+
+
+
+
+
+
+
+

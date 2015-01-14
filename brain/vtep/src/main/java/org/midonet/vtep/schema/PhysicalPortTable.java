@@ -24,11 +24,13 @@ import java.util.Set;
 import org.opendaylight.ovsdb.lib.notation.Condition;
 import org.opendaylight.ovsdb.lib.notation.Function;
 import org.opendaylight.ovsdb.lib.notation.Row;
+import org.opendaylight.ovsdb.lib.operations.Insert;
 import org.opendaylight.ovsdb.lib.schema.ColumnSchema;
 import org.opendaylight.ovsdb.lib.schema.DatabaseSchema;
 import org.opendaylight.ovsdb.lib.schema.GenericTableSchema;
 
 import org.midonet.cluster.data.vtep.model.PhysicalPort;
+import org.midonet.cluster.data.vtep.model.VtepEntry;
 
 import static org.midonet.vtep.OvsdbTranslator.fromOvsdb;
 
@@ -48,6 +50,7 @@ public final class PhysicalPortTable extends Table {
     }
 
     /** Get the schema of the columns of this table */
+    @Override
     public List<ColumnSchema<GenericTableSchema, ?>> getColumnSchemas() {
         List<ColumnSchema<GenericTableSchema, ?>> cols = super.getColumnSchemas();
         cols.add(getNameSchema());
@@ -125,11 +128,42 @@ public final class PhysicalPortTable extends Table {
     /**
      * Extract the physical port information from the table entry
      */
+    @Override
+    @SuppressWarnings(value = "unckecked")
+    public <E extends VtepEntry> E parseEntry(Row<GenericTableSchema> row,
+                                              Class<E> clazz)
+        throws IllegalArgumentException {
+        if (!clazz.isAssignableFrom(PhysicalPort.class))
+            throw new IllegalArgumentException("wrong entry type " + clazz +
+                                               " for table " + this.getClass());
+        return (E)PhysicalPort.apply(parseUuid(row), parseName(row),
+                                     parseDescription(row),
+                                     parseVlanBindings(row),
+                                     parseVlanStats(row),
+                                     parsePortFaultStatus(row));
+    }
     public PhysicalPort parsePhysicalPort(Row<GenericTableSchema> row) {
-        return PhysicalPort.apply(parseUuid(row), parseName(row),
-                                  parseDescription(row),
-                                  parseVlanBindings(row),
-                                  parseVlanStats(row),
-                                  parsePortFaultStatus(row));
+        return parseEntry(row, PhysicalPort.class);
+    }
+
+    /**
+     * Insertion of physical port information
+     */
+    @Override
+    public <E extends VtepEntry>
+    Insert<GenericTableSchema> insert(E row, Class<E> clazz)
+        throws IllegalArgumentException {
+        if (!PhysicalPort.class.isAssignableFrom(clazz))
+            throw new IllegalArgumentException("wrong entry type " + clazz +
+                                               " for table " + this.getClass());
+        PhysicalPort port = (PhysicalPort)row;
+        Insert<GenericTableSchema> op = super.insert(port.uuid());
+        op.value(getNameSchema(), port.name());
+        op.value(getDescriptionSchema(), port.description());
+        // TODO fix the following fields
+        //op.value(getVlanBindingsSchema(), ...)
+        //op.value(getVlanStatsSchema(), ...)
+        //op.value(getPortFaultStatusSchema(), ...)
+        return op;
     }
 }
