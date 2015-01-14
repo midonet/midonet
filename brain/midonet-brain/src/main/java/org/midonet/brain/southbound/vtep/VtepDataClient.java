@@ -33,6 +33,9 @@ import org.opendaylight.ovsdb.plugin.StatusWithUuid;
 import rx.Observable;
 import rx.Subscription;
 
+import org.midonet.cluster.data.vtep.VtepException;
+import org.midonet.cluster.data.vtep.VtepNotConnectedException;
+import org.midonet.cluster.data.vtep.VtepStateException;
 import org.midonet.cluster.data.vtep.model.LogicalSwitch;
 import org.midonet.cluster.data.vtep.model.McastMac;
 import org.midonet.cluster.data.vtep.model.PhysicalPort;
