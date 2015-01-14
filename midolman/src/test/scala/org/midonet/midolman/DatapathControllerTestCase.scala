@@ -16,32 +16,28 @@
 package org.midonet.midolman
 
 import scala.collection.mutable
-import scala.concurrent.duration._
+
 import akka.testkit.TestProbe
+
 import org.junit.experimental.categories.Category
 import org.junit.runner.RunWith
 import org.scalatest.Matchers
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.data.host.Host
-import org.midonet.cluster.data.{Bridge => ClusterBridge}
-import org.midonet.cluster.data.{Ports => ClusterPorts}
+import org.midonet.cluster.data.{Bridge => ClusterBridge, Ports => ClusterPorts}
+import org.midonet.midolman.topology.LocalPortActive
 import org.midonet.midolman.topology.VirtualToPhysicalMapper._
-import org.midonet.midolman.topology.VirtualTopologyActor.{PortRequest, BridgeRequest}
-import org.midonet.midolman.topology.rcu.{Host => RCUHost}
-import org.midonet.midolman.topology.{VirtualTopologyActor, LocalPortActive}
+import org.midonet.midolman.topology.devices.{Host => SimHost}
 import org.midonet.midolman.util.MidolmanTestCase
 import org.midonet.odp.Datapath
-import org.midonet.odp.DpPort
 import org.midonet.odp.ports.NetDevPort
-import scala.concurrent.Await
 
 @Category(Array(classOf[SimulationTests]))
 @RunWith(classOf[JUnitRunner])
 class DatapathControllerTestCase extends MidolmanTestCase with Matchers {
 
     import scala.collection.JavaConversions._
-    import DatapathController._
 
     private var portEventsProbe: TestProbe = null
     override def beforeTest() {
@@ -74,7 +70,6 @@ class DatapathControllerTestCase extends MidolmanTestCase with Matchers {
         val host = new Host(hostId()).setName("myself")
         clusterDataClient().hostsCreate(hostId(), host)
 
-        clusterDataClient().hostsAddDatapathMapping(hostId, "test")
         dpConn().futures.datapathsEnumerate().get() should have size 0
 
         // send initialization message and wait
@@ -83,10 +78,11 @@ class DatapathControllerTestCase extends MidolmanTestCase with Matchers {
         // validate the final datapath state
         val datapaths: mutable.Set[Datapath] = dpConn().futures.datapathsEnumerate().get()
 
+        // The host datapath is always equal to "midonet" even if it hasn't been set
         datapaths should have size 1
-        datapaths.head should have('name("test"))
+        datapaths.head should have('name("midonet"))
 
-        checkPortsAndTunnel("tngre-overlay","tnvxlan-overlay","tnvxlan-vtep","test")
+        checkPortsAndTunnel("tngre-overlay","tnvxlan-overlay","tnvxlan-vtep","midonet")
     }
 
     def testDatapathEmptyOnePort() {
@@ -100,7 +96,6 @@ class DatapathControllerTestCase extends MidolmanTestCase with Matchers {
         val port = ClusterPorts.bridgePort(bridge)
         port.setId(clusterDataClient().portsCreate(port))
 
-        clusterDataClient().hostsAddDatapathMapping(hostId, "test")
         materializePort(port, host, "port1")
 
         dpConn().futures.datapathsEnumerate().get() should have size 0
@@ -112,11 +107,12 @@ class DatapathControllerTestCase extends MidolmanTestCase with Matchers {
         // validate the final datapath state
         val datapaths: mutable.Set[Datapath] = dpConn().futures.datapathsEnumerate().get()
 
+        // The host datapath is always equal to "midonet" even if it hasn't been set
         datapaths should have size 1
-        datapaths.head should have('name("test"))
+        datapaths.head should have('name("midonet"))
 
         checkPortsAndTunnel("tngre-overlay","tnvxlan-overlay",
-                            "tnvxlan-vtep","test", "port1")
+                            "tnvxlan-vtep","midonet", "port1")
     }
 
     def testDatapathExistingMore() {
@@ -130,10 +126,9 @@ class DatapathControllerTestCase extends MidolmanTestCase with Matchers {
         val port = ClusterPorts.bridgePort(bridge)
         port.setId(clusterDataClient().portsCreate(port))
 
-        clusterDataClient().hostsAddDatapathMapping(hostId, "test")
         materializePort(port, host, "port1")
 
-        val dp = dpConn().futures.datapathsCreate("test").get()
+        val dp = dpConn().futures.datapathsCreate("midonet").get()
         dpConn().futures.portsCreate(dp, new NetDevPort("port2")).get()
         dpConn().futures.portsCreate(dp, new NetDevPort("port3")).get()
 
@@ -147,11 +142,12 @@ class DatapathControllerTestCase extends MidolmanTestCase with Matchers {
         val datapaths: mutable.Set[Datapath] = dpConn().futures.datapathsEnumerate().get()
         portEventsProbe.expectMsgClass(classOf[LocalPortActive])
 
+        // The host datapath is always equal to "midonet" even if it hasn't been set
         datapaths should have size 1
-        datapaths.head should have('name("test"))
+        datapaths.head should have('name("midonet"))
 
         checkPortsAndTunnel("tngre-overlay","tnvxlan-overlay",
-                            "tnvxlan-vtep","test", "port1")
+                            "tnvxlan-vtep","midonet", "port1")
     }
 
     def testDatapathBasicOperations() {
@@ -159,18 +155,17 @@ class DatapathControllerTestCase extends MidolmanTestCase with Matchers {
         val host = new Host(hostId()).setName("myself")
         clusterDataClient().hostsCreate(hostId(), host)
 
-        clusterDataClient().hostsAddDatapathMapping(hostId, "test")
-
         initializeDatapath() should not be (null)
 
         // validate the final datapath state
         val datapaths: mutable.Set[Datapath] = dpConn().futures
             .datapathsEnumerate().get()
 
+        // The host datapath is always "midonet" even if it hasn't been set
         datapaths should have size 1
-        datapaths.head should have('name("test"))
+        datapaths.head should have('name("midonet"))
 
-        checkPortsAndTunnel("tngre-overlay", "tnvxlan-overlay", "tnvxlan-vtep", "test")
+        checkPortsAndTunnel("tngre-overlay", "tnvxlan-overlay", "tnvxlan-vtep", "midonet")
     }
 
     def testInternalControllerState() {
@@ -197,11 +192,11 @@ class DatapathControllerTestCase extends MidolmanTestCase with Matchers {
         dpState.getDpPortNumberForVport(port1.getId) shouldBe (Some(port1DpId))
 
         requestOfType[HostRequest](vtpProbe())
-        val rcuHost = replyOfType[RCUHost](vtpProbe())
+        val simHost = replyOfType[SimHost](vtpProbe())
 
-        rcuHost should not be null
-        rcuHost.ports should contain key (port1.getId)
-        rcuHost.ports should contain value ("port1")
+        simHost should not be null
+        simHost.portToInterface should contain key (port1.getId)
+        simHost.portToInterface should contain value ("port1")
 
         requestOfType[LocalPortActive](vtpProbe())
 
@@ -210,7 +205,7 @@ class DatapathControllerTestCase extends MidolmanTestCase with Matchers {
         port2.setId(clusterDataClient().portsCreate(port2))
 
         materializePort(port2, host, "port2")
-        replyOfType[RCUHost](vtpProbe())
+        replyOfType[SimHost](vtpProbe())
         fishForRequestOfType[LocalPortActive](vtpProbe())
 
         val newPorts = datapathPorts(dpConn().futures.datapathsEnumerate().get().head)
