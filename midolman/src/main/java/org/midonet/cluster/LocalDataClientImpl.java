@@ -3361,6 +3361,10 @@ public class LocalDataClientImpl implements DataClient {
      * tunnel endpoint. The method returns a null IP if the endpoint cannot
      * be retrieved for any reason (bridge unbound, etc.)
      *
+     * Note that this method will return null if the bridge is not bound to
+     * any VTEP. This is because we won't be able to figure out the tunnel zone
+     * from which to extract the host's IP.
+     *
      * @param b a bridge, expected to exist, be bound to a VTEP, and contain the
      *          given port.
      * @param port a bridge port on the given bridge, that must be exterior
@@ -3374,9 +3378,9 @@ public class LocalDataClientImpl implements DataClient {
             log.warn("Bridge {} is not bound to a vtep", b.getId());
             return null;
         }
-        // TODO: add this check below to the validation
+
         // We can take a random vxlan port, since all are forced to be in the
-        // same tz
+        // same tz by the API. Or should!
         VxLanPort vxlanPort = (VxLanPort)this.portsGet(b.getVxLanPortIds()
                                                         .get(0));
         if (vxlanPort == null) {
@@ -3537,6 +3541,19 @@ public class LocalDataClientImpl implements DataClient {
             return null != portZkManager.get(portId, typedWatcher);
         } catch (NoStatePathException e) {
             return false;
+        }
+    }
+
+    @Override
+    public Bridge bridgeGetAndWatch(UUID id, Directory.TypedWatcher watcher)
+        throws StateAccessException, SerializationException {
+        try {
+            BridgeConfig bc = bridgeZkManager.get(id, watcher);
+            Bridge b = Converter.fromBridgeConfig(bc);
+            b.setId(id);
+            return b;
+        } catch (NoStatePathException e) {
+            return null;
         }
     }
 
