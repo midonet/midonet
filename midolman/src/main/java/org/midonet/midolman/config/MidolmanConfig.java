@@ -95,4 +95,7 @@ public interface MidolmanConfig
 
     @ConfigString(key = "input_channel_threading", defaultValue = "one_to_many")
     public String getInputChannelThreading();
+
+    @ConfigString(key = "datapath", defaultValue = "midonet")
+    public String getDatapath();
 }

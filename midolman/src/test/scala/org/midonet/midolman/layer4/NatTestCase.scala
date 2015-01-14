@@ -16,30 +16,26 @@
 
 package org.midonet.midolman.layer4
 
-import scala.collection.JavaConversions._
-
 import java.nio.ByteBuffer
 import java.util.UUID
 import java.{util => ju}
 
+import scala.collection.JavaConversions._
 import scala.concurrent.duration._
-
-import org.slf4j.LoggerFactory
 
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
+import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.data.Chain
 import org.midonet.cluster.data.ports.RouterPort
 import org.midonet.midolman.DeduplicationActor.DiscardPacket
-import org.midonet.midolman.FlowController.{InvalidateFlowsByTag,
-                                            WildcardFlowRemoved}
+import org.midonet.midolman.FlowController.{InvalidateFlowsByTag, WildcardFlowRemoved}
 import org.midonet.midolman.VMsBehindRouterFixture
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.layer3.Route.NextHop
-import org.midonet.midolman.rules.{NatTarget, RuleResult, Condition}
-import org.midonet.midolman.state.FlowState
-import org.midonet.midolman.state.NatState
+import org.midonet.midolman.rules.{Condition, NatTarget, RuleResult}
+import org.midonet.midolman.state.{FlowState, NatState}
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
 import org.midonet.midolman.topology.LocalPortActive
 import org.midonet.midolman.util.MidolmanTestCase
