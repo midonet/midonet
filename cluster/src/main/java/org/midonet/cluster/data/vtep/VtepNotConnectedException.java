@@ -15,9 +15,6 @@
  */
 package org.midonet.cluster.data.vtep;
 
-import org.midonet.cluster.data.vtep.VtepException;
-import org.midonet.cluster.data.vtep.model.VtepEndPoint;
-
 import org.midonet.cluster.data.vtep.model.VtepEndPoint;
 
 /**
