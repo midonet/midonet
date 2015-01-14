@@ -55,10 +55,10 @@ class HostConversionTest extends FeatureSpec with Matchers {
 
     private def assertEquals(proto: Topology.Host, zoomObj: Host) = {
         proto.getId.asJava should be(zoomObj.id)
-        proto.getPortInterfaceMappingCount should be(zoomObj.portInterfaceMapping.size)
+        proto.getPortInterfaceMappingCount should be(zoomObj.portToInterface.size)
         for (portMapping <- proto.getPortInterfaceMappingList) {
             val protoInterface = portMapping.getInterfaceName
-            val zoomInterface = zoomObj.portInterfaceMapping.get(portMapping.getPortId)
+            val zoomInterface = zoomObj.portToInterface.get(portMapping.getPortId)
             zoomInterface should be(Some(protoInterface))
         }
         proto.getTunnelZoneIdsCount shouldBe zoomObj.tunnelZoneIds.toParArray.length
@@ -81,7 +81,7 @@ class HostConversionTest extends FeatureSpec with Matchers {
     private def newZoomObj = {
         val zoomObj = new Host
         zoomObj.id = UUID.randomUUID()
-        zoomObj.portInterfaceMapping = Map(UUID.randomUUID() -> "eth0",
+        zoomObj.portToInterface = Map(UUID.randomUUID() -> "eth0",
                                            UUID.randomUUID() -> "eth1")
         zoomObj.tunnelZoneIds = Set(UUID.randomUUID(),
                                     UUID.randomUUID())
