@@ -174,7 +174,7 @@ public class Bridge extends Entity.Base<UUID, Bridge.Data, Bridge>
                    ", inboundFilter=" + inboundFilter +
                    ", outboundFilter=" + outboundFilter +
                    ", vxLanPortId=" + vxLanPortId +
-                   ", vxLanPortIds=" + vxLanPortId +
+                   ", vxLanPortIds=" + vxLanPortIds +
                    ", name=" + name +
                     ", adminStateUp=" + adminStateUp + '}';
         }

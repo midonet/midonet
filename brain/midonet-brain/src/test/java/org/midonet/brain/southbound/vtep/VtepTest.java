@@ -45,7 +45,7 @@ import org.midonet.packets.IPv4Addr;
 
 import static org.midonet.brain.southbound.vtep.VtepConstants.bridgeIdToLogicalSwitchName;
 
-public class VtepBrokerTest {
+public class VtepTest {
 
     private VtepBroker vtepBroker = null;
 
