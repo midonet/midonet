@@ -140,7 +140,7 @@ public interface DataClient {
     /**
      * Get an entity monitor for the set of bridges
      */
-    EntityIdSetMonitor<UUID> bridgesGetUuidSetMonitor(
+    public EntityIdSetMonitor<UUID> bridgesGetUuidSetMonitor(
         ZookeeperConnectionWatcher zkConnection) throws StateAccessException;
 
     List<Bridge> bridgesFindByTenant(String tenantId)
@@ -1095,6 +1095,9 @@ public interface DataClient {
      * @return true if the port exists, false otherwise.
      */
     public boolean portWatch(UUID portId, Directory.TypedWatcher watcher)
+        throws StateAccessException, SerializationException;
+
+    public Bridge bridgeGetAndWatch(UUID id, Directory.TypedWatcher watcher)
         throws StateAccessException, SerializationException;
 
     public void vxLanPortIdsAsyncGet(DirectoryCallback<Set<UUID>> callback,
