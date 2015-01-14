@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "fa2559ec_4460a235",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 172,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-01-14T10:48:56Z",
+      "side": 1,
+      "message": "Why Option? Is there a need for a distinction between a key not being defined in the map vs. being defined as None?",
+      "range": {
+        "startLine": 172,
+        "startChar": 56,
+        "endLine": 172,
+        "endChar": 62
+      },
+      "revId": "4fbfcd7965b633cb95d3342b290bf9a34eca25b4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa2559ec_449b82c9",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
         "patchSetId": 15
@@ -179,6 +202,29 @@
         "startChar": 0,
         "endLine": 452,
         "endChar": 48
+      },
+      "revId": "4fbfcd7965b633cb95d3342b290bf9a34eca25b4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_84d1facf",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 454,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-01-14T10:48:56Z",
+      "side": 1,
+      "message": "This is the same across all three non-exception cases, so it can be moved out of the match. The only difference is that you\u0027re using NEW_OBJ_VERSION instead of os.version, but since the object is being created this transaction, os.version should be NEW_OBJ_VERSION anyway, right?",
+      "range": {
+        "startLine": 454,
+        "startChar": 20,
+        "endLine": 454,
+        "endChar": 79
       },
       "revId": "4fbfcd7965b633cb95d3342b290bf9a34eca25b4",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
@@ -478,6 +524,98 @@
         "startChar": 0,
         "endLine": 620,
         "endChar": 71
+      },
+      "revId": "4fbfcd7965b633cb95d3342b290bf9a34eca25b4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_e41c36c4",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 668,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-01-14T10:48:56Z",
+      "side": 1,
+      "message": "thisOwners - owner doesn\u0027t work?",
+      "range": {
+        "startLine": 668,
+        "startChar": 25,
+        "endLine": 668,
+        "endChar": 49
+      },
+      "revId": "4fbfcd7965b633cb95d3342b290bf9a34eca25b4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_e4739613",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 675,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-01-14T10:48:56Z",
+      "side": 1,
+      "message": "Every case either returns this or throws an exception, so you can take this out of each case and move it to the end as:\n\n    objCache(key) \u003d Some(ObjSnapshot(thisObj, thisversion, owners))",
+      "range": {
+        "startLine": 675,
+        "startChar": 20,
+        "endLine": 675,
+        "endChar": 67
+      },
+      "revId": "4fbfcd7965b633cb95d3342b290bf9a34eca25b4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_64d686c7",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 679,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-01-14T10:48:56Z",
+      "side": 1,
+      "message": "o + TxDeleteOwner(owner) should work, I think.",
+      "range": {
+        "startLine": 679,
+        "startChar": 45,
+        "endLine": 679,
+        "endChar": 75
+      },
+      "revId": "4fbfcd7965b633cb95d3342b290bf9a34eca25b4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_c4dad2e8",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 684,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-01-14T10:48:56Z",
+      "side": 1,
+      "message": "Ditto.",
+      "range": {
+        "startLine": 684,
+        "startChar": 50,
+        "endLine": 684,
+        "endChar": 80
       },
       "revId": "4fbfcd7965b633cb95d3342b290bf9a34eca25b4",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
