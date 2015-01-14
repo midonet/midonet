@@ -24,7 +24,7 @@ import scala.util.Try
 
 import rx.{Observable, Observer}
 
-import org.midonet.cluster.data.vtep.model.{MacLocation, LogicalSwitch}
+import org.midonet.cluster.data.vtep.model._
 import org.midonet.packets.IPv4Addr
 import org.midonet.util.functors.makeFunc1
 
@@ -35,6 +35,11 @@ import org.midonet.util.functors.makeFunc1
  * recovery mechanism.
  */
 trait VtepDataClient extends VtepConnection with VtepData
+
+/**
+ * Prevent java confusions between traits, classes and interfaces
+ */
+abstract class VtepDataClientClass extends VtepDataClient
 
 /**
  * Handle connections to a VTEP
@@ -59,6 +64,11 @@ trait VtepConnection {
      * @param user The user that previously asked for this connection
      */
     def disconnect(user: UUID): Unit
+
+    /**
+     * Close all connections and set to a disposed state
+     */
+    def dispose(): Unit
 
     /**
      * Get a observable to get the current state and monitor connection changes
@@ -86,6 +96,20 @@ trait VtepConnection {
             .toBlocking
             .toFuture
             .get(timeout.toMillis, TimeUnit.MILLISECONDS)
+
+    /**
+     * Wait for a ready state, return false if that is impossible
+     */
+    def awaitReady(): Boolean =
+        awaitState(Set(VtepConnection.State.READY,
+                       VtepConnection.State.DISPOSED)) == VtepConnection.State.READY
+
+    /**
+     * Wait for a disconnected state (Disconnected or Disposed)
+     */
+    def awaitDisconnected(): VtepConnection.State.Value =
+        awaitState(Set(VtepConnection.State.DISCONNECTED,
+                       VtepConnection.State.DISPOSED))
 }
 
 object VtepConnection {
@@ -121,18 +145,35 @@ trait VtepData {
     /** Provide a snapshot with the current contents of the Mac_Local tables
       * in the VTEP's OVSDB. */
     def currentMacLocal: Seq[MacLocation]
+    def currentMacLocal(networkId: UUID): Seq[MacLocation]
 
-    /** Ensure that the hardware VTEP's config contains a Logical Switch with
-      * the given name and VNI. */
-    def ensureLogicalSwitch(name: String, vni: Int): Try[LogicalSwitch]
+    /** Ensure that the hardware VTEP's config contains a Logical Switch
+      * corresponding to the given network Id and VNI. */
+    def ensureLogicalSwitch(networkId: UUID, vni: Int): Try[LogicalSwitch]
 
-    /** Remove the logical switch with the given name, as well as all bindings
-      * and entries in Mac tables. */
-    def removeLogicalSwitch(name: String): Try[Unit]
+    /** Remove the logical switch corresponding to the given network,
+      * as well as all bindings and entries in Mac tables. */
+    def removeLogicalSwitch(networkId: UUID): Try[Unit]
 
-    /** Ensure that the hardware VTEP's config for the given Logical Switch
-      * contains these and only these bindings. */
-    def ensureBindings(lsName: String, bindings: Iterable[(String, Short)]): Try[Unit]
+    /** Ensure that the hardware VTEP's config for the Logical Switch
+      * corresponding to the given networkId contains these and only
+      * these bindings. */
+    def ensureBindings(networkId: UUID, bindings: Iterable[VtepBinding]): Try[Unit]
+
+    /** Remove the binding corresponding to the given port and Vlan Id */
+    def removeBinding(portName: String, vlanId: Short): Try[Unit]
+
+    /** Create binding */
+    def createBinding(portName: String, vlanId: Short, networkId: UUID): Try[Unit]
+
+    /** Get the current set of logical switches */
+    def listLogicalSwitches: Set[LogicalSwitch]
+
+    /** Get the current set of physical switches */
+    def listPhysicalSwitches: Set[PhysicalSwitch]
+
+    /** Get the physical ports of a physical switch */
+    def physicalPorts(psId: UUID): Set[PhysicalPort]
 }
 
 

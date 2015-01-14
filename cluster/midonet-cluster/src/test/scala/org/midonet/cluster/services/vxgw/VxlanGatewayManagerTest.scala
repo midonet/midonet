@@ -31,10 +31,10 @@ import org.scalatest.junit.JUnitRunner
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.BrainTestUtils._
-import org.midonet.cluster.southbound.vtep.VtepConstants.bridgeIdToLogicalSwitchName
 import org.midonet.cluster.util.TestZkTools
 import org.midonet.cluster.DataClient
 import org.midonet.cluster.data.Bridge.UNTAGGED_VLAN_ID
+import org.midonet.cluster.data.vtep.model.LogicalSwitch.networkIdToLsName
 import org.midonet.cluster.data.vtep.model.{VtepMAC, MacLocation}
 import org.midonet.cluster.data.vtep.model.VtepMAC.{UNKNOWN_DST, fromMac}
 import org.midonet.midolman.host.state.HostZkManager
@@ -123,7 +123,7 @@ class VxlanGatewayManagerTest extends FlatSpec with Matchers
         val mgr = new VxlanGatewayManager(ctx.nwId, dataClient, null,
                                           tzState, zkConnWatcher,
                                           () => mgrClosedLatch.countDown() )
-        mgr.lsName shouldBe bridgeIdToLogicalSwitchName(ctx.nwId)
+        mgr.lsName shouldBe networkIdToLsName(ctx.nwId)
 
         mgr.terminate()
 
@@ -168,9 +168,9 @@ class VxlanGatewayManagerTest extends FlatSpec with Matchers
         val vtep1 = eventually {
             vtepPool.fishIfExists(vteps.ip1, vteps.vtepPort).get
         }
-        val vtep1MacRemotes = vtepConfigs(0).macRemoteUpdater
+        val vtep1MacRemotes = vtepConfigs.head.macRemoteUpdater
         vtep1.memberships should have size 1
-        vtep1.memberships(0).name shouldBe mgr.lsName
+        vtep1.memberships.head.name shouldBe mgr.lsName
 
         eventually {    // the initial state reaches the VTEP
             vtep1MacRemotes.getOnErrorEvents shouldBe empty
@@ -224,7 +224,7 @@ class VxlanGatewayManagerTest extends FlatSpec with Matchers
             vtep2MacRemotes.getOnNextEvents should have size 6
         }
         vtep2.memberships should have size 1
-        vtep2.memberships(0).name shouldBe mgr.lsName
+        vtep2.memberships.head.name shouldBe mgr.lsName
         vtep2MacRemotes.getOnErrorEvents shouldBe empty
         vtep2MacRemotes.getOnCompletedEvents shouldBe empty
         vtep2MacRemotes.getOnNextEvents should contain only (
@@ -349,9 +349,9 @@ class VxlanGatewayManagerTest extends FlatSpec with Matchers
         val vtep1 = eventually {
             vtepPool.fishIfExists(vteps.ip1, vteps.vtepPort).get
         }
-        val vtep1MacRemotes = vtepConfigs(0).macRemoteUpdater
+        val vtep1MacRemotes = vtepConfigs.head.macRemoteUpdater
         vtep1.memberships should have size 1
-        vtep1.memberships(0).name shouldBe mgr.lsName
+        vtep1.memberships.head.name shouldBe mgr.lsName
 
         eventually {    // the initial state reaches the VTEP
            vtep1MacRemotes.getOnNextEvents should have size 4
@@ -371,7 +371,7 @@ class VxlanGatewayManagerTest extends FlatSpec with Matchers
         val macOnVtep = VtepMAC.fromString("aa:aa:bb:bb:cc:cc")
         val ipOnVtep = IPv4Addr.random
         var ml = MacLocation(macOnVtep, ipOnVtep, mgr.lsName, vteps.tunIp1)
-        vtepConfigs(0).macLocalUpdates.onNext(ml)
+        vtepConfigs.head.macLocalUpdates.onNext(ml)
 
         Then("the MAC sent from the hardware VTEP should reach MidoNet")
         eventually {
