@@ -12,8 +12,7 @@ import org.opendaylight.ovsdb.lib.schema.DatabaseSchema;
 import org.opendaylight.ovsdb.lib.schema.GenericTableSchema;
 
 import org.midonet.cluster.data.vtep.model.PhysicalLocatorSet;
-
-import static scala.collection.JavaConversions.setAsJavaSet;
+import org.midonet.cluster.data.vtep.model.VtepEntry;
 
 import static org.midonet.vtep.OvsdbTranslator.fromOvsdb;
 import static org.midonet.vtep.OvsdbTranslator.toOvsdb;
@@ -30,6 +29,7 @@ public final class PhysicalLocatorSetTable extends Table {
     }
 
     /** Get the schema of the columns of this table */
+    @Override
     public List<ColumnSchema<GenericTableSchema, ?>> getColumnSchemas() {
         List<ColumnSchema<GenericTableSchema, ?>> cols = super.getColumnSchemas();
         cols.add(getLocatorsSchema());
@@ -56,16 +56,30 @@ public final class PhysicalLocatorSetTable extends Table {
     /**
      * Extract the locator set object
      */
-    public PhysicalLocatorSet parseLocatorSet(Row<GenericTableSchema> row) {
-        return PhysicalLocatorSet.apply(parseUuid(row), parseLocators(row));
+    @Override
+    @SuppressWarnings(value = "unckecked")
+    public <E extends VtepEntry>
+    E parseEntry(Row<GenericTableSchema> row, Class<E> clazz)
+        throws IllegalArgumentException {
+        if (!clazz.isAssignableFrom(PhysicalLocatorSet.class))
+            throw new IllegalArgumentException("wrong entry type " + clazz +
+                                               " for table " + this.getClass());
+        return (E)PhysicalLocatorSet.apply(parseUuid(row), parseLocators(row));
     }
 
     /**
      * Generate an insert command
      */
-    public Insert<GenericTableSchema> insert(PhysicalLocatorSet set) {
+    @Override
+    public <E extends VtepEntry> OvsdbInsert insert(E row)
+        throws IllegalArgumentException {
+        if (!PhysicalLocatorSet.class.isAssignableFrom(row.getClass()))
+            throw new IllegalArgumentException("wrong entry type " +
+                                               row.getClass() +
+                                               " for table " + this.getClass());
+        PhysicalLocatorSet set = (PhysicalLocatorSet)row;
         Insert<GenericTableSchema> op = super.insert(set.uuid());
-        op.value(getLocatorsSchema(), toOvsdb(setAsJavaSet(set.locatorIds())));
-        return op;
+        op.value(getLocatorsSchema(), toOvsdb(set.locatorIds()));
+        return new OvsdbInsert(op);
     }
 }
