@@ -104,7 +104,6 @@ public class VtepResource extends AbstractVtepResource {
             // switch.
             addIpsToList(vtepIps, ps.mgmtIpStrings());
             addIpsToList(vtepIps, ps.tunnelIpStrings());
-
         } catch(GatewayTimeoutHttpException | VtepNotConnectedException e) {
             log.warn("Cannot verify conflicts between hosts and VTEP IPs "
                      + " because VTEP {}:{} is not accessible",
