@@ -4,19 +4,22 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-
 import org.opendaylight.ovsdb.lib.notation.Condition;
 import org.opendaylight.ovsdb.lib.notation.Function;
 import org.opendaylight.ovsdb.lib.notation.Row;
+import org.opendaylight.ovsdb.lib.operations.Insert;
 import org.opendaylight.ovsdb.lib.schema.ColumnSchema;
 import org.opendaylight.ovsdb.lib.schema.DatabaseSchema;
 import org.opendaylight.ovsdb.lib.schema.GenericTableSchema;
 
+import org.midonet.cluster.data.vtep.model.VtepEntry;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.cluster.data.vtep.model.PhysicalSwitch;
 
 import static org.midonet.vtep.OvsdbTranslator.fromOvsdb;
 import static org.midonet.vtep.OvsdbTranslator.fromOvsdbIpSet;
+import static org.midonet.vtep.OvsdbTranslator.toOvsdb;
+import static org.midonet.vtep.OvsdbTranslator.toOvsdbIpSet;
 
 /**
  * Schema for the Ovsdb physical switch table
@@ -34,6 +37,7 @@ public final class PhysicalSwitchTable extends Table {
     }
 
     /** Get the schema of the columns of this table */
+    @Override
     public List<ColumnSchema<GenericTableSchema, ?>> getColumnSchemas() {
         List<ColumnSchema<GenericTableSchema, ?>> cols = super.getColumnSchemas();
         cols.add(getNameSchema());
@@ -93,7 +97,6 @@ public final class PhysicalSwitchTable extends Table {
     /**
      * Extract the set of physical port names
      */
-    @SuppressWarnings(value = "unckecked")
     public Set<UUID> parsePorts(Row<GenericTableSchema> row) {
         return fromOvsdb(extractSet(row, getPortsSchema()));
     }
@@ -115,10 +118,38 @@ public final class PhysicalSwitchTable extends Table {
     /**
      * Extract the physical switch information from the table entry
      */
-    public PhysicalSwitch parsePhysicalSwitch(Row<GenericTableSchema> row) {
-        return PhysicalSwitch.apply(parseUuid(row), parseName(row),
-                                    parseDescription(row), parsePorts(row),
-                                    parseManagementIps(row),
-                                    parseTunnelIps(row));
+    @Override
+    @SuppressWarnings(value = "unckecked")
+    public <E extends VtepEntry>
+    E parseEntry(Row<GenericTableSchema> row, Class<E> clazz)
+        throws IllegalArgumentException {
+        if (!clazz.isAssignableFrom(PhysicalSwitch.class))
+            throw new IllegalArgumentException("wrong entry type " + clazz +
+                                               " for table " + this.getClass());
+        return (E)PhysicalSwitch.apply(parseUuid(row), parseName(row),
+                                      parseDescription(row), parsePorts(row),
+                                      parseManagementIps(row),
+                                      parseTunnelIps(row));
     }
+
+    /**
+     * Insertion of physical port information
+     */
+    @Override
+    public <E extends VtepEntry>
+    Insert<GenericTableSchema> insert(E row, Class<E> clazz)
+        throws IllegalArgumentException {
+        if (!PhysicalSwitch.class.isAssignableFrom(clazz))
+            throw new IllegalArgumentException("wrong entry type " + clazz +
+                                               " for table " + this.getClass());
+        PhysicalSwitch ps = (PhysicalSwitch)row;
+        Insert<GenericTableSchema> op = super.insert(ps.uuid());
+        op.value(getNameSchema(), ps.name());
+        op.value(getDescriptionSchema(), ps.description());
+        op.value(getPortsSchema(), toOvsdb(ps.ports()));
+        op.value(getManagementIpsSchema(), toOvsdbIpSet(ps.mgmtIps()));
+        op.value(getTunnelIpsSchema(), toOvsdbIpSet(ps.tunnelIps()));
+        return op;
+    }
+
 }

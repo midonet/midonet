@@ -40,8 +40,8 @@ import scala.collection.JavaConversions.{asScalaSet, mapAsScalaMap}
 final class PhysicalPort(id: UUID, ppName: String, desc: String,
                          bindings: Map[Integer, UUID],
                          stats: Map[Integer, UUID],
-                         faultStatus: Set[String]) {
-    val uuid = if (id == null) UUID.randomUUID() else id
+                         faultStatus: Set[String]) extends VtepEntry {
+    override val uuid = if (id == null) UUID.randomUUID() else id
     val name: String = if (ppName == null) "" else ppName
     val description: String = if (desc == null || desc.isEmpty) null else desc
 
@@ -60,12 +60,9 @@ final class PhysicalPort(id: UUID, ppName: String, desc: String,
     override def toString = str
 
     override def equals(o: Any): Boolean = o match {
-        case null => false
         case that: PhysicalPort => Objects.equals(name, that.name)
         case other => false
     }
-
-    override def hashCode: Int = uuid.hashCode()
 }
 
 object PhysicalPort {

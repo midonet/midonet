@@ -19,6 +19,8 @@ import org.opendaylight.ovsdb.lib.schema.ColumnSchema;
 import org.opendaylight.ovsdb.lib.schema.DatabaseSchema;
 import org.opendaylight.ovsdb.lib.schema.GenericTableSchema;
 
+import org.midonet.cluster.data.vtep.model.VtepEntry;
+
 import static org.midonet.vtep.OvsdbTranslator.fromOvsdb;
 import static org.midonet.vtep.OvsdbTranslator.toOvsdb;
 
@@ -165,4 +167,11 @@ public abstract class Table {
     public Insert<GenericTableSchema> insert() {
         return insert(null);
     }
+
+    abstract public <E extends VtepEntry>
+    Insert<GenericTableSchema> insert(E entry, Class<E> clazz);
+
+    abstract public <E extends VtepEntry>
+    E parseEntry(Row<GenericTableSchema> row, Class<E> clazz);
+
 }

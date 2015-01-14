@@ -44,9 +44,9 @@ object OvsdbTranslator {
 
     /** Convert a set of Java UUIDs to a set of ovsdb UUIDs
       * The input set can be a null value, resulting in an empty output set */
-    def toOvsdb(inSet: util.Set[util.UUID]): util.Set[OvsdbUUID] =
+    def toOvsdb(inSet: Set[util.UUID]): util.Set[OvsdbUUID] =
         if (inSet == null) new util.HashSet[OvsdbUUID]()
-        else setAsJavaSet(asScalaSet(inSet).map(toOvsdb))
+        else setAsJavaSet(inSet.map(toOvsdb))
 
     /** Convert from (Long -> OvsdbUUID) to a map of (Integer -> java UUID)
      * The input map can be a null value, resulting in an empty output set */
@@ -58,6 +58,12 @@ object OvsdbTranslator {
                 .toMap
         )
 
+    /** Convert from (Integer -> java UUID) to a map of (Long -> OvsdbUUID)
+      * The input map can be a null value, resulting in an empty output map */
+    def toOvsdb(inMap: Map[Integer, util.UUID]): util.Map[Long, OvsdbUUID] =
+        if (inMap == null) new util.HashMap[Long, OvsdbUUID]()
+        else mapAsJavaMap(inMap.map(e => (e._1.toLong, toOvsdb(e._2))))
+
     /** Convert from a set of strings to a set of the ip addresses */
     def fromOvsdbIpSet(inSet: util.Set[_]): util.Set[IPv4Addr] =
         if (inSet == null) new util.HashSet[IPv4Addr]()
@@ -66,4 +72,9 @@ object OvsdbTranslator {
                 case s: String if s.nonEmpty => IPv4Addr.fromString(s)
             })
         )
+
+    /** Convert from a set of IP addresses to a set of ovsdb strings */
+    def toOvsdbIpSet(inSet: Set[IPv4Addr]): util.Set[String] =
+        if (inSet == null) new util.HashSet[String]()
+        else setAsJavaSet(inSet.collect{case s: IPv4Addr => s.toString})
 }
