@@ -81,7 +81,7 @@ object PacketWorkflowTest {
                           HappyGoLuckyLeaser)
 
         val replicator = new FlowStateReplicator(null, null, null, new UnderlayResolver {
-            override def host: ResolvedHost = new ResolvedHost(UUID.randomUUID(), true, 1, "", Map(), Map())
+            override def host: ResolvedHost = new ResolvedHost(UUID.randomUUID(), true, "", Map(), Map())
             override def peerTunnelInfo(peer: UUID): Option[Route] = ???
             override def vtepTunnellingOutputAction: FlowActionOutput = ???
             override def isVtepTunnellingPort(portNumber: Integer): Boolean = ???

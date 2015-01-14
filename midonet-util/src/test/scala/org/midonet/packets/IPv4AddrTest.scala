@@ -16,6 +16,7 @@
 
 package org.midonet.packets
 
+import java.net.InetAddress
 import java.util.Random
 
 import org.junit.runner.RunWith
@@ -154,4 +155,15 @@ class IPv4AddrTest extends Suite with Matchers {
         intercept[java.util.NoSuchElementException] { iter.next }
     }
 
+    def testEqualsInetAddress() = {
+        val inet4Addr = InetAddress.getByName("10.0.0.1")
+        val ipv4Addr = IPv4Addr.fromString("10.0.0.1")
+        assert(ipv4Addr.equalsInetAddress(inet4Addr))
+
+        val inet4Addr2 = InetAddress.getByName("10.0.0.2")
+        assert(!ipv4Addr.equalsInetAddress(inet4Addr2))
+
+        val inet6Addr = InetAddress.getByName("0:0:0:0:0:0:0:1")
+        assert(!ipv4Addr.equalsInetAddress(inet6Addr))
+    }
 }
