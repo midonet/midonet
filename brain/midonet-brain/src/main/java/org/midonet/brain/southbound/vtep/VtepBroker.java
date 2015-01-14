@@ -18,7 +18,6 @@ package org.midonet.brain.southbound.vtep;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 
 import com.google.common.base.Strings;
 import com.google.inject.Inject;
@@ -40,16 +39,17 @@ import rx.functions.Func1;
 import rx.subjects.PublishSubject;
 import rx.subjects.Subject;
 
-import org.midonet.brain.services.vxgw.MacLocation;
+import org.midonet.vtep.model.MacLocation;
 import org.midonet.brain.services.vxgw.VxLanPeer;
 import org.midonet.brain.services.vxgw.VxLanPeerConsolidationException;
 import org.midonet.brain.services.vxgw.VxLanPeerSyncException;
-import org.midonet.brain.southbound.vtep.model.LogicalSwitch;
 import org.midonet.brain.southbound.vtep.model.McastMac;
 import org.midonet.brain.southbound.vtep.model.UcastMac;
 import org.midonet.cluster.data.VtepBinding;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
+import org.midonet.vtep.model.LogicalSwitch;
+import org.midonet.vtep.model.VtepMAC;
 
 import static org.midonet.brain.southbound.vtep.VtepConstants.logicalSwitchNameToBridgeId;
 import static org.opendaylight.ovsdb.lib.message.TableUpdate.Row;
@@ -194,7 +194,7 @@ public class VtepBroker implements VxLanPeer {
                 VtepMAC mac = VtepMAC.fromString(ucastMac.mac);
                 IPv4Addr ip = (ucastMac.ipAddr == null)
                               ? null : IPv4Addr.apply(ucastMac.ipAddr);
-                macLocationStream.onNext(new MacLocation(mac, ip, ls.name,
+                macLocationStream.onNext(new MacLocation(mac, ip, ls.name(),
                                                          tunnelIp));
             } catch (MAC.InvalidMacException e) {
                 log.warn("Invalid MAC found in VTEP: ", ucastMac.mac);
@@ -330,7 +330,7 @@ public class VtepBroker implements VxLanPeer {
         assert(lsName != null);
         LogicalSwitch ls = vtepDataClient.getLogicalSwitch(lsName);
         if (ls != null) {
-            if (vni == ls.tunnelKey) {
+            if (vni == ls.tunnelKey()) {
                 log.debug("Logical switch {} with VNI {} exists", lsName, vni);
             } else {
                 log.info("Logical switch {} has wrong VNI {}, delete", ls, vni);
@@ -346,7 +346,7 @@ public class VtepBroker implements VxLanPeer {
                 log.info("Logical switch {} created, uuid: {}", lsName, lsUuid);
             } else if (st.getCode().equals(StatusCode.CONFLICT)) {
                 ls = vtepDataClient.getLogicalSwitch(lsName);
-                if (ls != null && ls.tunnelKey.equals(vni)) {
+                if (ls != null && ls.tunnelKey().equals(vni)) {
                     log.warn("Logical switch {} creation conflict, but state " +
                              "looks correct. Other VxGW nodes active?", lsName);
                 } else if (ls != null) {
@@ -361,7 +361,7 @@ public class VtepBroker implements VxLanPeer {
                 lsUuid = st.getUuid();
             }
         } else {
-            lsUuid = ls.uuid;
+            lsUuid = ls.uuid();
         }
 
         return lsUuid;
@@ -376,12 +376,12 @@ public class VtepBroker implements VxLanPeer {
         throws VtepNotConnectedException {
         Collection<LogicalSwitch> lsList = vtepDataClient.listLogicalSwitches();
         for (LogicalSwitch ls : lsList) {
-            java.util.UUID networkId = logicalSwitchNameToBridgeId(ls.name);
+            java.util.UUID networkId = logicalSwitchNameToBridgeId(ls.name());
             if (networkId == null || wantedNetworks.contains(networkId)) {
                 log.debug("Logical switch {} kept in VTEP", ls);
                 continue;
             }
-            Status st = vtepDataClient.deleteLogicalSwitch(ls.name);
+            Status st = vtepDataClient.deleteLogicalSwitch(ls.name());
             if (st.isSuccess() || st.getCode().equals(StatusCode.NOTFOUND)) {
                 log.info("Unknown logical switch {} was removed from VTEP", ls);
             } else {
@@ -476,11 +476,11 @@ public class VtepBroker implements VxLanPeer {
             // of just the IP (if the mac had been deleted, the newRow would've
             // bee null). A ML with null ip and null endpoint would be
             // interpreted as a removal of the mac itself.
-            mlList.add(new MacLocation(vMac, oldMacIp, ls.name, null));
+            mlList.add(new MacLocation(vMac, oldMacIp, ls.name(), null));
         }
         // Below covers both deletions and additions of *_Mac_Local rows.
         IPv4Addr newerIp = (newMacIp == null) ? oldMacIp : newMacIp;
-        mlList.add(new MacLocation(vMac, newerIp, ls.name, endpoint));
+        mlList.add(new MacLocation(vMac, newerIp, ls.name(), endpoint));
         log.debug("VTEP update translates to: {}", mlList);
         return Observable.from(mlList);
     }

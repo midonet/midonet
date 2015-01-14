@@ -41,6 +41,7 @@ import org.midonet.midolman.state.ReplicatedMap.Watcher
 import org.midonet.midolman.state._
 import org.midonet.packets.{IPv4Addr, MAC}
 import org.midonet.util.functors.makeRunnable
+import org.midonet.vtep.model.MacLocation
 
 object VxlanGateway {
     protected[vxgw] val executor = newSingleThreadExecutor(

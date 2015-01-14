@@ -33,7 +33,6 @@ import org.opendaylight.ovsdb.plugin.StatusWithUuid;
 import rx.Observable;
 import rx.Subscription;
 
-import org.midonet.brain.southbound.vtep.model.LogicalSwitch;
 import org.midonet.brain.southbound.vtep.model.McastMac;
 import org.midonet.brain.southbound.vtep.model.PhysicalPort;
 import org.midonet.brain.southbound.vtep.model.PhysicalSwitch;
@@ -41,6 +40,8 @@ import org.midonet.brain.southbound.vtep.model.UcastMac;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
 import org.midonet.util.functors.Callback;
+import org.midonet.vtep.model.LogicalSwitch;
+import org.midonet.vtep.model.VtepMAC;
 
 /**
  * A client class for the connection to a VTEP-enabled switch. A client

@@ -44,7 +44,6 @@ import rx.Subscription;
 import rx.subjects.PublishSubject;
 import rx.subjects.Subject;
 
-import org.midonet.brain.southbound.vtep.model.LogicalSwitch;
 import org.midonet.brain.southbound.vtep.model.McastMac;
 import org.midonet.brain.southbound.vtep.model.PhysicalPort;
 import org.midonet.brain.southbound.vtep.model.PhysicalSwitch;
@@ -52,6 +51,8 @@ import org.midonet.brain.southbound.vtep.model.UcastMac;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
 import org.midonet.util.functors.Callback;
+import org.midonet.vtep.model.LogicalSwitch;
+import org.midonet.vtep.model.VtepMAC;
 
 public class VtepDataClientMock implements VtepDataClient {
 
@@ -263,7 +264,7 @@ public class VtepDataClientMock implements VtepDataClient {
     public LogicalSwitch getLogicalSwitch(@Nonnull UUID lsId) {
         assertConnected();
         for (LogicalSwitch ls : this.logicalSwitches.values()) {
-            if (ls.uuid.equals(lsId)) {
+            if (ls.uuid().equals(lsId)) {
                 return ls;
             }
         }
@@ -287,7 +288,7 @@ public class VtepDataClientMock implements VtepDataClient {
         }
 
         UUID uuid = new UUID(java.util.UUID.randomUUID().toString());
-        ls = new LogicalSwitch(uuid, lsName + "-desc", lsName, vni);
+        ls = new LogicalSwitch(uuid, lsName, vni, lsName + "-desc");
         logicalSwitches.put(lsName, ls);
         logicalSwitchUuids.put(lsName, uuid);
         return new StatusWithUuid(StatusCode.SUCCESS, uuid);
@@ -313,7 +314,7 @@ public class VtepDataClientMock implements VtepDataClient {
 
         if (null != floodIps) {
             for (IPv4Addr floodIp : floodIps)
-                addMcastMacRemote(lsName, VtepMAC.UNKNOWN_DST, floodIp);
+                addMcastMacRemote(lsName, VtepMAC.UNKNOWN_DST(), floodIp);
         }
 
         return new Status(StatusCode.SUCCESS);

@@ -36,6 +36,7 @@ import org.midonet.cluster.data.VTEP
 import org.midonet.midolman.state.{StateAccessException, ZookeeperConnectionWatcher}
 import org.midonet.packets.IPv4Addr
 import org.midonet.util.functors._
+import org.midonet.vtep.model.MacLocation
 
 /** An implementation backed by an OVSDB connection to a hardware VTEP's
   * configuration database.

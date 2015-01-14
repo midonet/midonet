@@ -29,9 +29,10 @@ import org.opendaylight.ovsdb.lib.notation.{UUID => OdlUUID}
 import org.slf4j.LoggerFactory
 import rx.{Observable, Observer}
 
-import org.midonet.brain.southbound.vtep.model.{LogicalSwitch, McastMac, UcastMac}
-import org.midonet.brain.southbound.vtep.{VtepBroker, VtepDataClientFactory, VtepMAC}
+import org.midonet.brain.southbound.vtep.model.{McastMac, UcastMac}
+import org.midonet.brain.southbound.vtep.{VtepBroker, VtepDataClientFactory}
 import org.midonet.packets.IPv4Addr
+import org.midonet.vtep.model.{LogicalSwitch, MacLocation, VtepMAC}
 
 /** This class abstracts low-level details of the connection to an OVSDB
   * instance in order to satisfy the high-level interface used by the VxLAN
