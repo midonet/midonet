@@ -20,6 +20,7 @@
 package org.midonet.packets
 
 import java.lang.Long.parseLong
+import java.net.{Inet6Address, Inet4Address, InetAddress}
 import java.nio.ByteBuffer
 import java.util.Random
 
@@ -115,6 +116,12 @@ class IPv6Addr(val upperWord: Long, val lowerWord: Long) extends IPAddr
     override def range(that: IPv6Addr) =
         if (that < this) IPAddr.range(that, this) else IPAddr.range(this, that)
 
+    override def equalsInetAddress(inetAddress: InetAddress): Boolean = {
+        if (inetAddress.isInstanceOf[Inet6Address]) {
+            java.util.Arrays.equals(inetAddress.getAddress, toBytes)
+        } else
+            false
+    }
 }
 
 object IPv6Addr {

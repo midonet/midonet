@@ -18,22 +18,25 @@ package org.midonet.midolman.topology
 
 import java.util.UUID
 
-import akka.actor.{Actor, Props}
+import scala.collection.JavaConversions._
+
 import akka.actor.Actor.emptyBehavior
+import akka.actor.{Actor, Props}
 import akka.testkit.TestActorRef
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cluster.data.TunnelZone
-import org.midonet.cluster.data.ports.BridgePort
+import org.midonet.cluster.data.host.{Host => DataHost}
+import org.midonet.cluster.data.{TunnelZone, ZoomConvert}
 import org.midonet.midolman.topology.VirtualToPhysicalMapper._
-import org.midonet.midolman.topology.rcu.Host
+import org.midonet.midolman.topology.devices.{Host => DevicesHost}
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.MessageAccumulator
 import org.midonet.packets.IPv4Addr
 
 @RunWith(classOf[JUnitRunner])
-class VirtualToPhysicalMapperTest extends MidolmanSpec {
+class VirtualToPhysicalMapperTest extends MidolmanSpec
+                                  with TopologyBuilder {
     registerActors(VirtualTopologyActor -> (() => new VirtualTopologyActor
                                                   with MessageAccumulator),
                    VirtualToPhysicalMapper -> (() => new VirtualToPhysicalMapper
@@ -52,15 +55,29 @@ class VirtualToPhysicalMapperTest extends MidolmanSpec {
         TestActorRef[Subscriber with MessageAccumulator](Props(
             new Subscriber(request) with MessageAccumulator)).underlyingActor
 
+    private def toDevicesHost(dataHost: DataHost): DevicesHost = {
+        val protoHost = createHostBuilder(dataHost.getId, Map.empty,
+                                          dataHost.getTunnelZones.toSet)
+        val devicesHost = ZoomConvert.fromProto(protoHost, classOf[DevicesHost])
+        devicesHost.alive = dataHost.getIsAlive
+        devicesHost
+    }
+
+    private def buildHost(): DevicesHost = {
+        // Create the host with the data client
+        val dataHost = newHost("myself", hostId())
+
+        // Create the equivalent org.midonet.midolman.topology.devices.Host
+        toDevicesHost(dataHost)
+    }
+
     feature("VirtualToPhysicalMapper resolves host requests.") {
         scenario("Subscribes to a host.") {
-            newHost("myself", hostId())
-
-            val host = Host(hostId(), false, 0L, "midonet", Map[UUID, String](),
-                            Map[UUID, TunnelZone.HostConfig]())
-
+            val host = buildHost()
             val subscriber = subscribe(HostRequest(hostId()))
-            subscriber.getAndClear() should be (List(host))
+            val notifications = subscriber.getAndClear()
+
+            notifications should contain only host
 
             (1 to 5) map { _ =>
                 host
