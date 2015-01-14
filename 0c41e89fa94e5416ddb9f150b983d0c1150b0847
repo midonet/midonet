@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "fa2559ec_4431c20a",
+        "filename": "midonet-util/src/main/java/org/midonet/packets/FlowStateEthernet.java",
+        "patchSetId": 28
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-01-14T11:10:24Z",
+      "side": 1,
+      "message": "Your choice since we also need to adjust TTL.",
+      "parentUuid": "fa2559ec_796d9304",
+      "revId": "0c41e89fa94e5416ddb9f150b983d0c1150b0847",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa2559ec_9e478d1d",
         "filename": "midonet-util/src/main/java/org/midonet/packets/FlowStateEthernet.java",
         "patchSetId": 28
@@ -118,6 +136,24 @@
       "writtenOn": "2015-01-14T02:52:50Z",
       "side": 1,
       "message": "Set IPv4\u0027s \"Total Length\" field here using the flexible length of ElasticData payload.",
+      "revId": "0c41e89fa94e5416ddb9f150b983d0c1150b0847",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_24364e04",
+        "filename": "midonet-util/src/main/java/org/midonet/packets/FlowStateEthernet.java",
+        "patchSetId": 28
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-01-14T11:10:24Z",
+      "side": 1,
+      "message": "Got it :-)",
+      "parentUuid": "fa2559ec_997327e7",
       "revId": "0c41e89fa94e5416ddb9f150b983d0c1150b0847",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
