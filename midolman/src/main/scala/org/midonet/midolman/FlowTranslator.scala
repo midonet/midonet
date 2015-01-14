@@ -140,7 +140,8 @@ trait FlowTranslator {
                              + s"VTEP's tunnel zone: $tzId")
             return
         }
-        val localIp =  tzMembership.get.getIp.toInt
+
+        val localIp =  tzMembership.get.asInstanceOf[IPv4Addr].toInt
         val vtepIntIp = vtepIp.toInt
         context.addFlowTag(FlowTagger.tagForTunnelRoute(localIp, vtepIntIp))
         context.addFlowAction(setKey(FlowKeys.tunnel(vni.toLong, localIp, vtepIntIp, 0)))
