@@ -17,42 +17,41 @@
 package org.midonet.midolman.state
 
 import java.nio.ByteBuffer
-import java.util.{ArrayList, UUID, HashSet => JHashSet, List => JList, Set => JSet}
-import com.google.protobuf.{CodedOutputStream, MessageLite}
-import org.midonet.rpc.FlowStateProto
-import org.midonet.util.FixedArrayOutputStream
+import java.util.{ArrayList, HashSet => JHashSet, List => JList, Set => JSet, UUID}
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 
+import com.google.protobuf.{CodedOutputStream, MessageLite}
 import com.typesafe.scalalogging.Logger
 import org.junit.runner.RunWith
-import org.midonet.midolman.util.mock.MockDatapathChannel
-import org.scalatest.junit.JUnitRunner
 import org.scalatest._
+import org.scalatest.junit.JUnitRunner
 import org.slf4j.LoggerFactory
 
 import org.midonet.midolman.UnderlayResolver
 import org.midonet.midolman.simulation.PortGroup
-import org.midonet.midolman.state.ConnTrackState.{ConnTrackValue, ConnTrackKey}
+import org.midonet.midolman.state.ConnTrackState.{ConnTrackKey, ConnTrackValue}
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
 import org.midonet.midolman.topology.devices.{BridgePort, Port}
 import org.midonet.midolman.topology.rcu.ResolvedHost
-import org.midonet.odp.{FlowMatches, Packet, Datapath}
-import org.midonet.odp.flows.{FlowActions, FlowAction, FlowActionOutput}
-import org.midonet.odp.protos.{MockOvsDatapathConnection, OvsDatapathConnection}
+import org.midonet.midolman.util.mock.MockDatapathChannel
+import org.midonet.odp.flows.{FlowAction, FlowActionOutput, FlowActions}
+import org.midonet.odp.{FlowMatches, Packet}
 import org.midonet.packets._
-import org.midonet.sdn.state.{IdleExpiration, FlowStateTransaction, FlowStateTable}
-import org.midonet.sdn.flows.FlowTagger.{FlowTag, FlowStateTag}
+import org.midonet.rpc.FlowStateProto
+import org.midonet.sdn.flows.FlowTagger.{FlowStateTag, FlowTag}
+import org.midonet.sdn.state.{FlowStateTable, FlowStateTransaction, IdleExpiration}
+import org.midonet.util.FixedArrayOutputStream
 import org.midonet.util.collection.Reducer
 import org.midonet.util.functors.Callback0
 
 @RunWith(classOf[JUnitRunner])
 class FlowStateReplicatorTest extends FeatureSpec
-                            with BeforeAndAfter
-                            with Matchers
-                            with OneInstancePerTest
-                            with GivenWhenThen {
+                              with BeforeAndAfter
+                              with Matchers
+                              with OneInstancePerTest
+                              with GivenWhenThen {
     implicit def stringToIp(str: String): IPv4Addr = IPv4Addr.fromString(str)
 
     type ConnTrackTx = FlowStateTransaction[ConnTrackKey, ConnTrackValue]
@@ -164,7 +163,7 @@ class FlowStateReplicatorTest extends FeatureSpec
 
     feature("State packets serialization") {
         scenario("A (de)serialized packet should be the same as before") {
-            import FlowStatePackets._
+            import org.midonet.midolman.state.FlowStatePackets._
 
             Given("Flow state packet shell")
             val buffer = new Array[Byte](
@@ -475,11 +474,11 @@ class TestableFlowStateReplicator(
 class MockUnderlayResolver(hostId: UUID, hostIp: IPv4Addr,
                            peers: Map[UUID, IPv4Addr]) extends UnderlayResolver {
 
-    import UnderlayResolver.Route
+    import org.midonet.midolman.UnderlayResolver.Route
 
     val output = FlowActions.output(23)
 
-    override def host = ResolvedHost(hostId, true, 23L, "midonet", Map.empty, Map.empty)
+    override def host = ResolvedHost(hostId, true, "midonet", Map.empty, Map.empty)
 
     override def peerTunnelInfo(peer: UUID): Option[Route] = {
         if (peers.contains(peer))
