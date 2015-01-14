@@ -14,10 +14,22 @@
  * limitations under the License.
  */
 
-package org.midonet.cluster.data.storage
+package org.midonet.vtep
 
-import rx.observers.TestObserver
+import java.util.UUID
 
-import org.midonet.util.reactivex.AwaitableObserver
+import scala.concurrent.Future
+import scala.concurrent.duration.Duration
 
-class TestAwaitableObserver[T] extends TestObserver[T] with AwaitableObserver[T]
+import org.midonet.cluster.data.vtep.model.VtepEntry
+import org.midonet.vtep.schema.Table
+
+/**
+ * A local mirror of a VTEP cache
+ */
+abstract class VtepCachedTable[T <: Table, Entry <: VtepEntry] {
+    def get(id: UUID): Option[Entry]
+    def getAll: Map[UUID, Entry]
+    def ready: Future[Boolean]
+    def isReady: Boolean
+}

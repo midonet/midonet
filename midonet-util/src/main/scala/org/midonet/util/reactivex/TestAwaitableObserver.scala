@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,19 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.brain.southbound.vtep;
 
-import org.midonet.cluster.data.vtep.model.VtepEndPoint;
+package org.midonet.util.reactivex
 
-/**
- * A checked exception for the VTEP vtep state.
- */
-public class VtepStateException extends VtepException {
+import rx.observers.TestObserver
 
-    private static final long serialVersionUID = -29438946408794685L;
-
-    public VtepStateException(VtepEndPoint vtep, String message) {
-        super(vtep, message);
-    }
-
-}
+class TestAwaitableObserver[T] extends TestObserver[T] with AwaitableObserver[T]

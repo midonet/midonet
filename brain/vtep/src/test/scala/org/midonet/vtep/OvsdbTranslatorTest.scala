@@ -63,7 +63,7 @@ class OvsdbTranslatorTest extends FeatureSpec with Matchers {
             }
             OvsdbTranslator.fromOvsdb(ovsMap) shouldBe idMap
 
-            val nullMap: util.Map[Integer, UUID] = null
+            val nullMap: util.Map[Long, OvsdbUUID] = null
             OvsdbTranslator.fromOvsdb(nullMap).isEmpty shouldBe true
         }
     }
@@ -80,7 +80,7 @@ class OvsdbTranslatorTest extends FeatureSpec with Matchers {
             ipSet.toSet shouldBe strSet.toSet.map(IPv4Addr.fromString)
             ipSet.toSet[IPv4Addr].map(_.toString) shouldBe strSet.toSet
 
-            val nullSet: util.Set[IPv4Addr] = null
+            val nullSet: util.Set[String] = null
             OvsdbTranslator.fromOvsdbIpSet(nullSet).isEmpty shouldBe true
         }
     }

@@ -12,6 +12,7 @@ import org.opendaylight.ovsdb.lib.schema.ColumnSchema;
 import org.opendaylight.ovsdb.lib.schema.DatabaseSchema;
 import org.opendaylight.ovsdb.lib.schema.GenericTableSchema;
 
+import org.midonet.cluster.data.vtep.model.VtepEntry;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.cluster.data.vtep.model.MacEntry;
 import org.midonet.cluster.data.vtep.model.VtepMAC;
@@ -33,6 +34,7 @@ public abstract class MacsTable extends Table {
     abstract public Boolean isUcastTable();
 
     /** Get the schema of the columns of this table */
+    @Override
     public List<ColumnSchema<GenericTableSchema, ?>> getColumnSchemas() {
         List<ColumnSchema<GenericTableSchema, ?>> cols = super.getColumnSchemas();
         cols.add(getMacSchema());
@@ -109,13 +111,23 @@ public abstract class MacsTable extends Table {
     /**
      * Generate an insert operation
      */
-    public Insert<GenericTableSchema> insert(MacEntry entry) {
+    @Override
+    public <E extends VtepEntry>
+    Insert<GenericTableSchema> insert(E row, Class<E> clazz)
+        throws IllegalArgumentException {
+        if (!MacEntry.class.isAssignableFrom(clazz))
+            throw new IllegalArgumentException("wrong entry type " + clazz +
+                                               " for table " + this.getClass());
+        MacEntry entry = (MacEntry)row;
         Insert<GenericTableSchema> op = super.insert(entry.uuid());
         op.value(getMacSchema(), entry.macString());
         op.value(getLogicalSwitchSchema(), toOvsdb(entry.logicalSwitchId()));
         op.value(getIpaddrSchema(), entry.ipString());
         op.value(getLocationIdSchema(), toOvsdb(entry.locationId()));
         return op;
+    }
+    public Insert<GenericTableSchema> insertMacEntry(MacEntry entry) {
+        return insert(entry, MacEntry.class);
     }
 
     /**
