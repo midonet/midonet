@@ -13,19 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.brain.southbound.vtep;
+package org.midonet.cluster.data.vtep;
+
+import org.midonet.cluster.data.vtep.model.VtepEndPoint;
 
 import org.midonet.cluster.data.vtep.model.VtepEndPoint;
 
 /**
- * A checked exception for an unconnected VTEP data vtep.
+ * A checked exception for the VTEP vtep state.
  */
-public class VtepNotConnectedException extends VtepException {
+public class VtepStateException extends VtepException {
 
-    private static final long serialVersionUID = 2817256740296080692L;
+    private static final long serialVersionUID = -29438946408794685L;
 
-    public VtepNotConnectedException(VtepEndPoint vtep) {
-        super(vtep);
+    public VtepStateException(VtepEndPoint vtep, String message) {
+        super(vtep, message);
     }
 
 }

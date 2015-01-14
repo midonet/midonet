@@ -48,7 +48,6 @@ public final class LogicalSwitchTable extends Table {
 
     /** Get the schema for the optional tunnel key (vxlan vni) */
     protected ColumnSchema<GenericTableSchema, Set> getTunnelKeySchema() {
-
         return tableSchema.column(COL_TUNNEL_KEY, Set.class);
     }
 

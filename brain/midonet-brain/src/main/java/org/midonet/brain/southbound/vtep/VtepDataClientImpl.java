@@ -43,6 +43,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.midonet.brain.southbound.vtep.model.VtepModelTranslator;
+import org.midonet.cluster.data.vtep.VtepNotConnectedException;
 import org.midonet.cluster.data.vtep.model.LogicalSwitch;
 import org.midonet.cluster.data.vtep.model.McastMac;
 import org.midonet.cluster.data.vtep.model.PhysicalPort;

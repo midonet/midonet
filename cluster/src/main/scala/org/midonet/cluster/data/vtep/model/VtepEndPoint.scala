@@ -23,6 +23,7 @@ import org.midonet.packets.IPv4Addr
  */
 case class VtepEndPoint(mgmtIp: IPv4Addr, mgmtPort: Int) {
     private val str: String = s"$mgmtIp:$mgmtPort"
+    val mgmtIpString = if (mgmtIp == null) null else mgmtIp.toString
     override def toString = str
     override def canEqual(obj: Any): Boolean = obj.isInstanceOf[VtepEndPoint]
     override def equals(obj: Any): Boolean = obj match {
