@@ -16,20 +16,22 @@
 package org.midonet.midolman
 
 import java.util.{HashMap => JHashMap, HashSet => JHashSet, Map => JMap, Set => JSet, UUID}
-import scala.concurrent.{ExecutionContext, Future}
+
+import scala.concurrent.Future
 import scala.util.{Failure, Success}
 
-import akka.actor.{Stash, Actor, ActorRef}
+import akka.actor.{Actor, ActorRef}
+import com.google.inject.Inject
 
-import org.midonet.midolman.topology.devices.Port
-import org.midonet.midolman.topology.rcu.{PortBinding, ResolvedHost, Host}
+import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.logging.ActorLogWithoutPath
-import org.midonet.midolman.state.FlowStateStorage
-import org.midonet.midolman.topology.{VirtualToPhysicalMapper => VTPM,
-                                      VirtualTopologyActor => VTA}
-import org.midonet.midolman.topology.VirtualToPhysicalMapper.{HostUnsubscribe, HostRequest}
 import org.midonet.midolman.state.ConnTrackState.ConnTrackKey
+import org.midonet.midolman.state.FlowStateStorage
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
+import org.midonet.midolman.topology.VirtualToPhysicalMapper.{HostRequest, HostUnsubscribe}
+import org.midonet.midolman.topology.devices.{Host => DevicesHost, Port}
+import org.midonet.midolman.topology.rcu.{PortBinding, ResolvedHost}
+import org.midonet.midolman.topology.{VirtualToPhysicalMapper => VTPM, VirtualTopologyActor => VTA}
 import org.midonet.util.concurrent._
 
 object HostRequestProxy {
@@ -60,15 +62,16 @@ object HostRequestProxy {
   * the host object.
   */
 class HostRequestProxy(val hostId: UUID, val storage: FlowStateStorage,
-        val subscriber: ActorRef) extends Actor
-                                  with ActorLogWithoutPath
-                                  with SingleThreadExecutionContextProvider {
+                       val subscriber: ActorRef, @Inject config: MidolmanConfig)
+                                    extends Actor
+                                    with ActorLogWithoutPath
+                                    with SingleThreadExecutionContextProvider {
 
     override def logSource = "org.midonet.datapath-control.host-proxy"
 
-    import HostRequestProxy._
-    import context.system
-    import context.dispatcher
+    import context.{dispatcher, system}
+
+import org.midonet.midolman.HostRequestProxy._
 
     case object ReSync
 
@@ -102,8 +105,8 @@ class HostRequestProxy(val hostId: UUID, val storage: FlowStateStorage,
      * effectively creating an in-band retry loop that will use the most
      * up to date version of the Host object.
      */
-    private def resolvePorts(host: Host): ResolvedHost = {
-        val bindings = host.ports.map {
+    private def resolvePorts(host: DevicesHost): ResolvedHost = {
+        val bindings = host.portToInterface.map {
                 case (id, iface) =>
                     try {
                         val port = VTA.tryAsk[Port](id)
@@ -122,8 +125,8 @@ class HostRequestProxy(val hostId: UUID, val storage: FlowStateStorage,
                     }
             }.toSeq.filter(_.isDefined).map(opt => (opt.get.portId, opt.get))
 
-        ResolvedHost(host.id, host.alive, host.epoch, host.datapath,
-                     bindings.toMap, host.zones)
+        ResolvedHost(host.id, host.alive, config.getDatapath, bindings.toMap,
+                     host.tunnelZones)
     }
 
     override def receive = super.receive orElse {
@@ -132,10 +135,10 @@ class HostRequestProxy(val hostId: UUID, val storage: FlowStateStorage,
             VTPM ! HostUnsubscribe(hostId)
             VTPM ! HostRequest(hostId)
 
-        case h: Host =>
-            log.debug(s"Received host update with bindings ${h.ports}")
+        case h: DevicesHost =>
+            log.debug("Received host update with bindings " + h.portToInterface)
             belt.handle(() => {
-                val ps = h.ports.keySet -- lastPorts
+                val ps = h.portToInterface.keySet -- lastPorts
                 val resolved = resolvePorts(h)
                 stateForPorts(ps).andThen {
                         case Success(stateBatch) =>
