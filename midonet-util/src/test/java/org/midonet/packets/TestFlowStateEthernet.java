@@ -26,6 +26,7 @@ import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
+import org.midonet.midolman.state.FlowStateEthernet;
 
 @RunWith(Enclosed.class)
 public class TestFlowStateEthernet {

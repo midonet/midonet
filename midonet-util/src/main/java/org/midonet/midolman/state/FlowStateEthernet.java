@@ -14,10 +14,18 @@
  * limitations under the License.
  */
 
-package org.midonet.packets;
+package org.midonet.midolman.state;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+
+import org.midonet.packets.Data;
+import org.midonet.packets.ElasticData;
+import org.midonet.packets.Ethernet;
+import org.midonet.packets.IPv4;
+import org.midonet.packets.IPv4Addr;
+import org.midonet.packets.MAC;
+import org.midonet.packets.UDP;
 
 /**
  * FlowStateEthernet is an ethernet frame contains a flow state UDP packet,
@@ -89,9 +97,8 @@ public class FlowStateEthernet extends Ethernet {
     public final static byte FLOW_STATE_IP_HEADER_LENGTH = (byte) 0x05;
     public final static byte FLOW_STATE_IP_DIFF_SERV = (byte) 0x00;
     public final static byte FLOW_STATE_IP_FLAGS = (byte) 0b010;
-    public final static short FLOW_STATE_IP_FRAGMENT_OFFSET =
-            (short) 0b1111111111111;
-    public final static byte FLOW_STATE_IP_TTL = (byte) 0x01;
+    public final static short FLOW_STATE_IP_FRAGMENT_OFFSET = (short) 0;
+    public final static byte FLOW_STATE_IP_TTL = (byte) 42;
     public final static byte FLOW_STATE_IP_PROTOCOL = (byte) 0x11;
     public final static IPv4Addr FLOW_STATE_IP_SRC_ADDRESS =
             IPv4Addr.fromString("169.254.15.1");

@@ -16,6 +16,8 @@
 
 package org.midonet.packets.util
 
+import org.midonet.midolman.state.FlowStateEthernet
+
 import scala.collection.JavaConverters._
 
 import org.midonet.packets.util.AddressConversions._

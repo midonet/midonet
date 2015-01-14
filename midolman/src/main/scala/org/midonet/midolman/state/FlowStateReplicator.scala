@@ -39,7 +39,7 @@ import org.midonet.odp.{FlowMatches, Packet}
 import org.midonet.odp.flows.FlowAction
 import org.midonet.odp.flows.FlowActions.setKey
 import org.midonet.odp.flows.FlowKeys.tunnel
-import org.midonet.packets.{FlowStateEthernet, Ethernet}
+import org.midonet.packets.Ethernet
 import org.midonet.rpc.{FlowStateProto => Proto}
 import org.midonet.sdn.state.{FlowStateTable, FlowStateTransaction}
 import org.midonet.sdn.flows.FlowTagger.FlowTag

@@ -37,7 +37,7 @@ import org.midonet.odp.flows.*;
 import org.midonet.odp.ports.InternalPort;
 import org.midonet.packets.ElasticData;
 import org.midonet.packets.Ethernet;
-import org.midonet.packets.FlowStateEthernet;
+import org.midonet.midolman.state.FlowStateEthernet;
 import org.midonet.packets.MalformedPacketException;
 import org.midonet.util.BatchCollector;
 import org.midonet.util.functors.Callback2;
@@ -354,12 +354,12 @@ public class MockOvsDatapathConnection extends OvsDatapathConnection {
             FlowStateEthernet flowStateEthernet =
                     (FlowStateEthernet) packet.getEthernet();
             try {
-                Ethernet deserializedFlowSteteEthenet =
+                Ethernet deserializedFlowStateEthenet =
                         FlowStateEthernet.deserialize(
                                 flowStateEthernet.serialize());
-                sentPacket = new Packet(deserializedFlowSteteEthenet,
+                sentPacket = new Packet(deserializedFlowStateEthenet,
                         FlowMatches.fromEthernetPacket(
-                                deserializedFlowSteteEthenet));
+                                deserializedFlowStateEthenet));
             } catch (MalformedPacketException ex) {
                 byte[] originalBytes = flowStateEthernet.getCore().getData();
                 // NOTE(tfukushima): This is a mock and I'm copying data here but we
