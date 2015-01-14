@@ -13,11 +13,16 @@ import org.opendaylight.ovsdb.lib.notation.Condition;
 import org.opendaylight.ovsdb.lib.notation.Function;
 import org.opendaylight.ovsdb.lib.notation.Row;
 import org.opendaylight.ovsdb.lib.notation.UUID;
+import org.opendaylight.ovsdb.lib.operations.Delete;
 import org.opendaylight.ovsdb.lib.operations.Insert;
+import org.opendaylight.ovsdb.lib.operations.Operation;
 import org.opendaylight.ovsdb.lib.operations.Select;
+import org.opendaylight.ovsdb.lib.operations.Update;
 import org.opendaylight.ovsdb.lib.schema.ColumnSchema;
 import org.opendaylight.ovsdb.lib.schema.DatabaseSchema;
 import org.opendaylight.ovsdb.lib.schema.GenericTableSchema;
+
+import org.midonet.cluster.data.vtep.model.VtepEntry;
 
 import static org.midonet.vtep.OvsdbTranslator.fromOvsdb;
 import static org.midonet.vtep.OvsdbTranslator.toOvsdb;
@@ -31,6 +36,34 @@ import static org.midonet.vtep.OvsdbTranslator.toOvsdb;
 public abstract class Table {
     static private final String COL_UUID = "_uuid";
     static private final String COL_VERSION = "_version";
+
+    // Wrappers for scala interaction
+    static public class OvsdbOperation {
+        public final Operation<GenericTableSchema> op;
+        public OvsdbOperation(Operation<GenericTableSchema> op) {
+            this.op = op;
+        }
+    }
+    static public class OvsdbInsert extends OvsdbOperation {
+        public OvsdbInsert(Insert<GenericTableSchema> op) {
+            super(op);
+        }
+    }
+    static public class OvsdbDelete extends OvsdbOperation {
+        public OvsdbDelete(Delete<GenericTableSchema> op) {
+            super(op);
+        }
+    }
+    static public class OvsdbUpdate extends OvsdbOperation {
+        public OvsdbUpdate(Update<GenericTableSchema> op) {
+            super(op);
+        }
+    }
+    static public class OvsdbSelect extends OvsdbOperation {
+        public OvsdbSelect(Select<GenericTableSchema> op) {
+            super(op);
+        }
+    }
 
     /** Retrieve the table schema from the containing database schema */
     static private GenericTableSchema getTblSchema(DatabaseSchema dbs,
@@ -140,19 +173,19 @@ public abstract class Table {
     /**
      * Generate a select operation including all known columns
      */
-    public Select<GenericTableSchema> selectAll() {
+    public OvsdbSelect selectAll() {
         Select<GenericTableSchema> op = new Select<>(getSchema());
         for (ColumnSchema<GenericTableSchema, ?> col: getColumnSchemas()) {
             op.column(col);
         }
-        return op;
+        return new OvsdbSelect(op);
     }
 
     /**
      * Generate an insert operation with the given id (or generate a new id,
      * if null)
      */
-    public Insert<GenericTableSchema> insert(java.util.UUID rowId) {
+    protected Insert<GenericTableSchema> insert(java.util.UUID rowId) {
         if (rowId == null)
             rowId = java.util.UUID.randomUUID();
         Insert<GenericTableSchema> op = new Insert<>(tableSchema);
@@ -162,7 +195,13 @@ public abstract class Table {
         return op;
     }
 
-    public Insert<GenericTableSchema> insert() {
-        return insert(null);
+    protected Insert<GenericTableSchema> insert() {
+        return insert((java.util.UUID)null);
     }
+
+    abstract public <E extends VtepEntry> OvsdbInsert insert(E entry);
+
+    abstract public <E extends VtepEntry>
+    E parseEntry(Row<GenericTableSchema> row, Class<E> clazz);
+
 }

@@ -18,10 +18,11 @@ package org.midonet.cluster.data.vtep
 
 import java.util.UUID
 
-import scala.concurrent.Future
+import scala.concurrent.{Await, Promise}
+import scala.concurrent.duration.Duration
 import scala.util.Try
 
-import rx.{Observable, Observer}
+import rx.{Subscriber, Observable, Observer}
 
 import org.midonet.cluster.data.vtep.model.{MacLocation, LogicalSwitch}
 import org.midonet.packets.IPv4Addr
@@ -59,17 +60,53 @@ trait VtepConnection {
     def disconnect(user: UUID): Unit
 
     /**
+     * Get a observable to get the current state and monitor connection changes
+     */
+    def observable: Observable[VtepConnection.State.Value]
+
+    /**
      * Get the current connection state
      */
     def getState: VtepConnection.State.Value
+
+    /**
+     * Get the connection handle
+     */
+    def getHandle: Option[VtepConnection.VtepHandle]
+
+    /**
+     * Wait for a specific state
+     */
+    def awaitState(expected: Set[VtepConnection.State.Value],
+                   timeout: Duration = Duration.Inf)
+    : VtepConnection.State.Value = {
+        val result = Promise[VtepConnection.State.Value]()
+        observable.subscribe(new Subscriber[VtepConnection.State.Value]() {
+            override def onError(e: Throwable): Unit =
+                result.failure(e)
+            override def onCompleted(): Unit =
+                result.failure(new IllegalStateException("no state available"))
+            override def onNext(st: VtepConnection.State.Value): Unit = {
+                if (expected.contains(st)) {
+                    result.success(st)
+                    this.unsubscribe()
+                }
+            }
+        })
+        Await.result(result.future, timeout)
+    }
 }
 
 object VtepConnection {
     /** VTEP connection states */
     object State extends Enumeration {
         type State = Value
-        val DISCONNECTED, CONNECTED, DISCONNECTING, BROKEN, CONNECTING = Value
+        val DISCONNECTED, CONNECTED, READY,
+            DISCONNECTING, BROKEN, CONNECTING,
+            DISPOSED = Value
     }
+    /** A connection handle to be used to perform operations on the vtep */
+    abstract class VtepHandle
 }
 
 /**
