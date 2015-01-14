@@ -26,6 +26,7 @@ import org.opendaylight.ovsdb.lib.schema.GenericTableSchema;
 
 import org.midonet.cluster.data.vtep.model.MacEntry;
 import org.midonet.cluster.data.vtep.model.UcastMac;
+import org.midonet.cluster.data.vtep.model.VtepEntry;
 
 /**
  * Specific schema section for the unicast mac tables
@@ -78,5 +79,15 @@ public abstract class UcastMacsTable extends MacsTable {
 
     public MacEntry parseMacEntry(Row<GenericTableSchema> row) {
         return parseUcastMac(row);
+    }
+
+    @SuppressWarnings(value = "unckecked")
+    public <E extends VtepEntry> E parseEntry(Row<GenericTableSchema> row,
+                                              Class<E> clazz)
+        throws IllegalArgumentException {
+        if (!clazz.isAssignableFrom(UcastMac.class))
+            throw new IllegalArgumentException("wrong entry type " + clazz +
+                                               " for table " + this.getClass());
+        return (E)parseUcastMac(row);
     }
 }

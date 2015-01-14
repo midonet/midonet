@@ -29,6 +29,7 @@ import org.opendaylight.ovsdb.lib.schema.DatabaseSchema;
 import org.opendaylight.ovsdb.lib.schema.GenericTableSchema;
 
 import org.midonet.cluster.data.vtep.model.PhysicalPort;
+import org.midonet.cluster.data.vtep.model.VtepEntry;
 
 import static org.midonet.vtep.OvsdbTranslator.fromOvsdb;
 
@@ -131,5 +132,15 @@ public final class PhysicalPortTable extends Table {
                                   parseVlanBindings(row),
                                   parseVlanStats(row),
                                   parsePortFaultStatus(row));
+    }
+
+    @SuppressWarnings(value = "unckecked")
+    public <E extends VtepEntry> E parseEntry(Row<GenericTableSchema> row,
+                                              Class<E> clazz)
+        throws IllegalArgumentException {
+        if (!clazz.isAssignableFrom(PhysicalPort.class))
+            throw new IllegalArgumentException("wrong entry type " + clazz +
+                                               " for table " + this.getClass());
+        return (E)parsePhysicalPort(row);
     }
 }

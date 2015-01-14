@@ -11,6 +11,7 @@ import org.opendaylight.ovsdb.lib.schema.ColumnSchema;
 import org.opendaylight.ovsdb.lib.schema.DatabaseSchema;
 import org.opendaylight.ovsdb.lib.schema.GenericTableSchema;
 
+import org.midonet.cluster.data.vtep.model.VtepEntry;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.cluster.data.vtep.model.PhysicalLocator;
 
@@ -84,6 +85,16 @@ public final class PhysicalLocatorTable extends Table {
     public PhysicalLocator parsePhysicalLocator(Row<GenericTableSchema> row) {
         return new PhysicalLocator(parseUuid(row), parseDstIp(row),
                                    parseEncapsulation(row));
+    }
+
+    @SuppressWarnings(value = "unckecked")
+    public <E extends VtepEntry> E parseEntry(Row<GenericTableSchema> row,
+                                              Class<E> clazz)
+        throws IllegalArgumentException {
+        if (!clazz.isAssignableFrom(PhysicalLocator.class))
+            throw new IllegalArgumentException("wrong entry type " + clazz +
+                                               " for table " + this.getClass());
+        return (E)parsePhysicalLocator(row);
     }
 
     /**

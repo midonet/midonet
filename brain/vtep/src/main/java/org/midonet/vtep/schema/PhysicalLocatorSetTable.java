@@ -12,6 +12,7 @@ import org.opendaylight.ovsdb.lib.schema.DatabaseSchema;
 import org.opendaylight.ovsdb.lib.schema.GenericTableSchema;
 
 import org.midonet.cluster.data.vtep.model.PhysicalLocatorSet;
+import org.midonet.cluster.data.vtep.model.VtepEntry;
 
 import static scala.collection.JavaConversions.setAsJavaSet;
 
@@ -58,6 +59,16 @@ public final class PhysicalLocatorSetTable extends Table {
      */
     public PhysicalLocatorSet parseLocatorSet(Row<GenericTableSchema> row) {
         return PhysicalLocatorSet.apply(parseUuid(row), parseLocators(row));
+    }
+
+    @SuppressWarnings(value = "unckecked")
+    public <E extends VtepEntry> E parseEntry(Row<GenericTableSchema> row,
+                                              Class<E> clazz)
+        throws IllegalArgumentException {
+        if (!clazz.isAssignableFrom(PhysicalLocatorSet.class))
+            throw new IllegalArgumentException("wrong entry type " + clazz +
+                                               " for table " + this.getClass());
+        return (E)parseLocatorSet(row);
     }
 
     /**

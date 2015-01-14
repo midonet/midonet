@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-
 import org.opendaylight.ovsdb.lib.notation.Condition;
 import org.opendaylight.ovsdb.lib.notation.Function;
 import org.opendaylight.ovsdb.lib.notation.Row;
@@ -12,6 +11,7 @@ import org.opendaylight.ovsdb.lib.schema.ColumnSchema;
 import org.opendaylight.ovsdb.lib.schema.DatabaseSchema;
 import org.opendaylight.ovsdb.lib.schema.GenericTableSchema;
 
+import org.midonet.cluster.data.vtep.model.VtepEntry;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.cluster.data.vtep.model.PhysicalSwitch;
 
@@ -93,7 +93,6 @@ public final class PhysicalSwitchTable extends Table {
     /**
      * Extract the set of physical port names
      */
-    @SuppressWarnings(value = "unckecked")
     public Set<UUID> parsePorts(Row<GenericTableSchema> row) {
         return fromOvsdb(extractSet(row, getPortsSchema()));
     }
@@ -120,5 +119,15 @@ public final class PhysicalSwitchTable extends Table {
                                     parseDescription(row), parsePorts(row),
                                     parseManagementIps(row),
                                     parseTunnelIps(row));
+    }
+
+    @SuppressWarnings(value = "unckecked")
+    public <E extends VtepEntry> E parseEntry(Row<GenericTableSchema> row,
+                                              Class<E> clazz)
+        throws IllegalArgumentException {
+        if (!clazz.isAssignableFrom(PhysicalSwitch.class))
+            throw new IllegalArgumentException("wrong entry type " + clazz +
+                                               " for table " + this.getClass());
+        return (E)parsePhysicalSwitch(row);
     }
 }
