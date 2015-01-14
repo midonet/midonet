@@ -30,9 +30,9 @@ import org.midonet.packets.IPv4Addr
  * @param dstIp is the destination ip
  */
 final class PhysicalLocator(id: UUID, val dstIp: IPv4Addr,
-                            val encapsulation: String) {
+                            val encapsulation: String) extends VtepEntry {
 
-    val uuid = if (id == null) UUID.randomUUID() else id
+    override val uuid = if (id == null) UUID.randomUUID() else id
     val dstIpString: String = if (dstIp == null) null else dstIp.toString
     private val str: String = "PhysicalLocator{" +
                                   "uuid=" + uuid + ", " +
@@ -41,14 +41,11 @@ final class PhysicalLocator(id: UUID, val dstIp: IPv4Addr,
     override def toString = str
 
     override def equals(o: Any): Boolean = o match {
-        case null => false
         case that: PhysicalLocator =>
             Objects.equals(dstIp, that.dstIp) &&
             Objects.equals(encapsulation, that.encapsulation)
         case other => false
     }
-
-    override def hashCode: Int = uuid.hashCode()
 }
 
 object PhysicalLocator {
