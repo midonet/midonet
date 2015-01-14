@@ -189,9 +189,7 @@ class VirtualTopology @Inject() (val backend: MidonetBackend,
 
     register(this)
 
-    /** Provide access to the Topolog API */
-    def store = backend.store
-    def ownershipStore = backend.ownershipStore
+    def store = backend.ownershipStore
 
     private def observableOf[D <: Device](id: UUID,
                                           tag: ClassTag[D]): Observable[D] = {
