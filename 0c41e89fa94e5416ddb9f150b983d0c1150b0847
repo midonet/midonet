@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "fa2559ec_796d9304",
+        "filename": "midonet-util/src/main/java/org/midonet/packets/FlowStateEthernet.java",
+        "patchSetId": 28
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-01-14T02:52:50Z",
+      "side": 1,
+      "message": "So should I submit another patch on top of this patch?",
+      "parentUuid": "fa2559ec_febde903",
+      "revId": "0c41e89fa94e5416ddb9f150b983d0c1150b0847",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa2559ec_9e478d1d",
         "filename": "midonet-util/src/main/java/org/midonet/packets/FlowStateEthernet.java",
         "patchSetId": 28
@@ -30,6 +48,24 @@
       "writtenOn": "2015-01-13T15:58:50Z",
       "side": 1,
       "message": "shouldn\u0027t this just be zero?",
+      "revId": "0c41e89fa94e5416ddb9f150b983d0c1150b0847",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_59724fe6",
+        "filename": "midonet-util/src/main/java/org/midonet/packets/FlowStateEthernet.java",
+        "patchSetId": 28
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-01-14T02:52:50Z",
+      "side": 1,
+      "message": "I specified \"010\", which means \"Don\u0027t fragment\", for the IP\u0027s flags. So this field is not used. I thought I saw something said in this case padding 1 for this field was appropriate but I can\u0027t find it now. So I must be wrong.",
+      "parentUuid": "fa2559ec_9e478d1d",
       "revId": "0c41e89fa94e5416ddb9f150b983d0c1150b0847",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -53,6 +89,58 @@
     },
     {
       "key": {
+        "uuid": "fa2559ec_d98f5fcb",
+        "filename": "midonet-util/src/main/java/org/midonet/packets/FlowStateEthernet.java",
+        "patchSetId": 28
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-01-14T02:52:50Z",
+      "side": 1,
+      "message": "That\u0027s totally true. How can we recognise how many routers are in between two Midolmans?",
+      "parentUuid": "fa2559ec_1e639db2",
+      "revId": "0c41e89fa94e5416ddb9f150b983d0c1150b0847",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_997327e7",
+        "filename": "midonet-util/src/main/java/org/midonet/packets/FlowStateEthernet.java",
+        "patchSetId": 28
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-01-14T02:52:50Z",
+      "side": 1,
+      "message": "Set IPv4\u0027s \"Total Length\" field here using the flexible length of ElasticData payload.",
+      "revId": "0c41e89fa94e5416ddb9f150b983d0c1150b0847",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_b976ebd6",
+        "filename": "midonet-util/src/main/java/org/midonet/packets/FlowStateEthernet.java",
+        "patchSetId": 28
+      },
+      "lineNbr": 187,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-01-14T02:52:50Z",
+      "side": 1,
+      "message": "Call of \"putElasticData\" here.",
+      "revId": "0c41e89fa94e5416ddb9f150b983d0c1150b0847",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa2559ec_7e26196a",
         "filename": "midonet-util/src/main/java/org/midonet/packets/FlowStateEthernet.java",
         "patchSetId": 28
@@ -70,6 +158,24 @@
     },
     {
       "key": {
+        "uuid": "fa2559ec_39bcbb6c",
+        "filename": "midonet-util/src/main/java/org/midonet/packets/FlowStateEthernet.java",
+        "patchSetId": 28
+      },
+      "lineNbr": 216,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-01-14T02:52:50Z",
+      "side": 1,
+      "message": "The actual modification on the IPv4 header size is done in putElasticData, which is called in serialize(ByteBuffer bb).",
+      "parentUuid": "fa2559ec_7e26196a",
+      "revId": "0c41e89fa94e5416ddb9f150b983d0c1150b0847",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa2559ec_9e782d2d",
         "filename": "odp/src/main/java/org/midonet/odp/protos/MockOvsDatapathConnection.java",
         "patchSetId": 28
@@ -81,6 +187,24 @@
       "writtenOn": "2015-01-13T15:58:50Z",
       "side": 1,
       "message": "s/Stete/State/",
+      "revId": "0c41e89fa94e5416ddb9f150b983d0c1150b0847",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_f980638d",
+        "filename": "odp/src/main/java/org/midonet/odp/protos/MockOvsDatapathConnection.java",
+        "patchSetId": 28
+      },
+      "lineNbr": 362,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-01-14T02:52:50Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fa2559ec_9e782d2d",
       "revId": "0c41e89fa94e5416ddb9f150b983d0c1150b0847",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
