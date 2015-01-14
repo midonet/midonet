@@ -24,8 +24,8 @@ import org.opendaylight.ovsdb.lib.schema.ColumnSchema;
 import org.opendaylight.ovsdb.lib.schema.DatabaseSchema;
 import org.opendaylight.ovsdb.lib.schema.GenericTableSchema;
 
-import org.midonet.cluster.data.vtep.model.MacEntry;
 import org.midonet.cluster.data.vtep.model.UcastMac;
+import org.midonet.cluster.data.vtep.model.VtepEntry;
 
 /**
  * Specific schema section for the unicast mac tables
@@ -37,11 +37,8 @@ public abstract class UcastMacsTable extends MacsTable {
         super(databaseSchema, tableName);
     }
 
-    public Boolean isUcastTable() {
-        return true;
-    }
-
     /** Get the schema of the columns of this table */
+    @Override
     public List<ColumnSchema<GenericTableSchema, ?>> getColumnSchemas() {
         List<ColumnSchema<GenericTableSchema, ?>> cols = super.getColumnSchemas();
         cols.add(getLocatorSchema());
@@ -54,6 +51,7 @@ public abstract class UcastMacsTable extends MacsTable {
     }
 
     /** Map the schema for the location column */
+    @Override
     protected ColumnSchema<GenericTableSchema, UUID> getLocationIdSchema() {
         return getLocatorSchema();
     }
@@ -70,13 +68,16 @@ public abstract class UcastMacsTable extends MacsTable {
     /**
      * Extract the entry information
      */
-    public UcastMac parseUcastMac(Row<GenericTableSchema> row) {
-       return new UcastMac(parseUuid(row), parseLogicalSwitch(row),
-                           parseMac(row), parseIpaddr(row),
-                           parseLocator(row));
+    @SuppressWarnings(value = "unckecked")
+    public <E extends VtepEntry>
+    E parseEntry(Row<GenericTableSchema> row, Class<E> clazz)
+        throws IllegalArgumentException {
+        if (!clazz.isAssignableFrom(UcastMac.class))
+            throw new IllegalArgumentException("wrong entry type " + clazz +
+                                               " for table " + this.getClass());
+        return (E)UcastMac.apply(parseUuid(row), parseLogicalSwitch(row),
+                                 parseMac(row), parseIpaddr(row),
+                                 parseLocator(row));
     }
 
-    public MacEntry parseMacEntry(Row<GenericTableSchema> row) {
-        return parseUcastMac(row);
-    }
 }

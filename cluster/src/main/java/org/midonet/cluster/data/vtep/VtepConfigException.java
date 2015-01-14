@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,18 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.brain.southbound.vtep;
+package org.midonet.cluster.data.vtep;
 
 import org.midonet.cluster.data.vtep.model.VtepEndPoint;
 
 /**
  * A checked exception for the VTEP vtep state.
  */
-public class VtepStateException extends VtepException {
+public class VtepConfigException extends VtepException {
 
-    private static final long serialVersionUID = -29438946408794685L;
+    private static final long serialVersionUID = -29438946400794685L;
 
-    public VtepStateException(VtepEndPoint vtep, String message) {
+    public VtepConfigException(VtepEndPoint vtep, String message) {
         super(vtep, message);
     }
 

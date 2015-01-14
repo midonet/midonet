@@ -38,7 +38,7 @@ import org.midonet.cluster.data.vtep.model.UcastMac
 import org.midonet.packets.IPv4Addr
 
 /**
- * Collection of translators between VTEP entities between the OVSDB schema and
+ * Collection of translators for VTEP entities between the OVSDB schema and
  * the Midonet schema.
  */
 object VtepModelTranslator {
@@ -72,7 +72,7 @@ object VtepModelTranslator {
     }
 
     def toMido(ovsdbPort: Physical_Port): PhysicalPort =
-        PhysicalPort(null, ovsdbPort.getName, ovsdbPort.getDescription,
+        PhysicalPort(id = null, ovsdbPort.getName, ovsdbPort.getDescription,
                      toMido(ovsdbPort.getVlan_bindings),
                      toMido(ovsdbPort.getVlan_stats),
                      if (ovsdbPort.getPort_fault_status == null) null
