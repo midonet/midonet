@@ -14,10 +14,8 @@
  * limitations under the License.
  */
 
-package org.midonet.cluster.data.storage
+package org.midonet.util.reactivex
 
 import rx.observers.TestObserver
-
-import org.midonet.util.reactivex.AwaitableObserver
 
 class TestAwaitableObserver[T] extends TestObserver[T] with AwaitableObserver[T]
