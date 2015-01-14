@@ -28,9 +28,8 @@ import org.midonet.cluster.data.host.Host
 import org.midonet.cluster.data.ports.BridgePort
 import org.midonet.midolman.topology.LocalPortActive
 import org.midonet.midolman.topology.VirtualToPhysicalMapper._
-import org.midonet.midolman.topology.rcu.{Host => RCUHost}
+import org.midonet.midolman.topology.devices.{Host => DevicesHost}
 import org.midonet.midolman.util.MidolmanTestCase
-import org.midonet.odp.ports.NetDevPort
 import org.midonet.packets.IPv4Addr
 
 @RunWith(classOf[JUnitRunner])
@@ -109,7 +108,7 @@ class TunnelManagementTestCase extends MidolmanTestCase
 
         // assert that the VTP got a HostRequest message
         requestOfType[HostRequest](vtpProbe())
-        replyOfType[RCUHost](vtpProbe())
+        replyOfType[DevicesHost](vtpProbe())
 
         val tzRequest = fishForRequestOfType[TunnelZoneRequest](vtpProbe())
         // assert that the VTP got a TunnelZoneRequest message for the proper zone

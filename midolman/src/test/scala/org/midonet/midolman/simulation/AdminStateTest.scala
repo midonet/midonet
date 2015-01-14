@@ -27,8 +27,10 @@ import akka.pattern.ask
 import akka.testkit.TestActorRef
 import akka.util.Timeout
 import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
+
 import org.midonet.cluster.data.ports.{BridgePort, RouterPort}
-import org.midonet.cluster.data.{Entity, Bridge => ClusterBridge, Router => ClusterRouter}
+import org.midonet.cluster.data.{Bridge => ClusterBridge, Entity, Router => ClusterRouter}
 import org.midonet.midolman.PacketWorkflow.SimulationResult
 import org.midonet.midolman._
 import org.midonet.midolman.layer3.Route
@@ -44,7 +46,6 @@ import org.midonet.packets.ICMP.UNREACH_CODE
 import org.midonet.packets._
 import org.midonet.packets.util.PacketBuilder._
 import org.midonet.sdn.flows.FlowTagger
-import org.scalatest.junit.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
 class AdminStateTest extends MidolmanSpec {
@@ -399,7 +400,7 @@ class AdminStateTest extends MidolmanSpec {
         val cookieStr: String = ""
 
         protected val dpState: DatapathState = new DatapathState {
-            val host = rcu.ResolvedHost(hostId(), true, 0, "mido", Map.empty, Map.empty)
+            val host = rcu.ResolvedHost(hostId(), true, "mido", Map.empty, Map.empty)
             def peerTunnelInfo(peer: UUID) = null
             def overlayTunnellingOutputAction: FlowActionOutput = null
             def dpPortNumberForTunnelKey(key: Long) = None

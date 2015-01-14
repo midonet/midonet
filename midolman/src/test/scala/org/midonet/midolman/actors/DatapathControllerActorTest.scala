@@ -17,12 +17,14 @@
 package org.midonet.midolman
 
 import java.util.UUID
+
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 import scala.concurrent.duration.Duration
 
 import akka.actor._
 import akka.testkit._
+
 import org.apache.commons.configuration.HierarchicalConfiguration
 import org.junit.runner.RunWith
 import org.scalatest._
@@ -75,7 +77,7 @@ class DatapathControllerActorTest extends TestKit(ActorSystem("DPCActorTest"))
 
     val commonMessages = List[AnyRef](
         Initialize,
-        ResolvedHost(UUID.randomUUID, true, 0L, "midonet", Map(), Map())
+        ResolvedHost(UUID.randomUUID, true, "midonet", Map(), Map())
     )
 
     val initOnlyMessages = List[AnyRef](
