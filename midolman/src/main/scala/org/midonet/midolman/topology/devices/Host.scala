@@ -24,6 +24,7 @@ import org.midonet.cluster.models.Topology.Host.PortToInterface
 import org.midonet.cluster.util.MapConverter
 import org.midonet.cluster.util.UUIDUtil.{Converter => UUIDConverter, _}
 import org.midonet.midolman.topology.VirtualTopology.Device
+import org.midonet.midolman.topology.rcu.{Host => RCUHost}
 import org.midonet.packets.IPAddr
 
 /**
@@ -48,6 +49,20 @@ class PortInterfaceConverter extends MapConverter[UUID, String, PortToInterface]
     }
 }
 
+object Host {
+    def toDevicesHost(rcuHost: RCUHost): Host = {
+        val newHost = new Host
+        newHost.id = rcuHost.id
+        newHost.portToInterface = rcuHost.ports
+        newHost.tunnelZoneIds = rcuHost.zones.keySet
+        newHost.tunnelZones = rcuHost.zones.map(idHostConfig =>
+            (idHostConfig._1, idHostConfig._2.getIp)
+        )
+        newHost.alive = rcuHost.alive
+        newHost
+    }
+}
+
 @ZoomClass(clazz = classOf[Topology.Host])
 class Host extends ZoomObject with Device {
 
@@ -55,7 +70,7 @@ class Host extends ZoomObject with Device {
     var id: UUID = _
     @ZoomField(name = "port_interface_mapping",
                converter = classOf[PortInterfaceConverter])
-    var portInterfaceMapping = Map[UUID, String]()
+    var portToInterface = Map[UUID, String]()
     @ZoomField(name = "tunnel_zone_ids", converter = classOf[UUIDConverter])
     var tunnelZoneIds = Set.empty[UUID]
 
@@ -69,10 +84,22 @@ class Host extends ZoomObject with Device {
     def deepCopy: Host = {
         val hostCopy = new Host()
         hostCopy.id = id
-        hostCopy.portInterfaceMapping = portInterfaceMapping
+        hostCopy.portToInterface = portToInterface
         hostCopy.tunnelZoneIds = tunnelZoneIds
         hostCopy.tunnelZones = tunnelZones
         hostCopy.alive = alive
         hostCopy
+    }
+
+    override def equals(o: Any): Boolean = {
+        if (o.isInstanceOf[Host]) {
+            val host = o.asInstanceOf[Host]
+
+            id.equals(host.id) &&
+            portToInterface.equals(host.portToInterface) &&
+            tunnelZoneIds.equals(host.tunnelZoneIds) &&
+            tunnelZones.equals(host.tunnelZones)
+        } else
+            false
     }
 }

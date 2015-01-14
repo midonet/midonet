@@ -16,34 +16,32 @@
 
 package org.midonet.midolman.state
 
-import java.util.{ArrayList, UUID, HashSet => JHashSet, Iterator => JIterator, List => JList, Set => JSet}
+import java.util.{ArrayList, HashSet => JHashSet, Iterator => JIterator, List => JList, Set => JSet, UUID}
 
 import scala.collection.mutable
 
 import akka.actor.ActorSystem
-
 import com.google.protobuf.MessageLite
-
 import com.typesafe.scalalogging.Logger
 import org.slf4j.LoggerFactory
 
 import org.midonet.midolman.HostRequestProxy.FlowStateBatch
-import org.midonet.midolman.topology.devices.Port
-import org.midonet.midolman.{NotYetException, UnderlayResolver}
 import org.midonet.midolman.datapath.DatapathChannel
 import org.midonet.midolman.simulation.PortGroup
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackKey, ConnTrackValue}
 import org.midonet.midolman.state.FlowState.FlowStateKey
-import org.midonet.midolman.state.NatState.{NatKey, NatBinding}
+import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
+import org.midonet.midolman.topology.devices.Port
 import org.midonet.midolman.topology.{VirtualTopologyActor => VTA}
-import org.midonet.odp.{FlowMatches, Packet}
+import org.midonet.midolman.{NotYetException, UnderlayResolver}
 import org.midonet.odp.flows.FlowAction
 import org.midonet.odp.flows.FlowActions.setKey
 import org.midonet.odp.flows.FlowKeys.tunnel
+import org.midonet.odp.{FlowMatches, Packet}
 import org.midonet.packets.Ethernet
 import org.midonet.rpc.{FlowStateProto => Proto}
-import org.midonet.sdn.state.{FlowStateTable, FlowStateTransaction}
 import org.midonet.sdn.flows.FlowTagger.FlowTag
+import org.midonet.sdn.state.{FlowStateTable, FlowStateTransaction}
 import org.midonet.util.FixedArrayOutputStream
 import org.midonet.util.collection.Reducer
 import org.midonet.util.functors.Callback0
@@ -100,7 +98,7 @@ abstract class BaseFlowStateReplicator(conntrackTable: FlowStateTable[ConnTrackK
                                        underlay: UnderlayResolver,
                                        invalidateFlowsFor: (FlowStateKey) => Unit,
                                        tos: Byte) {
-    import FlowStatePackets._
+    import org.midonet.midolman.state.FlowStatePackets._
 
     protected def log: Logger
     protected def getPort(id: UUID): Port
@@ -167,7 +165,8 @@ abstract class BaseFlowStateReplicator(conntrackTable: FlowStateTable[ConnTrackK
     private def resetCurrentMessage() {
         currentMessage.clear()
         currentMessage.setSender(hostId)
-        currentMessage.setEpoch(underlay.host.epoch)
+        currentMessage.setEpoch(0L /* the epoch is not used*/)
+
         /* We don't expect ACKs, seq is unused for now */
         currentMessage.setSeq(0x1)
     }

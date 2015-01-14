@@ -17,6 +17,7 @@
 package org.midonet.midolman.state
 
 import java.util.{ArrayList, UUID, HashSet => JHashSet, List => JList, Set => JSet}
+
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 
@@ -426,7 +427,7 @@ class MockUnderlayResolver(hostId: UUID, hostIp: IPv4Addr,
 
     val output = FlowActions.output(23)
 
-    override def host = ResolvedHost(hostId, true, 23L, "midonet", Map.empty, Map.empty)
+    override def host = ResolvedHost(hostId, true, "midonet", Map.empty, Map.empty)
 
     override def peerTunnelInfo(peer: UUID): Option[Route] = {
         if (peers.contains(peer))
