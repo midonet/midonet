@@ -16,33 +16,35 @@
 package org.midonet.midolman.simulation
 
 import java.util.UUID
+
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
-import akka.actor._
 import akka.actor.Actor.emptyBehavior
+import akka.actor._
 import akka.pattern.ask
 import akka.testkit.TestActorRef
 import akka.util.Timeout
+
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cluster.data.{Router => ClusterRouter, Bridge => ClusterBridge, Entity}
 import org.midonet.cluster.data.ports.{BridgePort, RouterPort}
-import org.midonet.midolman._
-import org.midonet.midolman.PacketWorkflow.{SimulationResult, AddVirtualWildcardFlow}
+import org.midonet.cluster.data.{Bridge => ClusterBridge, Entity, Router => ClusterRouter}
 import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
+import org.midonet.midolman.PacketWorkflow.{AddVirtualWildcardFlow, SimulationResult}
+import org.midonet.midolman._
 import org.midonet.midolman.layer3.Route
-import org.midonet.midolman.topology._
 import org.midonet.midolman.topology.VirtualTopologyActor.BridgeRequest
+import org.midonet.midolman.topology._
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.MessageAccumulator
 import org.midonet.odp.DpPort
-import org.midonet.odp.flows.{FlowAction, FlowActionOutput}
 import org.midonet.odp.flows.FlowActions.output
+import org.midonet.odp.flows.{FlowAction, FlowActionOutput}
 import org.midonet.odp.protos.OvsDatapathConnection
-import org.midonet.packets._
 import org.midonet.packets.ICMP.UNREACH_CODE
+import org.midonet.packets._
 import org.midonet.packets.util.PacketBuilder._
 import org.midonet.sdn.flows.FlowTagger
 
@@ -399,7 +401,7 @@ class AdminStateTest extends MidolmanSpec {
         val cookieStr: String = ""
 
         protected val dpState: DatapathState = new DatapathState {
-            val host = rcu.ResolvedHost(hostId(), true, 0, "mido", Map.empty, Map.empty)
+            val host = rcu.ResolvedHost(hostId(), true, "mido", Map.empty, Map.empty)
             def peerTunnelInfo(peer: UUID) = null
             def overlayTunnellingOutputAction: FlowActionOutput = null
             def dpPortNumberForTunnelKey(key: Long) = None
