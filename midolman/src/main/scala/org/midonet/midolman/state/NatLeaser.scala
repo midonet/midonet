@@ -290,7 +290,7 @@ trait NatLeaser {
 
     private def getLeasedBlocks(deviceId: UUID, targetIp: IPAddr): LeasedBlocks = {
         val ipLeases = getOrCreateDeviceLeases(deviceId)
-        getOrCreateDeviceLeases(ipLeases, targetIp)
+        getOrCreateIpLeases(ipLeases, targetIp)
     }
 
     private def getOrCreateDeviceLeases(deviceId: UUID) = {
@@ -304,7 +304,7 @@ trait NatLeaser {
         value
     }
 
-    private def getOrCreateDeviceLeases(ipLeases: IpLeases, targetIp: IPAddr) = {
+    private def getOrCreateIpLeases(ipLeases: IpLeases, targetIp: IPAddr) = {
         var value = ipLeases.get(targetIp)
         if (value eq null) {
             value = LeasedBlocks(log)

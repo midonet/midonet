@@ -26,12 +26,12 @@ public class FlowKeyVLAN implements CachedFlowKey {
     /* be16 */
     //short pcp; // Priority Code Point 3 bits
     //short dei; // Drop Elegible Indicator 1 bit
-    private short vlan; // 12 bit
+    public short vlan; // 12 bit
 
     // This is used for deserialization purposes only.
     FlowKeyVLAN() { }
 
-    FlowKeyVLAN(short vlanTCI) {
+    public FlowKeyVLAN(short vlanTCI) {
         vlan = vlanTCI;
     }
 
@@ -44,12 +44,13 @@ public class FlowKeyVLAN implements CachedFlowKey {
         vlan = VLAN.unsetDEI(BytesUtil.instance.reverseBE(buf.getShort()));
     }
 
-    public short attrId() {
-        return OpenVSwitch.FlowKey.Attr.VLan;
+    @Override
+    public void wildcard() {
+        vlan = 0;
     }
 
-    public short getVLAN() {
-        return vlan;
+    public short attrId() {
+        return OpenVSwitch.FlowKey.Attr.VLan;
     }
 
     @Override

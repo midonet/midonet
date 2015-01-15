@@ -25,7 +25,7 @@ public enum IPFragmentType {
 
     None(0), First(1), Later(2);
 
-    byte value;
+    public byte value;
 
     IPFragmentType(int value) {
         this.value = (byte) value;

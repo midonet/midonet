@@ -53,11 +53,7 @@ public class Flow implements AttributeHandler {
 
     public Flow(FlowMatch match) {
         this.match = match;
-    }
-
-    public Flow(FlowMatch match, FlowMask mask) {
-        this(match);
-        this.mask = mask;
+        mask.calculateFor(match);
     }
 
     public Flow(FlowMatch match, List<FlowAction> actions) {
@@ -65,18 +61,8 @@ public class Flow implements AttributeHandler {
         this.actions = actions;
     }
 
-    public Flow(FlowMatch match, FlowMask mask, List<FlowAction> actions) {
-        this(match, mask);
-        this.actions = actions;
-    }
-
     public Flow(FlowMatch match, List<FlowAction> actions, FlowStats stats) {
         this(match, actions);
-        this.stats = stats;
-    }
-
-    public Flow(FlowMatch match, FlowMask mask, List<FlowAction> actions, FlowStats stats) {
-        this(match, mask, actions);
         this.stats = stats;
     }
 
@@ -89,13 +75,8 @@ public class Flow implements AttributeHandler {
         return (match == null || match.getKeys().isEmpty());
     }
 
-    @Nullable
     public FlowMask getMask() {
         return mask;
-    }
-
-    public boolean hasEmptyMask() {
-        return (mask == null || mask.getKeys().isEmpty());
     }
 
     @Nonnull
@@ -214,13 +195,17 @@ public class Flow implements AttributeHandler {
             desc.add("match keys: empty");
         else {
             desc.add("match keys:");
-            for (FlowKey key: matchKeys) desc.add("  " + key.toString());
+            for (FlowKey key : matchKeys) {
+                desc.add("  " + key.toString());
+                if (mask != null)
+                    desc.add("    mask: " + mask.getMaskFor(key.attrId()).toString());
+            }
         }
         if (actions.isEmpty())
             desc.add("actions: empty");
         else {
             desc.add("actions: ");
-            for (FlowAction act: actions) desc.add("  " + act.toString());
+            for (FlowAction act : actions) desc.add("  " + act.toString());
         }
         if (stats != null)
             desc.add("stats: " + stats);
@@ -230,5 +215,4 @@ public class Flow implements AttributeHandler {
             desc.add("lastUsedTime: " + lastUsedTime);
         return  desc;
     }
-
 }

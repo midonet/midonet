@@ -58,11 +58,11 @@ class DisruptorDatapathChannel(val capacity: Int,
     private val barrier = ringBuffer.newBarrier()
 
     private var processors: Seq[EventProcessor] = _
-    private var datapathId: Int = _
+    private var datapath: Datapath = _
     private val protocol = new OvsProtocol(0, ovsFamilies)
 
     def start(datapath: Datapath): Unit = {
-        datapathId = datapath.getIndex
+        this.datapath = datapath
         processors = createProcessors()
 
         processors foreach { proc =>
@@ -82,7 +82,7 @@ class DisruptorDatapathChannel(val capacity: Int,
 
     private def createProcessors(): Seq[EventProcessor] = {
         val flowHandler = new FlowProcessor(flowEjector, channelFactory,
-                                            datapathId, ovsFamilies, clock)
+                                            datapath.getIndex, ovsFamilies, clock)
         if (threads <= 1) {
             val handler = new AggregateEventPollerHandler(
                 flowHandler,
@@ -110,7 +110,7 @@ class DisruptorDatapathChannel(val capacity: Int,
         val event = ringBuffer.get(seq)
         event.bb.clear()
 
-        protocol.preparePacketExecute(datapathId, packet, actions, event.bb)
+        protocol.preparePacketExecute(datapath.getIndex, packet, actions, event.bb)
         event.op = PACKET_EXECUTION
         ringBuffer.publish(seq)
     }
@@ -122,7 +122,8 @@ class DisruptorDatapathChannel(val capacity: Int,
         val event = ringBuffer.get(seq)
         event.bb.clear()
 
-        protocol.prepareFlowCreate(datapathId, flow, event.bb)
+        protocol.prepareFlowCreate(datapath.getIndex, datapath.supportsMegaflow(),
+                                   flow, event.bb)
         event.op = FLOW_CREATE
         ringBuffer.publish(seq)
     }
