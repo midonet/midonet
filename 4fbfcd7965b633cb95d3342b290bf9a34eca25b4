@@ -1439,6 +1439,30 @@
     },
     {
       "key": {
+        "uuid": "fa2559ec_f4d7c5eb",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 679,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-01-15T05:50:44Z",
+      "side": 1,
+      "message": "Weird. There\u0027s no syntactical reason it needs to be :+ instead of +. Maybe it\u0027s for symmetry with +:, which needs the colon for right-associativity.",
+      "parentUuid": "fa2559ec_3104cf14",
+      "range": {
+        "startLine": 679,
+        "startChar": 45,
+        "endLine": 679,
+        "endChar": 75
+      },
+      "revId": "4fbfcd7965b633cb95d3342b290bf9a34eca25b4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa2559ec_c4dad2e8",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
         "patchSetId": 15
