@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa2559ec_d47601d8",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/StorageModule.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-15T09:01:06Z",
+      "side": 1,
+      "message": "Unrelated comment: shouldn\u0027t we move this module to cluster, such that the same storage configuration is available to other modules, such as midolman?",
+      "range": {
+        "startLine": 30,
+        "startChar": 6,
+        "endLine": 30,
+        "endChar": 19
+      },
+      "revId": "343e657189145b97ec7dff47142e2ef3ae0567ed",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
