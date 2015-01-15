@@ -22,6 +22,7 @@ opportunistically, and watches for updates to that information.
 * [Flow invalidation](midolman-flow-invalidation.md)
 * [Flow based tunneling](flow-based-tunneling.md)
 * [Tunnel management](tunnel-management.md)
+* [Megaflow](megaflow.md)
 
 ### Virtual devices
 
