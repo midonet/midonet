@@ -30,7 +30,6 @@ import com.typesafe.scalalogging.Logger
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.Client
-import org.midonet.cluster.client.{RouterPort, BridgePort, Port}
 import org.midonet.cluster.data.l4lb.{Pool => PoolConfig}
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.l4lb.PoolHealthMonitorMapManager
@@ -41,6 +40,7 @@ import org.midonet.midolman.Referenceable
 import org.midonet.midolman.simulation._
 import org.midonet.midolman.l4lb.PoolHealthMonitorMapManager.PoolHealthMonitorMap
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
+import org.midonet.midolman.topology.devices.{RouterPort, BridgePort, Port}
 import org.midonet.util.concurrent._
 
 /**

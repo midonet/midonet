@@ -22,18 +22,19 @@ import java.util.concurrent.TimeUnit
 
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
+import scala.concurrent.ExecutionContextExecutor
 
 import akka.actor.ActorSystem
 import akka.util.Timeout
 
-import org.midonet.cluster.client.{Port, VxLanPort}
 import org.midonet.midolman.simulation.{Bridge, PacketContext}
 import org.midonet.midolman.topology.VirtualTopologyActor.tryAsk
+import org.midonet.midolman.topology.devices.{Port, VxLanPort}
 import org.midonet.odp.flows.FlowActions.{output, setKey}
 import org.midonet.odp.flows._
 import org.midonet.packets.{Ethernet, ICMP, IPv4, IPv4Addr}
-import org.midonet.sdn.flows.{VirtualActions, FlowTagger}
 import org.midonet.sdn.flows.FlowTagger.FlowTag
+import org.midonet.sdn.flows.{FlowTagger, VirtualActions}
 
 object FlowTranslator {
     val NotADpPort: JInteger = -1
@@ -47,7 +48,7 @@ trait FlowTranslator {
 
     implicit protected val requestReplyTimeout = new Timeout(5, TimeUnit.SECONDS)
     implicit protected def system: ActorSystem
-    implicit protected def executor = system.dispatcher
+    implicit protected def executor: ExecutionContextExecutor = system.dispatcher
 
     /**
      * Translates a Seq of FlowActions expressed in virtual references into a
@@ -154,7 +155,7 @@ trait FlowTranslator {
             while (!ports.isEmpty) {
                 val port = ports.head
                 ports = ports.tail
-                if (port.hostID == dpState.host.id) {
+                if (port.hostId == dpState.host.id) {
                     val portNo = dpState.getDpPortNumberForVport(port.id)
                     if (portNo.isDefined) {
                         context.outPorts.add(port.id)
@@ -169,9 +170,9 @@ trait FlowTranslator {
             while (!ports.isEmpty) {
                 val port = ports.head
                 ports = ports.tail
-                if (port.hostID != dpState.host.id) {
+                if (port.hostId != dpState.host.id) {
                     context.outPorts.add(port.id)
-                    outputActionsToPeer(port.tunnelKey, port.hostID, actions,
+                    outputActionsToPeer(port.tunnelKey, port.hostId, actions,
                         context.flowTags, context)
                 }
             }
@@ -191,8 +192,8 @@ trait FlowTranslator {
                 val vxlanPortId = br.vxlanPortId.get
                 tryAsk[Port](vxlanPortId) match {
                     case p: VxLanPort =>
-                        outputActionsToVtep(p.vni, p.vtepTunAddr.addr,
-                            p.tunnelZoneId, actions,
+                        outputActionsToVtep(p.vtepVni, p.vtepTunnelIp.addr,
+                            p.vtepTunnelZoneId, actions,
                             context.flowTags, context)
                     case _ =>
                         context.log.warn("could not find VxLanPort {} of bridge {}",
@@ -224,11 +225,12 @@ trait FlowTranslator {
             // therefore it needs to be matched first.
             tryAsk[Port](port) match {
                 case p: VxLanPort =>
-                    towardsVtepPeer(p.vni, p.vtepTunAddr, p.tunnelZoneId,
+                    towardsVtepPeer(p.vtepVni, p.vtepTunnelIp,
+                                    p.vtepTunnelZoneId,
                                     context.flowTags, context)
                 case p: Port if p.isExterior =>
                     context.outPorts.add(port)
-                    towardsRemoteHost(p.tunnelKey, p.hostID,
+                    towardsRemoteHost(p.tunnelKey, p.hostId,
                                       context.flowTags, context)
                 case _ =>
                     context.log.warn("Port {} was not exterior", port)
