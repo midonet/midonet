@@ -162,7 +162,7 @@ def unset_filters(router_name):
     """Unsets in-/out-bound filters from a router."""
     set_filters(router_name, None, None)
 
-def add_bgp(port, bgp, wait=30):
+def add_bgp(port, bgp, wait=5):
     b = port._mn_resource.add_bgp()\
         .local_as(bgp['localAS'])\
         .peer_as(bgp['peerAS'])\
