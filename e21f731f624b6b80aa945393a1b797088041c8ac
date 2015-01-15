@@ -97,6 +97,30 @@
     },
     {
       "key": {
+        "uuid": "fa2559ec_a70fdd2d",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/common/Connection.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-01-15T09:29:29Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fa2559ec_444a6284",
+      "range": {
+        "startLine": 47,
+        "startChar": 7,
+        "endLine": 47,
+        "endChar": 64
+      },
+      "revId": "e21f731f624b6b80aa945393a1b797088041c8ac",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1af78d9a_00a32a9f",
         "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/common/Connection.scala",
         "patchSetId": 1
