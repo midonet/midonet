@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "fa2559ec_74e2b504",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 172,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-01-15T05:14:08Z",
+      "side": 1,
+      "message": "Doesn\u0027t the existence of a TxDelete operation in ops for the same key also serve to make the distinction?\n\nSince you\u0027re usually matching on ops(key) rather than objCache(key), it\u0027s not clear to me that using Option here adds much value, and I see at least one place where it seems to have led to a bug (see below).",
+      "parentUuid": "fa2559ec_c40bf229",
+      "range": {
+        "startLine": 172,
+        "startChar": 56,
+        "endLine": 172,
+        "endChar": 62
+      },
+      "revId": "4fbfcd7965b633cb95d3342b290bf9a34eca25b4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa2559ec_449b82c9",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
         "patchSetId": 15
@@ -84,6 +108,30 @@
       "side": 1,
       "message": "Oh yes, you are right about the zxid, didn\u0027t catch that. Initially, I used a different OwnershipType called None, that prevented reading the children for classes that didn\u0027t support ownership, but then I thought it might complicate matters for the backwards compatibility with services using zoom unaware of ownership (I still don\u0027t have a clear picture on how we\u0027re going to use the zoom client, where we register classes, etc.)\n\nHowever, the stat of the first getData already returns the number of children for a node. How about leveraging this info to decide whether we need to read the children:\n\n  val children  \u003d if (stat.getNumChildren \u003e 0) {\n    // read children\n  } else Set.empty",
       "parentUuid": "fa2559ec_449b82c9",
+      "range": {
+        "startLine": 255,
+        "startChar": 12,
+        "endLine": 255,
+        "endChar": 56
+      },
+      "revId": "4fbfcd7965b633cb95d3342b290bf9a34eca25b4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_14f1b9cd",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 255,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-01-15T05:14:08Z",
+      "side": 1,
+      "message": "That sounds good.",
+      "parentUuid": "fa2559ec_e44556b4",
       "range": {
         "startLine": 255,
         "startChar": 12,
@@ -190,6 +238,29 @@
     },
     {
       "key": {
+        "uuid": "fa2559ec_b478ad2c",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 327,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-01-15T05:14:08Z",
+      "side": 1,
+      "message": "Following up on my comment about the use of Option in objCache, won\u0027t this fail if the key is in ObjCache but has been marked for deletion by an earlier operation?",
+      "range": {
+        "startLine": 325,
+        "startChar": 0,
+        "endLine": 327,
+        "endChar": 13
+      },
+      "revId": "4fbfcd7965b633cb95d3342b290bf9a34eca25b4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa2559ec_64f846e6",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
         "patchSetId": 15
@@ -272,6 +343,30 @@
       "side": 1,
       "message": "This is to overwrite the owner ephemeral node in ZK, even if created by a different client session. It doesn\u0027t affect the owner, but rather re-creates the ZK node.\n\nThis is needed for instance, by the VXGW, to overwrite the VTEP ownership after a restart, but otherwise not affecting the owner.",
       "parentUuid": "fa2559ec_24ee4e23",
+      "range": {
+        "startLine": 368,
+        "startChar": 44,
+        "endLine": 368,
+        "endChar": 53
+      },
+      "revId": "4fbfcd7965b633cb95d3342b290bf9a34eca25b4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_f4ed05f1",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 368,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-01-15T05:14:08Z",
+      "side": 1,
+      "message": "A restart of what? If it\u0027s a restart of the node that created the ephemeral ownership node, then wouldn\u0027t that result in the ephemeral ownership node being deleted?\n\nMaybe it\u0027s because I don\u0027t really understand the use case. What is this for, exactly? Why are both the name of the owner node and the creating client significant?",
+      "parentUuid": "fa2559ec_5f734fb1",
       "range": {
         "startLine": 368,
         "startChar": 44,
@@ -425,6 +520,30 @@
     },
     {
       "key": {
+        "uuid": "fa2559ec_34bf9dd2",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 452,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-01-15T05:14:08Z",
+      "side": 1,
+      "message": "Ah, no, I wouldn\u0027t bother with a check just for that case, then.",
+      "parentUuid": "fa2559ec_1f31d7a2",
+      "range": {
+        "startLine": 450,
+        "startChar": 0,
+        "endLine": 452,
+        "endChar": 48
+      },
+      "revId": "4fbfcd7965b633cb95d3342b290bf9a34eca25b4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa2559ec_84d1facf",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
         "patchSetId": 15
@@ -460,6 +579,30 @@
       "side": 1,
       "message": "Here, os.version is not necessarily NEW_OBJ_VERSION, because this is an update. We can return a (version, owners) pair from the match, and modify the objCache after, is that preferable?",
       "parentUuid": "fa2559ec_84d1facf",
+      "range": {
+        "startLine": 454,
+        "startChar": 20,
+        "endLine": 454,
+        "endChar": 79
+      },
+      "revId": "4fbfcd7965b633cb95d3342b290bf9a34eca25b4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_74b915e9",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 454,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-01-15T05:14:08Z",
+      "side": 1,
+      "message": "Are you sure about that? This is an update from the perspective of the Zoom client, but as far as ZK operations are concerned, it\u0027s a create. And no matter what other operations the client throws at us, it\u0027s never going to be anything other than create, because the node doesn\u0027t exist in Zookeeper yet.\n\nVersion actually doesn\u0027t matter at all for create, anyway. We just ignore it in commit(), because Zookeeper creates don\u0027t take a version argument.",
+      "parentUuid": "fa2559ec_9f1ca715",
       "range": {
         "startLine": 454,
         "startChar": 20,
@@ -554,6 +697,30 @@
       "side": 1,
       "message": "Above the owner is an Option[String], to preserve compatibility with the owner agnostic update, where the owner can be None. Here, owner is just a String,",
       "parentUuid": "fa2559ec_64cfa6b1",
+      "range": {
+        "startLine": 476,
+        "startChar": 0,
+        "endLine": 486,
+        "endChar": 13
+      },
+      "revId": "4fbfcd7965b633cb95d3342b290bf9a34eca25b4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_f4c4e560",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 486,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-01-15T05:14:08Z",
+      "side": 1,
+      "message": "By \"above,\" I meant line 378, where owner is String. I\u0027ll copy and paste it here for easy reference:\n\n            if (classInfo(clazz).ownershipType.isExclusive \u0026\u0026\n                !owners.contains(owner) \u0026\u0026 owners.nonEmpty) {\n                throw new OwnershipConflictException(\n                    clazz.getSimpleName, thisId.toString,\n                    owners, owner, \"Caller does not own object\")\n            }\n            if (!overwrite \u0026\u0026 owners.contains(owner)) {\n                throw new OwnershipConflictException(\n                    clazz.getSimpleName, thisId.toString,\n                    owners, owner, \"Ownership already exists\")\n            }\n\nThe only difference (other than the fact that you extracted owners from the snapshot prior to this snippet) is checking owners.nonEmpty in the first if clause. That is, the code in this comment allows adding an owner to an orphaned object with exclusive ownership, whereas the code I\u0027m commenting on does not.",
+      "parentUuid": "fa2559ec_bfda4be7",
       "range": {
         "startLine": 476,
         "startChar": 0,
@@ -895,6 +1062,30 @@
     },
     {
       "key": {
+        "uuid": "fa2559ec_b491cd54",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 576,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-01-15T05:14:08Z",
+      "side": 1,
+      "message": "Er...yeah. --, not -.",
+      "parentUuid": "fa2559ec_ff2e83a4",
+      "range": {
+        "startLine": 573,
+        "startChar": 0,
+        "endLine": 576,
+        "endChar": 61
+      },
+      "revId": "4fbfcd7965b633cb95d3342b290bf9a34eca25b4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa2559ec_a4787e2c",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
         "patchSetId": 15
@@ -1071,6 +1262,30 @@
       "side": 1,
       "message": "You are right, but the scala compiler gives a warning that the match doesn\u0027t cover all cases. I replaced by:\n\n  throw new InternalError()",
       "parentUuid": "fa2559ec_04498ad0",
+      "range": {
+        "startLine": 619,
+        "startChar": 0,
+        "endLine": 620,
+        "endChar": 71
+      },
+      "revId": "4fbfcd7965b633cb95d3342b290bf9a34eca25b4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_54885122",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 620,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-01-15T05:14:08Z",
+      "side": 1,
+      "message": "Scala compiler can be kind of a jerk sometimes.",
+      "parentUuid": "fa2559ec_7f129363",
       "range": {
         "startLine": 619,
         "startChar": 0,
