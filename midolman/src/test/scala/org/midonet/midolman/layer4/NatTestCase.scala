@@ -444,7 +444,8 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
 
         val newMappings = updateAndDiffMappings()
         newMappings.size should be (1)
-        natTable.getRefCount(newMappings.head) should be (1)
+        // 0 because it's a userspace flow
+        natTable.getRefCount(newMappings.head) should be (0)
 
         val eth = applyOutPacketActions(pktOut)
         val mapping = new Mapping(newMappings.head,
@@ -706,7 +707,7 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
      * this method will kindly check that it arrives, reply with an ICMP
      * UNREACHABLE, and verify that the reverse SNAT is done properly
      */
-    private def verifySnatICMPErrorAfterPacket() {
+    private def verifySnatICMPErrorAfterPacket(userspace: Boolean) {
         val pktOut = requestOfType[PacketsExecute](packetsEventsProbe)
         val outPorts = getOutPacketPorts(pktOut)
         outPorts.size should be (1)
@@ -714,7 +715,7 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
 
         val newMappings = updateAndDiffMappings()
         newMappings.size should be (1)
-        natTable.getRefCount(newMappings.head) should be (1)
+        natTable.getRefCount(newMappings.head) should be (if (userspace) 0 else 1)
         localPortNumberToName(outPorts.head) should be (Some("uplinkPort"))
 
         val eth = pktOut.packet.getEthernet
@@ -740,7 +741,7 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
      * reply with an ICMP UNREACHABLE, and verify that the reverse DNAT is done
      * properly
      */
-    private def verifyDnatICMPErrorAfterPacket() {
+    private def verifyDnatICMPErrorAfterPacket(userspace: Boolean) {
         val pktOut = requestOfType[PacketsExecute](packetsEventsProbe)
         val outPorts = getOutPacketPorts(pktOut)
         outPorts.size should be (1)
@@ -748,7 +749,7 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
 
         val newMappings = updateAndDiffMappings()
         newMappings.size should be (1)
-        natTable.getRefCount(newMappings.head) should be (1)
+        natTable.getRefCount(newMappings.head) should be (if (userspace) 0 else 1)
 
         val eth = pktOut.packet.getEthernet
         val ethApplied = applyOutPacketActions(pktOut)
@@ -782,7 +783,7 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
         log.info("Sending a TCP packet that should be SNAT'ed")
         injectTcp(vmPortNames.head, vmMacs.head, vmIps.head, 5555,
             routerMac, dstIp, 1111, syn = true)
-        verifySnatICMPErrorAfterPacket()
+        verifySnatICMPErrorAfterPacket(userspace = false)
     }
 
     /**
@@ -796,7 +797,7 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
         log.info("Sending a TCP packet that should be DNAT'ed")
         injectTcp("uplinkPort", uplinkGatewayMac, srcIp, 888,
             uplinkPortMac, dnatAddress, 333, syn = true)
-        verifyDnatICMPErrorAfterPacket()
+        verifyDnatICMPErrorAfterPacket(userspace = false)
     }
 
     /**
@@ -810,7 +811,7 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
         log.info("Sending a TCP packet that should be SNAT'ed")
         injectIcmpEchoReq(
             vmPortNames.head, vmMacs.head, vmIps.head, routerMac, dstIp, 22, 55)
-        verifySnatICMPErrorAfterPacket()
+        verifySnatICMPErrorAfterPacket(userspace = true)
     }
 
     /**
@@ -824,6 +825,6 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
         log.info("Sending a TCP packet that should be DNAT'ed")
         injectIcmpEchoReq("uplinkPort", uplinkGatewayMac, srcIp,
             uplinkPortMac, dnatAddress, 7, 6)
-        verifyDnatICMPErrorAfterPacket()
+        verifyDnatICMPErrorAfterPacket(userspace = true)
     }
 }
