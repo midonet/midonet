@@ -22,6 +22,30 @@
       "revId": "80699f23c7df73f3706cc5245e8afdf1af6dcaf2",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_6714c5f5",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/Host.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-15T11:01:00Z",
+      "side": 1,
+      "message": "This will be fixed in the next version. I\u0027m waiting for the host refactor patch to be reviewed and merged before addressing this.\n\nWith the host refactor patch, the VTPM will be emitting the new host.",
+      "parentUuid": "fa2559ec_9ec66d48",
+      "range": {
+        "startLine": 81,
+        "startChar": 8,
+        "endLine": 81,
+        "endChar": 27
+      },
+      "revId": "80699f23c7df73f3706cc5245e8afdf1af6dcaf2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
