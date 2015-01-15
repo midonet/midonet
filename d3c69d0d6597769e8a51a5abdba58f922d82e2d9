@@ -119,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "fa2559ec_93cdc660",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 113,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-15T09:31:14Z",
+      "side": 1,
+      "message": "That makes sense",
+      "parentUuid": "fa2559ec_4ad6f3c6",
+      "range": {
+        "startLine": 113,
+        "startChar": 6,
+        "endLine": 113,
+        "endChar": 27
+      },
+      "revId": "d3c69d0d6597769e8a51a5abdba58f922d82e2d9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1af78d9a_35b6593e",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
         "patchSetId": 11
@@ -178,6 +202,30 @@
       "side": 1,
       "message": "This technique is often referred to as \"optimistic locking.\" It\u0027s not really a lock, but that\u0027s why I called it that.",
       "parentUuid": "fa2559ec_4a5f1373",
+      "range": {
+        "startLine": 174,
+        "startChar": 21,
+        "endLine": 174,
+        "endChar": 29
+      },
+      "revId": "d3c69d0d6597769e8a51a5abdba58f922d82e2d9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_071d0967",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 174,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-15T09:31:14Z",
+      "side": 1,
+      "message": "Yes sure but the real usage of zxid is to have some kind of snapshot timestamp. So why not calling zxid snapshotTS or snapshotZxid? For lockPath, why not renaming it to zxIdPath? It\u0027s fine if you leave it like that but I feel that putting a snapshot in the name conveys the usage of this better. Mentioning that we use optimistic concurrency control/optimistic locking in the comment would be nice too.",
+      "parentUuid": "fa2559ec_840c5a96",
       "range": {
         "startLine": 174,
         "startChar": 21,
