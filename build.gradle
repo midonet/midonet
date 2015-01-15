@@ -486,7 +486,7 @@ def getGitSHA() {
     try {
         def cmd = "git rev-parse --short HEAD"
         def proc = cmd.execute()
-        "g" + proc.text.trim()
+        proc.text.trim()
     } catch (e) {
         return "git"
     }
