@@ -62,11 +62,9 @@ class ConntrackStateTest extends MidolmanSpec {
         VirtualTopologyActor ! port
     }
 
-    def context(cookieOrEgressPort: Either[Int, UUID],
-                eth: Ethernet = ping) = {
+    def context(eth: Ethernet = ping, egressPort: UUID = null) = {
         val fmatch = new FlowMatch(FlowKeys.fromEthernetPacket(eth))
-        val ctx = new PacketContext(cookieOrEgressPort, new Packet(eth, fmatch),
-                                    None, fmatch)
+        val ctx = new PacketContext(1, new Packet(eth, fmatch), fmatch, egressPort)
         ctx.initialize(connTrackTx,
                        new FlowStateTransaction[NatKey, NatBinding](null),
                        HappyGoLuckyLeaser)
@@ -76,21 +74,21 @@ class ConntrackStateTest extends MidolmanSpec {
 
     feature("Connections are tracked") {
         scenario("Non-ip packets are considered forward flows") {
-            val ctx = context(Left(1), { eth src MAC.random() dst MAC.random() })
+            val ctx = context({ eth src MAC.random() dst MAC.random() })
             ctx.isForwardFlow should be (true)
             connTrackTx.size() should be (0)
             ctx should be (taggedWith ())
         }
 
         scenario("Generated packets are treated as return flows") {
-            val ctx = context(Right(UUID.randomUUID()))
+            val ctx = context(ping, UUID.randomUUID())
             ctx.isForwardFlow should be (false)
             connTrackTx.size() should be (0)
             ctx should be (taggedWith ())
         }
 
         scenario("Forward flows are tracked") {
-            val ctx = context(Left(1))
+            val ctx = context()
 
             val ingressKey = ConnTrackKey(ctx.wcmatch, ingressDevice)
             val egressKey = ConnTrackState.EgressConnTrackKey(ctx.wcmatch, egressDevice)
@@ -113,7 +111,7 @@ class ConntrackStateTest extends MidolmanSpec {
         }
 
         scenario("Forward flows are recognized") {
-            val ctx = context(Left(1))
+            val ctx = context()
 
             val ingressKey = ConnTrackKey(ctx.wcmatch, ingressDevice)
             val egressKey = ConnTrackState.EgressConnTrackKey(ctx.wcmatch, egressDevice)
@@ -139,7 +137,7 @@ class ConntrackStateTest extends MidolmanSpec {
         }
 
         scenario("Return flows are recognized") {
-            val ctx = context(Left(1))
+            val ctx = context()
 
             val ingressKey = ConnTrackKey(ctx.wcmatch, ingressDevice)
 

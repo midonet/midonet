@@ -29,7 +29,6 @@ import akka.util.Timeout
 import org.junit.runner.RunWith
 import org.midonet.cluster.data.ports.{BridgePort, RouterPort}
 import org.midonet.cluster.data.{Entity, Bridge => ClusterBridge, Router => ClusterRouter}
-import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
 import org.midonet.midolman.PacketWorkflow.SimulationResult
 import org.midonet.midolman._
 import org.midonet.midolman.layer3.Route
@@ -298,7 +297,7 @@ class AdminStateTest extends MidolmanSpec {
             And("an ICMP prohibited error should be emitted from the " +
                 "ingressing port")
 
-            assertExpectedIcmpProhibitPacket(interiorRouterPort)
+            assertExpectedIcmpProhibitPacket(interiorRouterPort, flow._2)
         }
 
         scenario("a down interior router port egressing packets sends an ICMP" +
@@ -321,7 +320,7 @@ class AdminStateTest extends MidolmanSpec {
             And("an ICMP prohibited error should be emitted from the " +
                     "ingressing port")
 
-            assertExpectedIcmpProhibitPacket(exteriorRouterPort)
+            assertExpectedIcmpProhibitPacket(exteriorRouterPort, flow._2)
         }
 
         scenario("a down interior router port ingressing packets sends an " +
@@ -343,7 +342,7 @@ class AdminStateTest extends MidolmanSpec {
 
             And("an ICMP prohibited error should be emitted from the port")
 
-            assertExpectedIcmpProhibitPacket(interiorRouterPort)
+            assertExpectedIcmpProhibitPacket(interiorRouterPort, flow._2)
         }
 
         scenario("a down exterior router port egressing packets sends an " +
@@ -366,7 +365,7 @@ class AdminStateTest extends MidolmanSpec {
             And("an ICMP prohibited error should be emitted from the " +
                 "ingressing port")
 
-            assertExpectedIcmpProhibitPacket(interiorRouterPort)
+            assertExpectedIcmpProhibitPacket(interiorRouterPort, flow._2)
         }
 
         scenario("a down exterior router port ingressing packets sends an " +
@@ -388,7 +387,7 @@ class AdminStateTest extends MidolmanSpec {
 
             And("an ICMP prohibited error should be emitted from the port")
 
-            assertExpectedIcmpProhibitPacket(exteriorRouterPort)
+            assertExpectedIcmpProhibitPacket(exteriorRouterPort, flow._2)
         }
     }
 
@@ -428,14 +427,13 @@ class AdminStateTest extends MidolmanSpec {
         def receive = emptyBehavior
     }
 
-    private[this] def assertExpectedIcmpProhibitPacket(routerPort: RouterPort) {
-        PacketsEntryPoint.messages should not be empty
-        val msg = PacketsEntryPoint.messages.head.asInstanceOf[EmitGeneratedPacket]
-        msg should not be null
+    private[this] def assertExpectedIcmpProhibitPacket(routerPort: RouterPort,
+                                                       context: PacketContext): Unit = {
+        context.packetEmitter.pendingPackets should be (1)
+        val generatedPacket = context.packetEmitter.poll()
+        generatedPacket.egressPort should be(routerPort.getId)
 
-        msg.egressPort should be(routerPort.getId)
-
-        val ipPkt = msg.eth.getPayload.asInstanceOf[IPv4]
+        val ipPkt = generatedPacket.eth.getPayload.asInstanceOf[IPv4]
         ipPkt should not be null
 
         ipPkt.getProtocol should be(ICMP.PROTOCOL_NUMBER)

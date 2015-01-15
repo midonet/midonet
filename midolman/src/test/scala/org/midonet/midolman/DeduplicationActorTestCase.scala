@@ -36,26 +36,27 @@ import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.DatapathChannel
 import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
 import org.midonet.midolman.simulation.PacketContext
+import org.midonet.midolman.simulation.PacketEmitter.GeneratedPacket
 import org.midonet.midolman.state.{FlowStatePackets, HappyGoLuckyLeaser, MockStateStorage}
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackKey, ConnTrackValue}
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
 import org.midonet.midolman.topology.rcu.ResolvedHost
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.MessageAccumulator
+import org.midonet.odp.flows.FlowActions.output
+import org.midonet.odp.flows.FlowKeys.tunnel
+import org.midonet.odp.flows.{FlowAction, FlowActionOutput}
 import org.midonet.odp.{Datapath, DpPort, FlowMatch, FlowMatches, Packet}
 import org.midonet.packets.Ethernet
 import org.midonet.packets.util.EthBuilder
 import org.midonet.packets.util.PacketBuilder.udp
 import org.midonet.packets.util.PacketBuilder._
-import org.midonet.odp.flows.{FlowAction, FlowActionOutput}
-import org.midonet.odp.flows.FlowActions._
-import org.midonet.odp.flows.FlowKeys.tunnel
 import org.midonet.sdn.state.ShardedFlowStateTable
 
 @RunWith(classOf[JUnitRunner])
 class DeduplicationActorTestCase extends MidolmanSpec {
     var datapath: Datapath = null
-    var packetsSeen = List[(Packet, Either[Int, UUID])]()
+    var packetsSeen = List[(Packet, Int)]()
     var stateMessagesExecuted = 0
     var ddaRef: TestActorRef[TestableDDA] = _
     def dda = ddaRef.underlyingActor
@@ -125,9 +126,6 @@ class DeduplicationActorTestCase extends MidolmanSpec {
     }
 
     def makeUniquePacket(variation: Short): Packet = makeUniqueFrame(variation)
-
-    def cookieList(cookies: Seq[Int]): List[Either[Int, UUID]] =
-        cookies map { case c => Left(c) } toList
 
     feature("DeduplicationActor handles packets") {
         scenario("pends packets that have the same match") {
@@ -244,8 +242,7 @@ class DeduplicationActorTestCase extends MidolmanSpec {
             packetsOut should be (4)
 
             Then("3 packet workflows should be executed")
-            val expected = pkts.distinct zip cookieList(1 to 3)
-            packetsSeen should be (expected)
+            packetsSeen map (_._2) should be (1 to 3)
 
             And("one packet should be pended")
             dda.suspended(pkts(0).getMatch) should not be null
@@ -254,20 +251,21 @@ class DeduplicationActorTestCase extends MidolmanSpec {
         }
 
         scenario("simulates generated packets") {
-            Given("a packet and a port id")
+            Given("a simulation that generates a packet")
+            val pkt = makePacket(1)
+            ddaRef ! DeduplicationActor.HandlePackets(Array(pkt))
+
+            When("the simulation completes")
             val id = UUID.randomUUID()
             val frame: Ethernet = makeFrame(1)
+            dda.completeWithGenerated(pkt.getMatch, List(output(1)),
+                                      GeneratedPacket(id, frame))
 
-            When("the DDA is told to emit it")
-            ddaRef ! DeduplicationActor.EmitGeneratedPacket(id, frame, None)
+            Then("the generated packet should be simulated")
+            packetsSeen map { _._1.getEthernet } should be (List(pkt.getEthernet, frame))
 
-            Then("a work flow should be executed")
-            packetsSeen map {
-                case (packet, uuid) => (packet.getEthernet, uuid)
-            } should be (List((frame, Right(id))))
-
-            And("packetsOut should not be called")
-            packetsOut should be (0)
+            And("packetsOut should not be called for the generated packet")
+            packetsOut should be (1)
         }
 
         scenario("expires packets") {
@@ -315,12 +313,17 @@ class DeduplicationActorTestCase extends MidolmanSpec {
 
     class MockPacketHandler(actionsCache: ActionsCache) extends PacketHandler {
         var p = Promise[Any]()
+        var generatedPacket: GeneratedPacket = _
 
         override def start(pktCtx: PacketContext) = {
             pktCtx.runs += 1
             if (pktCtx.runs == 1) {
-                packetsSeen = packetsSeen :+ (pktCtx.packet, pktCtx.cookieOrEgressPort)
-                throw new NotYetException(p.future)
+                packetsSeen = packetsSeen :+ (pktCtx.packet, pktCtx.cookie)
+                if (pktCtx.isGenerated) {
+                    Simulation
+                } else {
+                    throw new NotYetException(p.future)
+                }
             } else if (pktCtx.runs == 2) {
                 // re-suspend the packet (with a completed future)
                 throw new NotYetException(p.future)
@@ -328,6 +331,10 @@ class DeduplicationActorTestCase extends MidolmanSpec {
                 stateMessagesExecuted += 1
                 StateMessage
             } else {
+                if (generatedPacket ne null) {
+                    pktCtx.packetEmitter.schedule(generatedPacket)
+                    generatedPacket = null
+                }
                 Simulation
             }
         }
@@ -363,6 +370,12 @@ class DeduplicationActorTestCase extends MidolmanSpec {
 
         def complete(flowMatch: FlowMatch, actions: List[FlowAction]): Unit = {
             workflow.asInstanceOf[MockPacketHandler].complete(flowMatch, actions)
+        }
+
+        def completeWithGenerated(flowMatch: FlowMatch, actions: List[FlowAction],
+                                  generatedPacket: GeneratedPacket): Unit = {
+            workflow.asInstanceOf[MockPacketHandler].generatedPacket = generatedPacket
+            complete(flowMatch, actions)
         }
 
         def addToActionsCache(entry: (FlowMatch, List[FlowAction])): Unit =

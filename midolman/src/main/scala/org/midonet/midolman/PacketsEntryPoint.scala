@@ -20,14 +20,9 @@ import scala.collection.immutable
 
 import akka.actor._
 import akka.event.LoggingReceive
-
 import com.codahale.metrics.MetricRegistry
-
 import com.google.inject.Inject
-
-import org.slf4j.LoggerFactory
 import com.typesafe.scalalogging.Logger
-
 import org.midonet.cluster.DataClient
 import org.midonet.midolman.HostRequestProxy.FlowStateBatch
 import org.midonet.midolman.config.MidolmanConfig
@@ -41,6 +36,7 @@ import org.midonet.midolman.state.{FlowStateStorageFactory, NatBlockAllocator, N
 import org.midonet.sdn.state.ShardedFlowStateTable
 import org.midonet.util.StatisticalCounter
 import org.midonet.util.concurrent.NanoClock
+import org.slf4j.LoggerFactory
 
 object PacketsEntryPoint extends Referenceable {
     override val Name = "PacketsEntryPoint"
@@ -53,7 +49,6 @@ object PacketsEntryPoint extends Referenceable {
 class PacketsEntryPoint extends Actor with ActorLogWithoutPath
         with DatapathReadySubscriberActor {
     import org.midonet.midolman.DatapathController.DatapathReady
-    import org.midonet.midolman.DeduplicationActor._
     import org.midonet.midolman.PacketsEntryPoint._
 
     private var _NUM_WORKERS = 1
@@ -164,9 +159,9 @@ class PacketsEntryPoint extends Actor with ActorLogWithoutPath
             dpChannel.start(dp)
             broadcast(m)
 
-        case m: EmitGeneratedPacket => roundRobin(m)
-
         case m: FlowStateBatch => broadcast(m)
+
+        case CheckBackchannels => broadcast(CheckBackchannels)
 
         case GetWorkers => sender ! Workers(workers)
     }

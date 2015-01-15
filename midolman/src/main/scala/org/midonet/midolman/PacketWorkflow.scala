@@ -124,7 +124,6 @@ class PacketWorkflow(protected val dpState: DatapathState,
                      val datapath: Datapath,
                      val dataClient: DataClient,
                      val dpChannel: DatapathChannel,
-                     val cbExecutor: CallbackExecutor,
                      val actionsCache: ActionsCache,
                      val replicator: FlowStateReplicator)
                     (implicit val system: ActorSystem)
@@ -223,7 +222,7 @@ class PacketWorkflow(protected val dpState: DatapathState,
             idleExpirationMillis = context.idleExpirationMillis,
             actions = context.flowActions.toList,
             priority = 0,
-            cbExecutor = cbExecutor)
+            cbExecutor = context.callbackExecutor)
 
         if (context.wcmatch.userspaceFieldsSeen) {
             context.log.debug("Userspace fields seen; skipping flow creation")
@@ -363,7 +362,7 @@ class PacketWorkflow(protected val dpState: DatapathState,
                 PacketIn(context.origMatch.clone(), context.inputPort,
                          packet.getEthernet,
                          packet.getMatch, packet.getReason,
-                         context.cookieOrEgressPort.left getOrElse 0))
+                         context.cookie))
 
             if (handleDHCP(context)) {
                 NoOp
@@ -409,8 +408,7 @@ class PacketWorkflow(protected val dpState: DatapathState,
             case Some(dhcpReply) =>
                 context.log.debug(
                     "sending DHCP reply {} to port {}", dhcpReply, inPort.id)
-                PacketsEntryPoint !
-                    EmitGeneratedPacket(inPort.id, dhcpReply, context.flowCookie)
+                context.addGeneratedPacket(inPort.id, dhcpReply)
                 true
             case None =>
                 false

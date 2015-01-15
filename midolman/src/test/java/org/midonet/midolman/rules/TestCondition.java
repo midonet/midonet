@@ -43,8 +43,6 @@ import org.midonet.midolman.simulation.PacketContext;
 import org.midonet.odp.FlowMatch;
 import org.midonet.packets.*;
 import org.midonet.util.Range;
-import scala.Option;
-import scala.util.Left;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -81,8 +79,7 @@ public class TestCondition {
         pktMatch.setSrcPort(4321);
         pktMatch.setDstPort(1234);
         rand = new Random();
-        pktCtx = new PacketContext(new Left<Object, UUID>(1),
-                                   null, Option.empty(), pktMatch);
+        pktCtx = new PacketContext(1, null, pktMatch, null);
     }
 
     @Test

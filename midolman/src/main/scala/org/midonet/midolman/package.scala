@@ -16,5 +16,5 @@
 package org.midonet
 
 package object midolman extends ReferenceableSupport {
-
+    object CheckBackchannels
 }

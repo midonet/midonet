@@ -17,24 +17,22 @@ package org.midonet.midolman.simulation
 
 import java.lang.{Short => JShort}
 import java.util.UUID
+
 import scala.collection.{Map => ROMap}
 
 import akka.actor.ActorSystem
-
 import org.midonet.cluster.client._
 import org.midonet.cluster.data
 import org.midonet.midolman.topology.devices.BridgePort
-import org.midonet.midolman.{NotYetException, PacketsEntryPoint}
-import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
+import org.midonet.midolman.NotYetException
 import org.midonet.midolman.rules.RuleResult
-import org.midonet.midolman.topology.MacFlowCount
-import org.midonet.midolman.topology.RemoveFlowCallbackGenerator
 import org.midonet.midolman.topology.VirtualTopologyActor._
+import org.midonet.midolman.topology.{MacFlowCount, RemoveFlowCallbackGenerator}
 import org.midonet.odp.flows.FlowActions.popVLAN
 import org.midonet.packets._
-import org.midonet.sdn.flows.FlowTagger
-import FlowTagger.{tagForArpRequests, tagForBridgePort, tagForBroadcast, tagForDevice,
-                   tagForFloodedFlowsByDstMac, tagForVlanPort}
+import org.midonet.sdn.flows.FlowTagger.{tagForArpRequests, tagForBridgePort,
+                                         tagForBroadcast, tagForDevice,
+                                         tagForFloodedFlowsByDstMac, tagForVlanPort}
 
 /**
   * A bridge.
@@ -580,10 +578,6 @@ class Bridge(val id: UUID,
         val eth = ARP.makeArpReply(mac, arpReq.getSenderHardwareAddress,
                                    arpReq.getTargetProtocolAddress,
                                    arpReq.getSenderProtocolAddress)
-        PacketsEntryPoint ! EmitGeneratedPacket(
-            inPortId, eth,
-            if (originalPktContex != null) originalPktContex.flowCookie
-            else None)
+        originalPktContex.addGeneratedPacket(inPortId, eth)
     }
-
 }

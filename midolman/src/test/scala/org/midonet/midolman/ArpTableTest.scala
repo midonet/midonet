@@ -15,7 +15,7 @@
  */
 package org.midonet.midolman
 
-import java.util.UUID
+import java.util.{LinkedList, UUID}
 import org.apache.commons.configuration.HierarchicalConfiguration
 
 import scala.concurrent.Await
@@ -26,10 +26,10 @@ import org.junit.runner.RunWith
 import org.midonet.odp.FlowMatch
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
 import org.midonet.midolman.layer3.Route.NextHop
 import org.midonet.midolman.simulation._
 import org.midonet.midolman.simulation.Coordinator.ConsumedAction
+import org.midonet.midolman.simulation.PacketEmitter.GeneratedPacket
 import org.midonet.midolman.state.ArpCacheEntry
 import org.midonet.midolman.state.ReplicatedMap.Watcher
 import org.midonet.midolman.topology.VirtualTopologyActor
@@ -104,29 +104,35 @@ class ArpTableTest extends MidolmanSpec {
             case Failure(e) => throw e
         }
 
-    implicit private def dummyPacketContext =
-        new PacketContext(Left(0), null, None, new FlowMatch())
+    private val arps = new LinkedList[GeneratedPacket]()
+    implicit private def dummyPacketContext: PacketContext = {
+        val context = new PacketContext(0, null, new FlowMatch())
+        context.packetEmitter = new PacketEmitter(arps, actorSystem.deadLetters)
+        context
+    }
 
-    private def expectEmittedPacket(port: UUID): Ethernet = {
-        val msgs = PacketsEntryPoint.getAndClear()
-        msgs should have size 1
-        msgs.head.isInstanceOf[EmitGeneratedPacket] should be (true)
-        val msg = msgs.head.asInstanceOf[EmitGeneratedPacket]
-        msg.egressPort should === (port)
-        msg.eth
+    private def expectEmittedPacket(ctx: PacketContext, port: UUID): Ethernet = {
+        ctx.packetEmitter.pendingPackets should be (1)
+        val generatedPacket = ctx.packetEmitter.poll
+        generatedPacket.egressPort should === (port)
+        generatedPacket.eth
     }
 
     private def expectEmitArp(port: UUID, fromMac: MAC, fromIp: String, toIp: String) {
         import PacketBuilder._
-        val frame = expectEmittedPacket(port)
+        arps.size() should be (1)
+        val generatedPacket = arps.poll()
+        generatedPacket.egressPort should === (port)
+        val frame = generatedPacket.eth
         val arpReq: Ethernet = { eth addr fromMac -> eth_bcast } <<
             { arp.req mac fromMac -> eth_zero ip fromIp --> toIp}
         frame should === (arpReq)
     }
 
-    private def expectReplyArp(port: UUID, fromMac: MAC, toMac: MAC, fromIp: String, toIp: String) {
+    private def expectReplyArp(ctx: PacketContext, port: UUID, fromMac: MAC,
+                               toMac: MAC, fromIp: String, toIp: String) {
         import PacketBuilder._
-        val frame = expectEmittedPacket(port)
+        val frame = expectEmittedPacket(ctx, port)
         val reply: Ethernet = { eth addr fromMac -> toMac } <<
             { arp.reply mac fromMac -> toMac ip fromIp --> toIp}
         frame should === (reply)
@@ -170,7 +176,7 @@ class ArpTableTest extends MidolmanSpec {
                 { arp.req mac hisMac -> eth_zero ip hisIp --> myIp }
             val (ctx, action) = simulateDevice(router, req, uplinkPort.id)
             action should === (ConsumedAction)
-            expectReplyArp(uplinkPort.id, myMac, hisMac, myIp.toString, hisIp.toString)
+            expectReplyArp(ctx, uplinkPort.id, myMac, hisMac, myIp.toString, hisIp.toString)
 
             val macTry = Try(router.arpTable.get(hisIp, uplinkPort))
             extractMac(macTry) should be (hisMac)
@@ -185,7 +191,7 @@ class ArpTableTest extends MidolmanSpec {
                 { arp.req mac hisMac -> myMac ip hisIp --> myIp }
             val (ctx, action) = simulateDevice(router, req, uplinkPort.id)
             action should === (ConsumedAction)
-            expectReplyArp(uplinkPort.id, myMac, hisMac, myIp.toString, hisIp)
+            expectReplyArp(ctx, uplinkPort.id, myMac, hisMac, myIp.toString, hisIp)
 
             val macTry = Try(router.arpTable.get(hisIp, uplinkPort))
             extractMac(macTry) should be (hisMac)
@@ -197,13 +203,11 @@ class ArpTableTest extends MidolmanSpec {
             expectEmitArp(uplinkPort.id, myMac, myIp, hisIp)
 
             advanceAndGetTime(ARP_RETRY_SECS - 1)
-            PacketsEntryPoint.getAndClear() should be (empty)
 
             advanceAndGetTime(1)
             expectEmitArp(uplinkPort.id, myMac, myIp, hisIp)
 
             advanceAndGetTime(ARP_RETRY_SECS)
-            PacketsEntryPoint.getAndClear() should be (empty)
 
             try {
                 extractMac(macTry)(100 milliseconds)
@@ -228,8 +232,6 @@ class ArpTableTest extends MidolmanSpec {
             extractMac(macTry) should be (hisMac)
 
             advanceAndGetTime(ARP_RETRY_SECS)
-            PacketsEntryPoint.getAndClear() should be (empty)
-
         }
 
         scenario("ARP entries expire") {
@@ -265,5 +267,4 @@ class ArpTableTest extends MidolmanSpec {
             }
         }
     }
-
 }

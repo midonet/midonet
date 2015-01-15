@@ -16,32 +16,28 @@
 package org.midonet.midolman
 
 import java.nio.ByteBuffer
+
 import scala.collection.JavaConversions._
 import scala.collection.mutable
 import scala.sys.process._
 
 import org.junit.experimental.categories.Category
 import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
-import org.slf4j.LoggerFactory
-
-import org.midonet.cluster.data.dhcp.Opt121
-import org.midonet.cluster.data.dhcp.Subnet
+import org.midonet.cluster.data.TunnelZone
+import org.midonet.cluster.data.dhcp.{Opt121, Subnet}
 import org.midonet.cluster.data.ports.BridgePort
-import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
 import org.midonet.midolman.host.interfaces.InterfaceDescription
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.layer3.Route.NextHop
 import org.midonet.midolman.topology.LocalPortActive
 import org.midonet.midolman.topology.VirtualToPhysicalMapper._
-import org.midonet.midolman.util.MidolmanTestCase
-import org.midonet.midolman.util.RouterHelper
-import org.midonet.midolman.util.SimulationHelper
+import org.midonet.midolman.util.{MidolmanTestCase, RouterHelper, SimulationHelper}
 import org.midonet.midolman.util.guice.OutgoingMessage
-import org.midonet.odp.flows.{FlowActionOutput, FlowAction}
+import org.midonet.odp.flows.FlowActionOutput
 import org.midonet.odp.ports.VxLanTunnelPort
 import org.midonet.packets._
-import org.midonet.cluster.data.TunnelZone
+import org.scalatest.junit.JUnitRunner
+import org.slf4j.LoggerFactory
 
 @Category(Array(classOf[SimulationTests]))
 @RunWith(classOf[JUnitRunner])
@@ -268,7 +264,7 @@ class DhcpInterfaceMtuTestCase extends MidolmanTestCase
 
     def test() {
         injectDhcpDiscover(vmPortName, vmMac)
-        val returnPkt = fishForRequestOfType[EmitGeneratedPacket](dedupProbe()).eth
+        val returnPkt = requestOfType[PacketsExecute](packetsEventsProbe).packet.getEthernet
         val interfaceMtu = extractInterfaceMtuDhcpReply(returnPkt)
         log.info("Returning interface MTU is {}", interfaceMtu)
         intfMtu -= VxLanTunnelPort.TunnelOverhead
