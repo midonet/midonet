@@ -23,12 +23,12 @@ import scala.concurrent.duration._
 import scala.util.{Failure, Success, Try}
 
 import org.junit.runner.RunWith
+import org.midonet.midolman.PacketWorkflow.NoOp
 import org.midonet.odp.FlowMatch
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.midolman.layer3.Route.NextHop
 import org.midonet.midolman.simulation._
-import org.midonet.midolman.simulation.Coordinator.ConsumedAction
 import org.midonet.midolman.simulation.PacketEmitter.GeneratedPacket
 import org.midonet.midolman.state.ArpCacheEntry
 import org.midonet.midolman.state.ReplicatedMap.Watcher
@@ -175,7 +175,7 @@ class ArpTableTest extends MidolmanSpec {
             val req: Ethernet = { eth addr hisMac -> eth_bcast} <<
                 { arp.req mac hisMac -> eth_zero ip hisIp --> myIp }
             val (ctx, action) = simulateDevice(router, req, uplinkPort.id)
-            action should === (ConsumedAction)
+            action should === (NoOp)
             expectReplyArp(ctx, uplinkPort.id, myMac, hisMac, myIp.toString, hisIp.toString)
 
             val macTry = Try(router.arpTable.get(hisIp, uplinkPort))
@@ -190,7 +190,7 @@ class ArpTableTest extends MidolmanSpec {
             val req: Ethernet = { eth addr hisMac -> myMac} <<
                 { arp.req mac hisMac -> myMac ip hisIp --> myIp }
             val (ctx, action) = simulateDevice(router, req, uplinkPort.id)
-            action should === (ConsumedAction)
+            action should === (NoOp)
             expectReplyArp(ctx, uplinkPort.id, myMac, hisMac, myIp.toString, hisIp)
 
             val macTry = Try(router.arpTable.get(hisIp, uplinkPort))

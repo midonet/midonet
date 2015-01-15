@@ -23,6 +23,7 @@ import java.lang.{Short => JShort}
 import java.util.UUID
 
 import org.junit.runner.RunWith
+import org.midonet.midolman.PacketWorkflow.Drop
 import org.scalatest.{Matchers, BeforeAndAfterAll, Suite}
 import org.scalatest.junit.JUnitRunner
 
@@ -235,7 +236,7 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with Matchers {
         val result = bridge.process(context)
 
         ingressMatch should be (origMatch)
-        assert(result == Coordinator.DropAction)
+        assert(result == Drop)
     }
 }
 

@@ -55,7 +55,7 @@ object PacketWorkflow {
     val TEMPORARY_DROP_MILLIS = 5 * 1000
     val IDLE_EXPIRATION_MILLIS = 60 * 1000
 
-    sealed trait SimulationResult
+    trait SimulationResult
 
     case object NoOp extends SimulationResult
 
