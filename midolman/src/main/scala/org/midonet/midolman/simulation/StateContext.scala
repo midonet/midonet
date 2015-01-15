@@ -25,11 +25,6 @@ trait StateContext extends FlowState
                    with ConnTrackState
                    with NatState { this: PacketContext =>
 
-    override def clear(): Unit = {
-        super[NatState].clear()
-        super[ConnTrackState].clear()
-    }
-
     def initialize(conntrackTx: FlowStateTransaction[ConnTrackKey, ConnTrackValue],
                    natTx: FlowStateTransaction[NatKey, NatBinding],
                    natLeaser: NatLeaser) {

@@ -33,17 +33,9 @@ import akka.event.EventStream
 import akka.pattern.ask
 import akka.testkit._
 import akka.util.Timeout
-
 import com.google.inject._
-
-import org.scalatest._
-import org.scalatest.matchers.{BePropertyMatchResult, BePropertyMatcher}
-
-import org.slf4j.LoggerFactory
 import com.typesafe.scalalogging.Logger
-
 import org.apache.commons.configuration.HierarchicalConfiguration
-
 import org.midonet.cluster.data.host.Host
 import org.midonet.cluster.data.{Port => VPort}
 import org.midonet.cluster.services.StorageService
@@ -73,11 +65,13 @@ import org.midonet.odp._
 import org.midonet.odp.flows.FlowKeys.inPort
 import org.midonet.odp.flows.{FlowAction, FlowActionOutput, FlowActionSetKey, FlowKeyTunnel}
 import org.midonet.odp.protos.MockOvsDatapathConnection
-import org.midonet.odp.protos.MockOvsDatapathConnection.FlowListener
 import org.midonet.packets.Ethernet
 import org.midonet.sdn.flows.WildcardFlow
 import org.midonet.util.concurrent.MockClock
-import org.midonet.util.functors.{Callback0, Callback2}
+import org.midonet.util.functors.Callback0
+import org.scalatest._
+import org.scalatest.matchers.{BePropertyMatchResult, BePropertyMatcher}
+import org.slf4j.LoggerFactory
 
 object MidolmanTestCaseLock {
     val sequential: ReentrantLock = new ReentrantLock()
@@ -523,6 +517,7 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
         }
         val pktCtx = new PacketContext(Left(-1), null, None, wcMatch)
         pktCtx.inputPort = inputPort
+        pktCtx.addVirtualAction(action)
         dpState.getDpPortNumberForVport(pktCtx.inputPort) map { port =>
             wcMatch.setInputPortNumber(port.toShort)
         }
@@ -530,14 +525,15 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
         var retries = 10
         while (retries >= 0) {
             try {
-                val actions = flowTranslator.translateActions(pktCtx, List(action))
-                val flow = WildcardFlow(pktCtx.origMatch, actions.toList)
+                flowTranslator.translateActions(pktCtx)
+                val flow = WildcardFlow(pktCtx.origMatch, pktCtx.flowActions.toList)
                 flowProbe().testActor ! AddWildcardFlow(flow, null,
                                                         new ArrayList[Callback0],
                                                         pktCtx.flowTags)
                 return
             } catch { case NotYetException(f, _) =>
                 Await.result(f, 3 seconds)
+                pktCtx.flowActions.clear()
                 retries -= 1
             }
         }

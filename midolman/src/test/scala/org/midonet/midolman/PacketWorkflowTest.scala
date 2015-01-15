@@ -25,13 +25,13 @@ import scala.concurrent.duration._
 import akka.actor._
 import akka.testkit._
 
-import com.typesafe.scalalogging.Logger
 import datapath.DatapathChannel
+import org.slf4j.helpers.NOPLogger
+import com.typesafe.scalalogging.Logger
 
 import org.junit.runner.RunWith
 import org.scalatest._
 import org.scalatest.junit.JUnitRunner
-import org.slf4j.helpers.NOPLogger
 
 import org.midonet.midolman.DeduplicationActor.ActionsCache
 import org.midonet.midolman.UnderlayResolver.Route
@@ -43,7 +43,6 @@ import org.midonet.midolman.topology.rcu.ResolvedHost
 import org.midonet.midolman.util.mock.MockDatapathChannel
 import org.midonet.odp._
 import org.midonet.odp.flows._
-import org.midonet.odp.protos.{OvsDatapathConnection, MockOvsDatapathConnection}
 import org.midonet.packets.Ethernet
 import org.midonet.sdn.flows.FlowTagger.FlowTag
 import org.midonet.sdn.flows.WildcardFlow
@@ -105,10 +104,9 @@ object PacketWorkflowTest {
                                     replicator) {
             override def runSimulation(pktCtx: PacketContext) =
                 throw new Exception("no Coordinator")
-            override def translateActions(pktCtx: PacketContext,
-                                          actions: Seq[FlowAction]) = {
+            override def translateActions(pktCtx: PacketContext) = {
                 testKit ! TranslateActions
-                List(output)
+                pktCtx.addFlowAction(output)
             }
         }
         (pktCtx, wf)
@@ -120,9 +118,9 @@ class PacketWorkflowTest extends TestKit(ActorSystem("PacketWorkflowTest"))
         with ImplicitSender with FeatureSpecLike with Matchers
         with GivenWhenThen with BeforeAndAfter with BeforeAndAfterAll {
 
+    import FlowController._
     import PacketWorkflow._
     import PacketWorkflowTest._
-    import FlowController._
 
     val cookie = 42
     val cookieOpt = Some(cookie)
@@ -187,7 +185,8 @@ class PacketWorkflowTest extends TestKit(ActorSystem("PacketWorkflowTest"))
             val (pktCtx, pkfw) = PacketWorkflowTest.forCookie(self, packet(), cookie)
 
             When("the simulation layer returns SendPacket")
-            pkfw.processSimulationResult(pktCtx, SendPacket(List(output)))
+            pktCtx.virtualFlowActions.add(output)
+            pkfw.processSimulationResult(pktCtx, SendPacket)
 
             Then("action translation is performed")
             And("the current packet gets executed")
@@ -279,9 +278,11 @@ class PacketWorkflowTest extends TestKit(ActorSystem("PacketWorkflowTest"))
             Given("a PkWf object")
             val (pktCtx, pkfw) = PacketWorkflowTest.forCookie(self, packet(true), cookie)
 
-            When("the simulation layer returns AddVirtualWildcardFlow")
-            val result =
-                AddVirtualWildcardFlow(wcFlow(true))
+            When("a user space field is seen")
+            pktCtx.wcmatch.getIcmpIdentifier
+
+            And("the simulation layer returns AddVirtualWildcardFlow")
+            val result = AddVirtualWildcardFlow
             pkfw.processSimulationResult(pktCtx, result)
 
             Then("action translation is performed")
@@ -298,7 +299,7 @@ class PacketWorkflowTest extends TestKit(ActorSystem("PacketWorkflowTest"))
             val (pktCtx, pkfw) = PacketWorkflowTest.forCookie(self, packet(false), cookie)
 
             When("the simulation layer returns AddVirtualWildcardFlow")
-            val result = AddVirtualWildcardFlow(wcFlow())
+            val result = AddVirtualWildcardFlow
             pkfw.processSimulationResult(pktCtx, result)
 
             Then("action translation is performed")
@@ -335,9 +336,9 @@ class PacketWorkflowTest extends TestKit(ActorSystem("PacketWorkflowTest"))
         wcMatch
     }
 
-    def wcFlow(userspace: Boolean = false) =
+    def wcFlow(userspace: Boolean = false) = {
         WildcardFlow(wcMatch(userspace), List(output))
-
+    }
 
     /* helpers for checking received msgs */
 
