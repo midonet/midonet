@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa2559ec_b4c6ed47",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 255,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-01-15T05:50:35Z",
+      "side": 1,
+      "message": "Cool. Thanks! If you don\u0027t know, you can omit the braces around the try catch block (lines 245 and 255) and reduce the indentation by a level, but that\u0027s a matter of personal preference.",
+      "range": {
+        "startLine": 245,
+        "startChar": 0,
+        "endLine": 255,
+        "endChar": 36
+      },
+      "revId": "9b45e8a8975a3bee4753635dfbdcf82b0faa513e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
