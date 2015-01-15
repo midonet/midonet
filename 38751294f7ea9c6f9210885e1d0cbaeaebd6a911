@@ -150,6 +150,24 @@
       "revId": "38751294f7ea9c6f9210885e1d0cbaeaebd6a911",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_c7401138",
+        "filename": "midolman/src/deb/bin/wdog",
+        "patchSetId": 4
+      },
+      "lineNbr": 229,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-01-15T09:45:20Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fa2559ec_3fe93b1b",
+      "revId": "38751294f7ea9c6f9210885e1d0cbaeaebd6a911",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
