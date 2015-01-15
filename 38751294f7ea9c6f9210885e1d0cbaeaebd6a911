@@ -36,6 +36,24 @@
     },
     {
       "key": {
+        "uuid": "fa2559ec_0734e9dc",
+        "filename": "midolman/src/deb/bin/wdog",
+        "patchSetId": 4
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-01-15T09:39:43Z",
+      "side": 1,
+      "message": "We do when we running  \u003d False, not earlier. why? because we absolutely must not exit before the child process has died.",
+      "parentUuid": "fa2559ec_9fd94786",
+      "revId": "38751294f7ea9c6f9210885e1d0cbaeaebd6a911",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa2559ec_7ff3b30a",
         "filename": "midolman/src/deb/bin/wdog",
         "patchSetId": 4
@@ -47,6 +65,24 @@
       "writtenOn": "2015-01-14T14:32:29Z",
       "side": 1,
       "message": "do we need running if we always do sys.exit?",
+      "revId": "38751294f7ea9c6f9210885e1d0cbaeaebd6a911",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_e730b5ea",
+        "filename": "midolman/src/deb/bin/wdog",
+        "patchSetId": 4
+      },
+      "lineNbr": 143,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-01-15T09:39:43Z",
+      "side": 1,
+      "message": "does not hurt, it makes sure the main loop will exit.",
+      "parentUuid": "fa2559ec_7ff3b30a",
       "revId": "38751294f7ea9c6f9210885e1d0cbaeaebd6a911",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -81,6 +117,30 @@
       "writtenOn": "2015-01-14T14:32:29Z",
       "side": 1,
       "message": "WDOG PIPE IN THE HOUSE!",
+      "range": {
+        "startLine": 229,
+        "startChar": 66,
+        "endLine": 229,
+        "endChar": 75
+      },
+      "revId": "38751294f7ea9c6f9210885e1d0cbaeaebd6a911",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_474d4172",
+        "filename": "midolman/src/deb/bin/wdog",
+        "patchSetId": 4
+      },
+      "lineNbr": 229,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-01-15T09:39:43Z",
+      "side": 1,
+      "message": ":D",
+      "parentUuid": "fa2559ec_1feef722",
       "range": {
         "startLine": 229,
         "startChar": 66,
