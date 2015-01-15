@@ -16,19 +16,75 @@
 
 package org.midonet.brain.services.c3po.translators
 
+import scala.collection.JavaConverters._
+
 import com.google.protobuf.Message
 
-import org.midonet.brain.services.c3po.midonet.MidoOp
-import org.midonet.cluster.models.Commons.UUID
+import org.midonet.brain.services.c3po.midonet.{Create, Delete, MidoOp, Update}
+import org.midonet.brain.services.c3po.neutron
+import org.midonet.cluster.data.storage.ReadOnlyStorage
+import org.midonet.cluster.models.Commons.{IPSubnet, IPVersion, UUID}
 import org.midonet.cluster.models.Neutron.NeutronPort
+import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner
+import org.midonet.cluster.models.Neutron.{NeutronRouter => Router}
+import org.midonet.cluster.models.Neutron.NeutronSubnet
+import org.midonet.cluster.models.Topology.{Chain, Network, Port}
+import org.midonet.cluster.util.{IPSubnetUtil, UUIDUtil}
+import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
+import org.midonet.util.concurrent.toFutureOps
 
-class PortTranslator extends NeutronTranslator[NeutronPort] {
-    override protected def translateCreate(nm: NeutronPort)
-    : List[MidoOp[_ <: Message]] = List()
+object PortTranslator {
+    private def isVifPort(nPort: NeutronPort) = !nPort.hasDeviceOwner
+    private def isDhcpPort(nPort: NeutronPort) =
+        nPort.hasDeviceOwner && nPort.getDeviceOwner == DeviceOwner.DHCP
+    private def isFloatingIpPort(nPort: NeutronPort) =
+        nPort.hasDeviceOwner && nPort.getDeviceOwner == DeviceOwner.FLOATINGIP
+    private def isRouterInterfacePort(nPort: NeutronPort) =
+        nPort.hasDeviceOwner && nPort.getDeviceOwner == DeviceOwner.ROUTER_INTF
+    private def isRouterGatewayPort(nPort: NeutronPort) =
+        nPort.hasDeviceOwner && nPort.getDeviceOwner == DeviceOwner.ROUTER_GW
+
+    private def isIpv4(nSubnet: NeutronSubnet) = nSubnet.getIpVersion == 4
+    private def isIpv6(nSubnet: NeutronSubnet) = nSubnet.getIpVersion == 6
+}
+
+class PortTranslator(private val storage: ReadOnlyStorage)
+        extends NeutronTranslator[NeutronPort] {
+    import org.midonet.brain.services.c3po.translators.PortTranslator._
+
+    override protected def translateCreate(nPort: NeutronPort)
+    : List[MidoOp[_ <: Message]] = {
+        var midoOps: List[MidoOp[_ <: Message]] = List()
+        if (isRouterGatewayPort(nPort)) {
+            // TODO Create a router port and set the provider router ID.
+        } else if (!isFloatingIpPort(nPort)) {
+            // For all other port types except floating IP port, create a normal
+            // bridge (network) port.
+            midoOps = Create(translateNeutronPort(nPort)) :: midoOps
+        }
+
+        midoOps
+    }
 
     override protected def translateDelete(id: UUID)
-    : List[MidoOp[_ <: Message]] = List()
+    : List[MidoOp[_ <: Message]] = {
+        val nPort = storage.get(classOf[NeutronPort], id).await()
+        if (!isFloatingIpPort(nPort))
+            List(Delete(classOf[Port], id))
+        else
+            List()
+    }
 
-    override protected def translateUpdate(nm: NeutronPort)
-    : List[MidoOp[_ <: Message]] = List()
+    override protected def translateUpdate(nPort: NeutronPort)
+    : List[MidoOp[_ <: Message]] =
+        if (isVifPort(nPort) || isDhcpPort(nPort))
+            List(Update(translateNeutronPort(nPort)))
+        else
+            List()
+
+    private def translateNeutronPort(nPort: NeutronPort) =
+        Port.newBuilder.setId(nPort.getId)
+            .setNetworkId(nPort.getNetworkId)
+            .setAdminStateUp(nPort.getAdminStateUp)
+            .build
 }
