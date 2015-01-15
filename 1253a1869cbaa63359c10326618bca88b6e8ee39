@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa2559ec_c76771e9",
+        "filename": "midonet-util/src/main/scala/org/midonet/packets/util/PacketBuilder.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-01-15T09:51:41Z",
+      "side": 1,
+      "message": "oops, midonet-util cannot depend on midolman, circular dependency.",
+      "revId": "1253a1869cbaa63359c10326618bca88b6e8ee39",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
