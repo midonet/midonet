@@ -18,9 +18,9 @@ package org.midonet.midolman
 import java.util.UUID
 
 import org.junit.runner.RunWith
+import org.midonet.midolman.PacketWorkflow.TemporaryDrop
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.concurrent.Eventually._
-import org.scalatest._
 
 import org.midonet.cluster.data.{Router => ClusterRouter}
 import org.midonet.cluster.data.ports.RouterPort
@@ -29,14 +29,12 @@ import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.layer3.Route.NextHop
 import org.midonet.midolman.services.{HostIdProviderService}
 import org.midonet.midolman.simulation.Router
-import org.midonet.midolman.simulation.Coordinator.{TemporaryDropAction, ToPortAction}
-import org.midonet.midolman.simulation.CustomMatchers
+import org.midonet.midolman.simulation.Coordinator.ToPortAction
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.MessageAccumulator
 import org.midonet.packets.{IPv4Addr, MAC}
 import org.midonet.sdn.flows.FlowTagger
-
 
 @RunWith(classOf[JUnitRunner])
 class BlackholeRouteFlowTrackingTest extends MidolmanSpec {
@@ -123,7 +121,7 @@ class BlackholeRouteFlowTrackingTest extends MidolmanSpec {
         scenario("blackhole route") {
             When("a packet hits a blackhole route")
             val (pktContext, action) = simulateDevice(simRouter, frameThatWillBeDropped, leftPort.getId)
-            action shouldEqual TemporaryDropAction
+            action shouldEqual TemporaryDrop
 
             And("the routing table changes")
             FlowController.getAndClear()

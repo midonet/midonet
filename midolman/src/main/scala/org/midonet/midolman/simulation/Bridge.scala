@@ -23,6 +23,7 @@ import scala.collection.{Map => ROMap}
 import akka.actor.ActorSystem
 import org.midonet.cluster.client._
 import org.midonet.cluster.data
+import org.midonet.midolman.PacketWorkflow.{SimulationResult, NoOp, Drop, TemporaryDrop}
 import org.midonet.midolman.topology.devices.BridgePort
 import org.midonet.midolman.NotYetException
 import org.midonet.midolman.rules.RuleResult
@@ -111,7 +112,7 @@ class Bridge(val id: UUID,
      * the unicastAction and multicastAction methods to generate unicast and
      * multicast actions, these will take care of the vlan-id details for you.
      */
-    override def process(context: PacketContext): Coordinator.Action = {
+    override def process(context: PacketContext): SimulationResult = {
         implicit val ctx = context
 
         context.log.debug("Current vlanPortId {}.", vlanPortId)
@@ -120,7 +121,7 @@ class Bridge(val id: UUID,
         // Some basic sanity checks
         if (Ethernet.isMcast(context.wcmatch.getEthSrc)) {
             context.log.info("Packet has multi/broadcast source, DROP")
-            DropAction
+            Drop
         } else {
             normalProcess()
         }
@@ -129,12 +130,12 @@ class Bridge(val id: UUID,
     @throws[NotYetException]
     def normalProcess()(implicit context: PacketContext,
                                  actorSystem: ActorSystem)
-    : Coordinator.Action = {
+    : SimulationResult = {
         context.addFlowTag(deviceTag)
 
         if (!adminStateUp) {
             context.log.debug("Bridge {} is down, DROP", id)
-            return DropAction
+            return Drop
         }
 
         if (areChainsApplicable()) {
@@ -156,12 +157,12 @@ class Bridge(val id: UUID,
                     updateFlowCount(srcDlAddress, context)
                     // No point in tagging by dst-MAC+Port because the outPort was
                     // not used in deciding to drop the flow.
-                    return DropAction
+                    return Drop
                 case other =>
                     context.log.warn(
                         s"PreBridging for $id returned $other which was not " +
                         "ACCEPT, DROP or REJECT.")
-                    return ErrorDropAction
+                    return TemporaryDrop
             }
         } else {
             context.log.debug("Ignoring pre/post chains on vlan tagged traffic")
@@ -205,7 +206,7 @@ class Bridge(val id: UUID,
       * on a port based on MAC
       */
     private def handleL2Unicast()(implicit context: PacketContext)
-    : Coordinator.Action = {
+    : SimulationResult = {
         val ethDst = context.wcmatch.getEthDst
         val ethSrc = context.wcmatch.getEthSrc
         context.log.debug("Handling L2 unicast to {}", ethDst)
@@ -246,7 +247,7 @@ class Bridge(val id: UUID,
                     // dropping it. Some hardware vendors use L2 ping-pong
                     // packets for their specific purposes (e.g. keepalive message)
                     //
-                    TemporaryDropAction
+                    TemporaryDrop
                 } else {
                     context.log.debug("Dst MAC {}, VLAN {} on port {}: Forward",
                         ethDst, vlanId, portId)
@@ -261,7 +262,7 @@ class Bridge(val id: UUID,
       * addr except for ARPs.
       */
     private def handleL2Multicast()(implicit context: PacketContext)
-    : Coordinator.Action = {
+    : SimulationResult = {
         context.log.debug("Handling L2 multicast {}", id)
         multicastAction()
     }
@@ -280,7 +281,7 @@ class Bridge(val id: UUID,
       * right tags.
       */
     private def unicastAction(toPort: UUID)(implicit context: PacketContext)
-    : Coordinator.Action = {
+    : SimulationResult = {
 
         val inPortVlan = vlanToPort.getVlan(context.inPortId)
         if (inPortVlan != null) {
@@ -302,7 +303,7 @@ class Bridge(val id: UUID,
                 ToPortAction(toPort)
             case vlanId if vlanInFrame == None =>
                 context.log.debug("OutPort has vlan {}, frame had none: DROP", vlanId)
-                DropAction
+                Drop
             case vlanId if vlanInFrame.get == vlanId =>
                 context.log.debug("OutPort tagged with vlan {}, POP & forward", vlanId)
                 context.wcmatch.removeVlanId(vlanId)
@@ -310,7 +311,7 @@ class Bridge(val id: UUID,
             case vlanId =>
                 context.log.debug("OutPort vlan {} doesn't match frame vlan {}: DROP",
                           vlanId, vlanInFrame.get)
-                DropAction
+                Drop
         }
     }
 
@@ -362,7 +363,7 @@ class Bridge(val id: UUID,
       */
     private def multicastVlanAware(inPort: BridgePort)
                                   (implicit context: PacketContext)
-    : Coordinator.Action = inPort match {
+    : SimulationResult = inPort match {
 
         case p: BridgePort if p.isExterior =>
             // multicast from trunk, goes only to designated log. port
@@ -394,14 +395,14 @@ class Bridge(val id: UUID,
             floodAction
         case _ =>
             context.log.warn("Unexpected input port type!")
-            ErrorDropAction
+            TemporaryDrop
     }
 
     /**
       * Used by normalProcess to handle specifically ARP multicast.
       */
     private def handleARPRequest()(implicit context: PacketContext)
-    : Coordinator.Action = {
+    : SimulationResult = {
         context.log.debug("Handling ARP multicast")
         val pMatch = context.wcmatch
         val nwDst = pMatch.getNetworkDstIP
@@ -432,7 +433,7 @@ class Bridge(val id: UUID,
                 context.log.debug("Known MAC, {} reply to the ARP req.", mac)
                 processArpRequest(context.ethernet.getPayload.asInstanceOf[ARP],
                                   mac, context.inPortId)
-                ConsumedAction
+                NoOp
             }
         }
     }
@@ -448,7 +449,7 @@ class Bridge(val id: UUID,
       */
     @throws[NotYetException]
     private def doPostBridging(context: PacketContext,
-                               act: Coordinator.Action): Coordinator.Action = {
+                               act: SimulationResult): SimulationResult = {
 
         implicit val ctx = context
 
@@ -496,14 +497,14 @@ class Bridge(val id: UUID,
                 act
             case RuleResult.Action.DROP | RuleResult.Action.REJECT =>
                 context.log.debug("Dropping the packet due to egress filter.")
-                DropAction
+                Drop
             case other =>
                 context.log.warn(
                     "PostBridging returned {} which was not ACCEPT, DROP, or REJECT.",
                     other)
                 // TODO(pino): decrement the mac-port reference count?
                 // TODO(pino): remove the flow tag?
-                ErrorDropAction
+                TemporaryDrop
         }
     }
 

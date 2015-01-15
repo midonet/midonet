@@ -19,6 +19,7 @@ import java.util.UUID
 
 import org.apache.commons.configuration.HierarchicalConfiguration
 import org.junit.runner.RunWith
+import org.midonet.midolman.PacketWorkflow.TemporaryDrop
 import org.scalatest.concurrent.Eventually._
 import org.scalatest.junit.JUnitRunner
 import org.scalatest._
@@ -28,14 +29,13 @@ import org.midonet.cluster.data.ports.{BridgePort, RouterPort}
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman.services.{HostIdProviderService}
 import org.midonet.midolman.simulation.{Bridge, CustomMatchers}
-import org.midonet.midolman.simulation.Coordinator.{TemporaryDropAction, FloodBridgeAction, ToPortAction}
+import org.midonet.midolman.simulation.Coordinator.{FloodBridgeAction, ToPortAction}
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.topology.BridgeManager.CheckExpiredMacPorts
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.MessageAccumulator
 import org.midonet.packets.{IPv4Subnet, MAC}
 import org.midonet.sdn.flows.FlowTagger
-
 
 @RunWith(classOf[JUnitRunner])
 class BridgeInvalidationTest extends MidolmanSpec {
@@ -230,7 +230,7 @@ class BridgeInvalidationTest extends MidolmanSpec {
 
             And("If a packet with the same dst mac comes from that port")
             val (_, action) = simulateDevice(bridge, leftToRightFrame, leftPort.getId)
-            action should be (TemporaryDropAction)
+            action should be (TemporaryDrop)
         }
     }
 

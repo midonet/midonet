@@ -18,6 +18,7 @@ package org.midonet.midolman.simulation
 import java.util.UUID
 
 import akka.actor.ActorSystem
+import org.midonet.midolman.PacketWorkflow.{Drop, TemporaryDrop, NoOp, SimulationResult}
 
 import org.midonet.midolman.topology.devices.RouterPort
 import org.midonet.midolman.NotYetException
@@ -64,17 +65,17 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
      * @return An instance of Action that reflects what the device would do
      *         after handling this packet (e.g. drop it, consume it, forward it)
      */
-    override def process(context: PacketContext): Action = {
+    override def process(context: PacketContext): SimulationResult = {
         implicit val packetContext = context
 
         if (!context.wcmatch.getVlanIds.isEmpty) {
             context.log.debug("Dropping VLAN tagged traffic")
-            return DropAction
+            return Drop
         }
 
         if (!isValidEthertype(context.wcmatch.getEtherType)) {
             context.log.debug(s"Dropping unsupported EtherType ${context.wcmatch.getEtherType}")
-            return DropAction
+            return Drop
         }
 
         tryAsk[RouterPort](context.inPortId) match {
@@ -83,7 +84,7 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
                 sendAnswer(inPort.id, icmpErrors.unreachableProhibitedIcmp(
                     inPort, context.wcmatch, context.ethernet))
                 context.addFlowTag(deviceTag)
-                DropAction
+                Drop
             case inPort =>
                 preRouting(inPort)
         }
@@ -92,36 +93,35 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
     private def handlePreRoutingResult(preRoutingResult: RuleResult,
                                        inPort: RouterPort)
                                       (implicit context: PacketContext)
-    : Option[Action] = {
+    : SimulationResult =
         preRoutingResult.action match {
-            case RuleResult.Action.ACCEPT => // pass through
+            case RuleResult.Action.ACCEPT => NoOp // pass through
             case RuleResult.Action.DROP =>
                 // For header fragments only, we should send an ICMP_FRAG_NEEDED
                 // response and install a temporary drop flow so that the sender
                 // will continue to receive these responses occasionally. We can
                 // silently drop nonheader fragments and unfragmented packets.
-                if (context.wcmatch.getIpFragmentType != IPFragmentType.First)
-                    return Some(DropAction)
-
-                sendAnswer(inPort.id, icmpErrors.unreachableFragNeededIcmp(
-                    inPort, context.wcmatch, context.ethernet))
-                return Some(TemporaryDropAction)
+                if (context.wcmatch.getIpFragmentType != IPFragmentType.First) {
+                    Drop
+                } else {
+                    sendAnswer(inPort.id, icmpErrors.unreachableFragNeededIcmp(
+                               inPort, context.wcmatch, context.ethernet))
+                    TemporaryDrop
+                }
             case RuleResult.Action.REJECT =>
                 sendAnswer(inPort.id, icmpErrors.unreachableProhibitedIcmp(
                     inPort, context.wcmatch, context.ethernet))
-                return Some(DropAction)
+                Drop
             case other =>
                 context.log.warn("Pre-routing returned an action which was {}, " +
                                  "not ACCEPT, DROP, or REJECT.", preRoutingResult.action)
-                return Some(ErrorDropAction)
+                TemporaryDrop
+            case _ => NoOp
         }
-
-        None
-    }
 
     @throws[NotYetException]
     private def preRouting(inPort: RouterPort)
-                          (implicit context: PacketContext): Action = {
+                          (implicit context: PacketContext): SimulationResult = {
 
         val hwDst = context.wcmatch.getEthDst
         if (Ethernet.isBroadcast(hwDst)) {
@@ -132,13 +132,13 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
         if (hwDst != inPort.portMac) { // Not addressed to us, log.warn and drop
             context.log.warn("{} neither broadcast nor inPort's MAC ({})",
                              hwDst, inPort.portMac)
-            return DropAction
+            return Drop
         }
 
         context.addFlowTag(deviceTag)
         handleNeighbouring(inPort) match {
-            case Some(a: Action) => return a
             case None =>
+            case Some(simRes) => return simRes
         }
 
         context.outPortId = null // input port should be set already
@@ -157,10 +157,9 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
         }
 
         preRoutingAction match {
-            case Some(a) => a
-            case None => routing(inPort)
+            case NoOp => routing(inPort)
+            case simRes => simRes
         }
-
     }
 
     /**
@@ -181,12 +180,12 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
 
 
     private def routing(inPort: RouterPort)
-                       (implicit context: PacketContext): Action = {
+                       (implicit context: PacketContext): SimulationResult = {
         val frame = context.ethernet
         val wcmatch = context.wcmatch
         val dstIP = context.wcmatch.getNetworkDstIP
 
-        def applyTimeToLive: Option[Action] = {
+        def applyTimeToLive: SimulationResult = {
             /* TODO(guillermo, pino): Have WildcardMatch take a DecTTLBy instead,
              * so that there need only be one sim. run for different TTLs.  */
             if (wcmatch.isUsed(Field.NetworkTTL)) {
@@ -194,17 +193,17 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
                 if (ttl <= 1) {
                     sendAnswer(inPort.id, icmpErrors.timeExceededIcmp(
                         inPort, wcmatch, frame))
-                    return Some(DropAction)
+                    Drop
                 } else {
                     context.wcmatch.setNetworkTTL((ttl - 1).toByte)
-                    return None
+                    NoOp
                 }
+            } else {
+                NoOp
             }
-
-            None
         }
 
-        def applyRoutingTable: (Route, Action) = {
+        def applyRoutingTable: (Route, SimulationResult) = {
             val rt: Route = routeBalancer.lookup(wcmatch, context.log)
 
             if (rt == null) {
@@ -212,36 +211,36 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
                 context.log.debug(s"No route to network (dst:$dstIP)")
                 sendAnswer(inPort.id,
                     icmpErrors.unreachableNetIcmp(inPort, wcmatch, frame))
-                return (rt, DropAction)
+                return (rt, Drop)
             }
 
             val action = rt.nextHop match {
                 case Route.NextHop.LOCAL if isIcmpEchoRequest(wcmatch) =>
                     context.log.debug("Got ICMP echo req, will reply")
                     sendIcmpEchoReply(wcmatch, frame)
-                    ConsumedAction
+                    NoOp
 
                 case Route.NextHop.LOCAL =>
                     context.log.debug("Dropping non icmp_req addressed to local port")
-                    TemporaryDropAction
+                    TemporaryDrop
 
                 case Route.NextHop.BLACKHOLE =>
                     context.log.debug("Dropping packet, BLACKHOLE route (dst:{})",
                         wcmatch.getNetworkDstIP)
-                    TemporaryDropAction
+                    TemporaryDrop
 
                 case Route.NextHop.REJECT =>
                     sendAnswer(inPort.id, icmpErrors.unreachableProhibitedIcmp(
                         inPort, wcmatch, frame))
                     context.log.debug("Dropping packet, REJECT route (dst:{})",
                         wcmatch.getNetworkDstIP)
-                    DropAction
+                    Drop
 
                 case Route.NextHop.PORT if rt.nextHopPort == null =>
                     context.log.error(
                         "Routing table lookup for {} forwarded to port null.", dstIP)
                     // TODO(pino): should we remove this route?
-                    DropAction
+                    Drop
 
                 case Route.NextHop.PORT =>
                     ToPortAction(rt.nextHopPort)
@@ -253,34 +252,33 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
                     // rt.nextHop is invalid. The only way the simulation result
                     // would change is if there are other matching routes that are
                     // 'sane'. If such routes were created, this flow will be
-                    // invalidated. Thus, we can return DropAction and not
-                    // ErrorDropAction
-                    DropAction
+                    // invalidated. Thus, we can return Drop and not
+                    // TemporaryDrop.
+                    Drop
             }
 
             (rt, action)
         }
 
-        def applyTagsForRoute(route: Route, action: Action): Unit = action match {
-            case a@TemporaryDropAction =>
-            case a@ConsumedAction =>
-            case a@ErrorDropAction =>
-            case a => // We don't want to tag a temporary flow (e.g. created by
-                      // a BLACKHOLE route), and we do that to avoid excessive
-                      // interaction with the RouterManager, who needs to keep
-                      // track of every IP address the router gives to it.
-                if (route != null) {
-                    context.addFlowTag(FlowTagger.tagForRoute(route))
-                }
-                context.addFlowTag(FlowTagger.tagForDestinationIp(id, dstIP))
-                routerMgrTagger.addTag(dstIP)
-                context.addFlowRemovedCallback(
-                    routerMgrTagger.getFlowRemovalCallback(dstIP))
-        }
+        def applyTagsForRoute(route: Route, simRes: SimulationResult): Unit =
+            simRes match {
+                case TemporaryDrop | NoOp =>
+                case a => // We don't want to tag a temporary flow (e.g. created by
+                          // a BLACKHOLE route), and we do that to avoid excessive
+                          // interaction with the RouterManager, who needs to keep
+                          // track of every IP address the router gives to it.
+                    if (route != null) {
+                        context.addFlowTag(FlowTagger.tagForRoute(route))
+                    }
+                    context.addFlowTag(FlowTagger.tagForDestinationIp(id, dstIP))
+                    routerMgrTagger.addTag(dstIP)
+                    context.addFlowRemovedCallback(
+                        routerMgrTagger.getFlowRemovalCallback(dstIP))
+            }
 
         val (rt, action) = applyTimeToLive match {
-            case Some(a) => (null, a)
-            case None => applyRoutingTable
+            case NoOp => applyRoutingTable
+            case simRes => (null, simRes)
         }
 
         applyTagsForRoute(rt, action)
@@ -289,14 +287,14 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
             case ToPortAction(outPortId) =>
                 val outPort = tryAsk[RouterPort](outPortId)
                 postRouting(inPort, outPort, rt, context)
-            case a => action
+            case _ => action
         }
     }
 
     // POST ROUTING
     @throws[NotYetException]
     private def postRouting(inPort: RouterPort, outPort: RouterPort,
-                            rt: Route, context: PacketContext): Action = {
+                            rt: Route, context: PacketContext): SimulationResult = {
 
         implicit val packetContext = context
 
@@ -318,22 +316,22 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
             case RuleResult.Action.ACCEPT => // pass through
             case RuleResult.Action.DROP =>
                 context.log.debug("PostRouting DROP rule")
-                return DropAction
+                return Drop
             case RuleResult.Action.REJECT =>
                 context.log.debug("PostRouting REJECT rule")
                 sendAnswer(inPort.id, icmpErrors.unreachableProhibitedIcmp(
                     inPort, pMatch, pFrame))
-                return DropAction
+                return Drop
             case other =>
                 context.log.warn(
                     "PostRouting returned {} which was not ACCEPT, DROP or REJECT",
                     other)
-                return DropAction
+                return Drop
         }
 
         if (pMatch.getNetworkDstIP == outPort.portAddr.getAddress) {
             context.log.warn("Got a packet addressed to a port without a LOCAL route")
-            return DropAction
+            return Drop
         }
 
         getNextHopMac(outPort, rt,
@@ -342,12 +340,12 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
                 context.log.debug("icmp host unreachable, host mac unknown")
                 sendAnswer(inPort.id, icmpErrors.unreachableHostIcmp(
                     inPort, pMatch, pFrame))
-                ErrorDropAction
+                TemporaryDrop
             case null =>
                 context.log.debug("icmp net unreachable, gw mac unknown")
                 sendAnswer(inPort.id, icmpErrors.unreachableNetIcmp(
                     inPort, pMatch, pFrame))
-                ErrorDropAction
+                TemporaryDrop
             case nextHopMac =>
                 context.log.debug("routing packet to {}", nextHopMac)
                 pMatch.setEthSrc(outPort.portMac)
@@ -404,7 +402,7 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
      * the frame, if Ethernet.isBroadcast(hwDst).
      */
     protected def handleL2Broadcast(inPort: RouterPort)
-                                   (implicit pktCtx: PacketContext): Action
+                                   (implicit pktCtx: PacketContext): SimulationResult
 
     /**
      * This method will be executed after basic L2 processing is done,
@@ -412,7 +410,7 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
      * our MAC.
      */
     protected def handleNeighbouring(inPort: RouterPort)
-                                    (implicit pktCtx: PacketContext): Option[Action]
+                                    (implicit pktCtx: PacketContext): Option[SimulationResult]
 
     protected def isIcmpEchoRequest(mmatch: FlowMatch): Boolean
 }
