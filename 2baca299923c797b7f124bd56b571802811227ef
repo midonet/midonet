@@ -1,0 +1,142 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa2559ec_31a04ff4",
+        "filename": "brain/midonet-brain/src/main/java/org/midonet/brain/services/vxgw/VxLanGatewayService.java",
+        "patchSetId": 10
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-15T10:42:06Z",
+      "side": 1,
+      "message": "Unrelated comment: why does ClusterMinion take nodeContext as a constructor argument? It doesn\u0027t seem to use it anywhere?",
+      "range": {
+        "startLine": 112,
+        "startChar": 8,
+        "endLine": 112,
+        "endChar": 52
+      },
+      "revId": "2baca299923c797b7f124bd56b571802811227ef",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_71aac7d5",
+        "filename": "brain/midonet-brain/src/main/java/org/midonet/brain/services/vxgw/VxLanGatewayService.java",
+        "patchSetId": 10
+      },
+      "lineNbr": 197,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-15T10:42:06Z",
+      "side": 1,
+      "message": "Is this needed?",
+      "range": {
+        "startLine": 195,
+        "startChar": 0,
+        "endLine": 197,
+        "endChar": 5
+      },
+      "revId": "2baca299923c797b7f124bd56b571802811227ef",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_27d5ad43",
+        "filename": "brain/midonet-brain/src/main/java/org/midonet/brain/services/vxgw/VxLanGatewayService.java",
+        "patchSetId": 10
+      },
+      "lineNbr": 449,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-15T10:42:06Z",
+      "side": 1,
+      "message": "Maybe the name of this key is a bit to generic.",
+      "range": {
+        "startLine": 449,
+        "startChar": 29,
+        "endLine": 449,
+        "endChar": 33
+      },
+      "revId": "2baca299923c797b7f124bd56b571802811227ef",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_e7e39531",
+        "filename": "brain/midonet-brain/src/test/java/org/midonet/brain/services/vxgw/VxLanFloodingProxyTest.java",
+        "patchSetId": 10
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-15T10:42:06Z",
+      "side": 1,
+      "message": "Move imports up.",
+      "range": {
+        "startLine": 57,
+        "startChar": 0,
+        "endLine": 59,
+        "endChar": 41
+      },
+      "revId": "2baca299923c797b7f124bd56b571802811227ef",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_07e7c941",
+        "filename": "brain/midonet-brain/src/test/java/org/midonet/brain/services/vxgw/VxLanGatewayServiceTest.java",
+        "patchSetId": 10
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-15T10:42:06Z",
+      "side": 1,
+      "message": "Move imports up.",
+      "range": {
+        "startLine": 51,
+        "startChar": 0,
+        "endLine": 53,
+        "endChar": 41
+      },
+      "revId": "2baca299923c797b7f124bd56b571802811227ef",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_67f845e6",
+        "filename": "midonet-api/src/main/java/org/midonet/api/servlet/JerseyGuiceServletContextListener.java",
+        "patchSetId": 10
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-15T10:42:06Z",
+      "side": 1,
+      "message": "Should this log message be inside the if?",
+      "range": {
+        "startLine": 86,
+        "startChar": 8,
+        "endLine": 86,
+        "endChar": 80
+      },
+      "revId": "2baca299923c797b7f124bd56b571802811227ef",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
