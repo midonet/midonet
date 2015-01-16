@@ -23,12 +23,8 @@ import scala.collection.mutable
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import com.typesafe.scalalogging.Logger
-import org.slf4j.helpers.NOPLogger
-
 import org.midonet.cluster.data.{Bridge => ClusterBridge}
 import org.midonet.cluster.data.ports.BridgePort
-import org.midonet.midolman.DeduplicationActor.ActionsCache
 import org.midonet.midolman.PacketWorkflow.Drop
 import org.midonet.midolman.UnderlayResolver.Route
 import org.midonet.midolman.datapath.DatapathChannel
@@ -102,8 +98,7 @@ class DpPortTaggingTest extends MidolmanSpec {
             override def createFlow(flow: Flow): Unit = { }
             override def start(datapath: Datapath): Unit = { }
             override def stop(): Unit = { }
-        }, new ActionsCache(4, CallbackExecutor.Immediate, Logger(NOPLogger.NOP_LOGGER)),
-           new FlowStateReplicator(null, null, null, new UnderlayResolver {
+        }, new FlowStateReplicator(null, null, null, new UnderlayResolver {
             override def host: ResolvedHost = new ResolvedHost(UUID.randomUUID(), true, "", Map(), Map())
             override def peerTunnelInfo(peer: UUID): Option[Route] = None
             override def vtepTunnellingOutputAction: FlowActionOutput = null
