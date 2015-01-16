@@ -26,12 +26,9 @@ import akka.actor.ActorSystem
 import akka.pattern.ask
 import akka.util.Timeout
 import akka.util.Timeout.durationToTimeout
-import com.typesafe.scalalogging.Logger
-import org.midonet.cluster.DataClient
-import org.midonet.cluster.data.Route
 
+import org.midonet.cluster.DataClient
 import org.midonet.cluster.data._
-import org.midonet.midolman.DeduplicationActor.ActionsCache
 import org.midonet.midolman.datapath.DatapathChannel
 import org.midonet.midolman.host.interfaces.InterfaceDescription
 import org.midonet.midolman.topology.rcu.ResolvedHost
@@ -52,7 +49,6 @@ import org.midonet.packets.{IPv4Addr, MAC, Ethernet}
 import org.midonet.sdn.flows.FlowTagger.FlowTag
 import org.midonet.sdn.state.FlowStateTransaction
 import org.midonet.util.functors.Callback0
-import org.slf4j.helpers.NOPLogger
 
 trait VirtualTopologyHelper {
 
@@ -182,8 +178,7 @@ trait VirtualTopologyHelper {
             override def createFlow(flow: Flow): Unit = { }
             override def start(datapath: Datapath): Unit = { }
             override def stop(): Unit = { }
-        }, new ActionsCache(4, CallbackExecutor.Immediate, Logger(NOPLogger.NOP_LOGGER)),
-           new FlowStateReplicator(null, null, null, new UnderlayResolver {
+        }, new FlowStateReplicator(null, null, null, new UnderlayResolver {
             override def host: ResolvedHost = new ResolvedHost(UUID.randomUUID(), true, "", Map(), Map())
             override def peerTunnelInfo(peer: UUID): Option[UnderlayRoute] = None
             override def vtepTunnellingOutputAction: FlowActionOutput = null
