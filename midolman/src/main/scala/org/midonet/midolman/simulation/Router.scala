@@ -20,12 +20,12 @@ import java.util.UUID
 import scala.concurrent.ExecutionContext
 
 import akka.actor.ActorSystem
+import org.midonet.midolman.PacketWorkflow.{Drop, NoOp, SimulationResult}
 
 import org.midonet.midolman.topology.devices.{Port, RouterPort}
 import org.midonet.midolman.NotYetException
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.rules.RuleResult
-import org.midonet.midolman.simulation.Coordinator._
 import org.midonet.midolman.simulation.PacketEmitter.GeneratedPacket
 import org.midonet.midolman.topology.VirtualTopologyActor._
 import org.midonet.midolman.topology._
@@ -47,38 +47,37 @@ class Router(override val id: UUID,
         ether == IPv4.ETHERTYPE || ether == ARP.ETHERTYPE
 
     private def processArp(pkt: IPacket, inPort: RouterPort)
-                          (implicit context: PacketContext): Action =
+                          (implicit context: PacketContext): SimulationResult =
         pkt match {
             case arp: ARP => arp.getOpCode match {
                 case ARP.OP_REQUEST =>
                     processArpRequest(arp, inPort)
-                    ConsumedAction
+                    NoOp
                 case ARP.OP_REPLY =>
                     processArpReply(arp, inPort)
-                    ConsumedAction
+                    NoOp
                 case _ =>
-                    DropAction
+                    Drop
                 }
             case _ =>
                 context.log.warn("Non-ARP packet with ethertype ARP: {}", pkt)
-                DropAction
+                Drop
         }
 
     override protected def handleL2Broadcast(inPort: RouterPort)
-                                            (implicit context: PacketContext)
-    : Action = {
+                                            (implicit context: PacketContext) = {
 
         // Broadcast packet:  Handle if ARP, drop otherwise.
         val payload = context.ethernet.getPayload
         if (context.wcmatch.getEtherType == ARP.ETHERTYPE)
             processArp(payload, inPort)
         else
-            DropAction
+            Drop
     }
 
     override def handleNeighbouring(inPort: RouterPort)
                                    (implicit context: PacketContext)
-    : Option[Action] = {
+    : Option[SimulationResult] = {
         if (context.wcmatch.getEtherType == ARP.ETHERTYPE) {
             // Non-broadcast ARP.  Handle reply, drop rest.
             val payload = context.ethernet.getPayload

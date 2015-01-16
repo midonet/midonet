@@ -30,7 +30,7 @@ import akka.util.Timeout.durationToTimeout
 import org.midonet.cluster.data._
 import org.midonet.midolman.NotYetException
 import org.midonet.midolman.PacketWorkflow.SimulationResult
-import org.midonet.midolman.simulation.Coordinator.{Action, Device}
+import org.midonet.midolman.simulation.Coordinator.Device
 import org.midonet.midolman.simulation.{Coordinator, PacketContext, PacketEmitter}
 import org.midonet.midolman.state.ConnTrackState._
 import org.midonet.midolman.state.HappyGoLuckyLeaser
@@ -90,7 +90,7 @@ trait VirtualTopologyHelper {
     def simulateDevice(device: Device, frame: Ethernet, inPort: UUID)
                       (implicit conntrackTx: FlowStateTransaction[ConnTrackKey, ConnTrackValue] = NO_CONNTRACK,
                                 natTx: FlowStateTransaction[NatKey, NatBinding] = NO_NAT)
-    : (PacketContext, Action) = {
+    : (PacketContext, SimulationResult) = {
         val context = packetContextFor(frame, inPort)
         force {
             flushTransactions(conntrackTx, natTx)

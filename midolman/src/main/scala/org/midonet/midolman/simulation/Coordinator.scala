@@ -34,37 +34,16 @@ import org.midonet.sdn.flows.VirtualActions.{FlowActionOutputToVrnBridge, FlowAc
 
 object Coordinator {
 
-    sealed trait Action
-
-    // ErrorDropAction is used to signal that the Drop is being requested
-    // because of an error, not because the virtual topology justifies it.
-    // The resulting Drop rule may be temporary to allow retrying.
-    case object ErrorDropAction extends Action
-
-    sealed trait AbstractDropAction extends Action {
-        val temporary: Boolean
-    }
-
-    case object DropAction extends AbstractDropAction {
-        override val temporary = false
-    }
-
-    case object TemporaryDropAction extends AbstractDropAction {
-        override val temporary = true
-    }
-
-    case object ConsumedAction extends Action
-
-    sealed trait ForwardAction extends Action
+    sealed trait ForwardAction extends SimulationResult
     case class ToPortAction(outPort: UUID) extends ForwardAction
     case class FloodBridgeAction(bridgeId: UUID, ports: List[UUID]) extends ForwardAction
-    case class DoFlowAction(action: FlowAction) extends Action
+    case class DoFlowAction(action: FlowAction) extends ForwardAction
 
     // This action is used when one simulation has to return N forward actions
     // A good example is when a bridge that has a vlan id set receives a
     // broadcast from the virtual network. It will output it to all its
     // materialized ports and to the logical port that connects it to the VAB
-    case class ForkAction(actions: Seq[Action]) extends ForwardAction
+    case class ForkAction(actions: Seq[SimulationResult]) extends ForwardAction
 
     trait Device {
 
@@ -81,7 +60,7 @@ object Coordinator {
          * @return An instance of Action that reflects what the device would do
          * after handling this packet (e.g. drop it, consume it, forward it).
          */
-        def process(pktContext: PacketContext): Action
+        def process(pktContext: PacketContext): SimulationResult
     }
 }
 
@@ -173,9 +152,8 @@ class Coordinator(context: PacketContext)
         result
     }
 
-    private def handleAction(action: Action): SimulationResult = {
-        log.debug("Received action: {}", action)
-        action match {
+    private def handleAction(simRes: SimulationResult): SimulationResult =
+        simRes match {
             case DoFlowAction(act) => act match {
                 case b: FlowActionPopVLAN =>
                     context.addVirtualAction(b)
@@ -208,23 +186,8 @@ class Coordinator(context: PacketContext)
             case ToPortAction(outPortID) =>
                 packetEgressesPort(outPortID)
 
-            case ConsumedAction => NoOp
-
-            case ErrorDropAction => TemporaryDrop
-
-            case TemporaryDropAction =>
-                log.debug("Device returned TemporaryDropAction")
-                TemporaryDrop
-
-            case DropAction =>
-                log.debug("Device returned DropAction")
-                Drop
-
-            case _ =>
-                log.error(s"Device returned unexpected action - $action")
-                TemporaryDrop
-        } // end action match
-    }
+            case _ => simRes
+        }
 
     private def packetIngressesPort(portID: UUID, getPortGroups: Boolean)
     : SimulationResult =

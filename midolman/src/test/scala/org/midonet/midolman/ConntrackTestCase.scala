@@ -18,13 +18,13 @@ package org.midonet.midolman
 import java.util.UUID
 
 import org.junit.runner.RunWith
+import org.midonet.midolman.PacketWorkflow.Drop
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.data.{Bridge => ClusterBridge}
 import org.midonet.cluster.data.ports.BridgePort
 import org.midonet.midolman.rules.{RuleResult, Condition}
 import org.midonet.midolman.simulation.Bridge
-import org.midonet.midolman.simulation.Coordinator.DropAction
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.MessageAccumulator
@@ -148,7 +148,7 @@ class ConntrackTestCase extends MidolmanSpec {
                 val (retContext, retAct) = simulateDevice(bridge, retPkt, rightPort.getId)
                 retContext.isConnectionTracked should be (true)
                 retContext.isForwardFlow should be (true)
-                retAct should be (DropAction)
+                retAct should be (Drop)
             }
         }
     }
