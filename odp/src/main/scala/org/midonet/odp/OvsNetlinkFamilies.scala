@@ -31,7 +31,7 @@ object OvsNetlinkFamilies {
     @throws(classOf[IOException])
     @throws(classOf[NetlinkException])
     def discover(channel: NetlinkChannel): OvsNetlinkFamilies = {
-        val requestReply = new NetlinkRequestReply(
+        val requestReply = new NetlinkConcierge(
             new NetlinkReader(channel), new NetlinkBlockingWriter(channel),
             6, BytesUtil.instance.allocate(2048), NanoClock.DEFAULT)
         val pid = channel.getLocalAddress.getPid
