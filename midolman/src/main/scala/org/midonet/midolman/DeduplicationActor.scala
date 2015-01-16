@@ -333,8 +333,6 @@ class DeduplicationActor(
             path match {
                 case WildcardTableHit =>
                     metrics.wildcardTableHit(latency)
-                case PacketToPortSet =>
-                    metrics.packetToPortSet(latency)
                 case Simulation =>
                     metrics.packetSimulated(latency)
                 case _ =>

@@ -19,6 +19,7 @@ import java.util.UUID
 
 import akka.actor.ActorSystem
 import org.midonet.midolman.PacketWorkflow.{Drop, TemporaryDrop, NoOp, SimulationResult}
+import org.midonet.midolman.routingprotocols.RoutingWorkflow
 
 import org.midonet.midolman.topology.devices.RouterPort
 import org.midonet.midolman.NotYetException
@@ -44,7 +45,7 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
                                         val routerMgrTagger: TagManager)
                                    (implicit system: ActorSystem,
                                              icmpErrors: IcmpErrorSender[IP])
-    extends Coordinator.Device {
+    extends Coordinator.Device with RoutingWorkflow {
 
     import Coordinator._
 
@@ -112,11 +113,10 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
                 sendAnswer(inPort.id, icmpErrors.unreachableProhibitedIcmp(
                     inPort, context.wcmatch, context.ethernet))
                 Drop
-            case other =>
+            case _ =>
                 context.log.warn("Pre-routing returned an action which was {}, " +
                                  "not ACCEPT, DROP, or REJECT.", preRoutingResult.action)
                 TemporaryDrop
-            case _ => NoOp
         }
 
     @throws[NotYetException]
@@ -185,7 +185,7 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
         val wcmatch = context.wcmatch
         val dstIP = context.wcmatch.getNetworkDstIP
 
-        def applyTimeToLive: SimulationResult = {
+        def applyTimeToLive(): SimulationResult = {
             /* TODO(guillermo, pino): Have WildcardMatch take a DecTTLBy instead,
              * so that there need only be one sim. run for different TTLs.  */
             if (wcmatch.isUsed(Field.NetworkTTL)) {
@@ -203,7 +203,7 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
             }
         }
 
-        def applyRoutingTable: (Route, SimulationResult) = {
+        def applyRoutingTable(): (Route, SimulationResult) = {
             val rt: Route = routeBalancer.lookup(wcmatch, context.log)
 
             if (rt == null) {
@@ -221,8 +221,14 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
                     NoOp
 
                 case Route.NextHop.LOCAL =>
-                    context.log.debug("Dropping non icmp_req addressed to local port")
-                    TemporaryDrop
+                    handleBgp(context, inPort) match {
+                        case NoOp =>
+                            context.log.debug("Dropping non icmp_req addressed to local port")
+                            TemporaryDrop
+                        case simRes =>
+                            context.log.debug("Matched BGP traffic")
+                            simRes
+                    }
 
                 case Route.NextHop.BLACKHOLE =>
                     context.log.debug("Dropping packet, BLACKHOLE route (dst:{})",
@@ -243,8 +249,10 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
                     Drop
 
                 case Route.NextHop.PORT =>
-                    ToPortAction(rt.nextHopPort)
-
+                    applyTimeToLive() match {
+                        case NoOp => ToPortAction(rt.nextHopPort)
+                        case simRes => simRes
+                    }
                 case _ =>
                     context.log.warn(
                         "Routing table lookup for {} returned invalid nextHop of {}",
@@ -276,10 +284,7 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
                         routerMgrTagger.getFlowRemovalCallback(dstIP))
             }
 
-        val (rt, action) = applyTimeToLive match {
-            case NoOp => applyRoutingTable
-            case simRes => (null, simRes)
-        }
+        val (rt, action) = applyRoutingTable()
 
         applyTagsForRoute(rt, action)
 

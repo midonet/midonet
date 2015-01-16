@@ -67,10 +67,6 @@ class ArpTableTest extends MidolmanSpec {
         super.fillConfig(config)
     }
 
-    private def setActive(id: UUID) {
-        clusterDataClient().portsSetLocalAndActive(id, hostId(), true)
-    }
-
     private def buildTopology() {
         newHost("myself", hostId())
         val clusterRouter = newRouter("router")
