@@ -23,16 +23,10 @@ import org.midonet.util.eventloop.{CallingThreadReactor, Reactor}
 
 object InMemoryStorageModule {
 
-    final val StorageReactorTag = "storageReactor"
-
     private class StorageProvider extends Provider[Storage] {
-
-        @Inject
-        @Named(StorageReactorTag)
-        var reactor: Reactor = _
-
-        override def get: Storage = new InMemoryStorage(reactor)
+        override def get: Storage = new InMemoryStorage
     }
+
 }
 
 class InMemoryStorageModule extends PrivateModule {
@@ -40,10 +34,6 @@ class InMemoryStorageModule extends PrivateModule {
     import org.midonet.midolman.guice.InMemoryStorageModule._
 
     protected override def configure(): Unit = {
-        bind(classOf[Reactor])
-            .annotatedWith(Names.named(StorageReactorTag))
-            .to(classOf[CallingThreadReactor])
-            .asEagerSingleton()
         bind(classOf[Storage])
             .toProvider(classOf[StorageProvider])
             .asEagerSingleton()
