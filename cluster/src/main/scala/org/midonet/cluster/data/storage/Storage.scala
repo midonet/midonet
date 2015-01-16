@@ -72,6 +72,11 @@ object OwnershipType extends Enumeration {
 
 case class ObjWithOwner(obj: Obj, owners: Seq[ObjId])
 
+abstract class ClassInfo(val clazz: Class[_], val ownershipType: OwnershipType) {
+    def idOf(obj: Obj): ObjId
+}
+
+
 /**
  * Used in update operations to perform validation that depends on knowing the
  * current state of the object to be validated.
