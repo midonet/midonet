@@ -35,8 +35,6 @@ import org.scalatest._
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.config.ConfigProvider
-import org.midonet.midolman.DeduplicationActor.ActionsCache
-import org.midonet.midolman.FlowController.{FlowAdded, AddWildcardFlow}
 import org.midonet.midolman.UnderlayResolver.Route
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.simulation.PacketContext
@@ -106,14 +104,17 @@ object PacketWorkflowTest {
                           callbacks: ArrayList[Callback0]): Unit = { }
         }
         val wf = new PacketWorkflow(dpState, null, null, dpChannel,
-                                    new ActionsCache(4, CallbackExecutor.Immediate,
-                                                     log = NoLogging),
                                     replicator, config) {
             override def runSimulation(pktCtx: PacketContext) =
                 throw new Exception("no Coordinator")
             override def translateActions(pktCtx: PacketContext) = {
                 testKit ! TranslateActions
                 pktCtx.addFlowAction(output)
+            }
+            override def handleWildcardTableMatch(context: PacketContext,
+                                                  wildFlow: WildcardFlow): Unit = {
+                wildFlow.getActions foreach pktCtx.addFlowAction
+                super.handleWildcardTableMatch(context, wildFlow)
             }
         }
         (pktCtx, wf)
@@ -224,7 +225,6 @@ class PacketWorkflowTest extends TestKit(ActorSystem("PacketWorkflowTest"))
             When("the simulation layer returns Drop")
             pkfw.processSimulationResult(pktCtx, Drop)
 
-            Then("the FlowController gets an AddWildcardFlow request")
             And("the packets gets executed (with 0 action)")
             runChecks(pktCtx, pkfw, applyNilActionsWithWildcardFlow)
 
@@ -363,8 +363,7 @@ class PacketWorkflowTest extends TestKit(ActorSystem("PacketWorkflowTest"))
             }
         }
         val msgs = drainMessages()
-        checks foreach {
-            _(msgs, pw.actionsCache.actions.get(pktCtx.packet.getMatch)) }
+        checks foreach { _(msgs, pktCtx.flowActions) }
         msgAvailable should be (false)
     }
 
