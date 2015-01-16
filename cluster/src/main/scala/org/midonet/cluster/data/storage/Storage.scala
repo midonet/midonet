@@ -72,6 +72,11 @@ object OwnershipType extends Enumeration {
 
 case class ObjWithOwner(obj: Obj, owners: Seq[ObjId])
 
+abstract class ClassInfo(val clazz: Class[_], val ownershipType: OwnershipType) {
+    def idOf(obj: Obj): ObjId
+}
+
+
 /**
  * Used in update operations to perform validation that depends on knowing the
  * current state of the object to be validated.
@@ -338,7 +343,7 @@ trait StorageWithOwnership extends Storage {
     def create(obj: Obj, owner: ObjId): Unit
 
     /**
-     * Updates an object and/or its owner. The method has the following behavior
+     * Updates an object and its owner. The method has the following behavior
      * depending on the ownership type:
      * - for [[OwnershipType.Exclusive]], the update succeeds only if the
      *   specified owner is the current owner of the object, or if the object
@@ -346,7 +351,8 @@ trait StorageWithOwnership extends Storage {
      * - for [[OwnershipType.Shared]], is is always possible to update the
      *   owner.
      * In both cases, the method rewrites the current ownership node in storage,
-     * such that it corresponds to the client session performing the update.
+     * such that it corresponds to the client session last performing the
+     * update.
      */
     @throws[NotFoundException]
     @throws[ReferenceConflictException]

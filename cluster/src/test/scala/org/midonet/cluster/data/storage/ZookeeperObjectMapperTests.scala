@@ -734,16 +734,9 @@ class ZookeeperObjectMapperTests extends Suite
         val owner = UUID.randomUUID
         zom.create(state, owner)
         await(zom.exists(classOf[ExclusiveState], state.id)) shouldBe true
-        val e = intercept[OwnershipConflictException] {
-            zom.deleteOwner(classOf[ExclusiveState], state.id, owner)
-        }
-        e.clazz shouldBe classOf[ExclusiveState].getSimpleName
-        e.id shouldBe state.id.toString
-        e.currentOwner shouldBe Set(owner.toString)
-        e.newOwner shouldBe owner.toString
+        zom.deleteOwner(classOf[ExclusiveState], state.id, owner)
         await(zom.exists(classOf[ExclusiveState], state.id)) shouldBe true
-        await(zom.getOwners(classOf[ExclusiveState], state.id)) shouldBe Set(
-            owner.toString)
+        await(zom.getOwners(classOf[ExclusiveState], state.id)) shouldBe empty
     }
 
     def testDeleteOwnerExclusiveDifferentOwner(): Unit = {
