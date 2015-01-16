@@ -26,8 +26,8 @@ import org.midonet.odp.OpenVSwitch.FlowAction.UserspaceAttr;
 public class FlowActionUserspace implements FlowAction,
                                             AttributeHandler, Randomize {
 
-    private int uplinkPid;  /* u32 Netlink PID to receive upcalls. */
-    private Long userData;  /* u64 optional user-specified cookie. */
+    public int uplinkPid;  /* u32 Netlink PID to receive upcalls. */
+    public Long userData;  /* u64 optional user-specified cookie. */
 
     // This is used for deserialization purposes only.
     FlowActionUserspace() { }
@@ -42,17 +42,12 @@ public class FlowActionUserspace implements FlowAction,
     }
 
     public int serializeInto(ByteBuffer buffer) {
-        int nBytes = 0;
-
-        nBytes += NetlinkMessage.writeIntAttr(buffer, UserspaceAttr.PID,
-                                              uplinkPid);
-
-        if (userData == null)
-            return nBytes;
-
-        nBytes += NetlinkMessage.writeLongAttr(buffer, UserspaceAttr.Userdata,
-                                               userData);
-
+        int nBytes = NetlinkMessage.writeIntAttr(buffer, UserspaceAttr.PID,
+                                                 uplinkPid);
+        if (userData != null) {
+            nBytes += NetlinkMessage.writeLongAttr(buffer, UserspaceAttr.Userdata,
+                                                   userData);
+        }
         return nBytes;
     }
 
@@ -101,13 +96,5 @@ public class FlowActionUserspace implements FlowAction,
     public String toString() {
         return "ToUserspace{socket=" + uplinkPid +
                ", data=" + userData + '}';
-    }
-
-    public int getUplinkPid() {
-        return uplinkPid;
-    }
-
-    public Long getUserData() {
-        return userData;
     }
 }

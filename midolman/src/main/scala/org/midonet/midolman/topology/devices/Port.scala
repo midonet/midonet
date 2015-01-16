@@ -15,11 +15,11 @@
  */
 package org.midonet.midolman.topology.devices
 
-import java.util.UUID
+import java.util.{HashSet, UUID}
 
 import scala.collection.JavaConverters._
 
-import org.midonet.cluster.data.{ZoomConvert, ZoomField, ZoomObject, ZoomClass}
+import org.midonet.cluster.data._
 import org.midonet.cluster.models.Topology
 import org.midonet.cluster.util.IPAddressUtil.{Converter => IPAddressConverter}
 import org.midonet.cluster.util.IPSubnetUtil.{Converter => IPSubnetConverter}

@@ -28,6 +28,7 @@ import org.midonet.cluster.DataClient
 import org.midonet.midolman.DeduplicationActor.ActionsCache
 import org.midonet.midolman.PacketWorkflow.{PipelinePath, TemporaryDrop}
 import org.midonet.midolman.datapath.DatapathChannel
+import org.midonet.midolman.routingprotocols.RoutingWorkflow
 import org.midonet.midolman.simulation.{Coordinator, DhcpImpl, PacketContext}
 import org.midonet.midolman.state.FlowStateReplicator
 import org.midonet.midolman.topology.devices.Port
@@ -69,7 +70,6 @@ object PacketWorkflow {
 
     sealed trait PipelinePath
     case object WildcardTableHit extends PipelinePath
-    case object PacketToPortSet extends PipelinePath
     case object StateMessage extends PipelinePath
     case object Simulation extends PipelinePath
     case object Error extends PipelinePath
@@ -127,7 +127,9 @@ class PacketWorkflow(protected val dpState: DatapathState,
                      val actionsCache: ActionsCache,
                      val replicator: FlowStateReplicator)
                     (implicit val system: ActorSystem)
-        extends FlowTranslator with PacketHandler with UnderlayTrafficHandler {
+        extends PacketHandler with FlowTranslator
+        with RoutingWorkflow with UnderlayTrafficHandler {
+
     import DeduplicationActor._
     import FlowController.{AddWildcardFlow, FlowAdded}
     import PacketWorkflow._
@@ -258,8 +260,11 @@ class PacketWorkflow(protected val dpState: DatapathState,
         context.flowTags.add(tagForDpPort(inPortNo))
 
         if (context.packet.getReason == Packet.Reason.FlowActionUserspace) {
-            setVportForLocalTraffic(context, inPortNo)
-            processSimulationResult(context, simulatePacketIn(context))
+            processSimulationResult(context,
+                if (resolveVport(context, inPortNo))
+                    simulatePacketIn(context)
+                else
+                    Drop)
         } else {
             FlowController.queryWildcardFlowTable(context.origMatch) match {
                 case Some(wildflow) =>
@@ -300,19 +305,23 @@ class PacketWorkflow(protected val dpState: DatapathState,
       * virtual network and we'll simulate it.
       */
     private def handleWildcardTableMiss(context: PacketContext,
-                                        inPortNo: Int): PipelinePath = {
+                                        inPortNo: Int): PipelinePath =
         if (context.origMatch.isFromTunnel) {
             handleFromTunnel(context, inPortNo)
-        } else {
-            setVportForLocalTraffic(context, inPortNo)
+        } else if (resolveVport(context, inPortNo)) {
             processSimulationResult(context, simulatePacketIn(context))
+        } else {
+            processSimulationResult(context, handleBgp(context, inPortNo))
         }
-    }
 
-    private def setVportForLocalTraffic(context: PacketContext,
-                                        inPortNo: Int): Unit = {
+    private def resolveVport(context: PacketContext, inPortNo: Int): Boolean = {
         val inPortId = dpState getVportForDpPortNumber inPortNo
-        context.inputPort = inPortId.orNull
+        if (inPortId.isDefined) {
+            context.inputPort = inPortId.get
+            true
+        } else {
+            false
+        }
     }
 
     private def doEgressPortSimulation(context: PacketContext) = {
@@ -355,24 +364,20 @@ class PacketWorkflow(protected val dpState: DatapathState,
         Simulation
     }
 
-    protected def simulatePacketIn(context: PacketContext): SimulationResult =
-        if (context.inputPort ne null) {
-            val packet = context.packet
-            system.eventStream.publish(
-                PacketIn(context.origMatch.clone(), context.inputPort,
-                         packet.getEthernet,
-                         packet.getMatch, packet.getReason,
-                         context.cookie))
+    protected def simulatePacketIn(context: PacketContext): SimulationResult = {
+        val packet = context.packet
+        system.eventStream.publish(
+            PacketIn(context.origMatch.clone(), context.inputPort,
+                     packet.getEthernet,
+                     packet.getMatch, packet.getReason,
+                     context.cookie))
 
-            if (handleDHCP(context)) {
-                NoOp
-            } else {
-                runSimulation(context)
-            }
+        if (handleDHCP(context)) {
+            NoOp
         } else {
-            context.wcmatch.markAllAsSeen()
-            TemporaryDrop
+            runSimulation(context)
         }
+    }
 
     def addVirtualWildcardFlow(context: PacketContext): Unit = {
         translateActions(context)

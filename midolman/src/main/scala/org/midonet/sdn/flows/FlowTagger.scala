@@ -19,7 +19,6 @@ package org.midonet.sdn.flows
 import java.util.{UUID, WeakHashMap}
 import java.lang.ref.WeakReference
 
-import org.midonet.odp.flows.FlowStats
 import org.midonet.packets.{IPAddr, MAC}
 import org.midonet.midolman.layer3.Route
 
@@ -311,27 +310,6 @@ object FlowTagger {
         var tag = segment.value
         if (tag eq null) {
             tag = new DestinationIpTag(routerId, ipDestination)
-            segment.value = tag
-        }
-        tag
-    }
-
-    /**
-     * Tag for the flows associated with the specified BGP.
-     */
-    case class BgpTag(bgpId: UUID) extends FlowTag {
-        override def toString = "bgp:" + bgpId
-    }
-
-    val cachedBgpTags = new ThreadLocal[TagsTrie] {
-        override def initialValue = new TagsTrie
-    }
-
-    def tagForBgp(bgpId: UUID): FlowTag = {
-        val segment = cachedBgpTags.get().getOrAddSegment(bgpId)
-        var tag = segment.value
-        if (tag eq null) {
-            tag = new BgpTag(bgpId)
             segment.value = tag
         }
         tag

@@ -20,7 +20,7 @@ import java.util.UUID
 import scala.concurrent.ExecutionContext
 
 import akka.actor.ActorSystem
-import org.midonet.midolman.PacketWorkflow.{Drop, NoOp, SimulationResult}
+import org.midonet.midolman.PacketWorkflow.{TemporaryDrop, Drop, NoOp, SimulationResult}
 
 import org.midonet.midolman.topology.devices.{Port, RouterPort}
 import org.midonet.midolman.NotYetException
@@ -55,7 +55,7 @@ class Router(override val id: UUID,
                     NoOp
                 case ARP.OP_REPLY =>
                     processArpReply(arp, inPort)
-                    NoOp
+                    handleBgp(context, inPort)
                 case _ =>
                     Drop
                 }
