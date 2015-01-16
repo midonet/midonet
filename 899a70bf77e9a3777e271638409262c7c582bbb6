@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "da2a55be_c9edd1f1",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/HostRequestProxy.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-16T17:34:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fa2559ec_1bad6489",
+      "revId": "899a70bf77e9a3777e271638409262c7c582bbb6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa2559ec_5bb6bcdd",
         "filename": "midolman/src/main/scala/org/midonet/midolman/HostRequestProxy.scala",
         "patchSetId": 9
@@ -30,6 +48,24 @@
       "writtenOn": "2015-01-16T14:54:18Z",
       "side": 1,
       "message": "This only runs on the first time we get the Host object right?\n\nAsking because if it\u0027s a hot path it\u0027s better to avoid the more expensive string interpolation and go for a straight +",
+      "revId": "899a70bf77e9a3777e271638409262c7c582bbb6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da2a55be_49b9e1e8",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/HostRequestProxy.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 136,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-16T17:34:15Z",
+      "side": 1,
+      "message": "I\u0027m not sure how often this runs but changing this to use + in any case.",
+      "parentUuid": "fa2559ec_5bb6bcdd",
       "revId": "899a70bf77e9a3777e271638409262c7c582bbb6",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -59,6 +95,30 @@
     },
     {
       "key": {
+        "uuid": "da2a55be_c9c4b161",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/HostRequestProxy.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 138,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-16T17:34:15Z",
+      "side": 1,
+      "message": "It has to do a plain copy because the portToInterface map is immutable, right?",
+      "parentUuid": "fa2559ec_3bbb08c6",
+      "range": {
+        "startLine": 138,
+        "startChar": 43,
+        "endLine": 138,
+        "endChar": 49
+      },
+      "revId": "899a70bf77e9a3777e271638409262c7c582bbb6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa2559ec_dba2ac99",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/Host.scala",
         "patchSetId": 9
@@ -70,6 +130,24 @@
       "writtenOn": "2015-01-16T14:54:18Z",
       "side": 1,
       "message": "There are some NPE risks here no? Probably Objects.equals(id, host.id) would be a good option.",
+      "revId": "899a70bf77e9a3777e271638409262c7c582bbb6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da2a55be_89f47988",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/Host.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-16T17:34:15Z",
+      "side": 1,
+      "message": "Thanks for catching this! I realized I also forgot to check for the equality of alive.",
+      "parentUuid": "fa2559ec_dba2ac99",
       "revId": "899a70bf77e9a3777e271638409262c7c582bbb6",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -93,6 +171,24 @@
     },
     {
       "key": {
+        "uuid": "da2a55be_c945d1b4",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/VirtualToPhysicalMapperTest.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-16T17:34:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fa2559ec_fbc4d060",
+      "revId": "899a70bf77e9a3777e271638409262c7c582bbb6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa2559ec_bbca586c",
         "filename": "midonet-util/src/main/scala/org/midonet/packets/IPv4Addr.scala",
         "patchSetId": 9
@@ -104,6 +200,24 @@
       "writtenOn": "2015-01-16T14:54:18Z",
       "side": 1,
       "message": "Nitpicky, \n\n\u003d inetAddress.isInstanceOf[Inet4Address] \u0026\u0026 \n   ByteBuffer.wrap(inetAddress.getAddress).getInt \u003d\u003d addr\n\n\nSeems also readable enough (and more concise). But I don\u0027t have a strong opinion, leave as is if you prefer it.",
+      "revId": "899a70bf77e9a3777e271638409262c7c582bbb6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da2a55be_a925fd0b",
+        "filename": "midonet-util/src/main/scala/org/midonet/packets/IPv4Addr.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-16T17:34:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fa2559ec_bbca586c",
       "revId": "899a70bf77e9a3777e271638409262c7c582bbb6",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
