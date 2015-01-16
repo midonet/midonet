@@ -72,6 +72,11 @@ object OwnershipType extends Enumeration {
 
 case class ObjWithOwner(obj: Obj, owners: Seq[ObjId])
 
+abstract class ClassInfo(val clazz: Class[_], val ownershipType: OwnershipType) {
+    def idOf(obj: Obj): ObjId
+}
+
+
 /**
  * Used in update operations to perform validation that depends on knowing the
  * current state of the object to be validated.
@@ -179,14 +184,14 @@ trait Storage extends ReadOnlyStorage {
     @throws[NotFoundException]
     @throws[ObjectExistsException]
     @throws[ReferenceConflictException]
-    def create(obj: Obj): Unit
+    def create(obj: Obj): Unit = multi(List(CreateOp(obj)))
 
     /**
      * Synchronous method that updates the specified object in the storage.
      */
     @throws[NotFoundException]
     @throws[ReferenceConflictException]
-    def update(obj: Obj): Unit
+    def update(obj: Obj): Unit = multi(List(UpdateOp(obj)))
 
     /**
      * Synchronous method that updates the specified object in the storage. It
@@ -196,21 +201,24 @@ trait Storage extends ReadOnlyStorage {
      */
     @throws[NotFoundException]
     @throws[ReferenceConflictException]
-    def update[T <: Obj](obj: T, validator: UpdateValidator[T]): Unit
+    def update[T <: Obj](obj: T, validator: UpdateValidator[T]): Unit =
+        multi(List(UpdateOp(obj, validator)))
 
     /**
      * Synchronous method that deletes the specified object from the storage.
      */
     @throws[NotFoundException]
     @throws[ObjectReferencedException]
-    def delete(clazz: Class[_], id: ObjId): Unit
+    def delete(clazz: Class[_], id: ObjId): Unit =
+        multi(List(DeleteOp(clazz, id)))
 
     /**
      * Synchronous method that deletes the specified object from the storage if
      * it exists, or silently returns if it doesn't.
      */
     @throws[ObjectReferencedException]
-    def deleteIfExists(clazz: Class[_], id: ObjId): Unit
+    def deleteIfExists(clazz: Class[_], id: ObjId): Unit =
+        multi(List(DeleteOp(clazz, id, ignoreIfNotExists = true)))
 
     /**
      * Synchronous method that executes multiple create, update, and/or delete
@@ -331,14 +339,14 @@ trait StorageWithOwnership extends Storage {
     /**
      * Creates an object with the specified owner.
      */
-    @throws[NotFoundException]
     @throws[ObjectExistsException]
     @throws[ReferenceConflictException]
     @throws[OwnershipConflictException]
-    def create(obj: Obj, owner: ObjId): Unit
+    def create(obj: Obj, owner: ObjId): Unit =
+        multi(List(CreateWithOwnerOp(obj, owner.toString)))
 
     /**
-     * Updates an object and/or its owner. The method has the following behavior
+     * Updates an object and its owner. The method has the following behavior
      * depending on the ownership type:
      * - for [[OwnershipType.Exclusive]], the update succeeds only if the
      *   specified owner is the current owner of the object, or if the object
@@ -346,13 +354,15 @@ trait StorageWithOwnership extends Storage {
      * - for [[OwnershipType.Shared]], is is always possible to update the
      *   owner.
      * In both cases, the method rewrites the current ownership node in storage,
-     * such that it corresponds to the client session performing the update.
+     * such that it corresponds to the client session last performing the
+     * update.
      */
     @throws[NotFoundException]
     @throws[ReferenceConflictException]
     @throws[OwnershipConflictException]
     def update[T <: Obj](obj: T, owner: ObjId,
-                         validator: UpdateValidator[T]): Unit
+                         validator: UpdateValidator[T]): Unit =
+        multi(List(UpdateWithOwnerOp(obj, owner.toString, validator)))
 
     /**
      * Updates the owner for the specified object. This method is similar to
@@ -368,7 +378,8 @@ trait StorageWithOwnership extends Storage {
     @throws[NotFoundException]
     @throws[OwnershipConflictException]
     def updateOwner(clazz: Class[_], id: ObjId, owner: ObjId,
-                    throwIfExists: Boolean): Unit
+                    throwIfExists: Boolean): Unit =
+        multi(List(UpdateOwnerOp(clazz, id, owner.toString, throwIfExists)))
 
     /**
      * Deletes an object and/or removes an ownership. The specified identifier
@@ -381,11 +392,13 @@ trait StorageWithOwnership extends Storage {
     @throws[NotFoundException]
     @throws[ReferenceConflictException]
     @throws[OwnershipConflictException]
-    def delete(clazz: Class[_], id: ObjId, owner: ObjId): Unit
+    def delete(clazz: Class[_], id: ObjId, owner: ObjId): Unit =
+        multi(List(DeleteWithOwnerOp(clazz, id, owner.toString)))
 
     @throws[NotFoundException]
     @throws[OwnershipConflictException]
-    def deleteOwner(clazz: Class[_], id: ObjId, owner: ObjId): Unit
+    def deleteOwner(clazz: Class[_], id: ObjId, owner: ObjId): Unit =
+        multi(List(DeleteOwnerOp(clazz, id, owner.toString)))
 
     /**
      * Returns an observable, which emits the current set of owners for
