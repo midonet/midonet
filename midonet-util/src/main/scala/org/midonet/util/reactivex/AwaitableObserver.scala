@@ -21,22 +21,28 @@ import scala.concurrent.duration.Duration
 
 import rx.observers.TestObserver
 
-class AwaitableObserver[T](awaitCount: Int = 1) extends TestObserver[T] {
+class AwaitableObserver[T](awaitCount: Int = 1, assert: => Unit = {})
+    extends TestObserver[T] {
+
+    def this(awaitCount: Int) = this(awaitCount, {})
 
     @volatile private var counter = new CountDownLatch(awaitCount)
 
     override def onNext(value: T): Unit = {
         super.onNext(value)
+        assert
         counter.countDown()
     }
 
     override def onCompleted(): Unit = {
         super.onCompleted()
+        assert
         counter.countDown()
     }
 
     override def onError(e: Throwable): Unit = {
         super.onError(e)
+        assert
         counter.countDown()
     }
 
