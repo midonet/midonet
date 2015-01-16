@@ -74,7 +74,7 @@ dependencies {
                 libraries.sqlite
 }
 
-// Runs the cluster daemon, locally. use -Pconf=conf/cluster.conf to
+// Runs the cluster daemon, locally. use -Pconf=conf/topology-client.conf to
 // start it up pointing at the sample config file in brain/midonet-brain/conf -
 // Note that the path is relative to the midonet-brain submodule.
 run {
@@ -82,7 +82,22 @@ run {
     if (project.hasProperty("conf")) {
         args = [conf]
     } else {
-        args = ["conf/cluster.conf"]
+        args = ["conf/topology-client.conf"]
+    }
+}
+
+// Runs a topology text-based client that dumps updates made to the topology
+// Use -Pconf=conf/topology-client.conf to start it up pointing at the sample
+// config file in brain/midonet-brain/conf (note that the path is relative to
+// the midonet-brain submodule
+task runTopologySnoopy(type: JavaExec) {
+    description = 'Run the Topology Snoopy client'
+    classpath sourceSets.main.runtimeClasspath
+    main = "org.midonet.brain.services.topology.TopologySnoopyApp"
+    if (project.hasProperty("conf")) {
+        args = [conf]
+    } else {
+        args = ["conf/topology-client.conf"]
     }
 }
 
