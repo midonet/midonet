@@ -35,7 +35,7 @@ import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.api.transaction.CuratorTransactionFinal
 import org.apache.curator.framework.api.{BackgroundCallback, CuratorEvent, CuratorEventType}
 import org.apache.curator.utils.EnsurePath
-import org.apache.zookeeper.KeeperException.{Code, BadVersionException, NoNodeException, NodeExistsException}
+import org.apache.zookeeper.KeeperException._
 import org.apache.zookeeper.OpResult.ErrorResult
 import org.apache.zookeeper.Watcher.Event.EventType.NodeDataChanged
 import org.apache.zookeeper.data.Stat
@@ -48,6 +48,7 @@ import rx.Observable
 
 import org.midonet.cluster.data.storage.FieldBinding.DeleteAction
 import org.midonet.cluster.data.storage.OwnershipType.OwnershipType
+import org.midonet.cluster.data.storage.TransactionManager._
 import org.midonet.cluster.data.{Obj, ObjId}
 import org.midonet.util.reactivex._
 
@@ -157,49 +158,10 @@ class ZookeeperObjectMapper(
      * added. Since updates are not incremental, the first backreference will
      * be lost.
      */
-    private class TransactionManager(val version: Long) {
-
+    private class ZoomTransactionManager(val version: Long)
+            extends TransactionManager(classInfo.toMap, allBindings) {
 
         import ZookeeperObjectMapper._
-
-        private final val NEW_OBJ_VERSION = -1
-
-        // This is a transaction-local cache of the objects to modify. This
-        // cache is only used during the lifetime of the transaction, and all
-        // modifications are applied to the cached copies, until the commit.
-        // If, because of a concurrent modification, any of the cached objects
-        // become out-of-date, the transaction will fail.
-        private val objCache = new mutable.HashMap[Key, Option[ObjSnapshot]]()
-        // This is an ordered map of all operations to be applied to ZooKeeper
-        // by this transaction. Each operation specified by the user will
-        // update the list of operations in this list, such that there only
-        // would be a single per-object operation committed to ZooKeeper.
-        // Therefore, for any user operation, the transaction will create,
-        // update or delete a ZK operation in this ordered map. The changes
-        // apply as follows:
-        //
-        // Create:
-        //   None + [create] -> TxCreate
-        //   Some(TxDelete) + [create] -> TxUpdate
-        //   _ + [create] -> throws ObjectExistsException
-        //
-        // Update:
-        //   None + [update] -> TxUpdate
-        //   Some(TxCreate) + [update] -> TxCreate
-        //   Some(TxUpdate) + [update] -> TxUpdate
-        //   _ + [update] -> NotFoundException
-        //
-        // Delete:
-        //   None + [delete] -> if(no owners) TxDelete else TxUpdate
-        //   Some(TxCreate) + [delete] -> if(no owners) None else TxCreate
-        //   Some(TxUpdate) + [delete] -> if(no owners) TxDelete else TxUpdate
-        //   _ + [delete] -> do nothing (idempotent delete)
-        //
-        // Modifying the owner, involves adding a TxDeleteOwner if the owner
-        // is already found in the list of owners, followed by a
-        // TxCreateOwner. These are added to the ownership operations for
-        // each object operation.
-        private val ops = new mutable.LinkedHashMap[Key, TxOp]
 
         // Create an ephemeral node so that we can get Zookeeper's current
         // ZXID. This will allow us to determine if any of the nodes we read
@@ -225,18 +187,11 @@ class ZookeeperObjectMapper(
             ZookeeperObjectMapper.this.getOwnerPath(clazz, id, owner, version)
         }
 
-        /**
-         * Gets the specified object from the internal cache. If not found,
-         * loads it from Zookeeper and caches it.
-         *
-         * @return None if the object has been marked for deletion.
-         */
-        private def cacheGet(clazz: Class[_], id: ObjId): Option[ObjSnapshot] = {
-            objCache.getOrElseUpdate(Key(clazz, id),
-                                     Some(getSnapshot(clazz, id)))
+        override def isRegistered(clazz: Class[_]): Boolean = {
+            ZookeeperObjectMapper.this.isRegistered(clazz)
         }
 
-        private def getSnapshot(clazz: Class[_], id: ObjId): ObjSnapshot = {
+        override def getSnapshot(clazz: Class[_], id: ObjId): ObjSnapshot = {
             val stat = new Stat()
             val path = getPath(clazz, id)
             val data = try {
@@ -268,370 +223,42 @@ class ZookeeperObjectMapper(
                         stat.getVersion, children)
         }
 
-        private def isDeleted(key: Key): Boolean = {
-            ops.get(key) match {
-                case Some(TxDelete(_,_)) => true
-                case _ => false
-            }
-        }
-
-        /**
-         * Adds a backreference from the instance of thatClass whose ID is
-         * thatId (thatObj) to thisId, using field thatField. Adds an
-         * updated thatObj with back references added to the cache.
-         *
-         * If thatField is null, thatObj will be loaded and cached, but no
-         * backreference will be added.
-         */
-        private def addBackreference(bdg: FieldBinding,
-                                     thisId: ObjId, thatId: ObjId) {
-            cacheGet(bdg.getReferencedClass, thatId).foreach { snapshot =>
-                val updatedThatObj =
-                    bdg.addBackReference(snapshot.obj, thatId, thisId)
-                updateCacheAndOp(bdg.getReferencedClass, thatId,
-                                 updatedThatObj.asInstanceOf[Obj])
-            }
-        }
-
-        /**
-         * Removes a backreference from the instance of thatClass whose ID
-         * is thatId (thatObj) to thisId, using field thatField. Adds an
-         * updated thatObj with back references removed to the cache.
-         *
-         * ThatObj is assumed to exist.
-         */
-        private def clearBackreference(bdg: FieldBinding, thisId: ObjId,
-                                       thatId: ObjId) {
-            cacheGet(bdg.getReferencedClass, thatId).foreach { snapshot =>
-                val updatedThatObj = bdg.clearBackReference(snapshot.obj, thisId)
-                updateCacheAndOp(bdg.getReferencedClass, thatId,
-                                 updatedThatObj.asInstanceOf[Obj])
-            }
-        }
-
-        def create(obj: Obj): Unit = create(obj, None)
-
-        def create(obj: Obj, owner: String): Unit = create(obj, Some(owner))
-
-        private def create(obj: Obj, owner: Option[String]): Unit = {
-            assert(isRegistered(obj.getClass))
-
-            if (classInfo(obj.getClass).ownershipType.isExclusive &&
-                owner.isEmpty) {
-                throw new UnsupportedOperationException(
-                    s"Class ${obj.getClass.getSimpleName} requires owner")
-            }
-
-            val thisId = getObjectId(obj)
-            val key = Key(obj.getClass, thisId)
-
-            if(objCache.contains(key) && !isDeleted(key)) {
-                throw new ObjectExistsException(key.clazz, key.id)
-            }
-
-            objCache(key) = ops.get(key) match {
-                case None =>
-                    // No previous op: add a TxCreate with an optional
-                    // TxCreateOwner
-                    val ownerOps = owner.map(TxCreateOwner).toSeq
-                    ops += key -> TxCreate(obj, ownerOps)
-                    Some(ObjSnapshot(obj, NEW_OBJ_VERSION, owner.toSet))
-                case Some(TxDelete(ver, o)) =>
-                    // Previous delete: add a TxUpdate, keeping all previous
-                    // owner ops and adding a new TxCreateOwner
-                    val ownerOps = o ++ owner.map(TxCreateOwner).toSeq
-                    ops(key) = TxUpdate(obj, ver, ownerOps)
-                    Some(ObjSnapshot(obj, ver, owner.toSet))
-                case Some(_) =>
-                    throw new ObjectExistsException(key.clazz, key.id)
-            }
-
-            for (bdg <- allBindings.get(obj.getClass).asScala;
-                 thatId <- bdg.getFwdReferenceAsList(obj).asScala) {
-                addBackreference(bdg, thisId, thatId)
-            }
-        }
-
-        def update(obj: Obj, validator: UpdateValidator[Obj]): Unit = {
-            update(obj, None, validator)
-        }
-
-        def update(obj: Obj, owner: String, validator: UpdateValidator[Obj])
-        : Unit = {
-            update(obj, Some(owner), validator)
-        }
-
-        private def update(obj: Obj, owner: Option[String],
-                           validator: UpdateValidator[Obj]): Unit = {
-
-            val clazz = obj.getClass
-            assert(isRegistered(clazz))
-
-            val thisId = getObjectId(obj)
-            val snapshot = cacheGet(clazz, thisId).getOrElse(
-                throw new NotFoundException(clazz, thisId))
-
-            validateOwner(clazz, thisId, snapshot.owners, owner, true)
-
-            // Invoke the validator/update callback if provided. If it returns
-            // a modified object, use that in place of obj for the update.
-            val newThisObj = if (validator == null) obj else {
-                val modified = validator.validate(snapshot.obj, obj)
-                val thisObj = if (modified != null) modified else obj
-                if (getObjectId(thisObj) != thisId) {
-                    throw new IllegalArgumentException(
-                        "Modifying newObj.id in UpdateValidator.validate() " +
-                        "is not supported.")
-                }
-                thisObj
-            }
-
-            for (bdg <- allBindings.get(clazz).asScala) {
-                val oldThoseIds = bdg.getFwdReferenceAsList(snapshot.obj).asScala
-                val newThoseIds = bdg.getFwdReferenceAsList(newThisObj).asScala
-
-                for (removedThatId <- oldThoseIds -- newThoseIds)
-                    clearBackreference(bdg, thisId, removedThatId)
-                for (addedThatId <- newThoseIds -- oldThoseIds)
-                    addBackreference(bdg, thisId, addedThatId)
-            }
-
-            updateCacheAndOp(clazz, thisId, snapshot, newThisObj, owner)
-        }
-
-        def updateOwner(clazz: Class[_], id: ObjId, owner: String,
-                        rewriteOwner: Boolean): Unit = {
-            assert(isRegistered(clazz))
-            val snapshot = cacheGet(clazz, id).getOrElse(
-                    throw new NotFoundException(clazz, id))
-
-            validateOwner(clazz, id, snapshot.owners, Some(owner), rewriteOwner)
-            updateCacheAndOp(clazz, id, snapshot, snapshot.obj, Some(owner))
-        }
-
-        /**
-         * Updates the cached object with the specified object.
-         */
-        private def updateCacheAndOp(clazz: Class[_], id: ObjId, obj: Obj)
-        : Unit = {
-            val snapshot = cacheGet(clazz, id).getOrElse(
-                throw new NotFoundException(clazz, id))
-            updateCacheAndOp(clazz, id, snapshot, obj, None)
-        }
-
-        /**
-         * Updates the cached object with the specified object, and owner. This
-         * method requires the current object snapshot.
-         */
-        private def updateCacheAndOp(clazz: Class[_], id: ObjId,
-                                     snapshot: ObjSnapshot, obj: Obj,
-                                     owner: Option[String]): Unit = {
-            val key = Key(clazz, id)
-
-            val ownerOps = updateOwnerOps(snapshot.owners, owner)
-            ops.get(key) match {
-                case None =>
-                    // No previous op: add a TxUpdate with an optional
-                    // TxDeleteOwner if the owner existed, and a TxCreateOwner
-                    ops += key -> TxUpdate(obj, snapshot.version, ownerOps)
-                case Some(TxCreate(_, o)) =>
-                    // Previous create: add a TxCreate with all the previous
-                    // ownership ops, an optional TxDeleteOwner if the owner
-                    // existed, and a TxCreateOwner
-                    ops(key) = TxCreate(obj, o ++ ownerOps)
-                case Some(TxUpdate(_, _, o)) =>
-                    // Previous update: add a TxUpdate with all the previous
-                    // ownership ops, an optional TxDeleteOwner if the owner
-                    // existed, and a TxCreateOwner
-                    ops(key) = TxUpdate(obj, snapshot.version, o ++ ownerOps)
-                case Some(_) =>
-                    throw new NotFoundException(key.clazz, key.id)
-            }
-            objCache(key) =
-                Some(ObjSnapshot(obj, snapshot.version, snapshot.owners ++ owner))
-        }
-
-        /* If ignoresNeo (ignores deletion on non-existing objects) is true,
-         * the method silently returns if the specified object does not exist /
-         * has already been deleted.
-         */
-        def delete(clazz: Class[_], id: ObjId, ignoresNeo: Boolean,
-                   owner: Option[String]): Unit = {
-            assert(isRegistered(clazz))
-            val key = Key(clazz, id)
-
-            val ObjSnapshot(thisObj, thisVersion, thisOwners) = try {
-                cacheGet(clazz, id) match {
-                    case Some(s) => s
-                    case None if ignoresNeo => return
-                    // The primary purpose of this is to throw up a red flag
-                    // when the caller explicitly tries to delete the same
-                    // object twice in a single multi() call, but this will
-                    // throw an exception if an object is deleted twice via
-                    // cascading delete. This is intentional; cascading delete
-                    // implies an ownership relationship, and it doesn't make
-                    // sense for an object to have two owners unless explicitly
-                    // requested for idempotent deletion.
-                    case None => throw new NotFoundException(clazz, id)
-                }
-            } catch {
-                case nfe: NotFoundException if ignoresNeo => return
-            }
-
-            if (classInfo(clazz).ownershipType.isExclusive &&
-                thisOwners.nonEmpty && owner.isEmpty) {
-                throw new UnsupportedOperationException(
-                    "Delete not supported because owner is not specified")
-            }
-            val ownersToDelete: Set[String] = owner match {
-                case Some(o) if !thisOwners.contains(o) =>
-                    throw new OwnershipConflictException(
-                        clazz.getSimpleName, id.toString, thisOwners,
-                        o, s"Delete not supported because $o is not owner")
-                case Some(_) => // Otherwise, delete the specified owner.
-                    owner.toSet
-                case None => // If no owner specified, delete all owners.
-                    thisOwners
-            }
-
-            val newOwners = thisOwners -- ownersToDelete
-            objCache(key) = ops.get(key) match {
-                case None =>
-                    // No previous op: if the set of owners is empty:
-                    // - add a TxDelete with TxDeleteOwner for specified owners
-                    // - else, add a TxUpdate with TxDeleteOwner for specified
-                    // owners
-                    val ownerOps = ownersToDelete.map(TxDeleteOwner).toSeq
-                    if (newOwners.isEmpty) {
-                        ops += key -> TxDelete(thisVersion, ownerOps)
-                        None
-                    } else {
-                        ops += key -> TxUpdate(thisObj, thisVersion, ownerOps)
-                        Some(ObjSnapshot(thisObj, thisVersion, newOwners))
-                    }
-                case Some(TxCreate(obj, o)) =>
-                    // Previous create: if the set of owners is empty:
-                    // - remove the op
-                    // - add a TxCreate, keeping all previous ownership ops
-                    // and a TxDeleteOwner for the specified owners
-                    if (newOwners.isEmpty) {
-                        ops -= key
-                        None
-                    } else {
-                        val ownerOps = o ++ ownersToDelete.map(TxDeleteOwner)
-                        ops(key) = TxCreate(obj, ownerOps)
-                        Some(ObjSnapshot(thisObj, thisVersion, newOwners))
-                    }
-                case Some(TxUpdate(obj, ver, o)) =>
-                    // Previous update: if the set of owners is empty:
-                    // - add a TxDelete
-                    // - otherwise, add a TxUpdate
-                    // Both cases keep all previus ownership ops and a
-                    // TxDeleteOwner for the specified owners
-                    val ownerOps = o ++ ownersToDelete.map(TxDeleteOwner)
-                    if (newOwners.isEmpty) {
-                        ops(key) = TxDelete(ver, ownerOps)
-                        None
-                    } else {
-                        ops(key) = TxUpdate(obj, ver, ownerOps)
-                        Some(ObjSnapshot(thisObj, thisVersion, newOwners))
-                    }
-                case Some(_) => throw new InternalError()
-            }
-
-            // Do not remove bindings if the object was not deleted
-            if (objCache(key).isDefined) {
-                return
-            }
-
-            for (bdg <- allBindings.get(key.clazz).asScala
-                 if bdg.hasBackReference;
-                 thatId <- bdg.getFwdReferenceAsList(thisObj).asScala.distinct
-                 if !isDeleted(Key(bdg.getReferencedClass, thatId))) {
-
-                bdg.onDeleteThis match {
-                    case DeleteAction.ERROR =>
-                        throw new ObjectReferencedException(
-                            key.clazz, key.id, bdg.getReferencedClass, thatId)
-                    case DeleteAction.CLEAR =>
-                        clearBackreference(bdg, key.id, thatId)
-                    case DeleteAction.CASCADE =>
-                        // Breaks if A has bindings with cascading delete to B
-                        // and C, and B has a binding to C with ERROR semantics.
-                        // This would be complicated to fix and probably isn't
-                        // needed, so I'm leaving it as is.
-                        //
-                        // Cascading delete always takes precedence over object
-                        // ownership, by deleting the referenced object
-                        // regardless of its current owners.
-                        delete(bdg.getReferencedClass, thatId, ignoresNeo, None)
-                }
-            }
-        }
-
-        def deleteOwner(clazz: Class[_], id: ObjId, owner: String): Unit = {
-            assert(isRegistered(clazz))
-            val ObjSnapshot(thisObj, thisVersion, thisOwners) =
-                cacheGet(clazz, id).getOrElse(
-                    throw new NotFoundException(clazz, id))
-
-            if (!thisOwners.contains(owner)) {
-                throw new OwnershipConflictException(
-                    clazz.getSimpleName, id.toString, thisOwners, owner,
-                    "Caller does not own object")
-            }
-            if (classInfo(clazz).ownershipType.isExclusive) {
-                throw new OwnershipConflictException(
-                    clazz.getSimpleName, id.toString, thisOwners, owner,
-                    "Cannot delete the owner from an exclusive class")
-            }
-
-            val owners = thisOwners - owner
-            val key = Key(clazz, id)
-            ops.get(key) match {
-                case None =>
-                    // No previous op: add a TxUpdate with a TxDeleteOwner for
-                    // the specified owner
-                    ops += key -> TxUpdate(thisObj, thisVersion,
-                                           Seq(TxDeleteOwner(owner)))
-                case Some(TxCreate(obj, o)) =>
-                    // Previous create: add a TxCreate, keeping all previous
-                    // ownership ops and a TxDeleteOwner for the specified owner
-                    ops(key) = TxCreate(obj, o :+ TxDeleteOwner(owner))
-                case Some(TxUpdate(obj, ver, o)) =>
-                    // Previous update: add a TxUpdate, keeping all previous
-                    // ownership ops and a TxDeleteOwner for the specified owner
-                    ops(key) = TxUpdate(obj, ver, o :+ TxDeleteOwner(owner))
-                case Some(_) =>
-                    throw new NotFoundException(clazz, id)
-            }
-            objCache(key) = Some(ObjSnapshot(thisObj, thisVersion, owners))
-        }
-
-        def commit() {
+        override def commit(): Unit = {
+            val ops = flattenOps
             var txn =
                 curator.inTransaction().asInstanceOf[CuratorTransactionFinal]
 
             for (op <- ops) txn = {
-                val path = getPath(op._1.clazz, op._1.id)
                 op._2 match {
                     case TxCreate(obj, ownerOps) =>
-                        txn = txn.create().forPath(path, serialize(obj)).and()
-                        addOwnerOps(txn, op._1, ownerOps)
+                        txn.create()
+                            .forPath(getPath(op._1.clazz, op._1.id),
+                                     serialize(obj)).and()
                     case TxUpdate(obj, ver, ownerOps) =>
-                        txn = txn.setData().withVersion(ver)
-                            .forPath(path, serialize(obj)).and()
-                        addOwnerOps(txn, op._1, ownerOps)
+                        txn.setData().withVersion(ver)
+                            .forPath(getPath(op._1.clazz, op._1.id),
+                                     serialize(obj)).and()
                     case TxDelete(ver, ownerOps) =>
-                        txn = addOwnerOps(txn, op._1, ownerOps)
-                        txn.delete().withVersion(ver).forPath(path).and()
+                        txn.delete().withVersion(ver)
+                            .forPath(getPath(op._1.clazz, op._1.id)).and()
+                    case TxCreateOwner(owner) =>
+                        txn.create().withMode(CreateMode.EPHEMERAL)
+                            .forPath(getOwnerPath(op._1.clazz, op._1.id, owner))
+                            .and()
+                    case TxDeleteOwner(owner) =>
+                        txn.delete()
+                            .forPath(getOwnerPath(op._1.clazz, op._1.id, owner))
+                            .and()
                 }
             }
 
             try txn.commit() catch {
                 case nee: NodeExistsException =>
-                    val key = keyForException(nee)
-                    throw new ObjectExistsException(key.clazz, key.id)
+                    rethrowException(ops, nee)
+                case nee: NotEmptyException =>
+                    val op = opForException(ops, nee)
+                    throw new OwnershipConflictException(
+                        op._1.clazz.toString, op._1.id.toString)
                 case rce: ReferenceConflictException => throw rce
                 case ex@(_: BadVersionException | _: NoNodeException) =>
                     // NoNodeException is assumed to be due to concurrent delete
@@ -640,65 +267,6 @@ class ZookeeperObjectMapper(
                     throw new ConcurrentModificationException(ex)
                 case ex: Exception =>
                     throw new InternalObjectMapperException(ex)
-            }
-        }
-
-        private def addOwnerOps(txn: CuratorTransactionFinal, key: Key,
-                                ops: Iterable[TxOwnerOp]): CuratorTransactionFinal = {
-            var tx = txn
-            for (op <- ops) tx = {
-                val path = getOwnerPath(key.clazz, key.id, op.owner)
-                op match {
-                    case TxCreateOwner(owner) =>
-                        tx.create().withMode(CreateMode.EPHEMERAL)
-                            .forPath(path).and()
-                    case TxDeleteOwner(owner) =>
-                        tx.delete().forPath(path).and()
-                }
-            }
-            tx
-        }
-
-        /**
-         * Creates a list of transaction operations when updating the owner of
-         * an object.
-         * @param owners The current object owners.
-         * @param owner Some(owner) when a new owner is specified, or None when
-         *              the ownership is not changed.
-         */
-        private def updateOwnerOps(owners: Set[String], owner: Option[String])
-        : Seq[TxOwnerOp] = owner match {
-            case Some(o) if owners.contains(o) =>
-                Seq(TxDeleteOwner(o), TxCreateOwner(o))
-            case Some(o) => Seq(TxCreateOwner(o))
-            case None => Seq.empty[TxOwnerOp]
-        }
-
-        /**
-         * Validates the owner for an ownership update.
-         * @param owners The set of current owners.
-         * @param owner The new owner or None, if no owner is specified.
-         * @param rewriteOwner Indicates whether the current owners is rewritten
-         *                     by the new client session, if the node exists.
-         */
-        private def validateOwner(clazz: Class[_], id: ObjId,
-                                  owners: Set[String], owner: Option[String],
-                                  rewriteOwner: Boolean = true)
-        : Unit = {
-            if (classInfo(clazz).ownershipType.isExclusive && owners.nonEmpty) {
-                if (owner.isEmpty) {
-                    throw new UnsupportedOperationException(
-                        "Update not supported because owner is not specified")
-                } else if (!owners.contains(owner.get)) {
-                    throw new OwnershipConflictException(
-                        clazz.getSimpleName, id.toString, owners, owner.get,
-                        "Caller does not own object")
-                }
-            }
-            if (owner.isDefined && !rewriteOwner && owners.contains(owner.get)) {
-                throw new OwnershipConflictException(
-                    clazz.getSimpleName, id.toString, owners, owner.get,
-                    "Ownership already exists")
             }
         }
 
@@ -711,13 +279,35 @@ class ZookeeperObjectMapper(
         }
 
         /**
-         * Gets the transaction operation that generated the specified
+         * Returns the operation of this transaction that generated the given
          * exception.
          */
-        private def keyForException(e: KeeperException): Key = {
-            ops.toIndexedSeq(
-                e.getResults.asScala.indexWhere { case res: ErrorResult =>
-                    res.getErr == e.code.intValue })._1
+        private def opForException(ops: Seq[(Key, TxOp)], e: KeeperException)
+        : (Key, TxOp) = {
+            ops(e.getResults.asScala.indexWhere { case res: ErrorResult =>
+                res.getErr == e.code.intValue })
+        }
+
+        /**
+         * Converts and rethrows an exception for transaction operation that
+         * generated the given [[NodeExistsException]], which can be either a
+         * [[ObjectExistsException]] if the original exception was thrown
+         * when creating an object, or a [[OwnershipConflictException]], if
+         * the original exception was thrown when creating an object owner.
+         */
+        @throws[ObjectExistsException]
+        @throws[OwnershipConflictException]
+        private def rethrowException(ops: Seq[(Key, TxOp)],
+                                     e: NodeExistsException): Unit = {
+            val op = opForException(ops, e)
+            op._2 match {
+                case oop: TxOwnerOp =>
+                    throw new OwnershipConflictException(
+                        op._1.clazz.getSimpleName, op._1.id.toString,
+                        Set.empty[String], oop.owner)
+                case _ =>
+                    throw new ObjectExistsException(op._1.clazz, op._1.id)
+            }
         }
     }
 
@@ -1095,15 +685,15 @@ class ZookeeperObjectMapper(
         assertBuilt()
         if (ops.isEmpty) return
 
-        val manager = new TransactionManager(version.longValue())
+        val manager = new ZoomTransactionManager(version.longValue())
         ops.foreach {
             case CreateOp(obj) => manager.create(obj)
             case CreateWithOwnerOp(obj, owner) => manager.create(obj, owner)
             case UpdateOp(obj, validator) => manager.update(obj, validator)
             case UpdateWithOwnerOp(obj, owner, validator) =>
                 manager.update(obj, owner, validator)
-            case UpdateOwnerOp(clazz, id, owner, rewrite) =>
-                manager.updateOwner(clazz, id, owner, rewrite)
+            case UpdateOwnerOp(clazz, id, owner, rewriteOwner) =>
+                manager.updateOwner(clazz, id, owner, rewriteOwner)
             case DeleteOp(clazz, id, ignoresNeo) =>
                 manager.delete(clazz, id, ignoresNeo, None)
             case DeleteWithOwnerOp(clazz, id, owner) =>
@@ -1241,17 +831,11 @@ class ZookeeperObjectMapper(
             "Data operation received before call to build().")
     }
 
-    private def getObjectId(obj: Obj) = classInfo(obj.getClass).idOf(obj)
 }
 
 object ZookeeperObjectMapper {
     private val VERSION_NODE = "dataset_version"
     private val INITIAL_ZOOM_DATA_SET_VERSION = 1
-
-    private[storage] abstract class ClassInfo(val clazz: Class[_],
-                                              val ownershipType: OwnershipType) {
-        def idOf(obj: Obj): ObjId
-    }
 
     private[storage] final class MessageClassInfo(clazz: Class[_],
                                                   ownershipType: OwnershipType)
@@ -1282,19 +866,6 @@ object ZookeeperObjectMapper {
             }
         }
     }
-
-    private case class Key(clazz: Class[_], id: ObjId)
-    private case class ObjSnapshot(obj: Obj, version: Int, owners: Set[String])
-
-    private trait TxOp
-    private trait TxOwnerOp { def owner: String }
-    private case class TxCreate(obj: Obj, ops: Seq[TxOwnerOp]) extends TxOp
-    private case class TxUpdate(obj: Obj, version: Int,
-                                ops: Seq[TxOwnerOp]) extends TxOp
-    private case class TxDelete(version: Int,
-                                ops: Seq[TxOwnerOp]) extends TxOp
-    private case class TxCreateOwner(owner: String) extends TxOwnerOp
-    private case class TxDeleteOwner(owner: String) extends TxOwnerOp
 
     protected val log = LoggerFactory.getLogger(ZookeeperObjectMapper.getClass)
 
