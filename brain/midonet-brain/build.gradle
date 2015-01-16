@@ -110,6 +110,17 @@ task runTopologyTester(type: JavaExec) {
     }
 }
 
+task runTopologySnoopy(type: JavaExec) {
+    description = 'Run the Topology Snoopy client'
+    classpath sourceSets.main.runtimeClasspath
+    main = "org.midonet.brain.services.topology.TopologySnoopyApp"
+    if (project.hasProperty("conf")) {
+        args = [conf]
+    } else {
+        args = ["conf/client.conf"]
+    }
+}
+
 cobertura {
     coverageSourceDirs << sourceSets.main.java.srcDirs
     coverageSourceDirs << sourceSets.main.scala.srcDirs
