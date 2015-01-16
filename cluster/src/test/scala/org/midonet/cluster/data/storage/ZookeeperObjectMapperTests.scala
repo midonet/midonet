@@ -187,8 +187,8 @@ class ZookeeperObjectMapperTests extends Suite
         val chain2 = protoChain(name = "chain2")
         val network = protoNetwork(inChainId = chain.getId)
         val networkUpdate = protoNetwork(id = network.getId,
-                                       inChainId = chain.getId,
-                                       outChainId = chain2.getId)
+                                         inChainId = chain.getId,
+                                         outChainId = chain2.getId)
         val router = protoRouter(outChainId = chain.getId)
         val routerUpdate = protoRouter(id = router.getId,
                                        inChainId = chain2.getId,
@@ -365,6 +365,7 @@ class ZookeeperObjectMapperTests extends Suite
     def testDeleteIfExistsJava() {
         zom.deleteIfExists(classOf[PojoBridge], UUID.randomUUID)
     }
+
     def testDeleteIfExistsProto() {
         zom.deleteIfExists(classOf[Network], UUID.randomUUID)
     }
@@ -916,16 +917,9 @@ class ZookeeperObjectMapperTests extends Suite
         val owner = UUID.randomUUID
         zom.create(state, owner)
         await(zom.exists(classOf[ExclusiveState], state.id)) shouldBe true
-        val e = intercept[OwnershipConflictException] {
-            zom.deleteOwner(classOf[ExclusiveState], state.id, owner)
-        }
-        e.clazz shouldBe classOf[ExclusiveState].getSimpleName
-        e.id shouldBe state.id.toString
-        e.currentOwner shouldBe Set(owner.toString)
-        e.newOwner shouldBe owner.toString
+        zom.deleteOwner(classOf[ExclusiveState], state.id, owner)
         await(zom.exists(classOf[ExclusiveState], state.id)) shouldBe true
-        await(zom.getOwners(classOf[ExclusiveState], state.id)) shouldBe Set(
-            owner.toString)
+        await(zom.getOwners(classOf[ExclusiveState], state.id)) shouldBe empty
     }
 
     def testDeleteOwnerExclusiveDifferentOwner(): Unit = {
