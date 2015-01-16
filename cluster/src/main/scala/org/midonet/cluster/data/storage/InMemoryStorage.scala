@@ -15,7 +15,7 @@
  */
 package org.midonet.cluster.data.storage
 
-import java.util.concurrent.atomic.AtomicReference
+import java.util.concurrent.atomic.{AtomicInteger, AtomicReference}
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import java.util.concurrent.{ConcurrentHashMap, TimeUnit}
 import java.util.{List => JList}
@@ -29,6 +29,8 @@ import scala.concurrent.{Future, Promise}
 import com.google.common.collect.ArrayListMultimap
 import com.google.inject.Inject
 import com.google.protobuf.Message
+import org.apache.zookeeper.KeeperException.BadVersionException
+
 import rx.Observable.OnSubscribe
 import rx.Scheduler.Worker
 import rx._
@@ -36,10 +38,12 @@ import rx.functions.Action0
 import rx.subjects.{BehaviorSubject, PublishSubject}
 
 import org.midonet.cluster.data.storage.FieldBinding.DeleteAction
-import org.midonet.cluster.data.storage.InMemoryStorage.{Key, copyObj}
+import org.midonet.cluster.data.storage.InMemoryStorage.copyObj
 import org.midonet.cluster.data.storage.OwnershipType.OwnershipType
+import org.midonet.cluster.data.storage.TransactionManager._
 import org.midonet.cluster.data.storage.ZookeeperObjectMapper._
 import org.midonet.cluster.data.{Obj, ObjId}
+import org.midonet.cluster.util.ParentDeletedException
 import org.midonet.util.concurrent.Locks.{withReadLock, withWriteLock}
 import org.midonet.util.eventloop.Reactor
 
@@ -90,20 +94,50 @@ class InMemoryStorage(reactor: Reactor) extends StorageWithOwnership {
         private val lock = new ReentrantReadWriteLock()
         private val stream = PublishSubject.create[Observable[T]]()
 
-        def create(id: ObjId, obj: Obj): Unit = withWriteLock(lock) {
-            val node = new InstanceNode(clazz, obj.asInstanceOf[T])
+        @throws[ObjectExistsException]
+        @throws[OwnershipConflictException]
+        def create(id: ObjId, obj: Obj, ownerOps: Seq[TxOwnerOp]): Unit = wl {
+            val node = new InstanceNode(clazz, id, obj.asInstanceOf[T], ownerOps)
             instances.putIfAbsent(getIdString(clazz, id), node) match {
                 case Some(n) => throw new ObjectExistsException(clazz, id)
                 case None => stream.onNext(node.observable)
             }
         }
 
+        @throws[ObjectExistsException]
+        @throws[OwnershipConflictException]
+        def validateCreate(id: ObjId, ownerOps: Seq[TxOwnerOp]): Unit = {
+            if(instances.contains(id.toString))
+                throw new ObjectExistsException(clazz, id)
+            ownerOps.collectFirst {
+                case TxDeleteOwner(owner) =>
+                    throw new OwnershipConflictException(
+                        clazz.getSimpleName, id.toString, owner)
+            }
+        }
+
         def apply(id: ObjId): Option[T] =
             instances.get(getIdString(clazz, id)).map(_.value)
 
-        def update(id: ObjId, obj: T): Unit = {
+        @throws[NotFoundException]
+        @throws[BadVersionException]
+        @throws[OwnershipConflictException]
+        def update(id: ObjId, obj: Obj, version: Int, ownerOps: Seq[TxOwnerOp])
+        : Unit = {
             instances.get(getIdString(clazz, id)) match {
-                case Some(node) => node.update(obj)
+                case Some(node) =>
+                    node.update(obj.asInstanceOf[T], version, ownerOps)
+                case None => throw new NotFoundException(clazz, id)
+            }
+        }
+
+        @throws[NotFoundException]
+        @throws[BadVersionException]
+        @throws[OwnershipConflictException]
+        def validateUpdate(id: ObjId, version: Int, ownerOps: Seq[TxOwnerOp])
+        : Unit = {
+            instances.get(getIdString(clazz, id)) match {
+                case Some(node) => node.validateUpdate(version, ownerOps)
                 case None => throw new NotFoundException(clazz, id)
             }
         }
@@ -122,13 +156,42 @@ class InMemoryStorage(reactor: Reactor) extends StorageWithOwnership {
         def getAll: Future[Seq[Future[T]]] =
             Promise().success(instances.values.map(_.get).to[Seq]).future
 
+        def getOwners(id: ObjId): Future[Set[String]] = {
+            instances.get(getIdString(clazz, id)) match {
+                case Some(node) => node.getOwners
+                case None => Promise[Set[String]]()
+                    .failure(new NotFoundException(clazz, id))
+                    .future
+            }
+        }
+
+        def getSnapshot(id: ObjId): ObjSnapshot = {
+            instances.getOrElse(getIdString(clazz, id),
+                                throw new NotFoundException(clazz, id))
+                .getSnapshot
+        }
+
         def exists(id: ObjId): Future[Boolean] =
             Promise().success(instances.containsKey(getIdString(clazz, id)))
                      .future
 
-        def delete(id: ObjId): T = {
+        @throws[NotFoundException]
+        @throws[BadVersionException]
+        @throws[OwnershipConflictException]
+        def delete(id: ObjId, version: Int, ownerOps: Seq[TxOwnerOp]): T = {
             instances.remove(getIdString(clazz, id)) match {
-                case Some(node) => node.delete()
+                case Some(node) => node.delete(version, ownerOps)
+                case None => throw new NotFoundException(clazz, id)
+            }
+        }
+
+        @throws[NotFoundException]
+        @throws[BadVersionException]
+        @throws[OwnershipConflictException]
+        def validateDelete(id: ObjId, version: Int, ownerOps: Seq[TxOwnerOp])
+        : Unit = {
+            instances.get(getIdString(clazz, id)) match {
+                case Some(node) => node.validateDelete(version, ownerOps)
                 case None => throw new NotFoundException(clazz, id)
             }
         }
@@ -140,155 +203,159 @@ class InMemoryStorage(reactor: Reactor) extends StorageWithOwnership {
             }
         }
 
-        def observable(): Observable[Observable[T]] = Observable.create(
+        def observable: Observable[Observable[T]] = Observable.create(
             new OnSubscribe[Observable[T]] {
                 override def call(sub: Subscriber[_ >: Observable[T]]): Unit =
-                    withReadLock(lock) {
+                    rl {
                         instances.values.foreach { i => sub.onNext(i.observable) }
                         sub.add(stream unsafeSubscribe sub)
                     }
             }
         )
+
+        def ownersObservable(id: ObjId): Observable[Set[String]] = {
+            instances.get(getIdString(clazz, id)) match {
+                case Some(node) => node.ownersObservable
+                case None => Observable.error(new ParentDeletedException(
+                    s"${clazz.getSimpleName}/${id.toString}"))
+            }
+        }
     }
 
-    private class InstanceNode[T](val clazz: Class[T],
-                                  obj: T) extends Observer[T] {
+    private class InstanceNode[T](val clazz: Class[T], id: ObjId, obj: T,
+                                  initOwnerOps: Seq[TxOwnerOp])
+            extends Observer[T] {
 
         private val ref = new AtomicReference[T](copyObj(obj))
-        private val stream = BehaviorSubject.create[T](ref.get)
-        private val obs = stream.subscribeOn(scheduler)
+        private val ver = new AtomicInteger
+        private val owners = new mutable.HashSet[String]
 
-        obs.subscribe(this)
+        private val streamInstance = BehaviorSubject.create[T](ref.get)
+        private val streamOwners = BehaviorSubject.create[Set[String]](Set.empty[String])
+        private val obsInstance = streamInstance.subscribeOn(scheduler)
+        private val obsOwners = streamOwners.subscribeOn(scheduler)
+
+        updateOwners(initOwnerOps)
+        obsInstance.subscribe(this)
 
         def value = ref.get
+        def version = ver.get
 
-        def update(value: T): Unit = {
-            stream.onNext(copyObj(value))
+        @throws[BadVersionException]
+        def update(value: T, version: Int, ownerOps: Seq[TxOwnerOp]): Unit = {
+            if (!ver.compareAndSet(version, version + 1))
+                throw new BadVersionException
+            streamInstance.onNext(copyObj(value))
+            updateOwners(ownerOps)
         }
 
-        def delete(): T = {
-            stream.onCompleted()
+        @throws[BadVersionException]
+        @throws[OwnershipConflictException]
+        def validateUpdate(version: Int, ownerOps: Seq[TxOwnerOp]): Unit = {
+            if (ver.get != version)
+                throw new BadVersionException
+
+            val set = owners.clone()
+            for (op <- ownerOps) op match {
+                case TxCreateOwner(o) if set.contains(o) =>
+                    throw new OwnershipConflictException(
+                        clazz.toString, id.toString, o)
+                case TxCreateOwner(o) => set += o
+                case TxDeleteOwner(o) if !set.contains(o) =>
+                    throw new OwnershipConflictException(
+                        clazz.toString, id.toString, o)
+                case TxDeleteOwner(o) => set -= o
+            }
+        }
+
+        @throws[BadVersionException]
+        def delete(version: Int, ownerOps: Seq[TxOwnerOp]): T = {
+            if (!ver.compareAndSet(version, version + 1))
+                throw new BadVersionException
+
+            streamInstance.onCompleted()
+            streamOwners.onError(new ParentDeletedException(
+                s"${clazz.getSimpleName}/${id.toString}"))
             ref.get()
         }
 
-        def observable = obs
-
-        def subscribe(observer: Observer[_ >: T]): Subscription = {
-            obs.subscribe(observer)
+        @throws[BadVersionException]
+        @throws[OwnershipConflictException]
+        def validateDelete(version: Int, ownerOps: Seq[TxOwnerOp]): Unit = {
+            if (ver.get != version)
+                throw new BadVersionException
+            val delDiff = ownerOps
+                .filter(_.getClass == classOf[TxDeleteOwner])
+                .map(_.owner).toSet.diff(owners)
+            if (delDiff.nonEmpty)
+                throw new OwnershipConflictException(
+                    clazz.toString, id.toString, delDiff.head)
         }
 
+        def observable = obsInstance
+
+        def ownersObservable = obsOwners
+
         def get: Future[T] = Promise[T]().success(ref.get).future
+
+        def getOwners: Future[Set[String]] =
+            Promise[Set[String]]().success(owners.toSet).future
+
+        def getSnapshot =
+            ObjSnapshot(ref.get.asInstanceOf[Obj], ver.get, owners.toSet)
 
         override def onCompleted(): Unit = { }
         override def onError(e: Throwable): Unit = { }
         override def onNext(value: T): Unit = ref.set(value)
+
+        private def updateOwners(ops: Seq[TxOwnerOp]): Unit = {
+            if (ops.nonEmpty) {
+                for (op <- ops) op match {
+                    case TxCreateOwner(o) if owners.contains(o) =>
+                        throw new OwnershipConflictException(
+                            clazz.toString, id.toString, o)
+                    case TxCreateOwner(o) => owners += o
+                    case TxDeleteOwner(o) if !owners.contains(o) =>
+                        throw new OwnershipConflictException(
+                            clazz.toString, id.toString, o)
+                    case TxDeleteOwner(o) => owners -= o
+                }
+                streamOwners.onNext(owners.toSet)
+            }
+        }
     }
 
-    private class Transaction {
-        private val objsToDelete = new mutable.HashSet[Key[_]]()
+    private class InMemoryTransactionManager
+            extends TransactionManager(classInfo.toMap, bindings) {
 
-        def get[T](clazz: Class[T], id: ObjId): Option[T] = {
-            val key = Key(clazz, getIdString(clazz, id))
-            if (objsToDelete.contains(key))
-                return None
-
-            classes.get(clazz)(id) match {
-                case Some(o) => Some(o.asInstanceOf[T])
-                case None => throw new NotFoundException(clazz, id)
-            }
+        override def isRegistered(clazz: Class[_]): Boolean = {
+            InMemoryStorage.this.isRegistered(clazz)
         }
 
-        def create(obj: Obj): Unit = {
-            val thisClass = obj.getClass
-            assert(isRegistered(thisClass))
-            val thisId = getObjectId(obj)
-            for (binding <- bindings.get(thisClass).asScala;
-                 thatId <- binding.getFwdReferenceAsList(obj).asScala) {
-                addBackreference(binding, thisId, thatId)
-            }
-            classes.get(thisClass).create(thisId, obj)
+        override def getSnapshot(clazz: Class[_], id: ObjId): ObjSnapshot = {
+            classes(clazz).getSnapshot(id)
         }
 
-        def update(obj: Obj, validator: UpdateValidator[Obj]): Unit = {
-            val thisClass = obj.getClass
-            assert(isRegistered(thisClass))
-            val thisId = getObjectId(obj)
-            val oldThisObj = classes.get(thisClass)(thisId)
-                .getOrElse(throw new NotFoundException(thisClass, thisId))
-                .asInstanceOf[Obj]
+        override def commit(): Unit = wl {
 
-            val newThisObj = if (null == validator) obj else {
-                val modified = validator.validate(oldThisObj, obj)
-                val thisObj = if (modified != null) modified else obj
-                if (!getObjectId(thisObj).equals(thisId)) {
-                    throw new IllegalArgumentException(
-                        "Modifying newObj.id in UpdateValidator.validate() " +
-                        "is not supported.")
-                }
-                thisObj
+            // Validate the transaction ops.
+            for (op <- ops) op._2 match {
+                case TxCreate(obj, ownerOps) =>
+                    classes(op._1.clazz).validateCreate(op._1.id, ownerOps)
+                case TxUpdate(obj, ver, ownerOps) =>
+                    classes(op._1.clazz).validateUpdate(op._1.id, ver, ownerOps)
+                case TxDelete(ver, ownerOps) =>
+                    classes(op._1.clazz).validateDelete(op._1.id, ver, ownerOps)
             }
 
-            for (bdg <- bindings.get(thisClass).asScala) {
-                val oldThoseIds = bdg.getFwdReferenceAsList(oldThisObj).asScala
-                val newThoseIds = bdg.getFwdReferenceAsList(newThisObj).asScala
-                for (removedThatId <- oldThoseIds - newThoseIds)
-                    clearBackreference(bdg, thisId, removedThatId)
-                for (addedThatId <- newThoseIds - oldThoseIds)
-                    addBackreference(bdg, thisId, addedThatId)
-            }
-
-            classes.get(thisClass).asInstanceOf[ClassNode[Obj]]
-                .update(thisId, newThisObj)
-        }
-
-        /* If ignoresNeo (ignores deletion on non-existing objects) is true,
-         * the method silently returns if the specified object does not exist /
-         * has already been deleted.
-         */
-        def delete(clazz: Class[_], id: ObjId, ignoresNeo: Boolean): Unit = {
-            assert(isRegistered(clazz))
-            val key = Key(clazz, getIdString(clazz, id))
-            val thisObj = classes.get(clazz)(id) getOrElse {
-                if (!ignoresNeo) throw new NotFoundException(clazz, id)
-                else return
-            }
-            objsToDelete += key
-
-            for (bdg <- bindings.get(clazz).asScala
-                 if bdg.hasBackReference;
-                 thatId <- bdg.getFwdReferenceAsList(thisObj).asScala.distinct
-                 if !objsToDelete.contains(
-                     Key(bdg.getReferencedClass,
-                         getIdString(bdg.getReferencedClass, thatId)))) {
-                bdg.onDeleteThis match {
-                    case DeleteAction.ERROR =>
-                        throw new ObjectReferencedException(
-                            clazz, id, bdg.getReferencedClass, thatId)
-                    case DeleteAction.CLEAR =>
-                        clearBackreference(bdg, id, thatId)
-                    case DeleteAction.CASCADE =>
-                        delete(bdg.getReferencedClass, thatId, ignoresNeo)
-                }
-            }
-
-            classes.get(clazz).delete(id)
-        }
-
-        private def addBackreference(binding: FieldBinding,
-                                     thisId: ObjId, thatId: ObjId): Unit = {
-            get(binding.getReferencedClass, thatId) foreach { thatObj =>
-                classes.get(binding.getReferencedClass).asInstanceOf[ClassNode[Any]]
-                    .update(thatId,
-                            binding.addBackReference(thatObj, thatId, thisId))
-            }
-        }
-
-        private def clearBackreference(binding: FieldBinding,
-                                       thisId: ObjId, thatId: ObjId): Unit = {
-            get(binding.getReferencedClass, thatId) foreach { thatObj =>
-                classes.get(binding.getReferencedClass).asInstanceOf[ClassNode[Any]]
-                    .update(thatId,
-                            binding.clearBackReference(thatObj, thisId))
+            // Apply the transaction ops.
+            for (op <- ops) op._2 match {
+                case TxCreate(obj, ownerOps) =>
+                    classes(op._1.clazz).create(op._1.id, obj, ownerOps)
+                case TxUpdate(obj, ver, ownerOps) =>
+                    classes(op._1.clazz).update(op._1.id, obj, ver, ownerOps)
+                case TxDelete(ver, ownerOps) =>
+                    classes(op._1.clazz).delete(op._1.id, ver, ownerOps)
             }
         }
     }
@@ -332,8 +399,7 @@ class InMemoryStorage(reactor: Reactor) extends StorageWithOwnership {
     override def deleteOwner(clazz: Class[_], id: ObjId, owner: ObjId): Unit =
         multi(List(DeleteOwnerOp(clazz, id, owner.toString)))
 
-    override def get[T](clazz: Class[T], id: ObjId): Future[T] =
-            withReadLock(lock) {
+    override def get[T](clazz: Class[T], id: ObjId): Future[T] = rl {
         assertBuilt()
         assert(isRegistered(clazz))
 
@@ -341,45 +407,57 @@ class InMemoryStorage(reactor: Reactor) extends StorageWithOwnership {
     }
 
     override def getAll[T](clazz: Class[T],
-                           ids: Seq[_ <: ObjId]): Seq[Future[T]] =
-            withReadLock(lock) {
+                           ids: Seq[_ <: ObjId]): Seq[Future[T]] = rl {
         assertBuilt()
         assert(isRegistered(clazz))
 
         classes.get(clazz).asInstanceOf[ClassNode[T]].getAll(ids)
     }
 
-    override def getAll[T](clazz: Class[T]): Future[Seq[Future[T]]] =
-            withReadLock(lock) {
+    override def getAll[T](clazz: Class[T]): Future[Seq[Future[T]]] = rl {
         assertBuilt()
         assert(isRegistered(clazz))
 
         classes.get(clazz).asInstanceOf[ClassNode[T]].getAll
     }
 
-    override def getOwners(clazz: Class[_], id: ObjId): Future[Set[String]] =
-        ???
+    override def getOwners(clazz: Class[_], id: ObjId): Future[Set[String]] = rl {
+        assertBuilt()
+        assert(isRegistered(clazz))
 
-    override def exists(clazz: Class[_], id: ObjId): Future[Boolean] =
-            withReadLock(lock) {
+        classes.get(clazz).getOwners(id)
+    }
+
+    override def exists(clazz: Class[_], id: ObjId): Future[Boolean] = rl {
         assertBuilt()
         assert(isRegistered(clazz))
 
         classes.get(clazz).exists(id)
     }
 
-    override def multi(ops: Seq[PersistenceOp]): Unit = withWriteLock(lock) {
+    override def multi(ops: Seq[PersistenceOp]): Unit = wl {
 
         if (ops.isEmpty) return
 
-        val tr = new Transaction
+        val manager = new InMemoryTransactionManager
 
         ops.foreach {
-            case CreateOp(obj) => tr.create(obj)
-            case UpdateOp(obj, validator) => tr.update(obj, validator)
-            case DeleteOp(clazz, id, ignores) => tr.delete(clazz, id, ignores)
-            case _ => ???
+            case CreateOp(obj) => manager.create(obj)
+            case CreateWithOwnerOp(obj, owner) => manager.create(obj, owner)
+            case UpdateOp(obj, validator) => manager.update(obj, validator)
+            case UpdateWithOwnerOp(obj, owner, overwrite, validator) =>
+                manager.update(obj, owner, overwrite, validator)
+            case UpdateOwnerOp(clazz, id, owner, overwrite) =>
+                manager.updateOwner(clazz, id, owner, overwrite)
+            case DeleteOp(clazz, id, ignores) =>
+                manager.delete(clazz, id, ignores, None)
+            case DeleteWithOwnerOp(clazz, id, owner) =>
+                manager.delete(clazz, id, false, Some(owner))
+            case DeleteOwnerOp(clazz, id, owner) =>
+                manager.deleteOwner(clazz, id, owner)
         }
+
+        manager.commit()
     }
 
     override def multi(ops: JList[PersistenceOp]): Unit = multi(ops.asScala)
@@ -395,18 +473,26 @@ class InMemoryStorage(reactor: Reactor) extends StorageWithOwnership {
     override def observable[T](clazz: Class[T]): Observable[Observable[T]] = {
         assertBuilt()
         assert(isRegistered(clazz))
-        classes.get(clazz).asInstanceOf[ClassNode[T]].observable()
+        classes.get(clazz).asInstanceOf[ClassNode[T]].observable
     }
 
     override def ownersObservable(clazz: Class[_], id: ObjId)
-    : Observable[Set[String]] = ???
+    : Observable[Set[String]] = {
+        assertBuilt()
+        assert(isRegistered(clazz))
+        classes.get(clazz).ownersObservable(id)
+    }
 
     override def registerClass(clazz: Class[_]): Unit = {
-        registerClassInternal(clazz, OwnershipType.Shared)
+        registerClassInternal(clazz.asInstanceOf[Class[_ <: Obj]],
+                              OwnershipType.Shared)
     }
 
     override def registerClass(clazz: Class[_], ownershipType: OwnershipType)
-    : Unit = ???
+    : Unit = {
+        registerClassInternal(clazz.asInstanceOf[Class[_ <: Obj]],
+                              ownershipType)
+    }
 
     override def isRegistered(clazz: Class[_]): Boolean = {
         classes.containsKey(clazz)
@@ -453,7 +539,7 @@ class InMemoryStorage(reactor: Reactor) extends StorageWithOwnership {
             "Data operation received before call to build().")
     }
 
-    private def registerClassInternal(clazz: Class[_],
+    private def registerClassInternal(clazz: Class[_ <: Obj],
                                       ownershipType: OwnershipType): Unit = {
         classes.putIfAbsent(clazz, new ClassNode(clazz)) match {
             case c: ClassNode[_] => throw new IllegalStateException(
@@ -465,10 +551,12 @@ class InMemoryStorage(reactor: Reactor) extends StorageWithOwnership {
     }
 
     private def getObjectId(obj: Obj) = classInfo(obj.getClass).idOf(obj)
+
+    private def rl[T](fn: => T) = withReadLock[T](lock)(fn)
+    private def wl[T](fn: => T) = withWriteLock[T](lock)(fn)
 }
 
 object InMemoryStorage {
-    private case class Key[T](clazz: Class[T], id: String)
 
     private def copyObj[T](obj: T): T =
         deserialize(serialize(obj.asInstanceOf[Obj]), obj.getClass)

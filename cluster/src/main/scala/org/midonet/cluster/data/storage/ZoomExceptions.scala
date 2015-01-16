@@ -146,9 +146,16 @@ class OwnershipConflictException private[storage](val clazz: String,
                                                   val newOwner: String,
                                                   msg: String)
     extends StorageException(msg) {
+    def this(clazz: String, id: String)
+    = this(clazz, id, Set.empty, null,
+           s"Object of class $clazz with ID $id cannot be modified because " +
+           s"of ownership")
+    def this(clazz: String, id: String, owner: String)
+    = this(clazz, id, Set.empty[String], owner,
+           s"Object of class $clazz with ID $id cannot be modified for the " +
+           s"owner $owner")
     def this(clazz: String, id: String, currentOwner: Set[String], newOwner: String)
-    = this(
-        clazz, id, currentOwner, newOwner,
-        s"Object of class $clazz with ID $id cannot be owned by $newOwner " +
-        s"because it has owner(s) $currentOwner")
+    = this(clazz, id, currentOwner, newOwner,
+           s"Object of class $clazz with ID $id cannot be owned by $newOwner " +
+           s"because it has owner(s) $currentOwner")
 }

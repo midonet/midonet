@@ -17,10 +17,9 @@ package org.midonet.cluster.data.storage
 
 import java.util
 import java.util.UUID
-import java.util.concurrent.TimeUnit
 
 import scala.collection.JavaConverters._
-import scala.concurrent.duration.FiniteDuration
+import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 
 import org.junit.runner.RunWith
@@ -33,7 +32,7 @@ import org.midonet.cluster.data.storage.ZookeeperObjectMapperTest._
 import org.midonet.cluster.data.storage.ZookeeperObjectMapperTests._
 import org.midonet.cluster.models.Commons
 import org.midonet.cluster.models.Topology.{Chain, Network, Router}
-import org.midonet.cluster.util.{ClassAwaitableObserver, UUIDUtil}
+import org.midonet.cluster.util.{ParentDeletedException, ClassAwaitableObserver, UUIDUtil}
 import org.midonet.util.eventloop.{CallingThreadReactor, Reactor}
 import org.midonet.util.reactivex.AwaitableObserver
 
@@ -46,8 +45,6 @@ class InMemoryStorageTest extends FeatureSpec with BeforeAndAfter
     private val reactor: Reactor = new CallingThreadReactor()
     private var storage: InMemoryStorage = _
 
-    private val oneSecond = new FiniteDuration(1, TimeUnit.SECONDS)
-
     def createStorage = new InMemoryStorage(reactor)
 
     before {
@@ -58,6 +55,9 @@ class InMemoryStorageTest extends FeatureSpec with BeforeAndAfter
              classOf[Chain]) foreach {
             clazz => storage.registerClass(clazz)
         }
+
+        storage.registerClass(classOf[ExclusiveState], OwnershipType.Exclusive)
+        storage.registerClass(classOf[SharedState], OwnershipType.Shared)
 
         storage.declareBinding(classOf[PojoBridge], "inChainId", CLEAR,
                                classOf[PojoChain], "bridgeIds", CLEAR)
@@ -218,7 +218,7 @@ class InMemoryStorageTest extends FeatureSpec with BeforeAndAfter
             val port = createPojoPort(bridgeId = bridge.id)
             storage.create(port)
 
-            obs.await(oneSecond, 0)
+            obs.await(1.second, 0)
         }
 
         scenario("Test subscribe all") {
@@ -227,7 +227,7 @@ class InMemoryStorageTest extends FeatureSpec with BeforeAndAfter
 
             val obs = new ClassAwaitableObserver[PojoBridge](2 /* We expect two events */)
             storage.observable(classOf[PojoBridge]).subscribe(obs)
-            obs.await(oneSecond, 0)
+            obs.await(1.second, 0)
         }
     }
 
@@ -749,7 +749,7 @@ class InMemoryStorageTest extends FeatureSpec with BeforeAndAfter
 
             val obs = new AwaitableObserver[PojoChain](1)
             storage.observable(classOf[PojoChain], chain.id).subscribe(obs)
-            obs.await(oneSecond, 0)
+            obs.await(1.second)
             obs.getOnNextEvents should have size 1
             obs.getOnNextEvents.get(0).id should be (chain.id)
             obs.getOnErrorEvents shouldBe empty
@@ -762,10 +762,10 @@ class InMemoryStorageTest extends FeatureSpec with BeforeAndAfter
 
             val obs = new AwaitableObserver[PojoChain](1)
             storage.observable(classOf[PojoChain], chain.id).subscribe(obs)
-            obs.await(oneSecond, 1)
+            obs.await(1.second, 1)
             chain.name = "renamed_chain"
             storage.update(chain)
-            obs.await(oneSecond, 0)
+            obs.await(1.second)
             obs.getOnNextEvents should have size 2
             obs.getOnNextEvents.get(1).name shouldBe chain.name
         }
@@ -776,10 +776,10 @@ class InMemoryStorageTest extends FeatureSpec with BeforeAndAfter
 
             val obs = new AwaitableObserver[PojoChain](1)
             storage.observable(classOf[PojoChain], chain.id).subscribe(obs)
-            obs.await(oneSecond, 1)
+            obs.await(1.second, 1)
             obs.getOnNextEvents should have size 1 // the initial value
             storage.delete(classOf[PojoChain], chain.id)
-            obs.await(oneSecond, 0)
+            obs.await(1.second)
             obs.getOnNextEvents should have size 1
             obs.getOnCompletedEvents should have size 1
             obs.getOnErrorEvents shouldBe empty
@@ -789,7 +789,7 @@ class InMemoryStorageTest extends FeatureSpec with BeforeAndAfter
             val obs = new AwaitableObserver[PojoChain](1)
             val id = UUID.randomUUID
             storage.observable(classOf[PojoChain], id).subscribe(obs)
-            obs.await(oneSecond, 0)
+            obs.await(1.second)
             val e = obs.getOnErrorEvents.get(0).asInstanceOf[NotFoundException]
             e.clazz should be (classOf[PojoChain])
             e.id should be (id)
@@ -803,15 +803,15 @@ class InMemoryStorageTest extends FeatureSpec with BeforeAndAfter
 
             val obs1 = new AwaitableObserver[PojoChain](1)
             storage.observable(classOf[PojoChain], chain.id).subscribe(obs1)
-            obs1.await(oneSecond, 1)
+            obs1.await(1.second, 1)
 
             chain.name = "renamed_chain"
             storage.update(chain)
-            obs1.await(oneSecond, 0)
+            obs1.await(1.second)
 
             val obs2 = new AwaitableObserver[PojoChain](1)
             storage.observable(classOf[PojoChain], chain.id).subscribe(obs2)
-            obs2.await(oneSecond, 0)
+            obs2.await(1.second)
 
             obs2.getOnNextEvents should have size 1
             obs2.getOnNextEvents.get(0).name shouldBe "renamed_chain"
@@ -828,7 +828,7 @@ class InMemoryStorageTest extends FeatureSpec with BeforeAndAfter
 
             val obs = new ClassAwaitableObserver[PojoChain](2)
             storage.observable(classOf[PojoChain]).subscribe(obs)
-            obs.await(oneSecond, 0)
+            obs.await(1.second, 0)
             obs.observers should have size 2
         }
 
@@ -838,13 +838,13 @@ class InMemoryStorageTest extends FeatureSpec with BeforeAndAfter
 
             val obs = new ClassAwaitableObserver[PojoChain](1)
             storage.observable(classOf[PojoChain]).subscribe(obs)
-            obs.await(oneSecond, 1)
+            obs.await(1.second, 1)
             obs.observers should have size 1
             obs.observers.get(0).get.getOnNextEvents.get(0).name shouldBe "chain1"
 
             val chain2 = createPojoChain(name = "chain2")
             storage.create(chain2)
-            obs.await(oneSecond, 0)
+            obs.await(1.second, 0)
             obs.observers should have size 2
         }
 
@@ -854,16 +854,16 @@ class InMemoryStorageTest extends FeatureSpec with BeforeAndAfter
 
             val obs1 = new ClassAwaitableObserver[PojoChain](1)
             storage.observable(classOf[PojoChain]).subscribe(obs1)
-            obs1.await(oneSecond, 1)
+            obs1.await(1.second, 1)
             obs1.observers should have size 1
 
             val chain2 = createPojoChain()
             storage.create(chain2)
-            obs1.await(oneSecond, 0)
+            obs1.await(1.second, 0)
 
             val obs2 = new ClassAwaitableObserver[PojoChain](2)
             storage.observable(classOf[PojoChain]).subscribe(obs2)
-            obs2.await(oneSecond, 0)
+            obs2.await(1.second, 0)
             obs2.observers should have size 2
         }
 
@@ -877,14 +877,14 @@ class InMemoryStorageTest extends FeatureSpec with BeforeAndAfter
             storage.create(chain1)
             storage.create(chain2)
 
-            obs1.await(oneSecond, 0)
+            obs1.await(1.second, 0)
             obs1.observers should have size 2
 
             val chain1Sub = obs1.observers.get(0).get
             chain1Sub.reset(1)
 
             storage.delete(classOf[PojoChain], chain1.id)
-            chain1Sub.await(oneSecond, 0)
+            chain1Sub.await(1.second, 0)
             chain1Sub.getOnErrorEvents shouldBe empty
             chain1Sub.getOnCompletedEvents should have size 1
             // the initial value
@@ -893,9 +893,705 @@ class InMemoryStorageTest extends FeatureSpec with BeforeAndAfter
             // Subscribe to the deleted object
             val obs2 = new ClassAwaitableObserver[PojoChain](1)
             storage.observable(classOf[PojoChain]).subscribe(obs2)
-            obs2.await(oneSecond, 0)
+            obs2.await(1.second, 0)
             obs2.observers.size shouldBe 1
             obs2.observers.get(0).get.getOnNextEvents.get(0).name shouldBe "chain2"
+        }
+    }
+
+    def testUpdateOwnerExclusiveDifferentOwner(overwrite: Boolean): Unit = {
+        val state = new ExclusiveState
+        val owner1 = UUID.randomUUID
+        val owner2 = UUID.randomUUID
+        storage.create(state, owner1)
+        await(storage.exists(classOf[ExclusiveState], state.id)) shouldBe true
+        val e = intercept[OwnershipConflictException] {
+            storage.updateOwner(classOf[ExclusiveState], state.id, owner2, overwrite)
+        }
+        e.clazz shouldBe classOf[ExclusiveState].getSimpleName
+        e.id shouldBe state.id.toString
+        e.currentOwner shouldBe Set(owner1.toString)
+        e.newOwner shouldBe owner2.toString
+        await(storage.getOwners(classOf[ExclusiveState], state.id)) shouldBe Set(
+            owner1.toString)
+    }
+
+    feature("Test ownership") {
+        scenario("Test create exclusive owner") {
+            val state = new ExclusiveState
+            val owner = UUID.randomUUID
+            storage.create(state, owner)
+            await(storage.exists(classOf[ExclusiveState], state.id)) shouldBe true
+            await(storage.getOwners(classOf[ExclusiveState], state.id)) shouldBe Set(
+                owner.toString)
+        }
+
+        scenario("Test update exclusive same owner no overwrite") {
+            val state = new ExclusiveState
+            val owner = UUID.randomUUID
+            storage.create(state, owner)
+            await(storage.exists(classOf[ExclusiveState], state.id)) shouldBe true
+            val e = intercept[OwnershipConflictException] {
+                storage.update(state, owner, false, null)
+            }
+            await(storage.exists(classOf[ExclusiveState], state.id)) shouldBe true
+            await(storage.getOwners(classOf[ExclusiveState], state.id)) shouldBe Set(
+                owner.toString)
+            e.clazz shouldBe classOf[ExclusiveState].getSimpleName
+            e.id shouldBe state.id.toString
+            e.currentOwner shouldBe Set(owner.toString)
+            e.newOwner shouldBe owner.toString
+        }
+
+        scenario("Test update exclusive same owner with overwrite") {
+            val state = new ExclusiveState
+            val owner = UUID.randomUUID
+            storage.create(state, owner)
+            await(storage.exists(classOf[ExclusiveState], state.id)) shouldBe true
+            await(storage.getOwners(classOf[ExclusiveState], state.id)) shouldBe Set(
+                owner.toString)
+            storage.update(state, owner, true, null)
+            await(storage.getOwners(classOf[ExclusiveState], state.id)) shouldBe Set(
+                owner.toString)
+        }
+
+        scenario("Test update exclusive different owner no overwrite") {
+            val state = new ExclusiveState
+            val oldOwner = UUID.randomUUID
+            val newOwner = UUID.randomUUID
+            storage.create(state, oldOwner)
+            await(storage.exists(classOf[ExclusiveState], state.id)) shouldBe true
+            val e = intercept[OwnershipConflictException] {
+                storage.update(state, newOwner, false, null)
+            }
+            await(storage.getOwners(classOf[ExclusiveState], state.id)) shouldBe Set(
+                oldOwner.toString)
+            e.clazz shouldBe classOf[ExclusiveState].getSimpleName
+            e.id shouldBe state.id.toString
+            e.currentOwner shouldBe Set(oldOwner.toString)
+            e.newOwner shouldBe newOwner.toString
+        }
+
+        scenario("Test update exclusive different owner with overwrite") {
+            val state = new ExclusiveState
+            val oldOwner = UUID.randomUUID
+            val newOwner = UUID.randomUUID
+            storage.create(state, oldOwner)
+            await(storage.exists(classOf[ExclusiveState], state.id)) shouldBe true
+            val e = intercept[OwnershipConflictException] {
+                storage.update(state, newOwner, true, null)
+            }
+            await(storage.getOwners(classOf[ExclusiveState], state.id)) shouldBe Set(
+                oldOwner.toString)
+            e.clazz shouldBe classOf[ExclusiveState].getSimpleName
+            e.id shouldBe state.id.toString
+            e.currentOwner shouldBe Set(oldOwner.toString)
+            e.newOwner shouldBe newOwner.toString
+        }
+
+        scenario("Test delete exclusive same owner") {
+            val state = new ExclusiveState
+            val owner = UUID.randomUUID
+            storage.create(state, owner)
+            await(storage.exists(classOf[ExclusiveState], state.id)) shouldBe true
+            storage.delete(classOf[ExclusiveState], state.id, owner)
+            await(storage.exists(classOf[ExclusiveState], state.id)) shouldBe false
+        }
+
+        scenario("Test delete exclusive different owner") {
+            val state = new ExclusiveState
+            val owner = UUID.randomUUID
+            val otherOwner = UUID.randomUUID
+            storage.create(state, owner)
+            await(storage.exists(classOf[ExclusiveState], state.id)) shouldBe true
+            val e = intercept[OwnershipConflictException] {
+                storage.delete(classOf[ExclusiveState], state.id, otherOwner)
+            }
+            await(storage.exists(classOf[ExclusiveState], state.id)) shouldBe true
+            e.clazz shouldBe classOf[ExclusiveState].getSimpleName
+            e.id shouldBe state.id.toString
+            e.currentOwner shouldBe Set(owner.toString)
+            e.newOwner shouldBe otherOwner.toString
+        }
+
+        scenario("Test update owner exclusive same owner no overwrite") {
+            val state = new ExclusiveState
+            val owner = UUID.randomUUID
+            storage.create(state, owner)
+            await(storage.exists(classOf[ExclusiveState], state.id)) shouldBe true
+            val e = intercept[OwnershipConflictException] {
+                storage.updateOwner(classOf[ExclusiveState], state.id, owner, false)
+            }
+            e.clazz shouldBe classOf[ExclusiveState].getSimpleName
+            e.id shouldBe state.id.toString
+            e.currentOwner shouldBe Set(owner.toString)
+            e.newOwner shouldBe owner.toString
+        }
+
+        scenario("Test update owner exlcusive same owner with overwrite") {
+            val state = new ExclusiveState
+            val owner = UUID.randomUUID
+            storage.create(state, owner)
+            await(storage.exists(classOf[ExclusiveState], state.id)) shouldBe true
+            await(storage.getOwners(classOf[ExclusiveState], state.id)) shouldBe Set(
+                owner.toString)
+            storage.updateOwner(classOf[ExclusiveState], state.id, owner, true)
+            await(storage.getOwners(classOf[ExclusiveState], state.id)) shouldBe Set(
+                owner.toString)
+        }
+
+        scenario("Test update owner exclusive different owner no overwrite") {
+            testUpdateOwnerExclusiveDifferentOwner(false)
+        }
+
+        scenario("Test update owner exclusive different owner with overwrite") {
+            testUpdateOwnerExclusiveDifferentOwner(true)
+        }
+
+        scenario("Test create single shared owner") {
+            val state = new SharedState
+            val owner = UUID.randomUUID
+            storage.create(state, owner)
+            await(storage.exists(classOf[SharedState], state.id)) shouldBe true
+            await(storage.getOwners(classOf[SharedState], state.id)) shouldBe Set(
+                owner.toString)
+        }
+
+        scenario("Test create multiple shared owners") {
+            val state = new SharedState
+            val owner1 = UUID.randomUUID
+            val owner2 = UUID.randomUUID
+            storage.create(state, owner1)
+            await(storage.exists(classOf[SharedState], state.id)) shouldBe true
+            await(storage.getOwners(classOf[SharedState], state.id)) shouldBe Set(
+                owner1.toString)
+            storage.update(state, owner2, false, null)
+            await(storage.getOwners(classOf[SharedState], state.id)) shouldBe Set(
+                owner1.toString, owner2.toString)
+        }
+
+        scenario("Test multiple create fails for shared owners") {
+            val state = new SharedState
+            val owner1 = UUID.randomUUID
+            val owner2 = UUID.randomUUID
+            storage.create(state, owner1)
+            await(storage.exists(classOf[SharedState], state.id)) shouldBe true
+            val e = intercept[ObjectExistsException] {
+                storage.create(state, owner2)
+            }
+            e.clazz shouldBe classOf[SharedState]
+            e.id shouldBe state.id
+        }
+
+        scenario("Test update shared existing owner no overwrite") {
+            val state = new SharedState
+            val owner = UUID.randomUUID
+            storage.create(state, owner)
+            await(storage.getOwners(classOf[SharedState], state.id)) shouldBe Set(
+                owner.toString)
+            val e = intercept[OwnershipConflictException] {
+                storage.update(state, owner, false, null)
+            }
+            e.clazz shouldBe classOf[SharedState].getSimpleName
+            e.id shouldBe state.id.toString
+            e.currentOwner shouldBe Set(owner.toString)
+            e.newOwner shouldBe owner.toString
+        }
+
+        scenario("Test update shared existing owner with overwrite") {
+            val state = new SharedState
+            val owner = UUID.randomUUID
+            storage.create(state, owner)
+            await(storage.getOwners(classOf[SharedState], state.id)) shouldBe Set(
+                owner.toString)
+            storage.update(state, owner, true, null)
+            await(storage.getOwners(classOf[SharedState], state.id)) shouldBe Set(
+                owner.toString)
+        }
+
+        scenario("Test update shared non-existing owner no overwrite") {
+            val state = new SharedState
+            val owner1 = UUID.randomUUID
+            val owner2 = UUID.randomUUID
+            storage.create(state, owner1)
+            await(storage.getOwners(classOf[SharedState], state.id)) shouldBe Set(
+                owner1.toString)
+            storage.update(state, owner2, false, null)
+            await(storage.getOwners(classOf[SharedState], state.id)) shouldBe Set(
+                owner1.toString, owner2.toString)
+            val e = intercept[OwnershipConflictException] {
+                storage.update(state, owner2, false, null)
+            }
+            e.clazz shouldBe classOf[SharedState].getSimpleName
+            e.id shouldBe state.id.toString
+            e.currentOwner shouldBe Set(owner1.toString, owner2.toString)
+            e.newOwner shouldBe owner2.toString
+        }
+
+        scenario("Test update shared non-existing owner with overwrite") {
+            val state = new SharedState
+            val owner1 = UUID.randomUUID
+            val owner2 = UUID.randomUUID
+            storage.create(state, owner1)
+            await(storage.getOwners(classOf[SharedState], state.id)) shouldBe Set(
+                owner1.toString)
+            storage.update(state, owner2, true, null)
+            await(storage.getOwners(classOf[SharedState], state.id)) shouldBe Set(
+                owner1.toString, owner2.toString)
+            storage.update(state, owner2, true, null)
+            await(storage.getOwners(classOf[SharedState], state.id)) shouldBe Set(
+                owner1.toString, owner2.toString)
+        }
+
+        scenario("Test update shared existing single owner") {
+            val state = new SharedState
+            val owner = UUID.randomUUID
+            storage.create(state, owner)
+            await(storage.exists(classOf[SharedState], state.id)) shouldBe true
+            await(storage.getOwners(classOf[SharedState], state.id)) shouldBe Set(
+                owner.toString)
+            storage.delete(classOf[SharedState], state.id, owner)
+            await(storage.exists(classOf[SharedState], state.id)) shouldBe false
+        }
+
+        scenario("Test delete shared existing mutliple owner") {
+            val state = new SharedState
+            val owner1 = UUID.randomUUID
+            val owner2 = UUID.randomUUID
+            storage.create(state, owner1)
+            storage.update(state, owner2, false, null)
+            await(storage.exists(classOf[SharedState], state.id)) shouldBe true
+            await(storage.getOwners(classOf[SharedState], state.id)) shouldBe Set(
+                owner1.toString, owner2.toString)
+            storage.delete(classOf[SharedState], state.id, owner1)
+            await(storage.exists(classOf[SharedState], state.id)) shouldBe true
+            await(storage.getOwners(classOf[SharedState], state.id)) shouldBe Set(
+                owner2.toString)
+            storage.delete(classOf[SharedState], state.id, owner2)
+            await(storage.exists(classOf[SharedState], state.id)) shouldBe false
+        }
+
+        scenario("Test delete shared non-exisying owner") {
+            val state = new SharedState
+            val owner = UUID.randomUUID
+            val otherOwner = UUID.randomUUID
+            storage.create(state, owner)
+            await(storage.exists(classOf[SharedState], state.id)) shouldBe true
+            await(storage.getOwners(classOf[SharedState], state.id)) shouldBe Set(
+                owner.toString)
+            val e = intercept[OwnershipConflictException] {
+                storage.delete(classOf[SharedState], state.id, otherOwner)
+            }
+            await(storage.exists(classOf[SharedState], state.id)) shouldBe true
+            await(storage.getOwners(classOf[SharedState], state.id)) shouldBe Set(
+                owner.toString)
+            e.clazz shouldBe classOf[SharedState].getSimpleName
+            e.id shouldBe state.id.toString
+            e.currentOwner shouldBe Set(owner.toString)
+            e.newOwner shouldBe otherOwner.toString
+        }
+
+        scenario("Test shared ownership lifecycle") {
+            val state = new SharedState
+            val owner1 = UUID.randomUUID
+            val owner2 = UUID.randomUUID
+            val owner3 = UUID.randomUUID
+            val owner4 = UUID.randomUUID
+            storage.create(state, owner1)
+            await(storage.exists(classOf[SharedState], state.id)) shouldBe true
+            await(storage.getOwners(classOf[SharedState], state.id)) shouldBe Set(
+                owner1.toString)
+            storage.update(state, owner2, false, null)
+            await(storage.getOwners(classOf[SharedState], state.id)) shouldBe Set(
+                owner1.toString, owner2.toString)
+            storage.update(state, owner3, false, null)
+            await(storage.getOwners(classOf[SharedState], state.id)) shouldBe Set(
+                owner1.toString, owner2.toString, owner3.toString)
+            storage.delete(classOf[SharedState], state.id, owner1)
+            await(storage.exists(classOf[SharedState], state.id)) shouldBe true
+            await(storage.getOwners(classOf[SharedState], state.id)) shouldBe Set(
+                owner2.toString, owner3.toString)
+            storage.update(state, owner4, false, null)
+            await(storage.getOwners(classOf[SharedState], state.id)) shouldBe Set(
+                owner2.toString, owner3.toString, owner4.toString)
+            storage.delete(classOf[SharedState], state.id, owner2)
+            await(storage.exists(classOf[SharedState], state.id)) shouldBe true
+            await(storage.getOwners(classOf[SharedState], state.id)) shouldBe Set(
+                owner3.toString, owner4.toString)
+            storage.delete(classOf[SharedState], state.id, owner3)
+            await(storage.exists(classOf[SharedState], state.id)) shouldBe true
+            await(storage.getOwners(classOf[SharedState], state.id)) shouldBe Set(
+                owner4.toString)
+            storage.delete(classOf[SharedState], state.id, owner4)
+            await(storage.exists(classOf[SharedState], state.id)) shouldBe false
+            val e = intercept[NotFoundException] {
+                await(storage.getOwners(classOf[SharedState], state.id))
+            }
+            e.clazz shouldBe classOf[SharedState]
+            e.id shouldBe state.id
+        }
+
+        scenario("Test update owner shared same owner no overwrite") {
+            val state = new SharedState
+            val owner = UUID.randomUUID
+            storage.create(state, owner)
+            await(storage.exists(classOf[SharedState], state.id)) shouldBe true
+            val e = intercept[OwnershipConflictException] {
+                storage.updateOwner(classOf[SharedState], state.id, owner, false)
+            }
+            e.clazz shouldBe classOf[SharedState].getSimpleName
+            e.id shouldBe state.id.toString
+            e.currentOwner shouldBe Set(owner.toString)
+            e.newOwner shouldBe owner.toString
+        }
+
+        scenario("Test update owner shared same owner with overwrite") {
+            val state = new SharedState
+            val owner = UUID.randomUUID
+            storage.create(state, owner)
+            await(storage.exists(classOf[SharedState], state.id)) shouldBe true
+            await(storage.getOwners(classOf[SharedState], state.id)) shouldBe Set(
+                owner.toString)
+            storage.updateOwner(classOf[SharedState], state.id, owner, true)
+            await(storage.getOwners(classOf[SharedState], state.id)) shouldBe Set(
+                owner.toString)
+        }
+
+        scenario("Test update owner shared different owner no overwrite") {
+            val state = new SharedState
+            val owner1 = UUID.randomUUID
+            val owner2 = UUID.randomUUID
+            storage.create(state, owner1)
+            await(storage.exists(classOf[SharedState], state.id)) shouldBe true
+            storage.updateOwner(classOf[SharedState], state.id, owner2, false)
+            await(storage.getOwners(classOf[SharedState], state.id)) shouldBe Set(
+                owner1.toString, owner2.toString)
+        }
+
+        scenario("Test update owner shared different owner with overwrite") {
+            val state = new SharedState
+            val owner1 = UUID.randomUUID
+            val owner2 = UUID.randomUUID
+            storage.create(state, owner1)
+            await(storage.exists(classOf[SharedState], state.id)) shouldBe true
+            storage.updateOwner(classOf[SharedState], state.id, owner2, true)
+            await(storage.getOwners(classOf[SharedState], state.id)) shouldBe Set(
+                owner1.toString, owner2.toString)
+        }
+
+        scenario("Test delete owner exclusive same owner") {
+            val state = new ExclusiveState
+            val owner = UUID.randomUUID
+            storage.create(state, owner)
+            await(storage.exists(classOf[ExclusiveState], state.id)) shouldBe true
+            val e = intercept[OwnershipConflictException] {
+                storage.deleteOwner(classOf[ExclusiveState], state.id, owner)
+            }
+            e.clazz shouldBe classOf[ExclusiveState].getSimpleName
+            e.id shouldBe state.id.toString
+            e.currentOwner shouldBe Set(owner.toString)
+            e.newOwner shouldBe owner.toString
+            await(storage.exists(classOf[ExclusiveState], state.id)) shouldBe true
+            await(storage.getOwners(classOf[ExclusiveState], state.id)) shouldBe Set(
+                owner.toString)
+        }
+
+        scenario("Test delete owner exclusive different owner") {
+            val state = new ExclusiveState
+            val owner = UUID.randomUUID
+            val otherOwner = UUID.randomUUID
+            storage.create(state, owner)
+            await(storage.exists(classOf[ExclusiveState], state.id)) shouldBe true
+            val e = intercept[OwnershipConflictException] {
+                storage.deleteOwner(classOf[ExclusiveState], state.id, otherOwner)
+            }
+            e.clazz shouldBe classOf[ExclusiveState].getSimpleName
+            e.id shouldBe state.id.toString
+            e.currentOwner shouldBe Set(owner.toString)
+            e.newOwner shouldBe otherOwner.toString
+            await(storage.exists(classOf[ExclusiveState], state.id)) shouldBe true
+            await(storage.getOwners(classOf[ExclusiveState], state.id)) shouldBe Set(
+                owner.toString)
+        }
+
+        scenario("Test delete owner shared single owner") {
+            val state = new SharedState
+            val owner = UUID.randomUUID
+            storage.create(state, owner)
+            await(storage.exists(classOf[SharedState], state.id)) shouldBe true
+            storage.deleteOwner(classOf[SharedState], state.id, owner)
+            await(storage.exists(classOf[SharedState], state.id)) shouldBe true
+            await(storage.getOwners(classOf[SharedState], state.id)) shouldBe Set.empty
+        }
+
+        scenario("Test delete owner shared single different owner") {
+            val state = new SharedState
+            val owner = UUID.randomUUID
+            val otherOwner = UUID.randomUUID
+            storage.create(state, owner)
+            await(storage.exists(classOf[SharedState], state.id)) shouldBe true
+            val e = intercept[OwnershipConflictException] {
+                storage.deleteOwner(classOf[SharedState], state.id, otherOwner)
+            }
+            e.clazz shouldBe classOf[SharedState].getSimpleName
+            e.id shouldBe state.id.toString
+            e.currentOwner shouldBe Set(owner.toString)
+            e.newOwner shouldBe otherOwner.toString
+            await(storage.exists(classOf[SharedState], state.id)) shouldBe true
+            await(storage.getOwners(classOf[SharedState], state.id)) shouldBe Set(
+                owner.toString)
+        }
+
+        scenario("Test delete owner multiple existing owner") {
+            val state = new SharedState
+            val owner1 = UUID.randomUUID
+            val owner2 = UUID.randomUUID
+            storage.create(state, owner1)
+            await(storage.exists(classOf[SharedState], state.id)) shouldBe true
+            await(storage.getOwners(classOf[SharedState], state.id)) shouldBe Set(
+                owner1.toString)
+            storage.updateOwner(classOf[SharedState], state.id, owner2, false)
+            await(storage.getOwners(classOf[SharedState], state.id)) shouldBe Set(
+                owner1.toString, owner2.toString)
+            storage.deleteOwner(classOf[SharedState], state.id, owner1)
+            await(storage.getOwners(classOf[SharedState], state.id)) shouldBe Set(
+                owner2.toString)
+            storage.deleteOwner(classOf[SharedState], state.id, owner2)
+            await(storage.getOwners(classOf[SharedState], state.id)) shouldBe Set.empty
+        }
+
+        scenario("Test delete owner multiple non-existing owner") {
+            val state = new SharedState
+            val owner1 = UUID.randomUUID
+            val owner2 = UUID.randomUUID
+            val otherOwner = UUID.randomUUID
+            storage.create(state, owner1)
+            await(storage.exists(classOf[SharedState], state.id)) shouldBe true
+            await(storage.getOwners(classOf[SharedState], state.id)) shouldBe Set(
+                owner1.toString)
+            storage.updateOwner(classOf[SharedState], state.id, owner2, false)
+            await(storage.getOwners(classOf[SharedState], state.id)) shouldBe Set(
+                owner1.toString, owner2.toString)
+            val e = intercept[OwnershipConflictException] {
+                storage.deleteOwner(classOf[SharedState], state.id, otherOwner)
+            }
+            await(storage.getOwners(classOf[SharedState], state.id)) shouldBe Set(
+                owner1.toString, owner2.toString)
+        }
+
+        scenario("Test regular create on exclusive ownership type") {
+            val state = new ExclusiveState
+            intercept[UnsupportedOperationException] {
+                storage.create(state)
+            }
+        }
+
+        scenario("Test regular create on shared ownership type") {
+            val state = new SharedState
+            storage.create(state)
+            await(storage.exists(classOf[SharedState], state.id)) shouldBe true
+            await(storage.getOwners(classOf[SharedState], state.id)) shouldBe empty
+        }
+
+        scenario("Test regular update on exclusive ownership type") {
+            val state = new ExclusiveState
+            val owner = UUID.randomUUID
+            storage.create(state, owner)
+            await(storage.exists(classOf[ExclusiveState], state.id)) shouldBe true
+            intercept[UnsupportedOperationException] {
+                storage.update(state)
+            }
+        }
+
+        scenario("Test regular update on shared ownership type") {
+            val state = new SharedState
+            val stateUpdate = new SharedState(state.id, 1)
+            val owner = UUID.randomUUID
+            storage.create(state, owner)
+            await(storage.exists(classOf[SharedState], state.id)) shouldBe true
+            await(storage.getOwners(classOf[SharedState], state.id)) shouldBe Set(
+                owner.toString)
+            storage.update(stateUpdate)
+            await(storage.get(classOf[SharedState], state.id)).value shouldBe 1
+            await(storage.getOwners(classOf[SharedState], state.id)) shouldBe Set(
+                owner.toString)
+        }
+
+        scenario("Test regular delete on exclusive ownership type") {
+            val state = new ExclusiveState
+            val owner = UUID.randomUUID
+            storage.create(state, owner)
+            await(storage.exists(classOf[ExclusiveState], state.id)) shouldBe true
+            intercept[UnsupportedOperationException] {
+                storage.delete(classOf[ExclusiveState], state.id)
+            }
+        }
+
+        scenario("Test regular delete on shared ownership type for single owner") {
+            val state = new SharedState
+            val owner = UUID.randomUUID
+            storage.create(state, owner)
+            await(storage.exists(classOf[SharedState], state.id)) shouldBe true
+            await(storage.getOwners(classOf[SharedState], state.id)) shouldBe Set(
+                owner.toString)
+            storage.delete(classOf[SharedState], state.id)
+            await(storage.exists(classOf[SharedState], state.id)) shouldBe false
+            intercept[NotFoundException] {
+                await(storage.getOwners(classOf[SharedState], state.id))
+            }
+        }
+
+        scenario("Test regular delete on shared ownership type for multiple owners") {
+            val state = new SharedState
+            val owner1 = UUID.randomUUID
+            val owner2 = UUID.randomUUID
+            storage.create(state, owner1)
+            await(storage.exists(classOf[SharedState], state.id)) shouldBe true
+            await(storage.getOwners(classOf[SharedState], state.id)) shouldBe Set(
+                owner1.toString)
+            storage.update(state, owner2, false, null)
+            await(storage.getOwners(classOf[SharedState], state.id)) shouldBe Set(
+                owner1.toString, owner2.toString)
+            storage.delete(classOf[SharedState], state.id)
+            await(storage.exists(classOf[SharedState], state.id)) shouldBe false
+            intercept[NotFoundException] {
+                await(storage.getOwners(classOf[SharedState], state.id))
+            }
+        }
+
+        scenario("Test subscribe exclusive ownership on create") {
+            val state = new ExclusiveState
+            val owner = UUID.randomUUID
+            val obs = new AwaitableObserver[Set[String]]()
+            storage.create(state, owner)
+            storage.ownersObservable(classOf[ExclusiveState], state.id).subscribe(obs)
+            obs.await(1.second)
+            obs.getOnNextEvents should contain only Set(owner.toString)
+        }
+
+        scenario("Test subscribe exclusive ownership on update") {
+            val state = new ExclusiveState
+            val owner = UUID.randomUUID
+            val obs = new AwaitableObserver[Set[String]]()
+            storage.create(state, owner)
+            storage.ownersObservable(classOf[ExclusiveState], state.id).subscribe(obs)
+            obs.await(1.second, 1)
+            storage.update(state, owner, true, null)
+            obs.await(1.second)
+            obs.getOnNextEvents should contain theSameElementsAs Vector(
+                Set(owner.toString), Set(owner.toString))
+        }
+
+        scenario("Test subscribe exclusive ownerhip on delete") {
+            val state = new ExclusiveState
+            val owner = UUID.randomUUID
+            val obs = new AwaitableObserver[Set[String]]()
+            storage.create(state, owner)
+            storage.ownersObservable(classOf[ExclusiveState], state.id).subscribe(obs)
+            obs.await(1.second, 1)
+            storage.delete(classOf[ExclusiveState], state.id, owner)
+            obs.await(1.second)
+            obs.getOnNextEvents should contain only Set(owner.toString)
+            obs.getOnErrorEvents.get(0).getClass shouldBe classOf[
+                ParentDeletedException]
+        }
+
+        scenario("Test subscribe exclusive non-existing object") {
+            val owner = UUID.randomUUID
+            val id = UUID.randomUUID
+            val obs = new AwaitableObserver[Set[String]]()
+            storage.ownersObservable(classOf[ExclusiveState], id).subscribe(obs)
+            obs.await(1.second)
+            obs.getOnNextEvents shouldBe empty
+            obs.getOnErrorEvents.get(0).getClass shouldBe classOf[
+                ParentDeletedException]
+        }
+
+        scenario("Test subscribe shared ownership on create") {
+            val state = new SharedState
+            val owner = UUID.randomUUID
+            val obs = new AwaitableObserver[Set[String]]()
+            storage.create(state, owner)
+            storage.ownersObservable(classOf[SharedState], state.id).subscribe(obs)
+            obs.await(1.second)
+            obs.getOnNextEvents should contain only Set(owner.toString)
+        }
+
+        scenario("Test subscribe shared ownership single owner") {
+            val state = new SharedState
+            val owner = UUID.randomUUID
+            val obs = new AwaitableObserver[Set[String]]()
+            storage.create(state, owner)
+            storage.ownersObservable(classOf[SharedState], state.id).subscribe(obs)
+            obs.await(1.second, 1)
+            storage.update(state, owner, true, null)
+            obs.await(1.second, 1)
+            storage.delete(classOf[SharedState], state.id, owner)
+            obs.await(1.second)
+            obs.getOnNextEvents should contain theSameElementsAs Vector(
+                Set(owner.toString), Set(owner.toString))
+            obs.getOnErrorEvents.get(0).getClass shouldBe classOf[
+                ParentDeletedException]
+        }
+
+        scenario("Test subscribe shared ownership multiple owners") {
+            val state = new SharedState
+            val owner1 = UUID.randomUUID
+            val owner2 = UUID.randomUUID
+            val owner3 = UUID.randomUUID
+            val obs = new AwaitableObserver[Set[String]]()
+            storage.create(state, owner1)
+            storage.ownersObservable(classOf[SharedState], state.id).subscribe(obs)
+            obs.await(1.second, 1)
+            storage.update(state, owner2, false, null)
+            obs.await(1.second, 1)
+            storage.update(state, owner3, false, null)
+            obs.await(1.second, 1)
+            storage.delete(classOf[SharedState], state.id, owner1)
+            obs.await(1.second, 1)
+            storage.delete(classOf[SharedState], state.id, owner2)
+            obs.await(1.second, 1)
+            storage.delete(classOf[SharedState], state.id, owner3)
+            obs.await(1.second)
+            obs.getOnNextEvents should contain theSameElementsAs Vector(
+                Set(owner1.toString),
+                Set(owner1.toString, owner2.toString),
+                Set(owner1.toString, owner2.toString, owner3.toString),
+                Set(owner2.toString, owner3.toString),
+                Set(owner3.toString))
+            obs.getOnErrorEvents.get(0).getClass shouldBe classOf[
+                ParentDeletedException]
+        }
+
+        scenario("Test subscribe owner update delete") {
+            val state = new SharedState
+            val owner1 = UUID.randomUUID
+            val owner2 = UUID.randomUUID
+            val owner3 = UUID.randomUUID
+            val obs = new AwaitableObserver[Set[String]]()
+            storage.create(state)
+            storage.ownersObservable(classOf[SharedState], state.id).subscribe(obs)
+            obs.await(1.second, 1)
+            storage.updateOwner(classOf[SharedState], state.id, owner1, false)
+            obs.await(1.second, 1)
+            storage.updateOwner(classOf[SharedState], state.id, owner2, false)
+            obs.await(1.second, 1)
+            storage.updateOwner(classOf[SharedState], state.id, owner3, false)
+            obs.await(1.second, 1)
+            storage.deleteOwner(classOf[SharedState], state.id, owner1)
+            obs.await(1.second, 1)
+            storage.deleteOwner(classOf[SharedState], state.id, owner2)
+            obs.await(1.second, 1)
+            storage.deleteOwner(classOf[SharedState], state.id, owner3)
+            await(storage.exists(classOf[SharedState], state.id)) shouldBe true
+            obs.getOnNextEvents should contain theSameElementsAs Vector(
+                Set.empty,
+                Set(owner1.toString),
+                Set(owner1.toString, owner2.toString),
+                Set(owner1.toString, owner2.toString, owner3.toString),
+                Set(owner2.toString, owner3.toString),
+                Set(owner3.toString),
+                Set.empty)
         }
     }
 
