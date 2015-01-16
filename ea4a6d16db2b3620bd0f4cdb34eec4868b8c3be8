@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "da2a55be_09652945",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/Host.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-16T17:38:13Z",
+      "side": 1,
+      "message": "Maybe we should also apply the same to the maps. Even if they are initialized, they are vars so they could change.",
+      "revId": "ea4a6d16db2b3620bd0f4cdb34eec4868b8c3be8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
