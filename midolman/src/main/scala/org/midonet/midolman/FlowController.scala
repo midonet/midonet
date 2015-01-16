@@ -65,9 +65,7 @@ object FlowController extends Referenceable {
                                flowRemovalCallbacks: ArrayList[Callback0],
                                tags: ROSet[FlowTag],
                                lastInvalidation: Long,
-                               flowMatch: FlowMatch = null,
-                               processed: Array[FlowMatch] = null,
-                               index: Int = 0)
+                               flowMatch: FlowMatch = null)
 
     case class RemoveWildcardFlow(wMatch: FlowMatch)
 
@@ -222,8 +220,8 @@ object FlowController extends Referenceable {
 
 class FlowController extends Actor with ActorLogWithoutPath
         with DatapathReadySubscriberActor {
-    import org.midonet.midolman.DatapathController.DatapathReady
-    import org.midonet.midolman.FlowController._
+    import DatapathController.DatapathReady
+    import FlowController._
 
     override def logSource = "org.midonet.flow-management"
 
@@ -306,8 +304,8 @@ class FlowController extends Actor with ActorLogWithoutPath
                     CheckFlowExpiration_)
             }
 
-        case msg@AddWildcardFlow(wildFlow, dpFlow, callbacks, tags, lastInval,
-                                 flowMatch, pendingFlowMatches, index) =>
+        case msg@AddWildcardFlow(wildFlow, dpFlow, callbacks, tags,
+                                 lastInval, flowMatch) =>
             context.system.eventStream.publish(msg)
             if (FlowController.isTagSetStillValid(lastInval, tags)) {
                 var managedFlow = wildFlowPool.take
@@ -344,12 +342,6 @@ class FlowController extends Actor with ActorLogWithoutPath
                 }
                 wildFlow.cbExecutor.schedule(callbacks)
             }
-
-            // We assume metrics.wildFlowsMetric.mark() already contains a
-            // memory barrier that will ensure the new table entry is visible
-            // before the next write.
-            if (pendingFlowMatches != null)
-                pendingFlowMatches(index) = flowMatch
 
         case FlowAdded(dpFlow, wcMatch) =>
             handleFlowAddedForExistingWildcard(dpFlow, wcMatch)
