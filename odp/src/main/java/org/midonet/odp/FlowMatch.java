@@ -369,6 +369,10 @@ public class FlowMatch {
         seenFields |= trackSeenFields << field.ordinal();
     }
 
+    public final void fieldUnseen(Field field) {
+        seenFields &= ~(1L << field.ordinal());
+    }
+
     /**
      * Informs whether the specified field has been seen. A field is seen
      * if trackSeenFields was set to 1 when the respective accessor was called
@@ -440,18 +444,6 @@ public class FlowMatch {
 
     public boolean isUsed(Field field) {
         return (usedFields & (1L << field.ordinal())) != 0;
-    }
-
-    public FlowMatch markAsSeen(Field... fields) {
-        for (Field f : fields) {
-            fieldSeen(f);
-        }
-        return this;
-    }
-
-    public FlowMatch markAllAsSeen() {
-        seenFields = usedFields;
-        return this;
     }
 
     /**
