@@ -27,7 +27,7 @@ import org.midonet.netlink.exceptions.NetlinkException
 import org.midonet.Util
 import org.midonet.util.concurrent.NanoClock
 
-object NetlinkRequestReply {
+object NetlinkRequestBroker {
     private val FREE = -1
     private val unsafe = Util.getUnsafe
 
@@ -98,13 +98,13 @@ object NetlinkRequestReply {
  * Thread-safe for concurrent callers of request and readReply,
  * although the individual methods are not thread-safe.
  */
-class NetlinkRequestReply(reader: NetlinkReader,
+class NetlinkRequestBroker(reader: NetlinkReader,
                           writer: NetlinkBlockingWriter,
                           maxPendingRequests: Int,
                           readBuf: ByteBuffer,
                           clock: NanoClock,
                           timeout: Duration = 1 second) {
-    import org.midonet.netlink.NetlinkRequestReply._
+    import org.midonet.netlink.NetlinkRequestBroker._
 
     val capacity = Util.findNextPositivePowerOfTwo(maxPendingRequests)
     private val mask = capacity - 1

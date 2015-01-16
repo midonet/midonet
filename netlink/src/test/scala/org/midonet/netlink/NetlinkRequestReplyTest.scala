@@ -14,7 +14,7 @@ import org.midonet.util.concurrent.MockClock
 import org.midonet.netlink.Netlink.Address
 
 @RunWith(classOf[JUnitRunner])
-class NetlinkRequestReplyTest extends FeatureSpec
+class NetlinkRequestBrokerTest extends FeatureSpec
                               with ShouldMatchers
                               with OneInstancePerTest {
 
@@ -33,7 +33,7 @@ class NetlinkRequestReplyTest extends FeatureSpec
     val clock = new MockClock
     val requestBuf = ByteBuffer.allocate(512)
     val replyBuf = ByteBuffer.allocate(1024)
-    val requestReply = new NetlinkRequestReply(reader, writer, maxRequests, replyBuf,
+    val requestReply = new NetlinkRequestBroker(reader, writer, maxRequests, replyBuf,
                                                clock, timeout = 1 milli)
 
     class CountingObserver extends Observer[ByteBuffer] {
@@ -46,7 +46,7 @@ class NetlinkRequestReplyTest extends FeatureSpec
         override def onNext(t: ByteBuffer): Unit = onNextCalls += 1
     }
 
-    feature ("Can make requests to a NetlinkRequestReply") {
+    feature ("Can make requests to a NetlinkRequestBroker") {
         scenario ("A sequence number is added to a netlink request") {
             NetlinkMessage.writeHeader(requestBuf, 256, 1, 2, 3 /* seq */, 4, 5, 6)
 
@@ -70,7 +70,7 @@ class NetlinkRequestReplyTest extends FeatureSpec
         }
     }
 
-    feature ("Can get replies from a NetlinkRequestReply") {
+    feature ("Can get replies from a NetlinkRequestBroker") {
         scenario ("An ACK calls into onComplete") {
             val obs = new CountingObserver
 

@@ -50,7 +50,7 @@ sealed class FlowProcessor(flowEjector: FlowEjector,
     }
 
     private val writer = new NetlinkBlockingWriter(channel)
-    private val requestReply = new NetlinkRequestReply(
+    private val requestReply = new NetlinkRequestBroker(
         new NetlinkReader(channel),
         writer,
         flowEjector.maxPendingRequests,
