@@ -75,7 +75,7 @@ class SessionInventoryTest extends FeatureSpec
 
     before
     {
-        store = new InMemoryStorage(new CallingThreadReactor)
+        store = new InMemoryStorage
         store.registerClass(classOf[Network])
         store.build()
         inv = new SessionInventory(store)
