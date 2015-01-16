@@ -33,7 +33,6 @@ import org.junit.runner.RunWith
 import org.scalatest._
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.midolman.DeduplicationActor.ActionsCache
 import org.midonet.midolman.UnderlayResolver.Route
 import org.midonet.midolman.simulation.PacketContext
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackValue, ConnTrackKey}
@@ -98,10 +97,7 @@ object PacketWorkflowTest {
                           tags: mutable.Set[FlowTag],
                           callbacks: ArrayList[Callback0]): Unit = { }
         }
-        val wf = new PacketWorkflow(dpState, null, null, dpChannel,
-                                    new ActionsCache(4, CallbackExecutor.Immediate,
-                                                     log = NoLogging),
-                                    replicator) {
+        val wf = new PacketWorkflow(dpState, null, null, dpChannel, replicator) {
             override def runSimulation(pktCtx: PacketContext) =
                 throw new Exception("no Coordinator")
             override def translateActions(pktCtx: PacketContext) = {
@@ -356,8 +352,7 @@ class PacketWorkflowTest extends TestKit(ActorSystem("PacketWorkflowTest"))
             }
         }
         val msgs = drainMessages()
-        checks foreach {
-            _(msgs, pw.actionsCache.actions.get(pktCtx.packet.getMatch)) }
+        checks foreach { _(msgs, pktCtx.flowActions) }
         msgAvailable should be (false)
     }
 

@@ -29,8 +29,7 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.DataClient
-import org.midonet.midolman.DeduplicationActor.ActionsCache
-import org.midonet.midolman.PacketWorkflow.{StateMessage, Simulation}
+import org.midonet.midolman.PacketWorkflow.{FlowCreated, StateMessage}
 import org.midonet.midolman.UnderlayResolver.Route
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.DatapathChannel
@@ -213,24 +212,6 @@ class DeduplicationActorTestCase extends MidolmanSpec {
             dda.suspended(pkts(0).getMatch) should be (null)
         }
 
-        scenario("executes packets that hit the actions cache") {
-            Given("an entry in the actions cache")
-            val pkts = List(makePacket(1))
-            dda.addToActionsCache(pkts(0).getMatch -> List(output(1)))
-
-            When("a packet comes that hits the actions cache")
-            ddaRef ! DeduplicationActor.HandlePackets(pkts.toArray)
-
-            Then("the DDA should execute that packet directly")
-            mockDpChannel().packetsSent.asScala should be (pkts)
-
-            And("no pended packets should remain")
-            dda.suspended(pkts(0).getMatch) should be (null)
-
-            And("packetsOut should be called with the correct number")
-            packetsOut should be (1)
-        }
-
         scenario("simulates sequences of packets from the datapath") {
             Given("4 packets with 3 different matches")
             val pkts = List(makePacket(1), makePacket(2), makePacket(3), makePacket(2))
@@ -311,16 +292,17 @@ class DeduplicationActorTestCase extends MidolmanSpec {
         }
     }
 
-    class MockPacketHandler(actionsCache: ActionsCache) extends PacketHandler {
+    class MockPacketHandler() extends PacketHandler {
         var p = Promise[Any]()
         var generatedPacket: GeneratedPacket = _
+        var context: PacketContext = _
 
         override def start(pktCtx: PacketContext) = {
             pktCtx.runs += 1
             if (pktCtx.runs == 1) {
                 packetsSeen = packetsSeen :+ (pktCtx.packet, pktCtx.cookie)
                 if (pktCtx.isGenerated) {
-                    Simulation
+                    FlowCreated
                 } else {
                     throw new NotYetException(p.future)
                 }
@@ -335,7 +317,7 @@ class DeduplicationActorTestCase extends MidolmanSpec {
                     pktCtx.packetEmitter.schedule(generatedPacket)
                     generatedPacket = null
                 }
-                Simulation
+                FlowCreated
             }
         }
 
@@ -343,7 +325,7 @@ class DeduplicationActorTestCase extends MidolmanSpec {
         }
 
         def complete(wcmatch: FlowMatch, actions: List[FlowAction]): Unit = {
-            actionsCache.actions.put(wcmatch, actions.asJava)
+            actions foreach context.addFlowAction
             p success null
         }
     }
@@ -378,10 +360,7 @@ class DeduplicationActorTestCase extends MidolmanSpec {
             complete(flowMatch, actions)
         }
 
-        def addToActionsCache(entry: (FlowMatch, List[FlowAction])): Unit =
-            actionsCache.actions.put(entry._1, entry._2.asJava)
-
         def hookPacketHandler(): Unit =
-            workflow = new MockPacketHandler(actionsCache)
+            workflow = new MockPacketHandler()
     }
 }
