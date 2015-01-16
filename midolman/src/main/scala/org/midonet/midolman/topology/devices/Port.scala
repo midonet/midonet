@@ -19,7 +19,7 @@ import java.util.UUID
 
 import scala.collection.JavaConverters._
 
-import org.midonet.cluster.data.{ZoomConvert, ZoomField, ZoomObject, ZoomClass}
+import org.midonet.cluster.data._
 import org.midonet.cluster.models.Topology
 import org.midonet.cluster.util.IPAddressUtil.{Converter => IPAddressConverter}
 import org.midonet.cluster.util.IPSubnetUtil.{Converter => IPSubnetConverter}
@@ -126,6 +126,8 @@ class RouterPort extends Port {
     @ZoomField(name = "port_mac", converter = classOf[MACConverter])
     var portMac: MAC = null
 
+    var bgps: java.util.Set[BGP] = null
+
     private var _portAddr: IPv4Subnet = _
 
     override def deviceId = routerId
@@ -162,6 +164,7 @@ object PortFactory {
                 p.portIp = IPv4Addr.fromString(cfg.getPortAddr)
                 p.portSubnet = new IPv4Subnet(cfg.nwAddr, cfg.nwLength)
                 p.portMac = cfg.getHwAddr
+                p.bgps = cfg.bgps
                 p
             case cfg: VxLanPortConfig =>
                 val p: VxLanPort = new VxLanPort

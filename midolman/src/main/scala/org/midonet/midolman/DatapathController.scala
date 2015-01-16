@@ -27,10 +27,9 @@ import scala.reflect._
 
 import akka.actor._
 import akka.pattern.{after, pipe}
-
 import com.google.inject.Inject
-import com.typesafe.scalalogging.Logger
 
+import com.typesafe.scalalogging.Logger
 import org.slf4j.LoggerFactory
 
 import org.midonet.Subscription

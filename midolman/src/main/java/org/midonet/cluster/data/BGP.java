@@ -33,6 +33,9 @@ import org.midonet.packets.IPv4Addr;
  */
 public class BGP extends Entity.Base<UUID, BGP.Data, BGP> {
 
+    private int quaggaPortNumber;
+    private int uplinkPid;
+
     public enum Property {
     }
 
@@ -74,6 +77,22 @@ public class BGP extends Entity.Base<UUID, BGP.Data, BGP> {
     public BGP setPeerAddr(IPv4Addr peerAddr) {
         getData().peerAddr = peerAddr;
         return this;
+    }
+
+    public int getQuaggaPortNumber() {
+        return quaggaPortNumber;
+    }
+
+    public void setQuaggaPortNumber(int quaggaPortNumber) {
+        this.quaggaPortNumber = quaggaPortNumber;
+    }
+
+    public int getUplinkPid() {
+        return uplinkPid;
+    }
+
+    public void setUplinkPid(int uplinkPid) {
+        this.uplinkPid = uplinkPid;
     }
 
     public UUID getPortId() {

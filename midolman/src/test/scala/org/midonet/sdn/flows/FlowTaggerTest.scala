@@ -30,11 +30,7 @@ import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.layer3.Route.NextHop
 import org.midonet.packets.{IPv4Addr, MAC}
 import org.midonet.sdn.flows.FlowTagger.FlowTag
-import org.midonet.sdn.flows.FlowTagger.{tagForDevice, tagForFloodedFlowsByDstMac,
-                                         tagForArpRequests, tagForVlanPort, tagForBroadcast,
-                                         tagForBridgePort, tagForDpPort, tagForTunnelRoute,
-                                         tagForTunnelKey, tagForRoute, tagForDestinationIp,
-                                         tagForBgp}
+import org.midonet.sdn.flows.FlowTagger._
 
 @RunWith(classOf[JUnitRunner])
 class FlowTaggerTest extends FeatureSpecLike
@@ -80,8 +76,7 @@ class FlowTaggerTest extends FeatureSpecLike
             () => tagForDpPort(int),
             () => tagForTunnelKey(int),
             () => tagForRoute(route),
-            () => tagForDestinationIp(uuid, ip),
-            () => tagForBgp(uuid)
+            () => tagForDestinationIp(uuid, ip)
         )
     }
 

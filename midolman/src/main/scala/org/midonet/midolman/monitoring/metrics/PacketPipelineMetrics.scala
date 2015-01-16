@@ -30,9 +30,6 @@ class PacketPipelineMetrics(val registry: MetricRegistry) {
     val wildcardTableHits = registry.meter(name(
         classOf[PacketPipelineMeter], "wildcardTableHits", "packets"))
 
-    val packetsToPortSet = registry.meter(name(
-        classOf[PacketPipelineMeter], "packetsToPortSet", "packets"))
-
     val packetsSimulated = registry.meter(name(
         classOf[PacketPipelineMeter], "packetsSimulated", "packets"))
 
@@ -52,19 +49,12 @@ class PacketPipelineMetrics(val registry: MetricRegistry) {
     val wildcardTableHitLatency = registry.histogram(name(
         classOf[PacketPipelineHistogram], "wildcardTableHitLatency"))
 
-    val packetToPortSetLatency = registry.histogram(name(
-        classOf[PacketPipelineHistogram], "packetToPortSetLatency"))
-
     val simulationLatency = registry.histogram(name(
         classOf[PacketPipelineHistogram], "simulationLatency"))
 
     val wildcardTableHitAccumulatedTime = registry.counter(name(
         classOf[PacketPipelineAccumulatedTime],
         "wildcardTableHitAccumulatedTime"))
-
-    val packetToPortSetAccumulatedTime = registry.counter(name(
-        classOf[PacketPipelineAccumulatedTime],
-        "packetToPortSetAccumulatedTime"))
 
     val simulationAccumulatedTime = registry.counter(name(
         classOf[PacketPipelineAccumulatedTime],
@@ -74,12 +64,6 @@ class PacketPipelineMetrics(val registry: MetricRegistry) {
         wildcardTableHits.mark()
         wildcardTableHitLatency.update(latency)
         wildcardTableHitAccumulatedTime.inc(latency)
-    }
-
-    def packetToPortSet(latency: Int) {
-        packetsToPortSet.mark()
-        packetToPortSetLatency.update(latency)
-        packetToPortSetAccumulatedTime.inc(latency)
     }
 
     def packetSimulated(latency: Int) {
