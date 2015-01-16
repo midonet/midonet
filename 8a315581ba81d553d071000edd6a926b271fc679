@@ -1,0 +1,89 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "da2a55be_49a44157",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/FlowTranslator.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-01-16T17:46:40Z",
+      "side": 1,
+      "message": "intellij :/",
+      "revId": "8a315581ba81d553d071000edd6a926b271fc679",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da2a55be_099a4914",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/FlowTranslator.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 138,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-01-16T17:46:40Z",
+      "side": 1,
+      "message": ":x",
+      "revId": "8a315581ba81d553d071000edd6a926b271fc679",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da2a55be_699f8504",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/FlowTranslator.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 193,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-01-16T17:46:40Z",
+      "side": 1,
+      "message": "Can you get back the version that didn\u0027t use closures? :p",
+      "revId": "8a315581ba81d553d071000edd6a926b271fc679",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da2a55be_a9885dc7",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Bridge.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-01-16T17:46:40Z",
+      "side": 1,
+      "message": "idea",
+      "revId": "8a315581ba81d553d071000edd6a926b271fc679",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da2a55be_898599af",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BridgeManager.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-01-16T17:46:40Z",
+      "side": 1,
+      "message": "\u003e\u003e",
+      "revId": "8a315581ba81d553d071000edd6a926b271fc679",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
