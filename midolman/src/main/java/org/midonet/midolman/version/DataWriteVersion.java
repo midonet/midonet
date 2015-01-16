@@ -21,6 +21,6 @@ package org.midonet.midolman.version;
  */
 public class DataWriteVersion {
 
-    public static final String CURRENT = "1.7";
+    public static final String CURRENT = "1.8";
 
 }
