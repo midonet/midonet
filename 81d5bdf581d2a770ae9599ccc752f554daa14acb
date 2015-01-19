@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "da2a55be_a3f4f687",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/Host.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-01-19T14:33:38Z",
+      "side": 1,
+      "message": "this false feels jealous of the block above it, which is so nice with its braces and all.",
+      "revId": "81d5bdf581d2a770ae9599ccc752f554daa14acb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da2a55be_e3eeeeb3",
+        "filename": "midonet-util/src/main/scala/org/midonet/packets/IPAddr.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-01-19T14:33:38Z",
+      "side": 1,
+      "message": "why was this necessary?",
+      "revId": "81d5bdf581d2a770ae9599ccc752f554daa14acb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
