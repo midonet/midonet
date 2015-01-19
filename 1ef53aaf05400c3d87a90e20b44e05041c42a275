@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "da2a55be_7de73fe5",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/util/ObservablePathChildrenCache.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 176,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-19T05:53:23Z",
+      "side": 1,
+      "message": "If this runs in the thread as addition / removal thread, then yes, as you wrote, we wont\u0027 need the lock.",
+      "range": {
+        "startLine": 175,
+        "startChar": 12,
+        "endLine": 176,
+        "endChar": 68
+      },
+      "revId": "1ef53aaf05400c3d87a90e20b44e05041c42a275",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
