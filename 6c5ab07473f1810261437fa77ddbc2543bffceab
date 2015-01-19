@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "da2a55be_9ecae96c",
+        "filename": "brain/midonet-brain/src/main/java/org/midonet/brain/configuration/EmbeddedClusterNodeConfig.java",
+        "patchSetId": 12
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-19T16:47:29Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "da2a55be_7d6d7f04",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "6c5ab07473f1810261437fa77ddbc2543bffceab",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "da2a55be_fd804f8d",
         "filename": "brain/midonet-brain/src/main/java/org/midonet/brain/configuration/EmbeddedClusterNodeConfig.java",
         "patchSetId": 12
@@ -36,6 +60,30 @@
       "writtenOn": "2015-01-19T07:54:53Z",
       "side": 1,
       "message": "Perhaps should we keep the old key while deprecating it, and add a new key \"embedding_enabled\"? We can add another method that\u0027ll check if either field is set.",
+      "range": {
+        "startLine": 36,
+        "startChar": 43,
+        "endLine": 37,
+        "endChar": 72
+      },
+      "revId": "6c5ab07473f1810261437fa77ddbc2543bffceab",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ba1f61a0_08040714",
+        "filename": "brain/midonet-brain/src/main/java/org/midonet/brain/configuration/EmbeddedClusterNodeConfig.java",
+        "patchSetId": 12
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-19T16:47:29Z",
+      "side": 1,
+      "message": "yeah, I was trying to control the property inflation under control, specialy since this embedding will just disappear all meaning as soon as we get some time to package the cluster independently. Adding a new property implies documenting etc. and since the effect is just private to the code I thought it was better to avoid a new property altogether.",
+      "parentUuid": "da2a55be_fd804f8d",
       "range": {
         "startLine": 36,
         "startChar": 43,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "ba1f61a0_6809432c",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/heartbeat/Heartbeat.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-19T16:47:29Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "da2a55be_fd57af24",
+      "range": {
+        "startLine": 43,
+        "startChar": 24,
+        "endLine": 43,
+        "endChar": 36
+      },
+      "revId": "6c5ab07473f1810261437fa77ddbc2543bffceab",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "da2a55be_dd2bcb92",
         "filename": "brain/midonet-brain/src/test/java/org/midonet/brain/services/vxgw/VxLanGatewayServiceTest.java",
         "patchSetId": 12
@@ -82,6 +154,30 @@
       "writtenOn": "2015-01-19T07:54:53Z",
       "side": 1,
       "message": "Please insert a white space after the param name.",
+      "range": {
+        "startLine": 163,
+        "startChar": 28,
+        "endLine": 163,
+        "endChar": 30
+      },
+      "revId": "6c5ab07473f1810261437fa77ddbc2543bffceab",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ba1f61a0_480eff35",
+        "filename": "brain/midonet-brain/src/test/java/org/midonet/brain/services/vxgw/VxLanGatewayServiceTest.java",
+        "patchSetId": 12
+      },
+      "lineNbr": 163,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-19T16:47:29Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "da2a55be_dd2bcb92",
       "range": {
         "startLine": 163,
         "startChar": 28,
