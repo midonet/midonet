@@ -96,6 +96,30 @@
     },
     {
       "key": {
+        "uuid": "da2a55be_dded8bf1",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/util/ObservablePathChildrenCache.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 177,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-19T05:22:34Z",
+      "side": 1,
+      "message": "I see. I just wondered why you rewrote to this from \n\nchildStreams.values.foreach { s.onNext(_) }\n\nin patch 10. The old version is more concise and consistent with what you at line 217.",
+      "parentUuid": "fa2559ec_8458dafb",
+      "range": {
+        "startLine": 177,
+        "startChar": 57,
+        "endLine": 177,
+        "endChar": 65
+      },
+      "revId": "fc7c13c6ae1801b8c90c03233875c2c9048dafcf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa2559ec_93e30605",
         "filename": "cluster/src/main/scala/org/midonet/cluster/util/ObservablePathChildrenCache.scala",
         "patchSetId": 15
@@ -131,6 +155,30 @@
       "side": 1,
       "message": "AFAIK the observable inside will filter it out. I could wrap it in an if (!connectionLost) I guess (but I\u0027d be helpful to do it in a separate patch to be able to use some of the changes here for another one :)",
       "parentUuid": "fa2559ec_93e30605",
+      "range": {
+        "startLine": 216,
+        "startChar": 8,
+        "endLine": 216,
+        "endChar": 25
+      },
+      "revId": "fc7c13c6ae1801b8c90c03233875c2c9048dafcf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da2a55be_bd941745",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/util/ObservablePathChildrenCache.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 216,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-19T05:22:34Z",
+      "side": 1,
+      "message": "I see. ChildStreams may still break because of concurrent modifications? Anyway, that\u0027d be a very, very rare possibility, I guess.",
+      "parentUuid": "fa2559ec_645de6e9",
       "range": {
         "startLine": 216,
         "startChar": 8,
@@ -190,6 +238,30 @@
     },
     {
       "key": {
+        "uuid": "da2a55be_9dcaf36c",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/util/ObservablePathChildrenCache.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 249,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-19T05:22:34Z",
+      "side": 1,
+      "message": "I see.",
+      "parentUuid": "fa2559ec_c4713279",
+      "range": {
+        "startLine": 248,
+        "startChar": 8,
+        "endLine": 249,
+        "endChar": 78
+      },
+      "revId": "fc7c13c6ae1801b8c90c03233875c2c9048dafcf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa2559ec_b3e60a15",
         "filename": "cluster/src/main/scala/org/midonet/cluster/util/ObservablePathChildrenCache.scala",
         "patchSetId": 15
@@ -237,6 +309,30 @@
     },
     {
       "key": {
+        "uuid": "da2a55be_7d829f01",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/util/ObservablePathChildrenCache.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 314,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-19T05:22:34Z",
+      "side": 1,
+      "message": "It\u0027s  no longer directly wrapping around PathChildrenCache.",
+      "parentUuid": "fa2559ec_a46ebe94",
+      "range": {
+        "startLine": 313,
+        "startChar": 3,
+        "endLine": 314,
+        "endChar": 30
+      },
+      "revId": "fc7c13c6ae1801b8c90c03233875c2c9048dafcf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa2559ec_f3f082cb",
         "filename": "cluster/src/main/scala/org/midonet/cluster/util/ObservablePathChildrenCache.scala",
         "patchSetId": 15
@@ -272,6 +368,30 @@
       "side": 1,
       "message": "Probably not, if it\u0027s ok I can remove it in a separate patch given that it\u0027s not touched here.",
       "parentUuid": "fa2559ec_f3f082cb",
+      "range": {
+        "startLine": 323,
+        "startChar": 0,
+        "endLine": 323,
+        "endChar": 73
+      },
+      "revId": "fc7c13c6ae1801b8c90c03233875c2c9048dafcf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da2a55be_5d87db0f",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/util/ObservablePathChildrenCache.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 323,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-19T05:22:34Z",
+      "side": 1,
+      "message": "Leaving it to a separate patch is fine. I just wanted to point that out \u0027cuz another layer of indirection seems to be making this hard to read.",
+      "parentUuid": "fa2559ec_240aced2",
       "range": {
         "startLine": 323,
         "startChar": 0,
