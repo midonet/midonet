@@ -41,13 +41,14 @@ import org.slf4j.LoggerFactory
 import org.midonet.brain.ClusterNode.MinionDef
 import org.midonet.brain.services.StorageModule
 import org.midonet.brain.services.c3po.C3POConfig
-import org.midonet.cluster.data.neutron.NeutronResourceType.{Network => NetworkType, NoData, SecurityGroup => SecurityGroupType}
+import org.midonet.cluster.data.neutron.NeutronResourceType.{Network => NetworkType, NoData, Port => PortType, SecurityGroup => SecurityGroupType}
 import org.midonet.cluster.data.neutron.TaskType._
 import org.midonet.cluster.data.neutron.{NeutronResourceType, TaskType}
-import org.midonet.cluster.data.storage.Storage
+import org.midonet.cluster.data.storage.{ObjectReferencedException, Storage}
 import org.midonet.cluster.models.Commons.{EtherType, Protocol, RuleDirection}
+import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner
 import org.midonet.cluster.models.Neutron.SecurityGroup
-import org.midonet.cluster.models.Topology.{Chain, IpAddrGroup, Network, Rule}
+import org.midonet.cluster.models.Topology.{Chain, IpAddrGroup, Network, Port, Rule}
 import org.midonet.cluster.util.UUIDUtil
 import org.midonet.config.ConfigProvider
 import org.midonet.packets.{IPSubnet, IPv4Subnet, UDP}
@@ -271,6 +272,32 @@ class C3PODaemonTest extends FlatSpec with BeforeAndAfter
         if (dummyConnection != null) dummyConnection.close()
     }
 
+    private def portJson(name: String, id: UUID,
+                         networkId: UUID,
+                         adminStateUp: Boolean,
+                         mac_address: String = null,
+                         fixedIps: List[JsonNode] = null,
+                         deviceId: UUID = null,
+                         deviceOwner: DeviceOwner = null,
+                         tenantId: String = null,
+                         securityGroups: List[UUID] = null): JsonNode = {
+        val sg = nodeFactory.objectNode
+        sg.put("name", name)
+        sg.put("id", id.toString)
+        sg.put("network_id", networkId.toString)
+        sg.put("admin_state_up", adminStateUp)
+        sg.put("mac_address", mac_address)
+        if (fixedIps != null) sg.putArray("fixed_ips").addAll(fixedIps.asJava)
+        if (deviceId != null) sg.put("device_id", deviceId.toString)
+        if (deviceOwner != null) sg.put("device_owner", deviceOwner.toString)
+        if (tenantId != null) sg.put("tenant_id", tenantId)
+        if (securityGroups != null) {
+            val sgList = sg.putArray("security_groups")
+            securityGroups.map(sgid => sgList.add(sgid.toString))
+        }
+        sg
+    }
+
     private def sgJson(name: String, id: UUID,
                        desc: String = null,
                        tenantId: String = null,
@@ -369,7 +396,73 @@ class C3PODaemonTest extends FlatSpec with BeforeAndAfter
         storage.exists(classOf[Network], network2Uuid).await() should be (true)
     }
 
-    "C3PO" should "handle security group CRUD" in {
+    it should "manage port binding to a Network" in {
+        val threadSleepMs = 1000
+        // Creates Network 1 & 2.
+        executeSqlStmts(
+                insertMidoNetTaskSql(id = 2, Create, NetworkType, network1Json,
+                                     network1Uuid, "tx1"),
+                insertMidoNetTaskSql(id = 3, Create, NetworkType, network2Json,
+                                     network2Uuid, "tx1"))
+        Thread.sleep(threadSleepMs)
+
+        val vifPortUuid = UUID.randomUUID()
+        val vifPortId = UUIDUtil.toProto(vifPortUuid)
+        storage.exists(classOf[Port], vifPortId).await() should be (false)
+
+        // Creates a VIF port.
+        val vifPortJson = portJson(name = "port1", id = vifPortUuid,
+                                   networkId = network1Uuid,
+                                   adminStateUp = true).toString
+        executeSqlStmts(insertMidoNetTaskSql(
+                id = 4, Create, PortType, vifPortJson, vifPortUuid, "tx2"))
+        Thread.sleep(threadSleepMs)
+
+        storage.exists(classOf[Port], vifPortId).await() should be (true)
+        val vifPort = storage.get(classOf[Port], vifPortId).await()
+        vifPort.getId should be (vifPortId)
+        vifPort.getNetworkId should be (UUIDUtil.toProto(network1Uuid))
+        vifPort.getAdminStateUp should be (true)
+
+        val network1 = storage.get(classOf[Network], network1Uuid).await()
+        network1.getPortIdsList should contain (vifPortId)
+
+        // Update the port and move it to network 2.
+        val vifPortUpdate = portJson(name = "port1", id = vifPortUuid,
+                                     networkId = network2Uuid, // Moved.
+                                     adminStateUp = false      // Down now.
+                                     ).toString
+        executeSqlStmts(insertMidoNetTaskSql(
+                id = 5, Update, PortType, vifPortUpdate, vifPortUuid, "tx3"))
+        Thread.sleep(threadSleepMs)
+
+        val updatedVifPort = storage.get(classOf[Port], vifPortId).await()
+        updatedVifPort.getNetworkId should be (UUIDUtil.toProto(network2Uuid))
+        updatedVifPort.getAdminStateUp should be (false)
+        // Check back references are updated.
+        val updatedNw1 = storage.get(classOf[Network], network1Uuid).await()
+        updatedNw1.getPortIdsList should not contain (vifPortId)
+        val updatedNw2 = storage.get(classOf[Network], network2Uuid).await()
+        updatedNw2.getPortIdsList should contain (vifPortId)
+        // Deleting a network while ports are attached should throw exception.
+        intercept[ObjectReferencedException] {
+            storage.delete(classOf[Network], network2Uuid)
+        }
+
+        // Delete the VIF port.
+        executeSqlStmts(insertMidoNetTaskSql(
+                id = 6, Delete, PortType, json = null, vifPortUuid, "tx4"))
+        Thread.sleep(threadSleepMs)
+
+        storage.exists(classOf[Port], vifPortId).await() should be (false)
+        // Back reference was cleared.
+        val finalNw2 = storage.get(classOf[Network], network2Uuid).await()
+        finalNw2.getPortIdsList should not contain (vifPortId)
+        // You can delete the Network2 now.
+        storage.delete(classOf[Network], network2Uuid)
+    }
+
+    it should "handle security group CRUD" in {
         val sg1Id = UUID.randomUUID()
         val rule1Id = UUID.randomUUID()
         val rule1Json = ruleJson(
