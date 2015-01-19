@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "9a245df4_47f8aee5",
+        "filename": "midolman/src/main/java/org/midonet/cluster/LocalDataClientImpl.java",
+        "patchSetId": 7
+      },
+      "lineNbr": 3403,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-19T17:30:21Z",
+      "side": 1,
+      "message": "Context:\n- What this does is spot if the bridge has a vxlanPortId, and in that case move the value to the vxlanPortIds list.\n- This is probably not meant to be understood by end users because it exposes implementation details (a vxlan port is \"secret\")\n\nI can:\n\na) mark it as debug, since it\u0027s useful for us while debugging, but has no value for users.\nb) try to explain more (e.g., updating bridge model for multiple vtep support). \n\nI\u0027m leaning towards both?",
+      "parentUuid": "9a245df4_072b5683",
+      "revId": "fd17fcaff1b6925b77bb17f899abc5e6073b1304",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a245df4_873626e6",
         "filename": "midolman/src/main/java/org/midonet/cluster/data/Converter.java",
         "patchSetId": 7
@@ -30,6 +48,24 @@
       "writtenOn": "2015-01-19T17:01:18Z",
       "side": 1,
       "message": "delete.",
+      "revId": "fd17fcaff1b6925b77bb17f899abc5e6073b1304",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_07d51643",
+        "filename": "midolman/src/main/java/org/midonet/cluster/data/Converter.java",
+        "patchSetId": 7
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-19T17:30:21Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9a245df4_873626e6",
       "revId": "fd17fcaff1b6925b77bb17f899abc5e6073b1304",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -53,6 +89,24 @@
     },
     {
       "key": {
+        "uuid": "9a245df4_c7e3fe31",
+        "filename": "midolman/src/main/java/org/midonet/cluster/data/Converter.java",
+        "patchSetId": 7
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-19T17:30:21Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9a245df4_47254eaa",
+      "revId": "fd17fcaff1b6925b77bb17f899abc5e6073b1304",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a245df4_e733a2f4",
         "filename": "midolman/src/main/java/org/midonet/midolman/state/zkManagers/BridgeZkManager.java",
         "patchSetId": 7
@@ -70,6 +124,24 @@
     },
     {
       "key": {
+        "uuid": "9a245df4_c7bade09",
+        "filename": "midolman/src/main/java/org/midonet/midolman/state/zkManagers/BridgeZkManager.java",
+        "patchSetId": 7
+      },
+      "lineNbr": 256,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-19T17:30:21Z",
+      "side": 1,
+      "message": "Remove? I need to write at least 2-3 lines and they wouldn\u0027t be much more useful..",
+      "parentUuid": "9a245df4_e733a2f4",
+      "revId": "fd17fcaff1b6925b77bb17f899abc5e6073b1304",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a245df4_274dba73",
         "filename": "midolman/src/main/scala/org/midonet/midolman/FlowTranslator.scala",
         "patchSetId": 7
@@ -81,6 +153,24 @@
       "writtenOn": "2015-01-19T17:01:18Z",
       "side": 1,
       "message": "VxLanPort is a class name, i\u0027d make it end-user readable.",
+      "revId": "fd17fcaff1b6925b77bb17f899abc5e6073b1304",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_4746ee24",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/FlowTranslator.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 200,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-19T17:30:21Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9a245df4_274dba73",
       "revId": "fd17fcaff1b6925b77bb17f899abc5e6073b1304",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
