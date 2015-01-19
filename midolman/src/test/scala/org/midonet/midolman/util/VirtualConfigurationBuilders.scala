@@ -18,6 +18,8 @@ package org.midonet.midolman.util
 import java.util.UUID
 import java.util.{HashSet => JSet}
 
+import org.midonet.cluster.data.neutron.ExtraDhcpOpt
+
 import scala.util.Random
 
 import scala.collection.JavaConversions._
@@ -27,6 +29,7 @@ import org.midonet.cluster.data.{Bridge => ClusterBridge,
                                  Router => ClusterRouter,
                                  PortGroup => ClusterPortGroup,
                                  _}
+import org.midonet.cluster.data.dhcp.{Host => DhcpHost}
 import org.midonet.cluster.data.dhcp.Subnet
 import org.midonet.cluster.data.dhcp.Subnet6
 import org.midonet.cluster.data.host.Host
@@ -36,7 +39,7 @@ import org.midonet.cluster.data.rules.{JumpRule, LiteralRule}
 import org.midonet.midolman.layer3.Route.NextHop
 import org.midonet.midolman.rules.{FragmentPolicy, Condition, NatTarget}
 import org.midonet.midolman.rules.RuleResult.Action
-import org.midonet.packets.{IPv4Subnet, TCP, MAC}
+import org.midonet.packets.{IPv4Addr, IPv4Subnet, TCP, MAC}
 import org.midonet.midolman.state.DirectoryCallback
 import org.apache.zookeeper.KeeperException
 import org.midonet.cluster.data.l4lb.{PoolMember, Pool, VIP, LoadBalancer,
@@ -365,6 +368,12 @@ trait VirtualConfigurationBuilders {
     def addDhcpHost(bridge : ClusterBridge, subnet : Subnet,
                     host : org.midonet.cluster.data.dhcp.Host) = {
         clusterDataClient().dhcpHostsCreate(bridge.getId, subnet.getSubnetAddr, host)
+    }
+
+    def updatedhcpHost(bridge: ClusterBridge,
+                       subnet: Subnet, host: DhcpHost) = {
+        clusterDataClient().dhcpHostsUpdate(
+            bridge.getId, subnet.getSubnetAddr, host)
     }
 
     def addDhcpSubnet6(bridge : ClusterBridge,
