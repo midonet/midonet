@@ -16,9 +16,10 @@
 
 package org.midonet.brain.services.vxgw
 
+import java.util.concurrent.TimeUnit.SECONDS
 import java.util.{Random, UUID}
 import java.util.concurrent.Executors.newSingleThreadExecutor
-import java.util.concurrent.{ConcurrentHashMap, ThreadFactory}
+import java.util.concurrent.{TimeUnit, ConcurrentHashMap, ThreadFactory}
 
 import org.slf4j.LoggerFactory
 import rx.Observer
@@ -107,6 +108,21 @@ class VxlanGatewaySummoner(dataClient: DataClient,
             log.debug(s"Vxgw manager for network $id already exists")
         }
 
+    }
+
+    def stop(): Unit = {
+
+        executor.shutdown()
+        try {
+            if (!executor.awaitTermination(5, SECONDS)) {
+                log.warn("Failed to stop network monitor orderly, insisting..")
+                executor.shutdownNow()
+            }
+        } catch {
+            case e: InterruptedException =>
+                log.error("Failed to shutdown executor", e)
+                Thread.currentThread().interrupt()
+        }
     }
 
 }
