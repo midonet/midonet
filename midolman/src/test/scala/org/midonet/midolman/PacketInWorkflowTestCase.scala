@@ -37,18 +37,18 @@ class PacketInWorkflowTestCase extends MidolmanTestCase {
 
     def testDatapathPacketIn() {
 
-        val host = new Host(hostId()).setName("myself")
-        clusterDataClient().hostsCreate(hostId(), host)
+        val host = new Host(hostId).setName("myself")
+        clusterDataClient.hostsCreate(hostId, host)
 
         val bridge = new ClusterBridge().setName("test")
-        bridge.setId(clusterDataClient().bridgesCreate(bridge))
+        bridge.setId(clusterDataClient.bridgesCreate(bridge))
 
         val vifPort = Ports.bridgePort(bridge)
-        vifPort.setId(clusterDataClient().portsCreate(vifPort))
+        vifPort.setId(clusterDataClient.portsCreate(vifPort))
 
         materializePort(vifPort, host, "port")
 
-        initializeDatapath() should not be (null)
+        initializeDatapath() should not be null
 
         val datapath = datapathEventsProbe.expectMsgType[DatapathReady].datapath
         datapath should not be null

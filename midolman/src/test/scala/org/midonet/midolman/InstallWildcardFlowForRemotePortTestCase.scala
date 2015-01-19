@@ -40,7 +40,7 @@ class InstallWildcardFlowForRemotePortTestCase extends MidolmanTestCase {
 
         val tunnelZone = greTunnelZone("default")
 
-        val host1 = newHost("host1", hostId())
+        val host1 = newHost("host1", hostId)
         val host2 = newHost("host2")
 
         val bridge = newBridge("bridge")
@@ -53,13 +53,13 @@ class InstallWildcardFlowForRemotePortTestCase extends MidolmanTestCase {
         val portOnHost2 = materializePort(portOnHost2_unMaterialized, host2,
           "port2")
 
-        clusterDataClient().tunnelZonesAddMembership(
+        clusterDataClient.tunnelZonesAddMembership(
             tunnelZone.getId, new TunnelZone.HostConfig(host1.getId).setIp(srcIp))
 
-        clusterDataClient().tunnelZonesAddMembership(
+        clusterDataClient.tunnelZonesAddMembership(
             tunnelZone.getId, new TunnelZone.HostConfig(host2.getId).setIp(dstIp))
 
-        initializeDatapath() should not be (null)
+        initializeDatapath() should not be null
 
         val datapath = datapathEventsProbe
             .expectMsgType[DatapathController.DatapathReady].datapath
@@ -81,16 +81,16 @@ class InstallWildcardFlowForRemotePortTestCase extends MidolmanTestCase {
         addFlowMsg.f.getMatch.getInputPortNumber should be(inputPortNo)
 
         val flowActs = addFlowMsg.f.actions
-        flowActs should not be (null)
+        flowActs should not be null
 
-        flowActs should have size(2)
+        flowActs should have size 2
 
         val (outputs, tunnelKeys) = parseTunnelActions(flowActs)
 
-        outputs should have size(1)
+        outputs should have size 1
         outputs should contain(output(greTunnelId))
 
-        tunnelKeys should have size(1)
+        tunnelKeys should have size 1
         tunnelKeys.find(tunnelIsLike(srcIp.toInt, dstIp.toInt, portOnHost2.getTunnelKey)) should not be None
 
     }

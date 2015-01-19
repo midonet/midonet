@@ -17,7 +17,6 @@ package org.midonet.midolman
 
 import java.util.{HashSet => JHashSet, UUID}
 
-import akka.testkit.TestProbe
 import org.junit.experimental.categories.Category
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
@@ -73,12 +72,12 @@ class FloatingIpTestCase extends MidolmanTestCase
 
     override def beforeTest() {
 
-        val host = newHost("myself", hostId())
+        val host = newHost("myself", hostId)
         host should not be null
         val router = newRouter("router")
         router should not be null
 
-        initializeDatapath() should not be (null)
+        initializeDatapath() should not be null
         requestOfType[HostRequest](vtpProbe())
         requestOfType[OutgoingMessage](vtpProbe())
 
@@ -121,7 +120,7 @@ class FloatingIpTestCase extends MidolmanTestCase
 
         val brPort1 = newBridgePort(bridge)
         brPort1 should not be null
-        clusterDataClient().portsLink(rtrPort2.getId, brPort1.getId)
+        clusterDataClient.portsLink(rtrPort2.getId, brPort1.getId)
 
         // add a materialized port on bridge, logically connect to VM2
         brPort2 = newBridgePort(bridge)
@@ -163,10 +162,10 @@ class FloatingIpTestCase extends MidolmanTestCase
         snatRule should not be null
 
         // TODO needed?
-        clusterDataClient().routersUpdate(router)
+        clusterDataClient.routersUpdate(router)
 
         datapathEventsProbe.expectMsgType[DatapathController.DatapathReady]
-                   .datapath should not be (null)
+                   .datapath should not be null
         drainProbes()
     }
 

@@ -166,7 +166,7 @@ class AdminStateTest extends MidolmanSpec {
             Given("a down bridge")
 
             bridge.setAdminStateUp(false)
-            clusterDataClient().bridgesUpdate(bridge)
+            clusterDataClient.bridgesUpdate(bridge)
 
             When("a packet is sent to that bridge")
 
@@ -183,7 +183,7 @@ class AdminStateTest extends MidolmanSpec {
             Given("a down bridge port")
 
             interiorBridgePort.setAdminStateUp(false)
-            clusterDataClient().portsUpdate(interiorBridgePort)
+            clusterDataClient.portsUpdate(interiorBridgePort)
 
             When("a packet is egressing that port")
 
@@ -200,7 +200,7 @@ class AdminStateTest extends MidolmanSpec {
             Given("a down bridge port")
 
             interiorBridgePort.setAdminStateUp(false)
-            clusterDataClient().portsUpdate(interiorBridgePort)
+            clusterDataClient.portsUpdate(interiorBridgePort)
 
             When("a packet is ingressing that port")
 
@@ -217,7 +217,7 @@ class AdminStateTest extends MidolmanSpec {
             Given("a down bridge port")
 
             exteriorBridgePort.setAdminStateUp(false)
-            clusterDataClient().portsUpdate(exteriorBridgePort)
+            clusterDataClient.portsUpdate(exteriorBridgePort)
 
             When("a packet is egressing that port")
 
@@ -234,7 +234,7 @@ class AdminStateTest extends MidolmanSpec {
             Given("a down bridge port")
 
             exteriorBridgePort.setAdminStateUp(false)
-            clusterDataClient().portsUpdate(exteriorBridgePort)
+            clusterDataClient.portsUpdate(exteriorBridgePort)
 
             When("a packet is ingressing that port")
 
@@ -266,7 +266,7 @@ class AdminStateTest extends MidolmanSpec {
             When("the port is set to down")
 
             exteriorBridgePort.setAdminStateUp(false)
-            clusterDataClient().portsUpdate(exteriorBridgePort)
+            clusterDataClient.portsUpdate(exteriorBridgePort)
 
             Then("the port should not be flooded")
 
@@ -282,7 +282,7 @@ class AdminStateTest extends MidolmanSpec {
             Given("a down router")
 
             router.setAdminStateUp(false)
-            clusterDataClient().routersUpdate(router)
+            clusterDataClient.routersUpdate(router)
 
             When("a packet is sent to that router")
 
@@ -305,7 +305,7 @@ class AdminStateTest extends MidolmanSpec {
             Given("a down router port")
 
             interiorRouterPort.setAdminStateUp(false)
-            clusterDataClient().portsUpdate(interiorRouterPort)
+            clusterDataClient.portsUpdate(interiorRouterPort)
 
             When("a packet is egressing that port")
 
@@ -328,7 +328,7 @@ class AdminStateTest extends MidolmanSpec {
             Given("a down router port")
 
             interiorRouterPort.setAdminStateUp(false)
-            clusterDataClient().portsUpdate(interiorRouterPort)
+            clusterDataClient.portsUpdate(interiorRouterPort)
 
             When("a packet is ingressing that port")
 
@@ -350,7 +350,7 @@ class AdminStateTest extends MidolmanSpec {
             Given("a down router port")
 
             exteriorRouterPort.setAdminStateUp(false)
-            clusterDataClient().portsUpdate(exteriorRouterPort)
+            clusterDataClient.portsUpdate(exteriorRouterPort)
 
             When("a packet is egressing that port")
 
@@ -373,7 +373,7 @@ class AdminStateTest extends MidolmanSpec {
             Given("a down router port")
 
             exteriorRouterPort.setAdminStateUp(false)
-            clusterDataClient().portsUpdate(exteriorRouterPort)
+            clusterDataClient.portsUpdate(exteriorRouterPort)
 
             When("a packet is ingressing that port")
 
@@ -399,7 +399,7 @@ class AdminStateTest extends MidolmanSpec {
         val cookieStr: String = ""
 
         protected val dpState: DatapathState = new DatapathState {
-            val host = rcu.ResolvedHost(hostId(), true, 0, "mido", Map.empty, Map.empty)
+            val host = rcu.ResolvedHost(hostId, true, 0, "mido", Map.empty, Map.empty)
             def peerTunnelInfo(peer: UUID) = null
             def overlayTunnellingOutputAction: FlowActionOutput = null
             def dpPortNumberForTunnelKey(key: Long) = None
@@ -453,7 +453,7 @@ class AdminStateTest extends MidolmanSpec {
             When("setting its state to down")
 
             bridge.setAdminStateUp(false)
-            clusterDataClient().bridgesUpdate(bridge)
+            clusterDataClient.bridgesUpdate(bridge)
 
             Then("corresponding flows should be invalidated")
 
@@ -463,13 +463,13 @@ class AdminStateTest extends MidolmanSpec {
         scenario("the admin state of a bridge is set to up") {
             Given("a bridge with its state set to down")
             bridge.setAdminStateUp(false)
-            clusterDataClient().bridgesUpdate(bridge)
+            clusterDataClient.bridgesUpdate(bridge)
             VirtualTopologyActor.getAndClear()
 
             When("setting its state to down")
 
             bridge.setAdminStateUp(true)
-            clusterDataClient().bridgesUpdate(bridge)
+            clusterDataClient.bridgesUpdate(bridge)
 
             Then("corresponding flows should be invalidated")
 
@@ -483,8 +483,8 @@ class AdminStateTest extends MidolmanSpec {
 
             interiorBridgePort.setAdminStateUp(false)
             exteriorBridgePort.setAdminStateUp(false)
-            clusterDataClient().portsUpdate(interiorBridgePort)
-            clusterDataClient().portsUpdate(exteriorBridgePort)
+            clusterDataClient.portsUpdate(interiorBridgePort)
+            clusterDataClient.portsUpdate(exteriorBridgePort)
 
             Then("corresponding flows should be invalidated")
 
@@ -495,16 +495,16 @@ class AdminStateTest extends MidolmanSpec {
             Given("interior and exterior bridge ports with their state set to down")
             interiorBridgePort.setAdminStateUp(false)
             exteriorBridgePort.setAdminStateUp(false)
-            clusterDataClient().portsUpdate(interiorBridgePort)
-            clusterDataClient().portsUpdate(exteriorBridgePort)
+            clusterDataClient.portsUpdate(interiorBridgePort)
+            clusterDataClient.portsUpdate(exteriorBridgePort)
             VirtualTopologyActor.getAndClear()
 
             When("setting their state to up")
 
             interiorBridgePort.setAdminStateUp(true)
             exteriorBridgePort.setAdminStateUp(true)
-            clusterDataClient().portsUpdate(interiorBridgePort)
-            clusterDataClient().portsUpdate(exteriorBridgePort)
+            clusterDataClient.portsUpdate(interiorBridgePort)
+            clusterDataClient.portsUpdate(exteriorBridgePort)
 
             Then("corresponding flows should be invalidated")
 
@@ -517,7 +517,7 @@ class AdminStateTest extends MidolmanSpec {
             When("setting its state to down")
 
             router.setAdminStateUp(false)
-            clusterDataClient().routersUpdate(router)
+            clusterDataClient.routersUpdate(router)
 
             Then("corresponding flows should be invalidated")
 
@@ -527,13 +527,13 @@ class AdminStateTest extends MidolmanSpec {
         scenario("the admin state of a router is set to up") {
             Given("a router with its state set to down")
             router.setAdminStateUp(false)
-            clusterDataClient().routersUpdate(router)
+            clusterDataClient.routersUpdate(router)
             VirtualTopologyActor.getAndClear()
 
             When("setting its state to up")
 
             router.setAdminStateUp(true)
-            clusterDataClient().routersUpdate(router)
+            clusterDataClient.routersUpdate(router)
 
             Then("corresponding flows should be invalidated")
 
@@ -547,8 +547,8 @@ class AdminStateTest extends MidolmanSpec {
 
             interiorRouterPort.setAdminStateUp(false)
             exteriorRouterPort.setAdminStateUp(false)
-            clusterDataClient().portsUpdate(interiorRouterPort)
-            clusterDataClient().portsUpdate(exteriorRouterPort)
+            clusterDataClient.portsUpdate(interiorRouterPort)
+            clusterDataClient.portsUpdate(exteriorRouterPort)
 
             Then("corresponding flows should be invalidated")
 
@@ -559,16 +559,16 @@ class AdminStateTest extends MidolmanSpec {
             Given("interior and exterior router ports with their state set to down")
             interiorRouterPort.setAdminStateUp(false)
             exteriorRouterPort.setAdminStateUp(false)
-            clusterDataClient().portsUpdate(interiorRouterPort)
-            clusterDataClient().portsUpdate(exteriorRouterPort)
+            clusterDataClient.portsUpdate(interiorRouterPort)
+            clusterDataClient.portsUpdate(exteriorRouterPort)
             VirtualTopologyActor.getAndClear()
 
             When("setting their state to up")
 
             interiorRouterPort.setAdminStateUp(true)
             exteriorRouterPort.setAdminStateUp(true)
-            clusterDataClient().portsUpdate(interiorRouterPort)
-            clusterDataClient().portsUpdate(exteriorRouterPort)
+            clusterDataClient.portsUpdate(interiorRouterPort)
+            clusterDataClient.portsUpdate(exteriorRouterPort)
 
             Then("corresponding flows should be invalidated")
 

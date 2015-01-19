@@ -53,7 +53,7 @@ class HostMapperTest extends MidolmanSpec
         List(classOf[Host], classOf[TunnelZone]).foreach(clazz =>
             store.registerClass(clazz)
         )
-        dataClient = clusterDataClient()
+        dataClient = clusterDataClient
     }
 
     feature("A host should come with its tunnel zones membership") {
