@@ -94,6 +94,30 @@
     },
     {
       "key": {
+        "uuid": "da2a55be_f82e9da4",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/util/ObservablePathChildrenCache.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 217,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-19T11:24:06Z",
+      "side": 1,
+      "message": "@Nicolas it\u0027s not that use of foreach is NPE unsafe. Galo\u0027s comment simply means that childStreams is never null.",
+      "parentUuid": "da2a55be_d84599b4",
+      "range": {
+        "startLine": 217,
+        "startChar": 8,
+        "endLine": 217,
+        "endChar": 48
+      },
+      "revId": "1ef53aaf05400c3d87a90e20b44e05041c42a275",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "da2a55be_d81c79c4",
         "filename": "cluster/src/test/scala/org/midonet/cluster/util/ObservablePathChildrenCacheTest.scala",
         "patchSetId": 17
