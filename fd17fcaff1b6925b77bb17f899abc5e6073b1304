@@ -1,0 +1,89 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9a245df4_072b5683",
+        "filename": "midolman/src/main/java/org/midonet/cluster/LocalDataClientImpl.java",
+        "patchSetId": 7
+      },
+      "lineNbr": 3403,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-01-19T17:01:18Z",
+      "side": 1,
+      "message": "please make log messages a bit more end-user readable:\n\n\"vxlanPortId\" --\u003e VxLAN port\n\nI\u0027m not sure what \"migrate legacy...\" means, is it a suggestion to the user or something we are doing? If the latter shouldn\u0027t it be \"migrating\"?",
+      "revId": "fd17fcaff1b6925b77bb17f899abc5e6073b1304",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_873626e6",
+        "filename": "midolman/src/main/java/org/midonet/cluster/data/Converter.java",
+        "patchSetId": 7
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-01-19T17:01:18Z",
+      "side": 1,
+      "message": "delete.",
+      "revId": "fd17fcaff1b6925b77bb17f899abc5e6073b1304",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_47254eaa",
+        "filename": "midolman/src/main/java/org/midonet/cluster/data/Converter.java",
+        "patchSetId": 7
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-01-19T17:01:18Z",
+      "side": 1,
+      "message": "delete.",
+      "revId": "fd17fcaff1b6925b77bb17f899abc5e6073b1304",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_e733a2f4",
+        "filename": "midolman/src/main/java/org/midonet/midolman/state/zkManagers/BridgeZkManager.java",
+        "patchSetId": 7
+      },
+      "lineNbr": 256,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-01-19T17:01:18Z",
+      "side": 1,
+      "message": "please make more readable.",
+      "revId": "fd17fcaff1b6925b77bb17f899abc5e6073b1304",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_274dba73",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/FlowTranslator.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 200,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-01-19T17:01:18Z",
+      "side": 1,
+      "message": "VxLanPort is a class name, i\u0027d make it end-user readable.",
+      "revId": "fd17fcaff1b6925b77bb17f899abc5e6073b1304",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
