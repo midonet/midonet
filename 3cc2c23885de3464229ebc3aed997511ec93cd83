@@ -1,0 +1,234 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9a245df4_87abc6d5",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/C3POMinionTest.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 246,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-19T17:35:55Z",
+      "side": 1,
+      "message": "see Tomohiko\u0027s comment in version 12",
+      "range": {
+        "startLine": 246,
+        "startChar": 34,
+        "endLine": 246,
+        "endChar": 52
+      },
+      "revId": "3cc2c23885de3464229ebc3aed997511ec93cd83",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_e78f2274",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/C3POMinionTest.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 328,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-19T17:35:55Z",
+      "side": 1,
+      "message": "This is not necessary if you import UUIDUtil, it will do the conversion automatically.",
+      "range": {
+        "startLine": 328,
+        "startChar": 32,
+        "endLine": 328,
+        "endChar": 62
+      },
+      "revId": "3cc2c23885de3464229ebc3aed997511ec93cd83",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_2782da52",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/C3POMinionTest.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 384,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-19T17:35:55Z",
+      "side": 1,
+      "message": "This is not necessary if you import UUIDUtil, it will do the conversion automatically.",
+      "range": {
+        "startLine": 384,
+        "startChar": 8,
+        "endLine": 384,
+        "endChar": 53
+      },
+      "revId": "3cc2c23885de3464229ebc3aed997511ec93cd83",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_677cd273",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/C3POMinionTest.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 416,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-19T17:35:55Z",
+      "side": 1,
+      "message": "that",
+      "range": {
+        "startLine": 416,
+        "startChar": 16,
+        "endLine": 416,
+        "endChar": 17
+      },
+      "revId": "3cc2c23885de3464229ebc3aed997511ec93cd83",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_c78c9e82",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/storage/MidonetBackendConfig.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-19T17:35:55Z",
+      "side": 1,
+      "message": "remove since it only contains zookeeper config for now?",
+      "range": {
+        "startLine": 23,
+        "startChar": 53,
+        "endLine": 23,
+        "endChar": 58
+      },
+      "revId": "3cc2c23885de3464229ebc3aed997511ec93cd83",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_67ca12a3",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/storage/MidonetBackendModule.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-19T17:35:55Z",
+      "side": 1,
+      "message": "only defines dependencies?",
+      "range": {
+        "startLine": 24,
+        "startChar": 22,
+        "endLine": 24,
+        "endChar": 54
+      },
+      "revId": "3cc2c23885de3464229ebc3aed997511ec93cd83",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_47cf0eb1",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/storage/MidonetBackendModule.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-19T17:35:55Z",
+      "side": 1,
+      "message": "remove \u0027any\u0027",
+      "range": {
+        "startLine": 24,
+        "startChar": 75,
+        "endLine": 24,
+        "endChar": 78
+      },
+      "revId": "3cc2c23885de3464229ebc3aed997511ec93cd83",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_e7bd6204",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/storage/MidonetBackendModule.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-19T17:35:55Z",
+      "side": 1,
+      "message": "superfluous",
+      "range": {
+        "startLine": 25,
+        "startChar": 72,
+        "endLine": 26,
+        "endChar": 29
+      },
+      "revId": "3cc2c23885de3464229ebc3aed997511ec93cd83",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_c7513eda",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/storage/NeutronDbConfig.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-19T17:35:55Z",
+      "side": 1,
+      "message": "why not providing default values for these parameters?",
+      "range": {
+        "startLine": 23,
+        "startChar": 0,
+        "endLine": 30,
+        "endChar": 20
+      },
+      "revId": "3cc2c23885de3464229ebc3aed997511ec93cd83",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_e76ba283",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/storage/ZoomProvider.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-19T17:35:55Z",
+      "side": 1,
+      "message": "Why not using zookeeperRootPath from MidonetBackendConfig (aren\u0027t they the same thing?)",
+      "range": {
+        "startLine": 33,
+        "startChar": 48,
+        "endLine": 33,
+        "endChar": 50
+      },
+      "revId": "3cc2c23885de3464229ebc3aed997511ec93cd83",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
