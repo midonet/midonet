@@ -187,6 +187,10 @@ class VxlanGatewayManagerTest extends FlatSpec with Matchers
             // proxy twice: first because it's the first subscription to the tz,
             // another on the VTEP preseed, both race, so we just emit both.
         )
+        // We expect 4, but they are duplicate. This is because the
+        // mgr initialization races with the first vtep load. We can't rely
+        // on the mac-port watchers to be triggered in time to get to the VTEP
+        // so we just emit a snapshot inside ensureInitialized() to be sure
 
         When("a new mac-port entry is added")
         ctx.macPortMap.put(mac3, ctx.port1.getId)
