@@ -65,7 +65,7 @@ import static com.google.common.collect.Collections2.filter;
 /**
  * A service to integrate a Midonet cloud with hardware VTEPs.
  */
-public class VxLanGatewayService extends ClusterMinion {
+public class VxLanGatewayService extends VxLanGatewayServiceBase {
 
     private static final Logger log =
         LoggerFactory.getLogger(VxLanGatewayService.class);
@@ -441,7 +441,7 @@ public class VxLanGatewayService extends ClusterMinion {
 
     /** Configuration for the VxGWService Minion. */
     @ConfigGroup(VxGWServiceConfig.configGroup)
-    public interface VxGWServiceConfig extends MinionConfig<VxLanGatewayService> {
+    public interface VxGWServiceConfig extends MinionConfig<VxLanGatewayServiceBase> {
 
         public static final String configGroup = "vxgw";
 
