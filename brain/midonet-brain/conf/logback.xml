@@ -37,7 +37,7 @@
     </appender>
 
     <!-- Fine grained settings for specific packages -->
-    <logger name="org.apache.cassandra" level="INFO" />
+    <!-- logger name="org.apache.cassandra" level="INFO" / -->
     <!-- logger name="org.eclipse.jetty" level="INFO" / -->
 
     <!-- Service loggers -->
@@ -72,7 +72,7 @@
     <!-- <logger name="org.midonet.vxgw.vxgw-manager-$NETWORK_ID" level="DEBUG"/> -->
 
     <!-- OFF, ERROR, WARN, INFO, DEBUG, TRACE -->
-    <root level="INFO">
+    <root level="DEBUG">
         <appender-ref ref="STDOUT" />
         <appender-ref ref="LOG-FILE" />
     </root>
