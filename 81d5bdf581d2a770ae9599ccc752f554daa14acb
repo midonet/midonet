@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "da2a55be_c36c8a39",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/Host.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-01-19T14:45:15Z",
+      "side": 1,
+      "message": "note it\u0027s only jealous because its sibling has them. I if had not, this block would not whine about it.\n\nBut, please do not rebase just for this!",
+      "parentUuid": "da2a55be_c33e4a29",
+      "revId": "81d5bdf581d2a770ae9599ccc752f554daa14acb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "da2a55be_e3eeeeb3",
         "filename": "midonet-util/src/main/scala/org/midonet/packets/IPAddr.scala",
         "patchSetId": 16
@@ -66,6 +84,24 @@
       "side": 1,
       "message": "In the DatapathController, we used to compare an inetaddress to an IPv4Addr. Now that we use devices.Host instead of rcu.Host, the ip can be v4 or v6. This method is more general than what was done in the DatapathController because we can now compare v4 and v6 addresses.",
       "parentUuid": "da2a55be_e3eeeeb3",
+      "revId": "81d5bdf581d2a770ae9599ccc752f554daa14acb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da2a55be_63883ee8",
+        "filename": "midonet-util/src/main/scala/org/midonet/packets/IPAddr.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-01-19T14:45:15Z",
+      "side": 1,
+      "message": "got it.",
+      "parentUuid": "da2a55be_a33b5637",
       "revId": "81d5bdf581d2a770ae9599ccc752f554daa14acb",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
