@@ -78,7 +78,7 @@ class DatapathControllerPortCreationTestCase extends MidolmanSpec {
             ifname: String): BridgePort = {
         val port = newBridgePort(br)
         port should not be null
-        clusterDataClient().hostsAddVrnPortMapping(hostId, port.getId, ifname)
+        clusterDataClient.hostsAddVrnPortMapping(hostId, port.getId, ifname)
         port
     }
 
@@ -90,7 +90,7 @@ class DatapathControllerPortCreationTestCase extends MidolmanSpec {
             Set(zone.getId))
         host should not be null
 
-        clusterDataClient().tunnelZonesAddMembership(zone.getId,
+        clusterDataClient.tunnelZonesAddMembership(zone.getId,
             new TunnelZone.HostConfig(host.getId).setIp(ip))
 
         clusterBridge = newBridge("bridge")
@@ -119,7 +119,7 @@ class DatapathControllerPortCreationTestCase extends MidolmanSpec {
             addInterface()
 
             Then("the DpC should create the datapath port")
-            testableDpc.dpState.getDpPortNumberForVport(port.getId) should not equal (None)
+            testableDpc.dpState.getDpPortNumberForVport(port.getId) should not equal None
 
             And("the min MTU should be the interface one")
             DatapathController.minMtu should be (ifmtu - VxLanTunnelPort.TunnelOverhead)
@@ -154,7 +154,7 @@ class DatapathControllerPortCreationTestCase extends MidolmanSpec {
             val port = addAndMaterializeBridgePort(host.getId, clusterBridge, ifname)
 
             Then("the DpC should create the datapath port")
-            testableDpc.dpState.getDpPortNumberForVport(port.getId) should not equal (None)
+            testableDpc.dpState.getDpPortNumberForVport(port.getId) should not equal None
             VirtualToPhysicalMapper.getAndClear() filter {
                 case LocalPortActive(_,_) => true
                 case _ => false
@@ -162,7 +162,7 @@ class DatapathControllerPortCreationTestCase extends MidolmanSpec {
 
             When("the binding disappears")
             VirtualToPhysicalMapper.getAndClear()
-            clusterDataClient().hostsDelVrnPortMapping(host.getId, port.getId)
+            clusterDataClient.hostsDelVrnPortMapping(host.getId, port.getId)
 
             Then("the DpC should delete the datapath port")
             testableDpc.dpState.getDpPortNumberForVport(port.getId) should equal (None)

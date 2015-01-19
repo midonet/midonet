@@ -24,12 +24,11 @@ import org.junit.experimental.categories.Category
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.midolman.FlowController.{AddWildcardFlow, WildcardFlowAdded}
+import org.midonet.midolman.FlowController.WildcardFlowAdded
 import org.midonet.midolman.util.SimulationHelper
 import org.midonet.midolman.util.MidolmanTestCase
 import org.midonet.odp.FlowMatch
 import org.midonet.odp.flows.{FlowKeyICMPEcho, FlowKeyTCP, FlowKeyICMP}
-import org.midonet.odp.protos.MockOvsDatapathConnection
 import org.midonet.sdn.flows.FlowManager
 
 @Category(Array(classOf[SimulationTests]))
@@ -62,7 +61,7 @@ class DatapathFlowTableConsistencyTestCase extends MidolmanTestCase
     }
 
     private def findMatch[T](implicit m: ClassTag[T]) : Option[FlowMatch] = {
-        for (flowMatch <- mockDpChannel().flowsTable.keySet()) {
+        for (flowMatch <- mockDpChannel.flowsTable.keySet()) {
            for (flowKey <- flowMatch.getKeys) {
                if (m.runtimeClass.isInstance(flowKey)) {
                    return Option(flowMatch)
@@ -77,8 +76,8 @@ class DatapathFlowTableConsistencyTestCase extends MidolmanTestCase
         // packet did not go through a NAT rule.
         drainProbes()
         expectPacketAllowed(0, 1, icmpBetweenPorts)
-        findMatch[FlowKeyICMPEcho] should not be (None)
-        findMatch[FlowKeyICMP] should not be (None)
+        findMatch[FlowKeyICMPEcho] should not be None
+        findMatch[FlowKeyICMP] should not be None
         expectFlowAddedMessage()
 
         drainProbes()
@@ -86,8 +85,8 @@ class DatapathFlowTableConsistencyTestCase extends MidolmanTestCase
         expectPacketAllowed(0, 1, icmpBetweenPorts)
         wflowAddedProbe.expectNoMsg(100 millis)
 
-        findMatch[FlowKeyICMPEcho] should not be (None)
-        findMatch[FlowKeyICMP] should not be (None)
+        findMatch[FlowKeyICMPEcho] should not be None
+        findMatch[FlowKeyICMP] should not be None
     }
 
     def testFlowGetMiss() {
@@ -97,11 +96,11 @@ class DatapathFlowTableConsistencyTestCase extends MidolmanTestCase
 
         requestOfType[WildcardFlowAdded](wflowAddedProbe)
         val tcpMatch = findMatch[FlowKeyTCP]
-        tcpMatch should not be (None)
+        tcpMatch should not be None
         flowManager.getNumDpFlows shouldBe 1
 
         // remove flow, from the datapath
-        mockDpChannel().flowsTable remove tcpMatch.get
+        mockDpChannel.flowsTable remove tcpMatch.get
         findMatch[FlowKeyTCP] shouldBe None
 
         // instead of waiting for IDLE_EXPIRATION for 60 secs, expire the flow
@@ -118,10 +117,10 @@ class DatapathFlowTableConsistencyTestCase extends MidolmanTestCase
         requestOfType[WildcardFlowAdded](wflowAddedProbe)
 
         val pktMatch = findMatch[FlowKeyTCP]
-        pktMatch should not be (None)
+        pktMatch should not be None
 
         // remove flow, from the datapath
-        pktMatch.foreach{mockDpChannel().flowsTable.remove(_)}
+        pktMatch.foreach{mockDpChannel.flowsTable.remove(_)}
         findMatch[FlowKeyTCP] should be (None)
 
         drainProbes()
@@ -130,6 +129,6 @@ class DatapathFlowTableConsistencyTestCase extends MidolmanTestCase
             tcpBetweenPorts(_:Int, _:Int, 9009, 80))
 
         fishForRequestOfType[FlowController.FlowAdded](flowProbe())
-        findMatch[FlowKeyTCP] should not be (None)
+        findMatch[FlowKeyTCP] should not be None
     }
 }

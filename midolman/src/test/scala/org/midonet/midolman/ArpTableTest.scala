@@ -68,10 +68,10 @@ class ArpTableTest extends MidolmanSpec {
     }
 
     private def buildTopology() {
-        newHost("myself", hostId())
+        newHost("myself", hostId)
         val clusterRouter = newRouter("router")
         val clusterPort = newRouterPort(clusterRouter, myMac, myIp, nwAddr, 24)
-        clusterDataClient().portsSetLocalAndActive(clusterPort.getId, hostId(), true)
+        clusterDataClient.portsSetLocalAndActive(clusterPort.getId, hostId, true)
         newRoute(clusterRouter, "0.0.0.0", 0, "0.0.0.0", 0, NextHop.PORT, clusterPort.getId, hisIp, 1)
 
         router = fetchDevice(clusterRouter)
@@ -109,7 +109,7 @@ class ArpTableTest extends MidolmanSpec {
 
     private def expectEmittedPacket(ctx: PacketContext, port: UUID): Ethernet = {
         ctx.packetEmitter.pendingPackets should be (1)
-        val generatedPacket = ctx.packetEmitter.poll
+        val generatedPacket = ctx.packetEmitter.poll()
         generatedPacket.egressPort should === (port)
         generatedPacket.eth
     }

@@ -15,10 +15,8 @@
  */
 package org.midonet.midolman
 
-import scala.collection.JavaConversions._
 import scala.util.Try
 
-import akka.testkit.TestProbe
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.data.{Bridge => ClusterBridge,
@@ -71,12 +69,12 @@ trait VMsBehindRouterFixture extends SimulationHelper with
 
     override def beforeTest() {
 
-        host = newHost("myself", hostId())
+        host = newHost("myself", hostId)
         host should not be null
         router = newRouter("router")
         router should not be null
 
-        initializeDatapath() should not be (null)
+        initializeDatapath() should not be null
         requestOfType[HostRequest](vtpProbe())
         requestOfType[OutgoingMessage](vtpProbe())
 
@@ -95,7 +93,7 @@ trait VMsBehindRouterFixture extends SimulationHelper with
 
         val brPort = newBridgePort(bridge)
         brPort should not be null
-        clusterDataClient().portsLink(rtrPort.getId, brPort.getId)
+        clusterDataClient.portsLink(rtrPort.getId, brPort.getId)
 
         vmPorts = vmPortNames map { _ => newBridgePort(bridge) }
         vmPorts zip vmPortNames foreach {
@@ -105,7 +103,7 @@ trait VMsBehindRouterFixture extends SimulationHelper with
                 requestOfType[LocalPortActive](portsProbe)
         }
         datapathEventsProbe.expectMsgType[DatapathController.DatapathReady]
-            .datapath should not be (null)
+            .datapath should not be null
         vmPortNumbers = ensureAllPortsUp(vmPorts)
         drainProbes()
     }

@@ -32,24 +32,24 @@ import org.midonet.odp.flows.FlowActions.output
 class InstallWildcardFlowTestCase extends MidolmanTestCase {
     def testInstallFlowForLocalPort() {
 
-        val host = new Host(hostId()).setName("myself")
-        clusterDataClient().hostsCreate(hostId(), host)
+        val host = new Host(hostId).setName("myself")
+        clusterDataClient.hostsCreate(hostId, host)
 
         val bridge = new ClusterBridge().setName("test")
-        bridge.setId(clusterDataClient().bridgesCreate(bridge))
+        bridge.setId(clusterDataClient.bridgesCreate(bridge))
 
         val inputPort = Ports.bridgePort(bridge)
-        inputPort.setId(clusterDataClient().portsCreate(inputPort))
+        inputPort.setId(clusterDataClient.portsCreate(inputPort))
 
         val outputPort = Ports.bridgePort(bridge)
-        outputPort.setId(clusterDataClient().portsCreate(outputPort))
+        outputPort.setId(clusterDataClient.portsCreate(outputPort))
 
         materializePort(inputPort, host, "inputPort")
         materializePort(outputPort, host, "outputPort")
 
         drainProbes()
-        initializeDatapath() should not be (null)
-        datapathEventsProbe.expectMsgType[DatapathController.DatapathReady].datapath should not be (null)
+        initializeDatapath() should not be null
+        datapathEventsProbe.expectMsgType[DatapathController.DatapathReady].datapath should not be null
         portsProbe.expectMsgClass(classOf[LocalPortActive])
         portsProbe.expectMsgClass(classOf[LocalPortActive])
 

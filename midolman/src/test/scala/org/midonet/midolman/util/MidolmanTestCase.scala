@@ -164,16 +164,16 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
             interfaceScanner = injector.getInstance(classOf[InterfaceScanner])
                 .asInstanceOf[MockInterfaceScanner]
 
-            mockDpChannel().packetsExecuteSubscribe {
+            mockDpChannel.packetsExecuteSubscribe {
                 (pkt: Packet, actions: JList[FlowAction]) =>
                     actors.eventStream.publish(PacketsExecute(pkt, actions))
             }
 
-            mockDpChannel().flowCreateSubscribe { flow =>
+            mockDpChannel.flowCreateSubscribe { flow =>
                 actors.eventStream.publish(FlowAdded(flow))
             }
 
-            mockFlowEjector().flowDeleteSubscribe { flow =>
+            mockFlowEjector.flowDeleteSubscribe { flow =>
                 actors.eventStream.publish(FlowRemoved(flow))
             }
 
@@ -259,12 +259,12 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
     def materializePort(port: VPort[_, _],
                         host: Host, name: String): VPort[_,_] = {
         val updatedPort =
-            clusterDataClient()
+            clusterDataClient
                 .hostsAddVrnPortMappingAndReturnPort(host.getId, port.getId, name)
 
-        clusterDataClient().portsSetLocalAndActive(port.getId, host.getId, true)
+        clusterDataClient.portsSetLocalAndActive(port.getId, host.getId, true)
 
-        if (host.getId == hostId()) {
+        if (host.getId == hostId) {
             val itf = new InterfaceDescription(name)
             itf.setHasLink(true)
             itf.setUp(true)

@@ -15,7 +15,6 @@
  */
 package org.midonet.midolman
 
-import akka.testkit.TestProbe
 import org.junit.experimental.categories.Category
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
@@ -36,7 +35,6 @@ import org.midonet.midolman.topology.VirtualToPhysicalMapper.HostRequest
 import org.midonet.midolman.util.MidolmanTestCase
 import org.midonet.midolman.util.RouterHelper
 import org.midonet.midolman.util.guice.OutgoingMessage
-import org.midonet.odp.flows.FlowActionOutput
 import org.midonet.odp.flows.FlowActions
 import org.midonet.packets._
 
@@ -68,13 +66,13 @@ class LinksTestCase extends MidolmanTestCase
     var host: Host = null
 
     override def beforeTest() {
-        host = newHost("myself", hostId())
+        host = newHost("myself", hostId)
         host should not be null
 
         router = newRouter("router")
         router should not be null
 
-        initializeDatapath() should not be (null)
+        initializeDatapath() should not be null
         requestOfType[HostRequest](vtpProbe())
         requestOfType[OutgoingMessage](vtpProbe())
 
@@ -162,7 +160,7 @@ class LinksTestCase extends MidolmanTestCase
         pkt.getSourceAddress should be (vm2Ip.getAddress.addr)
         pkt.getDestinationAddress should be (vm1Ip.getAddress.addr)
 
-        log.debug("Deactivate rtrPort2");
+        log.debug("Deactivate rtrPort2")
         val port2Ifc = new InterfaceDescription(rtrPort2Name)
         port2Ifc.setHasLink(false)
         port2Ifc.setUp(false)

@@ -47,7 +47,7 @@ class RouterWithFiltersTestCase extends MidolmanTestCase
         val forwardCond = new Condition()
         forwardCond.matchForwardFlow = true
         newLiteralRuleOnChain(chain, 1, forwardCond, RuleResult.Action.ACCEPT)
-        clusterDataClient().routersUpdate(router)
+        clusterDataClient.routersUpdate(router)
 
         val resp = vtaProbe().testActor ? ChainRequest(chain.getId)
         Await.result(resp, 3 second)

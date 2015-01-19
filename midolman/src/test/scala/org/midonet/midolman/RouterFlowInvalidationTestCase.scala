@@ -95,7 +95,7 @@ class RouterFlowInvalidationTestCase extends MidolmanTestCase
         drainProbes()
         drainProbe(eventProbe)
 
-        host = newHost("myself", hostId())
+        host = newHost("myself", hostId)
         clusterRouter = newRouter("router")
         clusterRouter should not be null
 
@@ -143,7 +143,7 @@ class RouterFlowInvalidationTestCase extends MidolmanTestCase
         val tag = FlowTagger.tagForTunnelKey(7001L)
         val tags = ROSet(tag)
 
-        mockDpChannel().createFlow(dpflow)
+        mockDpChannel.createFlow(dpflow)
         dpFlowProbe.expectMsgClass(classOf[FlowAdded])
         FlowController ! AddWildcardFlow(wflow, dpflow, new ArrayList[Callback0], tags)
         wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])
@@ -157,14 +157,14 @@ class RouterFlowInvalidationTestCase extends MidolmanTestCase
         wflowRemovedProbe.expectMsgClass(classOf[WildcardFlowRemoved])
         dpFlowProbe.expectMsgClass(classOf[FlowRemoved])
 
-        mockDpChannel().createFlow(dpflow)
+        mockDpChannel.createFlow(dpflow)
         dpFlowProbe.expectMsgClass(classOf[FlowAdded])
         FlowController ! AddWildcardFlow(wflow, dpflow, new ArrayList[Callback0],
                                          tags, lastInval)
         dpFlowProbe.expectMsgClass(classOf[FlowRemoved])
         wflowAddedProbe.expectNoMsg()
 
-        mockDpChannel().createFlow(dpflow)
+        mockDpChannel.createFlow(dpflow)
         dpFlowProbe.expectMsgClass(classOf[FlowAdded])
         FlowController ! AddWildcardFlow(wflow, dpflow, new ArrayList[Callback0], tags)
         wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])
@@ -202,7 +202,7 @@ class RouterFlowInvalidationTestCase extends MidolmanTestCase
             IPv4Addr.fromString(ipToReach), 1))
 
         // when we delete the routes we expect the flow to be invalidated
-        clusterDataClient().routesDelete(routeId)
+        clusterDataClient.routesDelete(routeId)
         wflowRemovedProbe.expectMsgClass(classOf[WildcardFlowRemoved])
         runFlowRemovalCallbacks()
         tagEventProbe.expectMsg(new RouterInvTrieTagCountModified(

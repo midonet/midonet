@@ -220,7 +220,7 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
                 RuleResult.Action.CONTINUE, Set(snatTarget), isDnat = false)
         snatRule should not be null
 
-        clusterDataClient().routersUpdate(router)
+        clusterDataClient.routersUpdate(router)
 
         natTable = deduplicationActor().underlyingActor.natStateTable
 
@@ -298,7 +298,7 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
             brChain, 3, forwardCond, RuleResult.Action.ACCEPT)
         forwardRule should not be null
 
-        clusterDataClient().bridgesUpdate(bridge)
+        clusterDataClient.bridgesUpdate(bridge)
 
         testSnat()
     }

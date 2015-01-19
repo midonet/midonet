@@ -44,7 +44,7 @@ class PoolHealthMonitorMapManagerTest
 
     private def emulatePoolHealthMonitorMapping(
             pool: Pool, status: PoolHealthMonitorMappingStatus): Unit =
-        clusterDataClient().poolSetMapStatus(pool.getId, status)
+        clusterDataClient.poolSetMapStatus(pool.getId, status)
 
     private def emulatePoolHealthMonitorMappingActivate(pool: Pool): Unit =
         emulatePoolHealthMonitorMapping(pool,

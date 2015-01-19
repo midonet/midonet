@@ -15,7 +15,7 @@
  */
 package org.midonet.midolman.topology.devices
 
-import java.util.{HashSet, UUID}
+import java.util.UUID
 
 import scala.collection.JavaConverters._
 

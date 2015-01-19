@@ -103,7 +103,7 @@ class FlowTranslatorTest extends MidolmanSpec {
     def makePort(host: UUID, bridge: Bridge)(f: BridgePort => BridgePort)
     : BridgePort = {
         val port = newBridgePort(bridge, f(new BridgePort().setHostId(host)))
-        clusterDataClient().portsSetLocalAndActive(port.getId, host, true)
+        clusterDataClient.portsSetLocalAndActive(port.getId, host, true)
         fetchTopology(port)
         port
     }
@@ -112,9 +112,9 @@ class FlowTranslatorTest extends MidolmanSpec {
                       vtepTunIp: IPv4Addr, tzId: UUID)
                      (f: VxLanPort => VxLanPort): VxLanPort = {
 
-        val port = clusterDataClient().bridgeCreateVxLanPort(bridge.getId,
-                                                             vtepIp, 4789, vni,
-                                                             vtepTunIp, tzId)
+        val port = clusterDataClient.bridgeCreateVxLanPort(bridge.getId,
+                                                           vtepIp, 4789, vni,
+                                                           vtepTunIp, tzId)
         fetchTopology(port, bridge)
         port
     }
@@ -192,7 +192,7 @@ class FlowTranslatorTest extends MidolmanSpec {
 
     def makeHost(bindings: Map[UUID, String],
                  hostIp: IPv4Addr = IPv4Addr("102.32.2.2")) = new ResolvedHost(
-            hostId(), true, 0L, "midonet",
+            hostId, true, 0L, "midonet",
             bindings.map{
                 case (id, iface) => makeBinding(id, iface)
             }.toMap,
@@ -207,10 +207,10 @@ class FlowTranslatorTest extends MidolmanSpec {
             val tzId = UUID.randomUUID()
             val bridge = newBridge("floodBridge")
 
-            val inPort = makeVxLanPort(hostId(), bridge, vni, vtepIp,
+            val inPort = makeVxLanPort(hostId, bridge, vni, vtepIp,
                                        vtepTunIp, tzId)(identity)
-            val port0 = makePort(hostId(), bridge)(identity) // code assumes
-            val port1 = makePort(hostId(), bridge)(identity) // them exterior
+            val port0 = makePort(hostId, bridge)(identity) // code assumes
+            val port1 = makePort(hostId, bridge)(identity) // them exterior
 
             activatePorts(List(inPort, port0, port1))
             ctx host makeHost(Map(inPort.getId -> "in", port0.getId -> "port0"))
@@ -228,9 +228,9 @@ class FlowTranslatorTest extends MidolmanSpec {
 
         translationScenario("The bridge has local ports") { ctx =>
             val bridge = newBridge("floodBridge")
-            val inPort = makePort(hostId(), bridge)(identity)
-            val port0 = makePort(hostId(), bridge)(identity) // code assumes that they
-            val port1 = makePort(hostId(), bridge)(identity) // are exterior
+            val inPort = makePort(hostId, bridge)(identity)
+            val port0 = makePort(hostId, bridge)(identity) // code assumes that they
+            val port1 = makePort(hostId, bridge)(identity) // are exterior
 
             activatePorts(List(inPort, port0, port1))
             ctx host makeHost(Map(inPort.getId -> "in", port0.getId -> "port0", port1.getId -> "port1"))
@@ -284,15 +284,15 @@ class FlowTranslatorTest extends MidolmanSpec {
             val vni = 11
             val tzId = UUID.randomUUID()
 
-            val host = clusterDataClient().hostsGet(hostId())
+            val host = clusterDataClient.hostsGet(hostId)
             var bridge = newBridge("floodBridge")
-            val inPort = makePort(hostId(), bridge)(identity)
-            val port0 = makePort(hostId(), bridge)(identity)
-            val vxlanPort = makeVxLanPort(hostId(), bridge, vni, vtepIp,
+            val inPort = makePort(hostId, bridge)(identity)
+            val port0 = makePort(hostId, bridge)(identity)
+            val vxlanPort = makeVxLanPort(hostId, bridge, vni, vtepIp,
                                           vtepTunIp, tzId)(identity)
 
             // refetch bridge, it was updated with the vxlan port
-            bridge = clusterDataClient().bridgesGet(bridge.getId)
+            bridge = clusterDataClient.bridgesGet(bridge.getId)
             activatePorts(List(inPort, port0))
 
             val clientPort0 = new ClientPort() {
@@ -304,7 +304,7 @@ class FlowTranslatorTest extends MidolmanSpec {
                 interfaceName = "in"
             }
             val rcuHost = new ResolvedHost(
-                hostId(), true, 0L, "midonet",
+                hostId, true, 0L, "midonet",
                 Map(inPort.getId -> PortBinding(inPort.getId, clientInPort.tunnelKey, "inPort"),
                     port0.getId -> PortBinding(port0.getId, clientPort0.tunnelKey, "port0")),
                 Map(
@@ -351,8 +351,8 @@ class FlowTranslatorTest extends MidolmanSpec {
                     .setInterfaceName("if")
             }
             val bridge = newBridge("floodBridge")
-            val lport0 = makePort(hostId(), bridge)(identity) // code assumes that they
-            val lport1 = makePort(hostId(), bridge)(identity) // are exterior
+            val lport0 = makePort(hostId, bridge)(identity) // code assumes that they
+            val lport1 = makePort(hostId, bridge)(identity) // are exterior
 
             activatePorts(List(lport0, lport1))
 
@@ -403,7 +403,7 @@ class FlowTranslatorTest extends MidolmanSpec {
                             { icmp.unreach.host}
             ctx.translate(
                 setKey(FlowKeys.icmpError(
-                    ICMP.TYPE_UNREACH, ICMP.UNREACH_CODE.UNREACH_HOST.toByte(), data)),
+                    ICMP.TYPE_UNREACH, ICMP.UNREACH_CODE.UNREACH_HOST.toByte, data)),
                 pkt)
             ctx verify (List(), Set.empty)
             pkt.getPayload.getPayload.asInstanceOf[ICMP].getData should be (data)
@@ -414,7 +414,7 @@ class FlowTranslatorTest extends MidolmanSpec {
             val pkt = { eth addr "02:02:02:01:01:01" -> eth_zero }
             ctx.translate(
                 setKey(FlowKeys.icmpError(
-                    ICMP.TYPE_UNREACH, ICMP.UNREACH_CODE.UNREACH_HOST.toByte(), data)),
+                    ICMP.TYPE_UNREACH, ICMP.UNREACH_CODE.UNREACH_HOST.toByte, data)),
                 pkt)
             ctx verify (List(), Set.empty)
             pkt.getPayload should be (null)
@@ -432,7 +432,7 @@ class FlowTranslatorTest extends MidolmanSpec {
         translationScenario("Different types of actions are translated") { ctx =>
             val bridge = newBridge("floodBridge")
             val port0 = UUID.randomUUID()
-            val port1 = makePort(hostId(), bridge)(identity) // code assumes it's exterior
+            val port1 = makePort(hostId, bridge)(identity) // code assumes it's exterior
             activatePorts(List(port1))
 
             ctx host makeHost(Map(port1.getId -> "port1", port0 -> "port0"))
