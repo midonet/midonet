@@ -1,0 +1,418 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "da2a55be_580ec935",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 12
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-19T10:03:17Z",
+      "side": 1,
+      "message": "s/chantes/changes/",
+      "range": {
+        "startLine": 10,
+        "startChar": 54,
+        "endLine": 10,
+        "endChar": 61
+      },
+      "revId": "8ba662ac8da2a1063fc89f3c5c1a3552c4093eaf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da2a55be_d819197b",
+        "filename": "brain/midonet-brain/conf/cluster.conf",
+        "patchSetId": 12
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-19T10:03:17Z",
+      "side": 1,
+      "message": "A duplicate \"to\".",
+      "range": {
+        "startLine": 17,
+        "startChar": 49,
+        "endLine": 17,
+        "endChar": 51
+      },
+      "revId": "8ba662ac8da2a1063fc89f3c5c1a3552c4093eaf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da2a55be_7820ed9b",
+        "filename": "brain/midonet-brain/conf/cluster.conf",
+        "patchSetId": 12
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-19T10:03:17Z",
+      "side": 1,
+      "message": "Please capitalize for consistency.",
+      "range": {
+        "startLine": 33,
+        "startChar": 58,
+        "endLine": 33,
+        "endChar": 70
+      },
+      "revId": "8ba662ac8da2a1063fc89f3c5c1a3552c4093eaf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da2a55be_382675bb",
+        "filename": "brain/midonet-brain/conf/cluster.conf",
+        "patchSetId": 12
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-19T10:03:17Z",
+      "side": 1,
+      "message": "s/enable/enabled/",
+      "range": {
+        "startLine": 34,
+        "startChar": 21,
+        "endLine": 34,
+        "endChar": 27
+      },
+      "revId": "8ba662ac8da2a1063fc89f3c5c1a3552c4093eaf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da2a55be_182bb183",
+        "filename": "brain/midonet-brain/conf/cluster.conf",
+        "patchSetId": 12
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-19T10:03:17Z",
+      "side": 1,
+      "message": "s/synces/syncs/",
+      "range": {
+        "startLine": 40,
+        "startChar": 18,
+        "endLine": 40,
+        "endChar": 24
+      },
+      "revId": "8ba662ac8da2a1063fc89f3c5c1a3552c4093eaf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da2a55be_582529aa",
+        "filename": "brain/midonet-brain/conf/cluster.conf",
+        "patchSetId": 12
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-19T10:03:17Z",
+      "side": 1,
+      "message": "Please capitalize.",
+      "range": {
+        "startLine": 57,
+        "startChar": 10,
+        "endLine": 57,
+        "endChar": 14
+      },
+      "revId": "8ba662ac8da2a1063fc89f3c5c1a3552c4093eaf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da2a55be_b839c5da",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/ClusterNode.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-19T10:03:17Z",
+      "side": 1,
+      "message": "Please capitalize.",
+      "range": {
+        "startLine": 50,
+        "startChar": 39,
+        "endLine": 50,
+        "endChar": 51
+      },
+      "revId": "8ba662ac8da2a1063fc89f3c5c1a3552c4093eaf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da2a55be_983b2138",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/C3POMinion.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-19T10:03:17Z",
+      "side": 1,
+      "message": "I\u0027d rather have the Leader Latch provided via injection so that we can avoid unnecessary dependency on CuratorFramework.",
+      "range": {
+        "startLine": 56,
+        "startChar": 4,
+        "endLine": 57,
+        "endChar": 66
+      },
+      "revId": "8ba662ac8da2a1063fc89f3c5c1a3552c4093eaf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da2a55be_38baf5e1",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/C3POMinionTest.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 206,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-19T10:03:17Z",
+      "side": 1,
+      "message": "It is already in beforeAll().",
+      "range": {
+        "startLine": 206,
+        "startChar": 15,
+        "endLine": 206,
+        "endChar": 39
+      },
+      "revId": "8ba662ac8da2a1063fc89f3c5c1a3552c4093eaf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da2a55be_38a155aa",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/C3POMinionTest.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 248,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-19T10:03:17Z",
+      "side": 1,
+      "message": "\"Failed to close the keep-alive test DB connection\" or something like that would be correct, though for this case we might just squash the exception.",
+      "range": {
+        "startLine": 248,
+        "startChar": 34,
+        "endLine": 248,
+        "endChar": 52
+      },
+      "revId": "8ba662ac8da2a1063fc89f3c5c1a3552c4093eaf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da2a55be_d89bd970",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/services/c3po/C3POMinionStorageManagerTest.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-19T10:03:17Z",
+      "side": 1,
+      "message": "I\u0027d keep the name as is. C3POStorageManager is not impacted how C3PO is run (as a Minion or not), and indeed C3POStorageManager itself wasn\u0027t renamed, either.",
+      "range": {
+        "startLine": 41,
+        "startChar": 7,
+        "endLine": 41,
+        "endChar": 35
+      },
+      "revId": "8ba662ac8da2a1063fc89f3c5c1a3552c4093eaf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da2a55be_38883522",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/services/c3po/C3POMinionStorageManagerTest.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-19T10:03:17Z",
+      "side": 1,
+      "message": "Ditto.",
+      "range": {
+        "startLine": 54,
+        "startChar": 6,
+        "endLine": 54,
+        "endChar": 34
+      },
+      "revId": "8ba662ac8da2a1063fc89f3c5c1a3552c4093eaf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da2a55be_388f9525",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/storage/MidonetBackendModule.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-19T10:03:17Z",
+      "side": 1,
+      "message": "s/2014/2015/",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "8ba662ac8da2a1063fc89f3c5c1a3552c4093eaf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da2a55be_d872b948",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/storage/MidonetBackendModule.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-19T10:03:17Z",
+      "side": 1,
+      "message": "\"components that need\"",
+      "range": {
+        "startLine": 25,
+        "startChar": 12,
+        "endLine": 25,
+        "endChar": 32
+      },
+      "revId": "8ba662ac8da2a1063fc89f3c5c1a3552c4093eaf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da2a55be_f875fd32",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/storage/MidonetBackendModule.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-19T10:03:17Z",
+      "side": 1,
+      "message": "s/root paths/the root path/",
+      "range": {
+        "startLine": 42,
+        "startChar": 54,
+        "endLine": 42,
+        "endChar": 64
+      },
+      "revId": "8ba662ac8da2a1063fc89f3c5c1a3552c4093eaf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da2a55be_18945136",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/storage/NeutronDbConfig.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-19T10:03:17Z",
+      "side": 1,
+      "message": "s/2014/2015/",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "8ba662ac8da2a1063fc89f3c5c1a3552c4093eaf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da2a55be_589ec957",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/storage/ZoomProvider.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-19T10:03:17Z",
+      "side": 1,
+      "message": "s/2014/2015/",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "8ba662ac8da2a1063fc89f3c5c1a3552c4093eaf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da2a55be_f8acdd8e",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/storage/ZoomProvider.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-19T10:03:17Z",
+      "side": 1,
+      "message": "Do you want it to be configurable?",
+      "range": {
+        "startLine": 32,
+        "startChar": 48,
+        "endLine": 32,
+        "endChar": 50
+      },
+      "revId": "8ba662ac8da2a1063fc89f3c5c1a3552c4093eaf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
