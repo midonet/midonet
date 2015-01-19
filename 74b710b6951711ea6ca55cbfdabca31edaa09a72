@@ -1,0 +1,314 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "da2a55be_de5101da",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/DatapathController.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 182,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-19T16:56:47Z",
+      "side": 1,
+      "message": "Undo change/indent",
+      "revId": "74b710b6951711ea6ca55cbfdabca31edaa09a72",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da2a55be_fe6b2583",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/HostRequestProxy.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-19T16:56:47Z",
+      "side": 1,
+      "message": "There is no other host here, why not simply Host?",
+      "range": {
+        "startLine": 31,
+        "startChar": 50,
+        "endLine": 31,
+        "endChar": 65
+      },
+      "revId": "74b710b6951711ea6ca55cbfdabca31edaa09a72",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da2a55be_5e5d11e9",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/HostRequestProxy.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-19T16:56:47Z",
+      "side": 1,
+      "message": "Undo change/indent.",
+      "range": {
+        "startLine": 71,
+        "startChar": 0,
+        "endLine": 73,
+        "endChar": 46
+      },
+      "revId": "74b710b6951711ea6ca55cbfdabca31edaa09a72",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da2a55be_de68e189",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/HostRequestProxy.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 138,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-19T16:56:47Z",
+      "side": 1,
+      "message": "Shouldn\u0027t this rather be:\n\n  log.debug(\"Received host update with bindings {}\", h.portToInterface)",
+      "range": {
+        "startLine": 138,
+        "startChar": 12,
+        "endLine": 138,
+        "endChar": 80
+      },
+      "revId": "74b710b6951711ea6ca55cbfdabca31edaa09a72",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da2a55be_3e05bdc2",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/FlowStateReplicator.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-19T16:56:47Z",
+      "side": 1,
+      "message": "Undo this?",
+      "range": {
+        "startLine": 101,
+        "startChar": 11,
+        "endLine": 101,
+        "endChar": 38
+      },
+      "revId": "74b710b6951711ea6ca55cbfdabca31edaa09a72",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da2a55be_be1fed08",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualToPhysicalMapper.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-19T16:56:47Z",
+      "side": 1,
+      "message": "I prefer having a single Host, rather than the two distinct classes that perform the same function. However, if you want to keep both, I would use the same local names: NewHost \u003c-\u003e DevicesHost, OldHost \u003c-\u003e RcuHost.",
+      "range": {
+        "startLine": 37,
+        "startChar": 54,
+        "endLine": 37,
+        "endChar": 61
+      },
+      "revId": "74b710b6951711ea6ca55cbfdabca31edaa09a72",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da2a55be_9e1ca915",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/Host.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-19T16:56:47Z",
+      "side": 1,
+      "message": "I know there was a comment for this before, but in Scala equals can take advantage of pattern matching:\n\n  override def equals(o: Any): Boolean \u003d o match {\n    case host: Host \u003d\u003e ...\n    case _ \u003d\u003e false\n  }",
+      "range": {
+        "startLine": 94,
+        "startChar": 17,
+        "endLine": 94,
+        "endChar": 23
+      },
+      "revId": "74b710b6951711ea6ca55cbfdabca31edaa09a72",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da2a55be_3ed3fd39",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/Host.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-19T16:56:47Z",
+      "side": 1,
+      "message": "Primitives can be compared directly, since cannot be null. I think it is more inefficient to autobox the primitives to objects, and then invoke a method.",
+      "range": {
+        "startLine": 99,
+        "startChar": 12,
+        "endLine": 99,
+        "endChar": 46
+      },
+      "revId": "74b710b6951711ea6ca55cbfdabca31edaa09a72",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da2a55be_7edd7542",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/Host.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-19T16:56:47Z",
+      "side": 1,
+      "message": "If you override equals, shouldn\u0027t you also override hashCode?",
+      "revId": "74b710b6951711ea6ca55cbfdabca31edaa09a72",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da2a55be_bee6cd14",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/state/FlowStateReplicatorTest.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 166,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-19T16:56:47Z",
+      "side": 1,
+      "message": "Undo (Intellij to blame) :/?",
+      "range": {
+        "startLine": 166,
+        "startChar": 19,
+        "endLine": 166,
+        "endChar": 46
+      },
+      "revId": "74b710b6951711ea6ca55cbfdabca31edaa09a72",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da2a55be_9ee30905",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/state/FlowStateReplicatorTest.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 477,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-19T16:56:47Z",
+      "side": 1,
+      "message": "Same as above.",
+      "range": {
+        "startLine": 477,
+        "startChar": 11,
+        "endLine": 477,
+        "endChar": 32
+      },
+      "revId": "74b710b6951711ea6ca55cbfdabca31edaa09a72",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ba1f61a0_28ff4b03",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/VirtualToPhysicalMapperTest.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-19T16:56:47Z",
+      "side": 1,
+      "message": "I looks like the whole purpose of these two methods is to create a host. Shouldn\u0027t they be merged; they are used only once?\n\nDo you have to create the host in both the legacy and zoom storage? Shouldn\u0027t createHostBuilder by itself work (I\u0027m not familiar with the test)?",
+      "range": {
+        "startLine": 58,
+        "startChar": 0,
+        "endLine": 72,
+        "endChar": 5
+      },
+      "revId": "74b710b6951711ea6ca55cbfdabca31edaa09a72",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ba1f61a0_880f572e",
+        "filename": "midonet-util/src/main/scala/org/midonet/packets/IPv4Addr.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-19T16:56:47Z",
+      "side": 1,
+      "message": "Maybe unit test for this?",
+      "range": {
+        "startLine": 75,
+        "startChar": 4,
+        "endLine": 77,
+        "endChar": 66
+      },
+      "revId": "74b710b6951711ea6ca55cbfdabca31edaa09a72",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_e71c426d",
+        "filename": "midonet-util/src/main/scala/org/midonet/packets/IPv6Addr.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-19T16:56:47Z",
+      "side": 1,
+      "message": "Optional: same here?",
+      "range": {
+        "startLine": 119,
+        "startChar": 0,
+        "endLine": 125,
+        "endChar": 4
+      },
+      "revId": "74b710b6951711ea6ca55cbfdabca31edaa09a72",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
