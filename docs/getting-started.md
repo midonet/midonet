@@ -21,8 +21,8 @@ Because we shall be installing locally built packages, we need to install
 run time dependencies for midolman and midonet-api manually. We assume
 build dependencies are already installed and packages have been built.
 
-    $ sudo apt-get install tomcat7 zookeeper haproxy quagga bridge-utils zookeperd
-    $ sudo /etc/init.d/zookeper start
+    $ sudo apt-get install tomcat7 zookeeper haproxy quagga bridge-utils zookeeperd
+    $ sudo /etc/init.d/zookeeper start
     $ sudo /etc/init.d/tomcat7 start
 
 Let's also install the dependencies for python-midonetclient:
