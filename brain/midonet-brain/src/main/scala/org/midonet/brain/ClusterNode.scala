@@ -31,6 +31,10 @@ import org.midonet.brain.services.vxgw.VxLanGatewayService.VxGWServiceConfig
 import org.midonet.cluster.data.storage.Storage
 import org.midonet.cluster.storage._
 import org.midonet.config._
+import org.midonet.midolman.guice.StorageModule
+import org.midonet.midolman.guice.cluster.DataClientModule
+import org.midonet.midolman.guice.serialization.SerializationModule
+import org.midonet.midolman.guice.zookeeper.ZookeeperConnectionModule
 
 /** Base exception for all MidoNet Cluster errors. */
 class ClusterException(msg: String, cause: Throwable)
@@ -107,7 +111,10 @@ object ClusterNode extends App {
             bind(classOf[DataSource]).toInstance(dataSrc)
             bind(classOf[ClusterNode.Context]).toInstance(nodeContext)
 
-            //  Minion configurations
+            // TODO: required for legacy modules, remove asap
+            bind(classOf[ConfigProvider]).toInstance(cfgProvider)
+
+            // Minion configurations
             bind(classOf[C3POConfig]).toInstance(c3poConfig)
             bind(classOf[HeartbeatConfig]).toInstance(heartbeatCfg)
             bind(classOf[VxGWServiceConfig]).toInstance(vxgwCfg)
@@ -127,6 +134,9 @@ object ClusterNode extends App {
 
     protected[brain] var injector = Guice.createInjector(
         new MidonetBackendModule(backendCfg),
+        new ZookeeperConnectionModule,
+        new DataClientModule,
+        new SerializationModule,
         clusterNodeModule
     )
 
