@@ -17,13 +17,12 @@ package org.midonet.cluster.util
 
 import java.util.concurrent.TimeUnit
 
-import scala.collection.concurrent.TrieMap
-
-import org.apache.curator.RetryPolicy
-import org.apache.curator.framework.{CuratorFramework, CuratorFrameworkFactory}
-import org.apache.curator.retry.RetryNTimes
+import org.apache.curator.framework.{CuratorFrameworkFactory, CuratorFramework}
+import org.apache.curator.retry.ExponentialBackoffRetry
 import org.apache.curator.test.TestingServer
-import org.scalatest.{BeforeAndAfter, BeforeAndAfterAll, Suite}
+import org.scalatest.{Suite, BeforeAndAfterAll, BeforeAndAfter}
+
+import scala.collection.concurrent.TrieMap
 
 /**
  * Provides boilerplate for:
@@ -45,15 +44,12 @@ import org.scalatest.{BeforeAndAfter, BeforeAndAfterAll, Suite}
  */
 trait CuratorTestFramework extends BeforeAndAfter
                            with BeforeAndAfterAll { this: Suite =>
-    import org.midonet.cluster.util.CuratorTestFramework.testServers
+    import CuratorTestFramework.testServers
 
     protected val ZK_ROOT = "/test"
+    protected val retryPolicy = new ExponentialBackoffRetry(1000, 3)
     protected var zk: TestingServer = _
-    implicit protected var curator: CuratorFramework = _
-
-    protected def retryPolicy: RetryPolicy = new RetryNTimes(2, 1000)
-    protected def cnxnTimeoutMs: Int = 2 * 1000
-    protected def sessionTimeoutMs: Int = 10 * 1000
+    protected var curator: CuratorFramework = _
 
     override protected def beforeAll(): Unit = {
         super.beforeAll()
@@ -74,8 +70,6 @@ trait CuratorTestFramework extends BeforeAndAfter
     protected def setUpCurator(): Unit = {
         zk = testServers(this.getClass)
         curator = CuratorFrameworkFactory.newClient(zk.getConnectString,
-                                                    sessionTimeoutMs,
-                                                    cnxnTimeoutMs,
                                                     retryPolicy)
     }
 
@@ -108,32 +102,6 @@ trait CuratorTestFramework extends BeforeAndAfter
         super.afterAll()
         testServers.remove(this.getClass).foreach(_.close())
     }
-
-    /** Adds a path under the root node, asynchronously. The contents of the
-      * node will be s.getBytes() */
-    def makePath(s: String): String = {
-        val path = s"$ZK_ROOT/$s"
-        curator.create().inBackground().forPath(path, s.getBytes)
-        path
-    }
-
-    /** Adds n paths under, from ZK_ROOT/0 to ZK_ROOT/(n-1] */
-    def makePaths(n: Int)
-    : Map[String, String] = makePaths(0, n)
-
-    /** Adds n paths under, from ZK_ROOT/start to ZK_ROOT/(end-1) */
-    def makePaths(start: Int, end: Int): Map[String, String] = {
-        var data = Map.empty[String, String]
-        start.until(end) foreach { i =>
-            val childPath = s"$ZK_ROOT/$i"
-            val childData = i.toString
-            data += (childPath -> childData)
-            curator.create().inBackground()
-                .forPath(childPath, childData.getBytes)
-        }
-        data
-    }
-
 }
 
 object CuratorTestFramework {

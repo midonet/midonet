@@ -479,7 +479,9 @@ class ZookeeperObjectMapper(
             case ex: Exception => throw new InternalObjectMapperException(ex)
         }
 
-        // Add the instance map last, since it's used to verify registration
+        // Add the instance cache map last, since we use this to verify
+        // registration.
+        // TODO: Need to close all instance subscriptions.
         instanceCaches(clazz) =
             new TrieMap[String, InstanceSubscriptionCache[_]]
     }
@@ -687,8 +689,8 @@ class ZookeeperObjectMapper(
         }
     }
 
-    override def getAll[T](clazz: Class[T], ids: Seq[_ <: ObjId])
-    : Seq[Future[T]] = {
+    override def getAll[T](clazz: Class[T], ids: Seq[_ <: ObjId]):
+            Seq[Future[T]] = {
         assertBuilt()
         assert(isRegistered(clazz))
         ids.map { id => get(clazz, id) }
@@ -776,8 +778,6 @@ class ZookeeperObjectMapper(
 
     /**
      * Flushes all the data in the storage by bumping the data set path version.
-     *
-     * TODO: move this operation out, this is a C3PO op, not a ZOOM op.
      */
     @throws[StorageException]
     override def flush(): Unit = {
@@ -812,8 +812,8 @@ class ZookeeperObjectMapper(
      *         corresponding entry does not exist, None is returned.
      */
     @VisibleForTesting
-    protected[storage] def subscriptionCount[T](clazz: Class[T], id: ObjId)
-    : Option[Int] = {
+    protected[storage] def subscriptionCount[T](clazz: Class[T],
+                                                id: ObjId): Option[Int] = {
         instanceCaches(clazz).get(id.toString).map(_.subscriptionCount)
     }
 
@@ -835,12 +835,6 @@ class ZookeeperObjectMapper(
         }).observable.asInstanceOf[Observable[T]]
     }
 
-    /**
-     * Refer to the interface documentation for functionality.
-     *
-     * This implementation involves a BLOCKING call when the observable is first
-     * created, as we initialize the the connection to ZK.
-     */
     override def observable[T](clazz: Class[T]): Observable[Observable[T]] = {
         assertBuilt()
         assert(isRegistered(clazz))
@@ -851,7 +845,8 @@ class ZookeeperObjectMapper(
             }
             val cc = new ClassSubscriptionCache(clazz, getPath(clazz), curator,
                                                 onLastUnsubscribe)
-            classCaches.putIfAbsent(clazz, cc).getOrElse(cc)
+            classCaches.putIfAbsent(clazz, cc)
+            classCaches.get(clazz).orNull
         }).asInstanceOf[ClassSubscriptionCache[T]].observable
     }
 
