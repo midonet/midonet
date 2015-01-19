@@ -59,7 +59,7 @@ class DhcpInterfaceMtuTestCase extends MidolmanTestCase
 
     override def beforeTest() {
 
-        val host = newHost("myself", hostId())
+        val host = newHost("myself", hostId)
         host should not be null
         val host2 = newHost("someone else")
         host2 should not be null
@@ -112,10 +112,10 @@ class DhcpInterfaceMtuTestCase extends MidolmanTestCase
         val peerGreConfig = new TunnelZone.HostConfig(host2.getId)
             .setIp(IPv4Addr("192.168.200.1"))
 
-        clusterDataClient().tunnelZonesAddMembership(greZone.getId, peerGreConfig)
-        clusterDataClient().tunnelZonesAddMembership(greZone.getId, myGreConfig)
+        clusterDataClient.tunnelZonesAddMembership(greZone.getId, peerGreConfig)
+        clusterDataClient.tunnelZonesAddMembership(greZone.getId, myGreConfig)
 
-        initializeDatapath() should not be (null)
+        initializeDatapath() should not be null
         requestOfType[HostRequest](vtpProbe())
         requestOfType[OutgoingMessage](vtpProbe())
 
@@ -142,7 +142,7 @@ class DhcpInterfaceMtuTestCase extends MidolmanTestCase
 
         val brPort1 = newBridgePort(bridge)
         brPort1 should not be null
-        clusterDataClient().portsLink(rtrPort2.getId, brPort1.getId)
+        clusterDataClient.portsLink(rtrPort2.getId, brPort1.getId)
 
         val brPort2 = newBridgePort(bridge)
         brPort2 should not be null
@@ -150,31 +150,31 @@ class DhcpInterfaceMtuTestCase extends MidolmanTestCase
         val tzRequest = fishForRequestOfType[TunnelZoneRequest](vtpProbe())
         tzRequest.zoneId should be (greZone.getId)
 
-        var opt121Obj = (new Opt121()
+        val opt121Obj = new Opt121()
                         .setGateway(routerIp2.getAddress)
-                        .setRtDstSubnet(routerIp1))
-        var opt121Routes: List[Opt121] = List(opt121Obj)
-        var dnsSrvAddrs : List[IPv4Addr] = List(
+                        .setRtDstSubnet(routerIp1)
+        val opt121Routes: List[Opt121] = List(opt121Obj)
+        val dnsSrvAddrs : List[IPv4Addr] = List(
             IPv4Addr("192.168.77.118"),
             IPv4Addr("192.168.77.119"),
             IPv4Addr("192.168.77.120"))
-        var dhcpSubnet = (new Subnet()
+        val dhcpSubnet = new Subnet()
                       .setSubnetAddr(routerIp2)
                       .setDefaultGateway(routerIp2.getAddress)
                       .setDnsServerAddrs(dnsSrvAddrs)
-                      .setOpt121Routes(opt121Routes))
+                      .setOpt121Routes(opt121Routes)
         addDhcpSubnet(bridge, dhcpSubnet)
 
         materializePort(brPort2, host, vmPortName)
         requestOfType[LocalPortActive](portsProbe)
 
-        val dhcpHost = (new org.midonet.cluster.data.dhcp.Host()
+        val dhcpHost = new org.midonet.cluster.data.dhcp.Host()
                        .setMAC(vmMac)
-                       .setIp(vmIP.getAddress))
+                       .setIp(vmIP.getAddress)
         addDhcpHost(bridge, dhcpSubnet, dhcpHost)
 
         datapathEventsProbe.expectMsgType[DatapathController.DatapathReady]
-            .datapath should not be (null)
+            .datapath should not be null
         drainProbes()
     }
 
@@ -187,7 +187,7 @@ class DhcpInterfaceMtuTestCase extends MidolmanTestCase
         pktOut.actions.size should equal (1)
 
         pktOut.actions.toList map { action =>
-            action.getClass() should be (classOf[FlowActionOutput])
+            action.getClass should be (classOf[FlowActionOutput])
             action.asInstanceOf[FlowActionOutput].getPortNumber
         } should contain (portNum)
 
@@ -206,8 +206,8 @@ class DhcpInterfaceMtuTestCase extends MidolmanTestCase
                            Array[Byte](DHCPOption.MsgType.DISCOVER.value)))
         dhcpDiscover.setOptions(options)
         val udp = new UDP()
-        udp.setSourcePort((68).toShort)
-        udp.setDestinationPort((67).toShort)
+        udp.setSourcePort(68.toShort)
+        udp.setDestinationPort(67.toShort)
         udp.setPayload(dhcpDiscover)
         val eth = new Ethernet()
         eth.setSourceMACAddress(srcMac)
@@ -226,8 +226,8 @@ class DhcpInterfaceMtuTestCase extends MidolmanTestCase
         val ipPkt = ethPkt.getPayload.asInstanceOf[IPv4]
         ipPkt.getProtocol should be (UDP.PROTOCOL_NUMBER)
         val udpPkt = ipPkt.getPayload.asInstanceOf[UDP]
-        udpPkt.getSourcePort() should be (67)
-        udpPkt.getDestinationPort() should be (68)
+        udpPkt.getSourcePort should be (67)
+        udpPkt.getDestinationPort should be (68)
         val dhcpPkt = udpPkt.getPayload.asInstanceOf[DHCP]
         val replyOptions = mutable.HashMap[Byte, DHCPOption]()
         val replyCodes = mutable.Set[Byte]()
@@ -236,14 +236,14 @@ class DhcpInterfaceMtuTestCase extends MidolmanTestCase
             val code = opt.getCode
             replyOptions.put(code, opt)
             code match {
-                case v if (v == DHCPOption.Code.INTERFACE_MTU.value) =>
+                case v if v == DHCPOption.Code.INTERFACE_MTU.value =>
                     if (opt.getLength != 2) {
                         fail("DHCP option interface mtu value invalid length")
                     }
                     mtu = ByteBuffer.wrap(opt.getData).getShort
                     log.debug("extractInterfaceMtuDhcpReply got data {} and value {}", opt.getData, mtu)
-                case b if (b == DHCPOption.Code.DNS.value) =>
-                    var len : Int = (opt.getLength).toInt
+                case b if b == DHCPOption.Code.DNS.value =>
+                    var len : Int = opt.getLength.toInt
                     var offset : Int = 0
                     var byteptr = ByteBuffer.wrap(opt.getData)
                     while (len > 0) {

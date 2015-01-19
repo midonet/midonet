@@ -87,12 +87,12 @@ class RouterSimulationTestCase extends MidolmanTestCase with RouterHelper
 
     override def beforeTest() {
 
-        host = newHost("myself", hostId())
+        host = newHost("myself", hostId)
         host should not be null
         clusterRouter = newRouter("router")
         clusterRouter should not be null
 
-        initializeDatapath() should not be (null)
+        initializeDatapath() should not be null
         requestOfType[HostRequest](vtpProbe())
         requestOfType[OutgoingMessage](vtpProbe())
 
@@ -158,7 +158,7 @@ class RouterSimulationTestCase extends MidolmanTestCase with RouterHelper
         }
 
         datapathEventsProbe.expectMsgType[DatapathController.DatapathReady]
-            .datapath should not be (null)
+            .datapath should not be null
         drainProbes()
     }
 
@@ -172,7 +172,7 @@ class RouterSimulationTestCase extends MidolmanTestCase with RouterHelper
     private def myAddressOnPort(portNum: Int): IPv4Addr =
         new IPv4Addr(portNumToSegmentAddr(portNum) + 1)
 
-    implicit private def dummyPacketContext =
+    implicit private def dummyPacketContext: PacketContext =
         new PacketContext(0, null, new FlowMatch())
 
     def testBalancesRoutes() {
@@ -227,7 +227,7 @@ class RouterSimulationTestCase extends MidolmanTestCase with RouterHelper
         val gwMac = MAC.fromString("aa:bb:aa:cc:dd:cc")
         val onPort = 23
         // use a large TTL to ensure that we don't get unsigned/signed issues
-        val ttl: Byte = (158).toByte
+        val ttl: Byte = 158.toByte
         val eth = Packets.udp(
             MAC.fromString("01:02:03:04:05:06"), portNumToMac(onPort),
             makeAddressInSegment(onPort), IPv4Addr.fromString("45.44.33.22"),
@@ -337,7 +337,7 @@ class RouterSimulationTestCase extends MidolmanTestCase with RouterHelper
     }
 
     def testNoRoute() {
-        clusterDataClient().routesDelete(upLinkRoute)
+        clusterDataClient.routesDelete(upLinkRoute)
 
         val onPort = 23
         val fromMac = MAC.fromString("01:02:03:04:05:06")
@@ -501,7 +501,7 @@ class RouterSimulationTestCase extends MidolmanTestCase with RouterHelper
 
     def testNextHopNonLocalAddress() {
         val badGwAddr = "179.0.0.1"
-        clusterDataClient().routesDelete(upLinkRoute)
+        clusterDataClient.routesDelete(upLinkRoute)
         newRoute(clusterRouter, "0.0.0.0", 0, "0.0.0.0", 0, NextHop.PORT,
             uplinkPort.getId, badGwAddr, 1)
         val fromMac = MAC.fromString("01:02:03:03:02:01")
@@ -533,7 +533,7 @@ class RouterSimulationTestCase extends MidolmanTestCase with RouterHelper
             setNwLength(nwLen).
             setNwAddr(nwAddr).
             setNwLength(nwLen)
-        logicalPort = clusterDataClient().portsGet(clusterDataClient().
+        logicalPort = clusterDataClient.portsGet(clusterDataClient.
             portsCreate(logicalPort)).asInstanceOf[RouterPort]
         logicalPort should not be null
         newRoute(clusterRouter, "0.0.0.0", 0, "16.0.0.0", 8,

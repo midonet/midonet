@@ -71,7 +71,7 @@ class BridgeSimulationTestCase extends MidolmanTestCase
     override def beforeTest() {
         val tunnelZone = greTunnelZone("default")
 
-        val host1 = newHost("host1", hostId())
+        val host1 = newHost("host1", hostId)
         val host2 = newHost("host2")
         val host3 = newHost("host3")
 
@@ -91,7 +91,7 @@ class BridgeSimulationTestCase extends MidolmanTestCase
 
         List(host1, host2, host3).zip(List(host1Ip, host2Ip, host3Ip)).foreach{
             case (host, ip) =>
-                clusterDataClient().tunnelZonesAddMembership(tunnelZone.getId,
+                clusterDataClient.tunnelZonesAddMembership(tunnelZone.getId,
                     new TunnelZone.HostConfig(host.getId).setIp(ip))
         }
 

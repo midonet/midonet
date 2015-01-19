@@ -45,12 +45,12 @@ class DnatPlusSnatTestCase extends MidolmanTestCase
         packetEventsProbe = newProbe()
         actors.eventStream.subscribe(packetEventsProbe.ref, classOf[PacketsExecute])
 
-        host = newHost("myself", hostId())
+        host = newHost("myself", hostId)
         host should not be null
         router = newRouter("router")
         router should not be null
 
-        initializeDatapath() should not be (null)
+        initializeDatapath() should not be null
         requestOfType[HostRequest](vtpProbe())
         requestOfType[OutgoingMessage](vtpProbe())
 
@@ -151,7 +151,7 @@ class DnatPlusSnatTestCase extends MidolmanTestCase
             dnatDst, 80)
         var pktOut = requestOfType[PacketsExecute](packetEventsProbe)
         var outPorts = getOutPacketPorts(pktOut)
-        outPorts should have size(1)
+        outPorts should have size 1
         outPorts should contain (5.toShort)
         var eth = applyOutPacketActions(pktOut)
         eth.getSourceMACAddress should be(serverGwMac)
@@ -164,7 +164,7 @@ class DnatPlusSnatTestCase extends MidolmanTestCase
             be (server1.addr) or be (server2.addr))
         var tcpPak = ipPak.getPayload.asInstanceOf[TCP]
         val snatPort = tcpPak.getSourcePort
-        snatPort should not be (12345)
+        snatPort should not be 12345
         tcpPak.getDestinationPort should be (81)
 
         // Send a reply packet that will be reverse-SNATed and
@@ -176,7 +176,7 @@ class DnatPlusSnatTestCase extends MidolmanTestCase
             serverGwMac, serverGw, snatPort)
         pktOut = requestOfType[PacketsExecute](packetEventsProbe)
         outPorts = getOutPacketPorts(pktOut)
-        outPorts should (have size(1) and contain (4.toShort))
+        outPorts should (have size 1 and contain (4.toShort))
         eth = applyOutPacketActions(pktOut)
         eth.getSourceMACAddress should be(clientGwMac)
         eth.getDestinationMACAddress should be(client1Mac)
