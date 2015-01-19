@@ -32,8 +32,7 @@ import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.l4lb.HealthMonitor
 import org.midonet.midolman.management.PacketTracing
 import org.midonet.midolman.routingprotocols.RoutingManagerActor
-import org.midonet.midolman.topology.VirtualToPhysicalMapper
-import org.midonet.midolman.topology.VirtualTopologyActor
+import org.midonet.midolman.topology.{RouterMapper, VirtualToPhysicalMapper, VirtualTopologyActor}
 
 /*
  * A base trait for a simple guice service that starts an actor system,
@@ -60,6 +59,7 @@ class MidolmanActorsService extends AbstractService {
     implicit protected val tout = new Timeout(5 seconds)
 
     protected def actorSpecs = List(
+        (propsFor(classOf[RouterMapper]), RouterMapper.Name),
         (propsFor(classOf[VirtualTopologyActor]), VirtualTopologyActor.Name),
         (propsFor(classOf[VirtualToPhysicalMapper]).
             withDispatcher("actors.stash-dispatcher"),

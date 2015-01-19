@@ -31,7 +31,7 @@ import org.midonet.util.eventloop.Reactor;
 public class ZKConnectionProvider implements Provider<ZkConnection> {
 
     // WARN: should this string change, also replace it in
-    // BridgeBuilderStateFeeder
+    // BridgeBuilderStateFeeder and in RouterMapper
     public static final String DIRECTORY_REACTOR_TAG = "directoryReactor";
 
     @Inject

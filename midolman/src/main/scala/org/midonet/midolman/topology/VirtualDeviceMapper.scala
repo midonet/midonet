@@ -18,6 +18,7 @@ package org.midonet.midolman.topology
 import java.util.UUID
 
 import org.midonet.midolman.topology.VirtualTopology.VirtualDevice
+import org.midonet.sdn.flows.FlowTagger.FlowTag
 
 /**
  * A base class for a virtual device mapper. This class subclasses DeviceMapper
@@ -31,5 +32,9 @@ abstract class VirtualDeviceMapper[D <: VirtualDevice](id: UUID,
 
     override final protected def onDeviceChanged(device: D) = {
         vt.invalidate(device.deviceTag)
+    }
+
+    final protected def onDeviceChanged(tag: FlowTag) = {
+        vt.invalidate(tag)
     }
 }

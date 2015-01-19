@@ -23,7 +23,7 @@ import scala.util.Random
 import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.models.Topology.Host.PortToInterface
 import org.midonet.cluster.models.Topology.TunnelZone.HostToIp
-import org.midonet.cluster.models.Topology.{Host, Port, TunnelZone}
+import org.midonet.cluster.models.Topology.{Router, Host, Port, TunnelZone}
 import org.midonet.cluster.util.IPAddressUtil._
 import org.midonet.cluster.util.IPSubnetUtil._
 import org.midonet.cluster.util.MapConverter
@@ -155,6 +155,19 @@ trait TopologyBuilder {
         builder.addAllPortInterfaceMapping(portToInterfaceList)
 
         tunnelZoneIds foreach { tunnelId => builder.addTunnelZoneIds(tunnelId.asProto) }
+        builder
+    }
+
+    protected def createRouterBuilder(id: UUID, tenantId: String, name: String,
+                                      adminStateUp: Boolean, inFilterId: UUID,
+                                      outFilterId: UUID): Router.Builder = {
+        val builder = Router.newBuilder
+            .setId(id.asProto)
+            .setTenantId(tenantId)
+            .setName(name)
+            .setAdminStateUp(adminStateUp)
+            .setInboundFilterId(inFilterId.asProto)
+            .setOutboundFilterId(outFilterId.asProto)
         builder
     }
 
