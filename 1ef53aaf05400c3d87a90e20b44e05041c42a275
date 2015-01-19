@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "da2a55be_382b15ed",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/util/ObservablePathChildrenCache.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 152,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-19T10:11:04Z",
+      "side": 1,
+      "message": "old",
+      "range": {
+        "startLine": 152,
+        "startChar": 30,
+        "endLine": 152,
+        "endChar": 34
+      },
+      "revId": "1ef53aaf05400c3d87a90e20b44e05041c42a275",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "da2a55be_7de73fe5",
         "filename": "cluster/src/main/scala/org/midonet/cluster/util/ObservablePathChildrenCache.scala",
         "patchSetId": 17
@@ -18,6 +41,75 @@
         "startChar": 12,
         "endLine": 176,
         "endChar": 68
+      },
+      "revId": "1ef53aaf05400c3d87a90e20b44e05041c42a275",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da2a55be_b83ee527",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/util/ObservablePathChildrenCache.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 189,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-19T10:11:04Z",
+      "side": 1,
+      "message": "are...?",
+      "range": {
+        "startLine": 189,
+        "startChar": 16,
+        "endLine": 189,
+        "endChar": 20
+      },
+      "revId": "1ef53aaf05400c3d87a90e20b44e05041c42a275",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da2a55be_d84599b4",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/util/ObservablePathChildrenCache.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 217,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-19T10:11:04Z",
+      "side": 1,
+      "message": "Shouldn\u0027t this looping be done in an NPE-safe way as well?",
+      "range": {
+        "startLine": 217,
+        "startChar": 8,
+        "endLine": 217,
+        "endChar": 48
+      },
+      "revId": "1ef53aaf05400c3d87a90e20b44e05041c42a275",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da2a55be_d81c79c4",
+        "filename": "cluster/src/test/scala/org/midonet/cluster/util/ObservablePathChildrenCacheTest.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 149,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-19T10:11:04Z",
+      "side": 1,
+      "message": "emits",
+      "range": {
+        "startLine": 149,
+        "startChar": 56,
+        "endLine": 149,
+        "endChar": 60
       },
       "revId": "1ef53aaf05400c3d87a90e20b44e05041c42a275",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
