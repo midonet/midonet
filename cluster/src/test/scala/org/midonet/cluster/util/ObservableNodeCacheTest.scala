@@ -15,153 +15,119 @@
  */
 package org.midonet.cluster.util
 
-import java.util.concurrent.TimeUnit
+import java.util.concurrent.{CountDownLatch, TimeUnit}
 
 import org.apache.curator.framework.recipes.cache.ChildData
-import org.apache.curator.retry.RetryOneTime
-import org.apache.zookeeper.KeeperException.NoNodeException
-import org.junit.Assert.assertTrue
+import org.junit.Assert.{assertEquals, assertTrue}
 import org.junit.runner.RunWith
 import org.scalatest._
 import org.scalatest.junit.JUnitRunner
-
-import org.midonet.cluster.util.ObservableTestUtils.observer
+import rx.Subscriber
+import rx.observers.{TestSubscriber, TestObserver}
 
 @RunWith(classOf[JUnitRunner])
 class ObservableNodeCacheTest extends Suite
                               with CuratorTestFramework
                               with Matchers {
 
+    private def makePath(s: String): String = {
+        val path = ZK_ROOT + "/" + s
+        curator.create().forPath(path, s.getBytes)
+        curator.getData.forPath(path)
+        path
+    }
 
     /** Create and delete a node, verify that the observable emits the right
       * contents */
     def testCreateDelete() {
         val path = makePath("1")
 
-        val sub1 = observer[ChildData](1, 0, 1) // Will subscribe before connect
-        val sub2 = observer[ChildData](1, 0, 1) // Will subscribe after connect
-
         val onc = new ObservableNodeCache(curator, path)
+
+        // Will subscribe before connect
+        val sub1 = new TestObserver[ChildData]()
+        // Will subscribe after connect
+        val sub2 = new TestObserver[ChildData]()
+
         onc.observable.subscribe(sub1)
         onc.connect()
 
-        assert(sub1.n.await(1, TimeUnit.SECONDS))
+        Thread.sleep(500)
+
         sub1.getOnNextEvents should have size 1
         sub2.getOnNextEvents should have size 0
 
         onc.observable.subscribe(sub2)
-        assert(sub2.n.await(1, TimeUnit.SECONDS))
 
-        "1".getBytes shouldBe sub1.getOnNextEvents.get(0).getData
-        "1".getBytes shouldBe sub2.getOnNextEvents.get(0).getData
+        Thread sleep 500
 
+        sub1.getOnNextEvents should have size 1
+        sub2.getOnNextEvents should have size 1
+
+        sub1.getOnNextEvents.get(0).getData should have size 1
+        sub2.getOnNextEvents.get(0).getData should have size 1
         onc.current.getData should be ("1".getBytes)
 
         curator delete() forPath path
-
-        assert(sub1.c.await(1, TimeUnit.SECONDS))
-        assert(sub2.c.await(1, TimeUnit.SECONDS))
+        Thread sleep 500
 
         List(sub1, sub2) foreach { s =>
-            s.getOnErrorEvents shouldBe empty
+            s.getOnErrorEvents should be (empty)
             s.getOnCompletedEvents should have size 1
-            s.getOnNextEvents should have size 1
         }
     }
 
     def testNonExistentPathOnErrors(): Unit = {
+        val c = new CountDownLatch(1)
         val onc = new ObservableNodeCache(curator, "/nonExistent")
-        val s = observer[ChildData](0, 1, 0)
-        onc.observable.subscribe(s)
+        onc.observable.subscribe(new Subscriber[ChildData]() {
+            override def onCompleted(): Unit = fail("unexpected onComplete")
+            override def onError(e: Throwable): Unit = {
+                c.countDown()
+                e match {
+                    case _: NodeCacheOrphaned => // ok
+                    case _ => fail("Unexpected error " + e)
+                }
+            }
+            override def onNext(t: ChildData): Unit = fail("unexpected onNext")
+        })
         onc.connect()
-        assertTrue(s.e.await(500, TimeUnit.MILLISECONDS))
-        s.getOnNextEvents shouldBe empty
-        s.getOnCompletedEvents shouldBe empty
-        s.getOnErrorEvents should have size 1
-        assert(s.getOnErrorEvents.get(0).isInstanceOf[NoNodeException])
+        assertTrue(c.await(500, TimeUnit.MILLISECONDS))
     }
 
     def testTwoConnectsAreOk(): Unit = {
+        val n = new CountDownLatch(1)
         val path = makePath("3")
         val onc = new ObservableNodeCache(curator, path)
-        val sub = observer[ChildData](1, 0, 0)
-        onc.observable.subscribe(sub)
+        onc.observable.subscribe(new Subscriber[ChildData]() {
+            override def onError(e: Throwable): Unit = fail("Unexpected " + e)
+            override def onCompleted(): Unit = fail()
+            override def onNext(t: ChildData): Unit = n.countDown()
+        })
         onc.connect()
         onc.connect()
-        assert(sub.n.await(500, TimeUnit.MILLISECONDS))
-        sub.getOnErrorEvents shouldBe empty
-        sub.getOnCompletedEvents shouldBe empty
-        sub.getOnNextEvents should have size 1
-
+        assertTrue(n.await(500, TimeUnit.MILLISECONDS))
     }
 
     def testClosedCacheNotifiesOnError(): Unit = {
+        val n = new CountDownLatch(1)
+        val e = new CountDownLatch(1)
+        val s = new TestSubscriber[ChildData](new Subscriber[ChildData]() {
+            override def onError(t: Throwable): Unit = e.countDown()
+            override def onCompleted(): Unit = fail("Unexpected onComplete")
+            override def onNext(t: ChildData): Unit = n.countDown()
+        })
         val path = makePath("3")
         val onc = new ObservableNodeCache(curator, path)
+        onc.observable.subscribe(s)
 
-        val ts = observer[ChildData](1, 1, 0)
-        onc.observable.subscribe(ts)
-        onc.connect()  // This will send us the element
-        assertTrue(ts.n.await(500, TimeUnit.MILLISECONDS))
+        onc.connect()
+        assertTrue(n.await(500, TimeUnit.MILLISECONDS))
+        onc.close()
+        assertTrue(e.await(500, TimeUnit.MILLISECONDS))
 
-        onc.close()    // This will send us the error
-        assertTrue(ts.e.await(500, TimeUnit.MILLISECONDS))
-
-        ts.getOnCompletedEvents shouldBe empty
-        ts.getOnNextEvents should have size 1
-        ts.getOnErrorEvents should have size 1
-        assert(ts.getOnErrorEvents.get(0).isInstanceOf[NodeCacheDisconnected])
-
-        val ts2 = observer[ChildData](0, 1, 0)
-        onc.observable.subscribe(ts2)
-        ts2.e.await(500, TimeUnit.MILLISECONDS)
-        ts2.getOnNextEvents shouldBe empty
-        ts2.getOnCompletedEvents shouldBe empty
-        ts2.getOnErrorEvents should have size 1
-        assert(ts2.getOnErrorEvents.get(0).isInstanceOf[NodeCacheDisconnected])
-
+        s.getOnCompletedEvents shouldBe empty
+        s.getOnNextEvents should have size 1
+        s.getOnErrorEvents should have size 1
     }
 }
-
-/** Tests related to connection failures handling that tweak session and cnxn
-  * timeouts. */
-@RunWith(classOf[JUnitRunner])
-class ObservableNodeCacheConnectionTest extends Suite
-                                        with CuratorTestFramework
-                                        with Matchers {
-
-    override protected val retryPolicy = new RetryOneTime(500)
-
-    override def cnxnTimeoutMs = 3000
-    override def sessionTimeoutMs = 10000
-
-    def testLostConnectionTriggersError(): Unit = {
-        val path = makePath("1")
-        val onc = new ObservableNodeCache(curator, path)
-
-        val ts = observer[ChildData](1, 1, 0)
-        onc.observable.subscribe(ts)
-        onc.connect()  // This will send us the element
-        assertTrue(ts.n.await(500, TimeUnit.MILLISECONDS))
-
-        zk.stop()      // This will send us the error after the cnxn times out
-        assertTrue(ts.e.await(cnxnTimeoutMs * 2, TimeUnit.MILLISECONDS))
-
-        ts.getOnCompletedEvents shouldBe empty
-        ts.getOnNextEvents should have size 1
-        ts.getOnErrorEvents should have size 1
-        assert(ts.getOnErrorEvents.get(0).isInstanceOf[NodeCacheDisconnected])
-
-        // Later observers will also get the same error, the Observable is now
-        // useless
-        val ts2 = observer[ChildData](0, 1, 0)
-        onc.observable.subscribe(ts2)
-        ts2.e.await(500, TimeUnit.MILLISECONDS)
-        ts2.getOnNextEvents shouldBe empty
-        ts2.getOnCompletedEvents shouldBe empty
-        ts2.getOnErrorEvents should have size 1
-        assert(ts2.getOnErrorEvents.get(0).isInstanceOf[NodeCacheDisconnected])
-
-    }
-}
-

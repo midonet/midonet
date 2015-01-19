@@ -17,34 +17,46 @@ package org.midonet.cluster.util
 
 import java.util.concurrent._
 
-import scala.collection.JavaConversions._
-import scala.collection.mutable.ListBuffer
+import rx.internal.operators.OperatorDoOnUnsubscribe
+
+import org.midonet.util.functors._
 
 import ch.qos.logback.classic.Level
 import org.apache.curator.framework.recipes.cache.ChildData
-import org.apache.curator.retry.RetryOneTime
 import org.junit.runner.RunWith
 import org.scalatest._
 import org.scalatest.junit.JUnitRunner
 import org.slf4j.LoggerFactory
-import rx.Observable
+import rx.{Subscriber, Observable}
 import rx.observers.{TestObserver, TestSubscriber}
 
-import org.midonet.cluster.util.ObservableTestUtils.observer
+import scala.collection.JavaConversions._
+import scala.collection.mutable.ListBuffer
 
 @RunWith(classOf[JUnitRunner])
 class ObservablePathChildrenCacheTest extends Suite
                                       with CuratorTestFramework
                                       with Matchers {
-
     val log = LoggerFactory.getLogger(classOf[ObservablePathChildrenCache])
 
+    def makePaths(n: Int): Map[String, String] = makePaths(0, n)
+
+    def makePaths(start: Int, end: Int): Map[String, String] = {
+        var data = Map.empty[String, String]
+        start.until(end) foreach { i =>
+            val childPath = ZK_ROOT + "/" + i
+            val childData = i.toString
+            data += (childPath -> childData)
+            curator.create().inBackground()
+                   .forPath(childPath, childData.getBytes)
+        }
+        data
+    }
+
     /** Subscribes to an ObservablePathChildrenCache and also to every child
-      * observable that appears, accumulating all the data received. The given
-      * latch will be updated every time a ChildData is emitted on any child
-      * observable. */
-    class ChildDataAccumulator(latch: CountDownLatch = null)
-        extends TestSubscriber[Observable[ChildData]] {
+      * observable that appears, accumulating all the data received.
+      */
+    class ChildDataAccumulator extends TestSubscriber[Observable[ChildData]] {
 
         val childObserver = new TestObserver[ChildData]()
         val children = ListBuffer[TestObserver[ChildData]]()
@@ -52,14 +64,10 @@ class ObservablePathChildrenCacheTest extends Suite
         override def onNext(o: Observable[ChildData]) {
             super.onNext(o)
             o.subscribe(childObserver)
-            val to = new TestObserver[ChildData] {
-                override def onNext(d: ChildData) {
-                    super.onNext(d)
-                    if (latch != null) latch.countDown()
-                }
-            }
+            val to = new TestObserver[ChildData]()
             o.subscribe(to)
             children += to
+
         }
 
         def extractData(): List[String] =
@@ -89,102 +97,35 @@ class ObservablePathChildrenCacheTest extends Suite
      * observable for each children that is already primed with the initial
      * state of the node. */
      def testChildObservablesArePrimed() {
-        val nChildren = 10
-        val latch = new CountDownLatch(nChildren)
-        val collector = new ChildDataAccumulator(latch)
-        makePaths(nChildren)
+        val nItems = 10
+        val collector = new ChildDataAccumulator()
+        makePaths(nItems)
         val opcc = ObservablePathChildrenCache.create(curator, ZK_ROOT)
         opcc.subscribe(collector)
-        assert(latch.await(1, TimeUnit.SECONDS))
-        collector.getOnNextEvents should have size nChildren
-        collector.getOnCompletedEvents shouldBe empty
-        collector.getOnErrorEvents shouldBe empty
+        collector.getOnNextEvents should have size nItems
         checkChildren(collector)
         opcc close()
-        collector.children.foreach { o =>
-            o.getOnCompletedEvents should have size 0
-            o.getOnErrorEvents should have size 1
-        }
     }
 
-    def testOnNonExistentPath(): Unit = {
-        val o = ObservablePathChildrenCache.create(curator, "/NOT_EXISTS")
-        val l1 = new CountDownLatch(1)
-        val l2 = new CountDownLatch(1)
-        def observer = (l: CountDownLatch) =>
-            new TestObserver[Observable[ChildData]] {
-            override def onError(t: Throwable) = {
-                super.onError(t)
-                l.countDown()
-            }
-        }
-        val ts1 = observer(l1)
-        val ts2 = observer(l2)
-        o.subscribe(ts1) // the subscribers are told about the dodgy observable
-        assert(l1.await(1, TimeUnit.SECONDS))
-        ts1.getOnErrorEvents should have size 1
-        ts1.getOnNextEvents shouldBe empty
-        curator.create().forPath("/NOT_EXISTS")
-        curator.create().forPath("/NOT_EXISTS/1")
-        o.subscribe(ts2) // any new subscriber keeps getting the onError
-        assert(l2.await(1, TimeUnit.SECONDS))
-        ts2.getOnErrorEvents should have size 1
-        ts2.getOnNextEvents shouldBe empty
-    }
-
-    def testObservableChildForNonExistingChild(): Unit = {
-        val ts = new TestObserver[ChildData]()
-        makePaths(1)
-        ObservablePathChildrenCache.create(curator, ZK_ROOT)
-                                   .observableChild("NOT_A_REAL_CHILD")
-                                   .subscribe(ts)
-        ts.assertTerminalEvent()
-        ts.getOnCompletedEvents shouldBe empty
-        ts.getOnNextEvents shouldBe empty
-        ts.getOnErrorEvents should have size 1
-        assert(ts.getOnErrorEvents.get(0).isInstanceOf[ChildNotExistsException])
-    }
-
-    /** Verifies that an ObservablePathChildrenCache does not complete the
-      * observable when close() is invoked, but instead emit an onError
-      * informing that the observable is no longer connected to ZK. */
-    def testCloseErrorsObservable() {
+    /** Verifies that an ObservablePathChildrenCache completes the observable
+      * when close() is invoked. */
+    def testCloseCompletesObservable() {
         val nItems = 10
-        val count = new CountDownLatch(10)
-        val error = new CountDownLatch(1)
-        val ts = new TestSubscriber[Observable[ChildData]] {
-            override def onError(e: Throwable): Unit = {
-                super.onError(e)
-                error.countDown()
-            }
-            override def onNext(t: Observable[ChildData]): Unit = {
-                super.onNext(t)
-                count.countDown()
-            }
-        }
+        val c = new CountDownLatch(10)
+        val ts = new TestSubscriber(new Subscriber[Observable[ChildData]] {
+            override def onCompleted(): Unit = {}
+            override def onError(e: Throwable): Unit = fail("error unexpected")
+            override def onNext(t: Observable[ChildData]): Unit = c.countDown()
+        })
         makePaths(nItems)
         val opcc = ObservablePathChildrenCache.create(curator, ZK_ROOT)
         opcc.asObservable().subscribe(ts)
-        assert(count.await(1, TimeUnit.SECONDS))
+        c.await(1, TimeUnit.SECONDS)
         opcc close()
-        assert(error.await(1, TimeUnit.SECONDS))
-        ts.getOnCompletedEvents shouldBe empty
+        ts.awaitTerminalEvent(2, TimeUnit.SECONDS)
         ts.getOnNextEvents should have size nItems
-        ts.getOnErrorEvents should have size 1
-        assert(ts.getOnErrorEvents
-                 .get(0).isInstanceOf[PathCacheDisconnectedException])
-
-        // Review all the emitted observables and ensure that they are all
-        // erroring
-        ts.getOnNextEvents.map ( o => {
-            val s = new TestSubscriber[ChildData]()
-            o subscribe s
-            s
-        }).foreach { s =>
-            s.getOnNextEvents shouldBe empty
-            s.getOnCompletedEvents shouldBe empty
-            s.getOnErrorEvents should have size 1
-        }
+        ts.getOnErrorEvents shouldBe empty
+        ts.getOnCompletedEvents should have size 1
     }
 
     /* Ensures that deleted children get their observables completed */
@@ -198,10 +139,10 @@ class ObservablePathChildrenCacheTest extends Suite
         collector.getOnNextEvents should have size 2 // data is there
 
         // Delete one node
-        val deletedPath = s"$ZK_ROOT/1"
+        val deletedPath = ZK_ROOT + "/1"
         curator.delete().forPath(deletedPath)
 
-        Thread sleep 500  // let Curator catch up
+        Thread sleep 100  // let Curator catch up
 
         // Order is not deterministic, so let's find out which one is deleted
         val (deleted, kept) = collector.children.partition (
@@ -349,8 +290,7 @@ class ObservablePathChildrenCacheTest extends Suite
                         val acc = new ChildDataAccumulator()
                         opcc.subscribe(acc)
                         // Wait until the ObservablePathChildrenCache is closed
-                        // which onErrors the observables
-                        while (acc.getOnErrorEvents.isEmpty) {
+                        while (acc.getOnCompletedEvents.isEmpty) {
                             Thread.`yield`()
                         }
                         acc.extractData()
@@ -384,12 +324,12 @@ class ObservablePathChildrenCacheTest extends Suite
 
         children should have size nTotal
 
-        opcc.close() // we can close to onError the children
+        opcc.close() // we can close to complete the children
 
         subscribers.foreach { s =>
             val received = s.get(2, TimeUnit.SECONDS)
             s.isDone shouldBe true
-            children.diff(received.toSeq) shouldBe empty
+            children.diff(received.toSeq) should be (empty)
         }
 
         log.debug("All streams are correct")
@@ -409,46 +349,4 @@ class ObservablePathChildrenCacheTest extends Suite
                 Thread.currentThread().interrupt()
         }
     }
-
 }
-
-/** Tests related to connection failures handling that tweak session and cnxn
-  * timeouts. */
-@RunWith(classOf[JUnitRunner])
-class ObservablePathChildrenCacheConnectionTest extends Suite
-    with CuratorTestFramework
-    with Matchers {
-
-    // Relaxed retry policy to spare time to the tests
-    override protected val retryPolicy = new RetryOneTime(500)
-
-    override def cnxnTimeoutMs = 3000
-    override def sessionTimeoutMs = 10000
-
-    def testOnErrorEmittedWhenCacheLosesConnection(): Unit = {
-        val ts1 = observer[Observable[ChildData]](2, 1, 0)
-        makePaths(2)
-        val o = ObservablePathChildrenCache.create(curator, ZK_ROOT)
-        o.subscribe(ts1)
-        assert(ts1.c.await(1, TimeUnit.SECONDS))
-        ts1.getOnErrorEvents shouldBe empty
-        ts1.getOnCompletedEvents shouldBe empty
-        zk.stop() // interrupt the connection
-        assert(ts1.e.await(cnxnTimeoutMs * 2, TimeUnit.MILLISECONDS))
-        ts1.getOnErrorEvents should have size 1
-        assert(
-            ts1.getOnErrorEvents.get(0)
-                .isInstanceOf[PathCacheDisconnectedException]
-        )
-        zk.restart()
-
-        // Prove that the observable is unusable
-        val ts2 = observer[Observable[ChildData]](0, 0, 0)
-        o.subscribe(ts2)
-        assert(ts2.e.await(1, TimeUnit.SECONDS))
-        assert(ts2.getOnErrorEvents.get(0).isInstanceOf[PathCacheDisconnectedException])
-        ts2.getOnNextEvents shouldBe empty
-        ts2.getOnCompletedEvents shouldBe empty
-    }
-}
-
