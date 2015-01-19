@@ -34,6 +34,29 @@
       "revId": "beaa8bce06db72671164be9e498b54dc61fb8649",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da2a55be_dd1c6bc4",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/C3PODaemonTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 278,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-01-19T06:37:57Z",
+      "side": 1,
+      "message": "Why the underscore?",
+      "range": {
+        "startLine": 278,
+        "startChar": 25,
+        "endLine": 278,
+        "endChar": 36
+      },
+      "revId": "beaa8bce06db72671164be9e498b54dc61fb8649",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
