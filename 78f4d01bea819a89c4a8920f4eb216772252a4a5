@@ -1,0 +1,274 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "da2a55be_fdf16f96",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/common/Connection.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-19T07:06:45Z",
+      "side": 1,
+      "message": "This should come right after the Java imports.",
+      "revId": "78f4d01bea819a89c4a8920f4eb216772252a4a5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da2a55be_1d1723a5",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/common/Connection.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-19T07:06:45Z",
+      "side": 1,
+      "message": "Please use a more descriptive name that\u0027s in line with the team convention. Perhaps \"disconnected\" or \"terminated\"?",
+      "range": {
+        "startLine": 54,
+        "startChar": 16,
+        "endLine": 54,
+        "endChar": 20
+      },
+      "revId": "78f4d01bea819a89c4a8920f4eb216772252a4a5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da2a55be_7d0c5f95",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/common/Connection.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-19T07:06:45Z",
+      "side": 1,
+      "message": "Is this a comment for send(Message)?",
+      "range": {
+        "startLine": 56,
+        "startChar": 4,
+        "endLine": 56,
+        "endChar": 51
+      },
+      "revId": "78f4d01bea819a89c4a8920f4eb216772252a4a5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da2a55be_fd1fafb5",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/common/Connection.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-19T07:06:45Z",
+      "side": 1,
+      "message": "\"lastSent\"?",
+      "range": {
+        "startLine": 57,
+        "startChar": 16,
+        "endLine": 57,
+        "endChar": 23
+      },
+      "revId": "78f4d01bea819a89c4a8920f4eb216772252a4a5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da2a55be_dd4aabab",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/common/Connection.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-19T07:06:45Z",
+      "side": 1,
+      "message": "\"sent\"?",
+      "range": {
+        "startLine": 119,
+        "startChar": 65,
+        "endLine": 119,
+        "endChar": 69
+      },
+      "revId": "78f4d01bea819a89c4a8920f4eb216772252a4a5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da2a55be_3dc78714",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/common/Connection.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 123,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-19T07:06:45Z",
+      "side": 1,
+      "message": "A better param name and description. Something like \"prevWrite\" is more descriptive?",
+      "range": {
+        "startLine": 123,
+        "startChar": 10,
+        "endLine": 123,
+        "endChar": 15
+      },
+      "revId": "78f4d01bea819a89c4a8920f4eb216772252a4a5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da2a55be_ddf8eb4b",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/common/Connection.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-19T07:06:45Z",
+      "side": 1,
+      "message": "I think it\u0027s a weird name. I\u0027d prefer something like \"MessageSender\" or something like that.",
+      "range": {
+        "startLine": 125,
+        "startChar": 6,
+        "endLine": 125,
+        "endChar": 22
+      },
+      "revId": "78f4d01bea819a89c4a8920f4eb216772252a4a5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da2a55be_5ded1b8b",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/common/Connection.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 138,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-19T07:06:45Z",
+      "side": 1,
+      "message": "s/on-fly/on the fly/",
+      "range": {
+        "startLine": 138,
+        "startChar": 58,
+        "endLine": 138,
+        "endChar": 64
+      },
+      "revId": "78f4d01bea819a89c4a8920f4eb216772252a4a5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da2a55be_bd8897c7",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/common/Connection.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 157,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-19T07:06:45Z",
+      "side": 1,
+      "message": "Just a suggestion and not mandatory, but can you factor out the future part into a single method?",
+      "range": {
+        "startLine": 143,
+        "startChar": 0,
+        "endLine": 157,
+        "endChar": 19
+      },
+      "revId": "78f4d01bea819a89c4a8920f4eb216772252a4a5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da2a55be_3d95c7e4",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/common/Connection.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 166,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-19T07:06:45Z",
+      "side": 1,
+      "message": "\"sendNow\" or \"sendNettyMessage\" would be better.",
+      "range": {
+        "startLine": 166,
+        "startChar": 8,
+        "endLine": 166,
+        "endChar": 18
+      },
+      "revId": "78f4d01bea819a89c4a8920f4eb216772252a4a5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da2a55be_7d5a9f84",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/common/ProtocolFactory.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-19T07:06:45Z",
+      "side": 1,
+      "message": "\"Subscription\" in the sense of rx.Subscription? I guess that this comment and the comment for start() is obsolete now that start(Observer[Message]) doesn\u0027t return Option[Subscription].",
+      "range": {
+        "startLine": 25,
+        "startChar": 58,
+        "endLine": 25,
+        "endChar": 70
+      },
+      "revId": "78f4d01bea819a89c4a8920f4eb216772252a4a5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da2a55be_5d5fdb72",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/common/ProtocolFactory.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-19T07:06:45Z",
+      "side": 1,
+      "message": "\"Take\"?",
+      "range": {
+        "startLine": 31,
+        "startChar": 7,
+        "endLine": 31,
+        "endChar": 14
+      },
+      "revId": "78f4d01bea819a89c4a8920f4eb216772252a4a5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
