@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9a245df4_c7ee5eb4",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/C3POMinionTest.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 246,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-19T19:32:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9a245df4_87abc6d5",
+      "range": {
+        "startLine": 246,
+        "startChar": 34,
+        "endLine": 246,
+        "endChar": 52
+      },
+      "revId": "3cc2c23885de3464229ebc3aed997511ec93cd83",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a245df4_e78f2274",
         "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/C3POMinionTest.scala",
         "patchSetId": 14
@@ -71,6 +95,30 @@
     },
     {
       "key": {
+        "uuid": "9a245df4_67fe926d",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/C3POMinionTest.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 384,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-19T19:32:00Z",
+      "side": 1,
+      "message": "This is coming from a separate review that just got merged before this patch, not really added here.",
+      "parentUuid": "9a245df4_2782da52",
+      "range": {
+        "startLine": 384,
+        "startChar": 8,
+        "endLine": 384,
+        "endChar": 53
+      },
+      "revId": "3cc2c23885de3464229ebc3aed997511ec93cd83",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a245df4_677cd273",
         "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/C3POMinionTest.scala",
         "patchSetId": 14
@@ -82,6 +130,30 @@
       "writtenOn": "2015-01-19T17:35:55Z",
       "side": 1,
       "message": "that",
+      "range": {
+        "startLine": 416,
+        "startChar": 16,
+        "endLine": 416,
+        "endChar": 17
+      },
+      "revId": "3cc2c23885de3464229ebc3aed997511ec93cd83",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_47038e73",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/C3POMinionTest.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 416,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-19T19:32:00Z",
+      "side": 1,
+      "message": "Ditto. Back references is correct I think",
+      "parentUuid": "9a245df4_677cd273",
       "range": {
         "startLine": 416,
         "startChar": 16,
@@ -186,6 +258,30 @@
     },
     {
       "key": {
+        "uuid": "9a245df4_c745beb4",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/storage/MidonetBackendModule.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-19T19:32:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9a245df4_e7bd6204",
+      "range": {
+        "startLine": 25,
+        "startChar": 72,
+        "endLine": 26,
+        "endChar": 29
+      },
+      "revId": "3cc2c23885de3464229ebc3aed997511ec93cd83",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a245df4_c7513eda",
         "filename": "cluster/src/main/scala/org/midonet/cluster/storage/NeutronDbConfig.scala",
         "patchSetId": 14
@@ -209,6 +305,30 @@
     },
     {
       "key": {
+        "uuid": "9a245df4_670cd295",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/storage/NeutronDbConfig.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-19T19:32:00Z",
+      "side": 1,
+      "message": "To enforce having them in config (and reviewed by a human) or deployment script. The connection str and user are tied to each neutron deployment.\n\nThe jdbc driver should be defaulted I think, but I\u0027ll leave that out since this patch is just moving the existing config around.",
+      "parentUuid": "9a245df4_c7513eda",
+      "range": {
+        "startLine": 23,
+        "startChar": 0,
+        "endLine": 30,
+        "endChar": 20
+      },
+      "revId": "3cc2c23885de3464229ebc3aed997511ec93cd83",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a245df4_e76ba283",
         "filename": "cluster/src/main/scala/org/midonet/cluster/storage/ZoomProvider.scala",
         "patchSetId": 14
@@ -220,6 +340,30 @@
       "writtenOn": "2015-01-19T17:35:55Z",
       "side": 1,
       "message": "Why not using zookeeperRootPath from MidonetBackendConfig (aren\u0027t they the same thing?)",
+      "range": {
+        "startLine": 33,
+        "startChar": 48,
+        "endLine": 33,
+        "endChar": 50
+      },
+      "revId": "3cc2c23885de3464229ebc3aed997511ec93cd83",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_e71f22b6",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/storage/ZoomProvider.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-19T19:32:00Z",
+      "side": 1,
+      "message": "See the reply to Tomohiko in #12. I want to remove this from here, and instead inject a namespaced Curator from the Guice modules.",
+      "parentUuid": "9a245df4_e76ba283",
       "range": {
         "startLine": 33,
         "startChar": 48,
