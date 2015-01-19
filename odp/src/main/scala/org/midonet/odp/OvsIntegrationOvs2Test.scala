@@ -25,7 +25,7 @@ import org.midonet.odp.ports._
 import org.midonet.odp.util.TapWrapper
 import org.midonet.packets.util.EthBuilder
 import org.midonet.packets.util.PacketBuilder.{tcp, _}
-import org.midonet.packets.{IPv4Addr, MAC}
+import org.midonet.packets.{Ethernet, IPv4Addr, MAC}
 import org.midonet.util.BatchCollector
 
 trait TapTrafficInjectBase {
@@ -152,7 +152,7 @@ trait MegaFlowTest extends TapTrafficInjectBase {
         fmatch.getSrcPort
         val wildcardedPort = new Flow(fmatch)
 
-        def checkFlow(flow: Flow, packets: Seq[EthBuilder], expected: Int) = {
+        def checkFlow(flow: Flow, packets: Seq[EthBuilder[Ethernet]], expected: Int) = {
             val dpFlow = createWFlow(dpF, flow)
             packets foreach { packet => tapWrapper.send(packet.serialize) }
             Thread sleep 250

@@ -16,7 +16,12 @@
 
 package org.midonet.midolman.state
 
+import java.nio.ByteBuffer
 import java.util.{ArrayList, UUID, HashSet => JHashSet, List => JList, Set => JSet}
+import com.google.protobuf.{CodedOutputStream, MessageLite}
+import org.midonet.rpc.FlowStateProto
+import org.midonet.util.FixedArrayOutputStream
+
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 
@@ -33,9 +38,10 @@ import org.midonet.midolman.state.ConnTrackState.{ConnTrackValue, ConnTrackKey}
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
 import org.midonet.midolman.topology.devices.{BridgePort, Port}
 import org.midonet.midolman.topology.rcu.ResolvedHost
-import org.midonet.odp.Packet
+import org.midonet.odp.{FlowMatches, Packet, Datapath}
 import org.midonet.odp.flows.{FlowActions, FlowAction, FlowActionOutput}
-import org.midonet.packets.IPv4Addr
+import org.midonet.odp.protos.{MockOvsDatapathConnection, OvsDatapathConnection}
+import org.midonet.packets._
 import org.midonet.sdn.state.{IdleExpiration, FlowStateTransaction, FlowStateTable}
 import org.midonet.sdn.flows.FlowTagger.{FlowTag, FlowStateTag}
 import org.midonet.util.collection.Reducer
@@ -156,6 +162,53 @@ class FlowStateReplicatorTest extends FeatureSpec
         passedPacketsSeen
     }
 
+    feature("State packets serialization") {
+        scenario("A (de)serialized packet should be the same as before") {
+            import FlowStatePackets._
+
+            Given("Flow state packet shell")
+            val buffer = new Array[Byte](
+                FlowStateEthernet.FLOW_STATE_MAX_PAYLOAD_LENGTH)
+            val stream = new FixedArrayOutputStream(buffer)
+            val packet = {
+                val udpShell = makeFlowStateUdpShell(buffer)
+                new Packet(udpShell, FlowMatches.fromEthernetPacket(udpShell))
+            }
+
+            When("Flow satte packet payload is the empty protobuf messsage")
+            val msgBuilder = FlowStateProto.StateMessage.newBuilder()
+                .clear()
+                .setSender(UUID.randomUUID())
+                .setEpoch(0x42L)
+                .setSeq(0x1L) /* We don't expect ACKs, seq is unused for now */
+            val msg: MessageLite = msgBuilder.build()
+
+            val msgSizeVariantLength: Int =
+                CodedOutputStream.computeRawVarint32Size(msg.getSerializedSize)
+            val msgLength = msg.getSerializedSize + msgSizeVariantLength
+
+            stream.reset()
+            msg.writeDelimitedTo(stream)
+
+            val fse = packet.getEthernet.asInstanceOf[FlowStateEthernet]
+            fse.setElasticDataLength(msgLength)
+
+            Then("Serialized packet should have the appropriate length")
+            val bb = ByteBuffer.allocate(FlowStateEthernet.MTU)
+            fse.serialize(bb)
+            bb.position should be (msgLength +
+                FlowStateEthernet.FLOW_STATE_ETHERNET_OVERHEAD)
+            bb.flip()
+
+            And("The deserialized packet should be the same as before")
+            val deserialized = Ethernet.deserialize(bb.array())
+            val data = deserialized
+                .getPayload.getPayload.getPayload.asInstanceOf[Data].getData
+            data.slice(msgSizeVariantLength, data.length) should be (
+                msg.toByteArray)
+        }
+    }
+
     feature("L4 flow state replication") {
         scenario("Replicates conntrack keys") {
             Given("A conntrack key in a transaction")
@@ -180,8 +233,8 @@ class FlowStateReplicatorTest extends FeatureSpec
             recipient.conntrackTable.get(
                 connTrackKeys.head) should equal (ConnTrackState.RETURN_FLOW)
             val ethernetFrame = packet.getData
-            ethernetFrame.length should be <= (FlowStatePackets.MTU -
-                FlowStatePackets.GRE_ENCAPUSULATION_OVERHEAD)
+            ethernetFrame.length should be < (FlowStateEthernet.MTU -
+                FlowStateEthernet.VXLAN_ENCAPUSULATION_OVERHEAD)
         }
 
         scenario("Replicates Nat keys") {

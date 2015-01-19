@@ -15,6 +15,8 @@
  */
 package org.midonet.netlink;
 
+import org.midonet.packets.Ethernet;
+
 import java.nio.ByteBuffer;
 
 /**
@@ -115,6 +117,11 @@ public final class NetlinkMessage {
     /** write an attribute as a raw stream of bytes, with header. */
     public static int writeRawAttribute(ByteBuffer buf, short id, byte[] value) {
         return writeAttrWithId(buf, id, value, bytesSerializer);
+    }
+
+    public static int writeEthernetAttribute(ByteBuffer buf, short id,
+                                             Ethernet eth) {
+        return writeAttrWithId(buf, id, eth, ethernetSerializer);
     }
 
     /** Generic attribute sequence writing function that can write an arbitrary
@@ -241,6 +248,17 @@ public final class NetlinkMessage {
             return value.length;
         }
     };
+
+    private static final Writer<Ethernet> ethernetSerializer =
+            new Writer<Ethernet>() {
+                public short attrIdOf(Ethernet any) {
+                    throw new UnsupportedOperationException();
+                }
+                public int serializeInto(ByteBuffer receiver,
+                                         Ethernet ethernet) {
+                    return ethernet.serialize(receiver);
+                }
+            };
 
     /** Iterates over a ByteBuffer containing a sequence of netlink attributes
      *  and calls a user given handler for every attributes, aligning the buffer
