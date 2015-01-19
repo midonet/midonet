@@ -27,15 +27,15 @@ package object vxgw {
 
     // For control of the hardware VTEP
     def vxgwVtepControlLog(ip: IPv4Addr, port: Int)
-        = s"org.midonet.vxgw.vxgw-vtep-controller-${ip.toString.replaceAll("\\.", "_")}:$port"
+        = s"org.midonet.vxgw.vxgw-vtep-controller.${ip.toString.replaceAll("\\.", "_")}:$port"
     // For interaction with the MidoNet side of a VxGW
     def vxgwMidonetLog(networkId: UUID)
-        = s"org.midonet.vxgw.vxgw-midonet-controller-$networkId"
+        = s"org.midonet.vxgw.vxgw-midonet-controller.$networkId"
     // For processes syncing macs among MidoNet and Hardware VTEPs
     def vxgwMacSyncingLog(networkId: UUID)
-        = s"org.midonet.vxgw.vxgw-mac-syncing-$networkId"
+        = s"org.midonet.vxgw.vxgw-mac-syncing.$networkId"
     // For management of a VxGW joining a Network with Hardware VTEPs
     def vxgwMgmtLog(networkId: UUID)
-        = s"org.midonet.vxgw.vxgw-manager-$networkId"
+        = s"org.midonet.vxgw.vxgw-manager.$networkId"
 
 }
