@@ -130,6 +130,10 @@ public class VendorMediaType {
             "application/vnd.org.midonet.DhcpHost-v1+json";
     public static final String APPLICATION_DHCP_HOST_COLLECTION_JSON =
             "application/vnd.org.midonet.collection.DhcpHost-v1+json";
+    public static final String APPLICATION_DHCP_HOST_JSON_V2 =
+        "application/vnd.org.midonet.DhcpHost-v2+json";
+    public static final String APPLICATION_DHCP_HOST_COLLECTION_JSON_V2 =
+        "application/vnd.org.midonet.collection.DhcpHost-v2+json";
     public static final String APPLICATION_DHCPV6_SUBNET_JSON =
             "application/vnd.org.midonet.DhcpV6Subnet-v1+json";
     public static final String APPLICATION_DHCPV6_SUBNET_COLLECTION_JSON =

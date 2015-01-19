@@ -18,12 +18,16 @@ package org.midonet.client.dto;
 
 import javax.xml.bind.annotation.XmlRootElement;
 import java.net.URI;
+import java.util.List;
+
+import com.google.common.base.Objects;
 
 @XmlRootElement
 public class DtoDhcpHost {
     protected String macAddr;
     protected String ipAddr;    // DHCP "your ip address"
     protected String name;      // DHCP option 12 - host name
+    protected List<DtoExtraDhcpOpt> extraDhcpOpts;
     private URI uri;
 
     public String getMacAddr() {
@@ -50,6 +54,14 @@ public class DtoDhcpHost {
         this.name = name;
     }
 
+    public List<DtoExtraDhcpOpt> getExtraDhcpOpts() {
+        return extraDhcpOpts;
+    }
+
+    public void setExtraDhcpOpts(List<DtoExtraDhcpOpt> extraDhcpOpts) {
+        this.extraDhcpOpts = extraDhcpOpts;
+    }
+
     public URI getUri() {
         return uri;
     }
@@ -59,41 +71,30 @@ public class DtoDhcpHost {
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        DtoDhcpHost that = (DtoDhcpHost) o;
-
-        if (ipAddr != null ? !ipAddr.equals(that.ipAddr) : that.ipAddr != null)
-            return false;
-        if (macAddr != null
-                ? !macAddr.equals(that.macAddr) : that.macAddr != null)
-            return false;
-        if (name != null ? !name.equals(that.name) : that.name != null)
-            return false;
-        if (uri != null ? !uri.equals(that.uri) : that.uri != null)
-            return false;
-
-        return true;
+    public int hashCode() {
+        return Objects.hashCode(macAddr, ipAddr, name, extraDhcpOpts, uri);
     }
 
     @Override
-    public int hashCode() {
-        int result = macAddr != null ? macAddr.hashCode() : 0;
-        result = 31 * result + (ipAddr != null ? ipAddr.hashCode() : 0);
-        result = 31 * result + (name != null ? name.hashCode() : 0);
-        result = 31 * result + (uri != null ? uri.hashCode() : 0);
-        return result;
+    public boolean equals(Object obj) {
+        if (obj == this) return true;
+        if (!(obj instanceof DtoDhcpHost)) return false;
+        final DtoDhcpHost other = (DtoDhcpHost) obj;
+        return Objects.equal(macAddr, other.macAddr) &&
+               Objects.equal(ipAddr, other.ipAddr) &&
+               Objects.equal(name, other.name) &&
+               Objects.equal(extraDhcpOpts, other.extraDhcpOpts) &&
+               Objects.equal(uri, other.uri);
     }
 
     @Override
     public String toString() {
-        return "DtoDhcpHost{" +
-                "ipAddr='" + ipAddr + '\'' +
-                ", macAddr='" + macAddr + '\'' +
-                ", name='" + name + '\'' +
-                ", uri=" + uri +
-                '}';
+        return Objects.toStringHelper(this)
+            .add("macAddr", macAddr)
+            .add("ipAddr", ipAddr)
+            .add("name", name)
+            .add("extraDhcpOpts", extraDhcpOpts)
+            .add("uri", uri)
+            .toString();
     }
 }

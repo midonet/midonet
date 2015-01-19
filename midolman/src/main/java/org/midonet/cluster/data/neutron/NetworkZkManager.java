@@ -28,6 +28,7 @@ import com.google.inject.Inject;
 import org.apache.zookeeper.Op;
 
 import org.midonet.cluster.data.Bridge;
+import org.midonet.cluster.data.Converter;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.BaseZkManager;
@@ -283,8 +284,8 @@ public class NetworkZkManager extends BaseZkManager {
             Subnet subnet = getSubnet(fixedIp.subnetId);
             if (subnet.isIpv4()) {
                 dhcpZkManager.prepareAddHost(ops, subnet,
-                                             new Host(port.macAddress,
-                                                      fixedIp.ipAddress));
+                    new Host(port.macAddress, fixedIp.ipAddress,
+                        Converter.toExtraDhcpOptsList(port.extraDhcpOpts)));
             } else if (subnet.isIpv6()) {
                 dhcpV6ZkManager.prepareAddHost(ops, subnet.networkId,
                                                subnet.ipv6Subnet(),

@@ -56,9 +56,10 @@ public class TestJsonSerialization {
                              IPv4Addr.fromString("10.1.2.3"),
                              "mars");
         String json = JsonVersionZkSerializer.objToJsonString(host);
-        assertEquals(
-            "{\"mac\":\"aa:bb:cc:dd:ee:11\",\"ip\":\"10.1.2.3\",\"name\":\"mars\"}",
-            json);
+        String expectedJsonString = "{\"mac\":\"aa:bb:cc:dd:ee:11\"," +
+                "\"ip\":\"10.1.2.3\",\"name\":\"mars\"," +
+                "\"extraDhcpOpts\":[]}";
+        assertEquals(expectedJsonString, json);
         Host host2 = JsonVersionZkSerializer.jsonStringToObj(json, Host.class);
         assertEquals(host, host2);
     }
