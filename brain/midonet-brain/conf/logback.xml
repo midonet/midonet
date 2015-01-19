@@ -37,7 +37,7 @@
     </appender>
 
     <!-- Fine grained settings for specific packages -->
-    <logger name="org.apache.cassandra" level="INFO" />
+    <!-- logger name="org.apache.cassandra" level="INFO" / -->
     <!-- logger name="org.eclipse.jetty" level="INFO" / -->
 
     <!-- Service loggers -->
@@ -51,13 +51,12 @@
     <!-- Information about MAC table syncing among hardware VTEPs and networks
          inside MidoNet -->
     <!-- <logger name="org.midonet.vxgw.vxgw-mac-syncing" level="DEBUG" /> -->
-    <!-- Information about the control process that monitors newly bound to
-         VTEPs -->
+    <!-- Information about the control process that monitors newly bound to VTEPs -->
     <!-- <logger name="org.midonet.vxgw.vxgw-manager" level="DEBUG"/> -->
 
 
     <!-- OFF, ERROR, WARN, INFO, DEBUG, TRACE -->
-    <root level="INFO">
+    <root level="DEBUG">
         <appender-ref ref="STDOUT" />
         <appender-ref ref="LOG-FILE" />
     </root>
