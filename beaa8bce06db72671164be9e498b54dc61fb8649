@@ -16,6 +16,24 @@
       "revId": "beaa8bce06db72671164be9e498b54dc61fb8649",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da2a55be_3d2ca74a",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/StorageModule.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-19T04:50:55Z",
+      "side": 1,
+      "message": "Noted. I\u0027ll create a JIRA issue.",
+      "parentUuid": "da2a55be_c91cb1c4",
+      "revId": "beaa8bce06db72671164be9e498b54dc61fb8649",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
