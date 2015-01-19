@@ -93,6 +93,7 @@ class VxLanPort extends Port {
 
     @ZoomField(name = "network_id", converter = classOf[UUIDConverter])
     var networkId: UUID = _
+
     @ZoomField(name = "vtep_mgmt_ip", converter = classOf[IPAddressConverter])
     var vtepMgmtIp: IPv4Addr = _
     @ZoomField(name = "vtep_mgmt_port")
