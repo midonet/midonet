@@ -65,7 +65,7 @@ class VirtualToPhysicalMapperTest extends MidolmanSpec
 
     private def buildHost(): DevicesHost = {
         // Create the host with the data client
-        val dataHost = newHost("myself", hostId())
+        val dataHost = newHost("myself", hostId)
 
         // Create the equivalent org.midonet.midolman.topology.devices.Host
         toDevicesHost(dataHost)
@@ -74,7 +74,7 @@ class VirtualToPhysicalMapperTest extends MidolmanSpec
     feature("VirtualToPhysicalMapper resolves host requests.") {
         scenario("Subscribes to a host.") {
             val host = buildHost()
-            val subscriber = subscribe(HostRequest(hostId()))
+            val subscriber = subscribe(HostRequest(hostId))
             val notifications = subscriber.getAndClear()
 
             notifications should contain only host
@@ -92,11 +92,11 @@ class VirtualToPhysicalMapperTest extends MidolmanSpec
     feature("VirtualToPhysicalMapper resolves tunnel zones") {
         scenario("Subscribe to a tunnel zone.") {
             val zone = greTunnelZone("twilight-zone")
-            val host = newHost("myself", hostId(), Set(zone.getId))
+            val host = newHost("myself", hostId, Set(zone.getId))
             val tunnelZoneHost = new TunnelZone.HostConfig(host.getId)
                                  .setIp(IPv4Addr("1.1.1.1"))
-            clusterDataClient().tunnelZonesAddMembership(zone.getId,
-                                                         tunnelZoneHost)
+            clusterDataClient.tunnelZonesAddMembership(zone.getId,
+                                                       tunnelZoneHost)
 
             val subscriber = subscribe(TunnelZoneRequest(zone.getId))
             subscriber.getAndClear() should be (List(

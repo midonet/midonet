@@ -73,7 +73,7 @@ class FlowsExpirationTestCase extends MidolmanTestCase with Dilation {
     }
 
     override def beforeTest() {
-        val myHost = newHost("myself", hostId())
+        val myHost = newHost("myself", hostId)
 
         val bridge = newBridge("bridge")
 
@@ -83,10 +83,10 @@ class FlowsExpirationTestCase extends MidolmanTestCase with Dilation {
         materializePort(port1, myHost, "port1")
         materializePort(port2, myHost, "port2")
 
-        initializeDatapath() should not be (null)
+        initializeDatapath() should not be null
 
         datapathEventsProbe.expectMsgType[DatapathController.DatapathReady]
-            .datapath should not be (null)
+            .datapath should not be null
 
         // Now disable sending messages to the DatapathController
         dpProbe().testActor ! "stop"
@@ -130,7 +130,7 @@ class FlowsExpirationTestCase extends MidolmanTestCase with Dilation {
         // we have to wait because adding the flow into the dp is async
         dilatedSleep(delayAsynchAddRemoveInDatapath)
 
-        dpConn().futures.flowsGet(datapath, flow.getMatch).get should not be (null)
+        dpConn().futures.flowsGet(datapath, flow.getMatch).get should not be null
         // we wait for the flow removed message that will be triggered because
         // the flow expired
         wflowRemovedProbe.expectMsgClass(classOf[WildcardFlowRemoved])
@@ -183,7 +183,7 @@ class FlowsExpirationTestCase extends MidolmanTestCase with Dilation {
         // we have to wait because adding the flow into the dp is async
         dilatedSleep(delayAsynchAddRemoveInDatapath)
 
-        dpConn().futures.flowsGet(datapath, flow.getMatch).get should not be (null)
+        dpConn().futures.flowsGet(datapath, flow.getMatch).get should not be null
 
         // we wait for the flow removed message that will be triggered because
         // the flow expired
@@ -224,7 +224,7 @@ class FlowsExpirationTestCase extends MidolmanTestCase with Dilation {
         // large interval also to execute the following triggerPacketIn and thus
         // causing the flow's LastUsedTime after a reasonable amount of time
         dilatedSleep(timeOutFlow/3)
-        dpConn().futures.flowsGet(datapath, flow.getMatch).get should not be (null)
+        dpConn().futures.flowsGet(datapath, flow.getMatch).get should not be null
 
         // Now trigger another packet that matches the flow. This will update
         // the lastUsedTime
@@ -262,7 +262,7 @@ class FlowsExpirationTestCase extends MidolmanTestCase with Dilation {
         wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])
 
         dilatedSleep(delayAsynchAddRemoveInDatapath)
-        dpConn().futures.flowsGet(datapath, flow.getMatch).get should not be (null)
+        dpConn().futures.flowsGet(datapath, flow.getMatch).get should not be null
 
         ackWCRemoved(Duration(timeOutFlow, TimeUnit.SECONDS))
 
@@ -299,7 +299,7 @@ class FlowsExpirationTestCase extends MidolmanTestCase with Dilation {
         wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])
 
         dilatedSleep(timeOutFlow/3)
-        dpConn().futures.flowsGet(datapath, flow.getMatch).get should not be (null)
+        dpConn().futures.flowsGet(datapath, flow.getMatch).get should not be null
         // update the LastUsedTime of the flow
         setFlowLastUsedTimeToNow(flow.getMatch)
         // expect that the FlowController requests an update for this flow

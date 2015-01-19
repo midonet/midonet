@@ -22,14 +22,12 @@ import org.junit.runner.RunWith
 import org.midonet.midolman.PacketWorkflow.TemporaryDrop
 import org.scalatest.concurrent.Eventually._
 import org.scalatest.junit.JUnitRunner
-import org.scalatest._
 
 import org.midonet.cluster.data.{Bridge => ClusterBridge, Router => ClusterRouter}
 import org.midonet.cluster.data.ports.{BridgePort, RouterPort}
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
-import org.midonet.midolman.services.{HostIdProviderService}
-import org.midonet.midolman.simulation.{Bridge, CustomMatchers}
-import org.midonet.midolman.simulation.Coordinator.{FloodBridgeAction, ToPortAction}
+import org.midonet.midolman.simulation.Bridge
+import org.midonet.midolman.simulation.Coordinator.ToPortAction
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.topology.BridgeManager.CheckExpiredMacPorts
 import org.midonet.midolman.util.MidolmanSpec
@@ -62,12 +60,12 @@ class BridgeInvalidationTest extends MidolmanSpec {
     private def addAndMaterializeBridgePort(br: ClusterBridge): BridgePort = {
         val port = newBridgePort(br)
         port should not be null
-        clusterDataClient().portsSetLocalAndActive(port.getId, hostId(), true)
+        clusterDataClient.portsSetLocalAndActive(port.getId, hostId, true)
         port
     }
 
     private def buildTopology() {
-        val host = newHost("myself", hostId())
+        val host = newHost("myself", hostId)
         host should not be null
 
         clusterBridge = newBridge("bridge")
@@ -272,7 +270,7 @@ class BridgeInvalidationTest extends MidolmanSpec {
             action should be (bridge.floodAction)
 
             When("The router is linked to the bridge")
-            clusterDataClient().portsLink(routerPort.getId, leftPort.getId)
+            clusterDataClient.portsLink(routerPort.getId, leftPort.getId)
 
             Then("Invalidations for flooded and unicast flows should happen")
             val invals = FlowController.getAndClear()
@@ -284,7 +282,7 @@ class BridgeInvalidationTest extends MidolmanSpec {
         scenario("a interior port is unlinked") {
             When("The router is linked to the bridge")
             var bridge: Bridge = fetchDevice(clusterBridge)
-            clusterDataClient().portsLink(routerPort.getId, interiorPort.getId)
+            clusterDataClient.portsLink(routerPort.getId, interiorPort.getId)
             eventually {
                 val newBridge: Bridge = fetchDevice(clusterBridge)
                 newBridge should not be bridge
@@ -302,7 +300,7 @@ class BridgeInvalidationTest extends MidolmanSpec {
             FlowController.getAndClear()
 
             And("The interior port is then unlinked")
-            clusterDataClient().portsUnlink(interiorPort.getId)
+            clusterDataClient.portsUnlink(interiorPort.getId)
 
             Then("A flow invalidation should be produced")
             FlowController.getAndClear() should contain (InvalidateFlowsByTag(interiorPortTag))

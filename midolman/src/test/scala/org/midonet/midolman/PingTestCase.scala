@@ -62,7 +62,7 @@ class PingTestCase extends MidolmanTestCase
     var rtrPort1Num = 0
 
     override def beforeTest() {
-        val host = newHost("myself", hostId())
+        val host = newHost("myself", hostId)
         host should not be null
 
         val router = newRouter("router")
@@ -110,7 +110,7 @@ class PingTestCase extends MidolmanTestCase
 
         val brPort1 = newBridgePort(bridge)
         brPort1 should not be null
-        clusterDataClient().portsLink(rtrPort2.getId, brPort1.getId)
+        clusterDataClient.portsLink(rtrPort2.getId, brPort1.getId)
 
         // add a materialized port on bridge, logically connect to VM2
         brPort2 = newBridgePort(bridge)
@@ -118,15 +118,15 @@ class PingTestCase extends MidolmanTestCase
 
         // DHCP related setup
         // set up Option 121
-        var opt121Obj = (new Opt121()
+        val opt121Obj = new Opt121()
                        .setGateway(routerIp2.getAddress)
-                       .setRtDstSubnet(routerIp1))
-        var opt121Routes: List[Opt121] = List(opt121Obj)
+                       .setRtDstSubnet(routerIp1)
+        val opt121Routes: List[Opt121] = List(opt121Obj)
         // set DHCP subnet
-        var dhcpSubnet = (new Subnet()
+        val dhcpSubnet = new Subnet()
                        .setSubnetAddr(routerIp2)
                        .setDefaultGateway(routerIp2.getAddress)
-                       .setOpt121Routes(opt121Routes))
+                       .setOpt121Routes(opt121Routes)
         addDhcpSubnet(bridge, dhcpSubnet)
         // set DHCP host
         materializePort(brPort2, host, vm2PortName)
@@ -135,13 +135,13 @@ class PingTestCase extends MidolmanTestCase
             case Some(portNo : Short) => vm2PortNumber = portNo
             case None => fail("Not able to find data port number for bridge port 2")
         }
-        var dhcpHost = (new org.midonet.cluster.data.dhcp.Host()
+        val dhcpHost = new org.midonet.cluster.data.dhcp.Host()
                            .setMAC(vm2Mac)
-                           .setIp(vm2Ip.getAddress))
+                           .setIp(vm2Ip.getAddress)
         addDhcpHost(bridge, dhcpSubnet, dhcpHost)
 
         datapathEventsProbe.expectMsgType[DatapathController.DatapathReady]
-            .datapath should not be (null)
+            .datapath should not be null
         drainProbes()
     }
 
@@ -153,7 +153,7 @@ class PingTestCase extends MidolmanTestCase
         flowActs.size should be (1)
 
         val act = flowActs(0)
-        act.getClass() should be (classOf[FlowActionOutput])
+        act.getClass should be (classOf[FlowActionOutput])
         act.asInstanceOf[FlowActionOutput].getPortNumber should be (portNum)
 
         pktOut.packet.getEthernet
@@ -230,8 +230,8 @@ class PingTestCase extends MidolmanTestCase
         val ipPkt = returnPkt.getPayload.asInstanceOf[IPv4]
         ipPkt.getProtocol should be (UDP.PROTOCOL_NUMBER)
         val udpPkt = ipPkt.getPayload.asInstanceOf[UDP]
-        udpPkt.getSourcePort() should be (67)
-        udpPkt.getDestinationPort() should be (68)
+        udpPkt.getSourcePort should be (67)
+        udpPkt.getDestinationPort should be (68)
         val dhcpPkt = udpPkt.getPayload.asInstanceOf[DHCP]
         dhcpClientIp = dhcpPkt.getYourIPAddress
         dhcpServerIp = dhcpPkt.getServerIPAddress
@@ -240,7 +240,7 @@ class PingTestCase extends MidolmanTestCase
             val code = opt.getCode
             replyOptions.put(code, opt)
             code match {
-                case v if (v == DHCPOption.Code.DHCP_TYPE.value) =>
+                case v if v == DHCPOption.Code.DHCP_TYPE.value =>
                     if (opt.getLength != 1) {
                         fail("DHCP option type value invalid length")
                     }
@@ -403,8 +403,8 @@ class PingTestCase extends MidolmanTestCase
         drainProbes()
 
         // Verify what all were sent, note that the ARPs do not get emitted
-        mockDpChannel().packetsSent should have size howMany
-        val seqs = mockDpChannel().packetsSent.map ( p => {
+        mockDpChannel.packetsSent should have size howMany
+        val seqs = mockDpChannel.packetsSent.map ( p => {
             icmp_quench(p.getEthernet) match {
                 case (`icmpId`, seq: Short) => seq
                 case _ => -1

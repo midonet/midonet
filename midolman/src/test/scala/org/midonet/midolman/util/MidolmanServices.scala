@@ -34,25 +34,25 @@ import org.midonet.odp.protos.{OvsDatapathConnection, MockOvsDatapathConnection}
 trait MidolmanServices {
     var injector: Injector
 
-    def clusterClient() =
+    def clusterClient =
         injector.getInstance(classOf[Client])
 
-    def clusterDataClient() =
+    def clusterDataClient =
         injector.getInstance(classOf[DataClient])
 
-    def hostId() =
+    def hostId =
         injector.getInstance(classOf[HostIdProviderService]).getHostId
 
     def mockDpConn()(implicit ec: ExecutionContext, as: ActorSystem) = {
         dpConn().asInstanceOf[MockOvsDatapathConnection]
     }
 
-    def mockDpChannel() = {
+    def mockDpChannel = {
         injector.getInstance(classOf[DatapathChannel])
                 .asInstanceOf[MockDatapathChannel]
     }
 
-    def mockFlowEjector() = {
+    def mockFlowEjector = {
         injector.getInstance(classOf[FlowEjector])
                 .asInstanceOf[MockFlowEjector]
     }

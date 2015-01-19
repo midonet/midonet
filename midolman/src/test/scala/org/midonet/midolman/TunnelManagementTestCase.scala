@@ -59,7 +59,7 @@ class TunnelManagementTestCase extends MidolmanTestCase
     override def beforeTest() {
         greZone = greTunnelZone("default")
 
-        host1 = newHost("me", hostId())
+        host1 = newHost("me", hostId)
         host2 = newHost("she")
 
         bridge = newBridge("bridge")
@@ -73,7 +73,7 @@ class TunnelManagementTestCase extends MidolmanTestCase
         myGreConfig = new TunnelZone.HostConfig(host1.getId).setIp(myIp)
         herGreConfig = new TunnelZone.HostConfig(host2.getId).setIp(herIp)
 
-        clusterDataClient()
+        clusterDataClient
             .tunnelZonesAddMembership(greZone.getId, herGreConfig)
 
         portActiveProbe = newProbe()
@@ -92,9 +92,9 @@ class TunnelManagementTestCase extends MidolmanTestCase
      */
     def testTunnelZoneCreationDeletion() {
         // The zone is created by now, and there is 1 member
-        clusterDataClient().tunnelZonesDelete(greZone.getId)
-        clusterDataClient().hostsGet(host1.getId).getTunnelZones should have size 0
-        clusterDataClient().tunnelZonesGetMemberships(greZone.getId) should have size 0
+        clusterDataClient.tunnelZonesDelete(greZone.getId)
+        clusterDataClient.hostsGet(host1.getId).getTunnelZones should have size 0
+        clusterDataClient.tunnelZonesGetMemberships(greZone.getId) should have size 0
     }
 
     def testTunnelZone() {
@@ -104,7 +104,7 @@ class TunnelManagementTestCase extends MidolmanTestCase
         dpState.peerTunnelInfo(host2.getId) shouldBe None
 
         // Now add myself to the tunnel zone.
-        clusterDataClient().tunnelZonesAddMembership(greZone.getId, myGreConfig)
+        clusterDataClient.tunnelZonesAddMembership(greZone.getId, myGreConfig)
 
         // assert that the VTP got a HostRequest message
         requestOfType[HostRequest](vtpProbe())
@@ -126,8 +126,8 @@ class TunnelManagementTestCase extends MidolmanTestCase
 
         // update the gre ip of the second host
         val herSecondGreConfig = new TunnelZone.HostConfig(host2.getId).setIp(herIp2)
-        clusterDataClient().tunnelZonesDeleteMembership(greZone.getId, host2.getId)
-        clusterDataClient().tunnelZonesAddMembership(greZone.getId, herSecondGreConfig)
+        clusterDataClient.tunnelZonesDeleteMembership(greZone.getId, host2.getId)
+        clusterDataClient.tunnelZonesAddMembership(greZone.getId, herSecondGreConfig)
 
         Thread.sleep(500) // guard against spurious failures
 
@@ -151,7 +151,7 @@ class TunnelManagementTestCase extends MidolmanTestCase
         ports should contain key "tnvxlan-vtep"
 
         // delete this host from the tunnel zone
-        clusterDataClient().tunnelZonesDeleteMembership(greZone.getId, host1.getId)
+        clusterDataClient.tunnelZonesDeleteMembership(greZone.getId, host1.getId)
         fishForReplyOfType[ZoneChanged](vtpProbe())
 
         Thread.sleep(500) // guard against spurious failures

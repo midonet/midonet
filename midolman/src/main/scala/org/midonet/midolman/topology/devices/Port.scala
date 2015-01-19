@@ -15,7 +15,7 @@
  */
 package org.midonet.midolman.topology.devices
 
-import java.util.{HashSet, UUID}
+import java.util.UUID
 
 import scala.collection.JavaConverters._
 
@@ -83,12 +83,12 @@ sealed trait Port extends ZoomObject with VirtualDevice with Cloneable {
 }
 
 /** Logical port connected to a peer vtep gateway. This subtype holds the
-  *  24 bits VxLan Network Identifier (vni key) of the logical switch this
-  *  port belongs to as well as the underlay ip address of the vtep gateway, its
-  *  tunnel end point, and the tunnel zone to which hosts willing to open tunnels
-  *  to this VTEP should belong to determine their own endpoint IP.
-  *  It is assumed that the vxlan key is holded in the 3 last signifant bytes
-  *  of the vni int field. */
+ *  24 bits VxLan Network Identifier (vni key) of the logical switch this
+ *  port belongs to as well as the underlay ip address of the vtep gateway, its
+ *  tunnel end point, and the tunnel zone to which hosts willing to open tunnels
+ *  to this VTEP should belong to determine their own endpoint IP.
+ *  It is assumed that the vxlan key is holded in the 3 last signifant bytes
+ *  of the vni int field. */
 class VxLanPort extends Port {
 
     @ZoomField(name = "vtep_mgmt_ip", converter = classOf[IPAddressConverter])

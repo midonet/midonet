@@ -80,7 +80,7 @@ class IPFragmentationTest extends MidolmanSpec {
 
     def setup(useRouter: Boolean = false) {
         this.useRouter = useRouter
-        newHost("myself", hostId())
+        newHost("myself", hostId)
 
         if (useRouter) {
             router = newRouter("router1")
@@ -107,8 +107,8 @@ class IPFragmentationTest extends MidolmanSpec {
             dstMac = rightBridgePortMac
             dstSubnet = rightBridgePortSubnet
 
-            materializePort(srcPort, hostId(), "bport0")
-            materializePort(dstPort, hostId(), "bport1")
+            materializePort(srcPort, hostId, "bport0")
+            materializePort(dstPort, hostId, "bport1")
 
             val topo = fetchTopology(bridge, srcPort, dstPort)
 

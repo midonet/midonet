@@ -52,7 +52,7 @@ class PortGroupTest extends MidolmanSpec {
     }
 
     override def beforeTest() {
-        newHost("myself", hostId())
+        newHost("myself", hostId)
         val router = newRouter("router0")
         port1 = randomPort(router)
         port2 = randomPort(router)
@@ -70,7 +70,7 @@ class PortGroupTest extends MidolmanSpec {
 
             val pg = interceptPortGroup()
             pg.name should equal ("port-group-test")
-            pg should not be ('stateful)
+            pg should not be 'stateful
 
             updatePortGroup(portGroup.setStateful(true))
             eventually {

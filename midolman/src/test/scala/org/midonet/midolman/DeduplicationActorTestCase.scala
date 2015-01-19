@@ -74,7 +74,7 @@ class DeduplicationActorTestCase extends MidolmanSpec {
 
         val ddaProps = Props {
             new TestableDDA(new CookieGenerator(1, 1),
-            mockDpChannel(), clusterDataClient(),
+            mockDpChannel, clusterDataClient,
             new PacketPipelineMetrics(metricsReg),
             (x: Int) => { packetsOut += x },
             simulationExpireMillis)
@@ -181,7 +181,7 @@ class DeduplicationActorTestCase extends MidolmanSpec {
             dda.complete(pkts(0).getMatch, Nil)
 
             Then("the packets should be dropped")
-            mockDpChannel().packetsSent should be (empty)
+            mockDpChannel.packetsSent should be (empty)
             dda.suspended(pkts(0).getMatch) should be (null)
         }
 
@@ -202,7 +202,7 @@ class DeduplicationActorTestCase extends MidolmanSpec {
             dda.complete(pkts(0).getMatch, List(output(1)))
 
             Then("the packets should be sent to the datapath")
-            val actual = mockDpChannel().packetsSent.asScala.toList.sortBy { _.## }
+            val actual = mockDpChannel.packetsSent.asScala.toList.sortBy { _.## }
             val expected = pkts.tail.sortBy { _.## }
             actual should be (expected)
 
@@ -219,7 +219,7 @@ class DeduplicationActorTestCase extends MidolmanSpec {
             ddaRef ! DeduplicationActor.HandlePackets(pkts.toArray)
 
             Then("the DDA should execute that packet directly")
-            mockDpChannel().packetsSent.asScala should be (pkts)
+            mockDpChannel.packetsSent.asScala should be (pkts)
 
             And("no pended packets should remain")
             dda.suspended(pkts(0).getMatch) should be (null)

@@ -32,7 +32,6 @@ import org.midonet.cluster.data.host.Host
 import org.midonet.cluster.data.dhcp.ExtraDhcpOpt
 import org.midonet.cluster.data.ports.{RouterPort, BridgePort}
 import org.midonet.cluster.data.{TunnelZone, Bridge, Router}
-import org.midonet.midolman.DeduplicationActor.HandlePackets
 import org.midonet.midolman.PacketWorkflow.PacketIn
 import org.midonet.midolman.util.guice.OutgoingMessage
 import org.midonet.midolman.host.interfaces.InterfaceDescription
@@ -151,7 +150,7 @@ class DhcpTestCase extends MidolmanTestCase
 
     // make host, bridge, router
     private def initDevices() {
-        host = newHost("myself", hostId())
+        host = newHost("myself", hostId)
         host should not be null
         host2 = newHost("someone else")
         host2 should not be null
@@ -184,10 +183,10 @@ class DhcpTestCase extends MidolmanTestCase
         val peerGreConfig = new TunnelZone.HostConfig(host2.getId)
                                 .setIp(IPv4Addr.fromString("192.168.200.1"))
 
-        clusterDataClient().tunnelZonesAddMembership(greZone.getId, peerGreConfig)
-        clusterDataClient().tunnelZonesAddMembership(greZone.getId, myGreConfig)
+        clusterDataClient.tunnelZonesAddMembership(greZone.getId, peerGreConfig)
+        clusterDataClient.tunnelZonesAddMembership(greZone.getId, myGreConfig)
 
-        initializeDatapath() should not be (null)
+        initializeDatapath() should not be null
         requestOfType[HostRequest](vtpProbe())
         requestOfType[OutgoingMessage](vtpProbe())
 
@@ -202,11 +201,11 @@ class DhcpTestCase extends MidolmanTestCase
 
         val brIntPort1 = newBridgePort(bridge)
         brIntPort1 should not be null
-        clusterDataClient().portsLink(rtrPort2.getId, brIntPort1.getId)
+        clusterDataClient.portsLink(rtrPort2.getId, brIntPort1.getId)
 
         val brIntPort2 = newBridgePort(bridge)
         brIntPort1 should not be null
-        clusterDataClient().portsLink(rtrPort3.getId, brIntPort2.getId)
+        clusterDataClient.portsLink(rtrPort3.getId, brIntPort2.getId)
 
         val brPort2 = newBridgePort(bridge)
         brPort2 should not be null
@@ -267,7 +266,7 @@ class DhcpTestCase extends MidolmanTestCase
         addDhcpHost(bridge, dhcpSubnet2, dhcpHost2)
 
         datapathEventsProbe.expectMsgType[DatapathController.DatapathReady]
-                   .datapath should not be (null)
+                   .datapath should not be null
         drainProbes()
     }
 
@@ -286,8 +285,8 @@ class DhcpTestCase extends MidolmanTestCase
             Array(192,168,1,1).map(_.toByte)))
         dhcpDiscover.setOptions(options)
         val udp = new UDP()
-        udp.setSourcePort((68).toShort)
-        udp.setDestinationPort((67).toShort)
+        udp.setSourcePort(68.toShort)
+        udp.setDestinationPort(67.toShort)
         udp.setPayload(dhcpDiscover)
         val eth = new Ethernet()
         eth.setSourceMACAddress(srcMac)

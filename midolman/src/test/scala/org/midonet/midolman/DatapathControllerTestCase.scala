@@ -25,9 +25,9 @@ import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.data.host.Host
 import org.midonet.cluster.data.{Bridge => ClusterBridge, Ports => ClusterPorts}
-import org.midonet.midolman.topology.LocalPortActive
 import org.midonet.midolman.topology.VirtualToPhysicalMapper._
 import org.midonet.midolman.topology.devices.{Host => DevicesHost}
+import org.midonet.midolman.topology.LocalPortActive
 import org.midonet.midolman.util.MidolmanTestCase
 import org.midonet.odp.Datapath
 import org.midonet.odp.ports.NetDevPort
@@ -47,8 +47,8 @@ class DatapathControllerTestCase extends MidolmanTestCase with Matchers {
 
     def testDatapathEmptyDefault() {
 
-        val host = new Host(hostId()).setName("myself")
-        clusterDataClient().hostsCreate(hostId(), host)
+        val host = new Host(hostId).setName("myself")
+        clusterDataClient.hostsCreate(hostId, host)
 
         dpConn().futures.datapathsEnumerate().get() should have size 0
 
@@ -65,13 +65,13 @@ class DatapathControllerTestCase extends MidolmanTestCase with Matchers {
     }
 
     def testDatapathEmpty() {
-        val host = new Host(hostId()).setName("myself")
-        clusterDataClient().hostsCreate(hostId(), host)
+        val host = new Host(hostId).setName("myself")
+        clusterDataClient.hostsCreate(hostId, host)
 
         dpConn().futures.datapathsEnumerate().get() should have size 0
 
         // send initialization message and wait
-        initializeDatapath() should not be (null)
+        initializeDatapath() should not be null
 
         // validate the final datapath state
         val datapaths: mutable.Set[Datapath] = dpConn().futures.datapathsEnumerate().get()
@@ -84,22 +84,22 @@ class DatapathControllerTestCase extends MidolmanTestCase with Matchers {
     }
 
     def testDatapathEmptyOnePort() {
-        val host = new Host(hostId()).setName("myself")
-        clusterDataClient().hostsCreate(hostId(), host)
+        val host = new Host(hostId).setName("myself")
+        clusterDataClient.hostsCreate(hostId, host)
 
         val bridge = new ClusterBridge().setName("test")
-        bridge.setId(clusterDataClient().bridgesCreate(bridge))
+        bridge.setId(clusterDataClient.bridgesCreate(bridge))
 
         // make a port on the bridge
         val port = ClusterPorts.bridgePort(bridge)
-        port.setId(clusterDataClient().portsCreate(port))
+        port.setId(clusterDataClient.portsCreate(port))
 
         materializePort(port, host, "port1")
 
         dpConn().futures.datapathsEnumerate().get() should have size 0
 
         // send initialization message and wait
-        initializeDatapath() should not be (null)
+        initializeDatapath() should not be null
         portEventsProbe.expectMsgClass(classOf[LocalPortActive])
 
         // validate the final datapath state
@@ -114,15 +114,15 @@ class DatapathControllerTestCase extends MidolmanTestCase with Matchers {
     }
 
     def testDatapathExistingMore() {
-        val host = new Host(hostId()).setName("myself")
-        clusterDataClient().hostsCreate(hostId(), host)
+        val host = new Host(hostId).setName("myself")
+        clusterDataClient.hostsCreate(hostId, host)
 
         val bridge = new ClusterBridge().setName("test")
-        bridge.setId(clusterDataClient().bridgesCreate(bridge))
+        bridge.setId(clusterDataClient.bridgesCreate(bridge))
 
         // make a port on the bridge
         val port = ClusterPorts.bridgePort(bridge)
-        port.setId(clusterDataClient().portsCreate(port))
+        port.setId(clusterDataClient.portsCreate(port))
 
         materializePort(port, host, "port1")
 
@@ -134,7 +134,7 @@ class DatapathControllerTestCase extends MidolmanTestCase with Matchers {
         dpConn().futures.portsEnumerate(dp).get() should have size 3
 
         // send initialization message and wait
-        initializeDatapath() should not be (null)
+        initializeDatapath() should not be null
 
         // validate the final datapath state
         val datapaths: mutable.Set[Datapath] = dpConn().futures.datapathsEnumerate().get()
@@ -150,10 +150,10 @@ class DatapathControllerTestCase extends MidolmanTestCase with Matchers {
 
     def testDatapathBasicOperations() {
 
-        val host = new Host(hostId()).setName("myself")
-        clusterDataClient().hostsCreate(hostId(), host)
+        val host = new Host(hostId).setName("myself")
+        clusterDataClient.hostsCreate(hostId, host)
 
-        initializeDatapath() should not be (null)
+        initializeDatapath() should not be null
 
         // validate the final datapath state
         val datapaths: mutable.Set[Datapath] = dpConn().futures
@@ -168,47 +168,47 @@ class DatapathControllerTestCase extends MidolmanTestCase with Matchers {
 
     def testInternalControllerState() {
 
-        val host = new Host(hostId()).setName("myself")
-        clusterDataClient().hostsCreate(hostId(), host)
+        val host = new Host(hostId).setName("myself")
+        clusterDataClient.hostsCreate(hostId, host)
 
         val bridge = new ClusterBridge().setName("test")
-        bridge.setId(clusterDataClient().bridgesCreate(bridge))
+        bridge.setId(clusterDataClient.bridgesCreate(bridge))
 
         // make a port on the bridge
         val port1 = ClusterPorts.bridgePort(bridge)
-        port1.setId(clusterDataClient().portsCreate(port1))
+        port1.setId(clusterDataClient.portsCreate(port1))
 
         materializePort(port1, host, "port1")
 
-        initializeDatapath() should not be (null)
+        initializeDatapath() should not be null
         portEventsProbe.expectMsgClass(classOf[LocalPortActive])
 
         val ports = datapathPorts(dpConn().futures.datapathsEnumerate().get().head)
-        ports should contain key ("port1")
+        ports should contain key "port1"
         val port1DpId = ports("port1").getPortNo
 
-        dpState.getDpPortNumberForVport(port1.getId) shouldBe (Some(port1DpId))
+        dpState.getDpPortNumberForVport(port1.getId) shouldBe Some(port1DpId)
 
         requestOfType[HostRequest](vtpProbe())
         val simHost = replyOfType[DevicesHost](vtpProbe())
 
         simHost should not be null
-        simHost.portToInterface should contain key (port1.getId)
-        simHost.portToInterface should contain value ("port1")
+        simHost.portToInterface should contain key port1.getId
+        simHost.portToInterface should contain value "port1"
 
         requestOfType[LocalPortActive](vtpProbe())
 
         // make a port on the bridge
         val port2 = ClusterPorts.bridgePort(bridge)
-        port2.setId(clusterDataClient().portsCreate(port2))
+        port2.setId(clusterDataClient.portsCreate(port2))
 
         materializePort(port2, host, "port2")
         replyOfType[DevicesHost](vtpProbe())
         fishForRequestOfType[LocalPortActive](vtpProbe())
 
         val newPorts = datapathPorts(dpConn().futures.datapathsEnumerate().get().head)
-        newPorts should contain key ("port1")
-        newPorts should contain key ("port2")
+        newPorts should contain key "port1"
+        newPorts should contain key "port2"
         val port2DpId = newPorts("port2").getPortNo
 
         dpState.getDpPortNumberForVport(port1.getId) shouldBe Some(port1DpId)
@@ -218,14 +218,14 @@ class DatapathControllerTestCase extends MidolmanTestCase with Matchers {
     def checkPortsAndTunnel(names: String*) = {
         val ports = datapathPorts(dpConn().futures.datapathsEnumerate.get.head)
         ports should have size names.size
-        names foreach { ports should contain key(_) }
+        names foreach { ports should contain key _ }
 
         dpState.asInstanceOf[DatapathStateManager]
-               .greOverlayTunnellingOutputAction should not be (null)
+               .greOverlayTunnellingOutputAction should not be null
         dpState.asInstanceOf[DatapathStateManager]
-               .vxlanOverlayTunnellingOutputAction should not be (null)
+               .vxlanOverlayTunnellingOutputAction should not be null
         dpState.asInstanceOf[DatapathStateManager]
-               .vtepTunnellingOutputAction should not be (null)
+               .vtepTunnellingOutputAction should not be null
 
         ports
     }

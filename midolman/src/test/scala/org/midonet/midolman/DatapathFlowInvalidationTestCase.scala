@@ -83,7 +83,7 @@ class DatapathFlowInvalidationTestCase extends MidolmanTestCase
     override def beforeTest() {
         drainProbes()
 
-        host1 = newHost("myself", hostId())
+        host1 = newHost("myself", hostId)
         host2 = newHost("host2")
         host3 = newHost("host3")
         clusterRouter = newRouter("router")
@@ -92,7 +92,7 @@ class DatapathFlowInvalidationTestCase extends MidolmanTestCase
         initializeDatapath() should not be null
 
         datapathEventsProbe.expectMsgType[DatapathController.DatapathReady]
-            .datapath should not be (null)
+            .datapath should not be null
 
         inPort = newRouterPort(clusterRouter, MAC.fromString(macInPort),
             ipInPort, ipInPort, 32)
@@ -202,10 +202,10 @@ class DatapathFlowInvalidationTestCase extends MidolmanTestCase
         val route1 = UnderlayResolver.Route(srcIp.toInt, dstIp1.toInt, output)
         val route2 = UnderlayResolver.Route(srcIp.toInt, dstIp2.toInt, output)
 
-        clusterDataClient().tunnelZonesAddMembership(
+        clusterDataClient.tunnelZonesAddMembership(
             tunnelZone.getId,
             new TunnelZone.HostConfig(host1.getId).setIp(srcIp))
-        clusterDataClient().tunnelZonesAddMembership(
+        clusterDataClient.tunnelZonesAddMembership(
             tunnelZone.getId,
             new TunnelZone.HostConfig(host2.getId).setIp(dstIp1))
 
@@ -225,9 +225,9 @@ class DatapathFlowInvalidationTestCase extends MidolmanTestCase
         // update the gre ip of the second host
         val secondGreConfig =
             new TunnelZone.HostConfig(host2.getId).setIp(dstIp2)
-        clusterDataClient().tunnelZonesDeleteMembership(
+        clusterDataClient.tunnelZonesDeleteMembership(
             tunnelZone.getId, host2.getId)
-        clusterDataClient().tunnelZonesAddMembership(
+        clusterDataClient.tunnelZonesAddMembership(
             tunnelZone.getId, secondGreConfig)
 
         // assert that the old route was removed and a invalidateFlowByTag is sent
