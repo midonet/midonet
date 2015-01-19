@@ -21,6 +21,7 @@ import scala.concurrent.ExecutionContext
 
 import akka.actor.ActorSystem
 import org.midonet.midolman.PacketWorkflow.{TemporaryDrop, Drop, NoOp, SimulationResult}
+import org.midonet.midolman.topology.VirtualTopology.VirtualDevice
 
 import org.midonet.midolman.topology.devices.{Port, RouterPort}
 import org.midonet.midolman.NotYetException
@@ -41,7 +42,8 @@ class Router(override val id: UUID,
              override val routerMgrTagger: TagManager,
              val arpTable: ArpTable)
             (implicit system: ActorSystem)
-        extends RouterBase[IPv4Addr](id, cfg, rTable, routerMgrTagger) {
+        extends RouterBase[IPv4Addr](id, cfg, rTable, routerMgrTagger)
+        with VirtualDevice {
 
     override def isValidEthertype(ether: Short) =
         ether == IPv4.ETHERTYPE || ether == ARP.ETHERTYPE

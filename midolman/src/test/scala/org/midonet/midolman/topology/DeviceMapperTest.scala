@@ -28,6 +28,7 @@ import rx.subjects.BehaviorSubject
 import rx.subscriptions.Subscriptions
 
 import org.midonet.cluster.data.storage.Storage
+import org.midonet.midolman.state.zkManagers.{RouterZkManager, RouteZkManager}
 import org.midonet.midolman.topology.VirtualTopology.Device
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.util.functors._
@@ -82,7 +83,10 @@ class DeviceMapperTest extends MidolmanSpec {
     implicit var vt: VirtualTopology = _
 
     override def beforeTest(): Unit = {
-        vt = new VirtualTopology(storage, clusterDataClient, actorsService)
+        val routeMgr = injector.getInstance(classOf[RouteZkManager])
+        val routerMgr = injector.getInstance(classOf[RouterZkManager])
+        vt = new VirtualTopology(storage, clusterDataClient, actorsService,
+                                 routerMgr, routeMgr)
     }
 
     feature("Test device observable subscription") {

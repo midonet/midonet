@@ -29,6 +29,7 @@ import rx.subjects.BehaviorSubject
 import org.midonet.cluster.data.storage.Storage
 import org.midonet.midolman.FlowController
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
+import org.midonet.midolman.state.zkManagers.{RouterZkManager, RouteZkManager}
 import org.midonet.midolman.topology.VirtualTopology.VirtualDevice
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.MessageAccumulator
@@ -91,7 +92,10 @@ class VirtualDeviceMapperTest extends MidolmanSpec {
     def fc = FlowController.as[FlowController with MessageAccumulator]
 
     override def beforeTest(): Unit = {
-        vt = new VirtualTopology(storage, clusterDataClient, actorsService)
+        val routeMgr = injector.getInstance(classOf[RouteZkManager])
+        val routerMgr = injector.getInstance(classOf[RouterZkManager])
+        vt = new VirtualTopology(storage, clusterDataClient, actorsService,
+                                 routerMgr, routeMgr)
     }
 
     feature("Test the flows tags are invalidated") {
