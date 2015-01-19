@@ -21,24 +21,30 @@ import java.util.{Random, UUID}
 import java.util.concurrent.Executors.newSingleThreadExecutor
 import java.util.concurrent.{TimeUnit, ConcurrentHashMap, ThreadFactory}
 
+import com.google.inject.Inject
 import org.slf4j.LoggerFactory
 import rx.Observer
 import rx.schedulers.Schedulers
 
+import org.midonet.brain.{ClusterNode, ClusterNodeConfig}
 import org.midonet.brain.southbound.vtep.VtepDataClientFactory
 import org.midonet.cluster.EntityIdSetEvent.Type
 import org.midonet.cluster.{DataClient, EntityIdSetEvent, EntityIdSetMonitor}
 import org.midonet.midolman.state.{StateAccessException, ZookeeperConnectionWatcher}
 import org.midonet.util.functors._
 
-/** This is just a simple watcher that subscribers on a stream of updates
-  * from MidoNet bridges, spots those that become part of a VxLan Gateway, and
-  * starts the associated processes to manage the coordination with VTEPs. */
-class VxlanGatewaySummoner(nodeId: UUID, dataClient: DataClient,
-                           zkConnWatcher: ZookeeperConnectionWatcher,
-                           vtepDataClientFactory: VtepDataClientFactory) {
+/** An implementation of the VxLAN Gateway Service that supports high
+  * availability on the hardware VTEPs. The service allows making bindings
+  * from ports/vlan pairs in different hardware VTEPs forming a single Logical
+  * Switch, and synces Mac-Port pairs accross both MidoNet and all the VTEPs
+  * that participate in the Logical Switch. */
+class VxlanGatewayHA @Inject()(nodeCtx: ClusterNode.Context,
+                               dataClient: DataClient,
+                               zkConnWatcher: ZookeeperConnectionWatcher,
+                               vtepDataClientFactory: VtepDataClientFactory)
+    extends VxLanGatewayServiceBase(nodeCtx) {
 
-    private val log = LoggerFactory.getLogger(classOf[VxlanGatewaySummoner])
+    private val log = LoggerFactory.getLogger(vxgwLog)
     private val managers = new ConcurrentHashMap[UUID, VxlanGatewayManager]()
 
     private val executor = newSingleThreadExecutor(new ThreadFactory {
@@ -59,10 +65,15 @@ class VxlanGatewaySummoner(nodeId: UUID, dataClient: DataClient,
                                                        hostsState,
                                                        new Random())
 
-    private val vtepPeerPool = new VtepPool(nodeId, dataClient, zkConnWatcher,
-                                            tzState, vtepDataClientFactory)
+    private val vtepPeerPool = new VtepPool(nodeCtx.nodeId, dataClient,
+                                            zkConnWatcher, tzState,
+                                            vtepDataClientFactory)
 
-    executor submit makeRunnable { resetMonitor() }
+    override def doStart(): Unit = {
+        log.info("Starting service")
+        executor submit makeRunnable { resetMonitor() }
+        notifyStarted()
+    }
 
     /** Resets the monitor */
     private def resetMonitor(): Unit = {
@@ -115,18 +126,19 @@ class VxlanGatewaySummoner(nodeId: UUID, dataClient: DataClient,
 
     }
 
-    def stop(): Unit = {
-
+    override def doStop(): Unit = {
         executor.shutdown()
         try {
             if (!executor.awaitTermination(5, SECONDS)) {
                 log.warn("Failed to stop network monitor orderly, insisting..")
                 executor.shutdownNow()
             }
+            notifyStopped()
         } catch {
-            case e: InterruptedException =>
-                log.error("Failed to shutdown executor", e)
+            case t: Throwable =>
+                log.error("Failed to shutdown executor", t)
                 Thread.currentThread().interrupt()
+                notifyFailed(t)
         }
     }
 

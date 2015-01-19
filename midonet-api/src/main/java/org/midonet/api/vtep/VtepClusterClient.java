@@ -521,10 +521,28 @@ public class VtepClusterClient {
             );
         }
 
+        // The VNI is created ONLY on the first binding of a given Neutron
+        // network to a VTEP. All further bindings from the same OR different
+        // VTEPs MUST use the same VNI. If we're here (createFirstNetworkBinding
+        // it means we are on the first binding of a VTEP, so we need to figure
+        // whether there is a binding already from a different VTEP on the
+        // same network
+        int vni = -1;
+
+        if (bridge.getVxLanPortIds() == null ||
+            bridge.getVxLanPortIds().isEmpty()) {
+            vni = dataClient.getNewVni(); // first time we bind this network
+        } else {
+            // other bindings to other VTEPs exist, reuse the VNI
+            java.util.UUID pId = bridge.getVxLanPortIds().get(0);
+            VxLanPort vxPort = (VxLanPort)dataClient.portsGet(pId);
+            vni = vxPort.getVni();
+        }
+
         // Create the VXLAN port.
         VxLanPort vxlanPort = dataClient.bridgeCreateVxLanPort(
-            bridge.getId(), mgmtIp, vtep.getMgmtPort(),
-            dataClient.getNewVni(), tunnelIp, vtep.getTunnelZoneId());
+            bridge.getId(), mgmtIp, vtep.getMgmtPort(), vni, tunnelIp,
+            vtep.getTunnelZoneId());
 
         try {
             tryStoreBinding(mgmtIp, mgmtPort, binding.getPortName(),
