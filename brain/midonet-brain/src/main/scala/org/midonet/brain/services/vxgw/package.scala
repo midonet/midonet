@@ -36,6 +36,6 @@ package object vxgw {
         = s"org.midonet.vxgw.vxgw-mac-sync-$networkId"
     // For management of a VxGW joining a Network with Hardware VTEPs
     def vxgwMgmtLog(networkId: UUID)
-        = s"org.midonet.vxgw.vxgw-manager-$networkId"
+        = s"org.midonet.vxgw.vxgw-manager.$networkId"
 
 }

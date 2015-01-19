@@ -370,8 +370,8 @@ class DeduplicationActor(
             case e: DeviceQueryTimeoutException =>
                 pktCtx.log.warn("Timeout while fetching " +
                                 s"${e.deviceType} with id ${e.deviceId}")
-            case _ =>
-                pktCtx.log.warn("Exception while processing packet", ex)
+            case e =>
+                pktCtx.log.warn("Exception while processing packet", e)
         }
         drop(pktCtx)
     }
