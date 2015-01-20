@@ -22,6 +22,30 @@
       "revId": "9b45e8a8975a3bee4753635dfbdcf82b0faa513e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_471261b5",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 255,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-20T09:39:57Z",
+      "side": 1,
+      "message": "I agree, I prefer less indentation too, however others have complained at times the code it\u0027s harder to understand.\nRemoved braces.",
+      "parentUuid": "fa2559ec_b4c6ed47",
+      "range": {
+        "startLine": 245,
+        "startChar": 0,
+        "endLine": 255,
+        "endChar": 36
+      },
+      "revId": "9b45e8a8975a3bee4753635dfbdcf82b0faa513e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
