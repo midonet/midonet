@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9a245df4_cd731d14",
+        "filename": "brain/midonet-brain/src/main/java/org/midonet/brain/services/vxgw/VxLanGatewayService.java",
+        "patchSetId": 14
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-20T06:20:46Z",
+      "side": 1,
+      "message": "What is the \"Scala-induced awkwardness\"?",
+      "range": {
+        "startLine": 112,
+        "startChar": 27,
+        "endLine": 112,
+        "endChar": 52
+      },
+      "revId": "5d90fbfdc3e35e7f1bf35053d9baeb61e83e4ff6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_d030d2ea",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/ClusterNode.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-20T06:20:46Z",
+      "side": 1,
+      "message": "This file seems to be added by https://review.gerrithub.io/#/c/14803/15. I thought this patch (#13964) is the base patch and #14803 is on top of this. Was I wrong?",
+      "range": {
+        "startLine": 79,
+        "startChar": 64,
+        "endLine": 79,
+        "endChar": 79
+      },
+      "revId": "5d90fbfdc3e35e7f1bf35053d9baeb61e83e4ff6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_ed9261f5",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/heartbeat/Heartbeat.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-20T06:20:46Z",
+      "side": 1,
+      "message": "What\u0027s the point of this rewriting?",
+      "range": {
+        "startLine": 42,
+        "startChar": 0,
+        "endLine": 44,
+        "endChar": 13
+      },
+      "revId": "5d90fbfdc3e35e7f1bf35053d9baeb61e83e4ff6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
