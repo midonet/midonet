@@ -202,6 +202,30 @@
     },
     {
       "key": {
+        "uuid": "9a245df4_1b31eba2",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/HostRequestProxy.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 138,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-20T10:15:59Z",
+      "side": 1,
+      "message": "I guess it depends on the evaluation strategy. It wouldn\u0027t be evaluated with call by name for instance. I doubt that\u0027s what we use so I\u0027ve applied your suggestion.",
+      "parentUuid": "9a245df4_b0da7ee7",
+      "range": {
+        "startLine": 138,
+        "startChar": 12,
+        "endLine": 138,
+        "endChar": 80
+      },
+      "revId": "74b710b6951711ea6ca55cbfdabca31edaa09a72",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "da2a55be_3e05bdc2",
         "filename": "midolman/src/main/scala/org/midonet/midolman/state/FlowStateReplicator.scala",
         "patchSetId": 17
@@ -578,6 +602,30 @@
       "side": 1,
       "message": "Yes, but toDevicesHost also creates the same host in zoom. Is creating the host in both storage models necessary?",
       "parentUuid": "9a245df4_b0a27e98",
+      "range": {
+        "startLine": 58,
+        "startChar": 0,
+        "endLine": 72,
+        "endChar": 5
+      },
+      "revId": "74b710b6951711ea6ca55cbfdabca31edaa09a72",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_5b2b6330",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/VirtualToPhysicalMapperTest.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-20T10:15:59Z",
+      "side": 1,
+      "message": "toDevicesHost only creates a builder but the host is not stored in Zoom.",
+      "parentUuid": "9a245df4_90d77abf",
       "range": {
         "startLine": 58,
         "startChar": 0,
