@@ -638,6 +638,30 @@
     },
     {
       "key": {
+        "uuid": "9a245df4_3bd30f3a",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/VirtualToPhysicalMapperTest.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-20T10:20:21Z",
+      "side": 1,
+      "message": "Oh yes, right, I forgot.",
+      "parentUuid": "9a245df4_5b2b6330",
+      "range": {
+        "startLine": 58,
+        "startChar": 0,
+        "endLine": 72,
+        "endChar": 5
+      },
+      "revId": "74b710b6951711ea6ca55cbfdabca31edaa09a72",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ba1f61a0_880f572e",
         "filename": "midonet-util/src/main/scala/org/midonet/packets/IPv4Addr.scala",
         "patchSetId": 17
