@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9a245df4_b03efe27",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/C3POMinionTest.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 251,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-20T09:00:29Z",
+      "side": 1,
+      "message": "To spare a line",
+      "parentUuid": "9a245df4_1009ca95",
+      "range": {
+        "startLine": 251,
+        "startChar": 68,
+        "endLine": 251,
+        "endChar": 72
+      },
+      "revId": "cc52928b62257370958bcb15439cd310f3db7f20",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a245df4_50034273",
         "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/C3POMinionTest.scala",
         "patchSetId": 16
@@ -36,6 +60,30 @@
       "writtenOn": "2015-01-20T08:55:44Z",
       "side": 1,
       "message": "if you import import org.midonet.cluster.util.UUIDUtil._\n the conversion is done implicitly and you don\u0027t need to call toProto",
+      "range": {
+        "startLine": 333,
+        "startChar": 8,
+        "endLine": 333,
+        "endChar": 53
+      },
+      "revId": "cc52928b62257370958bcb15439cd310f3db7f20",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_d04572b4",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/C3POMinionTest.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 333,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-20T09:00:29Z",
+      "side": 1,
+      "message": "Mm yeah, I try to avoid implicits for clarity :D You like implicits now!",
+      "parentUuid": "9a245df4_50034273",
       "range": {
         "startLine": 333,
         "startChar": 8,
