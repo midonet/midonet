@@ -1,0 +1,159 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9a245df4_906e5a95",
+        "filename": "brain/midonet-brain/conf/cluster.conf",
+        "patchSetId": 15
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-20T07:12:25Z",
+      "side": 1,
+      "message": "Need \"[neutron-db]\" here.",
+      "revId": "2ade3fb3774a6a509b23ef5afe9af7bb4d5a7314",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_50818249",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/ClusterNode.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-20T07:12:25Z",
+      "side": 1,
+      "message": "Please lower-case.",
+      "range": {
+        "startLine": 70,
+        "startChar": 39,
+        "endLine": 70,
+        "endChar": 43
+      },
+      "revId": "2ade3fb3774a6a509b23ef5afe9af7bb4d5a7314",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_b0dc3e76",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/ClusterNode.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-20T07:12:25Z",
+      "side": 1,
+      "message": "Ditto.",
+      "range": {
+        "startLine": 77,
+        "startChar": 27,
+        "endLine": 77,
+        "endChar": 31
+      },
+      "revId": "2ade3fb3774a6a509b23ef5afe9af7bb4d5a7314",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_103c2a93",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/C3POMinionTest.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-20T07:12:25Z",
+      "side": 1,
+      "message": "You can reduce this to 100 just for testing, though that would be meaningless if you don\u0027t also reduce \"curator.base_retry_ms\" to 100 or so.",
+      "range": {
+        "startLine": 84,
+        "startChar": 38,
+        "endLine": 84,
+        "endChar": 42
+      },
+      "revId": "2ade3fb3774a6a509b23ef5afe9af7bb4d5a7314",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_10638ab2",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/C3POMinionTest.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 244,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-20T07:12:25Z",
+      "side": 1,
+      "message": "You might want to wrap around this with \"if (curator !\u003d null)\".",
+      "range": {
+        "startLine": 244,
+        "startChar": 12,
+        "endLine": 244,
+        "endChar": 27
+      },
+      "revId": "2ade3fb3774a6a509b23ef5afe9af7bb4d5a7314",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_705806fb",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/storage/MidonetBackendConfig.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-20T07:12:25Z",
+      "side": 1,
+      "message": "s/2014/2015/",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "2ade3fb3774a6a509b23ef5afe9af7bb4d5a7314",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_505d02e9",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/storage/MidonetBackendModule.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-20T07:12:25Z",
+      "side": 1,
+      "message": "Not sure but we should capitalize tihs as \"MidoNet\"?",
+      "range": {
+        "startLine": 28,
+        "startChar": 10,
+        "endLine": 28,
+        "endChar": 11
+      },
+      "revId": "2ade3fb3774a6a509b23ef5afe9af7bb4d5a7314",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
