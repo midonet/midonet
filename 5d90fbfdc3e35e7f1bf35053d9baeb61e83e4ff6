@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9a245df4_30d32e3a",
+        "filename": "brain/midonet-brain/src/main/java/org/midonet/brain/services/vxgw/VxLanGatewayService.java",
+        "patchSetId": 14
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-20T08:04:29Z",
+      "side": 1,
+      "message": "Can\u0027t remember, removing.",
+      "parentUuid": "9a245df4_cd731d14",
+      "range": {
+        "startLine": 112,
+        "startChar": 27,
+        "endLine": 112,
+        "endChar": 52
+      },
+      "revId": "5d90fbfdc3e35e7f1bf35053d9baeb61e83e4ff6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a245df4_d030d2ea",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/ClusterNode.scala",
         "patchSetId": 14
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "9a245df4_10d8aa52",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/ClusterNode.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-20T08:04:29Z",
+      "side": 1,
+      "message": "I think there has been some overwriting when submitting the 2 together. I\u0027ll review.",
+      "parentUuid": "9a245df4_d030d2ea",
+      "range": {
+        "startLine": 79,
+        "startChar": 64,
+        "endLine": 79,
+        "endChar": 79
+      },
+      "revId": "5d90fbfdc3e35e7f1bf35053d9baeb61e83e4ff6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a245df4_ed9261f5",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/heartbeat/Heartbeat.scala",
         "patchSetId": 14
@@ -59,6 +107,30 @@
       "writtenOn": "2015-01-20T06:20:46Z",
       "side": 1,
       "message": "What\u0027s the point of this rewriting?",
+      "range": {
+        "startLine": 42,
+        "startChar": 0,
+        "endLine": 44,
+        "endChar": 13
+      },
+      "revId": "5d90fbfdc3e35e7f1bf35053d9baeb61e83e4ff6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_10a6eac1",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/heartbeat/Heartbeat.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-20T08:04:29Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9a245df4_ed9261f5",
       "range": {
         "startLine": 42,
         "startChar": 0,
