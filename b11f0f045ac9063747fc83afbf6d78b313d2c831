@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9a245df4_f6618ed4",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualToPhysicalMapper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 319,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-20T15:27:41Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9a245df4_1b4f2b94",
+      "range": {
+        "startLine": 319,
+        "startChar": 0,
+        "endLine": 319,
+        "endChar": 37
+      },
+      "revId": "b11f0f045ac9063747fc83afbf6d78b313d2c831",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a245df4_fb80578d",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/Host.scala",
         "patchSetId": 2
@@ -36,6 +60,30 @@
       "writtenOn": "2015-01-20T14:20:47Z",
       "side": 1,
       "message": "Why not make this a Map[UUID, IPAddr] and make the conversion at call time? Then, the Host class will not need to know anything about HostConfig (which will eventually disappear) and be cleaner.",
+      "range": {
+        "startLine": 71,
+        "startChar": 20,
+        "endLine": 71,
+        "endChar": 41
+      },
+      "revId": "b11f0f045ac9063747fc83afbf6d78b313d2c831",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_b671d679",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/Host.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-20T15:27:41Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9a245df4_fb80578d",
       "range": {
         "startLine": 71,
         "startChar": 20,
