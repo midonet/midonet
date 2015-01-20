@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9a245df4_96f5b2cd",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostManager.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-20T16:15:52Z",
+      "side": 1,
+      "message": "Nit-pick: we could have made this conversion in setTunnelZones :P But it\u0027s perfectly fine, no need to change it.",
+      "range": {
+        "startLine": 81,
+        "startChar": 12,
+        "endLine": 83,
+        "endChar": 13
+      },
+      "revId": "ca9d0293e6475b0455c95a1bece631a745e76fd1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
