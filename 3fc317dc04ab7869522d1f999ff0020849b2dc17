@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "9a245df4_7b5aa784",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 21
+      },
+      "lineNbr": 463,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-20T13:28:21Z",
+      "side": 1,
+      "message": "I was thinking more of a higher-level explanation like: \"We add a delete owner op followed by a create owner op to refresh the ownership of the object. This occurs when the previous owner got disconnected and we want to take over ownership under the same identity.\"",
+      "parentUuid": "9a245df4_dba9137d",
+      "range": {
+        "startLine": 461,
+        "startChar": 23,
+        "endLine": 463,
+        "endChar": 51
+      },
+      "revId": "3fc317dc04ab7869522d1f999ff0020849b2dc17",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a245df4_9085baaf",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
         "patchSetId": 21
