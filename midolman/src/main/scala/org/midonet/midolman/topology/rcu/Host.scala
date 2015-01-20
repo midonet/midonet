@@ -19,14 +19,9 @@ import java.util.UUID
 
 import scala.collection.immutable
 
-import org.midonet.cluster.data.TunnelZone
 import org.midonet.packets.IPAddr
 
 case class PortBinding(portId: UUID, tunnelKey: Long, iface: String)
-
-case class Host(id: UUID, alive: Boolean, epoch: Long, datapath: String,
-                ports: immutable.Map[UUID, String],
-                zones: immutable.Map[UUID, TunnelZone.HostConfig])
 
 case class ResolvedHost(id: UUID, alive: Boolean, datapath: String,
                         ports: immutable.Map[UUID, PortBinding],
