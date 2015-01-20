@@ -1,0 +1,165 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9a245df4_bb537f6b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PortMapper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-20T15:04:20Z",
+      "side": 1,
+      "message": "What does this arrow indicate?",
+      "range": {
+        "startLine": 38,
+        "startChar": 75,
+        "endLine": 38,
+        "endChar": 77
+      },
+      "revId": "b7b7fea32b95fec81bbbf7d0c2e869214df22ddc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_560e9a35",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PortMapper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-20T15:04:20Z",
+      "side": 1,
+      "message": "I understand why the one below is needed but I don\u0027t understand why this one is needed.",
+      "range": {
+        "startLine": 61,
+        "startChar": 16,
+        "endLine": 61,
+        "endChar": 37
+      },
+      "revId": "b7b7fea32b95fec81bbbf7d0c2e869214df22ddc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_d619ea7a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PortMapper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-20T15:04:20Z",
+      "side": 1,
+      "message": "So if understand correctly, an onError notification will be emitted when zoom GCs the TopologyPort and onComplete when it does the same for the owners observable?",
+      "range": {
+        "startLine": 65,
+        "startChar": 16,
+        "endLine": 65,
+        "endChar": 52
+      },
+      "revId": "b7b7fea32b95fec81bbbf7d0c2e869214df22ddc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_5625faa9",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/PortMapperTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-20T15:04:20Z",
+      "side": 1,
+      "message": "Should this be a variable used in all obs.await? This helps changing the timeouts if needed.",
+      "range": {
+        "startLine": 69,
+        "startChar": 22,
+        "endLine": 69,
+        "endChar": 30
+      },
+      "revId": "b7b7fea32b95fec81bbbf7d0c2e869214df22ddc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_f6334ef4",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/PortMapperTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-20T15:04:20Z",
+      "side": 1,
+      "message": "Is this really needed when using the in-memory storage (the call to create is blocking)?",
+      "range": {
+        "startLine": 88,
+        "startChar": 12,
+        "endLine": 88,
+        "endChar": 65
+      },
+      "revId": "b7b7fea32b95fec81bbbf7d0c2e869214df22ddc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_b640b636",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/TopologyMatchers.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-20T15:04:20Z",
+      "side": 1,
+      "message": "Not needed and the same goes for all the \".asJava\" below probably.",
+      "range": {
+        "startLine": 34,
+        "startChar": 36,
+        "endLine": 34,
+        "endChar": 43
+      },
+      "revId": "b7b7fea32b95fec81bbbf7d0c2e869214df22ddc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_16526213",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/VirtualTopologyTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-20T15:04:20Z",
+      "side": 1,
+      "message": "Make this a variable? (we could even have a global variable for tests).",
+      "range": {
+        "startLine": 69,
+        "startChar": 31,
+        "endLine": 69,
+        "endChar": 40
+      },
+      "revId": "b7b7fea32b95fec81bbbf7d0c2e869214df22ddc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
