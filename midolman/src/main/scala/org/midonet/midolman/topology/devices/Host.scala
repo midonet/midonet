@@ -18,13 +18,13 @@ package org.midonet.midolman.topology.devices
 
 import java.util.{Objects, UUID}
 
+import org.midonet.cluster.data.TunnelZone.HostConfig
 import org.midonet.cluster.data.{ZoomClass, ZoomField, ZoomObject}
 import org.midonet.cluster.models.Topology
 import org.midonet.cluster.models.Topology.Host.PortToInterface
 import org.midonet.cluster.util.MapConverter
 import org.midonet.cluster.util.UUIDUtil.{Converter => UUIDConverter, _}
 import org.midonet.midolman.topology.VirtualTopology.Device
-import org.midonet.midolman.topology.rcu.{Host => RCUHost}
 import org.midonet.packets.IPAddr
 
 /**
@@ -50,16 +50,17 @@ class PortInterfaceConverter extends MapConverter[UUID, String, PortToInterface]
 }
 
 object Host {
-    def toDevicesHost(rcuHost: RCUHost): Host = {
-        val newHost = new Host
-        newHost.id = rcuHost.id
-        newHost.portToInterface = rcuHost.ports
-        newHost.tunnelZoneIds = rcuHost.zones.keySet
-        newHost.tunnelZones = rcuHost.zones.map(idHostConfig =>
+    def newHost(hostId: UUID, alive: Boolean, ports: Map[UUID, String],
+                zones: Map[UUID, HostConfig]): Host = {
+        val host = new Host
+        host.id = hostId
+        host.portToInterface = ports
+        host.tunnelZoneIds = zones.keySet
+        host.tunnelZones = zones.map(idHostConfig =>
             (idHostConfig._1, idHostConfig._2.getIp)
         )
-        newHost.alive = rcuHost.alive
-        newHost
+        host.alive = alive
+        host
     }
 }
 

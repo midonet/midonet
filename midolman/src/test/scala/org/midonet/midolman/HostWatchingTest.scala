@@ -16,6 +16,7 @@
 package org.midonet.midolman
 
 import java.util.UUID
+
 import scala.concurrent.duration._
 
 import akka.util.Timeout
@@ -24,7 +25,7 @@ import org.scalatest.concurrent.Eventually._
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.midolman.host.state.HostZkManager
-import org.midonet.midolman.topology.rcu.Host
+import org.midonet.midolman.topology.devices.Host
 import org.midonet.midolman.topology.{VirtualToPhysicalMapper => VTPM}
 import org.midonet.midolman.topology.VirtualToPhysicalMapper.HostRequest
 import org.midonet.midolman.util.MidolmanSpec
