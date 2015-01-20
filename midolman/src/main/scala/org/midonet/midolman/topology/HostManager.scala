@@ -15,15 +15,19 @@
  */
 package org.midonet.midolman.topology
 
-import akka.actor.ActorRef
-import java.util.UUID
-import org.midonet.cluster.client.HostBuilder
-import collection.mutable
-import rcu.Host
-import scala.collection.JavaConversions._
-import org.midonet.cluster.data.TunnelZone
 import java.util
+import java.util.UUID
+
+import scala.collection.JavaConversions._
+import scala.collection.mutable
+
+import akka.actor.ActorRef
+
 import org.midonet.cluster.Client
+import org.midonet.cluster.client.HostBuilder
+import org.midonet.cluster.data.TunnelZone
+import org.midonet.midolman.topology.devices.Host
+import org.midonet.packets.IPAddr
 
 class HostManager(clusterClient: Client,
                   actor: ActorRef) extends DeviceHandler {
@@ -32,7 +36,7 @@ class HostManager(clusterClient: Client,
         clusterClient.getHost(deviceId, new LocalHostBuilder(actor, deviceId))
     }
 
-    class LocalHostBuilder(actor: ActorRef, host: UUID) extends HostBuilder {
+    class LocalHostBuilder(actor: ActorRef, hostId: UUID) extends HostBuilder {
 
         var epoch = 0L
         var hostLocalPorts = mutable.Map[UUID, String]()
@@ -74,10 +78,10 @@ class HostManager(clusterClient: Client,
         def start() = null
 
         def build() {
-            actor !
-                new Host(host, alive, epoch,
-                    hostLocalDatapath, hostLocalPorts.toMap,
-                    hostTunnelZoneConfigs.toMap)
+            val tunnelZones = hostTunnelZoneConfigs.map(tzConfig =>
+                (tzConfig._1, tzConfig._2.getIp)
+            )
+            actor ! new Host(hostId, alive, hostLocalPorts.toMap, tunnelZones.toMap)
         }
     }
 }
