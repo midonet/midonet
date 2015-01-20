@@ -35,23 +35,29 @@ import org.midonet.packets._
 object DhcpValueParser {
     import DHCPOption._
 
-    implicit def fromMap[K, V](m: Map[K, V]): java.util.Map[K, V] = {
-        val map = new java.util.HashMap[K, V]()
-        for ((k, v)<- m)
-            map.put(k, v)
-        map
-    }
+    implicit
+    def byteToCode(m: java.util.Map[java.lang.Byte, DHCPOption.Code]): Map[Byte, DHCPOption.Code] =
+        m.asScala.map({
+            case (k, v) => (Byte2byte(k), v)
+        }).toMap
 
-    implicit def fromJava[K, V](m: java.util.Map[K, V]): Map[K, V] =
-        m.asScala.toMap[K, V]
+    implicit
+    def codeToOption(m: java.util.Map[String, java.lang.Byte]): Map[String, Byte] =
+        m.asScala.map({
+            case (k, v) => (k, Byte2byte(v))
+        }).toMap
 
-    val CodeToOption: Map[java.lang.Byte, DHCPOption.Code] = CODE_TO_OPTION
-    val NameToCode: Map[String, java.lang.Byte] = NAME_TO_CODE
+    val CodeToOption: Map[Byte, DHCPOption.Code] = CODE_TO_OPTION
+    val NameToCode: Map[String, Byte] = NAME_TO_CODE
+
+    type SimpleParser = String => Option[Array[Byte]]
 
     private[midolman]
     implicit class DhcpValueString(val s: String) {
         def splitWithComma: Array[String] =
             s.replaceAll("\\s", "").split(",")
+
+        def toCanonicalNumber: String = s.trim.toLowerCase
     }
 
     private[midolman]
@@ -75,10 +81,19 @@ object DhcpValueParser {
         val numbers = dhcpValue.splitWithComma.map(_.toInt)
         val buff = ByteBuffer.allocate(len * numbers.length)
         numbers.foreach { n =>
-            if (len == 2)
-                buff.putShort(n.toShort)
-            else if (len == 4)
-                buff.putInt(n)
+            if (len == 2) {
+                if (n > Short.MaxValue || n < Short.MinValue) {
+                    None
+                } else {
+                    buff.putShort(n.toShort)
+                }
+            } else if (len == 4) {
+                if (n > Int.MaxValue || n < Int.MinValue) {
+                    None
+                } else {
+                    buff.putInt(n)
+                }
+            }
         }
         Some(buff.array())
     } catch {
@@ -90,7 +105,7 @@ object DhcpValueParser {
         Some(if (dhcpValue.trim.toBoolean) Array(1.toByte) else Array(0.toByte))
     } catch {
         case _: IllegalArgumentException =>
-            dhcpValue.trim match {
+            dhcpValue.toCanonicalNumber match {
                 case "0" | "0x0" | "0x00" => Some(Array(0.toByte))
                 case "1" | "0x1" | "0x01" => Some(Array(1.toByte))
                 case _                    => None
@@ -112,7 +127,10 @@ object DhcpValueParser {
     }
 
     /*
-     * 8.7. NetBIOS over TCP/IP Node Type Option in RFC 2132
+     * 1, 2, 4, 8 mapped to specific meanings i.e., NetBIOS over TCP/IP Node
+     * Type Option in RFC 2132
+     *
+     * The following example represents  NetBIOS over TCP/IP Node Type Option.
      *
      * Value         Node Type
      * -----         ---------
@@ -122,8 +140,8 @@ object DhcpValueParser {
      * 0x8           H-node
      */
     private[midolman]
-    def parseNetBiosTcpIpNodeType(dhcpValue: String): Option[Array[Byte]] =
-        dhcpValue.trim match {
+    def parse1248(dhcpValue: String): Option[Array[Byte]] =
+        dhcpValue.toCanonicalNumber match {
             case "1" | "0x1" | "0x01" => Some(Array(0x01.toByte))
             case "2" | "0x2" | "0x02" => Some(Array(0x02.toByte))
             case "4" | "0x4" | "0x04" => Some(Array(0x04.toByte))
@@ -132,7 +150,9 @@ object DhcpValueParser {
         }
 
     /*
-     * 9.3. Option Overload in RFC 2132
+     * 1 - 3 mapped to specific meanings i.e., Option Overload in RFC 2132
+     *
+     * The following example represents Option Overload in RFC 2132.
      *
      * Value   Meaning
      * -----   --------
@@ -141,8 +161,8 @@ object DhcpValueParser {
      *   3     both fields are used to hold options
      */
     private[midolman]
-    def parseOptionOverload(dhcpValue: String): Option[Array[Byte]] =
-        dhcpValue.trim match {
+    def parse1to3(dhcpValue: String): Option[Array[Byte]] =
+        dhcpValue.toCanonicalNumber match {
             case "1" | "0x1" | "0x01" => Some(Array(0x01.toByte))
             case "2" | "0x2" | "0x02" => Some(Array(0x02.toByte))
             case "3" | "0x3" | "0x03" => Some(Array(0x03.toByte))
@@ -150,7 +170,41 @@ object DhcpValueParser {
         }
 
     /*
-     * 9.6. DHCP Message Type in RFC 2132
+     * 0 - 4 mapped to specific meanings i.e., DHCP Status Code in RFC 6926
+     *
+     * The following example represents DHCP Status Code in RFC 6926.
+     *
+     * Name    Status Code Description
+     * ----    ----------- -----------
+     * Success         000 Success.  Also signaled by absence of
+     *                     a status-code option.
+     * UnspecFail      001 Failure, reason unspecified.
+     *
+     * QueryTerminated 002 Indicates that the server is unable to
+     *                     perform a query or has prematurely terminated
+     *                     the query for some reason (which should be
+     *                     communicated in the text message).
+     *
+     * MalformedQuery  003 The query was not understood.
+     *
+     * NotAllowed      004 The query or request was understood but was
+     *                     not allowed in this context.
+     */
+    private[midolman]
+    def parse0to4(dhcpValue: String): Option[Array[Byte]] =
+        dhcpValue.toCanonicalNumber match {
+            case "0" | "0x0" | "0x00" => Some(Array(0x00.toByte))
+            case "1" | "0x1" | "0x01" => Some(Array(0x01.toByte))
+            case "2" | "0x2" | "0x02" => Some(Array(0x02.toByte))
+            case "3" | "0x3" | "0x03" => Some(Array(0x03.toByte))
+            case "4" | "0x4" | "0x04" => Some(Array(0x04.toByte))
+            case _                    => None
+        }
+
+    /*
+     * 1 - 8 mapped to specific meanings i.e., DHCP Message Type in RFC 2132
+     *
+     * The following example represents DHCP Message Type in RFC 2132.
      *
      * Value   Message Type
      * -----   ------------
@@ -164,8 +218,8 @@ object DhcpValueParser {
      *   8     DHCPINFORM
      */
     private[midolman]
-    def parseDhcpMessageType(dhcpValue: String): Option[Array[Byte]] =
-        dhcpValue.trim match {
+    def parse1to8(dhcpValue: String): Option[Array[Byte]] =
+        dhcpValue.toCanonicalNumber match {
             case "1" | "0x1" | "0x01" => Some(Array(0x01.toByte))
             case "2" | "0x2" | "0x02" => Some(Array(0x02.toByte))
             case "3" | "0x3" | "0x03" => Some(Array(0x03.toByte))
@@ -177,32 +231,42 @@ object DhcpValueParser {
             case _                    => None
         }
 
-    /*
-     * 9.14. Client-identifier in RFC 3315 / 4361 / 6842
-     *
-     *   Code   Len   Type  Client-Identifier
-     * +-----+-----+-----+-----+-----+---
-     * |  61 |  n  |  t1 |  i1 |  i2 | ...
-     * +-----+-----+-----+-----+-----+---
-     */
     private[midolman]
-    def parseClientIdentifier(dhcpValue: String): Option[Array[Byte]] =
-        dhcpValue.splitWithComma match {
-            case a: Array[String] if a.length >= 2 =>
-                val typeOption: Option[Byte] =  try {
-                    Some(a.head.toInt.toByte)
-                } catch {
-                    case _: NumberFormatException => None
-                }
-                val clientIdentifierOption: Option[Array[Byte]] = a.tail match {
-                    case Array(s: String) => Some(s.getBytes)
-                    case _                => None
-                }
-                for {
-                    t <- typeOption
-                    clientIdentifier <- clientIdentifierOption
-                } yield t +: clientIdentifier
-            case _ => None
+    def parseByte(dhcpValue: String): Option[Array[Byte]] =
+        dhcpValue.toCanonicalNumber match {
+            case "0" | "0x0" | "0x00" => Some(Array(0x00.toByte))
+            case "1" | "0x1" | "0x01" => Some(Array(0x01.toByte))
+            case "2" | "0x2" | "0x02" => Some(Array(0x02.toByte))
+            case "3" | "0x3" | "0x03" => Some(Array(0x03.toByte))
+            case "4" | "0x4" | "0x04" => Some(Array(0x04.toByte))
+            case "5" | "0x5" | "0x05" => Some(Array(0x05.toByte))
+            case "6" | "0x6" | "0x06" => Some(Array(0x06.toByte))
+            case "7" | "0x7" | "0x07" => Some(Array(0x07.toByte))
+            case "8" | "0x8" | "0x08" => Some(Array(0x08.toByte))
+            case "9" | "0x9" | "0x09" => Some(Array(0x09.toByte))
+            case "10" | "0xa" | "0x0a" => Some(Array(0xa.toByte))
+            case "11" | "0xb" | "0x0b" => Some(Array(0xb.toByte))
+            case "12" | "0xc" | "0x0c" => Some(Array(0xc.toByte))
+            case "13" | "0xd" | "0x0d" => Some(Array(0xd.toByte))
+            case "14" | "0xe" | "0x0e" => Some(Array(0x0e.toByte))
+            case "15" | "0xf" | "0x0f" => Some(Array(0x0f.toByte))
+            case "16" | "0x10" => Some(Array(0x10.toByte))
+            case "17" | "0x11" => Some(Array(0x11.toByte))
+            case "18" | "0x12" => Some(Array(0x12.toByte))
+            case "19" | "0x13" => Some(Array(0x13.toByte))
+            case "20" | "0x14" => Some(Array(0x14.toByte))
+            case "21" | "0x15" => Some(Array(0x15.toByte))
+            case "22" | "0x16" => Some(Array(0x16.toByte))
+            case "23" | "0x17" => Some(Array(0x17.toByte))
+            case "24" | "0x18" => Some(Array(0x18.toByte))
+            case "25" | "0x19" => Some(Array(0x19.toByte))
+            case "26" | "0x1a" => Some(Array(0x1a.toByte))
+            case "27" | "0x1b" => Some(Array(0x1b.toByte))
+            case "28" | "0x1c" => Some(Array(0x1c.toByte))
+            case "29" | "0x1d" => Some(Array(0x1d.toByte))
+            case "30" | "0x1e" => Some(Array(0x1e.toByte))
+            case "31" | "0x1f" => Some(Array(0x1f.toByte))
+            case _                    => None
         }
 
     /*
@@ -246,34 +310,93 @@ object DhcpValueParser {
         case _: IllegalArgumentException => None
     }
 
+    /*
+     * Byte followed by IP addresses. i.e., SLP Directory Agent in RFC 2610
+     *
+     * The following example represents SLP Directory Agent
+     *
+     * 0                   1                   2                   3
+     * 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+     * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     * |   Code = 78   |    Length     |   Mandatory   |      a1       |
+     * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     * |      a2       |       a3      |       a4      |      ...
+     * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     */
+    private[midolman]
+    def parseByteFollowedByIpAddrs(
+            dhcpValue: String,
+            firstByteHandler: SimpleParser): Option[Array[Byte]] = {
+        val value: Array[String] = dhcpValue.split(",", 2)
+        for {
+            mandatory: Array[Byte] <- firstByteHandler(value(0))
+            addrs: Array[Byte] <- parseIpAddresses(value(1))
+        } yield mandatory ++ addrs
+    }
+
+    /*
+     * Byte followed by String. i.e., SLP Service Scope in RFC 2610x
+     *
+     * The following example represents SLP Service Scope
+     *
+     * 0                   1                   2                   3
+     * 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+     * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     * |   Code = 79   |     Length    |   Mandatory   | <Scope List>...
+     * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     */
+    private[midolman]
+    def parseByteFollowedByString(
+            dhcpValue: String,
+            firstByteHandler: SimpleParser): Option[Array[Byte]] = {
+        val value: Array[String] = dhcpValue.split(",", 2)
+        for (mandatory: Array[Byte] <- firstByteHandler(value(0)))
+        yield mandatory ++ value(1).trim.getBytes
+    }
+
     def parseDhcpOptionValue(code: Byte, value: String): Option[Array[Byte]] = {
         CodeToOption.get(code) match {
             case Some(ipsRequiredCode)
-                if IPS_REQUIRED_DHCP_OPTION_CODES.contains(ipsRequiredCode) =>
+                if Code.IPS_REQUIRED_DHCP_OPTION_CODES.contains(ipsRequiredCode) =>
                 parseIpAddresses(value)
             case Some(ipRequiredCode)
-                if SINGLE_IP_REQUIRED_DHCP_OPTION_CODES.contains(
+                if Code.SINGLE_IP_REQUIRED_DHCP_OPTION_CODES.contains(
                     ipRequiredCode) =>
                 parseSingleIpAddress(value)
             case Some(numberRequiredCode)
-                if NUMBER_REQUIRED_DHCP_OPTION_CODES.contains(
+                if Code.NUMBER_REQUIRED_DHCP_OPTION_CODES.contains(
                     numberRequiredCode) =>
                 parseNumbers(value, numberRequiredCode.length)
             case Some(booleanRequiredCode)
-                if BOOLEAN_REQUIRED_DHCP_OPTION_CODES.contains(
+                if Code.BOOLEAN_REQUIRED_DHCP_OPTION_CODES.contains(
                     booleanRequiredCode) =>
                 parseBoolean(value)
             case Some(cidrRequiredCode)
-                if CIDR_REQUIRED_DHCP_OPTION_CODES.contains(cidrRequiredCode) =>
+                if Code.CIDR_REQUIRED_DHCP_OPTION_CODES.contains(
+                    cidrRequiredCode) =>
                 parseCidr(value)
             case Some(c) if c == Code.NETBIOS_OVER_TCP_IP_NODE_TYPE =>
-                parseNetBiosTcpIpNodeType(value)
+                parse1248(value)
             case Some(c) if c == Code.OPTION_OVERLOAD =>
-                parseOptionOverload(value)
-            case Some(c) if c == Code.MESSAGE =>
-                parseDhcpMessageType(value)
-            case Some(c) if c == Code.CLIENT_IDENTIFIER =>
-                parseClientIdentifier(value)
+                parse1to3(value)
+            case Some(c)
+                if (c == Code.ERROR_MESSAGE) || (c == Code.DHCP_STATE) =>
+                parse1to8(value)
+            case Some(c)
+                if (c == Code.CLIENT_IDENTIFIER) || (c == Code.DHCP_VSS) =>
+                parseByteFollowedByString(value, parseByte)
+            case Some(c) if c == Code.SLP_DIRECTORY_AGENT =>
+                parseByteFollowedByIpAddrs(value, parseBoolean)
+            case Some(c) if c == Code.SLP_SERVICE_SCOPE =>
+                parseByteFollowedByString(value, parseBoolean)
+            case Some(c) if c == Code.RAPID_COMMIT =>
+                Some(Array[Byte](Code.RAPID_COMMIT.value, 0))
+            case Some(c) if c == Code.STATUS_CODE =>
+                parseByteFollowedByString(value, parse0to4)
+            case Some(byteRequiredCode)
+                if Code.BYTE_REQUIRED_DHCP_OPTION_CODES.contains(
+                    byteRequiredCode) =>
+                parseByte(value)
             case Some(c) if c == Code.CLASSLESS_ROUTES =>
                 parseClasslessRoutes(value)
             case Some(_) =>
@@ -283,11 +406,11 @@ object DhcpValueParser {
         }
     }
 
-    def parseDhcpOptionCode(optName: String): Option[java.lang.Byte] = try {
-        Some(optName.toByte)
+    def parseDhcpOptionCode(optName: String): Option[Byte] = try {
+        Some(optName.trim.toByte)
     } catch {
         case _: java.lang.NumberFormatException =>
-            val canonicalName = optName.replaceAll("-", "_").toUpperCase
+            val canonicalName = optName.trim.replaceAll("-", "_").toUpperCase
             NameToCode.get(canonicalName)
 
     }
