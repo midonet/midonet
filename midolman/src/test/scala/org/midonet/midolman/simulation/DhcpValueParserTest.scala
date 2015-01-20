@@ -17,6 +17,7 @@
 package org.midonet.midolman.simulation
 
 import org.junit.runner.RunWith
+import org.midonet.packets.DHCPOption
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.midolman.util.MidolmanSpec
@@ -96,7 +97,7 @@ class DhcpValueParserTest extends MidolmanSpec {
             val input = ""
 
             Then("parse it and get the empty Option value")
-            parseSingleIpAddress(input) should be(None)
+            parseSingleIpAddress(input) should be (None)
         }
 
         scenario("A single IP address should be parsed appropriately") {
@@ -255,8 +256,7 @@ class DhcpValueParserTest extends MidolmanSpec {
             val inputs = List("1", "0x1", "0x01")
 
             Then("parse them and get the parsed results")
-            inputs.foreach(
-                parseBoolean(_).get should equal (trueByteArray))
+            inputs.foreach(parseBoolean(_).get should equal (trueByteArray))
         }
 
         scenario("\"false\" should be parsed appropriately") {
@@ -342,8 +342,18 @@ class DhcpValueParserTest extends MidolmanSpec {
 
                 Then("parse it and get the parsed result")
                 val expected: Array[Byte] = Array(number.toByte)
-                inputs.foreach(
-                    parseNetBiosTcpIpNodeType(_).get should equal (expected))
+                inputs.foreach(parse1248(_).get should equal (expected))
+            }
+        }
+
+        scenario("unforgiven`` number string should not be parsed") {
+            val numbers = List("0", "3", "5", "7")
+            numbers foreach { number =>
+                Given(s""""$number", "0x$number", "0x0$number"""")
+                val inputs = List(s"$number", s"0x$number", s"0x0$number")
+
+                Then("parse it and get None because the parse fails")
+                inputs.foreach(parse1248(_) should be (None))
             }
         }
     }
@@ -357,23 +367,54 @@ class DhcpValueParserTest extends MidolmanSpec {
 
                 Then("parse it and get the parsed result")
                 val expected: Array[Byte] = Array(number.toByte)
-                inputs.foreach(
-                    parseOptionOverload(_).get should equal (expected))
+                inputs.foreach(parse1to3(_).get should equal (expected))
             }
         }
     }
 
-    feature("DHCP message type parser") {
+    feature("1 - 8 parser") {
         scenario("forgiven number string should be parsed appropriately") {
-            val numbers = (1 to 8).map(_.toString)
-            numbers.foreach { number =>
+            (1 to 8).foreach { number =>
                 Given(s""""$number", "0x$number", "0x0$number"""")
                 val inputs = List(s"$number", s"0x$number", s"0x0$number")
 
                 Then("parse it and get the parsed result")
                 val expected: Array[Byte] = Array(number.toByte)
-                inputs.foreach(
-                    parseDhcpMessageType(_).get should equal (expected))
+                inputs.foreach(parse1to8(_).get should equal (expected))
+            }
+        }
+
+        scenario("unforgiven number string should not be parsed") {
+            val numbers = "0" +: (9 to 31).map(_.toString)
+            numbers.foreach { number =>
+                Given(s""""$number", "0x$number", "0x0$number"""")
+                val inputs = List(s"$number", s"0x$number", s"0x0$number")
+
+                Then("parse it and get None because the parse fails")
+                inputs.foreach(parse1to8(_) should be (None))
+            }
+        }
+    }
+
+    feature("byte parser") {
+        scenario("forgiven number string should be parsed appropriately") {
+            (0 to 31).foreach { number =>
+                Given(s"$number" + ", "  + "0x%02x".format(number))
+                val inputs = List(s"$number", "0x%02x".format(number))
+
+                Then("parse it and get the parsed result")
+                val expected: Array[Byte] = Array(number.toByte)
+                inputs.foreach(parseByte(_).get should equal (expected))
+            }
+        }
+
+        scenario("unforgiven number string should not be parsed") {
+            (32 to 63).foreach { number =>
+                Given(s"$number" + ", "  + "0x%02x".format(number))
+                val inputs = List(s"$number", "0x%02x".format(number))
+
+                Then("parse it and get None because the parse fails")
+                inputs.foreach(parse1to8(_) should be (None))
             }
         }
     }
@@ -384,7 +425,7 @@ class DhcpValueParserTest extends MidolmanSpec {
             val input = ""
 
             Then("parse it and get the empty Option value")
-            parseClientIdentifier(input) should be (None)
+            parseByteFollowedByString(input, parseByte) should be (None)
         }
 
         scenario("client identifier should have type and value") {
@@ -392,7 +433,7 @@ class DhcpValueParserTest extends MidolmanSpec {
             val input = "255"
 
             Then("parse it and the parse fails")
-            parseClientIdentifier(input) should be (None)
+            parseByteFollowedByString(input, parseByte) should be (None)
         }
 
         scenario("the legitimate client identifier should be parsed") {
@@ -402,7 +443,7 @@ class DhcpValueParserTest extends MidolmanSpec {
             Then("parse it and get the result")
             val expected: Array[Byte] = Array(
                 -1, 48, 63, 60, 61, 95, 49, 70, 67).map(_.toByte)
-            parseClientIdentifier(input).get should equal (expected)
+            parseByteFollowedByString(input, parseByte) should be (None)
         }
     }
 
@@ -452,6 +493,82 @@ class DhcpValueParserTest extends MidolmanSpec {
 
             Then("parse it and the parse is failed")
             parseClasslessRoutes(input) should be (None)
+        }
+    }
+
+    feature("Byte followed by IP addresses parser") {
+        scenario("Byte and IP addresses should be parsed appropriately") {
+            Given("A valid triple separated with commas for boolean handler")
+            val input = "1, 192.168.100.1, 192.168.100.2"
+
+            Then("parse it and get the parsed result")
+            val expected: Array[Byte] = Array(
+                1, 192, 168, 100, 1, 192, 168, 100, 2).map(_.toByte)
+            parseByteFollowedByIpAddrs(
+                input, parseBoolean).get should equal (expected)
+
+            Given("A valid triple separated with commas for 0 - 4 handler")
+            val anotherInput = "4, 192.168.100.1,192.168.100.2"
+
+            Then("parse it and get the parsed result")
+            val anotherExpected: Array[Byte] = Array(
+                4, 192, 168, 100, 1, 192, 168, 100, 2).map(_.toByte)
+            parseByteFollowedByIpAddrs(
+                anotherInput, parse0to4).get should equal (anotherExpected)
+        }
+
+        scenario("Invalid pair should be parsed appropriately") {
+            Given("An invalid pair with a bad first byte for boolean handler")
+            val invalidInput = "2, 192.168.0.1"
+
+            Then("parse it and get the parsed result")
+            parseByteFollowedByIpAddrs(
+                invalidInput, parseBoolean) should be (None)
+
+            Given("An invalid pair with a bad first byte for 0 - 4 handler")
+            val anotherInvalidInput = "5, 192.168.0.1"
+
+            Then("parse it and get the parsed result")
+            parseByteFollowedByIpAddrs(
+                anotherInvalidInput, parse0to4) should be (None)
+        }
+    }
+
+    feature("Byte followed by string parser") {
+        scenario("Byte and string should be parsed appropriately") {
+            Given("A valid triple separated with commas for boolean handler")
+            val input = "1, foobar"
+
+            Then("parse it and get the parsed result")
+            val expected: Array[Byte] = Array(
+                1, 102, 111, 111, 98, 97, 114).map(_.toByte)
+            parseByteFollowedByString(
+                input, parseBoolean).get should equal (expected)
+
+            Given("A valid triple separated with commas for 0 - 4 handler")
+            val anotherInput = "4, foobar"
+
+            Then("parse it and get the parsed result")
+            val anotherExpected: Array[Byte] = Array(
+                4, 102, 111, 111, 98, 97, 114).map(_.toByte)
+            parseByteFollowedByString(
+                anotherInput, parse0to4).get should equal (anotherExpected)
+        }
+
+        scenario("Invalid pair should be parsed appropriately") {
+            Given("An invalid pair with a bad first byte for boolean handler")
+            val invalidInput = "2, foobar"
+
+            Then("parse it and get the parsed result")
+            parseByteFollowedByString(
+                invalidInput, parseBoolean) should be (None)
+
+            Given("An invalid pair with a bad first byte for 0to4 handler")
+            val anotherInvalidInput = "5, foobar"
+
+            Then("parse it and get the parsed result")
+            parseByteFollowedByString(
+                anotherInvalidInput, parse0to4) should be (None)
         }
     }
 }
