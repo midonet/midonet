@@ -73,6 +73,30 @@
     },
     {
       "key": {
+        "uuid": "fa2559ec_878299fe",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 172,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-20T09:39:46Z",
+      "side": 1,
+      "message": "Yes, you are right. Unfortunately I tried to implement there are a few corner cases not covered by this, such as when you create an object in a transaction, and the same object is deleted in the same transaction wither directly or by a cascading delete. In this case we needing additional flags to indicate that the object has been deleted.\n\nIn particular only the following test case I was unable to fix:\n\nZookeeperObjectMapperTests.testMultiWithUpdateOfDeletedObject\n\nI\u0027ll keep working on it.",
+      "parentUuid": "fa2559ec_74e2b504",
+      "range": {
+        "startLine": 172,
+        "startChar": 56,
+        "endLine": 172,
+        "endChar": 62
+      },
+      "revId": "4fbfcd7965b633cb95d3342b290bf9a34eca25b4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa2559ec_449b82c9",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
         "patchSetId": 15
@@ -261,6 +285,30 @@
     },
     {
       "key": {
+        "uuid": "fa2559ec_c7713179",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 327,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-20T09:39:46Z",
+      "side": 1,
+      "message": "Oh, yes! I saw it yesterday, but I forgot to fix it :/\nFixed now, as:\n\n  if(objCache.contains(key) \u0026\u0026 !isDeleted(key))",
+      "parentUuid": "fa2559ec_b478ad2c",
+      "range": {
+        "startLine": 325,
+        "startChar": 0,
+        "endLine": 327,
+        "endChar": 13
+      },
+      "revId": "4fbfcd7965b633cb95d3342b290bf9a34eca25b4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa2559ec_64f846e6",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
         "patchSetId": 15
@@ -367,6 +415,30 @@
       "side": 1,
       "message": "A restart of what? If it\u0027s a restart of the node that created the ephemeral ownership node, then wouldn\u0027t that result in the ephemeral ownership node being deleted?\n\nMaybe it\u0027s because I don\u0027t really understand the use case. What is this for, exactly? Why are both the name of the owner node and the creating client significant?",
       "parentUuid": "fa2559ec_5f734fb1",
+      "range": {
+        "startLine": 368,
+        "startChar": 44,
+        "endLine": 368,
+        "endChar": 53
+      },
+      "revId": "4fbfcd7965b633cb95d3342b290bf9a34eca25b4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_a7c6bd47",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 368,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-20T09:39:46Z",
+      "side": 1,
+      "message": "The use case for the VXGW service is the following. Each VXGW instance uses its own service ID to determine ownership for a VTEP; a VXGW instance should only manage those VTEPs for which it holds the ownership.\n\nIf a VXGW instance fails, the failover transfers ownership to other VXGW instances, when those instances detect that the ownership disappeared (i.e. when the ZK ephemeral nodes were deleted because of the client connection loss).\n\nWhat should happen when we restart a VXGW instance? There are two posibilites:\n- after restart, the instance acquires a new service ID, the ownership of the orphaned VTEPs is decided as during the failover process, in which case we need to wait for ZK to delete the ephemeral nodes\n- after restart, the instance remembers its service ID, and acquires ownership of its previous VTEPs immediately without waiting for ZK to delete the ephemeral nodes created by the previous client session\n\nIn the latter case however, the new VXGW service instance should re-create the ownership ephemeral nodes, such that they correspond to the new client session, rather than to the old one. Otherwise, the subsequent deletion of the ephemerals will trigger the failover mechanism where other VXGW instances may try to acquire ownership.\n\nTherefore, in this use-case I think the rule of thumb should be: ownership is only guaranteed only when an ephemeral was created by the current session. For this reason, in this case, overwrite should be true.\n\nHowever, there are other use cases, when overwrite needs to be false. This is to prevent for example starting two midolman instances for the same host. There, because the host instances share the same id, setting overwrite to false should throw an OwnershipExistsException if a second host tries to acquire the same ownership.",
+      "parentUuid": "fa2559ec_f4ed05f1",
       "range": {
         "startLine": 368,
         "startChar": 44,
@@ -615,6 +687,30 @@
     },
     {
       "key": {
+        "uuid": "fa2559ec_87e739e4",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 454,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-20T09:39:46Z",
+      "side": 1,
+      "message": "Ah sorry, I understood the comment wrong: I thought os.version in the other cases was supposed to be NEW_OBJ_VERSION.\n\nDone.",
+      "parentUuid": "fa2559ec_74b915e9",
+      "range": {
+        "startLine": 454,
+        "startChar": 20,
+        "endLine": 454,
+        "endChar": 79
+      },
+      "revId": "4fbfcd7965b633cb95d3342b290bf9a34eca25b4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa2559ec_e4e39631",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
         "patchSetId": 15
@@ -721,6 +817,30 @@
       "side": 1,
       "message": "By \"above,\" I meant line 378, where owner is String. I\u0027ll copy and paste it here for easy reference:\n\n            if (classInfo(clazz).ownershipType.isExclusive \u0026\u0026\n                !owners.contains(owner) \u0026\u0026 owners.nonEmpty) {\n                throw new OwnershipConflictException(\n                    clazz.getSimpleName, thisId.toString,\n                    owners, owner, \"Caller does not own object\")\n            }\n            if (!overwrite \u0026\u0026 owners.contains(owner)) {\n                throw new OwnershipConflictException(\n                    clazz.getSimpleName, thisId.toString,\n                    owners, owner, \"Ownership already exists\")\n            }\n\nThe only difference (other than the fact that you extracted owners from the snapshot prior to this snippet) is checking owners.nonEmpty in the first if clause. That is, the code in this comment allows adding an owner to an orphaned object with exclusive ownership, whereas the code I\u0027m commenting on does not.",
       "parentUuid": "fa2559ec_bfda4be7",
+      "range": {
+        "startLine": 476,
+        "startChar": 0,
+        "endLine": 486,
+        "endChar": 13
+      },
+      "revId": "4fbfcd7965b633cb95d3342b290bf9a34eca25b4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_67032574",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 486,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-20T09:39:46Z",
+      "side": 1,
+      "message": "I see the difference now, thanks! Yes, it\u0027s an error here, we should allow updating the owner when owners.nonEmpty is true. Fixed.",
+      "parentUuid": "fa2559ec_f4c4e560",
       "range": {
         "startLine": 476,
         "startChar": 0,
@@ -1451,6 +1571,30 @@
       "side": 1,
       "message": "Weird. There\u0027s no syntactical reason it needs to be :+ instead of +. Maybe it\u0027s for symmetry with +:, which needs the colon for right-associativity.",
       "parentUuid": "fa2559ec_3104cf14",
+      "range": {
+        "startLine": 679,
+        "startChar": 45,
+        "endLine": 679,
+        "endChar": 75
+      },
+      "revId": "4fbfcd7965b633cb95d3342b290bf9a34eca25b4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_074989d0",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 679,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-20T09:39:46Z",
+      "side": 1,
+      "message": "I think + is associated to String (it expects a String argument). The + method is defined as an implicit in scala.Predef if I remember well.",
+      "parentUuid": "fa2559ec_f4d7c5eb",
       "range": {
         "startLine": 679,
         "startChar": 45,
