@@ -178,6 +178,30 @@
     },
     {
       "key": {
+        "uuid": "9a245df4_b0da7ee7",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/HostRequestProxy.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 138,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-20T09:28:39Z",
+      "side": 1,
+      "message": "It is, if log level is not enabled, then the string is not composed.",
+      "parentUuid": "9a245df4_7026466a",
+      "range": {
+        "startLine": 138,
+        "startChar": 12,
+        "endLine": 138,
+        "endChar": 80
+      },
+      "revId": "74b710b6951711ea6ca55cbfdabca31edaa09a72",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "da2a55be_3e05bdc2",
         "filename": "midolman/src/main/scala/org/midonet/midolman/state/FlowStateReplicator.scala",
         "patchSetId": 17
@@ -530,6 +554,30 @@
       "side": 1,
       "message": "buildHost creates the host in ZK using the data client and then uses toDevicesHost to convert the DataHost to a DevicesHost. I used two methods to just split the functionality.",
       "parentUuid": "ba1f61a0_28ff4b03",
+      "range": {
+        "startLine": 58,
+        "startChar": 0,
+        "endLine": 72,
+        "endChar": 5
+      },
+      "revId": "74b710b6951711ea6ca55cbfdabca31edaa09a72",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_90d77abf",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/VirtualToPhysicalMapperTest.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-20T09:28:39Z",
+      "side": 1,
+      "message": "Yes, but toDevicesHost also creates the same host in zoom. Is creating the host in both storage models necessary?",
+      "parentUuid": "9a245df4_b0a27e98",
       "range": {
         "startLine": 58,
         "startChar": 0,
