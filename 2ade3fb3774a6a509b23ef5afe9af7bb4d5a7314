@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "9a245df4_f0199623",
+        "filename": "brain/midonet-brain/conf/cluster.conf",
+        "patchSetId": 15
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-20T07:56:26Z",
+      "side": 1,
+      "message": "I wanted to keep it in the neutron-importer configuration since the only cluster service with access to the neutron db should be the importer itself, so the DB shouldn\u0027t be seen or accessible by any other minions. I had forgotten to move NeutronDbConfig into C3POMinionConfig  so I\u0027ll do it now.",
+      "parentUuid": "9a245df4_906e5a95",
+      "revId": "2ade3fb3774a6a509b23ef5afe9af7bb4d5a7314",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a245df4_50818249",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/ClusterNode.scala",
         "patchSetId": 15
@@ -30,6 +48,30 @@
       "writtenOn": "2015-01-20T07:12:25Z",
       "side": 1,
       "message": "Please lower-case.",
+      "range": {
+        "startLine": 70,
+        "startChar": 39,
+        "endLine": 70,
+        "endChar": 43
+      },
+      "revId": "2ade3fb3774a6a509b23ef5afe9af7bb4d5a7314",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_50e22204",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/ClusterNode.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-20T07:56:26Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9a245df4_50818249",
       "range": {
         "startLine": 70,
         "startChar": 39,
@@ -65,6 +107,30 @@
     },
     {
       "key": {
+        "uuid": "9a245df4_b0e6fe14",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/ClusterNode.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-20T07:56:26Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9a245df4_b0dc3e76",
+      "range": {
+        "startLine": 77,
+        "startChar": 27,
+        "endLine": 77,
+        "endChar": 31
+      },
+      "revId": "2ade3fb3774a6a509b23ef5afe9af7bb4d5a7314",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a245df4_103c2a93",
         "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/C3POMinionTest.scala",
         "patchSetId": 15
@@ -76,6 +142,30 @@
       "writtenOn": "2015-01-20T07:12:25Z",
       "side": 1,
       "message": "You can reduce this to 100 just for testing, though that would be meaningless if you don\u0027t also reduce \"curator.base_retry_ms\" to 100 or so.",
+      "range": {
+        "startLine": 84,
+        "startChar": 38,
+        "endLine": 84,
+        "endChar": 42
+      },
+      "revId": "2ade3fb3774a6a509b23ef5afe9af7bb4d5a7314",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_90e3fa04",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/C3POMinionTest.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-20T07:56:26Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9a245df4_103c2a93",
       "range": {
         "startLine": 84,
         "startChar": 38,
@@ -134,6 +224,30 @@
     },
     {
       "key": {
+        "uuid": "9a245df4_f0f076cb",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/storage/MidonetBackendConfig.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-20T07:56:26Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9a245df4_705806fb",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "2ade3fb3774a6a509b23ef5afe9af7bb4d5a7314",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a245df4_505d02e9",
         "filename": "cluster/src/main/scala/org/midonet/cluster/storage/MidonetBackendModule.scala",
         "patchSetId": 15
@@ -145,6 +259,30 @@
       "writtenOn": "2015-01-20T07:12:25Z",
       "side": 1,
       "message": "Not sure but we should capitalize tihs as \"MidoNet\"?",
+      "range": {
+        "startLine": 28,
+        "startChar": 10,
+        "endLine": 28,
+        "endChar": 11
+      },
+      "revId": "2ade3fb3774a6a509b23ef5afe9af7bb4d5a7314",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_d0ed72f1",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/storage/MidonetBackendModule.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-20T07:56:26Z",
+      "side": 1,
+      "message": "It\u0027s not done anywhere in the code so I\u0027ll keep it as is for now.",
+      "parentUuid": "9a245df4_505d02e9",
       "range": {
         "startLine": 28,
         "startChar": 10,
