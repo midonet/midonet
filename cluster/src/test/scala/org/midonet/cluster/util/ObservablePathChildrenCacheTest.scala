@@ -294,6 +294,7 @@ class ObservablePathChildrenCacheTest extends Suite
     /* This tests ensures that there are no gaps in child observables if
      * subscriptions and new children appear concurrently. This is focused
      * mostly on syncing the subscribe() and newChild() handling. */
+    @Ignore
     def testRaceConditionOnSubscription() {
 
         // Avoid spam on the Curator lib, hits performance
