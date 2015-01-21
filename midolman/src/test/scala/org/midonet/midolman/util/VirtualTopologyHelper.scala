@@ -16,7 +16,7 @@
 package org.midonet.midolman.util
 
 import java.util
-import java.util.UUID
+import util.{Queue, UUID}
 
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext, Future}
@@ -73,13 +73,14 @@ trait VirtualTopologyHelper {
     val NO_CONNTRACK = new FlowStateTransaction[ConnTrackKey, ConnTrackValue](null)
     val NO_NAT = new FlowStateTransaction[NatKey, NatBinding](null)
 
-    def packetContextFor(frame: Ethernet, inPort: UUID)
+    def packetContextFor(frame: Ethernet, inPort: UUID,
+                         emitter: Queue[PacketEmitter.GeneratedPacket] = new util.LinkedList)
                         (implicit conntrackTx: FlowStateTransaction[ConnTrackKey, ConnTrackValue] = NO_CONNTRACK,
                                   natTx: FlowStateTransaction[NatKey, NatBinding] = NO_NAT)
     : PacketContext = {
         val fmatch = new FlowMatch(FlowKeys.fromEthernetPacket(frame))
         val context = new PacketContext(-1, new Packet(frame, fmatch), fmatch)
-        context.packetEmitter = new PacketEmitter(new util.LinkedList, actorSystem.deadLetters)
+        context.packetEmitter = new PacketEmitter(emitter, actorSystem.deadLetters)
         context.initialize(conntrackTx, natTx, HappyGoLuckyLeaser)
         context.prepareForSimulation(0)
         context.inputPort = inPort
