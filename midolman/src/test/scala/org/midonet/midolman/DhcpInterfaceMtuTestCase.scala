@@ -264,7 +264,8 @@ class DhcpInterfaceMtuTestCase extends MidolmanTestCase
 
     def test() {
         injectDhcpDiscover(vmPortName, vmMac)
-        val returnPkt = requestOfType[PacketsExecute](packetsEventsProbe).packet.getEthernet
+        val returnPkt = requestOfType[PacketsExecute](
+            packetsEventsProbe).packet.getEthernet
         val interfaceMtu = extractInterfaceMtuDhcpReply(returnPkt)
         log.info("Returning interface MTU is {}", interfaceMtu)
         intfMtu -= VxLanTunnelPort.TunnelOverhead
