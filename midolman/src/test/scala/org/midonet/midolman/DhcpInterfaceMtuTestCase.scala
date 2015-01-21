@@ -267,7 +267,6 @@ class DhcpInterfaceMtuTestCase extends MidolmanTestCase
         val returnPkt = requestOfType[PacketsExecute](packetsEventsProbe).packet.getEthernet
         val interfaceMtu = extractInterfaceMtuDhcpReply(returnPkt)
         log.info("Returning interface MTU is {}", interfaceMtu)
-        intfMtu -= VxLanTunnelPort.TunnelOverhead
         interfaceMtu should equal (intfMtu)
     }
 }
