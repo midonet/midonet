@@ -529,16 +529,11 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
                 case Starting =>
                     log.debug("({}) AddPeerRoute: stashing", phase)
                     stash()
-                case Started if peerRoutes.size > 100 =>
-                    /* TODO(abel) in order not to overwhelm the cluster, we will
-                     * limit the max amount of routes we store at least for this
-                     * version of the code. Note that peer routes, if not
-                     * limited by bgpd or by the peer, can grow to hundreds of
-                     * thousands of entries.
-                     * I won't use a constant for this number because this
-                     * problem should be tackled in a more elegant way and it's
-                     * not used elsewhere. */
-                    log.error("({}) Max no. of peer routes reached (100)", phase)
+
+                case Started if peerRoutes.size > config.getMaxBgpPeerRoutes =>
+                    log.warn(s"($phase) Max number of peer routes reached " +
+                        s"(${config.getMaxBgpPeerRoutes}), please check the " +
+                        "max_bgp_peer_routes config option.")
 
                 case Started =>
                     val route = new Route()

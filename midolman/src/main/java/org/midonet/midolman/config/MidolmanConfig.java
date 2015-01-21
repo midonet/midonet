@@ -87,6 +87,10 @@ public interface MidolmanConfig
     @ConfigInt(key = "mac_port_mapping_expire_millis", defaultValue = 30000)
     public int getMacPortMappingExpireMillis();
 
+    @ConfigGroup("router")
+    @ConfigInt(key = "max_bgp_peer_routes", defaultValue = 200)
+    public int getMaxBgpPeerRoutes();
+
     @ConfigInt(key = "simulation_threads", defaultValue = 1)
     public int getSimulationThreads();
 
