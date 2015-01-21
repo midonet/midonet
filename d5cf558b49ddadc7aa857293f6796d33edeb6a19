@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9a245df4_f07d11b3",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/collection/EventHistory.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-01-21T12:44:04Z",
+      "side": 1,
+      "message": "if you streamlined it and moved it on the same patch, the differences i cannot see.",
+      "revId": "d5cf558b49ddadc7aa857293f6796d33edeb6a19",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
