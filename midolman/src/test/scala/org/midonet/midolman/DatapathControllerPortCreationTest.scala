@@ -18,6 +18,7 @@ package org.midonet.midolman
 import java.util.UUID
 
 import org.junit.runner.RunWith
+import org.midonet.midolman.config.MidolmanConfig
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.data.{Bridge => ClusterBridge, TunnelZone}
@@ -100,7 +101,7 @@ class DatapathControllerPortCreationTest extends MidolmanSpec {
     }
 
     private def addInterface() {
-        ifmtu should not be DatapathController.DEFAULT_MTU
+        ifmtu should not be DatapathController.DefaultMtu
         val intf = new InterfaceDescription(ifname)
         intf.setInetAddress(ip.toString)
         intf.setMtu(ifmtu)
@@ -137,7 +138,7 @@ class DatapathControllerPortCreationTest extends MidolmanSpec {
             testableDpc.dpState.getDpPortNumberForVport(port.getId) should equal (None)
 
             And("the min MTU should be the default one")
-            DatapathController.minMtu should be (DatapathController.DEFAULT_MTU)
+            DatapathController.minMtu should be (DatapathController.DefaultMtu)
 
             VirtualToPhysicalMapper.getAndClear() filter {
                 case LocalPortActive(_,_) => true

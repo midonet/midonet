@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2014 - 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -200,7 +200,8 @@ class DeduplicationActor(
                                                  config.getControlPacketsTos.toByte)
             pendingFlowStateBatches foreach (self ! _)
             workflow = new PacketWorkflow(dpState, dp, clusterDataClient,
-                                          dpChannel, actionsCache, replicator)
+                                          dpChannel, actionsCache, replicator,
+                                          Some(config))
 
         case m: FlowStateBatch =>
             if (replicator ne null)
