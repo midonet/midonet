@@ -24,8 +24,8 @@ import org.midonet.cluster.data.{Bridge => ClusterBridge, TunnelZone}
 import org.midonet.cluster.data.host.Host
 import org.midonet.cluster.data.ports.BridgePort
 import org.midonet.midolman.DatapathController.Initialize
-import org.midonet.midolman.host.scanner.InterfaceScanner
 import org.midonet.midolman.host.interfaces.InterfaceDescription
+import org.midonet.midolman.host.scanner.InterfaceScanner
 import org.midonet.midolman.io.UpcallDatapathConnectionManager
 import org.midonet.midolman.services.HostIdProviderService
 import org.midonet.midolman.topology.{LocalPortActive, VirtualToPhysicalMapper, VirtualTopologyActor}
@@ -100,7 +100,7 @@ class DatapathControllerPortCreationTest extends MidolmanSpec {
     }
 
     private def addInterface() {
-        ifmtu should not be DatapathController.DEFAULT_MTU
+        ifmtu should not be DatapathController.DefaultMtu
         val intf = new InterfaceDescription(ifname)
         intf.setInetAddress(ip.toString)
         intf.setMtu(ifmtu)
@@ -121,8 +121,9 @@ class DatapathControllerPortCreationTest extends MidolmanSpec {
             Then("the DpC should create the datapath port")
             testableDpc.dpState.getDpPortNumberForVport(port.getId) should not equal None
 
-            And("the min MTU should be the interface one")
-            DatapathController.minMtu should be (ifmtu - VxLanTunnelPort.TunnelOverhead)
+            And("the min MTU should be the default one")
+            DatapathController.minMtu should be (
+                DatapathController.DefaultMtu - VxLanTunnelPort.TunnelOverhead)
 
             VirtualToPhysicalMapper.getAndClear() filter {
                 case LocalPortActive(_,_) => true
@@ -137,7 +138,7 @@ class DatapathControllerPortCreationTest extends MidolmanSpec {
             testableDpc.dpState.getDpPortNumberForVport(port.getId) should equal (None)
 
             And("the min MTU should be the default one")
-            DatapathController.minMtu should be (DatapathController.DEFAULT_MTU)
+            DatapathController.minMtu should be (DatapathController.DefaultMtu)
 
             VirtualToPhysicalMapper.getAndClear() filter {
                 case LocalPortActive(_,_) => true
