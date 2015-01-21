@@ -1,0 +1,129 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9a245df4_3c95c5e4",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VTPMRedirector.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-01-21T03:38:41Z",
+      "side": 1,
+      "message": "Please eliminate this unnecessary spaces.",
+      "range": {
+        "startLine": 64,
+        "startChar": 0,
+        "endLine": 64,
+        "endChar": 4
+      },
+      "revId": "49120dc81805b7b3b49d690468375f75062ff9b5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_5ced198b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualToPhysicalMapper.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 331,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-01-21T03:38:41Z",
+      "side": 1,
+      "message": "Please indent this appropriately.",
+      "revId": "49120dc81805b7b3b49d690468375f75062ff9b5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_1c9a8114",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/TunnelZone.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-01-21T03:38:41Z",
+      "side": 1,
+      "message": "Please indent the following pattern matching lines.",
+      "revId": "49120dc81805b7b3b49d690468375f75062ff9b5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_7c9f3d04",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/TunnelZone.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-01-21T03:38:41Z",
+      "side": 1,
+      "message": "Or\n\n        val hostSet \u003d hosts.map({\n            case (k, v) \u003d\u003e new HostConfig(k).setIp(v.asInstanceOf[IPv4Addr])\n        }).toSet",
+      "revId": "49120dc81805b7b3b49d690468375f75062ff9b5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_9c85d1af",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/TunnelZone.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-01-21T03:38:41Z",
+      "side": 1,
+      "message": "I don\u0027t think we need to convert a diff of Set to a List here because Set has head method.\n\n  scala\u003e val diff \u003d Set(1,2,3) -- Set(3,4,5)\n  diff: scala.collection.immutable.Set[Int] \u003d Set(1, 2)\n\n  scala\u003e diff.head\n  res1: Int \u003d 1\n\n\noldZone.members.map(_.getId).diff(hosts.keySet).head would be enough.",
+      "revId": "49120dc81805b7b3b49d690468375f75062ff9b5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_fc920df5",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/TunnelZone.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-01-21T03:38:41Z",
+      "side": 1,
+      "message": "Ditto.\n\n            val added \u003d hosts.keySet.diff(oldZone.members.map(_.getId).toSet).head",
+      "revId": "49120dc81805b7b3b49d690468375f75062ff9b5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_3cbca56c",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/VTPMRedirectorTest.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 241,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-01-21T03:38:41Z",
+      "side": 1,
+      "message": "Nit:\n\n            updatedSimHost.tunnelZones \u003d\n                Map(protoTz.getId.asJava -\u003e IPAddr.fromString(\"192.168.0.1\"))",
+      "revId": "49120dc81805b7b3b49d690468375f75062ff9b5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
