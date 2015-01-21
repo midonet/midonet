@@ -52,11 +52,20 @@ class PortInterfaceConverter extends MapConverter[UUID, String, PortToInterface]
 @ZoomClass(clazz = classOf[Topology.Host])
 class Host extends ZoomObject with Device {
 
+    def this(host: Host) = {
+        this()
+        id = host.id
+        portToInterface = host.portToInterface
+        tunnelZoneIds = host.tunnelZoneIds
+        tunnelZones = host.tunnelZones
+        alive = host.alive
+    }
+
     @ZoomField(name = "id", converter = classOf[UUIDConverter])
     var id: UUID = _
     @ZoomField(name = "port_interface_mapping",
                converter = classOf[PortInterfaceConverter])
-    var portToInterface = Map[UUID, String]()
+    var portToInterface = Map.empty[UUID, String]
     @ZoomField(name = "tunnel_zone_ids", converter = classOf[UUIDConverter])
     var tunnelZoneIds = Set.empty[UUID]
 
@@ -77,33 +86,16 @@ class Host extends ZoomObject with Device {
         alive = isHostAlive
     }
 
-    def deepCopy: Host = {
-        val hostCopy = new Host()
-        hostCopy.id = id
-        hostCopy.portToInterface = portToInterface
-        hostCopy.tunnelZoneIds = tunnelZoneIds
-        hostCopy.tunnelZones = tunnelZones
-        hostCopy.alive = alive
-        hostCopy
-    }
-
     override def equals(o: Any): Boolean = o match {
         case host: Host =>
-            val host = o.asInstanceOf[Host]
-
             host.alive == alive &&
             Objects.equals(host.id, id) &&
             Objects.equals(host.portToInterface, portToInterface) &&
             Objects.equals(host.tunnelZoneIds, tunnelZoneIds) &&
             Objects.equals(host.tunnelZones, tunnelZones)
-
         case _ => false
     }
 
     override def hashCode: Int =
-        alive.hashCode() +
-        Objects.hashCode(id) +
-        Objects.hashCode(portToInterface) +
-        Objects.hashCode(tunnelZoneIds) +
-        Objects.hashCode(tunnelZones)
+        Objects.hashCode(alive, id, portToInterface, tunnelZoneIds, tunnelZones)
 }
