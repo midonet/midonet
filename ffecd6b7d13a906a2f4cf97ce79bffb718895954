@@ -1,0 +1,487 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9a245df4_30f32975",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/BusObserver.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-01-21T15:17:53Z",
+      "side": 1,
+      "message": "document?\nShould be an immutable scala map (Galo dixit)",
+      "range": {
+        "startLine": 37,
+        "startChar": 18,
+        "endLine": 37,
+        "endChar": 31
+      },
+      "revId": "ffecd6b7d13a906a2f4cf97ce79bffb718895954",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_d001ed3a",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/BusObserver.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-01-21T15:17:53Z",
+      "side": 1,
+      "message": "Should be in the opposite order: first remove the existing one, and then add the replacement (due to the replicatedMap bug)",
+      "range": {
+        "startLine": 100,
+        "startChar": 12,
+        "endLine": 106,
+        "endChar": 13
+      },
+      "revId": "ffecd6b7d13a906a2f4cf97ce79bffb718895954",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_5095fde2",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/BusObserver.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 126,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-01-21T15:17:53Z",
+      "side": 1,
+      "message": "I would add a comment for future generations, stating that we are not removing previous mappings for the same ip and/or macs. In the previous implementation there were some use cases where this was legal (maybe we should review them and see if they are still valid)",
+      "range": {
+        "startLine": 126,
+        "startChar": 0,
+        "endLine": 126,
+        "endChar": 69
+      },
+      "revId": "ffecd6b7d13a906a2f4cf97ce79bffb718895954",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_d088cdc8",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/MacLocation.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-01-21T15:17:53Z",
+      "side": 1,
+      "message": "It would be nice to have a field (fields) indicating if this is a removal/addition/modification of a mac location (instead of relaying in arcane combinations of values)",
+      "range": {
+        "startLine": 47,
+        "startChar": 0,
+        "endLine": 47,
+        "endChar": 55
+      },
+      "revId": "ffecd6b7d13a906a2f4cf97ce79bffb718895954",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_b0ac3937",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/Vtep.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-01-21T15:17:53Z",
+      "side": 1,
+      "message": "I would remove this from the interface (if it is only used as a previous step for ensureBindings). Having it inside ensureBindings may also facilitate concurrency control (if we need it some day...)",
+      "range": {
+        "startLine": 67,
+        "startChar": 5,
+        "endLine": 69,
+        "endChar": 71
+      },
+      "revId": "ffecd6b7d13a906a2f4cf97ce79bffb718895954",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_10aa6519",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/VtepController.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-01-21T15:17:53Z",
+      "side": 1,
+      "message": "need to check e.operation (set or clear)\n\nReview this: what should we do on \u0027clear\u0027? does it make sense to just remove the UNKNOWN_DST entry without replacing it with a new one?",
+      "range": {
+        "startLine": 74,
+        "startChar": 12,
+        "endLine": 74,
+        "endChar": 37
+      },
+      "revId": "ffecd6b7d13a906a2f4cf97ce79bffb718895954",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_50633d1a",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/VtepController.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-01-21T15:17:53Z",
+      "side": 1,
+      "message": "rename to vxgw",
+      "range": {
+        "startLine": 85,
+        "startChar": 51,
+        "endLine": 85,
+        "endChar": 54
+      },
+      "revId": "ffecd6b7d13a906a2f4cf97ce79bffb718895954",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_306849f5",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/VtepController.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-01-21T15:17:53Z",
+      "side": 1,
+      "message": "only if it\u0027s a \u0027set\u0027 (should remove it on clear? - see previous comment)",
+      "range": {
+        "startLine": 86,
+        "startChar": 43,
+        "endLine": 86,
+        "endChar": 49
+      },
+      "revId": "ffecd6b7d13a906a2f4cf97ce79bffb718895954",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_90449575",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/VtepController.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 135,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-01-21T15:17:53Z",
+      "side": 1,
+      "message": "move down (probably at the end)",
+      "range": {
+        "startLine": 135,
+        "startChar": 8,
+        "endLine": 135,
+        "endChar": 19
+      },
+      "revId": "ffecd6b7d13a906a2f4cf97ce79bffb718895954",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_7049218b",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/VtepController.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 147,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-01-21T15:17:53Z",
+      "side": 1,
+      "message": "not needed (if this is the first binding, the currentMacLocal can be ignored)",
+      "range": {
+        "startLine": 145,
+        "startChar": 8,
+        "endLine": 147,
+        "endChar": 47
+      },
+      "revId": "ffecd6b7d13a906a2f4cf97ce79bffb718895954",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_b05a794e",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/VtepController.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 161,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-01-21T15:17:53Z",
+      "side": 1,
+      "message": "I don\u0027t like the name... what about macRemoteUpdater (to indicate that it is an observer and not an observable)",
+      "range": {
+        "startLine": 161,
+        "startChar": 49,
+        "endLine": 161,
+        "endChar": 65
+      },
+      "revId": "ffecd6b7d13a906a2f4cf97ce79bffb718895954",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_f002310a",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/VtepController.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 165,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-01-21T15:17:53Z",
+      "side": 1,
+      "message": "Gateways",
+      "range": {
+        "startLine": 165,
+        "startChar": 22,
+        "endLine": 165,
+        "endChar": 29
+      },
+      "revId": "ffecd6b7d13a906a2f4cf97ce79bffb718895954",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_d3129757",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/VtepController.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 173,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-01-21T15:17:53Z",
+      "side": 1,
+      "message": "risk of race condition here (with join), but should not matter as the caller of both is (should be) a single thread",
+      "range": {
+        "startLine": 173,
+        "startChar": 0,
+        "endLine": 173,
+        "endChar": 45
+      },
+      "revId": "ffecd6b7d13a906a2f4cf97ce79bffb718895954",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_13554fc6",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/VxlanGatewayManager.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 239,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-01-21T15:17:53Z",
+      "side": 1,
+      "message": "review: this should probably moved to the end, to allow for retries if something fails in the middle... But then, it is also necessary to prevent initialize from starting simultaneously from different threads",
+      "range": {
+        "startLine": 239,
+        "startChar": 0,
+        "endLine": 239,
+        "endChar": 21
+      },
+      "revId": "ffecd6b7d13a906a2f4cf97ce79bffb718895954",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_b347231d",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/VxlanGatewayManager.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 240,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-01-21T15:17:53Z",
+      "side": 1,
+      "message": "already created",
+      "range": {
+        "startLine": 240,
+        "startChar": 0,
+        "endLine": 240,
+        "endChar": 42
+      },
+      "revId": "ffecd6b7d13a906a2f4cf97ce79bffb718895954",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_732beb30",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/VxlanGatewayManager.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 241,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-01-21T15:17:53Z",
+      "side": 1,
+      "message": "atomicReference?",
+      "range": {
+        "startLine": 241,
+        "startChar": 12,
+        "endLine": 241,
+        "endChar": 22
+      },
+      "revId": "ffecd6b7d13a906a2f4cf97ce79bffb718895954",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_93265f67",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/VxlanGatewayManager.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 249,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-01-21T15:17:53Z",
+      "side": 1,
+      "message": "Should be moved after creating the BusObserver (it puts data in the vxgw observer)",
+      "range": {
+        "startLine": 246,
+        "startChar": 0,
+        "endLine": 249,
+        "endChar": 0
+      },
+      "revId": "ffecd6b7d13a906a2f4cf97ce79bffb718895954",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_d31f3708",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/VxlanGatewayManager.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 258,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-01-21T15:17:53Z",
+      "side": 1,
+      "message": "atomicReference?",
+      "range": {
+        "startLine": 258,
+        "startChar": 12,
+        "endLine": 258,
+        "endChar": 20
+      },
+      "revId": "ffecd6b7d13a906a2f4cf97ce79bffb718895954",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_332b3384",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/VxlanGatewaySummoner.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-01-21T15:17:53Z",
+      "side": 1,
+      "message": "re-submit if something fails",
+      "range": {
+        "startLine": 64,
+        "startChar": 16,
+        "endLine": 64,
+        "endChar": 28
+      },
+      "revId": "ffecd6b7d13a906a2f4cf97ce79bffb718895954",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_f3199b7a",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/VxlanGatewaySummoner.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-01-21T15:17:53Z",
+      "side": 1,
+      "message": "potential npe",
+      "range": {
+        "startLine": 89,
+        "startChar": 16,
+        "endLine": 89,
+        "endChar": 22
+      },
+      "revId": "ffecd6b7d13a906a2f4cf97ce79bffb718895954",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_d3e61716",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/services/vxgw/VxlanGatewayTest.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-01-21T15:17:53Z",
+      "side": 1,
+      "message": "extra tab",
+      "range": {
+        "startLine": 37,
+        "startChar": 0,
+        "endLine": 37,
+        "endChar": 4
+      },
+      "revId": "ffecd6b7d13a906a2f4cf97ce79bffb718895954",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
