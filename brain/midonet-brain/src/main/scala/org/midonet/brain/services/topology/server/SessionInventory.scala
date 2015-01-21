@@ -11,7 +11,6 @@
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
- * n:w
  * limitations under the License.
  */
 
@@ -43,6 +42,7 @@ import org.midonet.cluster.rpc.Commands.Response.Update
 import org.midonet.cluster.services.topology.common.TopologyMappings
 import org.midonet.cluster.util.UUIDUtil
 import org.midonet.util.concurrent.{SpscRwdRingBuffer, Locks}
+import org.midonet.util.concurrent.SpscRwdRingBuffer.SequencedItem
 import org.midonet.util.functors.makeAction0
 import org.midonet.util.reactivex.HermitObservable.HermitOversubscribedException
 
@@ -266,7 +266,7 @@ class MsgSequencer(val minCapacity: Int)(implicit executor: ExecutorService)
                             }
                         }
                     }
-                    val item = ring.peek()
+                    val item = ring.peek
                     val dest = subscriber.get()
                     if (!threadActive.get())
                         terminated = true
@@ -276,7 +276,7 @@ class MsgSequencer(val minCapacity: Int)(implicit executor: ExecutorService)
                             if (error != null) dest.onError(error)
                             else dest.onCompleted()
                         }
-                        case Some((n, i)) =>
+                        case Some(SequencedItem(n, i)) =>
                             val msg = i.setSeqno(n).build()
                             dest.onNext(msg)
                             log.debug("session emitted: " + msg)

@@ -29,6 +29,8 @@ object SpscRwdRingBuffer {
 
     class NotInBufferException
         extends NoSuchElementException("Ring buffer element unavailable")
+
+    case class SequencedItem[T](seqno: Long, item: T)
 }
 
 /**
@@ -37,14 +39,13 @@ object SpscRwdRingBuffer {
  * far as it doesn't exceed the ring buffer capacity.
  * NOTE: it assumes a single producer thread (or, at least,
  * no simultaneous 'offers' from different threads), and a single consumer
- * thread.
+ * thread (meaning no simultaneous peek/poll/rewind from different threads).
  *
  * @param minCapacity is the minimum capacity of the ring buffer
  * @tparam T is the type of the elements in the ring buffer
  */
 class SpscRwdRingBuffer[T: ClassTag](minCapacity: Int) {
     import SpscRwdRingBuffer._
-    type SequencedItem = (Long, T)
 
     private val capacity: Int =
         1 << (32 - Integer.numberOfLeadingZeros(minCapacity - 1))
@@ -69,44 +70,38 @@ class SpscRwdRingBuffer[T: ClassTag](minCapacity: Int) {
         }
     }
 
-    def add(item: T): Boolean = if (offer(item)) true else {
-        throw new BufferFullException
-    }
+    def add(item: T): Unit = if (!offer(item)) throw new BufferFullException
 
     /**
      * Get the next element in the ring buffer, if any, without extracting it
      */
-    def peek(): Option[SequencedItem] = {
+    def peek: Option[SequencedItem[T]] = {
         val rdPos = rd.get()
         if (wr.get() == rdPos)
             None
         else
-            Some(rdPos, ring((rdPos & mask).toInt))
+            Some(SequencedItem(rdPos, ring((rdPos & mask).toInt)))
     }
 
-    def element(): SequencedItem = peek() match {
-        case None => throw new NotInBufferException
-        case Some(entry) => entry
-    }
+    def element(): SequencedItem[T] =
+        peek.getOrElse(throw new NotInBufferException)
 
     /**
      * Extract the next element from the ring buffer, if any
      */
-    def poll(): Option[SequencedItem] = {
+    def poll(): Option[SequencedItem[T]] = {
         val rdPos = rd.get()
         if (wr.get() == rdPos)
             None
         else {
-            val item = (rdPos, ring((rdPos & mask).toInt))
+            val item = SequencedItem(rdPos, ring((rdPos & mask).toInt))
             rd.lazySet(rdPos + 1)
             Some(item)
         }
     }
 
-    def remove(): SequencedItem = poll() match {
-        case None => throw new BufferEmptyException
-        case Some(entry) => entry
-    }
+    def remove(): SequencedItem[T] =
+        poll().getOrElse(throw new BufferEmptyException)
 
     /**
      * Rewind the ring buffer to the specified position, if it is not beyond
@@ -118,9 +113,11 @@ class SpscRwdRingBuffer[T: ClassTag](minCapacity: Int) {
         else if ((wrIntent.get() - pos) > capacity)
             false
         else {
-            // Note: in tight cases, the following may cause 'offer'
-            // return 'buffer full', but it allows us to avoid a
-            // read-write lock.
+            // Note: in tight cases, the following may cause both 'rewind' and
+            // 'offer' to return 'buffer full' in cases where 'offer' would have
+            // succeed with the original read position. This allows us to avoid
+            // a read-write lock, and it is an acceptable behavior for our
+            // main use case...
             val rdCur = rd.getAndSet(pos)
             if ((wrIntent.get() - pos) > capacity) {
                 // rollback
@@ -147,6 +144,10 @@ class SpscRwdRingBuffer[T: ClassTag](minCapacity: Int) {
 
     /**
      * Get the number of elements in the ring buffer
+     * Note that this provide a 'best effort' value (nothing prevents
+     * the buffer from changing again after the size value is returned)
+     * In particular note that, during a failing rewind, the reported
+     * size could be greater than the actual buffer capacity.
      */
     def size: Int = {
         var rdPos = rd.get()

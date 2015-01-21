@@ -34,7 +34,7 @@ class SpscRwdRingBufferTest extends FeatureSpec with BeforeAndAfterEach with Mat
         for (value <- 1 to (CAPACITY/2)) {
             ring.isFull should be (false)
             ring.add(value.toString)
-            ring.poll().get._2 should be (value.toString)
+            ring.poll().get.item should be (value.toString)
             ring.isEmpty should be (true)
         }
     }
@@ -44,8 +44,8 @@ class SpscRwdRingBufferTest extends FeatureSpec with BeforeAndAfterEach with Mat
         for (value <- 1 to (CAPACITY * capacityMultiplier)) {
             ring.isFull should be (false)
             ring.add(value.toString)
-            ring.peek().get._2 should be (value.toString)
-            ring.poll().get._2 should be (value.toString)
+            ring.peek.get.item should be (value.toString)
+            ring.poll().get.item should be (value.toString)
             ring.isEmpty should be (true)
         }
     }
@@ -57,8 +57,8 @@ class SpscRwdRingBufferTest extends FeatureSpec with BeforeAndAfterEach with Mat
             ring.isFull should be (false)
             ring.add(value.toString)
         }
-        ring.peek().get._1 should be (cur)
-        ring.peek().get._2 should be ("1")
+        ring.peek.get.seqno should be (cur)
+        ring.peek.get.item should be ("1")
         ring.isFull should be (true)
         intercept[SpscRwdRingBuffer.BufferFullException]
             {ring.add("overflow")}
@@ -69,9 +69,9 @@ class SpscRwdRingBufferTest extends FeatureSpec with BeforeAndAfterEach with Mat
         val cur = ring.curSeqno
         for (value <- 1 to (CAPACITY)) {
             ring.isEmpty should be (false)
-            ring.peek().get._1 should be (cur + value - 1)
-            ring.peek().get._2 should be (value.toString)
-            ring.poll().get._2 should be (value.toString)
+            ring.peek.get.seqno should be (cur + value - 1)
+            ring.peek.get.item should be (value.toString)
+            ring.poll().get.item should be (value.toString)
         }
         ring.peek should be (None)
         ring.poll() should be (None)
@@ -96,7 +96,7 @@ class SpscRwdRingBufferTest extends FeatureSpec with BeforeAndAfterEach with Mat
             for (value <- 1 to (CAPACITY)) {
                 ring.isFull should be (false)
                 ring.add(value.toString)
-                ring.peek().get._2 should be ("1")
+                ring.peek.get.item should be ("1")
             }
         }
 
