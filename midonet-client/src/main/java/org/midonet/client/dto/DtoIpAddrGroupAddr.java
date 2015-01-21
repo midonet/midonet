@@ -63,9 +63,6 @@ public abstract class DtoIpAddrGroupAddr {
         this.ipAddrGroupId = ipAddrGroupId;
     }
 
-    /**
-     * @return　The version
-     */
     public abstract int getVersion();
 
     public URI getUri() {
