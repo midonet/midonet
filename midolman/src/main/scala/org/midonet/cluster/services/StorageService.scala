@@ -22,7 +22,7 @@ import org.apache.curator.framework.CuratorFramework
 
 import org.midonet.cluster.config.ZookeeperConfig
 import org.midonet.cluster.data.storage.Storage
-import org.midonet.cluster.models.Topology.Port
+import org.midonet.cluster.models.Topology.{TunnelZone, Host, Port}
 import org.midonet.midolman.state.{Directory, StateAccessException}
 import org.midonet.midolman.version.DataWriteVersion
 import org.midonet.midolman.{Setup, SystemDataProvider}
@@ -75,9 +75,9 @@ class StorageService @Inject() (directory: Directory,
     }
 
     protected def buildStorage(): Unit = {
-
         store.registerClass(classOf[Port])
-
+        store.registerClass(classOf[Host])
+        store.registerClass(classOf[TunnelZone])
         store.build()
     }
 

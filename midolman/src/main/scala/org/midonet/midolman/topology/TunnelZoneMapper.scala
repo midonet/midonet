@@ -20,17 +20,17 @@ import java.util.UUID
 import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.models.Topology.TunnelZone
 import org.midonet.midolman.topology.devices.{TunnelZone => SimTunnelZone}
-import org.midonet.util.functors._
+import org.midonet.util.functors.makeFunc1
 
 /**
  * This mapper offers an observable of a tunnel zone simulation object of a given
  * id. The tunnel zone is obtained from Zoom as a protocol buffer
  * and converted into the corresponding simulation object using ZoomConvert.
  */
-class TunnelZoneMapper(id: UUID, vt: VirtualTopology)
+final class TunnelZoneMapper(id: UUID, vt: VirtualTopology)
     extends DeviceMapper[SimTunnelZone](id, vt) {
 
-    override def logSource = s"org.midonet.midolman.topology.tunnelzone-$id"
+    override def logSource = s"org.midonet.devices.tunnelzone.tunnelzone-$id"
 
     protected override def observable =
         vt.store.observable(classOf[TunnelZone], id)
