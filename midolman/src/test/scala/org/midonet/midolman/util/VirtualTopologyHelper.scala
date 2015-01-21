@@ -26,12 +26,14 @@ import akka.actor.ActorSystem
 import akka.pattern.ask
 import akka.util.Timeout
 import akka.util.Timeout.durationToTimeout
+import com.google.inject.Injector
 import com.typesafe.scalalogging.Logger
 import org.midonet.cluster.DataClient
 import org.midonet.cluster.data.Route
 
 import org.midonet.cluster.data._
 import org.midonet.midolman.DeduplicationActor.ActionsCache
+import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.DatapathChannel
 import org.midonet.midolman.host.interfaces.InterfaceDescription
 import org.midonet.midolman.topology.rcu.ResolvedHost
@@ -58,6 +60,7 @@ trait VirtualTopologyHelper {
 
     implicit def actorSystem: ActorSystem
     implicit def executionContext: ExecutionContext
+    implicit def injector: Injector
 
     private implicit val timeout: Timeout = 3 seconds
 
@@ -197,7 +200,7 @@ trait VirtualTopologyHelper {
                           ingressPort: UUID, egressPorts: List[UUID],
                           tags: mutable.Set[FlowTag],
                           callbacks: ArrayList[Callback0]): Unit = { }
-        })
+        }, injector.getInstance(classOf[MidolmanConfig]))
 
     @inline
     private[this] def buildRequest(entity: Entity.Base[_,_,_]) = entity match {
