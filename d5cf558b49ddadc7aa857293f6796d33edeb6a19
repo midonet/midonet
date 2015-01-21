@@ -16,6 +16,24 @@
       "revId": "d5cf558b49ddadc7aa857293f6796d33edeb6a19",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_d3cd7788",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/collection/EventHistory.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-01-21T15:48:36Z",
+      "side": 1,
+      "message": "It\u0027s 20 lines of code and a simple algorithm. don\u0027t make me rebase :/",
+      "parentUuid": "9a245df4_f07d11b3",
+      "revId": "d5cf558b49ddadc7aa857293f6796d33edeb6a19",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
