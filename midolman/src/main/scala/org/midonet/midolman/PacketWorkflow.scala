@@ -17,6 +17,8 @@ package org.midonet.midolman
 
 import java.util.{List => JList, UUID}
 
+import org.midonet.midolman.config.MidolmanConfig
+
 import scala.collection.JavaConversions._
 
 import akka.actor._
@@ -125,7 +127,8 @@ class PacketWorkflow(protected val dpState: DatapathState,
                      val dataClient: DataClient,
                      val dpChannel: DatapathChannel,
                      val actionsCache: ActionsCache,
-                     val replicator: FlowStateReplicator)
+                     val replicator: FlowStateReplicator,
+                     protected val config: Option[MidolmanConfig] = None)
                     (implicit val system: ActorSystem)
         extends PacketHandler with FlowTranslator
         with RoutingWorkflow with UnderlayTrafficHandler {
@@ -135,8 +138,9 @@ class PacketWorkflow(protected val dpState: DatapathState,
     import PacketWorkflow._
 
     val ERROR_CONDITION_HARD_EXPIRATION = 10000
-
     val resultLogger = Logger(LoggerFactory.getLogger("org.midonet.packets.results"))
+    private val mtuOption: Option[Short] =
+        config.map(_.getMidolmanDhcpMtu.toShort)
 
     override def start(context: PacketContext): PipelinePath = {
         context.prepareForSimulation(FlowController.lastInvalidationEvent)
@@ -402,7 +406,8 @@ class PacketWorkflow(protected val dpState: DatapathState,
         val port = VirtualTopologyActor.tryAsk[Port](context.inputPort)
         val dhcp = context.packet.getEthernet.getPayload.getPayload.getPayload.asInstanceOf[DHCP]
         dhcp.getOpCode == DHCP.OPCODE_REQUEST &&
-            processDhcp(context, port, dhcp, DatapathController.minMtu)
+            processDhcp(context, port, dhcp,
+                mtuOption.getOrElse(DatapathController.minMtu))
     }
 
     private def processDhcp(context: PacketContext, inPort: Port,

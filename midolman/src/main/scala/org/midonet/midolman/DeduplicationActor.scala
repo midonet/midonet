@@ -200,7 +200,8 @@ class DeduplicationActor(
                                                  config.getControlPacketsTos.toByte)
             pendingFlowStateBatches foreach (self ! _)
             workflow = new PacketWorkflow(dpState, dp, clusterDataClient,
-                                          dpChannel, actionsCache, replicator)
+                                          dpChannel, actionsCache, replicator,
+                                          Some(config))
 
         case m: FlowStateBatch =>
             if (replicator ne null)

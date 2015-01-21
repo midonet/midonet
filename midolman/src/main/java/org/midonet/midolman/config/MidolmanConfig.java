@@ -62,8 +62,8 @@ public interface MidolmanConfig
     @ConfigString(key = "bgpd_config", defaultValue = "/etc/quagga")
     public String pathToBGPDConfig();
 
-    @ConfigInt(key = "dhcp_mtu", defaultValue = 1450)
-    int getMidolmanDhcpMtu();
+    @ConfigInt(key = "dhcp_mtu", defaultValue = 1500)
+    public int getMidolmanDhcpMtu();
 
     @ConfigString(key = "cache_type", defaultValue = "cassandra")
     public String getMidolmanCacheType();
