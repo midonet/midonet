@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9a245df4_9041350e",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/DatapathControllerTestCase.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-21T08:32:44Z",
+      "side": 1,
+      "message": "This is out-of-order now.",
+      "range": {
+        "startLine": 30,
+        "startChar": 37,
+        "endLine": 30,
+        "endChar": 52
+      },
+      "revId": "000841c7382794efd2b0c4b5030d69983b3e3353",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
