@@ -52,3 +52,6 @@ host_uuid.properties
 python-midonetclient/doc/*.gz
 python-midonetclient/*.deb
 python-midonetclient/*.rpm
+
+# devmido generated files
+*-screenrc
