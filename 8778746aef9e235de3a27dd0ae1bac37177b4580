@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9a245df4_b0d719bf",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/DhcpImpl.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 230,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-01-21T11:42:03Z",
+      "side": 1,
+      "message": "i\u0027m surprised java doesn\u0027t provide a method to parse these numbers and do the right thing depending on the prefix :-\\",
+      "revId": "8778746aef9e235de3a27dd0ae1bac37177b4580",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
