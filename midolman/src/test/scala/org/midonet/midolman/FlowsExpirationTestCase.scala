@@ -123,7 +123,7 @@ class FlowsExpirationTestCase extends MidolmanTestCase with Dilation {
         val timeAdded: Long = System.currentTimeMillis()
         flowProbe().testActor !
             AddWildcardFlow(newWildFlow, flow, new ArrayList[Callback0],
-                            Set.empty)
+                            Set.empty, FlowController.lastInvalidationEvent)
 
         wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])
 
@@ -176,7 +176,7 @@ class FlowsExpirationTestCase extends MidolmanTestCase with Dilation {
         val timeAdded: Long = System.currentTimeMillis()
         flowProbe().testActor !
             AddWildcardFlow(newWildFlow, flow, new ArrayList[Callback0],
-                Set.empty)
+                            Set.empty, FlowController.lastInvalidationEvent)
 
         wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])
 
@@ -216,7 +216,8 @@ class FlowsExpirationTestCase extends MidolmanTestCase with Dilation {
 
         val timeAdded: Long = System.currentTimeMillis()
         flowProbe().testActor !
-            AddWildcardFlow(newWildFlow, flow, new ArrayList[Callback0], Set.empty)
+            AddWildcardFlow(newWildFlow, flow, new ArrayList[Callback0],
+                            Set.empty, FlowController.lastInvalidationEvent)
 
         wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])
 
@@ -257,7 +258,8 @@ class FlowsExpirationTestCase extends MidolmanTestCase with Dilation {
 
         val timeAdded: Long = System.currentTimeMillis()
         flowProbe().testActor !
-            AddWildcardFlow(newWildFlow, flow, new ArrayList[Callback0], Set.empty)
+            AddWildcardFlow(newWildFlow, flow, new ArrayList[Callback0],
+                            Set.empty, FlowController.lastInvalidationEvent)
 
         wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])
 
@@ -294,7 +296,8 @@ class FlowsExpirationTestCase extends MidolmanTestCase with Dilation {
 
         val timeAdded = System.currentTimeMillis()
         flowProbe().testActor !
-            AddWildcardFlow(newWildFlow, flow, new ArrayList[Callback0], Set.empty)
+            AddWildcardFlow(newWildFlow, flow, new ArrayList[Callback0],
+                            Set.empty, FlowController.lastInvalidationEvent)
 
         wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])
 

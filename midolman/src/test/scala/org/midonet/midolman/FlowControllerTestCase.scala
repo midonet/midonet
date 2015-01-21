@@ -61,76 +61,6 @@ class FlowControllerTestCase extends MidolmanSpec {
         }
     }
 
-    feature("Test the flow controller members.") {
-        scenario("Test the invalidation history.") {
-            Given("A list of tags of the history size plus delta.")
-
-            // We invalidate a list of tags of at least history size to be
-            // able to determine the oldest invalidation event (private member)
-            val historySize = 1024
-            val historyDelta = 1
-            val tagCount = historySize + historyDelta
-            val tags = Seq.fill(tagCount)(TestableFlow.getTag(0))
-
-            When("Invalidate all tags.")
-            for (tag <- 0 until tagCount) {
-                FlowController ! FlowController.InvalidateFlowsByTag(tags(tag))
-            }
-
-            val youngest = FlowController.lastInvalidationEvent
-            val oldest = youngest - historySize + 1
-
-            Then("Tags valid for a negative lastSeen.")
-            for (tag <- 0 until tagCount) {
-                FlowController.isTagSetStillValid(-1,
-                    Set(tags(tag))) should be (true)
-            }
-
-            And ("Tags not valid (EventSearchWindowMissed) for lastSeen in" +
-                    " [0, oldest - 1)")
-            for (lastSeen <- 0L until oldest - 1) {
-                // 0 < tagCount
-                FlowController.isTagSetStillValid(lastSeen,
-                    Set(tags(0))) should be (false)
-                FlowController.isTagSetStillValid(lastSeen,
-                    Set(tags(tagCount - 1))) should be (false)
-            }
-
-            // Test 1
-            And ("Tags valid (EventNotSeen) for lastSeen >= oldest - 1 and" +
-                    " tags [0, historyDelta).")
-            // Test 2
-            And ("Tags not valid (EventSeen) for lastSeen >= oldest - 1 and" +
-                    " tags [lastSeen - oldest + historySize + 1, historySize)")
-            // Test 3
-            And ("Tags valid (EventNotSeen) for lastSeen >= oldest - 1 and" +
-                    " tags [historyDelta, lastSeen - oldest + historySize]")
-            for (lastSeen <- oldest - 1 until tagCount) {
-                // Test 1: condition 0 < historyDelta
-                FlowController.isTagSetStillValid(lastSeen,
-                    Set(tags(0))) should be (true)
-                FlowController.isTagSetStillValid(lastSeen,
-                    Set(tags(historyDelta - 1))) should be (true)
-                // Test 2
-                if ((lastSeen - oldest + historyDelta + 1).toInt < historySize) {
-                    FlowController.isTagSetStillValid(lastSeen,
-                        Set(tags((lastSeen - oldest + historyDelta + 1).toInt))
-                    ) should be (false)
-                    FlowController.isTagSetStillValid(lastSeen,
-                        Set(tags(historySize - 1))) should be (false)
-                }
-                // Test 3
-                if (historyDelta <= (lastSeen - oldest + historyDelta).toInt) {
-                    FlowController.isTagSetStillValid(lastSeen,
-                        Set(tags(historyDelta))) should be(true)
-                    FlowController.isTagSetStillValid(lastSeen,
-                        Set(tags((lastSeen - oldest + historyDelta).toInt))
-                    ) should be (true)
-                }
-            }
-        }
-    }
-
     feature("The flow controller processes wildcard flows") {
         scenario("Addition and removal of a flow.") {
 
@@ -144,7 +74,8 @@ class FlowControllerTestCase extends MidolmanSpec {
                 flow.wcFlow,
                 flow.dpFlow,
                 flow.callbacks,
-                flow.tagsSet
+                flow.tagsSet,
+                FlowController.lastInvalidationEvent
                 )
 
             val mwcFlow = testFlowAdded(flow, state)
@@ -167,13 +98,15 @@ class FlowControllerTestCase extends MidolmanSpec {
                 flow.wcFlow,
                 flow.dpFlow,
                 flow.callbacks,
-                flow.tagsSet
+                flow.tagsSet,
+                FlowController.lastInvalidationEvent
             )
             FlowController ! FlowController.AddWildcardFlow(
                 flow.wcFlow,
                 flow.dpFlow,
                 flow.callbacks,
-                flow.tagsSet
+                flow.tagsSet,
+                FlowController.lastInvalidationEvent
             )
 
             val mwcFlow = testFlowAdded(flow, state)
@@ -195,7 +128,8 @@ class FlowControllerTestCase extends MidolmanSpec {
                 flow.wcFlow,
                 flow.dpFlow,
                 flow.callbacks,
-                flow.tagsSet
+                flow.tagsSet,
+                FlowController.lastInvalidationEvent
             )
 
             val mwcFlow = testFlowAdded(flow, state)
@@ -208,7 +142,7 @@ class FlowControllerTestCase extends MidolmanSpec {
             testFlowRemoved(flow, mwcFlow, state)
 
             And("The tag should appear in the invalidation history.")
-            FlowController.isTagSetStillValid(1, flow.tagsSet) should be (false)
+            FlowController.isTagSetStillValid(-1, flow.tagsSet) should be (false)
         }
 
         scenario("Invalidate a non-existing tag.") {
@@ -222,7 +156,7 @@ class FlowControllerTestCase extends MidolmanSpec {
             FlowController ! FlowController.InvalidateFlowsByTag(tag)
 
             Then("The tag should appear in the invalidation history.")
-            FlowController.isTagSetStillValid(1, Set(tag)) should be(false)
+            FlowController.isTagSetStillValid(-1, Set(tag)) should be (false)
         }
 
         scenario("Check idle expired flows are removed from the flow" +
@@ -238,7 +172,8 @@ class FlowControllerTestCase extends MidolmanSpec {
                 flow.wcFlow,
                 flow.dpFlow,
                 flow.callbacks,
-                flow.tagsSet
+                flow.tagsSet,
+                FlowController.lastInvalidationEvent
             )
 
             val mwcFlow = testFlowAdded(flow, state)
@@ -265,7 +200,8 @@ class FlowControllerTestCase extends MidolmanSpec {
                 flow.wcFlow,
                 flow.dpFlow,
                 flow.callbacks,
-                flow.tagsSet
+                flow.tagsSet,
+                FlowController.lastInvalidationEvent
             )
 
             val mwcFlow = testFlowAdded(flow, state)
@@ -292,7 +228,8 @@ class FlowControllerTestCase extends MidolmanSpec {
                 flow.wcFlow,
                 flow.dpFlow,
                 flow.callbacks,
-                flow.tagsSet
+                flow.tagsSet,
+                FlowController.lastInvalidationEvent
             )
 
             val mwcFlow = testFlowAdded(flow, state)
@@ -314,7 +251,8 @@ class FlowControllerTestCase extends MidolmanSpec {
                 flow.wcFlow,
                 flow.dpFlow,
                 flow.callbacks,
-                flow.tagsSet
+                flow.tagsSet,
+                FlowController.lastInvalidationEvent
             )
 
             val mwcFlow = testFlowAdded(flow, state)
@@ -363,7 +301,8 @@ class FlowControllerTestCase extends MidolmanSpec {
                 flow.wcFlow,
                 flow.dpFlow,
                 flow.callbacks,
-                flow.tagsSet
+                flow.tagsSet,
+                FlowController.lastInvalidationEvent
             )
 
             val mwcFlow = testFlowAdded(flow, state)
