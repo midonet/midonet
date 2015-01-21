@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9a245df4_70b5a1cc",
+        "filename": "brain/midonet-brain/src/main/java/org/midonet/brain/services/vxgw/VxLanGatewayService.java",
+        "patchSetId": 7
+      },
+      "lineNbr": 400,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-01-21T11:05:00Z",
+      "side": 1,
+      "message": "This seems to assume that all VTEPs connected to the same virtual bridge (aka midonet network) share the same vxlanport... but this is wrong, isn\u0027t it? Shouldn\u0027t we iterate over vxlanports and operate only on the vtepPeer associated to that particular port?",
+      "range": {
+        "startLine": 399,
+        "startChar": 0,
+        "endLine": 400,
+        "endChar": 51
+      },
+      "revId": "94c8079308e775ebb61a7ade8347cf651f2072fe",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_d0c9ed5b",
+        "filename": "brain/midonet-brain/src/main/java/org/midonet/brain/services/vxgw/VxLanGwBroker.java",
+        "patchSetId": 7
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-01-21T11:05:00Z",
+      "side": 1,
+      "message": "a set of vteps",
+      "range": {
+        "startLine": 84,
+        "startChar": 36,
+        "endLine": 84,
+        "endChar": 42
+      },
+      "revId": "94c8079308e775ebb61a7ade8347cf651f2072fe",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_b0f43988",
+        "filename": "brain/midonet-brain/src/main/java/org/midonet/brain/services/vxgw/VxLanGwBroker.java",
+        "patchSetId": 7
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-01-21T11:05:00Z",
+      "side": 1,
+      "message": "It couldn\u0027t occur before, but now it is possible that a new VTEP appears when the VxLanGwBroker has been created... Shouldn\u0027t we have the possibility to add new vteps after creation?",
+      "range": {
+        "startLine": 89,
+        "startChar": 26,
+        "endLine": 89,
+        "endChar": 47
+      },
+      "revId": "94c8079308e775ebb61a7ade8347cf651f2072fe",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
