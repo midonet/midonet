@@ -18,13 +18,13 @@ package org.midonet.midolman.topology.devices
 
 import java.util.{Objects, UUID}
 
+import org.midonet.cluster.data.TunnelZone.HostConfig
 import org.midonet.cluster.data.{ZoomClass, ZoomField, ZoomObject}
 import org.midonet.cluster.models.Topology
 import org.midonet.cluster.models.Topology.Host.PortToInterface
 import org.midonet.cluster.util.MapConverter
 import org.midonet.cluster.util.UUIDUtil.{Converter => UUIDConverter, _}
 import org.midonet.midolman.topology.VirtualTopology.Device
-import org.midonet.midolman.topology.rcu.{Host => RCUHost}
 import org.midonet.packets.IPAddr
 
 /**
@@ -49,20 +49,6 @@ class PortInterfaceConverter extends MapConverter[UUID, String, PortToInterface]
     }
 }
 
-object Host {
-    def toDevicesHost(rcuHost: RCUHost): Host = {
-        val newHost = new Host
-        newHost.id = rcuHost.id
-        newHost.portToInterface = rcuHost.ports
-        newHost.tunnelZoneIds = rcuHost.zones.keySet
-        newHost.tunnelZones = rcuHost.zones.map(idHostConfig =>
-            (idHostConfig._1, idHostConfig._2.getIp)
-        )
-        newHost.alive = rcuHost.alive
-        newHost
-    }
-}
-
 @ZoomClass(clazz = classOf[Topology.Host])
 class Host extends ZoomObject with Device {
 
@@ -80,6 +66,16 @@ class Host extends ZoomObject with Device {
 
     // The alive status of the host is stored outside of the host proto.
     var alive: Boolean = _
+
+    def this(hostId: UUID, isHostAlive: Boolean, ports: Map[UUID, String],
+             zones: Map[UUID, IPAddr]) = {
+        this()
+        id = hostId
+        portToInterface = ports
+        tunnelZoneIds = zones.keySet
+        tunnelZones = zones
+        alive = isHostAlive
+    }
 
     def deepCopy: Host = {
         val hostCopy = new Host()
