@@ -38,7 +38,7 @@ import org.midonet.odp.ports.VxLanTunnelPort
 import org.midonet.packets.IPv4Addr
 
 @RunWith(classOf[JUnitRunner])
-class DatapathControllerPortCreationTestCase extends MidolmanSpec {
+class DatapathControllerPortCreationTest extends MidolmanSpec {
     var datapath: Datapath = null
     var testableDpc: DatapathController = _
 

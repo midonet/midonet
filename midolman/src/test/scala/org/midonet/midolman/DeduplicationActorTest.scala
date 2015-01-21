@@ -51,7 +51,7 @@ import org.midonet.packets.util.PacketBuilder.{udp, _}
 import org.midonet.sdn.state.ShardedFlowStateTable
 
 @RunWith(classOf[JUnitRunner])
-class DeduplicationActorTestCase extends MidolmanSpec {
+class DeduplicationActorTest extends MidolmanSpec {
     var datapath: Datapath = null
     var packetsSeen = List[(Packet, Int)]()
     var stateMessagesExecuted = 0

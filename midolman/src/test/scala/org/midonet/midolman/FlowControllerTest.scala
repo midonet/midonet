@@ -32,7 +32,7 @@ import org.midonet.util.functors.Callback0
 import org.scalatest.junit.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class FlowControllerTestCase extends MidolmanSpec {
+class FlowControllerTest extends MidolmanSpec {
 
     registerActors(FlowController -> (() => new FlowController
                                             with MessageAccumulator))
