@@ -1,4 +1,4 @@
-# Copyright 2014 Midokura SARL
+# Copyright 2014 - 2015 Midokura SARL
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -83,6 +83,9 @@ input_channel_threading = one_to_many
 # dashboard, experimental
 enable_dashboard=false
 jetty_xml=/etc/midolman/jetty/etc/jetty.xml
+
+# MTU configured in DHCP
+dhcp_mtu = 1500
 
 [host]
 # This file holds the host UUID across reboots. It is created when

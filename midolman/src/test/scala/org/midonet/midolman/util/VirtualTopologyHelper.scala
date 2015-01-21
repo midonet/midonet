@@ -32,6 +32,7 @@ import org.midonet.cluster.data.Route
 
 import org.midonet.cluster.data._
 import org.midonet.midolman.DeduplicationActor.ActionsCache
+import org.midonet.midolman.config.MockMidolmanConfig
 import org.midonet.midolman.datapath.DatapathChannel
 import org.midonet.midolman.host.interfaces.InterfaceDescription
 import org.midonet.midolman.topology.rcu.ResolvedHost
@@ -197,7 +198,7 @@ trait VirtualTopologyHelper {
                           ingressPort: UUID, egressPorts: List[UUID],
                           tags: mutable.Set[FlowTag],
                           callbacks: ArrayList[Callback0]): Unit = { }
-        })
+        }, MockMidolmanConfig)
 
     @inline
     private[this] def buildRequest(entity: Entity.Base[_,_,_]) = entity match {

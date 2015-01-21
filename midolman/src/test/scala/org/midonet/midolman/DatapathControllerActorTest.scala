@@ -98,6 +98,13 @@ class DatapathControllerActorTest extends MidolmanSpec {
         newHost("host1", hostId)
     }
 
+    scenario("The default MTU should be retrieved from the config file") {
+        val config = injector.getInstance(classOf[MidolmanConfig])
+        DatapathController.defaultMtu should be (config.getDhcpMtu.toShort)
+        DatapathController.defaultMtu should be (MidolmanSpec.TestDhcpMtu)
+        DatapathController.defaultMtu should not be MidolmanConfig.DEFAULT_MTU
+    }
+
     scenario("The DPC retries when the port creation fails") {
         dpc.dpState.greOverlayTunnellingOutputAction should be (null)
         dpc.dpState.vxlanOverlayTunnellingOutputAction should be (null)
