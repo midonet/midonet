@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9a245df4_33305356",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VTPMRedirector.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-21T16:57:00Z",
+      "side": 1,
+      "message": "I prefer to put spaces between variables that have different roles. To me this eases the reading.",
+      "parentUuid": "9a245df4_3c95c5e4",
+      "range": {
+        "startLine": 64,
+        "startChar": 0,
+        "endLine": 64,
+        "endChar": 4
+      },
+      "revId": "49120dc81805b7b3b49d690468375f75062ff9b5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a245df4_5ced198b",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualToPhysicalMapper.scala",
         "patchSetId": 4
@@ -36,6 +60,24 @@
       "writtenOn": "2015-01-21T03:38:41Z",
       "side": 1,
       "message": "Please indent this appropriately.",
+      "revId": "49120dc81805b7b3b49d690468375f75062ff9b5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_9335bf48",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualToPhysicalMapper.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 331,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-21T16:57:00Z",
+      "side": 1,
+      "message": "This is introduced by IntelliJ, it\u0027s probably a bug. Fixed now!",
+      "parentUuid": "9a245df4_5ced198b",
       "revId": "49120dc81805b7b3b49d690468375f75062ff9b5",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -59,6 +101,24 @@
     },
     {
       "key": {
+        "uuid": "9a245df4_f3451bb4",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/TunnelZone.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-21T16:57:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9a245df4_1c9a8114",
+      "revId": "49120dc81805b7b3b49d690468375f75062ff9b5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a245df4_7c9f3d04",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/TunnelZone.scala",
         "patchSetId": 4
@@ -70,6 +130,24 @@
       "writtenOn": "2015-01-21T03:38:41Z",
       "side": 1,
       "message": "Or\n\n        val hostSet \u003d hosts.map({\n            case (k, v) \u003d\u003e new HostConfig(k).setIp(v.asInstanceOf[IPv4Addr])\n        }).toSet",
+      "revId": "49120dc81805b7b3b49d690468375f75062ff9b5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_531227b5",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/TunnelZone.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-21T16:57:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9a245df4_7c9f3d04",
       "revId": "49120dc81805b7b3b49d690468375f75062ff9b5",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -93,6 +171,24 @@
     },
     {
       "key": {
+        "uuid": "9a245df4_930c9f96",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/TunnelZone.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-21T16:57:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9a245df4_9c85d1af",
+      "revId": "49120dc81805b7b3b49d690468375f75062ff9b5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a245df4_fc920df5",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/TunnelZone.scala",
         "patchSetId": 4
@@ -110,6 +206,24 @@
     },
     {
       "key": {
+        "uuid": "9a245df4_73112bac",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/TunnelZone.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-21T16:57:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9a245df4_fc920df5",
+      "revId": "49120dc81805b7b3b49d690468375f75062ff9b5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a245df4_3cbca56c",
         "filename": "midolman/src/test/scala/org/midonet/midolman/topology/VTPMRedirectorTest.scala",
         "patchSetId": 4
@@ -121,6 +235,24 @@
       "writtenOn": "2015-01-21T03:38:41Z",
       "side": 1,
       "message": "Nit:\n\n            updatedSimHost.tunnelZones \u003d\n                Map(protoTz.getId.asJava -\u003e IPAddr.fromString(\"192.168.0.1\"))",
+      "revId": "49120dc81805b7b3b49d690468375f75062ff9b5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_b33ba337",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/VTPMRedirectorTest.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 241,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-21T16:57:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9a245df4_3cbca56c",
       "revId": "49120dc81805b7b3b49d690468375f75062ff9b5",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
