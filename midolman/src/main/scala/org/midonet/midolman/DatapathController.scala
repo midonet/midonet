@@ -125,7 +125,11 @@ object DatapathController extends Referenceable {
     /** Java API */
     val initializeMsg = Initialize
 
-    val DEFAULT_MTU: Short = 1500
+
+    private var defaultMtuInConfig: Option[Short] = None
+    def DefaultMtu: Short =
+        defaultMtuInConfig.getOrElse(MidolmanConfig.DEFAULT_MTU)
+
 
     /**
      * Message sent to the [[org.midonet.midolman.FlowController]] actor to let
@@ -149,7 +153,7 @@ object DatapathController extends Referenceable {
     // Signals that the tunnel ports have been created
     case object TunnelPortsCreated_
 
-    private var cachedMinMtu: Short = DEFAULT_MTU
+    private var cachedMinMtu: Short = DefaultMtu
 
     def minMtu = cachedMinMtu
 }
@@ -198,8 +202,13 @@ class DatapathController extends Actor
     @Inject
     val interfaceScanner: InterfaceScanner = null
 
+
     @Inject
     var midolmanConfig: MidolmanConfig = null
+
+    if (midolmanConfig != null) {
+        defaultMtuInConfig = Some(midolmanConfig.getMidolmanDhcpMtu.toShort)
+    }
 
     var datapath: Datapath = null
 
@@ -247,6 +256,7 @@ class DatapathController extends Actor
 
     var portWatcher: Subscription = null
     var portWatcherEnabled = true
+
 
     override def preStart(): Unit = {
         super.preStart()
@@ -496,7 +506,7 @@ class DatapathController extends Actor
         }
 
         if (minMtu == Short.MaxValue)
-            minMtu = DEFAULT_MTU
+            minMtu = DefaultMtu
 
         if (cachedMinMtu != minMtu) {
             log.info(s"Changing MTU from $cachedMinMtu to $minMtu")
