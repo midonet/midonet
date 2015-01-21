@@ -22,6 +22,7 @@ import java.util.concurrent.locks.ReentrantLock
 import java.util.UUID
 import java.util.concurrent.{Future => JavaFuture, _}
 
+import org.midonet.util.concurrent.SpscRwdRingBuffer.SequencedItem
 import org.midonet.util.concurrent.{SpscRwdRingBuffer, Locks}
 
 import scala.collection.JavaConversions._
@@ -265,7 +266,7 @@ class ZoomSequencer(val minCapacity: Int)(implicit executor: ExecutorService)
                             }
                         }
                     }
-                    val item = ring.peek()
+                    val item = ring.peek
                     val dest = subscriber.get()
                     if (!threadActive.get())
                         terminated = true
@@ -275,7 +276,7 @@ class ZoomSequencer(val minCapacity: Int)(implicit executor: ExecutorService)
                             if (error != null) dest.onError(error)
                             else dest.onCompleted()
                         }
-                        case Some((n, i)) =>
+                        case Some(SequencedItem(n, i)) =>
                             val msg = i.setSeqno(n).build()
                             dest.onNext(msg)
                             log.debug("session emitted: " + msg)
