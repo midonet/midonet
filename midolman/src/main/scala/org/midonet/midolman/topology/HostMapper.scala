@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2014-2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,25 +28,24 @@ import org.apache.zookeeper.{WatchedEvent, Watcher}
 import rx.Observable
 import rx.subjects.{BehaviorSubject, PublishSubject}
 
-import org.midonet.cluster.DataClient
 import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.models.Topology.Host
-import org.midonet.midolman.topology.devices.{Host => SimHost, TunnelZone => SimTunnelZone}
+import org.midonet.midolman.topology.devices.{Host => SimHost, TunnelZone}
 import org.midonet.packets.IPAddr
 import org.midonet.util.functors._
 
-class HostMapper(id: UUID, vt: VirtualTopology, dataClient: DataClient)
+final class HostMapper(id: UUID, vt: VirtualTopology)
                 (implicit actorSystem: ActorSystem)
     extends DeviceMapper[SimHost](id, vt) {
 
-    override def logSource =
-        s"${classOf[org.midonet.midolman.topology.devices.Host].getName}-$id"
+    override def logSource = s"org.midonet.devices.host.host-$id"
 
     private var simHost = emptySimHost
     private var aliveStatusReceived = false
     private val hostAliveStream = BehaviorSubject.create[Boolean]()
     private val aliveWatcher = hostAliveWatcher
-    private val tunnelZonesStream = BehaviorSubject.create[Observable[SimTunnelZone]]()
+    private val tunnelZonesStream =
+        BehaviorSubject.create[Observable[TunnelZone]]()
     private val tunnelZones = mutable.Map[UUID, TunnelZoneState]()
 
     private val observableCreated = new AtomicBoolean(false)
@@ -54,9 +53,9 @@ class HostMapper(id: UUID, vt: VirtualTopology, dataClient: DataClient)
 
     private final class TunnelZoneState(tunnelId: UUID) {
         var hostIp: IPAddr = null
-        private val mark = PublishSubject.create[SimTunnelZone]()
+        private val mark = PublishSubject.create[TunnelZone]()
         val observable = VirtualTopology
-            .observable[SimTunnelZone](tunnelId)
+            .observable[TunnelZone](tunnelId)
             .takeUntil(mark)
         def complete() = mark.onCompleted()
     }
@@ -65,7 +64,7 @@ class HostMapper(id: UUID, vt: VirtualTopology, dataClient: DataClient)
     //                status of the host when available.
     private def hostAliveWatcher: Watcher = new Watcher {
         override def process(event: WatchedEvent) =
-            hostAliveStream.onNext(dataClient.hostsIsAlive(id, aliveWatcher))
+            hostAliveStream.onNext(vt.dataClient.hostsIsAlive(id, aliveWatcher))
     }
 
     private def emptySimHost: SimHost = {
@@ -75,7 +74,7 @@ class HostMapper(id: UUID, vt: VirtualTopology, dataClient: DataClient)
     }
 
     /**
-     * @return True iff the HostMapper is observing updates to the given tunnel zone.
+     * True iff the HostMapper is observing updates to the given tunnel zone.
      */
     @VisibleForTesting
     protected[topology] def isObservingTunnel(tunnelId: UUID): Boolean =
@@ -87,12 +86,12 @@ class HostMapper(id: UUID, vt: VirtualTopology, dataClient: DataClient)
         simHost = host
 
         // Taking care of new tunnel zones the host is a member of.
-        host.tunnelZoneIds.filterNot(tunnelZones.contains(_)).foreach(tzId => {
+        host.tunnelZoneIds.filterNot(tunnelZones.contains).foreach(tzId => {
             tunnelZones(tzId) = new TunnelZoneState(tzId)
             tunnelZonesStream.onNext(tunnelZones(tzId).observable)
         })
         // Taking care of tunnel zones the host is not a member of anymore.
-        tunnelZones.keys.filterNot(host.tunnelZoneIds.contains(_)).foreach(tzId => {
+        tunnelZones.keys.filterNot(host.tunnelZoneIds.contains).foreach(tzId => {
             tunnelZones(tzId).complete()
             tunnelZones.remove(tzId)
         })
@@ -105,9 +104,9 @@ class HostMapper(id: UUID, vt: VirtualTopology, dataClient: DataClient)
      * A host update triggers a host rebuild, which does the following:
      * <ol>
      *    <li> it subscribes to new tunnel zones the host is a member of, and
-     *    <li> it removes tunnel zones the host is not a member of anymore
+     *    <li> it removes tunnel zones the host is not a member of anymore </li>
      *         (the tunnel zone observable completes whenever the corresponding
-     *         tunnel zone id is not part of the host's tunnelZoneId set).
+     *         tunnel zone id is not part of the host's tunnelZoneId set). </li>
      * </ol>
      *
      * A tunnel zone update leads to storing the host ip in the [[tunnelZones]]
@@ -125,9 +124,9 @@ class HostMapper(id: UUID, vt: VirtualTopology, dataClient: DataClient)
             log.debug(s"The host $id became ${if (isAlive) "alive" else "dead"}")
             aliveStatusReceived = true
             simHost.alive = isAlive
-            simHost.deepCopy
+            new SimHost(simHost)
 
-        case simTunnel: SimTunnelZone =>
+        case simTunnel: TunnelZone =>
             log.debug(s"Received update for tunnel zone ${simTunnel.id} in host $id")
 
             // We store the host's ip in the corresponding tunnel zone state.
@@ -141,7 +140,7 @@ class HostMapper(id: UUID, vt: VirtualTopology, dataClient: DataClient)
                     (idtzState._1, idtzState._2.hostIp)
                 }).toMap
             }
-            simHost.deepCopy
+            new SimHost(simHost)
 
         case _ => throw new IllegalArgumentException("The Host Mapper received"
                       + "a device of an unsupported type")
@@ -164,7 +163,7 @@ class HostMapper(id: UUID, vt: VirtualTopology, dataClient: DataClient)
     private val onHostCompleted = makeAction0({
         tunnelZonesStream.onCompleted()
         hostAliveStream.onCompleted()
-        tunnelZones.values.foreach(tzState => tzState.complete())
+        tunnelZones.values.foreach(_.complete())
         tunnelZones.clear()
     })
 
@@ -174,12 +173,12 @@ class HostMapper(id: UUID, vt: VirtualTopology, dataClient: DataClient)
 
     override def observable: Observable[SimHost] = {
         if (observableCreated.compareAndSet(false, true)) {
-            hostAliveStream.onNext(dataClient.hostsIsAlive(id, aliveWatcher))
+            hostAliveStream.onNext(vt.dataClient.hostsIsAlive(id, aliveWatcher))
             outStream = Observable.merge[Any](hostObservable,
                                               hostAliveStream,
                                               Observable.merge(tunnelZonesStream))
                 .map[SimHost](makeFunc1(handleUpdate))
-                .filter(makeFunc1(hostReady(_)))
+                .filter(makeFunc1(hostReady))
         }
         outStream
     }
