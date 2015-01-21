@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+
+# Copyright 2015 Midokura SARL
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# If you want to override these variables, create a file called 'localrc'
+# and place it in the same directory as this file.
+
+# rc file(s) location
+MIDO_RC_DIR=$(cd $(dirname "${BASH_SOURCE:-$0}") && pwd)
+
+# user running the script
+MIDOSTACK_USER=$(whoami)
+
+# allow local overrides of env variables
+if [[ -f $MIDO_RC_DIR/localrc ]]; then
+    source $MIDO_RC_DIR/localrc
+fi
+
+# IP address to use for the services
+HOST_IP=${HOST_IP:-127.0.0.1}
+
+# Screen name
+SCREEN_NAME=${SCREEN_NAME:-mido}
+
+# Midolman configuration file location
+MIDOLMAN_CONF_DIR=${MIDOLMAN_CONF_DIR:-/etc/midolman}
+
+# MidoNet API port and the derived URI
+MIDO_API_PORT=${MIDO_API_PORT:-8081}
+MIDO_API_URI=http://$HOST_IP:$MIDO_API_PORT/midonet-api
+
+# Time (in sec) to wait for the API to start
+MIDO_API_TIMEOUT=${MIDO_API_TIMEOUT:-90}
