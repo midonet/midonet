@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9a245df4_7081214a",
+        "filename": "brain/midonet-brain/src/main/java/org/midonet/brain/configuration/EmbeddedClusterNodeConfig.java",
+        "patchSetId": 16
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-21T08:15:57Z",
+      "side": 1,
+      "message": "Please lower-case it.",
+      "range": {
+        "startLine": 24,
+        "startChar": 47,
+        "endLine": 24,
+        "endChar": 51
+      },
+      "revId": "40e16dc2307c229ddb534f8369520f1f1d166437",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_f08cf181",
+        "filename": "brain/midonet-brain/src/main/java/org/midonet/brain/services/vxgw/VxLanGatewayService.java",
+        "patchSetId": 16
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-21T08:15:57Z",
+      "side": 1,
+      "message": "Please comment more info or remove.",
+      "range": {
+        "startLine": 112,
+        "startChar": 23,
+        "endLine": 112,
+        "endChar": 52
+      },
+      "revId": "40e16dc2307c229ddb534f8369520f1f1d166437",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_70f801e6",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/ClusterNode.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-21T08:15:57Z",
+      "side": 1,
+      "message": "I\u0027m just commenting here and it\u0027s totally unrelated, but why don\u0027t we call this method inside the config classes instead of here?",
+      "range": {
+        "startLine": 75,
+        "startChar": 25,
+        "endLine": 75,
+        "endChar": 41
+      },
+      "revId": "40e16dc2307c229ddb534f8369520f1f1d166437",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_90f3f509",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/ClusterNode.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-21T08:15:57Z",
+      "side": 1,
+      "message": "Please lower-case it.",
+      "range": {
+        "startLine": 80,
+        "startChar": 39,
+        "endLine": 80,
+        "endChar": 43
+      },
+      "revId": "40e16dc2307c229ddb534f8369520f1f1d166437",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_f0e35131",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/heartbeat/Heartbeat.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-21T08:15:57Z",
+      "side": 1,
+      "message": "Again, don\u0027t see the point of having this Map as a val, here.",
+      "range": {
+        "startLine": 43,
+        "startChar": 8,
+        "endLine": 43,
+        "endChar": 19
+      },
+      "revId": "40e16dc2307c229ddb534f8369520f1f1d166437",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
