@@ -527,7 +527,8 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
                 val flow = WildcardFlow(pktCtx.origMatch, pktCtx.flowActions.toList)
                 flowProbe().testActor ! AddWildcardFlow(flow, null,
                                                         new ArrayList[Callback0],
-                                                        pktCtx.flowTags)
+                                                        pktCtx.flowTags,
+                                                        FlowController.lastInvalidationEvent)
                 return
             } catch { case NotYetException(f, _) =>
                 Await.result(f, 3 seconds)
