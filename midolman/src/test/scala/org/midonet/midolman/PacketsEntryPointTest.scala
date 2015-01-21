@@ -36,7 +36,7 @@ import org.scalatest.concurrent.Eventually._
 import org.scalatest.junit.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class PacketsEntryPointTestCase extends MidolmanSpec {
+class PacketsEntryPointTest extends MidolmanSpec {
     var datapath: Datapath = null
     var packetsSeen = List[(Packet, Either[Int, UUID])]()
     var testablePep: TestablePEP = _

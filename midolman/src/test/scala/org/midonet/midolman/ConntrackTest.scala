@@ -34,7 +34,7 @@ import org.midonet.midolman.state.ConnTrackState._
 import org.midonet.midolman.simulation.Coordinator.ToPortAction
 
 @RunWith(classOf[JUnitRunner])
-class ConntrackTestCase extends MidolmanSpec {
+class ConntrackTest extends MidolmanSpec {
     val leftMac = "02:02:01:10:10:aa"
     val rightMac = "02:02:01:10:10:bb"
     val leftIp = "192.168.1.1"
