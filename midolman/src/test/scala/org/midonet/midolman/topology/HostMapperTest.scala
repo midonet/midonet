@@ -25,7 +25,8 @@ import scala.concurrent.duration.DurationInt
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cluster.DataClient
+import rx.Observable
+
 import org.midonet.cluster.data.storage.Storage
 import org.midonet.cluster.models.Topology.{Host, TunnelZone}
 import org.midonet.cluster.util.IPAddressUtil
@@ -43,17 +44,12 @@ class HostMapperTest extends MidolmanSpec
 
     private var vt: VirtualTopology = _
     private implicit var store: Storage = _
-    private var dataClient: DataClient = _
 
     registerActors(FlowController -> (() => new FlowController))
 
     protected override def beforeTest() = {
         vt = injector.getInstance(classOf[VirtualTopology])
         store = injector.getInstance(classOf[Storage])
-        List(classOf[Host], classOf[TunnelZone]).foreach(clazz =>
-            store.registerClass(clazz)
-        )
-        dataClient = clusterDataClient
     }
 
     feature("A host should come with its tunnel zones membership") {
@@ -62,11 +58,14 @@ class HostMapperTest extends MidolmanSpec
             val tuple = createZoomObjs
             val protoHost = tuple._1
             val protoTunnelZone = tuple._2
-            val hostMapper = new HostMapper(protoHost.getId.asJava, vt, dataClient)
+            val hostMapper = new HostMapper(protoHost.getId.asJava, vt)
+
+            And("An observable on the host mapper")
+            val observable = Observable.create(hostMapper)
 
             When("We subscribe to the host")
             val hostObs = new AwaitableObserver[SimHost](1)
-            hostMapper.observable.subscribe(hostObs)
+            observable.subscribe(hostObs)
 
             Then("We obtain a simulation host with the host's tunnel zone membership")
             hostObs.await(1.second, 0) shouldBe true
@@ -82,11 +81,14 @@ class HostMapperTest extends MidolmanSpec
             var tuple = createZoomObjs
             val protoHost = tuple._1
             val protoTunnelZone = tuple._2
-            val hostMapper = new HostMapper(protoHost.getId.asJava, vt, dataClient)
+            val hostMapper = new HostMapper(protoHost.getId.asJava, vt)
+
+            And("An observable on the host mapper")
+            val observable = Observable.create(hostMapper)
 
             When("We subscribe to the host")
             val hostObs = new AwaitableObserver[SimHost](2)
-            hostMapper.observable.subscribe(hostObs)
+            observable.subscribe(hostObs)
 
             And("Add a 2nd tunnel zone the host is a member of")
             tuple = addTunnelZoneToHost(protoHost)
@@ -109,11 +111,14 @@ class HostMapperTest extends MidolmanSpec
             val tuple = createZoomObjs
             val protoHost = tuple._1
             val protoTunnelZone = tuple._2
-            val hostMapper = new HostMapper(protoHost.getId.asJava, vt, dataClient)
+            val hostMapper = new HostMapper(protoHost.getId.asJava, vt)
+
+            And("An observable on the host mapper")
+            val observable = Observable.create(hostMapper)
 
             When("We subscribe to the host")
             val hostObs = new AwaitableObserver[SimHost](2)
-            hostMapper.observable.subscribe(hostObs)
+            observable.subscribe(hostObs)
 
             And("We remove the host from the tunnel zone")
             val updatedProtoHost = removeHostFromAllTunnelZones(protoHost)
@@ -134,11 +139,14 @@ class HostMapperTest extends MidolmanSpec
             val tuple = createZoomObjs
             val protoHost = tuple._1
             val protoTunnelZone = tuple._2
-            val hostMapper = new HostMapper(protoHost.getId.asJava, vt, dataClient)
+            val hostMapper = new HostMapper(protoHost.getId.asJava, vt)
+
+            And("An observable on the host mapper")
+            val observable = Observable.create(hostMapper)
 
             When("We subscribe to the host")
             val hostObs = new AwaitableObserver[SimHost](2)
-            hostMapper.observable.subscribe(hostObs)
+            observable.subscribe(hostObs)
 
             And("We delete the host")
             store.delete(classOf[Host], protoHost.getId.asJava)
@@ -158,10 +166,14 @@ class HostMapperTest extends MidolmanSpec
             val tuple = createZoomObjs
             val protoHost = tuple._1
             setHostAliveStatus(protoHost.getId, true /* alive? */)
-            val hostMapper = new HostMapper(protoHost.getId.asJava, vt, dataClient)
+            val hostMapper = new HostMapper(protoHost.getId.asJava, vt)
+
+            And("An observable on the host mapper")
+            val observable = Observable.create(hostMapper)
+
             When("We subscribe to the host")
             val hostObs = new AwaitableObserver[SimHost](1)
-            hostMapper.observable.subscribe(hostObs)
+            observable.subscribe(hostObs)
 
             Then("We obtain a host that is alive")
             hostObs.await(1.second, 1) shouldBe true

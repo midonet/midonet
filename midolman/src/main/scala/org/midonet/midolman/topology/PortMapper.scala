@@ -22,10 +22,10 @@ import org.midonet.cluster.models.Topology.{Port => TopologyPort}
 import org.midonet.midolman.topology.devices.{Port => SimulationPort}
 import org.midonet.util.functors._
 
-sealed class PortMapper(id: UUID, vt: VirtualTopology)
+final class PortMapper(id: UUID, vt: VirtualTopology)
         extends VirtualDeviceMapper[SimulationPort](id, vt) {
 
-    override def logSource = s"org.midonet.midolman.topology.port-$id"
+    override def logSource = s"org.midonet.devices.port.port-$id"
 
     protected override def observable = {
         vt.store.observable(classOf[TopologyPort], id)
