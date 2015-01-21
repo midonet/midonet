@@ -153,7 +153,8 @@ object VirtualTopology extends MidolmanLogging {
  * | Port/Network/RouterMapper extends DeviceMapper | (1 per device)
  * +------------------------------------------------+
  */
-class VirtualTopology @Inject() (val store: Storage, dataClient: DataClient,
+class VirtualTopology @Inject() (val store: Storage,
+                                 val dataClient: DataClient,
                                  val actorsService: MidolmanActorsService)
         extends MidolmanLogging {
 
@@ -172,7 +173,7 @@ class VirtualTopology @Inject() (val store: Storage, dataClient: DataClient,
         classTag[BridgePort] -> ((id: UUID) => new PortMapper(id, this)),
         classTag[VxLanPort] -> ((id: UUID) => new PortMapper(id, this)),
         classTag[TunnelZone] -> ((id: UUID) => new TunnelZoneMapper(id, this)),
-        classTag[Host] -> ((id: UUID) => new HostMapper(id, this, dataClient))
+        classTag[Host] -> ((id: UUID) => new HostMapper(id, this))
     )
 
     register(this)
