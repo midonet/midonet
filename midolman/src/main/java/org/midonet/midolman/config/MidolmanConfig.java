@@ -20,6 +20,7 @@ import org.midonet.cluster.config.ZookeeperConfig;
 import org.midonet.config.ConfigBool;
 import org.midonet.config.ConfigGroup;
 import org.midonet.config.ConfigInt;
+import org.midonet.config.ConfigShort;
 import org.midonet.config.ConfigString;
 
 /**
@@ -98,4 +99,7 @@ public interface MidolmanConfig
 
     @ConfigString(key = "datapath", defaultValue = "midonet")
     public String getDatapath();
+
+    @ConfigShort(key = "dhcp_mtu", defaultValue = 1500)
+    public short getDhcpMtu();
 }
