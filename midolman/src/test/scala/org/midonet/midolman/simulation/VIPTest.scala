@@ -19,17 +19,16 @@ package org.midonet.midolman.simulation
 import java.util.UUID
 
 import org.junit.runner.RunWith
-import org.midonet.odp.FlowMatch
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.midolman.util.MidolmanTestCase
+import org.midonet.midolman.util.MidolmanSpec
+import org.midonet.odp.FlowMatch
 import org.midonet.packets.{IPv4Addr, TCP, UDP}
 
 @RunWith(classOf[JUnitRunner])
-class VIPTest extends MidolmanTestCase {
+class VIPTest extends MidolmanSpec {
 
-    def testVipMatching() {
-        import org.midonet.midolman.simulation.VIPTest.createTestVip
+    scenario ("Matching VIPs") {
         val addr1 = IPv4Addr.fromString("10.0.0.1")
         val port1 = 22
 
@@ -65,9 +64,7 @@ class VIPTest extends MidolmanTestCase {
         val vip2Down = createTestVip(false, addr2, port2)
         assert(!vip2Down.matches(tcpContext))
     }
-}
 
-object VIPTest {
     def createTestVip(adminStateUp: Boolean, address: IPv4Addr,
                       protocolPort: Int): VIP = {
         val vipId = UUID.randomUUID()
