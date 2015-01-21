@@ -135,7 +135,8 @@ class PacketsEntryPoint extends Actor with ActorLogWithoutPath
             storageFactory.create(),
             natLeaser,
             metrics,
-            counter.addAndGet(index, _: Int))
+            counter.addAndGet(index, _: Int),
+            config).withDispatcher("actors.pinned-dispatcher")
     }
 
     private def broadcast(m: Any) { workers foreach ( _ ! m ) }

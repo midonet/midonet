@@ -17,7 +17,11 @@
 package org.midonet.midolman
 
 import java.util.{List => JList}
+import org.apache.commons.configuration.HierarchicalConfiguration
+import org.midonet.config.ConfigProvider
+import org.midonet.midolman.config.MidolmanConfig
 
+import scala.compat.Platform
 import scala.collection.JavaConversions._
 import scala.concurrent._
 import scala.concurrent.duration._
@@ -47,6 +51,8 @@ object PacketWorkflowTest {
     val NoLogging = Logger(NOPLogger.NOP_LOGGER)
 
     val output = FlowActions.output(12)
+    val config = ConfigProvider.providerForIniConfig(new HierarchicalConfiguration)
+        .getConfig(classOf[MidolmanConfig])
 
     def forCookie(testKit: ActorRef, pkt: Packet, cookie: Int)
         (implicit system: ActorSystem): (PacketContext, PacketWorkflow) = {
@@ -68,7 +74,8 @@ object PacketWorkflowTest {
         val pktCtx = new PacketContext(Left(cookie), pkt, None, wcMatch)
         val wf = new PacketWorkflow(dpState, null, null, dpConPool,
                                     CallbackExecutor.Immediate,
-                                    new ActionsCache(log = NoLogging), null) {
+                                    new ActionsCache(log = NoLogging), null,
+                                    config) {
             override def runSimulation(pktCtx: PacketContext) =
                 throw new Exception("no Coordinator")
             override def executePacket(pktCtx: PacketContext,
