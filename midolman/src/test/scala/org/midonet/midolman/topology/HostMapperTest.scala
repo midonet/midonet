@@ -62,7 +62,7 @@ class HostMapperTest extends MidolmanSpec
             val tuple = createZoomObjs
             val protoHost = tuple._1
             val protoTunnelZone = tuple._2
-            val hostMapper = new HostMapper(protoHost.getId.asJava, vt, dataClient)
+            val hostMapper = new HostMapper(protoHost.getId.asJava, vt)
 
             When("We subscribe to the host")
             val hostObs = new AwaitableObserver[SimHost](1)
@@ -82,7 +82,7 @@ class HostMapperTest extends MidolmanSpec
             var tuple = createZoomObjs
             val protoHost = tuple._1
             val protoTunnelZone = tuple._2
-            val hostMapper = new HostMapper(protoHost.getId.asJava, vt, dataClient)
+            val hostMapper = new HostMapper(protoHost.getId.asJava, vt)
 
             When("We subscribe to the host")
             val hostObs = new AwaitableObserver[SimHost](2)
@@ -109,7 +109,7 @@ class HostMapperTest extends MidolmanSpec
             val tuple = createZoomObjs
             val protoHost = tuple._1
             val protoTunnelZone = tuple._2
-            val hostMapper = new HostMapper(protoHost.getId.asJava, vt, dataClient)
+            val hostMapper = new HostMapper(protoHost.getId.asJava, vt)
 
             When("We subscribe to the host")
             val hostObs = new AwaitableObserver[SimHost](2)
@@ -134,7 +134,7 @@ class HostMapperTest extends MidolmanSpec
             val tuple = createZoomObjs
             val protoHost = tuple._1
             val protoTunnelZone = tuple._2
-            val hostMapper = new HostMapper(protoHost.getId.asJava, vt, dataClient)
+            val hostMapper = new HostMapper(protoHost.getId.asJava, vt)
 
             When("We subscribe to the host")
             val hostObs = new AwaitableObserver[SimHost](2)
@@ -158,7 +158,7 @@ class HostMapperTest extends MidolmanSpec
             val tuple = createZoomObjs
             val protoHost = tuple._1
             setHostAliveStatus(protoHost.getId, true /* alive? */)
-            val hostMapper = new HostMapper(protoHost.getId.asJava, vt, dataClient)
+            val hostMapper = new HostMapper(protoHost.getId.asJava, vt)
             When("We subscribe to the host")
             val hostObs = new AwaitableObserver[SimHost](1)
             hostMapper.observable.subscribe(hostObs)
