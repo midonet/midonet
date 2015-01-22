@@ -17,6 +17,7 @@ package org.midonet.midolman
 
 import java.util.UUID
 
+import scala.collection.JavaConverters._
 import scala.collection.JavaConversions._
 import scala.collection.immutable.List
 import scala.collection.{Set => ROSet, mutable}
@@ -539,7 +540,7 @@ class FlowTranslatorTest extends MidolmanSpec {
 
                 def verify(result: (Seq[FlowAction], ROSet[FlowTag])) = {
                     translatedActions should contain theSameElementsAs result._1
-                    pktCtx.flowTags should be (result._2)
+                    pktCtx.flowTags should be (result._2.asJava)
                 }
             }
             testFun(ctx)

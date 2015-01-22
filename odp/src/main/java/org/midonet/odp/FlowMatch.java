@@ -488,7 +488,7 @@ public class FlowMatch {
         this.networkDst = null;
         this.ethSrc = null;
         this.ethDst = null;
-        this.vlanIds = null;
+        vlanIds.clear();
         this.etherType = (short) FlowKeyEtherType.Type.ETH_P_NONE.value;
         this.usedFields = 0;
         this.trackSeenFields = 1;
