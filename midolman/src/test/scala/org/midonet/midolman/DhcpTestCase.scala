@@ -30,7 +30,7 @@ import org.midonet.cluster.data.dhcp.Opt121
 import org.midonet.cluster.data.dhcp.Subnet
 import org.midonet.cluster.data.host.Host
 import org.midonet.cluster.data.dhcp.ExtraDhcpOpt
-import org.midonet.cluster.data.ports.{RouterPort, BridgePort}
+import org.midonet.cluster.data.ports.BridgePort
 import org.midonet.cluster.data.{TunnelZone, Bridge, Router}
 import org.midonet.midolman.PacketWorkflow.PacketIn
 import org.midonet.midolman.util.guice.OutgoingMessage
@@ -51,7 +51,6 @@ object DhcpTestCase {
     private
     def extraDhcpOptToDhcpOption(opt: ExtraDhcpOpt): Option[DHCPOption] = for {
         code <- DhcpValueParser.parseDhcpOptionCode(opt.optName)
-        option <- allDhcpOptions.find(_.value == code)
         value <- DhcpValueParser.parseDhcpOptionValue(code, opt.optValue)
     } yield new DHCPOption(code, value.length.toByte, value)
 }
@@ -445,10 +444,10 @@ class DhcpTestCase extends MidolmanTestCase
     def testInvalidDhcpExtraOptionValueShouldBeIgnored(): Unit = {
         val dhcpReply = sendDhcpDiscoveryAndGetDhcpOffer()
 
-        val tooBigMtuValue = Int.MaxValue + 1
+        val tooBigMtuValueString = s"$Int.MaxValue" + "0"
         val invalidMtuOption = new ExtraDhcpOpt(
             DHCPOption.Code.INTERFACE_MTU.value.toString,
-            tooBigMtuValue.toString)
+            tooBigMtuValueString)
         val extraDhcpOpts = List(invalidMtuOption)
         dhcpHost1.setExtraDhcpOpts(extraDhcpOpts)
         updatedhcpHost(bridge, dhcpSubnet1, dhcpHost1)
@@ -459,15 +458,198 @@ class DhcpTestCase extends MidolmanTestCase
     }
 
     def testIpRequiredDhcpExtraOption(): Unit = {
-        val hostNameOption = new ExtraDhcpOpt(
-            DHCPOption.Code.HOST_NAME.value.toString, "foobar")
-        val extraDhcpOpts = List(hostNameOption)
+        val emptyRouterOption = new ExtraDhcpOpt(
+            DHCPOption.Code.ROUTER.value.toString, "")
+        val emptyExtraDhcpOpts = List(emptyRouterOption)
+        dhcpHost1.setExtraDhcpOpts(emptyExtraDhcpOpts)
+        updatedhcpHost(bridge, dhcpSubnet1, dhcpHost1)
+
+        val emptyRouterdhcpReply = sendDhcpDiscoveryAndGetDhcpOffer()
+        val emptyRouterDhcpOption = extraDhcpOptToDhcpOption(emptyRouterOption)
+        emptyRouterDhcpOption should be (None)
+
+        val routerOption = new ExtraDhcpOpt(
+            DHCPOption.Code.ROUTER.value.toString, "192.168.1.1, 192.168.11.1")
+        val extraDhcpOpts = List(routerOption)
         dhcpHost1.setExtraDhcpOpts(extraDhcpOpts)
         updatedhcpHost(bridge, dhcpSubnet1, dhcpHost1)
 
         val dhcpReply = sendDhcpDiscoveryAndGetDhcpOffer()
-        val hostNameDhcpOption = extraDhcpOptToDhcpOption(hostNameOption)
-        hostNameDhcpOption should not equal None
-        dhcpReply.getOptions.contains(hostNameDhcpOption.get) should be (true)
+        val routerDhcpOption = extraDhcpOptToDhcpOption(routerOption)
+        routerDhcpOption should not equal None
+        dhcpReply.getOptions.contains(routerDhcpOption.get) should be (true)
+    }
+
+    def testBooleanRequiredDhcpExtraOption(): Unit = {
+        val ipForwardingOption = new ExtraDhcpOpt(
+            DHCPOption.Code.IP_FOWARDING_ENABLE_DISABLE.value.toString, "1")
+        val extraDhcpOpts = List(ipForwardingOption)
+        dhcpHost1.setExtraDhcpOpts(extraDhcpOpts)
+        updatedhcpHost(bridge, dhcpSubnet1, dhcpHost1)
+
+        val dhcpReply = sendDhcpDiscoveryAndGetDhcpOffer()
+        val ipFowardingDhcpOption = extraDhcpOptToDhcpOption(ipForwardingOption)
+        ipFowardingDhcpOption should not equal None
+        dhcpReply.getOptions.contains(
+            ipFowardingDhcpOption.get) should be (true)
+    }
+
+    def testCidrRequiredDhcpExtraOption(): Unit = {
+        val cidrOption = new ExtraDhcpOpt(
+            DHCPOption.Code.STATIC_ROUTE.value.toString, "192.168.1.0/24")
+        val extraDhcpOpts = List(cidrOption)
+        dhcpHost1.setExtraDhcpOpts(extraDhcpOpts)
+        updatedhcpHost(bridge, dhcpSubnet1, dhcpHost1)
+
+        val dhcpReply = sendDhcpDiscoveryAndGetDhcpOffer()
+        val cidrDhcpOption = extraDhcpOptToDhcpOption(cidrOption)
+        cidrDhcpOption should not equal None
+        dhcpReply.getOptions.contains(cidrDhcpOption.get) should be (true)
+    }
+
+    def test1248RequiredDhcpExtraOption(): Unit = {
+        val _1248Option = new ExtraDhcpOpt(
+            DHCPOption.Code.NETBIOS_OVER_TCP_IP_NODE_TYPE.value.toString, "4")
+        val extraDhcpOpts = List(_1248Option)
+        dhcpHost1.setExtraDhcpOpts(extraDhcpOpts)
+        updatedhcpHost(bridge, dhcpSubnet1, dhcpHost1)
+
+        val dhcpReply = sendDhcpDiscoveryAndGetDhcpOffer()
+        val _1248DhcpOption = extraDhcpOptToDhcpOption(_1248Option)
+        _1248DhcpOption should not equal None
+        dhcpReply.getOptions.contains(_1248DhcpOption.get) should be (true)
+    }
+
+    def test1to3RequiredDhcpExtraOption(): Unit = {
+        val _1to3Option = new ExtraDhcpOpt(
+            DHCPOption.Code.OPTION_OVERLOAD.value.toString, "3")
+        val extraDhcpOpts = List(_1to3Option)
+        dhcpHost1.setExtraDhcpOpts(extraDhcpOpts)
+        updatedhcpHost(bridge, dhcpSubnet1, dhcpHost1)
+
+        val dhcpReply = sendDhcpDiscoveryAndGetDhcpOffer()
+        val _1to3DhcpOption = extraDhcpOptToDhcpOption(_1to3Option)
+        _1to3DhcpOption should not equal None
+        dhcpReply.getOptions.contains(_1to3DhcpOption.get) should be (true)
+    }
+
+    def test1to8RequiredDhcpExtraOption(): Unit = {
+        val _1to8Option = new ExtraDhcpOpt(
+            DHCPOption.Code.ERROR_MESSAGE.value.toString, "8")
+        val extraDhcpOpts = List(_1to8Option)
+        dhcpHost1.setExtraDhcpOpts(extraDhcpOpts)
+        updatedhcpHost(bridge, dhcpSubnet1, dhcpHost1)
+
+        val dhcpReply = sendDhcpDiscoveryAndGetDhcpOffer()
+        val _1to8DhcpOption = extraDhcpOptToDhcpOption(_1to8Option)
+        _1to8DhcpOption should not equal None
+        dhcpReply.getOptions.contains(_1to8DhcpOption.get) should be (true)
+    }
+
+    def testClientIdentifierDhcpExtraOption(): Unit = {
+        val clientIdentifierOption = new ExtraDhcpOpt(
+            DHCPOption.Code.CLIENT_IDENTIFIER.value.toString,
+            "12, midokura.com")
+        val extraDhcpOpts = List(clientIdentifierOption)
+        dhcpHost1.setExtraDhcpOpts(extraDhcpOpts)
+        updatedhcpHost(bridge, dhcpSubnet1, dhcpHost1)
+
+        val dhcpReply = sendDhcpDiscoveryAndGetDhcpOffer()
+        val clientIdentifierDhcpOption =
+            extraDhcpOptToDhcpOption(clientIdentifierOption)
+        clientIdentifierDhcpOption should not equal None
+        dhcpReply.getOptions.contains(
+            clientIdentifierDhcpOption.get) should be (true)
+    }
+
+    def testByteFollowdByIpAddrsDhcpExtraOption(): Unit = {
+        val byteFollowedByIpAddrsOption = new ExtraDhcpOpt(
+            DHCPOption.Code.SLP_DIRECTORY_AGENT.value.toString,
+            "1, 192.168.1.1")
+        val extraDhcpOpts = List(byteFollowedByIpAddrsOption)
+        dhcpHost1.setExtraDhcpOpts(extraDhcpOpts)
+        updatedhcpHost(bridge, dhcpSubnet1, dhcpHost1)
+
+        val dhcpReply = sendDhcpDiscoveryAndGetDhcpOffer()
+        val byteFollowedByIpAddrsDhcpOption =
+            extraDhcpOptToDhcpOption(byteFollowedByIpAddrsOption)
+        byteFollowedByIpAddrsDhcpOption should not equal None
+        dhcpReply.getOptions.contains(
+            byteFollowedByIpAddrsDhcpOption.get) should be (true)
+    }
+
+    def testByteFollowdByStringDhcpExtraOption(): Unit = {
+        val byteFollowedByStringOption = new ExtraDhcpOpt(
+            DHCPOption.Code.SLP_SERVICE_SCOPE.value.toString,
+            "1, foobar")
+        val extraDhcpOpts = List(byteFollowedByStringOption)
+        dhcpHost1.setExtraDhcpOpts(extraDhcpOpts)
+        updatedhcpHost(bridge, dhcpSubnet1, dhcpHost1)
+
+        val dhcpReply = sendDhcpDiscoveryAndGetDhcpOffer()
+        val byteFollowedByStringDhcpOption =
+            extraDhcpOptToDhcpOption(byteFollowedByStringOption)
+        byteFollowedByStringDhcpOption should not equal None
+        dhcpReply.getOptions.contains(
+            byteFollowedByStringDhcpOption.get) should be (true)
+    }
+
+    def testRapidCommitDhcpExtraOption(): Unit = {
+        val rapidCommitOption = new ExtraDhcpOpt(
+            DHCPOption.Code.RAPID_COMMIT.value.toString, "")
+        val extraDhcpOpts = List(rapidCommitOption)
+        dhcpHost1.setExtraDhcpOpts(extraDhcpOpts)
+        updatedhcpHost(bridge, dhcpSubnet1, dhcpHost1)
+
+        val dhcpReply = sendDhcpDiscoveryAndGetDhcpOffer()
+        val rapdCommitDhcpOption =
+            extraDhcpOptToDhcpOption(rapidCommitOption)
+        rapdCommitDhcpOption should not equal None
+        dhcpReply.getOptions.contains(
+            rapdCommitDhcpOption.get) should be (true)
+    }
+
+    def testStatusCodeDhcpExtraOption(): Unit = {
+        val statusCodeOption = new ExtraDhcpOpt(
+            DHCPOption.Code.RAPID_COMMIT.value.toString, "2")
+        val extraDhcpOpts = List(statusCodeOption)
+        dhcpHost1.setExtraDhcpOpts(extraDhcpOpts)
+        updatedhcpHost(bridge, dhcpSubnet1, dhcpHost1)
+
+        val dhcpReply = sendDhcpDiscoveryAndGetDhcpOffer()
+        val statusCodeDhcpOption =
+            extraDhcpOptToDhcpOption(statusCodeOption)
+        statusCodeDhcpOption should not equal None
+        dhcpReply.getOptions.contains(statusCodeDhcpOption.get) should be (true)
+    }
+
+    def testDataSourceDhcpExtraOption(): Unit = {
+        val dataSourceOption = new ExtraDhcpOpt(
+            DHCPOption.Code.DATA_SOURCE.value.toString, "24")
+        val extraDhcpOpts = List(dataSourceOption)
+        dhcpHost1.setExtraDhcpOpts(extraDhcpOpts)
+        updatedhcpHost(bridge, dhcpSubnet1, dhcpHost1)
+
+        val dhcpReply = sendDhcpDiscoveryAndGetDhcpOffer()
+        val dataSourceDhcpOption =
+            extraDhcpOptToDhcpOption(dataSourceOption)
+        dataSourceDhcpOption should not equal None
+        dhcpReply.getOptions.contains(dataSourceDhcpOption.get) should be (true)
+    }
+
+    def testClasslessRoutesDhcpExtraOption(): Unit = {
+        val classlessRoutesOption = new ExtraDhcpOpt(
+            DHCPOption.Code.CLASSLESS_ROUTES.value.toString,
+            "192.168.100.0/24, 10.0.0.1")
+        val extraDhcpOpts = List(classlessRoutesOption)
+        dhcpHost1.setExtraDhcpOpts(extraDhcpOpts)
+        updatedhcpHost(bridge, dhcpSubnet1, dhcpHost1)
+
+        val dhcpReply = sendDhcpDiscoveryAndGetDhcpOffer()
+        val classlessRoutesDhcpOption =
+            extraDhcpOptToDhcpOption(classlessRoutesOption)
+        classlessRoutesDhcpOption should not equal None
+        dhcpReply.getOptions.contains(
+            classlessRoutesDhcpOption.get) should be (true)
     }
 }
