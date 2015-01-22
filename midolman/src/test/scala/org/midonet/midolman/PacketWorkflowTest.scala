@@ -16,9 +16,8 @@
 
 package org.midonet.midolman
 
-import java.util.{List => JList, ArrayList, UUID}
+import java.util.{ArrayList, HashSet => JHashSet, List => JList, UUID}
 
-import scala.collection.mutable
 import scala.concurrent._
 import scala.concurrent.duration._
 
@@ -94,7 +93,7 @@ object PacketWorkflowTest {
                           conntrackTx: FlowStateTransaction[ConnTrackKey, ConnTrackValue],
                           natTx: FlowStateTransaction[NatKey, NatBinding],
                           ingressPort: UUID, egressPorts: JList[UUID],
-                          tags: mutable.Set[FlowTag],
+                          tags: JHashSet[FlowTag],
                           callbacks: ArrayList[Callback0]): Unit = { }
         }
         val wf = new PacketWorkflow(dpState, null, null, dpChannel, replicator) {
@@ -103,11 +102,6 @@ object PacketWorkflowTest {
             override def translateActions(pktCtx: PacketContext) = {
                 testKit ! TranslateActions
                 pktCtx.addFlowAction(output)
-            }
-            override def handleWildcardTableMatch(context: PacketContext,
-                                                  wildFlow: WildcardFlow): Unit = {
-                wildFlow.getActions foreach pktCtx.addFlowAction
-                super.handleWildcardTableMatch(context, wildFlow)
             }
         }
         (pktCtx, wf)
@@ -149,36 +143,6 @@ class PacketWorkflowTest extends TestKit(ActorSystem("PacketWorkflowTest"))
 
     system.actorOf(Props(new ForwarderParent), "midolman")
 
-    feature("a PacketWorkflow queries the wildcard table to find matches") {
-
-        scenario("Userspace-only tagged packets do not generate kernel flows") {
-            Given("a PkWf object with a userspace Packet")
-            val (pktCtx, pkfw) = PacketWorkflowTest.forCookie(self, packet(true), cookie)
-
-            When("the PkWf finds a wildcardflow for the match")
-            pkfw.handleWildcardTableMatch(pktCtx, wcFlow(true))
-
-            Then("the Deduplication actor gets an ApplyFlow request")
-            And("the current packet gets executed")
-            runChecks(pktCtx, pkfw, applyOutputActions)
-        }
-
-        scenario("Non Userspace-only tagged packets generate kernel flows") {
-            Given("a PkWf object with a userspace Packet")
-            val (pktCtx, pkfw) = PacketWorkflowTest.forCookie(self, packet(false), cookie)
-
-            When("the PkWf finds a wildcardflow for the match")
-            pkfw.handleWildcardTableMatch(pktCtx, wcFlow(false))
-
-            Then("a FlowCreate request is made and processed by the Dp")
-            And("a FlowAdded notification is sent to the Flow Controller")
-            And("no wildcardflow are pushed to the Flow Controller")
-            And("the resulting action is an OutputFlowAction")
-            And("the current packet gets executed")
-            runChecks(pktCtx, pkfw, applyOutputActionsWithFlow)
-        }
-    }
-
     feature("A PacketWorkflow handles results from the simulation layer") {
 
         scenario("A Simulation returns SendPacket") {
@@ -219,7 +183,7 @@ class PacketWorkflowTest extends TestKit(ActorSystem("PacketWorkflowTest"))
             pkfw.processSimulationResult(pktCtx, Drop)
 
             And("the packets gets executed (with 0 action)")
-            runChecks(pktCtx, pkfw, applyNilActionsWithWildcardFlow)
+            runChecks(pktCtx, pkfw, applyEmptyActions)
 
             And("state is not pushed")
             statePushed should be (false)
@@ -235,7 +199,7 @@ class PacketWorkflowTest extends TestKit(ActorSystem("PacketWorkflowTest"))
             Then("a FlowCreate request is made and processed by the Dp")
             And("a new WildcardFlow is sent to the Flow Controller")
             And("the current packet gets executed (with 0 actions)")
-            runChecks(pktCtx, pkfw, applyNilActionsWithWildcardFlow)
+            runChecks(pktCtx, pkfw, applyEmptyActions)
 
             And("state is not pushed")
             statePushed should be (false)
@@ -251,7 +215,7 @@ class PacketWorkflowTest extends TestKit(ActorSystem("PacketWorkflowTest"))
             Then("the FlowController gets an AddWildcardFlow request")
             And("the Deduplication actor gets an empty ApplyFlow request")
             And("the packets gets executed (with 0 action)")
-            runChecks(pktCtx, pkfw, applyNilActionsWithWildcardFlow)
+            runChecks(pktCtx, pkfw, applyEmptyActions)
 
             And("state is not pushed")
             statePushed should be (false)
@@ -267,7 +231,7 @@ class PacketWorkflowTest extends TestKit(ActorSystem("PacketWorkflowTest"))
             Then("a FlowCreate request is made and processed by the Dp")
             And("a new WildcardFlow is sent to the Flow Controller")
             And("the current packet gets executed (with 0 actions)")
-            runChecks(pktCtx, pkfw, applyNilActionsWithWildcardFlow)
+            runChecks(pktCtx, pkfw, applyEmptyActions)
 
             And("state is not pushed")
             statePushed should be (false)
@@ -306,17 +270,13 @@ class PacketWorkflowTest extends TestKit(ActorSystem("PacketWorkflowTest"))
             And("the FlowController gets an AddWildcardFlow request")
             And("the DeduplicationActor gets an ApplyFlow request")
             And("the current packet gets executed")
-            runChecks(pktCtx, pkfw,
-                checkTranslate _ :: checkAddWildcard _ :: applyOutputActions)
+            runChecks(pktCtx, pkfw, checkTranslate _ :: applyOutputActions)
 
             And("state is pushed")
             statePushed should be (true)
         }
 
     }
-
-    /* helper generator functions */
-
 
     def flMatch(userspace: Boolean = false) = {
         val flm = new FlowMatch()
@@ -334,10 +294,6 @@ class PacketWorkflowTest extends TestKit(ActorSystem("PacketWorkflowTest"))
         if (userspace)
           wcMatch.getIcmpIdentifier
         wcMatch
-    }
-
-    def wcFlow(userspace: Boolean = false) = {
-        WildcardFlow(wcMatch(userspace), List(output))
     }
 
     /* helpers for checking received msgs */
@@ -372,22 +328,6 @@ class PacketWorkflowTest extends TestKit(ActorSystem("PacketWorkflowTest"))
     def checkOutputActions(msgs: Seq[Any], as: JList[FlowAction]): Unit =
         as should contain (output)
 
-    def checkAddWildcard(msgs: Seq[Any], as: JList[FlowAction]): Unit =
-        msgs map { _.getClass } should contain(classOf[AddWildcardFlow])
-
-    def checkFlowAdded(msgs: Seq[Any], as: JList[FlowAction]): Unit =
-        msgs map { _.getClass } should contain(classOf[FlowAdded])
-
     val applyEmptyActions = List[Check](checkEmptyActions, checkExecPacket)
-
-    val applyNilActionsWithFlow = checkFlowAdded _ :: applyEmptyActions
-
-    val applyNilActionsWithWildcardFlow = checkAddWildcard _ :: applyEmptyActions
-
     val applyOutputActions = List[Check](checkOutputActions, checkExecPacket)
-
-    val applyOutputActionsWithFlow = checkFlowAdded _ :: applyOutputActions
-
-    val applyOutputActionsWithWildcardFlow =
-        checkAddWildcard _ :: applyOutputActions
 }

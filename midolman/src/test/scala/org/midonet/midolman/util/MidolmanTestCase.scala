@@ -18,7 +18,7 @@ package org.midonet.midolman.util
 
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantLock
-import java.util.{ArrayList, UUID, List => JList}
+import java.util.{UUID, List => JList}
 
 import scala.annotation.tailrec
 import scala.collection.JavaConversions._
@@ -41,7 +41,7 @@ import org.midonet.cluster.data.{Port => VPort}
 import org.midonet.cluster.services.StorageService
 import org.midonet.midolman.DatapathController.{DatapathReady, Initialize}
 import org.midonet.midolman.DeduplicationActor.{DiscardPacket, HandlePackets}
-import org.midonet.midolman.FlowController.{AddWildcardFlow, FlowUpdateCompleted, WildcardFlowAdded, WildcardFlowRemoved}
+import org.midonet.midolman.FlowController.{FlowUpdateCompleted, WildcardFlowAdded, WildcardFlowRemoved}
 import org.midonet.midolman.PacketWorkflow.PacketIn
 import org.midonet.midolman._
 import org.midonet.midolman.guice._
@@ -56,7 +56,6 @@ import org.midonet.midolman.host.guice.HostConfigProvider
 import org.midonet.midolman.host.interfaces.InterfaceDescription
 import org.midonet.midolman.host.scanner.InterfaceScanner
 import org.midonet.midolman.services.{HostIdProviderService, MidolmanActorsService, MidolmanService}
-import org.midonet.midolman.simulation.PacketContext
 import org.midonet.midolman.topology.{LocalPortActive, VirtualToPhysicalMapper, VirtualTopologyActor}
 import org.midonet.midolman.util.guice.{MockMidolmanModule, OutgoingMessage, TestableMidolmanActorsModule}
 import org.midonet.midolman.util.mock.MockInterfaceScanner
@@ -143,7 +142,6 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
         packetInProbe = makeEventProbe(classOf[PacketIn])
         packetsEventsProbe = makeEventProbe(classOf[PacketsExecute])
         wflowAddedProbe = makeEventProbe(classOf[WildcardFlowAdded])
-        wflowAddReqProbe = makeEventProbe(classOf[AddWildcardFlow])
         wflowRemovedProbe = makeEventProbe(classOf[WildcardFlowRemoved])
         portsProbe = makeEventProbe(classOf[LocalPortActive])
         discardPacketProbe = makeEventProbe(classOf[DiscardPacket])
@@ -460,7 +458,7 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
     def allProbes() = List(vtaProbe(), sProbe, flowProbe(), vtpProbe(),
             dpProbe(), dedupProbe(), discardPacketProbe, wflowAddedProbe,
             wflowRemovedProbe, packetInProbe, packetsEventsProbe,
-            flowUpdateProbe, datapathEventsProbe, wflowAddReqProbe, portsProbe)
+            flowUpdateProbe, datapathEventsProbe, portsProbe)
 
     protected def drainProbes() {
         for (p <- allProbes()) { drainProbe(p) }
@@ -491,9 +489,6 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
             tunnelInfo.tun_id == key
         }
 
-    def ackWCAdded(until: Duration = timeout) =
-        expect[AddWildcardFlow].on(wflowAddReqProbe).wildFlow
-
     def ackWCRemoved(until: Duration = timeout) =
         wflowRemovedProbe.fishForMessage(until, "WildcardFlowRemoved") {
             case WildcardFlowRemoved(_) => true
@@ -501,42 +496,6 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
         }.asInstanceOf[WildcardFlowRemoved].f
 
     def expectPacketIn() = expect[PacketIn].on(packetInProbe)
-
-    def addVirtualWildcardFlow(inputPort: UUID,
-                               action: FlowAction): Unit =
-        addVirtualWildcardFlow(new FlowMatch(), inputPort, action)
-
-    def addVirtualWildcardFlow(wcMatch: FlowMatch,
-                               inputPort: UUID,
-                               action: FlowAction): Unit = {
-        val flowTranslator = new FlowTranslator {
-            override implicit protected def system: ActorSystem = actors
-            override protected val dpState: DatapathState = self.dpState
-        }
-        val pktCtx = new PacketContext(-1, null, wcMatch)
-        pktCtx.inputPort = inputPort
-        pktCtx.addVirtualAction(action)
-        dpState.getDpPortNumberForVport(pktCtx.inputPort) map { port =>
-            wcMatch.setInputPortNumber(port.toShort)
-        }
-
-        var retries = 10
-        while (retries >= 0) {
-            try {
-                flowTranslator.translateActions(pktCtx)
-                val flow = WildcardFlow(pktCtx.origMatch, pktCtx.flowActions.toList)
-                flowProbe().testActor ! AddWildcardFlow(flow, null,
-                                                        new ArrayList[Callback0],
-                                                        pktCtx.flowTags,
-                                                        FlowController.lastInvalidationEvent)
-                return
-            } catch { case NotYetException(f, _) =>
-                Await.result(f, 3 seconds)
-                pktCtx.flowActions.clear()
-                retries -= 1
-            }
-        }
-    }
 
     def runFlowRemovalCallbacks(): Unit =
         deduplicationActor() ? HandlePackets(new Array(0))

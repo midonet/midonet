@@ -16,71 +16,29 @@
 package org.midonet.sdn.flows
 
 import java.util.ArrayList
-import java.{util => ju}
-
-import scala.collection.JavaConverters._
-import scala.collection.immutable.List
 
 import org.apache.commons.lang.builder.HashCodeBuilder
 
 import org.midonet.midolman.CallbackExecutor
+import org.midonet.midolman.simulation.PacketContext
 import org.midonet.odp.FlowMatch
-import org.midonet.odp.flows.FlowAction
 import org.midonet.sdn.flows.FlowTagger.FlowTag
-import org.midonet.util.collection.{ObjectPool, PooledObject, WeakObjectPool}
+import org.midonet.util.collection.{ObjectPool, PooledObject}
 import org.midonet.util.functors.Callback0
 
-object WildcardFlow {
-    def apply(wcmatch: FlowMatch,
-              actions: List[FlowAction] = Nil,
-              hardExpirationMillis: Int = 0,
-              idleExpirationMillis: Int = 0,
-              priority: Short = 0,
-              cbExecutor: CallbackExecutor = CallbackExecutor.Immediate) =
-        new WildcardFlowImpl(wcmatch, actions, hardExpirationMillis,
-                             idleExpirationMillis, priority, cbExecutor)
-
-    class WildcardFlowImpl(override val wcmatch: FlowMatch,
-                           override val actions: List[FlowAction] = Nil,
-                           override val hardExpirationMillis: Int = 0,
-                           override val idleExpirationMillis: Int = 0,
-                           override val priority: Short = 0,
-                           override val cbExecutor: CallbackExecutor) extends WildcardFlow
-}
-
 abstract class WildcardFlow {
-    def wcmatch: FlowMatch
-    def actions: List[FlowAction]
+    def flowMatch: FlowMatch
     def hardExpirationMillis: Int
     def idleExpirationMillis: Int
-    def priority: Short
     def cbExecutor: CallbackExecutor
 
-    def getPriority = priority
-    def getMatch = wcmatch
-    def getActions = actions
+    def getMatch = flowMatch
     def getHardExpirationMillis = hardExpirationMillis
     def getIdleExpirationMillis = idleExpirationMillis
 
-    def combine(that: WildcardFlow): WildcardFlow = {
-        var hardExp = this.hardExpirationMillis.min(that.hardExpirationMillis)
-        var idleExp = this.idleExpirationMillis.min(that.idleExpirationMillis)
-        if (hardExp == 0) // try to get a positive value
-            hardExp = this.hardExpirationMillis + that.hardExpirationMillis
-        if (idleExp == 0) // try to get a positive value
-            idleExp = this.idleExpirationMillis + that.idleExpirationMillis
-
-        WildcardFlow(wcmatch = this.getMatch,
-                     actions = this.actions ++ that.actions,
-                     hardExpirationMillis = hardExp,
-                     idleExpirationMillis = idleExp)
-    }
-
     override def toString: String = {
         "WildcardFlow{" +
-            "actions=" + actions +
-            ", priority=" + priority +
-            ", wcmatch=" + wcmatch +
+            "wcmatch=" + flowMatch +
             ", hardExpirationMillis=" + hardExpirationMillis +
             ", idleExpirationMillis=" + idleExpirationMillis +
             '}'
@@ -89,21 +47,16 @@ abstract class WildcardFlow {
     // CAREFUL: this class is used as a key in various maps. DO NOT use
     // mutable fields when constructing the hashCode or evaluating equality.
     override def equals(o: Any): Boolean = o match {
-        case that: WildcardFlow if (this eq that) => true
+        case that: WildcardFlow if this eq that => true
 
         case that: WildcardFlow =>
             if (that.hardExpirationMillis != this.hardExpirationMillis ||
-                that.idleExpirationMillis != this.idleExpirationMillis ||
-                that.priority != this.priority)
+                that.idleExpirationMillis != this.idleExpirationMillis)
                 return false
 
-            actions match {
-                case null => if (that.actions != null) return false
-                case a =>    if (actions != that.actions) return false
-            }
-            wcmatch match {
-                case null => if (that.wcmatch != null) return false
-                case a =>    if (wcmatch != that.wcmatch) return false
+            flowMatch match {
+                case null => if (that.flowMatch != null) return false
+                case a =>    if (flowMatch != that.flowMatch) return false
             }
             true
 
@@ -116,44 +69,9 @@ abstract class WildcardFlow {
         new HashCodeBuilder(17, 37).
             append(hardExpirationMillis).
             append(idleExpirationMillis).
-            append(priority).
-            append(actions).
-            append(wcmatch).
+            append(flowMatch).
             toHashCode
     }
-}
-
-/**
- * WildcardFlow factory for Java classes.
- */
-object WildcardFlowFactory {
-    def create(wcmatch: FlowMatch): WildcardFlow =
-        WildcardFlow(wcmatch)
-
-    def create(wcmatch: FlowMatch, actions: ju.List[FlowAction]) =
-        WildcardFlow(wcmatch, actions.asScala.toList)
-
-    def createIdleExpiration(wcmatch: FlowMatch, actions: ju.List[FlowAction],
-                             idleExpirationMillis: Int) =
-        WildcardFlow(wcmatch, actions.asScala.toList,
-            idleExpirationMillis = idleExpirationMillis)
-
-    def createHardExpiration(wcmatch: FlowMatch, actions: ju.List[FlowAction],
-                             hardExpirationMillis: Int) =
-        WildcardFlow(wcmatch, actions.asScala.toList,
-            hardExpirationMillis = hardExpirationMillis)
-
-    def createIdleExpiration(wcmatch: FlowMatch, idleExpirationMillis: Int) =
-        WildcardFlow(wcmatch, idleExpirationMillis = idleExpirationMillis)
-
-    def createHardExpiration(wcmatch: FlowMatch, hardExpirationMillis: Int) =
-        WildcardFlow(wcmatch, hardExpirationMillis = hardExpirationMillis)
-}
-
-object ManagedWildcardFlow {
-    private val actionsPool = new WeakObjectPool[List[FlowAction]]()
-
-    def create(wildFlow: WildcardFlow) = new ManagedWildcardFlow(null).reset(wildFlow)
 }
 
 /**
@@ -167,43 +85,34 @@ class ManagedWildcardFlow(override val pool: ObjectPool[ManagedWildcardFlow])
 
     var creationTimeMillis: Long = 0L
     var lastUsedTimeMillis: Long = 0L
-    var callbacks: ArrayList[Callback0] = null
-    var tags: Array[FlowTag] = null
-    val dpFlows = new java.util.HashSet[FlowMatch](4)
+    val callbacks = new ArrayList[Callback0]()
+    val tags = new ArrayList[FlowTag]
 
-    val wcmatch = new FlowMatch()
-    var actions: List[FlowAction] = Nil
+    val flowMatch = new FlowMatch()
     var hardExpirationMillis = 0
     var idleExpirationMillis = 0
-    var priority: Short = 0
     var cbExecutor: CallbackExecutor = _
 
     val INVALID_HASH_CODE = 0
     var cachedHashCode = INVALID_HASH_CODE
 
-    def reset(wflow: WildcardFlow): ManagedWildcardFlow = {
-        this.wcmatch.reset(wflow.wcmatch)
-        this.actions = ManagedWildcardFlow.actionsPool.sharedRef(wflow.actions)
-        this.hardExpirationMillis = wflow.hardExpirationMillis
-        this.idleExpirationMillis = wflow.idleExpirationMillis
-        this.priority = wflow.priority
-        this.cbExecutor = wflow.cbExecutor
-        this.dpFlows.clear()
+    def reset(pktCtx: PacketContext) = {
+        this.flowMatch.reset(pktCtx.origMatch)
+        this.hardExpirationMillis = pktCtx.hardExpirationMillis
+        this.idleExpirationMillis = pktCtx.idleExpirationMillis
+        this.cbExecutor = pktCtx.callbackExecutor
+        this.tags.addAll(pktCtx.flowTags)
+        this.callbacks.addAll(pktCtx.flowRemovedCallbacks)
         cachedHashCode = super.hashCode()
         this
     }
 
     def clear() {
-        this.wcmatch.clear()
-        this.actions = Nil
-        this.callbacks = null
-        this.tags = null
-        this.dpFlows.clear()
+        this.flowMatch.clear()
+        this.callbacks.clear()
+        this.tags.clear()
         cachedHashCode = INVALID_HASH_CODE
     }
-
-    def immutable = WildcardFlow(wcmatch, actions, hardExpirationMillis,
-                                 idleExpirationMillis, priority)
 
     def getLastUsedTimeMillis = lastUsedTimeMillis
     def getCreationTimeMillis = creationTimeMillis
@@ -227,11 +136,9 @@ class ManagedWildcardFlow(override val pool: ObjectPool[ManagedWildcardFlow])
     override def toString: String = {
         "ManagedWildcardFlow{"+
             "objref=" + System.identityHashCode(this) +
-            ", actions=" + actions +
-            ", priority=" + priority +
-            ", wcmatch=" + wcmatch +
-            ", wcmatch hash=" + (if (wcmatch == null) ""
-                                 else wcmatch.hashCode()) +
+            ", flowMatch=" + flowMatch +
+            ", flowMatch hash=" + (if (flowMatch == null) ""
+                                   else flowMatch.hashCode()) +
             ", creationTimeMillis=" + creationTimeMillis +
             ", lastUsedTimeMillis=" + lastUsedTimeMillis +
             ", hardExpirationMillis=" + hardExpirationMillis +

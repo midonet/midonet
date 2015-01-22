@@ -16,9 +16,7 @@
 
 package org.midonet.midolman
 
-import java.util.{ArrayList, List, UUID}
-
-import scala.collection.mutable
+import java.util.{ArrayList, HashSet => JHashSet, List, UUID}
 
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
@@ -110,7 +108,7 @@ class DpPortTaggingTest extends MidolmanSpec {
                           conntrackTx: FlowStateTransaction[ConnTrackKey, ConnTrackValue],
                           natTx: FlowStateTransaction[NatKey, NatBinding],
                           ingressPort: UUID, egressPorts: List[UUID],
-                          tags: mutable.Set[FlowTag],
+                          tags: JHashSet[FlowTag],
                           callbacks: ArrayList[Callback0]): Unit = { }
         })
 }

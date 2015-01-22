@@ -17,8 +17,6 @@ package org.midonet.midolman
 
 import java.util.UUID
 
-import scala.collection.JavaConversions._
-
 import akka.actor._
 
 import com.typesafe.scalalogging.Logger
@@ -35,7 +33,7 @@ import org.midonet.odp.FlowMatch.Field
 import org.midonet.odp._
 import org.midonet.packets._
 import org.midonet.sdn.flows.FlowTagger.tagForDpPort
-import org.midonet.sdn.flows.{FlowTagger, WildcardFlow}
+import org.midonet.sdn.flows.FlowTagger
 
 trait PacketHandler {
     def start(context: PacketContext): PacketWorkflow.SimulationResult
@@ -52,6 +50,7 @@ object PacketWorkflow {
 
     val TEMPORARY_DROP_MILLIS = 5 * 1000
     val IDLE_EXPIRATION_MILLIS = 60 * 1000
+    val ERROR_CONDITION_HARD_EXPIRATION = 10 * 1000
 
     trait SimulationResult
     case object NoOp extends SimulationResult
@@ -116,11 +115,7 @@ class PacketWorkflow(protected val dpState: DatapathState,
                     (implicit val system: ActorSystem)
         extends PacketHandler with FlowTranslator
         with RoutingWorkflow with UnderlayTrafficHandler {
-
-    import FlowController.{AddWildcardFlow, FlowAdded}
     import PacketWorkflow._
-
-    val ERROR_CONDITION_HARD_EXPIRATION = 10000
 
     val resultLogger = Logger(LoggerFactory.getLogger("org.midonet.packets.results"))
 
@@ -128,9 +123,9 @@ class PacketWorkflow(protected val dpState: DatapathState,
         context.prepareForSimulation(FlowController.lastInvalidationEvent)
         context.log.debug(s"Initiating processing, attempt: ${context.runs}")
         if (context.ingressed)
-            handlePacketWithCookie(context)
+            handlePacketIngress(context)
         else
-            doEgressPortSimulation(context)
+            handlePacketEgress(context)
     }
 
     override def drop(context: PacketContext): Unit = {
@@ -140,41 +135,13 @@ class PacketWorkflow(protected val dpState: DatapathState,
         addTranslatedFlow(context)
     }
 
-    def logResultNewFlow(msg: String, context: PacketContext, wflow: WildcardFlow): Unit = {
-        resultLogger.debug(s"$msg: match ${wflow.getMatch}, actions " +
-                           s"${wflow.actions}, and tags ${context.flowTags}")
-    }
-
-    def logResultMatchedFlow(msg: String, context: PacketContext, wflow: WildcardFlow): Unit = {
-        resultLogger.debug(s"$msg: match ${wflow.getMatch} with actions ${wflow.actions}")
+    def logResultNewFlow(msg: String, context: PacketContext): Unit = {
+        resultLogger.debug(s"$msg: match ${context.origMatch}, actions " +
+                           s"${context.flowActions}, tags ${context.flowTags}")
     }
 
     def runSimulation(context: PacketContext): SimulationResult =
         new Coordinator(context).simulate()
-
-    private def notifyFlowAdded(context: PacketContext,
-                                flow: Flow,
-                                newWildFlow: Option[WildcardFlow]): Unit = {
-        context.log.debug("Successfully created flow")
-        newWildFlow match {
-            case None =>
-                FlowController ! FlowAdded(flow, context.origMatch)
-            case Some(wf) =>
-                FlowController ! AddWildcardFlow(wf, flow,
-                                context.flowRemovedCallbacks,
-                                context.flowTags, context.lastInvalidation,
-                                context.origMatch)
-        }
-    }
-
-    private def createFlow(context: PacketContext,
-                           wildFlow: WildcardFlow,
-                           newWildFlow: Option[WildcardFlow] = None): Unit = {
-        val dpFlow = new Flow(context.origMatch, wildFlow.getActions)
-        context.log.debug(s"Creating flow $dpFlow from $wildFlow")
-        dpChannel.createFlow(dpFlow)
-        notifyFlowAdded(context, dpFlow, newWildFlow)
-    }
 
     protected def addTranslatedFlow(context: PacketContext): SimulationResult = {
         val res =
@@ -195,32 +162,26 @@ class PacketWorkflow(protected val dpState: DatapathState,
         res
     }
 
-    private def handleFlow(context: PacketContext): SimulationResult = {
+    private def handleFlow(context: PacketContext): SimulationResult =
         if (context.isGenerated) {
             context.log.warn(s"Tried to add a flow for a generated packet")
             context.runFlowRemovedCallbacks()
-            return GeneratedPacket
-        }
-
-        context.origMatch.propagateSeenFieldsFrom(context.wcmatch)
-        val wildFlow = WildcardFlow(
-            wcmatch = context.origMatch,
-            hardExpirationMillis = context.hardExpirationMillis,
-            idleExpirationMillis = context.idleExpirationMillis,
-            actions = context.flowActions.toList,
-            priority = 0,
-            cbExecutor = context.callbackExecutor)
-
-        if (context.wcmatch.userspaceFieldsSeen) {
-            context.log.debug("Userspace fields seen; skipping flow creation")
-            context.runFlowRemovedCallbacks()
-            UserspaceFlow
+            GeneratedPacket
         } else {
-            logResultNewFlow("will create flow", context, wildFlow)
-            createFlow(context, wildFlow, Some(wildFlow))
-            FlowCreated
+            logResultNewFlow("will create flow", context)
+            context.origMatch.propagateSeenFieldsFrom(context.wcmatch)
+            if (context.wcmatch.userspaceFieldsSeen) {
+                context.log.debug("Userspace fields seen; skipping flow creation")
+                context.runFlowRemovedCallbacks()
+                UserspaceFlow
+            } else {
+                val dpFlow = new Flow(context.origMatch, context.flowActions)
+                context.log.debug(s"Creating flow $dpFlow")
+                dpChannel.createFlow(dpFlow)
+                FlowController ! context
+                FlowCreated
+            }
         }
-    }
 
     def applyState(context: PacketContext): Unit =
         if (!context.isDrop) {
@@ -236,7 +197,7 @@ class PacketWorkflow(protected val dpState: DatapathState,
             context.natTx.commit()
     }
 
-    private def handlePacketWithCookie(context: PacketContext): SimulationResult = {
+    private def handlePacketIngress(context: PacketContext): SimulationResult = {
         if (!context.origMatch.isUsed(Field.InputPortNumber)) {
             context.log.error("packet had no inPort number")
             processSimulationResult(context, TemporaryDrop)
@@ -245,53 +206,6 @@ class PacketWorkflow(protected val dpState: DatapathState,
         val inPortNo = context.origMatch.getInputPortNumber
         context.flowTags.add(tagForDpPort(inPortNo))
 
-        if (context.packet.getReason == Packet.Reason.FlowActionUserspace) {
-            processSimulationResult(context,
-                if (resolveVport(context, inPortNo))
-                    simulatePacketIn(context)
-                else
-                    Drop)
-        } else {
-            FlowController.queryWildcardFlowTable(context.origMatch) match {
-                case Some(wildflow) =>
-                    handleWildcardTableMatch(context, wildflow)
-                    FlowCreated
-                case None =>
-                    context.log.debug("missed the wildcard flow table")
-                    handleWildcardTableMiss(context, inPortNo)
-            }
-        }
-    }
-
-    def handleWildcardTableMatch(context: PacketContext,
-                                 wildFlow: WildcardFlow): Unit = {
-        context.log.debug("matched a wildcard flow with actions {}", wildFlow.actions)
-        logResultMatchedFlow("matched a wildcard flow", context, wildFlow)
-        context.origMatch.propagateSeenFieldsFrom(wildFlow.wcmatch)
-        createFlow(context, wildFlow)
-        dpChannel.executePacket(context.packet, wildFlow.getActions)
-
-    }
-
-    /** Handles a packet that missed the wildcard flow table.
-      *
-      * If the FlowMatch indicates that the packet came from a tunnel port,
-      * there are 3 possible situations:
-      *
-      *     1) it came from the overlay tunneling port and is a
-      *        state message sent by a fellow agent.
-      *     2) it came from the overlay tunneling port and it corresponds
-      *        to an unknown port tunnel key, probably due to a race
-      *        between a packet and a port deactivation. We'll install a
-      *        temporary drop flow.
-      *     3) it's coming from a VTEP into the virtual network, we shall
-      *        simulate it.
-      *
-      * Otherwise, the packet is coming in from a regular port into the
-      * virtual network and we'll simulate it.
-      */
-    private def handleWildcardTableMiss(context: PacketContext,
-                                        inPortNo: Int): SimulationResult =
         if (context.origMatch.isFromTunnel) {
             handleFromTunnel(context, inPortNo)
         } else if (resolveVport(context, inPortNo)) {
@@ -299,6 +213,7 @@ class PacketWorkflow(protected val dpState: DatapathState,
         } else {
             processSimulationResult(context, handleBgp(context, inPortNo))
         }
+    }
 
     private def resolveVport(context: PacketContext, inPortNo: Int): Boolean = {
         val inPortId = dpState getVportForDpPortNumber inPortNo
@@ -310,20 +225,11 @@ class PacketWorkflow(protected val dpState: DatapathState,
         }
     }
 
-    private def doEgressPortSimulation(context: PacketContext) = {
+    private def handlePacketEgress(context: PacketContext) = {
         context.log.debug("Handling generated packet")
         processSimulationResult(context, runSimulation(context))
     }
 
-    /*
-     * Here we receive the result of the simulation, which can be either a
-     * simulation that could complete with resources cached locally, or the
-     * first incomplete future that was found in the way.
-     *
-     * This will enqueue the simulation for later processing whenever the future
-     * completes, or proceed with the resulting actions if the result is
-     * already computed.
-     */
     def processSimulationResult(context: PacketContext,
                                 result: SimulationResult): SimulationResult = {
         result match {
