@@ -26,5 +26,5 @@ public interface FlowManagerHelper {
 
     public void removeFlow(FlowMatch flowMatch);
 
-    public void removeWildcardFlow(ManagedWildcardFlow flow);
+    public void removeWildcardFlow(ManagedFlow flow);
 }
