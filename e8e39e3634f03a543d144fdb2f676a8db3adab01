@@ -19,6 +19,41 @@
     },
     {
       "key": {
+        "uuid": "9a245df4_c93948da",
+        "filename": "midolman/conf/midolman.conf",
+        "patchSetId": 1
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-01-22T08:29:00Z",
+      "side": 1,
+      "message": "Done for midolman.conf.compute et al.\n\nI think MTU would affect on routers as well and I\u0027ll keep it in midolman section.",
+      "parentUuid": "9a245df4_b078b92c",
+      "revId": "e8e39e3634f03a543d144fdb2f676a8db3adab01",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_093400dd",
+        "filename": "midolman/src/main/java/org/midonet/midolman/config/MidolmanConfig.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-01-22T08:29:00Z",
+      "side": 1,
+      "message": "I found getMidolmanDhcpMtu and I eliminate this.",
+      "revId": "e8e39e3634f03a543d144fdb2f676a8db3adab01",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a245df4_b09f1950",
         "filename": "midolman/src/main/scala/org/midonet/midolman/PacketWorkflow.scala",
         "patchSetId": 1
@@ -30,6 +65,41 @@
       "writtenOn": "2015-01-21T10:03:45Z",
       "side": 1,
       "message": "why is this an option? and, shouldn\u0027t the DDA be passing it when it creates PWs?",
+      "revId": "e8e39e3634f03a543d144fdb2f676a8db3adab01",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_8920f09c",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/PacketWorkflow.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 131,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-01-22T08:29:00Z",
+      "side": 1,
+      "message": "Because we have a Scala companion object PacketWorkflowTest where PacketWorkflow is instantiated and there\u0027s no MidolmanConfig.",
+      "parentUuid": "9a245df4_b09f1950",
+      "revId": "e8e39e3634f03a543d144fdb2f676a8db3adab01",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_6925bcaa",
+        "filename": "midonet-util/src/main/java/org/midonet/config/ConfigShort.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-01-22T08:29:00Z",
+      "side": 1,
+      "message": "I eliminated this annotation because Midolman was dead when I used this.",
       "revId": "e8e39e3634f03a543d144fdb2f676a8db3adab01",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
