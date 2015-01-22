@@ -22,6 +22,7 @@ import java.util.ArrayList
 import org.jctools.queues.SpscArrayQueue
 
 import org.junit.runner.RunWith
+import org.midonet.sdn.flows.ManagedFlow
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.concurrent.Eventually._
 
@@ -133,7 +134,9 @@ class DatapathChannelTest extends MidolmanSpec {
             packet.getMatch.setSequence(1)
             val flowDelete = new FlowRemoveCommand(new ArrayObjectPool(0, _ => null),
                                                    new SpscArrayQueue[FlowRemoveCommand](16))
-            flowDelete.reset(packet.getMatch, 0)
+            val managedFlow = new ManagedFlow(null)
+            managedFlow.flowMatch.reset(packet.getMatch)
+            flowDelete.reset(managedFlow, 0)
             ejector.eject(flowDelete)
 
             Thread.sleep(500)
@@ -146,7 +149,7 @@ class DatapathChannelTest extends MidolmanSpec {
                 nlChannel.packetsWritten.get() should be (3)
             }
 
-            flowDelete.reset(packet.getMatch, 0)
+            flowDelete.reset(managedFlow, 0)
             ejector.eject(flowDelete)
 
             eventually {
