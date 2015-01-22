@@ -261,6 +261,23 @@ public class TestRules {
     }
 
     @Test
+    public void testTraceRule() {
+        Rule rule = new TraceRule(cond);
+        // If the condition doesn't match the result is not modified.
+        RuleResult res = new RuleResult(null, null);
+        rule.process(pktCtx, res, ownerId, false);
+        Assert.assertEquals(null, res.action);
+        pktCtx.inPortId_$eq(inPort);
+        rule.process(pktCtx, res, ownerId, false);
+        Assert.assertEquals(Action.TRACE, res.action);
+
+        pktCtx.setTracingEnabled();
+        res = new RuleResult(null, null);
+        rule.process(pktCtx, res, ownerId, false);
+        Assert.assertEquals(null, res.action);
+    }
+
+    @Test
     public void testJumpRule() {
         Rule rule = new JumpRule(cond, jumpChainId, jumpChainName);
         // If the condition doesn't match the result is not modified.

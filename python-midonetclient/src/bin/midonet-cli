@@ -1841,6 +1841,7 @@ class Rule(Condition):
                                            'jump': 'jump',
                                            'reject': 'reject',
                                            'return': 'return',
+                                           'trace': 'trace',
                                            'dnat': 'dnat',
                                            'snat': 'snat',
                                            'rev_dnat': 'rev_dnat',

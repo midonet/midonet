@@ -41,6 +41,7 @@ import org.midonet.cluster.data.ports.VxLanPort;
 import org.midonet.cluster.data.rules.ForwardNatRule;
 import org.midonet.cluster.data.rules.JumpRule;
 import org.midonet.cluster.data.rules.LiteralRule;
+import org.midonet.cluster.data.rules.TraceRule;
 import org.midonet.cluster.data.rules.ReverseNatRule;
 import org.midonet.midolman.host.state.HostDirectory;
 import org.midonet.midolman.state.PortConfig;
@@ -503,6 +504,12 @@ public class Converter {
             );
         }
 
+        if (rule instanceof TraceRule) {
+            TraceRule typedRule = (TraceRule) rule;
+            ruleConfig = new org.midonet.midolman.rules.TraceRule(
+                    typedRule.getCondition());
+        }
+
         if (rule instanceof JumpRule) {
             JumpRule typedRule = (JumpRule) rule;
 
@@ -554,6 +561,10 @@ public class Converter {
         if (ruleConfig instanceof org.midonet.midolman.rules.LiteralRule) {
             rule = new LiteralRule(ruleConfig.getCondition(),
                     ruleConfig.action);
+        }
+
+        if (ruleConfig instanceof org.midonet.midolman.rules.TraceRule) {
+            rule = new TraceRule(ruleConfig.getCondition());
         }
 
         if (ruleConfig instanceof org.midonet.midolman.rules.JumpRule) {

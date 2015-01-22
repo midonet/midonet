@@ -33,6 +33,7 @@ import org.midonet.midolman.simulation.PacketContext;
     property = "type")
 @JsonSubTypes({
     @JsonSubTypes.Type(value = LiteralRule.class, name = "Literal"),
+    @JsonSubTypes.Type(value = TraceRule.class, name = "Trace"),
     @JsonSubTypes.Type(value = JumpRule.class, name = "Jump"),
     @JsonSubTypes.Type(value = ForwardNatRule.class, name = "ForwardNat"),
     @JsonSubTypes.Type(value = ReverseNatRule.class, name = "ReverseNat")
