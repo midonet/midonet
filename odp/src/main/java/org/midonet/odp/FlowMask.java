@@ -147,7 +147,7 @@ public class FlowMask extends NetlinkSerializable
     }
 
     public FlowKey getMaskFor(short keyId) {
-        return keys[keyId];
+        return keys[keyId & MASK];
     }
 
     public void swap(FlowMask other) {
