@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory
 import rx.Observer
 import rx.schedulers.Schedulers
 
+import org.midonet.brain.southbound.vtep.VtepDataClientFactory
 import org.midonet.cluster.EntityIdSetEvent.Type
 import org.midonet.cluster.{DataClient, EntityIdSetEvent, EntityIdSetMonitor}
 import org.midonet.midolman.state.{StateAccessException, ZookeeperConnectionWatcher}
@@ -33,8 +34,9 @@ import org.midonet.util.functors._
 /** This is just a simple watcher that subscribers on a stream of updates
   * from MidoNet bridges, spots those that become part of a VxLan Gateway, and
   * starts the associated processes to manage the coordination with VTEPs. */
-class VxlanGatewaySummoner(dataClient: DataClient,
-                           zkConnWatcher: ZookeeperConnectionWatcher) {
+class VxlanGatewaySummoner(nodeId: UUID, dataClient: DataClient,
+                           zkConnWatcher: ZookeeperConnectionWatcher,
+                           vtepDataClientFactory: VtepDataClientFactory) {
 
     private val log = LoggerFactory.getLogger(classOf[VxlanGatewaySummoner])
     private val managers = new ConcurrentHashMap[UUID, VxlanGatewayManager]()
@@ -57,12 +59,14 @@ class VxlanGatewaySummoner(dataClient: DataClient,
                                                        hostsState,
                                                        new Random())
 
-    private val vtepPeerPool = new VtepPool(dataClient, zkConnWatcher, tzState)
+    private val vtepPeerPool = new VtepPool(nodeId, dataClient, zkConnWatcher,
+                                            tzState, vtepDataClientFactory)
 
     executor submit makeRunnable { resetMonitor() }
 
     /** Resets the monitor */
     private def resetMonitor(): Unit = {
+        log.info("Watch for changes in bridges")
         bridgeMonitor = dataClient.bridgesGetUuidSetMonitor(zkConnWatcher)
         bridgeMonitor.getObservable
             .observeOn(Schedulers.from(executor))
@@ -80,6 +84,7 @@ class VxlanGatewaySummoner(dataClient: DataClient,
                 }
             }
         })
+        bridgeMonitor.notifyState()
     }
 
     /** Use after a network has either changed or been created to start a

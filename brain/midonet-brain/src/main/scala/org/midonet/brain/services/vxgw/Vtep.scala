@@ -16,10 +16,14 @@
 
 package org.midonet.brain.services.vxgw
 
+import java.util.UUID
+
+import org.opendaylight.ovsdb.lib.notation.{UUID => OdlUUID}
 import scala.util.Try
 
 import rx.{Observable, Observer}
 
+import org.midonet.brain.southbound.vtep.VtepDataClientFactory
 import org.midonet.brain.southbound.vtep.model.LogicalSwitch
 import org.midonet.cluster.DataClient
 import org.midonet.midolman.state.ZookeeperConnectionWatcher
@@ -58,8 +62,9 @@ abstract class VtepConfig(val mgmtIp: IPv4Addr, val mgmtPort: Int) {
     def macRemoteUpdates: Observer[MacLocation]
 
     /** Provide a snapshot with the current contents of the Mac_Local tables
-      * in the VTEP's OVSDB. */
-    def currentMacLocal: Seq[MacLocation]
+      * in the VTEP's OVSDB. If a logical switch UUID is given, it'll filter
+      * only entries in it. */
+    def currentMacLocal(ls: OdlUUID): Seq[MacLocation]
 
     /** This method should return the tunnel IP of the VTEP */
     def vxlanTunnelIp: Option[IPv4Addr]
@@ -80,8 +85,10 @@ abstract class VtepConfig(val mgmtIp: IPv4Addr, val mgmtPort: Int) {
 class VtepConfigException(msg: String) extends RuntimeException(msg)
 
 /** Offers a pool of interfaces to hardware VTEPs. */
-class VtepPool(midoDb: DataClient, zkConnWatcher: ZookeeperConnectionWatcher,
-               tzState: TunnelZoneStatePublisher) {
+class VtepPool(nodeId: UUID, midoDb: DataClient,
+               zkConnWatcher: ZookeeperConnectionWatcher,
+               tzState: TunnelZoneStatePublisher,
+               vtepDataClientFactory: VtepDataClientFactory) {
 
     import java.util.concurrent.ConcurrentHashMap
     import com.google.common.annotations.VisibleForTesting
@@ -113,8 +120,9 @@ class VtepPool(midoDb: DataClient, zkConnWatcher: ZookeeperConnectionWatcher,
 
     @VisibleForTesting
     def create(mgmtIp: IPv4Addr, mgmtPort: Int): Vtep = {
-        new VtepController(new VtepFromOvsdb(mgmtIp, mgmtPort), null,
-                     zkConnWatcher, tzState)
+        val vtepFromOvsdb = new VtepFromOldOvsdbClient(nodeId, mgmtIp, mgmtPort,
+                                                       vtepDataClientFactory)
+        new VtepController(vtepFromOvsdb, midoDb, zkConnWatcher, tzState)
     }
 
 }
