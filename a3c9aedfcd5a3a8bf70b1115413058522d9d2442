@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9a245df4_c62497c8",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/common/Connection.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 111,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-22T06:58:19Z",
+      "side": 1,
+      "message": "s/recuperable/recoverable/",
+      "range": {
+        "startLine": 111,
+        "startChar": 15,
+        "endLine": 111,
+        "endChar": 26
+      },
+      "revId": "a3c9aedfcd5a3a8bf70b1115413058522d9d2442",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_a621a3b6",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/common/Connection.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 129,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-22T06:58:19Z",
+      "side": 1,
+      "message": "Please fix the indentation.",
+      "range": {
+        "startLine": 129,
+        "startChar": 20,
+        "endLine": 129,
+        "endChar": 23
+      },
+      "revId": "a3c9aedfcd5a3a8bf70b1115413058522d9d2442",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_6617ab52",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/common/ProtocolFactory.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-22T06:58:19Z",
+      "side": 1,
+      "message": "I\u0027d rename this to ProtocolState as State is very uninformative. Alternatively it can be defined as a member trait for ProtocolFactory.",
+      "range": {
+        "startLine": 44,
+        "startChar": 6,
+        "endLine": 44,
+        "endChar": 11
+      },
+      "revId": "a3c9aedfcd5a3a8bf70b1115413058522d9d2442",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
