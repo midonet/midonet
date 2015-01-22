@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9a245df4_0977e003",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/Port.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-22T12:50:14Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9a245df4_e91c0cc4",
+      "range": {
+        "startLine": 94,
+        "startChar": 4,
+        "endLine": 94,
+        "endChar": 27
+      },
+      "revId": "caa3afd4232d471567794ea242f89cabf941b87e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a245df4_4979d8fb",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/Port.scala",
         "patchSetId": 2
@@ -36,6 +60,30 @@
       "writtenOn": "2015-01-22T12:45:37Z",
       "side": 1,
       "message": "It is here where we should detect a VxLanPort first, when reading the protobuf.\n\n  if (proto.hasNetworkId \u0026\u0026 proto.hasVtepMgmtIp) classOf[VxLanPort]\n  else if (proto.hasNetworkId) classOf[BridgePort]\n  else if (proto.hasRouterId) classOf[RouterPort]",
+      "range": {
+        "startLine": 146,
+        "startChar": 8,
+        "endLine": 148,
+        "endChar": 56
+      },
+      "revId": "caa3afd4232d471567794ea242f89cabf941b87e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_e9736c13",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/Port.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 148,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-22T12:50:14Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9a245df4_4979d8fb",
       "range": {
         "startLine": 146,
         "startChar": 8,
