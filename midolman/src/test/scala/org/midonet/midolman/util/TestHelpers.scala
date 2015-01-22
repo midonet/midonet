@@ -38,24 +38,6 @@ object TestHelpers {
     def totalMatch(acts: Seq[FlowAction], targ: Seq[FlowAction]) =
         acts.size == targ.size && partialMatch(acts, targ)
 
-    def matchActionsFlowAddedOrRemoved(
-            flowActions: Seq[FlowAction]): PartialFunction[Any, Boolean] = {
-        case msg: WildcardFlowAdded =>
-            totalMatch(msg.f.getActions, flowActions)
-        case msg: WildcardFlowRemoved =>
-            totalMatch(msg.f.getActions, flowActions)
-        case _ => false
-    }
-
-    def partialMatchActionsFlowAddedOrRemoved(
-            flowActions: Seq[FlowAction]): PartialFunction[Any, Boolean] = {
-        case msg: WildcardFlowAdded =>
-            partialMatch(msg.f.getActions, flowActions)
-        case msg: WildcardFlowRemoved =>
-            partialMatch(msg.f.getActions, flowActions)
-        case _ => false
-    }
-
     def matchFlowTag(tagToMatch: AnyRef): PartialFunction[Any, Boolean] = {
         case InvalidateFlowsByTag(tag) => tag.equals(tagToMatch)
         case _ => false
