@@ -27,7 +27,8 @@ public class RuleResult {
         DROP(true),
         JUMP(false),
         REJECT(true),
-        RETURN(false);
+        RETURN(false),
+        TRACE(false);
 
         private final boolean decisive;
 

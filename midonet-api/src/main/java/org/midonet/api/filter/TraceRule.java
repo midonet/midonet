@@ -16,19 +16,28 @@
 package org.midonet.api.filter;
 
 /**
- * Rule types
+ * Trace rule DTO
  */
-public class RuleType {
+public class TraceRule extends Rule {
 
-    public static final String Accept = "accept";
-    public static final String Continue = "continue";
-    public static final String Drop = "drop";
-    public static final String Jump = "jump";
-    public static final String Reject = "reject";
-    public static final String Return = "return";
-    public static final String Trace = "trace";
-    public static final String DNAT = "dnat";
-    public static final String SNAT = "snat";
-    public static final String RevDNAT = "rev_dnat";
-    public static final String RevSNAT = "rev_snat";
+    public TraceRule() {
+        super();
+    }
+
+    public TraceRule(org.midonet.cluster.data.rules.TraceRule rule) {
+        super(rule);
+    }
+
+    @Override
+    public String getType() {
+        return RuleType.Trace;
+    }
+
+    @Override
+    public org.midonet.cluster.data.rules.TraceRule toData () {
+        org.midonet.cluster.data.rules.TraceRule data
+            = new org.midonet.cluster.data.rules.TraceRule(makeCondition());
+        super.setData(data);
+        return data;
+    }
 }

@@ -321,7 +321,7 @@ class DeduplicationActor(
     /**
      * Deal with a completed workflow
      */
-    private def complete(pktCtx: PacketContext, path: PipelinePath): Unit = {
+    protected def complete(pktCtx: PacketContext, path: PipelinePath): Unit = {
         pktCtx.log.debug("Packet processed")
         if (pktCtx.runs > 1)
             waitingRoom leave pktCtx
@@ -394,6 +394,9 @@ class DeduplicationActor(
         try {
             complete(pktCtx, workflow.start(pktCtx))
         } catch {
+            case TraceRequiredException(msg) =>
+                pktCtx.setTracingEnabled
+                runWorkflow(pktCtx)
             case NotYetException(f, msg) =>
                 pktCtx.log.debug(s"Postponing simulation because: $msg")
                 postponeOn(pktCtx, f)

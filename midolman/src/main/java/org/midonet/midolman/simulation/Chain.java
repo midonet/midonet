@@ -25,6 +25,7 @@ import java.util.UUID;
 import scala.Option;
 import scala.collection.Map;
 
+import org.midonet.midolman.TraceRequiredException;
 import org.midonet.midolman.rules.JumpRule;
 import org.midonet.midolman.rules.Rule;
 import org.midonet.midolman.rules.RuleResult;
@@ -99,6 +100,10 @@ public class Chain {
 
             Rule r = iter.next();
             r.process(context, res, ownerId, isPortFilter);
+
+            if (res.action == Action.TRACE) {
+                throw new TraceRequiredException("Packet should be traced");
+            }
 
             if (res.action == Action.JUMP) {
                 Chain jumpChain = getJumpTarget(res.jumpToChain);

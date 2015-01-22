@@ -201,6 +201,7 @@ class PacketContext(val cookie: Int,
                     val packet: Packet,
                     val origMatch: FlowMatch,
                     val egressPort: UUID = null) extends Clearable with FlowContext with StateContext {
+    var tracing: Boolean = false
     var log = PacketContext.defaultLog
 
     def jlog = log.underlying
@@ -275,6 +276,14 @@ class PacketContext(val cookie: Int,
 
     def addGeneratedPacket(uuid: UUID, ethernet: Ethernet): Unit =
         packetEmitter.schedule(GeneratedPacket(uuid, ethernet))
+
+    def tracingEnabled(): Boolean = {
+        tracing
+    }
+
+    def setTracingEnabled() {
+        tracing = true
+    }
 
     override def toString = s"PacketContext[$cookieStr]"
 }
