@@ -47,6 +47,7 @@ import org.midonet.odp.flows.IPFragmentType;
         @JsonSubTypes.Type(value = JumpRule.class, name = RuleType.Jump),
         @JsonSubTypes.Type(value = RejectRule.class, name = RuleType.Reject),
         @JsonSubTypes.Type(value = ReturnRule.class, name = RuleType.Return),
+        @JsonSubTypes.Type(value = TraceRule.class, name = RuleType.Trace),
         @JsonSubTypes.Type(value = ReverseDnatRule.class,
                 name = RuleType.RevDNAT),
         @JsonSubTypes.Type(value = ReverseSnatRule.class,
