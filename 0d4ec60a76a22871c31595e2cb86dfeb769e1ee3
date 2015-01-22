@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "9a245df4_a4099b2e",
+        "filename": "midolman/src/main/scala/org/midonet/cluster/services/StorageService.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-22T15:44:18Z",
+      "side": 1,
+      "message": "Yes, putting this on the list of TODOs :-)",
+      "parentUuid": "9a245df4_73d64bc7",
+      "revId": "0d4ec60a76a22871c31595e2cb86dfeb769e1ee3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a245df4_c67657d8",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VTPMRedirector.scala",
         "patchSetId": 7
@@ -65,6 +83,30 @@
       "writtenOn": "2015-01-22T14:29:29Z",
       "side": 1,
       "message": "tab",
+      "range": {
+        "startLine": 64,
+        "startChar": 0,
+        "endLine": 64,
+        "endChar": 4
+      },
+      "revId": "0d4ec60a76a22871c31595e2cb86dfeb769e1ee3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_840e1733",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VTPMRedirector.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-22T15:44:18Z",
+      "side": 1,
+      "message": "Yep, I removed it.",
+      "parentUuid": "9a245df4_d3da97e8",
       "range": {
         "startLine": 64,
         "startChar": 0,
