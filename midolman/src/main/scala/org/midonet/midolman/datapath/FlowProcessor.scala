@@ -77,14 +77,15 @@ sealed class FlowProcessor(flowEjector: FlowEjector,
 
     override def shouldProcess(): Boolean = {
         val flowDelete = flowEjector.peek()
-        (flowDelete ne null) && flowDelete.flowMatch.getSequence <= lastSequence
+        (flowDelete ne null) && flowDelete.managedFlow.flowMatch.getSequence <= lastSequence
     }
 
     override def process(): Unit = {
         while (shouldProcess()) {
             val flowDelete = flowEjector.poll()
-            log.debug(s"Deleting flow with match ${flowDelete.flowMatch}")
+            log.debug(s"Deleting flow ${flowDelete.managedFlow}")
             val buf = flowDelete.prepareRequest(datapathId, protocol)
+            buf.putInt(NetlinkMessage.NLMSG_PID_OFFSET, pid)
             requestReply.writeRequest(buf, flowDelete)
         }
     }
