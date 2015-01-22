@@ -16,269 +16,212 @@
 
 package org.midonet.midolman
 
-import java.util.ArrayList
+import java.util.{ArrayList, HashSet => JHashSet}
 
 import scala.collection.JavaConversions._
 import scala.util.Random
 
 import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
+
+import org.midonet.midolman.FlowController.InvalidateFlowsByTag
+import org.midonet.midolman.simulation.PacketContext
 import org.midonet.midolman.util.MidolmanSpec
-import org.midonet.midolman.util.mock.MessageAccumulator
-import org.midonet.odp.flows.FlowKeys
-import org.midonet.odp.{Flow, FlowMatch}
+import org.midonet.odp.flows.{FlowActions, FlowKeys}
+import org.midonet.odp.FlowMatch
 import org.midonet.sdn.flows.FlowTagger.{FlowTag, TunnelKeyTag}
 import org.midonet.sdn.flows._
 import org.midonet.util.functors.Callback0
-import org.scalatest.junit.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
 class FlowControllerTest extends MidolmanSpec {
 
-    registerActors(FlowController -> (() => new FlowController
-                                            with MessageAccumulator))
+    registerActors(FlowController -> (() => new FlowController))
 
     val flowTimeout: Int = 1000
     val tagCount: Int = 10
 
-    def flowController = FlowController.as[FlowController
-                                           with MessageAccumulator]
+    def flowController = FlowController.as[FlowController]
 
     feature("The flow controller initializes correctly") {
-        scenario("The flow controller instance not null and metrics" +
-                " initialized.") {
-            When("When the flow controller initializes.")
+        scenario("The flow controller instance not null and metrics " +
+                 "initialized") {
+            When("When the flow controller initializes")
             flowController should not be null
 
-            Then("The wildcard flows metrics should be zero.")
+            Then("The wildcard flows metrics should be zero")
             flowController.metrics.currentDpFlowsMetric.getValue should be(0)
-            flowController.metrics.currentWildFlowsMetric.getValue should be(0)
 
-            And("The flow manager should not be null.")
+            And("The flow manager should not be null")
             flowController.flowManager should not be null
 
-            And("The flow manager helper should not be null.")
+            And("The flow manager helper should not be null")
             flowController.flowManagerHelper should not be null
         }
     }
 
     feature("The flow controller processes wildcard flows") {
-        scenario("Addition and removal of a flow.") {
+        scenario("Addition and removal of a flow") {
 
-            Given("A wildcard flow.")
+            Given("A wildcard flow")
             val flow = new TestableFlow(1)
 
             val state = new MetricsSnapshot()
 
-            When("The flow is added to the flow controller.")
-            FlowController ! FlowController.AddWildcardFlow(
-                flow.wcFlow,
-                flow.dpFlow,
-                flow.callbacks,
-                flow.tagsSet,
-                FlowController.lastInvalidationEvent
-                )
+            When("The flow is added to the flow controller")
+            flow.add()
 
             val mwcFlow = testFlowAdded(flow, state)
 
-            When("The flow is removed from the flow controller.")
-            FlowController ! FlowController.RemoveWildcardFlow(flow.flowMatch)
+            When("The flow is removed from the flow controller")
+            flow.remove()
 
             testFlowRemoved(flow, mwcFlow, state)
         }
 
-        scenario("Addition of a duplicate flow.") {
+        scenario("Addition of a duplicate flow") {
 
-            Given("A wildcard flow.")
+            Given("A wildcard flow")
             val flow = new TestableFlow(2)
 
             val state = new MetricsSnapshot()
 
-            When("The flow is added twice to the flow controller.")
-            FlowController ! FlowController.AddWildcardFlow(
-                flow.wcFlow,
-                flow.dpFlow,
-                flow.callbacks,
-                flow.tagsSet,
-                FlowController.lastInvalidationEvent
-            )
-            FlowController ! FlowController.AddWildcardFlow(
-                flow.wcFlow,
-                flow.dpFlow,
-                flow.callbacks,
-                flow.tagsSet,
-                FlowController.lastInvalidationEvent
-            )
+            When("The flow is added twice to the flow controller")
+            flow.add()
+            flow.add()
 
             val mwcFlow = testFlowAdded(flow, state)
 
-            When("The flow was remove from the flow controller.")
-            FlowController ! FlowController.RemoveWildcardFlow(flow.flowMatch)
+            When("The flow was remove from the flow controller")
+            flow.remove()
 
             testFlowRemoved(flow, mwcFlow, state)
         }
 
-        scenario("Invalidate an existing flow by tag.") {
-            Given("A wildcard flow.")
+        scenario("Invalidate an existing flow by tag") {
+            Given("A wildcard flow")
             val flow = new TestableFlow(3)
 
             val state = new MetricsSnapshot()
 
-            When("The flow is added to the flow controller.")
-            FlowController ! FlowController.AddWildcardFlow(
-                flow.wcFlow,
-                flow.dpFlow,
-                flow.callbacks,
-                flow.tagsSet,
-                FlowController.lastInvalidationEvent
-            )
+            When("The flow is added to the flow controller")
+            flow.add()
 
             val mwcFlow = testFlowAdded(flow, state)
 
             val tag = flow.getAnyTag
 
-            When("The flow is invalidated by a tag.")
+            When("The flow is invalidated by a tag")
             FlowController ! FlowController.InvalidateFlowsByTag(tag)
 
             testFlowRemoved(flow, mwcFlow, state)
 
-            And("The tag should appear in the invalidation history.")
-            FlowController.isTagSetStillValid(-1, flow.tagsSet) should be (false)
+            And("The tag should appear in the invalidation history")
+            val pktCtx = new PacketContext(0, null, new FlowMatch)
+            pktCtx.addFlowTag(tag)
+            FlowController.isTagSetStillValid(pktCtx) should be (false)
         }
 
-        scenario("Invalidate a non-existing tag.") {
-            Given("A tag for a non-existing flow.")
+        scenario("Invalidate a non-existing tag") {
+            Given("A tag for a non-existing flow")
             val tag = TestableFlow.getTag(4)
 
-            Then("The tag should not appear in the tag to flows map.")
+            Then("The tag should not appear in the tag to flows map")
             flowController.tagToFlows.get(tag) should be (None)
 
-            When("The flow is invalidated by a tag.")
+            When("The flow is invalidated by a tag")
             FlowController ! FlowController.InvalidateFlowsByTag(tag)
 
-            Then("The tag should appear in the invalidation history.")
-            FlowController.isTagSetStillValid(-1, Set(tag)) should be (false)
+            Then("The tag should appear in the invalidation history")
+            val pktCtx = new PacketContext(0, null, new FlowMatch)
+            pktCtx.lastInvalidation = -1
+            pktCtx.addFlowTag(tag)
+            FlowController.isTagSetStillValid(pktCtx) should be (false)
         }
 
-        scenario("Check idle expired flows are removed from the flow" +
-                "controller") {
-            Given("A wildcard flow.")
-            val flow = new TestableFlow(5, TestableFlowIdleExpiration(),
-                flowTimeout)
+        scenario("Check idle expired flows are removed from the flow " +
+                 "controller") {
+            Given("A wildcard flow")
+            val flow = new TestableFlow(5, flowTimeout)
 
             val state = new MetricsSnapshot()
 
-            When("The flow is added to the flow controller.")
-            FlowController ! FlowController.AddWildcardFlow(
-                flow.wcFlow,
-                flow.dpFlow,
-                flow.callbacks,
-                flow.tagsSet,
-                FlowController.lastInvalidationEvent
-            )
+            When("The flow is added to the flow controller")
+            flow.add()
 
             val mwcFlow = testFlowAdded(flow, state)
 
-            When("The flow has expired.")
+            When("The flow has expired")
             expireFlowIdle(mwcFlow)
 
-            And("The flow controller checks the flow expiration.")
+            And("The flow controller checks the flow expiration")
             FlowController ! FlowController.CheckFlowExpiration_
 
             testFlowRemoved(flow, mwcFlow, state)
         }
 
-        scenario("Check hard expired flows are removed from the flow" +
-                " controller.") {
-            Given("A wildcard flow.")
-            val flow = new TestableFlow(6, TestableFlowHardExpiration(),
-                flowTimeout)
+        scenario("Check hard expired flows are removed from the flow " +
+                 "controller") {
+            Given("A wildcard flow")
+            val flow = new TestableFlow(6, flowTimeout, TestableFlowHardExpiration)
 
             val state = new MetricsSnapshot()
 
-            When("The flow is added to the flow controller.")
-            FlowController ! FlowController.AddWildcardFlow(
-                flow.wcFlow,
-                flow.dpFlow,
-                flow.callbacks,
-                flow.tagsSet,
-                FlowController.lastInvalidationEvent
-            )
+            When("The flow is added to the flow controller")
+            flow.add()
 
             val mwcFlow = testFlowAdded(flow, state)
 
-            When("The flow has expired.")
+            When("The flow has expired")
             expireFlowHard(mwcFlow)
 
-            And("The flow controller checks the flow expiration.")
+            And("The flow controller checks the flow expiration")
             FlowController ! FlowController.CheckFlowExpiration_
 
             testFlowRemoved(flow, mwcFlow, state)
         }
 
-        scenario("Check non-expired flows are not removed from the flow" +
-                "controller") {
-            Given("A wildcard flow.")
-            val flow = new TestableFlow(7, TestableFlowIdleExpiration(),
-                flowTimeout)
+        scenario("Check non-expired flows are not removed from the flow " +
+                 "controller") {
+            Given("A wildcard flow")
+            val flow = new TestableFlow(7, flowTimeout)
 
             val state = new MetricsSnapshot()
 
-            When("The flow is added to the flow controller.")
-            FlowController ! FlowController.AddWildcardFlow(
-                flow.wcFlow,
-                flow.dpFlow,
-                flow.callbacks,
-                flow.tagsSet,
-                FlowController.lastInvalidationEvent
-            )
+            When("The flow is added to the flow controller")
+            flow.add()
 
             val mwcFlow = testFlowAdded(flow, state)
 
-            When("The flow controller checks the flow expiration.")
+            When("The flow controller checks the flow expiration")
             FlowController ! FlowController.CheckFlowExpiration_
 
             testFlowExists(flow, mwcFlow, state)
         }
 
-        scenario("Check a datapath flow is removed via the flow manager helper.") {
-            Given("A wildcard flow.")
+        scenario("Check a datapath flow is removed via the flow manager helper") {
+            Given("A wildcard flow")
             val flow = new TestableFlow(8)
 
             val state = new MetricsSnapshot()
 
-            When("The flow is added to the flow controller.")
-            FlowController ! FlowController.AddWildcardFlow(
-                flow.wcFlow,
-                flow.dpFlow,
-                flow.callbacks,
-                flow.tagsSet,
-                FlowController.lastInvalidationEvent
-            )
+            When("The flow is added to the flow controller")
+            flow.add()
 
             val mwcFlow = testFlowAdded(flow, state)
 
             flowController.flowManager.dpFlowTable.remove(flow.flowMatch)
             flowController.flowManagerHelper.removeFlow(flow.flowMatch)
 
-            Then("The flow should not appear in the wildcard flow table.")
-            FlowController.queryWildcardFlowTable(flow.flowMatch) should not be
-                    (None)
-
-            And("The datapath flow metric should be set at the original value.")
+            Then("The datapath flow metric should be set at the original value")
             flowController.metrics.currentDpFlowsMetric.getValue should be (
                 state.dpFlowsCount)
 
-            And("The wildcard flow metric should be set at the original value.")
-            flowController.metrics.currentWildFlowsMetric.getValue should be (
-                state.wcFlowsCount + 1)
-
-            And("The flow manager should indicate the same number of flows.")
+            And("The flow manager should indicate the same number of flows")
             flowController.metrics.currentDpFlowsMetric.getValue should be (
                 flowController.flowManager.getNumDpFlows)
-            flowController.metrics.currentWildFlowsMetric.getValue should be (
-                flowController.flowManager.getNumWildcardFlows)
 
-            And("The flow controller should contain the flow tag mapping tags.")
+            And("The flow controller should contain the flow tag mapping tags")
             for (tag <- flow.tagsSet) {
                 flowController.tagToFlows.get(tag) match {
                     case None =>
@@ -286,24 +229,18 @@ class FlowControllerTest extends MidolmanSpec {
                 }
             }
 
-            And("The flow removal callback method should not have been called.")
+            And("The flow removal callback method should not have been called")
             flow.isFlowRemoved should be (false)
         }
 
-        scenario("Check a wildcard flow is removed via the flow manager helper.") {
-            Given("A wildcard flow.")
+        scenario("Check a wildcard flow is removed via the flow manager helper") {
+            Given("A wildcard flow")
             val flow = new TestableFlow(9)
 
             val state = new MetricsSnapshot()
 
-            When("The flow is added to the flow controller.")
-            FlowController ! FlowController.AddWildcardFlow(
-                flow.wcFlow,
-                flow.dpFlow,
-                flow.callbacks,
-                flow.tagsSet,
-                FlowController.lastInvalidationEvent
-            )
+            When("The flow is added to the flow controller")
+            flow.add()
 
             val mwcFlow = testFlowAdded(flow, state)
 
@@ -314,118 +251,87 @@ class FlowControllerTest extends MidolmanSpec {
     }
 
     private def testFlowAdded(flow: TestableFlow,
-                              state: MetricsSnapshot): ManagedWildcardFlow = {
-        Then("The flow should appear in the wildcard flow table.")
-        FlowController.queryWildcardFlowTable(flow.flowMatch) should not be (None)
-
-        val mwcFlow = FlowController.queryWildcardFlowTable(flow.flowMatch) get
-
-        And("The datapath flow metric should be incremented by one.")
+                              state: MetricsSnapshot): ManagedFlow = {
+        Then("The datapath flow metric should be incremented by one")
         flowController.metrics.dpFlowsMetric.getCount should be (
             state.dpFlowsCount + 1)
         flowController.metrics.currentDpFlowsMetric.getValue should be (
             state.dpFlowsCount + 1)
 
-        And("The wildcard flow metric should be incremented by one.")
-        flowController.metrics.wildFlowsMetric.getCount should be (
-            state.wcFlowsCount + 1)
-        flowController.metrics.currentWildFlowsMetric.getValue should be (
-            state.wcFlowsCount + 1)
-
-        And("The flow manager should indicate the same number of flows.")
+        And("The flow manager should indicate the same number of flows")
         flowController.metrics.currentDpFlowsMetric.getValue should be (
             flowController.flowManager.getNumDpFlows)
-        flowController.metrics.currentWildFlowsMetric.getValue should be (
-            flowController.flowManager.getNumWildcardFlows)
 
-        And("The flow controller contains the correct tag mappings.")
+        And("The flow controller contains the correct tag mappings")
+        var mwcFlow: ManagedFlow = null
         for (tag <- flow.tagsSet) {
-            flowController.tagToFlows.get(tag) should not be (None)
-            flowController.tagToFlows.get(tag).get should contain (mwcFlow)
+            flowController.tagToFlows.get(tag) should not be None
+            mwcFlow = flowController.tagToFlows.get(tag).get.head
+            mwcFlow should not be null
         }
 
-        return mwcFlow
+        mwcFlow
     }
 
     private def testFlowRemoved(flow: TestableFlow,
-                                mwcFlow: ManagedWildcardFlow,
+                                mwcFlow: ManagedFlow,
                                 state: MetricsSnapshot) {
-        Then("The flow should not appear in the wildcard flow table.")
-        FlowController.queryWildcardFlowTable(flow.flowMatch) should be(None)
-
-        And("The datapath flow metric should be set at the original value.")
+        Then("The datapath flow metric should be set at the original value")
         flowController.metrics.currentDpFlowsMetric.getValue should be (
             state.dpFlowsCount)
 
-        And("The wildcard flow metric should be set at the original value.")
-        flowController.metrics.currentWildFlowsMetric.getValue should be (
-            state.wcFlowsCount)
-
-        And("The flow manager should indicate the same number of flows.")
+        And("The flow manager should indicate the same number of flows")
         flowController.metrics.currentDpFlowsMetric.getValue should be (
             flowController.flowManager.getNumDpFlows)
-        flowController.metrics.currentWildFlowsMetric.getValue should be (
-            flowController.flowManager.getNumWildcardFlows)
 
-        And("The flow controller should not contain the flow tag mapping tags.")
+        And("The flow controller should not contain the flow tag mapping tags")
         for (tag <- flow.tagsSet) {
             flowController.tagToFlows.get(tag) match {
                 case None =>
-                case Some(set) => set should not contain (mwcFlow)
+                case Some(set) => set should not contain mwcFlow
             }
         }
 
-        And("The flow removal callback method was called.")
+        And("The flow removal callback method was called")
         flow.isFlowRemoved should be (true)
     }
 
     private def testFlowExists(flow: TestableFlow,
-                               mwcFlow: ManagedWildcardFlow,
+                               mwcFlow: ManagedFlow,
                                state: MetricsSnapshot) {
-        Then("The flow should appear in the wildcard flow table.")
-        FlowController.queryWildcardFlowTable(flow.flowMatch).get should be (
-            mwcFlow)
-
-        And("The datapath flow metric should be incremented by one.")
+        Then("The datapath flow metric should be incremented by one")
         flowController.metrics.currentDpFlowsMetric.getValue should be (
             state.dpFlowsCount + 1)
 
-        And("The wildcard flow metric should be incremented by one.")
-        flowController.metrics.currentWildFlowsMetric.getValue should be (
-            state.wcFlowsCount + 1)
-
-        And("The flow manager should indicate the same number of flows.")
+        And("The flow manager should indicate the same number of flows")
         flowController.metrics.currentDpFlowsMetric.getValue should be (
             flowController.flowManager.getNumDpFlows())
-        flowController.metrics.currentWildFlowsMetric.getValue should be (
-            flowController.flowManager.getNumWildcardFlows())
 
-        And("The flow controller contains the correct tag mappings.")
+        And("The flow controller contains the correct tag mappings")
         for (tag <- flow.tagsSet) {
-            flowController.tagToFlows.get(tag) should not be (None)
+            flowController.tagToFlows.get(tag) should not be None
             flowController.tagToFlows.get(tag).get should contain (mwcFlow)
         }
 
-        And("The flow removal callback method was not called.")
+        And("The flow removal callback method was not called")
         flow.isFlowRemoved should be (false)
     }
 
-    private def expireFlowHard(mwcFlow: ManagedWildcardFlow) {
+    private def expireFlowHard(mwcFlow: ManagedFlow) {
         mwcFlow.setCreationTimeMillis(System.currentTimeMillis() - flowTimeout)
     }
 
-    private def expireFlowIdle(mwcFlow: ManagedWildcardFlow) {
+    private def expireFlowIdle(mwcFlow: ManagedFlow) {
         mwcFlow.setLastUsedTimeMillis(System.currentTimeMillis() - flowTimeout)
     }
 
     sealed abstract class TestableFlowType
-    case class TestableFlowNoExpiration() extends TestableFlowType
-    case class TestableFlowIdleExpiration() extends TestableFlowType
-    case class TestableFlowHardExpiration() extends TestableFlowType
+    case object TestableFlowIdleExpiration extends TestableFlowType
+    case object TestableFlowHardExpiration extends TestableFlowType
 
     sealed class TestableFlow(key: Int,
-                              flowType: TestableFlowType = TestableFlowNoExpiration(),
-                              expirationMillis: Int = -1) {
+                              expirationMillis: Int = -1,
+                              flowType: TestableFlowType = TestableFlowIdleExpiration) {
         private var flowRemoved = false
         private val tunnelId = (key.toLong << 32) |
                 (Random.nextInt & 0xFFFFFFFFL)
@@ -436,18 +342,7 @@ class FlowControllerTest extends MidolmanSpec {
         val flowMatch = new FlowMatch().addKey(
             FlowKeys.tunnel(tunnelId, srcIpv4Address, dstIpv4Address, 0))
 
-        val wcFlow = flowType match {
-            case TestableFlowNoExpiration() =>
-                WildcardFlowFactory.create(flowMatch)
-            case TestableFlowIdleExpiration() =>
-                WildcardFlowFactory.createIdleExpiration(flowMatch, expirationMillis)
-            case TestableFlowHardExpiration() =>
-                WildcardFlowFactory.createHardExpiration(flowMatch, expirationMillis)
-        }
-
-        val dpFlow = new Flow(flowMatch, wcFlow.actions)
-
-        val tagsSet = tags.toSet
+        val tagsSet = tags.foldLeft(new JHashSet[FlowTag])((s, x) => { s.add(x); s})
 
         val callbacks = new ArrayList[Callback0]() { add(new Callback0 {
             def call() {
@@ -458,11 +353,30 @@ class FlowControllerTest extends MidolmanSpec {
         def isFlowRemoved = flowRemoved
 
         def getAnyTag: FlowTag = tags(Random.nextInt(tags.length))
+
+        def add(): Unit = {
+            val pktCtx = new PacketContext(0, null, flowMatch)
+            pktCtx.callbackExecutor = CallbackExecutor.Immediate
+            pktCtx.lastInvalidation = FlowController.lastInvalidationEvent
+            tags foreach pktCtx.addFlowTag
+            callbacks foreach pktCtx.addFlowRemovedCallback
+            flowType match {
+                case TestableFlowIdleExpiration =>
+                    pktCtx.idleExpirationMillis = expirationMillis
+                case TestableFlowHardExpiration =>
+                    pktCtx.hardExpirationMillis = expirationMillis
+            }
+            pktCtx.flowActions.add(FlowActions.output(4))
+            FlowController ! pktCtx
+        }
+
+        def remove(): Unit = {
+            FlowController ! InvalidateFlowsByTag(tags.head)
+        }
     }
 
     sealed class MetricsSnapshot {
         val dpFlowsCount = flowController.metrics.currentDpFlowsMetric.getValue
-        val wcFlowsCount = flowController.metrics.currentWildFlowsMetric.getValue
     }
 
     object TestableFlow {
