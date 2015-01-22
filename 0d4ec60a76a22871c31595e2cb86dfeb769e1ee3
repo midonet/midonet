@@ -2,6 +2,23 @@
   "comments": [
     {
       "key": {
+        "uuid": "9a245df4_73d64bc7",
+        "filename": "midolman/src/main/scala/org/midonet/cluster/services/StorageService.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-22T14:29:29Z",
+      "side": 1,
+      "message": "I\u0027ve seen this in at least 1 more place, possibly StorageModule? It\u0027d be a good idea to consolidate all in the same place (not necessarily in this patch)",
+      "revId": "0d4ec60a76a22871c31595e2cb86dfeb769e1ee3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a245df4_c67657d8",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VTPMRedirector.scala",
         "patchSetId": 7
@@ -31,6 +48,29 @@
       "side": 1,
       "message": "OK, I misunderstood your comment. I removed these spaces but unfortunately it seems that IntelliJ is now adding these spaces when I hit the key \u0027return\u0027 on my keyboard. I\u0027ll try to remove this annoying behaviour.",
       "parentUuid": "9a245df4_c67657d8",
+      "revId": "0d4ec60a76a22871c31595e2cb86dfeb769e1ee3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_d3da97e8",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VTPMRedirector.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-22T14:29:29Z",
+      "side": 1,
+      "message": "tab",
+      "range": {
+        "startLine": 64,
+        "startChar": 0,
+        "endLine": 64,
+        "endChar": 4
+      },
       "revId": "0d4ec60a76a22871c31595e2cb86dfeb769e1ee3",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
