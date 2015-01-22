@@ -26,9 +26,9 @@ import org.midonet.cluster.util.IPSubnetUtil.{Converter => IPSubnetConverter}
 import org.midonet.cluster.util.MACUtil.{Converter => MACConverter}
 import org.midonet.cluster.util.UUIDUtil.{Converter => UUIDConverter}
 import org.midonet.midolman.state.PortConfig
-import org.midonet.midolman.state.PortDirectory.{VxLanPortConfig, RouterPortConfig, BridgePortConfig}
+import org.midonet.midolman.state.PortDirectory.{BridgePortConfig, RouterPortConfig, VxLanPortConfig}
 import org.midonet.midolman.topology.VirtualTopology.VirtualDevice
-import org.midonet.packets.{MAC, IPv4Subnet, IPv4Addr}
+import org.midonet.packets.{IPv4Addr, IPv4Subnet, MAC}
 import org.midonet.sdn.flows.FlowTagger
 import org.midonet.sdn.flows.FlowTagger.FlowTag
 
@@ -83,14 +83,16 @@ sealed trait Port extends ZoomObject with VirtualDevice with Cloneable {
 }
 
 /** Logical port connected to a peer vtep gateway. This subtype holds the
- *  24 bits VxLan Network Identifier (vni key) of the logical switch this
- *  port belongs to as well as the underlay ip address of the vtep gateway, its
- *  tunnel end point, and the tunnel zone to which hosts willing to open tunnels
- *  to this VTEP should belong to determine their own endpoint IP.
- *  It is assumed that the vxlan key is holded in the 3 last signifant bytes
- *  of the vni int field. */
+  *  24 bits VxLan Network Identifier (vni key) of the logical switch this
+  *  port belongs to as well as the underlay ip address of the vtep gateway, its
+  *  tunnel end point, and the tunnel zone to which hosts willing to open tunnels
+  *  to this VTEP should belong to determine their own endpoint IP.
+  *  It is assumed that the vxlan key is holded in the 3 last signifant bytes
+  *  of the vni int field. */
 class VxLanPort extends Port {
 
+    @ZoomField(name = "network_id", converter = classOf[UUIDConverter])
+    var networkId: UUID = _
     @ZoomField(name = "vtep_mgmt_ip", converter = classOf[IPAddressConverter])
     var vtepMgmtIp: IPv4Addr = _
     @ZoomField(name = "vtep_mgmt_port")
@@ -102,7 +104,7 @@ class VxLanPort extends Port {
     @ZoomField(name = "vtep_vni")
     var vtepVni: Int = _
 
-    override def deviceId = null
+    override def deviceId = networkId
     override def isExterior = true
     override def isInterior = false
 }
@@ -141,9 +143,9 @@ class RouterPort extends Port {
 
 sealed class PortFactory extends ZoomConvert.Factory[Port, Topology.Port] {
     override def getType(proto: Topology.Port): Class[_ <: Port] = {
-        if (proto.hasNetworkId) classOf[BridgePort]
+        if (proto.hasVtepMgmtIp) classOf[VxLanPort]
+        else if (proto.hasNetworkId) classOf[BridgePort]
         else if (proto.hasRouterId) classOf[RouterPort]
-        else if (proto.hasVtepMgmtIp) classOf[VxLanPort]
         else throw new IllegalArgumentException("Unknown port type")
     }
 }
@@ -169,6 +171,7 @@ object PortFactory {
                 p.vtepTunnelIp = IPv4Addr.fromString(cfg.tunIpAddr)
                 p.vtepTunnelZoneId = cfg.tunnelZoneId
                 p.vtepVni = cfg.vni
+                p.networkId = cfg.device_id
                 p
             case _ => throw new IllegalArgumentException("Unknown port type")
         }
