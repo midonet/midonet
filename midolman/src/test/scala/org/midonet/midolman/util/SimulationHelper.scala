@@ -29,7 +29,7 @@ import org.midonet.packets._
 import org.midonet.packets.util.AddressConversions._
 import org.midonet.odp.flows._
 import org.midonet.odp.flows.FlowActions.output
-import org.midonet.sdn.flows.WildcardFlow
+import org.midonet.sdn.flows.ManagedFlow
 
 trait SimulationHelper { this: MidolmanTestCase =>
 
@@ -200,14 +200,14 @@ trait SimulationHelper { this: MidolmanTestCase =>
         pktInMsg
     }
 
-    def fishForFlowAddedMessage(): WildcardFlow = {
+    def fishForFlowAddedMessage(): ManagedFlow = {
         val addFlowMsg = fishForRequestOfType[WildcardFlowAdded](wflowAddedProbe)
         addFlowMsg should not be null
         addFlowMsg.f should not be null
         addFlowMsg.f
     }
 
-    def expectFlowAddedMessage(): WildcardFlow = {
+    def expectFlowAddedMessage(): ManagedFlow = {
         val addFlowMsg = requestOfType[WildcardFlowAdded](wflowAddedProbe)
         addFlowMsg should not be null
         addFlowMsg.f should not be null

@@ -469,12 +469,15 @@ public class FlowMatch {
         srcPort = that.srcPort;
         dstPort = that.dstPort;
         icmpId = that.icmpId;
-        vlanIds = new ArrayList<>(that.vlanIds);
+        vlanIds.clear();
+        vlanIds.addAll(that.vlanIds);
         setIcmpData(that.icmpData);
         usedFields = that.usedFields;
         trackSeenFields = that.trackSeenFields;
         seenFields = that.seenFields;
         sequence = that.sequence;
+        keys.clear();
+        keys.addAll(that.keys);
         invalidateHashCode();
     }
 
@@ -488,7 +491,7 @@ public class FlowMatch {
         this.networkDst = null;
         this.ethSrc = null;
         this.ethDst = null;
-        this.vlanIds = null;
+        vlanIds.clear();
         this.etherType = (short) FlowKeyEtherType.Type.ETH_P_NONE.value;
         this.usedFields = 0;
         this.trackSeenFields = 1;
