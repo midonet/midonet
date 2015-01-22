@@ -27,10 +27,10 @@ class MockFlowEjector(val flowsTable: JMap[FlowMatch, Flow] = null) extends Flow
 
     override def eject(flowDelete: FlowRemoveCommand): Boolean = {
         if (flowDelCb ne null) {
-            flowDelCb(new Flow(flowDelete.flowMatch))
+            flowDelCb(new Flow(flowDelete.managedFlow.flowMatch))
         }
         if (flowsTable ne null) {
-            flowsTable.remove(flowDelete.flowMatch)
+            flowsTable.remove(flowDelete.managedFlow.flowMatch)
         }
         true
     }
