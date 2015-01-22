@@ -396,9 +396,6 @@ class PingTestCase extends MidolmanTestCase
                          makeIcmpReqs(vm1Mac, vm1Ip.getAddress, routerMac1,
                                       vm2Ip.getAddress, icmpId, howMany))
 
-        // We should have a WF added for the FIRST packet
-        ackWCAdded().getMatch.getIcmpIdentifier should be (icmpId)
-
         // This gives time to the DDA to send the pended packets
         drainProbes()
 

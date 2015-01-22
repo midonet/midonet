@@ -15,9 +15,8 @@
  */
 package org.midonet.midolman.util
 
-import java.util.{ArrayList, LinkedList, List, Queue, UUID}
+import java.util.{ArrayList, HashSet => JHashSet, LinkedList, List, Queue, UUID}
 
-import scala.collection.mutable
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.reflect.ClassTag
@@ -194,7 +193,7 @@ trait VirtualTopologyHelper {
                           conntrackTx: FlowStateTransaction[ConnTrackKey, ConnTrackValue],
                           natTx: FlowStateTransaction[NatKey, NatBinding],
                           ingressPort: UUID, egressPorts: List[UUID],
-                          tags: mutable.Set[FlowTag],
+                          tags: JHashSet[FlowTag],
                           callbacks: ArrayList[Callback0]): Unit = { }
         }, injector.getInstance(classOf[MidolmanConfig]))
 
