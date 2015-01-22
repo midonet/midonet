@@ -16,13 +16,12 @@
 
 package org.midonet.midolman
 
-import java.util.{ArrayList, UUID}
+import java.util.{ArrayList, HashSet, UUID}
 import java.util.concurrent.TimeUnit
 
-import scala.collection.mutable
 import scala.collection.JavaConverters._
 
-import org.openjdk.jmh.annotations.{Setup => JmhSetup, Level, Benchmark, Scope, State, Fork, Measurement, Warmup, OutputTimeUnit, Mode, BenchmarkMode}
+import org.openjdk.jmh.annotations.{Setup => JmhSetup, _}
 import org.openjdk.jmh.infra.Blackhole
 
 import org.midonet.cluster.data.ports.BridgePort
@@ -112,7 +111,7 @@ class ConnTrackBenchmark extends MidolmanBenchmark {
     def benchmarkConntrack(holder: PacketHolder, bh: Blackhole): Unit = {
         bh.consume(sendPacket(leftPort -> holder.packet))
         replicator.accumulateNewKeys(conntrackTx, natTx, leftPort.getId,
-                                     List(rightPort.getId).asJava, mutable.Set(),
+                                     List(rightPort.getId).asJava, new HashSet(),
                                      new ArrayList())
         conntrackTx.commit()
         conntrackTx.flush()
