@@ -16,30 +16,31 @@
 
 set -xe
 
-echo bootstrap script $0 called at `date` with args $*
+echo $0 called at `date` with args $*
 
 # update apt
 sudo apt-get update
 
 # Install basic tools
-sudo apt-get install curl screen tmux python-dev libncurses5-dev -y
+sudo apt-get install curl screen tmux python-dev libncurses5-dev openjdk-7-jdk -y
 
 # Bring in newer version of iproute, which fixes "Cannot remove <namespace>: Device or resource busy":
 # https://bugs.launchpad.net/ubuntu/+source/iproute/+bug/1238981
 sudo apt-get install iproute -y
-
-# NOTE(tomoe): Chef client is already installed in vagrant offical vm box.
-# echo Installing chef client...
-# curl -L https://www.opscode.com/chef/install.sh | sudo bash
 
 # add midokura apt source
 echo 'deb http://repo.midonet.org/midonet/current unstable main' |sudo tee -a /etc/apt/sources.list.d/midokura.list
 echo 'deb http://repo.midonet.org/misc stable main' |sudo tee -a /etc/apt/sources.list.d/midokura.list
 curl -k http://repo.midonet.org/packages.midokura.key | sudo apt-key add -
 
-# add cloud archive for grizzly
+# add cloud archive for icehouse
 sudo apt-get install python-software-properties -y
-sudo add-apt-repository cloud-archive:grizzly -y
+
+if [ $(lsb_release  -cs) == "trusty" ] ; then
+    sudo add-apt-repository cloud-archive:juno -y
+else
+    sudo add-apt-repository cloud-archive:icehouse -y
+fi
 
 # add apt source for cassandra
 echo "deb http://debian.datastax.com/community stable main" | sudo tee -a /etc/apt/sources.list.d/cassandra.sources.list
@@ -48,23 +49,21 @@ curl -L http://debian.datastax.com/debian/repo_key | sudo apt-key add -
 # update apt
 sudo apt-get update
 
-# Workaround for the old Open vSwitch issues. See the following page for more
-# detail:
-#     https://wiki.ubuntu.com/ServerTeam/CloudArchive
-sudo add-apt-repository cloud-archive:havana
-sudo apt-get update
-sudo apt-get remove -y openvswitch-datapath-dkms
-sudo apt-get install -y --force-yes linux-headers-$(uname -r)
-
 # Install zookeeper
-sudo apt-get -y --force-yes install zookeeper
+if [ $(lsb_release  -cs) == "trusty" ] ; then
+    sudo apt-get -y --force-yes install zookeeper zookeeperd
+else
+    sudo apt-get -y --force-yes install zookeeper
+    sudo sed -i 's/\(JAVA_HOME=\).*$/\1\/usr\/lib\/jvm\/java-1.7.0-openjdk-amd64/' /etc/zookeeper/zookeeper-env.sh
+fi
+
 sudo update-rc.d zookeeper defaults
 sudo service zookeeper stop || true
-sudo sed -i 's/\(JAVA_HOME=\).*$/\1\/usr\/lib\/jvm\/java-1.7.0-openjdk-amd64/' /etc/zookeeper/zookeeper-env.sh
 sudo service zookeeper start
 
 # Install cassandra
-sudo apt-get -y --force-yes install dsc21
+sudo apt-get -o Dpkg::Options::=--force-confnew -y --force-yes install dsc21
+
 sudo update-rc.d cassandra enable
 CASSANDRA_CONF_FILE='/etc/cassandra/cassandra.yaml'
 sudo sed -i -e "s/^cluster_name:.*$/cluster_name: \'midonet\'/g" $CASSANDRA_CONF_FILE
@@ -81,7 +80,11 @@ sudo service cassandra start
 
 
 # Install ovs kmod
-sudo  apt-get install -y --force-yes openvswitch-datapath-dkms
+if [ $(lsb_release  -cs) == "trusty" ] ; then
+   : # Trusy kernel is new enough that it has kmod in kernel package
+else
+    sudo  apt-get install -y --force-yes openvswitch-datapath-dkms=1.10.2-0ubuntu2~cloud0
+fi
 
 # Install haproxy
 sudo apt-get -y install haproxy
@@ -109,21 +112,8 @@ sudo apt-get install -y --force-yes python-httplib2
 sudo service tomcat7 stop
 sudo sed -i 's/#\(JAVA_HOME=\).*$/\1\/usr\/lib\/jvm\/java-1.7.0-openjdk-amd64/' /etc/default/tomcat7
 sleep 5
-
-
-# Install midonet-cp
-echo "Install midonet-cp if available"
-set +e
-sudo apt-get -o Dpkg::Options::="--force-confnew" install -q -y --force-yes midonet-cp
-if [ $? -ne 0 ]; then 
-	echo "Warning midonet-cp not installed."
-fi
-set -e 
-
 sudo service tomcat7 start
 sudo update-rc.d tomcat7 enable
-
-sudo service apache2 restart
 
 # use java7 by default for mm-dpctl
 sudo update-alternatives --set java /usr/lib/jvm/java-7-openjdk-amd64/jre/bin/java
