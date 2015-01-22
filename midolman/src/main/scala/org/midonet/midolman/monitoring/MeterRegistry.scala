@@ -48,7 +48,7 @@ class MeterRegistry(val maxFlows: Int) {
     private val trackedFlows = new JHashMap[FlowMatch, FlowData]()
     private val DELTA = new FlowStats()
 
-    def trackFlow(flowMatch: FlowMatch, tags: Array[FlowTag]): Unit = {
+    def trackFlow(flowMatch: FlowMatch, tags: ArrayList[FlowTag]): Unit = {
         if (trackedFlows.containsKey(flowMatch))
             return
 
@@ -59,8 +59,8 @@ class MeterRegistry(val maxFlows: Int) {
         metadata.reset()
 
         var i = 0
-        while (i < tags.length) {
-            tags(i) match {
+        while (i < tags.size()) {
+            tags.get(i) match {
                 case meter: MeterTag =>
                     metadata.meters add meter
                     if (meters.contains(meter.meterName)) {

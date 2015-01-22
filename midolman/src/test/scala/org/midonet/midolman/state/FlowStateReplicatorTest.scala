@@ -148,7 +148,7 @@ class FlowStateReplicatorTest extends FeatureSpec
     private def sendAndAcceptTransactions(): List[(Packet, List[FlowAction])] = {
         sender.accumulateNewKeys(connTrackTx, natTx, ingressPort.id,
                                  List(egressPort1.id).asJava,
-                                 new mutable.HashSet[FlowTag](),
+                                 new JHashSet[FlowTag](),
                                  new ArrayList[Callback0])
         sender.pushState(dpChannel)
         natTx.commit()
@@ -260,7 +260,7 @@ class FlowStateReplicatorTest extends FeatureSpec
             When("The transaction is added to the replicator")
             sender.accumulateNewKeys(connTrackTx, natTx, ingressPortNoGroup.id,
                                      List(egressPortNoGroup.id).asJava,
-                                     new mutable.HashSet[FlowTag](),
+                                     new JHashSet[FlowTag](),
                                      new ArrayList[Callback0])
             sender.pushState(dpChannel)
             natTx.commit()
@@ -290,7 +290,7 @@ class FlowStateReplicatorTest extends FeatureSpec
             connTrackTx.commit()
             sender.accumulateNewKeys(connTrackTx, natTx, ingressPort.id,
                                      List(egressPort1.id).asJava,
-                                     new mutable.HashSet[FlowTag](), callbacks)
+                                     new JHashSet[FlowTag](), callbacks)
 
             Then("The unref callbacks should have been correctly added")
 
@@ -318,7 +318,7 @@ class FlowStateReplicatorTest extends FeatureSpec
             natTx.commit()
             sender.accumulateNewKeys(connTrackTx, natTx, ingressPort.id,
                 List(egressPort1.id).asJava,
-                new mutable.HashSet[FlowTag](), callbacks)
+                new JHashSet[FlowTag](), callbacks)
 
             Then("The unref callbacks should have been correctly added")
 
@@ -341,49 +341,9 @@ class FlowStateReplicatorTest extends FeatureSpec
         packetsSeen = List.empty
     }
 
-    private def preSeedRecipient() {
-        for (k <- connTrackKeys) {
-            connTrackTx.putAndRef(k, ConnTrackState.RETURN_FLOW)
-            sendAndAcceptTransactions()
-            recipient.conntrackTable.get(k) should equal (ConnTrackState.RETURN_FLOW)
-        }
-        for ((k, v) <- natMappings) {
-            natTx.putAndRef(k, v)
-            sendAndAcceptTransactions()
-            recipient.natTable.get(k) should equal (v)
-        }
-    }
-
-    private def assertRecipientHasAllKeys() {
-        for (k <- connTrackKeys) {
-            recipient.conntrackTable.get(k) should equal (ConnTrackState.RETURN_FLOW)
-        }
-        for ((k, v) <- natMappings) {
-            recipient.natTable.get(k) should equal (v)
-        }
-    }
-
-    private def assertRecipientExpiredAllKeys() {
-        for (k <- connTrackKeys) {
-            recipient.conntrackTable.get(k) should be(null)
-        }
-        for ((k, _) <- natMappings) {
-            recipient.natTable.get(k) should be(null)
-        }
-    }
-
-    private def assertRecipientUnrefedAllKeys() {
-        for (k <- connTrackKeys) {
-            recipient.conntrackTable.unrefedKeys should contain (k)
-        }
-        for ((k, _) <- natMappings) {
-            recipient.natTable.unrefedKeys should contain (k)
-        }
-    }
-
     feature("L4 flow state resolves hosts and ports correctly") {
         scenario("All relevant ingress and egress hosts and ports get detected") {
-            val tags = mutable.Set[FlowTag]()
+            val tags = new JHashSet[FlowTag]()
 
             When("The flow replicator resolves peers for a flow's state")
             val hosts = new JHashSet[UUID]()
@@ -466,7 +426,7 @@ class TestableFlowStateReplicator(
                               egressPorts: JList[UUID],
                               peers: JSet[UUID],
                               ports: JSet[UUID],
-                              tags: mutable.Set[FlowTag]) {
+                              tags: JSet[FlowTag]) {
         super.resolvePeers(ingressPort, egressPorts, peers, ports, tags)
     }
 }
