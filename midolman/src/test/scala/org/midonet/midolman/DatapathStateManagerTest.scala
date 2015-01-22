@@ -13,31 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.midonet.midolman
 
 import java.util.UUID
-import scala.util.Random
+
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.Random
 
 import com.typesafe.scalalogging.Logger
 import org.junit.runner.RunWith
-import org.scalatest.{BeforeAndAfter, Matchers, Suite}
-import org.scalatest.junit.JUnitRunner
-import org.slf4j.helpers.NOPLogger
-
 import org.midonet.cluster.data.TunnelZone.{Type => TunnelType}
 import org.midonet.midolman.datapath.DatapathPortEntangler
 import org.midonet.midolman.topology.rcu.{PortBinding, ResolvedHost}
 import org.midonet.odp.DpPort
-import org.midonet.odp.ports.GreTunnelPort
-import org.midonet.odp.ports.VxLanTunnelPort
+import org.midonet.odp.ports.{GreTunnelPort, VxLanTunnelPort}
 import org.midonet.sdn.flows.FlowTagger
 import org.midonet.util.concurrent._
+import org.scalatest.junit.JUnitRunner
+import org.scalatest.{BeforeAndAfter, Matchers, Suite}
+import org.slf4j.helpers.NOPLogger
 
 @RunWith(classOf[JUnitRunner])
 class DatapathStateManagerTest extends Suite with Matchers with BeforeAndAfter {
 
-    import UnderlayResolver.Route
+    import org.midonet.midolman.UnderlayResolver.Route
 
     type MaybePort = Option[DpPort]
 
