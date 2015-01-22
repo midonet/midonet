@@ -18,17 +18,13 @@ package org.midonet.cluster.services.topology.server
 
 import org.slf4j.LoggerFactory
 import rx.Observer
-import rx.functions.{Action0, Action1}
-import rx.subjects.{PublishSubject, Subject}
 
 import org.midonet.cluster.services.topology.common._
 
-import io.netty.util.ReferenceCountUtil
-
 /**
  * Processes the requests from the server front-ends.
- * It exposes a subject where the communication events are
- * put by the low-level communication engine, via onNext.
+ * It represents an observer receiving communication events
+ * from the low-level communication engine, via onNext.
  * This subject should not be completed by the low-level
  * communication engine, as there might be different entities
  * pushing events to this subject; a 'Disconnect' event is the
@@ -44,7 +40,7 @@ class RequestHandler(private val connMgr: ConnectionManager)
             connMgr.get(ctx)
             log.debug("api connection established")
         case Disconnect(ctx) =>
-            connMgr.get(ctx).disconnect
+            connMgr.get(ctx).disconnect()
             log.debug("api connection terminated")
         case Error(ctx, exc) =>
             connMgr.get(ctx).error(exc)
