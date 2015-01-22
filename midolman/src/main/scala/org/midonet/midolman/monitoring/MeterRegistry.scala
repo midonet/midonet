@@ -31,24 +31,27 @@ class MeterRegistry(val maxFlows: Int) {
     val log = Logger(LoggerFactory.getLogger("org.midonet.metering"))
 
     class FlowData {
+        val flowMatch = new FlowMatch()
         val meters = new ArrayList[MeterTag](8)
         val stats = new FlowStats()
 
-        def reset() {
+        def clear(pool: ArrayObjectPool[FlowData]): Unit = {
             stats.bytes = 0
             stats.packets = 0
+            flowMatch.clear()
             meters.clear()
+            pool.offer(this)
         }
     }
 
     private val metadataPool = new ArrayObjectPool[FlowData]((maxFlows * 1.1).toInt,
-                                                              pool => new FlowData())
+                                                              _ => new FlowData())
 
     val meters = new ConcurrentHashMap[String, FlowStats]()
     private val trackedFlows = new JHashMap[FlowMatch, FlowData]()
     private val DELTA = new FlowStats()
 
-    def trackFlow(flowMatch: FlowMatch, tags: Array[FlowTag]): Unit = {
+    def trackFlow(flowMatch: FlowMatch, tags: ArrayList[FlowTag]): Unit = {
         if (trackedFlows.containsKey(flowMatch))
             return
 
@@ -56,11 +59,9 @@ class MeterRegistry(val maxFlows: Int) {
         if (metadata eq null)
             metadata = metadataPool.factory(metadataPool)
 
-        metadata.reset()
-
         var i = 0
-        while (i < tags.length) {
-            tags(i) match {
+        while (i < tags.size()) {
+            tags.get(i) match {
                 case meter: MeterTag =>
                     metadata.meters add meter
                     if (meters.contains(meter.meterName)) {
@@ -75,10 +76,12 @@ class MeterRegistry(val maxFlows: Int) {
         }
 
         log.debug(s"new flow is associated with ${metadata.meters.size} meters")
-        if (metadata.meters.size() > 0)
-            trackedFlows.put(flowMatch, metadata)
-        else
-            metadataPool.offer(metadata)
+        if (metadata.meters.size() > 0) {
+            metadata.flowMatch.reset(flowMatch)
+            trackedFlows.put(metadata.flowMatch, metadata)
+        } else {
+            metadata.clear(metadataPool)
+        }
     }
 
     def updateFlow(flowMatch: FlowMatch, stats: FlowStats): Unit = {
@@ -100,9 +103,9 @@ class MeterRegistry(val maxFlows: Int) {
         }
     }
 
-    def forgetFlow(flowMatch: FlowMatch) {
+    def forgetFlow(flowMatch: FlowMatch): Unit = {
         val metadata = trackedFlows.remove(flowMatch)
         if (metadata ne null)
-            metadataPool.offer(metadata)
+            metadata.clear(metadataPool)
     }
 }
