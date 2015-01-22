@@ -95,8 +95,9 @@ class BridgeBuilderImpl(val id: UUID, val flowController: ActorRef,
         vlanBridgePeerPortId = portId
     }
 
-    def setExteriorVxlanPortIds(vxlanIds: java.util.List[UUID]) {
-        exteriorVxlanPortIds = asScalaBuffer(vxlanIds).toList
+    def setExteriorVxlanPortIds(vxlanIds: JList[UUID]) {
+        exteriorVxlanPortIds = if (vxlanIds == null) null
+                               else asScalaBuffer(vxlanIds).toList
     }
 
     def setVlanPortMap(map: VlanPortMap) {

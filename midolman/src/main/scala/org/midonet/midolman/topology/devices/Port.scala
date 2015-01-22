@@ -91,6 +91,8 @@ sealed trait Port extends ZoomObject with VirtualDevice with Cloneable {
   *  of the vni int field. */
 class VxLanPort extends Port {
 
+    var networkId: UUID = _
+
     @ZoomField(name = "vtep_mgmt_ip", converter = classOf[IPAddressConverter])
     var vtepMgmtIp: IPv4Addr = _
     @ZoomField(name = "vtep_mgmt_port")
@@ -102,7 +104,7 @@ class VxLanPort extends Port {
     @ZoomField(name = "vtep_vni")
     var vtepVni: Int = _
 
-    override def deviceId = null
+    override def deviceId = networkId
     override def isExterior = true
     override def isInterior = false
 }
@@ -169,6 +171,7 @@ object PortFactory {
                 p.vtepTunnelIp = IPv4Addr.fromString(cfg.tunIpAddr)
                 p.vtepTunnelZoneId = cfg.tunnelZoneId
                 p.vtepVni = cfg.vni
+                p.networkId = cfg.device_id
                 p
             case _ => throw new IllegalArgumentException("Unknown port type")
         }
