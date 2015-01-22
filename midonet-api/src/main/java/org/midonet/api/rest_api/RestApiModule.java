@@ -25,6 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.midonet.brain.ClusterNode;
+import org.midonet.brain.services.vxgw.Vtep;
 import org.midonet.brain.services.vxgw.VxLanGatewayServiceBase;
 import org.midonet.brain.services.vxgw.VxlanGatewayHA;
 import org.midonet.brain.southbound.vtep.VtepDataClientFactory;
@@ -76,9 +77,14 @@ public class RestApiModule extends AbstractModule {
         @Inject
         ZookeeperConnectionWatcher zkConnWatcher;
 
+        @Inject
+        VtepDataClientFactory vtepDataClientFactory;
+
         @Override
         public VxLanGatewayServiceBase get() {
-            return new VxlanGatewayHA(nodeCtx, dataClient, zkConnWatcher, null);
+            return new VxlanGatewayHA(nodeCtx, dataClient,
+                                      vtepDataClientFactory, zkConnWatcher,
+                                      null);
         }
     }
 

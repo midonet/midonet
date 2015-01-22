@@ -21,11 +21,13 @@ import com.google.inject.Inject
 import org.slf4j.LoggerFactory
 
 import org.midonet.brain.ClusterNode
+import org.midonet.brain.southbound.vtep.VtepDataClientFactory
 import org.midonet.cluster.DataClient
 import org.midonet.midolman.state.ZookeeperConnectionWatcher
 
 class VxlanGatewayHA @Inject() (nodeCtx: ClusterNode.Context,
                                 dataClient: DataClient,
+                                vtepDataClientFactory: VtepDataClientFactory,
                                 zkConnWatcher: ZookeeperConnectionWatcher,
                                 metrics: MetricRegistry)
     extends VxLanGatewayServiceBase(nodeCtx) {
@@ -36,7 +38,9 @@ class VxlanGatewayHA @Inject() (nodeCtx: ClusterNode.Context,
 
     override def doStart(): Unit = {
         log.info("Starting service")
-        summoner = new VxlanGatewaySummoner(dataClient, zkConnWatcher)
+        summoner = new VxlanGatewaySummoner(nodeCtx.nodeId, dataClient,
+                                            zkConnWatcher,
+                                            vtepDataClientFactory)
         notifyStarted()
     }
 

@@ -20,6 +20,7 @@ import java.util.UUID
 
 import scala.util.{Success, Try}
 
+import org.opendaylight.ovsdb.lib.notation.{UUID => OdlUUID}
 import rx.subjects.PublishSubject
 
 import org.midonet.brain.southbound.vtep.model.LogicalSwitch
@@ -45,8 +46,10 @@ trait VxlanGatewayTest {
         override def macLocalUpdates = updatesFromVtep
         override def macRemoteUpdates = updatesToVtep
         override def vxlanTunnelIp = Option(tunIp)
-        override def currentMacLocal = initialState
-        override def ensureLogicalSwitch(name: String, vni: Int) = Success(null)
+        override def currentMacLocal(id: OdlUUID) = initialState
+        override def ensureLogicalSwitch(name: String, vni: Int)
+            = Success(new LogicalSwitch(new OdlUUID(UUID.randomUUID().toString),
+                                        "random description", name, vni))
         override def ensureBindings(lsName: String,
                                     bs: Iterable[(String, Short)]) = Success()
         override def removeLogicalSwitch(name: String): Try[Unit] = Success()

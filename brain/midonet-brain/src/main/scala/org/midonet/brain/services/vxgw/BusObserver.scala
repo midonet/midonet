@@ -33,8 +33,9 @@ import org.midonet.util.functors.makeRunnable
 /** This Observer is able to listen on an Observable that emits MacLocation
   * instances and update a Neutron network's state accordingly. */
 class BusObserver(dataClient: DataClient, networkId: UUID,
-                  macPortMap: MacPortMap, zkConnWatcher: ZookeeperConnectionWatcher,
-                  peerEndpoints: java.util.Map[IPv4Addr, UUID])
+                  macPortMap: MacPortMap,
+                  zkConnWatcher: ZookeeperConnectionWatcher,
+                  peerEndpoints: Map[IPv4Addr, UUID])
     extends Observer[MacLocation] {
 
     private val log = LoggerFactory.getLogger(vxgwMacSyncingLog(networkId))
@@ -47,7 +48,7 @@ class BusObserver(dataClient: DataClient, networkId: UUID,
         log.warn(s"Network: $networkId, error on update bus", e)
     }
     override def onNext(ml: MacLocation): Unit = {
-        if (ml == null || !ml.mac.isIEEE802) {
+        if (ml == null) {
             log.info(s"Network $networkId, ignores malformed MAC $ml")
             return
         }
@@ -87,7 +88,12 @@ class BusObserver(dataClient: DataClient, networkId: UUID,
       * contained in the given MacLocation. */
     private def applyMacUpdate(ml: MacLocation): Unit = {
         Preconditions.checkArgument(ml.vxlanTunnelEndpoint != null)
-        val newVxPortId = peerEndpoints.get(ml.vxlanTunnelEndpoint)
+        if (!ml.mac.isIEEE802) {
+            log.debug("MidoNet drops unknown-dst MCast mac (broadcast traffic" +
+                      " is already dealt with)")
+            return
+        }
+        val newVxPortId = peerEndpoints.get(ml.vxlanTunnelEndpoint).orNull
         if (newVxPortId == null) {
             // The change didn't happen in a VTEP, ignore
             return
@@ -135,8 +141,4 @@ class BusObserver(dataClient: DataClient, networkId: UUID,
                 log.error(s"Network $networkId, can't learn $ip on $mac", e)
         }
     }
-
-
 }
-
-

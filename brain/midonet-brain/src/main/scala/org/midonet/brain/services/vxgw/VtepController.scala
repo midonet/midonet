@@ -19,16 +19,17 @@ package org.midonet.brain.services.vxgw
 import java.util.concurrent.ConcurrentHashMap
 
 import scala.collection.JavaConverters._
-import scala.util.Try
+import scala.collection.mutable
+import scala.util.{Failure, Success, Try}
 
-import org.slf4j.LoggerFactory
+import org.opendaylight.ovsdb.lib.notation.UUID
 import org.slf4j.LoggerFactory.getLogger
 import rx.{Observer, Subscription}
 
 import org.midonet.brain.services.vxgw
 import org.midonet.brain.services.vxgw.TunnelZoneState.FloodingProxyEvent
 import org.midonet.brain.southbound.vtep.VtepConstants.logicalSwitchNameToBridgeId
-import org.midonet.brain.southbound.vtep.{VtepConstants, VtepMAC}
+import org.midonet.brain.southbound.vtep.VtepMAC
 import org.midonet.cluster.DataClient
 import org.midonet.cluster.data.VTEP
 import org.midonet.midolman.state.{StateAccessException, ZookeeperConnectionWatcher}
@@ -50,6 +51,11 @@ class VtepController(vtepOvsdb: VtepConfig, midoDb: DataClient,
 
     private val subscriptions =
         new ConcurrentHashMap[VxlanGateway, VxlanGatewaySubscriptions]
+
+    // Names of logical switches we care about, to filter the
+    // TODO: btw, this is one good reason to remove the logical switch name from
+    // the MacLocation and put the network id.
+    private val myLogicalSwitchNames = new mutable.HashSet[String]
 
     /** This class contains all the subscriptions that link this VTEP to a
       * VxLAN Gateway message bus. It helps with thread safety. */
@@ -73,7 +79,7 @@ class VtepController(vtepOvsdb: VtepConfig, midoDb: DataClient,
         override def onNext(e: FloodingProxyEvent): Unit = {
             val tzId = e.tunnelZoneId
             if (e.hostConfig == null) {
-                log.info(s"No hosts found its tunnel zone $tzId")
+                log.info(s"No hosts found in tunnel zone $tzId")
                 return
             }
             val hypervisorIp = e.hostConfig.ipAddr
@@ -96,6 +102,7 @@ class VtepController(vtepOvsdb: VtepConfig, midoDb: DataClient,
       * election, etc. */
     private def loadVtepConfiguration(): Unit = {
         try {
+            log.info(s"Loading VTEP $mgmtIp config from NSDB $midoDb")
             vtepConf = midoDb.vtepGet(mgmtIp)
             val tzId = vtepConf.getTunnelZoneId
             tunnelZone = tzStatePublisher.getOrTryCreate(tzId)
@@ -132,8 +139,6 @@ class VtepController(vtepOvsdb: VtepConfig, midoDb: DataClient,
 
         log.info(s"Joining $vxgw and pre seeding ${preseed.size} remote MACs")
 
-        consolidate(vxgw)
-
         val newSub = new VxlanGatewaySubscriptions
         val nullIfAdded = subscriptions.putIfAbsent(vxgw, newSub)
         if (nullIfAdded != null) {
@@ -141,25 +146,49 @@ class VtepController(vtepOvsdb: VtepConfig, midoDb: DataClient,
             return
         }
 
-        // Push the current snapshot
-        val snapshot = vtepOvsdb.currentMacLocal
-        log.info(s"Emitting snapshot with ${snapshot.size} local MACs")
-        snapshot foreach vxgw.asObserver.onNext
+        myLogicalSwitchNames.add(vxgw.name)
 
-        // Subscribe the bus to our stream so we publish everything into it
-        newSub.toBus = vtepOvsdb.macLocalUpdates.subscribe(vxgw.asObserver)
+        consolidate(vxgw) map { lsUUID =>
 
-        // Subscribe to the bus, filtering out MacLocations on our own VTEP
-        val bus = vxgw.asObservable.startWith(preseed.asJava)
-        val myTunnelIp = vtepOvsdb.vxlanTunnelIp.getOrElse {
-            log.warn(s"Mo tunnel IP. Using management IP.")
-            mgmtIp
+            // Subscribe to the bus, filtering out MacLocations on our own VTEP
+            val bus = vxgw.asObservable.startWith(preseed.asJava)
+            val myTunnelIp = vtepOvsdb.vxlanTunnelIp.getOrElse {
+                                log.warn(s"No tunnel IP, will use management IP.")
+                                mgmtIp
+                             }
+            newSub.fromBus = bus.filter ( makeFunc1 { ml =>
+                                    !myTunnelIp.equals(ml.vxlanTunnelEndpoint)
+                               }).subscribe(vtepOvsdb.macRemoteUpdates)
+
+            // Push the our current snapshot to our peers
+            val snapshot = vtepOvsdb.currentMacLocal(lsUUID)
+            log.info(s"Emitting snapshot with ${snapshot.size} local MACs")
+            snapshot foreach vxgw.asObserver.onNext
+
+            // Subscribe the bus to our stream so peers get our MAC-port updates
+            newSub.toBus = vtepOvsdb.macLocalUpdates
+                         .filter(makeFunc1 { ml =>
+                            myLogicalSwitchNames.contains(ml.logicalSwitchName)
+                         })
+                         .subscribe(vxgw.asObserver)
+
+            // Tell our VTEP to send flooded traffic to MidoNet's flooding proxy
+            floodingProxy.foreach { fp =>
+                val ml = MacLocation(VtepMAC.UNKNOWN_DST, null, vxgw.name, fp)
+                vtepOvsdb.macRemoteUpdates.onNext(ml)
+            }
+
+            // Ask all peers to send us their flooded traffic
+            log.info(s"Advertise unknown-dst to receive flooded traffic")
+            vxgw.asObserver.onNext(
+                MacLocation(VtepMAC.UNKNOWN_DST, null, vxgw.name, tunIp)
+            )
+
+        } match {
+            // Prettify this, just return the Try
+            case Failure(e) => throw e
+            case Success(_) =>
         }
-        newSub.fromBus = bus.filter ( makeFunc1 { ml =>
-                                !myTunnelIp.equals(ml.vxlanTunnelEndpoint)
-                             })
-                            .subscribe(vtepOvsdb.macRemoteUpdates)
-
     }
 
     /** All the VxLAN Gateays involving Neutron Networks in which this VTEP
@@ -175,6 +204,7 @@ class VtepController(vtepOvsdb: VtepConfig, midoDb: DataClient,
             return
         }
         log.info(s"No more bindings to $vxgw")
+        myLogicalSwitchNames.remove(vxgw.name)
         curr.fromBus.unsubscribe()
         curr.toBus.unsubscribe()
         try {
@@ -189,18 +219,25 @@ class VtepController(vtepOvsdb: VtepConfig, midoDb: DataClient,
       * VxLAN Gateway, involving a Logical Switch recorded in the OVSDB, plus
       * the relevant bindings currently configured in the NSDB.
       *
+      * @return the UUID of the Logical Switch in the OVSDB.
+      *
       * TODO: this does *not* refresh bindings dynamically and requires the
       *       MidoNet API to add/remove new bindings by itself, therefore
       *       consolidation only happens at startup. We can change this fairly
       *       easily with a watcher and reinvoking this method. */
-    private def consolidate(vxgw: VxlanGateway): Try[Unit] = {
-        val networkId = logicalSwitchNameToBridgeId(vxgw.name)
+    private def consolidate(vxgw: VxlanGateway): Try[UUID] = {
+        val nwId = logicalSwitchNameToBridgeId(vxgw.name)
         log.info(s"Consolidate state into OVSDB for $vxgw")
-        vtepOvsdb.ensureLogicalSwitch(vxgw.name, vxgw.vni) map { _ =>
-            val bindings = midoDb.vtepGetBindings(mgmtIp).asScala
-                .filter { _.getNetworkId eq networkId } // relevant network only
-                .map { bdg => (bdg.getPortName, bdg.getVlanId)} // (port, vlan)
+        vtepOvsdb.ensureLogicalSwitch(vxgw.name, vxgw.vni) map { ls =>
+            log.info(s"Logical switch ${vxgw.name} exists: $ls")
+            val bindings = midoDb.bridgeGetVtepBindings(nwId, mgmtIp).asScala
+                    .filter { bdg => // chose the relevant network only
+                        bdg.getNetworkId.equals(nwId)
+                    }
+                    .map { bdg => (bdg.getPortName, bdg.getVlanId)}
+            log.info("Syncing port/vlan bindings: " + bindings)
             vtepOvsdb.ensureBindings(vxgw.name, bindings)
+            ls.uuid
         }
     }
 }
