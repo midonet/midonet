@@ -94,6 +94,29 @@
     },
     {
       "key": {
+        "uuid": "9a245df4_c94ae826",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/MacLocation.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-22T09:58:00Z",
+      "side": 1,
+      "message": "Could this be a val?",
+      "range": {
+        "startLine": 64,
+        "startChar": 13,
+        "endLine": 64,
+        "endChar": 16
+      },
+      "revId": "ffecd6b7d13a906a2f4cf97ce79bffb718895954",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a245df4_b0ac3937",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/Vtep.scala",
         "patchSetId": 6
@@ -301,6 +324,29 @@
     },
     {
       "key": {
+        "uuid": "9a245df4_c9714879",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/VtepController.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 201,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-22T09:58:00Z",
+      "side": 1,
+      "message": "Do we want to compare references here?",
+      "range": {
+        "startLine": 201,
+        "startChar": 41,
+        "endLine": 201,
+        "endChar": 43
+      },
+      "revId": "ffecd6b7d13a906a2f4cf97ce79bffb718895954",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a245df4_13554fc6",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/VxlanGatewayManager.scala",
         "patchSetId": 6
@@ -409,6 +455,29 @@
         "startChar": 12,
         "endLine": 258,
         "endChar": 20
+      },
+      "revId": "ffecd6b7d13a906a2f4cf97ce79bffb718895954",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_096c009c",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/VxlanGatewayManager.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 479,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-22T09:58:00Z",
+      "side": 1,
+      "message": "Same here.",
+      "range": {
+        "startLine": 479,
+        "startChar": 46,
+        "endLine": 479,
+        "endChar": 48
       },
       "revId": "ffecd6b7d13a906a2f4cf97ce79bffb718895954",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
