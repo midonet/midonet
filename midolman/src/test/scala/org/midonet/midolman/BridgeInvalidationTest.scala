@@ -17,6 +17,8 @@ package org.midonet.midolman
 
 import java.util.UUID
 
+import scala.collection.JavaConverters._
+
 import org.apache.commons.configuration.HierarchicalConfiguration
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
@@ -166,7 +168,7 @@ class BridgeInvalidationTest extends MidolmanSpec
                 FlowTagger.tagForDevice(bridge.id),
                 leftPortUnicastInvalidation,
                 rightMacFloodInvalidation,
-                floodInvalidation)
+                floodInvalidation).asJava
             pktContext.flowTags should be (expectedTags)
         }
 
@@ -186,7 +188,7 @@ class BridgeInvalidationTest extends MidolmanSpec
             val expectedTags = Set(
                 FlowTagger.tagForDevice(bridge.id),
                 leftPortUnicastInvalidation,
-                rightPortUnicastInvalidation)
+                rightPortUnicastInvalidation).asJava
             pktContext.flowTags should be (expectedTags)
         }
 
@@ -212,7 +214,7 @@ class BridgeInvalidationTest extends MidolmanSpec
             val expectedTags = Set(
                 FlowTagger.tagForDevice(bridge.id),
                 leftPortUnicastInvalidation,
-                otherPortUnicastInvalidation)
+                otherPortUnicastInvalidation).asJava
 
             action should be (ToPortAction(otherPort.getId))
             pktContext.flowTags should be (expectedTags)
