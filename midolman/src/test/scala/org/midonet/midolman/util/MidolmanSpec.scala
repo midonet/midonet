@@ -65,13 +65,13 @@ trait MidolmanSpec extends FeatureSpecLike
     /**
      * Override this function to perform a custom set-up needed for the test.
      */
-    protected def beforeTest() { }
+    protected def beforeTest(): Unit = { }
 
     /**
      * Override this function to perform a custom shut-down operations needed
      * for the test.
      */
-    protected def afterTest() { }
+    protected def afterTest(): Unit = { }
 
     before {
         try {
