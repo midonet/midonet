@@ -23,8 +23,10 @@ import java.util.UUID
 import scala.collection.mutable.ListBuffer
 import scala.util.{Failure, Success, Try}
 
+import com.google.common.base.Strings
+import com.google.common.base.Strings.isNullOrEmpty
 import org.apache.commons.lang3.tuple.{Pair => JPair}
-import org.opendaylight.ovsdb.lib.notation.{UUID => ODLUUID}
+import org.opendaylight.ovsdb.lib.notation.{UUID => OdlUUID}
 import org.slf4j.LoggerFactory
 import rx.{Observable, Observer}
 
@@ -54,7 +56,7 @@ class VtepFromOvsdb(ip: IPv4Addr, port: Int) extends VtepConfig(ip, port) {
     override def ensureLogicalSwitch(name: String,
                                      vni: Int): Try[LogicalSwitch] = ???
     override def removeLogicalSwitch(name: String): Try[Unit] = ???
-    override def currentMacLocal: Seq[MacLocation] = ???
+    override def currentMacLocal(ls: OdlUUID): Seq[MacLocation] = ???
     override def vxlanTunnelIp: Option[IPv4Addr] = ???
 }
 
@@ -64,9 +66,10 @@ class VtepFromOldOvsdbClient(nodeId: UUID, ip: IPv4Addr, port: Int,
                              vtepDataClientFactory: VtepDataClientFactory)
     extends VtepConfig(ip, port) {
 
-    private val log = LoggerFactory.getLogger("VtepConfig " + ip + ":" + port)
+    private val log = LoggerFactory.getLogger(vxgwVtepControlLog(ip, port))
 
     private val ovsdbClient = vtepDataClientFactory.connect(ip, port, nodeId)
+
     private val oldVtepBroker = new VtepBroker(ovsdbClient)
 
     private val applyInOldBroker = new Observer[MacLocation] {
@@ -75,16 +78,17 @@ class VtepFromOldOvsdbClient(nodeId: UUID, ip: IPv4Addr, port: Int,
         override def onNext(ml: MacLocation): Unit = oldVtepBroker.apply(ml)
     }
 
-    private def macLocation(mac: String, ip: String, lsId: ODLUUID)
+    private def macLocation(mac: String, ip: String, lsId: OdlUUID)
     : Seq[MacLocation] = {
         val tunIp = ovsdbClient.getTunnelIp
         if (tunIp == null) {
             log.warn(s"VTEP's tunnel IP unknown, can't process macjajajs")
             return Seq.empty
         }
-        val ipAddr: IPv4Addr = try { IPv4Addr(ip) }
-                               catch { case t: Throwable =>
-                                   log.info("Failed to translate " + ip)
+        val ipAddr: IPv4Addr = try {
+                                   if (isNullOrEmpty(ip)) null else IPv4Addr(ip)
+                               } catch { case t: Throwable =>
+                                   log.info(s"Failed to translate IP '$ip''", t)
                                    null
                                }
         val ls = ovsdbClient.getLogicalSwitch(lsId)
@@ -104,15 +108,21 @@ class VtepFromOldOvsdbClient(nodeId: UUID, ip: IPv4Addr, port: Int,
 
     override def macRemoteUpdates: Observer[MacLocation] = applyInOldBroker
 
-    override def currentMacLocal: Seq[MacLocation] = {
+    override def currentMacLocal(ls: OdlUUID): Seq[MacLocation] = {
         val macLocations = ListBuffer[MacLocation]()
         val ucastMacs = ovsdbClient.listUcastMacsLocal().iterator()
         while (ucastMacs.hasNext) {
-            macLocations ++= toMacLocation(ucastMacs.next())
+            val ucm = ucastMacs.next()
+            if (ucm.logicalSwitch.equals(ls)) {
+                macLocations ++= toMacLocation(ucm)
+            }
         }
         val mcastMacs = ovsdbClient.listMcastMacsLocal().iterator()
         while (mcastMacs.hasNext) {
-            macLocations ++= toMacLocation(mcastMacs.next())
+            val mcm = mcastMacs.next()
+            if (mcm.logicalSwitch.equals(ls)) {
+                macLocations ++= toMacLocation(mcm)
+            }
         }
         macLocations
     }
@@ -125,6 +135,7 @@ class VtepFromOldOvsdbClient(nodeId: UUID, ip: IPv4Addr, port: Int,
 
     override def ensureLogicalSwitch(name: String, vni: Int)
     : Try[LogicalSwitch] = {
+        ovsdbClient.awaitConnected()
         val ls = ovsdbClient.getLogicalSwitch(name)
         if (ls == null) {
             val res = ovsdbClient.addLogicalSwitch(name, vni)
@@ -144,7 +155,8 @@ class VtepFromOldOvsdbClient(nodeId: UUID, ip: IPv4Addr, port: Int,
     }
 
     override def ensureBindings(lsName: String,
-                                bindings: Iterable[(String, Short)]): Try[Unit] = {
+                                bindings: Iterable[(String, Short)])
+    : Try[Unit] = {
         val ls = ovsdbClient.getLogicalSwitch(lsName)
         if (ls == null) {
             return Failure(
