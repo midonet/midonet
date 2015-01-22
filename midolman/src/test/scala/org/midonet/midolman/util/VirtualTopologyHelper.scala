@@ -15,10 +15,9 @@
  */
 package org.midonet.midolman.util
 
-import java.util.{ArrayList, LinkedList, List, Queue, UUID}
+import java.util.{ArrayList, HashSet => JHashSet, LinkedList, List, Queue, UUID}
 
 import scala.collection.JavaConversions._
-import scala.collection.mutable
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.reflect.ClassTag
@@ -183,10 +182,10 @@ trait VirtualTopologyHelper {
                 }
         }
 
-        val actionsSet = actions.flatMap(action => action match {
+        val actionsSet = actions.flatMap {
             case a: FlowActionSetKey => Option(a)
             case _ => None
-        }).toSet
+        } toSet
 
         // TODO(guillermo) incomplete, but it should cover testing needs
         actionsSet foreach { action =>
@@ -255,7 +254,7 @@ trait VirtualTopologyHelper {
                           conntrackTx: FlowStateTransaction[ConnTrackKey, ConnTrackValue],
                           natTx: FlowStateTransaction[NatKey, NatBinding],
                           ingressPort: UUID, egressPorts: List[UUID],
-                          tags: mutable.Set[FlowTag],
+                          tags: JHashSet[FlowTag],
                           callbacks: ArrayList[Callback0]): Unit = { }
         }, injector.getInstance(classOf[MidolmanConfig]))
 
