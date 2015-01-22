@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9a245df4_c67657d8",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VTPMRedirector.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-01-22T08:33:22Z",
+      "side": 1,
+      "message": "I meant it\u0027s totally fine there\u0027s a new line here but this line contains four spaces and that\u0027s why these are highlighted as a red area. But this is a nit and please fix it only when you need to modify somewhere else.",
+      "revId": "0d4ec60a76a22871c31595e2cb86dfeb769e1ee3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
