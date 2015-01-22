@@ -16,9 +16,8 @@
 
 package org.midonet.midolman.simulation
 
-import java.util.{Arrays, ArrayList, Set => JSet, UUID}
+import java.util.{Arrays, ArrayList, HashSet, Set => JSet, UUID}
 import scala.collection.JavaConversions._
-import scala.collection.mutable
 
 import com.typesafe.scalalogging.Logger
 import org.slf4j.LoggerFactory
@@ -55,7 +54,7 @@ trait FlowContext extends Clearable { this: PacketContext =>
     val flowActions = new ArrayList[FlowAction]()
     // This Set stores the tags by which the flow may be indexed.
     // The index can be used to remove flows associated with the given tag.
-    val flowTags = mutable.Set[FlowTag]()
+    val flowTags = new HashSet[FlowTag]()
     var hardExpirationMillis = 0
     var idleExpirationMillis = PacketContext.DEFAULT_IDLE_EXPIRATION_MILLIS
 

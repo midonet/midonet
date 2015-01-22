@@ -18,8 +18,6 @@ package org.midonet.midolman.state
 
 import java.util.{ArrayList, HashSet => JHashSet, Iterator => JIterator, List => JList, Set => JSet, UUID}
 
-import scala.collection.mutable
-
 import akka.actor.ActorSystem
 import com.google.protobuf.{CodedOutputStream, MessageLite}
 import com.typesafe.scalalogging.Logger
@@ -224,7 +222,7 @@ abstract class BaseFlowStateReplicator(conntrackTable: FlowStateTable[ConnTrackK
     def accumulateNewKeys(conntrackTx: FlowStateTransaction[ConnTrackKey, ConnTrackValue],
                           natTx: FlowStateTransaction[NatKey, NatBinding],
                           ingressPort: UUID, egressPorts: JList[UUID],
-                          tags: mutable.Set[FlowTag],
+                          tags: JHashSet[FlowTag],
                           callbacks: ArrayList[Callback0]): Unit = {
         if (natTx.size() == 0 && conntrackTx.size() == 0)
             return
@@ -352,7 +350,7 @@ abstract class BaseFlowStateReplicator(conntrackTable: FlowStateTable[ConnTrackK
 
     @throws(classOf[NotYetException])
     private def collectPeersForPort(portId: UUID, hosts: JSet[UUID],
-                                    ports: JSet[UUID], tags: mutable.Set[FlowTag]) {
+                                    ports: JSet[UUID], tags: JSet[FlowTag]) {
         def addPeerFor(port: Port) {
             if ((port.hostId ne null) && (port.hostId != underlay.host.id))
                 hosts.add(port.hostId)
@@ -385,7 +383,7 @@ abstract class BaseFlowStateReplicator(conntrackTable: FlowStateTable[ConnTrackK
                                egressPorts: JList[UUID],
                                hosts: JSet[UUID],
                                ports: JSet[UUID],
-                               tags: mutable.Set[FlowTag]): Unit = {
+                               tags: JSet[FlowTag]): Unit = {
         hosts.clear()
         ports.clear()
         collectPeersForPort(ingressPort, hosts, ports, tags)
