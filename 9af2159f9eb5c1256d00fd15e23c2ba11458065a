@@ -1,0 +1,157 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9a245df4_7fb0caf4",
+        "filename": "midolman/src/main/java/org/midonet/cluster/data/rules/TraceRule.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-01-23T00:45:09Z",
+      "side": 1,
+      "message": "2015",
+      "revId": "9af2159f9eb5c1256d00fd15e23c2ba11458065a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_ff9b1a70",
+        "filename": "midolman/src/main/java/org/midonet/midolman/simulation/Chain.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-01-23T00:45:09Z",
+      "side": 1,
+      "message": "can this exception be a static field somewhere, with the exception overriding fillInStackTrace to not capture a stack trace? the message is also not needed.",
+      "revId": "9af2159f9eb5c1256d00fd15e23c2ba11458065a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_5f886622",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/DeduplicationActor.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 398,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-01-23T00:45:09Z",
+      "side": 1,
+      "message": "maybe a debug log message?",
+      "revId": "9af2159f9eb5c1256d00fd15e23c2ba11458065a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_1f9f0e61",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/DeduplicationActor.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 399,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-01-23T00:45:09Z",
+      "side": 1,
+      "message": "need to call flushTransactions() first",
+      "revId": "9af2159f9eb5c1256d00fd15e23c2ba11458065a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_3f8db232",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/TraceRequiredException.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-01-23T00:45:09Z",
+      "side": 1,
+      "message": "ah, nevermind my previous comment. can this be an object then?",
+      "revId": "9af2159f9eb5c1256d00fd15e23c2ba11458065a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_df7bb627",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/PacketContext.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 284,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-01-23T00:45:09Z",
+      "side": 1,
+      "message": ": Unit \u003d { \n\nthat syntax is going to be deprectated soonish",
+      "revId": "9af2159f9eb5c1256d00fd15e23c2ba11458065a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_bf78822c",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/FlowTracingTestCase.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-01-23T00:45:09Z",
+      "side": 1,
+      "message": "2015",
+      "revId": "9af2159f9eb5c1256d00fd15e23c2ba11458065a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_1f76ee3e",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/FlowTracingTestCase.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-01-23T00:45:09Z",
+      "side": 1,
+      "message": "sort? :-)",
+      "revId": "9af2159f9eb5c1256d00fd15e23c2ba11458065a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_ff72fa47",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/FlowTracingTestCase.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-01-23T00:45:09Z",
+      "side": 1,
+      "message": "not needed",
+      "revId": "9af2159f9eb5c1256d00fd15e23c2ba11458065a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
