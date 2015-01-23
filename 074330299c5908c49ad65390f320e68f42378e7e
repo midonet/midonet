@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9a245df4_baf530cd",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/DatapathController.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 209,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-01-23T12:26:09Z",
+      "side": 1,
+      "message": "We can assume this is not null, we are already doing it everywhere, thus we can also get rid of the option :).",
+      "revId": "074330299c5908c49ad65390f320e68f42378e7e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
