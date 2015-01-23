@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "9a245df4_bf21a2b6",
+        "filename": "midolman/src/main/java/org/midonet/cluster/data/rules/TraceRule.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-01-23T10:02:20Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9a245df4_7fb0caf4",
+      "revId": "9af2159f9eb5c1256d00fd15e23c2ba11458065a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a245df4_ff9b1a70",
         "filename": "midolman/src/main/java/org/midonet/midolman/simulation/Chain.java",
         "patchSetId": 1
@@ -30,6 +48,24 @@
       "writtenOn": "2015-01-23T00:45:09Z",
       "side": 1,
       "message": "can this exception be a static field somewhere, with the exception overriding fillInStackTrace to not capture a stack trace? the message is also not needed.",
+      "revId": "9af2159f9eb5c1256d00fd15e23c2ba11458065a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_df2456c8",
+        "filename": "midolman/src/main/java/org/midonet/midolman/simulation/Chain.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-01-23T10:02:20Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9a245df4_ff9b1a70",
       "revId": "9af2159f9eb5c1256d00fd15e23c2ba11458065a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -53,6 +89,24 @@
     },
     {
       "key": {
+        "uuid": "9a245df4_9f3bfeea",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/DeduplicationActor.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 398,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-01-23T10:02:20Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9a245df4_5f886622",
+      "revId": "9af2159f9eb5c1256d00fd15e23c2ba11458065a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a245df4_1f9f0e61",
         "filename": "midolman/src/main/scala/org/midonet/midolman/DeduplicationActor.scala",
         "patchSetId": 1
@@ -64,6 +118,24 @@
       "writtenOn": "2015-01-23T00:45:09Z",
       "side": 1,
       "message": "need to call flushTransactions() first",
+      "revId": "9af2159f9eb5c1256d00fd15e23c2ba11458065a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_7f40ca56",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/DeduplicationActor.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 399,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-01-23T10:02:20Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9a245df4_1f9f0e61",
       "revId": "9af2159f9eb5c1256d00fd15e23c2ba11458065a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -87,6 +159,24 @@
     },
     {
       "key": {
+        "uuid": "9a245df4_1f2f0ea3",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/TraceRequiredException.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-01-23T10:02:20Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9a245df4_3f8db232",
+      "revId": "9af2159f9eb5c1256d00fd15e23c2ba11458065a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a245df4_df7bb627",
         "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/PacketContext.scala",
         "patchSetId": 1
@@ -98,6 +188,24 @@
       "writtenOn": "2015-01-23T00:45:09Z",
       "side": 1,
       "message": ": Unit \u003d { \n\nthat syntax is going to be deprectated soonish",
+      "revId": "9af2159f9eb5c1256d00fd15e23c2ba11458065a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_ff2b1a92",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/PacketContext.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 284,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-01-23T10:02:20Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9a245df4_df7bb627",
       "revId": "9af2159f9eb5c1256d00fd15e23c2ba11458065a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -121,6 +229,24 @@
     },
     {
       "key": {
+        "uuid": "9a245df4_9f12de60",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/FlowTracingTestCase.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-01-23T10:02:20Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9a245df4_bf78822c",
+      "revId": "9af2159f9eb5c1256d00fd15e23c2ba11458065a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a245df4_1f76ee3e",
         "filename": "midolman/src/test/scala/org/midonet/midolman/FlowTracingTestCase.scala",
         "patchSetId": 1
@@ -138,6 +264,24 @@
     },
     {
       "key": {
+        "uuid": "9a245df4_5f186684",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/FlowTracingTestCase.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-01-23T10:02:20Z",
+      "side": 1,
+      "message": "sort the imports? they are sorted. Which is out of order?",
+      "parentUuid": "9a245df4_1f76ee3e",
+      "revId": "9af2159f9eb5c1256d00fd15e23c2ba11458065a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a245df4_ff72fa47",
         "filename": "midolman/src/test/scala/org/midonet/midolman/FlowTracingTestCase.scala",
         "patchSetId": 1
@@ -149,6 +293,24 @@
       "writtenOn": "2015-01-23T00:45:09Z",
       "side": 1,
       "message": "not needed",
+      "revId": "9af2159f9eb5c1256d00fd15e23c2ba11458065a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_3f1db274",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/FlowTracingTestCase.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-01-23T10:02:20Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9a245df4_ff72fa47",
       "revId": "9af2159f9eb5c1256d00fd15e23c2ba11458065a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
