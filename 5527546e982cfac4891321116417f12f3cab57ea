@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9a245df4_dfda96e8",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-01-23T07:18:13Z",
+      "side": 1,
+      "message": "This could be kept as the description with @return annotation. And we might deed another description for the method but it\u0027s definitely a nit.",
+      "revId": "5527546e982cfac4891321116417f12f3cab57ea",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
