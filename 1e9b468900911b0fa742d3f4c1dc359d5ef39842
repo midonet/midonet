@@ -16,6 +16,24 @@
       "revId": "1e9b468900911b0fa742d3f4c1dc359d5ef39842",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_ba0ff02d",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/ChainModificationTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-01-23T10:37:06Z",
+      "side": 1,
+      "message": "What do you mean? It\u0027s assigned below.",
+      "parentUuid": "9a245df4_3fcc9235",
+      "revId": "1e9b468900911b0fa742d3f4c1dc359d5ef39842",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
