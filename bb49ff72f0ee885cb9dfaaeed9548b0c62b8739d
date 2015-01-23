@@ -16,6 +16,24 @@
       "revId": "bb49ff72f0ee885cb9dfaaeed9548b0c62b8739d",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_7aaa98d5",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PortMapper.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-23T11:27:39Z",
+      "side": 1,
+      "message": "It is one way we though of to add state information to topology objects, that would be backwards compatible with how we store objects in zoom, plus it would accommodate different requirements for saving state information.\n\nHere, state information is added as ephemeral ownership metadata to persistent objects. We support two ownership models: shared and exclusive.\n\n- Shared, is backwards compatible with storage ops that don\u0027t support ownership, and allows to specify zero or more strings (usually UUIDs) as owners for an object. This model can be used for ports, where agents can add themselves as owner for a port, indicating that the port is in use. Hence, here, the owners observables - which emits notifications with the set of owners - is used to determine whether a port is active, by verifying that the owners set is not empty.\n\n- Exclusive, supports only one owner, and can be used for hosts (to indicate the host is in use by a midolman instance), or  for vteps (to indicate ownership by a vxlan gateway instance), etc.\n\nAll ownership ops (but more so the exclusive ones), resolve race conditions by leveraging the zk version numbers.",
+      "parentUuid": "9a245df4_7a5c5826",
+      "revId": "bb49ff72f0ee885cb9dfaaeed9548b0c62b8739d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
