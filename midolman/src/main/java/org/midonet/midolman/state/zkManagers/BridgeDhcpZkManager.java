@@ -156,7 +156,7 @@ public class BridgeDhcpZkManager extends BaseZkManager {
             if (opt121Routes == null) {
                 opt121Routes = new ArrayList<>();
             }
-            if (opt121Routes.contains(opt121)) {
+            if (!opt121Routes.contains(opt121)) {
                 opt121Routes.add(opt121);
             }
         }
