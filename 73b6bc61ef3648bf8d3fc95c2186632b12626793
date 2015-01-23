@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9a245df4_1fe54ea8",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-01-23T07:46:21Z",
+      "side": 0,
+      "message": "Why?",
+      "range": {
+        "startLine": 43,
+        "startChar": 10,
+        "endLine": 43,
+        "endChar": 72
+      },
+      "revId": "73b6bc61ef3648bf8d3fc95c2186632b12626793",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_5feea68c",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/Host.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-01-23T07:46:21Z",
+      "side": 0,
+      "message": "That wasn\u0027t very deep at all, was it?",
+      "range": {
+        "startLine": 80,
+        "startChar": 0,
+        "endLine": 88,
+        "endChar": 5
+      },
+      "revId": "73b6bc61ef3648bf8d3fc95c2186632b12626793",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
