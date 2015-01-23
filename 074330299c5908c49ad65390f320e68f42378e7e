@@ -16,6 +16,23 @@
       "revId": "074330299c5908c49ad65390f320e68f42378e7e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_ba1c1015",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/DatapathController.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 211,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-01-23T12:44:45Z",
+      "side": 1,
+      "message": "Note that we are using setter injection, which means this code will run during constructions, before injection, and midolmanConfig will never be anything other than null. \n\nthis code should be in preStart",
+      "revId": "074330299c5908c49ad65390f320e68f42378e7e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
