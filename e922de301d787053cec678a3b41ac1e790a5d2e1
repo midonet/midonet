@@ -1,0 +1,142 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9a245df4_1ac43c3f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-23T13:55:49Z",
+      "side": 1,
+      "message": "I preferred how it was before. It differentiated between the protos and the simulation objects. When reading the code, I was not sure whether TunnelZone was referring to the proto or the simulation object.",
+      "range": {
+        "startLine": 33,
+        "startChar": 63,
+        "endLine": 33,
+        "endChar": 73
+      },
+      "revId": "e922de301d787053cec678a3b41ac1e790a5d2e1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_7ab578cc",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-23T13:55:49Z",
+      "side": 1,
+      "message": "It does not hurt to have that of course but it is not strictly necessary. You can check quick documentation without it and you\u0027ll see that the formatting does not change.",
+      "range": {
+        "startLine": 108,
+        "startChar": 75,
+        "endLine": 108,
+        "endChar": 80
+      },
+      "revId": "e922de301d787053cec678a3b41ac1e790a5d2e1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_5add1414",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopology.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 156,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-23T13:55:49Z",
+      "side": 1,
+      "message": "By default constructor arguments are private val, so the val is not needed here.",
+      "range": {
+        "startLine": 156,
+        "startChar": 33,
+        "endLine": 156,
+        "endChar": 36
+      },
+      "revId": "e922de301d787053cec678a3b41ac1e790a5d2e1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_3ae2e0d5",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopology.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 157,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-23T13:55:49Z",
+      "side": 1,
+      "message": "same",
+      "range": {
+        "startLine": 157,
+        "startChar": 33,
+        "endLine": 157,
+        "endChar": 36
+      },
+      "revId": "e922de301d787053cec678a3b41ac1e790a5d2e1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_9ae78ce4",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopology.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 158,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-23T13:55:49Z",
+      "side": 1,
+      "message": "same",
+      "range": {
+        "startLine": 158,
+        "startChar": 33,
+        "endLine": 158,
+        "endChar": 36
+      },
+      "revId": "e922de301d787053cec678a3b41ac1e790a5d2e1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_7aec58c8",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/Host.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-23T13:55:49Z",
+      "side": 1,
+      "message": "Objects.equals does an NPE-safe comparison. In your case, if one of the fields is null, you\u0027ll get an NPE.",
+      "range": {
+        "startLine": 91,
+        "startChar": 12,
+        "endLine": 94,
+        "endChar": 43
+      },
+      "revId": "e922de301d787053cec678a3b41ac1e790a5d2e1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
