@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9a245df4_15f1afcd",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/builders/BridgeBuilderImpl.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-23T17:51:51Z",
+      "side": 1,
+      "message": "This NPEs on normal bridges.",
+      "range": {
+        "startLine": 99,
+        "startChar": 45,
+        "endLine": 99,
+        "endChar": 53
+      },
+      "revId": "cf526809b67c689061c648bc4770a999a4400a11",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
