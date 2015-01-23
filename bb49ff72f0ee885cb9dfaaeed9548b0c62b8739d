@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9a245df4_7a5c5826",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PortMapper.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-01-23T11:04:53Z",
+      "side": 1,
+      "message": "wow, what are owners observables?",
+      "revId": "bb49ff72f0ee885cb9dfaaeed9548b0c62b8739d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
