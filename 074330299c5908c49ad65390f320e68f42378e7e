@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "9a245df4_d56c3739",
+        "filename": "midolman/src/main/java/org/midonet/midolman/config/MidolmanConfig.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-01-23T18:46:50Z",
+      "side": 1,
+      "message": "Is changing this from 1450 to 1500 ok? was there a reason for the original value, like to allow for tunnel encapsulation, etc?",
+      "range": {
+        "startLine": 66,
+        "startChar": 48,
+        "endLine": 66,
+        "endChar": 59
+      },
+      "revId": "074330299c5908c49ad65390f320e68f42378e7e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a245df4_baf530cd",
         "filename": "midolman/src/main/scala/org/midonet/midolman/DatapathController.scala",
         "patchSetId": 4
