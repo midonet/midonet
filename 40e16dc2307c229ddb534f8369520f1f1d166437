@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9a245df4_7904657e",
+        "filename": "brain/midonet-brain/conf/cluster.conf",
+        "patchSetId": 16
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-24T17:37:12Z",
+      "side": 1,
+      "message": "Yes, this is supported now by default. I\u0027ll remove it.",
+      "parentUuid": "9a245df4_b0ca796c",
+      "range": {
+        "startLine": 66,
+        "startChar": 7,
+        "endLine": 66,
+        "endChar": 58
+      },
+      "revId": "40e16dc2307c229ddb534f8369520f1f1d166437",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a245df4_f0c4f160",
         "filename": "brain/midonet-brain/conf/logback.xml",
         "patchSetId": 16
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "9a245df4_39494dd1",
+        "filename": "brain/midonet-brain/conf/logback.xml",
+        "patchSetId": 16
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-24T17:37:12Z",
+      "side": 1,
+      "message": "Yes, this is meant as an example. They are not actually used nowadays (we only use the tomcat logback.xml which is in the api) so I\u0027m just making small improvements in passing.\n\nWe should do dedicate a couple of patches to the logs when we make the cluster node standalone.",
+      "parentUuid": "9a245df4_f0c4f160",
+      "range": {
+        "startLine": 40,
+        "startChar": 0,
+        "endLine": 40,
+        "endChar": 55
+      },
+      "revId": "40e16dc2307c229ddb534f8369520f1f1d166437",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a245df4_109f0561",
         "filename": "brain/midonet-brain/src/main/java/org/midonet/brain/MidoBrainModule.java",
         "patchSetId": 16
@@ -59,6 +107,30 @@
       "writtenOn": "2015-01-21T10:07:19Z",
       "side": 1,
       "message": "Just a question here: this looks different from the modules used for the other brain services... I assume this is just temporary to make it compatible with embedding it in the old API; is that correct?",
+      "range": {
+        "startLine": 33,
+        "startChar": 13,
+        "endLine": 33,
+        "endChar": 28
+      },
+      "revId": "40e16dc2307c229ddb534f8369520f1f1d166437",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_194609c0",
+        "filename": "brain/midonet-brain/src/main/java/org/midonet/brain/MidoBrainModule.java",
+        "patchSetId": 16
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-24T17:37:12Z",
+      "side": 1,
+      "message": "Yes, this is mostly legacy. I want to rationalise modules ASAP (the Backend module I added elsewhere moves in that direction)",
+      "parentUuid": "9a245df4_109f0561",
       "range": {
         "startLine": 33,
         "startChar": 13,
@@ -117,6 +189,30 @@
     },
     {
       "key": {
+        "uuid": "9a245df4_b90c1d96",
+        "filename": "brain/midonet-brain/src/main/java/org/midonet/brain/services/vxgw/VxLanGatewayService.java",
+        "patchSetId": 16
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-24T17:37:12Z",
+      "side": 1,
+      "message": "I have no idea why this needs to be injected.. found it like that.\n\nI\u0027ll probably remove it.",
+      "parentUuid": "9a245df4_101a6517",
+      "range": {
+        "startLine": 103,
+        "startChar": 72,
+        "endLine": 103,
+        "endChar": 86
+      },
+      "revId": "40e16dc2307c229ddb534f8369520f1f1d166437",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a245df4_f08cf181",
         "filename": "brain/midonet-brain/src/main/java/org/midonet/brain/services/vxgw/VxLanGatewayService.java",
         "patchSetId": 16
@@ -163,6 +259,30 @@
     },
     {
       "key": {
+        "uuid": "9a245df4_991159af",
+        "filename": "brain/midonet-brain/src/main/java/org/midonet/brain/services/vxgw/VxLanGatewayService.java",
+        "patchSetId": 16
+      },
+      "lineNbr": 445,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-24T17:37:12Z",
+      "side": 1,
+      "message": "It will happen, when we have pluggable services (which may have vendor-specific implementations for example)",
+      "parentUuid": "9a245df4_b01c3915",
+      "range": {
+        "startLine": 445,
+        "startChar": 9,
+        "endLine": 445,
+        "endChar": 35
+      },
+      "revId": "40e16dc2307c229ddb534f8369520f1f1d166437",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a245df4_70f801e6",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/ClusterNode.scala",
         "patchSetId": 16
@@ -174,6 +294,30 @@
       "writtenOn": "2015-01-21T08:15:57Z",
       "side": 1,
       "message": "I\u0027m just commenting here and it\u0027s totally unrelated, but why don\u0027t we call this method inside the config classes instead of here?",
+      "range": {
+        "startLine": 75,
+        "startChar": 25,
+        "endLine": 75,
+        "endChar": 41
+      },
+      "revId": "40e16dc2307c229ddb534f8369520f1f1d166437",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_39202df7",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/ClusterNode.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-24T17:37:12Z",
+      "side": 1,
+      "message": "Not sure I understand, you mean letting the Minions have an @Inject of a config and pull the id from there?\n\nI\u0027m trying to remove the need of injecting all sorts of Guice deps everywhere, even for configurations, and simply have each service have its own Config injected, but not require a whole ConfigProvider, or share Configs with other services.\n\nThis is a bit in that direction. The cluster node id (like zk connections, etc.) is part of the node context and as such doesn\u0027t belong to any service. What I\u0027m trying to do here is to extract a nodeId and pass that to the services, and thus couple services to a node id (or rather, a node context) that you can construct from wherever (even ad-hoc for tests). Instead of requiring the whole guice scaffolding and specific Config classes everywhere.",
+      "parentUuid": "9a245df4_70f801e6",
       "range": {
         "startLine": 75,
         "startChar": 25,
@@ -232,6 +376,30 @@
     },
     {
       "key": {
+        "uuid": "9a245df4_99031973",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/heartbeat/Heartbeat.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-24T17:37:12Z",
+      "side": 1,
+      "message": "We don\u0027t want to create a different one on every call, do we?",
+      "parentUuid": "9a245df4_f0e35131",
+      "range": {
+        "startLine": 43,
+        "startChar": 8,
+        "endLine": 43,
+        "endChar": 19
+      },
+      "revId": "40e16dc2307c229ddb534f8369520f1f1d166437",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a245df4_709e4158",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/heartbeat/Heartbeat.scala",
         "patchSetId": 16
@@ -243,6 +411,30 @@
       "writtenOn": "2015-01-21T10:07:19Z",
       "side": 1,
       "message": "If we need a a java map (JMap), why not creating it directly as such, instead of creating a scala map and converting it?",
+      "range": {
+        "startLine": 44,
+        "startChar": 33,
+        "endLine": 44,
+        "endChar": 37
+      },
+      "revId": "40e16dc2307c229ddb534f8369520f1f1d166437",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_d9f47189",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/heartbeat/Heartbeat.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-24T17:37:12Z",
+      "side": 1,
+      "message": "It\u0027s just 1 vs. 3 lines, and will just be done once, so I preferred readability.",
+      "parentUuid": "9a245df4_709e4158",
       "range": {
         "startLine": 44,
         "startChar": 33,
