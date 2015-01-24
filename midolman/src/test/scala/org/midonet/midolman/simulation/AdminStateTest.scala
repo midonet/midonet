@@ -125,9 +125,10 @@ class AdminStateTest extends MidolmanSpec {
                                  interiorRouterPort,
                                  exteriorRouterPort)
 
-        val arpTable = topo.collect({ case r: Router => r.arpTable}).head
-        arpTable.set(ipBridgeSide.getAddress, macBridgeSide)
-        arpTable.set(ipRouterSide.getAddress, macRouterSide)
+        topo.collectFirst({ case r: Router => r}) foreach { r =>
+            feedArpTable(r, ipBridgeSide.getAddress, macBridgeSide)
+            feedArpTable(r, ipRouterSide.getAddress, macRouterSide)
+        }
 
         topo.collect({ case b: Bridge => b.vlanMacTableMap})
             .head(ClusterBridge.UNTAGGED_VLAN_ID)
