@@ -413,7 +413,7 @@ public class VtepDataClientImpl extends VtepDataClientBase {
 
         log.debug("Adding multicast remote MAC {} to logical switch {} on "
                   + "VXLAN endpoint {}", lsName, mac, tunnelIp);
-        StatusWithUuid status = configurationService.vtepAddMcastMacRemote(
+        Status status = configurationService.vtepAddMcastMacRemote(
             node, lsName, mac.toString(), tunnelIp.toString());
         if (!status.isSuccess()) {
             log.warn("Adding multicast remote MAC failed: {}", status);
