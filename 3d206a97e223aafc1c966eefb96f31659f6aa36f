@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9a245df4_39db0d1d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/DeduplicationActor.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 373,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-24T17:24:28Z",
+      "side": 1,
+      "message": "undo this, pointless",
+      "range": {
+        "startLine": 373,
+        "startChar": 17,
+        "endLine": 373,
+        "endChar": 18
+      },
+      "revId": "3d206a97e223aafc1c966eefb96f31659f6aa36f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
