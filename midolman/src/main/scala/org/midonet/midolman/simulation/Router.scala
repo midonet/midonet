@@ -219,9 +219,9 @@ class Router(override val id: UUID,
             case extAddr: IPv4Subnet if extAddr.containsAddress(nextHopIP) =>
                 arpTable.get(nextHopIP, port)
             case extAddr: IPv4Subnet =>
-                context.log.warn("cannot get MAC for {} - address not" +
-                            "in network segment of port {} ({})",
-                            nextHopIP, port.id, extAddr)
+                context.log.warn("cannot get MAC for {} - address not " +
+                                 "in network segment of port {} ({})",
+                                 nextHopIP, port.id, extAddr)
                 null
             case _ =>
                 throw new IllegalArgumentException("Arping for non-IPv4 addr")

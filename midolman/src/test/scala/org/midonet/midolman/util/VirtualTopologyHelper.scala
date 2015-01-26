@@ -123,6 +123,7 @@ trait VirtualTopologyHelper {
         val r = force {
             flushTransactions(conntrackTx, natTx)
             pktCtx.clear()
+            pktCtx.wcmatch.reset(pktCtx.origMatch)
             new Coordinator(pktCtx) simulate()
         }
         commitTransactions(conntrackTx, natTx)
