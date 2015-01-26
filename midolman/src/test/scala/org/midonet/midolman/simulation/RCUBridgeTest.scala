@@ -16,6 +16,8 @@
 
 package org.midonet.midolman.simulation
 
+import java.util
+
 import akka.actor.ActorSystem
 import akka.event.Logging
 import collection.mutable.{Map, Queue}
@@ -84,7 +86,7 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with Matchers {
 
         bridge = new Bridge(bridgeID, true, 0, macLearningTables, ip4MacMap,
                             flowCount, Option(inFilterId), Option(outFilterId),
-                            vlanBridgePortId, List.empty,
+                            vlanBridgePortId, new util.ArrayList(),
                             flowRemovedCallbackGen, rtrMacToLogicalPortId,
                             rtrIpToMac, vlanToPort, List(brPort.id))
 
