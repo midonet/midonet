@@ -17,6 +17,8 @@
 
 from __future__ import print_function
 from sys import argv
+import subprocess
+import datetime
 import errno
 import fcntl
 import os
@@ -27,12 +29,19 @@ import sys
 import tempfile
 import time
 
+def corefile_timestamp():
+    return datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+
+def timestamp():
+    return datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 def err(s):
-    print('[wdog] ' + s, file=sys.stderr)
+    print('[wdog] ' + timestamp() + ' ' + s, file=sys.stderr)
+    sys.stderr.flush()
 
 def msg(s):
-    print('[wdog] ' + s, file=sys.stdout)
+    print('[wdog] ' + timestamp() + ' ' + s, file=sys.stdout)
+    sys.stdout.flush()
 
 class ISelectLoopObserver:
     def __init__(self):
@@ -60,6 +69,7 @@ class SignalsPipe:
 
         signal.signal(signal.SIGINT, self._handler)
         signal.signal(signal.SIGTERM, self._handler)
+        signal.signal(signal.SIGQUIT, self._handler)
         signal.signal(signal.SIGCHLD, self._handler)
 
     def _handler(self, signum, frame):
@@ -100,7 +110,7 @@ class SelectLoop:
                 raise e
 
 class ProcMon(ISelectLoopObserver):
-    def __init__(self, grace, args):
+    def __init__(self, grace, dump_path, args):
         self.ticks_left = grace
         self.grace = grace
         self.pipe_dir = tempfile.mkdtemp(prefix = 'wdog.')
@@ -109,6 +119,31 @@ class ProcMon(ISelectLoopObserver):
         self.child_pid = 0
         self.pipe = 0
         self.running = True
+        self.dump_path = dump_path
+
+    def dump_core(self, pid):
+        try:
+            if self.dump_path is None:
+                return
+
+            dumps = self.list_dumps()
+            if len(dumps) >= 10:
+                err('SKIPPING MEMORY DUMP, there are already %d dumps in %s' % (len(dumps), self.dump_path))
+                return
+
+            filename = "%s/core_%s_%d.hprof" % (self.dump_path, corefile_timestamp(), pid)
+            subprocess.call(["/usr/bin/jmap", "-dump:live,format=b,file=%s" % filename, str(pid)])
+            err("core dumped into %s" % filename)
+        except Exception as e:
+            err(e.message)
+            pass
+
+    def list_dumps(self):
+        files = []
+        for (dirpath, dirnames, filenames) in os.walk(self.dump_path):
+            files.extend(filenames)
+            break
+        return filter(lambda f: f.endswith(".hprof"), files)
 
     def run(self):
         self.select_loop = SelectLoop(self)
@@ -119,8 +154,10 @@ class ProcMon(ISelectLoopObserver):
             while self.running and self.child_pid > 0:
                 self.select_loop.loop(1.0)
                 self.ticks_left -= 1
-                if self.ticks_left <= 0 and not killed:
+                if self.ticks_left < 0 and not killed:
                     err('child is unresponsive, killing')
+                    os.kill(self.child_pid, signal.SIGQUIT)
+                    self.dump_core(self.child_pid)
                     os.kill(self.child_pid, signal.SIGKILL)
                     killed = True
         finally:
@@ -132,7 +169,7 @@ class ProcMon(ISelectLoopObserver):
                 if self.running and self.child_pid > 0:
                     err('unexpected error: killing child process')
                     os.kill(self.child_pid, signal.SIGKILL)
-                    pid, status = os.waitpid(self.child_pid)
+                    pid, status = os.waitpid(self.child_pid, 0)
             except OSError:
                 pass
 
@@ -159,20 +196,28 @@ class ProcMon(ISelectLoopObserver):
                 msg('child crashed')
                 sys.exit(253)
 
+    def on_sigquit(self):
+        if self.child_pid > 0:
+            msg('received SIGQUIT, dumping core and delivering signal')
+            self.dump_core(self.child_pid)
+            os.kill(self.child_pid, signal.SIGQUIT)
+
     def on_sigterm(self):
         msg('signal received, exiting')
-        self.terminate(5)
+        self.terminate(5, signal.SIGTERM)
 
-    def terminate(self, timeout):
+    def terminate(self, timeout, signum):
         pid = self.child_pid
         if pid > 0:
-            os.kill(pid, signal.SIGTERM)
+            os.kill(pid, signum)
             for i in range(timeout):
                 self.select_loop.loop(1.0)
-            err('Child did not stop gracefully in 5 seconds, killing')
+            err('child did not stop gracefully in 5 seconds, killing')
             os.kill(pid, signal.SIGKILL)
 
     def on_signal(self, signum):
+        if signum == signal.SIGQUIT:
+            self.on_sigquit()
         if signum == signal.SIGINT or signum == signal.SIGTERM:
             self.on_sigterm()
         elif signum == signal.SIGCHLD:
@@ -199,6 +244,7 @@ class ProcMon(ISelectLoopObserver):
             self.ticks_left = self.grace
 
     def open_pipe(self):
+        msg('opening pipe at ' + self.pipe_path)
         try:
             res = os.stat(self.pipe_path)
         except OSError as e:
@@ -213,6 +259,7 @@ class ProcMon(ISelectLoopObserver):
     def spawn(self):
         self.child_pid = os.fork()
         if self.child_pid > 0:
+            msg("spawned child process with PID %d" % self.child_pid)
             return self.child_pid
         elif self.child_pid == 0:
             os.putenv('WDOG_PIPE', self.pipe_path)
@@ -221,9 +268,9 @@ class ProcMon(ISelectLoopObserver):
 
         return -1 # not reached
 
-usage_string = """wdog: Runs and monitors a process
+usage_string = """wdog: Runs and monitors a java process
 
-Usage: wdog <TIMEOUT> -- <CMD> <CMD_ARGS>
+Usage: wdog [-d <PATH>] <TIMEOUT> -- <CMD> <CMD_ARGS>
 
 wdog will run CMD with CMD_ARGS as a child process. And it will expect it
 to periodically write to a named pipe whose path it will put in the WDOG_PIPE
@@ -234,6 +281,9 @@ environment variable.
 
 If the child exits on its own, wdog will immediately exit with the same exit
 status as the child.
+
+Giving the -d option will create a dump of the jvm heap in the given path, in
+the case where the child is killed due to being unresponsive.
 """
 
 def usage():
@@ -242,6 +292,15 @@ def usage():
 
 def main():
     argv.pop(0)
+    if len(argv) < 3:
+        usage()
+
+    dump_path = None
+    if argv[0] == "-d":
+        argv.pop(0)
+        dump_path = argv[0]
+        argv.pop(0)
+
     if (len(argv) < 3 or argv[1] != "--"):
         usage()
 
@@ -252,7 +311,7 @@ def main():
     except ValueError:
         usage()
 
-    ProcMon(timeout, argv).run()
+    ProcMon(timeout, dump_path, argv).run()
 
 if __name__ == '__main__':
     main()
