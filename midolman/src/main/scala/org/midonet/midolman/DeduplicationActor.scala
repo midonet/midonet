@@ -229,16 +229,14 @@ class DeduplicationActor(
             genPacketEmitter.process(runGeneratedPacket)
 
         case RestartWorkflow(pktCtx) =>
-            MDC.put("cookie", pktCtx.cookieStr)
             if (pktCtx.idle) {
                 metrics.packetsOnHold.dec()
                 pktCtx.log.debug("Restarting workflow")
+                MDC.put("cookie", pktCtx.cookieStr)
                 runWorkflow(pktCtx)
-            } else {
-                pktCtx.log.warn("Tried to restart a non-idle PacketContext")
-                drop(pktCtx)
+                MDC.remove("cookie")
             }
-            MDC.remove("cookie")
+            // Else the packet may have already been expired and dropped
     }
 
     // We return collection.Set so we can return an empty immutable set
