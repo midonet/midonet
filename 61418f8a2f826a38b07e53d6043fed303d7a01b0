@@ -34,6 +34,24 @@
       "revId": "61418f8a2f826a38b07e53d6043fed303d7a01b0",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_09040d14",
+        "filename": "midolman/src/main/java/org/midonet/midolman/simulation/Chain.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-01-26T15:56:05Z",
+      "side": 1,
+      "message": "Yes, otherwise the packet would never get through. It\u0027s a big funky, because we basically need a way to bypass the rule when it comes to the simulation for a second time, but I can\u0027t think of a much better way that setting a switch on the ctx.",
+      "parentUuid": "7a1969be_c62b0293",
+      "revId": "61418f8a2f826a38b07e53d6043fed303d7a01b0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
