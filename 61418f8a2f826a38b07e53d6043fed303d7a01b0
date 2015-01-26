@@ -16,6 +16,24 @@
       "revId": "61418f8a2f826a38b07e53d6043fed303d7a01b0",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_c62b0293",
+        "filename": "midolman/src/main/java/org/midonet/midolman/simulation/Chain.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-01-26T15:48:56Z",
+      "side": 1,
+      "message": "isn\u0027t this covered by the TraceRule\u0027s process method?\n\n        if (!pktCtx.tracingEnabled()) {\n            res.action \u003d Action.TRACE;\n        }",
+      "parentUuid": "7a1969be_e6e43eae",
+      "revId": "61418f8a2f826a38b07e53d6043fed303d7a01b0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
