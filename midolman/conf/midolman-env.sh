@@ -90,7 +90,6 @@ JMX_PORT="7200"
 # enable assertions.  disabling this in production will give a modest
 # performance benefit (around 5%).
 # JVM_OPTS="$JVM_OPTS -ea"
-
 JVM_OPTS="$JVM_OPTS -XX:+AggressiveOpts"
 
 # enable thread priorities, primarily so we can give periodic tasks
@@ -107,6 +106,7 @@ JVM_OPTS="$JVM_OPTS -XX:ThreadPriorityPolicy=42"
 JVM_OPTS="$JVM_OPTS -Xms${MAX_HEAP_SIZE}"
 JVM_OPTS="$JVM_OPTS -Xmx${MAX_HEAP_SIZE}"
 JVM_OPTS="$JVM_OPTS -Xmn${HEAP_NEWSIZE}"
+JVM_OPTS="$JVM_OPTS -XX:HeapDumpPath=/var/log/midolman/"
 JVM_OPTS="$JVM_OPTS -XX:+HeapDumpOnOutOfMemoryError"
 JVM_OPTS="$JVM_OPTS -XX:OnOutOfMemoryError=\"kill;-3;%p\""
 

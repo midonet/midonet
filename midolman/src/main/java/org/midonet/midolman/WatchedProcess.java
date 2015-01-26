@@ -56,7 +56,6 @@ public class WatchedProcess {
         @Override
         public void run() {
             try {
-                log.trace("Writing to watchdog pipe");
                 if (running) {
                     buf.position(0);
                     pipe.write(buf);
@@ -81,7 +80,7 @@ public class WatchedProcess {
 
         try {
             int timeout = Integer.valueOf(timeoutStr);
-            intervalMillis = timeout * 1000 / 2;
+            intervalMillis = timeout * 1000 / 4;
         } catch (NumberFormatException e) {
             log.warn("Disabling watchdog: Invalid WDOG_TIMEOUT value: {}", timeoutStr);
             return false;
@@ -100,7 +99,7 @@ public class WatchedProcess {
     private boolean openPipe() {
         try {
             pipe = FileChannel.open(pipePath, StandardOpenOption.WRITE);
-            log.debug("Opened pipe to watchdog process at {}", pipePath);
+            log.info("Opened pipe to watchdog process at {}", pipePath);
             return true;
         } catch (IOException e) {
             log.warn("Failed to open pipe at " + pipePath, e);
@@ -120,7 +119,7 @@ public class WatchedProcess {
         running = true;
         Runtime.getRuntime().addShutdownHook(shutdownHook);
         timer = new Timer("watchdog", true);
-        timer.schedule(tick, 0, intervalMillis);
+        timer.scheduleAtFixedRate(tick, 0, intervalMillis);
     }
 
 }
