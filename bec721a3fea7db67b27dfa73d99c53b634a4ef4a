@@ -1,0 +1,790 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_e64d5ec6",
+        "filename": "brain/midonet-brain/build.gradle",
+        "patchSetId": 6
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-26T16:00:13Z",
+      "side": 1,
+      "message": "Some info of what this does? \n\nDo we want to mention it in the brain/README?",
+      "revId": "bec721a3fea7db67b27dfa73d99c53b634a4ef4a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_c64ae2ab",
+        "filename": "brain/midonet-brain/conf/client.conf",
+        "patchSetId": 6
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-26T16:00:13Z",
+      "side": 1,
+      "message": "nit: cluster-client.conf?\n\nbut actually, looking at what is actually applicable from the contents below I\u0027m wondering whether we should just have some command line parameters for the host, port and url and be done with it.",
+      "revId": "bec721a3fea7db67b27dfa73d99c53b634a4ef4a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_c68f82cb",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/TopologySnoopy.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-26T16:00:13Z",
+      "side": 1,
+      "message": "5",
+      "range": {
+        "startLine": 2,
+        "startChar": 16,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "bec721a3fea7db67b27dfa73d99c53b634a4ef4a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_86fe2a37",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/TopologySnoopy.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-26T16:00:13Z",
+      "side": 1,
+      "message": "Worth making this namespace a bit more user friendly? E.g. a plain \"org.midonet.topology-snoopy\"",
+      "range": {
+        "startLine": 40,
+        "startChar": 46,
+        "endLine": 40,
+        "endChar": 69
+      },
+      "revId": "bec721a3fea7db67b27dfa73d99c53b634a4ef4a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_66b68e8c",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/TopologySnoopy.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-26T16:00:13Z",
+      "side": 1,
+      "message": "Confusing, is this a server, or a client? Why do we have a single ClientSession?",
+      "range": {
+        "startLine": 42,
+        "startChar": 30,
+        "endLine": 42,
+        "endChar": 43
+      },
+      "revId": "bec721a3fea7db67b27dfa73d99c53b634a4ef4a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_26ee568c",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/TopologySnoopy.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-26T16:00:13Z",
+      "side": 1,
+      "message": "These are all the protos supported right?\n\nI think we have a list already in the cluster/ submodule. We should probably move it here so there is a unified list of available protos for all client-side components. Then import from here.",
+      "range": {
+        "startLine": 46,
+        "startChar": 0,
+        "endLine": 48,
+        "endChar": 69
+      },
+      "revId": "bec721a3fea7db67b27dfa73d99c53b634a4ef4a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_a68886c7",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/TopologySnoopy.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-26T16:00:13Z",
+      "side": 1,
+      "message": "is this right? isn\u0027t this the server?",
+      "range": {
+        "startLine": 52,
+        "startChar": 47,
+        "endLine": 52,
+        "endChar": 53
+      },
+      "revId": "bec721a3fea7db67b27dfa73d99c53b634a4ef4a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_669fae04",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/TopologySnoopy.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-26T16:00:13Z",
+      "side": 1,
+      "message": "Thinking as a user, I\u0027d prefer to see \"..MidoNet Topology Snoopy..\"\n\nAlso, echo the server config.",
+      "revId": "bec721a3fea7db67b27dfa73d99c53b634a4ef4a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_06f35a74",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/TopologySnoopy.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-26T16:00:13Z",
+      "side": 1,
+      "message": "nit: \n\ntypes foreach session.watchAll",
+      "revId": "bec721a3fea7db67b27dfa73d99c53b634a4ef4a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_86858aaf",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/TopologySnoopy.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-26T16:00:13Z",
+      "side": 1,
+      "message": "It\u0027s probably a warn.",
+      "range": {
+        "startLine": 60,
+        "startChar": 24,
+        "endLine": 60,
+        "endChar": 29
+      },
+      "revId": "bec721a3fea7db67b27dfa73d99c53b634a4ef4a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_e6fb9e45",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/TopologySnoopy.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-26T16:00:13Z",
+      "side": 1,
+      "message": "Debug, also below.",
+      "range": {
+        "startLine": 64,
+        "startChar": 28,
+        "endLine": 64,
+        "endChar": 32
+      },
+      "revId": "bec721a3fea7db67b27dfa73d99c53b634a4ef4a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_26bc966c",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/TopologySnoopyApp.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-26T16:00:13Z",
+      "side": 1,
+      "message": "Worth mentioning in the README",
+      "range": {
+        "startLine": 29,
+        "startChar": 7,
+        "endLine": 29,
+        "endChar": 24
+      },
+      "revId": "bec721a3fea7db67b27dfa73d99c53b634a4ef4a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_46bb9272",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/client/ClientSession.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-26T16:00:13Z",
+      "side": 1,
+      "message": "A bit more info here would be fitting. E.g., re. lifecycle.",
+      "revId": "bec721a3fea7db67b27dfa73d99c53b634a4ef4a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_a6afe62a",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/client/ClientSession.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-26T16:00:13Z",
+      "side": 1,
+      "message": "I think there is one of these already in Executors.",
+      "range": {
+        "startLine": 72,
+        "startChar": 47,
+        "endLine": 72,
+        "endChar": 59
+      },
+      "revId": "bec721a3fea7db67b27dfa73d99c53b634a4ef4a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_86ac6a37",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/client/ClientSession.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-26T16:00:13Z",
+      "side": 1,
+      "message": "Dittto. If you can think of a good namespace, I think it\u0027s preferable to class names. But we can address this later.",
+      "range": {
+        "startLine": 74,
+        "startChar": 46,
+        "endLine": 74,
+        "endChar": 68
+      },
+      "revId": "bec721a3fea7db67b27dfa73d99c53b634a4ef4a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_e6a9de25",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/client/ClientSession.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-26T16:00:13Z",
+      "side": 1,
+      "message": "This means this has support for both websockets and ordinary sockets right? Good point for the javadoc!",
+      "revId": "bec721a3fea7db67b27dfa73d99c53b634a4ef4a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_c6a66253",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/client/ClientSession.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-26T16:00:13Z",
+      "side": 1,
+      "message": "There is no handshake in socket? or is it just not implemented?",
+      "range": {
+        "startLine": 88,
+        "startChar": 0,
+        "endLine": 88,
+        "endChar": 39
+      },
+      "revId": "bec721a3fea7db67b27dfa73d99c53b634a4ef4a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_2663f61b",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/client/ClientSession.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-26T16:00:13Z",
+      "side": 1,
+      "message": "I think you can\n\ncase Service.State.NEW || Service.State.STARTING || ..\n\nImporting State.* would probably make it more readable",
+      "revId": "bec721a3fea7db67b27dfa73d99c53b634a4ef4a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_467272e6",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/client/ClientSession.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 137,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-26T16:00:13Z",
+      "side": 1,
+      "message": "not needed",
+      "range": {
+        "startLine": 137,
+        "startChar": 30,
+        "endLine": 137,
+        "endChar": 31
+      },
+      "revId": "bec721a3fea7db67b27dfa73d99c53b634a4ef4a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_064fda93",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/client/ClientSession.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 137,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-26T16:00:13Z",
+      "side": 1,
+      "message": "Using andThen and recover would be more idiomatic, maybe",
+      "range": {
+        "startLine": 137,
+        "startChar": 21,
+        "endLine": 137,
+        "endChar": 30
+      },
+      "revId": "bec721a3fea7db67b27dfa73d99c53b634a4ef4a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_a676c6d6",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/client/ClientSession.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 138,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-26T16:00:13Z",
+      "side": 1,
+      "message": "debug",
+      "range": {
+        "startLine": 138,
+        "startChar": 12,
+        "endLine": 138,
+        "endChar": 16
+      },
+      "revId": "bec721a3fea7db67b27dfa73d99c53b634a4ef4a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_6920219c",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/client/ClientSession.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 151,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-26T16:00:13Z",
+      "side": 1,
+      "message": ".onCompleted {\n    case Success(_) \u003d\u003e .. \n    case Failure(t) \u003d\u003e ...\n  }",
+      "range": {
+        "startLine": 148,
+        "startChar": 21,
+        "endLine": 151,
+        "endChar": 43
+      },
+      "revId": "bec721a3fea7db67b27dfa73d99c53b634a4ef4a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_492565aa",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/client/ClientSession.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 156,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-26T16:00:13Z",
+      "side": 1,
+      "message": "I\u0027d remove this and just put the cases straight there",
+      "range": {
+        "startLine": 156,
+        "startChar": 0,
+        "endLine": 156,
+        "endChar": 38
+      },
+      "revId": "bec721a3fea7db67b27dfa73d99c53b634a4ef4a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_09524d13",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/client/ClientSession.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 161,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-26T16:00:13Z",
+      "side": 1,
+      "message": "You don\u0027t need to nest the maps no?\n\npending.map(pending.remove).map(_.tryComplete(exit)) ?",
+      "range": {
+        "startLine": 161,
+        "startChar": 8,
+        "endLine": 161,
+        "endChar": 80
+      },
+      "revId": "bec721a3fea7db67b27dfa73d99c53b634a4ef4a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_e680be8d",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/client/ClientSession.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 169,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-26T16:00:13Z",
+      "side": 1,
+      "message": "trySuccess?",
+      "range": {
+        "startLine": 169,
+        "startChar": 30,
+        "endLine": 169,
+        "endChar": 37
+      },
+      "revId": "bec721a3fea7db67b27dfa73d99c53b634a4ef4a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_c67dc2b3",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/client/ClientSession.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 171,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-26T16:00:13Z",
+      "side": 1,
+      "message": "connected.tryFailure?",
+      "range": {
+        "startLine": 171,
+        "startChar": 24,
+        "endLine": 171,
+        "endChar": 28
+      },
+      "revId": "bec721a3fea7db67b27dfa73d99c53b634a4ef4a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_092b6d83",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/client/ClientSession.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 181,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-26T16:00:13Z",
+      "side": 1,
+      "message": "This gets a bit tough to read, not sure how to improve it though :/",
+      "range": {
+        "startLine": 180,
+        "startChar": 12,
+        "endLine": 181,
+        "endChar": 70
+      },
+      "revId": "bec721a3fea7db67b27dfa73d99c53b634a4ef4a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_a60b662a",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/client/ClientSession.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 189,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-26T16:00:13Z",
+      "side": 1,
+      "message": "Maybe just make the message s\"$sessionId at $startAt\". The handshake rejected is redundant with the exception name itself.",
+      "range": {
+        "startLine": 188,
+        "startChar": 28,
+        "endLine": 189,
+        "endChar": 44
+      },
+      "revId": "bec721a3fea7db67b27dfa73d99c53b634a4ef4a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_46171252",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/client/ClientSession.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 197,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-26T16:00:13Z",
+      "side": 1,
+      "message": "I\u0027d probably remove these since they are just for debugging purposes",
+      "range": {
+        "startLine": 197,
+        "startChar": 21,
+        "endLine": 197,
+        "endChar": 28
+      },
+      "revId": "bec721a3fea7db67b27dfa73d99c53b634a4ef4a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_8608ea2e",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/client/ClientSession.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 201,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-26T16:00:13Z",
+      "side": 1,
+      "message": "ditto",
+      "range": {
+        "startLine": 201,
+        "startChar": 56,
+        "endLine": 201,
+        "endChar": 73
+      },
+      "revId": "bec721a3fea7db67b27dfa73d99c53b634a4ef4a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_66120e64",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/client/ClientSession.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 214,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-26T16:00:13Z",
+      "side": 1,
+      "message": "warn?",
+      "range": {
+        "startLine": 214,
+        "startChar": 12,
+        "endLine": 214,
+        "endChar": 17
+      },
+      "revId": "bec721a3fea7db67b27dfa73d99c53b634a4ef4a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_86210ab7",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/client/ClientSession.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 250,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-26T16:00:13Z",
+      "side": 1,
+      "message": "ditto (see below)",
+      "range": {
+        "startLine": 250,
+        "startChar": 46,
+        "endLine": 250,
+        "endChar": 56
+      },
+      "revId": "bec721a3fea7db67b27dfa73d99c53b634a4ef4a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_663b2eec",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/client/ClientSession.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 266,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-26T16:00:13Z",
+      "side": 1,
+      "message": "Were we planning to do these sequential?",
+      "range": {
+        "startLine": 266,
+        "startChar": 22,
+        "endLine": 266,
+        "endChar": 24
+      },
+      "revId": "bec721a3fea7db67b27dfa73d99c53b634a4ef4a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_a62406c7",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/client/ClientSession.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 270,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-26T16:00:13Z",
+      "side": 1,
+      "message": "We can probably have a single builder pre-instantiated and reuse it to buid() on further requests and spare the extra allocations no?",
+      "range": {
+        "startLine": 270,
+        "startChar": 35,
+        "endLine": 270,
+        "endChar": 45
+      },
+      "revId": "bec721a3fea7db67b27dfa73d99c53b634a4ef4a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_2631360c",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/client/ClientSession.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 311,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-26T16:00:13Z",
+      "side": 1,
+      "message": "This looks more like a Try[Unit]",
+      "range": {
+        "startLine": 311,
+        "startChar": 44,
+        "endLine": 311,
+        "endChar": 61
+      },
+      "revId": "bec721a3fea7db67b27dfa73d99c53b634a4ef4a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_865aaa4e",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/client/ClientSession.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 369,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-26T16:00:13Z",
+      "side": 1,
+      "message": "can be removed",
+      "range": {
+        "startLine": 369,
+        "startChar": 34,
+        "endLine": 369,
+        "endChar": 35
+      },
+      "revId": "bec721a3fea7db67b27dfa73d99c53b634a4ef4a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
