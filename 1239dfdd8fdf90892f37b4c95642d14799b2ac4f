@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9a245df4_2269168c",
+        "filename": "tools/devmido/binproxy",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1002749
+      },
+      "writtenOn": "2015-01-26T08:25:30Z",
+      "side": 1,
+      "message": "Be coherent with shell scripts. devmido.sh says /usr/bin/env bash",
+      "revId": "1239dfdd8fdf90892f37b4c95642d14799b2ac4f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_0604fa13",
+        "filename": "tools/devmido/functions",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1002749
+      },
+      "writtenOn": "2015-01-26T08:25:30Z",
+      "side": 1,
+      "message": "same here.",
+      "revId": "1239dfdd8fdf90892f37b4c95642d14799b2ac4f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
