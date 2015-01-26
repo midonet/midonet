@@ -19,6 +19,23 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_e6bd5e04",
+        "filename": "tools/devmido/devmido.sh",
+        "patchSetId": 2
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1002749
+      },
+      "writtenOn": "2015-01-26T11:09:14Z",
+      "side": 1,
+      "message": "Devstack will clone this repository somewhere else to the file system and run this directory using the full path. So if you have devstack in /home/vagrant/devstack, it will assume the MIDO_TOP_DIR is /home and it raises an error",
+      "revId": "1239dfdd8fdf90892f37b4c95642d14799b2ac4f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_0604fa13",
         "filename": "tools/devmido/functions",
         "patchSetId": 2
