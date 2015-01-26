@@ -70,6 +70,24 @@
       "revId": "bf273026dd74d31622b769299e8d562bb9c5bc01",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_09308d55",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/FlowTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 192,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-01-26T20:36:02Z",
+      "side": 1,
+      "message": "Please :) I think we should remove these checks. We don\u0027t do them everywhere, and the lack of consistency is less readable. We should prefer the null object everywhere.",
+      "parentUuid": "7a1969be_c9ee75b4",
+      "revId": "bf273026dd74d31622b769299e8d562bb9c5bc01",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
