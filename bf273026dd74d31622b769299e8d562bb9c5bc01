@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_29dd8915",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/FlowTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 192,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-01-26T19:51:31Z",
+      "side": 1,
+      "message": "this could be dropped, right?",
+      "revId": "bf273026dd74d31622b769299e8d562bb9c5bc01",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
