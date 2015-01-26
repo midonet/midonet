@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_c645c2b4",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/FlowTranslator.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 189,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-26T14:49:56Z",
+      "side": 1,
+      "message": "Cool. You are waging a serious war against allocations aren\u0027t you? :D\n\nI\u0027ll fix this and the other point in a new patch so I can unblock the branch from merging",
+      "parentUuid": "7a1969be_86caaa6c",
+      "revId": "da5b6c50b6c313fa13b7e996cf9e03c38f3533ab",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_86e3ca04",
         "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Bridge.scala",
         "patchSetId": 11
