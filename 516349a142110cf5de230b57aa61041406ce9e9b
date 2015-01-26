@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9a245df4_df88d6c8",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 25
+      },
+      "lineNbr": 425,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-01-26T07:50:48Z",
+      "side": 1,
+      "message": "Should this be here? Isn\u0027t os.owners.nonEmpty implied by os.owners.contains(owner)? Also, when I pointed out the similarity between this and the code in update(), I was hoping you\u0027d factor those checks out into a new function.",
+      "range": {
+        "startLine": 425,
+        "startChar": 55,
+        "endLine": 425,
+        "endChar": 77
+      },
+      "revId": "516349a142110cf5de230b57aa61041406ce9e9b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
