@@ -28,7 +28,7 @@ import org.midonet.Util
 import org.midonet.util.concurrent.NanoClock
 
 object NetlinkRequestBroker {
-    private val FREE = -1
+    private val FREE = 0
     private val unsafe = Util.getUnsafe
 
     private sealed class RequestContext {
@@ -99,12 +99,12 @@ object NetlinkRequestBroker {
  * although the individual methods are not thread-safe.
  */
 class NetlinkRequestBroker(reader: NetlinkReader,
-                          writer: NetlinkBlockingWriter,
-                          maxPendingRequests: Int,
-                          readBuf: ByteBuffer,
-                          clock: NanoClock,
-                          timeout: Duration = 1 second) {
-    import org.midonet.netlink.NetlinkRequestBroker._
+                           writer: NetlinkBlockingWriter,
+                           maxPendingRequests: Int,
+                           readBuf: ByteBuffer,
+                           clock: NanoClock,
+                           timeout: Duration = 1 second) {
+    import NetlinkRequestBroker._
 
     val capacity = Util.findNextPositivePowerOfTwo(maxPendingRequests)
     private val mask = capacity - 1
@@ -165,8 +165,9 @@ class NetlinkRequestBroker(reader: NetlinkReader,
         } catch { case e: NetlinkException =>
             val seq = readBuf.getInt(NetlinkMessage.NLMSG_SEQ_OFFSET)
             val ctx = getContext(seq)
-            getObserver(seq, ctx, unhandled).onError(e)
+            val obs = getObserver(seq, ctx, unhandled)
             ctx.clear()
+            obs.onError(e)
             0
         } finally {
             readBuf.clear()
@@ -213,7 +214,7 @@ class NetlinkRequestBroker(reader: NetlinkReader,
     private def nextSequenceNumber(): Int = {
         var seq = sequenceNumber + 1
         if (seq == 0) {
-            seq += 1
+            seq = 1
         }
         sequenceNumber = seq
         seq
