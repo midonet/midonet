@@ -52,6 +52,24 @@
       "revId": "bf273026dd74d31622b769299e8d562bb9c5bc01",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_c9ee75b4",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/FlowTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 192,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-26T20:32:18Z",
+      "side": 1,
+      "message": "Ah, we\u0027ll it shouldn\u0027t be, but so I kind of preferred having these explicit checks, even if just for readability. \n\nBut I don\u0027t have a strong opinion, I can remove if you prefer.",
+      "parentUuid": "7a1969be_a9f7b98b",
+      "revId": "bf273026dd74d31622b769299e8d562bb9c5bc01",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
