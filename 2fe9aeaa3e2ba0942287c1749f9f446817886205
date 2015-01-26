@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_6909412c",
+        "filename": "tools/devmido/binproxy",
+        "patchSetId": 5
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-01-26T15:55:32Z",
+      "side": 1,
+      "message": "This must look strange, I know, but {MIDO_HOME} is a token to be replaced by mido.sh, and not used as environment variables.  I can change it to something else to avoid confusing if you wish.",
+      "parentUuid": "7a1969be_a653666b",
+      "revId": "2fe9aeaa3e2ba0942287c1749f9f446817886205",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_8650ea5f",
         "filename": "tools/devmido/binproxy",
         "patchSetId": 5
@@ -30,6 +48,24 @@
       "writtenOn": "2015-01-26T15:08:35Z",
       "side": 1,
       "message": "Shouldn\u0027t this have a \u0027$\u0027",
+      "revId": "2fe9aeaa3e2ba0942287c1749f9f446817886205",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_a9121956",
+        "filename": "tools/devmido/binproxy",
+        "patchSetId": 5
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-01-26T15:55:32Z",
+      "side": 1,
+      "message": "ditto",
+      "parentUuid": "7a1969be_8650ea5f",
       "revId": "2fe9aeaa3e2ba0942287c1749f9f446817886205",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
