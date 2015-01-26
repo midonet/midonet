@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_067ebae4",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/netty/ProtoBufWebSocketAdapter.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-26T15:01:13Z",
+      "side": 1,
+      "message": "I\u0027d add some javadoc here just to explain the purpose of each of these classes for newcomers. I\u0027m ok with merging now and adding these later.",
+      "revId": "693048b7504b1258704e845ba5334e95f841be28",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
