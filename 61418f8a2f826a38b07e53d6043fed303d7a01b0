@@ -52,6 +52,24 @@
       "revId": "61418f8a2f826a38b07e53d6043fed303d7a01b0",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_e9c37136",
+        "filename": "midolman/src/main/java/org/midonet/midolman/simulation/Chain.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-01-26T19:47:31Z",
+      "side": 1,
+      "message": "There isn\u0027t much choice beyond that or setting a flag in thread local storage. What we can do is encapsulate the exception throwing inside the rule itself, so we would just need one check, and drop the TRACE action too (unless that\u0027s needed for something else I\u0027m not seeing right now).",
+      "parentUuid": "7a1969be_09040d14",
+      "revId": "61418f8a2f826a38b07e53d6043fed303d7a01b0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
