@@ -59,8 +59,12 @@ class NetlinkBlockingWriter(channel: NetlinkChannel) extends NetlinkWriter(chann
     override def write(src: ByteBuffer): Int = {
         var nbytes = 0
         while ({ nbytes = super.write(src); nbytes } == 0) {
+            if (src.remaining() == 0)
+                return 0
+
             if (!channel.isOpen)
                 return 0
+
             selector.select(timeout)
         }
         nbytes
