@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_e6e43eae",
+        "filename": "midolman/src/main/java/org/midonet/midolman/simulation/Chain.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-01-26T15:14:33Z",
+      "side": 1,
+      "message": "here we\u0027ll want to throw only if we are not already tracing this packet.",
+      "revId": "61418f8a2f826a38b07e53d6043fed303d7a01b0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
