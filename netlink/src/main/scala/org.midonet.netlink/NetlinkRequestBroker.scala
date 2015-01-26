@@ -99,12 +99,12 @@ object NetlinkRequestBroker {
  * although the individual methods are not thread-safe.
  */
 class NetlinkRequestBroker(reader: NetlinkReader,
-                          writer: NetlinkBlockingWriter,
-                          maxPendingRequests: Int,
-                          readBuf: ByteBuffer,
-                          clock: NanoClock,
-                          timeout: Duration = 1 second) {
-    import org.midonet.netlink.NetlinkRequestBroker._
+                           writer: NetlinkBlockingWriter,
+                           maxPendingRequests: Int,
+                           readBuf: ByteBuffer,
+                           clock: NanoClock,
+                           timeout: Duration = 1 second) {
+    import NetlinkRequestBroker._
 
     val capacity = Util.findNextPositivePowerOfTwo(maxPendingRequests)
     private val mask = capacity - 1
@@ -214,6 +214,8 @@ class NetlinkRequestBroker(reader: NetlinkReader,
         var seq = sequenceNumber + 1
         if (seq == 0) {
             seq += 1
+        } else if (seq == -1) {
+            seq += 2
         }
         sequenceNumber = seq
         seq
