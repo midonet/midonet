@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9a245df4_5987e161",
+        "filename": "midolman/src/main/java/org/midonet/midolman/config/MidolmanConfig.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-01-26T09:33:02Z",
+      "side": 1,
+      "message": "Subtraction of the tunnel overhead happens in DatapathController companion object and it has minMtu method to return the subtracted value. In addition this getMidolmanDhcpMtu was never used and I found this in the process I tried to add the equivalent one. Hence I don\u0027t think it is the problem.",
+      "parentUuid": "9a245df4_d56c3739",
+      "range": {
+        "startLine": 66,
+        "startChar": 48,
+        "endLine": 66,
+        "endChar": 59
+      },
+      "revId": "074330299c5908c49ad65390f320e68f42378e7e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a245df4_baf530cd",
         "filename": "midolman/src/main/scala/org/midonet/midolman/DatapathController.scala",
         "patchSetId": 4
@@ -42,6 +66,24 @@
     },
     {
       "key": {
+        "uuid": "9a245df4_b97c1d74",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/DatapathController.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 209,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-01-26T09:33:02Z",
+      "side": 1,
+      "message": "When I didn\u0027t check if it\u0027s null, I get a few errors which always say the following:\n\n  org.scalatest.exceptions.TestFailedException: Recipient[TestActor[akka://midolman/user/midolman/DatapathController/real]] had already been terminated.\n  ...\n\nIt seems some tests doesn\u0027t provide midolmanConfig and DatapathController is instantiated in the companion object, where it\u0027s hard to inject a MidolmanConfig instance.",
+      "parentUuid": "9a245df4_baf530cd",
+      "revId": "074330299c5908c49ad65390f320e68f42378e7e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a245df4_ba1c1015",
         "filename": "midolman/src/main/scala/org/midonet/midolman/DatapathController.scala",
         "patchSetId": 4
@@ -53,6 +95,24 @@
       "writtenOn": "2015-01-23T12:44:45Z",
       "side": 1,
       "message": "Note that we are using setter injection, which means this code will run during constructions, before injection, and midolmanConfig will never be anything other than null. \n\nthis code should be in preStart",
+      "revId": "074330299c5908c49ad65390f320e68f42378e7e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_6657ae03",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/DatapathController.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 211,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-01-26T09:33:02Z",
+      "side": 1,
+      "message": "I previously put this in preStart and I moved it here because it workd weirdly. But even if it\u0027s working, it\u0027s really bad and it feels like a magic and I moved all injected values to the constructor of the class.",
+      "parentUuid": "9a245df4_ba1c1015",
       "revId": "074330299c5908c49ad65390f320e68f42378e7e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
