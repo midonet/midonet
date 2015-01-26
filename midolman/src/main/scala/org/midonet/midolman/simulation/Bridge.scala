@@ -16,6 +16,7 @@
 package org.midonet.midolman.simulation
 
 import java.lang.{Short => JShort}
+import java.util
 import java.util.UUID
 
 import scala.collection.{Map => ROMap}
@@ -91,7 +92,7 @@ class Bridge(val id: UUID,
              val inFilterId: Option[UUID],
              val outFilterId: Option[UUID],
              val vlanPortId: Option[UUID],
-             val vxlanPortIds: List[UUID],
+             val vxlanPortIds: util.List[UUID],
              val flowRemovedCallbackGen: RemoveFlowCallbackGenerator,
              val macToLogicalPortId: ROMap[MAC, UUID],
              val ipToMac: ROMap[IPAddr, MAC],
@@ -99,7 +100,7 @@ class Bridge(val id: UUID,
              val exteriorPorts: List[UUID])
             (implicit val actorSystem: ActorSystem) extends Coordinator.Device {
 
-    import Coordinator._
+    import org.midonet.midolman.simulation.Coordinator._
 
     val deviceTag = tagForDevice(id)
     val floodAction = FloodBridgeAction(id, exteriorPorts)
