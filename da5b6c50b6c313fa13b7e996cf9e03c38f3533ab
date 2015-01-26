@@ -2,6 +2,23 @@
   "comments": [
     {
       "key": {
+        "uuid": "7a1969be_86caaa6c",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/FlowTranslator.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 189,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-01-26T12:17:49Z",
+      "side": 1,
+      "message": "essentially this should look like:\n\nvar i \u003d 0\nwhile (i \u003c br.vxlanPortIds.size()) { // never null \n   ...\n   i +\u003d 1\n}",
+      "revId": "da5b6c50b6c313fa13b7e996cf9e03c38f3533ab",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_86e3ca04",
         "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Bridge.scala",
         "patchSetId": 11
