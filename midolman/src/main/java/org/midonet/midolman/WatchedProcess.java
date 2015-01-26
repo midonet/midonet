@@ -81,7 +81,7 @@ public class WatchedProcess {
 
         try {
             int timeout = Integer.valueOf(timeoutStr);
-            intervalMillis = timeout * 1000 / 2;
+            intervalMillis = timeout * 1000 / 4;
         } catch (NumberFormatException e) {
             log.warn("Disabling watchdog: Invalid WDOG_TIMEOUT value: {}", timeoutStr);
             return false;
@@ -100,7 +100,7 @@ public class WatchedProcess {
     private boolean openPipe() {
         try {
             pipe = FileChannel.open(pipePath, StandardOpenOption.WRITE);
-            log.debug("Opened pipe to watchdog process at {}", pipePath);
+            log.info("Opened pipe to watchdog process at {}", pipePath);
             return true;
         } catch (IOException e) {
             log.warn("Failed to open pipe at " + pipePath, e);
