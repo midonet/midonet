@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_465c3226",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-26T09:05:02Z",
+      "side": 1,
+      "message": "Since we have a SimHost, I feel it\u0027s easier to understand if TunnelZone is called SimTunnelZone instead. But that\u0027s up to you.",
+      "parentUuid": "9a245df4_1969e98b",
+      "range": {
+        "startLine": 33,
+        "startChar": 63,
+        "endLine": 33,
+        "endChar": 73
+      },
+      "revId": "e922de301d787053cec678a3b41ac1e790a5d2e1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a245df4_7ab578cc",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
         "patchSetId": 6
@@ -96,6 +120,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_a6408636",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-26T09:05:02Z",
+      "side": 1,
+      "message": "OK!",
+      "parentUuid": "9a245df4_790585c1",
+      "range": {
+        "startLine": 108,
+        "startChar": 75,
+        "endLine": 108,
+        "endChar": 80
+      },
+      "revId": "e922de301d787053cec678a3b41ac1e790a5d2e1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a245df4_5add1414",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopology.scala",
         "patchSetId": 6
@@ -131,6 +179,30 @@
       "side": 1,
       "message": "I think I commented on this previously: here the val is used to make the fields public, such that can be accessed by the mappers.",
       "parentUuid": "9a245df4_5add1414",
+      "range": {
+        "startLine": 156,
+        "startChar": 33,
+        "endLine": 156,
+        "endChar": 36
+      },
+      "revId": "e922de301d787053cec678a3b41ac1e790a5d2e1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_264db673",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopology.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 156,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-26T09:05:02Z",
+      "side": 1,
+      "message": "got it!",
+      "parentUuid": "9a245df4_590a41d3",
       "range": {
         "startLine": 156,
         "startChar": 33,
@@ -272,6 +344,30 @@
       "side": 1,
       "message": "Brandon\u0027s comment was useful here: he pointed out that scala \u003d\u003d does NPE safe comparison too, pretty cool :)\n\nhttp://www.scala-lang.org/api/current/index.html#scala.Any@\u003d\u003d(x$1:Any):Boolean",
       "parentUuid": "9a245df4_7aec58c8",
+      "range": {
+        "startLine": 91,
+        "startChar": 12,
+        "endLine": 94,
+        "endChar": 43
+      },
+      "revId": "e922de301d787053cec678a3b41ac1e790a5d2e1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_e64a7e54",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/Host.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-26T09:05:02Z",
+      "side": 1,
+      "message": "That\u0027s cool, I didn\u0027t know!",
+      "parentUuid": "9a245df4_f9f855c6",
       "range": {
         "startLine": 91,
         "startChar": 12,
