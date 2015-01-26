@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9a245df4_e9c40c61",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/InMemoryStorage.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 215,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-26T11:47:21Z",
+      "side": 1,
+      "message": "The logic behind the observables is that the errors should be handled by the subscribers, not the callers of the zoom observable method.\n\nFor instance, in the topology mappers, we don\u0027t have any try... catch around the storage observable methods, but rather we assume that all errors (if any) are emitted via the observable to the subscribers.\n\nPlus, the in-memory storage emulates the same behavior as in the ZookeeperObjectMapper, but there the reasoning is the same.",
+      "parentUuid": "9a245df4_499b98c9",
+      "range": {
+        "startLine": 215,
+        "startChar": 29,
+        "endLine": 215,
+        "endChar": 79
+      },
+      "revId": "59b01e9c1a9e3b3fab396c16e3df1f8a31352786",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a245df4_e6027b0a",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/InMemoryStorage.scala",
         "patchSetId": 5
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "9a245df4_c9a2e899",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/InMemoryStorage.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 279,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-26T11:47:21Z",
+      "side": 1,
+      "message": "See reply below. Let me know if you think here there should be a different exception for another reason.",
+      "parentUuid": "9a245df4_e6027b0a",
+      "range": {
+        "startLine": 279,
+        "startChar": 30,
+        "endLine": 279,
+        "endChar": 56
+      },
+      "revId": "59b01e9c1a9e3b3fab396c16e3df1f8a31352786",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a245df4_e919ac7a",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/InMemoryStorage.scala",
         "patchSetId": 5
@@ -59,6 +107,30 @@
       "writtenOn": "2015-01-22T10:17:44Z",
       "side": 1,
       "message": "Here too it seems to me that getting this exception when not all owners of the object are in ownerOps is misleading.",
+      "range": {
+        "startLine": 311,
+        "startChar": 26,
+        "endLine": 311,
+        "endChar": 52
+      },
+      "revId": "59b01e9c1a9e3b3fab396c16e3df1f8a31352786",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_699e5c58",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/InMemoryStorage.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 311,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-26T11:47:21Z",
+      "side": 1,
+      "message": "See reply below.",
+      "parentUuid": "9a245df4_e919ac7a",
       "range": {
         "startLine": 311,
         "startChar": 26,
@@ -117,6 +189,54 @@
     },
     {
       "key": {
+        "uuid": "9a245df4_e9724c48",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/InMemoryStorage.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 328,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-26T11:47:21Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9a245df4_493718b1",
+      "range": {
+        "startLine": 328,
+        "startChar": 51,
+        "endLine": 328,
+        "endChar": 58
+      },
+      "revId": "59b01e9c1a9e3b3fab396c16e3df1f8a31352786",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_498f1824",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/InMemoryStorage.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 328,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-26T11:47:21Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9a245df4_e9ba4c09",
+      "range": {
+        "startLine": 328,
+        "startChar": 24,
+        "endLine": 328,
+        "endChar": 31
+      },
+      "revId": "59b01e9c1a9e3b3fab396c16e3df1f8a31352786",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a245df4_293c6493",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/InMemoryStorage.scala",
         "patchSetId": 5
@@ -128,6 +248,30 @@
       "writtenOn": "2015-01-22T10:17:44Z",
       "side": 1,
       "message": "The exception thrown here does not really correspond to the situation. If I understand this correctly, the caller is already an owner of the object, it\u0027s not that it did not have ownership.",
+      "range": {
+        "startLine": 340,
+        "startChar": 34,
+        "endLine": 340,
+        "endChar": 60
+      },
+      "revId": "59b01e9c1a9e3b3fab396c16e3df1f8a31352786",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_89991071",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/InMemoryStorage.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 340,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-26T11:47:21Z",
+      "side": 1,
+      "message": "The intent here is to simulate how the transaction would occur in ZK. The TransactionManager is responsible to ensure that all tx ops are correct from the perspective of the current snapshot data. Here we validate that the tx ops do not generate any conflicts with the current data, as is, in storage. If there is a conflict, it means that somebody else changed the storage data in the meantime.\n\nIn this particular case, if when applying the TxCreateOwner op, the owner already exists in storage, it means that somebody else created the ownership while this transaction was in progress. In this case, the behavior - which is the same in the ZookeeperObjectMapper - is to throw an ObjectOwnershipException.",
+      "parentUuid": "9a245df4_293c6493",
       "range": {
         "startLine": 340,
         "startChar": 34,
@@ -163,6 +307,30 @@
     },
     {
       "key": {
+        "uuid": "9a245df4_a978542c",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/InMemoryStorage.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 579,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-26T11:47:21Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9a245df4_29a0e4f3",
+      "range": {
+        "startLine": 578,
+        "startChar": 16,
+        "endLine": 579,
+        "endChar": 18
+      },
+      "revId": "59b01e9c1a9e3b3fab396c16e3df1f8a31352786",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a245df4_49d39838",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
         "patchSetId": 5
@@ -174,6 +342,30 @@
       "writtenOn": "2015-01-22T10:17:44Z",
       "side": 1,
       "message": "and?",
+      "range": {
+        "startLine": 294,
+        "startChar": 20,
+        "endLine": 294,
+        "endChar": 23
+      },
+      "revId": "59b01e9c1a9e3b3fab396c16e3df1f8a31352786",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_a99fb44f",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 294,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-26T11:47:21Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9a245df4_49d39838",
       "range": {
         "startLine": 294,
         "startChar": 20,
@@ -209,6 +401,30 @@
     },
     {
       "key": {
+        "uuid": "9a245df4_29bbc4c5",
+        "filename": "cluster/src/test/scala/org/midonet/cluster/data/storage/InMemoryStorageTest.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 221,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-26T11:47:21Z",
+      "side": 1,
+      "message": "I replied to your comment in the https://review.gerrithub.io/#/c/14097/\npatch.\n\nAs I said there, I don\u0027t have a strong preference for either using a common val, or inline constants, both have their pros and cons:\n- inlines here are easier to read, and change on a per-test basis\n- class vals are easier to update, as in they requires less changes per file (otherwise the effort of a find-and-replace would be the same), except in cases such as this where we would have to change the identifier oneSecond to a different one anyway\n\nSo far, I observed that mosts tests used inline constants, that\u0027s why I used them here, especially since in this particular case the await times are generous with respect to the time needed to complete the operations.",
+      "parentUuid": "9a245df4_89dd9045",
+      "range": {
+        "startLine": 221,
+        "startChar": 22,
+        "endLine": 221,
+        "endChar": 30
+      },
+      "revId": "59b01e9c1a9e3b3fab396c16e3df1f8a31352786",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a245df4_a9e33404",
         "filename": "cluster/src/test/scala/org/midonet/cluster/data/storage/InMemoryStorageTest.scala",
         "patchSetId": 5
@@ -220,6 +436,30 @@
       "writtenOn": "2015-01-22T10:17:44Z",
       "side": 1,
       "message": "Are the tests below the same as for Zoom with ownership? If yes, would there be a way to avoid duplication?",
+      "range": {
+        "startLine": 901,
+        "startChar": 0,
+        "endLine": 902,
+        "endChar": 76
+      },
+      "revId": "59b01e9c1a9e3b3fab396c16e3df1f8a31352786",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a245df4_e9a9ac7c",
+        "filename": "cluster/src/test/scala/org/midonet/cluster/data/storage/InMemoryStorageTest.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 902,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-26T11:47:21Z",
+      "side": 1,
+      "message": "Yes. Actually all tests are the same. We discussed previously to consolidate all these tests in a single class in a different patch, unfortunately we have\u0027t had the time to do so.",
+      "parentUuid": "9a245df4_a9e33404",
       "range": {
         "startLine": 901,
         "startChar": 0,
