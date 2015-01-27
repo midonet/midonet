@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_da72b548",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/DpPortTaggingTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-01-27T18:24:14Z",
+      "side": 1,
+      "message": "An unnecessary space. Please modify only when you need to submit another revision.",
+      "revId": "ab7bf9467f8038b230f8a04e32a9dfea998982b1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
