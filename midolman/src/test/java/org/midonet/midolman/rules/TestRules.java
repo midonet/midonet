@@ -298,24 +298,24 @@ public class TestRules {
 
     @Test(expected = IllegalArgumentException.class)
     public void testSnatRuleActionDrop() {
-        new ForwardNatRule(cond, Action.DROP, null, 0, false, nats);
+        new ForwardNatRule(cond, Action.DROP, null, false, nats);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testSnatRuleActionJump() {
-        new ForwardNatRule(cond, Action.JUMP, null, 0, false, nats);
+        new ForwardNatRule(cond, Action.JUMP, null, false, nats);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testSnatRuleActionReject() {
-        new ForwardNatRule(cond, Action.REJECT, null, 0, false, nats);
+        new ForwardNatRule(cond, Action.REJECT, null, false, nats);
     }
 
     @Test
     public void testSnatAndReverseRules() {
         Set<NatTarget> nats = new HashSet<>();
         nats.add(new NatTarget(0x0b000102, 0x0b00010a, 3366, 3399));
-        Rule rule = new ForwardNatRule(cond, Action.ACCEPT, null, 0, false,
+        Rule rule = new ForwardNatRule(cond, Action.ACCEPT, null, false,
                 nats);
         // If the condition doesn't match the result is not modified.
         RuleResult res = new RuleResult(null, null);
@@ -365,8 +365,7 @@ public class TestRules {
     public void testDnatAndReverseRule() {
         Set<NatTarget> nats = new HashSet<>();
         nats.add(new NatTarget(0x0c000102, 0x0c00010a, 1030, 1050));
-        Rule rule = new ForwardNatRule(cond, Action.CONTINUE, null, 0, true,
-                nats);
+        Rule rule = new ForwardNatRule(cond, Action.CONTINUE, null, true, nats);
         // If the condition doesn't match the result is not modified.
         RuleResult res = new RuleResult(null, null);
         rule.process(pktCtx, res, ownerId, false);
@@ -420,8 +419,7 @@ public class TestRules {
     public void testDnatAndReverseRuleDeleteMapping() {
         Set<NatTarget> nats = new HashSet<NatTarget>();
         nats.add(new NatTarget(0x0c000102, 0x0c00010a, 1030, 1050));
-        Rule rule = new ForwardNatRule(cond, Action.CONTINUE, null, 0, true,
-                nats);
+        Rule rule = new ForwardNatRule(cond, Action.CONTINUE, null, true, nats);
 
         // Now get the Dnat rule to match.
         pktCtx.inPortId_$eq(inPort);

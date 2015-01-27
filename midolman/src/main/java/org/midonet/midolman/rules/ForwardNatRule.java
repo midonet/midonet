@@ -17,12 +17,18 @@
 package org.midonet.midolman.rules;
 
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.midonet.cluster.models.Topology;
+import org.midonet.cluster.util.IPAddressUtil;
+import org.midonet.cluster.util.UUIDUtil;
 import org.midonet.midolman.rules.RuleResult.Action;
 import org.midonet.midolman.simulation.PacketContext;
 import org.midonet.packets.*;
@@ -41,8 +47,8 @@ public class ForwardNatRule extends NatRule {
     }
 
     public ForwardNatRule(Condition condition, Action action, UUID chainId,
-            int position, boolean dnat, Set<NatTarget> targets) {
-        super(condition, action, chainId, position, dnat);
+                          boolean dnat, Set<NatTarget> targets) {
+        super(condition, action, chainId, dnat);
         if (targets == null || targets.isEmpty())
             throw new IllegalArgumentException(
                     "A forward nat rule must have targets.");
@@ -58,6 +64,33 @@ public class ForwardNatRule extends NatRule {
 
         log.debug("Created a {} forward nat rule",
                   (floatingIp) ? "FloatingIp" : "normal");
+    }
+
+    private static Set<NatTarget> fromTargetsProto(
+        List<Topology.Rule.NatTarget> targetsList) {
+
+        List<NatTarget> targets = new LinkedList();
+        targetsList.forEach(target ->
+            targets.add(new NatTarget(IPAddressUtil.toIPv4Addr(target.getNwStart()),
+                                      IPAddressUtil.toIPv4Addr(target.getNwEnd()),
+                                      target.getTpStart(), target.getTpEnd()))
+        );
+        return new HashSet(targets);
+    }
+
+    public ForwardNatRule(Topology.Rule protoRule) {
+        this(new Condition(protoRule),
+             Action.valueOf(protoRule.getNatData().getAction().name()),
+             UUIDUtil.fromProto(protoRule.getChainId()),
+             protoRule.getNatData().getDnat(),
+             fromTargetsProto(protoRule.getNatData().getNatTargetsList()));
+
+        if (protoRule.getNatData().hasDnat() ||
+            protoRule.getNatData().getNatTargetsCount() == 0) {
+            throw new IllegalArgumentException(
+                "A forward NAT rule must have the boolean dnat set and a set"
+                + " of NAT targets");
+        }
     }
 
     public boolean isFloatingIp() {

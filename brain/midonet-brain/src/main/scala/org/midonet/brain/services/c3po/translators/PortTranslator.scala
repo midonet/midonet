@@ -27,10 +27,10 @@ import org.midonet.cluster.models.Commons.{IPAddress, IPSubnet, UUID}
 import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner
 import org.midonet.cluster.models.Neutron.{NeutronPort, NeutronSubnet}
 import org.midonet.cluster.models.Topology.Network.Dhcp
-import org.midonet.cluster.models.Topology.Rule.Action.{ACCEPT, DROP, JUMP}
-import org.midonet.cluster.models.Topology.Rule.FragmentPolicy.ANY
+import org.midonet.cluster.models.Topology.Rule.Action.{ACCEPT, DROP}
+import org.midonet.cluster.models.Topology.Rule.Condition.FragmentPolicy
+import org.midonet.cluster.models.Topology.Rule.{Condition, JumpData, NatData}
 import org.midonet.cluster.models.Topology.{Chain, IpAddrGroup, Network, Port, PortOrBuilder, Rule}
-import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
 import org.midonet.cluster.util.{IPSubnetUtil, UUIDUtil}
 import org.midonet.packets.{ARP, IPv4, IPv6}
 import org.midonet.util.concurrent.toFutureOps
@@ -103,20 +103,28 @@ object PortTranslator {
     private def reverseFlowRule(chainId: UUID): Rule =
         Rule.newBuilder().setId(UUIDUtil.randomUuidProto)
                          .setChainId(chainId)
-                         .setAction(ACCEPT)
-                         .setMatchReturnFlow(true).build
+                         .setNatData(NatData.newBuilder
+                                        .setAction(ACCEPT)
+                                        .setIsForward(false)
+                                        .build())
+                         .build()
 
+    // TODO(nicolas): Should we make this a literal rule?
     private def dropRuleBuilder(chainId: UUID): Rule.Builder =
         Rule.newBuilder().setId(UUIDUtil.randomUuidProto)
                          .setChainId(chainId)
-                         .setAction(DROP)
-                         .setFragmentPolicy(ANY)
+                         .setLiteralAction(DROP)
+                         .setCondition(Condition.newBuilder
+                                           .setFragmentPolicy(FragmentPolicy.ANY)
+                                           .build())
 
     private def jumpRule(fromChain: UUID, toChain: UUID) =
         Rule.newBuilder().setId(UUIDUtil.randomUuidProto)
-                         .setAction(JUMP)
+                         .setJumpData(JumpData.newBuilder
+                                        .setJumpTo(toChain)
+                                        .build())
                          .setChainId(fromChain)
-                         .setJumpTo(toChain).build
+                         .build
 
     def toRuleIdList(ops: Seq[Operation[Rule]]) =
         ops.map {
@@ -293,9 +301,12 @@ class PortTranslator(private val storage: ReadOnlyStorage)
             // we don't "handle" more than 1 IP address per port, so there
             // should be no problem, but this can potentially cause problems.
             portInfo.inRules += Create(dropRuleBuilder(inChainId)
-                                       .setNwSrcIp(ipSubnet)
-                                       .setNwSrcInv(true)
-                                       .setDlType(ipEtherType).build)
+                                       .setCondition(Condition.newBuilder()
+                                                         .setNwSrcIp(ipSubnet)
+                                                         .setNwSrcInv(true)
+                                                         .setDlType(ipEtherType)
+                                                     .build())
+                                       .build)
 
             // TODO If a port is attached to an external NeutronNetwork,
             // add a route to the provider router.
@@ -305,8 +316,11 @@ class PortTranslator(private val storage: ReadOnlyStorage)
         portInfo.outRules += Create(reverseFlowRule(outChainId))
         // MAC spoofing protection
         portInfo.inRules += Create(dropRuleBuilder(inChainId)
-                                   .setDlSrc(mac)
-                                   .setInvDlSrc(true).build)
+                                   .setCondition(Condition.newBuilder
+                                                     .setDlSrc(mac)
+                                                     .setInvDlSrc(true)
+                                                     .build())
+                                   .build)
         // Create reverse flow rules matching for inbound chain.
         portInfo.inRules += Create(reverseFlowRule(inChainId))
         // Add jump rules to corresponding inbound / outbound chains of IP
@@ -348,11 +362,17 @@ class PortTranslator(private val storage: ReadOnlyStorage)
 
         // Drop non-ARP traffic that wasn't accepted by earlier rules.
         portInfo.inRules += Create(dropRuleBuilder(inChainId)
-                                   .setDlType(ARP.ETHERTYPE)
-                                   .setInvDlType(true).build)
+                                   .setCondition(Condition.newBuilder()
+                                                     .setDlType(ARP.ETHERTYPE)
+                                                     .setInvDlType(true)
+                                                     .build())
+                                   .build())
         portInfo.outRules += Create(dropRuleBuilder(outChainId)
-                                    .setDlType(ARP.ETHERTYPE)
-                                    .setInvDlType(true).build)
+                                    .setCondition(Condition.newBuilder
+                                                      .setDlType(ARP.ETHERTYPE)
+                                                      .setInvDlType(true)
+                                                      .build)
+                                    .build())
 
         // Create in/outbound chains with the IDs of the above rules.
         val inChain = chainBuilder(inChainId, egressChainName(portId),
