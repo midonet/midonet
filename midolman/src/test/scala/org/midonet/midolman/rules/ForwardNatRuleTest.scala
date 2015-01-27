@@ -22,7 +22,7 @@ import java.util.UUID
 import org.junit.runner.RunWith
 import org.scalatest.{Matchers, Suite}
 import org.scalatest.junit.JUnitRunner
-import org.midonet.packets.{IPv6Addr, IPAddr, IPv4Addr}
+import org.midonet.packets.IPv4Addr
 
 @RunWith(classOf[JUnitRunner])
 class ForwardNatRuleTest extends Suite with Matchers {
@@ -37,7 +37,7 @@ class ForwardNatRuleTest extends Suite with Matchers {
             val targets = new JSet[NatTarget]()
             targets.add(tgt)
             new ForwardNatRule(new Condition(), RuleResult.Action.ACCEPT,
-                               UUID.randomUUID(), 0, true, targets)
+                               UUID.randomUUID(), true, targets)
         }
 
         new NatTarget(a1, a1, 0, 0).isFloatingIp should be (true)

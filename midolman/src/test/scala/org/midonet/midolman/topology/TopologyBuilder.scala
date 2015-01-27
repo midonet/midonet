@@ -17,11 +17,15 @@ package org.midonet.midolman.topology
 
 import java.util.UUID
 
+import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
 import scala.util.Random
 
+import org.midonet.cluster.models.Commons
+import org.midonet.cluster.models.Commons.{IPAddress, IPVersion}
 import org.midonet.cluster.models.Topology.Host.PortToInterface
 import org.midonet.cluster.models.Topology.Route.NextHop
+import org.midonet.cluster.models.Topology.Rule.{Action, JumpRuleData, NatTarget}
 import org.midonet.cluster.models.Topology.TunnelZone.HostToIp
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.util.IPAddressUtil._
@@ -106,7 +110,6 @@ trait TopologyBuilder {
         builder.build
     }
 
-
     protected def createTunnelZone(id: UUID = UUID.randomUUID,
                                    name: String = "tunnel-zone",
                                    hosts: Map[UUID, IPAddr] = Map.empty)
@@ -185,7 +188,8 @@ trait TopologyBuilder {
     }
 
     protected def createRoute(id: UUID = UUID.randomUUID,
-                              srcNetwork: IPSubnet[_] = randomIPv4Subnet,
+                              srcNetwork: IPSubnet[_] = TopologyBuilder
+                                  .randomIPv4Subnet,
                               dstNetwork: IPSubnet[_] = randomIPv4Subnet,
                               nextHop: NextHop = NextHop.BLACKHOLE,
                               nextHopPortId: UUID = UUID.randomUUID,
@@ -205,6 +209,70 @@ trait TopologyBuilder {
         if (weight.isDefined) builder.setWeight(weight.get)
         if (attributes.isDefined) builder.setAttributes(attributes.get)
         builder.build()
+    }
+
+    protected def createLiteralRuleBuilder(id: Commons.UUID, action: Rule.Action,
+                                           chainId: Commons.UUID)
+    : Rule.Builder = {
+        val builder = Rule.newBuilder
+            .setId(id)
+            .setChainId(chainId)
+            .setType(Rule.Type.LITERAL_TYPE)
+            .setAction(action)
+        builder
+    }
+
+    protected def createJumpRuleBuilder(id: Commons.UUID, jumpChainId: Commons.UUID,
+                                        chainId: Commons.UUID)
+    : Rule.Builder = {
+        val builder = Rule.newBuilder
+            .setId(id)
+            .setChainId(chainId)
+            .setType(Rule.Type.JUMP_TYPE)
+            .setAction(Action.JUMP)
+            .setJumpRuleData(JumpRuleData.newBuilder
+                             .setJumpTo(jumpChainId)
+                             .build())
+        builder
+    }
+
+    protected def createRuleBuilder(id: Commons.UUID, chainId: Commons.UUID)
+    : Rule.Builder = {
+        val builder = Rule.newBuilder
+            .setId(id)
+            .setChainId(chainId)
+        builder
+    }
+
+    protected def createChainBuilder(id: Commons.UUID, name: String,
+                                     ruleIds: List[Commons.UUID])
+    : Chain.Builder = {
+
+        val builder = Chain.newBuilder
+            .setId(id)
+            .setName(name)
+            .addAllRuleIds(ruleIds)
+        builder
+    }
+
+    protected def createIPSubnetBuilder(version: IPVersion, prefix: String,
+                                        prefixLength: Int): Commons.IPSubnet.Builder = {
+        val builder = Commons.IPSubnet.newBuilder
+            .setVersion(version)
+            .setAddress(prefix)
+            .setPrefixLength(prefixLength)
+        builder
+    }
+
+    protected def createNatTargetBuilder(startAddr: IPAddress, endAddr: IPAddress,
+                                         portStart: Int, portEnd: Int)
+    :NatTarget.Builder = {
+        val builder = NatTarget.newBuilder
+            .setNwStart(startAddr)
+            .setNwEnd(endAddr)
+            .setTpStart(portStart)
+            .setTpEnd(portEnd)
+        builder
     }
 
     private def createPortBuilder(id: UUID,
