@@ -21,7 +21,8 @@ import org.midonet.brain.services.c3po.midonet.{Delete, Update, Create}
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.Topology.Rule
 import org.midonet.cluster.models.Topology.Rule.Action._
-import org.midonet.cluster.models.Topology.Rule.FragmentPolicy._
+import org.midonet.cluster.models.Topology.Rule.Condition.FragmentPolicy._
+import org.midonet.cluster.models.Topology.Rule.{JumpData, Condition, NatData}
 import org.midonet.cluster.util.UUIDUtil
 
 /**
@@ -31,20 +32,27 @@ trait RuleManager {
     protected def reverseFlowRule(chainId: UUID): Rule =
         Rule.newBuilder().setId(UUIDUtil.randomUuidProto)
         .setChainId(chainId)
-        .setAction(ACCEPT)
-        .setMatchReturnFlow(true).build
+        .setNatData(NatData.newBuilder
+                        .setAction(ACCEPT)
+                        .setIsForward(false)
+                        .build())
+        .build()
 
     protected def dropRuleBuilder(chainId: UUID): Rule.Builder =
         Rule.newBuilder().setId(UUIDUtil.randomUuidProto)
         .setChainId(chainId)
-        .setAction(DROP)
-        .setFragmentPolicy(ANY)
+        .setLiteralAction(DROP)
+            .setCondition(Condition.newBuilder
+                              .setFragmentPolicy(ANY)
+                              .build())
 
-    protected def jumpRule(fromChain: UUID, toChain: UUID) =
+    protected def jumpRule(fromChain: UUID, toChain: UUID): Rule =
         Rule.newBuilder().setId(UUIDUtil.randomUuidProto)
-        .setAction(JUMP)
+            .setJumpData(JumpData.newBuilder
+                             .setJumpTo(toChain)
+                             .build())
         .setChainId(fromChain)
-        .setJumpTo(toChain).build
+        .build()
 
     protected def toRuleIdList(ops: Seq[Operation[Rule]]) = ops.map {
         case Create(r: Rule) => r.getId
