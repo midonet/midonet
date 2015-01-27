@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_ecc37f36",
+        "filename": "midolman/src/main/java/org/midonet/cluster/LocalDataClientImpl.java",
+        "patchSetId": 10
+      },
+      "lineNbr": 3473,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-27T09:43:31Z",
+      "side": 1,
+      "message": "Check p is null?",
+      "revId": "3e73bbf671de52c2db8d78eae2fcc67438c469f9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
