@@ -16,29 +16,27 @@
 
 package org.midonet.brain.services.c3po.translators
 
-import java.io.StringReader
-
 import scala.collection.JavaConverters._
 import scala.concurrent.Promise
 
 import com.google.protobuf.Message
-
 import org.junit.runner.RunWith
 import org.mockito.Mockito.{mock, when}
-import org.scalatest.{BeforeAndAfter, FlatSpec, Matchers}
-import org.scalatest.matchers.{MatchResult, Matcher}
 import org.scalatest.junit.JUnitRunner
+import org.scalatest.matchers.{MatchResult, Matcher}
+import org.scalatest.{BeforeAndAfter, FlatSpec, Matchers}
 
-import org.midonet.brain.services.c3po.{midonet, neutron}
 import org.midonet.brain.services.c3po.C3POStorageManager.{OpType, Operation}
+import org.midonet.brain.services.c3po.{midonet, neutron}
 import org.midonet.cluster.data.storage.ReadOnlyStorage
-import org.midonet.cluster.models.Commons.{IPAddress, IPSubnet, UUID}
+import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.ModelsUtil._
 import org.midonet.cluster.models.Neutron.{NeutronPort, NeutronSubnet}
+import org.midonet.cluster.models.Topology.Rule.Condition.FragmentPolicy
+import org.midonet.cluster.models.Topology.Rule._
 import org.midonet.cluster.models.Topology.{Chain, IpAddrGroup, Network, Port, Router, Rule}
+import org.midonet.cluster.util.UUIDUtil.{asRichProtoUuid, randomUuidProto}
 import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil, UUIDUtil}
-import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
-import org.midonet.cluster.util.UUIDUtil.randomUuidProto
 import org.midonet.packets.{ARP, IPv4, IPv6}
 
 trait OpMatchers {
@@ -341,72 +339,126 @@ class VifPortCreateTranslationTest extends VifPortTranslationTest {
             name: "OS_PORT_${portJUuid}_OUTBOUND"
             """)
 
+        val reverseRuleNatData = NatData.newBuilder
+            .setMatchReturnFlow(true)
+            .build()
+
         val revFlowRuleOutbound = mRuleFromTxt(s"""
+            type: NAT_TYPE
             action: ACCEPT
+            nat_data { $reverseRuleNatData }
             chain_id { $outboundChainId }
-            match_return_flow: true
             """)
         val revFlowRuleInbound = mRuleFromTxt(s"""
+            type: NAT_TYPE
             action: ACCEPT
+            nat_data { $reverseRuleNatData }
             chain_id { $inboundChainId }
-            match_return_flow: true
             """)
+
+        val natFwdV4Cond = Condition.newBuilder
+            .setNwSrcIp(ipv4Subnet1)
+            .setDlType(IPv4.ETHERTYPE)
+            .setNwSrcInv(true)
+            .setFragmentPolicy(FragmentPolicy.ANY)
+            .build()
+
         val ipSpoofProtectIpv4 = mRuleFromTxt(s"""
-            action: DROP
+            type: LITERAL_TYPE
             chain_id { $inboundChainId }
-            dl_type: ${IPv4.ETHERTYPE}
-            nw_src_ip: { $ipv4Subnet1 }
-            nw_src_inv: true
-            fragment_policy: ANY
+            condition { $natFwdV4Cond }
+            action: DROP
             """)
+
+        val natFwdV6Cond = Condition.newBuilder
+            .setNwSrcIp(ipv6Subnet1)
+            .setDlType(IPv6.ETHERTYPE)
+            .setNwSrcInv(true)
+            .setFragmentPolicy(FragmentPolicy.ANY)
+            .build()
+
         val ipSpoofProtectIpv6 = mRuleFromTxt(s"""
+            type: LITERAL_TYPE
             action: DROP
             chain_id { $inboundChainId }
-            dl_type: ${IPv6.ETHERTYPE}
-            nw_src_ip: { $ipv6Subnet1 }
-            nw_src_inv: true
-            fragment_policy: ANY
+            condition { $natFwdV6Cond }
             """)
+
+        val natMacCond = Condition.newBuilder
+            .setDlSrc(mac)
+            .setInvDlSrc(true)
+            .setFragmentPolicy(FragmentPolicy.ANY)
+            .build()
+
         val macSpoofProtect = mRuleFromTxt(s"""
+            type: LITERAL_TYPE
             action: DROP
             chain_id { $inboundChainId }
-            dl_src: '$mac'
-            inv_dl_src: true
-            fragment_policy: ANY
+            condition { $natMacCond }
             """)
+
+        val jumpData1 = JumpData.newBuilder
+            .setJumpTo(ipAddrGroup1InChainId)
+            .build()
+
         val jumpRuleIn1 = mRuleFromTxt(s"""
+            type: JUMP_TYPE
             action: JUMP
             chain_id { $inboundChainId }
-            jump_to { $ipAddrGroup1InChainId }
+            jump_data { $jumpData1 }
             """)
+
+        val jumpData2 = JumpData.newBuilder
+            .setJumpTo(ipAddrGroup2InChainId)
+            .build()
+
         val jumpRuleIn2 = mRuleFromTxt(s"""
+            type: JUMP_TYPE
             action: JUMP
             chain_id { $inboundChainId }
-            jump_to { $ipAddrGroup2InChainId }
+            jump_data { $jumpData2 }
             """)
+
+        val jumpData3 = JumpData.newBuilder
+            .setJumpTo(ipAddrGroup1OutChainId)
+            .build()
+
         val jumpRuleOut1 = mRuleFromTxt(s"""
+            type: JUMP_TYPE
             action: JUMP
             chain_id { $outboundChainId }
-            jump_to { $ipAddrGroup1OutChainId }
+            jump_data { $jumpData3 }
             """)
+
+        val jumpData4 = JumpData.newBuilder
+            .setJumpTo(ipAddrGroup2OutChainId)
+            .build()
+
         val jumpRuleOut2 = mRuleFromTxt(s"""
+            type: JUMP_TYPE
             action: JUMP
             chain_id { $outboundChainId }
-            jump_to { $ipAddrGroup2OutChainId }
+            jump_data { $jumpData4 }
             """)
+
+        val arpCond = Condition.newBuilder
+            .setDlType(ARP.ETHERTYPE)
+            .setInvDlType(true)
+            .setFragmentPolicy(FragmentPolicy.ANY)
+            .build()
+
         val dropNonArpIn = mRuleFromTxt(s"""
-            action: DROP
+            type: LITERAL_TYPE
             chain_id { $inboundChainId }
-            dl_type: ${ARP.ETHERTYPE}
-            inv_dl_type: true
-            fragment_policy: ANY
-            """)
-        val dropNonArpOut = mRuleFromTxt(s"""
             action: DROP
+            condition { $arpCond }
+            """)
+
+        val dropNonArpOut = mRuleFromTxt(s"""
+            type: LITERAL_TYPE
             chain_id { $outboundChainId }
-            dl_type: ${ARP.ETHERTYPE}
-            inv_dl_type: true
-            fragment_policy: ANY
+            action: DROP
+            condition { $arpCond }
             """)
 
         val inChain = findChainOp(midoOps, OpType.Create, inboundChainId)
@@ -575,64 +627,104 @@ class VifPortUpdateDeleteTranslationTest extends VifPortTranslationTest {
             translator.translate(neutron.Update(vifPortWithFipsAndSgs2))
                       .asInstanceOf[List[Operation[Message]]]
 
+        val natData = NatData.newBuilder
+            .setMatchReturnFlow(true)
+            .build()
         val revFlowRuleOutbound = mRuleFromTxt(s"""
+            type: NAT_TYPE
             action: ACCEPT
+            nat_data { $natData }
             chain_id { $outboundChainId }
-            match_return_flow: true
             """)
         val revFlowRuleInbound = mRuleFromTxt(s"""
+            type: NAT_TYPE
             action: ACCEPT
+            nat_data { $natData }
             chain_id { $inboundChainId }
-            match_return_flow: true
             """)
+
+        val ipSpoofCond = Condition.newBuilder
+            .setDlType(IPv4.ETHERTYPE)
+            .setNwSrcIp(ipv4Subnet1)
+            .setNwSrcInv(true)
+            .setFragmentPolicy(FragmentPolicy.ANY)
+            .build()
         val ipSpoofProtectIpv4 = mRuleFromTxt(s"""
+            type: LITERAL_TYPE
             action: DROP
             chain_id { $inboundChainId }
-            dl_type: ${IPv4.ETHERTYPE}
-            nw_src_ip: { $ipv4Subnet1 }
-            nw_src_inv: true
-            fragment_policy: ANY
+            condition { $ipSpoofCond }
             """)
+
+        val macSpoofCond = Condition.newBuilder
+            .setDlSrc(mac)
+            .setInvDlSrc(true)
+            .setFragmentPolicy(FragmentPolicy.ANY)
+            .build()
         val macSpoofProtect = mRuleFromTxt(s"""
             action: DROP
+            type: LITERAL_TYPE
             chain_id { $inboundChainId }
-            dl_src: '$mac'
-            inv_dl_src: true
-            fragment_policy: ANY
+            condition { $macSpoofCond }
             """)
+
+        val jumpData1 = JumpData.newBuilder
+            .setJumpTo(ipAddrGroup1InChainId)
+            .build()
         val jumpRuleIn1 = mRuleFromTxt(s"""
-            action: JUMP
             chain_id { $inboundChainId }
-            jump_to { $ipAddrGroup1InChainId }
+            type: JUMP_TYPE
+            action: JUMP
+            jump_data { $jumpData1 }
             """)
+
+        val jumpData2 = JumpData.newBuilder
+            .setJumpTo(ipAddrGroup2InChainId)
+            .build()
         val jumpRuleIn2 = mRuleFromTxt(s"""
-            action: JUMP
             chain_id { $inboundChainId }
-            jump_to { $ipAddrGroup2InChainId }
+            type: JUMP_TYPE
+            action: JUMP
+            jump_data { $jumpData2 }
             """)
+
+        val jumpData3 = JumpData.newBuilder
+            .setJumpTo(ipAddrGroup1OutChainId)
+            .build()
         val jumpRuleOut1 = mRuleFromTxt(s"""
-            action: JUMP
             chain_id { $outboundChainId }
-            jump_to { $ipAddrGroup1OutChainId }
+            type: JUMP_TYPE
+            action: JUMP
+            jump_data { $jumpData3 }
             """)
+
+        val jumpData4 = JumpData.newBuilder
+            .setJumpTo(ipAddrGroup2OutChainId)
+            .build()
         val jumpRuleOut2 = mRuleFromTxt(s"""
-            action: JUMP
             chain_id { $outboundChainId }
-            jump_to { $ipAddrGroup2OutChainId }
+            type: JUMP_TYPE
+            action: JUMP
+            jump_data { $jumpData4 }
             """)
+
+        val arpCond = Condition.newBuilder
+            .setDlType(ARP.ETHERTYPE)
+            .setInvDlType(true)
+            .setFragmentPolicy(FragmentPolicy.ANY)
+            .build()
         val dropNonArpIn = mRuleFromTxt(s"""
             action: DROP
+            type: LITERAL_TYPE
             chain_id { $inboundChainId }
-            dl_type: ${ARP.ETHERTYPE}
-            inv_dl_type: true
-            fragment_policy: ANY
+            condition { $arpCond }
             """)
+
         val dropNonArpOut = mRuleFromTxt(s"""
             action: DROP
+            type: LITERAL_TYPE
             chain_id { $outboundChainId }
-            dl_type: ${ARP.ETHERTYPE}
-            inv_dl_type: true
-            fragment_policy: ANY
+            condition { $arpCond }
             """)
 
         midoOps should contain (midonet.Delete(classOf[Rule], inChainRule1))
