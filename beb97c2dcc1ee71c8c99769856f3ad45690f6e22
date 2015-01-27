@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_0f652d45",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/DatapathControllerActorTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-01-27T15:09:18Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_6fb4a1f2",
+      "revId": "beb97c2dcc1ee71c8c99769856f3ad45690f6e22",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_0fbb6dc5",
         "filename": "midolman/src/test/scala/org/midonet/midolman/DatapathControllerActorTest.scala",
         "patchSetId": 1
@@ -36,6 +54,24 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_2f60e934",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/DatapathControllerActorTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-01-27T15:09:18Z",
+      "side": 1,
+      "message": "For consistency I would prefer to remove the Feature from the previous test, because I tend to think a Feature with only a Scenario is basically a Scenario.",
+      "parentUuid": "7a1969be_0fbb6dc5",
+      "revId": "beb97c2dcc1ee71c8c99769856f3ad45690f6e22",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_eff1b196",
         "filename": "midolman/src/test/scala/org/midonet/midolman/DpPortTaggingTest.scala",
         "patchSetId": 1
@@ -47,6 +83,24 @@
       "writtenOn": "2015-01-27T14:31:04Z",
       "side": 1,
       "message": "Nit: a space  between scenario and (. And might be better to be contained in a feature block?",
+      "revId": "beb97c2dcc1ee71c8c99769856f3ad45690f6e22",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_6f5ae184",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/DpPortTaggingTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-01-27T15:09:18Z",
+      "side": 1,
+      "message": "I prefer to keep just a scenario",
+      "parentUuid": "7a1969be_eff1b196",
       "revId": "beb97c2dcc1ee71c8c99769856f3ad45690f6e22",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
