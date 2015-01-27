@@ -20,6 +20,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.midonet.cluster.data.neutron.SecurityGroupRule;
+import org.midonet.cluster.models.Topology;
 import org.midonet.midolman.simulation.IPAddrGroup;
 import org.midonet.midolman.simulation.PacketContext;
 import org.midonet.midolman.state.zkManagers.BaseConfig;
@@ -148,6 +149,10 @@ public class Condition extends BaseConfig {
     public Condition(IPSubnet<?> subnet) {
         nwSrcIp = subnet;
         etherType = (int) subnet.ethertype();
+    }
+
+    public static Condition fromProto(Topology.Rule protoRule) {
+        // TODO(nicolas)
     }
 
     public boolean containsInPort(UUID portId) {

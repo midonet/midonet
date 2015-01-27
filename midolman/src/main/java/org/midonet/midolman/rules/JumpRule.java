@@ -21,6 +21,8 @@ import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.midonet.cluster.models.Topology;
+import org.midonet.cluster.util.UUIDUtil;
 import org.midonet.midolman.rules.RuleResult.Action;
 import org.midonet.midolman.simulation.PacketContext;
 
@@ -54,6 +56,16 @@ public class JumpRule extends Rule {
                     String jumpChainName) {
         this(new Condition(), jumpChainId, jumpChainName);
         this.chainId = chainId;
+    }
+
+    public static Rule fromProto(Topology.Rule protoRule) {
+        //TODO(nicolas)
+        JumpRule rule = new JumpRule(
+            Condition.fromProto(protoRule),
+            UUIDUtil.fromProto(protoRule.getChainId()),
+            null /* chain name */
+        );
+        return rule;
     }
 
     @Override

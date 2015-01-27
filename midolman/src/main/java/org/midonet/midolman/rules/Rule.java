@@ -22,6 +22,8 @@ import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.annotate.JsonSubTypes;
 import org.codehaus.jackson.annotate.JsonTypeInfo;
+
+import org.midonet.cluster.models.Topology;
 import org.midonet.sdn.flows.FlowTagger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,6 +58,25 @@ public abstract class Rule {
         this.condition = condition;
         this.action = action;
         this.chainId = chainId;
+    }
+
+    public static Rule fromProto(Topology.Rule protoRule) {
+        if (protoRule.getAction() == Topology.Rule.Action.JUMP) {
+            return JumpRule.fromProto(protoRule);
+
+        } else if (protoRule.getAction() == Topology.Rule.Action.ACCEPT ||
+                   protoRule.getAction() == Topology.Rule.Action.DROP ||
+                   protoRule.getAction() == Topology.Rule.Action.REJECT ||
+                   protoRule.getAction() == Topology.Rule.Action.RETURN) {
+            return LiteralRule.fromProto(protoRule);
+
+        } else if (protoRule.getAction() == Topology.Rule.Action.CONTINUE) {
+           return NatRule.fromProto(protoRule);
+
+        } else
+            throw new IllegalArgumentException("Unsupported action type: " +
+                                               protoRule.getAction() +
+                                               " in rule: " + protoRule);
     }
 
     @JsonProperty
