@@ -23,21 +23,26 @@ import scala.collection.mutable.ListBuffer
 import com.google.protobuf.Message
 
 import org.midonet.brain.services.c3po.midonet.{Create, Delete, MidoOp, Update}
-import org.midonet.cluster.data.neutron.MetaDataService
 import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.models.Commons.{IPAddress, IPSubnet, IPVersion, UUID}
-import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner
 import org.midonet.cluster.models.Neutron.{NeutronPort, NeutronSubnet}
+import org.midonet.cluster.models.Topology.Rule.Condition
+import org.midonet.cluster.models.Topology.{Rule, Chain}
 import org.midonet.cluster.models.Topology.Network.Dhcp
-import org.midonet.cluster.models.Topology.{Chain, IpAddrGroup, Network, Port, PortOrBuilder, Route, Router, Rule}
-import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
+import org.midonet.cluster.models.Topology.Rule.Action.{ACCEPT, DROP}
+import org.midonet.cluster.models.Topology.Rule.Condition.FragmentPolicy._
+import org.midonet.cluster.models.Topology.Rule.{JumpData, NatData}
+import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.util.{IPSubnetUtil, UUIDUtil}
 import org.midonet.packets.{ARP, IPv4, IPv6}
 import org.midonet.util.concurrent.toFutureOps
 
 object PortTranslator {
+
     private def isIpv4(nSubnet: NeutronSubnet) = nSubnet.getIpVersion == 4
+
     private def isIpv6(nSubnet: NeutronSubnet) = nSubnet.getIpVersion == 6
+
     private def egressChainName(portId: UUID) =
         "OS_PORT_" + UUIDUtil.fromProto(portId) + "_INBOUND"
 
@@ -277,6 +282,7 @@ class PortTranslator(val storage: ReadOnlyStorage)
         val inChainId = mPort.getInboundFilterId
         val outChainId = mPort.getOutboundFilterId
         val mac = nPort.getMacAddress
+
         // Create an IP spoofing protection rule.
         for (subnet <- portInfo.neutronSubnet.values) {
             val ipSubnet = IPSubnetUtil.toProto(subnet.getCidr)
@@ -286,10 +292,15 @@ class PortTranslator(val storage: ReadOnlyStorage)
             // that would be created below would drop all packets. Currently
             // we don't "handle" more than 1 IP address per port, so there
             // should be no problem, but this can potentially cause problems.
-            portInfo.inRules += Create(dropRuleBuilder(inChainId)
-                                       .setNwSrcIp(ipSubnet)
-                                       .setNwSrcInv(true)
-                                       .setDlType(ipEtherType).build)
+            val ipSpoofRuleBldr = dropRuleBuilder(inChainId)
+            val ipSpoofCond = ipSpoofRuleBldr.getCondition.toBuilder
+                .setNwSrcIp(ipSubnet)
+                .setNwSrcInv(true)
+                .setDlType(ipEtherType)
+                .build()
+
+            portInfo.inRules += Create(ipSpoofRuleBldr.setCondition(ipSpoofCond)
+                                           .build())
 
             // TODO If a port is attached to an external NeutronNetwork,
             // add a route to the provider router.
@@ -298,9 +309,13 @@ class PortTranslator(val storage: ReadOnlyStorage)
         // Create reverse flow rules.
         portInfo.outRules += Create(reverseFlowRule(outChainId))
         // MAC spoofing protection
-        portInfo.inRules += Create(dropRuleBuilder(inChainId)
-                                   .setDlSrc(mac)
-                                   .setInvDlSrc(true).build)
+        val macSpoofRuleBldr = dropRuleBuilder(inChainId)
+        val macSpoofCond = macSpoofRuleBldr.getCondition.toBuilder
+            .setDlSrc(mac)
+            .setInvDlSrc(true)
+            .build()
+        portInfo.inRules += Create(macSpoofRuleBldr.setCondition(macSpoofCond)
+                                       .build())
         // Create reverse flow rules matching for inbound chain.
         portInfo.inRules += Create(reverseFlowRule(inChainId))
         // Add jump rules to corresponding inbound / outbound chains of IP
@@ -341,12 +356,21 @@ class PortTranslator(val storage: ReadOnlyStorage)
         }
 
         // Drop non-ARP traffic that wasn't accepted by earlier rules.
-        portInfo.inRules += Create(dropRuleBuilder(inChainId)
-                                   .setDlType(ARP.ETHERTYPE)
-                                   .setInvDlType(true).build)
-        portInfo.outRules += Create(dropRuleBuilder(outChainId)
-                                    .setDlType(ARP.ETHERTYPE)
-                                    .setInvDlType(true).build)
+        val arpDropInRuleBldr = dropRuleBuilder(inChainId)
+        val arpInCond = arpDropInRuleBldr.getCondition.toBuilder
+            .setDlType(ARP.ETHERTYPE)
+            .setInvDlType(true)
+            .build()
+        portInfo.inRules += Create(arpDropInRuleBldr.setCondition(arpInCond)
+                                       .build())
+
+        val arpDropOutRuleBldr = dropRuleBuilder(outChainId)
+        val arpOutCond = arpDropOutRuleBldr.getCondition.toBuilder
+            .setDlType(ARP.ETHERTYPE)
+            .setInvDlType(true)
+            .build()
+        portInfo.outRules += Create(arpDropOutRuleBldr.setCondition(arpOutCond)
+                                        .build())
 
         // Create in/outbound chains with the IDs of the above rules.
         val inChain = newChain(inChainId, egressChainName(portId),

@@ -25,6 +25,7 @@ import org.midonet.brain.services.c3po.midonet._
 import org.midonet.cluster.data.storage.{NotFoundException, ReadOnlyStorage}
 import org.midonet.cluster.models.Commons.{Int32Range, RuleDirection, UUID}
 import org.midonet.cluster.models.Neutron.{SecurityGroup, SecurityGroupRule}
+import org.midonet.cluster.models.Topology.Rule.Condition
 import org.midonet.cluster.models.Topology.{Chain, IpAddrGroup, Rule}
 import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
 import org.midonet.cluster.util.{IPSubnetUtil, UUIDUtil}
@@ -194,26 +195,28 @@ class SecurityGroupTranslator(storage: ReadOnlyStorage)
     private def translate(sgRule: SecurityGroupRule): Rule = {
         val bldr = Rule.newBuilder
         bldr.setId(sgRule.getId)
+        val conditionBldr = Condition.newBuilder
+
         if (sgRule.hasProtocol)
-            bldr.setNwProto(sgRule.getProtocol.getNumber)
+            conditionBldr.setNwProto(sgRule.getProtocol.getNumber)
         if (sgRule.hasEthertype)
-            bldr.setDlType(sgRule.getEthertype.getNumber)
+            conditionBldr.setDlType(sgRule.getEthertype.getNumber)
         if (sgRule.hasPortRangeMin)
-            bldr.setTpDst(createRange(sgRule.getPortRangeMin,
+            conditionBldr.setTpDst(createRange(sgRule.getPortRangeMin,
                                       sgRule.getPortRangeMax))
 
         if (sgRule.getDirection == RuleDirection.INGRESS) {
             if (sgRule.hasRemoteIpPrefix)
-                bldr.setNwSrcIp(IPSubnetUtil.toProto(sgRule.getRemoteIpPrefix))
+                conditionBldr.setNwSrcIp(IPSubnetUtil.toProto(sgRule.getRemoteIpPrefix))
             if (sgRule.hasRemoteGroupId)
-                bldr.setIpAddrGroupIdSrc(sgRule.getRemoteGroupId)
+                conditionBldr.setIpAddrGroupIdSrc(sgRule.getRemoteGroupId)
         } else {
             if (sgRule.hasRemoteIpPrefix)
-                bldr.setNwDstIp(IPSubnetUtil.toProto(sgRule.getRemoteIpPrefix))
+                conditionBldr.setNwDstIp(IPSubnetUtil.toProto(sgRule.getRemoteIpPrefix))
             if (sgRule.hasRemoteGroupId)
-                bldr.setIpAddrGroupIdDst(sgRule.getRemoteGroupId)
+                conditionBldr.setIpAddrGroupIdDst(sgRule.getRemoteGroupId)
         }
-
+        bldr.setCondition(conditionBldr.build())
         bldr.build()
     }
 
