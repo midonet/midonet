@@ -55,6 +55,24 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_accd0789",
+        "filename": "tools/devmido/binproxy",
+        "patchSetId": 5
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-01-27T08:40:15Z",
+      "side": 1,
+      "message": "I\u0027ll change it to %..%.  Yeah let\u0027s clean up these env names.  To do so, we need to change the mm-ctl/mm-dpctl scripts, so it can\u0027t be part of this patch.",
+      "parentUuid": "7a1969be_69b6618c",
+      "revId": "2fe9aeaa3e2ba0942287c1749f9f446817886205",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_8650ea5f",
         "filename": "tools/devmido/binproxy",
         "patchSetId": 5
