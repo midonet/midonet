@@ -22,6 +22,30 @@
       "revId": "4d9c21247e5a77929491ae59671ef3fdc90df40b",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_8f50fd5f",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/concurrent/SpscRwdRingBuffer.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 117,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-01-27T15:14:54Z",
+      "side": 1,
+      "message": "Mmm, I think it\u0027s more a \u0027would\u0027 than a \u0027should\u0027, but don\u0027t trust my English too much (for me, \u0027should\u0027 is too strong when dealing with delicate things as concurrency :-)",
+      "parentUuid": "7a1969be_ecc7ff62",
+      "range": {
+        "startLine": 117,
+        "startChar": 70,
+        "endLine": 117,
+        "endChar": 75
+      },
+      "revId": "4d9c21247e5a77929491ae59671ef3fdc90df40b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
