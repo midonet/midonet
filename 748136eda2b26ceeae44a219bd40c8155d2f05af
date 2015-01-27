@@ -1,0 +1,89 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_2c88f721",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/DatapathController.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 201,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-01-27T09:08:39Z",
+      "side": 1,
+      "message": "I\u0027ll remove those unnecessary new lines when I got some reviews and I need to modify this code. Sorry about that.",
+      "revId": "748136eda2b26ceeae44a219bd40c8155d2f05af",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_0c8d3b32",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/DatapathController.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 253,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-01-27T09:08:39Z",
+      "side": 1,
+      "message": "I\u0027ll remove those unnecessary new lines when I got some reviews and I need to modify this code. Sorry about that.",
+      "revId": "748136eda2b26ceeae44a219bd40c8155d2f05af",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_6c82ef01",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/DatapathController.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 255,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-01-27T09:08:39Z",
+      "side": 1,
+      "message": "I couldn\u0027t avoid adding this Option logic because some tests leave midolmanConfig as null and the modifications for them requires additional time to refactor them.",
+      "revId": "748136eda2b26ceeae44a219bd40c8155d2f05af",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_cc720349",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/DatapathControllerPortCreationTest.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 113,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-01-27T09:08:39Z",
+      "side": 1,
+      "message": "This test should be placed in DatapathControllerActorTest.scala but it requires the introduction of MidolmanSpec, which conflicts a lot with TestKit.",
+      "revId": "748136eda2b26ceeae44a219bd40c8155d2f05af",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_2c8f5725",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/util/MidolmanSpec.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-01-27T09:08:39Z",
+      "side": 1,
+      "message": "This also should be in DatapathControllerActorTest.scala but the injection is not happening there and there\u0027s no way to put mock config before preStart is called.",
+      "revId": "748136eda2b26ceeae44a219bd40c8155d2f05af",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
