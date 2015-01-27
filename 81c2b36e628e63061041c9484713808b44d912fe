@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_cc4a03ac",
+        "filename": "brain/midonet-brain/src/main/java/org/midonet/brain/services/vxgw/VxLanGatewayService.java",
+        "patchSetId": 7
+      },
+      "lineNbr": 369,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-27T12:05:50Z",
+      "side": 1,
+      "message": "But it can be. There is a setter that replaces the list ref, so it\u0027s not safe.",
+      "parentUuid": "9a245df4_b373a3e6",
+      "range": {
+        "startLine": 369,
+        "startChar": 12,
+        "endLine": 369,
+        "endChar": 24
+      },
+      "revId": "81c2b36e628e63061041c9484713808b44d912fe",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a245df4_3604c67d",
         "filename": "midolman/src/main/java/org/midonet/cluster/LocalDataClientImpl.java",
         "patchSetId": 7
@@ -36,6 +60,30 @@
       "writtenOn": "2015-01-20T17:38:06Z",
       "side": 1,
       "message": "add, or fails on an empty list",
+      "range": {
+        "startLine": 638,
+        "startChar": 43,
+        "endLine": 638,
+        "endChar": 46
+      },
+      "revId": "81c2b36e628e63061041c9484713808b44d912fe",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_2cc75714",
+        "filename": "midolman/src/main/java/org/midonet/cluster/LocalDataClientImpl.java",
+        "patchSetId": 7
+      },
+      "lineNbr": 638,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-27T12:05:50Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9a245df4_3604c67d",
       "range": {
         "startLine": 638,
         "startChar": 43,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_0ccc1b35",
+        "filename": "midolman/src/main/java/org/midonet/cluster/LocalDataClientImpl.java",
+        "patchSetId": 7
+      },
+      "lineNbr": 3270,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-27T12:05:50Z",
+      "side": 1,
+      "message": "My reasonning here is that there is no strict check preventing a null, since there is a setter that replaces the list ref. so a NPE is still possible, no?",
+      "parentUuid": "9a245df4_33f33375",
+      "range": {
+        "startLine": 3270,
+        "startChar": 28,
+        "endLine": 3270,
+        "endChar": 57
+      },
+      "revId": "81c2b36e628e63061041c9484713808b44d912fe",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a245df4_b3fe0337",
         "filename": "midolman/src/main/java/org/midonet/cluster/LocalDataClientImpl.java",
         "patchSetId": 7
@@ -82,6 +154,30 @@
       "writtenOn": "2015-01-21T17:35:56Z",
       "side": 1,
       "message": "I think the null getVxLanPortIds() should be deprecated in favor of an empty getVxLanPortIds...",
+      "range": {
+        "startLine": 3373,
+        "startChar": 12,
+        "endLine": 3373,
+        "endChar": 72
+      },
+      "revId": "81c2b36e628e63061041c9484713808b44d912fe",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_4cd613c7",
+        "filename": "midolman/src/main/java/org/midonet/cluster/LocalDataClientImpl.java",
+        "patchSetId": 7
+      },
+      "lineNbr": 3373,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-27T12:05:50Z",
+      "side": 1,
+      "message": "I agree, but that breaks the convention on the rest of the config classes,  has impact on what gets serialized to ZK, and makes me a bit nervous :(\n\nBut I yield because this is hideous. Let me implement some controls to avoid the nulls altogether.",
+      "parentUuid": "9a245df4_b3fe0337",
       "range": {
         "startLine": 3373,
         "startChar": 12,
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_8cfe4b37",
+        "filename": "midolman/src/main/java/org/midonet/cluster/LocalDataClientImpl.java",
+        "patchSetId": 7
+      },
+      "lineNbr": 3385,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-27T12:05:50Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9a245df4_539507e3",
+      "range": {
+        "startLine": 3385,
+        "startChar": 13,
+        "endLine": 3385,
+        "endChar": 23
+      },
+      "revId": "81c2b36e628e63061041c9484713808b44d912fe",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a245df4_13aa6f19",
         "filename": "midolman/src/main/java/org/midonet/cluster/LocalDataClientImpl.java",
         "patchSetId": 7
@@ -128,6 +248,30 @@
       "writtenOn": "2015-01-21T17:35:56Z",
       "side": 1,
       "message": "to be consistent with the code in bridgesGEt, vxLanPortId should be set to null, also.\n(Alternatively, we could use the brigesGet to ensure that the migration is done always in the same way...)",
+      "range": {
+        "startLine": 3436,
+        "startChar": 12,
+        "endLine": 3436,
+        "endChar": 24
+      },
+      "revId": "81c2b36e628e63061041c9484713808b44d912fe",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_2c9597e4",
+        "filename": "midolman/src/main/java/org/midonet/cluster/LocalDataClientImpl.java",
+        "patchSetId": 7
+      },
+      "lineNbr": 3436,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-27T12:05:50Z",
+      "side": 1,
+      "message": "I was actually keeping it there intentionally in case there is old code that relies on the old property. Should we remove it? My concern is that this will be hit on upgrades, which is precisely one of the hardest things to test..",
+      "parentUuid": "9a245df4_13aa6f19",
       "range": {
         "startLine": 3436,
         "startChar": 12,
@@ -163,6 +307,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_4ca45357",
+        "filename": "midolman/src/main/java/org/midonet/cluster/LocalDataClientImpl.java",
+        "patchSetId": 7
+      },
+      "lineNbr": 3465,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-27T12:05:50Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9a245df4_f3a6bb52",
+      "range": {
+        "startLine": 3465,
+        "startChar": 27,
+        "endLine": 3465,
+        "endChar": 42
+      },
+      "revId": "81c2b36e628e63061041c9484713808b44d912fe",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a245df4_5363471a",
         "filename": "midolman/src/main/java/org/midonet/cluster/LocalDataClientImpl.java",
         "patchSetId": 7
@@ -174,6 +342,30 @@
       "writtenOn": "2015-01-21T17:35:56Z",
       "side": 1,
       "message": "Note that with the current implementation of bridgeCreateVxLanPort, it may happen that vlLanPortId !\u003d null AND vxLanPortIds.contains(portId)... (see the comment in bridgeCreateVxLanPort)",
+      "range": {
+        "startLine": 3490,
+        "startChar": 10,
+        "endLine": 3490,
+        "endChar": 17
+      },
+      "revId": "81c2b36e628e63061041c9484713808b44d912fe",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_cc8fa3cb",
+        "filename": "midolman/src/main/java/org/midonet/cluster/LocalDataClientImpl.java",
+        "patchSetId": 7
+      },
+      "lineNbr": 3490,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-27T12:05:50Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9a245df4_5363471a",
       "range": {
         "startLine": 3490,
         "startChar": 10,
@@ -209,6 +401,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_ec925ff5",
+        "filename": "midolman/src/main/java/org/midonet/cluster/LocalDataClientImpl.java",
+        "patchSetId": 7
+      },
+      "lineNbr": 3493,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-27T12:05:50Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9a245df4_336853f5",
+      "range": {
+        "startLine": 3493,
+        "startChar": 20,
+        "endLine": 3493,
+        "endChar": 66
+      },
+      "revId": "81c2b36e628e63061041c9484713808b44d912fe",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a245df4_7372cbe6",
         "filename": "midolman/src/main/java/org/midonet/cluster/data/Bridge.java",
         "patchSetId": 7
@@ -220,6 +436,30 @@
       "writtenOn": "2015-01-21T17:35:56Z",
       "side": 1,
       "message": "vxLanPortIds ?",
+      "range": {
+        "startLine": 177,
+        "startChar": 39,
+        "endLine": 177,
+        "endChar": 50
+      },
+      "revId": "81c2b36e628e63061041c9484713808b44d912fe",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_6cd14fcd",
+        "filename": "midolman/src/main/java/org/midonet/cluster/data/Bridge.java",
+        "patchSetId": 7
+      },
+      "lineNbr": 177,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-27T12:05:50Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9a245df4_7372cbe6",
       "range": {
         "startLine": 177,
         "startChar": 39,
@@ -255,6 +495,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_0cc1bbe4",
+        "filename": "midonet-api/src/main/java/org/midonet/api/network/Bridge.java",
+        "patchSetId": 7
+      },
+      "lineNbr": 178,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-27T12:05:50Z",
+      "side": 1,
+      "message": "it\u0027ll have the same effect going through the loop below (0 loops)",
+      "parentUuid": "9a245df4_93449f75",
+      "range": {
+        "startLine": 178,
+        "startChar": 36,
+        "endLine": 178,
+        "endChar": 48
+      },
+      "revId": "81c2b36e628e63061041c9484713808b44d912fe",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a245df4_73492b8b",
         "filename": "midonet-api/src/main/java/org/midonet/api/network/Bridge.java",
         "patchSetId": 7
@@ -266,6 +530,30 @@
       "writtenOn": "2015-01-21T17:35:56Z",
       "side": 1,
       "message": "just a question: do we want to return null here, or an empty list?",
+      "range": {
+        "startLine": 179,
+        "startChar": 12,
+        "endLine": 179,
+        "endChar": 23
+      },
+      "revId": "81c2b36e628e63061041c9484713808b44d912fe",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_6cb66f8c",
+        "filename": "midonet-api/src/main/java/org/midonet/api/network/Bridge.java",
+        "patchSetId": 7
+      },
+      "lineNbr": 179,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-27T12:05:50Z",
+      "side": 1,
+      "message": "this seems to be the standard elsewhere so I kept that",
+      "parentUuid": "9a245df4_73492b8b",
       "range": {
         "startLine": 179,
         "startChar": 12,
@@ -301,6 +589,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_af4a1925",
+        "filename": "midonet-api/src/main/java/org/midonet/api/network/rest_api/BridgeResource.java",
+        "patchSetId": 7
+      },
+      "lineNbr": 170,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-27T12:05:50Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9a245df4_b35a834e",
+      "range": {
+        "startLine": 170,
+        "startChar": 19,
+        "endLine": 170,
+        "endChar": 33
+      },
+      "revId": "81c2b36e628e63061041c9484713808b44d912fe",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a245df4_1358af55",
         "filename": "midonet-api/src/main/java/org/midonet/api/network/rest_api/BridgeResource.java",
         "patchSetId": 7
@@ -324,6 +636,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_cf5155da",
+        "filename": "midonet-api/src/main/java/org/midonet/api/network/rest_api/BridgeResource.java",
+        "patchSetId": 7
+      },
+      "lineNbr": 190,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-27T12:05:50Z",
+      "side": 1,
+      "message": "Done. This whole thing is wrong actually.",
+      "parentUuid": "9a245df4_1358af55",
+      "range": {
+        "startLine": 190,
+        "startChar": 12,
+        "endLine": 190,
+        "endChar": 62
+      },
+      "revId": "81c2b36e628e63061041c9484713808b44d912fe",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a245df4_f354fb22",
         "filename": "midonet-api/src/main/java/org/midonet/api/vtep/VtepClusterClient.java",
         "patchSetId": 7
@@ -335,6 +671,30 @@
       "writtenOn": "2015-01-21T17:35:56Z",
       "side": 1,
       "message": "empty? :-)",
+      "range": {
+        "startLine": 391,
+        "startChar": 16,
+        "endLine": 391,
+        "endChar": 28
+      },
+      "revId": "81c2b36e628e63061041c9484713808b44d912fe",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_2f5e29ea",
+        "filename": "midonet-api/src/main/java/org/midonet/api/vtep/VtepClusterClient.java",
+        "patchSetId": 7
+      },
+      "lineNbr": 391,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-27T12:05:50Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9a245df4_f354fb22",
       "range": {
         "startLine": 391,
         "startChar": 16,
