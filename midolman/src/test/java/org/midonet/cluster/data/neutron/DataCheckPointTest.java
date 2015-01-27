@@ -95,7 +95,7 @@ public class DataCheckPointTest {
         if (!cond.etherType.equals(new Integer(ARP.ETHERTYPE))) {
             return false;
         }
-        if (!(cond.invDlType)) {
+        if (!(cond.invEthType)) {
             return false;
         }
         if (!Objects.equal(rule.getAction(), RuleResult.Action.DROP)) {
@@ -113,7 +113,7 @@ public class DataCheckPointTest {
         if (cond == null) {
             return false;
         }
-        if (!cond.invDlSrc) {
+        if (!cond.invEthSrc) {
             return false;
         }
 

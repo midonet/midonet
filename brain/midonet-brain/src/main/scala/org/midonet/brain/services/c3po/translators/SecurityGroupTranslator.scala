@@ -194,6 +194,7 @@ class SecurityGroupTranslator(storage: ReadOnlyStorage)
     private def translate(sgRule: SecurityGroupRule): Rule = {
         val bldr = Rule.newBuilder
         bldr.setId(sgRule.getId)
+
         if (sgRule.hasProtocol)
             bldr.setNwProto(sgRule.getProtocol.getNumber)
         if (sgRule.hasEthertype)
@@ -213,7 +214,6 @@ class SecurityGroupTranslator(storage: ReadOnlyStorage)
             if (sgRule.hasRemoteGroupId)
                 bldr.setIpAddrGroupIdDst(sgRule.getRemoteGroupId)
         }
-
         bldr.build()
     }
 

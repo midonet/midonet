@@ -15,11 +15,17 @@
  */
 package org.midonet.midolman.rules;
 
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
+import com.google.common.base.Strings;
+
 import org.midonet.cluster.data.neutron.SecurityGroupRule;
+import org.midonet.cluster.models.Topology;
+import org.midonet.cluster.util.IPSubnetUtil;
+import org.midonet.cluster.util.UUIDUtil;
 import org.midonet.midolman.simulation.IPAddrGroup;
 import org.midonet.midolman.simulation.PacketContext;
 import org.midonet.midolman.state.zkManagers.BaseConfig;
@@ -46,13 +52,13 @@ public class Condition extends BaseConfig {
     public UUID ipAddrGroupIdDst;
     public boolean invIpAddrGroupIdDst;
     public Integer etherType; // Ethernet frame type.
-    public boolean invDlType;
+    public boolean invEthType;
     public MAC ethSrc; // Source MAC address.
     public long ethSrcMask = NO_MASK; // Top 16 bits ignored.
-    public boolean invDlSrc;
+    public boolean invEthSrc;
     public MAC ethDst; // Destination MAC address.
-    public long dlDstMask = NO_MASK; // Top 16 bits ignored.
-    public boolean invDlDst;
+    public long ethDstMask = NO_MASK; // Top 16 bits ignored.
+    public boolean invEthDst;
     public Byte nwTos;
     public boolean nwTosInv;
     public Byte nwProto;
@@ -150,6 +156,58 @@ public class Condition extends BaseConfig {
         etherType = (int) subnet.ethertype();
     }
 
+    // TODO(nicolas): Deal with non-initialized fields
+    public Condition(Topology.Rule protoRule) {
+        Condition cnd = new Condition();
+        cnd.conjunctionInv = protoRule.getConjunctionInv();
+        cnd.matchForwardFlow = protoRule.getMatchForwardFlow();
+        cnd.matchReturnFlow = protoRule.getMatchReturnFlow();
+        cnd.inPortIds = new HashSet(UUIDUtil.fromProtoUUIDList(
+            protoRule.getInPortIdsList()));
+        cnd.inPortInv = protoRule.getInPortInv();
+        cnd.outPortIds = new HashSet(UUIDUtil.fromProtoUUIDList(
+            protoRule.getOutPortIdsList()));
+        cnd.outPortInv = protoRule.getOutPortInv();
+        cnd.portGroup = UUIDUtil.fromProto(protoRule.getPortGroupId());
+        cnd.invPortGroup = protoRule.getInvPortGroup();
+        cnd.ipAddrGroupIdSrc = UUIDUtil.fromProto(
+            protoRule.getIpAddrGroupIdSrc());
+        cnd.invIpAddrGroupIdSrc = protoRule.getInvIpAddrGroupIdSrc();
+        cnd.ipAddrGroupIdDst = UUIDUtil.fromProto(
+            protoRule.getIpAddrGroupIdDst());
+        cnd.invIpAddrGroupIdDst = protoRule.getInvIpAddrGroupIdDst();
+        cnd.etherType = protoRule.getDlType();
+        cnd.invEthType = protoRule.getInvDlType();
+        cnd.ethSrc = Strings.isNullOrEmpty(protoRule.getDlSrc()) ? null :
+                     MAC.fromString(protoRule.getDlSrc());
+        cnd.ethSrcMask = protoRule.getDlSrcMask();
+        cnd.invEthSrc = protoRule.getInvDlSrc();
+        cnd.ethDst = Strings.isNullOrEmpty(protoRule.getDlDst()) ? null :
+                     MAC.fromString(protoRule.getDlDst());
+        cnd.ethDstMask = protoRule.getDlDstMask();
+        cnd.invEthDst = protoRule.getInvDlDst();
+        cnd.nwTos = (byte) protoRule.getNwTos();
+        cnd.nwTosInv = protoRule.getNwTosInv();
+        cnd.nwProto = (byte) protoRule.getNwProto();
+        cnd.nwProtoInv = protoRule.getNwProtoInv();
+        cnd.nwSrcIp = Strings.isNullOrEmpty(protoRule.getNwSrcIp().getAddress())
+                      ? null : IPSubnetUtil.fromProto(protoRule.getNwSrcIp());
+        cnd.nwDstIp = Strings.isNullOrEmpty(protoRule.getNwDstIp().getAddress())
+                      ? null : IPSubnetUtil.fromProto(protoRule.getNwDstIp());
+        cnd.tpSrc = new Range(protoRule.getTpSrc().getStart(),
+                              protoRule.getTpSrc().getEnd());
+        cnd.tpDst = new Range(protoRule.getTpDst().getStart(),
+                              protoRule.getTpDst().getEnd());
+        cnd.nwSrcInv = protoRule.getNwSrcInv();
+        cnd.nwDstInv = protoRule.getNwDstInv();
+        cnd.tpSrcInv = protoRule.getTpSrcInv();
+        cnd.tpDstInv = protoRule.getTpDstInv();
+        cnd.traversedDevice = UUIDUtil.fromProto(protoRule.getTraversedDevice());
+        cnd.traversedDeviceInv = protoRule.getTraveresedDeviceInv();
+        cnd.fragmentPolicy = FragmentPolicy.valueOf(protoRule.getFragmentPolicy()
+                                                        .name());
+    }
+
     public boolean containsInPort(UUID portId) {
         return inPortIds != null && inPortIds.contains(portId);
     }
@@ -193,12 +251,13 @@ public class Condition extends BaseConfig {
             return conjunctionInv;
         if (!matchPort(this.outPortIds, outPortId, this.outPortInv))
             return conjunctionInv;
-        if (!matchField(etherType, Unsigned.unsign(pktMatch.getEtherType()), invDlType))
+        if (!matchField(etherType, Unsigned.unsign(pktMatch.getEtherType()),
+                        invEthType))
             return conjunctionInv;
-        if (!matchMAC(ethSrc, pktMatch.getEthSrc(), ethSrcMask, invDlSrc))
+        if (!matchMAC(ethSrc, pktMatch.getEthSrc(), ethSrcMask, invEthSrc))
             return conjunctionInv;
         if (!matchMAC(ethDst, pktMatch.getEthDst(),
-                      dlDstMask, invDlDst))
+                      ethDstMask, invEthDst))
             return conjunctionInv;
         if (!matchField(nwTos, pktMatch.getNetworkTOS(), nwTosInv))
             return conjunctionInv;
@@ -331,21 +390,21 @@ public class Condition extends BaseConfig {
         }
         if (null != etherType) {
             sb.append("etherType=").append(etherType.intValue()).append(", ");
-            if(invDlType)
-                sb.append("invDlType").append(invDlType).append(", ");
+            if(invEthType)
+                sb.append("invEthType").append(invEthType).append(", ");
         }
         if (null != ethSrc) {
             sb.append("ethSrc=").append(ethSrc).append(", ");
             if (ethSrcMask != NO_MASK)
                 sb.append("ethSrcMask=").append(MAC.maskToString(ethSrcMask))
                         .append(", ");
-            if(invDlSrc)
-                sb.append("invDlSrc").append(invDlSrc).append(", ");
+            if(invEthSrc)
+                sb.append("invEthSrc").append(invEthSrc).append(", ");
         }
         if (null != ethDst) {
             sb.append("ethDst=").append(ethDst).append(", ");
-            if(invDlDst)
-                sb.append("invDlDst").append(invDlDst).append(", ");
+            if(invEthDst)
+                sb.append("invEthDst").append(invEthDst).append(", ");
         }
         if (null != nwTos) {
             sb.append("nwTos=").append(nwTos).append(", ");
@@ -401,9 +460,9 @@ public class Condition extends BaseConfig {
                 invIpAddrGroupIdDst == c.invIpAddrGroupIdDst &&
                 invIpAddrGroupIdSrc == c.invIpAddrGroupIdSrc &&
                 traversedDeviceInv == c.traversedDeviceInv &&
-                invDlType == c.invDlType &&
-                invDlSrc == c.invDlSrc && invDlDst == c.invDlDst &&
-                ethSrcMask == c.ethSrcMask && dlDstMask == c.dlDstMask &&
+                invEthType == c.invEthType &&
+                invEthSrc == c.invEthSrc && invEthDst == c.invEthDst &&
+                ethSrcMask == c.ethSrcMask && ethDstMask == c.ethDstMask &&
                 nwTosInv == c.nwTosInv && nwProtoInv == c.nwProtoInv &&
                 nwSrcInv == c.nwSrcInv && nwDstInv == c.nwDstInv &&
                 tpSrcInv == c.tpSrcInv && tpDstInv == c.tpDstInv &&
@@ -430,7 +489,7 @@ public class Condition extends BaseConfig {
                 conjunctionInv, matchForwardFlow, matchReturnFlow,
                 inPortInv, outPortInv, invPortGroup,
                 invIpAddrGroupIdDst, invIpAddrGroupIdSrc,
-                invDlType, invDlSrc, invDlDst, ethSrcMask, dlDstMask,
+                invEthType, invEthSrc, invEthDst, ethSrcMask, ethDstMask,
                 nwTosInv, nwProtoInv, nwSrcInv, nwDstInv, tpSrcInv, tpDstInv,
                 inPortIds, outPortIds, portGroup,
                 ipAddrGroupIdDst, ipAddrGroupIdSrc, etherType, ethSrc, ethDst,
