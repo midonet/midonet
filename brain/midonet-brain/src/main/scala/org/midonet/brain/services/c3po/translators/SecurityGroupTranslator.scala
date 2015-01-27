@@ -31,7 +31,6 @@ import org.midonet.cluster.util.{IPSubnetUtil, UUIDUtil}
 import org.midonet.util.StringUtil.indent
 import org.midonet.util.concurrent.toFutureOps
 
-
 class SecurityGroupTranslator(storage: ReadOnlyStorage)
     extends NeutronTranslator[SecurityGroup] {
     import org.midonet.brain.services.c3po.translators.SecurityGroupTranslator._
@@ -213,7 +212,6 @@ class SecurityGroupTranslator(storage: ReadOnlyStorage)
             if (sgRule.hasRemoteGroupId)
                 bldr.setIpAddrGroupIdDst(sgRule.getRemoteGroupId)
         }
-
         bldr.build()
     }
 
