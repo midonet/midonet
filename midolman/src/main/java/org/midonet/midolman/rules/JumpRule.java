@@ -16,11 +16,15 @@
 
 package org.midonet.midolman.rules;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.midonet.cluster.models.Topology;
+import org.midonet.cluster.util.UUIDUtil;
 import org.midonet.midolman.rules.RuleResult.Action;
 import org.midonet.midolman.simulation.PacketContext;
 
@@ -44,8 +48,8 @@ public class JumpRule extends Rule {
     }
 
     public JumpRule(Condition condition, UUID jumpToChainID,
-                    String jumpToChainName, UUID chainId, int position) {
-        super(condition, null, chainId, position);
+                    String jumpToChainName, UUID chainId) {
+        super(condition, null, chainId);
         this.jumpToChainID = jumpToChainID;
         this.jumpToChainName = jumpToChainName;
     }
@@ -54,6 +58,16 @@ public class JumpRule extends Rule {
                     String jumpChainName) {
         this(new Condition(), jumpChainId, jumpChainName);
         this.chainId = chainId;
+    }
+
+    public JumpRule(Topology.Rule protoRule) {
+        this(new Condition(protoRule),
+             UUIDUtil.fromProto(protoRule.getJumpChainId()),
+             protoRule.getJumpChainName(), UUIDUtil.fromProto(protoRule.getChainId()));
+    }
+
+    public static boolean isJumpRule(Topology.Rule protoRule) {
+        return protoRule.getAction() == Topology.Rule.Action.JUMP;
     }
 
     @Override

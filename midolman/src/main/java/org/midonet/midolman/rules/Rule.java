@@ -22,6 +22,8 @@ import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.annotate.JsonSubTypes;
 import org.codehaus.jackson.annotate.JsonTypeInfo;
+
+import org.midonet.cluster.models.Topology;
 import org.midonet.sdn.flows.FlowTagger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,7 +42,7 @@ import org.midonet.midolman.simulation.PacketContext;
 public abstract class Rule {
     private final static Logger log = LoggerFactory.getLogger(Rule.class);
 
-    private Condition condition;
+    protected Condition condition;
     public Action action;
     public UUID chainId;
     @JsonIgnore
@@ -48,14 +50,28 @@ public abstract class Rule {
     private Map<String, String> properties = new HashMap<String, String>();
 
     public Rule(Condition condition, Action action) {
-        this(condition, action, null, -1);
+        this(condition, action, null);
     }
 
-    public Rule(Condition condition, Action action, UUID chainId,
-                int position) {
+    public Rule(Condition condition, Action action, UUID chainId) {
         this.condition = condition;
         this.action = action;
         this.chainId = chainId;
+    }
+
+
+    public static Rule fromProto(Topology.Rule protoRule) {
+        if (JumpRule.isJumpRule(protoRule)) {
+            return new JumpRule(protoRule);
+
+        } else if (ForwardNatRule.isForwardNatRule(protoRule)) {
+            return new ForwardNatRule(protoRule);
+
+        } else if (ReverseNatRule.isReverseNatRule(protoRule)) {
+            return new ReverseNatRule(protoRule);
+
+        } else
+           return new LiteralRule(protoRule);
     }
 
     @JsonProperty

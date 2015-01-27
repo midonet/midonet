@@ -522,7 +522,6 @@ public class Converter {
                     typedRule.getCondition(),
                     typedRule.getAction(),
                     typedRule.getChainId(),
-                    typedRule.getPosition(),
                     typedRule.isDnat(),
                     typedRule.getTargets()
             );
