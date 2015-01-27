@@ -605,17 +605,17 @@ public abstract class Condition extends UriResource {
         c.inPortInv = this.isInvInPorts();
         if (dlType != null)
             c.etherType = this.dlType;
-        c.invDlType = this.isInvDlType();
+        c.invEthType = this.isInvDlType();
         if (this.dlSrc != null)
             c.ethSrc = MAC.fromString(this.dlSrc);
         if (this.dlSrcMask != null)
             c.ethSrcMask = MAC.parseMask(this.dlSrcMask);
-        c.invDlSrc = this.invDlSrc;
+        c.invEthSrc = this.invDlSrc;
         if (this.dlDst != null)
             c.ethDst = MAC.fromString(this.dlDst);
         if (this.dlDstMask != null)
-            c.dlDstMask = MAC.parseMask(this.dlDstMask);
-        c.invDlDst = this.invDlDst;
+            c.ethDstMask = MAC.parseMask(this.dlDstMask);
+        c.invEthDst = this.invDlDst;
         c.nwDstInv = this.isInvNwDst();
         if (this.getNwDstAddress() != null) {
             c.nwDstIp = new IPv4Subnet(
@@ -668,9 +668,9 @@ public abstract class Condition extends UriResource {
         this.setInvPortGroup(c.invPortGroup);
         this.setInvIpAddrGroupDst(c.invIpAddrGroupIdDst);
         this.setInvIpAddrGroupSrc(c.invIpAddrGroupIdSrc);
-        this.setInvDlType(c.invDlType);
-        this.setInvDlSrc(c.invDlSrc);
-        this.setInvDlDst(c.invDlDst);
+        this.setInvDlType(c.invEthType);
+        this.setInvDlSrc(c.invEthSrc);
+        this.setInvDlDst(c.invEthDst);
         this.setInvNwDst(c.nwDstInv);
         this.setInvNwProto(c.nwProtoInv);
         this.setInvNwSrc(c.nwSrcInv);
@@ -698,8 +698,8 @@ public abstract class Condition extends UriResource {
             this.setDlSrcMask(MAC.maskToString(c.ethSrcMask));
         if (null != c.ethDst)
             this.setDlDst(c.ethDst.toString());
-        if (NO_MASK != c.dlDstMask)
-            this.setDlDstMask(MAC.maskToString(c.dlDstMask));
+        if (NO_MASK != c.ethDstMask)
+            this.setDlDstMask(MAC.maskToString(c.ethDstMask));
         if (null != c.nwDstIp) {
             this.setNwDstAddress(c.nwDstIp.getAddress().toString());
             this.setNwDstLength(c.nwDstIp.getPrefixLen());

@@ -154,19 +154,19 @@ public class TestCondition {
         Condition cond = new Condition();
 
         // InvDlSrc shouldn't matter when ethSrc is null.
-        cond.invDlSrc = true;
+        cond.invEthSrc = true;
         assertTrue(cond.matches(pktCtx, false));
 
         cond.ethSrc = pktMatch.getEthSrc();
         assertFalse(cond.matches(pktCtx, false));
 
-        cond.invDlSrc = false;
+        cond.invEthSrc = false;
         assertTrue(cond.matches(pktCtx, false));
 
         cond.ethSrc = MAC.random();
         assertFalse(cond.matches(pktCtx, false));
 
-        cond.invDlSrc = true;
+        cond.invEthSrc = true;
         assertTrue(cond.matches(pktCtx, false));
     }
 
@@ -175,19 +175,19 @@ public class TestCondition {
         Condition cond = new Condition();
 
         // InvDlDst shouldn't matter when ethDst is null.
-        cond.invDlDst = true;
+        cond.invEthDst = true;
         assertTrue(cond.matches(pktCtx, false));
 
         cond.ethDst = pktMatch.getEthDst();
         assertFalse(cond.matches(pktCtx, false));
 
-        cond.invDlDst = false;
+        cond.invEthDst = false;
         assertTrue(cond.matches(pktCtx, false));
 
         cond.ethDst = MAC.random();
         assertFalse(cond.matches(pktCtx, false));
 
-        cond.invDlDst = true;
+        cond.invEthDst = true;
         assertTrue(cond.matches(pktCtx, false));
     }
 
@@ -198,9 +198,9 @@ public class TestCondition {
         // Everything should match with zero mask.
         cond.ethSrcMask = 0L;
         cond.ethSrc = MAC.random();
-        cond.invDlSrc = true;
+        cond.invEthSrc = true;
         assertFalse(cond.matches(pktCtx, false));
-        cond.invDlSrc = false;
+        cond.invEthSrc = false;
         assertTrue(cond.matches(pktCtx, false));
 
         // Ignore lower 32 bits.
@@ -209,16 +209,16 @@ public class TestCondition {
         // Flip lower 32 bits and match should still succeed.
         long macLong = pktMatch.getEthSrc().asLong();
         cond.ethSrc = new MAC(macLong ^ 0xffffffffL);
-        cond.invDlSrc = true;
+        cond.invEthSrc = true;
         assertFalse(cond.matches(pktCtx, false));
-        cond.invDlSrc = false;
+        cond.invEthSrc = false;
         assertTrue(cond.matches(pktCtx, false));
 
         // Flip one more bit and match should fail.
         cond.ethSrc = new MAC(macLong ^ 0x1ffffffffL);
-        cond.invDlSrc = true;
+        cond.invEthSrc = true;
         assertTrue(cond.matches(pktCtx, false));
-        cond.invDlSrc = false;
+        cond.invEthSrc = false;
         assertFalse(cond.matches(pktCtx, false));
     }
 
@@ -227,30 +227,30 @@ public class TestCondition {
         Condition cond = new Condition();
 
         // Everything should match with zero mask.
-        cond.dlDstMask = 0L;
+        cond.ethDstMask = 0L;
         cond.ethDst = MAC.random();
-        cond.invDlDst = true;
+        cond.invEthDst = true;
         assertFalse(cond.matches(pktCtx, false));
-        cond.invDlDst = false;
+        cond.invEthDst = false;
         assertTrue(cond.matches(pktCtx, false));
 
         // Ignore lower 32 bits.
-        cond.dlDstMask = 0xffffL << 32;
+        cond.ethDstMask = 0xffffL << 32;
 
         // Flip lower 32 bits and match should still succeed.
         long macLong = pktMatch.getEthDst().asLong();
         cond.ethDst = new MAC(macLong ^ 0xffffffffL);
-        cond.invDlDst = true;
+        cond.invEthDst = true;
         assertFalse(cond.matches(pktCtx, false));
-        cond.invDlDst = false;
+        cond.invEthDst = false;
         assertTrue(cond.matches(pktCtx, false));
 
 
         // Flip one more bit and match should fail.
         cond.ethDst = new MAC(macLong ^ 0x1ffffffffL);
-        cond.invDlDst = true;
+        cond.invEthDst = true;
         assertTrue(cond.matches(pktCtx, false));
-        cond.invDlDst = false;
+        cond.invEthDst = false;
         assertFalse(cond.matches(pktCtx, false));
     }
 

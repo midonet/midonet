@@ -41,8 +41,8 @@ public class ForwardNatRule extends NatRule {
     }
 
     public ForwardNatRule(Condition condition, Action action, UUID chainId,
-            int position, boolean dnat, Set<NatTarget> targets) {
-        super(condition, action, chainId, position, dnat);
+                          boolean dnat, Set<NatTarget> targets) {
+        super(condition, action, chainId, dnat);
         if (targets == null || targets.isEmpty())
             throw new IllegalArgumentException(
                     "A forward nat rule must have targets.");
