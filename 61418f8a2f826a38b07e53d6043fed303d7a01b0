@@ -88,6 +88,24 @@
       "revId": "61418f8a2f826a38b07e53d6043fed303d7a01b0",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_2fd0e952",
+        "filename": "midolman/src/main/java/org/midonet/midolman/simulation/Chain.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-01-27T11:34:52Z",
+      "side": 1,
+      "message": "I personally don\u0027t see much of a difference, since a rule can do whatever, including throwing NotYetException or TraceRequiredException. For example, a NatRule is very complex and applies modifications to the packet.",
+      "parentUuid": "7a1969be_2fff4903",
+      "revId": "61418f8a2f826a38b07e53d6043fed303d7a01b0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
