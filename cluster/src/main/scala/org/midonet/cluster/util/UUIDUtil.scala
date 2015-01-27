@@ -41,7 +41,7 @@ object UUIDUtil {
         else toProto(JUUID.fromString(uuidStr))
     }
 
-    implicit def fromProto(uuid: PUUID): java.util.UUID = {
+    implicit def fromProto(uuid: PUUID): JUUID = {
         new JUUID(uuid.getMsb, uuid.getLsb)
     }
 

@@ -23,14 +23,11 @@ import scala.collection.mutable.ListBuffer
 import com.google.protobuf.Message
 
 import org.midonet.brain.services.c3po.midonet.{Create, Delete, MidoOp, Update}
-import org.midonet.cluster.data.neutron.MetaDataService
 import org.midonet.cluster.data.storage.ReadOnlyStorage
-import org.midonet.cluster.models.Commons.{IPAddress, IPSubnet, IPVersion, UUID}
-import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner
+import org.midonet.cluster.models.Commons.{IPAddress, UUID}
 import org.midonet.cluster.models.Neutron.{NeutronPort, NeutronSubnet}
-import org.midonet.cluster.models.Topology.{Chain, Dhcp, DhcpOrBuilder, IpAddrGroup, Network, Port, PortOrBuilder, Route, Router, Rule}
+import org.midonet.cluster.models.Topology.{Chain, Dhcp, IpAddrGroup, Network, Port, PortOrBuilder, Router, Rule}
 import org.midonet.cluster.util.DhcpUtil.asRichDhcp
-import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
 import org.midonet.cluster.util.{IPSubnetUtil, UUIDUtil}
 import org.midonet.packets.ARP
 import org.midonet.util.concurrent.toFutureOps
@@ -201,7 +198,7 @@ class PortTranslator(val storage: ReadOnlyStorage)
     /* Configures the DHCP server and an OPT 121 route to it with the given IP
      * address (the mac is actually not being used here). */
     private def addDhcpServer(dhcp: Dhcp.Builder, mac: String,
-                              ipAddr: IPAddress) = if (dhcp.isIpv4) {
+                              ipAddr: IPAddress): Unit = if (dhcp.isIpv4) {
         dhcp.setServerAddress(ipAddr)
         val opt121 = dhcp.addOpt121RoutesBuilder()
         opt121.setDstSubnet(META_DATA_SRVC)
@@ -211,7 +208,7 @@ class PortTranslator(val storage: ReadOnlyStorage)
     /* Removes the DHCP server and OPT 121 route configurations with the given
      * IP address from DHCP (the mac is actually not being used here). */
     private def delDhcpServer(dhcp: Dhcp.Builder, mac: String,
-                              nextHopGw: IPAddress) = if (dhcp.isIpv4) {
+                              nextHopGw: IPAddress): Unit = if (dhcp.isIpv4) {
         dhcp.clearServerAddress()
         val route = dhcp.getOpt121RoutesOrBuilderList.asScala
                         .indexWhere(isMetaDataSvrOpt121Route(_, nextHopGw))
