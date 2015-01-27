@@ -242,5 +242,5 @@ class ChainTest extends Suite
     }
 
     private def makeJumpRule(target: Chain) =
-        new JumpRule(Condition.TRUE, target.id, target.name, null, 0)
+        new JumpRule(Condition.TRUE, target.id, target.name, null)
 }

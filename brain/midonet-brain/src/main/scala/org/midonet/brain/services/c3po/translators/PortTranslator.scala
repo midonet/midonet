@@ -23,14 +23,16 @@ import scala.collection.mutable.ListBuffer
 import com.google.protobuf.Message
 
 import org.midonet.brain.services.c3po.midonet.{Create, Delete, MidoOp, Update}
-import org.midonet.cluster.data.neutron.MetaDataService
 import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.models.Commons.{IPAddress, IPSubnet, IPVersion, UUID}
-import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner
 import org.midonet.cluster.models.Neutron.{NeutronPort, NeutronSubnet}
+import org.midonet.cluster.models.Topology.Rule.Condition
+import org.midonet.cluster.models.Topology.{Rule, Chain}
 import org.midonet.cluster.models.Topology.Network.Dhcp
-import org.midonet.cluster.models.Topology.{Chain, IpAddrGroup, Network, Port, PortOrBuilder, Route, Router, Rule}
-import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
+import org.midonet.cluster.models.Topology.Rule.Action.{ACCEPT, DROP}
+import org.midonet.cluster.models.Topology.Rule.Condition.FragmentPolicy._
+import org.midonet.cluster.models.Topology.Rule.{JumpData, NatData}
+import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.util.{IPSubnetUtil, UUIDUtil}
 import org.midonet.packets.{ARP, IPv4, IPv6}
 import org.midonet.util.concurrent.toFutureOps
@@ -43,6 +45,39 @@ object PortTranslator {
 
     private def ingressChainName(portId: UUID) =
         "OS_PORT_" + UUIDUtil.fromProto(portId) + "_OUTBOUND"
+
+    private def chainBuilder(chainId: UUID,
+                             chainName: String,
+                             ruleIds: Seq[UUID]) = {
+        val chainBldr = Chain.newBuilder().setId(chainId).setName(chainName)
+        ruleIds.foreach(chainBldr.addRuleIds)
+        chainBldr.build
+    }
+
+    private def reverseFlowRule(chainId: UUID): Rule =
+        Rule.newBuilder().setId(UUIDUtil.randomUuidProto)
+                         .setChainId(chainId)
+                         .setNatData(NatData.newBuilder
+                                        .setAction(ACCEPT)
+                                        .setIsForward(false)
+                                        .build())
+                         .build()
+
+    private def dropRuleBuilder(chainId: UUID): Rule.Builder =
+        Rule.newBuilder().setId(UUIDUtil.randomUuidProto)
+                         .setChainId(chainId)
+                         .setLiteralAction(DROP)
+                         .setCondition(Condition.newBuilder
+                                           .setFragmentPolicy(ANY)
+                                           .build())
+
+    private def jumpRule(fromChain: UUID, toChain: UUID) =
+        Rule.newBuilder().setId(UUIDUtil.randomUuidProto)
+                         .setJumpData(JumpData.newBuilder
+                                        .setJumpTo(toChain)
+                                        .build())
+                         .setChainId(fromChain)
+                         .build
 }
 
 class PortTranslator(val storage: ReadOnlyStorage)
@@ -287,9 +322,12 @@ class PortTranslator(val storage: ReadOnlyStorage)
             // we don't "handle" more than 1 IP address per port, so there
             // should be no problem, but this can potentially cause problems.
             portInfo.inRules += Create(dropRuleBuilder(inChainId)
-                                       .setNwSrcIp(ipSubnet)
-                                       .setNwSrcInv(true)
-                                       .setDlType(ipEtherType).build)
+                                       .setCondition(Condition.newBuilder()
+                                                         .setNwSrcIp(ipSubnet)
+                                                         .setNwSrcInv(true)
+                                                         .setDlType(ipEtherType)
+                                                     .build())
+                                       .build)
 
             // TODO If a port is attached to an external NeutronNetwork,
             // add a route to the provider router.
@@ -299,8 +337,11 @@ class PortTranslator(val storage: ReadOnlyStorage)
         portInfo.outRules += Create(reverseFlowRule(outChainId))
         // MAC spoofing protection
         portInfo.inRules += Create(dropRuleBuilder(inChainId)
-                                   .setDlSrc(mac)
-                                   .setInvDlSrc(true).build)
+                                   .setCondition(Condition.newBuilder
+                                                     .setDlSrc(mac)
+                                                     .setInvDlSrc(true)
+                                                     .build())
+                                   .build)
         // Create reverse flow rules matching for inbound chain.
         portInfo.inRules += Create(reverseFlowRule(inChainId))
         // Add jump rules to corresponding inbound / outbound chains of IP
@@ -342,11 +383,17 @@ class PortTranslator(val storage: ReadOnlyStorage)
 
         // Drop non-ARP traffic that wasn't accepted by earlier rules.
         portInfo.inRules += Create(dropRuleBuilder(inChainId)
-                                   .setDlType(ARP.ETHERTYPE)
-                                   .setInvDlType(true).build)
+                                   .setCondition(Condition.newBuilder()
+                                                     .setDlType(ARP.ETHERTYPE)
+                                                     .setInvDlType(true)
+                                                     .build())
+                                   .build())
         portInfo.outRules += Create(dropRuleBuilder(outChainId)
-                                    .setDlType(ARP.ETHERTYPE)
-                                    .setInvDlType(true).build)
+                                    .setCondition(Condition.newBuilder
+                                                      .setDlType(ARP.ETHERTYPE)
+                                                      .setInvDlType(true)
+                                                      .build)
+                                    .build())
 
         // Create in/outbound chains with the IDs of the above rules.
         val inChain = newChain(inChainId, egressChainName(portId),
