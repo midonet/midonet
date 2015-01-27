@@ -265,9 +265,10 @@ private object StorageTester {
 
     def ProtoRule(action: Rule.Action, chainId: Commons.UUID): Rule = {
         val ruleBuilder = Rule.newBuilder.setId(randomUuidProto)
-        if (action != null) ruleBuilder.setAction(action)
+        if (action != null) {
+            ruleBuilder.setAction(Rule.Action.ACCEPT)
+        }
         if (chainId != null) ruleBuilder.setChainId(chainId)
-
         ruleBuilder.build()
     }
 }

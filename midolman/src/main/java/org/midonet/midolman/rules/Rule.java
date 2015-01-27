@@ -22,6 +22,8 @@ import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.annotate.JsonSubTypes;
 import org.codehaus.jackson.annotate.JsonTypeInfo;
+
+import org.midonet.cluster.models.Topology;
 import org.midonet.sdn.flows.FlowTagger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,7 +43,7 @@ import org.midonet.midolman.simulation.PacketContext;
 public abstract class Rule {
     private final static Logger log = LoggerFactory.getLogger(Rule.class);
 
-    private Condition condition;
+    protected Condition condition;
     public Action action;
     public UUID chainId;
     @JsonIgnore
@@ -49,14 +51,59 @@ public abstract class Rule {
     private Map<String, String> properties = new HashMap<String, String>();
 
     public Rule(Condition condition, Action action) {
-        this(condition, action, null, -1);
+        this(condition, action, null);
     }
 
-    public Rule(Condition condition, Action action, UUID chainId,
-                int position) {
+    public Rule(Condition condition, Action action, UUID chainId) {
         this.condition = condition;
         this.action = action;
         this.chainId = chainId;
+    }
+
+    public static Rule fromProto(Topology.Rule protoRule) {
+        if (!protoRule.hasAction())
+            throw new IllegalArgumentException("Rule " + protoRule.getId()
+                                               + " has no action set");
+
+        if (protoRule.getType() == Topology.Rule.Type.JUMP_TYPE) {
+            if (protoRule.getAction() != Topology.Rule.Action.JUMP ||
+                !protoRule.hasJumpData())
+                throw new IllegalArgumentException(
+                    "Rule: " + protoRule.getId() + " is a JUMP rule but does not"
+                    + " have its action set to JUMP or is missing its associated"
+                    + " jump data");
+
+            return new JumpRule(protoRule);
+
+        } else if (protoRule.getType() == Topology.Rule.Type.NAT_TYPE) {
+            if (!protoRule.hasNatData() || !protoRule.getNatData().hasDnat())
+                throw new IllegalArgumentException(
+                    "NAT rule: " + protoRule.getId() + " must have its boolean"
+                    + " dnat set");
+
+            if (protoRule.getNatData().getMatchReturnFlow())
+                return new ReverseNatRule(protoRule);
+            else {
+                if (protoRule.getNatData().getNatTargetsCount() == 0)
+                    throw new IllegalArgumentException("Rule: " + protoRule.getId()
+                        + " is a forward NAT rule but has no targets set");
+                return new ForwardNatRule(protoRule);
+            }
+
+        } else if (protoRule.getType() == Topology.Rule.Type.TRACE_TYPE) {
+            if (protoRule.getAction() != Topology.Rule.Action.CONTINUE)
+                throw new IllegalArgumentException(
+                    "Trace rule: " + protoRule.getId() + " must have its action"
+                    + " set to CONTINUE");
+
+            return new TraceRule(protoRule);
+
+        } else if (protoRule.getType() == Topology.Rule.Type.LITERAL_TYPE)
+            return new LiteralRule(protoRule);
+        else
+            throw new IllegalArgumentException("Unrecognized type of rule: " +
+                                               protoRule.getId() + " for chain " +
+                                               protoRule.getChainId());
     }
 
     @JsonProperty
