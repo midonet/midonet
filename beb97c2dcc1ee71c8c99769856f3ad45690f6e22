@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_6fb4a1f2",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/DatapathControllerActorTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-01-27T14:31:04Z",
+      "side": 1,
+      "message": "Nit: order of the import.",
+      "revId": "beb97c2dcc1ee71c8c99769856f3ad45690f6e22",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_0fbb6dc5",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/DatapathControllerActorTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-01-27T14:31:04Z",
+      "side": 1,
+      "message": "I don\u0027t think this is going to be a problem but it might be better to be contained in a feature block.",
+      "revId": "beb97c2dcc1ee71c8c99769856f3ad45690f6e22",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_eff1b196",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/DpPortTaggingTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-01-27T14:31:04Z",
+      "side": 1,
+      "message": "Nit: a space  between scenario and (. And might be better to be contained in a feature block?",
+      "revId": "beb97c2dcc1ee71c8c99769856f3ad45690f6e22",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
