@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_69b6618c",
+        "filename": "tools/devmido/binproxy",
+        "patchSetId": 5
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 1002732
+      },
+      "writtenOn": "2015-01-27T01:38:47Z",
+      "side": 1,
+      "message": "I thought it was a bug too. If you wish to have this as a placeholder, maybe make it look more different, e.g. %MIDO_HOME%? \n\nnit: i know this is legacy and you can ignore,  but I\u0027d prefer a name like MIDO_JAR_DIR or something rather than MIDO_HOME.",
+      "parentUuid": "7a1969be_6909412c",
+      "revId": "2fe9aeaa3e2ba0942287c1749f9f446817886205",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_8650ea5f",
         "filename": "tools/devmido/binproxy",
         "patchSetId": 5
