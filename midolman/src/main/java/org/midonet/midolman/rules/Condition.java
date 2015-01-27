@@ -15,11 +15,22 @@
  */
 package org.midonet.midolman.rules;
 
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
+import com.google.common.base.Strings;
+
+import sun.plugin.util.UIUtil;
+
 import org.midonet.cluster.data.neutron.SecurityGroupRule;
+import org.midonet.cluster.models.Commons;
+import org.midonet.cluster.models.Topology;
+import org.midonet.cluster.util.IPSubnetUtil;
+import org.midonet.cluster.util.UUIDUtil;
 import org.midonet.midolman.simulation.IPAddrGroup;
 import org.midonet.midolman.simulation.PacketContext;
 import org.midonet.midolman.state.zkManagers.BaseConfig;
@@ -148,6 +159,60 @@ public class Condition extends BaseConfig {
     public Condition(IPSubnet<?> subnet) {
         nwSrcIp = subnet;
         etherType = (int) subnet.ethertype();
+    }
+
+    private List<UUID> fromProtoUUIDList(List<Commons.UUID> uuidList) {
+        List<UUID> convertedList = new LinkedList();
+        uuidList.forEach(puuid -> convertedList.add(UUIDUtil.fromProto(puuid)));
+        return convertedList;
+    }
+
+    //TODO(nicolas): Make sure that the conversions to byte are correct.
+    //TODO(nicolas): traversedDevice and tranversedDeviceInv are not present in the proto, add them?
+    public Condition(Topology.Rule protoRule) {
+        Condition cnd = new Condition();
+        Topology.Rule.Condition protoCond = protoRule.getCondition();
+        cnd.conjunctionInv = protoCond.getConjunctionInv();
+        cnd.matchForwardFlow = protoCond.getMatchForwardFlow();
+        cnd.matchReturnFlow = protoCond.getMatchReturnFlow();
+        cnd.inPortIds = new HashSet(fromProtoUUIDList(
+            protoCond.getInPortIdsList()));
+        cnd.inPortInv = protoRule.getCondition().getInPortInv();
+        cnd.outPortIds = new HashSet(fromProtoUUIDList(
+            protoCond.getOutPortIdsList()));
+        cnd.outPortInv = protoCond.getOutPortInv();
+        cnd.portGroup = UUIDUtil.fromProto(protoCond.getPortGroupId());
+        cnd.invPortGroup = protoCond.getInvPortGroup();
+        cnd.ipAddrGroupIdSrc = UUIDUtil.fromProto(protoCond.getIpAddrGroupIdSrc());
+        cnd.invIpAddrGroupIdSrc = protoCond.getInvIpAddrGroupIdSrc();
+        cnd.ipAddrGroupIdDst = UUIDUtil.fromProto(protoCond.getIpAddrGroupIdDst());
+        cnd.invIpAddrGroupIdDst = protoCond.getInvIpAddrGroupIdDst();
+        cnd.etherType = protoCond.getDlType();
+        cnd.invDlDst = protoCond.getInvDlType();
+        cnd.ethSrc = Strings.isNullOrEmpty(protoCond.getDlSrc()) ? null :
+                     MAC.fromString(protoCond.getDlSrc());
+        cnd.invDlSrc = protoCond.getInvDlSrc();
+        cnd.ethDst = Strings.isNullOrEmpty(protoCond.getDlDst()) ? null :
+                     MAC.fromString(protoCond.getDlDst());
+        cnd.invDlDst = protoCond.getInvDlDst();
+        cnd.nwTos = (byte) protoCond.getNwTos();
+        cnd.nwTosInv = protoCond.getNwTosInv();
+        cnd.nwProto = (byte) protoCond.getNwProto();
+        cnd.nwProtoInv = protoCond.getNwProtoInv();
+        cnd.nwSrcIp = Strings.isNullOrEmpty(protoCond.getNwSrcIp().getAddress())
+                      ? null : IPSubnetUtil.fromProto(protoCond.getNwSrcIp());
+        cnd.nwDstIp = Strings.isNullOrEmpty(protoCond.getNwDstIp().getAddress())
+                      ? null : IPSubnetUtil.fromProto(protoCond.getNwDstIp());
+        cnd.tpSrc = new Range(protoCond.getTpSrc().getStart(),
+                              protoCond.getTpSrc().getEnd());
+        cnd.tpDst = new Range(protoCond.getTpDst().getStart(),
+                              protoCond.getTpDst().getEnd());
+        cnd.nwSrcInv = protoCond.getNwSrcInv();
+        cnd.nwDstInv = protoCond.getNwDstInv();
+        cnd.tpSrcInv = protoCond.getTpSrcInv();
+        cnd.tpDstInv = protoCond.getTpDstInv();
+        cnd.fragmentPolicy = FragmentPolicy.valueOf(protoCond.getFragmentPolicy()
+                                                        .name());
     }
 
     public boolean containsInPort(UUID portId) {
