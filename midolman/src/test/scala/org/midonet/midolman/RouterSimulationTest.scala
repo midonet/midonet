@@ -329,6 +329,29 @@ class RouterSimulationTest extends MidolmanSpec {
         simRes should be (Drop)
     }
 
+    scenario("Ping with forward match rule") {
+        val chain = newOutboundChainOnRouter("egress chain", router)
+        val forwardCond = new Condition()
+        forwardCond.matchForwardFlow = true
+        newLiteralRuleOnChain(chain, 1, forwardCond, RuleResult.Action.ACCEPT)
+
+        val fromMac = MAC.fromString("01:02:03:04:05:06")
+        val fromIp = IPv4Addr.fromString("10.0.50.25")
+
+        feedArpTable(simRouter, IPv4Addr.fromString(uplinkGatewayAddr), fromMac)
+
+        val pkt = { eth src fromMac dst uplinkMacAddr } <<
+                  { ip4 src fromIp dst port1.getPortAddr } <<
+                  { icmp.echo request }
+
+        val (simRes, _) = simulate(packetContextFor(pkt, uplinkPort.getId, generatedPackets))
+        simRes should be (NoOp)
+
+        matchIcmp(uplinkPort, uplinkMacAddr, fromMac,
+                  IPv4Addr.fromString(port1.getPortAddr), fromIp,
+                  ICMP.TYPE_ECHO_REPLY, ICMP.CODE_NONE)
+    }
+
     private def matchIcmp(egressPort: RouterPort, fromMac: MAC, toMac: MAC,
                           fromIp: IPv4Addr, toIp: IPv4Addr, `type`: Byte,
                           code: Byte): Unit = {
