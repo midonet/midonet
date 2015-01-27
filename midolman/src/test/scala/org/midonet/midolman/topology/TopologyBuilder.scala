@@ -18,12 +18,16 @@ package org.midonet.midolman.topology
 import java.util.UUID
 
 import scala.collection.mutable
+import scala.collection.JavaConversions._
 import scala.util.Random
 
 import org.midonet.cluster.data.ZoomConvert
+import org.midonet.cluster.models.Commons
+import org.midonet.cluster.models.Commons.{IPAddress, IPVersion}
 import org.midonet.cluster.models.Topology.Host.PortToInterface
+import org.midonet.cluster.models.Topology.Rule.NatTarget
 import org.midonet.cluster.models.Topology.TunnelZone.HostToIp
-import org.midonet.cluster.models.Topology.{Host, Port, TunnelZone}
+import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.util.IPAddressUtil._
 import org.midonet.cluster.util.IPSubnetUtil._
 import org.midonet.cluster.util.MapConverter
@@ -150,11 +154,52 @@ trait TopologyBuilder {
         val builder = Host.newBuilder
             .setId(id.asProto)
         val converter = getConverter(classOf[PortInterfaceConverter])
-        val portToInterfaceList = converter.asInstanceOf[MapConverter[UUID, String, PortToInterface]]
+        val portToInterfaceList = converter.asInstanceOf[MapConverter[UUID, String,PortToInterface]]
             .toProto(portInterfaceMapping, classOf[PortToInterface])
         builder.addAllPortInterfaceMapping(portToInterfaceList)
 
         tunnelZoneIds foreach { tunnelId => builder.addTunnelZoneIds(tunnelId.asProto) }
+        builder
+    }
+
+    protected def createRuleBuilder(id: Commons.UUID, action: Rule.Action,
+                                    chainId: Commons.UUID)
+    : Rule.Builder = {
+        val builder = Rule.newBuilder
+            .setId(id)
+            .setChainId(chainId)
+            .setAction(action)
+        builder
+    }
+
+    protected def createChainBuilder(id: Commons.UUID, name: String,
+                                     ruleIds: List[Commons.UUID])
+    : Chain.Builder = {
+
+        val builder = Chain.newBuilder
+            .setId(id)
+            .setName(name)
+            .addAllRuleIds(ruleIds)
+        builder
+    }
+
+    protected def createIPSubnetBuilder(version: IPVersion, prefix: String,
+                                        prefixLength: Int): Commons.IPSubnet.Builder = {
+        val builder = Commons.IPSubnet.newBuilder
+            .setVersion(version)
+            .setAddress(prefix)
+            .setPrefixLength(prefixLength)
+        builder
+    }
+
+    protected def createNatTargetBuilder(startAddr: IPAddress, endAddr: IPAddress,
+                                         portStart: Int, portEnd: Int)
+    :NatTarget.Builder = {
+        val builder = NatTarget.newBuilder
+            .setNwStart(startAddr)
+            .setNwEnd(endAddr)
+            .setTpStart(portStart)
+            .setTpEnd(portEnd)
         builder
     }
 

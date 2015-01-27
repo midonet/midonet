@@ -18,6 +18,8 @@ package org.midonet.midolman.rules;
 
 import java.util.UUID;
 
+import org.midonet.cluster.models.Topology;
+import org.midonet.cluster.util.UUIDUtil;
 import org.midonet.midolman.rules.RuleResult.Action;
 import org.midonet.midolman.simulation.PacketContext;
 
@@ -33,8 +35,17 @@ public class ReverseNatRule extends NatRule {
     }
 
     public ReverseNatRule(Condition condition, Action action, UUID chainId,
-                          int position, boolean dnat) {
-        super(condition, action, chainId, position, dnat);
+                          boolean dnat) {
+        super(condition, action, chainId, dnat);
+    }
+
+    public ReverseNatRule(Topology.Rule protoRule) {
+        this(new Condition(protoRule), Action.valueOf(protoRule.getAction().name()),
+             UUIDUtil.fromProto(protoRule.getChainId()), protoRule.getDnat());
+    }
+
+    protected static boolean isReverseNatRule(Topology.Rule protoRule) {
+        return protoRule.hasNwDstIp() && protoRule.getInPortIdsCount() > 0;
     }
 
     @Override
