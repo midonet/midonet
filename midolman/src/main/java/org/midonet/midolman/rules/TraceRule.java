@@ -21,6 +21,8 @@ import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.midonet.cluster.models.Topology;
+import org.midonet.cluster.util.UUIDUtil;
 import org.midonet.midolman.TraceRequiredException;
 import org.midonet.midolman.rules.RuleResult.Action;
 import org.midonet.midolman.simulation.PacketContext;
@@ -40,9 +42,16 @@ public class TraceRule extends Rule {
         super();
     }
 
-    public TraceRule(Condition condition, UUID chainId,
-                     int position) {
-        super(condition, Action.CONTINUE, chainId, position);
+    public TraceRule(Condition condition, UUID chainId) {
+        super(condition, Action.CONTINUE, chainId);
+    }
+
+    public TraceRule(Topology.Rule rule) {
+        this(new Condition(rule), UUIDUtil.fromProto(rule.getChainId()));
+    }
+
+    public static boolean isTraceRule(Topology.Rule rule) {
+        return rule.getAction() == Topology.Rule.Action.CONTINUE;
     }
 
     @Override

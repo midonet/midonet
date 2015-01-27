@@ -50,9 +50,6 @@ class HostMapperTest extends MidolmanSpec
     protected override def beforeTest() = {
         vt = injector.getInstance(classOf[VirtualTopology])
         store = injector.getInstance(classOf[Storage])
-        List(classOf[Host], classOf[TunnelZone]).foreach(clazz =>
-            store.registerClass(clazz)
-        )
         dataClient = clusterDataClient
     }
 

@@ -37,7 +37,7 @@ class ForwardNatRuleTest extends Suite with Matchers {
             val targets = new JSet[NatTarget]()
             targets.add(tgt)
             new ForwardNatRule(new Condition(), RuleResult.Action.ACCEPT,
-                               UUID.randomUUID(), 0, true, targets)
+                               UUID.randomUUID(), true, targets)
         }
 
         new NatTarget(a1, a1, 0, 0).isFloatingIp should be (true)
