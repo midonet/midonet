@@ -137,9 +137,9 @@
 
   <!-- Used to uniquely identify an API process for cluster services -->
   <context-param>
-    <!-- must be explicitly set, default goes to tomcat7 -->
+    <!-- In dev mode, just create one in /tmp -->
     <param-name>midobrain-properties_file</param-name>
-    <param-value>/var/lib/tomcat6/webapps/host_uuid.properties</param-value>
+    <param-value>/tmp/host_uuid.properties</param-value>
   </context-param>
 
   <!-- VXLAN gateway configuration -->

@@ -153,9 +153,9 @@
 
   <!-- Used to uniquely identify an API process for cluster services -->
   <context-param>
+    <!-- In dev mode, just create one in /tmp -->
     <param-name>midobrain-properties_file</param-name>
-    <!-- default for ubuntu systems with tomcat7 -->
-    <param-value>/var/lib/tomcat7/webapps/host_uuid.properties</param-value>
+    <param-value>/tmp/host_uuid.properties</param-value>
   </context-param>
 
   <!-- VXLAN gateway configuration -->
