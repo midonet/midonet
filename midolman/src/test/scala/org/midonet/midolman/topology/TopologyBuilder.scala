@@ -18,12 +18,14 @@ package org.midonet.midolman.topology
 import java.util.UUID
 
 import scala.collection.mutable
+import scala.collection.JavaConversions._
 import scala.util.Random
 
 import org.midonet.cluster.data.ZoomConvert
+import org.midonet.cluster.models.Commons
 import org.midonet.cluster.models.Topology.Host.PortToInterface
 import org.midonet.cluster.models.Topology.TunnelZone.HostToIp
-import org.midonet.cluster.models.Topology.{Host, Port, TunnelZone}
+import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.util.IPAddressUtil._
 import org.midonet.cluster.util.IPSubnetUtil._
 import org.midonet.cluster.util.MapConverter
@@ -155,6 +157,26 @@ trait TopologyBuilder {
         builder.addAllPortInterfaceMapping(portToInterfaceList)
 
         tunnelZoneIds foreach { tunnelId => builder.addTunnelZoneIds(tunnelId.asProto) }
+        builder
+    }
+
+    protected def createRuleBuilder(id: Commons.UUID, action: Rule.Action,
+                                    chainId: UUID)
+    : Rule.Builder = {
+        val builder = Rule.newBuilder
+            .setId(id)
+            .setChainId(chainId.asProto)
+            .setAction(action)
+        builder
+    }
+
+    protected def createChainBuilder(id: Commons.UUID, name: String, ruleIds: List[Commons.UUID])
+    : Chain.Builder = {
+
+        val builder = Chain.newBuilder
+            .setId(id)
+            .setName(name)
+            .addAllRuleIds(ruleIds)
         builder
     }
 

@@ -42,7 +42,7 @@ public class TraceRule extends Rule {
 
     public TraceRule(Condition condition, UUID chainId,
                      int position) {
-        super(condition, Action.CONTINUE, chainId, position);
+        super(condition, Action.CONTINUE, chainId);
     }
 
     @Override

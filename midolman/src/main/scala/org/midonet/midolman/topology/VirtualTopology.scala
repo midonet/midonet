@@ -28,6 +28,7 @@ import rx.Observable
 import org.midonet.cluster.DataClient
 import org.midonet.cluster.data.storage.Storage
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
+import org.midonet.midolman.simulation.Chain
 import org.midonet.midolman.{FlowController, NotYetException}
 import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.midolman.services.MidolmanActorsService
@@ -172,7 +173,8 @@ class VirtualTopology @Inject() (val store: Storage, dataClient: DataClient,
         classTag[BridgePort] -> ((id: UUID) => new PortMapper(id, this)),
         classTag[VxLanPort] -> ((id: UUID) => new PortMapper(id, this)),
         classTag[TunnelZone] -> ((id: UUID) => new TunnelZoneMapper(id, this)),
-        classTag[Host] -> ((id: UUID) => new HostMapper(id, this, dataClient))
+        classTag[Host] -> ((id: UUID) => new HostMapper(id, this, dataClient)),
+        classTag[Chain] -> ((id: UUID) => new ChainMapper(id, this))
     )
 
     register(this)

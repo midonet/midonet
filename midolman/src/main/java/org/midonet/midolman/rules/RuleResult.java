@@ -19,6 +19,8 @@ package org.midonet.midolman.rules;
 import java.util.Objects;
 import java.util.UUID;
 
+import org.midonet.cluster.models.Topology;
+
 public class RuleResult {
 
     public enum Action {
