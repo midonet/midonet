@@ -21,6 +21,8 @@ import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.midonet.cluster.models.Topology;
+import org.midonet.cluster.util.UUIDUtil;
 import org.midonet.midolman.rules.RuleResult.Action;
 import org.midonet.midolman.simulation.PacketContext;
 
@@ -42,13 +44,18 @@ public class LiteralRule extends Rule {
         super();
     }
 
-    public LiteralRule(Condition condition, Action action, UUID chainId,
-            int position) {
-        super(condition, action, chainId, position);
+    public LiteralRule(Condition condition, Action action, UUID chainId) {
+        super(condition, action, chainId);
         if (action != Action.ACCEPT && action != Action.DROP
                 && action != Action.REJECT && action != Action.RETURN)
             throw new IllegalArgumentException("A literal rule's action "
                     + "must be one of: ACCEPT, DROP, REJECT or RETURN.");
+    }
+
+    public LiteralRule(Topology.Rule protoRule) {
+        this(new Condition(protoRule),
+              Action.valueOf(protoRule.getAction().name()),
+              UUIDUtil.fromProto(protoRule.getChainId()));
     }
 
     @Override
