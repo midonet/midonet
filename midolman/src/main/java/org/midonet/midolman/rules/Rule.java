@@ -49,11 +49,10 @@ public abstract class Rule {
     private Map<String, String> properties = new HashMap<String, String>();
 
     public Rule(Condition condition, Action action) {
-        this(condition, action, null, -1);
+        this(condition, action, null);
     }
 
-    public Rule(Condition condition, Action action, UUID chainId,
-                int position) {
+    public Rule(Condition condition, Action action, UUID chainId) {
         this.condition = condition;
         this.action = action;
         this.chainId = chainId;

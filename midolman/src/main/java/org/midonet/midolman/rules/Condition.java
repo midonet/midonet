@@ -46,13 +46,13 @@ public class Condition extends BaseConfig {
     public UUID ipAddrGroupIdDst;
     public boolean invIpAddrGroupIdDst;
     public Integer etherType; // Ethernet frame type.
-    public boolean invDlType;
+    public boolean invEthType;
     public MAC ethSrc; // Source MAC address.
     public long ethSrcMask = NO_MASK; // Top 16 bits ignored.
-    public boolean invDlSrc;
+    public boolean invEthSrc;
     public MAC ethDst; // Destination MAC address.
-    public long dlDstMask = NO_MASK; // Top 16 bits ignored.
-    public boolean invDlDst;
+    public long ethDstMask = NO_MASK; // Top 16 bits ignored.
+    public boolean invEthDst;
     public Byte nwTos;
     public boolean nwTosInv;
     public Byte nwProto;
@@ -193,12 +193,13 @@ public class Condition extends BaseConfig {
             return conjunctionInv;
         if (!matchPort(this.outPortIds, outPortId, this.outPortInv))
             return conjunctionInv;
-        if (!matchField(etherType, Unsigned.unsign(pktMatch.getEtherType()), invDlType))
+        if (!matchField(etherType, Unsigned.unsign(pktMatch.getEtherType()),
+                        invEthType))
             return conjunctionInv;
-        if (!matchMAC(ethSrc, pktMatch.getEthSrc(), ethSrcMask, invDlSrc))
+        if (!matchMAC(ethSrc, pktMatch.getEthSrc(), ethSrcMask, invEthSrc))
             return conjunctionInv;
         if (!matchMAC(ethDst, pktMatch.getEthDst(),
-                      dlDstMask, invDlDst))
+                      ethDstMask, invEthDst))
             return conjunctionInv;
         if (!matchField(nwTos, pktMatch.getNetworkTOS(), nwTosInv))
             return conjunctionInv;
@@ -331,21 +332,21 @@ public class Condition extends BaseConfig {
         }
         if (null != etherType) {
             sb.append("etherType=").append(etherType.intValue()).append(", ");
-            if(invDlType)
-                sb.append("invDlType").append(invDlType).append(", ");
+            if(invEthType)
+                sb.append("invEthType").append(invEthType).append(", ");
         }
         if (null != ethSrc) {
             sb.append("ethSrc=").append(ethSrc).append(", ");
             if (ethSrcMask != NO_MASK)
                 sb.append("ethSrcMask=").append(MAC.maskToString(ethSrcMask))
                         .append(", ");
-            if(invDlSrc)
-                sb.append("invDlSrc").append(invDlSrc).append(", ");
+            if(invEthSrc)
+                sb.append("invEthSrc").append(invEthSrc).append(", ");
         }
         if (null != ethDst) {
             sb.append("ethDst=").append(ethDst).append(", ");
-            if(invDlDst)
-                sb.append("invDlDst").append(invDlDst).append(", ");
+            if(invEthDst)
+                sb.append("invDlDst").append(invEthDst).append(", ");
         }
         if (null != nwTos) {
             sb.append("nwTos=").append(nwTos).append(", ");
@@ -401,9 +402,9 @@ public class Condition extends BaseConfig {
                 invIpAddrGroupIdDst == c.invIpAddrGroupIdDst &&
                 invIpAddrGroupIdSrc == c.invIpAddrGroupIdSrc &&
                 traversedDeviceInv == c.traversedDeviceInv &&
-                invDlType == c.invDlType &&
-                invDlSrc == c.invDlSrc && invDlDst == c.invDlDst &&
-                ethSrcMask == c.ethSrcMask && dlDstMask == c.dlDstMask &&
+                invEthType == c.invEthType &&
+                invEthSrc == c.invEthSrc && invEthDst == c.invEthDst &&
+                ethSrcMask == c.ethSrcMask && ethDstMask == c.ethDstMask &&
                 nwTosInv == c.nwTosInv && nwProtoInv == c.nwProtoInv &&
                 nwSrcInv == c.nwSrcInv && nwDstInv == c.nwDstInv &&
                 tpSrcInv == c.tpSrcInv && tpDstInv == c.tpDstInv &&
@@ -430,7 +431,7 @@ public class Condition extends BaseConfig {
                 conjunctionInv, matchForwardFlow, matchReturnFlow,
                 inPortInv, outPortInv, invPortGroup,
                 invIpAddrGroupIdDst, invIpAddrGroupIdSrc,
-                invDlType, invDlSrc, invDlDst, ethSrcMask, dlDstMask,
+                invEthType, invEthSrc, invEthDst, ethSrcMask, ethDstMask,
                 nwTosInv, nwProtoInv, nwSrcInv, nwDstInv, tpSrcInv, tpDstInv,
                 inPortIds, outPortIds, portGroup,
                 ipAddrGroupIdDst, ipAddrGroupIdSrc, etherType, ethSrc, ethDst,

@@ -16,29 +16,28 @@
 
 package org.midonet.brain.services.c3po.translators
 
-import java.io.StringReader
-
 import scala.collection.JavaConverters._
 import scala.concurrent.Promise
 
+import com.google.protobuf.Descriptors.EnumValueDescriptor
 import com.google.protobuf.Message
-
 import org.junit.runner.RunWith
 import org.mockito.Mockito.{mock, when}
-import org.scalatest.{BeforeAndAfter, FlatSpec, Matchers}
-import org.scalatest.matchers.{MatchResult, Matcher}
 import org.scalatest.junit.JUnitRunner
+import org.scalatest.matchers.{MatchResult, Matcher}
+import org.scalatest.{BeforeAndAfter, FlatSpec, Matchers}
 
-import org.midonet.brain.services.c3po.{midonet, neutron}
 import org.midonet.brain.services.c3po.C3POStorageManager.{OpType, Operation}
+import org.midonet.brain.services.c3po.{midonet, neutron}
 import org.midonet.cluster.data.storage.ReadOnlyStorage
-import org.midonet.cluster.models.Commons.{IPAddress, IPSubnet, UUID}
+import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.ModelsUtil._
 import org.midonet.cluster.models.Neutron.{NeutronPort, NeutronSubnet}
+import org.midonet.cluster.models.Topology.Rule.FragmentPolicy
+import org.midonet.cluster.models.Topology.Rule._
 import org.midonet.cluster.models.Topology.{Chain, IpAddrGroup, Network, Port, Router, Rule}
+import org.midonet.cluster.util.UUIDUtil.{asRichProtoUuid, randomUuidProto}
 import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil, UUIDUtil}
-import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
-import org.midonet.cluster.util.UUIDUtil.randomUuidProto
 import org.midonet.packets.{ARP, IPv4, IPv6}
 
 trait OpMatchers {
@@ -60,7 +59,7 @@ trait OpMatchers {
                 // Use the ID field only when the expectation specifies it.
                 actualFields = actualFields.filterKeys(_.getName != "id")
             }
-            expectedFields.sameElements(actualFields)
+            expectedFields == actualFields
         }
 
         private def matchesOp(expected: Operation[M], actual: Operation[M]) = {
@@ -342,68 +341,104 @@ class VifPortCreateTranslationTest extends VifPortTranslationTest {
             """)
 
         val revFlowRuleOutbound = mRuleFromTxt(s"""
+            type: NAT_TYPE
             action: ACCEPT
-            chain_id { $outboundChainId }
             match_return_flow: true
+            chain_id { $outboundChainId }
             """)
         val revFlowRuleInbound = mRuleFromTxt(s"""
+            type: NAT_TYPE
             action: ACCEPT
-            chain_id { $inboundChainId }
             match_return_flow: true
+            chain_id { $inboundChainId }
             """)
+
         val ipSpoofProtectIpv4 = mRuleFromTxt(s"""
-            action: DROP
+            type: LITERAL_TYPE
             chain_id { $inboundChainId }
-            dl_type: ${IPv4.ETHERTYPE}
             nw_src_ip: { $ipv4Subnet1 }
+            dl_type: ${IPv4.ETHERTYPE}
             nw_src_inv: true
             fragment_policy: ANY
+            action: DROP
             """)
+
         val ipSpoofProtectIpv6 = mRuleFromTxt(s"""
+            type: LITERAL_TYPE
             action: DROP
             chain_id { $inboundChainId }
-            dl_type: ${IPv6.ETHERTYPE}
             nw_src_ip: { $ipv6Subnet1 }
+            dl_type: ${IPv6.ETHERTYPE}
             nw_src_inv: true
             fragment_policy: ANY
             """)
+
         val macSpoofProtect = mRuleFromTxt(s"""
+            type: LITERAL_TYPE
             action: DROP
             chain_id { $inboundChainId }
             dl_src: '$mac'
             inv_dl_src: true
             fragment_policy: ANY
             """)
+
+        val jumpData1 = JumpRuleData.newBuilder
+            .setJumpTo(ipAddrGroup1InChainId)
+            .build()
+
         val jumpRuleIn1 = mRuleFromTxt(s"""
+            type: JUMP_TYPE
             action: JUMP
             chain_id { $inboundChainId }
-            jump_to { $ipAddrGroup1InChainId }
+            jump_rule_data { $jumpData1 }
             """)
+
+        val jumpData2 = JumpRuleData.newBuilder
+            .setJumpTo(ipAddrGroup2InChainId)
+            .build()
+
         val jumpRuleIn2 = mRuleFromTxt(s"""
+            type: JUMP_TYPE
             action: JUMP
             chain_id { $inboundChainId }
-            jump_to { $ipAddrGroup2InChainId }
+            jump_rule_data { $jumpData2 }
             """)
+
+        val jumpData3 = JumpRuleData.newBuilder
+            .setJumpTo(ipAddrGroup1OutChainId)
+            .build()
+
         val jumpRuleOut1 = mRuleFromTxt(s"""
+            type: JUMP_TYPE
             action: JUMP
             chain_id { $outboundChainId }
-            jump_to { $ipAddrGroup1OutChainId }
+            jump_rule_data { $jumpData3 }
             """)
+
+        val jumpData4 = JumpRuleData.newBuilder
+            .setJumpTo(ipAddrGroup2OutChainId)
+            .build()
+
         val jumpRuleOut2 = mRuleFromTxt(s"""
+            type: JUMP_TYPE
             action: JUMP
             chain_id { $outboundChainId }
-            jump_to { $ipAddrGroup2OutChainId }
+            jump_rule_data { $jumpData4 }
             """)
+
         val dropNonArpIn = mRuleFromTxt(s"""
-            action: DROP
+            type: LITERAL_TYPE
             chain_id { $inboundChainId }
+            action: DROP
             dl_type: ${ARP.ETHERTYPE}
             inv_dl_type: true
             fragment_policy: ANY
             """)
+
         val dropNonArpOut = mRuleFromTxt(s"""
-            action: DROP
+            type: LITERAL_TYPE
             chain_id { $outboundChainId }
+            action: DROP
             dl_type: ${ARP.ETHERTYPE}
             inv_dl_type: true
             fragment_policy: ANY
@@ -576,16 +611,20 @@ class VifPortUpdateDeleteTranslationTest extends VifPortTranslationTest {
                       .asInstanceOf[List[Operation[Message]]]
 
         val revFlowRuleOutbound = mRuleFromTxt(s"""
+            type: NAT_TYPE
             action: ACCEPT
-            chain_id { $outboundChainId }
             match_return_flow: true
+            chain_id { $outboundChainId }
             """)
         val revFlowRuleInbound = mRuleFromTxt(s"""
+            type: NAT_TYPE
             action: ACCEPT
-            chain_id { $inboundChainId }
             match_return_flow: true
+            chain_id { $inboundChainId }
             """)
+
         val ipSpoofProtectIpv4 = mRuleFromTxt(s"""
+            type: LITERAL_TYPE
             action: DROP
             chain_id { $inboundChainId }
             dl_type: ${IPv4.ETHERTYPE}
@@ -593,42 +632,68 @@ class VifPortUpdateDeleteTranslationTest extends VifPortTranslationTest {
             nw_src_inv: true
             fragment_policy: ANY
             """)
+
         val macSpoofProtect = mRuleFromTxt(s"""
             action: DROP
+            type: LITERAL_TYPE
             chain_id { $inboundChainId }
             dl_src: '$mac'
             inv_dl_src: true
             fragment_policy: ANY
             """)
+
+        val jumpData1 = JumpRuleData.newBuilder
+            .setJumpTo(ipAddrGroup1InChainId)
+            .build()
         val jumpRuleIn1 = mRuleFromTxt(s"""
-            action: JUMP
             chain_id { $inboundChainId }
-            jump_to { $ipAddrGroup1InChainId }
+            type: JUMP_TYPE
+            action: JUMP
+            jump_rule_data { $jumpData1 }
             """)
+
+        val jumpData2 = JumpRuleData.newBuilder
+            .setJumpTo(ipAddrGroup2InChainId)
+            .build()
         val jumpRuleIn2 = mRuleFromTxt(s"""
-            action: JUMP
             chain_id { $inboundChainId }
-            jump_to { $ipAddrGroup2InChainId }
+            type: JUMP_TYPE
+            action: JUMP
+            jump_rule_data { $jumpData2 }
             """)
+
+        val jumpData3 = JumpRuleData.newBuilder
+            .setJumpTo(ipAddrGroup1OutChainId)
+            .build()
         val jumpRuleOut1 = mRuleFromTxt(s"""
-            action: JUMP
             chain_id { $outboundChainId }
-            jump_to { $ipAddrGroup1OutChainId }
+            type: JUMP_TYPE
+            action: JUMP
+            jump_rule_data { $jumpData3 }
             """)
+
+        val jumpData4 = JumpRuleData.newBuilder
+            .setJumpTo(ipAddrGroup2OutChainId)
+            .build()
         val jumpRuleOut2 = mRuleFromTxt(s"""
-            action: JUMP
             chain_id { $outboundChainId }
-            jump_to { $ipAddrGroup2OutChainId }
+            type: JUMP_TYPE
+            action: JUMP
+            jump_rule_data { $jumpData4 }
             """)
+
         val dropNonArpIn = mRuleFromTxt(s"""
             action: DROP
+            type: LITERAL_TYPE
             chain_id { $inboundChainId }
             dl_type: ${ARP.ETHERTYPE}
             inv_dl_type: true
             fragment_policy: ANY
             """)
+
         val dropNonArpOut = mRuleFromTxt(s"""
             action: DROP
+            type: LITERAL_TYPE
             chain_id { $outboundChainId }
             dl_type: ${ARP.ETHERTYPE}
             inv_dl_type: true
