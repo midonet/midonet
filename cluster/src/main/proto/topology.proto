@@ -205,41 +205,52 @@ message Rule {
     }
     optional Action action = 2;
     optional UUID chain_id = 3;
+    optional UUID jump_to = 4;
+    optional string jump_chain_name = 5;
+    optional bool dnat = 6;
+
+    message NatTarget {
+        optional IPAddress nw_start = 1;
+        optional IPAddress nw_end = 2;
+        optional int32 tp_start = 3;
+        optional int32 tp_end = 4;
+    }
+    repeated NatTarget nat_targets = 7;
 
     // Rule conditions.
-    optional bool conjunction_inv = 4;
-    optional bool match_forward_flow = 5;
-    optional bool match_return_flow = 6;
-    repeated UUID in_port_ids = 7;
-    optional bool in_port_inv = 8;
-    repeated UUID out_port_ids = 9;
-    optional bool out_port_inv = 10;
-    optional UUID port_group_id = 11;
-    optional bool inv_port_group = 12;
-    optional UUID ip_addr_group_id_src = 13;
-    optional bool inv_ip_addr_group_id_src = 14;
-    optional UUID ip_addr_group_id_dst = 15;
-    optional bool inv_ip_addr_group_id_dst = 16;
-    optional int32 dl_type = 17;
-    optional bool inv_dl_type = 18;
-    optional string dl_src = 19;
-    optional int64 dl_src_mask = 20 [default = -1];  // Top 16 bits ignored.
-    optional bool inv_dl_src = 21;
-    optional string dl_dst = 22;
-    optional int64 dl_dst_mask =  23 [default = -1];  // Top 16 bits ignored.
-    optional bool inv_dl_dst = 24;
-    optional int32 nw_tos = 25;
-    optional bool nw_tos_inv = 26;
-    optional int32 nw_proto = 27;
-    optional bool nw_proto_inv = 28;
-    optional IPSubnet nw_src_ip = 29;
-    optional IPSubnet nw_dst_ip = 30;
-    optional Int32Range tp_src = 31;
-    optional Int32Range tp_dst = 32;
-    optional bool nw_src_inv = 33;
-    optional bool nw_dst_inv = 34;
-    optional bool tp_src_inv = 35;
-    optional bool tp_dst_inv = 36;
+    optional bool conjunction_inv = 8;
+    optional bool match_forward_flow = 9;
+    optional bool match_return_flow = 10;
+    repeated UUID in_port_ids = 11;
+    optional bool in_port_inv = 12;
+    repeated UUID out_port_ids = 13;
+    optional bool out_port_inv = 14;
+    optional UUID port_group_id = 15;
+    optional bool inv_port_group = 16;
+    optional UUID ip_addr_group_id_src = 17;
+    optional bool inv_ip_addr_group_id_src = 18;
+    optional UUID ip_addr_group_id_dst = 19;
+    optional bool inv_ip_addr_group_id_dst = 20;
+    optional int32 dl_type = 21;
+    optional bool inv_dl_type = 22;
+    optional string dl_src = 23;
+    optional int64 dl_src_mask = 24 [default = -1];  // Top 16 bits ignored.
+    optional bool inv_dl_src = 25;
+    optional string dl_dst = 26;
+    optional int64 dl_dst_mask =  27 [default = -1];  // Top 16 bits ignored.
+    optional bool inv_dl_dst = 28;
+    optional int32 nw_tos = 29;
+    optional bool nw_tos_inv = 30;
+    optional int32 nw_proto = 31;
+    optional bool nw_proto_inv = 32;
+    optional IPSubnet nw_src_ip = 33;
+    optional IPSubnet nw_dst_ip = 34;
+    optional Int32Range tp_src = 35;
+    optional Int32Range tp_dst = 36;
+    optional bool nw_src_inv = 37;
+    optional bool nw_dst_inv = 38;
+    optional bool tp_src_inv = 39;
+    optional bool tp_dst_inv = 40;
 
     enum FragmentPolicy {
         ANY = 1;
@@ -247,9 +258,7 @@ message Rule {
         HEADER = 3;
         UNFRAGMENTED = 4;
     }
-    optional FragmentPolicy fragment_policy = 37;
-
-    optional UUID jump_to = 38;
+    optional FragmentPolicy fragment_policy = 41;
 }
 
 message TunnelZone {
