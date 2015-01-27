@@ -18,9 +18,6 @@ package org.midonet.midolman.rules;
 
 import java.util.UUID;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import org.midonet.midolman.rules.RuleResult.Action;
 
 public abstract class NatRule extends Rule {

@@ -22,7 +22,7 @@ import java.util.UUID
 import org.junit.runner.RunWith
 import org.scalatest.{Matchers, Suite}
 import org.scalatest.junit.JUnitRunner
-import org.midonet.packets.{IPv6Addr, IPAddr, IPv4Addr}
+import org.midonet.packets.IPv4Addr
 
 @RunWith(classOf[JUnitRunner])
 class ForwardNatRuleTest extends Suite with Matchers {
