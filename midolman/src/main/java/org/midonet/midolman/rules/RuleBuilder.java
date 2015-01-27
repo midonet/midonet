@@ -59,7 +59,7 @@ public class RuleBuilder {
     public Rule sourceNat(NatTarget nt) {
         Set<NatTarget> targets = new HashSet<>();
         targets.add(nt);
-        r = new ForwardNatRule(c, RuleResult.Action.ACCEPT, chainId, 1, false,
+        r = new ForwardNatRule(c, RuleResult.Action.ACCEPT, chainId, false,
             targets);
         return r;
     }
@@ -73,7 +73,7 @@ public class RuleBuilder {
     public Rule destNat(NatTarget nt) {
         Set<NatTarget> targets = new HashSet<>();
         targets.add(nt);
-        r = new ForwardNatRule(c, RuleResult.Action.ACCEPT, chainId, 1, true,
+        r = new ForwardNatRule(c, RuleResult.Action.ACCEPT, chainId, true,
             targets);
         return r;
     }
@@ -141,13 +141,13 @@ public class RuleBuilder {
 
     public RuleBuilder notARP() {
         c.etherType = (int) ARP.ETHERTYPE;
-        c.invDlType = true;
+        c.invEthType = true;
         return this;
     }
 
     public RuleBuilder notFromMac(MAC macAddr) {
         c.ethSrc = macAddr;
-        c.invDlSrc = true;
+        c.invEthSrc = true;
         return this;
     }
 

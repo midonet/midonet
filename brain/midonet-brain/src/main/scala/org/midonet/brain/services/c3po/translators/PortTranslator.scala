@@ -23,13 +23,11 @@ import scala.collection.mutable.ListBuffer
 import com.google.protobuf.Message
 
 import org.midonet.brain.services.c3po.midonet.{Create, Delete, MidoOp, Update}
-import org.midonet.cluster.data.neutron.MetaDataService
 import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.models.Commons.{IPAddress, IPSubnet, IPVersion, UUID}
-import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner
 import org.midonet.cluster.models.Neutron.{NeutronPort, NeutronSubnet}
-import org.midonet.cluster.models.Topology.{Chain, Dhcp, IpAddrGroup, Network, Port, PortOrBuilder, Route, Router, Rule}
-import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
+import org.midonet.cluster.models.Topology.{Dhcp, IpAddrGroup, Network, Port, PortOrBuilder, Router}
+import org.midonet.cluster.models.Topology.{Rule, Chain}
 import org.midonet.cluster.util.{IPSubnetUtil, UUIDUtil}
 import org.midonet.packets.{ARP, IPv4, IPv6}
 import org.midonet.util.concurrent.toFutureOps

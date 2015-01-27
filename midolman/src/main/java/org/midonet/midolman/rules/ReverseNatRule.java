@@ -33,8 +33,8 @@ public class ReverseNatRule extends NatRule {
     }
 
     public ReverseNatRule(Condition condition, Action action, UUID chainId,
-                          int position, boolean dnat) {
-        super(condition, action, chainId, position, dnat);
+                          boolean dnat) {
+        super(condition, action, chainId, dnat);
     }
 
     @Override

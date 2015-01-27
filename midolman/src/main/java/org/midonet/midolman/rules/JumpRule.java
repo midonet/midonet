@@ -33,7 +33,7 @@ public class JumpRule extends Rule {
 
     public JumpRule(
             Condition condition, UUID jumpToChainID, String jumpToChainName) {
-        super(condition, null);
+        super(condition, Action.JUMP);
         this.jumpToChainID = jumpToChainID;
         this.jumpToChainName = jumpToChainName;
     }
@@ -44,8 +44,8 @@ public class JumpRule extends Rule {
     }
 
     public JumpRule(Condition condition, UUID jumpToChainID,
-                    String jumpToChainName, UUID chainId, int position) {
-        super(condition, null, chainId, position);
+                    String jumpToChainName, UUID chainId) {
+        super(condition, Action.JUMP, chainId);
         this.jumpToChainID = jumpToChainID;
         this.jumpToChainName = jumpToChainName;
     }
