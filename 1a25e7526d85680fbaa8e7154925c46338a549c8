@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_7a0f41e2",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/actors/DatapathControllerActorTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 149,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-01-27T17:48:08Z",
+      "side": 0,
+      "message": "I don\u0027t see where this is implemented in the new test. Is the test redundant or untestable with MidolmanSpec?",
+      "range": {
+        "startLine": 149,
+        "startChar": 8,
+        "endLine": 149,
+        "endChar": 16
+      },
+      "revId": "1a25e7526d85680fbaa8e7154925c46338a549c8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
