@@ -141,13 +141,13 @@ public class RuleBuilder {
 
     public RuleBuilder notARP() {
         c.etherType = (int) ARP.ETHERTYPE;
-        c.invDlType = true;
+        c.invEthType = true;
         return this;
     }
 
     public RuleBuilder notFromMac(MAC macAddr) {
         c.ethSrc = macAddr;
-        c.invDlSrc = true;
+        c.invEthSrc = true;
         return this;
     }
 
