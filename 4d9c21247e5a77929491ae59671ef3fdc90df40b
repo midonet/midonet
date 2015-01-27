@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_ecc7ff62",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/concurrent/SpscRwdRingBuffer.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 117,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-27T08:51:18Z",
+      "side": 1,
+      "message": "\"should\"?",
+      "range": {
+        "startLine": 117,
+        "startChar": 70,
+        "endLine": 117,
+        "endChar": 75
+      },
+      "revId": "4d9c21247e5a77929491ae59671ef3fdc90df40b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
