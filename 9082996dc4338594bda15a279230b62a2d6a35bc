@@ -1,0 +1,331 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_ec025fb3",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/Storage.scala",
+        "patchSetId": 27
+      },
+      "lineNbr": 321,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-27T07:34:18Z",
+      "side": 1,
+      "message": "The ownership semantics are not clear to me, especially in relation to shared ownership and overwrite\u003dtrue/false.",
+      "range": {
+        "startLine": 309,
+        "startChar": 7,
+        "endLine": 321,
+        "endChar": 69
+      },
+      "revId": "9082996dc4338594bda15a279230b62a2d6a35bc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_c902f50a",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/Storage.scala",
+        "patchSetId": 27
+      },
+      "lineNbr": 360,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-27T07:34:18Z",
+      "side": 1,
+      "message": "A duplicate \"the\".",
+      "range": {
+        "startLine": 360,
+        "startChar": 33,
+        "endLine": 360,
+        "endChar": 36
+      },
+      "revId": "9082996dc4338594bda15a279230b62a2d6a35bc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_2cff5703",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/Storage.scala",
+        "patchSetId": 27
+      },
+      "lineNbr": 362,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-27T07:34:18Z",
+      "side": 1,
+      "message": "Just a question as it\u0027s not clear from the documentation here or at the trait declaration. If this is true, it always update the owner without checking who the previous owner was?",
+      "range": {
+        "startLine": 362,
+        "startChar": 14,
+        "endLine": 362,
+        "endChar": 28
+      },
+      "revId": "9082996dc4338594bda15a279230b62a2d6a35bc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_2c2637bb",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 27
+      },
+      "lineNbr": 175,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-27T07:34:18Z",
+      "side": 1,
+      "message": "s/such there is/such that there would be/",
+      "range": {
+        "startLine": 175,
+        "startChar": 55,
+        "endLine": 175,
+        "endChar": 68
+      },
+      "revId": "9082996dc4338594bda15a279230b62a2d6a35bc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_0c2b7b83",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 27
+      },
+      "lineNbr": 181,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-27T07:34:18Z",
+      "side": 1,
+      "message": "I think these are confusing. To me, it\u0027s more like \"Some(TxDelete) + create -\u003e TxUpdate\"?",
+      "range": {
+        "startLine": 180,
+        "startChar": 11,
+        "endLine": 181,
+        "endChar": 46
+      },
+      "revId": "9082996dc4338594bda15a279230b62a2d6a35bc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_cce32332",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 27
+      },
+      "lineNbr": 365,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-27T07:34:18Z",
+      "side": 1,
+      "message": "This shorthand is cryptic to me, can be just \"snapshot\"?",
+      "range": {
+        "startLine": 365,
+        "startChar": 16,
+        "endLine": 365,
+        "endChar": 18
+      },
+      "revId": "9082996dc4338594bda15a279230b62a2d6a35bc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_4c5d73e9",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 27
+      },
+      "lineNbr": 479,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-27T07:34:18Z",
+      "side": 1,
+      "message": "Can be collapsed into a single if statement.",
+      "range": {
+        "startLine": 479,
+        "startChar": 43,
+        "endLine": 479,
+        "endChar": 56
+      },
+      "revId": "9082996dc4338594bda15a279230b62a2d6a35bc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_6c582ffb",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 27
+      },
+      "lineNbr": 479,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-27T07:34:18Z",
+      "side": 1,
+      "message": "Can \"thisOwners.nonEmpty\" ever be false?",
+      "range": {
+        "startLine": 479,
+        "startChar": 20,
+        "endLine": 479,
+        "endChar": 39
+      },
+      "revId": "9082996dc4338594bda15a279230b62a2d6a35bc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_ac718779",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 27
+      },
+      "lineNbr": 515,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-27T07:34:18Z",
+      "side": 1,
+      "message": "Move this to below \"else\".",
+      "revId": "9082996dc4338594bda15a279230b62a2d6a35bc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_8c6e4b95",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 27
+      },
+      "lineNbr": 526,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-27T07:34:18Z",
+      "side": 1,
+      "message": "\"- otherwise, add a TxUpdate\"?",
+      "range": {
+        "startLine": 526,
+        "startChar": 23,
+        "endLine": 526,
+        "endChar": 39
+      },
+      "revId": "9082996dc4338594bda15a279230b62a2d6a35bc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_ec6b7f83",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 27
+      },
+      "lineNbr": 568,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-27T07:34:18Z",
+      "side": 1,
+      "message": "Please bring this below \"val owners\".",
+      "revId": "9082996dc4338594bda15a279230b62a2d6a35bc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_ec541fcc",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 27
+      },
+      "lineNbr": 679,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-27T07:34:18Z",
+      "side": 1,
+      "message": "Perhaps it\u0027s more intuitive if it returns boolean.",
+      "range": {
+        "startLine": 679,
+        "startChar": 55,
+        "endLine": 679,
+        "endChar": 59
+      },
+      "revId": "9082996dc4338594bda15a279230b62a2d6a35bc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_4c461325",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 27
+      },
+      "lineNbr": 681,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-27T07:34:18Z",
+      "side": 1,
+      "message": "This condition seems redundant.",
+      "range": {
+        "startLine": 681,
+        "startChar": 16,
+        "endLine": 681,
+        "endChar": 31
+      },
+      "revId": "9082996dc4338594bda15a279230b62a2d6a35bc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_ac4a2725",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 27
+      },
+      "lineNbr": 686,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-27T07:34:18Z",
+      "side": 1,
+      "message": "This, too.",
+      "range": {
+        "startLine": 686,
+        "startChar": 47,
+        "endLine": 686,
+        "endChar": 62
+      },
+      "revId": "9082996dc4338594bda15a279230b62a2d6a35bc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_2c5e37ea",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 27
+      },
+      "lineNbr": 691,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-27T07:34:18Z",
+      "side": 1,
+      "message": "To me, it\u0027s not clear if it should be illegal. With shared ownership, updating with the existing owner should be allowed?",
+      "revId": "9082996dc4338594bda15a279230b62a2d6a35bc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
