@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_8cf48b88",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/Storage.scala",
+        "patchSetId": 27
+      },
+      "lineNbr": 321,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-27T10:32:13Z",
+      "side": 1,
+      "message": "So to clarify:\n- Shared ownership allows an object to have zero or more owners at a time, this is needed for Ports, where server agents can become owners of a port, indicating that port is in use, but can also be backwards compatible with zoom methods that don\u0027t support ownership\n\n- On the other hand, overwrite is intended to throw a red flag when acquiring an ownership (with an id) that already exists. For example taking an ownership of a Host by an agent instance would use overwrite false, because we shouldn\u0027t start a new agent instance for a host if one already exists (this will be used with exclusive ownership). However, taking ownership of a port, can use overwrite true (with shared ownership in this case), because - assuming we cannot have multiple instances of the same agent per host - we are allowed to overwrite the ownership node in zk. The VXGW can also use ownership true (with exclusive ownership), to take ownership of VTEPs, because a different mechanism is in place to ensure that we have only one VXGW instance per ownership id at a time.\n\nShould we clarify these points in the comments?",
+      "parentUuid": "7a1969be_ec025fb3",
+      "range": {
+        "startLine": 309,
+        "startChar": 7,
+        "endLine": 321,
+        "endChar": 69
+      },
+      "revId": "9082996dc4338594bda15a279230b62a2d6a35bc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_c902f50a",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/Storage.scala",
         "patchSetId": 27
@@ -36,6 +60,30 @@
       "writtenOn": "2015-01-27T07:34:18Z",
       "side": 1,
       "message": "A duplicate \"the\".",
+      "range": {
+        "startLine": 360,
+        "startChar": 33,
+        "endLine": 360,
+        "endChar": 36
+      },
+      "revId": "9082996dc4338594bda15a279230b62a2d6a35bc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_ecf1bf96",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/Storage.scala",
+        "patchSetId": 27
+      },
+      "lineNbr": 360,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-27T10:32:13Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_c902f50a",
       "range": {
         "startLine": 360,
         "startChar": 33,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_2c12b7b4",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/Storage.scala",
+        "patchSetId": 27
+      },
+      "lineNbr": 362,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-27T10:32:13Z",
+      "side": 1,
+      "message": "No. It allows updating the ownership node only if the conditions for the update are met:\n\nthe update validation allows the update \u0026\u0026 (the object uses shared ownership || (the object uses exclusive ownership \u0026\u0026 (owner already owns object || object does not have owner))",
+      "parentUuid": "7a1969be_2cff5703",
+      "range": {
+        "startLine": 362,
+        "startChar": 14,
+        "endLine": 362,
+        "endChar": 28
+      },
+      "revId": "9082996dc4338594bda15a279230b62a2d6a35bc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_2c2637bb",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
         "patchSetId": 27
@@ -82,6 +154,30 @@
       "writtenOn": "2015-01-27T07:34:18Z",
       "side": 1,
       "message": "s/such there is/such that there would be/",
+      "range": {
+        "startLine": 175,
+        "startChar": 55,
+        "endLine": 175,
+        "endChar": 68
+      },
+      "revId": "9082996dc4338594bda15a279230b62a2d6a35bc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_cc1cc3c4",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 27
+      },
+      "lineNbr": 175,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-27T10:32:13Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_2c2637bb",
       "range": {
         "startLine": 175,
         "startChar": 55,
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_0c7edbe4",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 27
+      },
+      "lineNbr": 181,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-27T10:32:13Z",
+      "side": 1,
+      "message": "Ah, yes they are the other way around Fixed.",
+      "parentUuid": "7a1969be_0c2b7b83",
+      "range": {
+        "startLine": 180,
+        "startChar": 11,
+        "endLine": 181,
+        "endChar": 46
+      },
+      "revId": "9082996dc4338594bda15a279230b62a2d6a35bc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_cce32332",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
         "patchSetId": 27
@@ -128,6 +248,30 @@
       "writtenOn": "2015-01-27T07:34:18Z",
       "side": 1,
       "message": "This shorthand is cryptic to me, can be just \"snapshot\"?",
+      "range": {
+        "startLine": 365,
+        "startChar": 16,
+        "endLine": 365,
+        "endChar": 18
+      },
+      "revId": "9082996dc4338594bda15a279230b62a2d6a35bc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_4c88d3e7",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 27
+      },
+      "lineNbr": 365,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-27T10:32:13Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_cce32332",
       "range": {
         "startLine": 365,
         "startChar": 16,
@@ -186,6 +330,54 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_ac6ce737",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 27
+      },
+      "lineNbr": 479,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-27T10:32:13Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_4c5d73e9",
+      "range": {
+        "startLine": 479,
+        "startChar": 43,
+        "endLine": 479,
+        "endChar": 56
+      },
+      "revId": "9082996dc4338594bda15a279230b62a2d6a35bc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_ec76df05",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 27
+      },
+      "lineNbr": 479,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-27T10:32:13Z",
+      "side": 1,
+      "message": "Yes, owners are ephemeral nodes, which can be deleted if a client closes its session.",
+      "parentUuid": "7a1969be_6c582ffb",
+      "range": {
+        "startLine": 479,
+        "startChar": 20,
+        "endLine": 479,
+        "endChar": 39
+      },
+      "revId": "9082996dc4338594bda15a279230b62a2d6a35bc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_ac718779",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
         "patchSetId": 27
@@ -197,6 +389,24 @@
       "writtenOn": "2015-01-27T07:34:18Z",
       "side": 1,
       "message": "Move this to below \"else\".",
+      "revId": "9082996dc4338594bda15a279230b62a2d6a35bc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_cc732314",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 27
+      },
+      "lineNbr": 515,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-27T10:32:13Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_ac718779",
       "revId": "9082996dc4338594bda15a279230b62a2d6a35bc",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -226,6 +436,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_2c60f734",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 27
+      },
+      "lineNbr": 526,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-27T10:32:13Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_8c6e4b95",
+      "range": {
+        "startLine": 526,
+        "startChar": 23,
+        "endLine": 526,
+        "endChar": 39
+      },
+      "revId": "9082996dc4338594bda15a279230b62a2d6a35bc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_ec6b7f83",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
         "patchSetId": 27
@@ -243,6 +477,24 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_6c5aef84",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 27
+      },
+      "lineNbr": 568,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-27T10:32:13Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_ec6b7f83",
+      "revId": "9082996dc4338594bda15a279230b62a2d6a35bc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_ec541fcc",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
         "patchSetId": 27
@@ -254,6 +506,30 @@
       "writtenOn": "2015-01-27T07:34:18Z",
       "side": 1,
       "message": "Perhaps it\u0027s more intuitive if it returns boolean.",
+      "range": {
+        "startLine": 679,
+        "startChar": 55,
+        "endLine": 679,
+        "endChar": 59
+      },
+      "revId": "9082996dc4338594bda15a279230b62a2d6a35bc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_ac53476b",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 27
+      },
+      "lineNbr": 679,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-27T10:32:13Z",
+      "side": 1,
+      "message": "This methods responds to a previous comment by Brandon to consolidate common validation code from previous CRUD methods. If we return a boolean or an error code, that I have to throw the exceptions again for each CRUD method. Maybe we should rename it to validateOwnerOrThrow?",
+      "parentUuid": "7a1969be_ec541fcc",
       "range": {
         "startLine": 679,
         "startChar": 55,
@@ -289,6 +565,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_acda27e7",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 27
+      },
+      "lineNbr": 681,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-27T10:32:13Z",
+      "side": 1,
+      "message": "The intent here was to allow an update of an object that lost its owner.",
+      "parentUuid": "7a1969be_4c461325",
+      "range": {
+        "startLine": 681,
+        "startChar": 16,
+        "endLine": 681,
+        "endChar": 31
+      },
+      "revId": "9082996dc4338594bda15a279230b62a2d6a35bc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_ac4a2725",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
         "patchSetId": 27
@@ -312,6 +612,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_8cd76bbf",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 27
+      },
+      "lineNbr": 686,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-27T10:32:13Z",
+      "side": 1,
+      "message": "Same as above.",
+      "parentUuid": "7a1969be_ac4a2725",
+      "range": {
+        "startLine": 686,
+        "startChar": 47,
+        "endLine": 686,
+        "endChar": 62
+      },
+      "revId": "9082996dc4338594bda15a279230b62a2d6a35bc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_2c5e37ea",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
         "patchSetId": 27
@@ -323,6 +647,24 @@
       "writtenOn": "2015-01-27T07:34:18Z",
       "side": 1,
       "message": "To me, it\u0027s not clear if it should be illegal. With shared ownership, updating with the existing owner should be allowed?",
+      "revId": "9082996dc4338594bda15a279230b62a2d6a35bc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_2cee378c",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 27
+      },
+      "lineNbr": 691,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-27T10:32:13Z",
+      "side": 1,
+      "message": "This was to make update behavior the same across exclusive and shared ownership. With exclusive ownership an update of the same owner is allowed if overwrite is true, forbidden otherwise. With shared ownership we can allow the update always, but then overwrite would be meaningless, which I though would be hard to document and understand. That\u0027s why this condition make the same behavior common for the two ownership types:\n- if overwrite is true, update of an existing owner is allowed\n- otherwise, it is forbidden",
+      "parentUuid": "7a1969be_2c5e37ea",
       "revId": "9082996dc4338594bda15a279230b62a2d6a35bc",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
