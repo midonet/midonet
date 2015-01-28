@@ -1,0 +1,504 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_2c9bd7ca",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-01-28T04:18:58Z",
+      "side": 1,
+      "message": "There are a few unused imports.",
+      "revId": "c8d3637f7574c1fa0cff9c943e2f637d11ad6cda",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_0cd53b43",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-01-28T04:18:58Z",
+      "side": 1,
+      "message": "For nontrivial functions, explicitly declaring the return type makes things clearer. Many (most?) of the functions in this class don\u0027t explicitly declare their return types.",
+      "range": {
+        "startLine": 58,
+        "startChar": 45,
+        "endLine": 58,
+        "endChar": 50
+      },
+      "revId": "c8d3637f7574c1fa0cff9c943e2f637d11ad6cda",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_8cc00b7e",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-01-28T04:18:58Z",
+      "side": 1,
+      "message": "This is the only part of this function that isn\u0027t shared with deleteDhcpHost. I suggest factoring the rest out into a separate function that gets the DhcpBuilder for a particular subnet or throws an exception if it doesn\u0027t exist.",
+      "range": {
+        "startLine": 62,
+        "startChar": 0,
+        "endLine": 64,
+        "endChar": 56
+      },
+      "revId": "c8d3637f7574c1fa0cff9c943e2f637d11ad6cda",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_0c3c1b93",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-01-28T04:18:58Z",
+      "side": 1,
+      "message": "semicolons",
+      "range": {
+        "startLine": 93,
+        "startChar": 0,
+        "endLine": 97,
+        "endChar": 62
+      },
+      "revId": "c8d3637f7574c1fa0cff9c943e2f637d11ad6cda",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_ccba030a",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-01-28T04:18:58Z",
+      "side": 1,
+      "message": "foreach would be more appropriate here.",
+      "range": {
+        "startLine": 103,
+        "startChar": 16,
+        "endLine": 103,
+        "endChar": 19
+      },
+      "revId": "c8d3637f7574c1fa0cff9c943e2f637d11ad6cda",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_2c3757b2",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 117,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-01-28T04:18:58Z",
+      "side": 1,
+      "message": "Is this necessary? Can\u0027t it just be unspecified?",
+      "range": {
+        "startLine": 117,
+        "startChar": 25,
+        "endLine": 117,
+        "endChar": 48
+      },
+      "revId": "c8d3637f7574c1fa0cff9c943e2f637d11ad6cda",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_8c476b1d",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 130,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-01-28T04:18:58Z",
+      "side": 1,
+      "message": "Can change to this:\n\n    def toRuleIdList(ops: Seq[Operation[Rule]]) \u003d\n        ops.map {\n            case Create(r: Rule) \u003d\u003e r.getId\n            case Update(r: Rule) \u003d\u003e r.getId\n            case Delete(_, id) \u003d\u003e id\n        }",
+      "range": {
+        "startLine": 126,
+        "startChar": 0,
+        "endLine": 130,
+        "endChar": 10
+      },
+      "revId": "c8d3637f7574c1fa0cff9c943e2f637d11ad6cda",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_0c637bb2",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 140,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-01-28T04:18:58Z",
+      "side": 1,
+      "message": "Might simplify the code just to start with:\n\n  if (isRouterGatewayPort(nPort)) return List()\n\nThen midoPortBldr can be a val, and you won\u0027t need to check for null.",
+      "range": {
+        "startLine": 140,
+        "startChar": 8,
+        "endLine": 140,
+        "endChar": 41
+      },
+      "revId": "c8d3637f7574c1fa0cff9c943e2f637d11ad6cda",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_cc5163da",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 141,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-01-28T04:18:58Z",
+      "side": 1,
+      "message": "Not sure if this needs to be done, because I have to do the same thing from the router side. Maybe it always gets set the same way? Or maybe not, but we should double-check.",
+      "range": {
+        "startLine": 141,
+        "startChar": 12,
+        "endLine": 141,
+        "endChar": 72
+      },
+      "revId": "c8d3637f7574c1fa0cff9c943e2f637d11ad6cda",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_8cf5abcd",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 207,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-01-28T04:18:58Z",
+      "side": 1,
+      "message": "updatedIpAddrGrps is the same length but clearer.",
+      "range": {
+        "startLine": 207,
+        "startChar": 27,
+        "endLine": 207,
+        "endChar": 45
+      },
+      "revId": "c8d3637f7574c1fa0cff9c943e2f637d11ad6cda",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_2c2c774a",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 239,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-01-28T04:18:58Z",
+      "side": 1,
+      "message": "If you declare deleteDhcpHost to have a Unit return type, then you can just pass deleteDhcpHost directly here.",
+      "range": {
+        "startLine": 235,
+        "startChar": 31,
+        "endLine": 239,
+        "endChar": 77
+      },
+      "revId": "c8d3637f7574c1fa0cff9c943e2f637d11ad6cda",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_0c31bba2",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 250,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-01-28T04:18:58Z",
+      "side": 1,
+      "message": "Same with addDhcpHost here.",
+      "range": {
+        "startLine": 246,
+        "startChar": 31,
+        "endLine": 250,
+        "endChar": 77
+      },
+      "revId": "c8d3637f7574c1fa0cff9c943e2f637d11ad6cda",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_4c2bb330",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 279,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-01-28T04:18:58Z",
+      "side": 1,
+      "message": "mutable.Map has a getOrElseUpdate method that would be good here:\n\n    val network \u003d networkCache.getOrElseUpdate(\n        subnet.getNetworkId,\n        storage.get(classOf[Network],\n                    subnet.getNetworkId).await().toBuilder)",
+      "range": {
+        "startLine": 272,
+        "startChar": 0,
+        "endLine": 279,
+        "endChar": 22
+      },
+      "revId": "c8d3637f7574c1fa0cff9c943e2f637d11ad6cda",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_cc1683f1",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 300,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-01-28T04:18:58Z",
+      "side": 1,
+      "message": "I think this would look better indented to the same level as the if.",
+      "range": {
+        "startLine": 300,
+        "startChar": 12,
+        "endLine": 300,
+        "endChar": 31
+      },
+      "revId": "c8d3637f7574c1fa0cff9c943e2f637d11ad6cda",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_ccc0432d",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 301,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-01-28T04:18:58Z",
+      "side": 1,
+      "message": "You have these unnecessary parentheses around all the MidoOp instantiations. IDEA complains about them, so could you remove them, please?",
+      "range": {
+        "startLine": 301,
+        "startChar": 32,
+        "endLine": 301,
+        "endChar": 33
+      },
+      "revId": "c8d3637f7574c1fa0cff9c943e2f637d11ad6cda",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_2cdd9715",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 301,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-01-28T04:18:58Z",
+      "side": 1,
+      "message": "Reminder to open a Jira issue about this probably being broken.",
+      "range": {
+        "startLine": 301,
+        "startChar": 40,
+        "endLine": 301,
+        "endChar": 55
+      },
+      "revId": "c8d3637f7574c1fa0cff9c943e2f637d11ad6cda",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_552b3630",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 319,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-01-28T04:18:58Z",
+      "side": 1,
+      "message": "I don\u0027t know why, but I found this loop very difficult to understand. Maybe some more commenting or more descriptive variable names would help.",
+      "range": {
+        "startLine": 319,
+        "startChar": 8,
+        "endLine": 319,
+        "endChar": 59
+      },
+      "revId": "c8d3637f7574c1fa0cff9c943e2f637d11ad6cda",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_acd067f8",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 320,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-01-28T04:18:58Z",
+      "side": 1,
+      "message": "This is easy to misread as ipAddr6. Maybe ipAddrGroup or iag?",
+      "range": {
+        "startLine": 320,
+        "startChar": 16,
+        "endLine": 320,
+        "endChar": 23
+      },
+      "revId": "c8d3637f7574c1fa0cff9c943e2f637d11ad6cda",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_ccee83b4",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 337,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-01-28T04:18:58Z",
+      "side": 1,
+      "message": ".indexOf(portId)",
+      "range": {
+        "startLine": 337,
+        "startChar": 51,
+        "endLine": 337,
+        "endChar": 75
+      },
+      "revId": "c8d3637f7574c1fa0cff9c943e2f637d11ad6cda",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_7526326a",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 341,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-01-28T04:18:58Z",
+      "side": 1,
+      "message": "added -\u003d ipPorts.getIpAddress",
+      "range": {
+        "startLine": 341,
+        "startChar": 20,
+        "endLine": 341,
+        "endChar": 65
+      },
+      "revId": "c8d3637f7574c1fa0cff9c943e2f637d11ad6cda",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_b51f0a09",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 351,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-01-28T04:18:58Z",
+      "side": 1,
+      "message": "Maybe change this to \"Drop non-ARP traffic that wasn\u0027t accepted by earlier rules.\"",
+      "range": {
+        "startLine": 351,
+        "startChar": 11,
+        "endLine": 351,
+        "endChar": 31
+      },
+      "revId": "c8d3637f7574c1fa0cff9c943e2f637d11ad6cda",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_35d31a3a",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 368,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-01-28T04:18:58Z",
+      "side": 1,
+      "message": "So you\u0027re deleting all the old rules and recreating them? Is that necessary?",
+      "range": {
+        "startLine": 366,
+        "startChar": 0,
+        "endLine": 368,
+        "endChar": 69
+      },
+      "revId": "c8d3637f7574c1fa0cff9c943e2f637d11ad6cda",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
