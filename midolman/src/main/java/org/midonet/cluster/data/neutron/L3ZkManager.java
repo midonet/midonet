@@ -30,6 +30,7 @@ import org.midonet.midolman.state.PortDirectory.RouterPortConfig;
 import org.midonet.midolman.state.zkManagers.*;
 import org.midonet.midolman.state.zkManagers.ChainZkManager.ChainConfig;
 import org.midonet.midolman.state.zkManagers.RouterZkManager.RouterConfig;
+import org.midonet.packets.IPv4;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IPv4Subnet;
 import org.slf4j.Logger;
@@ -249,14 +250,15 @@ public class L3ZkManager extends BaseZkManager {
         if (dPort != null && dPort.hasIp()) {
 
             prepareAddMetadataServiceRoute(ops, rInt.id, rpId,
-                    dPort.firstIpv4Addr(), rpConfig);
+                    dPort.firstIpv4Addr(), rpConfig, subnet);
         }
     }
 
     private void prepareAddMetadataServiceRoute(List<Op> ops, UUID routerId,
                                                 UUID routerPortId,
                                                 IPv4Addr nextHopAddr,
-                                                RouterPortConfig rpCfg)
+                                                RouterPortConfig rpCfg,
+                                                Subnet subnet)
             throws StateAccessException, SerializationException {
 
         // Add a route for the metadata server.
@@ -264,7 +266,7 @@ public class L3ZkManager extends BaseZkManager {
         // Metadata server in the router to forward the packet to the bridge
         // that will send them to the Metadata Proxy.
         routeZkManager.preparePersistPortRouteCreate(ops, UUID.randomUUID(),
-            new IPv4Subnet(0, 0), MetaDataService.IPv4_SUBNET, routerPortId,
+            IPv4Subnet.fromCidr(subnet.cidr), MetaDataService.IPv4_SUBNET, routerPortId,
             nextHopAddr, routerId, rpCfg);
     }
 
@@ -296,7 +298,7 @@ public class L3ZkManager extends BaseZkManager {
             // created on this subnet.
             if (rpCfg != null) {
                 prepareAddMetadataServiceRoute(ops, rpCfg.device_id, rpCfg.id,
-                    dhcpPort.firstIpv4Addr(), rpCfg);
+                    dhcpPort.firstIpv4Addr(), rpCfg, subnet);
             }
         }
     }
