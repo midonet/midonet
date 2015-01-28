@@ -499,6 +499,29 @@
       "revId": "c8d3637f7574c1fa0cff9c943e2f637d11ad6cda",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_95500e60",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/services/c3po/translators/PortTranslatorTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 151,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-01-28T07:08:53Z",
+      "side": 1,
+      "message": "def findChainOp(ops: List[Operation[Message]],\n                    op: OpType.OpType, chainId: UUID): Chain \u003d {\n        ops.collectFirst {\n            case midonet.Create(c: Chain)\n                    if c.getId \u003d\u003d chainId \u0026\u0026 op \u003d\u003d OpType.Create \u003d\u003e c\n            case midonet.Update(c: Chain)\n                    if c.getId \u003d\u003d chainId \u0026\u0026 op \u003d\u003d OpType.Update \u003d\u003e c\n        }.orNull\n    }\n\nThe version I showed you before doesn\u0027t work due to type issues. CollectFirst() applies a partial function to a sequence and returns the result of applying the function to the first element in its domain. There\u0027s also collect(), which applies the partial function to all elements in its domain and returns a the results in a sequence.",
+      "range": {
+        "startLine": 137,
+        "startChar": 0,
+        "endLine": 151,
+        "endChar": 5
+      },
+      "revId": "c8d3637f7574c1fa0cff9c943e2f637d11ad6cda",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
