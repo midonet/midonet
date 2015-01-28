@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_60494e8b",
+        "filename": "netlink/src/main/scala/org.midonet.netlink/NetlinkRequestBroker.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 219,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-01-28T17:04:56Z",
+      "side": 1,
+      "message": "if (seq \u003d\u003d 0 || seq \u003d\u003d -1) seq \u003d 1; ??",
+      "revId": "5a424fe3fe34e66f53f45be8c31dedfff8326241",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
