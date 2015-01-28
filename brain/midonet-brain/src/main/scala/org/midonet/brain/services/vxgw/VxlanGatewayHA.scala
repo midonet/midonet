@@ -24,13 +24,16 @@ import java.util.{Random, UUID}
 import scala.collection.JavaConversions._
 
 import com.google.inject.Inject
+import org.apache.curator.framework.CuratorFramework
+import org.apache.curator.framework.recipes.leader.{LeaderLatchListener, LeaderLatch}
 import org.slf4j.LoggerFactory
-import rx.Observer
+import rx.{Subscription, Observer}
 import rx.schedulers.Schedulers
 
 import org.midonet.brain.ClusterNode
 import org.midonet.brain.southbound.vtep.VtepDataClientFactory
 import org.midonet.cluster.EntityIdSetEvent.Type
+import org.midonet.cluster.EntityIdSetEvent.Type._
 import org.midonet.cluster.{DataClient, EntityIdSetEvent, EntityIdSetMonitor}
 import org.midonet.midolman.state.{StateAccessException, ZookeeperConnectionWatcher}
 import org.midonet.util.functors._
@@ -38,27 +41,40 @@ import org.midonet.util.functors._
 /** An implementation of the VxLAN Gateway Service that supports high
   * availability on the hardware VTEPs. The service allows making bindings
   * from ports/vlan pairs in different hardware VTEPs forming a single Logical
-  * Switch, and synces Mac-Port pairs accross both MidoNet and all the VTEPs
-  * that participate in the Logical Switch. */
+  * Switch, and synces Mac-Port pairs across both MidoNet and all the VTEPs that
+  * participate in the Logical Switch.
+  *
+  * Instances of the service coordinate in an active-passive configuration using
+  * Zookeeper. Only one node will be elected as leader and perform all VxLAN
+  * Gateway management. When a node loses leadership (voluntarily, or because
+  * of a failure, partition, etc.) a different instance will be elected and
+  * take over the management. */
 class VxlanGatewayHA @Inject()(nodeCtx: ClusterNode.Context,
                                dataClient: DataClient,
                                zkConnWatcher: ZookeeperConnectionWatcher,
-                               vtepDataClientFactory: VtepDataClientFactory)
+                               vtepDataClientFactory: VtepDataClientFactory,
+                               curator: CuratorFramework)
     extends VxLanGatewayServiceBase(nodeCtx) {
 
     private val log = LoggerFactory.getLogger(vxgwLog)
+    private val LEADER_LATCH_PATH = "/midonet/vxgw/leader-latch"
+
+    // Index of VxLAN Gateway managers for each neutron network with bindings
+    // to hardware VTEPs.
     private val managers = new ConcurrentHashMap[UUID, VxlanGatewayManager]()
 
+    // Executor on which we schedule tasks to release the ZK event thread.
     private val executor = newSingleThreadExecutor(new ThreadFactory {
         override def newThread(r: Runnable): Thread = {
             val t = new Thread(r)
-            t.setName("vxgw-bridge-creation-monitor")
+            t.setName("vxgw-gateway-initializer")
             t
         }
     })
 
-    // Confined to our single-threaded executor
-    private var bridgeMonitor: EntityIdSetMonitor[UUID] = _
+    // A monitor that notifies on network creation, which we will examine and
+    // decide whether we need a new VxLAN Gateway manager.
+    private var networkSub: Subscription = _
 
     // Watch hosts and tunnel zones in order to discover flooding proxies
     private val hostsState = new HostStatePublisher(dataClient, zkConnWatcher)
@@ -67,66 +83,102 @@ class VxlanGatewayHA @Inject()(nodeCtx: ClusterNode.Context,
                                                        hostsState,
                                                        new Random())
 
-    private val vtepPeerPool = new VtepPool(nodeCtx.nodeId, dataClient,
-                                            zkConnWatcher, tzState,
-                                            vtepDataClientFactory)
+    // VTEP controllers
+    private val vteps = new VtepPool(nodeCtx.nodeId, dataClient, zkConnWatcher,
+                                     tzState, vtepDataClientFactory)
 
-    override def doStart(): Unit = {
-        log.info("Starting service")
-        executor submit makeRunnable { resetMonitor() }
-        notifyStarted()
+    // Latch to coordinate active-passive with other instances
+    private val leaderLatch = new LeaderLatch(curator, LEADER_LATCH_PATH,
+                                              nodeCtx.nodeId.toString)
+
+    // Reset the monitor so we start watching creations in networks.
+    private val monitorReset: Runnable = new Runnable {
+        override def run(): Unit = {
+            log.info("Watching for new VxLAN Gateways")
+            val monitor = dataClient.bridgesGetUuidSetMonitor(zkConnWatcher)
+            networkSub = monitor.getObservable
+                                .observeOn(Schedulers.from(executor))
+                                .subscribe(bootstrapVxlanGateway)
+            monitor.notifyState()
+        }
     }
 
-    /** Resets the monitor */
-    private def resetMonitor(): Unit = {
-        log.info("Watch for changes in bridges")
-        bridgeMonitor = dataClient.bridgesGetUuidSetMonitor(zkConnWatcher)
-        bridgeMonitor.getObservable
-            .observeOn(Schedulers.from(executor))
-            .subscribe(new Observer[EntityIdSetEvent[UUID]] {
-            override def onCompleted(): Unit = {
-                log.warn("The bridges top level path was deleted!")
+    // An observer that bootstraps a new VxLAN Gateway service whenever a
+    // neutron network that has bindings to hardware VTEP(s) is created or
+    // newly bound to its first VTEP.
+    private val bootstrapVxlanGateway = new Observer[EntityIdSetEvent[UUID]] {
+        override def onCompleted(): Unit = {
+            log.warn("Unexpected: networks watcher completed, this indicates " +
+                     "that all networks were deleted!")
+        }
+        override def onError(e: Throwable): Unit = {
+            log.warn("Error on network stream, retry subscription..", e)
+            executor submit monitorReset
+        }
+        override def onNext(t: EntityIdSetEvent[UUID]): Unit = {
+            if (t.`type` == CREATE || t.`type` == STATE) {
+                checkNetwork(t.value)
             }
-            override def onError(e: Throwable): Unit = {
-                log.warn("Error on network stream; restarting monitor", e)
-                executor submit makeRunnable { resetMonitor() }
-            }
-            override def onNext(t: EntityIdSetEvent[UUID]): Unit = {
-                if (t.`type` == Type.CREATE || t.`type` == Type.STATE) {
-                    checkNetwork(t.value)
-                }
-            }
-        })
-        bridgeMonitor.notifyState()
+        }
     }
 
-    /** Use after a network has either changed or been created to start a
-      * manager for the associated VxLAN gateway if appropriate */
+    /** Verifies whether the network with the given UUID is included in a VxLAN
+      * Gateway, and in that case start a new VxlanGatewayManager to well..
+      * manage it. */
     private def checkNetwork(id: UUID): Unit = {
         try {
-            val bridge = dataClient.bridgesGet(id)
-            if (bridge.getVxLanPortIds != null ||
-                bridge.getVxLanPortIds.isEmpty) {
+            val network = dataClient.bridgesGet(id)
+            if (network.getVxLanPortIds.isEmpty) {
                 log.debug(s"Network $id is not bound to VTEPs, ignoring")
                 return
             }
         } catch {
             case e: StateAccessException =>
-                zkConnWatcher.handleError("Start VxGW network watcher",
+                zkConnWatcher.handleError("Retry VxLAN Gateway manager" +
+                                          s" bootstrap for network $id",
                                           makeRunnable { checkNetwork(id) }, e)
             case _: Throwable =>
                 log.error(s"Error starting VxGW monitor for network $id")
         }
-        val nw = new VxlanGatewayManager(id, dataClient, vtepPeerPool,
+
+        val nw = new VxlanGatewayManager(id, dataClient, vteps,
                                          tzState, zkConnWatcher,
                                          () => managers.remove(id))
         if (managers.putIfAbsent(id, nw) == null) {
-            log.debug(s"Start vxgw manager for network $id")
+            log.debug(s"Start VxLAN Gateway manager for network $id")
             nw.start()
         } else {
-            log.debug(s"Vxgw manager for network $id already exists")
+            log.debug(s"VxLAN Gateway manager for network $id already exists")
         }
 
+    }
+
+    // A callback when a change in this node's leadership status happens
+    private val latchListener = new LeaderLatchListener {
+        override def isLeader(): Unit = {
+            log.info("I am the VxLAN Gateway leader! \\o/")
+            executor submit monitorReset
+        }
+        override def notLeader(): Unit = {
+            log.info("I am no longer VxLAN Gateway leader, going passive")
+            becomePassive()
+        }
+    }
+
+    override def doStart(): Unit = {
+        log.info("Starting service")
+        leaderLatch.addListener(latchListener)
+        leaderLatch.start()
+        notifyStarted()
+    }
+
+    /** Makes the node become passive but not stop. */
+    private def becomePassive(): Unit = {
+        log.info("Node suspends VxLAN Gateway management")
+        if (networkSub != null) {
+            networkSub.unsubscribe()
+        }
+        managers.values().foreach {_.terminate() }
     }
 
     override def doStop(): Unit = {
@@ -136,7 +188,9 @@ class VxlanGatewayHA @Inject()(nodeCtx: ClusterNode.Context,
                 log.warn("Failed to stop network monitor orderly, insisting..")
                 executor.shutdownNow()
             }
-            managers.values().foreach {_.terminate() }
+            becomePassive()
+            leaderLatch.removeListener(latchListener)
+            leaderLatch.close()
             notifyStopped()
         } catch {
             case t: Throwable =>
