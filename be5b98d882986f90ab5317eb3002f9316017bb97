@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_00e7ba41",
+        "filename": "cluster/src/test/scala/org/midonet/cluster/storage/ZoomProviderTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-28T12:15:00Z",
+      "side": 1,
+      "message": "Are some missing here?",
+      "revId": "be5b98d882986f90ab5317eb3002f9316017bb97",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
