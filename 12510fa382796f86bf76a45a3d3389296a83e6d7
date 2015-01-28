@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_20875663",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/BridgeSimulationTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-01-28T12:10:29Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_20047614",
+      "revId": "12510fa382796f86bf76a45a3d3389296a83e6d7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_001dfa66",
         "filename": "midolman/src/test/scala/org/midonet/midolman/BridgeSimulationTest.scala",
         "patchSetId": 1
@@ -30,6 +48,24 @@
       "writtenOn": "2015-01-28T10:14:37Z",
       "side": 1,
       "message": "It would be nice if we could stop using Packets::Xxx in favour of the PacketBuilders. So, this would look like { eth src srcMac dst MAC.fromString(..) } \u003c\u003c { ip ... } \u003c\u003c udp { src 10 dst 11}",
+      "revId": "12510fa382796f86bf76a45a3d3389296a83e6d7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_807c4a74",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/BridgeSimulationTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 130,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-01-28T12:10:29Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_001dfa66",
       "revId": "12510fa382796f86bf76a45a3d3389296a83e6d7",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -53,6 +89,24 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_60814e4a",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/BridgeSimulationTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 132,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-01-28T12:10:29Z",
+      "side": 1,
+      "message": "Done. There was 2 tests that needed a refetch to pick up chains which had been added to the topology",
+      "parentUuid": "7a1969be_e019be7a",
+      "revId": "12510fa382796f86bf76a45a3d3389296a83e6d7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_4026d2bb",
         "filename": "midolman/src/test/scala/org/midonet/midolman/BridgeSimulationTest.scala",
         "patchSetId": 1
@@ -70,6 +124,24 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_00905a94",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/BridgeSimulationTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 321,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-01-28T12:10:29Z",
+      "side": 1,
+      "message": "\"mac migration on bridge\" depends on the packet being sent here. I could break it out to another method, but since this is already functional, i\u0027d prefer to just leave it.",
+      "parentUuid": "7a1969be_4026d2bb",
+      "revId": "12510fa382796f86bf76a45a3d3389296a83e6d7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_d502860a",
         "filename": "midolman/src/test/scala/org/midonet/midolman/BridgeSimulationTest.scala",
         "patchSetId": 1
@@ -81,6 +153,24 @@
       "writtenOn": "2015-01-28T10:14:37Z",
       "side": 1,
       "message": ": Unit \u003d seems out of place in this line :p",
+      "revId": "12510fa382796f86bf76a45a3d3389296a83e6d7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_e08c1e82",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/BridgeSimulationTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 325,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-01-28T12:10:29Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_d502860a",
       "revId": "12510fa382796f86bf76a45a3d3389296a83e6d7",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
