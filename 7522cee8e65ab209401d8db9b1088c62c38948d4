@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_5549768a",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/netty/ProtoBufWebSocketAdapter.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-28T10:20:37Z",
+      "side": 1,
+      "message": "Import order.",
+      "range": {
+        "startLine": 29,
+        "startChar": 0,
+        "endLine": 30,
+        "endChar": 41
+      },
+      "revId": "7522cee8e65ab209401d8db9b1088c62c38948d4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_600e6e36",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/netty/ProtoBufWebSocketAdapter.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-28T10:20:37Z",
+      "side": 1,
+      "message": "Not needed for accessor methods, unless they have side-effects.",
+      "range": {
+        "startLine": 77,
+        "startChar": 35,
+        "endLine": 77,
+        "endChar": 37
+      },
+      "revId": "7522cee8e65ab209401d8db9b1088c62c38948d4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_c012c257",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/netty/ProtoBufWebSocketAdapter.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 174,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-28T10:20:37Z",
+      "side": 1,
+      "message": "override",
+      "range": {
+        "startLine": 174,
+        "startChar": 4,
+        "endLine": 174,
+        "endChar": 7
+      },
+      "revId": "7522cee8e65ab209401d8db9b1088c62c38948d4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_a00fc62d",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/netty/ProtoBufWebSocketAdapter.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 213,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-28T10:20:37Z",
+      "side": 1,
+      "message": "override",
+      "range": {
+        "startLine": 213,
+        "startChar": 4,
+        "endLine": 213,
+        "endChar": 7
+      },
+      "revId": "7522cee8e65ab209401d8db9b1088c62c38948d4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
