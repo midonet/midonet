@@ -553,7 +553,7 @@ public class VtepClusterClient {
         }
 
         log.debug("First binding of network {} to VTEP {}. VxlanPort in " +
-                  "bridge has id {}, vni: {}, vtep tunnelIp {}. Delegating" +
+                  "bridge has id {}, vni: {}, vtep tunnelIp {}. Delegating " +
                   "VTEP config on the VxlanGatewayService",
                   bridge.getId(), mgmtIp, vxlanPort.getId(), vxlanPort.getVni(),
                   vxlanPort.getTunnelIp());
