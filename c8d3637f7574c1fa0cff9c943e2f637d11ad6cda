@@ -502,6 +502,52 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_95d76ebf",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/services/c3po/translators/PortTranslatorTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 63,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-01-28T07:40:57Z",
+      "side": 1,
+      "message": "Can be simplified:\n\n        private def matchesModuloId(expected: Message,\n                                    actual: Message): Boolean \u003d {\n            if (actual.getClass !\u003d expected.getClass) return false\n\n            val expectedFields \u003d expected.getAllFields.asScala\n            val actualFields \u003d // Ignore ID field on actual object.\n                actual.getAllFields.asScala.filterKeys(_.getName !\u003d \"id\")\n            expectedFields.sameElements(actualFields)\n        }",
+      "range": {
+        "startLine": 46,
+        "startChar": 0,
+        "endLine": 63,
+        "endChar": 9
+      },
+      "revId": "c8d3637f7574c1fa0cff9c943e2f637d11ad6cda",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_d5e1e69b",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/services/c3po/translators/PortTranslatorTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-01-28T07:40:57Z",
+      "side": 1,
+      "message": "Can be simplified to expected \u003d\u003d actual",
+      "range": {
+        "startLine": 75,
+        "startChar": 24,
+        "endLine": 76,
+        "endChar": 68
+      },
+      "revId": "c8d3637f7574c1fa0cff9c943e2f637d11ad6cda",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_95500e60",
         "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/services/c3po/translators/PortTranslatorTest.scala",
         "patchSetId": 3
@@ -518,6 +564,75 @@
         "startChar": 0,
         "endLine": 151,
         "endChar": 5
+      },
+      "revId": "c8d3637f7574c1fa0cff9c943e2f637d11ad6cda",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_55d696c6",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/services/c3po/translators/PortTranslatorTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 347,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-01-28T07:40:57Z",
+      "side": 1,
+      "message": "ETHERTYPE is already a Short.",
+      "range": {
+        "startLine": 347,
+        "startChar": 37,
+        "endLine": 347,
+        "endChar": 57
+      },
+      "revId": "c8d3637f7574c1fa0cff9c943e2f637d11ad6cda",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_35c79a14",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/services/c3po/translators/PortTranslatorTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 395,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-01-28T07:40:57Z",
+      "side": 1,
+      "message": "No parentheses needed for \"should not be null\"",
+      "range": {
+        "startLine": 395,
+        "startChar": 16,
+        "endLine": 395,
+        "endChar": 36
+      },
+      "revId": "c8d3637f7574c1fa0cff9c943e2f637d11ad6cda",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_75d112cd",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/services/c3po/translators/PortTranslatorTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 396,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-01-28T07:40:57Z",
+      "side": 1,
+      "message": "No parentheses needed for shouldBe.",
+      "range": {
+        "startLine": 396,
+        "startChar": 33,
+        "endLine": 396,
+        "endChar": 66
       },
       "revId": "c8d3637f7574c1fa0cff9c943e2f637d11ad6cda",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
