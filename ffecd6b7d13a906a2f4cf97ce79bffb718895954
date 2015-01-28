@@ -448,6 +448,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_004e9ac1",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/VtepController.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 135,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-28T16:21:39Z",
+      "side": 1,
+      "message": "I\u0027ve refactored this heavily, the consolidate is a precondition to the rest (we don\u0027t want to start plugging things before we\u0027re sure that the vtep is actually consistent). Let me know what you think of the new change.",
+      "parentUuid": "9a245df4_90449575",
+      "range": {
+        "startLine": 135,
+        "startChar": 8,
+        "endLine": 135,
+        "endChar": 19
+      },
+      "revId": "ffecd6b7d13a906a2f4cf97ce79bffb718895954",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a245df4_7049218b",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/VtepController.scala",
         "patchSetId": 6
@@ -459,6 +483,30 @@
       "writtenOn": "2015-01-21T15:17:53Z",
       "side": 1,
       "message": "not needed (if this is the first binding, the currentMacLocal can be ignored)",
+      "range": {
+        "startLine": 145,
+        "startChar": 8,
+        "endLine": 147,
+        "endChar": 47
+      },
+      "revId": "ffecd6b7d13a906a2f4cf97ce79bffb718895954",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_e04a5eab",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/VtepController.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 147,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-28T16:21:39Z",
+      "side": 1,
+      "message": "Not necessarily. It can be a reconnection to a VTEP after a partition, so we want to respect the entries?",
+      "parentUuid": "9a245df4_7049218b",
       "range": {
         "startLine": 145,
         "startChar": 8,
@@ -682,6 +730,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_0077ba03",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/VxlanGatewayManager.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 239,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-28T16:21:39Z",
+      "side": 1,
+      "message": "Refactored all this",
+      "parentUuid": "9a245df4_13554fc6",
+      "range": {
+        "startLine": 239,
+        "startChar": 0,
+        "endLine": 239,
+        "endChar": 21
+      },
+      "revId": "ffecd6b7d13a906a2f4cf97ce79bffb718895954",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a245df4_b347231d",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/VxlanGatewayManager.scala",
         "patchSetId": 6
@@ -705,6 +777,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_e0737e13",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/VxlanGatewayManager.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 240,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-28T16:21:39Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9a245df4_b347231d",
+      "range": {
+        "startLine": 240,
+        "startChar": 0,
+        "endLine": 240,
+        "endChar": 42
+      },
+      "revId": "ffecd6b7d13a906a2f4cf97ce79bffb718895954",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a245df4_732beb30",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/VxlanGatewayManager.scala",
         "patchSetId": 6
@@ -716,6 +812,30 @@
       "writtenOn": "2015-01-21T15:17:53Z",
       "side": 1,
       "message": "atomicReference?",
+      "range": {
+        "startLine": 241,
+        "startChar": 12,
+        "endLine": 241,
+        "endChar": 22
+      },
+      "revId": "ffecd6b7d13a906a2f4cf97ce79bffb718895954",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_40c7f212",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/VxlanGatewayManager.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 241,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-28T16:21:39Z",
+      "side": 1,
+      "message": "See note below. It\u0027s confined to the zk event thread.",
+      "parentUuid": "9a245df4_732beb30",
       "range": {
         "startLine": 241,
         "startChar": 12,
@@ -774,6 +894,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_40609235",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/VxlanGatewayManager.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 258,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-28T16:21:39Z",
+      "side": 1,
+      "message": "This is all running on the ZK event thread, so it should be safe. I could add it anyway (or mention the thread safety in a comment?)",
+      "parentUuid": "9a245df4_d31f3708",
+      "range": {
+        "startLine": 258,
+        "startChar": 12,
+        "endLine": 258,
+        "endChar": 20
+      },
+      "revId": "ffecd6b7d13a906a2f4cf97ce79bffb718895954",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a245df4_096c009c",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/VxlanGatewayManager.scala",
         "patchSetId": 6
@@ -820,6 +964,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_605f8e73",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/VxlanGatewaySummoner.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-28T16:21:39Z",
+      "side": 1,
+      "message": "Is there any point apart of the onError where we should do it?",
+      "parentUuid": "9a245df4_332b3384",
+      "range": {
+        "startLine": 64,
+        "startChar": 16,
+        "endLine": 64,
+        "endChar": 28
+      },
+      "revId": "ffecd6b7d13a906a2f4cf97ce79bffb718895954",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a245df4_f3199b7a",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/VxlanGatewaySummoner.scala",
         "patchSetId": 6
@@ -843,6 +1011,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_c053e26a",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/VxlanGatewaySummoner.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-28T16:21:39Z",
+      "side": 1,
+      "message": "It\u0027d be catched below and since it\u0027s an NPE it means the bridge doesn\u0027t exist, so there isn\u0027t much else to do",
+      "parentUuid": "9a245df4_f3199b7a",
+      "range": {
+        "startLine": 89,
+        "startChar": 16,
+        "endLine": 89,
+        "endChar": 22
+      },
+      "revId": "ffecd6b7d13a906a2f4cf97ce79bffb718895954",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a245df4_d3e61716",
         "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/services/vxgw/VxlanGatewayTest.scala",
         "patchSetId": 6
@@ -854,6 +1046,30 @@
       "writtenOn": "2015-01-21T15:17:53Z",
       "side": 1,
       "message": "extra tab",
+      "range": {
+        "startLine": 37,
+        "startChar": 0,
+        "endLine": 37,
+        "endChar": 4
+      },
+      "revId": "ffecd6b7d13a906a2f4cf97ce79bffb718895954",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_805a8a81",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/services/vxgw/VxlanGatewayTest.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-28T16:21:39Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9a245df4_d3e61716",
       "range": {
         "startLine": 37,
         "startChar": 0,
