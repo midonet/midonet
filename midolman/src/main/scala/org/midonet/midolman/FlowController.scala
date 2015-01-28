@@ -22,9 +22,6 @@ import java.util.concurrent.{TimeUnit, ConcurrentHashMap => ConcHashMap}
 import java.util.{ArrayList, Map => JMap}
 import javax.inject.Inject
 
-import org.midonet.midolman.management.Metering
-import org.midonet.midolman.monitoring.MeterRegistry
-
 import scala.annotation.tailrec
 import scala.collection.JavaConversions._
 import scala.collection.mutable.{HashMap, MultiMap}
@@ -34,73 +31,31 @@ import scala.concurrent.duration._
 
 import akka.actor._
 import akka.event.LoggingReceive
+
+import rx.Observer
+
+import org.jctools.queues.SpscArrayQueue
+
 import com.codahale.metrics.MetricRegistry.name
 import com.codahale.metrics.{Gauge, MetricRegistry}
-import org.jctools.queues.SpscArrayQueue
+
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.flows.{FlowEjector, WildcardTablesProvider}
 import org.midonet.midolman.io.DatapathConnectionPool
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.monitoring.metrics.{FlowTablesGauge, FlowTablesMeter}
+import org.midonet.midolman.management.Metering
+import org.midonet.midolman.monitoring.MeterRegistry
 import org.midonet.netlink.exceptions.NetlinkException
 import org.midonet.netlink.exceptions.NetlinkException.ErrorCode
 import org.midonet.netlink.{BytesUtil, Callback}
 import org.midonet.odp.{Datapath, Flow, FlowMatch, OvsProtocol}
 import org.midonet.sdn.flows.FlowTagger.FlowTag
 import org.midonet.sdn.flows._
-import org.midonet.util.collection.{ArrayObjectPool, ObjectPool}
+import org.midonet.util.collection.EventHistory._
+import org.midonet.util.collection.{EventHistory, ArrayObjectPool, ObjectPool}
 import org.midonet.util.concurrent.WakerUpper.Parkable
 import org.midonet.util.functors.{Callback0, Callback1}
-import rx.Observer
-
-// TODO(guillermo) - move to a scala util pkg in midonet-util
-sealed trait EventSearchResult
-case object EventSeen extends EventSearchResult
-case object EventNotSeen extends EventSearchResult
-case object EventSearchWindowMissed extends EventSearchResult
-
-class EventHistory[T](val slots: Int) {
-    @volatile private var events = Vector[HistoryEntry]()
-
-    class HistoryEntry(val event: T) {
-        val id: Long = youngest + 1
-    }
-
-    def youngest: Long = events.headOption match {
-        case Some(e) => e.id
-        case None => 0
-    }
-
-    def oldest: Long = events.lastOption match {
-        case Some(e) => e.id
-        case None => 0
-    }
-
-    def put(event: T): Long = {
-        events = new HistoryEntry(event) +: events
-        if (events.size > slots)
-            events = events dropRight 1
-        youngest
-    }
-
-    def exists(lastSeen: Long, eventSet: ROSet[T]): EventSearchResult = {
-        val frozen = events
-
-        if (frozen.isEmpty || oldest > lastSeen + 1)
-            return EventSearchWindowMissed
-
-        var i = 0
-        while (frozen.isDefinedAt(i) && frozen(i).id > lastSeen) {
-            if (eventSet.contains(frozen(i).event))
-                return EventSeen
-            i = i+1
-        }
-        EventNotSeen
-    }
-
-    def exists(lastSeen: Long, ev: T): EventSearchResult =  exists(lastSeen, ROSet(ev))
-}
-
 
 object FlowController extends Referenceable {
     override val Name = "FlowController"
@@ -109,7 +64,7 @@ object FlowController extends Referenceable {
                                dpFlow: Flow,
                                flowRemovalCallbacks: ArrayList[Callback0],
                                tags: ROSet[FlowTag],
-                               lastInvalidation: Long = -1,
+                               lastInvalidation: Long,
                                flowMatch: FlowMatch = null,
                                processed: Array[FlowMatch] = null,
                                index: Int = 0)
@@ -194,19 +149,14 @@ object FlowController extends Referenceable {
 
     private val invalidationHistory = new EventHistory[FlowTag](1024)
 
-    def isTagSetStillValid(lastSeenInvalidation: Long, tags: ROSet[FlowTag]) = {
-        if (lastSeenInvalidation >= 0) {
-            invalidationHistory.exists(lastSeenInvalidation, tags) match {
-                case EventSearchWindowMissed => tags.isEmpty
-                case EventSeen => false
-                case EventNotSeen => true
-            }
-        } else {
-            true
+    def isTagSetStillValid(lastSeenInvalidation: Long, tags: ROSet[FlowTag]) =
+        invalidationHistory.existsSince(lastSeenInvalidation, tags) match {
+            case EventSearchWindowMissed => tags.isEmpty
+            case EventSeen => false
+            case EventNotSeen => true
         }
-    }
 
-    def lastInvalidationEvent = invalidationHistory.youngest
+    def lastInvalidationEvent = invalidationHistory.latest
 
     sealed abstract class FlowOvsCommand[T](completedRequests: SpscArrayQueue[T])
                                            (implicit actorSystem: ActorSystem)

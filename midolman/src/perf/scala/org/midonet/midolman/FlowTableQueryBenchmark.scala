@@ -65,8 +65,9 @@ class FlowTableQueryBenchmark extends MidolmanBenchmark {
             FlowController ! AddWildcardFlow(
                 WildcardFlow(wcMatches(i)),
                 new Flow(flowMatch),
-                new ArrayList[Callback0](), // No callbacks
-                Set()) // No tags
+                new ArrayList[Callback0](),
+                Set(),
+                FlowController.lastInvalidationEvent)
         }
     }
 
