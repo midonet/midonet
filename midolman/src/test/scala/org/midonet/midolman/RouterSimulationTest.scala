@@ -97,8 +97,7 @@ class RouterSimulationTest extends MidolmanSpec {
         port
     }
 
-    def simRouter: SimRouter =
-        fetchTopology(router).collectFirst({ case r: SimRouter => r}).get
+    def simRouter: SimRouter = fetchDevice(router)
 
     private def addressInSegment(port: RouterPort) : IPv4Addr =
         IPv4Addr.fromString(port.getPortAddr).next
