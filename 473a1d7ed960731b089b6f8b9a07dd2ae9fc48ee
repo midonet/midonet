@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_b56c2a38",
+        "filename": "midolman/build.gradle",
+        "patchSetId": 2
+      },
+      "lineNbr": 172,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-01-28T06:52:25Z",
+      "side": 1,
+      "message": "I confirmed this overwrite one specified in pkgPrepare extracting the generated packages.",
+      "revId": "473a1d7ed960731b089b6f8b9a07dd2ae9fc48ee",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
