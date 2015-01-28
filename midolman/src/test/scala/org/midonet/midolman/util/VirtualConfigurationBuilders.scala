@@ -277,8 +277,8 @@ trait VirtualConfigurationBuilders {
         clusterDataClient().portsGet(uuid).asInstanceOf[VxLanPort]
     }
 
-    def deletePort(port: Port[_, _], host: Host){
-        clusterDataClient().hostsDelVrnPortMapping(host.getId, port.getId)
+    def deletePort(port: Port[_, _], hostId: UUID){
+        clusterDataClient().hostsDelVrnPortMapping(hostId, port.getId)
     }
 
     def newPortGroup(name: String, stateful: Boolean = false) = {

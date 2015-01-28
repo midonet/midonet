@@ -26,7 +26,7 @@ import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.data.{Router => ClusterRouter}
 import org.midonet.cluster.data.ports.RouterPort
-import org.midonet.midolman.PacketWorkflow.{NoOp, TemporaryDrop, Drop}
+import org.midonet.midolman.PacketWorkflow.{AddVirtualWildcardFlow, NoOp, TemporaryDrop, Drop}
 import org.midonet.midolman.layer3.Route._
 import org.midonet.midolman.rules.{RuleResult, NatTarget, Condition}
 import org.midonet.midolman.simulation.{Router => SimRouter, RouteBalancer}
@@ -349,6 +349,56 @@ class RouterSimulationTest extends MidolmanSpec {
         matchIcmp(uplinkPort, uplinkMacAddr, fromMac,
                   IPv4Addr.fromString(port1.getPortAddr), fromIp,
                   ICMP.TYPE_ECHO_REPLY, ICMP.CODE_NONE)
+    }
+
+    scenario("Ports can be deactivate and reactivated") {
+        clusterDataClient.routesDelete(upLinkRoute)
+
+        val fromMac = MAC.random
+        val fromIp = addressInSegment(port1)
+        val toMac = MAC.random
+        val toIp = addressInSegment(port2)
+
+        feedArpTable(simRouter, fromIp, fromMac)
+        feedArpTable(simRouter, toIp, toMac)
+
+        // Ping from -> to
+        var pkt = { eth src fromMac dst port1.getHwAddr } <<
+                  { ip4 src fromIp dst toIp } <<
+                  { icmp.echo request }
+        val (simRes1, pktCtx1) = simulate(packetContextFor(pkt, port1.getId))
+        simRes1 should be (AddVirtualWildcardFlow)
+        pktCtx1.virtualFlowActions should have size 3
+        pktCtx1.virtualFlowActions.get(2) should be (FlowActionOutputToVrnPort(port2.getId))
+
+        // Ping to -> from
+        pkt = { eth src toMac dst port2.getHwAddr } <<
+              { ip4 src toIp  dst fromIp } <<
+              { icmp.echo request }
+        val (simRes2, pktCtx2) = simulate(packetContextFor(pkt, port2.getId))
+        simRes2 should be (AddVirtualWildcardFlow)
+        pktCtx2.virtualFlowActions should have size 3
+        pktCtx2.virtualFlowActions.get(2) should be (FlowActionOutputToVrnPort(port1.getId))
+
+        // Deactivate port2
+        clusterDataClient.portsDelete(port2.getId)
+        pkt = { eth src fromMac dst port1.getHwAddr } <<
+              { ip4 src fromIp dst toIp } <<
+              { icmp.echo request }
+        val (simRes3, _) = simulate(packetContextFor(pkt, port1.getId, generatedPackets))
+        simRes3 should be (Drop)
+        matchIcmp(port1, port1.getHwAddr, fromMac, IPv4Addr(port1.getPortAddr),
+                  fromIp, ICMP.TYPE_UNREACH, ICMP.UNREACH_CODE.UNREACH_NET.toByte)
+
+        // Reactivate port2
+        val ressurected = makePort(2)
+        pkt = { eth src fromMac dst port1.getHwAddr } <<
+              { ip4 src fromIp dst toIp } <<
+              { icmp.echo request }
+        val (simRes4, pktCtx4) = simulate(packetContextFor(pkt, port1.getId))
+        simRes4 should be (AddVirtualWildcardFlow)
+        pktCtx4.virtualFlowActions should have size 3
+        pktCtx4.virtualFlowActions.get(2) should be (FlowActionOutputToVrnPort(ressurected.getId))
     }
 
     private def matchIcmp(egressPort: RouterPort, fromMac: MAC, toMac: MAC,
