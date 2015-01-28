@@ -46,6 +46,29 @@
       "revId": "722bcda2a3c1149fc8ded0bf54d33b1c24ea24fd",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_20d59643",
+        "filename": "brain/midonet-brain/src/main/java/org/midonet/brain/southbound/midonet/MidoVxLanPeer.java",
+        "patchSetId": 11
+      },
+      "lineNbr": 397,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-28T12:42:11Z",
+      "side": 1,
+      "message": "Shouldn\u0027t we check that:\n\n  bridge.getVxLanPortIds() \u003d\u003d null || bridge.getVxLanPortIds().isEmpty()\n\nat the beginning?\n\nNote: in some parts of the code Bridge.getVxLanPortIds is marked as NPE-safe, hence maybe that check is not necessary.",
+      "range": {
+        "startLine": 394,
+        "startChar": 8,
+        "endLine": 397,
+        "endChar": 53
+      },
+      "revId": "722bcda2a3c1149fc8ded0bf54d33b1c24ea24fd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
