@@ -34,6 +34,7 @@ class ZoomProvider @Inject()(val curator: CuratorFramework)
         List(classOf[C3POState],
              classOf[Chain],
              classOf[FloatingIp],
+             classOf[Host],
              classOf[IpAddrGroup],
              classOf[Network],
              classOf[NeutronHealthMonitor],
@@ -45,10 +46,15 @@ class ZoomProvider @Inject()(val curator: CuratorFramework)
              classOf[NeutronRouter],
              classOf[NeutronSubnet],
              classOf[Port],
+             classOf[PortGroup],
+             classOf[Route],
              classOf[Router],
              classOf[Rule],
+             classOf[TunnelZone],
              classOf[SecurityGroup],
-             classOf[VIP]
+             classOf[VIP],
+             classOf[Vtep],
+             classOf[VtepBinding]
         ).foreach(storage.registerClass)
         storage.declareBinding(classOf[Network], "port_ids", ERROR,
                                classOf[Port], "network_id", CLEAR)
