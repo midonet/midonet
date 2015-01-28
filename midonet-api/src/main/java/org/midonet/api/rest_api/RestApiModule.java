@@ -21,6 +21,7 @@ import com.google.inject.Provider;
 import com.google.inject.Provides;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 
+import org.apache.curator.framework.CuratorFramework;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -80,10 +81,13 @@ public class RestApiModule extends AbstractModule {
         @Inject
         VtepDataClientFactory vtepDataClientFactory;
 
+        @Inject
+        CuratorFramework curator;
+
         @Override
         public VxLanGatewayServiceBase get() {
             return new VxlanGatewayHA(nodeCtx, dataClient, zkConnWatcher,
-                                      vtepDataClientFactory);
+                                      vtepDataClientFactory, curator);
         }
     }
 
