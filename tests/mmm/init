@@ -95,13 +95,11 @@ sudo update-rc.d midolman enable
 sudo service midolman start
 
 # Install python-midonetclient from source
-MMM_PMC_SOURCE_DIR=${MMM_PMC_SOURCE_DIR:-/tmp/python-midonetclient}
+MMM_PMC_SOURCE_DIR=${MMM_PMC_SOURCE_DIR:-../../python-midonetclient}
 sudo rm -rf /usr/local/lib/python2.7/dist-packages/midonetclient* /usr/local/bin/midonet-cli
-[ -d $MMM_PMC_SOURCE_DIR ] || {
-    git clone git@github.com:midonet/python-midonetclient -b master $MMM_PMC_SOURCE_DIR
-}
+[ -d $MMM_PMC_SOURCE_DIR ] || { echo $MMM_PMC_SOURCE_DIR is invalid; exit 1 ;}
 cd $MMM_PMC_SOURCE_DIR
-sudo python setup.py install
+sudo python setup.py develop
 cd -
 
 # Install midonet-api
