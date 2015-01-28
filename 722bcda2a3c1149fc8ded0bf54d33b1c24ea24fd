@@ -22,6 +22,30 @@
       "revId": "722bcda2a3c1149fc8ded0bf54d33b1c24ea24fd",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_80a56a06",
+        "filename": "brain/midonet-brain/src/main/java/org/midonet/brain/services/vxgw/VxLanGatewayService.java",
+        "patchSetId": 11
+      },
+      "lineNbr": 444,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-28T11:30:13Z",
+      "side": 1,
+      "message": "Yes. I think it\u0027s done in a later patch where I integrate this in the minion thing.\n\nOn which btw I think we need a separate discussion. I\u0027m starting to think we should just have a totally independent package per service and run them independently.",
+      "parentUuid": "7a1969be_c0400238",
+      "range": {
+        "startLine": 444,
+        "startChar": 29,
+        "endLine": 444,
+        "endChar": 34
+      },
+      "revId": "722bcda2a3c1149fc8ded0bf54d33b1c24ea24fd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
