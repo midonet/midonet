@@ -69,6 +69,98 @@
       "revId": "722bcda2a3c1149fc8ded0bf54d33b1c24ea24fd",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_80fe0a6a",
+        "filename": "midolman/src/main/java/org/midonet/cluster/LocalDataClientImpl.java",
+        "patchSetId": 11
+      },
+      "lineNbr": 3451,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-28T15:56:21Z",
+      "side": 1,
+      "message": "NPE check for p",
+      "range": {
+        "startLine": 3451,
+        "startChar": 12,
+        "endLine": 3451,
+        "endChar": 49
+      },
+      "revId": "722bcda2a3c1149fc8ded0bf54d33b1c24ea24fd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_60030e74",
+        "filename": "midolman/src/main/java/org/midonet/cluster/LocalDataClientImpl.java",
+        "patchSetId": 11
+      },
+      "lineNbr": 3478,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-28T15:56:21Z",
+      "side": 1,
+      "message": "NPE check for p",
+      "range": {
+        "startLine": 3478,
+        "startChar": 12,
+        "endLine": 3478,
+        "endChar": 23
+      },
+      "revId": "722bcda2a3c1149fc8ded0bf54d33b1c24ea24fd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_a0f4e687",
+        "filename": "midolman/src/main/java/org/midonet/cluster/LocalDataClientImpl.java",
+        "patchSetId": 11
+      },
+      "lineNbr": 3514,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-28T15:56:21Z",
+      "side": 1,
+      "message": "NPE check for portConfig",
+      "range": {
+        "startLine": 3514,
+        "startChar": 32,
+        "endLine": 3514,
+        "endChar": 42
+      },
+      "revId": "722bcda2a3c1149fc8ded0bf54d33b1c24ea24fd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_e0eedeb3",
+        "filename": "midonet-api/src/main/java/org/midonet/api/vtep/VtepClusterClient.java",
+        "patchSetId": 11
+      },
+      "lineNbr": 393,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-28T15:56:21Z",
+      "side": 1,
+      "message": "NPE check for port",
+      "range": {
+        "startLine": 393,
+        "startChar": 23,
+        "endLine": 393,
+        "endChar": 27
+      },
+      "revId": "722bcda2a3c1149fc8ded0bf54d33b1c24ea24fd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
