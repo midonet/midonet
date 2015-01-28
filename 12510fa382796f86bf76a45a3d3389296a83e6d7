@@ -142,6 +142,24 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_405ed2ea",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/BridgeSimulationTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 321,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-01-28T12:32:11Z",
+      "side": 1,
+      "message": "oh, ok!",
+      "parentUuid": "7a1969be_00905a94",
+      "revId": "12510fa382796f86bf76a45a3d3389296a83e6d7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_d502860a",
         "filename": "midolman/src/test/scala/org/midonet/midolman/BridgeSimulationTest.scala",
         "patchSetId": 1
