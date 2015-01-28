@@ -17,6 +17,7 @@
 package org.midonet.midolman.topology.builders
 
 import java.lang.{Short => JShort}
+import java.util
 import java.util.{List => JList, Map => JMap, Set => JSet, UUID}
 
 import scala.collection.JavaConversions._
@@ -53,7 +54,7 @@ class BridgeBuilderImpl(val id: UUID, val flowController: ActorRef,
     private var oldMacToLogicalPortId: mutable.Map[MAC, UUID] = null
     private var ipToMac: mutable.Map[IPAddr, MAC] = null
     private var vlanBridgePeerPortId: Option[UUID] = None
-    private var exteriorVxlanPortIds: List[UUID] = List.empty
+    private var exteriorVxlanPortIds: util.List[UUID] = new util.ArrayList()
     private var vlanPortMap: VlanPortMap = null
     private var exteriorPorts: List[UUID] = List.empty
     private var oldExteriorPorts: List[UUID] = List.empty
@@ -95,9 +96,8 @@ class BridgeBuilderImpl(val id: UUID, val flowController: ActorRef,
         vlanBridgePeerPortId = portId
     }
 
-    def setExteriorVxlanPortIds(vxlanIds: JList[UUID]) {
-        exteriorVxlanPortIds = if (vxlanIds == null) null
-                               else asScalaBuffer(vxlanIds).toList
+    def setExteriorVxlanPortIds(vxlanIds: util.List[UUID]) {
+        exteriorVxlanPortIds = vxlanIds
     }
 
     def setVlanPortMap(map: VlanPortMap) {

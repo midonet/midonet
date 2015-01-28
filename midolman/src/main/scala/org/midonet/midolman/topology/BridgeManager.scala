@@ -16,6 +16,7 @@
 package org.midonet.midolman.topology
 
 import java.lang.{Short => JShort}
+import java.util
 import java.util.UUID
 import java.util.concurrent.TimeUnit
 
@@ -63,7 +64,7 @@ object BridgeManager {
                              macToLogicalPortId: ROMap[MAC, UUID],
                              ipToMac: ROMap[IPAddr, MAC],
                              vlanBridgePeerPortId: Option[UUID],
-                             exteriorVxlanPortIds: List[UUID],
+                             exteriorVxlanPortIds: util.List[UUID],
                              vlanPortMap: VlanPortMap,
                              exteriorPorts: List[UUID])
 
@@ -115,7 +116,7 @@ class BridgeManager(id: UUID, val clusterClient: Client,
                     val config: MidolmanConfig) extends DeviceWithChains {
     import context.system
 
-    import org.midonet.midolman.topology.BridgeManager._
+import org.midonet.midolman.topology.BridgeManager._
 
     override def logSource = s"org.midonet.devices.bridge.bridge-$id"
 
@@ -130,7 +131,7 @@ class BridgeManager(id: UUID, val clusterClient: Client,
     private var ip4MacMap: IpMacMap[IPv4Addr] = null
 
     private var vlanBridgePeerPortId: Option[UUID] = None
-    private var exteriorVxlanPortIds: List[UUID] = List.empty
+    private var exteriorVxlanPortIds: util.List[UUID] = new util.ArrayList()
 
     private val macPortExpiration: Int = config.getMacPortMappingExpireMillis
     private val learningMgr = new MacLearningManager(
