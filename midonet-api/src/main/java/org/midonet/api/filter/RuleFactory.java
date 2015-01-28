@@ -40,6 +40,9 @@ public class RuleFactory {
                 org.midonet.cluster.data.rules.JumpRule) {
             return new JumpRule(
                     (org.midonet.cluster.data.rules.JumpRule) data);
+        } else if (data instanceof org.midonet.cluster.data.rules.TraceRule) {
+            return new TraceRule(
+                    (org.midonet.cluster.data.rules.TraceRule)data);
         } else if (data instanceof ForwardNatRule) {
             ForwardNatRule typedData = (ForwardNatRule) data;
 

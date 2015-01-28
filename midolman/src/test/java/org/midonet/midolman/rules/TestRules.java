@@ -41,6 +41,7 @@ import org.junit.Test;
 import org.slf4j.helpers.NOPLogger;
 import com.typesafe.scalalogging.Logger$;
 
+import org.midonet.midolman.TraceRequiredException;
 import org.midonet.midolman.guice.serialization.SerializationModule;
 import org.midonet.midolman.rules.RuleResult.Action;
 import org.midonet.midolman.serialization.Serializer;
@@ -258,6 +259,30 @@ public class TestRules {
         pktCtx.inPortId_$eq(inPort);
         rule.process(pktCtx, res, ownerId, false);
         Assert.assertEquals(Action.RETURN, res.action);
+    }
+
+    @Test
+    public void testTraceRule() {
+        Rule rule = new TraceRule(cond);
+        // If the condition doesn't match the result is not modified.
+        RuleResult res = new RuleResult(null, null);
+        rule.process(pktCtx, res, ownerId, false);
+        Assert.assertEquals(null, res.action);
+        pktCtx.inPortId_$eq(inPort);
+        try {
+            rule.process(pktCtx, res, ownerId, false);
+            Assert.fail("Processing a trace rule without the"
+                        + " trace bit set should error");
+        } catch (Exception tre) {
+            Assert.assertEquals("Should be trace required exception",
+                                tre, TraceRequiredException.instance());
+            // correct behaviour
+        }
+
+        pktCtx.setTracingEnabled();
+        res = new RuleResult(null, null);
+        rule.process(pktCtx, res, ownerId, false);
+        Assert.assertEquals(null, res.action);
     }
 
     @Test
