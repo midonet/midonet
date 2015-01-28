@@ -34,6 +34,24 @@
       "revId": "be5b98d882986f90ab5317eb3002f9316017bb97",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_00be9aff",
+        "filename": "cluster/src/test/scala/org/midonet/cluster/storage/ZoomProviderTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-01-28T12:21:21Z",
+      "side": 1,
+      "message": "Adding them, based on the current code...",
+      "parentUuid": "7a1969be_c0c3e288",
+      "revId": "be5b98d882986f90ab5317eb3002f9316017bb97",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
