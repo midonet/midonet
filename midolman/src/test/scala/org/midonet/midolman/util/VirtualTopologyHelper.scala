@@ -31,6 +31,7 @@ import org.midonet.cluster.data._
 import org.midonet.midolman.NotYetException
 import org.midonet.midolman.PacketWorkflow.SimulationResult
 import org.midonet.midolman.simulation.Coordinator.Device
+import org.midonet.midolman.simulation.{Router => SimRouter}
 import org.midonet.midolman.simulation.{Coordinator, PacketContext, PacketEmitter}
 import org.midonet.midolman.state.ConnTrackState._
 import org.midonet.midolman.state.HappyGoLuckyLeaser
@@ -39,7 +40,7 @@ import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.topology.VirtualTopologyActor.{BridgeRequest, ChainRequest, IPAddrGroupRequest, PortRequest, RouterRequest}
 import org.midonet.odp.flows.FlowKeys
 import org.midonet.odp.{FlowMatch, Packet}
-import org.midonet.packets.Ethernet
+import org.midonet.packets.{IPv4Addr, MAC, Ethernet}
 import org.midonet.sdn.state.FlowStateTransaction
 
 trait VirtualTopologyHelper {
@@ -69,6 +70,10 @@ trait VirtualTopologyHelper {
         Await.result(Future.sequence(entities map buildRequest map
                                      { VirtualTopologyActor ? _ }),
                      timeout.duration)
+
+    def feedArpTable(router: SimRouter, ip: IPv4Addr, mac: MAC): Unit = {
+        router.arpTable.set(ip, mac)
+    }
 
     val NO_CONNTRACK = new FlowStateTransaction[ConnTrackKey, ConnTrackValue](null)
     val NO_NAT = new FlowStateTransaction[NatKey, NatBinding](null)
@@ -118,6 +123,7 @@ trait VirtualTopologyHelper {
         val r = force {
             flushTransactions(conntrackTx, natTx)
             pktCtx.clear()
+            pktCtx.wcmatch.reset(pktCtx.origMatch)
             new Coordinator(pktCtx) simulate()
         }
         commitTransactions(conntrackTx, natTx)

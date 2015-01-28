@@ -65,7 +65,7 @@ sealed class MockMidolmanActorsService extends MidolmanActorsService {
             throw new IllegalArgumentException(s"No actor named ${actor.Name}")
         }
 
-    def register(actors: Seq[(Referenceable, () => Actor)]) {
+    def register(actors: Seq[(Referenceable, () => Actor)]): Unit = {
         actors foreach { case (ref, f) =>
             props += ref.Name -> Props(injectedActor(f))
         }

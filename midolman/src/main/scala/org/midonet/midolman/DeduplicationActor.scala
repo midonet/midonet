@@ -301,7 +301,7 @@ class DeduplicationActor(
                     drop(pktCtx)
                 else
                     log.warn(s"Pending ${pktCtx.cookieStr} was scheduled for " +
-                             "cleanup  but was not idle")
+                             "cleanup but was not idle")
             }
             i += 1
         }
