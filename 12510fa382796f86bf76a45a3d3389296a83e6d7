@@ -1,0 +1,89 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_20047614",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/BridgeSimulationTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-01-28T10:14:37Z",
+      "side": 1,
+      "message": "sort and group imports for consistency (java scala akka test midonet).",
+      "revId": "12510fa382796f86bf76a45a3d3389296a83e6d7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_001dfa66",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/BridgeSimulationTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 130,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-01-28T10:14:37Z",
+      "side": 1,
+      "message": "It would be nice if we could stop using Packets::Xxx in favour of the PacketBuilders. So, this would look like { eth src srcMac dst MAC.fromString(..) } \u003c\u003c { ip ... } \u003c\u003c udp { src 10 dst 11}",
+      "revId": "12510fa382796f86bf76a45a3d3389296a83e6d7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_e019be7a",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/BridgeSimulationTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 132,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-01-28T10:14:37Z",
+      "side": 1,
+      "message": "I would put this in a def outside of the scenarios:\n\ndef simBridge \u003d fechDevice(bridge)",
+      "revId": "12510fa382796f86bf76a45a3d3389296a83e6d7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_4026d2bb",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/BridgeSimulationTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 321,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-01-28T10:14:37Z",
+      "side": 1,
+      "message": "I think this can be checked more easily:\n\nsimBridge.vlanMacTableMap(ClusterBridge.UNTAGGED_VLAN_ID).get(learnedMac) should be (expectedPort)",
+      "revId": "12510fa382796f86bf76a45a3d3389296a83e6d7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_d502860a",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/BridgeSimulationTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 325,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-01-28T10:14:37Z",
+      "side": 1,
+      "message": ": Unit \u003d seems out of place in this line :p",
+      "revId": "12510fa382796f86bf76a45a3d3389296a83e6d7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
