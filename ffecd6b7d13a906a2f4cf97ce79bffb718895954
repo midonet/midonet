@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_4f1445f5",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/BusObserver.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-28T16:12:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9a245df4_30f32975",
+      "range": {
+        "startLine": 37,
+        "startChar": 18,
+        "endLine": 37,
+        "endChar": 31
+      },
+      "revId": "ffecd6b7d13a906a2f4cf97ce79bffb718895954",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a245df4_d001ed3a",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/BusObserver.scala",
         "patchSetId": 6
@@ -36,6 +60,30 @@
       "writtenOn": "2015-01-21T15:17:53Z",
       "side": 1,
       "message": "Should be in the opposite order: first remove the existing one, and then add the replacement (due to the replicatedMap bug)",
+      "range": {
+        "startLine": 100,
+        "startChar": 12,
+        "endLine": 106,
+        "endChar": 13
+      },
+      "revId": "ffecd6b7d13a906a2f4cf97ce79bffb718895954",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_8ff59dcd",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/BusObserver.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-28T16:12:48Z",
+      "side": 1,
+      "message": "That never works!! It only works in this order :(",
+      "parentUuid": "9a245df4_d001ed3a",
       "range": {
         "startLine": 100,
         "startChar": 12,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_cfff95a9",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/BusObserver.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 126,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-28T16:12:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9a245df4_5095fde2",
+      "range": {
+        "startLine": 126,
+        "startChar": 0,
+        "endLine": 126,
+        "endChar": 69
+      },
+      "revId": "ffecd6b7d13a906a2f4cf97ce79bffb718895954",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a245df4_d088cdc8",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/MacLocation.scala",
         "patchSetId": 6
@@ -82,6 +154,30 @@
       "writtenOn": "2015-01-21T15:17:53Z",
       "side": 1,
       "message": "It would be nice to have a field (fields) indicating if this is a removal/addition/modification of a mac location (instead of relaying in arcane combinations of values)",
+      "range": {
+        "startLine": 47,
+        "startChar": 0,
+        "endLine": 47,
+        "endChar": 55
+      },
+      "revId": "ffecd6b7d13a906a2f4cf97ce79bffb718895954",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_2f2c694a",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/MacLocation.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-28T16:12:48Z",
+      "side": 1,
+      "message": "I\u0027ll be refactoring this class later to add methods with semantic value and stuff like this.",
+      "parentUuid": "9a245df4_d088cdc8",
       "range": {
         "startLine": 47,
         "startChar": 0,
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_0f31ada2",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/MacLocation.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-28T16:12:48Z",
+      "side": 1,
+      "message": "it is, but you need to override the method anyway",
+      "parentUuid": "9a245df4_c94ae826",
+      "range": {
+        "startLine": 64,
+        "startChar": 13,
+        "endLine": 64,
+        "endChar": 16
+      },
+      "revId": "ffecd6b7d13a906a2f4cf97ce79bffb718895954",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a245df4_b0ac3937",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/Vtep.scala",
         "patchSetId": 6
@@ -128,6 +248,30 @@
       "writtenOn": "2015-01-21T15:17:53Z",
       "side": 1,
       "message": "I would remove this from the interface (if it is only used as a previous step for ensureBindings). Having it inside ensureBindings may also facilitate concurrency control (if we need it some day...)",
+      "range": {
+        "startLine": 67,
+        "startChar": 5,
+        "endLine": 69,
+        "endChar": 71
+      },
+      "revId": "ffecd6b7d13a906a2f4cf97ce79bffb718895954",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_6f26616a",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/Vtep.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-28T16:12:48Z",
+      "side": 1,
+      "message": "I agree, but let me do that later because it implies passing the VNI to the bindings, and this requires some more refactor.",
+      "parentUuid": "9a245df4_b0ac3937",
       "range": {
         "startLine": 67,
         "startChar": 5,
@@ -163,6 +307,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_2fd3c939",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/VtepController.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-28T16:12:48Z",
+      "side": 1,
+      "message": "FIxing",
+      "parentUuid": "9a245df4_10aa6519",
+      "range": {
+        "startLine": 74,
+        "startChar": 12,
+        "endLine": 74,
+        "endChar": 37
+      },
+      "revId": "ffecd6b7d13a906a2f4cf97ce79bffb718895954",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a245df4_50633d1a",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/VtepController.scala",
         "patchSetId": 6
@@ -186,6 +354,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_cf1675f1",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/VtepController.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-28T16:12:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9a245df4_50633d1a",
+      "range": {
+        "startLine": 85,
+        "startChar": 51,
+        "endLine": 85,
+        "endChar": 54
+      },
+      "revId": "ffecd6b7d13a906a2f4cf97ce79bffb718895954",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a245df4_306849f5",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/VtepController.scala",
         "patchSetId": 6
@@ -197,6 +389,30 @@
       "writtenOn": "2015-01-21T15:17:53Z",
       "side": 1,
       "message": "only if it\u0027s a \u0027set\u0027 (should remove it on clear? - see previous comment)",
+      "range": {
+        "startLine": 86,
+        "startChar": 43,
+        "endLine": 86,
+        "endChar": 49
+      },
+      "revId": "ffecd6b7d13a906a2f4cf97ce79bffb718895954",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_af1fb908",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/VtepController.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-28T16:12:48Z",
+      "side": 1,
+      "message": "if I remove the null check above this works for both deletions and adds.",
+      "parentUuid": "9a245df4_306849f5",
       "range": {
         "startLine": 86,
         "startChar": 43,
@@ -278,6 +494,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_ef19b123",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/VtepController.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 161,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-28T16:12:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9a245df4_b05a794e",
+      "range": {
+        "startLine": 161,
+        "startChar": 49,
+        "endLine": 161,
+        "endChar": 65
+      },
+      "revId": "ffecd6b7d13a906a2f4cf97ce79bffb718895954",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a245df4_f002310a",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/VtepController.scala",
         "patchSetId": 6
@@ -289,6 +529,30 @@
       "writtenOn": "2015-01-21T15:17:53Z",
       "side": 1,
       "message": "Gateways",
+      "range": {
+        "startLine": 165,
+        "startChar": 22,
+        "endLine": 165,
+        "endChar": 29
+      },
+      "revId": "ffecd6b7d13a906a2f4cf97ce79bffb718895954",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_8f1c7d15",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/VtepController.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 165,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-28T16:12:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9a245df4_f002310a",
       "range": {
         "startLine": 165,
         "startChar": 22,
@@ -324,6 +588,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_0fd88d52",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/VtepController.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 173,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-28T16:12:48Z",
+      "side": 1,
+      "message": "Adding warning just to make clear that this is thead unsafe.",
+      "parentUuid": "9a245df4_d3129757",
+      "range": {
+        "startLine": 173,
+        "startChar": 0,
+        "endLine": 173,
+        "endChar": 45
+      },
+      "revId": "ffecd6b7d13a906a2f4cf97ce79bffb718895954",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a245df4_c9714879",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/VtepController.scala",
         "patchSetId": 6
@@ -335,6 +623,30 @@
       "writtenOn": "2015-01-22T09:58:00Z",
       "side": 1,
       "message": "Do we want to compare references here?",
+      "range": {
+        "startLine": 201,
+        "startChar": 41,
+        "endLine": 201,
+        "endChar": 43
+      },
+      "revId": "ffecd6b7d13a906a2f4cf97ce79bffb718895954",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_0fbfedd1",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/VtepController.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 201,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-28T16:12:48Z",
+      "side": 1,
+      "message": "Was a bug, yes.",
+      "parentUuid": "9a245df4_c9714879",
       "range": {
         "startLine": 201,
         "startChar": 41,
