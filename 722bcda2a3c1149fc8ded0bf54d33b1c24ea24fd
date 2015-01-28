@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_c0400238",
+        "filename": "brain/midonet-brain/src/main/java/org/midonet/brain/services/vxgw/VxLanGatewayService.java",
+        "patchSetId": 11
+      },
+      "lineNbr": 444,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-01-28T11:25:25Z",
+      "side": 1,
+      "message": "Not a requirement, but shouldn\u0027t it be convenient to provide a default value?",
+      "range": {
+        "startLine": 444,
+        "startChar": 29,
+        "endLine": 444,
+        "endChar": 34
+      },
+      "revId": "722bcda2a3c1149fc8ded0bf54d33b1c24ea24fd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
