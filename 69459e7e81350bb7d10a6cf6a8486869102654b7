@@ -1,0 +1,159 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_b09f1550",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/InMemoryStorage.scala",
+        "patchSetId": 28
+      },
+      "lineNbr": 315,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-29T07:24:34Z",
+      "side": 1,
+      "message": "Please fix indentation.",
+      "range": {
+        "startLine": 314,
+        "startChar": 34,
+        "endLine": 315,
+        "endChar": 66
+      },
+      "revId": "69459e7e81350bb7d10a6cf6a8486869102654b7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_900c9996",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/Storage.scala",
+        "patchSetId": 28
+      },
+      "lineNbr": 350,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-29T07:24:34Z",
+      "side": 1,
+      "message": "The semantics of \"overwrite\" here, I think, is very different from what people would imagine from the word \"overwrite\" I think it\u0027s better to document more on that together with particular use cases in mind. Also I suggest rename the param to something like \"reentrantOwnership\" or something more appropriate.",
+      "range": {
+        "startLine": 344,
+        "startChar": 14,
+        "endLine": 350,
+        "endChar": 62
+      },
+      "revId": "69459e7e81350bb7d10a6cf6a8486869102654b7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_b0c6f547",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/SubscriptionCache.scala",
+        "patchSetId": 28
+      },
+      "lineNbr": 154,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-29T07:24:34Z",
+      "side": 1,
+      "message": "I\u0027m just commenting here and not asking to do anything, but DirectorySubscriptionCache is almost identical to ClassSubscriptionCache. I wonder if consolidating the two would be too much abstraction.",
+      "revId": "69459e7e81350bb7d10a6cf6a8486869102654b7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_90fe596a",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 28
+      },
+      "lineNbr": 183,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-29T07:24:34Z",
+      "side": 1,
+      "message": "This is unfortunately not correct in some cases. Say we have a binding that binds Model-A and Model-B.\n\n\nSuppose we\n\n- delete Model-A, \n- create Model-B, and\n- create Model-A again referencing Model-B.\n\n\nWith the above rule, this results in an operation sequence like:\n\n\n(update(Model-A), create(Model-B))\n\nThis, however, will now fail because at the point of update(Model-A), Model-B doesn\u0027t exist yet.",
+      "range": {
+        "startLine": 183,
+        "startChar": 13,
+        "endLine": 183,
+        "endChar": 50
+      },
+      "revId": "69459e7e81350bb7d10a6cf6a8486869102654b7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_d0f7318b",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 28
+      },
+      "lineNbr": 194,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-29T07:24:34Z",
+      "side": 1,
+      "message": "This can also be broken with a binding that says A cannot be deleted until B is deleted. If there\u0027s a sequence like:\n\n\ncreate(Model-A), create(Model-B), delete(Model-A)\n\n\nThis should fail, but with this transformation, this actually succeeds?",
+      "range": {
+        "startLine": 194,
+        "startChar": 13,
+        "endLine": 194,
+        "endChar": 74
+      },
+      "revId": "69459e7e81350bb7d10a6cf6a8486869102654b7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_703abd37",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 28
+      },
+      "lineNbr": 691,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-29T07:24:34Z",
+      "side": 1,
+      "message": "I think it\u0027s more readable if we rewrite like the following:\n\nif (classInfo(clazz).ownershipType.isExclusive \u0026\u0026 owners.nonEmpty) {\n    if (owner.isEmpty) {\n        throw new UnsupportedOperationException(\n                    \"Update not supported because owner is not specified\")\n    } else if (!owners.contains(owner.get)) {\n        throw new OwnershipConflictException(\n                    clazz.getSimpleName, id.toString, owners, owner.get,\n                    \"Caller does not own object\")\n    }\n}\n\n\"owner.isDefined\" is redundant here, I think.",
+      "range": {
+        "startLine": 685,
+        "startChar": 12,
+        "endLine": 691,
+        "endChar": 65
+      },
+      "revId": "69459e7e81350bb7d10a6cf6a8486869102654b7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_d0a29199",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/util/ObservablePathDirectoryCache.scala",
+        "patchSetId": 28
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-29T07:24:34Z",
+      "side": 1,
+      "message": "The patch outlived 2014 ;)",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "69459e7e81350bb7d10a6cf6a8486869102654b7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
