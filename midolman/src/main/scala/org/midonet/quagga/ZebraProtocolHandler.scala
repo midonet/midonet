@@ -22,7 +22,7 @@ import org.midonet.quagga.ZebraProtocol.RIBType
 trait ZebraProtocolHandler {
 
     def addRoute(ribType: RIBType.Value, destination: IPv4Subnet,
-                 gateway: IPv4Addr)
+                 gateway: IPv4Addr, distance: Byte)
 
     def removeRoute(ribType: RIBType.Value, destination: IPv4Subnet,
                     gateway: IPv4Addr)

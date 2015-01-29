@@ -315,12 +315,12 @@ def test_icmp_failback():
     Scenario 1:
     Given: multiple uplinks
     When: enable BGP on both of them
-    Then: ICMP echo RR should work to a psudo public IP address
+    Then: ICMP echo RR should work to a pseudo public IP address
 
     Scenario 2:
     Given:
     When: inject failure into one of BGP uplinks (failover)
-    Then: ICMP echo RR should work to a psudo public IP address
+    Then: ICMP echo RR should work to a pseudo public IP address
 
     Scenario 3:
     Given:
@@ -330,12 +330,12 @@ def test_icmp_failback():
     Scenario 4:
     Given:
     When: inject failure into another of BGP uplinks (failover)
-    Then: ICMP echo RR should work to a psudo public IP address
+    Then: ICMP echo RR should work to a pseudo public IP address
 
     Scenario 5:
     Given:
     When: eject failure (failback)
-    Then: ICMP echo RR should work to a psudo public IP address
+    Then: ICMP echo RR should work to a pseudo public IP address
 
     """
     (p1, p2) = (add_bgp_1(route_direct), add_bgp_2(route_direct))
