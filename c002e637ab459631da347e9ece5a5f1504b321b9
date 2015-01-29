@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_30c165e5",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-01-29T09:52:17Z",
+      "side": 1,
+      "message": "This is another good place to use getOrElse.",
+      "range": {
+        "startLine": 62,
+        "startChar": 45,
+        "endLine": 70,
+        "endChar": 9
+      },
+      "revId": "c002e637ab459631da347e9ece5a5f1504b321b9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_70bbdd72",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 141,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-01-29T09:52:17Z",
+      "side": 1,
+      "message": "Remember that if/else returns a value in Scala, so rather than making midoPortBldr a var, you can do this:\n\n  val midoPortBldr: Port.Builder \u003d if (isRouterGatewayPort(nPort)) {\n      // TODO: ...\n      null\n  } else if (!isFloatingIpPort(nPort) {\n      translateNeutronPort(nPort)\n  } else null\n\nOr the more idiomatic way would be with an Option:\n\n  val midoPortBldr: Option[Port.Builder] \u003d if (isRouterGatewayPort(nPort)) {\n      // TODO: Gateway stuff.\n      None\n  } else if (!isFloatingIpPort(nPort)) {\n      Some(translateNeutronPort(nPort))\n  } else None\n\nThan later you can do this:\n\n  midoOps ++\u003d midoPortBldr.map(Create(_.build))\n\nOn second thought, I\u0027m not sure that that\u0027s actually better. All the cool kids are doing it, though.",
+      "range": {
+        "startLine": 134,
+        "startChar": 8,
+        "endLine": 141,
+        "endChar": 9
+      },
+      "revId": "c002e637ab459631da347e9ece5a5f1504b321b9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
