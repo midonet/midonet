@@ -49,6 +49,144 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_6381554a",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/BusObserver.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 120,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-29T16:56:02Z",
+      "side": 1,
+      "message": "isChanged already includes isNew",
+      "range": {
+        "startLine": 120,
+        "startChar": 16,
+        "endLine": 120,
+        "endChar": 25
+      },
+      "revId": "9317fb17e416860a582ddc6d434d9414d64ffeb1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_c395a989",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/BusObserver.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 135,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-29T16:56:02Z",
+      "side": 1,
+      "message": "s/supresion/suppression",
+      "range": {
+        "startLine": 135,
+        "startChar": 24,
+        "endLine": 135,
+        "endChar": 33
+      },
+      "revId": "9317fb17e416860a582ddc6d434d9414d64ffeb1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_e38c2582",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/MacLocation.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-29T16:56:02Z",
+      "side": 1,
+      "message": "Not needed.",
+      "range": {
+        "startLine": 69,
+        "startChar": 25,
+        "endLine": 69,
+        "endChar": 27
+      },
+      "revId": "9317fb17e416860a582ddc6d434d9414d64ffeb1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_43d09953",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/Vtep.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 117,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-29T16:56:02Z",
+      "side": 1,
+      "message": "Not a strong opinion, but why not get (plus the fish name is a bit ambiguous as to its purpose)? However, is fine leaving it like this.",
+      "range": {
+        "startLine": 117,
+        "startChar": 8,
+        "endLine": 117,
+        "endChar": 20
+      },
+      "revId": "9317fb17e416860a582ddc6d434d9414d64ffeb1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_a3c06d7d",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/VtepController.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-29T16:56:02Z",
+      "side": 1,
+      "message": "NSDB",
+      "range": {
+        "startLine": 107,
+        "startChar": 55,
+        "endLine": 107,
+        "endChar": 59
+      },
+      "revId": "9317fb17e416860a582ddc6d434d9414d64ffeb1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_4337f9b0",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/VtepController.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 150,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-01-29T16:56:02Z",
+      "side": 1,
+      "message": "Should the VxlanGateway class implement equals and hashCode?",
+      "range": {
+        "startLine": 150,
+        "startChar": 52,
+        "endLine": 150,
+        "endChar": 56
+      },
+      "revId": "9317fb17e416860a582ddc6d434d9414d64ffeb1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_239abd14",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/VtepController.scala",
         "patchSetId": 15
