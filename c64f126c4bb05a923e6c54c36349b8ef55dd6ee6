@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_2df3ce74",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/concurrent/SpscRwdRingBuffer.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-29T01:40:15Z",
+      "side": 1,
+      "message": "Either \"would suceed\" or \"would have succeeded\". I think the former is more appropriate.",
+      "range": {
+        "startLine": 117,
+        "startChar": 70,
+        "endLine": 118,
+        "endChar": 22
+      },
+      "revId": "c64f126c4bb05a923e6c54c36349b8ef55dd6ee6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_8de8027e",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/concurrent/SpscRwdRingBuffer.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 147,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-29T01:40:15Z",
+      "side": 1,
+      "message": "s/provide/provides/",
+      "range": {
+        "startLine": 147,
+        "startChar": 22,
+        "endLine": 147,
+        "endChar": 29
+      },
+      "revId": "c64f126c4bb05a923e6c54c36349b8ef55dd6ee6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
