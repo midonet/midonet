@@ -23,6 +23,10 @@ import java.util.UUID;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 
+import mockit.Expectations;
+import mockit.Mocked;
+import mockit.integration.junit4.JMockit;
+
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.junit.Before;
 import org.junit.Test;
@@ -47,10 +51,6 @@ import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZookeeperConnectionWatcher;
 import org.midonet.packets.IPv4Addr;
-
-import mockit.Expectations;
-import mockit.Mocked;
-import mockit.integration.junit4.JMockit;
 
 @RunWith(JMockit.class)
 public class VxLanGatewayServiceTest {
@@ -364,7 +364,7 @@ public class VxLanGatewayServiceTest {
                                          vni, vtepMgmtIp, tzId);
 
         // remove binding from the bridge
-        dataClient.bridgeDeleteVxLanPort(bridgeId, vtepMgmtIp);
+        dataClient.bridgeDeleteVxLanPort(bridgeId);
 
         s.stopAsync().awaitTerminated();
     }
@@ -441,7 +441,7 @@ public class VxLanGatewayServiceTest {
                                            (UUID)any);
             result = vtepClient.connect(vtepMgmtIp, vtepMgmntPort); times = 1;
             VtepBroker vB = new VtepBroker(vtepClient); times = 1;
-            new MidoVxLanPeer(dataClient); times = 1;
+            MidoVxLanPeer mP = new MidoVxLanPeer(dataClient); times = 1;
 
             vB.pruneUnwantedLogicalSwitches(new HashSet<UUID>());
 

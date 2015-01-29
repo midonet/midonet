@@ -16,7 +16,6 @@
 package org.midonet.cluster.data;
 
 import java.util.ArrayList;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -110,11 +109,7 @@ public class Bridge extends Entity.Base<UUID, Bridge.Data, Bridge>
     public List<UUID> getVxLanPortIds() { return getData().vxLanPortIds; }
 
     public Bridge setVxLanPortIds(List<UUID> vxlanPortIds) {
-        if (vxlanPortIds == null) {
-            getData().vxLanPortIds = new ArrayList<>();
-        } else {
-            getData().vxLanPortIds = vxlanPortIds;
-        }
+        getData().vxLanPortIds = vxlanPortIds;
         return this;
     }
 
