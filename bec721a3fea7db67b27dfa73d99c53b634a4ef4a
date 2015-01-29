@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_23791d94",
+        "filename": "brain/midonet-brain/build.gradle",
+        "patchSetId": 6
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-29T10:40:37Z",
+      "side": 1,
+      "message": "Since it\u0027s not a service I\u0027d try to separate it from the services. For cleanness, but also because as soon as we start packaging this we don\u0027t want to distribute it along with services themselves.\n\nSo I\u0027d probably get it to a separate brain module (e.g. tools/) and have the classes under org.midonet.brain.topology.client, (or something like that)",
+      "parentUuid": "7a1969be_cfe1559c",
+      "revId": "bec721a3fea7db67b27dfa73d99c53b634a4ef4a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_c64ae2ab",
         "filename": "brain/midonet-brain/conf/client.conf",
         "patchSetId": 6
@@ -647,6 +665,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_a33d0dbe",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/client/ClientSession.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-29T10:40:37Z",
+      "side": 1,
+      "message": "Mm something like \"org.midonet.topology-session\"? Even in debug (or specially in debug) it\u0027s useful to see a more descriptive name than a class. But this is client-side and dev oriented, so not so important anyway.",
+      "parentUuid": "7a1969be_0f36cd03",
+      "range": {
+        "startLine": 74,
+        "startChar": 46,
+        "endLine": 74,
+        "endChar": 68
+      },
+      "revId": "bec721a3fea7db67b27dfa73d99c53b634a4ef4a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_e6a9de25",
         "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/client/ClientSession.scala",
         "patchSetId": 6
@@ -676,6 +718,24 @@
       "side": 1,
       "message": "It is in the javadoc :-p",
       "parentUuid": "7a1969be_e6a9de25",
+      "revId": "bec721a3fea7db67b27dfa73d99c53b634a4ef4a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_034b415a",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/client/ClientSession.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-29T10:40:37Z",
+      "side": 1,
+      "message": "cool, I missed it!",
+      "parentUuid": "7a1969be_6f44a174",
       "revId": "bec721a3fea7db67b27dfa73d99c53b634a4ef4a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -822,6 +882,30 @@
       "side": 1,
       "message": "I understand the \u0027andThen\u0027 + \u0027recover\u0027 is not needed, right?",
       "parentUuid": "7a1969be_467272e6",
+      "range": {
+        "startLine": 137,
+        "startChar": 30,
+        "endLine": 137,
+        "endChar": 31
+      },
+      "revId": "bec721a3fea7db67b27dfa73d99c53b634a4ef4a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_e347054a",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/client/ClientSession.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 137,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-29T10:40:37Z",
+      "side": 1,
+      "message": "Mm I think the not needed was referring to the (",
+      "parentUuid": "7a1969be_6f3b01ec",
       "range": {
         "startLine": 137,
         "startChar": 30,
