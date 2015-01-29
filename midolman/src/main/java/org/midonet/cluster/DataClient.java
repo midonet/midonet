@@ -1018,16 +1018,11 @@ public interface DataClient {
     public int getNewVni() throws StateAccessException;
 
     /**
-     * Get all the vtep bindings for this bridge and any VTEP.
+     * Get all the vtep bindings for this bridge.
+     * @param id
+     * @throws StateAccessException, SerializationException
      */
     public List<VtepBinding> bridgeGetVtepBindings(@Nonnull UUID id)
-        throws StateAccessException, SerializationException;
-
-    /**
-     * Get all the vtep bindings for this bridge and vtep.
-     */
-    public List<VtepBinding> bridgeGetVtepBindings(@Nonnull UUID id,
-                                                   IPv4Addr mgmtIp)
         throws StateAccessException, SerializationException;
 
     public VxLanPort bridgeCreateVxLanPort(
@@ -1036,16 +1031,12 @@ public interface DataClient {
             throws StateAccessException, SerializationException;
 
     /**
-     * Deletes the VXLAN port associated to the given VTEP. Does not delete
-     * bindings on the VTEP since the DataClient is not VTEP-aware. This will be
-     * done by the VxlanGateway service.
+     * Deletes the VXLAN port belonging to the specified bridge, and
+     * sets its vxLanPortId property to null. Does not delete bindings
+     * on the VTEP since the DataClient is not VTEP-aware.
      */
-    public void bridgeDeleteVxLanPort(UUID bridgeId, IPv4Addr vxLanPort)
+    public void bridgeDeleteVxLanPort(UUID bridgeId)
             throws SerializationException, StateAccessException;
-
-
-    public void bridgeDeleteVxLanPort(VxLanPort port)
-        throws SerializationException, StateAccessException;
 
     /**
      * Tries to take ownership of the given VTEP.

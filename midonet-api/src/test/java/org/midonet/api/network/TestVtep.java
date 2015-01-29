@@ -30,8 +30,6 @@ import org.midonet.api.rest_api.FuncTest;
 import org.midonet.api.rest_api.RestApiTestBase;
 import org.midonet.api.servlet.JerseyGuiceTestServletContextListener;
 import org.midonet.api.validation.MessageProperty;
-import org.midonet.api.vtep.VtepMockableDataClientFactory;
-import org.midonet.api.vtep.VtepMockableDataClientFactory.MockableVtep;
 import org.midonet.client.dto.DtoBridge;
 import org.midonet.client.dto.DtoBridgePort;
 import org.midonet.client.dto.DtoError;
@@ -51,6 +49,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.midonet.api.VendorMediaType.APPLICATION_BRIDGE_COLLECTION_JSON;
 import static org.midonet.api.VendorMediaType.APPLICATION_BRIDGE_COLLECTION_JSON_V2;
 import static org.midonet.api.VendorMediaType.APPLICATION_PORT_JSON;
@@ -73,6 +72,12 @@ import static org.midonet.api.validation.MessageProperty.VTEP_HAS_BINDINGS;
 import static org.midonet.api.validation.MessageProperty.VTEP_NOT_FOUND;
 import static org.midonet.api.validation.MessageProperty.VTEP_PORT_NOT_FOUND;
 import static org.midonet.api.validation.MessageProperty.VTEP_PORT_VLAN_PAIR_ALREADY_USED;
+import static org.midonet.api.vtep.VtepMockableDataClientFactory.MOCK_VTEP_DESC;
+import static org.midonet.api.vtep.VtepMockableDataClientFactory.MOCK_VTEP_MGMT_IP;
+import static org.midonet.api.vtep.VtepMockableDataClientFactory.MOCK_VTEP_MGMT_PORT;
+import static org.midonet.api.vtep.VtepMockableDataClientFactory.MOCK_VTEP_NAME;
+import static org.midonet.api.vtep.VtepMockableDataClientFactory.MOCK_VTEP_PORT_NAMES;
+import static org.midonet.api.vtep.VtepMockableDataClientFactory.MOCK_VTEP_TUNNEL_IPS;
 import static org.midonet.brain.southbound.vtep.VtepConstants.bridgeIdToLogicalSwitchName;
 
 public class TestVtep extends RestApiTestBase {
@@ -83,9 +88,6 @@ public class TestVtep extends RestApiTestBase {
 
     private UUID goodTunnelZone = null;
     private UUID badTunnelZone = null;
-
-    private MockableVtep mockVtep1 = VtepMockableDataClientFactory.MOCK_VTEP1;
-    private MockableVtep mockVtep2 = VtepMockableDataClientFactory.MOCK_VTEP2;
 
     @Before
     public void before() {
@@ -109,17 +111,17 @@ public class TestVtep extends RestApiTestBase {
         DtoVtep vtep = postVtep();
         assertEquals(VtepConnectionState.CONNECTED.toString(),
                      vtep.getConnectionState());
-        assertEquals(mockVtep1.desc(), vtep.getDescription());
-        assertEquals(mockVtep1.mgmtIp(), vtep.getManagementIp());
-        assertEquals(mockVtep1.mgmtPort(), vtep.getManagementPort());
-        assertEquals(mockVtep1.name(), vtep.getName());
+        assertEquals(MOCK_VTEP_DESC, vtep.getDescription());
+        assertEquals(MOCK_VTEP_MGMT_IP, vtep.getManagementIp());
+        assertEquals(MOCK_VTEP_MGMT_PORT, vtep.getManagementPort());
+        assertEquals(MOCK_VTEP_NAME, vtep.getName());
         assertThat(vtep.getTunnelIpAddrs(),
-                   containsInAnyOrder(mockVtep1.tunnelIps().toArray()));
+                   containsInAnyOrder(MOCK_VTEP_TUNNEL_IPS.toArray()));
     }
 
     @Test
     public void testCreateWithNullIPAddr() {
-        DtoError error = postVtepWithError(null, mockVtep1.mgmtPort(),
+        DtoError error = postVtepWithError(null, MOCK_VTEP_MGMT_PORT,
                                            Status.BAD_REQUEST);
         assertErrorMatchesPropMsg(error, "managementIp", NON_NULL);
     }
@@ -127,8 +129,8 @@ public class TestVtep extends RestApiTestBase {
     @Test
     public void testCreateWithBadTunnelZone() {
         DtoVtep vtep = new DtoVtep();
-        vtep.setManagementIp(mockVtep1.mgmtIp());
-        vtep.setManagementPort(mockVtep1.mgmtPort());
+        vtep.setManagementIp(MOCK_VTEP_MGMT_IP);
+        vtep.setManagementPort(MOCK_VTEP_MGMT_PORT);
         vtep.setTunnelZoneId(badTunnelZone);
         DtoError error = dtoResource.postAndVerifyError(app.getVteps(),
                                                         APPLICATION_VTEP_JSON,
@@ -141,8 +143,8 @@ public class TestVtep extends RestApiTestBase {
     @Test
     public void testCreateWithNullTunnelZone() {
         DtoVtep vtep = new DtoVtep();
-        vtep.setManagementIp(mockVtep1.mgmtIp());
-        vtep.setManagementPort(mockVtep1.mgmtPort());
+        vtep.setManagementIp(MOCK_VTEP_MGMT_IP);
+        vtep.setManagementPort(MOCK_VTEP_MGMT_PORT);
         vtep.setTunnelZoneId(null);
         DtoError error = dtoResource.postAndVerifyError(app.getVteps(),
                                                         APPLICATION_VTEP_JSON,
@@ -154,16 +156,16 @@ public class TestVtep extends RestApiTestBase {
 
     @Test
     public void testCreateWithIllFormedIPAddr() {
-        DtoError error = postVtepWithError("10.0.0.300", mockVtep1.mgmtPort(),
+        DtoError error = postVtepWithError("10.0.0.300", MOCK_VTEP_MGMT_PORT,
                                            Status.BAD_REQUEST);
         assertErrorMatchesPropMsg(error, "managementIp", IP_ADDR_INVALID);
     }
 
     @Test
     public void testCreateWithDuplicateIPAddr() {
-        String ipAddr = mockVtep1.mgmtIp();
+        String ipAddr = MOCK_VTEP_MGMT_IP;
         postVtep();
-        DtoError error = postVtepWithError(ipAddr, mockVtep1.mgmtPort() + 1,
+        DtoError error = postVtepWithError(ipAddr, MOCK_VTEP_MGMT_PORT + 1,
                                            Status.CONFLICT);
         assertErrorMatches(error, MessageProperty.VTEP_EXISTS, ipAddr);
     }
@@ -194,15 +196,15 @@ public class TestVtep extends RestApiTestBase {
             .createHost(host.getId(), Converter.toHostConfig(host));
 
         // Try add the VTEP with the same IP address.
-        postVtepWithError(ip, mockVtep1.mgmtPort(), Status.CONFLICT);
+        postVtepWithError(ip, MOCK_VTEP_MGMT_PORT, Status.CONFLICT);
     }
 
     @Test
     public void testGet() {
         postVtep();
-        DtoVtep vtep = getVtep(mockVtep1.mgmtIp());
-        assertEquals(mockVtep1.mgmtIp(), vtep.getManagementIp());
-        assertEquals(mockVtep1.mgmtPort(), vtep.getManagementPort());
+        DtoVtep vtep = getVtep(MOCK_VTEP_MGMT_IP);
+        assertEquals(MOCK_VTEP_MGMT_IP, vtep.getManagementIp());
+        assertEquals(MOCK_VTEP_MGMT_PORT, vtep.getManagementPort());
     }
 
     @Test
@@ -247,12 +249,12 @@ public class TestVtep extends RestApiTestBase {
         DtoVtep vtep = postVtep();
         DtoBridge bridge = postBridge("bridge1");
         DtoVtepBinding binding =
-                addAndVerifyBinding(vtep, bridge, mockVtep1.portNames()[0], 1);
+                addAndVerifyBinding(vtep, bridge, MOCK_VTEP_PORT_NAMES[0], 1);
 
         // Cannot delete the VTEP because it has bindings.
         DtoError error = dtoResource.deleteAndVerifyBadRequest(
                 vtep.getUri(), APPLICATION_VTEP_JSON);
-        assertErrorMatches(error, VTEP_HAS_BINDINGS, mockVtep1.mgmtIp());
+        assertErrorMatches(error, VTEP_HAS_BINDINGS, MOCK_VTEP_MGMT_IP);
 
         // Delete the binding.
         deleteBinding(binding.getUri());
@@ -278,57 +280,46 @@ public class TestVtep extends RestApiTestBase {
         assertErrorMatches(error, IP_ADDR_INVALID_WITH_PARAM, "300.1.2.3");
     }
 
-    @Test
-    public void testAddBindingsSingleNetworkMultipleVteps() {
-        DtoVtep vtep1 = postVtep();
-        DtoVtep vtep2 = postVtep(mockVtep2.mgmtIp(), mockVtep2.mgmtPort());
+    /**
+     * This is the first binding of this network to the VTEP. It's a special
+     * case where we do just set the binding in Midonet, but not in the VTEP
+     * and wait for the VxGW Service to consolidate. This method simulates
+     * that the VxGW applies the config relevant for the new binding.
+     */
+    private DtoVtepBinding addAndVerifyFirstBinding(DtoVtep vtep,
+                                                    DtoBridge network,
+                                                    String portName, int vlan,
+                                                    int vni) {
+        DtoVtepBinding b = addAndVerifyBinding(vtep, network, portName, vlan);
+        String lsName = bridgeIdToLogicalSwitchName(network.getId());
+        // This creates the logical switch by itself
+        // bindVlan(lsName, portName, vlan, vni, new ArrayList<String>());
+        return b;
+    }
 
-        assertEquals(0, listBindings(vtep1).length);
+    /**
+     * See addAndVerifyFirstBinding. This method will write both to the VTEP
+     * and ZK, and assume that the VTEP already contains the logical switch.
+     */
+    private DtoVtepBinding addAndVerifyBinding(DtoVtep vtep,
+            DtoBridge network,
+            String portName, int vlan) {
+        DtoVtepBinding binding = postBinding(vtep,
+                                             makeBinding(portName, vlan,
+                                                         network.getId()));
+        assertEquals(network.getId(), binding.getNetworkId());
+        assertEquals(portName, binding.getPortName());
+        assertEquals(vlan, binding.getVlanId());
 
-        DtoBridge br = postBridge("network1");
-        DtoVtepBinding b1 = addAndVerifyBinding(vtep1, br,
-                                                mockVtep1.portNames()[0], 1);
-        DtoVtepBinding b2 = addAndVerifyBinding(vtep1, br,
-                                                mockVtep1.portNames()[1], 1);
-        addAndVerifyBinding(vtep2, br, mockVtep2.portNames()[0], 2);
-        addAndVerifyBinding(vtep2, br, mockVtep2.portNames()[1], 2);
+        // Should create a VXLAN port on the specified bridge.
+        DtoBridge bridge = getBridge(network.getId());
+        assertNotNull(bridge.getVxLanPortId());
 
-        br = getBridge(br.getId());
-        assertEquals("A vxlan port per vtep", 2, br.getVxLanPortIds().size());
-        assertEquals(2, listBindings(vtep1).length);
-        assertEquals(2, listBindings(vtep2).length);
+        DtoVxLanPort port = getVxLanPort(bridge.getVxLanPortId());
+        assertEquals(MOCK_VTEP_MGMT_IP, port.getMgmtIpAddr());
+        assertEquals(MOCK_VTEP_MGMT_PORT, port.getMgmtPort());
 
-        DtoVxLanPort vxPort1 = getVxLanPort(br.getVxLanPortIds().get(0));
-        DtoVxLanPort vxPort2 = getVxLanPort(br.getVxLanPortIds().get(1));
-
-        assertEquals(mockVtep1.mgmtIp(), vxPort1.getMgmtIpAddr());
-        assertEquals(mockVtep2.mgmtIp(), vxPort2.getMgmtIpAddr());
-
-        // Deleting a binding on a vtep has no other secondary effects
-        deleteBinding(b1.getUri());
-
-        br = getBridge(br.getId());
-        assertEquals("A vxlan port per vtep", 2, br.getVxLanPortIds().size());
-        assertEquals(1, listBindings(vtep1).length);
-        assertEquals(2, listBindings(vtep2).length);
-
-        vxPort1 = getVxLanPort(br.getVxLanPortIds().get(0));
-        vxPort2 = getVxLanPort(br.getVxLanPortIds().get(1));
-
-        assertEquals(mockVtep1.mgmtIp(), vxPort1.getMgmtIpAddr());
-        assertEquals(mockVtep2.mgmtIp(), vxPort2.getMgmtIpAddr());
-
-        // Deleting the last binding on a vtep kills the associated vxlan port
-        deleteBinding(b2.getUri());
-
-        br = getBridge(br.getId());
-        assertEquals(1, br.getVxLanPortIds().size());
-        assertEquals(0, listBindings(vtep1).length);
-        assertEquals(2, listBindings(vtep2).length);
-
-        // Only vxlan port 2 remains
-        vxPort2 = getVxLanPort(br.getVxLanPortIds().get(0));
-        assertEquals(mockVtep2.mgmtIp(), vxPort2.getMgmtIpAddr());
+        return binding;
     }
 
     // Tests both add and remove, so no need to bother having a separate one for
@@ -342,10 +333,10 @@ public class TestVtep extends RestApiTestBase {
         DtoBridge br1 = postBridge("network1");
         DtoBridge br2 = postBridge("network2");
         DtoVtepBinding binding1 = addAndVerifyBinding(vtep, br1,
-                                                      mockVtep1.portNames()[0],
+                                                      MOCK_VTEP_PORT_NAMES[0],
                                                       1);
         DtoVtepBinding binding2 = addAndVerifyBinding(vtep, br2,
-                                                      mockVtep1.portNames()[1],
+                                                      MOCK_VTEP_PORT_NAMES[1],
                                                       2);
 
         assertEquals(br1.getId(), binding1.getNetworkId());
@@ -387,14 +378,50 @@ public class TestVtep extends RestApiTestBase {
         assertEquals(0, bindings.length);
     }
 
+    private void testAddRemoveBinding(String portName) {
+
+        DtoVtep vtep = postVtep();
+
+        assertEquals(0, listBindings(vtep).length);
+
+        DtoBridge br = postBridge("network1");
+        DtoVtepBinding binding1 = addAndVerifyFirstBinding(
+            vtep, br, portName, 1, 10000);
+        DtoVtepBinding binding2 = addAndVerifyBinding(vtep, br, portName, 2);
+
+        br = getBridge(binding1.getNetworkId());
+        assertEquals(br.getId(), binding1.getNetworkId());
+
+        DtoVxLanPort vxlanPort = getVxLanPort(br.getVxLanPortId());
+
+        DtoVtepBinding[] bindings = listBindings(vtep);
+        assertThat(bindings, arrayContainingInAnyOrder(binding1, binding2));
+
+        deleteBinding(binding1.getUri());
+
+        bindings = listBindings(vtep);
+        assertThat(bindings, arrayContainingInAnyOrder(binding2));
+        dtoResource.getAndVerifyOk(vxlanPort.getUri(),
+                                   APPLICATION_PORT_JSON, DtoVxLanPort.class);
+
+        vxlanPort = getVxLanPort(vxlanPort.getId()); // should exist
+
+        deleteBinding(binding2.getUri());
+        dtoResource.getAndVerifyNotFound(vxlanPort.getUri(),
+                                         APPLICATION_PORT_JSON);
+
+        bindings = listBindings(vtep);
+        assertEquals(0, bindings.length);
+    }
+
     @Test
     public void testAddRemoveMultipleBindingsOnSingleNetwork() {
-        testAddRemoveBinding(mockVtep1.portNames()[0]);
+        testAddRemoveBinding(MOCK_VTEP_PORT_NAMES[0]);
     }
 
     @Test
     public void testAddRemoveBindingWithWeirdName() {
-        testAddRemoveBinding(mockVtep1.portNames()[3]);
+        testAddRemoveBinding(MOCK_VTEP_PORT_NAMES[3]);
     }
 
     @Test
@@ -402,7 +429,7 @@ public class TestVtep extends RestApiTestBase {
         DtoVtep vtep = postVtep();
         DtoBridge br = postBridge("n");
         DtoVtepBinding binding =
-                addAndVerifyBinding(vtep, br, mockVtep1.portNames()[0], 1);
+                addAndVerifyBinding(vtep, br, MOCK_VTEP_PORT_NAMES[0], 1);
         deleteBinding(binding.getUri());
         dtoResource.deleteAndVerifyNotFound(binding.getUri(),
                 APPLICATION_VTEP_BINDING_JSON);
@@ -412,7 +439,7 @@ public class TestVtep extends RestApiTestBase {
     public void testAddBindingWithIllFormedIP() {
         DtoVtep vtep = postVtep();
         URI bindingsUri = replaceInUri(
-                vtep.getBindings(), mockVtep1.mgmtIp(), "300.0.0.1");
+                vtep.getBindings(), MOCK_VTEP_MGMT_IP, "300.0.0.1");
         DtoVtepBinding binding = makeBinding("eth0", 1, UUID.randomUUID());
         DtoError error = dtoResource.postAndVerifyError(bindingsUri,
                 APPLICATION_VTEP_BINDING_JSON, binding, Status.BAD_REQUEST);
@@ -424,7 +451,7 @@ public class TestVtep extends RestApiTestBase {
         DtoBridge bridge = postBridge("network1");
         DtoVtep vtep = postVtep();
         URI bindingsUri = replaceInUri(
-                vtep.getBindings(), mockVtep1.mgmtIp(), "10.10.10.10");
+                vtep.getBindings(), MOCK_VTEP_MGMT_IP, "10.10.10.10");
         DtoVtepBinding binding = makeBinding("eth0", 1, bridge.getId());
         DtoError error = dtoResource.postAndVerifyError(
                 bindingsUri, APPLICATION_VTEP_BINDING_JSON,
@@ -480,26 +507,28 @@ public class TestVtep extends RestApiTestBase {
         DtoVtep vtep = postVtep();
         DtoVtepBinding binding = makeBinding("blah", 1, bridge.getId());
         DtoError err = postBindingWithError(vtep, binding, Status.NOT_FOUND);
-        assertErrorMatches(err, VTEP_PORT_NOT_FOUND, mockVtep1.mgmtIp(),
-                mockVtep1.mgmtPort(), "blah");
+        assertErrorMatches(err, VTEP_PORT_NOT_FOUND, MOCK_VTEP_MGMT_IP,
+                MOCK_VTEP_MGMT_PORT, "blah");
     }
 
-    // The same port/vlan pair on the same vtep should not be used by two
-    // midonet networks.
+    /**
+     * The same port/vlan pair on the same vtep should not be used by two
+     * midonet networks.
+     */
     @Test
     public void testAddConflictingBinding() {
         DtoBridge bridge = postBridge("network1");
         DtoBridge bridge2 = postBridge("network2");
         DtoVtep vtep = postVtep();
-        postBinding(vtep, makeBinding(mockVtep1.portNames()[0],
+        postBinding(vtep, makeBinding(MOCK_VTEP_PORT_NAMES[0],
                                       3, bridge.getId()));
         DtoError err = postBindingWithError(vtep,
-                                            makeBinding(mockVtep1.portNames()[0],
+                                            makeBinding(MOCK_VTEP_PORT_NAMES[0],
                                                         3, bridge2.getId()),
                                             Status.CONFLICT);
         assertErrorMatches(err, VTEP_PORT_VLAN_PAIR_ALREADY_USED,
-                           mockVtep1.mgmtIp(), mockVtep1.mgmtPort(),
-                           mockVtep1.portNames()[0], 3, bridge.getId());
+                           MOCK_VTEP_MGMT_IP, MOCK_VTEP_MGMT_PORT,
+                           MOCK_VTEP_PORT_NAMES[0], 3, bridge.getId());
 
         // Ensure that the second bridge didn't keep a vxlan port
         bridge2 = getBridge(bridge2.getId());
@@ -520,9 +549,9 @@ public class TestVtep extends RestApiTestBase {
         DtoBridge bridge2 = postBridge("network2");
         DtoVtepBinding[] expectedBindings = new DtoVtepBinding[2];
         expectedBindings[0] = postBinding(vtep, makeBinding(
-                mockVtep1.portNames()[0], 1, bridge.getId()));
+                MOCK_VTEP_PORT_NAMES[0], 1, bridge.getId()));
         expectedBindings[1] = postBinding(vtep, makeBinding(
-                mockVtep1.portNames()[1], 5, bridge2.getId()));
+                MOCK_VTEP_PORT_NAMES[1], 5, bridge2.getId()));
 
         actualBindings = listBindings(vtep);
         assertThat(actualBindings, arrayContainingInAnyOrder(expectedBindings));
@@ -554,15 +583,15 @@ public class TestVtep extends RestApiTestBase {
         // Post bindings, two on each bridge.
         DtoVtepBinding[] b1ExpectedBindings = new DtoVtepBinding[2];
         b1ExpectedBindings[0] = postBinding(vtep, makeBinding(
-                mockVtep1.portNames()[0], 1, bridge1.getId()));
+                MOCK_VTEP_PORT_NAMES[0], 1, bridge1.getId()));
         b1ExpectedBindings[1] = postBinding(vtep, makeBinding(
-                mockVtep1.portNames()[1], 2, bridge1.getId()));
+                MOCK_VTEP_PORT_NAMES[1], 2, bridge1.getId()));
 
         DtoVtepBinding[] b2ExpectedBindings = new DtoVtepBinding[2];
         b2ExpectedBindings[0] = postBinding(vtep, makeBinding(
-                mockVtep1.portNames()[0], 3, bridge2.getId()));
+                MOCK_VTEP_PORT_NAMES[0], 3, bridge2.getId()));
         b2ExpectedBindings[1] = postBinding(vtep, makeBinding(
-                mockVtep1.portNames()[1], 4, bridge2.getId()));
+                MOCK_VTEP_PORT_NAMES[1], 4, bridge2.getId()));
 
         // Get VXLAN ports.
         bridge1 = getBridge(bridge1.getId());
@@ -581,7 +610,7 @@ public class TestVtep extends RestApiTestBase {
         // Make sure we can get individual bindings via VxLanPort, as well.
         URI bindingUri = ResourceUriBuilder.getVxLanPortBinding(
                 app.getUri(), vxLanPort1.getId(),
-                mockVtep1.portNames()[0], (short)1);
+                MOCK_VTEP_PORT_NAMES[0], (short)1);
         DtoVtepBinding b1ActualBinding1 = dtoResource.getAndVerifyOk(
                 bindingUri, APPLICATION_VTEP_BINDING_JSON, DtoVtepBinding.class);
         assertEquals(b1ExpectedBindings[0], b1ActualBinding1);
@@ -635,11 +664,10 @@ public class TestVtep extends RestApiTestBase {
                 DtoVtepPort[].class);
 
         DtoVtepPort[] expectedPorts =
-                new DtoVtepPort[mockVtep1.portNames().length];
-        for (int i = 0; i < mockVtep1.portNames().length; i++)
-            expectedPorts[i] = new DtoVtepPort(mockVtep1.portNames()[i],
-                                               mockVtep1.portNames()[i]
-                                               + "-desc");
+                new DtoVtepPort[MOCK_VTEP_PORT_NAMES.length];
+        for (int i = 0; i < MOCK_VTEP_PORT_NAMES.length; i++)
+            expectedPorts[i] = new DtoVtepPort(
+                    MOCK_VTEP_PORT_NAMES[i], MOCK_VTEP_PORT_NAMES[i] + "-desc");
 
         assertThat(ports, arrayContainingInAnyOrder(expectedPorts));
     }
@@ -651,13 +679,13 @@ public class TestVtep extends RestApiTestBase {
         DtoVtep vtep = postVtep();
 
         DtoVtepBinding br1bi1 = postBinding(vtep, makeBinding(
-                mockVtep1.portNames()[0], 1, bridge1.getId()));
+                MOCK_VTEP_PORT_NAMES[0], 1, bridge1.getId()));
         DtoVtepBinding br1bi2 = postBinding(vtep, makeBinding(
-                mockVtep1.portNames()[1], 2, bridge1.getId()));
+                MOCK_VTEP_PORT_NAMES[1], 2, bridge1.getId()));
         DtoVtepBinding br2bi1 = postBinding(vtep, makeBinding(
-                mockVtep1.portNames()[0], 3, bridge2.getId()));
+                MOCK_VTEP_PORT_NAMES[0], 3, bridge2.getId()));
         DtoVtepBinding br2bi2 = postBinding(vtep, makeBinding(
-                mockVtep1.portNames()[1], 4, bridge2.getId()));
+                MOCK_VTEP_PORT_NAMES[1], 4, bridge2.getId()));
 
         DtoVtepBinding[] bindings = listBindings(vtep);
         assertThat(bindings, arrayContainingInAnyOrder(br1bi1, br1bi2,
@@ -678,7 +706,7 @@ public class TestVtep extends RestApiTestBase {
                 bridge);
 
         DtoVtep vtep = postVtep();
-        postBinding(vtep, makeBinding(mockVtep1.portNames()[0],
+        postBinding(vtep, makeBinding(MOCK_VTEP_PORT_NAMES[0],
                                       0, bridge.getId()));
 
         DtoBridgePort[] bridgePorts = dtoResource.getAndVerifyOk(
@@ -690,22 +718,26 @@ public class TestVtep extends RestApiTestBase {
     @Test
     public void testBridgeV1LacksVxLanPortId() {
         DtoBridge b1 = postBridge("bridge1");
+        DtoBridge b2 = postBridge("bridge2");
         DtoVtep vtep = postVtep();
 
-        postBinding(vtep, makeBinding(mockVtep1.portNames()[0], 0, b1.getId()));
+        postBinding(vtep,
+                makeBinding(MOCK_VTEP_PORT_NAMES[0], 0, b1.getId()));
+        postBinding(vtep,
+                makeBinding(MOCK_VTEP_PORT_NAMES[1], 0, b2.getId()));
 
-        // V3 get should have vxLanPortIds
+        // V2 get should have vxLanPortId
         DtoBridge bridge = getBridge(b1.getId());
-        assertNotNull(bridge.getVxLanPortIds());
-        assertNotNull(bridge.getVxLanPorts());
+        assertNotNull(bridge.getVxLanPortId());
+        assertNotNull(bridge.getVxLanPort());
 
         // V2 collection, too.
         DtoBridge[] bridges = dtoResource.getAndVerifyOk(app.getBridges(),
                 APPLICATION_BRIDGE_COLLECTION_JSON_V2, DtoBridge[].class);
         assertNotNull(bridges[0].getVxLanPortId());
         assertNotNull(bridges[0].getVxLanPort());
-        assertNull(bridges[0].getVxLanPortIds());
-        assertNull(bridges[0].getVxLanPorts());
+        assertNotNull(bridges[1].getVxLanPortId());
+        assertNotNull(bridges[1].getVxLanPort());
 
         // V1 should not.
         bridge = getBridgeV1(b1.getId());
@@ -714,10 +746,10 @@ public class TestVtep extends RestApiTestBase {
 
         bridges = dtoResource.getAndVerifyOk(app.getBridges(),
                 APPLICATION_BRIDGE_COLLECTION_JSON, DtoBridge[].class);
-        assertNull(bridges[0].getVxLanPortIds());
-        assertNull(bridges[0].getVxLanPorts());
-        assertNull(bridges[0].getVxLanPortIds());
-        assertNull(bridges[0].getVxLanPorts());
+        assertNull(bridges[0].getVxLanPortId());
+        assertNull(bridges[0].getVxLanPort());
+        assertNull(bridges[1].getVxLanPortId());
+        assertNull(bridges[1].getVxLanPort());
     }
 
     @Test
@@ -725,10 +757,10 @@ public class TestVtep extends RestApiTestBase {
         DtoBridge bridge = postBridge("bridge1");
         DtoVtep vtep = postVtep();
         DtoVtepBinding binding = postBinding(vtep,
-                makeBinding(mockVtep1.portNames()[0], 0, bridge.getId()));
+                makeBinding(MOCK_VTEP_PORT_NAMES[0], 0, bridge.getId()));
         deleteBinding(binding.getUri());
         postBinding(vtep,
-                    makeBinding(mockVtep1.portNames()[0], 0, bridge.getId()));
+                    makeBinding(MOCK_VTEP_PORT_NAMES[0], 0, bridge.getId()));
     }
 
     private DtoVtep makeVtep(String mgmtIpAddr, int mgmtPort,
@@ -741,7 +773,7 @@ public class TestVtep extends RestApiTestBase {
     }
 
     private DtoVtep postVtep() {
-        return postVtep(mockVtep1.mgmtIp(), mockVtep1.mgmtPort());
+        return postVtep(MOCK_VTEP_MGMT_IP, MOCK_VTEP_MGMT_PORT);
     }
 
     private DtoVtep postVtep(String mgmtIpAddr, int mgmtPort) {
@@ -818,81 +850,8 @@ public class TestVtep extends RestApiTestBase {
     private DtoVxLanPort getVxLanPort(UUID id) {
         DtoPort port = getPort(id);
         assertNotNull(port);
+        assertTrue(port instanceof DtoVxLanPort);
         return (DtoVxLanPort)port;
-    }
-
-    private void testAddRemoveBinding(String portName) {
-
-        DtoVtep vtep = postVtep();
-
-        assertEquals(0, listBindings(vtep).length);
-
-        DtoBridge br = postBridge("network1");
-        DtoVtepBinding binding1 = addAndVerifyFirstBinding(
-            vtep, br, portName, 1, 10000);
-        DtoVtepBinding binding2 = addAndVerifyBinding(vtep, br, portName, 2);
-
-        br = getBridge(binding1.getNetworkId());
-        assertEquals(br.getId(), binding1.getNetworkId());
-
-        DtoVxLanPort vxlanPort = getVxLanPort(br.getVxLanPortId());
-
-        DtoVtepBinding[] bindings = listBindings(vtep);
-        assertThat(bindings, arrayContainingInAnyOrder(binding1, binding2));
-
-        deleteBinding(binding1.getUri());
-
-        bindings = listBindings(vtep);
-        assertThat(bindings, arrayContainingInAnyOrder(binding2));
-        dtoResource.getAndVerifyOk(vxlanPort.getUri(),
-                                   APPLICATION_PORT_JSON, DtoVxLanPort.class);
-
-        vxlanPort = getVxLanPort(vxlanPort.getId()); // should exist
-
-        deleteBinding(binding2.getUri());
-        dtoResource.getAndVerifyNotFound(vxlanPort.getUri(),
-                                         APPLICATION_PORT_JSON);
-
-        bindings = listBindings(vtep);
-        assertEquals(0, bindings.length);
-    }
-
-    /**
-     * This is the first binding of this network to the VTEP. It's a special
-     * case where we do just set the binding in Midonet, but not in the VTEP
-     * and wait for the VxGW Service to consolidate. This method simulates
-     * that the VxGW applies the config relevant for the new binding.
-     */
-    private DtoVtepBinding addAndVerifyFirstBinding(DtoVtep vtep,
-                                                    DtoBridge network,
-                                                    String portName, int vlan,
-                                                    int vni) {
-        DtoVtepBinding b = addAndVerifyBinding(vtep, network, portName, vlan);
-        String lsName = bridgeIdToLogicalSwitchName(network.getId());
-        // This creates the logical switch by itself
-        // bindVlan(lsName, portName, vlan, vni, new ArrayList<String>());
-        return b;
-    }
-
-    // See addAndVerifyFirstBinding. This method will write both to the VTEP
-    // and ZK, and assume that the VTEP already contains the logical switch.
-    private DtoVtepBinding addAndVerifyBinding(DtoVtep vtep,
-                                               DtoBridge network,
-                                               String portName, int vlan) {
-        DtoVtepBinding binding = postBinding(vtep,
-                                             makeBinding(portName, vlan,
-                                                         network.getId()));
-        assertEquals(network.getId(), binding.getNetworkId());
-        assertEquals(portName, binding.getPortName());
-        assertEquals(vlan, binding.getVlanId());
-
-        // Should create a VXLAN port on the specified bridge.
-        DtoBridge bridge = getBridge(network.getId());
-        DtoVxLanPort port = getVxLanPort(bridge.getVxLanPortId());
-        assertEquals(mockVtep1.mgmtIp(), port.getMgmtIpAddr());
-        assertEquals(mockVtep1.mgmtPort(), port.getMgmtPort());
-
-        return binding;
     }
 
 }

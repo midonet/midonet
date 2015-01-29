@@ -35,6 +35,7 @@ import org.midonet.api.host.rest_api.HostTopology;
 import org.midonet.api.rest_api.DtoWebResource;
 import org.midonet.api.rest_api.FuncTest;
 import org.midonet.api.rest_api.RestApiTestBase;
+import org.midonet.api.vtep.VtepMockableDataClientFactory;
 import org.midonet.client.MidonetApi;
 import org.midonet.client.dto.DtoApplication;
 import org.midonet.client.dto.DtoError;
@@ -43,7 +44,7 @@ import org.midonet.client.dto.DtoVtep;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 
-import static org.midonet.api.vtep.VtepMockableDataClientFactory.MOCK_VTEP1;
+import static org.midonet.api.vtep.VtepMockableDataClientFactory.*;
 
 @RunWith(Enclosed.class)
 public class TestTunnelZone {
@@ -158,12 +159,12 @@ public class TestTunnelZone {
                       VendorMediaType.APPLICATION_TUNNEL_ZONE_JSON, tunnelZone,
                       DtoTunnelZone.class);
             DtoVtep vtep = new DtoVtep();
-            vtep.setManagementIp(MOCK_VTEP1.mgmtIp());
-            vtep.setManagementPort(MOCK_VTEP1.mgmtPort());
+            vtep.setManagementIp(MOCK_VTEP_MGMT_IP);
+            vtep.setManagementPort(MOCK_VTEP_MGMT_PORT);
             vtep.setTunnelZoneId(tunnelZone.getId());
-            dtoResource.postAndVerifyCreated(app.getVteps(),
-                                 VendorMediaType.APPLICATION_VTEP_JSON, vtep,
-                                 DtoVtep.class);
+            DtoVtep vtepDto = dtoResource.postAndVerifyCreated(
+                app.getVteps(), VendorMediaType.APPLICATION_VTEP_JSON, vtep,
+                DtoVtep.class);
 
             // now try to delete the tunnel zone
             dtoResource.deleteAndVerifyError(tunnelZone.getUri(),

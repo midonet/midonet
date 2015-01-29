@@ -357,16 +357,21 @@ public class VxLanGatewayService extends ClusterMinion {
         throws StateAccessException, SerializationException,
                VxLanPeerConsolidationException, VtepNotConnectedException {
 
-        final UUID id = bridge.getId();
+        final UUID bridgeId = bridge.getId();
 
         // Get the VXLAN port identifier for this bridge.
-        List<UUID> vxlanPortIds = bridge.getVxLanPortIds();
-        if (vxlanPortIds == null || vxlanPortIds.isEmpty()) {
-            log.debug("Bridge {} does not any port towards VTEP, ignoring", id);
-            return;
+        UUID vxLanPortId = bridge.getVxLanPortId();
+        if (null == vxLanPortId) {
+            if (bridge.getVxLanPortIds() == null ||
+                bridge.getVxLanPortIds().isEmpty()) {
+                log.debug("Bridge {} does not have ports to VTEPs, ignoring",
+                          bridgeId);
+                return;
+            } else {
+                vxLanPortId = bridge.getVxLanPortIds().get(0);
+            }
         }
 
-        UUID vxLanPortId = vxlanPortIds.get(0);
         VxLanPort vxLanPort = (VxLanPort)midoClient.portsGet(vxLanPortId);
         if (null == vxLanPort) {
             log.warn("Cannot retrieve VXLAN port for port ID {} (aborting)",
@@ -382,13 +387,13 @@ public class VxLanGatewayService extends ClusterMinion {
             return;
         }
 
-        if (!broker.midoPeer.knowsBridgeId(id)) {
+        if (!broker.midoPeer.knowsBridgeId(bridgeId)) {
             log.info("Consolidating VTEP configuration for new bridge "
-                     + "{}", id);
-            String lsName = VtepConstants.bridgeIdToLogicalSwitchName(id);
-            int vni = vxLanPort.getVni();
+                     + "{}", bridgeId);
+            String lsName = VtepConstants.bridgeIdToLogicalSwitchName(bridgeId);
             org.opendaylight.ovsdb.lib.notation.UUID lsUuid =
-                broker.vtepPeer.ensureLogicalSwitchExists(lsName, vni);
+                broker.vtepPeer.ensureLogicalSwitchExists(lsName,
+                                                          vxLanPort.getVni());
 
             broker.vtepPeer.renewBindings(
                 lsUuid,
@@ -397,17 +402,18 @@ public class VxLanGatewayService extends ClusterMinion {
                     new Predicate<VtepBinding>() {
                         @Override
                         public boolean apply(VtepBinding b) {
-                            return b != null && id.equals(b.getNetworkId());
+                            return b != null && bridgeId.equals(
+                                b.getNetworkId());
                         }
                     }
                 )
             );
         }
 
-        log.info("Monitoring bridge {} for mac updates", id);
-        if (broker.midoPeer.watch(id)) {
+        log.info("Monitoring bridge {} for mac updates", bridgeId);
+        if (broker.midoPeer.watch(bridgeId)) {
             broker.vtepPeer.advertiseMacs();
-            broker.midoPeer.advertiseFloodingProxy(id);
+            broker.midoPeer.advertiseFloodingProxy(bridgeId);
         }
     }
 
