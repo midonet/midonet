@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_035501c6",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/BusObserver.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-01-29T15:51:32Z",
+      "side": 1,
+      "message": "It should be safer to do the following calls in opposite order: first remove the previous value, then add the new one (That should ensure that we don\u0027t hit the replicated maps bug - keeping multiple entries -). I also think that we should use \u0027removeIfOwner\u0027 instead of removeIfOwnerAndValue (anyway, there is only one possible mapping to mac to port, and we should remove anything that was in there)\n\nEDIT: following the conversation in the meeting about VTEP HA, it looks like we could have a race condition if we don\u0027t check that the value we are removing is not the old one... So, probably the fix would be making sure that either replicated maps work, or do a synchronized \u0027get/check/remove\u0027...",
+      "range": {
+        "startLine": 119,
+        "startChar": 0,
+        "endLine": 119,
+        "endChar": 13
+      },
+      "revId": "9317fb17e416860a582ddc6d434d9414d64ffeb1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_239abd14",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/VtepController.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 203,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-01-29T15:51:32Z",
+      "side": 1,
+      "message": "missing a comment indicating that \u0027abandon\u0027 and \u0027join\u0027 will be called from the same thread, so there are no race conditions",
+      "range": {
+        "startLine": 203,
+        "startChar": 17,
+        "endLine": 203,
+        "endChar": 24
+      },
+      "revId": "9317fb17e416860a582ddc6d434d9414d64ffeb1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
