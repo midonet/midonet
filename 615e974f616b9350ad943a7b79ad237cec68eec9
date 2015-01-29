@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_e167fde8",
+        "filename": "tools/devmido/midorc",
+        "patchSetId": 1
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 1002749
+      },
+      "writtenOn": "2015-01-29T20:40:10Z",
+      "side": 1,
+      "message": "Do you plan to add the MIDO_USER, MIDO_PASSWORD and the rest we have talked about in another patch, or you missed them?",
+      "revId": "615e974f616b9350ad943a7b79ad237cec68eec9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
