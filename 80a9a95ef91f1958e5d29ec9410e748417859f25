@@ -1,0 +1,84 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_630e7536",
+        "filename": "midolman/src/main/scala/org/midonet/cluster/ClusterState.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-29T10:13:36Z",
+      "side": 1,
+      "message": "Add API?\n\nAlso, not sure about the name. This seems to be more an AgentState, (if it\u0027s restricted to Agent nodes) or NodeState API (if open to other nodes, not only agent)",
+      "range": {
+        "startLine": 33,
+        "startChar": 6,
+        "endLine": 33,
+        "endChar": 18
+      },
+      "revId": "80a9a95ef91f1958e5d29ec9410e748417859f25",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_c312c957",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/guice/ClusterModule.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-29T10:13:36Z",
+      "side": 1,
+      "message": "Is it feasible to get this into /cluster instead of /midolman?",
+      "revId": "80a9a95ef91f1958e5d29ec9410e748417859f25",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_a30fcd2d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/guice/ClusterModule.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-29T10:13:36Z",
+      "side": 1,
+      "message": "5",
+      "range": {
+        "startLine": 2,
+        "startChar": 16,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "80a9a95ef91f1958e5d29ec9410e748417859f25",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_031d0167",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/guice/InMemoryStorageModule.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-29T10:13:36Z",
+      "side": 1,
+      "message": "This is for testing right? Why on main/src?",
+      "revId": "80a9a95ef91f1958e5d29ec9410e748417859f25",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
