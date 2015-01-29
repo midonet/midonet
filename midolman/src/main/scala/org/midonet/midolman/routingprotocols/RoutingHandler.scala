@@ -74,8 +74,8 @@ object RoutingHandler {
 
     private case class StopAdvertisingRoute(route: AdRoute)
 
-    private case class AddPeerRoute(ribType: RIBType.Value,
-                                    destination: IPv4Subnet, gateway: IPv4Addr)
+    private case class AddPeerRoute(ribType: RIBType.Value, destination: IPv4Subnet,
+                                    gateway: IPv4Addr, distance: Byte)
 
     private case class RemovePeerRoute(ribType: RIBType.Value,
                                        destination: IPv4Subnet,
@@ -280,8 +280,8 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
 
     private val handler = new ZebraProtocolHandler {
         def addRoute(ribType: RIBType.Value, destination: IPv4Subnet,
-                     gateway: IPv4Addr) {
-            self ! AddPeerRoute(ribType, destination, gateway)
+                     gateway: IPv4Addr, distance: Byte) {
+            self ! AddPeerRoute(ribType, destination, gateway, distance)
         }
 
         def removeRoute(ribType: RIBType.Value, destination: IPv4Subnet,
@@ -516,9 +516,8 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
                     stash()
             }
 
-        case AddPeerRoute(ribType, destination, gateway) =>
-            log.info("({}) AddPeerRoute: {}, {}, {}",
-                     phase, ribType, destination, gateway)
+        case AddPeerRoute(ribType, destination, gateway, distance) =>
+            log.info(s"($phase) AddPeerRoute: $ribType, $destination, $gateway $distance")
             phase match {
                 case NotStarted =>
                     log.error("({}) AddPeerRoute: unexpected", phase)
@@ -539,6 +538,7 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
                     route.setNextHopGateway(gateway.toString)
                     route.setNextHop(org.midonet.midolman.layer3.Route.NextHop.PORT)
                     route.setNextHopPort(rport.id)
+                    route.setWeight(distance)
                     val routeId = dataClient.routesCreateEphemeral(route)
                     peerRoutes.put(route, routeId)
                     log.debug("({}) announcing we've added a peer route", phase)

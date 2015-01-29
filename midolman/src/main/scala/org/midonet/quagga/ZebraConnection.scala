@@ -209,6 +209,13 @@ class ZebraConnection(val dispatcher: ActorRef,
         log.debug("ZebraIpv4RouteAdd: ribType %s flags %d prefix %s".format(
             ZebraRouteTypeTable(ribType), flags, advertised))
 
+        val distance =
+            if ((message & ZAPIMessageDistance) != 0) {
+                in.readByte
+            }  else {
+                1.toByte
+            }
+
         if ((message & ZAPIMessageNextHop) != 0) {
             val nextHopNum = in.readByte
             for (i <- 0 until nextHopNum) {
@@ -218,15 +225,12 @@ class ZebraConnection(val dispatcher: ActorRef,
                     log.info(s"received route: nextHopType $nextHopType addr $addr")
                     handler.addRoute(RIBType.fromInteger(ribType),
                         new IPv4Subnet(IPv4Addr.fromBytes(prefix), prefixLen),
-                        IPv4Addr.fromInt(addr))
+                        IPv4Addr.fromInt(addr), distance)
                 }
             }
         }
 
-        if ((message & ZAPIMessageDistance) != 0) {
-            val distance = in.readByte
-            // droping for now.
-        }
+
 
         if ((message & ZAPIMessageMetric) != 0) {
             // droping for now.
