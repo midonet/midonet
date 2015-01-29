@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_26ee4b23",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/BusObserver.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-29T16:52:06Z",
+      "side": 1,
+      "message": "Rediscussed over this, so summarizing. \n\nThe old code is using removeIfOwnerAndValue in removals, so we\u0027ll keep this. We agree that there are a bunch of races in mac flapping so further patches will be trying to address these.",
+      "parentUuid": "7a1969be_035501c6",
+      "range": {
+        "startLine": 119,
+        "startChar": 0,
+        "endLine": 119,
+        "endChar": 13
+      },
+      "revId": "9317fb17e416860a582ddc6d434d9414d64ffeb1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_239abd14",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/VtepController.scala",
         "patchSetId": 15
