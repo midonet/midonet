@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_b06435e6",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/BridgeSimulationTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 210,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-01-29T03:59:28Z",
+      "side": 1,
+      "message": "It seems Scala compiler inserts a semicolon in the end of this expression in this block.",
+      "revId": "2fa95b9d6122365c520a734ea5c84e2675230bea",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_106269d8",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/BridgeSimulationTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 211,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-01-29T03:59:28Z",
+      "side": 1,
+      "message": "ip should be in the same line as mac, where ip is interpreted a method of ArpBuilder.\n\n        arp.req mac srcMac -\u003e eth_bcast ip \"10.10.10.11\" --\u003e \"10.11.11.10\" }\n\nPersonally, the infix notation of Scala is too much and ambiguous sometimes. In this case I prefer even more explicit\n\n        { eth src srcMac dst eth_bcast} \u003c\u003c\n            arp.req.mac(srcMac -\u003e eth_bcast).ip(\"10.10.10.11\" --\u003e \"10.11.11.10\")",
+      "revId": "2fa95b9d6122365c520a734ea5c84e2675230bea",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
