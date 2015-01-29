@@ -9,7 +9,7 @@ midonet-cli-bridge(1) -- Bridge objects in midonet-cli
     midonet> bridge bridge0 list port
     midonet> bridge bridge0 add dhcp gw 203.0.113.1 subnet 203.0.113.0/24
     midonet> bridge bridge0 dhcp subnet 203.0.113.0/24 add host name HostName \
-             mac 01:02:03:04:05:06<br>
+             mac 01:02:03:04:05:06 address 203.0.113.2<br>
     midonet> bridge bridge0 set infilter chain chain0
     midonet> bridge bridge0 clear infilter
 
