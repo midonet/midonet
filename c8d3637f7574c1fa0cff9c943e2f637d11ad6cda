@@ -272,6 +272,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_b08555af",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 117,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-01-29T08:53:36Z",
+      "side": 1,
+      "message": "Ah. That\u0027s fine as is, then.",
+      "parentUuid": "7a1969be_55033673",
+      "range": {
+        "startLine": 117,
+        "startChar": 25,
+        "endLine": 117,
+        "endChar": 48
+      },
+      "revId": "c8d3637f7574c1fa0cff9c943e2f637d11ad6cda",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_8c476b1d",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/PortTranslator.scala",
         "patchSetId": 3
@@ -401,6 +425,30 @@
       "side": 1,
       "message": "As far as I can tell from the code, it seems necessary. The corresponding code is here:\n\nhttps://github.com/midonet/midonet/blob/20fcfdc195a69ad2bcd33448605a212bf685bc1d/midolman/src/main/java/org/midonet/cluster/data/neutron/NeutronPlugin.java#L343\n\nwhich calls,\n\nhttps://github.com/midonet/midonet/blob/1f7a5fe8b57065e2522f403c508d6f202a38769f/midolman/src/main/java/org/midonet/cluster/data/neutron/L3ZkManager.java#L320",
       "parentUuid": "7a1969be_cc5163da",
+      "range": {
+        "startLine": 141,
+        "startChar": 12,
+        "endLine": 141,
+        "endChar": 72
+      },
+      "revId": "c8d3637f7574c1fa0cff9c943e2f637d11ad6cda",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_f08fcdca",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 141,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-01-29T08:53:36Z",
+      "side": 1,
+      "message": "Ah, okay. Sounds good, then.",
+      "parentUuid": "7a1969be_95f48e88",
       "range": {
         "startLine": 141,
         "startChar": 12,
@@ -1012,6 +1060,30 @@
       "side": 1,
       "message": "I thought that what you do for Security Group, and it is indeed what the current SecurityGroupZkManager does (it has a TODO comment \"TODO: optimize\" :P). I\u0027m not too familiar with Neutron domain model, but the Subnet address or the Security Group Rules can change?",
       "parentUuid": "7a1969be_35d31a3a",
+      "range": {
+        "startLine": 366,
+        "startChar": 0,
+        "endLine": 368,
+        "endChar": 69
+      },
+      "revId": "c8d3637f7574c1fa0cff9c943e2f637d11ad6cda",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_109389fb",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 368,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-01-29T08:53:36Z",
+      "side": 1,
+      "message": "My idea was to update only the ones that change. Suppose, for example, that you add only one security group. Then all you need to do is add one jump rule, not delete and recreate all the rules. And several of the rules are fixed, and always going to be the same on every port.\n\nBut now that I think about it some more, we should probably just go with the easy way for now. If it turns out to be a problem, we can optimize later.",
+      "parentUuid": "7a1969be_adacde36",
       "range": {
         "startLine": 366,
         "startChar": 0,
