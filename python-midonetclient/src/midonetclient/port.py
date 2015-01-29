@@ -19,11 +19,8 @@ from midonetclient import bgp
 from midonetclient import port_group_port
 from midonetclient import resource_base
 from midonetclient import vendor_media_type
+from midonetclient.port_type import VXLAN
 from vendor_media_type import APPLICATION_PORTGROUP_PORT_COLLECTION_JSON
-
-
-PORT_TYPE_VXLAN = 'Vxlan'
-
 
 class Port(resource_base.ResourceBase,
            admin_state_up_mixin.AdminStateUpMixin):
@@ -58,7 +55,7 @@ class Port(resource_base.ResourceBase,
         return self.dto['interfaceName']
 
     def get_vlan_id(self):
-        if self.dto['type'] == PORT_TYPE_VXLAN:
+        if self.dto['type'] == VXLAN:
             return None
         return self.dto['vlanId']
 

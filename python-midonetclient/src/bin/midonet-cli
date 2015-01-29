@@ -25,6 +25,7 @@ from shlex import split as shsplit
 from webob import exc
 
 from midonetclient.api import MidonetApi
+from midonetclient.port_type import BRIDGE, VXLAN
 
 ################################################################################
 # Utilities
@@ -2306,7 +2307,8 @@ def _port_resolver(port):
     # This function dispatches the appropriate port class depending on the
     # given port's type and instantiate it.
     resolved_element_type = RouterPort
-    if (port is not None) and port.get_type() == "Bridge":
+    if (port is not None) and\
+            (port.get_type() == BRIDGE or port.get_type() == VXLAN):
         resolved_element_type = BridgePort
     return resolved_element_type(port)
 
