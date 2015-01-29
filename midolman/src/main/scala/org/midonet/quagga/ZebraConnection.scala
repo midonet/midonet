@@ -25,6 +25,7 @@ import java.nio.channels.{Channels, ByteChannel}
 import org.midonet.midolman.state.NoStatePathException
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.packets.{IPv4Addr, IPv4Subnet}
+import org.midonet.quagga.ZebraProtocol.RIBType
 
 case object ProcessMessage
 
@@ -32,6 +33,9 @@ object ZebraConnection {
 
     // The mtu size 1300 to avoid ovs dropping packets.
     private final val MidolmanMTU = 1300
+
+    case class NextHop(ribType: RIBType.Value, destination: IPv4Subnet,
+                       gateway: IPv4Addr)
 }
 
 class ZebraConnection(val dispatcher: ActorRef,
@@ -209,23 +213,38 @@ class ZebraConnection(val dispatcher: ActorRef,
         log.debug("ZebraIpv4RouteAdd: ribType %s flags %d prefix %s".format(
             ZebraRouteTypeTable(ribType), flags, advertised))
 
-        if ((message & ZAPIMessageNextHop) != 0) {
-            val nextHopNum = in.readByte
-            for (i <- 0 until nextHopNum) {
-                val nextHopType = in.readByte
-                if (nextHopType == ZebraNextHopIpv4) {
-                    val addr = in.readInt
-                    log.info(s"received route: nextHopType $nextHopType addr $addr")
-                    handler.addRoute(RIBType.fromInteger(ribType),
-                        new IPv4Subnet(IPv4Addr.fromBytes(prefix), prefixLen),
-                        IPv4Addr.fromInt(addr))
+        val nextHops =
+            if ((message & ZAPIMessageNextHop) != 0) {
+                val nextHopNum = in.readByte
+                val hops = new Array[NextHop](nextHopNum)
+                for (i <- 0 until nextHopNum) {
+                    val nextHopType = in.readByte
+                    if (nextHopType == ZebraNextHopIpv4) {
+                        val addr = in.readInt
+                        log.info(s"received route: nextHopType $nextHopType addr $addr")
+                        hops(i) = NextHop(RIBType.fromInteger(ribType),
+                            new IPv4Subnet(IPv4Addr.fromBytes(prefix), prefixLen),
+                            IPv4Addr.fromInt(addr))
+                    }
                 }
+                hops
+            } else {
+                Array[NextHop]()
             }
-        }
 
-        if ((message & ZAPIMessageDistance) != 0) {
-            val distance = in.readByte
-            // droping for now.
+        val distance =
+            if ((message & ZAPIMessageDistance) != 0) {
+                in.readByte
+            }  else {
+                1.toByte
+            }
+
+        var i = 0
+        while (i < nextHops.length) {
+            val nextHop = nextHops(i)
+            handler.addRoute(nextHop.ribType, nextHop.destination,
+                             nextHop.gateway, distance)
+            i += 1
         }
 
         if ((message & ZAPIMessageMetric) != 0) {
