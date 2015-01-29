@@ -86,6 +86,21 @@ run {
     }
 }
 
+// Runs a topology text-based client that dumps updates made to the topology
+// Use -Pconf=conf/topology-client.conf to start it up pointing at the sample
+// config file in brain/midonet-brain/conf (note that the path is relative to
+// the midonet-brain submodule
+task runTopologySnoopy(type: JavaExec) {
+    description = 'Run the Topology Snoopy client'
+    classpath sourceSets.main.runtimeClasspath
+    main = "org.midonet.brain.services.topology.TopologySnoopyApp"
+    if (project.hasProperty("conf")) {
+        args = [conf]
+    } else {
+        args = ["conf/topology-client.conf"]
+    }
+}
+
 cobertura {
     coverageSourceDirs << sourceSets.main.java.srcDirs
     coverageSourceDirs << sourceSets.main.scala.srcDirs
