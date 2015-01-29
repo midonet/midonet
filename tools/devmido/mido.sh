@@ -281,15 +281,8 @@ screen_process midolman "cd $MIDO_TOP_DIR && ./gradlew -a :midolman:runWithSudo"
 MIDO_API_CFG=$MIDO_TOP_DIR/midonet-api/src/main/webapp/WEB-INF/web.xml
 cp $MIDO_API_CFG.dev $MIDO_API_CFG
 
-# put logback.xml to the classpath with "debug" level
-sed -e 's/info/debug/' \
-    -e 's,</configuration>,\
-<logger name="org.apache.zookeeper" level="INFO" />\
-<logger name="org.apache.cassandra" level="INFO" />\
-<logger name="me.prettyprint.cassandra" level="INFO" />\
-</configuration>,' \
-   $MIDO_TOP_DIR/midonet-api/conf/logback.xml.sample > \
-   $MIDO_TOP_DIR/midonet-api/build/classes/main/logback.xml
+# Create the logback file in the class path
+cp $MIDO_TOP_DIR/midonet-api/conf/logback.xml.dev $MIDO_TOP_DIR/midonet-api/build/classes/main/logback.xml
 
 screen_process midonet-api "cd $MIDO_TOP_DIR && ./gradlew :midonet-api:jettyRun -Pport=$MIDO_API_PORT"
 

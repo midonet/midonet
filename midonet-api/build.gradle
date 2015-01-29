@@ -95,9 +95,9 @@ task preparePkg(type: Copy, dependsOn: installDist) {
         into "${webapp}/WEB-INF"
         rename ('web.xml.prod', 'web.xml')
     }
-    from("conf/logback.xml.sample") {
+    from("conf/logback.xml.prod") {
         into "${webapp}/WEB-INF/classes"
-        rename ('logback.xml.sample', 'logback.xml')
+        rename ('logback.xml.prod', 'logback.xml')
     }
     into "${pkgDestDir}"
 
