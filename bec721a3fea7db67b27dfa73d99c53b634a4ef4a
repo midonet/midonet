@@ -55,6 +55,24 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_a6223bff",
+        "filename": "brain/midonet-brain/build.gradle",
+        "patchSetId": 6
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-01-29T18:57:13Z",
+      "side": 1,
+      "message": "I agree with that, but would you mind if I do it in a separate patch (after the demo)?",
+      "parentUuid": "7a1969be_23791d94",
+      "revId": "bec721a3fea7db67b27dfa73d99c53b634a4ef4a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_c64ae2ab",
         "filename": "brain/midonet-brain/conf/client.conf",
         "patchSetId": 6
@@ -689,6 +707,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_0677cf03",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/client/ClientSession.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-01-29T18:57:13Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_a33d0dbe",
+      "range": {
+        "startLine": 74,
+        "startChar": 46,
+        "endLine": 74,
+        "endChar": 68
+      },
+      "revId": "bec721a3fea7db67b27dfa73d99c53b634a4ef4a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_e6a9de25",
         "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/client/ClientSession.scala",
         "patchSetId": 6
@@ -906,6 +948,30 @@
       "side": 1,
       "message": "Mm I think the not needed was referring to the (",
       "parentUuid": "7a1969be_6f3b01ec",
+      "range": {
+        "startLine": 137,
+        "startChar": 30,
+        "endLine": 137,
+        "endChar": 31
+      },
+      "revId": "bec721a3fea7db67b27dfa73d99c53b634a4ef4a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_e6739313",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/client/ClientSession.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 137,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-01-29T18:57:13Z",
+      "side": 1,
+      "message": "Done.\nRegarding the andThen, I don\u0027t see how to use it to simplify the code...",
+      "parentUuid": "7a1969be_e347054a",
       "range": {
         "startLine": 137,
         "startChar": 30,
