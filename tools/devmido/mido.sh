@@ -306,8 +306,10 @@ cd $MIDO_TOP_DIR/python-midonetclient
 sudo python setup.py develop
 
 # Make sure to remove system lib path in case it exists
-if grep -qw /usr/lib/python2.7/dist-packages /usr/local/lib/python2.7/dist-packages/easy-install.pth; then
-    grep -v /usr/lib/python2.7/dist-packages /usr/local/lib/python2.7/dist-packages/easy-install.pth | sudo tee /usr/local/lib/python2.7/dist-packages/easy-install.pth
+PYTHON_PACKAGE_DIR=/usr/lib/python2.7/dist-packages
+EASY_INSTALL_FILE=/usr/local/lib/python2.7/dist-packages/easy-install.pth
+if grep -qw $PYTHON_PACKAGE_DIR $EASY_INSTALL_FILE; then
+    grep -v $PYTHON_PACKAGE_DIR $EASY_INSTALL_FILE | sudo tee $EASY_INSTALL_FILE
 fi
 
 echo "devmido has successfully completed in $SECONDS seconds."
