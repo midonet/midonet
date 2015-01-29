@@ -15,7 +15,6 @@
  */
 package org.midonet.cluster.data;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,8 +24,7 @@ import java.util.UUID;
 public class Bridge extends Entity.Base<UUID, Bridge.Data, Bridge>
         implements Entity.TaggableEntity{
 
-    // As a convention, we consider frames with no VLAN tags
-    // as VLAN ID 0
+    // As a convention, we consider frames with no VLAN tags as VLAN ID 0
     public static final short UNTAGGED_VLAN_ID = 0;
 
     public enum Property {
@@ -142,7 +140,7 @@ public class Bridge extends Entity.Base<UUID, Bridge.Data, Bridge>
         public UUID inboundFilter;
         public UUID outboundFilter;
         public UUID vxLanPortId;
-        public List<UUID> vxLanPortIds = new ArrayList<>();
+        public List<UUID> vxLanPortIds;
         public Map<String, String> properties = new HashMap<>();
 
         @Override
@@ -159,13 +157,15 @@ public class Bridge extends Entity.Base<UUID, Bridge.Data, Bridge>
                     Objects.equals(inboundFilter, that.inboundFilter) &&
                     Objects.equals(outboundFilter, that.outboundFilter) &&
                     Objects.equals(vxLanPortId, that.vxLanPortId) &&
+                    Objects.equals(vxLanPortIds, that.vxLanPortIds) &&
                     Objects.equals(name, that.name);
         }
 
         @Override
         public int hashCode() {
             return Objects.hash(tunnelKey, adminStateUp, inboundFilter,
-                                outboundFilter, vxLanPortId, name);
+                                outboundFilter, vxLanPortId, vxLanPortIds,
+                                name);
         }
 
         @Override
@@ -176,7 +176,7 @@ public class Bridge extends Entity.Base<UUID, Bridge.Data, Bridge>
                    ", vxLanPortId=" + vxLanPortId +
                    ", vxLanPortIds=" + vxLanPortIds +
                    ", name=" + name +
-                    ", adminStateUp=" + adminStateUp + '}';
+                   ", adminStateUp=" + adminStateUp + '}';
         }
     }
 }

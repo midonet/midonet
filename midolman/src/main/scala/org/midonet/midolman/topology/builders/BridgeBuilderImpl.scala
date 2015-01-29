@@ -97,7 +97,8 @@ class BridgeBuilderImpl(val id: UUID, val flowController: ActorRef,
     }
 
     def setExteriorVxlanPortIds(vxlanIds: util.List[UUID]) {
-        exteriorVxlanPortIds = vxlanIds
+        exteriorVxlanPortIds = if (vxlanIds == null) new util.ArrayList()
+                               else vxlanIds
     }
 
     def setVlanPortMap(map: VlanPortMap) {
