@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_23a0fdf3",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VTPMRedirector.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-29T10:45:17Z",
+      "side": 1,
+      "message": "5",
+      "range": {
+        "startLine": 2,
+        "startChar": 16,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "42faae8717752697d8fbe57dd2c98ee8863b7590",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_83a57106",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/VTPMRedirectorTest.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-01-29T10:45:17Z",
+      "side": 1,
+      "message": "5",
+      "range": {
+        "startLine": 2,
+        "startChar": 16,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "42faae8717752697d8fbe57dd2c98ee8863b7590",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
