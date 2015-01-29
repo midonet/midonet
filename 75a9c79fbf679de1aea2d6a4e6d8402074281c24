@@ -1,0 +1,182 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_30f32575",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/NetworkTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-29T08:25:54Z",
+      "side": 1,
+      "message": "MidoOpList",
+      "range": {
+        "startLine": 35,
+        "startChar": 6,
+        "endLine": 35,
+        "endChar": 32
+      },
+      "revId": "75a9c79fbf679de1aea2d6a4e6d8402074281c24",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_90e8197e",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/NetworkTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-29T08:25:54Z",
+      "side": 1,
+      "message": "MidoOpListBuffer",
+      "range": {
+        "startLine": 36,
+        "startChar": 22,
+        "endLine": 36,
+        "endChar": 54
+      },
+      "revId": "75a9c79fbf679de1aea2d6a4e6d8402074281c24",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_10e549a8",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/NetworkTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-29T08:25:54Z",
+      "side": 1,
+      "message": "[OPTIONAL] Better to have some TODOs here for preparing links to provider, etc.",
+      "revId": "75a9c79fbf679de1aea2d6a4e6d8402074281c24",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_f01cedc3",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/RouteManager.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-29T08:25:54Z",
+      "side": 1,
+      "message": "s/2014/2015/",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "75a9c79fbf679de1aea2d6a4e6d8402074281c24",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_905ad981",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/RouterTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-29T08:25:54Z",
+      "side": 1,
+      "message": "So this part may be shared with the Port side as well?",
+      "range": {
+        "startLine": 81,
+        "startChar": 8,
+        "endLine": 90,
+        "endChar": 66
+      },
+      "revId": "75a9c79fbf679de1aea2d6a4e6d8402074281c24",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_70d63dc7",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/Port.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-29T08:25:54Z",
+      "side": 1,
+      "message": "It was declared to be Long intentionally for future extension and II think we should keep it so.",
+      "range": {
+        "startLine": 45,
+        "startChar": 19,
+        "endLine": 45,
+        "endChar": 22
+      },
+      "revId": "75a9c79fbf679de1aea2d6a4e6d8402074281c24",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_d0da91e8",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/TopologyBuilder.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-29T08:25:54Z",
+      "side": 1,
+      "message": "Ditto.",
+      "range": {
+        "startLine": 43,
+        "startChar": 46,
+        "endLine": 43,
+        "endChar": 49
+      },
+      "revId": "75a9c79fbf679de1aea2d6a4e6d8402074281c24",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_b0d715bf",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/devices/PortConversionTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 140,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-29T08:25:54Z",
+      "side": 1,
+      "message": "Ditto.",
+      "range": {
+        "startLine": 140,
+        "startChar": 33,
+        "endLine": 140,
+        "endChar": 40
+      },
+      "revId": "75a9c79fbf679de1aea2d6a4e6d8402074281c24",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
