@@ -67,8 +67,7 @@ object NeutronDeserializer {
         for (field <- node.fields.asScala if !field.getValue.isNull) {
             // Neutron has some field names in the form "plugin:field" for
             // fields added by plugins. We just ignore the first part.
-            val nameParts = field.getKey.split(':')
-            val name = nameParts(nameParts.length - 1)
+            val name = cleanUpPluginModifier(field.getKey)
             val value = field.getValue
             val fd = getFieldDesc(classDesc, name)
             val converter = fd.getType match {
@@ -95,6 +94,11 @@ object NeutronDeserializer {
 
         bldr.build().asInstanceOf[M]
     }
+
+    /* Neutron has some field names / values in the form "plugin:field" for
+     * fields added by the plugin. We just ignore the first part.
+     */
+    private def cleanUpPluginModifier(txt: String) = txt.split(':').last
 
     private def parseNestedMsg(desc: Descriptor)(node: JsonNode): Message = {
         // Have to do this because Protocol Buffers provides no way to get
@@ -127,7 +131,7 @@ object NeutronDeserializer {
 
     private def parseEnum(desc: EnumDescriptor)
                          (node: JsonNode): EnumValueDescriptor = {
-        val textVal = node.asText
+        val textVal = cleanUpPluginModifier(node.asText)
         val enumVal = desc.findValueByName(textVal.toUpperCase)
         if (enumVal == null)
             throw new NeutronDeserializationException(
