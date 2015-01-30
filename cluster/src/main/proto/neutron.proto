@@ -74,8 +74,8 @@ message NeutronPort {
     enum DeviceOwner {
         DHCP = 0;
         FLOATINGIP = 1;
-        ROUTER_GW = 2;
-        ROUTER_INTF = 3;
+        ROUTER_GATEWAY = 2;
+        ROUTER_INTERFACE = 3;
     }
     optional DeviceOwner device_owner = 8;
     optional string device_id = 9;
