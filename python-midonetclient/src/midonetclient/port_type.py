@@ -17,3 +17,4 @@
 
 BRIDGE = "Bridge"
 ROUTER = "Router"
+VXLAN = "Vxlan"
