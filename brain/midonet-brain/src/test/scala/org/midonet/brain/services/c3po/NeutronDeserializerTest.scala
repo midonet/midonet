@@ -164,4 +164,26 @@ class NeutronDeserializerTest extends FunSuite with Matchers {
         pool2.getEnd.getVersion shouldBe Commons.IPVersion.V6
         pool2.getEnd.getAddress shouldBe "1234:0:0:0:0:0:0:ffff"
     }
+
+    test("Neutron Port deserialization") {
+        val json =
+            """
+              |{
+              |    "name": "router-gateway-port",
+              |    "admin_state_up": true,
+              |    "tenant_id": "4fd44f30292945e481c7b8a0c8908869",
+              |    "id": "d32019d3-bc6e-4319-9c1d-6722fc136a22",
+              |    "device_owner": "network:router_interface"
+              |}
+            """.stripMargin
+
+        val network =
+            NeutronDeserializer.toMessage(json, classOf[Neutron.NeutronPort])
+        network.getName should equal("router-gateway-port")
+        network.getAdminStateUp shouldBe true
+        network.getTenantId should equal("4fd44f30292945e481c7b8a0c8908869")
+        network.getId.getMsb shouldBe 0xd32019d3bc6e4319L
+        network.getId.getLsb shouldBe 0x9c1d6722fc136a22L
+        network.getDeviceOwner shouldBe Neutron.NeutronPort.DeviceOwner.ROUTER_INTERFACE
+    }
 }
