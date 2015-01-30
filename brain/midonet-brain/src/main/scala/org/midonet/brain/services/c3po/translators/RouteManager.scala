@@ -16,20 +16,39 @@
 
 package org.midonet.brain.services.c3po.translators
 
+import org.midonet.cluster.data.neutron.MetaDataService
 import org.midonet.cluster.data.storage.ReadOnlyStorage
-import org.midonet.cluster.models.Commons.UUID
+import org.midonet.cluster.models.Commons.{IPAddress, IPSubnet, UUID}
 import org.midonet.cluster.models.Topology.Route
 import org.midonet.cluster.models.Topology.Route.NextHop
+import org.midonet.cluster.util.{IPSubnetUtil, UUIDUtil}
 
 trait RouteManager {
     val storage: ReadOnlyStorage
+    val META_DATA_SRVC = IPSubnetUtil.toProto(MetaDataService.IPv4_ADDRESS)
+    val DEFAULT_WEIGHT = 100
 
-    def createLocalRoute(portId: UUID, portAddr: String, routerId: UUID)
+    def createLocalRoute(portId: UUID, portAddr: IPSubnet, routerId: UUID)
     : Route = {
         Route.newBuilder()
-             .setDstNetworkAddr(portAddr).setDstNetworkLength(32)
+             .setDstNetworkAddr(portAddr)
              .setNextHop(NextHop.LOCAL)
              .setNextHopPortId(portId)
              .setRouterId(routerId).build()
+    }
+
+    def createMetaDataServiceRoute(srcSubnet: IPSubnet, nextHopPortId: UUID,
+                                   nextHopGw: IPAddress, routerId: UUID)
+    : Route = {
+        Route.newBuilder
+             .setId(UUIDUtil.randomUuidProto)
+             .setSrcNetworkAddr(srcSubnet)
+             .setDstNetworkAddr(META_DATA_SRVC)
+             .setNextHop(NextHop.PORT)
+             .setNextHopPortId(nextHopPortId)
+             .setNextHopGateway(nextHopGw)
+             .setWeight(DEFAULT_WEIGHT)
+             .setRouterId(routerId)
+             .build
     }
 }
