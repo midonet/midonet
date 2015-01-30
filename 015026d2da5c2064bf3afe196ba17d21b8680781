@@ -1,0 +1,84 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_01e2199f",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/NetworkTranslator.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-30T07:26:04Z",
+      "side": 1,
+      "message": "Just commenting that this will overwrite inbound/outbound filter IDs and other fields. That\u0027s as expected, but I wonder if it\u0027s better to change the behaviour now and look up the old config and copy only what\u0027s change. Chatted on this with @joe a bit. Anyway, this is fine as is.",
+      "range": {
+        "startLine": 43,
+        "startChar": 15,
+        "endLine": 43,
+        "endChar": 36
+      },
+      "revId": "015026d2da5c2064bf3afe196ba17d21b8680781",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_419a5115",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/RouterTranslator.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-30T07:26:04Z",
+      "side": 1,
+      "message": "// TODO Delete the port linked to the GW port if any?",
+      "revId": "015026d2da5c2064bf3afe196ba17d21b8680781",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_81a44958",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/RouterTranslator.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-30T07:26:04Z",
+      "side": 1,
+      "message": "You also need to update the GW port with the device ID?",
+      "revId": "015026d2da5c2064bf3afe196ba17d21b8680781",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_01f9794d",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/RouterTranslator.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-30T07:26:04Z",
+      "side": 1,
+      "message": "At least you can add Create(rPort) to the MidoOpList?",
+      "range": {
+        "startLine": 95,
+        "startChar": 8,
+        "endLine": 95,
+        "endChar": 14
+      },
+      "revId": "015026d2da5c2064bf3afe196ba17d21b8680781",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
