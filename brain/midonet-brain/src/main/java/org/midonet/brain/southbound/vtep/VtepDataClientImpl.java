@@ -468,7 +468,7 @@ public class VtepDataClientImpl extends VtepDataClientBase {
                   mac, lsName);
         Status status = configurationService.vtepDelUcastMacRemote(
             node, lsName, mac.toString());
-        if (!status.isSuccess()) {
+        if (!status.isSuccess() && status.getCode() != StatusCode.NOTFOUND) {
             log.warn("Deleting all unicast remote MAC failed: {}",
                      status);
         }
