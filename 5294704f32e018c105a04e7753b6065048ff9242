@@ -22,6 +22,30 @@
       "revId": "5294704f32e018c105a04e7753b6065048ff9242",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_e1affd29",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-01-30T07:58:20Z",
+      "side": 1,
+      "message": "Probably it should be MidoNet Network (a.k.a. Bridge) or Network in the MidoNet Model. I used \"Mido\" as a short hand for \"MidoNet\" but that may not have been very wise as this can be seen in logs. \"Mido Network\" can possibly be confused for just MidoNet instead of MidoNet Network? Probably better to rewrite it at the cost of a bit more redundancy, but I suspect this exception will never really be thrown as I think Neutron API should guard against it.",
+      "parentUuid": "7a1969be_a1b6a588",
+      "range": {
+        "startLine": 66,
+        "startChar": 24,
+        "endLine": 66,
+        "endChar": 36
+      },
+      "revId": "5294704f32e018c105a04e7753b6065048ff9242",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
