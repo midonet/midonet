@@ -34,7 +34,7 @@ PATH=$PATH:/usr/local/sbin:/usr/sbin:/sbin
 DEVMIDO_DIR=$(cd $(dirname $0) && pwd)
 
 # Keep track of the midonet root directory
-MIDO_TOP_DIR=$(cd $DEVMIDO_DIR/../../ && pwd)
+TOP_DIR=$(cd $DEVMIDO_DIR/../../ && pwd)
 
 # Check for uninitialized variables, a big cause of bugs
 NOUNSET=${NOUNSET:-}
@@ -222,7 +222,7 @@ fi
 # MidoNet
 # =======
 
-cd $MIDO_TOP_DIR
+cd $TOP_DIR
 
 git submodule update --init
 
@@ -238,56 +238,56 @@ git submodule update --init
 ./gradlew :midolman:installApp
 
 # Change MIDO_HOME (used by mm-ctl / mm-dpctl) to point at deps dir
-MIDO_DEPS_DIR="$MIDO_TOP_DIR/midodeps"
-MIDOLMAN_BUILD_TARGET_DIR="$MIDO_TOP_DIR/midolman/build/install/midolman/lib"
+DEPS_DIR="$TOP_DIR/midodeps"
+AGENT_BUILD_DIR="$TOP_DIR/midolman/build/install/midolman/lib"
 
-rm -rf $MIDO_DEPS_DIR ; mkdir -p $MIDO_DEPS_DIR
-cp $MIDOLMAN_BUILD_TARGET_DIR/midolman-*.jar  $MIDO_DEPS_DIR/midolman.jar
-cp $MIDOLMAN_BUILD_TARGET_DIR/midonet-jdk-bootstrap-*.jar $MIDO_DEPS_DIR/midonet-jdk-bootstrap.jar
-cp -r $MIDOLMAN_BUILD_TARGET_DIR $MIDO_DEPS_DIR/dep
+rm -rf $DEPS_DIR ; mkdir -p $DEPS_DIR
+cp $AGENT_BUILD_DIR/midolman-*.jar  $DEPS_DIR/midolman.jar
+cp $AGENT_BUILD_DIR/midonet-jdk-bootstrap-*.jar $DEPS_DIR/midonet-jdk-bootstrap.jar
+cp -r $AGENT_BUILD_DIR $DEPS_DIR/dep
 
 # Place our executables in /usr/local/bin
-sed -e "s@%MIDO_HOME%@$MIDO_DEPS_DIR@" \
-    -e "s@%MIDO_TOP_DIR%@$MIDO_TOP_DIR@" \
+sed -e "s@%DEPS_DIR%@$DEPS_DIR@" \
+    -e "s@%TOP_DIR%@$TOP_DIR@" \
     $DEVMIDO_DIR/binproxy | sudo tee /usr/local/bin/mm-dpctl /usr/local/bin/mm-ctl
 
 # Create the midolman's conf dir in case it doesn't exist
-if [ ! -d $MIDOLMAN_CONF_DIR ]; then
-    sudo mkdir -p $MIDOLMAN_CONF_DIR
+if [ ! -d $AGENT_CONF_DIR ]; then
+    sudo mkdir -p $AGENT_CONF_DIR
 fi
 
 # These config files are needed - create if not present
-if [ ! -f $MIDOLMAN_CONF_DIR/logback-dpctl.xml ]; then
-    sudo cp $MIDO_TOP_DIR/midolman/conf/logback-dpctl.xml $MIDOLMAN_CONF_DIR/
+if [ ! -f $AGENT_CONF_DIR/logback-dpctl.xml ]; then
+    sudo cp $TOP_DIR/midolman/conf/logback-dpctl.xml $AGENT_CONF_DIR/
 fi
-if [ ! -f $MIDOLMAN_CONF_DIR/midolman.conf ]; then
-    sudo cp $MIDO_TOP_DIR/midolman/conf/midolman.conf $MIDOLMAN_CONF_DIR/
+if [ ! -f $AGENT_CONF_DIR/midolman.conf ]; then
+    sudo cp $TOP_DIR/midolman/conf/midolman.conf $AGENT_CONF_DIR/
 fi
 
 # put config to the classpath and set loglevel to DEBUG for Midolman
 sed -e 's/"INFO"/"DEBUG"/'  \
-    $MIDO_TOP_DIR/midolman/conf/midolman-akka.conf > \
-    $MIDO_TOP_DIR/midolman/build/classes/main/application.conf
-cp  $MIDO_TOP_DIR/midolman/src/test/resources/logback-test.xml  \
-    $MIDO_TOP_DIR/midolman/build/classes/main/logback.xml
+    $TOP_DIR/midolman/conf/midolman-akka.conf > \
+    $TOP_DIR/midolman/build/classes/main/application.conf
+cp  $TOP_DIR/midolman/src/test/resources/logback-test.xml  \
+    $TOP_DIR/midolman/build/classes/main/logback.xml
 
-screen_process midolman "cd $MIDO_TOP_DIR && ./gradlew -a :midolman:runWithSudo"
+screen_process midolman "cd $TOP_DIR && ./gradlew -a :midolman:runWithSudo"
 
 
 # MidoNet API
 # -----------
 
 # TODO (ryu) make it work with keystone
-MIDO_API_CFG=$MIDO_TOP_DIR/midonet-api/src/main/webapp/WEB-INF/web.xml
-cp $MIDO_API_CFG.dev $MIDO_API_CFG
+API_CFG=$TOP_DIR/midonet-api/src/main/webapp/WEB-INF/web.xml
+cp $API_CFG.dev $API_CFG
 
 # Create the logback file in the class path
-cp $MIDO_TOP_DIR/midonet-api/conf/logback.xml.dev $MIDO_TOP_DIR/midonet-api/build/classes/main/logback.xml
+cp $TOP_DIR/midonet-api/conf/logback.xml.dev $TOP_DIR/midonet-api/build/classes/main/logback.xml
 
-screen_process midonet-api "cd $MIDO_TOP_DIR && ./gradlew :midonet-api:jettyRun -Pport=$MIDO_API_PORT"
+screen_process midonet-api "cd $TOP_DIR && ./gradlew :midonet-api:jettyRun -Pport=$API_PORT"
 
-if ! timeout $MIDO_API_TIMEOUT sh -c "while ! wget -q -O- $MIDO_API_URI; do sleep 1; done"; then
-    die $LINENO "API server didn't start in $MIDO_API_TIMEOUT seconds"
+if ! timeout $API_TIMEOUT sh -c "while ! wget -q -O- $API_URI; do sleep 1; done"; then
+    die $LINENO "API server didn't start in $API_TIMEOUT seconds"
 fi
 
 
@@ -295,7 +295,7 @@ fi
 # --------------
 
 sudo pip install -U webob readline httplib2
-cd $MIDO_TOP_DIR/python-midonetclient
+cd $TOP_DIR/python-midonetclient
 sudo python setup.py develop
 
 # Make sure to remove system lib path in case it exists
