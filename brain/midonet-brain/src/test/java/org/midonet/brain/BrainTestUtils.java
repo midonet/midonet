@@ -41,7 +41,7 @@ import org.midonet.midolman.version.guice.VersionModule;
  */
 public class BrainTestUtils {
 
-    public static String zkRoot = "/test/v3/midolman";
+    public static String zkRoot = "/midonet";
 
     /**
      * Fills the configuration with some default values for tests. Allows a
