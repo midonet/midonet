@@ -110,10 +110,16 @@ public class Pool extends UriResource {
         super();
         this.loadBalancerId = pool.getLoadBalancerId();
         this.healthMonitorId = pool.getHealthMonitorId();
-        this.protocol = pool.getProtocol().toString();
-        this.lbMethod = pool.getLbMethod().toString();
+        this.protocol = pool.getProtocol() != null ?
+                        pool.getProtocol().toString()
+                        : null;
+        this.lbMethod = pool.getLbMethod() != null ?
+                        pool.getLbMethod().toString()
+                        : null;
         this.adminStateUp = pool.isAdminStateUp();
-        this.status = pool.getStatus().toString();
+        this.status = pool.getStatus() != null ?
+                      pool.getStatus().toString()
+                      : null;
         this.id = pool.getId();
     }
 
