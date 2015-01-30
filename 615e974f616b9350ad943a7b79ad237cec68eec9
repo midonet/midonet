@@ -16,6 +16,24 @@
       "revId": "615e974f616b9350ad943a7b79ad237cec68eec9",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_01efb9b1",
+        "filename": "tools/devmido/midorc",
+        "patchSetId": 1
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-01-30T04:54:00Z",
+      "side": 1,
+      "message": "Yes, I will add them but in the patch that actually uses those variables.  This patch is strictly about renaming HOST_IP.",
+      "parentUuid": "7a1969be_e167fde8",
+      "revId": "615e974f616b9350ad943a7b79ad237cec68eec9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
