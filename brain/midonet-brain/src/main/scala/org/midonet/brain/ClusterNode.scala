@@ -21,6 +21,7 @@ import java.util.UUID
 import javax.sql.DataSource
 
 import com.codahale.metrics.{JmxReporter, MetricRegistry}
+import com.google.inject.name.Names
 import com.google.inject.{AbstractModule, Guice}
 import org.apache.commons.dbcp2.BasicDataSource
 import org.slf4j.LoggerFactory
@@ -28,13 +29,18 @@ import org.slf4j.LoggerFactory
 import org.midonet.brain.services.c3po.C3POConfig
 import org.midonet.brain.services.heartbeat.HeartbeatConfig
 import org.midonet.brain.services.vxgw.VxLanGatewayService.VxGWServiceConfig
+import org.midonet.cluster.config.ZookeeperConfig
 import org.midonet.cluster.data.storage.Storage
 import org.midonet.cluster.storage._
 import org.midonet.config._
-import org.midonet.midolman.guice.StorageModule
 import org.midonet.midolman.guice.cluster.DataClientModule
 import org.midonet.midolman.guice.serialization.SerializationModule
-import org.midonet.midolman.guice.zookeeper.ZookeeperConnectionModule
+import org.midonet.midolman.guice.zookeeper.ZookeeperConnectionModule.ZookeeperReactorProvider
+import org.midonet.midolman.guice.zookeeper.{DirectoryProvider, ZKConnectionProvider}
+import org.midonet.midolman.state.{Directory, ZkConnection, ZookeeperConnectionWatcher, ZkConnectionAwareWatcher}
+import org.midonet.midolman.version.guice.VersionModule
+import org.midonet.util.eventloop.Reactor
+
 
 /** Base exception for all MidoNet Cluster errors. */
 class ClusterException(msg: String, cause: Throwable)
@@ -132,11 +138,40 @@ object ClusterNode extends App {
         }
     }
 
+    // Settings for services depending on the old
+    // storage module (aka DataClient)
+    // TODO: remove this when no services depend on DataClient anymore
+    private val dataClientDependencies = new AbstractModule {
+        override def configure(): Unit = {
+
+            // Zookeeper stuff for DataClient
+            // roughly equivalent to ZookeeperConnectionModule,
+            // but without conflicts
+            val zkConfig = cfgProvider.getConfig(classOf[ZookeeperConfig])
+            bind(classOf[ZookeeperConfig]).toInstance(zkConfig)
+            bind(classOf[ZkConnection])
+                .toProvider(classOf[ZKConnectionProvider])
+                .asEagerSingleton()
+            bind(classOf[Directory])
+                .toProvider(classOf[DirectoryProvider])
+                .asEagerSingleton()
+            bind(classOf[Reactor]).annotatedWith(
+                Names.named(ZKConnectionProvider.DIRECTORY_REACTOR_TAG))
+                .toProvider(classOf[ZookeeperReactorProvider])
+                .asEagerSingleton()
+            bind(classOf[ZkConnectionAwareWatcher])
+                .to(classOf[ZookeeperConnectionWatcher])
+                .asEagerSingleton()
+
+            install(new VersionModule)
+            install(new SerializationModule)
+            install(new DataClientModule)
+        }
+    }
+
     protected[brain] var injector = Guice.createInjector(
         new MidonetBackendModule(backendCfg),
-        new ZookeeperConnectionModule,
-        new DataClientModule,
-        new SerializationModule,
+        dataClientDependencies,
         clusterNodeModule
     )
 
