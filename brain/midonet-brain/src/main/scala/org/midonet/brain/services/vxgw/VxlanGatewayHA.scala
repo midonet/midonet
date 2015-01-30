@@ -25,16 +25,15 @@ import scala.collection.JavaConversions._
 
 import com.google.inject.Inject
 import org.apache.curator.framework.CuratorFramework
-import org.apache.curator.framework.recipes.leader.{LeaderLatchListener, LeaderLatch}
+import org.apache.curator.framework.recipes.leader.{LeaderLatch, LeaderLatchListener}
 import org.slf4j.LoggerFactory
-import rx.{Subscription, Observer}
 import rx.schedulers.Schedulers
+import rx.{Observer, Subscription}
 
 import org.midonet.brain.ClusterNode
 import org.midonet.brain.southbound.vtep.VtepDataClientFactory
-import org.midonet.cluster.EntityIdSetEvent.Type
 import org.midonet.cluster.EntityIdSetEvent.Type._
-import org.midonet.cluster.{DataClient, EntityIdSetEvent, EntityIdSetMonitor}
+import org.midonet.cluster.{DataClient, EntityIdSetEvent}
 import org.midonet.midolman.state.{StateAccessException, ZookeeperConnectionWatcher}
 import org.midonet.util.functors._
 
