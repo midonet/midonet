@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_a1b6a588",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-01-30T07:49:07Z",
+      "side": 1,
+      "message": "Sorry, I should have caught this earlier, and we can fix it in another patch if necessary, but is this the appropriate term to be using, as opposed to Midonet Network? Or Midonet? Actually, I\u0027m not entirely sure what this message says.",
+      "range": {
+        "startLine": 66,
+        "startChar": 24,
+        "endLine": 66,
+        "endChar": 36
+      },
+      "revId": "5294704f32e018c105a04e7753b6065048ff9242",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
