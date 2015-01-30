@@ -29,7 +29,7 @@ if [[ -f $MIDO_RC_DIR/localrc ]]; then
 fi
 
 # IP address to use for the services
-HOST_IP=${HOST_IP:-127.0.0.1}
+MIDO_HOST_IP=${MIDO_HOST_IP:-127.0.0.1}
 
 # Screen name
 SCREEN_NAME=${SCREEN_NAME:-mido}
@@ -39,7 +39,7 @@ MIDOLMAN_CONF_DIR=${MIDOLMAN_CONF_DIR:-/etc/midolman}
 
 # MidoNet API port and the derived URI
 MIDO_API_PORT=${MIDO_API_PORT:-8081}
-MIDO_API_URI=http://$HOST_IP:$MIDO_API_PORT/midonet-api
+MIDO_API_URI=http://$MIDO_HOST_IP:$MIDO_API_PORT/midonet-api
 
 # Time (in sec) to wait for the API to start
 MIDO_API_TIMEOUT=${MIDO_API_TIMEOUT:-90}
