@@ -30,7 +30,6 @@ import rx.{Observable, Observer, Subscription}
 
 import org.midonet.brain.services.vxgw
 import org.midonet.brain.southbound.vtep.VtepConstants.bridgeIdToLogicalSwitchName
-import org.midonet.brain.southbound.vtep.VtepMAC.fromMac
 import org.midonet.brain.southbound.vtep.VtepNotConnectedException
 import org.midonet.cluster.DataClient
 import org.midonet.cluster.data.Bridge
@@ -79,12 +78,8 @@ final class VxlanGateway(val networkId: UUID) {
         override def onCompleted(): Unit = updates.onCompleted()
         override def onError(e: Throwable): Unit = updates.onError(e)
         override def onNext(ml: MacLocation): Unit = {
-            if (!ml.logicalSwitchName.equals(name)) {
-                log.warn(s"Drops $ml (bad log. switch name)")
-            } else {
-                if (log.isTraceEnabled) {
-                    log.trace("Learn " + ml)
-                }
+            if (ml.logicalSwitchName.equals(name)) {
+                log.trace("Learned: {}", ml)
                 updates.onNext(ml)
             }
         }
@@ -96,9 +91,6 @@ final class VxlanGateway(val networkId: UUID) {
 
     /** This VxGW is no longer relevant for us so stop managing it */
     protected[midonet] def terminate(): Unit = updates.onCompleted()
-
-    override def toString: String = "VxGW(networkId: " + networkId +
-                                    ", vni: " + vni + ")"
 
     override def equals(o: Any): Boolean = {
         if (!o.isInstanceOf[VxlanGateway]) false
@@ -206,7 +198,7 @@ class VxlanGatewayManager(networkId: UUID,
                         // If the IP was on a MidoNet port, we remove it,
                         // otherwise it's managed by some VTEP.
                         vxgw.asObserver.onNext(
-                            new MacLocation(fromMac(oldMac), ip, lsName, null)
+                            MacLocation(oldMac, ip, lsName, null)
                         )
                     case _ =>
                 }
@@ -458,7 +450,6 @@ class VxlanGatewayManager(networkId: UUID,
         }
 
         if (vxPort.getVni != vxgw.vni) {
-            // This should've been enforced at the API level!
             log.warn(s"VxLAN port $vxPortId has vni ${vxPort.getVni}, but " +
                      s"expected ${vxgw.vni}. Probable data inconsistency, " +
                      s"further bindings to VTEP at ${vxPort.getMgmtIpAddr}!" +
@@ -466,7 +457,6 @@ class VxlanGatewayManager(networkId: UUID,
             return
         }
         if (vxPort.getTunnelZoneId != vxgw.tzId) {
-            // This should've been enforced at the API level!
             log.warn(s"VxLAN port $vxPortId has tunnel zone " +
                      s"${vxPort.getTunnelZoneId}, but expected ${vxgw.vni}. " +
                      "Probable data inconsistency, further bindings to VTEP " +
@@ -500,21 +490,16 @@ class VxlanGatewayManager(networkId: UUID,
       * network, or from VTEP <-> MidoNet. Otherwise also entries that point at
       * VxLAN ports will be translated (in this case using the VTEP's IP from
       * the VxLAN port at which the MAC is located)
-      *
-      * TODO: async this?
       */
     private def toMacLocations(mac: MAC, newPort: UUID, oldPort: UUID,
                                onlyMido: Boolean): Try[Set[MacLocation]] = Try {
 
-        // isMido tells whether this all, or part of the changes related to
-        // this update are related to a port in MidoNet, and therefore data
-        // structures must be updated by us
-        val isInMidonet = isPortInMidonet(oldPort) || isPortInMidonet(newPort)
-        if (onlyMido && !isInMidonet) {
+        // we only process changes that affect a port in MidoNet
+        if (onlyMido && !isPortInMidonet(oldPort) && !isPortInMidonet(newPort)) {
             return Success(Set.empty)
         }
 
-        // The tunnel destination of the MAC, based on the newPort
+        // the tunnel destination of the MAC, based on the newPort
         val tunnelDst = if (newPort == null) null
                         else vxlanPorts.get(newPort) match {
                             case vxp: VxLanPort =>  // at a VTEP
@@ -524,11 +509,9 @@ class VxlanGatewayManager(networkId: UUID,
                                 dataClient.vxlanTunnelEndpointFor(newPort)
                         }
 
-        val vMac = fromMac(mac)
         if (tunnelDst == null && newPort != null) {
-            // This a typical case when the VM that has the MAC is not actually
-            // at an exterior port in the Network itself, but somewhere else in
-            // the virtual topology
+            // This a typical case when the VM that has the MAC is not at an
+            // exterior port in the Network, but elsewhere in the virt. topology
             val currTzState = tzState.get(vxgw.tzId)
             val floodingProxy = if (currTzState == null) null
                                 else currTzState.getFloodingProxy
@@ -537,28 +520,27 @@ class VxlanGatewayManager(networkId: UUID,
             } else {
                 log.info(s"MAC at port $newPort but tunnel IP not found, " +
                          s"I will use the flooding proxy ($currTzState)")
-                (arpTable.getByValue(mac) map { ip =>
-                    MacLocation(vMac, ip, lsName, floodingProxy.ipAddr)
-                }).toSet + MacLocation(vMac, null, lsName, floodingProxy.ipAddr)
+                macLocationsForArpSupression(mac, floodingProxy.ipAddr) +
+                    MacLocation (mac, lsName, floodingProxy.ipAddr)
             }
         } else if (tunnelDst == null) {
-            log.info(s"MAC $vMac removed from $lsName")
-            Set(MacLocation(vMac, null, lsName, null))
+            log.info(s"MAC $mac removed from $lsName")
+            Set(MacLocation(mac, lsName, null))
         } else {
-            // We know the tunnel dst, let's also add an entry for each IP known
-            // in the MAC, for ARP supression plus one for those not known
             // TODO: review this, not sure if we want to do the ARP supression
             //       bit for MACs that are not in MidoNet
-            val macLocation: MacLocation = MacLocation(vMac, null, lsName,
-                                                       tunnelDst)
-            if (arpTable == null) {
-                Set(macLocation)
-            } else {
-                (arpTable.getByValue(mac) map { ip =>
-                    new MacLocation(vMac, ip, lsName, tunnelDst)
-                }).toSet + macLocation
-            }
+            macLocationsForArpSupression(mac, tunnelDst) +
+                MacLocation(mac, lsName, tunnelDst) // default with no IP
+
         }
+    }
+
+    private def macLocationsForArpSupression(mac: MAC, endpointIp: IPv4Addr)
+    : Set[MacLocation] = {
+        if (arpTable == null) Set.empty
+        else (arpTable.getByValue (mac) map {
+            ip => MacLocation (mac, ip, lsName, endpointIp)
+        }).toSet
     }
 
     /** Publish the given location of a MAC to the given subscriber. */
@@ -600,9 +582,7 @@ class VxlanGatewayManager(networkId: UUID,
             macPortMap.get(mac) match {
                 case currPortId if currPortId eq expectPortId =>
                     val tunIp = dataClient.vxlanTunnelEndpointFor(currPortId)
-                    vxgw.asObserver.onNext(
-                        new MacLocation(fromMac(mac), ip, lsName, tunIp)
-                    )
+                    vxgw.asObserver.onNext(MacLocation(mac, ip, lsName, tunIp))
                 case _ =>
             }
         } catch {
