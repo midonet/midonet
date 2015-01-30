@@ -119,6 +119,8 @@ object NeutronDeserializer {
                 toMessage(node, classOf[NeutronRoute])
             case "org.midonet.cluster.models.NeutronRouter.ExternalGatewayInfo" =>
                 toMessage(node, classOf[NeutronRouter.ExternalGatewayInfo])
+            case "org.midonet.cluster.models.NeutronRouter.ExternalGatewayInfo.IPAllocation" =>
+                toMessage(node, classOf[NeutronRouter.ExternalGatewayInfo.IPAllocation])
             case "org.midonet.cluster.models.NeutronSubnet.IPAllocationPool" =>
                 toMessage(node, classOf[NeutronSubnet.IPAllocationPool])
             case "org.midonet.cluster.models.SecurityGroupRule" =>
