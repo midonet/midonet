@@ -94,6 +94,12 @@ message NeutronRouter {
     message ExternalGatewayInfo {
         optional UUID network_id = 1;
         optional bool enable_snat = 2;
+
+        message IPAllocation {
+            optional IPAddress ip_address = 1;
+            optional UUID subnet_id = 2;
+        }
+        repeated IPAllocation external_fixed_ips = 3;
     }
     optional ExternalGatewayInfo external_gateway_info = 6;
     optional bool admin_state_up = 7;
