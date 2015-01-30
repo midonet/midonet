@@ -177,22 +177,20 @@ message Chain {
 
 message Route {
     optional UUID id = 1;
-    optional string src_network_addr = 2;
-    optional int32 src_network_length = 3;
-    optional string dst_network_addr = 4;
-    optional int32 dst_network_length = 5;
+    optional IPSubnet src_subnet = 2;
+    optional IPSubnet dst_subnet = 3;
     enum NextHop {
         BLACKHOLE = 0;
         REJECT = 1;
         PORT = 2;
         LOCAL = 3;
     }
-    optional NextHop next_hop = 6;
-    optional UUID next_hop_port_id = 7;
-    optional string next_hop_gateway = 8;
-    optional int32 weight = 9;
-    optional string attributes = 10;
-    optional UUID router_id = 11;
+    optional NextHop next_hop = 4;
+    optional UUID next_hop_port_id = 5;
+    optional IPAddress next_hop_gateway = 6;
+    optional int32 weight = 7;
+    optional string attributes = 8;
+    optional UUID router_id = 9;
 }
 
 message Rule {
