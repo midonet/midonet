@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_3ca01ef4",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/VxlanGatewayHA.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-30T11:12:42Z",
+      "side": 1,
+      "message": "across",
+      "range": {
+        "startLine": 44,
+        "startChar": 38,
+        "endLine": 44,
+        "endChar": 45
+      },
+      "revId": "21bab79a689874ebacc173c29c52fd27a9f782f0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_bcab6ed5",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/VxlanGatewayHA.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 111,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-30T11:12:42Z",
+      "side": 1,
+      "message": "rather than a question maybe it would be better to output: \"Unexpected: network observable completed. This indicates that all networks were deleted.\"",
+      "range": {
+        "startLine": 111,
+        "startChar": 34,
+        "endLine": 111,
+        "endChar": 56
+      },
+      "revId": "21bab79a689874ebacc173c29c52fd27a9f782f0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_1cb9e22e",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/VxlanGatewayHA.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 114,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-30T11:12:42Z",
+      "side": 1,
+      "message": "\"...re-subscribing to the network stream...\" ?",
+      "range": {
+        "startLine": 114,
+        "startChar": 47,
+        "endLine": 114,
+        "endChar": 52
+      },
+      "revId": "21bab79a689874ebacc173c29c52fd27a9f782f0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_5c823a53",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/VxlanGatewayHA.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 131,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-30T11:12:42Z",
+      "side": 1,
+      "message": "It seems that you use Network and bridge interchangeably. Wouldn\u0027t it be better to stick to one word?",
+      "range": {
+        "startLine": 131,
+        "startChar": 28,
+        "endLine": 131,
+        "endChar": 35
+      },
+      "revId": "21bab79a689874ebacc173c29c52fd27a9f782f0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_3c877e63",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/VxlanGatewayHA.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 136,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-01-30T11:12:42Z",
+      "side": 1,
+      "message": "creating?",
+      "range": {
+        "startLine": 136,
+        "startChar": 49,
+        "endLine": 136,
+        "endChar": 55
+      },
+      "revId": "21bab79a689874ebacc173c29c52fd27a9f782f0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
