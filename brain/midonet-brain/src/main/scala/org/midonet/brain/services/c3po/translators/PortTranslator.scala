@@ -20,12 +20,16 @@ import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 
+import com.google.protobuf.Message
+
 import org.midonet.brain.services.c3po.midonet.{Create, Delete, MidoOp, Update}
+import org.midonet.cluster.data.neutron.MetaDataService
 import org.midonet.cluster.data.storage.ReadOnlyStorage
-import org.midonet.cluster.models.Commons.{IPAddress, IPSubnet, UUID}
+import org.midonet.cluster.models.Commons.{IPAddress, IPSubnet, IPVersion, UUID}
+import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner
 import org.midonet.cluster.models.Neutron.{NeutronPort, NeutronSubnet}
 import org.midonet.cluster.models.Topology.Network.Dhcp
-import org.midonet.cluster.models.Topology.{Chain, IpAddrGroup, Network, Port, PortOrBuilder, Rule}
+import org.midonet.cluster.models.Topology.{Chain, IpAddrGroup, Network, Port, PortOrBuilder, Route, Router, Rule}
 import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
 import org.midonet.cluster.util.{IPSubnetUtil, UUIDUtil}
 import org.midonet.packets.{ARP, IPv4, IPv6}
@@ -34,6 +38,190 @@ import org.midonet.util.concurrent.toFutureOps
 object PortTranslator {
     private def isIpv4(nSubnet: NeutronSubnet) = nSubnet.getIpVersion == 4
     private def isIpv6(nSubnet: NeutronSubnet) = nSubnet.getIpVersion == 6
+    private def egressChainName(portId: UUID) =
+        "OS_PORT_" + UUIDUtil.fromProto(portId) + "_INBOUND"
+
+    private def ingressChainName(portId: UUID) =
+        "OS_PORT_" + UUIDUtil.fromProto(portId) + "_OUTBOUND"
+}
+
+class PortTranslator(val storage: ReadOnlyStorage)
+        extends NeutronTranslator[NeutronPort]
+        with ChainManager with PortManager with RouteManager with RuleManager {
+    import org.midonet.brain.services.c3po.translators.PortTranslator._
+
+    override protected def translateCreate(nPort: NeutronPort): MidoOpList = {
+        val midoPortBldr: Port.Builder = if (isRouterGatewayPort(nPort)) {
+            // TODO Create a router port and set the provider router ID.
+            null
+        } else if (!isFloatingIpPort(nPort)) {
+            // For all other port types except floating IP port, create a normal
+            // bridge (network) port.
+            translateNeutronPort(nPort)
+        } else null
+
+        val portId = nPort.getId
+        var midoOps = new MidoOpListBuffer
+        if (isVifPort(nPort)) {
+            // Generate in/outbound chain IDs from Port ID.
+            val chainIds = getChainIds(portId)
+            midoPortBldr.setInboundFilterId(chainIds.inChainId)
+            midoPortBldr.setOutboundFilterId(chainIds.outChainId)
+
+            val vifPortInfo = buildVifPortModels(nPort, null, midoPortBldr)
+            addMidoOps(vifPortInfo, midoOps)
+        } else if (isDhcpPort(nPort)) {
+            val portContext = initPortContext(nPort)
+            updateDhcpEntries(nPort,
+                              portContext.midoNetworks,
+                              portContext.neutronSubnet,
+                              addDhcpServer)
+            midoOps ++= configureMetaDataService(nPort, portContext)
+            addMidoOps(portContext, midoOps)
+        }
+
+        if (midoPortBldr != null) midoOps :+= Create(midoPortBldr.build)
+        midoOps.toList
+    }
+
+    override protected def translateDelete(id: UUID): MidoOpList = {
+        var midoOps = new MidoOpListBuffer
+
+        val nPort = storage.get(classOf[NeutronPort], id).await()
+        if (!isFloatingIpPort(nPort))
+            midoOps :+= Delete(classOf[Port], id)
+
+        if (isVifPort(nPort)) { // It's a VIF port.
+            val mPort = storage.get(classOf[Port], id).await()
+            val vifPortInfo = buildVifPortModels(null, nPort, mPort)
+            addMidoOps(vifPortInfo, midoOps)
+        } else if (isDhcpPort(nPort)) {
+            val portContext = initPortContext(nPort)
+            updateDhcpEntries(nPort,
+                              portContext.midoNetworks,
+                              portContext.neutronSubnet,
+                              delDhcpServer)
+            midoOps ++= deleteMetaDataServiceRoute(nPort, portContext)
+            addMidoOps(portContext, midoOps)
+        }
+
+        midoOps.toList
+    }
+
+    override protected def translateUpdate(nPort: NeutronPort): MidoOpList = {
+        var midoOps = new MidoOpListBuffer
+
+        // It is assumed that the fixed IPs assigned to a Neutron Port will not
+        // be changed.
+        val portId = nPort.getId
+        val mPort = storage.get(classOf[Port], portId).await()
+        if ((isVifPort(nPort) || isDhcpPort(nPort)) &&
+            mPort.getAdminStateUp != nPort.getAdminStateUp)
+            midoOps :+= Update(mPort.toBuilder
+                                    .setAdminStateUp(nPort.getAdminStateUp)
+                                    .build)
+
+        if (isVifPort(nPort)) { // It's a VIF port.
+            val oldNPort = storage.get(classOf[NeutronPort], portId).await()
+            val vifPortInfo = buildVifPortModels(nPort, oldNPort, mPort)
+            addMidoOps(vifPortInfo, midoOps)
+        }
+        // TODO if a DHCP port, assert that the fixed IPs have't changed.
+
+        midoOps.toList
+    }
+
+    /* A container class holding context associated with a Neutron Port CRUD.
+     */
+    private case class PortContext(
+            nPort: NeutronPort, // Neutron Port to be CRUDed.
+            nPortOld: NeutronPort = null, // Neutron Port before update/delete
+            mPortOld: PortOrBuilder = null, // MidoNet Port before update/delete
+            midoNetworks: mutable.Map[UUID, Network.Builder],
+            neutronSubnet: mutable.Map[UUID, NeutronSubnet],
+            inRules: ListBuffer[MidoOp[Rule]],
+            outRules: ListBuffer[MidoOp[Rule]],
+            chains: ListBuffer[MidoOp[Chain]],
+            updatedIpAddrGrps: ListBuffer[MidoOp[IpAddrGroup]])
+
+    private def initPortContext(nPort: NeutronPort,
+                                nPortOld: NeutronPort = null,
+                                mPortOld: PortOrBuilder = null) =
+        PortContext(nPort, nPortOld, mPortOld,
+                    mutable.Map[UUID, Network.Builder](),
+                    mutable.Map[UUID, NeutronSubnet](),
+                    ListBuffer[MidoOp[Rule]](),
+                    ListBuffer[MidoOp[Rule]](),
+                    ListBuffer[MidoOp[Chain]](),
+                    ListBuffer[MidoOp[IpAddrGroup]]())
+
+
+    private def addMidoOps(portModels: PortContext,
+                           midoOps: MidoOpListBuffer) {
+            midoOps ++= portModels.midoNetworks.values.map(n => Update(n.build))
+            midoOps ++= portModels.inRules ++ portModels.outRules
+            midoOps ++= portModels.chains
+            midoOps ++= portModels.updatedIpAddrGrps
+    }
+
+    /* Builds models that need to be created / updated / deleted as part of a
+     * Neutron Port CRUD operation.
+     * @param nPort A Neutron Port that is to be created or updated.
+     * @param nPortOld An old Neutron Port that is to be either updated or
+     *                 deleted.
+     * @param mPortOld An old MidoNet Port corresponding to the Neutron Port
+     *                 that is to be either updated or deleted.
+     */
+    private def buildVifPortModels(nPort: NeutronPort,
+                                   nPortOld: NeutronPort,
+                                   mPortOld: PortOrBuilder): PortContext = {
+        val inChainId = mPortOld.getInboundFilterId
+        val outChainId = mPortOld.getOutboundFilterId
+        val portModels = initPortContext(nPort, nPortOld, mPortOld)
+
+        if (nPortOld != null) { // Port UPDATE or DELETE
+            updateDhcpEntries(nPortOld,
+                               portModels.midoNetworks,
+                               mutable.Map(), // Not interested in old subnets.
+                               delDhcpHost)
+        }
+
+        if (nPort != null) { // Port CREATE or UPDATE
+            updateDhcpEntries(nPort,
+                               portModels.midoNetworks,
+                               portModels.neutronSubnet,
+                               addDhcpHost)
+
+            updateSecurityBindings(
+                    nPort, nPortOld, inChainId, outChainId, portModels)
+        } else { // Port DELETION
+            deleteSecurityBindings(nPortOld, inChainId, outChainId, portModels)
+        }
+
+        portModels
+    }
+
+    /* Update DHCP subnet entries in the Network's DHCP settings. */
+    private def updateDhcpEntries(
+            nPort: NeutronPort,
+            networkCache: mutable.Map[UUID, Network.Builder],
+            subnetCache: mutable.Map[UUID, NeutronSubnet],
+            updateFun: (Network.Builder, IPSubnet, String, IPAddress) => Unit) {
+        for (ipAlloc <- nPort.getFixedIpsList.asScala) {
+            val subnet = storage.get(classOf[NeutronSubnet],
+                                     ipAlloc.getSubnetId).await()
+            subnetCache.put(ipAlloc.getSubnetId, subnet)
+            val ipSubnet = IPSubnetUtil.toProto(subnet.getCidr)
+            val network = networkCache.getOrElseUpdate(
+                    subnet.getNetworkId,
+                    storage.get(classOf[Network], subnet.getNetworkId)
+                                                .await().toBuilder)
+
+            val mac = nPort.getMacAddress
+            val ipAddress = ipAlloc.getIpAddress
+            updateFun(network, ipSubnet, mac, ipAddress)
+        }
+    }
 
     /* Find a DHCP subnet of the give bridge with the specified IP Subnet.
      * Throws IllegalArgumentException if not found.
@@ -72,173 +260,50 @@ object PortTranslator {
         }
     }
 
-    private def egressChainName(portId: UUID) =
-        "OS_PORT_" + UUIDUtil.fromProto(portId) + "_INBOUND"
-
-    private def ingressChainName(portId: UUID) =
-        "OS_PORT_" + UUIDUtil.fromProto(portId) + "_OUTBOUND"
-}
-
-class PortTranslator(private val storage: ReadOnlyStorage)
-        extends NeutronTranslator[NeutronPort]
-        with ChainManager with PortManager with RuleManager {
-    import org.midonet.brain.services.c3po.translators.PortTranslator._
-
-    override protected def translateCreate(nPort: NeutronPort): MidoOpList = {
-        val midoPortBldr: Port.Builder = if (isRouterGatewayPort(nPort)) {
-            // TODO Create a router port and set the provider router ID.
-            null
-        } else if (!isFloatingIpPort(nPort)) {
-            // For all other port types except floating IP port, create a normal
-            // bridge (network) port.
-            translateNeutronPort(nPort)
-        } else null
-
-        val portId = nPort.getId
-        var midoOps = new MidoOpListBuffer
-        if (isVifPort(nPort)) {
-            // Generate in/outbound chain IDs from Port ID.
-            val chainIds = getChainIds(portId)
-            midoPortBldr.setInboundFilterId(chainIds.inChainId)
-            midoPortBldr.setOutboundFilterId(chainIds.outChainId)
-
-            val vifPortInfo = buildVifPortModels(nPort, null, midoPortBldr)
-            addMidoOps(vifPortInfo, midoOps)
-        }
-
-        if (midoPortBldr != null) midoOps :+= Create(midoPortBldr.build)
-        midoOps.toList
-    }
-
-    override protected def translateDelete(id: UUID): MidoOpList = {
-        var midoOps = new MidoOpListBuffer
-
-        val nPort = storage.get(classOf[NeutronPort], id).await()
-        if (!isFloatingIpPort(nPort))
-            midoOps :+= Delete(classOf[Port], id)
-
-        if (isVifPort(nPort)) { // It's a VIF port.
-            val mPort = storage.get(classOf[Port], id).await()
-            val vifPortInfo = buildVifPortModels(null, nPort, mPort)
-            addMidoOps(vifPortInfo, midoOps)
-        }
-
-        midoOps.toList
-    }
-
-    override protected def translateUpdate(nPort: NeutronPort): MidoOpList = {
-        var midoOps = new MidoOpListBuffer
-
-        val portId = nPort.getId
-        val mPort = storage.get(classOf[Port], portId).await()
-        if ((isVifPort(nPort) || isDhcpPort(nPort)) &&
-            mPort.getAdminStateUp != nPort.getAdminStateUp)
-            midoOps :+= Update(mPort.toBuilder
-                                    .setAdminStateUp(nPort.getAdminStateUp)
-                                    .build)
-
-        if (isVifPort(nPort)) { // It's a VIF port.
-            val oldNPort = storage.get(classOf[NeutronPort], portId).await()
-            val vifPortInfo = buildVifPortModels(nPort, oldNPort, mPort)
-            addMidoOps(vifPortInfo, midoOps)
-        }
-        midoOps.toList
-    }
-
-    /* A container class holding models associated with a VIF port CRUD that are
-     * to be created / updated / deleted.
+    /* Looks up a subnet in the given Network with the corresponding subnet
+     * address and configures the DHCP server and an OPT 121 route to it with
+     * the given IP address (the mac is actually not being used here). This
+     * method is a no-op if the specified subnet does not exist with the
+     * Network.
      */
-    private case class VifPortModels(
-            midoNetworks: mutable.Map[UUID, Network.Builder],
-            neutronSubnet: mutable.Set[NeutronSubnet],
-            inRules: ListBuffer[MidoOp[Rule]],
-            outRules: ListBuffer[MidoOp[Rule]],
-            chains: ListBuffer[MidoOp[Chain]],
-            updatedIpAddrGrps: ListBuffer[MidoOp[IpAddrGroup]])
-
-    private def addMidoOps(portModels: VifPortModels,
-                           midoOps: MidoOpListBuffer) {
-            midoOps ++= portModels.midoNetworks.values.map(n => Update(n.build))
-            midoOps ++= portModels.inRules ++ portModels.outRules
-            midoOps ++= portModels.chains
-            midoOps ++= portModels.updatedIpAddrGrps
+    private def addDhcpServer(network: Network.Builder, subnet: IPSubnet,
+                              mac: String, ipAddr: IPAddress) {
+        if (subnet.getVersion == IPVersion.V4)
+            findDhcpSubnet(network, subnet).foreach(_.setServerAddress(ipAddr)
+                                                     .addOpt121RoutesBuilder()
+                                                     .setDstSubnet(META_DATA_SRVC)
+                                                     .setGateway(ipAddr))
     }
 
-    /* Builds models that need to be created / updated / deleted as part of a
-     * Neutron Port CRUD operation.
-     * @param nPort A Neutron Port that is to be created or updated.
-     * @param nPortOld An old Neutron Port that is to be either updated or
-     *                 deleted.
-     * @param mPortOld An old MidoNet Port corresponding to the Neutron Port
-     *                 that is to be either updated or deleted.
+    /* Looks up a subnet in the given Network with the corresponding subnet
+     * address and removes the DHCP server and OPT 121 route configurations with
+     * the given IP address (the mac is actually not being used here). This
+     * method is a no-op if the specified subnet does not exist with the
+     * Network.
      */
-    private def buildVifPortModels(nPort: NeutronPort,
-                                   nPortOld: NeutronPort,
-                                   mPortOld: PortOrBuilder): VifPortModels = {
-        val inChainId = mPortOld.getInboundFilterId
-        val outChainId = mPortOld.getOutboundFilterId
-        val portModels = VifPortModels(mutable.Map[UUID, Network.Builder](),
-                                       mutable.Set[NeutronSubnet](),
-                                       ListBuffer[MidoOp[Rule]](),
-                                       ListBuffer[MidoOp[Rule]](),
-                                       ListBuffer[MidoOp[Chain]](),
-                                       ListBuffer[MidoOp[IpAddrGroup]]())
-
-        if (nPortOld != null) { // Port UPDATE or DELETE
-            updateDhcpEntries(nPortOld,
-                               portModels.midoNetworks,
-                               mutable.Set(), // Not interested in old subnets.
-                               delDhcpHost)
-        }
-
-        if (nPort != null) { // Port CREATE or UPDATE
-            updateDhcpEntries(nPort,
-                               portModels.midoNetworks,
-                               portModels.neutronSubnet,
-                               addDhcpHost)
-
-            updateSecurityBindings(
-                    nPort, nPortOld, inChainId, outChainId, portModels)
-        } else { // Port DELETION
-            deleteSecurityBindings(nPortOld, inChainId, outChainId, portModels)
-        }
-
-        portModels
+    private def delDhcpServer(network: Network.Builder, subnet: IPSubnet,
+                              mac: String, ipAddr: IPAddress) {
+        if (subnet.getVersion == IPVersion.V4)
+            findDhcpSubnet(network, subnet).foreach({dhcpSubnet =>
+                dhcpSubnet.clearServerAddress()
+                val route = dhcpSubnet.getOpt121RoutesOrBuilderList.asScala
+                            .indexWhere({route =>
+                                route.getDstSubnet == META_DATA_SRVC &&
+                                route.getGateway == ipAddr})
+                if (route >= 0) dhcpSubnet.removeOpt121Routes(route)
+            })
     }
-
-    /* Update host entries in the Network's DHCP settings. */
-    private def updateDhcpEntries(
-            nPort: NeutronPort,
-            networkCache: mutable.Map[UUID, Network.Builder],
-            subnetCache: mutable.Set[NeutronSubnet],
-            updateHost: (Network.Builder, IPSubnet, String, IPAddress) => Unit) {
-        for (ipAlloc <- nPort.getFixedIpsList.asScala) {
-            val subnet = storage.get(classOf[NeutronSubnet],
-                                     ipAlloc.getSubnetId).await()
-            subnetCache.add(subnet)
-            val ipSubnet = IPSubnetUtil.toProto(subnet.getCidr)
-            val network = networkCache.getOrElseUpdate(
-                    subnet.getNetworkId,
-                    storage.get(classOf[Network], subnet.getNetworkId)
-                                                .await().toBuilder)
-
-            val mac = nPort.getMacAddress
-            val ipAddress = ipAlloc.getIpAddress
-            updateHost(network, ipSubnet, mac, ipAddress)
-        }
-    }
-
 
     /* Create chains, rules and IP Address Groups associated with nPort. */
     private def updateSecurityBindings(nPort: NeutronPort,
                                        nPortOld: NeutronPort,
                                        inChainId: UUID,
                                        outChainId: UUID,
-                                       portInfo: VifPortModels) {
+                                       portInfo: PortContext) {
         val portId = nPort.getId
         val mac = nPort.getMacAddress
         // Create an IP spoofing protection rule.
-        for (subnet <- portInfo.neutronSubnet) {
+        for (subnet <- portInfo.neutronSubnet.values) {
             val ipSubnet = IPSubnetUtil.toProto(subnet.getCidr)
             val ipEtherType = if (isIpv4(subnet)) IPv4.ETHERTYPE
                               else IPv6.ETHERTYPE
@@ -332,7 +397,7 @@ class PortTranslator(private val storage: ReadOnlyStorage)
     private def deleteSecurityBindings(nPortOld: NeutronPort,
                                        inChainId: UUID,
                                        outChainId: UUID,
-                                       portInfo: VifPortModels) {
+                                       portInfo: PortContext) {
         val portId = nPortOld.getId
         val iChain = storage.get(classOf[Chain], inChainId).await()
         portInfo.inRules ++= iChain.getRuleIdsList.asScala
@@ -358,6 +423,78 @@ class PortTranslator(private val storage: ReadOnlyStorage)
             portInfo.updatedIpAddrGrps += Update(updatedIpAddrG.build)
         }
     }
+
+    /* If the first fixed IP address is configured with a gateway IP address,
+     * create a route to Meta Data Service.*/
+    private def configureMetaDataService(nPort: NeutronPort,
+                                         portContext: PortContext)
+    : Option[MidoOp[_ <: Message]] = if (nPort.getFixedIpsCount > 0) {
+        val nextHopGateway = nPort.getFixedIps(0).getIpAddress
+        val nextHopGatewaySubnetId = nPort.getFixedIps(0).getSubnetId
+        val srcSubnet = portContext.neutronSubnet(nextHopGatewaySubnetId)
+        findGwRouterPort(srcSubnet, portContext) match {
+            case Some(GwRouterPort(portId, router)) =>
+                val metaDataSvcRoute = createMetaDataServiceRoute(
+                       srcSubnet=IPSubnetUtil.toProto(srcSubnet.getCidr),
+                       nextHopPortId=portId,
+                       nextHopGw=nextHopGateway,
+                       routerId=router.getId)
+                Some(Update(router.toBuilder
+                                  .addRoutes(metaDataSvcRoute).build()))
+            case _ => None
+        }
+    } else None
+
+    /* If the first fixed IP address is configured with a gateway IP address,
+     * delete a route to Meta Data Service from the gateway router.*/
+    private def deleteMetaDataServiceRoute(nPort: NeutronPort,
+                                           portContext: PortContext)
+    : Option[MidoOp[_ <: Message]] = if (nPort.getFixedIpsCount > 0) {
+        var deleteOp: MidoOp[_ <: Message] = null
+        val nextHopGateway = nPort.getFixedIps(0).getIpAddress
+        val nextHopGatewaySubnetId = nPort.getFixedIps(0).getSubnetId
+        val srcSubnet = portContext.neutronSubnet(nextHopGatewaySubnetId)
+
+        findGwRouterPort(srcSubnet, portContext) match {
+            case Some(GwRouterPort(portId, router)) =>
+                val svcRoute =
+                    router.getRoutesOrBuilderList.asScala
+                          .indexWhere(r =>
+                              nextHopGateway == r.getNextHopGateway &&
+                              META_DATA_SRVC == r.getDstNetworkAddr)
+                if (svcRoute >= 0)
+                    deleteOp = Update(router.toBuilder.removeRoutes(svcRoute)
+                                            .build())
+        }
+        Option(deleteOp)
+    } else None
+
+    private case class GwRouterPort(gatewayRouterPortId: UUID,
+                                    gatewayRouter: Router)
+    /* Find a gateway router port specified with the subnet. */
+    private def findGwRouterPort(subnet: NeutronSubnet,
+                                 portContext: PortContext)
+    : Option[GwRouterPort] = if (subnet.hasGatewayIp) {
+        val network = portContext.midoNetworks(subnet.getNetworkId)
+        // Find a first logical port that has a peer port with the gateway IP.
+        var gwRouterPort: Port = null
+        network.getPortIdsList.asScala
+               .takeWhile(_ => gwRouterPort == null)
+               .foreach({portId =>
+                   val port = storage.get(classOf[Port], portId).await()
+                   if (port.hasPeerId) {
+                       val peer = storage.get(classOf[Port], port.getPeerId)
+                                         .await()
+                       if (subnet.getGatewayIp == peer.getPortAddress)
+                           gwRouterPort = peer
+                   }
+               })
+        if (gwRouterPort != null)
+            Some(GwRouterPort(gwRouterPort.getId,
+                              storage.get(classOf[Router],
+                                          gwRouterPort.getRouterId).await()))
+        else None
+    } else None
 
     private def translateNeutronPort(nPort: NeutronPort): Port.Builder =
         Port.newBuilder.setId(nPort.getId)

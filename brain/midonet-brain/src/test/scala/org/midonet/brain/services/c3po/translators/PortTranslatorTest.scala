@@ -35,9 +35,10 @@ import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.models.Commons.{IPAddress, IPSubnet, UUID}
 import org.midonet.cluster.models.ModelsUtil._
 import org.midonet.cluster.models.Neutron.{NeutronPort, NeutronSubnet}
-import org.midonet.cluster.models.Topology.{Chain, IpAddrGroup, Network, Port, Rule}
+import org.midonet.cluster.models.Topology.{Chain, IpAddrGroup, Network, Port, Router, Rule}
 import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil, UUIDUtil}
 import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
+import org.midonet.cluster.util.UUIDUtil.randomUuidProto
 import org.midonet.packets.{ARP, IPv4, IPv6}
 
 trait OpMatchers {
@@ -94,9 +95,9 @@ class PortTranslatorTest extends FlatSpec with BeforeAndAfter
     protected var storage: ReadOnlyStorage = _
     protected var translator: PortTranslator = _
 
-    protected val portId = UUIDUtil.randomUuidProto
+    protected val portId = randomUuidProto
     protected val portJUuid = UUIDUtil.fromProto(portId)
-    protected val networkId = UUIDUtil.randomUuidProto
+    protected val networkId = randomUuidProto
     protected val tenantId = "neutron tenant"
     protected val mac = "00:11:22:33:44:55"
 
@@ -174,7 +175,7 @@ class PortTranslatorTest extends FlatSpec with BeforeAndAfter
             }"""
     val mNetworkWithSubnets = mNetworkFromTxt(midoNetworkWithSubnets)
 
-    val nIpv4Subnet1Id = UUIDUtil.randomUuidProto
+    val nIpv4Subnet1Id = randomUuidProto
     val nIpv4Subnet1 = nSubnetFromTxt(s"""
         id { $nIpv4Subnet1Id }
         network_id { $networkId }
@@ -182,7 +183,7 @@ class PortTranslatorTest extends FlatSpec with BeforeAndAfter
         ip_version: 4
         """)
 
-    val nIpv6Subnet1Id = UUIDUtil.randomUuidProto
+    val nIpv6Subnet1Id = randomUuidProto
     val nIpv6Subnet1= nSubnetFromTxt(s"""
         id { $nIpv6Subnet1Id }
         network_id { $networkId }
@@ -202,12 +203,25 @@ class PortTranslatorTest extends FlatSpec with BeforeAndAfter
                     if c.getId == chainId && op == OpType.Update => c
         }.orNull
     }
+
+    /* Finds an operation on Router with the specified chain ID, and returns a
+     * first one found.
+     */
+    protected def findRouterOp(
+            ops: List[Operation[Message]], op: OpType.OpType, rtrId: UUID) = {
+        ops.collectFirst {
+            case midonet.Create(c: Router)
+                    if c.getId == rtrId && op == OpType.Create => c
+            case midonet.Update(c: Router)
+                    if c.getId == rtrId && op == OpType.Update => c
+        }.orNull
+    }
 }
 
 /* Contains common constructs for testing VIF port CRUD translation. */
 class VifPortTranslationTest extends PortTranslatorTest {
-    val sgId1 = UUIDUtil.randomUuidProto
-    val sgId2 = UUIDUtil.randomUuidProto
+    val sgId1 = randomUuidProto
+    val sgId2 = randomUuidProto
 
     val vifPortWithFixedIps = nPortFromTxt(s"""
         $portBaseUp
@@ -233,15 +247,15 @@ class VifPortTranslationTest extends PortTranslatorTest {
         security_groups { $sgId2 }
         """)
 
-    val ipAddrGroup1InChainId = UUIDUtil.randomUuidProto
-    val ipAddrGroup1OutChainId = UUIDUtil.randomUuidProto
+    val ipAddrGroup1InChainId = randomUuidProto
+    val ipAddrGroup1OutChainId = randomUuidProto
     val ipAddrGroup1 = mIpAddrGroupFromTxt(s"""
         id { $sgId1 }
         inbound_chain_id { $ipAddrGroup1InChainId }
         outbound_chain_id { $ipAddrGroup1OutChainId }
         """)
-    val ipAddrGroup2InChainId = UUIDUtil.randomUuidProto
-    val ipAddrGroup2OutChainId = UUIDUtil.randomUuidProto
+    val ipAddrGroup2InChainId = randomUuidProto
+    val ipAddrGroup2OutChainId = randomUuidProto
     val ipAddrGroup2 = mIpAddrGroupFromTxt(s"""
         id { $sgId2 }
         inbound_chain_id { $ipAddrGroup2InChainId }
@@ -538,16 +552,16 @@ class VifPortUpdateDeleteTranslationTest extends VifPortTranslationTest {
         security_groups { $sgId2 }
         """)
 
-    val inChainRule1 = UUIDUtil.randomUuidProto
-    val inChainRule2 = UUIDUtil.randomUuidProto
-    val inChainRule3 = UUIDUtil.randomUuidProto
+    val inChainRule1 = randomUuidProto
+    val inChainRule2 = randomUuidProto
+    val inChainRule3 = randomUuidProto
     val inboundChain = mChainFromTxt(s"""
         id { $inboundChainId }
         rule_ids { $inChainRule1 }
         rule_ids { $inChainRule2 }
         rule_ids { $inChainRule3 }
         """)
-    val outChainRule1 = UUIDUtil.randomUuidProto
+    val outChainRule1 = randomUuidProto
     val outboundChain = mChainFromTxt(s"""
         id { $outboundChainId }
         rule_ids { $outChainRule1 }
@@ -720,43 +734,211 @@ class VifPortUpdateDeleteTranslationTest extends VifPortTranslationTest {
     }
 }
 
-@RunWith(classOf[JUnitRunner])
 class DhcpPortTranslationTest extends PortTranslatorTest {
+    protected val gwIpv4AddrTxt = "127.0.0.20"
+    protected val gwIpv4Addr = IPAddressUtil.toProto(gwIpv4AddrTxt)
+    protected val nIpv4Subnet1WithGwIP = nSubnetFromTxt(s"""
+        $nIpv4Subnet1
+        gateway_ip { $gwIpv4Addr }
+        """)
+    protected val dhcpPort = nPortFromTxt(portBaseUp + s"""
+        device_owner: DHCP
+        fixed_ips {
+          ip_address {
+            version: V4
+            address: '$ipv4Addr1Txt'
+          }
+          subnet_id { $nIpv4Subnet1Id }
+        }
+        fixed_ips {
+          ip_address {
+            version: V6
+            address: '$ipv6Addr1Txt'
+          }
+          subnet_id { $nIpv6Subnet1Id }
+        }
+        """)
+
+    protected val portWithPeerId = randomUuidProto
+    protected val peerRouterPortId = randomUuidProto
+
+    protected val mPortWithRPortPeer = mPortFromTxt(s"""
+        id { $portWithPeerId }
+        network_id { $networkId }
+        admin_state_up: true
+        peer_id { $peerRouterPortId }
+        """)
+
+    protected val routerPortAddrTxt = "127.0.0.100"
+    protected val routerPortAddr = IPAddressUtil.toProto(routerPortAddrTxt)
+    protected val routerId = randomUuidProto
+    protected val mRouterPort = mPortFromTxt(s"""
+        id { $peerRouterPortId }
+        router_id { $routerId }
+        peer_id { $portWithPeerId }
+        port_address { $gwIpv4Addr }
+        """)
+
+    protected val mRouterWithGwPort = mRouterFromTxt(s"""
+        id { $routerId }
+        gw_port_id { $peerRouterPortId }
+        """)
+
+    protected val mNetworkWithDhcpPort = mNetworkFromTxt(s"""
+        $midoNetworkWithSubnets
+        port_ids { $portWithPeerId }
+        """)
+
+    protected val mNetworkWithDhcpConfigured = mNetworkFromTxt(s"""
+        $midoNetworkBase
+        dhcp_subnets {
+          subnet_address {
+            version: V4
+            address: "$ipv4Subnet1Addr"
+            prefix_length: 8
+          }
+          server_address {
+            version: V4
+            address: '$ipv4Addr1Txt'
+          }
+          opt121_routes {
+            dst_subnet {
+              version: V4
+              address: "169.254.169.254"
+              prefix_length: 32
+            }
+            gateway {
+              version: V4
+              address: '$ipv4Addr1Txt'
+            }
+          }
+        }
+        dhcp_subnets {
+          subnet_address {
+            version: V6
+            address: "$ipv6Addr1Txt"
+            prefix_length: 64
+          }
+        }
+        port_ids { $portWithPeerId }
+        """)
+}
+
+@RunWith(classOf[JUnitRunner])
+class DhcpPortCreateTranslationTest extends DhcpPortTranslationTest {
+    before {
+        storage = mock(classOf[ReadOnlyStorage])
+        translator = new PortTranslator(storage)
+
+        when(storage.get(classOf[Network], networkId))
+            .thenReturn(Promise.successful(mNetworkWithDhcpPort).future)
+        when(storage.get(classOf[NeutronSubnet], nIpv4Subnet1Id))
+            .thenReturn(Promise.successful(nIpv4Subnet1WithGwIP).future)
+        when(storage.get(classOf[NeutronSubnet], nIpv6Subnet1Id))
+            .thenReturn(Promise.successful(nIpv6Subnet1).future)
+        when(storage.get(classOf[Port], portWithPeerId))
+            .thenReturn(Promise.successful(mPortWithRPortPeer).future)
+        when(storage.get(classOf[Port], peerRouterPortId))
+            .thenReturn(Promise.successful(mRouterPort).future)
+        when(storage.get(classOf[Router], routerId))
+            .thenReturn(Promise.successful(mRouterWithGwPort).future)
+    }
+
+    "DHCP port CREATE" should "configure DHCP" in {
+        val midoOps: List[Operation[Message]] =
+            translator.translate(neutron.Create(dhcpPort))
+                      .asInstanceOf[List[Operation[Message]]]
+
+        midoOps should contain (midonet.Create(midoPortBaseUp))
+        midoOps should contain (midonet.Update(mNetworkWithDhcpConfigured))
+
+        val routerOp = findRouterOp(midoOps, OpType.Update, routerId)
+        routerOp should not be (null)
+        routerOp.getRoutesCount shouldBe 1
+        val route = routerOp.getRoutes(0)
+        route shouldBe mRouteFromTxt(s"""
+            id { ${route.getId} }
+            src_network_addr { $ipv4Subnet1 }
+            dst_network_addr { ${IPSubnetUtil.toProto("169.254.169.254/32")} }
+            next_hop: PORT
+            next_hop_port_id { $peerRouterPortId }
+            next_hop_gateway { $ipv4Addr1 }
+            weight: 100
+            router_id { $routerId }
+            """)
+    }
+}
+
+@RunWith(classOf[JUnitRunner])
+class DhcpPortUpdateDeleteTranslationTest extends DhcpPortTranslationTest {
+    protected val mRouterWithRoute = mRouterFromTxt(s"""
+        id { $routerId }
+        gw_port_id { $peerRouterPortId }
+        routes {
+            id { $randomUuidProto }
+            src_network_addr {
+                version: V4
+                address: "10.10.10.0"
+                prefix_length: 24
+            }
+            dst_network_addr { ${IPSubnetUtil.toProto("169.254.169.254/32")} }
+            next_hop: PORT
+            next_hop_port_id { $peerRouterPortId }
+            next_hop_gateway { ${IPAddressUtil.toProto("10.10.10.1")} }
+            weight: 100
+            router_id { $routerId }
+        }
+        """)
+    protected val mRouterWithMDSRoute = mRouterFromTxt(s"""
+        $mRouterWithRoute
+        routes {
+            id { $randomUuidProto }
+            src_network_addr { $ipv4Subnet1 }
+            dst_network_addr { ${IPSubnetUtil.toProto("169.254.169.254/32")} }
+            next_hop: PORT
+            next_hop_port_id { $peerRouterPortId }
+            next_hop_gateway { $ipv4Addr1 }
+            weight: 100
+            router_id { $routerId }
+        }
+        """)
     before {
         storage = mock(classOf[ReadOnlyStorage])
         translator = new PortTranslator(storage)
 
         when(storage.get(classOf[Port], portId))
             .thenReturn(Promise.successful(midoPortBaseUp).future)
+        when(storage.get(classOf[NeutronPort], portId))
+            .thenReturn(Promise.successful(dhcpPort).future)
         when(storage.get(classOf[Network], networkId))
-            .thenReturn(Promise.successful(midoNetwork).future)
+            .thenReturn(Promise.successful(mNetworkWithDhcpConfigured).future)
+        when(storage.get(classOf[NeutronSubnet], nIpv4Subnet1Id))
+            .thenReturn(Promise.successful(nIpv4Subnet1WithGwIP).future)
+        when(storage.get(classOf[NeutronSubnet], nIpv6Subnet1Id))
+            .thenReturn(Promise.successful(nIpv6Subnet1).future)
+        when(storage.get(classOf[Port], portWithPeerId))
+            .thenReturn(Promise.successful(mPortWithRPortPeer).future)
+        when(storage.get(classOf[Port], peerRouterPortId))
+            .thenReturn(Promise.successful(mRouterPort).future)
+        when(storage.get(classOf[Router], routerId))
+            .thenReturn(Promise.successful(mRouterWithMDSRoute).future)
     }
-
-    private val dhcpPortUp = nPortFromTxt(portBaseUp + """
-        device_owner: DHCP
-        """)
-
-    "DHCP port CREATE" should "create a normal Network port" in {
-        val midoOps = translator.translate(neutron.Create(dhcpPortUp))
-        midoOps should contain only midonet.Create(midoPortBaseUp)
-    }
-
-    // TODO test that DHCP port CREATE adds a route to meta data service.
-    // TODO test that DHCP port CREATE adds DHCP IP Neutron data.
 
     "DHCP port UPDATE" should "update port admin state" in {
-        val dhcpPortDown = dhcpPortUp.toBuilder().setAdminStateUp(false).build
+        val dhcpPortDown = dhcpPort.toBuilder().setAdminStateUp(false).build
         val midoOps = translator.translate(neutron.Update(dhcpPortDown))
 
         midoOps should contain (midonet.Update(midoPortBaseDown))
     }
 
+    // TODO Add an assert that the fixed IPs haven't been changed.
+
     "DHCP port  DELETE" should "delete the MidoNet Port" in {
-        when(storage.get(classOf[NeutronPort], portId))
-            .thenReturn(Promise.successful(dhcpPortUp).future)
         val midoOps = translator.translate(
                 neutron.Delete(classOf[NeutronPort], portId))
         midoOps should contain (midonet.Delete(classOf[Port], portId))
+        midoOps should contain (midonet.Update(mNetworkWithDhcpPort))
+        midoOps should contain (midonet.Update(mRouterWithRoute))
     }
 }
 
