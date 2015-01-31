@@ -14,9 +14,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-export MIDO_HOME=%DEPS_DIR%
-export MIDO_BOOTSTRAP_JAR=$MIDO_HOME/midonet-jdk-bootstrap.jar
-export MIDO_JAR=$MIDO_HOME/midolman.jar
+# This script is meant to be sourced from devstack.  It is a wrapper of
+# mido.sh that allows proper exporting of environment variables to mido.sh.
 
-SCRIPT_NAME=`basename $0`
-exec %TOP_DIR%/midolman/src/deb/bin/$SCRIPT_NAME "$@"
+# Keep track of the current directory
+MIDOSTACK_DIR=$(cd $(dirname $0) && pwd)
+
+# Share the same logging locations
+export TIMESTAMP_FORMAT
+export LOGFILE
+export SCREEN_LOGDIR
+
+# Keep the midonet API URL consistent
+export SERVICE_HOST=$MIDONET_SERVICE_HOST
+export API_PORT=$MIDONET_API_PORT
+
+$MIDOSTACK_DIR/mido.sh

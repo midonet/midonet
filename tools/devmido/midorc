@@ -18,28 +18,25 @@
 # and place it in the same directory as this file.
 
 # rc file(s) location
-MIDO_RC_DIR=$(cd $(dirname "${BASH_SOURCE:-$0}") && pwd)
-
-# user running the script
-MIDOSTACK_USER=$(whoami)
+RC_DIR=$(cd $(dirname "${BASH_SOURCE:-$0}") && pwd)
 
 # allow local overrides of env variables
-if [[ -f $MIDO_RC_DIR/localrc ]]; then
-    source $MIDO_RC_DIR/localrc
+if [[ -f $RC_DIR/localrc ]]; then
+    source $RC_DIR/localrc
 fi
 
-# IP address to use for the services
-MIDO_HOST_IP=${MIDO_HOST_IP:-127.0.0.1}
+# IP address/hostname to use for the services
+SERVICE_HOST=${SERVICE_HOST:-127.0.0.1}
 
 # Screen name
 SCREEN_NAME=${SCREEN_NAME:-mido}
 
 # Midolman configuration file location
-MIDOLMAN_CONF_DIR=${MIDOLMAN_CONF_DIR:-/etc/midolman}
+AGENT_CONF_DIR=${AGENT_CONF_DIR:-/etc/midolman}
 
 # MidoNet API port and the derived URI
-MIDO_API_PORT=${MIDO_API_PORT:-8081}
-MIDO_API_URI=http://$MIDO_HOST_IP:$MIDO_API_PORT/midonet-api
+API_PORT=${API_PORT:-8081}
+API_URI=http://$SERVICE_HOST:$API_PORT/midonet-api
 
 # Time (in sec) to wait for the API to start
-MIDO_API_TIMEOUT=${MIDO_API_TIMEOUT:-90}
+API_TIMEOUT=${API_TIMEOUT:-90}
