@@ -15,8 +15,13 @@
  */
 package org.midonet.cluster.data.neutron;
 
+import java.util.List;
+import java.util.UUID;
+
 import com.google.inject.Inject;
+
 import org.apache.zookeeper.Op;
+
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.BaseZkManager;
@@ -28,9 +33,6 @@ import org.midonet.midolman.state.ZkManager;
 import org.midonet.midolman.state.zkManagers.PortZkManager;
 import org.midonet.midolman.state.zkManagers.RouteZkManager;
 import org.midonet.packets.IPv4Subnet;
-
-import java.util.List;
-import java.util.UUID;
 
 public class ExternalNetZkManager extends BaseZkManager {
 
@@ -75,8 +77,10 @@ public class ExternalNetZkManager extends BaseZkManager {
 
         // Add a route for the subnet in the gateway router
         routeZkManager.preparePersistPortRouteCreate(ops, UUID.randomUUID(),
-                new IPv4Subnet(0, 0), sub.ipv4Subnet(), rpCfg.id, null, prId,
-                rpCfg);
+                                                     new IPv4Subnet(0, 0),
+                                                     sub.ipv4Subnet(), rpCfg.id,
+                                                     null, prId,
+                                                     rpCfg);
     }
 
     public void prepareUnlinkFromProvider(List<Op> ops, Subnet sub)
@@ -156,8 +160,10 @@ public class ExternalNetZkManager extends BaseZkManager {
             }
 
             routeZkManager.preparePersistPortRouteCreate(ops, UUID.randomUUID(),
-                    new IPv4Subnet(0, 0), ip.ipv4Subnet(), rpCfg.id, null, prId,
-                    rpCfg);
+                                                         new IPv4Subnet(0, 0),
+                                                         ip.ipv4Subnet(),
+                                                         rpCfg.id, null, prId,
+                                                         rpCfg);
         }
     }
 
@@ -174,4 +180,21 @@ public class ExternalNetZkManager extends BaseZkManager {
             routeZkManager.prepareRoutesDelete(ops, prId, ipAlloc.ipv4Subnet());
         }
     }
+
+    public void prepareUpdateExtSubnet(List<Op> ops, Subnet subnet)
+        throws StateAccessException, SerializationException {
+
+        Subnet oldSubnet = networkZkManager.getSubnet(subnet.id);
+        RouterPortConfig pCfg = portZkManager.findGatewayRouterPortFromBridge(
+            oldSubnet.networkId, oldSubnet.gatewayIpAddr());
+
+        if (pCfg != null) {
+
+            // Subnet is linked to a router, so update the gateway port on
+            // this subnet
+            portZkManager.prepareUpdatePortAddress(ops, pCfg.id,
+                                                   subnet.gwIpInt());
+        }
+    }
+
 }

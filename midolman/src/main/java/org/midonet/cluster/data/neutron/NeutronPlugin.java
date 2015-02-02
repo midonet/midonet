@@ -297,9 +297,17 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
         throws StateAccessException, SerializationException {
 
         List<Op> ops = new ArrayList<>();
+        Network net = networkZkManager.getNetwork(subnet.networkId);
+
         ZkOpLock lock = acquireLock();
+
         try {
             networkZkManager.prepareUpdateSubnet(ops, subnet);
+            if (net.external) {
+                externalNetZkManager.prepareUpdateExtSubnet(ops, subnet);
+            } else {
+                l3ZkManager.prepareUpdateSubnet(ops, subnet);
+            }
 
             // This should throw NoStatePathException if it doesn't exist.
             commitOps(ops);
