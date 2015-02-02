@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_f4533a6a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 175,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-02T13:45:46Z",
+      "side": 1,
+      "message": "While you\u0027re at it, could you make this protected? Yes I know it implies changing HostMapperTest slightly...",
+      "range": {
+        "startLine": 175,
+        "startChar": 4,
+        "endLine": 175,
+        "endChar": 27
+      },
+      "revId": "60203d29befac60c54f0d3a3545070b7320ae8f0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
