@@ -186,4 +186,28 @@ class NeutronDeserializerTest extends FunSuite with Matchers {
         network.getId.getLsb shouldBe 0x9c1d6722fc136a22L
         network.getDeviceOwner shouldBe Neutron.NeutronPort.DeviceOwner.ROUTER_INTERFACE
     }
+
+    test("Neutron Router deserialization") {
+        val json =
+            """
+              |{
+              |    "name": "test-router",
+              |    "admin_state_up": true,
+              |    "id": "d32019d3-bc6e-4319-9c1d-6722fc136a22",
+              |    "external_gateway_info": {
+              |        "enable_snat": true,
+              |        "fixed_external_ips": [ "10.0.0.1", "10.0.0.2"]
+              |    }
+              |}
+            """.stripMargin
+
+        // "Fixed_external_ips" is a unrecognized field. Should be ignored.
+        val router =
+            NeutronDeserializer.toMessage(json, classOf[Neutron.NeutronRouter])
+        router.getName should equal("test-router")
+        router.getAdminStateUp shouldBe true
+        router.getId.getMsb shouldBe 0xd32019d3bc6e4319L
+        router.getId.getLsb shouldBe 0x9c1d6722fc136a22L
+        router.getExternalGatewayInfo.getEnableSnat shouldBe true
+    }
 }

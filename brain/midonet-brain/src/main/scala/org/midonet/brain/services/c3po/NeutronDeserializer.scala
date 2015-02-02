@@ -65,41 +65,47 @@ object NeutronDeserializer {
         val bldr = builderFor(clazz)
         val classDesc = descriptorFor(clazz)
         for (field <- node.fields.asScala if !field.getValue.isNull) {
-            // Neutron has some field names in the form "plugin:field" for
-            // fields added by plugins. We just ignore the first part.
-            val name = cleanUpPluginPrefix(field.getKey)
-            val value = field.getValue
-            val fd = getFieldDesc(classDesc, name)
-            val converter = fd.getType match {
-                case FieldType.BOOL => (n: JsonNode) => n.asBoolean
-                case FieldType.ENUM => parseEnum(fd.getEnumType) _
-                case FieldType.INT32 => (n: JsonNode) => n.asInt
-                case FieldType.MESSAGE => parseNestedMsg(fd.getMessageType) _
-                case FieldType.STRING => (n: JsonNode) => n.asText
-                case FieldType.UINT32 => (n: JsonNode) => n.asInt
-                // Those are the only types we currently use. May need to add
-                // others as we implement more Neutron types.
-                case _ => throw new NeutronDeserializationException(
-                    s"Don't know how to convert field type ${fd.getType}.")
-            }
+            val name = cleanUpProjectPrefix(field.getKey)
+            getFieldDesc(classDesc, name) match {
+                case Some(fd) =>
+                    val converter = fd.getType match {
+                        case FieldType.BOOL => (n: JsonNode) => n.asBoolean
+                        case FieldType.ENUM => parseEnum(fd.getEnumType) _
+                        case FieldType.INT32 => (n: JsonNode) => n.asInt
+                        case FieldType.MESSAGE =>
+                                parseNestedMsg(fd.getMessageType) _
+                        case FieldType.STRING => (n: JsonNode) => n.asText
+                        case FieldType.UINT32 => (n: JsonNode) => n.asInt
+                        // Those are the only types we currently use. May need
+                        // to add others as we implement more Neutron types.
+                        case _ => throw new NeutronDeserializationException(
+                            "Don't know how to convert field type " +
+                            s"${fd.getType}.")
+                    }
 
-            if (fd.isRepeated) {
-                for (child <- value.elements.asScala) {
-                    bldr.addRepeatedField(fd, converter(child))
-                }
-            } else {
-                bldr.setField(fd, converter(value))
+                    val value = field.getValue
+                    if (fd.isRepeated) {
+                        for (child <- value.elements.asScala) {
+                            bldr.addRepeatedField(fd, converter(child))
+                        }
+                    } else {
+                        bldr.setField(fd, converter(value))
+                    }
+                case None =>
+                    // Silently ignore non-recognized fields. Avoid breaking
+                    // every time upstream Neutron adds whatever new fields.
+                    log.debug(
+                        s"Field $name in JSON has no corresponding field in " +
+                        s"protobuf message class ${classDesc.getName}")
             }
         }
 
         bldr.build().asInstanceOf[M]
     }
 
-    /* Neutron has some field names / values in the form "plugin:field_or_val"
-     * for proprietary fields / values for the plugin. We just ignore the plugin
-     * prefix part.
-     */
-    private def cleanUpPluginPrefix(txt: String) = txt.split(':').last
+    /* Some fields have a name / value in the form "project:field_or_val". We
+     * just ignore the project name part. */
+    private def cleanUpProjectPrefix(txt: String) = txt.split(':').last
 
     private def parseNestedMsg(desc: Descriptor)(node: JsonNode): Message = {
         // Have to do this because Protocol Buffers provides no way to get
@@ -132,7 +138,7 @@ object NeutronDeserializer {
 
     private def parseEnum(desc: EnumDescriptor)
                          (node: JsonNode): EnumValueDescriptor = {
-        val textVal = cleanUpPluginPrefix(node.asText)
+        val textVal = cleanUpProjectPrefix(node.asText)
         val enumVal = desc.findValueByName(textVal.toUpperCase)
         if (enumVal == null)
             throw new NeutronDeserializationException(
@@ -164,13 +170,10 @@ object NeutronDeserializer {
     }
 
     private def getFieldDesc(classDesc: Descriptor,
-                             fieldName: String): FieldDescriptor = {
+                             fieldName: String): Option[FieldDescriptor] = {
         classDesc.findFieldByName(fieldName) match {
-            case fd: FieldDescriptor => fd
-            case null =>
-                throw new NeutronDeserializationException(
-                    s"Field $fieldName in JSON has no corresponding field " +
-                    s"in protobuf message class ${classDesc.getName}")
+            case fd: FieldDescriptor => Some(fd)
+            case null => None
         }
     }
 
