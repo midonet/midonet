@@ -353,6 +353,30 @@
       "revId": "2f51889b9bee0a572f8235c6c3c75b70e488c09c",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_b7b424f3",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/VxlanGatewayHA.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 192,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-02T16:12:57Z",
+      "side": 1,
+      "message": "Yes, even before terminating the executor:\n1. removeListener\n2. close leaderLatch\n2. becomePassive\n3. terminate executor",
+      "parentUuid": "7a1969be_b726e466",
+      "range": {
+        "startLine": 192,
+        "startChar": 0,
+        "endLine": 192,
+        "endChar": 53
+      },
+      "revId": "2f51889b9bee0a572f8235c6c3c75b70e488c09c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
