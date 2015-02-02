@@ -46,6 +46,52 @@
       "revId": "ad2de362e1b08508350f8312e20c34686df1e5df",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_742bcaeb",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/ClusterNode.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 139,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-02T12:14:43Z",
+      "side": 1,
+      "message": "Just a suggestion, why not putting this together with the binding of ConfigProvider in a \u0027MidonetLegacyBackendModule\u0027? This way we know exactly which things are needed only for legacy code and can be safely removed when everything uses the new storage system...",
+      "range": {
+        "startLine": 137,
+        "startChar": 8,
+        "endLine": 139,
+        "endChar": 32
+      },
+      "revId": "ad2de362e1b08508350f8312e20c34686df1e5df",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_943ac634",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/VxlanGatewayHA.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-02T12:14:43Z",
+      "side": 1,
+      "message": "Just curiosity, apart from setting the name, is there any difference between this and a normal newSingleThreadExecutor?",
+      "range": {
+        "startLine": 55,
+        "startChar": 12,
+        "endLine": 55,
+        "endChar": 53
+      },
+      "revId": "ad2de362e1b08508350f8312e20c34686df1e5df",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
