@@ -83,6 +83,24 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_c1692127",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/NetworkTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-02-02T03:29:31Z",
+      "side": 1,
+      "message": "I\u0027ll leave this to Galo, since it\u0027s not entirely clear to me what\u0027s missing.",
+      "parentUuid": "7a1969be_c36769e9",
+      "revId": "75a9c79fbf679de1aea2d6a4e6d8402074281c24",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_f01cedc3",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/RouteManager.scala",
         "patchSetId": 2
@@ -94,6 +112,30 @@
       "writtenOn": "2015-01-29T08:25:54Z",
       "side": 1,
       "message": "s/2014/2015/",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "75a9c79fbf679de1aea2d6a4e6d8402074281c24",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_e16c1d39",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/RouteManager.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-02-02T03:29:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_f01cedc3",
       "range": {
         "startLine": 2,
         "startChar": 13,
@@ -129,6 +171,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_5031810a",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/RouterTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-02-02T03:29:31Z",
+      "side": 1,
+      "message": "Not quite sure. But I should probably move this into PortTranslator, and maybe merge with whatever you\u0027re doing to create ports on that side.",
+      "parentUuid": "7a1969be_905ad981",
+      "range": {
+        "startLine": 81,
+        "startChar": 8,
+        "endLine": 90,
+        "endChar": 66
+      },
+      "revId": "75a9c79fbf679de1aea2d6a4e6d8402074281c24",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_70d63dc7",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/Port.scala",
         "patchSetId": 2
@@ -140,6 +206,30 @@
       "writtenOn": "2015-01-29T08:25:54Z",
       "side": 1,
       "message": "It was declared to be Long intentionally for future extension and II think we should keep it so.",
+      "range": {
+        "startLine": 45,
+        "startChar": 19,
+        "endLine": 45,
+        "endChar": 22
+      },
+      "revId": "75a9c79fbf679de1aea2d6a4e6d8402074281c24",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_30368504",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/Port.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-02-02T03:29:31Z",
+      "side": 1,
+      "message": "Oh. Okay. I\u0027ll revert it, then.",
+      "parentUuid": "7a1969be_70d63dc7",
       "range": {
         "startLine": 45,
         "startChar": 19,
