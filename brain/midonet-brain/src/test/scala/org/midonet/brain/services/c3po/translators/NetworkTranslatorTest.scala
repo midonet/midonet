@@ -32,7 +32,7 @@ import org.midonet.cluster.util.UUIDUtil
 @RunWith(classOf[JUnitRunner])
 class NetworkTranslatorTest extends FlatSpec with Matchers {
     val storage: ReadOnlyStorage = mock(classOf[ReadOnlyStorage])
-    val translator: NetworkTranslator = new NetworkTranslator
+    val translator: NetworkTranslator = new NetworkTranslator(storage)
 
     val tenantId = "neutron tenant"
     val networkName = "neutron test"

@@ -20,6 +20,7 @@ import java.io.PrintWriter
 import java.sql.{Connection, DriverManager}
 import java.util.UUID
 import java.util.concurrent.TimeUnit
+
 import javax.sql.DataSource
 
 import scala.collection.JavaConverters._
@@ -27,6 +28,7 @@ import scala.util.{Random, Try}
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.JsonNodeFactory
+
 import org.apache.curator.framework.{CuratorFramework, CuratorFrameworkFactory}
 import org.apache.curator.retry.ExponentialBackoffRetry
 import org.apache.curator.test.TestingServer
@@ -37,15 +39,15 @@ import org.slf4j.LoggerFactory
 
 import org.midonet.brain.ClusterNode.Context
 import org.midonet.brain.services.c3po.{C3POConfig, C3POMinion}
-import org.midonet.cluster.data.neutron.NeutronResourceType.{Network => NetworkType, NoData, Port => PortType, SecurityGroup => SecurityGroupType}
+import org.midonet.cluster.data.neutron.NeutronResourceType.{Network => NetworkType, NoData, Port => PortType, Router => RouterType, SecurityGroup => SecurityGroupType}
 import org.midonet.cluster.data.neutron.TaskType._
 import org.midonet.cluster.data.neutron.{NeutronResourceType, TaskType}
 import org.midonet.cluster.data.storage.{ObjectReferencedException, Storage}
-import org.midonet.cluster.models.C3PO
+import org.midonet.cluster.models.{Commons, C3PO}
 import org.midonet.cluster.models.Commons.{EtherType, Protocol, RuleDirection}
 import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner
 import org.midonet.cluster.models.Neutron.SecurityGroup
-import org.midonet.cluster.models.Topology.{Chain, IpAddrGroup, Network, Port, Rule}
+import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.storage.ZoomProvider
 import org.midonet.cluster.util.UUIDUtil
 import org.midonet.cluster.util.UUIDUtil.toProto
@@ -317,6 +319,30 @@ class C3POMinionTest extends FlatSpec with BeforeAndAfter
         r
     }
 
+    private def routerJson(name: String, id: UUID,
+                           adminStateUp: Boolean = true,
+                           status: String = null,
+                           tenantId: String = null,
+                           gwPortId: UUID = null,
+                           enableSnat: Boolean = false,
+                           extGwNetworkId: UUID = null): JsonNode = {
+        val r = nodeFactory.objectNode
+        r.put("name", name)
+        r.put("id", id.toString)
+        r.put("admin_state_up", adminStateUp)
+        if (status != null) r.put("status", status)
+        if (tenantId != null) r.put("tenant_id", tenantId)
+        if (gwPortId != null) r.put("gw_port_id", gwPortId.toString)
+        if (enableSnat || extGwNetworkId != null) {
+            val egi = nodeFactory.objectNode
+            if (extGwNetworkId != null)
+                egi.put("network_id", extGwNetworkId.toString)
+            egi.put("enable_snat", enableSnat)
+            r.put("extenal_gateway_info", egi)
+        }
+        r
+    }
+
 
     "C3PO" should "poll DB and update ZK via C3POStorageMgr" in {
         val threadSleepMs = 2000
@@ -384,7 +410,7 @@ class C3POMinionTest extends FlatSpec with BeforeAndAfter
 
         val vifPortUuid = UUID.randomUUID()
         val vifPortId = toProto(vifPortUuid)
-        storage.exists(classOf[Port], vifPortId).await() should be (false)
+        storage.exists(classOf[Port], vifPortId).await() shouldBe false
 
         // Creates a VIF port.
         val vifPortJson = portJson(name = "port1", id = vifPortUuid,
@@ -394,11 +420,11 @@ class C3POMinionTest extends FlatSpec with BeforeAndAfter
                 id = 3, Create, PortType, vifPortJson, vifPortUuid, "tx2"))
         Thread.sleep(threadSleepMs)
 
-        storage.exists(classOf[Port], vifPortId).await() should be (true)
+        storage.exists(classOf[Port], vifPortId).await() shouldBe true
         val vifPort = storage.get(classOf[Port], vifPortId).await()
         vifPort.getId should be (vifPortId)
         vifPort.getNetworkId should be (toProto(network1Uuid))
-        vifPort.getAdminStateUp should be (true)
+        vifPort.getAdminStateUp shouldBe true
 
         val network1 = storage.get(classOf[Network], network1Uuid).await()
         network1.getPortIdsList should contain (vifPortId)
@@ -414,7 +440,7 @@ class C3POMinionTest extends FlatSpec with BeforeAndAfter
         Thread.sleep(threadSleepMs)
 
         val updatedVifPort = storage.get(classOf[Port], vifPortId).await()
-        updatedVifPort.getAdminStateUp should be (false)
+        updatedVifPort.getAdminStateUp shouldBe false
         // Deleting a network while ports are attached should throw exception.
         intercept[ObjectReferencedException] {
             storage.delete(classOf[Network], network1Uuid)
@@ -425,7 +451,7 @@ class C3POMinionTest extends FlatSpec with BeforeAndAfter
                 id = 5, Delete, PortType, json = null, vifPortUuid, "tx4"))
         Thread.sleep(threadSleepMs)
 
-        storage.exists(classOf[Port], vifPortId).await() should be (false)
+        storage.exists(classOf[Port], vifPortId).await() shouldBe false
         // Back reference was cleared.
         val finalNw1 = storage.get(classOf[Network], network1Uuid).await()
         finalNw1.getPortIdsList should not contain (vifPortId)
@@ -522,11 +548,56 @@ class C3POMinionTest extends FlatSpec with BeforeAndAfter
         delResults.foreach(r => r should be(empty))
     }
 
+    it should "handle router CRUD" in {
+        val r1Id = UUID.randomUUID()
+        val r1Json = routerJson("router1", r1Id)
+        executeSqlStmts(insertMidoNetTaskSql(2, Create, RouterType,
+                                             r1Json.toString, r1Id, "tx1"))
+        Thread.sleep(1000)
+
+        val r1 = storage.get(classOf[Router], r1Id).await()
+        UUIDUtil.fromProto(r1.getId) shouldBe r1Id
+        r1.getName shouldBe "router1"
+        r1.getAdminStateUp shouldBe true
+        r1.getInboundFilterId should not be null
+        r1.getOutboundFilterId should not be null
+
+        val r1Chains = getChains(r1.getInboundFilterId, r1.getOutboundFilterId)
+        r1Chains.inChain.getRuleIdsCount shouldBe 0
+        r1Chains.outChain.getRuleIdsCount shouldBe 0
+
+        val r2Id = UUID.randomUUID()
+        val r2Json = routerJson("router2", r2Id, adminStateUp = false)
+        val r1JsonV2 = routerJson("router1", r1Id, tenantId = "new-tenant")
+        executeSqlStmts(insertMidoNetTaskSql(3, Create, RouterType,
+                                             r2Json.toString, r2Id, "tx2"),
+                        insertMidoNetTaskSql(4, Update, RouterType,
+                                             r1JsonV2.toString, r1Id, "tx2"))
+        Thread.sleep(1000)
+
+        val tx2Futures = storage.getAll(classOf[Router], List(r1Id, r2Id))
+        val List(r1V2, r2) = tx2Futures.map(_.await())
+        r1V2.getTenantId shouldBe "new-tenant"
+        r2.getName shouldBe "router2"
+
+        executeSqlStmts(
+            insertMidoNetTaskSql(5, Delete, RouterType, null, r1Id, "tx3"),
+            insertMidoNetTaskSql(6, Delete, RouterType, null, r2Id, "tx3"))
+        Thread.sleep(1000)
+
+        val tx3Futures = storage.getAll(classOf[Router]).await()
+        tx3Futures.size shouldBe 0
+    }
+
     case class ChainPair(inChain: Chain, outChain: Chain)
-    private def getChains(ipg: IpAddrGroup): ChainPair = {
-        val chainIds = List(ipg.getInboundChainId, ipg.getOutboundChainId)
-        val chains = storage.getAll(classOf[Chain], chainIds).map(_.await())
+    private def getChains(inChainId: Commons.UUID,
+                          outChainId: Commons.UUID): ChainPair = {
+        val fs = storage.getAll(classOf[Chain], List(inChainId, outChainId))
+        val chains = fs.map(_.await())
         ChainPair(chains(0), chains(1))
     }
+
+    private def getChains(ipg: IpAddrGroup): ChainPair =
+        getChains(ipg.getInboundChainId, ipg.getOutboundChainId)
 
 }
