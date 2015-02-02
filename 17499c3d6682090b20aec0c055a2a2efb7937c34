@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_5487ae61",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/NeutronDeserializer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-02-02T07:59:55Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_9473e6b0",
+      "range": {
+        "startLine": 68,
+        "startChar": 12,
+        "endLine": 69,
+        "endChar": 47
+      },
+      "revId": "17499c3d6682090b20aec0c055a2a2efb7937c34",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_b46ee2c7",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/NeutronDeserializer.scala",
         "patchSetId": 1
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_f4ae9ae6",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/NeutronDeserializer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-02-02T07:59:55Z",
+      "side": 1,
+      "message": "If I understand correctly, it can be normal to have unaccounted fields at any time as MidoNet\u0027s Neutron API support may not have caught up with the latest of Neutron. If so, logging ERROR / WARN every time we  process Router is just plain noisy. I think we need a better mechanism to catch this API diffs.",
+      "parentUuid": "7a1969be_b46ee2c7",
+      "range": {
+        "startLine": 99,
+        "startChar": 24,
+        "endLine": 99,
+        "endChar": 29
+      },
+      "revId": "17499c3d6682090b20aec0c055a2a2efb7937c34",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_54796e92",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/NeutronDeserializer.scala",
         "patchSetId": 1
@@ -59,6 +107,30 @@
       "writtenOn": "2015-02-02T07:01:50Z",
       "side": 1,
       "message": "Some fields have",
+      "range": {
+        "startLine": 108,
+        "startChar": 7,
+        "endLine": 108,
+        "endChar": 21
+      },
+      "revId": "17499c3d6682090b20aec0c055a2a2efb7937c34",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_14b6d63d",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/NeutronDeserializer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-02-02T07:59:55Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_54796e92",
       "range": {
         "startLine": 108,
         "startChar": 7,
