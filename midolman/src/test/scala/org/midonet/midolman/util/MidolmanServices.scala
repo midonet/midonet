@@ -37,10 +37,10 @@ trait MidolmanServices {
     def clusterClient =
         injector.getInstance(classOf[Client])
 
-    def clusterDataClient =
+    implicit def clusterDataClient =
         injector.getInstance(classOf[DataClient])
 
-    def hostId =
+    implicit def hostId =
         injector.getInstance(classOf[HostIdProviderService]).getHostId
 
     def mockDpConn()(implicit ec: ExecutionContext, as: ActorSystem) = {

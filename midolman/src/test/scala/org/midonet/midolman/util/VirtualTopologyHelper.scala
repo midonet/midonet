@@ -15,9 +15,9 @@
  */
 package org.midonet.midolman.util
 
-import java.util
-import util.{Queue, UUID}
+import java.util.{ArrayList, LinkedList, List, Queue, UUID}
 
+import scala.collection.mutable
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.reflect.ClassTag
@@ -26,22 +26,33 @@ import akka.actor.ActorSystem
 import akka.pattern.ask
 import akka.util.Timeout
 import akka.util.Timeout.durationToTimeout
+import com.typesafe.scalalogging.Logger
+import org.midonet.cluster.DataClient
+import org.midonet.cluster.data.Route
 
 import org.midonet.cluster.data._
-import org.midonet.midolman.NotYetException
+import org.midonet.midolman.DeduplicationActor.ActionsCache
+import org.midonet.midolman.datapath.DatapathChannel
+import org.midonet.midolman.host.interfaces.InterfaceDescription
+import org.midonet.midolman.topology.rcu.ResolvedHost
+import org.midonet.midolman._
 import org.midonet.midolman.PacketWorkflow.SimulationResult
+import org.midonet.midolman.UnderlayResolver.{Route => UnderlayRoute}
 import org.midonet.midolman.simulation.Coordinator.Device
 import org.midonet.midolman.simulation.{Router => SimRouter}
 import org.midonet.midolman.simulation.{Coordinator, PacketContext, PacketEmitter}
 import org.midonet.midolman.state.ConnTrackState._
-import org.midonet.midolman.state.HappyGoLuckyLeaser
+import org.midonet.midolman.state.{FlowStateReplicator, HappyGoLuckyLeaser}
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.topology.VirtualTopologyActor.{BridgeRequest, ChainRequest, IPAddrGroupRequest, PortRequest, RouterRequest}
-import org.midonet.odp.flows.FlowKeys
-import org.midonet.odp.{FlowMatch, Packet}
+import org.midonet.odp.flows.{FlowAction, FlowActionOutput, FlowKeys}
+import org.midonet.odp._
 import org.midonet.packets.{IPv4Addr, MAC, Ethernet}
+import org.midonet.sdn.flows.FlowTagger.FlowTag
 import org.midonet.sdn.state.FlowStateTransaction
+import org.midonet.util.functors.Callback0
+import org.slf4j.helpers.NOPLogger
 
 trait VirtualTopologyHelper {
 
@@ -78,12 +89,14 @@ trait VirtualTopologyHelper {
     val NO_CONNTRACK = new FlowStateTransaction[ConnTrackKey, ConnTrackValue](null)
     val NO_NAT = new FlowStateTransaction[NatKey, NatBinding](null)
 
-    def packetContextFor(frame: Ethernet, inPort: UUID,
-                         emitter: Queue[PacketEmitter.GeneratedPacket] = new util.LinkedList)
+    def packetContextFor(frame: Ethernet, inPort: UUID = null,
+                         emitter: Queue[PacketEmitter.GeneratedPacket] = new LinkedList,
+                         inPortNumber: Int = 0)
                         (implicit conntrackTx: FlowStateTransaction[ConnTrackKey, ConnTrackValue] = NO_CONNTRACK,
                                   natTx: FlowStateTransaction[NatKey, NatBinding] = NO_NAT)
     : PacketContext = {
         val fmatch = new FlowMatch(FlowKeys.fromEthernetPacket(frame))
+        fmatch.setInputPortNumber(inPortNumber)
         val context = new PacketContext(-1, new Packet(frame, fmatch), fmatch)
         context.packetEmitter = new PacketEmitter(emitter, actorSystem.deadLetters)
         context.initialize(conntrackTx, natTx, HappyGoLuckyLeaser)
@@ -146,6 +159,45 @@ trait VirtualTopologyHelper {
         if (natTx ne NO_NAT)
             natTx.flush()
     }
+
+    def packetWorkflow(dpPortToVport: Map[Int, UUID])
+                      (implicit hostId: UUID, client: DataClient) = new PacketWorkflow(
+        new DatapathState {
+            override def host: ResolvedHost = new ResolvedHost(hostId, true, "midonet", Map(), Map())
+            override def peerTunnelInfo(peer: UUID): Option[UnderlayRoute] = None
+            override def isVtepTunnellingPort(portNumber: Integer): Boolean = false
+            override def isOverlayTunnellingPort(portNumber: Integer): Boolean = false
+            override def vtepTunnellingOutputAction: FlowActionOutput = null
+            override def getDescForInterface(itfName: String): Option[InterfaceDescription] = None
+            override def getDpPortForInterface(itfName: String): Option[DpPort] = None
+            override def getVportForDpPortNumber(portNum: Integer): Option[UUID] =
+                dpPortToVport.get(portNum)
+            override def dpPortNumberForTunnelKey(tunnelKey: Long): Option[DpPort] = None
+            override def getDpPortNumberForVport(vportId: UUID): Option[Integer] =
+                dpPortToVport.map(_.swap).toMap.get(vportId).map(_.asInstanceOf[Integer])
+            override def getDpPortName(num: Integer): Option[String] =  None
+        }, null, client, new DatapathChannel {
+            override def executePacket(packet: Packet,
+                                       actions: List[FlowAction]): Unit = { }
+            override def createFlow(flow: Flow): Unit = { }
+            override def start(datapath: Datapath): Unit = { }
+            override def stop(): Unit = { }
+        }, new ActionsCache(4, CallbackExecutor.Immediate, Logger(NOPLogger.NOP_LOGGER)),
+           new FlowStateReplicator(null, null, null, new UnderlayResolver {
+            override def host: ResolvedHost = new ResolvedHost(UUID.randomUUID(), true, "", Map(), Map())
+            override def peerTunnelInfo(peer: UUID): Option[UnderlayRoute] = None
+            override def vtepTunnellingOutputAction: FlowActionOutput = null
+            override def isVtepTunnellingPort(portNumber: Integer): Boolean = false
+            override def isOverlayTunnellingPort(portNumber: Integer): Boolean = false
+        }, null, 0) {
+            override def pushState(dpChannel: DatapathChannel): Unit = { }
+            override def accumulateNewKeys(
+                          conntrackTx: FlowStateTransaction[ConnTrackKey, ConnTrackValue],
+                          natTx: FlowStateTransaction[NatKey, NatBinding],
+                          ingressPort: UUID, egressPorts: List[UUID],
+                          tags: mutable.Set[FlowTag],
+                          callbacks: ArrayList[Callback0]): Unit = { }
+        })
 
     @inline
     private[this] def buildRequest(entity: Entity.Base[_,_,_]) = entity match {

@@ -16,37 +16,17 @@
 
 package org.midonet.midolman
 
-import java.util.{ArrayList, List, UUID}
-
-import scala.collection.mutable
-
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import com.typesafe.scalalogging.Logger
-import org.slf4j.helpers.NOPLogger
-
 import org.midonet.cluster.data.{Bridge => ClusterBridge}
 import org.midonet.cluster.data.ports.BridgePort
-import org.midonet.midolman.DeduplicationActor.ActionsCache
 import org.midonet.midolman.PacketWorkflow.Drop
-import org.midonet.midolman.UnderlayResolver.Route
-import org.midonet.midolman.datapath.DatapathChannel
-import org.midonet.midolman.host.interfaces.InterfaceDescription
-import org.midonet.midolman.state.ConnTrackState._
-import org.midonet.midolman.state.FlowStateReplicator
-import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
 import org.midonet.midolman.topology.VirtualTopologyActor
-import org.midonet.midolman.topology.rcu.ResolvedHost
 import org.midonet.midolman.util.MidolmanSpec
-import org.midonet.odp.{Packet, Datapath, Flow, DpPort}
-import org.midonet.odp.flows.{FlowAction, FlowActionOutput}
 import org.midonet.packets._
 import org.midonet.packets.util.PacketBuilder._
 import org.midonet.sdn.flows.FlowTagger
-import org.midonet.sdn.flows.FlowTagger.FlowTag
-import org.midonet.sdn.state.FlowStateTransaction
-import org.midonet.util.functors.Callback0
 
 @RunWith(classOf[JUnitRunner])
 class DpPortTaggingTest extends MidolmanSpec {
@@ -78,44 +58,6 @@ class DpPortTaggingTest extends MidolmanSpec {
                                       FlowTagger.tagForDpPort(outPortNumber)))
     }
 
-    def workflow = new PacketWorkflow(
-        new DatapathState {
-            override def host: ResolvedHost = new ResolvedHost(hostId, true, "midonet", Map(), Map())
-            override def peerTunnelInfo(peer: UUID): Option[Route] = None
-            override def isVtepTunnellingPort(portNumber: Integer): Boolean = false
-            override def isOverlayTunnellingPort(portNumber: Integer): Boolean = false
-            override def vtepTunnellingOutputAction: FlowActionOutput = null
-            override def getDescForInterface(itfName: String): Option[InterfaceDescription] = None
-            override def getDpPortForInterface(itfName: String): Option[DpPort] = None
-            override def getVportForDpPortNumber(portNum: Integer): Option[UUID] =
-                Some(inPort.getId)
-            override def dpPortNumberForTunnelKey(tunnelKey: Long): Option[DpPort] = None
-            override def getDpPortNumberForVport(vportId: UUID): Option[Integer] =
-                if (vportId == outPort.getId)
-                    Some(outPortNumber)
-                else
-                    None
-            override def getDpPortName(num: Integer): Option[String] =  None
-        }, null, clusterDataClient, new DatapathChannel {
-            override def executePacket(packet: Packet,
-                                       actions: List[FlowAction]): Unit = { }
-            override def createFlow(flow: Flow): Unit = { }
-            override def start(datapath: Datapath): Unit = { }
-            override def stop(): Unit = { }
-        }, new ActionsCache(4, CallbackExecutor.Immediate, Logger(NOPLogger.NOP_LOGGER)),
-           new FlowStateReplicator(null, null, null, new UnderlayResolver {
-            override def host: ResolvedHost = new ResolvedHost(UUID.randomUUID(), true, "", Map(), Map())
-            override def peerTunnelInfo(peer: UUID): Option[Route] = None
-            override def vtepTunnellingOutputAction: FlowActionOutput = null
-            override def isVtepTunnellingPort(portNumber: Integer): Boolean = false
-            override def isOverlayTunnellingPort(portNumber: Integer): Boolean = false
-        }, null, 0) {
-            override def pushState(dpChannel: DatapathChannel): Unit = { }
-            override def accumulateNewKeys(
-                          conntrackTx: FlowStateTransaction[ConnTrackKey, ConnTrackValue],
-                          natTx: FlowStateTransaction[NatKey, NatBinding],
-                          ingressPort: UUID, egressPorts: List[UUID],
-                          tags: mutable.Set[FlowTag],
-                          callbacks: ArrayList[Callback0]): Unit = { }
-        })
+    def workflow = packetWorkflow(Map(inPortNumber -> inPort.getId,
+                                      outPortNumber -> outPort.getId))
 }

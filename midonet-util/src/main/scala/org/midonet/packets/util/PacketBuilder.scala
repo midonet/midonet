@@ -27,6 +27,10 @@ import org.midonet.packets.ICMP.EXCEEDED_CODE._
 
 object PacketBuilder {
     implicit def builderToPacket[T <: IPacket](b: PacketBuilder[T]): T = b.packet
+    implicit def packetToBuilder[T <: IPacket](pkt: T): PacketBuilder[T] =
+        new PacketBuilder[T] {
+            override val packet: T = pkt
+        }
 
     val eth_zero: MAC = "00:00:00:00:00:00"
     val eth_bcast: MAC = "ff:ff:ff:ff:ff:ff"
