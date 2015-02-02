@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_371dd467",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/VxlanGatewayManager.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-02T15:30:59Z",
+      "side": 1,
+      "message": "I think that if we use here:\n\n  log.trace(\"Learned: {}\", ml)\n\nthe if is not necessary, because isTraceEnabled would apply the same filters.",
+      "range": {
+        "startLine": 82,
+        "startChar": 16,
+        "endLine": 84,
+        "endChar": 17
+      },
+      "revId": "638a13149cf7e3700475d976ee2410d04473732e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
