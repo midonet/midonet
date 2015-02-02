@@ -38,8 +38,7 @@ import org.midonet.midolman._
 import org.midonet.midolman.guice.MidolmanActorsModule
 import org.midonet.midolman.routingprotocols.RoutingManagerActor
 import org.midonet.midolman.services.MidolmanActorsService
-import org.midonet.midolman.topology.VirtualToPhysicalMapper
-import org.midonet.midolman.topology.VirtualTopologyActor
+import org.midonet.midolman.topology.{LocalPortActive, VirtualToPhysicalMapper, VirtualTopologyActor}
 
 /**
  * A [[org.midonet.midolman.guice.MidolmanActorsModule]] that can will override

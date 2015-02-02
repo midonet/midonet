@@ -16,25 +16,24 @@
 package org.midonet.midolman.routingprotocols
 
 import java.util.UUID
+
 import scala.collection.mutable
 
 import akka.actor._
-
 import com.google.inject.Inject
-
-import org.midonet.cluster.{Client, DataClient}
 import org.midonet.cluster.client.{Port, RouterPort}
-import org.midonet.midolman.{DatapathState, Referenceable}
-import org.midonet.midolman.config.MidolmanConfig
+import org.midonet.cluster.{Client, DataClient}
 import org.midonet.midolman.DatapathController.DatapathReady
+import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.guice.MidolmanActorsModule.ZEBRA_SERVER_LOOP
 import org.midonet.midolman.io.UpcallDatapathConnectionManager
-import org.midonet.midolman.topology.VirtualTopologyActor.PortRequest
-import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.routingprotocols.RoutingHandler.PortActive
 import org.midonet.midolman.routingprotocols.RoutingManagerActor.{BgpStatus, ShowBgp}
 import org.midonet.midolman.state.ZkConnectionAwareWatcher
+import org.midonet.midolman.topology.VirtualTopologyActor
+import org.midonet.midolman.topology.VirtualTopologyActor.PortRequest
+import org.midonet.midolman.{DatapathReadySubscriberActor, DatapathState, Referenceable}
 import org.midonet.odp.Datapath
 import org.midonet.util.eventloop.SelectLoop
 import org.midonet.util.functors.Callback2
@@ -46,7 +45,8 @@ object RoutingManagerActor extends Referenceable {
     case class BgpStatus(status : Array[String])
 }
 
-class RoutingManagerActor extends Actor with ActorLogWithoutPath {
+class RoutingManagerActor extends Actor with ActorLogWithoutPath
+        with DatapathReadySubscriberActor {
     import context.system
 
     override def logSource = "org.midonet.routing.bgp"

@@ -15,40 +15,28 @@
  */
 package org.midonet.midolman.topology
 
-import java.util.UUID
-import java.util.concurrent.TimeoutException
-import java.util.{Set => JSet}
+import java.util.{UUID, Set => JSet}
+
 import scala.collection.immutable.{Set => ROSet}
-import scala.collection.mutable.Queue
-import scala.collection.{mutable, immutable}
+import scala.collection.mutable
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
-import scala.reflect.ClassTag
-import scala.reflect.classTag
+import scala.reflect.{ClassTag, classTag}
 import scala.util.Failure
 
 import akka.actor._
 import akka.util.Timeout
-import akka.pattern.pipe
 import com.google.inject.Inject
-import org.apache.zookeeper.KeeperException
-import org.apache.zookeeper.KeeperException.{NodeExistsException, NoNodeException}
-import org.slf4j.LoggerFactory
-
-import org.midonet.cluster.client.{BridgePort, Port}
 import org.midonet.cluster.data.TunnelZone
 import org.midonet.cluster.{Client, DataClient}
-import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman._
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.services.HostIdProviderService
-import org.midonet.midolman.simulation.Bridge
-import org.midonet.midolman.simulation.Coordinator.Device
 import org.midonet.midolman.state.Directory.TypedWatcher
-import org.midonet.midolman.state.{ZkConnectionAwareWatcher, DirectoryCallback}
+import org.midonet.midolman.state.DirectoryCallback
 import org.midonet.midolman.topology.rcu.Host
-import org.midonet.sdn.flows.FlowTagger
 import org.midonet.util.concurrent._
+import org.slf4j.LoggerFactory
 
 object HostConfigOperation extends Enumeration {
     val Added, Deleted = Value
@@ -303,42 +291,6 @@ trait DeviceManagement {
 
 }
 
-trait PortActivationStateMachine extends Actor with ActorLogWithoutPath {
-    /** map of queues of LocalPortActive msgs to process later, preserving
-      *  arrival order. */
-    private var queues = Map[UUID, Queue[LocalPortActive]]()
-
-    import context.dispatcher
-
-    protected def handlePortActivation(msg: LocalPortActive): Future[_]
-
-    private def queueEvent(msg: LocalPortActive) = queues.get(msg.portID) match {
-        case Some(queue) =>
-            queue.enqueue(msg)
-        case None =>
-            queues += (msg.portID -> Queue.empty)
-            consumeEvent(msg)
-    }
-
-    private def consumeEvent(msg: LocalPortActive) = {
-        log.debug("Received {}", msg)
-        handlePortActivation(msg) map {_ => _Resume(msg.portID)} pipeTo self
-    }
-
-    private def eventConsumed(vport: UUID) = queues.get(vport) match {
-        case Some(queue) if !queue.isEmpty => consumeEvent(queue.dequeue())
-        case Some(queue) => queues -= vport
-        case None => // NoOp
-    }
-
-    def receive = {
-        case message: LocalPortActive => queueEvent(message)
-        case _Resume(vportId) => eventConsumed(vportId)
-    }
-
-    private case class _Resume(portId: UUID)
-}
-
 /**
  * The Virtual-Physical Mapping is a component that interacts with Midonet
  * state management cluster and is responsible for those pieces of state that
@@ -354,15 +306,12 @@ trait PortActivationStateMachine extends Actor with ActorLogWithoutPath {
  * </li>
  * </ul>
  */
-abstract class VirtualToPhysicalMapperBase
-        extends Actor with ActorLogWithoutPath with PortActivationStateMachine {
+abstract class VirtualToPhysicalMapperBase extends Actor with ActorLogWithoutPath {
 
     val cluster: DataClient
 
-    import VirtualToPhysicalMapper._
-    import VirtualTopologyActor.BridgeRequest
-    import VirtualTopologyActor.PortRequest
     import context.system
+    import org.midonet.midolman.topology.VirtualToPhysicalMapper._
 
     override def logSource = "org.midonet.devices.underlay"
 
@@ -407,7 +356,7 @@ abstract class VirtualToPhysicalMapperBase
         context actorOf (props, "VxLanPortMapper")
     }
 
-    override def receive = super.receive orElse {
+    override def receive = {
         case HostRequest(hostId, updates) =>
             hostsMgr.addSubscriber(hostId, sender, updates)
 
@@ -437,46 +386,14 @@ abstract class VirtualToPhysicalMapperBase
 
             tunnelZonesMgr.updateAndNotifySubscribers(zId, newMembers, msg)
 
+        case msg@LocalPortActive(id, active) =>
+            notifyLocalPortActive(id, active)
+            context.system.eventStream.publish(msg)
+
         case value =>
             log.warn("Unknown message: " + value)
-    }
-
-    protected override def handlePortActivation(msg: LocalPortActive): Future[_] = {
-        notifyLocalPortActive(msg.portID, msg.active)
-        context.system.eventStream.publish(msg)
-        Future.successful(true)
-    }
-
-    /**
-     * Requests a port config from the VirtualTopologyActor and returns it
-     * as a tuple, or None if the port is not a BridgePort. The request is
-     * processed asynchronously inside a Future. If the future timeouts
-     * the request reschedules itself 3 times before failing.
-     *
-     * Can be a Future because it's not in the simulation path.
-     */
-    private def getPortConfig(vport: UUID, retries: Int = 3)
-    : Future[Option[(Port, Device)]] = {
-        VirtualTopologyActor.ask(PortRequest(vport))
-        .flatMap {
-            case brPort: BridgePort =>
-                val req = BridgeRequest(brPort.deviceID)
-                VirtualTopologyActor.ask(req).mapTo[Bridge].map {
-                    br => Some((brPort, br))
-                }
-            case _ =>
-                Future.successful(None)
-        } recoverWith {
-            case _ : TimeoutException if retries > 0 =>
-                log.warn("VTA request timeout for config of port {} -> retrying",
-                         vport)
-                getPortConfig(vport, retries - 1)
-            case ex =>
-                Future.failed(ex)
-        }
     }
 }
 
 class VirtualToPhysicalMapper
     extends VirtualToPhysicalMapperBase with DataClientLink with DeviceManagement
-

@@ -45,7 +45,6 @@ import org.midonet.midolman.datapath.DatapathPortEntangler
 import org.midonet.midolman.host.interfaces.InterfaceDescription
 import org.midonet.midolman.host.scanner.InterfaceScanner
 import org.midonet.midolman.io._
-import org.midonet.midolman.routingprotocols.RoutingManagerActor
 import org.midonet.midolman.services.HostIdProviderService
 import org.midonet.midolman.state.{FlowStateStorage, FlowStateStorageFactory}
 import org.midonet.midolman.topology.VirtualToPhysicalMapper.{ZoneChanged,
@@ -114,6 +113,8 @@ trait VirtualPortsResolver {
     /** Returns bounded datapath port interface or None if port not found */
     def getDpPortName(num: JInteger): Option[String]
 
+    /** Returns interface desc bound to the interface or None if not found */
+    def getDescForInterface(itfName: String): Option[InterfaceDescription]
 }
 
 trait DatapathState extends VirtualPortsResolver with UnderlayResolver
@@ -246,8 +247,6 @@ class DatapathController extends Actor
         }
     )(singleThreadExecutionContext, log)
 
-    var recentInterfacesScanned = new java.util.ArrayList[InterfaceDescription]()
-
     var initializer: ActorRef = system.deadLetters  // only used in tests
 
     var host: Host = null
@@ -358,11 +357,9 @@ class DatapathController extends Actor
     def completeInitialization() {
         log.info("Initialization complete. Starting to act as a controller.")
         context become receive
-
-        Seq[ActorRef](FlowController, PacketsEntryPoint, RoutingManagerActor,
-                      initializer) foreach {
-            _ ! DatapathReady(datapath, dpState)
-        }
+        val datapathReadyMsg = DatapathReady(datapath, dpState)
+        system.eventStream.publish(datapathReadyMsg)
+        initializer ! datapathReadyMsg
 
         for ((zoneId, _) <- host.zones) {
             VirtualToPhysicalMapper ! TunnelZoneRequest(zoneId)
@@ -776,4 +773,7 @@ class DatapathStateManager(val controller: DatapathPortEntangler.Controller)
 
     override def getDpPortName(num: JInteger): Option[String] =
         dpPortNumToInterface.get(num)
+
+    override def getDescForInterface(itf: String): Option[InterfaceDescription] =
+        interfaceToDescription.get(itf)
 }
