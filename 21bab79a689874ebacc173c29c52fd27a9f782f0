@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_d421deb5",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/VxlanGatewayHA.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-02-02T15:21:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_3ca01ef4",
+      "range": {
+        "startLine": 44,
+        "startChar": 38,
+        "endLine": 44,
+        "endChar": 45
+      },
+      "revId": "21bab79a689874ebacc173c29c52fd27a9f782f0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_bcab6ed5",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/VxlanGatewayHA.scala",
         "patchSetId": 4
@@ -36,6 +60,30 @@
       "writtenOn": "2015-01-30T11:12:42Z",
       "side": 1,
       "message": "rather than a question maybe it would be better to output: \"Unexpected: network observable completed. This indicates that all networks were deleted.\"",
+      "range": {
+        "startLine": 111,
+        "startChar": 34,
+        "endLine": 111,
+        "endChar": 56
+      },
+      "revId": "21bab79a689874ebacc173c29c52fd27a9f782f0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_142c16ab",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/VxlanGatewayHA.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 111,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-02-02T15:21:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_bcab6ed5",
       "range": {
         "startLine": 111,
         "startChar": 34,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_7418ea84",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/VxlanGatewayHA.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 114,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-02-02T15:21:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_1cb9e22e",
+      "range": {
+        "startLine": 114,
+        "startChar": 47,
+        "endLine": 114,
+        "endChar": 52
+      },
+      "revId": "21bab79a689874ebacc173c29c52fd27a9f782f0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_5c823a53",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/VxlanGatewayHA.scala",
         "patchSetId": 4
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_541dee72",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/VxlanGatewayHA.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 131,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-02-02T15:21:31Z",
+      "side": 1,
+      "message": "Yes, I just forget sometimes :D",
+      "parentUuid": "7a1969be_5c823a53",
+      "range": {
+        "startLine": 131,
+        "startChar": 28,
+        "endLine": 131,
+        "endChar": 35
+      },
+      "revId": "21bab79a689874ebacc173c29c52fd27a9f782f0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_3c877e63",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/VxlanGatewayHA.scala",
         "patchSetId": 4
@@ -105,6 +201,30 @@
       "writtenOn": "2015-01-30T11:12:42Z",
       "side": 1,
       "message": "creating?",
+      "range": {
+        "startLine": 136,
+        "startChar": 49,
+        "endLine": 136,
+        "endChar": 55
+      },
+      "revId": "21bab79a689874ebacc173c29c52fd27a9f782f0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_94176651",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/VxlanGatewayHA.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 136,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-02-02T15:21:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_3c877e63",
       "range": {
         "startLine": 136,
         "startChar": 49,
