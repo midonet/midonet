@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_f4a21a99",
+        "filename": "midolman/src/main/scala/org/midonet/cluster/ClusterState.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-02T11:40:26Z",
+      "side": 1,
+      "message": "Discussed f2f to leave as is.",
+      "parentUuid": "7a1969be_630e7536",
+      "range": {
+        "startLine": 33,
+        "startChar": 6,
+        "endLine": 33,
+        "endChar": 18
+      },
+      "revId": "80a9a95ef91f1958e5d29ec9410e748417859f25",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_6325d5aa",
         "filename": "midolman/src/main/scala/org/midonet/cluster/ClusterStateImpl.scala",
         "patchSetId": 7
@@ -36,6 +60,30 @@
       "writtenOn": "2015-01-29T10:14:10Z",
       "side": 1,
       "message": "5",
+      "range": {
+        "startLine": 2,
+        "startChar": 16,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "80a9a95ef91f1958e5d29ec9410e748417859f25",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_d49f1e4f",
+        "filename": "midolman/src/main/scala/org/midonet/cluster/ClusterStateImpl.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-02T11:40:26Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_6325d5aa",
       "range": {
         "startLine": 2,
         "startChar": 16,
@@ -65,6 +113,24 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_949e4655",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/guice/ClusterModule.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-02T11:40:26Z",
+      "side": 1,
+      "message": "Now the implementation (i.e. ClusterStateImpl) still relies on the old zk managers to preserve the compatibility with the old storage model. But when the old storage is not longer needed, we can/should migrate this to cluster.",
+      "parentUuid": "7a1969be_c312c957",
+      "revId": "80a9a95ef91f1958e5d29ec9410e748417859f25",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_a30fcd2d",
         "filename": "midolman/src/main/scala/org/midonet/midolman/guice/ClusterModule.scala",
         "patchSetId": 7
@@ -88,6 +154,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_b499c270",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/guice/ClusterModule.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-02T11:40:26Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_a30fcd2d",
+      "range": {
+        "startLine": 2,
+        "startChar": 16,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "80a9a95ef91f1958e5d29ec9410e748417859f25",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_031d0167",
         "filename": "midolman/src/main/scala/org/midonet/midolman/guice/InMemoryStorageModule.scala",
         "patchSetId": 7
@@ -99,6 +189,24 @@
       "writtenOn": "2015-01-29T10:13:36Z",
       "side": 1,
       "message": "This is for testing right? Why on main/src?",
+      "revId": "80a9a95ef91f1958e5d29ec9410e748417859f25",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_5494ce36",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/guice/InMemoryStorageModule.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-02T11:40:26Z",
+      "side": 1,
+      "message": "The midonet-api module requires it, if in src/test it won\u0027t be available to other modules. I agree that we remove the API, we can move it to test.",
+      "parentUuid": "7a1969be_031d0167",
       "revId": "80a9a95ef91f1958e5d29ec9410e748417859f25",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
