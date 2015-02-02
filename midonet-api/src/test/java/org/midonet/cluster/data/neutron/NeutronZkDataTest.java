@@ -42,6 +42,29 @@ public final class NeutronZkDataTest extends NeutronPluginTest {
         dirVerifier = new DirectoryVerifier(getDirectory());
     }
 
+    private void verifyRoute(UUID routerId, String addr, String type,
+                             int expectedMatchCnt) {
+
+        String routesPath = pathBuilder.getRoutesPath();
+
+        Map<String, Object> matches = new HashMap<>();
+        if (routerId != null) {
+            matches.put("routerId", routerId);
+        }
+
+        if (type != null) {
+            matches.put("nextHop", type);
+        }
+
+        matches.put("dstNetworkAddr", addr);
+        matches.put("dstNetworkLength", 32);
+        matches.put("srcNetworkAddr", "0.0.0.0");
+        matches.put("srcNetworkLength", 0);
+
+        dirVerifier.assertChildrenFieldsMatch(routesPath, matches,
+                                              expectedMatchCnt);
+    }
+
     private void verifyMetadataRoute(UUID routerId, String srcCidr,
                                      int expectedMatchCnt) {
 
@@ -120,7 +143,7 @@ public final class NeutronZkDataTest extends NeutronPluginTest {
     }
 
     @Test
-    public void testMetadataRouteWhenDhcpPortCreatedAfterRouter()
+    public void testMetadataRouteDhcpPortDelete()
         throws Rule.RuleIndexOutOfBoundsException, SerializationException,
                StateAccessException {
 
@@ -138,5 +161,53 @@ public final class NeutronZkDataTest extends NeutronPluginTest {
 
         // Verify that the metadata is re-added
         verifyMetadataRoute(router.id, subnet.cidr, 1);
+    }
+
+    @Test
+    public void testSubnetUpdateGatewayIp()
+        throws SerializationException, StateAccessException {
+
+        String newGatewayIp = "10.0.0.100";
+
+        // Verify the gateway IP and the ports local routes
+        verifyRoute(router.id, subnet.gatewayIp, "LOCAL", 1);
+        verifyRoute(router.id, newGatewayIp, "LOCAL", 0);
+
+        // Update the subnet's gateway IP
+        Subnet subnet2 = new Subnet(subnet.id, subnet.networkId,
+                                    subnet.tenantId, subnet.name,
+                                    subnet.cidr, subnet.ipVersion,
+                                    newGatewayIp, subnet.allocationPools,
+                                    subnet.dnsNameservers, subnet.hostRoutes,
+                                    subnet.enableDhcp);
+        plugin.updateSubnet(subnet.id, subnet2);
+
+        // Verify that the port local routes are updated
+        verifyRoute(router.id, subnet.gatewayIp, "LOCAL", 0);
+        verifyRoute(router.id, newGatewayIp, "LOCAL", 1);
+    }
+
+    @Test
+    public void testExternalSubnetUpdateGatewayIp()
+        throws SerializationException, StateAccessException {
+
+        String newGatewayIp = "200.200.200.100";
+
+        // Verify the gateway IP and the ports local routes
+        verifyRoute(null, extSubnet.gatewayIp, "LOCAL", 1);
+        verifyRoute(null, newGatewayIp, "LOCAL", 0);
+
+        // Update the subnet's gateway IP
+        Subnet subnet2 = new Subnet(extSubnet.id, extSubnet.networkId,
+                                    extSubnet.tenantId, extSubnet.name,
+                                    extSubnet.cidr, extSubnet.ipVersion,
+                                    newGatewayIp, extSubnet.allocationPools,
+                                    extSubnet.dnsNameservers,
+                                    extSubnet.hostRoutes, extSubnet.enableDhcp);
+        plugin.updateSubnet(extSubnet.id, subnet2);
+
+        // Verify that the port local routes are updated
+        verifyRoute(null, extSubnet.gatewayIp, "LOCAL", 0);
+        verifyRoute(null, newGatewayIp, "LOCAL", 1);
     }
 }

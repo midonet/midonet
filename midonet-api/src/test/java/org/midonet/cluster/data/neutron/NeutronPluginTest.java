@@ -88,7 +88,7 @@ public abstract class NeutronPluginTest extends ZookeeperTest {
     protected static final Port gwPort = new Port(
         UUID.randomUUID(), extNetwork.id, ADMIN_ID, "gw_port",
         MAC.random().toString(),
-        Arrays.asList(new IPAllocation("200.0.0.1", extSubnet.id)),
+        Arrays.asList(new IPAllocation("200.0.0.2", extSubnet.id)),
         DeviceOwner.ROUTER_GW, null, null);
 
     // Default router

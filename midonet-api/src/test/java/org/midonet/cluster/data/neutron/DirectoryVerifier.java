@@ -117,6 +117,7 @@ public class DirectoryVerifier {
                 break;
             }
         }
+
         return matched;
     }
 

@@ -591,6 +591,34 @@ public class PortZkManager extends AbstractZkManager<UUID, PortConfig> {
         }
     }
 
+    /**
+     * Update the router port with the new IP address.  Updating address also
+     * removes the previous local route and adds a new one for the new
+     * address.  This method throws an exception if the ID passed in is not a
+     * router port.
+     *
+     * @param ops List to which Ops are added
+     * @param portId  ID of the port to update
+     * @param addr  The new address to assign to the port
+     */
+    public void prepareUpdatePortAddress(List<Op> ops, UUID portId, int addr)
+        throws SerializationException, StateAccessException {
+
+        PortDirectory.RouterPortConfig port =
+            (PortDirectory.RouterPortConfig) get(portId);
+
+        // Delete the routes containing the old port address
+        routeZkManager.prepareRoutesDelete(ops, port.device_id,
+                                           port.getPortAddr());
+
+        port.portAddr = addr;
+        ops.add(Op.setData(paths.getPortPath(portId),
+                           serializer.serialize(port), -1));
+
+        // Insert a new route
+        ops.addAll(routeZkManager.prepareLocalRoutesCreate(port.id, port));
+    }
+
     public List<Op> prepareUpdate(UUID id, PortConfig config)
             throws StateAccessException, SerializationException {
         List<Op> ops = new ArrayList<Op>();
