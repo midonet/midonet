@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_f0ba2d09",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/RouteManager.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-02-02T03:29:12Z",
+      "side": 1,
+      "message": "This isn\u0027t actually used yet. It\u0027s left over from when I was going to do routes in this patch. I\u0027d prefer just to leave it in, since I\u0027ll need it later.",
+      "range": {
+        "startLine": 24,
+        "startChar": 6,
+        "endLine": 24,
+        "endChar": 18
+      },
+      "revId": "d31b65b42ffbe25aad5009a75f51295ce3f86364",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
