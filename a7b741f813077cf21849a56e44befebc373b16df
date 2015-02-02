@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_17eff8b1",
+        "filename": "brain/midonet-brain/conf/topology-client.conf",
+        "patchSetId": 10
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-02T17:53:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_fce32631",
+      "range": {
+        "startLine": 22,
+        "startChar": 15,
+        "endLine": 22,
+        "endChar": 19
+      },
+      "revId": "a7b741f813077cf21849a56e44befebc373b16df",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_5cd07a53",
         "filename": "brain/midonet-brain/conf/topology-client.conf",
         "patchSetId": 10
@@ -36,6 +60,30 @@
       "writtenOn": "2015-01-30T14:47:39Z",
       "side": 1,
       "message": "the two",
+      "range": {
+        "startLine": 24,
+        "startChar": 33,
+        "endLine": 24,
+        "endChar": 37
+      },
+      "revId": "a7b741f813077cf21849a56e44befebc373b16df",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_772bcceb",
+        "filename": "brain/midonet-brain/conf/topology-client.conf",
+        "patchSetId": 10
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-02T17:53:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_5cd07a53",
       "range": {
         "startLine": 24,
         "startChar": 33,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_174b78b1",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/TopologySnoopy.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-02T17:53:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_9cab1289",
+      "range": {
+        "startLine": 36,
+        "startChar": 0,
+        "endLine": 38,
+        "endChar": 3
+      },
+      "revId": "a7b741f813077cf21849a56e44befebc373b16df",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_3c3c9e93",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/TopologySnoopy.scala",
         "patchSetId": 10
@@ -82,6 +154,30 @@
       "writtenOn": "2015-01-30T14:47:39Z",
       "side": 1,
       "message": "Wouldn\u0027t it be better to rename this: tryGracefulTermination. It makes its function clearer wrt terminateNow.",
+      "range": {
+        "startLine": 79,
+        "startChar": 16,
+        "endLine": 79,
+        "endChar": 25
+      },
+      "revId": "a7b741f813077cf21849a56e44befebc373b16df",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_57ccd035",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/TopologySnoopy.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-02T17:53:59Z",
+      "side": 1,
+      "message": "Not sure. Something like \u0027tryGracefulTermination\u0027 suggests that it is likely to fail, while it should be the normal termination mode. The \u0027Now\u0027 in \u0027terminateNow\u0027 suggests something like an emergency stop (at least for me).",
+      "parentUuid": "7a1969be_3c3c9e93",
       "range": {
         "startLine": 79,
         "startChar": 16,
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_d7d720be",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/client/ClientSession.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-02T17:53:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_3c949e36",
+      "range": {
+        "startLine": 43,
+        "startChar": 59,
+        "endLine": 43,
+        "endChar": 72
+      },
+      "revId": "a7b741f813077cf21849a56e44befebc373b16df",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_9c995271",
         "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/client/ClientSession.scala",
         "patchSetId": 10
@@ -128,6 +248,30 @@
       "writtenOn": "2015-01-30T14:47:39Z",
       "side": 1,
       "message": "I think that to clarify the state transition diagram, it might be useful to distinguish:\n-external events triggered by call to public methods of this class\n-promise that become successful due to an event internal to this class\n-events received from netty\n\nIf I understand correctly:\n-on observable subscribe happens as a result of someone calling session.connect.subscribre(...) right?\n-Connect(ctx): is an event received from netty\n-connected promise: this is a promise made internally by calling connected.trySuccess(...)",
+      "range": {
+        "startLine": 51,
+        "startChar": 0,
+        "endLine": 65,
+        "endChar": 56
+      },
+      "revId": "a7b741f813077cf21849a56e44befebc373b16df",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_97bbe871",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/client/ClientSession.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-02T17:53:59Z",
+      "side": 1,
+      "message": "I\u0027ve tried to expand a little bit more the explanations with your suggestion. The complexity here comes from the fact that the state of the ClientSession can be affected simultaneously by user actions, server-side protocol and network state (and sometimes in opposite ways)",
+      "parentUuid": "7a1969be_9c995271",
       "range": {
         "startLine": 51,
         "startChar": 0,
@@ -163,6 +307,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_d7ac4038",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/client/ClientSession.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-02T17:53:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_7cb0d6f4",
+      "range": {
+        "startLine": 77,
+        "startChar": 59,
+        "endLine": 77,
+        "endChar": 60
+      },
+      "revId": "a7b741f813077cf21849a56e44befebc373b16df",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_7c873610",
         "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/client/ClientSession.scala",
         "patchSetId": 10
@@ -186,6 +354,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_17a7f850",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/client/ClientSession.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 202,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-02T17:53:59Z",
+      "side": 1,
+      "message": "I always fail this one... :-)\nDone.",
+      "parentUuid": "7a1969be_7c873610",
+      "range": {
+        "startLine": 202,
+        "startChar": 30,
+        "endLine": 202,
+        "endChar": 41
+      },
+      "revId": "a7b741f813077cf21849a56e44befebc373b16df",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_dc7bca27",
         "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/client/ClientSession.scala",
         "patchSetId": 10
@@ -197,6 +389,30 @@
       "writtenOn": "2015-01-30T14:47:39Z",
       "side": 1,
       "message": "same",
+      "range": {
+        "startLine": 205,
+        "startChar": 30,
+        "endLine": 205,
+        "endChar": 41
+      },
+      "revId": "a7b741f813077cf21849a56e44befebc373b16df",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_7763cc1a",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/client/ClientSession.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 205,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-02T17:53:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_dc7bca27",
       "range": {
         "startLine": 205,
         "startChar": 30,
