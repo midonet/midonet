@@ -46,6 +46,29 @@
       "revId": "638a13149cf7e3700475d976ee2410d04473732e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_972be82f",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/VxlanGatewayManager.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 533,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-02T16:08:03Z",
+      "side": 1,
+      "message": "why not?",
+      "range": {
+        "startLine": 532,
+        "startChar": 0,
+        "endLine": 533,
+        "endChar": 57
+      },
+      "revId": "638a13149cf7e3700475d976ee2410d04473732e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
