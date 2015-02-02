@@ -27,12 +27,9 @@ import org.slf4j.LoggerFactory;
 
 import org.midonet.api.rest_api.RestApiService;
 import org.midonet.brain.ClusterNode;
-import org.midonet.brain.services.vxgw.VxLanGatewayServiceBase;
+import org.midonet.brain.services.vxgw.VxlanGatewayHA;
 import org.midonet.brain.southbound.vtep.VtepDataClientFactory;
 
-/**
- * Guice servlet listener.
- */
 public class JerseyGuiceServletContextListener extends
         GuiceServletContextListener {
 
@@ -69,7 +66,7 @@ public class JerseyGuiceServletContextListener extends
         ClusterNode.Context ctx = injector.getInstance(ClusterNode.Context.class);
         if (ctx.embed()) {
             log.info("initializeApplication: starting embedded Cluster node");
-            injector.getInstance(VxLanGatewayServiceBase.class)
+            injector.getInstance(VxlanGatewayHA.class)
                     .startAsync()
                     .awaitRunning();
         } else {
@@ -90,7 +87,7 @@ public class JerseyGuiceServletContextListener extends
         if (ctx.embed()) {
             log.info("Stopping embedded Cluster service for node {}",
                      ctx.nodeId());
-            injector.getInstance(VxLanGatewayServiceBase.class)
+            injector.getInstance(VxlanGatewayHA.class)
                     .stopAsync()
                     .awaitTerminated();
         } else {

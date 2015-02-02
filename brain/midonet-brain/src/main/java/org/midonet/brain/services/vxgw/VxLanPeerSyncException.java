@@ -32,13 +32,6 @@ public class VxLanPeerSyncException extends RuntimeException {
         this.statusCode = statusCode;
     }
 
-    public VxLanPeerSyncException(String msg, MacLocation change,
-                                  Throwable cause) {
-        super(msg, cause);
-        this.change = change;
-        this.statusCode = null;
-    }
-
     @Override
     public String toString() {
         return String.format("Failed to apply %s, %s",

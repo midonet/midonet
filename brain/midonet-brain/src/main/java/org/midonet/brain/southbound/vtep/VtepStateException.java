@@ -26,13 +26,4 @@ public class VtepStateException extends VtepException {
         super(vtep, message);
     }
 
-    public VtepStateException(VtepEndPoint vtep, String message,
-                              Throwable throwable) {
-        super(vtep, message, throwable);
-    }
-
-    public VtepStateException(VtepEndPoint vtep, Throwable throwable) {
-        super(vtep, throwable);
-    }
-
 }
