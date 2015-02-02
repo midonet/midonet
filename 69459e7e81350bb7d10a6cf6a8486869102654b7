@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_b4f38209",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/InMemoryStorage.scala",
+        "patchSetId": 28
+      },
+      "lineNbr": 315,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-02T10:57:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_b09f1550",
+      "range": {
+        "startLine": 314,
+        "startChar": 34,
+        "endLine": 315,
+        "endChar": 66
+      },
+      "revId": "69459e7e81350bb7d10a6cf6a8486869102654b7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_900c9996",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/Storage.scala",
         "patchSetId": 28
@@ -36,6 +60,30 @@
       "writtenOn": "2015-01-29T07:24:34Z",
       "side": 1,
       "message": "The semantics of \"overwrite\" here, I think, is very different from what people would imagine from the word \"overwrite\" I think it\u0027s better to document more on that together with particular use cases in mind. Also I suggest rename the param to something like \"reentrantOwnership\" or something more appropriate.",
+      "range": {
+        "startLine": 344,
+        "startChar": 14,
+        "endLine": 350,
+        "endChar": 62
+      },
+      "revId": "69459e7e81350bb7d10a6cf6a8486869102654b7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_74d0ea53",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/Storage.scala",
+        "patchSetId": 28
+      },
+      "lineNbr": 350,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-02T10:57:43Z",
+      "side": 1,
+      "message": "How about rewriteOwner?",
+      "parentUuid": "7a1969be_900c9996",
       "range": {
         "startLine": 344,
         "startChar": 14,
@@ -65,6 +113,24 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_745e2aeb",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/SubscriptionCache.scala",
+        "patchSetId": 28
+      },
+      "lineNbr": 154,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-02T10:57:43Z",
+      "side": 1,
+      "message": "Actually I tried to consolidate the two when I wrote the code initially, because the similarities are obvious. The only key differences are:\n- the underlying observable cache, which is different, the class subscription cache observers both the children list and every child, whereas the directory cache is a bit more lightweight, observing only the children\n- the transformations applied to the exposed observable are distinct (the class cache does not require a deserializer)\n\nPerhaps a common trait such as SetSubscriptionCache would consolidate the common code, such as ref counting, but in the end it looked a bit too cumbersome (the subscriber decrementing function would need to access the underlying cache to close it, the close() method too, etc.)",
+      "parentUuid": "7a1969be_b0c6f547",
+      "revId": "69459e7e81350bb7d10a6cf6a8486869102654b7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_90fe596a",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
         "patchSetId": 28
@@ -76,6 +142,30 @@
       "writtenOn": "2015-01-29T07:24:34Z",
       "side": 1,
       "message": "This is unfortunately not correct in some cases. Say we have a binding that binds Model-A and Model-B.\n\n\nSuppose we\n\n- delete Model-A, \n- create Model-B, and\n- create Model-A again referencing Model-B.\n\n\nWith the above rule, this results in an operation sequence like:\n\n\n(update(Model-A), create(Model-B))\n\nThis, however, will now fail because at the point of update(Model-A), Model-B doesn\u0027t exist yet.",
+      "range": {
+        "startLine": 183,
+        "startChar": 13,
+        "endLine": 183,
+        "endChar": 50
+      },
+      "revId": "69459e7e81350bb7d10a6cf6a8486869102654b7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_d46efe95",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 28
+      },
+      "lineNbr": 183,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-02T10:57:43Z",
+      "side": 1,
+      "message": "Just to be on the safe side I tested this, but normally it should work. \n\nHere update and create are ZK ops, that don\u0027t know anything about bindings. There is no reason why we couldn\u0027t update Model-A before creating Model-B, even if the first references the latter. If indeed one of these ops fails, then the ZK transaction will also fail rolling back any changes done in the meantime.\n\nThe test that I\u0027ve done is the following:\n\n        val chain1 \u003d pojoChain(name \u003d \"chain1\")\n        val rule1 \u003d pojoRule(name \u003d \"rule1\")\n        zom.create(rule1)\n        await(zom.exists(classOf[PojoRule], rule1.id))\n        rule1.chainId \u003d chain1.id\n        zom.multi(List(DeleteOp(classOf[PojoRule], rule1.id),\n                       CreateOp(chain1),\n                       CreateOp(rule1)))\n        val updatedChain1 \u003d await(zom.get(classOf[PojoChain], chain1.id))\n        val updatedRule1 \u003d await(zom.get(classOf[PojoRule], rule1.id))\n\n        updatedChain1.ruleIds should contain only rule1.id\n        updatedRule1.chainId shouldBe chain1.id\n\nIn any case, the current zoom doesn\u0027t support this kind of transactions either (where we mix a delete + create), because we always perform all deletes at the end of an object.",
+      "parentUuid": "7a1969be_90fe596a",
       "range": {
         "startLine": 183,
         "startChar": 13,
@@ -111,6 +201,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_b40f02e1",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 28
+      },
+      "lineNbr": 194,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-02T10:57:43Z",
+      "side": 1,
+      "message": "I agree.\n\nActually I think this is rather a design issue than a coding issue, where the question is: how should we handle cascade deletions for objects that have multiple owners?\n\nCurrently, as seen in the delete method, the approach is:\n\n  case DeleteAction.CASCADE \u003d\u003e\n    delete(bdg.getReferencedClass, thatId, ignoresNeo, owner)\n\nmeaning that a cascade delete due to a back-reference will only apply to the specified owner, meaning the object may not be deleted if there are other owners.\n\nAlternatives are:\n- force deletion for all owners, by setting the last argument to None (as if cascading delete will take precedence over ownership)\n- specify a new DeleteAction to handle the two different cases.\n\nMaybe having cascading delete take precedence over ownership make more sense? I modified the cascading delete behavior to:\n\n  delete(bdg.getReferencedClass, thatId, ignoresNeo, None)",
+      "parentUuid": "7a1969be_d0f7318b",
+      "range": {
+        "startLine": 194,
+        "startChar": 13,
+        "endLine": 194,
+        "endChar": 74
+      },
+      "revId": "69459e7e81350bb7d10a6cf6a8486869102654b7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_703abd37",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
         "patchSetId": 28
@@ -134,6 +248,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_1417f6ee",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 28
+      },
+      "lineNbr": 691,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-02T10:57:43Z",
+      "side": 1,
+      "message": "Done.\nI think we need owner.isDefined, otherwise owner.get will throw an exception.",
+      "parentUuid": "7a1969be_703abd37",
+      "range": {
+        "startLine": 685,
+        "startChar": 12,
+        "endLine": 691,
+        "endChar": 65
+      },
+      "revId": "69459e7e81350bb7d10a6cf6a8486869102654b7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_d0a29199",
         "filename": "cluster/src/main/scala/org/midonet/cluster/util/ObservablePathDirectoryCache.scala",
         "patchSetId": 28
@@ -145,6 +283,30 @@
       "writtenOn": "2015-01-29T07:24:34Z",
       "side": 1,
       "message": "The patch outlived 2014 ;)",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "69459e7e81350bb7d10a6cf6a8486869102654b7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_74d3ca38",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/util/ObservablePathDirectoryCache.scala",
+        "patchSetId": 28
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-02T10:57:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_d0a29199",
       "range": {
         "startLine": 2,
         "startChar": 13,
