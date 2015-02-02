@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_9773e8b0",
+        "filename": "midolman/conf/midolman-env.sh.gateway.large",
+        "patchSetId": 4
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-02-02T15:42:06Z",
+      "side": 1,
+      "message": "let\u0027s do 512MB less here.",
+      "range": {
+        "startLine": 76,
+        "startChar": 14,
+        "endLine": 76,
+        "endChar": 19
+      },
+      "revId": "c6dbc0310e9a58fabfc8eeaee16136be33651c62",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_975c8827",
+        "filename": "midolman/conf/midolman.conf",
+        "patchSetId": 4
+      },
+      "lineNbr": 123,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-02-02T15:42:06Z",
+      "side": 1,
+      "message": "this should be 10.",
+      "revId": "c6dbc0310e9a58fabfc8eeaee16136be33651c62",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
