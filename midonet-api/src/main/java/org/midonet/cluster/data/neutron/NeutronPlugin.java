@@ -300,6 +300,7 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
         ZkOpLock lock = acquireLock();
         try {
             networkZkManager.prepareUpdateSubnet(ops, subnet);
+            l3ZkManager.prepareUpdateSubnet(ops, subnet);
 
             // This should throw NoStatePathException if it doesn't exist.
             commitOps(ops);

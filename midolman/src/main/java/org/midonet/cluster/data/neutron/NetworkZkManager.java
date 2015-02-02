@@ -23,6 +23,8 @@ import java.util.Set;
 import java.util.UUID;
 
 import com.google.common.base.Preconditions;
+import com.google.common.base.Predicate;
+import com.google.common.collect.Iterables;
 import com.google.inject.Inject;
 
 import org.apache.zookeeper.Op;
@@ -210,6 +212,7 @@ public class NetworkZkManager extends BaseZkManager {
             // itself)
             config.setOpt121Routes(oldConfig.getOpt121Routes());
             config.setServerAddr(oldConfig.getServerAddr());
+            config.setDefaultGateway((IPv4Addr) subnet.gatewayIpAddr());
             dhcpZkManager.prepareUpdateSubnet(ops, subnet.networkId, config);
         } else if (subnet.isIpv6()) {
             BridgeDhcpV6ZkManager.Subnet6 config =
@@ -542,6 +545,11 @@ public class NetworkZkManager extends BaseZkManager {
         }
 
         return netPorts;
+    }
+
+    public Port findPort(Predicate<Port> predicate)
+        throws StateAccessException, SerializationException {
+        return Iterables.find(getPorts(), predicate);
     }
 
     public void prepareUpdateVifPort(List<Op> ops, Port port)

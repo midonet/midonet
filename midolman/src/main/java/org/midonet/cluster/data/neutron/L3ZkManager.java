@@ -18,6 +18,8 @@ package org.midonet.cluster.data.neutron;
 import com.google.common.base.Function;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Predicate;
+import com.google.common.collect.Iterables;
 import com.google.inject.Inject;
 import org.apache.zookeeper.Op;
 
@@ -254,6 +256,35 @@ public class L3ZkManager extends BaseZkManager {
         }
     }
 
+    private Port findRouterInterfacePort(final UUID subnetId)
+        throws SerializationException, StateAccessException {
+
+        return networkZkManager.findPort(new Predicate<Port>() {
+
+            @Override
+            public boolean apply(Port p) {
+                return p.isRouterInterface()
+                       && p.firstSubnetId().equals(subnetId);
+            }
+        });
+    }
+
+    public void prepareUpdateSubnet(List<Op> ops, Subnet subnet)
+        throws SerializationException, StateAccessException {
+
+        // Find the router interface with this subnet ID
+        Port port = findRouterInterfacePort(subnet.id);
+
+        if (port != null) {
+
+            // Subnet is linked to a router, so update the gateway port on
+            // this subnet
+            PortConfig netPort = portZkManager.get(port.id);
+            portZkManager.prepareUpdatePortAddress(ops, netPort.getPeerId(),
+                                                   subnet.gwIpInt());
+        }
+    }
+
     private void prepareAddMetadataServiceRoute(List<Op> ops, UUID routerId,
                                                 UUID routerPortId,
                                                 IPv4Addr nextHopAddr,
@@ -266,8 +297,8 @@ public class L3ZkManager extends BaseZkManager {
         // Metadata server in the router to forward the packet to the bridge
         // that will send them to the Metadata Proxy.
         routeZkManager.preparePersistPortRouteCreate(ops, UUID.randomUUID(),
-            IPv4Subnet.fromCidr(subnet.cidr), MetaDataService.IPv4_SUBNET, routerPortId,
-            nextHopAddr, routerId, rpCfg);
+            IPv4Subnet.fromCidr(subnet.cidr), MetaDataService.IPv4_SUBNET,
+            routerPortId, nextHopAddr, routerId, rpCfg);
     }
 
     private void prepareRemoveMetadataServiceRoute(List<Op> ops, UUID routerId,
