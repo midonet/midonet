@@ -42,6 +42,23 @@ public final class NeutronZkDataTest extends NeutronPluginTest {
         dirVerifier = new DirectoryVerifier(getDirectory());
     }
 
+    private void verifyLocalPortRoute(UUID routerId, String addr,
+                                      int expectedMatchCnt) {
+
+        String routesPath = pathBuilder.getRoutesPath();
+
+        Map<String, Object> matches = new HashMap<>();
+        matches.put("routerId", routerId);
+        matches.put("nextHop", "LOCAL");
+        matches.put("dstNetworkAddr", addr);
+        matches.put("dstNetworkLength", 32);
+        matches.put("srcNetworkAddr", "0.0.0.0");
+        matches.put("srcNetworkLength", 0);
+
+        dirVerifier.assertChildrenFieldsMatch(routesPath, matches,
+                                              expectedMatchCnt);
+    }
+/*
     private void verifyMetadataRoute(UUID routerId, String srcCidr,
                                      int expectedMatchCnt) {
 
@@ -120,7 +137,7 @@ public final class NeutronZkDataTest extends NeutronPluginTest {
     }
 
     @Test
-    public void testMetadataRouteWhenDhcpPortCreatedAfterRouter()
+    public void testMetadataRouteWhenDhcpPort()
         throws Rule.RuleIndexOutOfBoundsException, SerializationException,
                StateAccessException {
 
@@ -138,5 +155,29 @@ public final class NeutronZkDataTest extends NeutronPluginTest {
 
         // Verify that the metadata is re-added
         verifyMetadataRoute(router.id, subnet.cidr, 1);
+    }*/
+
+    @Test
+    public void testSubnetUpdateGatewayIp()
+        throws SerializationException, StateAccessException {
+
+        String newGatewayIp = "10.0.0.100";
+
+        // Verify the gateway IP and the ports local routes
+        verifyLocalPortRoute(router.id, subnet.gatewayIp, 1);
+        verifyLocalPortRoute(router.id, newGatewayIp, 0);
+
+        // Update the subnet's gateway IP
+        Subnet subnet2 = new Subnet(subnet.id, subnet.networkId,
+                                    subnet.tenantId, subnet.name,
+                                    subnet.cidr, subnet.ipVersion,
+                                    newGatewayIp, subnet.allocationPools,
+                                    subnet.dnsNameservers, subnet.hostRoutes,
+                                    subnet.enableDhcp);
+        plugin.updateSubnet(subnet.id, subnet2);
+
+        // Verify that the port local routes are updated
+        verifyLocalPortRoute(router.id, subnet.gatewayIp, 0);
+        verifyLocalPortRoute(router.id, newGatewayIp, 1);
     }
 }
