@@ -22,6 +22,7 @@ import java.util.concurrent.{ConcurrentHashMap, ThreadFactory}
 import java.util.{Random, UUID}
 
 import scala.collection.JavaConversions._
+import scala.util.{Failure, Success, Try}
 
 import com.google.inject.Inject
 import org.apache.curator.framework.CuratorFramework
@@ -31,9 +32,12 @@ import rx.schedulers.Schedulers
 import rx.{Observer, Subscription}
 
 import org.midonet.brain.ClusterNode
+import org.midonet.brain.services.vxgw.monitor.BridgeMonitor
 import org.midonet.brain.southbound.vtep.VtepDataClientFactory
 import org.midonet.cluster.EntityIdSetEvent.Type._
-import org.midonet.cluster.{DataClient, EntityIdSetEvent}
+import org.midonet.cluster.data.Bridge
+import org.midonet.cluster.{EntityMonitor, DataClient, EntityIdSetEvent}
+import org.midonet.midolman.state.Directory.DefaultTypedWatcher
 import org.midonet.midolman.state.{StateAccessException, ZookeeperConnectionWatcher}
 import org.midonet.util.functors._
 
@@ -58,10 +62,6 @@ class VxlanGatewayHA @Inject()(nodeCtx: ClusterNode.Context,
     private val log = LoggerFactory.getLogger(vxgwLog)
     private val LEADER_LATCH_PATH = "/midonet/vxgw/leader-latch"
 
-    // Index of VxLAN Gateway managers for each neutron network with bindings
-    // to hardware VTEPs.
-    private val managers = new ConcurrentHashMap[UUID, VxlanGatewayManager]()
-
     // Executor on which we schedule tasks to release the ZK event thread.
     private val executor = newSingleThreadExecutor(new ThreadFactory {
         override def newThread(r: Runnable): Thread = {
@@ -70,6 +70,18 @@ class VxlanGatewayHA @Inject()(nodeCtx: ClusterNode.Context,
             t
         }
     })
+
+    // Latch to coordinate active-passive with other instances
+    private val leaderLatch = new LeaderLatch(curator, LEADER_LATCH_PATH,
+                                              nodeCtx.nodeId.toString)
+
+    // Index of VxLAN Gateway managers for each neutron network with bindings
+    // to hardware VTEPs.
+    private val managers = new ConcurrentHashMap[UUID, VxlanGatewayManager]()
+
+    // Watch bridge creations and deletions.
+    private val networkUpdateMonitor =
+        new ConcurrentHashMap[UUID, DefaultTypedWatcher]()
 
     // A monitor that notifies on network creation, which we will examine and
     // decide whether we need a new VxLAN Gateway manager.
@@ -86,10 +98,6 @@ class VxlanGatewayHA @Inject()(nodeCtx: ClusterNode.Context,
     private val vteps = new VtepPool(nodeCtx.nodeId, dataClient, zkConnWatcher,
                                      tzState, vtepDataClientFactory)
 
-    // Latch to coordinate active-passive with other instances
-    private val leaderLatch = new LeaderLatch(curator, LEADER_LATCH_PATH,
-                                              nodeCtx.nodeId.toString)
-
     // Reset the monitor so we start watching creations in networks.
     private val monitorReset: Runnable = new Runnable {
         override def run(): Unit = {
@@ -97,7 +105,7 @@ class VxlanGatewayHA @Inject()(nodeCtx: ClusterNode.Context,
             val monitor = dataClient.bridgesGetUuidSetMonitor(zkConnWatcher)
             networkSub = monitor.getObservable
                                 .observeOn(Schedulers.from(executor))
-                                .subscribe(bootstrapVxlanGateway)
+                                .subscribe(bridgesWatcher)
             monitor.notifyState()
         }
     }
@@ -105,7 +113,7 @@ class VxlanGatewayHA @Inject()(nodeCtx: ClusterNode.Context,
     // An observer that bootstraps a new VxLAN Gateway service whenever a
     // neutron network that has bindings to hardware VTEP(s) is created or
     // newly bound to its first VTEP.
-    private val bootstrapVxlanGateway = new Observer[EntityIdSetEvent[UUID]] {
+    private val bridgesWatcher = new Observer[EntityIdSetEvent[UUID]] {
         override def onCompleted(): Unit = {
             log.warn("Unexpected: networks watcher completed, this indicates " +
                      "that all networks were deleted!")
@@ -116,30 +124,69 @@ class VxlanGatewayHA @Inject()(nodeCtx: ClusterNode.Context,
         }
         override def onNext(t: EntityIdSetEvent[UUID]): Unit = {
             if (t.`type` == CREATE || t.`type` == STATE) {
-                checkNetwork(t.value)
+                bootstrapIfInVxlanGateway(t.value) // creation, or startup
             }
+            // Deletions are managed by the individual network watcher
         }
     }
 
-    /** Verifies whether the network with the given UUID is included in a VxLAN
-      * Gateway, and in that case start a new VxlanGatewayManager to well..
-      * manage it. */
-    private def checkNetwork(id: UUID): Unit = {
-        try {
-            val network = dataClient.bridgesGet(id)
-            if (network.getVxLanPortIds.isEmpty) {
-                log.debug(s"Network $id is not bound to VTEPs, ignoring")
-                return
+    /** Create a watcher for changes on the given network that will detect
+      * when it becomes part of a VxLAN Gateway and bootstrap the management
+      * process. */
+    private def networkWatcher(id: UUID) = new DefaultTypedWatcher {
+        override def pathDataChanged(path: String): Unit = {
+            log.info(s"Network update notification")
+            VxlanGateway.executor submit makeRunnable {
+                bootstrapIfInVxlanGateway(id)
             }
-        } catch {
-            case e: StateAccessException =>
-                zkConnWatcher.handleError("Retry VxLAN Gateway manager" +
-                                          s" bootstrap for network $id",
-                                          makeRunnable { checkNetwork(id) }, e)
-            case _: Throwable =>
-                log.error(s"Error starting VxGW monitor for network $id")
         }
+        override def pathDeleted(path: String): Unit = removeNetwork(id)
+    }
 
+    /** Load the given network and bootstrap the VxGW Manager if it's now
+      * part of a VxLAN Gateway.  Otherwise just keep watching updates on the
+      * network just in case new bindings to a VTEP are added. */
+    private def bootstrapIfInVxlanGateway(id: UUID): Unit = {
+        Try (
+            // Load the bridge, setting up a watcher if it's the first time seen
+            if (networkUpdateMonitor.contains(id)) {
+                dataClient.bridgesGet(id)
+            } else {
+                val watcher = networkWatcher(id)
+                networkUpdateMonitor.putIfAbsent(id, watcher)
+                dataClient.bridgeGetAndWatch(id, watcher)
+            }
+        ) match {
+            case Success(b) if b.getVxLanPortIds.isEmpty =>
+                log.info(s"Updated network ${b.getId} not part of a VxGW")
+            case Success(b) =>
+                initVxlanGatewayManager(b.getId)
+            case Failure(e: StateAccessException) =>
+                zkConnWatcher.handleError("Retry create VxLAN Gateway manager" +
+                                          s" for network $id",
+                                          makeRunnable {
+                                              bootstrapIfInVxlanGateway(id)
+                                          }, e)
+            case Failure(e) =>
+                log.error(s"Error starting VxGW monitor for network $id", e)
+        }
+    }
+
+    /** React to the deletion of a network by cleaning any existing watcher as
+      * well as the VxLAN Gateway manager, should one exist. */
+    private def removeNetwork(id: UUID): Unit = {
+        log.info(s"Network $id is deleted")
+        networkUpdateMonitor.remove(id)
+        val mgr = managers.remove(id)
+        if (mgr != null) {
+            log.info(s"VxLAN Gateway for network $id terminates")
+            mgr.terminate()
+        }
+    }
+
+    /** Create and run a new VxlanGatewayManager for the given network id */
+    private def initVxlanGatewayManager(id: UUID) {
+        log.info(s"Network $id is now part of a VxLAN Gateway")
         val nw = new VxlanGatewayManager(id, dataClient, vteps,
                                          tzState, zkConnWatcher,
                                          () => managers.remove(id))
