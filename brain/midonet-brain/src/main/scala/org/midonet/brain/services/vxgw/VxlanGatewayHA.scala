@@ -31,10 +31,11 @@ import org.slf4j.LoggerFactory
 import rx.schedulers.Schedulers
 import rx.{Observer, Subscription}
 
-import org.midonet.brain.ClusterNode
 import org.midonet.brain.southbound.vtep.VtepDataClientFactory
+import org.midonet.brain.{ClusterNode, MinionConfig}
 import org.midonet.cluster.EntityIdSetEvent.Type._
 import org.midonet.cluster.{DataClient, EntityIdSetEvent}
+import org.midonet.config.{ConfigBool, ConfigGroup, ConfigString}
 import org.midonet.midolman.state.Directory.DefaultTypedWatcher
 import org.midonet.midolman.state.{StateAccessException, ZookeeperConnectionWatcher}
 import org.midonet.util.concurrent.NamedThreadFactory
@@ -93,16 +94,6 @@ class VxlanGatewayHA @Inject()(nodeCtx: ClusterNode.Context,
     private val vteps = new VtepPool(nodeCtx.nodeId, dataClient, zkConnWatcher,
                                      tzState, vtepDataClientFactory)
 
-    // Reset the monitor so we start watching creations in networks.
-    private val monitorReset: Runnable = makeRunnable {
-        log.info("Watching for new VxLAN Gateways")
-        val monitor = dataClient.bridgesGetUuidSetMonitor(zkConnWatcher)
-        networkSub = monitor.getObservable
-                            .observeOn(Schedulers.from(executor))
-                            .subscribe(bridgesWatcher)
-        monitor.notifyState()
-    }
-
     // An observer that bootstraps a new VxLAN Gateway service whenever a
     // neutron network that has bindings to hardware VTEP(s) is created or
     // newly bound to its first VTEP.
@@ -122,6 +113,17 @@ class VxlanGatewayHA @Inject()(nodeCtx: ClusterNode.Context,
             // Deletions are managed by the individual network watcher
         }
     }
+
+    // Reset the monitor so we start watching creations in networks.
+    private val monitorReset: Runnable = makeRunnable {
+        log.info("Watching for new VxLAN Gateways")
+        val monitor = dataClient.bridgesGetUuidSetMonitor(zkConnWatcher)
+        networkSub = monitor.getObservable
+                            .observeOn(Schedulers.from(executor))
+                            .subscribe(bridgesWatcher)
+        monitor.notifyState()
+    }
+
 
     /** Create a watcher for changes on the given network that will detect
       * when it becomes part of a VxLAN Gateway and bootstrap the management
@@ -239,4 +241,17 @@ class VxlanGatewayHA @Inject()(nodeCtx: ClusterNode.Context,
         }
     }
 
+}
+
+/** Configuration for the VxGWService Minion. */
+@ConfigGroup("vxgw")
+trait VxGWServiceConfig extends MinionConfig[VxlanGatewayHA] {
+
+    val configGroup = "vxgw"
+
+    @ConfigBool(key = "enabled", defaultValue = false)
+    def isEnabled(): Boolean
+
+    @ConfigString(key = "with")
+    def minionClass(): String
 }

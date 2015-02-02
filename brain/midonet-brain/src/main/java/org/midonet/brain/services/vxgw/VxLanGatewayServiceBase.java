@@ -18,6 +18,10 @@ package org.midonet.brain.services.vxgw;
 
 import org.midonet.brain.ClusterMinion;
 import org.midonet.brain.ClusterNode;
+import org.midonet.brain.MinionConfig;
+import org.midonet.config.ConfigBool;
+import org.midonet.config.ConfigGroup;
+import org.midonet.config.ConfigString;
 
 /** Just to allow dual implementation with the HA one. */
 public abstract class VxLanGatewayServiceBase extends ClusterMinion {
@@ -25,4 +29,6 @@ public abstract class VxLanGatewayServiceBase extends ClusterMinion {
     protected VxLanGatewayServiceBase(ClusterNode.Context nodeContext) {
         super(nodeContext);
     }
+
 }
+
