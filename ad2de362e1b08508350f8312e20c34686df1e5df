@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_b441c20d",
+        "filename": "brain/midonet-brain/conf/logback.xml",
+        "patchSetId": 14
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-02T09:36:20Z",
+      "side": 1,
+      "message": "Do we want debug log level by default?",
+      "range": {
+        "startLine": 75,
+        "startChar": 17,
+        "endLine": 75,
+        "endChar": 22
+      },
+      "revId": "ad2de362e1b08508350f8312e20c34686df1e5df",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
