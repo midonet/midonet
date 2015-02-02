@@ -73,7 +73,11 @@ public class JerseyGuiceServletContextListener extends
                     .startAsync()
                     .awaitRunning();
         } else {
-            log.info("initializeApplication: skipping embedded Cluster node");
+            log.warn("initializeApplication: skip embedded Cluster node - "
+                     + "Control functions for VxLAN Gateway will be inactive. "
+                     + "If this is not intentional, change the"
+                     + "midobrain.vxgw_enabled property in the application's "
+                     + "web.xml");
         }
 
     }
