@@ -903,8 +903,8 @@ public class DataCheckPointTest {
             if (r instanceof ForwardNatRule) {
                 Set<NatTarget> targets = ((ForwardNatRule) r).getTargets();
                 for (NatTarget nt : targets) {
-                    if (nt.getNwEnd().equals(snatIp) &&
-                        nt.getNwStart().equals(snatIp)) {
+                    if (nt.nwEnd.toString().equals(snatIp) &&
+                        nt.nwStart.toString().equals(snatIp)) {
                         foundRevSnat = true;
                     }
                 }
@@ -932,9 +932,9 @@ public class DataCheckPointTest {
             if (r instanceof ForwardNatRule) {
                 ForwardNatRule fnr = (ForwardNatRule) r;
                 for (NatTarget target : fnr.getTargets()) {
-                    if (Objects.equal(target.getNwStart(),
+                    if (Objects.equal(target.nwStart.toString(),
                                       floatingIp.floatingIpAddress) &&
-                        Objects.equal(target.getNwEnd(),
+                        Objects.equal(target.nwEnd.toString(),
                                       floatingIp.floatingIpAddress) &&
                         target.tpEnd == 0 && target.tpStart == 0) {
                         snatRuleFound = true;
@@ -947,9 +947,9 @@ public class DataCheckPointTest {
             if (r instanceof ForwardNatRule) {
                 ForwardNatRule fnr = (ForwardNatRule) r;
                 for (NatTarget target : fnr.getTargets()) {
-                    if (Objects.equal(target.getNwStart(),
+                    if (Objects.equal(target.nwStart.toString(),
                                       port.fixedIps.get(0).ipAddress) &&
-                        Objects.equal(target.getNwEnd(),
+                        Objects.equal(target.nwEnd.toString(),
                                       port.fixedIps.get(0).ipAddress) &&
                         target.tpEnd == 0 && target.tpStart == 0) {
                         dnatRuleFound = true;

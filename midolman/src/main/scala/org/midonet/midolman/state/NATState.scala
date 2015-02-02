@@ -415,8 +415,8 @@ trait NatState extends FlowState { this: PacketContext =>
         nat.nwStart.randomTo(nat.nwEnd, ThreadLocalRandom.current())
 
     private def chooseRandomPort(nat: NatTarget): Int = {
-        val tpStart = nat.tpStart & USHORT
-        val tpEnd = nat.tpEnd & USHORT
+        val tpStart = nat.tpStart
+        val tpEnd = nat.tpEnd
         ThreadLocalRandom.current().nextInt(tpEnd - tpStart + 1) + tpStart
     }
 }
