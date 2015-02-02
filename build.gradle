@@ -284,6 +284,12 @@ configure(subprojects.findAll {!it.name.contains('ovsdb')}) {
         compile fileTree(dir: '../libs', include: '*.jar')
         perfCompile 'org.openjdk.jmh:jmh-core:1.1.1'
         perfCompile 'org.openjdk.jmh:jmh-generator-bytecode:1.1.1'
+
+        modules {
+            module("asm:asm") {
+                replacedBy("org.ow2.asm:asm")
+            }
+        }
     }
 
     idea.module {
@@ -494,5 +500,5 @@ def getGitSHA() {
 
 task wrapper(type: Wrapper) {
     description 'Generate wrapper, which is distributed as part of source to alleviate the need of installing gradle'
-    gradleVersion = '2.1'
+    gradleVersion = '2.2'
 }
