@@ -18,11 +18,14 @@ package org.midonet.cluster.data.neutron;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
 import com.google.common.base.Preconditions;
+import com.google.common.base.Predicate;
+import com.google.common.collect.Iterables;
 import com.google.inject.Inject;
 
 import org.apache.zookeeper.Op;
@@ -210,6 +213,7 @@ public class NetworkZkManager extends BaseZkManager {
             // itself)
             config.setOpt121Routes(oldConfig.getOpt121Routes());
             config.setServerAddr(oldConfig.getServerAddr());
+            config.setDefaultGateway((IPv4Addr) subnet.gatewayIpAddr());
             dhcpZkManager.prepareUpdateSubnet(ops, subnet.networkId, config);
         } else if (subnet.isIpv6()) {
             BridgeDhcpV6ZkManager.Subnet6 config =
@@ -542,6 +546,15 @@ public class NetworkZkManager extends BaseZkManager {
         }
 
         return netPorts;
+    }
+
+    public Port findPort(Predicate<Port> predicate)
+        throws StateAccessException, SerializationException {
+        try {
+            return Iterables.find(getPorts(), predicate);
+        } catch (NoSuchElementException ex) {
+            return null;
+        }
     }
 
     public void prepareUpdateVifPort(List<Op> ops, Port port)
