@@ -31,16 +31,4 @@ public class VtepException extends Exception {
         super(message);
         this.vtep = vtep;
     }
-
-    public VtepException(VtepEndPoint vtep, String message,
-                         Throwable throwable) {
-        super(message, throwable);
-        this.vtep = vtep;
-    }
-
-    public VtepException(VtepEndPoint vtep, Throwable throwable) {
-        super(throwable);
-        this.vtep = vtep;
-    }
-
 }
