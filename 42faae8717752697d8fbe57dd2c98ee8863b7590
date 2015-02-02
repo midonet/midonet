@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "7a1969be_97400858",
+        "filename": "midolman/src/main/scala/org/midonet/cluster/services/StorageService.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-02T18:43:11Z",
+      "side": 1,
+      "message": "Maybe we should separate each register on a different line.",
+      "range": {
+        "startLine": 79,
+        "startChar": 8,
+        "endLine": 81,
+        "endChar": 9
+      },
+      "revId": "42faae8717752697d8fbe57dd2c98ee8863b7590",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_23a0fdf3",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VTPMRedirector.scala",
         "patchSetId": 9
@@ -41,6 +64,52 @@
         "startChar": 16,
         "endLine": 2,
         "endChar": 17
+      },
+      "revId": "42faae8717752697d8fbe57dd2c98ee8863b7590",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_5a2b5782",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/VTPMRedirectorTest.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 130,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-02T18:43:11Z",
+      "side": 1,
+      "message": "Using \u003d\u003d here would get rid of annoying intellij warning.",
+      "range": {
+        "startLine": 130,
+        "startChar": 34,
+        "endLine": 130,
+        "endChar": 42
+      },
+      "revId": "42faae8717752697d8fbe57dd2c98ee8863b7590",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_7aff3302",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/VirtualTopologyTest.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-02T18:43:11Z",
+      "side": 1,
+      "message": "The tests for the VTPM and VT should be disjoint. I agree with enabling the cluster storage per test basis for now, but I would remove this comment.",
+      "range": {
+        "startLine": 51,
+        "startChar": 8,
+        "endLine": 52,
+        "endChar": 49
       },
       "revId": "42faae8717752697d8fbe57dd2c98ee8863b7590",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
