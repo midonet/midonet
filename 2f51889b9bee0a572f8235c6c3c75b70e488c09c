@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "7a1969be_17bb780f",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/VxlanGatewayHA.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-02T16:05:31Z",
+      "side": 1,
+      "message": "Doesn\u0027t the Thread constructor have an overload that takes the thread name?",
+      "range": {
+        "startLine": 70,
+        "startChar": 11,
+        "endLine": 70,
+        "endChar": 49
+      },
+      "revId": "2f51889b9bee0a572f8235c6c3c75b70e488c09c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_f7397cd9",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/VxlanGatewayHA.scala",
         "patchSetId": 7
@@ -18,6 +41,29 @@
         "startChar": 4,
         "endLine": 73,
         "endChar": 6
+      },
+      "revId": "2f51889b9bee0a572f8235c6c3c75b70e488c09c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_573cd093",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/VxlanGatewayHA.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-02T16:05:31Z",
+      "side": 1,
+      "message": "makeRunnable?",
+      "range": {
+        "startLine": 95,
+        "startChar": 28,
+        "endLine": 95,
+        "endChar": 55
       },
       "revId": "2f51889b9bee0a572f8235c6c3c75b70e488c09c",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
@@ -89,6 +135,29 @@
         "startChar": 12,
         "endLine": 116,
         "endChar": 40
+      },
+      "revId": "2f51889b9bee0a572f8235c6c3c75b70e488c09c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_d7f560cc",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/VxlanGatewayHA.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 130,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-02T16:05:31Z",
+      "side": 1,
+      "message": "Should we check network for null?",
+      "range": {
+        "startLine": 130,
+        "startChar": 16,
+        "endLine": 130,
+        "endChar": 23
       },
       "revId": "2f51889b9bee0a572f8235c6c3c75b70e488c09c",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
