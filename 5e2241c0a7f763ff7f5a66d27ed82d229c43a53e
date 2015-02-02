@@ -1,0 +1,140 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_bae88b7d",
+        "filename": "specs/2015.02/tracing_api.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-02-02T22:03:56Z",
+      "side": 1,
+      "message": "s/path/port ?",
+      "revId": "5e2241c0a7f763ff7f5a66d27ed82d229c43a53e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_9aedcf8e",
+        "filename": "specs/2015.02/tracing_api.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-02-02T22:03:56Z",
+      "side": 1,
+      "message": "bridge, router or port?",
+      "revId": "5e2241c0a7f763ff7f5a66d27ed82d229c43a53e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_fa53236a",
+        "filename": "specs/2015.02/tracing_api.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-02-02T22:03:56Z",
+      "side": 1,
+      "message": "which the",
+      "revId": "5e2241c0a7f763ff7f5a66d27ed82d229c43a53e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_7ac73313",
+        "filename": "specs/2015.02/tracing_api.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-02-02T22:03:56Z",
+      "side": 1,
+      "message": "ingress hostS, since there may be asymmetric underlay routing",
+      "revId": "5e2241c0a7f763ff7f5a66d27ed82d229c43a53e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_5accf735",
+        "filename": "specs/2015.02/tracing_api.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-02-02T22:03:56Z",
+      "side": 1,
+      "message": "to the set of interested hosts (to use our nomenclature).",
+      "revId": "5e2241c0a7f763ff7f5a66d27ed82d229c43a53e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_9ad66fc4",
+        "filename": "specs/2015.02/tracing_api.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-02-02T22:03:56Z",
+      "side": 1,
+      "message": "isn\u0027t the flow match the id of the flow? also, i don\u0027t think this is quiet correct. there are parts of the flow match that can\u0027t be used as a means to identify the flow, namely the input port number.",
+      "revId": "5e2241c0a7f763ff7f5a66d27ed82d229c43a53e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_1ae27f9f",
+        "filename": "specs/2015.02/tracing_api.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-02-02T22:03:56Z",
+      "side": 1,
+      "message": "this should be done by the trace rule, so if there are no trace sessions, we don\u0027t need to query anything. the problem is ensuring the rule is present for the return flow as well. maybe this needs more thought",
+      "revId": "5e2241c0a7f763ff7f5a66d27ed82d229c43a53e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_5af35773",
+        "filename": "specs/2015.02/tracing_api.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 113,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-02-02T22:03:56Z",
+      "side": 1,
+      "message": "The flow state is mostly used to satisfy the return flow as well as ingress flow packets in other hosts. For the egress part of the simulation, we still need to tunnel the packet with a special bit set on the tunnel key, so the flow goes to user space and we know to log and query the flow state, I think.",
+      "revId": "5e2241c0a7f763ff7f5a66d27ed82d229c43a53e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
