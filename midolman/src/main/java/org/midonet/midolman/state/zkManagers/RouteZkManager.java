@@ -448,6 +448,28 @@ public class RouteZkManager extends AbstractZkManager<UUID, Route> {
                 });
     }
 
+    /**
+     * Remove the routes on a given router that matches the destination IP
+     * provided.
+     *
+     * @param ops List to add new Ops to
+     * @param routerId ID of the router
+     * @param ipAddr Destination IP address of routes to delete
+     */
+    public void prepareRoutesDelete(List<Op> ops, UUID routerId,
+                                    final String ipAddr)
+        throws SerializationException, StateAccessException {
+
+        prepareRoutesDelete(ops, routerId,
+                            new Function<Route, Boolean>() {
+                                @Override
+                                public Boolean apply(@Nullable Route route) {
+                                    return route.getDstNetworkAddr().equals(
+                                        ipAddr);
+                                }
+                            });
+    }
+
     public void prepareRoutesDelete(List<Op> ops, UUID routerId,
                                     Function<Route, Boolean> matcher)
             throws StateAccessException, SerializationException {
