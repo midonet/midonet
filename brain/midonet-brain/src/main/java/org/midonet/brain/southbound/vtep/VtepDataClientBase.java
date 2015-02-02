@@ -974,7 +974,7 @@ public abstract class VtepDataClientBase implements VtepDataClient {
                   endPoint, psList);
         for (PhysicalSwitch ps : psList) {
             if (ps.mgmtIps.contains(mgmtIp)) {
-                log.debug("Physical switch for VTEP {}: {}", ps.uuid);
+                log.debug("Physical switch for VTEP {}: {}", endPoint, ps.uuid);
                 return ps;
             }
         }
