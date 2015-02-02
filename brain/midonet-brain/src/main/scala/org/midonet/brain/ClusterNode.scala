@@ -28,7 +28,7 @@ import org.slf4j.LoggerFactory
 
 import org.midonet.brain.services.c3po.C3POConfig
 import org.midonet.brain.services.heartbeat.HeartbeatConfig
-import org.midonet.brain.services.vxgw.VxLanGatewayService.VxGWServiceConfig
+import org.midonet.brain.services.vxgw.VxGWServiceConfig
 import org.midonet.cluster.config.ZookeeperConfig
 import org.midonet.cluster.data.storage.Storage
 import org.midonet.cluster.storage._

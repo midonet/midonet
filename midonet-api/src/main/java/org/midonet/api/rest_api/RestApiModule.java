@@ -16,27 +16,16 @@
 package org.midonet.api.rest_api;
 
 import com.google.inject.AbstractModule;
-import com.google.inject.Inject;
-import com.google.inject.Provider;
 import com.google.inject.Provides;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 
-import org.apache.curator.framework.CuratorFramework;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.midonet.brain.ClusterNode;
-import org.midonet.brain.services.vxgw.Vtep;
-import org.midonet.brain.services.vxgw.VxLanGatewayServiceBase;
 import org.midonet.brain.services.vxgw.VxlanGatewayHA;
 import org.midonet.brain.southbound.vtep.VtepDataClientFactory;
-import org.midonet.cluster.DataClient;
 import org.midonet.config.ConfigProvider;
-import org.midonet.midolman.state.ZookeeperConnectionWatcher;
 
-/**
- * Guice module for REST API.
- */
 public class RestApiModule extends AbstractModule {
 
     private static final Logger log = LoggerFactory.getLogger(
@@ -56,39 +45,13 @@ public class RestApiModule extends AbstractModule {
         install(new FactoryModuleBuilder().build(ResourceFactory.class));
 
         bind(RestApiService.class).asEagerSingleton();
-        bind(VxLanGatewayServiceBase.class)
-            .toProvider(VxGwProvider.class)
-            .asEagerSingleton();
+        bind(VxlanGatewayHA.class).asEagerSingleton();
 
         log.debug("configure: exiting.");
     }
 
     protected void bindVtepDataClientFactory() {
         bind(VtepDataClientFactory.class).asEagerSingleton();
-    }
-
-    static class VxGwProvider implements Provider<VxLanGatewayServiceBase> {
-
-        @Inject
-        ClusterNode.Context nodeCtx;
-
-        @Inject
-        DataClient dataClient;
-
-        @Inject
-        ZookeeperConnectionWatcher zkConnWatcher;
-
-        @Inject
-        VtepDataClientFactory vtepDataClientFactory;
-
-        @Inject
-        CuratorFramework curator;
-
-        @Override
-        public VxLanGatewayServiceBase get() {
-            return new VxlanGatewayHA(nodeCtx, dataClient, zkConnWatcher,
-                                      vtepDataClientFactory, curator);
-        }
     }
 
     @Provides
