@@ -120,6 +120,7 @@ public abstract class ForwardNatRule extends NatRule {
     }
 
     public static class NatTarget {
+
         @NotNull
         public String addressFrom;
 
