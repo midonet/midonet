@@ -72,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_1446d6bf",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/ClusterNode.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 139,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-02-02T12:17:12Z",
+      "side": 1,
+      "message": "Yes, this is part of what I was doing in the other Module-refactoring patch, but wanted to scope it outside this  this patch.",
+      "parentUuid": "7a1969be_742bcaeb",
+      "range": {
+        "startLine": 137,
+        "startChar": 8,
+        "endLine": 139,
+        "endChar": 32
+      },
+      "revId": "ad2de362e1b08508350f8312e20c34686df1e5df",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_943ac634",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/VxlanGatewayHA.scala",
         "patchSetId": 14
@@ -83,6 +107,30 @@
       "writtenOn": "2015-02-02T12:14:43Z",
       "side": 1,
       "message": "Just curiosity, apart from setting the name, is there any difference between this and a normal newSingleThreadExecutor?",
+      "range": {
+        "startLine": 55,
+        "startChar": 12,
+        "endLine": 55,
+        "endChar": 53
+      },
+      "revId": "ad2de362e1b08508350f8312e20c34686df1e5df",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_7412aab5",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/VxlanGatewayHA.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-02-02T12:17:12Z",
+      "side": 1,
+      "message": "None.",
+      "parentUuid": "7a1969be_943ac634",
       "range": {
         "startLine": 55,
         "startChar": 12,
