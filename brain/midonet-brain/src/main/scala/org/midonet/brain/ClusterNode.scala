@@ -28,7 +28,7 @@ import org.slf4j.LoggerFactory
 
 import org.midonet.brain.services.c3po.C3POConfig
 import org.midonet.brain.services.heartbeat.HeartbeatConfig
-import org.midonet.brain.services.vxgw.VxLanGatewayService.VxGWServiceConfig
+import org.midonet.brain.services.vxgw.VxGWServiceConfig
 import org.midonet.cluster.config.ZookeeperConfig
 import org.midonet.cluster.data.storage.Storage
 import org.midonet.cluster.storage._
@@ -37,7 +37,7 @@ import org.midonet.midolman.guice.cluster.DataClientModule
 import org.midonet.midolman.guice.serialization.SerializationModule
 import org.midonet.midolman.guice.zookeeper.ZookeeperConnectionModule.ZookeeperReactorProvider
 import org.midonet.midolman.guice.zookeeper.{DirectoryProvider, ZKConnectionProvider}
-import org.midonet.midolman.state.{Directory, ZkConnection, ZookeeperConnectionWatcher, ZkConnectionAwareWatcher}
+import org.midonet.midolman.state.{Directory, ZkConnection, ZkConnectionAwareWatcher, ZookeeperConnectionWatcher}
 import org.midonet.midolman.version.guice.VersionModule
 import org.midonet.util.eventloop.Reactor
 

@@ -26,18 +26,4 @@ public class VtepNotConnectedException extends VtepException {
         super(vtep);
     }
 
-    public VtepNotConnectedException(VtepEndPoint vtep, String message) {
-        super(vtep, message);
-    }
-
-    public VtepNotConnectedException(VtepEndPoint vtep, String message,
-                                     Throwable throwable) {
-        super(vtep, message, throwable);
-    }
-
-    public VtepNotConnectedException(VtepEndPoint vtep,
-                                     Throwable throwable) {
-        super(vtep, throwable);
-    }
-
 }
