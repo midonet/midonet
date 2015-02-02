@@ -72,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_97cf68b0",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/VxlanGatewayHA.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-02-02T15:55:24Z",
+      "side": 1,
+      "message": "Actually I\u0027ll fix it now since I\u0027ll resort the thing below.",
+      "parentUuid": "7a1969be_77d0ec53",
+      "range": {
+        "startLine": 116,
+        "startChar": 12,
+        "endLine": 116,
+        "endChar": 40
+      },
+      "revId": "2f51889b9bee0a572f8235c6c3c75b70e488c09c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_b77c2474",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/VxlanGatewayHA.scala",
         "patchSetId": 7
@@ -83,6 +107,30 @@
       "writtenOn": "2015-02-02T15:50:49Z",
       "side": 1,
       "message": "Shouldn\u0027t the listener be removed first (to avoid a callback starting the gw again whilde being shutdown?)",
+      "range": {
+        "startLine": 192,
+        "startChar": 0,
+        "endLine": 192,
+        "endChar": 53
+      },
+      "revId": "2f51889b9bee0a572f8235c6c3c75b70e488c09c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_b7ca649f",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/VxlanGatewayHA.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 192,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-02-02T15:55:24Z",
+      "side": 1,
+      "message": "you mean before becomePassive I guess?",
+      "parentUuid": "7a1969be_b77c2474",
       "range": {
         "startLine": 192,
         "startChar": 0,
