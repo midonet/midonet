@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_63a14aa9",
+        "filename": "midonet-api/build.gradle",
+        "patchSetId": 1
+      },
+      "lineNbr": 154,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-03T14:21:46Z",
+      "side": 1,
+      "message": "Maybe it would be good having a property and using the default value only if the property is not set? (that would allow the user to choose which webXml file to use...)",
+      "range": {
+        "startLine": 154,
+        "startChar": 4,
+        "endLine": 154,
+        "endChar": 61
+      },
+      "revId": "dbe471628b373f6266986ae27649c8acff7ff2fb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
