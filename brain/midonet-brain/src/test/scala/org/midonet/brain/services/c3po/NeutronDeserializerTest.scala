@@ -20,7 +20,8 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{FunSuite, Matchers}
 
-import org.midonet.cluster.models.{Commons, Neutron}
+import org.midonet.cluster.models.Commons
+import org.midonet.cluster.models.Neutron._
 
 @RunWith(classOf[JUnitRunner])
 class NeutronDeserializerTest extends FunSuite with Matchers {
@@ -45,7 +46,7 @@ class NeutronDeserializerTest extends FunSuite with Matchers {
             """.stripMargin
 
         val network =
-            NeutronDeserializer.toMessage(json, classOf[Neutron.NeutronNetwork])
+            NeutronDeserializer.toMessage(json, classOf[NeutronNetwork])
         network.getStatus should equal("ACTIVE")
         network.getName should equal("private-network")
         network.getAdminStateUp shouldBe true
@@ -90,7 +91,7 @@ class NeutronDeserializerTest extends FunSuite with Matchers {
             """.stripMargin
 
         val secGrp =
-            NeutronDeserializer.toMessage(json, classOf[Neutron.SecurityGroup])
+            NeutronDeserializer.toMessage(json, classOf[SecurityGroup])
         secGrp.getId.getMsb shouldBe 0xcbb9030660e8446aL
         secGrp.getId.getLsb shouldBe 0x9a8ae31840951096L
         secGrp.getTenantId shouldBe "dffc89ff6f1644ba8b00af458fa2b76d"
@@ -145,7 +146,7 @@ class NeutronDeserializerTest extends FunSuite with Matchers {
             """.stripMargin
 
         val subnet =
-            NeutronDeserializer.toMessage(json, classOf[Neutron.NeutronSubnet])
+            NeutronDeserializer.toMessage(json, classOf[NeutronSubnet])
         subnet.getName shouldBe "Test subnet"
         subnet.getGatewayIp.getVersion shouldBe Commons.IPVersion.V4
         subnet.getGatewayIp.getAddress shouldBe "123.45.67.89"
@@ -178,13 +179,13 @@ class NeutronDeserializerTest extends FunSuite with Matchers {
             """.stripMargin
 
         val network =
-            NeutronDeserializer.toMessage(json, classOf[Neutron.NeutronPort])
+            NeutronDeserializer.toMessage(json, classOf[NeutronPort])
         network.getName should equal("router-gateway-port")
         network.getAdminStateUp shouldBe true
         network.getTenantId should equal("4fd44f30292945e481c7b8a0c8908869")
         network.getId.getMsb shouldBe 0xd32019d3bc6e4319L
         network.getId.getLsb shouldBe 0x9c1d6722fc136a22L
-        network.getDeviceOwner shouldBe Neutron.NeutronPort.DeviceOwner.ROUTER_INTERFACE
+        network.getDeviceOwner shouldBe NeutronPort.DeviceOwner.ROUTER_INTERFACE
     }
 
     test("Neutron Router deserialization") {
@@ -203,11 +204,27 @@ class NeutronDeserializerTest extends FunSuite with Matchers {
 
         // "Fixed_external_ips" is a unrecognized field. Should be ignored.
         val router =
-            NeutronDeserializer.toMessage(json, classOf[Neutron.NeutronRouter])
+            NeutronDeserializer.toMessage(json, classOf[NeutronRouter])
         router.getName should equal("test-router")
         router.getAdminStateUp shouldBe true
         router.getId.getMsb shouldBe 0xd32019d3bc6e4319L
         router.getId.getLsb shouldBe 0x9c1d6722fc136a22L
         router.getExternalGatewayInfo.getEnableSnat shouldBe true
+    }
+
+    test("Empty-string enum value ignored") {
+        val json =
+            """
+              |{
+              |    "name": "test-port",
+              |    "device_owner": "",
+              |    "status": "valid"
+              |}
+            """.stripMargin
+
+        val port = NeutronDeserializer.toMessage(json, classOf[NeutronPort])
+        port.getName shouldBe "test-port"
+        port.hasDeviceOwner shouldBe false
+        port.getStatus shouldBe "valid"
     }
 }
