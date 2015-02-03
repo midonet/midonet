@@ -200,6 +200,7 @@ class PacketWorkflow(protected val dpState: DatapathState,
         if (context.packet.getReason == Packet.Reason.FlowActionUserspace) {
             resultLogger.debug("packet came up due to userspace dp action, " +
                                s"match ${context.origMatch}")
+            dpChannel.executePacket(context.packet, context.flowActions)
             context.runFlowRemovedCallbacks()
             addToActionsCacheAndInvalidate(context, context.flowActions)
         } else {
@@ -207,10 +208,9 @@ class PacketWorkflow(protected val dpState: DatapathState,
             // because it adds callbacks to the PacketContext and it can also
             // result in a NotYet exception being thrown.
             applyState(context)
+            dpChannel.executePacket(context.packet, context.flowActions)
             handleFlow(context)
         }
-
-        dpChannel.executePacket(context.packet, context.flowActions)
     }
 
     private def handleFlow(context: PacketContext): Unit = {
