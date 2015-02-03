@@ -1,0 +1,123 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_63c78a13",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/DatapathController.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 255,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-02-03T15:27:03Z",
+      "side": 1,
+      "message": "should we update cachedMinMtu as well?",
+      "revId": "8bf5fe5a74d2cf33322137a215fc0931ac0db763",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_6395cae3",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/PacketWorkflowTest.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-02-03T15:27:03Z",
+      "side": 1,
+      "message": "injector.getInstance(classOf[ConfigProvider]).getConfig(classOf[MidolmanConfig])",
+      "revId": "8bf5fe5a74d2cf33322137a215fc0931ac0db763",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_23e592a8",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/config/MockMidolmanConfig.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-02-03T15:27:03Z",
+      "side": 1,
+      "message": "I don\u0027t think this is needed; there\u0027s already a way to mock midolmanconfig through MidolmanSpec::fillConfig",
+      "revId": "8bf5fe5a74d2cf33322137a215fc0931ac0db763",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_43f36e73",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/util/MidolmanSpec.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-02-03T15:27:03Z",
+      "side": 1,
+      "message": "can this be moved to the test that actually needs the value?",
+      "revId": "8bf5fe5a74d2cf33322137a215fc0931ac0db763",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_63ee6a8d",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/util/MidolmanSpec.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 114,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-02-03T15:27:03Z",
+      "side": 1,
+      "message": "can this be moved to the test that actually needs this value?",
+      "revId": "8bf5fe5a74d2cf33322137a215fc0931ac0db763",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_a3e8627d",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/util/VirtualTopologyHelper.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-02-03T15:27:03Z",
+      "side": 1,
+      "message": "we can add here implicit def injector: Injector",
+      "revId": "8bf5fe5a74d2cf33322137a215fc0931ac0db763",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_83ed668e",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/util/VirtualTopologyHelper.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 201,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-02-03T15:27:03Z",
+      "side": 1,
+      "message": "and here: injector.getInstance(classOf[ConfigProvider]).getConfig(classOf[MidolmanConfig])\n\nthis way we don\u0027t need MockMidolmanConfig\n\nwe can even add to the MidolmanServices a method that does:\n\ndef config \u003d injector.getInstance(classOf[ConfigProvider]).getConfig(classOf[MidolmanConfig])",
+      "revId": "8bf5fe5a74d2cf33322137a215fc0931ac0db763",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
