@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_aedde944",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BridgeMapper.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-03T17:10:35Z",
+      "side": 1,
+      "message": "2015",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "8c252abba58626d476702511c2bef7ed11894961",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_0eeebdec",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/simulation/RCUBridgeTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 262,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-03T17:10:35Z",
+      "side": 1,
+      "message": "Tab",
+      "revId": "8c252abba58626d476702511c2bef7ed11894961",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
