@@ -285,6 +285,11 @@ public class MockDirectory implements Directory {
     }
 
     @Override
+    public String getPath() {
+        return "/";
+    }
+
+    @Override
     public String add(String relativePath, byte[] data, CreateMode mode)
         throws NoNodeException, NodeExistsException,
                NoChildrenForEphemeralsException {

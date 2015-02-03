@@ -52,6 +52,11 @@ public class CheckpointedMockDirectory extends MockDirectory
     private int currentCheckpoint = 0;
 
     @Override
+    public String getPath() {
+        return checkpoints.get(currentCheckpoint).path;
+    }
+
+    @Override
     synchronized public int createCheckPoint(String path) {
         Checkpoint cp;
         try {
