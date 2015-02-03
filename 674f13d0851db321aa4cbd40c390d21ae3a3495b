@@ -50,6 +50,24 @@
       "revId": "674f13d0851db321aa4cbd40c390d21ae3a3495b",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_632b0aec",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/PacketWorkflow.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 411,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-02-03T14:53:40Z",
+      "side": 1,
+      "message": "another alternative:\n\n4) The datapath controller was providing the mtu before and it\u0027s getting it from the config with this patch.  Keep things that way and not add the mtu or mtuOption to packet workflow, put all responsibility on the DpC as it was before.",
+      "parentUuid": "7a1969be_c8d77dbe",
+      "revId": "674f13d0851db321aa4cbd40c390d21ae3a3495b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
