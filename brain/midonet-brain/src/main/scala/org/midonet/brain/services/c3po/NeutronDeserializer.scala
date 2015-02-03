@@ -64,7 +64,8 @@ object NeutronDeserializer {
         log.debug("Translating json {} to class {}", Array(node, clazz):_*)
         val bldr = builderFor(clazz)
         val classDesc = descriptorFor(clazz)
-        for (field <- node.fields.asScala if !field.getValue.isNull) {
+        for (field <- node.fields.asScala
+             if (!nullOrEmptyString(field.getValue))) {
             val name = cleanUpProjectPrefix(field.getKey)
             getFieldDesc(classDesc, name) match {
                 case Some(fd) =>
@@ -102,6 +103,9 @@ object NeutronDeserializer {
 
         bldr.build().asInstanceOf[M]
     }
+
+    private def nullOrEmptyString(node: JsonNode): Boolean =
+        node.isNull || (node.isTextual && node.asText() == "")
 
     /* Some fields have a name / value in the form "project:field_or_val". We
      * just ignore the project name part. */
