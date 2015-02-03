@@ -342,7 +342,7 @@ def test_icmp_failback():
 
     ping_inet() # BGP #1 and #2 are working
 
-    failure = PktFailure(NS_BGP_PEER_1, 'eth0', 30)
+    failure = PktFailure(NS_BGP_PEER_1, 'eth0', 35)
     failure.inject()
     try:
         ping_inet() # BGP #1 is lost
@@ -351,7 +351,7 @@ def test_icmp_failback():
 
     ping_inet() # BGP #1 is back
 
-    failure = PktFailure(NS_BGP_PEER_1, 'eth1', 30)
+    failure = PktFailure(NS_BGP_PEER_1, 'eth1', 35)
     failure.inject()
     try:
         ping_inet() # BGP #2 is lost
