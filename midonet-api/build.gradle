@@ -151,4 +151,10 @@ jettyRun {
     if (project.hasProperty('port')) {
         httpPort = port.toInteger()
     }
+
+    if (project.hasProperty('webXml')) {
+        webXml = file("${project.webXml}")
+    } else {
+        webXml = file("${project.webAppDir}/WEB-INF/web.xml.dev")
+    }
 }
