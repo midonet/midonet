@@ -36,6 +36,24 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_0817d5ee",
+        "filename": "specs/2015.02/tracing_api.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-02-03T10:12:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_7d8f2d24",
+      "revId": "5e2241c0a7f763ff7f5a66d27ed82d229c43a53e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_bae88b7d",
         "filename": "specs/2015.02/tracing_api.md",
         "patchSetId": 4
@@ -47,6 +65,24 @@
       "writtenOn": "2015-02-02T22:03:56Z",
       "side": 1,
       "message": "s/path/port ?",
+      "revId": "5e2241c0a7f763ff7f5a66d27ed82d229c43a53e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_68d3e938",
+        "filename": "specs/2015.02/tracing_api.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-02-03T10:12:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_bae88b7d",
       "revId": "5e2241c0a7f763ff7f5a66d27ed82d229c43a53e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -70,6 +106,24 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_e8e6b915",
+        "filename": "specs/2015.02/tracing_api.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-02-03T10:12:56Z",
+      "side": 1,
+      "message": "Best not to introduce a new style at least. changed to rails style.",
+      "parentUuid": "7a1969be_1dc1d92e",
+      "revId": "5e2241c0a7f763ff7f5a66d27ed82d229c43a53e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_9aedcf8e",
         "filename": "specs/2015.02/tracing_api.md",
         "patchSetId": 4
@@ -81,6 +135,24 @@
       "writtenOn": "2015-02-02T22:03:56Z",
       "side": 1,
       "message": "bridge, router or port?",
+      "revId": "5e2241c0a7f763ff7f5a66d27ed82d229c43a53e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_88e2a501",
+        "filename": "specs/2015.02/tracing_api.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-02-03T10:12:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_9aedcf8e",
       "revId": "5e2241c0a7f763ff7f5a66d27ed82d229c43a53e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -104,6 +176,24 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_c8e3fd03",
+        "filename": "specs/2015.02/tracing_api.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-02-03T10:12:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_fd7b1d27",
+      "revId": "5e2241c0a7f763ff7f5a66d27ed82d229c43a53e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_fa53236a",
         "filename": "specs/2015.02/tracing_api.md",
         "patchSetId": 4
@@ -115,6 +205,24 @@
       "writtenOn": "2015-02-02T22:03:56Z",
       "side": 1,
       "message": "which the",
+      "revId": "5e2241c0a7f763ff7f5a66d27ed82d229c43a53e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_28f1f1cd",
+        "filename": "specs/2015.02/tracing_api.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-02-03T10:12:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_fa53236a",
       "revId": "5e2241c0a7f763ff7f5a66d27ed82d229c43a53e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -138,6 +246,24 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_68bac9e2",
+        "filename": "specs/2015.02/tracing_api.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-02-03T10:12:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_7ac73313",
+      "revId": "5e2241c0a7f763ff7f5a66d27ed82d229c43a53e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_5accf735",
         "filename": "specs/2015.02/tracing_api.md",
         "patchSetId": 4
@@ -149,6 +275,24 @@
       "writtenOn": "2015-02-02T22:03:56Z",
       "side": 1,
       "message": "to the set of interested hosts (to use our nomenclature).",
+      "revId": "5e2241c0a7f763ff7f5a66d27ed82d229c43a53e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_48bf0dd1",
+        "filename": "specs/2015.02/tracing_api.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-02-03T10:12:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_5accf735",
       "revId": "5e2241c0a7f763ff7f5a66d27ed82d229c43a53e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -172,6 +316,24 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_08eeb5ec",
+        "filename": "specs/2015.02/tracing_api.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-02-03T10:12:56Z",
+      "side": 1,
+      "message": "We need to talk more about this. I\u0027ll bug you during the day about it.",
+      "parentUuid": "7a1969be_9ad66fc4",
+      "revId": "5e2241c0a7f763ff7f5a66d27ed82d229c43a53e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_1ae27f9f",
         "filename": "specs/2015.02/tracing_api.md",
         "patchSetId": 4
@@ -189,6 +351,24 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_88b905ec",
+        "filename": "specs/2015.02/tracing_api.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-02-03T10:12:56Z",
+      "side": 1,
+      "message": "Trace rule only gets used in simulation, so wouldn\u0027t run at the egress host. This is the whole motivation for the flow state.",
+      "parentUuid": "7a1969be_1ae27f9f",
+      "revId": "5e2241c0a7f763ff7f5a66d27ed82d229c43a53e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_5af35773",
         "filename": "specs/2015.02/tracing_api.md",
         "patchSetId": 4
@@ -200,6 +380,24 @@
       "writtenOn": "2015-02-02T22:03:56Z",
       "side": 1,
       "message": "The flow state is mostly used to satisfy the return flow as well as ingress flow packets in other hosts. For the egress part of the simulation, we still need to tunnel the packet with a special bit set on the tunnel key, so the flow goes to user space and we know to log and query the flow state, I think.",
+      "revId": "5e2241c0a7f763ff7f5a66d27ed82d229c43a53e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_e8cd1988",
+        "filename": "specs/2015.02/tracing_api.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 113,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-02-03T10:12:56Z",
+      "side": 1,
+      "message": "the flow would go to user space on the egress host anyhow, as there would be no match in ovs. Setting the tunnelkey bit is a good idea anyhow, to avoid checking the trace stateflow for every packet.",
+      "parentUuid": "7a1969be_5af35773",
       "revId": "5e2241c0a7f763ff7f5a66d27ed82d229c43a53e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
