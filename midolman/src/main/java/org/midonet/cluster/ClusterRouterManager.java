@@ -42,6 +42,7 @@ import org.midonet.midolman.state.DirectoryCallback;
 import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.ReplicatedSet;
 import org.midonet.midolman.state.StateAccessException;
+import org.midonet.midolman.state.ZkManager;
 import org.midonet.midolman.state.zkManagers.RouteZkManager;
 import org.midonet.midolman.state.zkManagers.RouterZkManager;
 import org.midonet.packets.IPv4Addr;
@@ -235,7 +236,7 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
         Set<Route> oldRoutes = mapPortIdToRoutes.get(portId);
         log.debug("Old routes: {}", oldRoutes);
 
-        if(oldRoutes == null){
+        if (oldRoutes == null) {
             mapPortIdToRoutes.put(portId, new HashSet<Route>());
         }
 
@@ -293,7 +294,7 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
                   final UUID portId, final Set<Route> newRoutes) {
 
         Set<Route> oldRoutes = mapPortIdToRoutes.get(portId);
-        Directory dir = null;
+        Directory dir;
         try {
             dir = routerMgr.getRoutingTableDirectory(routerId);
         } catch (StateAccessException e) {
@@ -303,8 +304,9 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
             return;
         }
         log.debug("Updating routes for port {} of router {}. Old routes {} " +
-            "New routes {}",
-            new Object[] {portId, routerId, oldRoutes, newRoutes});
+            "New routes {}", portId, routerId, oldRoutes, newRoutes);
+
+        ZkManager routingTableManager = new ZkManager(dir, dir.getPath());
         RouteEncoder encoder = new RouteEncoder();
 
         Set<Route> removedRoutes = new HashSet<Route>(oldRoutes);
@@ -312,18 +314,34 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
         Set<Route> addedRoutes = new HashSet<Route>(newRoutes);
         addedRoutes.removeAll(oldRoutes);
 
-        for(Route routeToAdd: addedRoutes){
+        for (final Route routeToAdd : addedRoutes){
             String path = "/" + encoder.encode(routeToAdd);
-            dir.asyncAdd(path, null, CreateMode.EPHEMERAL);
-            log.debug("Added new route for port {} in router {}, route {}",
-                      new Object[]{portId, routerId, routeToAdd});
+            routingTableManager.ensureEphemeralAsync(path, null,
+                new DirectoryCallback.Add() {
+                    @Override
+                    public void onSuccess(String data) {
+                        log.debug("Added new route for port {} in router {}, route {}",
+                                  portId, routerId, routeToAdd);
+                    }
+
+                    @Override
+                    public void onTimeout() {
+                        onError(new KeeperException.OperationTimeoutException());
+                    }
+
+                    @Override
+                    public void onError(KeeperException e) {
+                        log.error("Failed to add ephemeral node for route " + routeToAdd, e);
+                    }
+                });
+
         }
 
-        for(Route routeToRemove: removedRoutes){
+        for (Route routeToRemove : removedRoutes){
             String path = "/" + encoder.encode(routeToRemove);
             dir.asyncDelete(path);
             log.debug("Deleted route for port {} in router {}, route {}",
-                      new Object[]{portId, routerId, routeToRemove});
+                      portId, routerId, routeToRemove);
         }
 
         mapPortIdToRoutes.put(portId, newRoutes);
