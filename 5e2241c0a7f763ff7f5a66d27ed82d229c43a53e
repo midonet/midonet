@@ -334,6 +334,24 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_2876113f",
+        "filename": "specs/2015.02/tracing_api.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-02-03T10:23:20Z",
+      "side": 1,
+      "message": "Oki! :-)",
+      "parentUuid": "7a1969be_08eeb5ec",
+      "revId": "5e2241c0a7f763ff7f5a66d27ed82d229c43a53e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_1ae27f9f",
         "filename": "specs/2015.02/tracing_api.md",
         "patchSetId": 4
@@ -369,6 +387,24 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_c8781d2e",
+        "filename": "specs/2015.02/tracing_api.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-02-03T10:23:20Z",
+      "side": 1,
+      "message": "I was talking about matching forward and return flow.",
+      "parentUuid": "7a1969be_88b905ec",
+      "revId": "5e2241c0a7f763ff7f5a66d27ed82d229c43a53e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_5af35773",
         "filename": "specs/2015.02/tracing_api.md",
         "patchSetId": 4
@@ -398,6 +434,24 @@
       "side": 1,
       "message": "the flow would go to user space on the egress host anyhow, as there would be no match in ovs. Setting the tunnelkey bit is a good idea anyhow, to avoid checking the trace stateflow for every packet.",
       "parentUuid": "7a1969be_5af35773",
+      "revId": "5e2241c0a7f763ff7f5a66d27ed82d229c43a53e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_8887450f",
+        "filename": "specs/2015.02/tracing_api.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 113,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-02-03T10:23:20Z",
+      "side": 1,
+      "message": "Yes, there would be a flow in OVS: a tunnel megaflow. So setting the tunnel key is mandatory.",
+      "parentUuid": "7a1969be_e8cd1988",
       "revId": "5e2241c0a7f763ff7f5a66d27ed82d229c43a53e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
