@@ -87,6 +87,10 @@
          -->
     <!-- <logger name="org.midonet.vxgw.vxgw-manager-$NETWORK_ID" level="DEBUG"/> -->
 
+    <!-- Some tweaks to the OVSDB plugin to reduce verbosity -->
+    <logger name="org.opendaylight.ovsdb.plugin" level="WARN"/>
+    <logger name="org.opendaylight.controller.sal.utils.ServiceHelper" level="OFF"/>
+
     <!-- logs under "org.midonet.event" logger also goes to EVENT-FILE appender as well as those defined in <root> -->
     <logger name="org.midonet.event" level="INFO">
          <appender-ref ref="EVENT-FILE"/>

@@ -16,15 +16,31 @@
 package org.midonet.brain.services.vxgw
 
 import org.midonet.brain.southbound.vtep.VtepMAC
-import org.midonet.packets.IPv4Addr
+import org.midonet.packets.{MAC, IPv4Addr}
 
 import com.google.common.base.Objects
 
 
 object MacLocation {
+
+    /** A Mac Location with all fields */
     def apply(mac: VtepMAC, ipAddr: IPv4Addr, logicalSwitchName: String,
               vxlanTunnelEndpoint: IPv4Addr): MacLocation = {
         new MacLocation(mac, ipAddr, logicalSwitchName, vxlanTunnelEndpoint)
+    }
+
+    /** A Mac Location that also has the given IP */
+    def apply(mac: MAC, ipAddr: IPv4Addr, logicalSwitchName: String,
+              vxlanTunnelEndpoint: IPv4Addr): MacLocation = {
+        new MacLocation(VtepMAC.fromMac(mac), ipAddr, logicalSwitchName,
+                        vxlanTunnelEndpoint)
+    }
+
+    /** A Mac Location that is not associated to any IP */
+    def apply(mac: MAC, logicalSwitchName: String,
+              vxlanTunnelEndpoint: IPv4Addr): MacLocation = {
+        new MacLocation(VtepMAC.fromMac(mac), null, logicalSwitchName,
+                        vxlanTunnelEndpoint)
     }
 
     /** A MacLocation for the "unknown-dst" MAC is at the given IP for the given
@@ -59,11 +75,11 @@ class MacLocation (val mac: VtepMAC, val ipAddr: IPv4Addr,
                       ", vxlanTunnelEndpoint=" + vxlanTunnelEndpoint + " } "
 
     if (mac == null) {
-        throw new IllegalArgumentException("MAC cannot be null")
+        throw new NullPointerException("MAC is null")
     }
 
     if (logicalSwitchName == null) {
-        throw new IllegalArgumentException("Logical Switch cannot be null")
+        throw new NullPointerException("Logical Switch name is null")
     }
 
     override def hashCode = Objects.hashCode(mac, ipAddr, logicalSwitchName,

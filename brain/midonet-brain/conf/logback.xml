@@ -71,8 +71,12 @@
          -->
     <!-- <logger name="org.midonet.vxgw.vxgw-manager-$NETWORK_ID" level="DEBUG"/> -->
 
+    <!-- Some tweaks to the OVSDB plugin to reduce verbosity -->
+    <logger name="org.opendaylight.ovsdb.plugin" level="WARN"/>
+    <logger name="org.opendaylight.controller.sal.utils.ServiceHelper" level="OFF"/>
+
     <!-- OFF, ERROR, WARN, INFO, DEBUG, TRACE -->
-    <root level="DEBUG">
+    <root level="INFO">
         <appender-ref ref="STDOUT" />
         <appender-ref ref="LOG-FILE" />
     </root>
