@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_835f2672",
+        "filename": "midolman/src/main/java/org/midonet/midolman/config/MidolmanConfig.java",
+        "patchSetId": 11
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-02-03T15:16:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_28e571a8",
+      "revId": "674f13d0851db321aa4cbd40c390d21ae3a3495b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_08e2359f",
         "filename": "midolman/src/main/scala/org/midonet/midolman/DatapathController.scala",
         "patchSetId": 11
@@ -30,6 +48,24 @@
       "writtenOn": "2015-02-03T11:49:57Z",
       "side": 1,
       "message": "\"DefaultMtu\" departs from naming conventions. But anyway, this may as well be just a public var without the accessor method :).",
+      "revId": "674f13d0851db321aa4cbd40c390d21ae3a3495b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_0855151d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/DatapathController.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 132,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-02-03T15:16:24Z",
+      "side": 1,
+      "message": "Done. This is supposed to be val but its real value in config file gets passed when preStart is called. So I modified val to def.",
+      "parentUuid": "7a1969be_08e2359f",
       "revId": "674f13d0851db321aa4cbd40c390d21ae3a3495b",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -65,6 +101,24 @@
       "side": 1,
       "message": "another alternative:\n\n4) The datapath controller was providing the mtu before and it\u0027s getting it from the config with this patch.  Keep things that way and not add the mtu or mtuOption to packet workflow, put all responsibility on the DpC as it was before.",
       "parentUuid": "7a1969be_c8d77dbe",
+      "revId": "674f13d0851db321aa4cbd40c390d21ae3a3495b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_a3d182cf",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/PacketWorkflow.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 411,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-02-03T15:16:24Z",
+      "side": 1,
+      "message": "I went for 3.",
+      "parentUuid": "7a1969be_632b0aec",
       "revId": "674f13d0851db321aa4cbd40c390d21ae3a3495b",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
