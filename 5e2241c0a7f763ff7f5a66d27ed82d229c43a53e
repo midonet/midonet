@@ -2,6 +2,40 @@
   "comments": [
     {
       "key": {
+        "uuid": "7a1969be_3d76553f",
+        "filename": "specs/2015.02/tracing_api.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-02-03T09:30:54Z",
+      "side": 1,
+      "message": "Nice.",
+      "revId": "5e2241c0a7f763ff7f5a66d27ed82d229c43a53e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_7d8f2d24",
+        "filename": "specs/2015.02/tracing_api.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-02-03T09:30:54Z",
+      "side": 1,
+      "message": "I\u0027m just wondering whether this is added to our MidoNet REST API or Neutron API. If it\u0027s in REST API, it\u0027d be better to make parameter names lowerCamelCase to keep the consistency. In Neutron API, the keys of JSON objects are in snake_case but in MidoNet API, they\u0027re in lowerCamelCase.",
+      "revId": "5e2241c0a7f763ff7f5a66d27ed82d229c43a53e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_bae88b7d",
         "filename": "specs/2015.02/tracing_api.md",
         "patchSetId": 4
@@ -19,6 +53,23 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_1dc1d92e",
+        "filename": "specs/2015.02/tracing_api.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-02-03T09:30:54Z",
+      "side": 1,
+      "message": "This is just a comment and I\u0027m not suggesting you\u0027d change the style.\n\nFYI, I\u0027m not strongly opinionated about the URI format but the current REST API is described in Rails router-ish style like below with \":\" + lowerCamelCase parameter name.\n\n  GET /midonet-api/traces/:traceId\n\nHowever, in my midonet-schema, the auto-generated Markdown document contains parameterized URIs enclosed by curly braces.\n\nhttps://github.com/flightdecks/midonet-schema/blob/08116d304086f524ea712763d8197a23670025a6/dist/midonet-api-schema.md#route-advertisement-list\n\nThere\u0027s no standard for the notations and we should just care about to keep consistency when we add descriptions of this API in the API doc.\n\nhttps://dev.twitter.com/rest/reference/get/statuses/retweets/%3Aid\nhttps://developers.facebook.com/docs/graph-api/reference/v2.2/achievement#u_0_2a\nhttps://developer.yahoo.com/social/rest_api_guide/uri-general.html",
+      "revId": "5e2241c0a7f763ff7f5a66d27ed82d229c43a53e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_9aedcf8e",
         "filename": "specs/2015.02/tracing_api.md",
         "patchSetId": 4
@@ -30,6 +81,23 @@
       "writtenOn": "2015-02-02T22:03:56Z",
       "side": 1,
       "message": "bridge, router or port?",
+      "revId": "5e2241c0a7f763ff7f5a66d27ed82d229c43a53e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_fd7b1d27",
+        "filename": "specs/2015.02/tracing_api.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-02-03T09:30:54Z",
+      "side": 1,
+      "message": "Nit: s/midonet\\/api/midonet-api/",
       "revId": "5e2241c0a7f763ff7f5a66d27ed82d229c43a53e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
