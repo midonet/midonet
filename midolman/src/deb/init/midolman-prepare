@@ -32,3 +32,33 @@ if [ ! -d $QUAGGA_DIR ] ; then
     mkdir -p -m 755 $QUAGGA_DIR
     chown quagga:quagga $QUAGGA_DIR
 fi
+
+cleanup_bgp_space() {
+    prefix=$1
+    ns="${prefix}_ns"
+    br="${prefix}_br"
+    echo "cleaning up br: $br"
+    brctl delif $br "${prefix}_vty"
+    ip link set $br down
+    brctl delbr $br
+
+    echo "cleaning up ns: $ns"
+    ip netns exec $ns ip link delete "${prefix}_m"
+    ip netns exec $ns ip link delete "${prefix}_vtym"
+    ip netns delete $ns
+}
+
+cleanup_bgps() {
+    ps aux | grep -- '--socket /var/run/quagga/zserv' | grep -v grep | \
+    while read i ; do
+        pid=`echo $i | awk '{print $2}'`
+        kill -9 $pid
+    done
+
+    for i in `ip netns list | grep ^mbgp` ; do
+        prefix=`echo $i | sed -e 's/_ns//'`
+        cleanup_bgp_space $prefix
+    done
+}
+
+cleanup_bgps
