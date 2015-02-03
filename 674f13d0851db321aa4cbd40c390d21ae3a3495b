@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_28e571a8",
+        "filename": "midolman/src/main/java/org/midonet/midolman/config/MidolmanConfig.java",
+        "patchSetId": 11
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-02-03T11:49:57Z",
+      "side": 1,
+      "message": "how about shortening this to getDhcpMtu()?",
+      "revId": "674f13d0851db321aa4cbd40c390d21ae3a3495b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_08e2359f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/DatapathController.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 132,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-02-03T11:49:57Z",
+      "side": 1,
+      "message": "\"DefaultMtu\" departs from naming conventions. But anyway, this may as well be just a public var without the accessor method :).",
+      "revId": "674f13d0851db321aa4cbd40c390d21ae3a3495b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_c8d77dbe",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/PacketWorkflow.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 411,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-02-03T11:49:57Z",
+      "side": 1,
+      "message": "I find this misleading. Because MidolmanConfig.java already provides a default value for dhcp_mtu. At run time, not test time, the configOption is never going to be None. Thus this code will _always_ use the confgured value and never resort to the values provided by the datapath controller. \n\nI really think we should try to find a much more straight forward way to organize this code. The DatapathController is not involved in this and the option is not really necessary except because of a test.\n\nLet me offer a few alternatives:\n\n1) instead of\n\nmtuOption \u003d config.map(_.getMidolmanDhcpMtu.toShort).\n\ndo:\n\nmtu \u003d config.map(_.getMidolmanDhcpMtu.toShort).getOrElse(MidolmanConfig.DEFAULT_DHCP_MTU).\n\n\n2) refactor the affected test or write a MidolmanConfig mock.\n\n3) Pass in the mtu as a PacketWorkflow constructor parameter, instead of config.",
+      "revId": "674f13d0851db321aa4cbd40c390d21ae3a3495b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
