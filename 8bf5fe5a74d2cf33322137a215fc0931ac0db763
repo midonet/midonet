@@ -72,6 +72,24 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_ce914554",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/PacketWorkflowTest.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-02-03T17:25:45Z",
+      "side": 1,
+      "message": "this method can be in the class, no? :/ if it\u0027s too much trouble we can leave it like this",
+      "parentUuid": "7a1969be_4e3c3594",
+      "revId": "8bf5fe5a74d2cf33322137a215fc0931ac0db763",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_23e592a8",
         "filename": "midolman/src/test/scala/org/midonet/midolman/config/MockMidolmanConfig.scala",
         "patchSetId": 12
@@ -188,6 +206,30 @@
       "writtenOn": "2015-02-03T16:49:50Z",
       "side": 1,
       "message": "Or\n\n    trait VirtualTopologyHelper { self: MidolmanServices \u003d\u003e\n\nhere?",
+      "range": {
+        "startLine": 58,
+        "startChar": 6,
+        "endLine": 58,
+        "endChar": 27
+      },
+      "revId": "8bf5fe5a74d2cf33322137a215fc0931ac0db763",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_8eb0edf5",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/util/VirtualTopologyHelper.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-02-03T17:25:45Z",
+      "side": 1,
+      "message": "I would prefer not to couple them",
+      "parentUuid": "7a1969be_8e0e2d33",
       "range": {
         "startLine": 58,
         "startChar": 6,
