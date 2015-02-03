@@ -34,7 +34,6 @@ import org.midonet.midolman.guice.config.TypedConfigModule;
 import org.midonet.midolman.guice.serialization.SerializationModule;
 import org.midonet.midolman.guice.zookeeper.MockZookeeperConnectionModule;
 import org.midonet.midolman.state.Directory;
-import org.midonet.midolman.version.guice.VersionModule;
 
 /**
  * Some utility classes to write tests in the Brain module.
@@ -84,7 +83,6 @@ public class BrainTestUtils {
     public static List<Module> modules(HierarchicalConfiguration config) {
         List<Module> modules = new ArrayList<>();
         // For VtepUpdaterTest
-        modules.add(new VersionModule());  // For Comparator
         modules.add(new SerializationModule());  // For Serializer
         modules.add(new TypedConfigModule<>(MidolmanConfig.class));
         modules.add(new ConfigProviderModule(config)); // For ConfigProvider

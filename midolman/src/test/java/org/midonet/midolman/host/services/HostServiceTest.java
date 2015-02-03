@@ -49,7 +49,6 @@ import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.ZkManager;
 import org.midonet.midolman.util.mock.MockInterfaceScanner;
 import org.midonet.midolman.version.DataWriteVersion;
-import org.midonet.midolman.version.guice.VersionModule;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
@@ -116,8 +115,7 @@ public class HostServiceTest {
                         ("retries_gen_id", "0")
                 ));
 
-        injector = Guice.createInjector(new VersionModule(),
-                                        new SerializationModule(),
+        injector = Guice.createInjector(new SerializationModule(),
                                         new TestModule());
 
         zkManager = injector.getInstance(ZkManager.class);

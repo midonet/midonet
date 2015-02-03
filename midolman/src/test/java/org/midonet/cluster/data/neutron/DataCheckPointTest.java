@@ -56,7 +56,6 @@ import org.midonet.midolman.state.CheckpointedMockDirectory;
 import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.zkManagers.BridgeZkManager;
-import org.midonet.midolman.version.guice.VersionModule;
 import org.midonet.packets.ARP;
 
 public class DataCheckPointTest {
@@ -439,7 +438,6 @@ public class DataCheckPointTest {
             config =
             fillConfig(new HierarchicalConfiguration());
         injector = Guice.createInjector(
-            new VersionModule(),
             new SerializationModule(),
             new ConfigProviderModule(config),
             new CheckpointMockZookeeperConnectionModule(),

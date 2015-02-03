@@ -42,7 +42,6 @@ import org.midonet.midolman.services.{DashboardService, DatapathConnectionServic
 import org.midonet.midolman.simulation.Chain
 import org.midonet.midolman.util.mock.{MockInterfaceScanner, MockMidolmanActors}
 import org.midonet.midolman.util.{MidolmanServices, VirtualConfigurationBuilders, VirtualTopologyHelper}
-import org.midonet.midolman.version.guice.VersionModule
 import org.midonet.util.concurrent.{MockClock, NanoClock}
 
 trait MidolmanBenchmark extends MockMidolmanActors
@@ -75,7 +74,6 @@ trait MidolmanBenchmark extends MockMidolmanActors
 
     protected def getModules(config: HierarchicalConfiguration) = {
         List(
-            new VersionModule(),
             new SerializationModule(),
             new ConfigProviderModule(config),
             new MockDatapathModule(),

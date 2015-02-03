@@ -60,10 +60,9 @@ public class FuncTest {
 
     public static WebAppDescriptor.Builder getBuilder() {
 
-        VersionParser parser = new VersionParser();
         ObjectMapperProvider mapperProvider = new ObjectMapperProvider();
-        jacksonJaxbJsonProvider = new WildCardJacksonJaxbJsonProvider(
-                mapperProvider, parser);
+        jacksonJaxbJsonProvider =
+            new WildCardJacksonJaxbJsonProvider(mapperProvider);
         config.getSingletons().add(jacksonJaxbJsonProvider);
 
 

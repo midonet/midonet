@@ -49,7 +49,6 @@ import org.midonet.midolman.guice.zookeeper.ZookeeperConnectionModule;
 import org.midonet.midolman.host.guice.HostModule;
 import org.midonet.midolman.services.MidolmanActorsService;
 import org.midonet.midolman.services.MidolmanService;
-import org.midonet.midolman.version.guice.VersionModule;
 
 public class Midolman {
 
@@ -123,14 +122,13 @@ public class Midolman {
 
         injector = Guice.createInjector(
             new ZookeeperConnectionModule(),
-            new VersionModule(),
+            new SerializationModule(),
             new HostModule(),
             new ConfigProviderModule(configFilePath),
             new StorageModule(),
             new StateStorageModule(),
             new DatapathModule(),
             new ClusterClientModule(),
-            new SerializationModule(),
             new MidolmanActorsModule(),
             new ResourceProtectionModule(),
             new MidolmanModule(),

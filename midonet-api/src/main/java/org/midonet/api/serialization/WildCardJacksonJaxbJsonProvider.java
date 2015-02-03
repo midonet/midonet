@@ -42,15 +42,13 @@ public class WildCardJacksonJaxbJsonProvider
     private final static Logger log =
             LoggerFactory.getLogger(WildCardJacksonJaxbJsonProvider.class);
 
-    private VersionParser versionParser;
-    private ObjectMapperProvider objectMapperProvider;
+    private final VersionParser versionParser = new VersionParser();
+    private final ObjectMapperProvider objectMapperProvider;
 
     @Inject
     public WildCardJacksonJaxbJsonProvider(
-            ObjectMapperProvider objectMapperProvider,
-            VersionParser versionParser) {
+            ObjectMapperProvider objectMapperProvider) {
         super();
-        this.versionParser = versionParser;
         this.objectMapperProvider = objectMapperProvider;
     }
 

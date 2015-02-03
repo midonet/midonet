@@ -22,13 +22,12 @@ import java.util.Set;
 
 import com.google.inject.Inject;
 import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.midonet.cluster.data.SystemState;
 import org.midonet.midolman.SystemDataProvider;
-import org.midonet.midolman.version.guice.VerCheck;
+import org.midonet.midolman.guice.serialization.VerCheck;
 
 /**
  * This class is the zookeeper data access class for system data info.

@@ -23,7 +23,7 @@ import org.junit.Test;
 import org.midonet.midolman.state.PortDirectory.BridgePortConfig;
 import org.midonet.midolman.state.PortDirectory.RouterPortConfig;
 import org.midonet.midolman.state.zkManagers.BridgeDhcpZkManager.Host;
-import org.midonet.midolman.version.serialization.JsonVersionZkSerializer;
+import org.midonet.midolman.guice.serialization.JsonVersionZkSerializer;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
 

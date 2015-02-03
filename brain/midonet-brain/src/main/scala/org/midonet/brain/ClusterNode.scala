@@ -38,7 +38,6 @@ import org.midonet.midolman.guice.serialization.SerializationModule
 import org.midonet.midolman.guice.zookeeper.ZookeeperConnectionModule.ZookeeperReactorProvider
 import org.midonet.midolman.guice.zookeeper.{DirectoryProvider, ZKConnectionProvider}
 import org.midonet.midolman.state.{Directory, ZkConnection, ZookeeperConnectionWatcher, ZkConnectionAwareWatcher}
-import org.midonet.midolman.version.guice.VersionModule
 import org.midonet.util.eventloop.Reactor
 
 
@@ -163,7 +162,6 @@ object ClusterNode extends App {
                 .to(classOf[ZookeeperConnectionWatcher])
                 .asEagerSingleton()
 
-            install(new VersionModule)
             install(new SerializationModule)
             install(new DataClientModule)
         }

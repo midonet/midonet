@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.midolman.version.serialization;
+package org.midonet.midolman.guice.serialization;
 
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
@@ -38,7 +38,7 @@ import org.midonet.midolman.SystemDataProvider;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.StateAccessException;
-import org.midonet.midolman.version.guice.VerCheck;
+import org.midonet.midolman.guice.serialization.VerCheck;
 import org.midonet.midolman.version.state.VersionConfig;
 import org.midonet.util.version.VersionCheckAnnotationIntrospector;
 

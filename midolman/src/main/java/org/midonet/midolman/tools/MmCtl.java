@@ -52,7 +52,6 @@ import org.midonet.midolman.host.config.HostConfig;
 import org.midonet.midolman.host.guice.HostConfigProvider;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
-import org.midonet.midolman.version.guice.VersionModule;
 
 
 /**
@@ -277,7 +276,6 @@ public class MmCtl {
                         .toProvider(HostConfigProvider.class)
                         .asEagerSingleton();
                 install(new ZookeeperConnectionModule());
-                install(new VersionModule());
                 install(new SerializationModule());
                 install(new DataClusterClientModule());
             }

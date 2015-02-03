@@ -41,7 +41,6 @@ import org.midonet.midolman.services.{MidolmanActorsService, HostIdProviderServi
 import org.midonet.midolman.simulation.CustomMatchers
 import org.midonet.midolman.util.guice.MockMidolmanModule
 import org.midonet.midolman.util.mock.{MockInterfaceScanner, MockMidolmanActors}
-import org.midonet.midolman.version.guice.VersionModule
 import org.midonet.util.concurrent.{MockClock, NanoClock}
 
 /**
@@ -111,7 +110,6 @@ trait MidolmanSpec extends FeatureSpecLike
 
     protected def getModules(config: HierarchicalConfiguration) = {
         List(
-            new VersionModule(),
             new SerializationModule(),
             new ConfigProviderModule(config),
             new MockDatapathModule(),
