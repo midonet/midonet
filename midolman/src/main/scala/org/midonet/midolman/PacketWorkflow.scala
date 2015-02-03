@@ -199,15 +199,15 @@ class PacketWorkflow(protected val dpState: DatapathState,
                                s"match ${context.origMatch}")
             context.runFlowRemovedCallbacks()
             addToActionsCacheAndInvalidate(context, context.flowActions)
+            dpChannel.executePacket(context.packet, context.flowActions)
         } else {
             // ApplyState needs to happen before we add the wildcard flow
             // because it adds callbacks to the PacketContext and it can also
             // result in a NotYet exception being thrown.
             applyState(context)
+            dpChannel.executePacket(context.packet, context.flowActions)
             handleFlow(context)
         }
-
-        dpChannel.executePacket(context.packet, context.flowActions)
     }
 
     private def handleFlow(context: PacketContext): Unit = {
