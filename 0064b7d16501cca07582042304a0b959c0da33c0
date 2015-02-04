@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_3b1dbabe",
+        "filename": "tools/devmido/unmidostack.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 1002749
+      },
+      "writtenOn": "2015-02-04T11:58:33Z",
+      "side": 1,
+      "message": "Uhm, here we are exporting \u0027screen\u0027 instead of \u0027mido\u0027. So the \u0027mido\u0027 session never gets removed",
+      "revId": "0064b7d16501cca07582042304a0b959c0da33c0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
