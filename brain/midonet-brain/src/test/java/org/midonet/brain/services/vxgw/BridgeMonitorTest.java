@@ -33,22 +33,22 @@ import org.midonet.brain.BrainTestUtils;
 import org.midonet.brain.test.RxTestUtils;
 import org.midonet.brain.services.vxgw.monitor.BridgeMonitor;
 import org.midonet.cluster.DataClient;
-import org.midonet.cluster.EntityIdSetEvent;
+import org.midonet.cluster.backend.EntityIdSetEvent;
 import org.midonet.cluster.data.Bridge;
 import org.midonet.cluster.data.TunnelZone;
 import org.midonet.cluster.data.VTEP;
 import org.midonet.cluster.data.host.Host;
-import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.Directory;
-import org.midonet.midolman.state.StateAccessException;
-import org.midonet.midolman.state.ZookeeperConnectionWatcher;
+import org.midonet.cluster.backend.zookeeper.serialization.SerializationException;
+import org.midonet.cluster.backend.zookeeper.Directory;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.ZookeeperConnectionWatcher;
 import org.midonet.packets.IPv4Addr;
 
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.Assert.assertThat;
-import static org.midonet.cluster.EntityIdSetEvent.Type.CREATE;
-import static org.midonet.cluster.EntityIdSetEvent.Type.DELETE;
-import static org.midonet.cluster.EntityIdSetEvent.Type.STATE;
+import static org.midonet.cluster.backend.EntityIdSetEvent.Type.CREATE;
+import static org.midonet.cluster.backend.EntityIdSetEvent.Type.DELETE;
+import static org.midonet.cluster.backend.EntityIdSetEvent.Type.STATE;
 
 public class BridgeMonitorTest extends DeviceMonitorTestBase<UUID, Bridge> {
 

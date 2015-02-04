@@ -27,6 +27,11 @@ import javax.inject.Named;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.midonet.cluster.backend.zookeeper.Directory;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.ZkConnectionAwareWatcher;
+import org.midonet.cluster.backend.zookeeper.ZkDirectory;
+import org.midonet.cluster.backend.zookeeper.serialization.SerializationException;
 import org.midonet.cluster.client.BGPListBuilder;
 import org.midonet.cluster.client.BridgeBuilder;
 import org.midonet.cluster.client.ChainBuilder;
@@ -42,12 +47,7 @@ import org.midonet.cluster.client.RouterBuilder;
 import org.midonet.cluster.client.TunnelZones;
 import org.midonet.cluster.data.TunnelZone;
 import org.midonet.cluster.data.l4lb.Pool;
-import org.midonet.midolman.guice.zookeeper.ZkConnectionProvider;
-import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.Directory;
-import org.midonet.midolman.state.StateAccessException;
-import org.midonet.midolman.state.ZkConnectionAwareWatcher;
-import org.midonet.midolman.state.ZkDirectory;
+import org.midonet.cluster.backend.zookeeper.ZkConnectionProvider;
 import org.midonet.midolman.state.zkManagers.TunnelZoneZkManager;
 import org.midonet.util.eventloop.Reactor;
 

@@ -28,14 +28,11 @@ import org.midonet.api.rest_api.NotFoundHttpException;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.api.auth.AuthAction;
 import org.midonet.api.auth.AuthRole;
-import org.midonet.api.auth.Authorizer;
 import org.midonet.api.bgp.auth.BgpAuthorizer;
 import org.midonet.event.topology.BgpEvent;
-import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.serialization.SerializationException;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.cluster.DataClient;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;

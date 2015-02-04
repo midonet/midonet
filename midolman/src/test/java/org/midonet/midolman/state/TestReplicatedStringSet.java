@@ -27,6 +27,9 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import org.midonet.cluster.backend.zookeeper.Directory;
+import org.midonet.cluster.backend.zookeeper.MockDirectory;
+
 public class TestReplicatedStringSet {
 
     ReplicatedStringSet stringSet;

@@ -18,6 +18,8 @@ package org.midonet.midolman.state
 
 import org.apache.zookeeper.KeeperException
 
+import org.midonet.cluster.backend.zookeeper.StateAccessException
+
 object ZKExceptions {
 
     /** Wrap a block of code with lazy "call by name" semantics in a

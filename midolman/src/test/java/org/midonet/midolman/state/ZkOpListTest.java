@@ -18,6 +18,11 @@ package org.midonet.midolman.state;
 import org.junit.Before;
 import org.junit.Test;
 
+import org.midonet.cluster.backend.zookeeper.NodeNotEmptyStateException;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.ZkManager;
+import org.midonet.cluster.backend.zookeeper.ZkOpList;
+
 public class ZkOpListTest extends ZookeeperTest {
 
     private ZkManager zk;

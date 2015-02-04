@@ -15,8 +15,8 @@
  */
 package org.midonet.api.auth;
 
-import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.serialization.SerializationException;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
 
 import javax.ws.rs.core.SecurityContext;
 import java.io.Serializable;

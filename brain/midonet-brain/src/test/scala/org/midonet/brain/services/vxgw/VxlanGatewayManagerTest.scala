@@ -37,6 +37,7 @@ import org.midonet.brain.southbound.vtep.VtepMAC
 import org.midonet.brain.southbound.vtep.VtepMAC.{UNKNOWN_DST, fromMac}
 import org.midonet.brain.util.TestZkTools
 import org.midonet.cluster.DataClient
+import org.midonet.cluster.backend.zookeeper.Directory
 import org.midonet.cluster.data.Bridge.UNTAGGED_VLAN_ID
 import org.midonet.midolman.host.state.HostZkManager
 import org.midonet.midolman.state._

@@ -16,15 +16,15 @@
 package org.midonet.cluster.state
 
 import java.util.UUID
-
 import javax.annotation.Nonnull
 
 import com.google.inject.Inject
 import com.google.inject.name.Named
 
 import org.midonet.cluster.DataClient
+import org.midonet.cluster.backend.zookeeper.{StateAccessException, ZkConnectionAwareWatcher}
 import org.midonet.cluster.state.ZookeeperStateStorage.REACTOR_TAG
-import org.midonet.midolman.state.{Ip4ToMacReplicatedMap, MacPortMap, StateAccessException, ZkConnectionAwareWatcher}
+import org.midonet.midolman.state.{Ip4ToMacReplicatedMap, MacPortMap}
 import org.midonet.util.eventloop.Reactor
 
 object ZookeeperStateStorage {

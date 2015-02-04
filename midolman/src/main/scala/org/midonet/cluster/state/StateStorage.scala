@@ -16,10 +16,10 @@
 package org.midonet.cluster.state
 
 import java.util.UUID
-
 import javax.annotation.Nonnull
 
-import org.midonet.midolman.state.{ZkConnectionAwareWatcher, Ip4ToMacReplicatedMap, StateAccessException, MacPortMap}
+import org.midonet.cluster.backend.zookeeper.{StateAccessException, ZkConnectionAwareWatcher}
+import org.midonet.midolman.state.{Ip4ToMacReplicatedMap, MacPortMap}
 import org.midonet.util.eventloop.Reactor
 
 /**

@@ -42,10 +42,10 @@ import org.midonet.cluster.data.TunnelZone;
 import org.midonet.cluster.data.VTEP;
 import org.midonet.cluster.data.VtepBinding;
 import org.midonet.cluster.data.host.Host;
-import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.Directory;
-import org.midonet.midolman.state.StateAccessException;
-import org.midonet.midolman.state.ZookeeperConnectionWatcher;
+import org.midonet.cluster.backend.zookeeper.serialization.SerializationException;
+import org.midonet.cluster.backend.zookeeper.Directory;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.ZookeeperConnectionWatcher;
 import org.midonet.packets.IPv4Addr;
 
 import mockit.Expectations;

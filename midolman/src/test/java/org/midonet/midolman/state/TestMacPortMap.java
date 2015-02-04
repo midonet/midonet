@@ -18,12 +18,12 @@ package org.midonet.midolman.state;
 
 import java.util.UUID;
 
+import org.midonet.cluster.backend.zookeeper.MockDirectory;
 import org.midonet.packets.MAC;
 
-import org.apache.zookeeper.KeeperException;
 import org.junit.Before;
 import org.junit.Test;
-import static org.junit.Assert.*;
+
 import static org.junit.Assert.assertEquals;
 
 public class TestMacPortMap {

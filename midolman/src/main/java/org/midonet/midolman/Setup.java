@@ -24,7 +24,7 @@ import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.midonet.midolman.state.Directory;
+import org.midonet.cluster.backend.zookeeper.Directory;
 import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.version.DataWriteVersion;
 

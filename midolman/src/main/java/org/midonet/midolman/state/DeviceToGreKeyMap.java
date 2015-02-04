@@ -25,6 +25,8 @@ import java.util.UUID;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 
+import org.midonet.cluster.backend.zookeeper.Directory;
+
 public class DeviceToGreKeyMap {
 
     private Directory dir;

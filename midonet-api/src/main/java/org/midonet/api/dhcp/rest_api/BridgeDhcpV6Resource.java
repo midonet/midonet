@@ -21,7 +21,6 @@ import com.google.inject.assistedinject.Assisted;
 import com.google.inject.servlet.RequestScoped;
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.VendorMediaType;
-import org.midonet.api.auth.Authorizer;
 import org.midonet.api.auth.ForbiddenHttpException;
 import org.midonet.api.dhcp.DhcpSubnet6;
 import org.midonet.api.network.auth.BridgeAuthorizer;
@@ -31,14 +30,12 @@ import org.midonet.api.rest_api.ResourceFactory;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.api.auth.AuthAction;
 import org.midonet.api.auth.AuthRole;
-import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.serialization.SerializationException;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.dhcp.Subnet6;
 import org.midonet.packets.IPv6Subnet;
 import org.midonet.packets.IPv6Addr;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
@@ -188,7 +185,7 @@ public class BridgeDhcpV6Resource extends AbstractResource {
     /**
      * Handler to deleting a DHCPV6 subnet configuration.
      *
-     * @throws org.midonet.midolman.state.StateAccessException
+     * @throws org.midonet.cluster.backend.zookeeper.StateAccessException
      *             Data access error.
      */
     @DELETE

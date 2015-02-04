@@ -29,17 +29,18 @@ import javax.inject.Named;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.midonet.cluster.backend.zookeeper.Directory;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.serialization.SerializationException;
+import org.midonet.cluster.backend.zookeeper.serialization.Serializer;
 import org.midonet.cluster.client.HostBuilder;
 import org.midonet.cluster.data.TunnelZone;
-import org.midonet.midolman.guice.zookeeper.ZkConnectionProvider;
+import org.midonet.cluster.backend.zookeeper.ZkConnectionProvider;
 import org.midonet.midolman.host.state.HostDirectory;
 import org.midonet.midolman.host.state.HostZkManager;
-import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.serialization.Serializer;
-import org.midonet.midolman.state.Directory;
-import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.zkManagers.TunnelZoneZkManager;
 import org.midonet.util.eventloop.Reactor;
+
 
 public class ClusterHostManager extends ClusterManager<HostBuilder> {
 

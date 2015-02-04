@@ -26,10 +26,10 @@ import org.midonet.cluster.data.Rule;
 import org.midonet.cluster.data.neutron.FloatingIp;
 import org.midonet.cluster.data.neutron.L3Api;
 import org.midonet.event.neutron.FloatingIpEvent;
-import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.NoStatePathException;
-import org.midonet.midolman.state.StateAccessException;
-import org.midonet.midolman.state.StatePathExistsException;
+import org.midonet.cluster.backend.zookeeper.serialization.SerializationException;
+import org.midonet.cluster.backend.zookeeper.NoStatePathException;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.StatePathExistsException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

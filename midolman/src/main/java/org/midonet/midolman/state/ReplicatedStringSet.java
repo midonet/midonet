@@ -26,6 +26,8 @@ import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.midonet.cluster.backend.zookeeper.Directory;
+
 public class ReplicatedStringSet {
 
     private final static Logger log = LoggerFactory.getLogger(ReplicatedStringSet.class);

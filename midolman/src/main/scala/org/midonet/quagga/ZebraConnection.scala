@@ -21,8 +21,7 @@ import akka.event.LoggingReceive
 import java.io._
 import java.net.InetAddress
 import java.nio.channels.{Channels, ByteChannel}
-
-import org.midonet.midolman.state.NoStatePathException
+import org.midonet.cluster.backend.zookeeper.NoStatePathException
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.packets.{IPv4Addr, IPv4Subnet}
 

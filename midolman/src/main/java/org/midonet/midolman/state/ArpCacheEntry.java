@@ -16,7 +16,7 @@
 
 package org.midonet.midolman.state;
 
-import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.cluster.backend.zookeeper.serialization.SerializationException;
 import org.midonet.packets.MAC;
 
 public class ArpCacheEntry implements Cloneable {

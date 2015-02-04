@@ -18,7 +18,8 @@ package org.midonet.midolman.state;
 
 import org.apache.zookeeper.KeeperException;
 
-import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.cluster.backend.zookeeper.Directory;
+import org.midonet.cluster.backend.zookeeper.serialization.SerializationException;
 import org.midonet.packets.IPv4Addr;
 
 public class ArpTable extends ReplicatedMap<IPv4Addr, ArpCacheEntry> {

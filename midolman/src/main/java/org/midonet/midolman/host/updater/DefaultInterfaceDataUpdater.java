@@ -18,7 +18,7 @@ package org.midonet.midolman.host.updater;
 import com.google.inject.Inject;
 import org.midonet.midolman.host.interfaces.InterfaceDescription;
 import org.midonet.midolman.host.state.HostZkManager;
-import org.midonet.midolman.state.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

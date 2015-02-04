@@ -47,7 +47,7 @@ import org.midonet.client.resource.HostInterface;
 import org.midonet.client.resource.ResourceCollection;
 import org.midonet.midolman.host.state.HostDirectory;
 import org.midonet.midolman.host.state.HostZkManager;
-import org.midonet.midolman.state.NoStatePathException;
+import org.midonet.cluster.backend.zookeeper.NoStatePathException;
 import org.midonet.packets.MAC;
 
 import static org.hamcrest.CoreMatchers.allOf;
@@ -64,7 +64,6 @@ import static org.junit.Assert.fail;
 import static org.midonet.client.VendorMediaType.APPLICATION_BRIDGE_JSON;
 import static org.midonet.client.VendorMediaType.APPLICATION_HOST_COLLECTION_JSON_V3;
 import static org.midonet.client.VendorMediaType.APPLICATION_HOST_JSON_V3;
-import static org.midonet.client.VendorMediaType.APPLICATION_INTERFACE_COLLECTION_JSON;
 import static org.midonet.client.VendorMediaType.APPLICATION_PORT_V2_JSON;
 
 public class TestHost extends JerseyTest {

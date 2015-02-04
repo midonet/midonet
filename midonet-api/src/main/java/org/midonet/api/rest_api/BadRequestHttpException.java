@@ -16,8 +16,8 @@
 package org.midonet.api.rest_api;
 
 import org.midonet.api.validation.MessageProperty;
-import org.midonet.midolman.state.NoStatePathException;
-import org.midonet.midolman.state.StatePathExceptionBase;
+import org.midonet.cluster.backend.zookeeper.NoStatePathException;
+import org.midonet.cluster.backend.zookeeper.StatePathExceptionBase;
 
 import java.util.Set;
 

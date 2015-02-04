@@ -33,8 +33,8 @@ import org.midonet.brain.southbound.vtep.VtepNotConnectedException;
 import org.midonet.brain.southbound.vtep.VtepStateException;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.VTEP;
-import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.serialization.SerializationException;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.util.functors.Callback;
 
 /**

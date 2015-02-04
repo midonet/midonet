@@ -48,8 +48,8 @@ import org.midonet.api.zookeeper.ZookeeperModule;
 import org.midonet.brain.MidoBrainModule;
 import org.midonet.brain.guice.BrainModule;
 import org.midonet.cluster.data.neutron.NeutronClusterModule;
+import org.midonet.cluster.guice.DataClientModule;
 import org.midonet.midolman.guice.StorageModule;
-import org.midonet.midolman.guice.cluster.DataClientModule;
 
 /**
  * Jersey servlet module for MidoNet REST API application.

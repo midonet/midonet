@@ -31,13 +31,12 @@ import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.api.rest_api.ServiceUnavailableHttpException;
 import org.midonet.api.validation.MessageProperty;
 import org.midonet.cluster.DataClient;
-import org.midonet.cluster.data.neutron.LoadBalancerApi;
 import org.midonet.event.topology.VipEvent;
-import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.InvalidStateOperationException;
-import org.midonet.midolman.state.NoStatePathException;
-import org.midonet.midolman.state.StateAccessException;
-import org.midonet.midolman.state.StatePathExistsException;
+import org.midonet.cluster.backend.zookeeper.serialization.SerializationException;
+import org.midonet.cluster.backend.zookeeper.InvalidStateOperationException;
+import org.midonet.cluster.backend.zookeeper.NoStatePathException;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.StatePathExistsException;
 import org.midonet.midolman.state.l4lb.MappingStatusException;
 
 import java.util.ArrayList;
