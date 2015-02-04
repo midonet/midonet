@@ -32,6 +32,7 @@ import org.midonet.midolman.services.SelectLoopService;
 import org.midonet.midolman.simulation.Chain;
 import org.midonet.midolman.state.NatBlockAllocator;
 import org.midonet.midolman.state.ZkNatBlockAllocator;
+import org.midonet.midolman.topology.VirtualTopology;
 
 /**
  * Main midolman configuration module
@@ -54,6 +55,10 @@ public class MidolmanModule extends PrivateModule {
             .toProvider(MidolmanConfigProvider.class)
             .asEagerSingleton();
         expose(MidolmanConfig.class);
+
+        bind(VirtualTopology.class)
+            .asEagerSingleton();
+        expose(VirtualTopology.class);
 
         bind(MetricRegistry.class).toInstance(new MetricRegistry());
         expose(MetricRegistry.class);
