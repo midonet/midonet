@@ -53,29 +53,37 @@ object PortTranslator {
      * Throws IllegalArgumentException if not found.
      */
     private def findDhcpSubnet(network: Network.Builder,
-                               subnet: IPSubnet): Dhcp.Builder = {
+                               subnet: IPSubnet): Option[Dhcp.Builder] = {
         network.getDhcpSubnetsBuilderList.asScala
                .find( _.getSubnetAddress == subnet)
-               .getOrElse({
-                   throw new IllegalArgumentException(
-                       "The given Neutron Subnet has not been created with " +
-                       "Mido Network.")
-               })
     }
 
+    /* Looks up a subnet in the specified Network with corresponding subnet
+     * address, and adds a host entry with the given mac / IP address pair. It's
+     * a no-op if the subnet is not created with the Network, which is assumed
+     * to have been checked by the caller. Such a case shouldn't really happen
+     * since the Neutron API is the only component that updates Topology.
+     */
     private def addDhcpHost(network: Network.Builder, subnet: IPSubnet,
                             mac: String, ipAddr: IPAddress) {
-        findDhcpSubnet(network, subnet).addHostsBuilder()
-                                       .setMac(mac)
-                                       .setIpAddress(ipAddr)
+        findDhcpSubnet(network, subnet).foreach(_.addHostsBuilder()
+                                                 .setMac(mac)
+                                                 .setIpAddress(ipAddr))
     }
 
+    /* Looks up a subnet in the specified Network with corresponding subnet
+     * address, and deletes a host entry with the given mac / IP address pair.
+     * It's a no-op if the subnet does not exist / is already deleted, which is
+     * assumed to have been checked by the caller. Such a case shouldn't really
+     * happen since the Neutron API is the only component that updates Topology.
+     */
     private def delDhcpHost(network: Network.Builder, subnet: IPSubnet,
                             mac: String, ipAddr: IPAddress) {
-        val dhcp = findDhcpSubnet(network, subnet)
-        val remove = dhcp.getHostsList.asScala.indexWhere(
-                h => h.getMac == mac && h.getIpAddress == ipAddr)
-        if (remove >= 0) dhcp.removeHosts(remove)
+        findDhcpSubnet(network, subnet).foreach { dhcp =>
+                val remove = dhcp.getHostsList.asScala.indexWhere(
+                    h => h.getMac == mac && h.getIpAddress == ipAddr)
+                if (remove >= 0) dhcp.removeHosts(remove)
+        }
     }
 
     private def egressChainName(portId: UUID) =
@@ -136,10 +144,9 @@ class PortTranslator(private val storage: ReadOnlyStorage)
         var midoOps = new MidoOpListBuffer
         if (isVifPort(nPort)) {
             // Generate in/outbound chain IDs from Port ID.
-            val inChainId = portId.nextUuid
-            val outChainId = inChainId.nextUuid
-            midoPortBldr.setInboundFilterId(inChainId)
-            midoPortBldr.setOutboundFilterId(outChainId)
+            val chainIds = getChainIds(portId)
+            midoPortBldr.setInboundFilterId(chainIds.inChainId)
+            midoPortBldr.setOutboundFilterId(chainIds.outChainId)
 
             val vifPortInfo = buildVifPortModels(nPort, null, midoPortBldr)
             addMidoOps(vifPortInfo, midoOps)
