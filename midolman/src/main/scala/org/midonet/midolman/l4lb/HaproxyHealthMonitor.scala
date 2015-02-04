@@ -213,7 +213,7 @@ class HaproxyHealthMonitor(var config: PoolConfig,
      */
     private def parseResponse(resp: String): (Set[UUID], Set[UUID]) = {
         if (resp == null) {
-            (currentUpNodes, currentDownNodes)
+            return (currentUpNodes, currentDownNodes)
         }
 
         val upNodes = new HashSet[UUID]()
