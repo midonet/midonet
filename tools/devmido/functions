@@ -161,25 +161,26 @@ function create_screen {
 
 
 # Helper to launch a process in a named screen
-# Uses globals ``CURRENT_LOG_TIME``, ``SCREEN_NAME``, ``SCREEN_LOGDIR``,
+# Uses globals ``CURRENT_LOG_TIME``, ``SCREEN_LOGDIR``,
 # ``SERVICE_DIR``
 # screen_process name "command-line"
 # Run a command in a shell in a screen window
 function screen_process {
-    local name=$1
-    local command="$2"
+    local screen=$1
+    local name=$2
+    local command="$3"
 
-    SCREEN_NAME=${SCREEN_NAME:-mido}
+    # Screen name is hard-coded
     SERVICE_DIR=${SERVICE_DIR:-${MIDOSTACK_DIR}/status}
 
     # Append the process to the screen rc file
-    screen_rc "$name" "$command"
+    screen_rc "$screen" "$name" "$command"
 
-    screen -S $SCREEN_NAME -X screen -t $name
+    screen -S $screen -X screen -t $name
 
     if [[ -n ${SCREEN_LOGDIR} ]]; then
-        screen -S $SCREEN_NAME -p $name -X logfile ${SCREEN_LOGDIR}/screen-${name}.log.${CURRENT_LOG_TIME}
-        screen -S $SCREEN_NAME -p $name -X log on
+        screen -S $screen -p $name -X logfile ${SCREEN_LOGDIR}/screen-${name}.log.${CURRENT_LOG_TIME}
+        screen -S $screen -p $name -X log on
         ln -sf ${SCREEN_LOGDIR}/screen-${name}.log.${CURRENT_LOG_TIME} ${SCREEN_LOGDIR}/screen-${name}.log
     fi
 
@@ -189,18 +190,18 @@ function screen_process {
     sleep 3
 
     NL=`echo -ne '\015'`
-    screen -S $SCREEN_NAME -p $name -X stuff "$command & echo \$! >$SERVICE_DIR/$SCREEN_NAME/${name}.pid; fg || echo \"$name failed to start\" | tee \"$SERVICE_DIR/$SCREEN_NAME/${name}.failure\"$NL"
+    screen -S $screen -p $name -X stuff "$command & echo \$! >$SERVICE_DIR/$screen/${name}.pid; fg || echo \"$name failed to start\" | tee \"$SERVICE_DIR/$screen/${name}.failure\"$NL"
 }
 
 # Screen rc file builder
-# Uses globals ``SCREEN_NAME``, ``SCREENRC``
+# Uses globals ``SCREENRC``
 # screen_rc service "command-line"
 function screen_rc {
-    SCREEN_NAME=${SCREEN_NAME:-mido}
-    SCREENRC=$DEVMIDO_DIR/$SCREEN_NAME-screenrc
+    local screen=$1
+    SCREENRC=$DEVMIDO_DIR/$screen-screenrc
     if [[ ! -e $SCREENRC ]]; then
         # Name the screen session
-        echo "sessionname $SCREEN_NAME" > $SCREENRC
+        echo "sessionname $screen" > $SCREENRC
         # Set a reasonable statusbar
         echo "hardstatus alwayslastline '$SCREEN_HARDSTATUS'" >> $SCREENRC
         # Some distributions override PROMPT_COMMAND for the screen terminal type - turn that off

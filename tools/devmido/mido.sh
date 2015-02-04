@@ -124,6 +124,10 @@ set -o xtrace
 
 is_package_installed screen || install_package screen
 
+# Hard code the screen name so that mido.sh and unmido.sh would be in sync
+# when creating and deleting screen sessions.
+SCREEN_NAME=mido
+
 # Check to see if we are already running mido.sh
 if is_screen_running $SCREEN_NAME ; then
     echo "You are already running a mido.sh session."
@@ -271,7 +275,7 @@ sed -e 's/"INFO"/"DEBUG"/'  \
 cp  $TOP_DIR/midolman/src/test/resources/logback-test.xml  \
     $TOP_DIR/midolman/build/classes/main/logback.xml
 
-screen_process midolman "cd $TOP_DIR && ./gradlew -a :midolman:runWithSudo"
+screen_process $SCREEN_NAME midolman "cd $TOP_DIR && ./gradlew -a :midolman:runWithSudo"
 
 
 # MidoNet API
@@ -284,7 +288,7 @@ cp $API_CFG.dev $API_CFG
 # Create the logback file in the class path
 cp $TOP_DIR/midonet-api/conf/logback.xml.dev $TOP_DIR/midonet-api/build/classes/main/logback.xml
 
-screen_process midonet-api "cd $TOP_DIR && ./gradlew :midonet-api:jettyRun -Pport=$API_PORT"
+screen_process $SCREEN_NAME midonet-api "cd $TOP_DIR && ./gradlew :midonet-api:jettyRun -Pport=$API_PORT"
 
 if ! timeout $API_TIMEOUT sh -c "while ! wget -q -O- $API_URI; do sleep 1; done"; then
     die $LINENO "API server didn't start in $API_TIMEOUT seconds"
