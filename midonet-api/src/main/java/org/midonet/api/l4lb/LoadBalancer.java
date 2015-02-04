@@ -58,15 +58,15 @@ public class LoadBalancer extends UriResource {
     }
 
     public LoadBalancer(
-            org.midonet.cluster.data.l4lb.LoadBalancer loadBalancer) {
+            org.midonet.cluster.data.boilerplate.l4lb.LoadBalancer loadBalancer) {
         super();
         this.adminStateUp = loadBalancer.isAdminStateUp();
         this.routerId = loadBalancer.getRouterId();
         this.id = loadBalancer.getId();
     }
 
-    public org.midonet.cluster.data.l4lb.LoadBalancer toData() {
-        return new org.midonet.cluster.data.l4lb.LoadBalancer()
+    public org.midonet.cluster.data.boilerplate.l4lb.LoadBalancer toData() {
+        return new org.midonet.cluster.data.boilerplate.l4lb.LoadBalancer()
                 .setId(this.id)
                 .setRouterId(this.routerId)
                 .setAdminStateUp(this.adminStateUp);

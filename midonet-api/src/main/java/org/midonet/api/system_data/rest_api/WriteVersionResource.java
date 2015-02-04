@@ -59,7 +59,7 @@ public class WriteVersionResource extends AbstractResource {
                   MediaType.APPLICATION_JSON})
     public WriteVersion get()
         throws StateAccessException {
-        org.midonet.cluster.data.WriteVersion writeVersionData =
+        org.midonet.cluster.data.boilerplate.WriteVersion writeVersionData =
                 dataClient.writeVersionGet();
         WriteVersion writeVersion = new WriteVersion(writeVersionData);
         writeVersion.setBaseUri(getBaseUri());

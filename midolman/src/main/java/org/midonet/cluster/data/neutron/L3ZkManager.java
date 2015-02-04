@@ -21,6 +21,7 @@ import com.google.common.base.Preconditions;
 import com.google.inject.Inject;
 import org.apache.zookeeper.Op;
 
+import org.midonet.cluster.backend.zookeeper.PathBuilder;
 import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.cluster.backend.zookeeper.ZkManager;
 import org.midonet.cluster.data.Rule;

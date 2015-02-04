@@ -21,7 +21,6 @@ import scala.collection.JavaConversions._
 import scala.collection.mutable
 
 import akka.actor.{ActorRef, Actor}
-
 import org.midonet.cluster.Client
 import org.midonet.cluster.client.ChainBuilder
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag

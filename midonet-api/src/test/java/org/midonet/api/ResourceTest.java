@@ -18,7 +18,7 @@ package org.midonet.api;
 import org.junit.Before;
 import org.midonet.api.neutron.NeutronResourceFactory;
 import org.midonet.api.rest_api.RestApiConfig;
-import org.midonet.cluster.data.neutron.NeutronPlugin;
+import org.midonet.cluster.data.boilerplate.neutron.NeutronPlugin;
 import org.mockito.Answers;
 import org.mockito.Mock;
 

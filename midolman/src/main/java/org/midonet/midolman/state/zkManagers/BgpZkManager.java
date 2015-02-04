@@ -31,10 +31,10 @@ import org.midonet.cluster.backend.zookeeper.serialization.SerializationExceptio
 import org.midonet.cluster.backend.zookeeper.serialization.Serializer;
 import org.midonet.midolman.state.AbstractZkManager;
 import org.midonet.cluster.backend.zookeeper.Directory;
-import org.midonet.midolman.state.PathBuilder;
+import org.midonet.cluster.backend.zookeeper.PathBuilder;
 import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.cluster.backend.zookeeper.ZkManager;
-import org.midonet.cluster.data.BGP;
+import org.midonet.cluster.data.boilerplate.BGP;
 
 public class BgpZkManager extends AbstractZkManager<UUID, BGP.Data> {
 

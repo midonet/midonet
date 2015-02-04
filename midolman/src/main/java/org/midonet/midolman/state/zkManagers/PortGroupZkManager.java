@@ -23,6 +23,7 @@ import org.slf4j.LoggerFactory;
 
 import org.midonet.cluster.backend.zookeeper.Directory;
 import org.midonet.cluster.backend.zookeeper.DirectoryCallback;
+import org.midonet.cluster.backend.zookeeper.PathBuilder;
 import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.cluster.backend.zookeeper.ZkManager;
 import org.midonet.cluster.backend.zookeeper.serialization.SerializationException;

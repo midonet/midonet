@@ -16,7 +16,7 @@
 
 package org.midonet.api.dhcp;
 
-import org.midonet.cluster.data.dhcp.Opt121;
+import org.midonet.cluster.data.boilerplate.dhcp.Opt121;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IPv4Subnet;
 

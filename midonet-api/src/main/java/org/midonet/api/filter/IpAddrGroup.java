@@ -15,16 +15,17 @@
  */
 package org.midonet.api.filter;
 
-import org.midonet.api.ResourceUriBuilder;
-import org.midonet.api.UriResource;
+import java.net.URI;
+import java.util.UUID;
 
 import javax.validation.GroupSequence;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import javax.validation.groups.Default;
 import javax.xml.bind.annotation.XmlRootElement;
-import java.net.URI;
-import java.util.UUID;
+
+import org.midonet.api.ResourceUriBuilder;
+import org.midonet.api.UriResource;
 
 
 /**
@@ -45,7 +46,7 @@ public class IpAddrGroup extends UriResource {
     public IpAddrGroup() {
     }
 
-    public IpAddrGroup(org.midonet.cluster.data.IpAddrGroup data) {
+    public IpAddrGroup(org.midonet.cluster.data.boilerplate.IpAddrGroup data) {
         this(data.getId(), data.getName());
     }
 
@@ -87,9 +88,9 @@ public class IpAddrGroup extends UriResource {
         }
     }
 
-    public org.midonet.cluster.data.IpAddrGroup toData() {
+    public org.midonet.cluster.data.boilerplate.IpAddrGroup toData() {
 
-        return new org.midonet.cluster.data.IpAddrGroup()
+        return new org.midonet.cluster.data.boilerplate.IpAddrGroup()
                 .setId(this.id)
                 .setName(this.name);
     }

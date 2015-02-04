@@ -85,14 +85,14 @@ public class RouterPort extends Port {
      * @param portData
      */
     public RouterPort(
-            org.midonet.cluster.data.ports.RouterPort
+            org.midonet.cluster.data.boilerplate.ports.RouterPort
                     portData) {
         super(portData);
         setRouterPortFields(portData);
     }
 
     private void setRouterPortFields(
-            org.midonet.cluster.data.ports.RouterPort portData) {
+            org.midonet.cluster.data.boilerplate.ports.RouterPort portData) {
         this.networkAddress = portData.getNwAddr();
         this.networkLength = portData.getNwLength();
         this.portAddress = portData.getPortAddr();
@@ -112,9 +112,9 @@ public class RouterPort extends Port {
     }
 
     @Override
-    public org.midonet.cluster.data.ports.RouterPort toData() {
-        org.midonet.cluster.data.ports.RouterPort data =
-                new org.midonet.cluster.data.ports.RouterPort();
+    public org.midonet.cluster.data.boilerplate.ports.RouterPort toData() {
+        org.midonet.cluster.data.boilerplate.ports.RouterPort data =
+                new org.midonet.cluster.data.boilerplate.ports.RouterPort();
         this.setConfig(data);
         return data;
     }
@@ -183,7 +183,7 @@ public class RouterPort extends Port {
      *            RouterPort object
      */
     public void setConfig(
-            org.midonet.cluster.data.ports.RouterPort portData) {
+            org.midonet.cluster.data.boilerplate.ports.RouterPort portData) {
         super.setConfig(portData);
         portData.setNwAddr(this.networkAddress);
         portData.setNwLength(this.networkLength);

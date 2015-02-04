@@ -22,13 +22,12 @@ import scala.collection.mutable.Queue
 import akka.actor.Props
 import akka.testkit.TestActorRef
 import com.codahale.metrics.MetricRegistry
-
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.DataClient
-import org.midonet.cluster.data.{Bridge => ClusterBridge, Chain}
-import org.midonet.cluster.data.ports.BridgePort
+import org.midonet.cluster.data.boilerplate.ports.BridgePort
+import org.midonet.cluster.data.boilerplate.{Bridge => ClusterBridge, Chain}
 import org.midonet.cluster.data.rules.TraceRule
 import org.midonet.midolman.UnderlayResolver.Route
 import org.midonet.midolman.config.MidolmanConfig
@@ -36,14 +35,14 @@ import org.midonet.midolman.datapath.DatapathChannel
 import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
 import org.midonet.midolman.rules.Condition
 import org.midonet.midolman.simulation.PacketContext
-import org.midonet.midolman.state.{HappyGoLuckyLeaser, MockStateStorage}
-import org.midonet.midolman.state.ConnTrackState.{ConnTrackValue, ConnTrackKey}
+import org.midonet.midolman.state.ConnTrackState.{ConnTrackKey, ConnTrackValue}
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
+import org.midonet.midolman.state.{HappyGoLuckyLeaser, MockStateStorage}
 import org.midonet.midolman.topology._
 import org.midonet.midolman.topology.rcu.ResolvedHost
 import org.midonet.midolman.util.MidolmanSpec
-import org.midonet.odp.{Datapath, DpPort, FlowMatches, Packet}
 import org.midonet.odp.flows.FlowActionOutput
+import org.midonet.odp.{Datapath, DpPort, FlowMatches, Packet}
 import org.midonet.packets.Ethernet
 import org.midonet.packets.util.EthBuilder
 import org.midonet.packets.util.PacketBuilder._

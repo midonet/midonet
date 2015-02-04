@@ -35,7 +35,7 @@ import org.midonet.event.topology.BgpEvent;
 import org.midonet.cluster.backend.zookeeper.serialization.SerializationException;
 import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.cluster.DataClient;
-import org.midonet.cluster.data.BGP;
+import org.midonet.cluster.data.boilerplate.BGP;
 
 import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;

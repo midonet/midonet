@@ -20,9 +20,7 @@ import java.util.UUID
 import org.junit.runner.RunWith
 import org.midonet.midolman.PacketWorkflow.Drop
 import org.scalatest.junit.JUnitRunner
-
-import org.midonet.cluster.data.{Bridge => ClusterBridge}
-import org.midonet.cluster.data.ports.BridgePort
+import org.midonet.cluster.data.boilerplate.ports.BridgePort
 import org.midonet.midolman.rules.{RuleResult, Condition}
 import org.midonet.midolman.simulation.Bridge
 import org.midonet.midolman.topology.VirtualTopologyActor
@@ -43,7 +41,7 @@ class ConntrackTest extends MidolmanSpec {
     var leftPort: BridgePort = null
     var rightPort: BridgePort = null
 
-    var clusterBridge: ClusterBridge = null
+    var clusterBridge: Bridge = null
 
     private def buildTopology() {
         val host = newHost("myself", hostId)

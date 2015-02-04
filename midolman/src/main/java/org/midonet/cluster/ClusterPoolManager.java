@@ -28,12 +28,12 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.google.inject.Inject;
 import org.midonet.cluster.data.Converter;
-import org.midonet.cluster.data.l4lb.Pool;
+import org.midonet.cluster.data.boilerplate.l4lb.Pool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.midonet.cluster.client.PoolBuilder;
-import org.midonet.cluster.data.l4lb.PoolMember;
+import org.midonet.cluster.data.boilerplate.l4lb.PoolMember;
 import org.midonet.midolman.state.zkManagers.PoolZkManager;
 import org.midonet.midolman.state.zkManagers.PoolZkManager.PoolConfig;
 import org.midonet.midolman.state.zkManagers.PoolMemberZkManager;

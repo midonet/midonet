@@ -34,7 +34,7 @@ import org.midonet.brain.test.RxTestUtils;
 import org.midonet.brain.services.vxgw.monitor.HostMonitor;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.backend.EntityIdSetEvent;
-import org.midonet.cluster.data.host.Host;
+import org.midonet.cluster.data.boilerplate.host.Host;
 import org.midonet.cluster.backend.zookeeper.serialization.SerializationException;
 import org.midonet.cluster.backend.zookeeper.Directory;
 import org.midonet.cluster.backend.zookeeper.StateAccessException;

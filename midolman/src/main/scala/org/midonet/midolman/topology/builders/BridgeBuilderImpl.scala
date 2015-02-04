@@ -27,7 +27,7 @@ import akka.actor.ActorRef
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.client.{BridgeBuilder, IpMacMap, MacLearningTable, VlanPortMap}
-import org.midonet.cluster.data.Bridge
+import org.midonet.cluster.data.boilerplate.Bridge
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman.topology.{BridgeConfig, BridgeManager}
 import org.midonet.packets.{IPAddr, IPv4Addr, MAC}

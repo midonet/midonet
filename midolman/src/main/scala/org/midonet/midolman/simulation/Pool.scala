@@ -20,7 +20,7 @@ import java.util.UUID
 
 import akka.event.LoggingBus
 
-import org.midonet.midolman.state.l4lb.PoolLBMethod
+import org.midonet.cluster.data.boilerplate.l4lb.PoolLBMethod
 import org.midonet.midolman.state.NatState
 import org.midonet.midolman.state.NatState.NatKey
 import org.midonet.packets.{IPAddr, ICMP}

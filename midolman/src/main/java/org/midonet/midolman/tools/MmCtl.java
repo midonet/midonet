@@ -39,17 +39,17 @@ import org.slf4j.LoggerFactory;
 
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.backend.zookeeper.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.ZookeeperConnectionModule;
 import org.midonet.cluster.backend.zookeeper.serialization.SerializationException;
+import org.midonet.cluster.backend.zookeeper.serialization.SerializationModule;
+import org.midonet.cluster.data.boilerplate.host.VirtualPortMapping;
 import org.midonet.cluster.data.host.Host;
-import org.midonet.cluster.data.host.VirtualPortMapping;
 import org.midonet.config.ConfigProvider;
 import org.midonet.config.HostIdGenerator;
 import org.midonet.midolman.config.MidolmanConfig;
 import org.midonet.midolman.guice.MidolmanModule;
 import org.midonet.midolman.guice.cluster.DataClusterClientModule;
 import org.midonet.midolman.guice.config.ConfigProviderModule;
-import org.midonet.midolman.guice.serialization.SerializationModule;
-import org.midonet.cluster.backend.zookeeper.ZookeeperConnectionModule;
 import org.midonet.midolman.host.config.HostConfig;
 import org.midonet.midolman.host.guice.HostConfigProvider;
 

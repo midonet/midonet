@@ -51,7 +51,7 @@ public class BridgePort extends Port {
      * @param portData bridge port data object
      */
     public BridgePort(
-        org.midonet.cluster.data.ports.BridgePort
+        org.midonet.cluster.data.boilerplate.ports.BridgePort
             portData) {
         super(portData);
         this.vlanId = portData.getVlanId();
@@ -84,15 +84,15 @@ public class BridgePort extends Port {
     }
 
     @Override
-    public org.midonet.cluster.data.ports.BridgePort toData() {
-        org.midonet.cluster.data.ports.BridgePort data =
-            new org.midonet.cluster.data.ports.BridgePort();
+    public org.midonet.cluster.data.boilerplate.ports.BridgePort toData() {
+        org.midonet.cluster.data.boilerplate.ports.BridgePort data =
+            new org.midonet.cluster.data.boilerplate.ports.BridgePort();
         this.setConfig(data);
         return data;
     }
 
 
-    public void setConfig(org.midonet.cluster.data.ports.BridgePort data) {
+    public void setConfig(org.midonet.cluster.data.boilerplate.ports.BridgePort data) {
         super.setConfig(data);
         data.setVlanId(this.vlanId);
     }

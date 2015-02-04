@@ -16,39 +16,39 @@
 package org.midonet.api.network;
 
 import org.midonet.cluster.Client;
-import org.midonet.cluster.data.Port.Property;
+import org.midonet.cluster.data.boilerplate.Port.Property;
 
 public class PortFactory {
 
     public static Port convertToApiPortV1(
-            org.midonet.cluster.data.Port<?, ?> data) {
+            org.midonet.cluster.data.boilerplate.Port<?, ?> data) {
         //TODO av-mido: This is for backwards compatibility, the new api
         //TODO   will just return BridgePort or RouterPort.
-        if (data instanceof org.midonet.cluster.data.ports.RouterPort) {
+        if (data instanceof org.midonet.cluster.data.boilerplate.ports.RouterPort) {
             if (data.isExterior()
                   || (data.isUnplugged()
                       && Client.PortType.ExteriorRouter.toString()
                          .equals(data.getProperty(Property.v1PortType)))) {
-                return new ExteriorRouterPort((org.midonet.cluster.data.ports
+                return new ExteriorRouterPort((org.midonet.cluster.data.boilerplate.ports
                         .RouterPort) data);
             } else {
                 return new InteriorRouterPort(
-                        (org.midonet.cluster.data.ports.RouterPort)data);
+                        (org.midonet.cluster.data.boilerplate.ports.RouterPort)data);
             }
-        } else if (data instanceof org.midonet.cluster.data.ports.BridgePort) {
+        } else if (data instanceof org.midonet.cluster.data.boilerplate.ports.BridgePort) {
             if(data.isExterior()
                   || (data.isUnplugged()
                       && Client.PortType.ExteriorBridge.toString()
                          .equals(data.getProperty(Property.v1PortType)))) {
-                return new ExteriorBridgePort((org.midonet.cluster.data.ports
+                return new ExteriorBridgePort((org.midonet.cluster.data.boilerplate.ports
                         .BridgePort) data);
             } else {
                 return new InteriorBridgePort(
-                        (org.midonet.cluster.data.ports.BridgePort)data);
+                        (org.midonet.cluster.data.boilerplate.ports.BridgePort)data);
             }
-        } else if (data instanceof org.midonet.cluster.data.ports.VxLanPort) {
+        } else if (data instanceof org.midonet.cluster.data.boilerplate.ports.VxLanPort) {
             return new VxLanPort(
-                (org.midonet.cluster.data.ports.VxLanPort)data);
+                (org.midonet.cluster.data.boilerplate.ports.VxLanPort)data);
         } else {
             throw new UnsupportedOperationException(
                     "Cannot instantiate this port type.");
@@ -56,16 +56,16 @@ public class PortFactory {
     }
 
     public static Port convertToApiPort(
-            org.midonet.cluster.data.Port<?, ?> data) {
-        if (data instanceof org.midonet.cluster.data.ports.RouterPort) {
+            org.midonet.cluster.data.boilerplate.Port<?, ?> data) {
+        if (data instanceof org.midonet.cluster.data.boilerplate.ports.RouterPort) {
             return new RouterPort(
-                    (org.midonet.cluster.data.ports.RouterPort)data);
-        } else if (data instanceof org.midonet.cluster.data.ports.BridgePort) {
+                    (org.midonet.cluster.data.boilerplate.ports.RouterPort)data);
+        } else if (data instanceof org.midonet.cluster.data.boilerplate.ports.BridgePort) {
             return new BridgePort(
-                    (org.midonet.cluster.data.ports.BridgePort)data);
-        } else if (data instanceof org.midonet.cluster.data.ports.VxLanPort) {
+                    (org.midonet.cluster.data.boilerplate.ports.BridgePort)data);
+        } else if (data instanceof org.midonet.cluster.data.boilerplate.ports.VxLanPort) {
             return new VxLanPort(
-                    (org.midonet.cluster.data.ports.VxLanPort)data);
+                    (org.midonet.cluster.data.boilerplate.ports.VxLanPort)data);
         } else {
             throw new UnsupportedOperationException(
                     "Cannot instantiate this port type.");

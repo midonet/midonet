@@ -34,21 +34,20 @@ import org.apache.zookeeper.Watcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
-import org.midonet.cluster.backend.zookeeper.WatchableZkManager;
-import org.midonet.cluster.data.Converter;
-import org.midonet.cluster.data.Port;
-import org.midonet.cluster.backend.zookeeper.serialization.SerializationException;
-import org.midonet.cluster.backend.zookeeper.serialization.Serializer;
-import org.midonet.midolman.state.AbstractZkManager;
+import org.midonet.cluster.backend.version.DataWriteVersion;
 import org.midonet.cluster.backend.zookeeper.Directory;
 import org.midonet.cluster.backend.zookeeper.NoStatePathException;
-import org.midonet.midolman.state.PathBuilder;
-import org.midonet.midolman.state.PortConfig;
+import org.midonet.cluster.backend.zookeeper.PathBuilder;
 import org.midonet.cluster.backend.zookeeper.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.WatchableZkManager;
 import org.midonet.cluster.backend.zookeeper.ZkManager;
+import org.midonet.cluster.backend.zookeeper.serialization.SerializationException;
+import org.midonet.cluster.backend.zookeeper.serialization.Serializer;
+import org.midonet.cluster.data.Converter;
+import org.midonet.cluster.data.boilerplate.Port;
+import org.midonet.midolman.state.AbstractZkManager;
+import org.midonet.midolman.state.PortConfig;
 import org.midonet.midolman.state.zkManagers.PortZkManager;
-import org.midonet.midolman.version.DataWriteVersion;
 
 /**
  * Wrapper class over a Directory that handled setting and reading data related
@@ -67,12 +66,9 @@ public class HostZkManager
      * Initializes a HostZkManager object with a ZooKeeper client
      * and the root path of the ZooKeeper directory.
      *
-     * @param zk
-     *         Zk data access class
-     * @param paths
-     *         PathBuilder class to construct ZK paths
-     * @param serializer
-     *         ZK data serialization class
+     * @param zk Zk data access class
+     * @param paths PathBuilder class to construct ZK paths
+     * @param serializer ZK data serialization class
      */
     @Inject
     public HostZkManager(ZkManager zk, PathBuilder paths,

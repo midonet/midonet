@@ -19,7 +19,7 @@ package org.midonet.api.l4lb;
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.UriResource;
 import org.midonet.api.validation.VerifyEnumValue;
-import org.midonet.midolman.state.l4lb.VipSessionPersistence;
+import org.midonet.cluster.data.boilerplate.l4lb.VipSessionPersistence;
 import org.midonet.packets.IPv4;
 
 import java.net.URI;
@@ -107,7 +107,7 @@ public class VIP extends UriResource {
         super();
     }
 
-    public VIP(org.midonet.cluster.data.l4lb.VIP vip) {
+    public VIP(org.midonet.cluster.data.boilerplate.l4lb.VIP vip) {
         super();
         this.id = vip.getId();
         this.loadBalancerId = vip.getLoadBalancerId();
@@ -119,8 +119,8 @@ public class VIP extends UriResource {
         this.adminStateUp = vip.getAdminStateUp();
     }
 
-    public org.midonet.cluster.data.l4lb.VIP toData() {
-        return new org.midonet.cluster.data.l4lb.VIP()
+    public org.midonet.cluster.data.boilerplate.l4lb.VIP toData() {
+        return new org.midonet.cluster.data.boilerplate.l4lb.VIP()
                 .setId(this.id)
                 .setLoadBalancerId(this.loadBalancerId)
                 .setPoolId(this.poolId)

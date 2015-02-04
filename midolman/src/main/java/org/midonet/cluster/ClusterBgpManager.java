@@ -23,8 +23,8 @@ import com.google.inject.Inject;
 import org.midonet.midolman.state.zkManagers.AdRouteZkManager;
 import org.midonet.midolman.state.zkManagers.BgpZkManager;
 import org.midonet.cluster.client.*;
-import org.midonet.cluster.data.AdRoute;
-import org.midonet.cluster.data.BGP;
+import org.midonet.cluster.data.boilerplate.AdRoute;
+import org.midonet.cluster.data.boilerplate.BGP;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

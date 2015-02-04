@@ -35,6 +35,11 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
+import com.google.inject.Inject;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.VendorMediaType;
 import org.midonet.api.auth.AuthRole;
@@ -50,18 +55,13 @@ import org.midonet.api.vtep.VtepClusterClient;
 import org.midonet.brain.southbound.vtep.VtepNotConnectedException;
 import org.midonet.brain.southbound.vtep.model.PhysicalSwitch;
 import org.midonet.cluster.DataClient;
-import org.midonet.cluster.data.host.Host;
-import org.midonet.cluster.backend.zookeeper.serialization.SerializationException;
 import org.midonet.cluster.backend.zookeeper.NoStatePathException;
 import org.midonet.cluster.backend.zookeeper.NodeNotEmptyStateException;
 import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.cluster.backend.zookeeper.StatePathExistsException;
+import org.midonet.cluster.backend.zookeeper.serialization.SerializationException;
+import org.midonet.cluster.data.host.Host;
 import org.midonet.packets.IPv4Addr;
-
-import com.google.inject.Inject;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import static org.midonet.api.validation.MessageProperty.VTEP_EXISTS;
 import static org.midonet.api.validation.MessageProperty.VTEP_HAS_BINDINGS;
@@ -91,7 +91,7 @@ public class VtepResource extends AbstractVtepResource {
 
         validate(vtep);
 
-        org.midonet.cluster.data.VTEP dataVtep = vtep.toData();
+        org.midonet.cluster.data.boilerplate.VTEP dataVtep = vtep.toData();
         List<InetAddress> vtepIps = new ArrayList<>();
 
         // Verify there is no conflict between hosts and the VTEP IPs.
@@ -141,7 +141,7 @@ public class VtepResource extends AbstractVtepResource {
             throws StateAccessException, SerializationException {
 
         IPv4Addr ipAddr = parseIPv4Addr(ipAddrStr);
-        org.midonet.cluster.data.VTEP dataVtep =
+        org.midonet.cluster.data.boilerplate.VTEP dataVtep =
                 vtepClient.getVtepOrThrow(ipAddr, false);
         return toApiVtep(dataVtep);
     }
@@ -152,9 +152,9 @@ public class VtepResource extends AbstractVtepResource {
                MediaType.APPLICATION_JSON})
     public List<VTEP> list()
             throws StateAccessException, SerializationException {
-        List<org.midonet.cluster.data.VTEP> dataVteps = dataClient.vtepsGetAll();
+        List<org.midonet.cluster.data.boilerplate.VTEP> dataVteps = dataClient.vtepsGetAll();
         List<VTEP> vteps = new ArrayList<>(dataVteps.size());
-        for (org.midonet.cluster.data.VTEP dataVtep : dataVteps) {
+        for (org.midonet.cluster.data.boilerplate.VTEP dataVtep : dataVteps) {
             vteps.add(toApiVtep(dataVtep));
         }
         return vteps;
@@ -192,7 +192,7 @@ public class VtepResource extends AbstractVtepResource {
         return factory.getVtepBindingResource(ipAddrStr);
     }
 
-    private VTEP toApiVtep(org.midonet.cluster.data.VTEP dataVtep) {
+    private VTEP toApiVtep(org.midonet.cluster.data.boilerplate.VTEP dataVtep) {
         PhysicalSwitch ps;
         try {
             ps = vtepClient.getPhysicalSwitch(dataVtep.getId(),

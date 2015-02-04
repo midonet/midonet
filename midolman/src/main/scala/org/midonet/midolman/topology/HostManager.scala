@@ -22,10 +22,9 @@ import scala.collection.JavaConversions._
 import scala.collection.mutable
 
 import akka.actor.ActorRef
-
 import org.midonet.cluster.Client
 import org.midonet.cluster.client.HostBuilder
-import org.midonet.cluster.data.TunnelZone
+import org.midonet.cluster.data.boilerplate.TunnelZone
 import org.midonet.midolman.topology.devices.Host
 import org.midonet.packets.IPAddr
 

@@ -19,10 +19,7 @@ import java.util.UUID
 
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
-
-import org.midonet.cluster.data.{Bridge => ClusterBridge}
-import org.midonet.cluster.data.{Router => ClusterRouter}
-import org.midonet.cluster.data.ports.{BridgePort, RouterPort}
+import org.midonet.cluster.data.boilerplate.ports.{BridgePort, RouterPort}
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.rules.{NatTarget, RuleResult, Condition}
 import org.midonet.midolman.services.HostIdProviderService
@@ -61,8 +58,8 @@ class IcmpThroughNatTest extends MidolmanSpec {
     var rightPort: BridgePort = null
     var rtLeftPort: RouterPort = null
     var rtRightPort: RouterPort = null
-    var clusterBridge: ClusterBridge = null
-    var clusterRouter: ClusterRouter = null
+    var clusterBridge: Bridge = null
+    var clusterRouter: Router = null
 
     private def setActive(id: UUID) {
         clusterDataClient.portsSetLocalAndActive(id, hostId, true)

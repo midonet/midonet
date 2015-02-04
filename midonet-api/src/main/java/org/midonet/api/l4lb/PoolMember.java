@@ -19,7 +19,7 @@ import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.UriResource;
 import org.midonet.api.validation.MessageProperty;
 import org.midonet.api.validation.VerifyEnumValue;
-import org.midonet.midolman.state.l4lb.LBStatus;
+import org.midonet.cluster.data.boilerplate.l4lb.LBStatus;
 import org.midonet.packets.IPv4;
 
 import java.net.URI;
@@ -113,7 +113,7 @@ public class PoolMember extends UriResource {
         super();
     }
 
-    public PoolMember(org.midonet.cluster.data.l4lb.PoolMember poolMember) {
+    public PoolMember(org.midonet.cluster.data.boilerplate.l4lb.PoolMember poolMember) {
         super();
         this.poolId = poolMember.getPoolId();
         this.address = poolMember.getAddress();
@@ -124,8 +124,8 @@ public class PoolMember extends UriResource {
         this.id = poolMember.getId();
     }
 
-    public org.midonet.cluster.data.l4lb.PoolMember toData() {
-        return new org.midonet.cluster.data.l4lb.PoolMember()
+    public org.midonet.cluster.data.boilerplate.l4lb.PoolMember toData() {
+        return new org.midonet.cluster.data.boilerplate.l4lb.PoolMember()
                 .setPoolId(this.poolId)
                 .setAddress(this.address)
                 .setProtocolPort(this.protocolPort)

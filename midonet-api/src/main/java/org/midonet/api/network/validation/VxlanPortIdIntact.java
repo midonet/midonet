@@ -60,7 +60,7 @@ public class VxlanPortIdIntact implements
             return true;
         }
         try {
-            org.midonet.cluster.data.Bridge oldB =
+            org.midonet.cluster.data.boilerplate.Bridge oldB =
                 dataClient.bridgesGet(b.getId());
             if (oldB == null) { // the bridge doesn't seem to be there..
                 return b.getVxLanPortId() == null; // always true at this point

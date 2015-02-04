@@ -18,7 +18,7 @@ package org.midonet.api.dhcp;
 
 import org.midonet.api.RelativeUriResource;
 import org.midonet.api.ResourceUriBuilder;
-import org.midonet.cluster.data.dhcp.Subnet6;
+import org.midonet.cluster.data.boilerplate.dhcp.Subnet6;
 import org.midonet.packets.IPv6Subnet;
 import org.midonet.packets.IPv6Addr;
 import org.midonet.packets.IPv6;
@@ -29,8 +29,6 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import javax.xml.bind.annotation.XmlRootElement;
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.List;
 
 @XmlRootElement
 public class DhcpSubnet6 extends RelativeUriResource {

@@ -33,8 +33,8 @@ import org.junit.Before;
 import org.junit.Test;
 
 import org.midonet.config.ConfigProvider;
-import org.midonet.midolman.Setup;
-import org.midonet.midolman.guice.serialization.SerializationModule;
+import org.midonet.cluster.backend.zookeeper.Setup;
+import org.midonet.cluster.backend.zookeeper.serialization.SerializationModule;
 import org.midonet.midolman.host.config.HostConfig;
 import org.midonet.midolman.host.guice.HostConfigProvider;
 import org.midonet.midolman.host.scanner.InterfaceScanner;
@@ -45,10 +45,10 @@ import org.midonet.midolman.host.updater.InterfaceDataUpdater;
 import org.midonet.cluster.backend.zookeeper.serialization.Serializer;
 import org.midonet.cluster.backend.zookeeper.Directory;
 import org.midonet.cluster.backend.zookeeper.MockDirectory;
-import org.midonet.midolman.state.PathBuilder;
+import org.midonet.cluster.backend.zookeeper.PathBuilder;
 import org.midonet.cluster.backend.zookeeper.ZkManager;
 import org.midonet.midolman.util.mock.MockInterfaceScanner;
-import org.midonet.midolman.version.DataWriteVersion;
+import org.midonet.cluster.backend.version.DataWriteVersion;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;

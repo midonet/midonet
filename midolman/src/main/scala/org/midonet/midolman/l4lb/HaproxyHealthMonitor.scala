@@ -15,33 +15,28 @@
  */
 package org.midonet.midolman.l4lb
 
-import akka.actor._
-
 import java.io._
 import java.nio.ByteBuffer
 import java.nio.channels.IllegalSelectorException
 import java.nio.channels.spi.SelectorProvider
 import java.util.UUID
 
+import scala.collection.JavaConversions._
+import scala.collection.mutable.{HashSet, Set}
+import scala.concurrent.duration._
+
+import akka.actor._
+
 import org.midonet.cluster.DataClient
-import org.midonet.cluster.data.ports.RouterPort
 import org.midonet.cluster.data.Route
-import org.midonet.midolman.l4lb.HaproxyHealthMonitor._
-import org.midonet.midolman.l4lb.HaproxyHealthMonitor.CheckHealth
-import org.midonet.midolman.l4lb.HaproxyHealthMonitor.ConfigUpdate
+import org.midonet.cluster.data.boilerplate.l4lb.LBStatus.{ACTIVE => MemberActive, INACTIVE => MemberInactive}
+import org.midonet.cluster.data.boilerplate.l4lb.PoolHealthMonitorMappingStatus
+import org.midonet.cluster.data.boilerplate.ports.RouterPort
+import org.midonet.midolman.l4lb.HaproxyHealthMonitor.{CheckHealth, ConfigUpdate, _}
+import org.midonet.midolman.layer3.Route.NextHop.PORT
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.routingprotocols.IP
-import org.midonet.midolman.layer3.Route.NextHop.PORT
-import org.midonet.midolman.state.PoolHealthMonitorMappingStatus
-import org.midonet.midolman.state.l4lb.LBStatus
-import LBStatus.{INACTIVE => MemberInactive}
-import LBStatus.{ACTIVE => MemberActive}
 import org.midonet.netlink.{AfUnix, NetlinkSelectorProvider, UnixDomainChannel}
-
-import scala.collection.JavaConversions._
-import scala.collection.mutable.HashSet
-import scala.collection.mutable.Set
-import scala.concurrent.duration._
 
 
 /**

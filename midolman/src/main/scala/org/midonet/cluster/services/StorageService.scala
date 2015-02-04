@@ -19,12 +19,11 @@ import com.google.common.util.concurrent.AbstractService
 import com.google.inject.Inject
 import org.apache.curator.framework.CuratorFramework
 
-import org.midonet.cluster.backend.zookeeper.{Directory, StateAccessException}
-import org.midonet.cluster.config.ZookeeperConfig
+import org.midonet.cluster.backend.SystemDataProvider
+import org.midonet.cluster.backend.version.DataWriteVersion
+import org.midonet.cluster.backend.zookeeper.{Setup, ZookeeperConfig, Directory, StateAccessException}
 import org.midonet.cluster.data.storage.Storage
 import org.midonet.cluster.models.Topology.Port
-import org.midonet.midolman.version.DataWriteVersion
-import org.midonet.midolman.{Setup, SystemDataProvider}
 
 class StorageService @Inject() (directory: Directory,
                                 config: ZookeeperConfig,

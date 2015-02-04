@@ -24,11 +24,8 @@ import org.junit.Test;
 
 import org.midonet.api.rest_api.FuncTest;
 import org.midonet.client.MidonetApi;
-import org.midonet.client.resource.*;
-import org.midonet.cluster.data.*;
-import org.midonet.cluster.data.SystemState;
 import org.midonet.client.VendorMediaType;
-import org.midonet.midolman.version.DataWriteVersion;
+import org.midonet.cluster.backend.version.DataWriteVersion;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 

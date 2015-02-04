@@ -15,8 +15,8 @@
  */
 package org.midonet.midolman.config;
 
-import org.midonet.cluster.config.CassandraConfig;
-import org.midonet.cluster.config.ZookeeperConfig;
+import org.midonet.cluster.backend.cassandra.CassandraConfig;
+import org.midonet.cluster.backend.zookeeper.ZookeeperConfig;
 import org.midonet.config.ConfigBool;
 import org.midonet.config.ConfigGroup;
 import org.midonet.config.ConfigInt;

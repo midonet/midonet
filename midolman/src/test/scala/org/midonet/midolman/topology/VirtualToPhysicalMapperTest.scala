@@ -26,8 +26,9 @@ import akka.testkit.TestActorRef
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cluster.data.host.{Host => DataHost}
-import org.midonet.cluster.data.{TunnelZone, ZoomConvert}
+import org.midonet.cluster.data.boilerplate.TunnelZone
+import org.midonet.cluster.data.boilerplate.host.{Host => DataHost}
+import org.midonet.cluster.data.ZoomConvert
 import org.midonet.midolman.topology.VirtualToPhysicalMapper._
 import org.midonet.midolman.topology.devices.{Host => DevicesHost}
 import org.midonet.midolman.util.MidolmanSpec

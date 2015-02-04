@@ -21,7 +21,6 @@ import com.google.inject.name.Named;
 
 import org.slf4j.Logger;
 
-import org.midonet.cluster.config.ZookeeperConfig;
 import org.midonet.util.eventloop.Reactor;
 
 import static org.slf4j.LoggerFactory.getLogger;

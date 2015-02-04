@@ -22,7 +22,7 @@ import javax.validation.ConstraintValidatorContext;
 import com.google.inject.Inject;
 import org.midonet.api.host.HostInterfacePort;
 import org.midonet.cluster.DataClient;
-import org.midonet.cluster.data.host.VirtualPortMapping;
+import org.midonet.cluster.data.boilerplate.host.VirtualPortMapping;
 import org.midonet.cluster.backend.zookeeper.serialization.SerializationException;
 import org.midonet.cluster.backend.zookeeper.StateAccessException;
 

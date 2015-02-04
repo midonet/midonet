@@ -21,9 +21,9 @@ import java.util.UUID;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.backend.EntityIdSetMonitor;
 import org.midonet.cluster.backend.EntityMonitor;
-import org.midonet.cluster.data.TunnelZone;
 import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.cluster.backend.zookeeper.ZookeeperConnectionWatcher;
+import org.midonet.cluster.data.boilerplate.TunnelZone;
 
 /**
  * Monitors all tunnel-zones of the system, exposing observable streams with

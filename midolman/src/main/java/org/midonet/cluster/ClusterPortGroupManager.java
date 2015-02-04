@@ -24,7 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.midonet.cluster.client.PortGroupBuilder;
-import org.midonet.cluster.data.PortGroup;
+import org.midonet.cluster.data.boilerplate.PortGroup;
 import org.midonet.midolman.state.PortGroupCache;
 import org.midonet.midolman.state.zkManagers.PortGroupZkManager;
 import org.midonet.util.functors.Callback1;

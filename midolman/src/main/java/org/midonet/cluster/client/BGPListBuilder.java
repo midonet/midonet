@@ -18,8 +18,8 @@ package org.midonet.cluster.client;
 
 import java.util.UUID;
 
-import org.midonet.cluster.data.AdRoute;
-import org.midonet.cluster.data.BGP;
+import org.midonet.cluster.data.boilerplate.AdRoute;
+import org.midonet.cluster.data.boilerplate.BGP;
 
 public interface BGPListBuilder {
     void addBGP(BGP bgp);

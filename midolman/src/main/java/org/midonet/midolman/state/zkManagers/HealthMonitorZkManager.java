@@ -15,25 +15,24 @@
  */
 package org.midonet.midolman.state.zkManagers;
 
+import java.util.List;
+import java.util.UUID;
+
 import com.google.common.base.Objects;
+
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooDefs.Ids;
 
-import org.midonet.cluster.data.neutron.loadbalancer.HealthMonitor;
-import org.midonet.cluster.backend.zookeeper.serialization.SerializationException;
-import org.midonet.cluster.backend.zookeeper.serialization.Serializer;
-import org.midonet.midolman.state.AbstractZkManager;
-import org.midonet.midolman.state.l4lb.HealthMonitorType;
-import org.midonet.midolman.state.l4lb.LBStatus;
-import org.midonet.midolman.state.PathBuilder;
+import org.midonet.cluster.backend.zookeeper.PathBuilder;
 import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.cluster.backend.zookeeper.ZkManager;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.List;
-import java.util.UUID;
+import org.midonet.cluster.backend.zookeeper.serialization.SerializationException;
+import org.midonet.cluster.backend.zookeeper.serialization.Serializer;
+import org.midonet.cluster.data.boilerplate.l4lb.HealthMonitorType;
+import org.midonet.cluster.data.boilerplate.l4lb.LBStatus;
+import org.midonet.cluster.data.neutron.loadbalancer.HealthMonitor;
+import org.midonet.midolman.state.AbstractZkManager;
 
 import static java.util.Arrays.asList;
 
@@ -42,9 +41,6 @@ import static java.util.Arrays.asList;
  */
 public class HealthMonitorZkManager extends
         AbstractZkManager<UUID, HealthMonitorZkManager.HealthMonitorConfig> {
-
-    private final static Logger log = LoggerFactory
-            .getLogger(HealthMonitorZkManager.class);
 
     public static class HealthMonitorConfig extends BaseConfig {
 

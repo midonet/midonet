@@ -38,8 +38,7 @@ import org.apache.zookeeper.ZooDefs.Ids;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.midonet.cluster.backend.StateVersionException;
-import org.midonet.cluster.config.ZookeeperConfig;
+import org.midonet.cluster.backend.version.StateVersionException;
 import org.midonet.util.functors.CollectionFunctors;
 import org.midonet.util.functors.Functor;
 import org.midonet.util.functors.TreeNode;

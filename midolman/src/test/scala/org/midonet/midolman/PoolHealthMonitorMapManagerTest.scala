@@ -19,12 +19,11 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import akka.testkit.{ImplicitSender, TestKit}
 import akka.actor.ActorSystem
-import org.midonet.cluster.data.l4lb.{Pool, HealthMonitor, VIP}
+import org.midonet.cluster.data.boilerplate.l4lb.{PoolHealthMonitorMappingStatus, Pool, HealthMonitor, VIP}
 import org.midonet.midolman.l4lb.PoolHealthMonitorMapManager.PoolHealthMonitorMap
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.topology.VirtualTopologyActor.PoolHealthMonitorMapRequest
 import org.midonet.midolman.util.MidolmanSpec
-import org.midonet.midolman.state.PoolHealthMonitorMappingStatus
 import org.midonet.midolman.state.zkManagers.PoolHealthMonitorZkManager.PoolHealthMonitorConfig.{VipConfigWithId, HealthMonitorConfigWithId}
 
 @RunWith(classOf[JUnitRunner])

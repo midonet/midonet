@@ -18,15 +18,14 @@ package org.midonet.midolman.topology
 import akka.actor.{ActorRef, Actor}
 import collection.JavaConverters._
 import java.util.{Map => JMap, UUID}
-
 import org.midonet.cluster.Client
 import org.midonet.cluster.client.LoadBalancerBuilder
-import org.midonet.cluster.data.l4lb.VIP
+import org.midonet.cluster.data.boilerplate.l4lb.VIP
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.simulation
 import org.midonet.midolman.simulation.LoadBalancer
-import org.midonet.midolman.state.l4lb.VipSessionPersistence
+import org.midonet.cluster.data.boilerplate.l4lb.VipSessionPersistence
 import org.midonet.midolman.state.zkManagers.LoadBalancerZkManager.LoadBalancerConfig
 import org.midonet.packets.IPv4Addr
 

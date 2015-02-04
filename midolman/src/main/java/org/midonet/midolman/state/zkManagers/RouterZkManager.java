@@ -23,7 +23,7 @@ import org.midonet.cluster.backend.zookeeper.serialization.Serializer;
 import org.midonet.cluster.backend.zookeeper.serialization.SerializationException;
 import org.midonet.midolman.state.AbstractZkManager;
 import org.midonet.cluster.backend.zookeeper.Directory;
-import org.midonet.midolman.state.PathBuilder;
+import org.midonet.cluster.backend.zookeeper.PathBuilder;
 import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.cluster.backend.zookeeper.ZkManager;
 import org.apache.zookeeper.Op;

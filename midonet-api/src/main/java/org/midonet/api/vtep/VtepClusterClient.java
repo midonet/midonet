@@ -45,9 +45,9 @@ import org.midonet.brain.southbound.vtep.model.LogicalSwitch;
 import org.midonet.brain.southbound.vtep.model.PhysicalPort;
 import org.midonet.brain.southbound.vtep.model.PhysicalSwitch;
 import org.midonet.cluster.DataClient;
-import org.midonet.cluster.data.Bridge;
-import org.midonet.cluster.data.VTEP;
-import org.midonet.cluster.data.ports.VxLanPort;
+import org.midonet.cluster.data.boilerplate.Bridge;
+import org.midonet.cluster.data.boilerplate.VTEP;
+import org.midonet.cluster.data.boilerplate.ports.VxLanPort;
 import org.midonet.cluster.backend.zookeeper.serialization.SerializationException;
 import org.midonet.cluster.backend.zookeeper.NoStatePathException;
 import org.midonet.cluster.backend.zookeeper.StateAccessException;
@@ -149,7 +149,7 @@ public class VtepClusterClient {
      */
     public final VTEP getVtepOrThrow(IPv4Addr ipAddr, boolean badRequest)
             throws StateAccessException, SerializationException {
-        org.midonet.cluster.data.VTEP dataVtep = dataClient.vtepGet(ipAddr);
+        VTEP dataVtep = dataClient.vtepGet(ipAddr);
         if (dataVtep == null) {
             String msg = getMessage(VTEP_NOT_FOUND, ipAddr);
             throw badRequest ? new BadRequestHttpException(msg) :
@@ -260,7 +260,7 @@ public class VtepClusterClient {
             IPv4Addr ipAddr, String portName, short vlanId)
             throws SerializationException, StateAccessException {
 
-        org.midonet.cluster.data.VtepBinding dataBinding;
+        org.midonet.cluster.data.boilerplate.VtepBinding dataBinding;
         try {
             dataBinding = dataClient.vtepGetBinding(ipAddr, portName, vlanId);
         } catch (NoStatePathException ex) {
@@ -288,10 +288,10 @@ public class VtepClusterClient {
                                                     java.util.UUID bridgeId)
             throws SerializationException, StateAccessException {
 
-        List<org.midonet.cluster.data.VtepBinding> dataBindings =
+        List<org.midonet.cluster.data.boilerplate.VtepBinding> dataBindings =
                 dataClient.vtepGetBindings(ipAddr);
         List<VtepBinding> apiBindings = new ArrayList<>();
-        for (org.midonet.cluster.data.VtepBinding dataBinding : dataBindings) {
+        for (org.midonet.cluster.data.boilerplate.VtepBinding dataBinding : dataBindings) {
             if (bridgeId == null ||
                     bridgeId.equals(dataBinding.getNetworkId())) {
                 apiBindings.add(new VtepBinding(
@@ -570,10 +570,10 @@ public class VtepClusterClient {
                                  String physPortName, short vlanId,
                                  java.util.UUID bridgeId)
         throws StateAccessException {
-        List<org.midonet.cluster.data.VtepBinding>
+        List<org.midonet.cluster.data.boilerplate.VtepBinding>
             bindings = dataClient.vtepGetBindings(mgmtIp);
 
-        for (org.midonet.cluster.data.VtepBinding binding : bindings) {
+        for (org.midonet.cluster.data.boilerplate.VtepBinding binding : bindings) {
             if (binding.getVlanId() == vlanId &&
                 binding.getPortName().equals(physPortName)) {
                 throw new ConflictHttpException(getMessage(
@@ -595,7 +595,7 @@ public class VtepClusterClient {
                                     String portName, short vlan)
             throws SerializationException, StateAccessException {
 
-        org.midonet.cluster.data.VtepBinding binding =
+        org.midonet.cluster.data.boilerplate.VtepBinding binding =
             dataClient.vtepGetBinding(mgmtIp, portName, vlan);
 
         if (binding == null) {

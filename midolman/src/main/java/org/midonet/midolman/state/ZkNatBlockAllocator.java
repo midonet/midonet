@@ -33,6 +33,7 @@ import org.apache.zookeeper.data.Stat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.midonet.cluster.backend.zookeeper.PathBuilder;
 import org.midonet.cluster.backend.zookeeper.ZkConnection;
 import org.midonet.cluster.backend.zookeeper.ZkConnectionProvider;
 import org.midonet.util.eventloop.Reactor;

@@ -16,15 +16,21 @@
 
 package org.midonet.client.resource;
 
-import org.midonet.client.VendorMediaType;
-import org.midonet.client.WebResource;
-import org.midonet.client.dto.*;
-
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.UriBuilder;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.UUID;
+
+import javax.ws.rs.core.UriBuilder;
+
+import org.midonet.client.VendorMediaType;
+import org.midonet.client.WebResource;
+import org.midonet.client.dto.DtoBridge;
+import org.midonet.client.dto.DtoBridgePort;
+import org.midonet.client.dto.DtoDhcpSubnet;
+import org.midonet.client.dto.DtoDhcpSubnet6;
+import org.midonet.client.dto.DtoMacPort;
+import org.midonet.client.dto.DtoPort;
+import org.midonet.client.dto.DtoRouterPort;
 
 public class Bridge extends ResourceBase<Bridge, DtoBridge> {
 

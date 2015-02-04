@@ -23,7 +23,7 @@ import org.scalatest.junit.JUnitRunner
 import org.slf4j.LoggerFactory
 import collection.JavaConversions._
 
-import org.midonet.midolman.guice.serialization.JsonVersionZkSerializer
+import org.midonet.cluster.backend.zookeeper.serialization.JsonVersionZkSerializer
 
 @RunWith(classOf[JUnitRunner])
 class RuleListTest extends Suite with Matchers {

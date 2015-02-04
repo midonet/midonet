@@ -24,7 +24,7 @@ import scala.collection.{Map => ROMap}
 import akka.actor.ActorSystem
 
 import org.midonet.cluster.client._
-import org.midonet.cluster.data
+import org.midonet.cluster.data.boilerplate.Bridge.UNTAGGED_VLAN_ID
 import org.midonet.midolman.NotYetException
 import org.midonet.midolman.PacketWorkflow.{Drop, NoOp, SimulationResult, TemporaryDrop}
 import org.midonet.midolman.rules.RuleResult
@@ -33,7 +33,7 @@ import org.midonet.midolman.topology.devices.BridgePort
 import org.midonet.midolman.topology.{MacFlowCount, RemoveFlowCallbackGenerator}
 import org.midonet.odp.flows.FlowActions.popVLAN
 import org.midonet.packets._
-import org.midonet.sdn.flows.FlowTagger.{tagForArpRequests, tagForBridgePort, tagForBroadcast, tagForDevice, tagForFloodedFlowsByDstMac, tagForVlanPort}
+import org.midonet.sdn.flows.FlowTagger._
 
 /**
   * A bridge.
@@ -541,9 +541,8 @@ class Bridge(val id: UUID,
       *   of the bridge's interior ports.
       */
     private def srcVlanTag(context: PacketContext): JShort = {
-        if (vlanMacTableMap.size == 1) data.Bridge.UNTAGGED_VLAN_ID
-        else srcVlanTagOption(context)
-                              .getOrElse(data.Bridge.UNTAGGED_VLAN_ID)
+        if (vlanMacTableMap.size == 1) UNTAGGED_VLAN_ID
+        else srcVlanTagOption(context).getOrElse(UNTAGGED_VLAN_ID)
     }
 
     /**

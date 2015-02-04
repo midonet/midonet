@@ -15,11 +15,9 @@
  */
 package org.midonet.api.network;
 
-import org.midonet.api.ResourceUriBuilder;
 import org.midonet.cluster.Client;
-import org.midonet.cluster.data.Port;
+import org.midonet.cluster.data.boilerplate.Port;
 
-import java.net.URI;
 import java.util.UUID;
 
 /**
@@ -53,15 +51,15 @@ public class ExteriorRouterPort extends RouterPort implements ExteriorPort {
      *            Exterior bridge port data object
      */
     public ExteriorRouterPort(
-            org.midonet.cluster.data.ports.RouterPort
+            org.midonet.cluster.data.boilerplate.ports.RouterPort
                     portData) {
         super(portData);
     }
 
     @Override
-    public org.midonet.cluster.data.ports.RouterPort toData() {
-        org.midonet.cluster.data.ports.RouterPort data =
-                new org.midonet.cluster.data.ports
+    public org.midonet.cluster.data.boilerplate.ports.RouterPort toData() {
+        org.midonet.cluster.data.boilerplate.ports.RouterPort data =
+                new org.midonet.cluster.data.boilerplate.ports
                         .RouterPort();
         super.setConfig(data);
         data.setProperty(Port.Property.v1PortType,

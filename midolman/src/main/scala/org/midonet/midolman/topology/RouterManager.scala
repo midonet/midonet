@@ -18,7 +18,6 @@ package org.midonet.midolman.topology
 import collection.{Set => ROSet, mutable, Iterable}
 import collection.JavaConversions._
 import java.util.UUID
-
 import org.midonet.cluster.Client
 import org.midonet.cluster.client.ArpCache
 import org.midonet.midolman.FlowController

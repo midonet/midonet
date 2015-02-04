@@ -57,8 +57,8 @@ import org.midonet.cluster.backend.zookeeper.InvalidStateOperationException;
 import org.midonet.cluster.backend.zookeeper.NoStatePathException;
 import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.cluster.backend.zookeeper.StatePathExistsException;
-import org.midonet.midolman.state.l4lb.LBStatus;
-import org.midonet.midolman.state.l4lb.MappingStatusException;
+import org.midonet.cluster.data.boilerplate.l4lb.LBStatus;
+import org.midonet.cluster.data.boilerplate.l4lb.MappingStatusException;
 
 import static org.midonet.api.validation.MessageProperty.RESOURCE_EXISTS;
 import static org.midonet.api.validation.MessageProperty.getMessage;
@@ -82,12 +82,12 @@ public class PoolMemberResource extends AbstractResource {
     public List<PoolMember> list()
             throws StateAccessException, SerializationException {
 
-        List<org.midonet.cluster.data.l4lb.PoolMember> dataPoolMembers = null;
+        List<org.midonet.cluster.data.boilerplate.l4lb.PoolMember> dataPoolMembers = null;
 
         dataPoolMembers = dataClient.poolMembersGetAll();
         List<PoolMember> poolMembers = new ArrayList<PoolMember>();
         if (dataPoolMembers != null) {
-            for (org.midonet.cluster.data.l4lb.PoolMember dataPoolMember :
+            for (org.midonet.cluster.data.boilerplate.l4lb.PoolMember dataPoolMember :
                     dataPoolMembers) {
                 PoolMember poolMember = new PoolMember(dataPoolMember);
                 poolMember.setBaseUri(getBaseUri());
@@ -105,7 +105,7 @@ public class PoolMemberResource extends AbstractResource {
     public PoolMember get(@PathParam("id") UUID id)
             throws StateAccessException, SerializationException {
 
-        org.midonet.cluster.data.l4lb.PoolMember PoolMemberData =
+        org.midonet.cluster.data.boilerplate.l4lb.PoolMember PoolMemberData =
             dataClient.poolMemberGet(id);
         if (PoolMemberData == null)
             throwNotFound(id, "pool member");
@@ -175,7 +175,7 @@ public class PoolMemberResource extends AbstractResource {
             // Ignore `address`, `protocolPort` and `status` property
             // populated by users.
             if (dataClient.poolMemberExists(id)) {
-                org.midonet.cluster.data.l4lb.PoolMember oldPoolMember =
+                org.midonet.cluster.data.boilerplate.l4lb.PoolMember oldPoolMember =
                     dataClient.poolMemberGet(id);
                 poolMember.setAddress(oldPoolMember.getAddress());
                 poolMember.setProtocolPort(oldPoolMember.getProtocolPort());
@@ -215,7 +215,7 @@ public class PoolMemberResource extends AbstractResource {
         public List<PoolMember> list()
                 throws StateAccessException, SerializationException {
 
-            List<org.midonet.cluster.data.l4lb.PoolMember> dataPoolMembers;
+            List<org.midonet.cluster.data.boilerplate.l4lb.PoolMember> dataPoolMembers;
             try {
                 dataPoolMembers = dataClient.poolGetMembers(poolId);
             } catch (NoStatePathException ex) {
@@ -224,7 +224,7 @@ public class PoolMemberResource extends AbstractResource {
 
             List<PoolMember> poolMembers = new ArrayList<>();
             if (dataPoolMembers != null) {
-                for (org.midonet.cluster.data.l4lb.PoolMember dataPoolMember :
+                for (org.midonet.cluster.data.boilerplate.l4lb.PoolMember dataPoolMember :
                         dataPoolMembers) {
                     PoolMember poolMember = new PoolMember(dataPoolMember);
                     poolMember.setBaseUri(getBaseUri());

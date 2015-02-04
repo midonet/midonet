@@ -25,8 +25,8 @@ import org.midonet.cluster.backend.zookeeper.serialization.SerializationExceptio
 import org.midonet.cluster.backend.zookeeper.NoStatePathException;
 import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.cluster.DataClient;
-import org.midonet.cluster.data.Bridge;
-import org.midonet.cluster.data.Router;
+import org.midonet.cluster.data.boilerplate.Bridge;
+import org.midonet.cluster.data.boilerplate.Router;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,7 +59,7 @@ public class PortAuthorizer extends Authorizer<UUID> {
         }
 
         try {
-            org.midonet.cluster.data.Port<?, ?> portData =
+            org.midonet.cluster.data.boilerplate.Port<?, ?> portData =
                     dataClient.portsGet(id);
             if (portData == null) {
                 log.warn("Attempted to authorize a non-existent resource: {}",

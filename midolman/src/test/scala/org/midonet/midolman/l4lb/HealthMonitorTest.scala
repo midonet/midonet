@@ -29,13 +29,13 @@ import org.scalatest.mock.MockitoSugar
 import org.scalatest.time.{Seconds, Span}
 
 import org.midonet.cluster.LocalDataClientImpl
+import org.midonet.cluster.data.boilerplate.l4lb.PoolHealthMonitorMappingStatus
 import org.midonet.midolman.l4lb.HaproxyHealthMonitor.ConfigUpdate
 import org.midonet.midolman.l4lb.HaproxyHealthMonitor.RouterAdded
 import org.midonet.midolman.l4lb.HaproxyHealthMonitor.RouterRemoved
 import org.midonet.midolman.l4lb.HealthMonitor.ConfigAdded
 import org.midonet.midolman.l4lb.HealthMonitor.ConfigUpdated
 import org.midonet.midolman.l4lb.HealthMonitor.RouterChanged
-import org.midonet.midolman.state.PoolHealthMonitorMappingStatus
 
 @RunWith(classOf[JUnitRunner])
 class HealthMonitorTest extends FeatureSpec

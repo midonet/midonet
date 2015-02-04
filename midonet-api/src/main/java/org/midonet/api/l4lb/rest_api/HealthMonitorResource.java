@@ -34,7 +34,7 @@ import org.midonet.cluster.backend.zookeeper.serialization.SerializationExceptio
 import org.midonet.cluster.backend.zookeeper.NoStatePathException;
 import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.cluster.backend.zookeeper.StatePathExistsException;
-import org.midonet.midolman.state.l4lb.MappingStatusException;
+import org.midonet.cluster.data.boilerplate.l4lb.MappingStatusException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -78,12 +78,12 @@ public class HealthMonitorResource extends AbstractResource {
     public List<HealthMonitor> list()
             throws StateAccessException, SerializationException {
 
-        List<org.midonet.cluster.data.l4lb.HealthMonitor> dataHealthMonitors;
+        List<org.midonet.cluster.data.boilerplate.l4lb.HealthMonitor> dataHealthMonitors;
 
         dataHealthMonitors = dataClient.healthMonitorsGetAll();
         List<HealthMonitor> healthMonitors = new ArrayList<HealthMonitor>();
         if (dataHealthMonitors != null) {
-            for (org.midonet.cluster.data.l4lb.HealthMonitor dataHealthMonitor :
+            for (org.midonet.cluster.data.boilerplate.l4lb.HealthMonitor dataHealthMonitor :
                     dataHealthMonitors) {
                 HealthMonitor healthMonitor
                         = new HealthMonitor(dataHealthMonitor);
@@ -102,7 +102,7 @@ public class HealthMonitorResource extends AbstractResource {
     public HealthMonitor get(@PathParam("id") UUID id)
             throws StateAccessException, SerializationException {
 
-        org.midonet.cluster.data.l4lb.HealthMonitor healthMonitorData =
+        org.midonet.cluster.data.boilerplate.l4lb.HealthMonitor healthMonitorData =
             dataClient.healthMonitorGet(id);
         if (healthMonitorData == null)
             throwNotFound(id, "health monitor");
@@ -178,7 +178,7 @@ public class HealthMonitorResource extends AbstractResource {
     public List<Pool> listPools(@PathParam("id") UUID id)
             throws StateAccessException, SerializationException {
 
-        List<org.midonet.cluster.data.l4lb.Pool> dataPools = null;
+        List<org.midonet.cluster.data.boilerplate.l4lb.Pool> dataPools = null;
         try {
             dataPools = dataClient.healthMonitorGetPools(id);
         } catch (NoStatePathException ex) {
@@ -186,7 +186,7 @@ public class HealthMonitorResource extends AbstractResource {
         }
 
         List<Pool> pools = new ArrayList<>(dataPools.size());
-        for (org.midonet.cluster.data.l4lb.Pool dataPool : dataPools) {
+        for (org.midonet.cluster.data.boilerplate.l4lb.Pool dataPool : dataPools) {
             Pool pool = new Pool(dataPool);
             pool.setBaseUri(getBaseUri());
             pools.add(pool);

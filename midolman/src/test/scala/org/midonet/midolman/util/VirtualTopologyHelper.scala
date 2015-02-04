@@ -26,29 +26,28 @@ import akka.actor.ActorSystem
 import akka.pattern.ask
 import akka.util.Timeout
 import akka.util.Timeout.durationToTimeout
-
 import com.google.inject.Injector
 
 import org.midonet.cluster.DataClient
 import org.midonet.cluster.data._
+import org.midonet.cluster.data.boilerplate._
+import org.midonet.midolman.PacketWorkflow.SimulationResult
+import org.midonet.midolman.UnderlayResolver.{Route => UnderlayRoute}
+import org.midonet.midolman._
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.DatapathChannel
 import org.midonet.midolman.host.interfaces.InterfaceDescription
-import org.midonet.midolman.topology.rcu.ResolvedHost
-import org.midonet.midolman._
-import org.midonet.midolman.PacketWorkflow.SimulationResult
-import org.midonet.midolman.UnderlayResolver.{Route => UnderlayRoute}
 import org.midonet.midolman.simulation.Coordinator.Device
-import org.midonet.midolman.simulation.{Router => SimRouter}
-import org.midonet.midolman.simulation.{Coordinator, PacketContext, PacketEmitter}
+import org.midonet.midolman.simulation.{Coordinator, PacketContext, PacketEmitter, Router => SimRouter}
 import org.midonet.midolman.state.ConnTrackState._
-import org.midonet.midolman.state.{FlowStateReplicator, HappyGoLuckyLeaser}
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
+import org.midonet.midolman.state.{FlowStateReplicator, HappyGoLuckyLeaser}
 import org.midonet.midolman.topology.VirtualTopologyActor
-import org.midonet.midolman.topology.VirtualTopologyActor.{BridgeRequest, ChainRequest, IPAddrGroupRequest, PortRequest, RouterRequest}
-import org.midonet.odp.flows.{FlowAction, FlowActionOutput, FlowKeys}
+import org.midonet.midolman.topology.VirtualTopologyActor._
+import org.midonet.midolman.topology.rcu.ResolvedHost
 import org.midonet.odp._
-import org.midonet.packets.{IPv4Addr, MAC, Ethernet}
+import org.midonet.odp.flows.{FlowAction, FlowActionOutput, FlowKeys}
+import org.midonet.packets.{Ethernet, IPv4Addr, MAC}
 import org.midonet.sdn.flows.FlowTagger.FlowTag
 import org.midonet.sdn.state.FlowStateTransaction
 import org.midonet.util.functors.Callback0

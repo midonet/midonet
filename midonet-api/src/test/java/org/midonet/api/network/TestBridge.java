@@ -73,7 +73,7 @@ import static org.midonet.client.VendorMediaType.APPLICATION_MAC_PORT_COLLECTION
 import static org.midonet.client.VendorMediaType.APPLICATION_MAC_PORT_JSON;
 import static org.midonet.client.VendorMediaType.APPLICATION_MAC_PORT_JSON_V2;
 import static org.midonet.client.VendorMediaType.APPLICATION_PORT_V2_JSON;
-import static org.midonet.cluster.data.Bridge.UNTAGGED_VLAN_ID;
+import static org.midonet.cluster.data.boilerplate.Bridge.UNTAGGED_VLAN_ID;
 
 @RunWith(Enclosed.class)
 public class TestBridge {

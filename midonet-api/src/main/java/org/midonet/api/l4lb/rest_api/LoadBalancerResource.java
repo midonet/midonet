@@ -87,12 +87,12 @@ public class LoadBalancerResource extends AbstractResource {
     public List<LoadBalancer> list()
             throws StateAccessException, SerializationException {
 
-        List<org.midonet.cluster.data.l4lb.LoadBalancer> dataLoadBalancers;
+        List<org.midonet.cluster.data.boilerplate.l4lb.LoadBalancer> dataLoadBalancers;
 
         dataLoadBalancers = dataClient.loadBalancersGetAll();
         List<LoadBalancer> loadBalancers = new ArrayList<>();
         if (dataLoadBalancers != null) {
-            for (org.midonet.cluster.data.l4lb.LoadBalancer dataLoadBalancer:
+            for (org.midonet.cluster.data.boilerplate.l4lb.LoadBalancer dataLoadBalancer:
                     dataLoadBalancers) {
                 LoadBalancer loadBalancer =
                         new LoadBalancer(dataLoadBalancer);
@@ -118,7 +118,7 @@ public class LoadBalancerResource extends AbstractResource {
             MediaType.APPLICATION_JSON })
     public LoadBalancer get(@PathParam("id") UUID id)
             throws StateAccessException, SerializationException {
-        org.midonet.cluster.data.l4lb.LoadBalancer loadBalancerData =
+        org.midonet.cluster.data.boilerplate.l4lb.LoadBalancer loadBalancerData =
             dataClient.loadBalancerGet(id);
         if (loadBalancerData == null)
             throwNotFound(id, "load balancer");
@@ -245,12 +245,12 @@ public class LoadBalancerResource extends AbstractResource {
     @Path("{id}" + ResourceUriBuilder.VIPS)
     public List<VIP> listVips(@PathParam("id") UUID loadBalancerId)
             throws StateAccessException, SerializationException {
-        List<org.midonet.cluster.data.l4lb.VIP> vipsData;
+        List<org.midonet.cluster.data.boilerplate.l4lb.VIP> vipsData;
 
         vipsData = dataClient.loadBalancerGetVips(loadBalancerId);
         List<VIP> vips = new ArrayList<>();
         if (vipsData != null) {
-            for (org.midonet.cluster.data.l4lb.VIP vipData: vipsData) {
+            for (org.midonet.cluster.data.boilerplate.l4lb.VIP vipData: vipsData) {
                 VIP vip = new VIP(vipData);
                 vip.setBaseUri(getBaseUri());
                 vips.add(vip);

@@ -51,11 +51,11 @@ import org.midonet.cluster.data.Entity;
 import org.midonet.midolman.config.MidolmanConfig;
 import org.midonet.midolman.guice.config.ConfigProviderModule;
 import org.midonet.midolman.guice.config.TypedConfigModule;
-import org.midonet.midolman.guice.serialization.SerializationModule;
+import org.midonet.cluster.backend.zookeeper.serialization.SerializationModule;
 import org.midonet.midolman.state.AbstractZkManager;
-import org.midonet.midolman.state.PathBuilder;
+import org.midonet.cluster.backend.zookeeper.PathBuilder;
 import org.midonet.midolman.state.zkManagers.BaseConfig;
-import org.midonet.midolman.version.DataWriteVersion;
+import org.midonet.cluster.backend.version.DataWriteVersion;
 import org.midonet.util.eventloop.MockReactor;
 import org.midonet.util.eventloop.Reactor;
 

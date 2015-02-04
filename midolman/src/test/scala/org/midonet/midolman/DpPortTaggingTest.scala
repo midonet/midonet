@@ -18,9 +18,7 @@ package org.midonet.midolman
 
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
-
-import org.midonet.cluster.data.{Bridge => ClusterBridge}
-import org.midonet.cluster.data.ports.BridgePort
+import org.midonet.cluster.data.boilerplate.ports.BridgePort
 import org.midonet.midolman.PacketWorkflow.Drop
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.util.MidolmanSpec
@@ -30,7 +28,7 @@ import org.midonet.sdn.flows.FlowTagger
 
 @RunWith(classOf[JUnitRunner])
 class DpPortTaggingTest extends MidolmanSpec {
-    var bridge: ClusterBridge = _
+    var bridge: Bridge = _
     var inPort: BridgePort = _
     val inPortNumber = 1
     var outPort: BridgePort = _

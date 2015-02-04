@@ -18,7 +18,7 @@ package org.midonet.cluster.client;
 import java.util.Map;
 import java.util.UUID;
 
-import org.midonet.cluster.data.TunnelZone;
+import org.midonet.cluster.data.boilerplate.TunnelZone;
 
 public interface HostBuilder extends Builder<HostBuilder> {
     HostBuilder setEpoch(long epoch);

@@ -26,9 +26,8 @@ import scala.concurrent.duration._
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.slf4j.LoggerFactory
-
-import org.midonet.cluster.data.Chain
-import org.midonet.cluster.data.ports.RouterPort
+import org.midonet.cluster.data.boilerplate.Chain
+import org.midonet.cluster.data.boilerplate.ports.RouterPort
 import org.midonet.midolman.DeduplicationActor.DiscardPacket
 import org.midonet.midolman.FlowController.{InvalidateFlowsByTag, WildcardFlowRemoved}
 import org.midonet.midolman.VMsBehindRouterFixture

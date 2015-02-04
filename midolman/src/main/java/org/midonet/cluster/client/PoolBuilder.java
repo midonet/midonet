@@ -18,10 +18,10 @@ package org.midonet.cluster.client;
 import java.util.Map;
 import java.util.UUID;
 
-import org.midonet.cluster.data.l4lb.Pool;
-import org.midonet.cluster.data.l4lb.PoolMember;
+import org.midonet.cluster.data.boilerplate.l4lb.Pool;
+import org.midonet.cluster.data.boilerplate.l4lb.PoolMember;
 
 public interface PoolBuilder {
     void setPoolConfig(Pool pool);
-    void setPoolMembers(Map<UUID,PoolMember> poolMembers);
+    void setPoolMembers(Map<UUID, PoolMember> poolMembers);
 }

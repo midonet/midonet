@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-package org.midonet.cluster.client;/*
- * Copyright 2012 Midokura Europe SARL
- */
+package org.midonet.cluster.client;
 
 import java.util.UUID;
 

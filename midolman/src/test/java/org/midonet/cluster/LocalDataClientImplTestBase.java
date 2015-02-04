@@ -27,15 +27,15 @@ import org.apache.zookeeper.KeeperException;
 import org.junit.Before;
 
 import org.midonet.cluster.backend.zookeeper.Directory;
-import org.midonet.cluster.config.ZookeeperConfig;
-import org.midonet.cluster.data.Bridge;
-import org.midonet.cluster.data.dhcp.Subnet;
-import org.midonet.midolman.Setup;
+import org.midonet.cluster.backend.zookeeper.ZookeeperConfig;
+import org.midonet.cluster.data.boilerplate.Bridge;
+import org.midonet.cluster.data.boilerplate.dhcp.Subnet;
+import org.midonet.cluster.backend.zookeeper.Setup;
 import org.midonet.midolman.config.MidolmanConfig;
 import org.midonet.midolman.guice.cluster.DataClusterClientModule;
 import org.midonet.midolman.guice.config.ConfigProviderModule;
 import org.midonet.midolman.guice.config.TypedConfigModule;
-import org.midonet.midolman.guice.serialization.SerializationModule;
+import org.midonet.cluster.backend.zookeeper.serialization.SerializationModule;
 import org.midonet.cluster.backend.zookeeper.MockZookeeperConnectionModule;
 import org.midonet.packets.IPv4Subnet;
 

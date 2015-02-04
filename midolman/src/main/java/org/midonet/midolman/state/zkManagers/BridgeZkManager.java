@@ -28,13 +28,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.midonet.cluster.backend.zookeeper.WatchableZkManager;
-import org.midonet.cluster.data.Bridge;
+import org.midonet.cluster.data.boilerplate.Bridge;
 import org.midonet.cluster.data.neutron.Network;
 import org.midonet.cluster.backend.zookeeper.serialization.SerializationException;
 import org.midonet.cluster.backend.zookeeper.serialization.Serializer;
 import org.midonet.midolman.state.AbstractZkManager;
 import org.midonet.cluster.backend.zookeeper.Directory;
-import org.midonet.midolman.state.PathBuilder;
+import org.midonet.cluster.backend.zookeeper.PathBuilder;
 import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.cluster.backend.zookeeper.ZkManager;
 

@@ -19,9 +19,9 @@ import org.codehaus.jackson.annotate.JsonIgnore;
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.UriResource;
 import org.midonet.api.validation.VerifyEnumValue;
-import org.midonet.midolman.state.l4lb.PoolLBMethod;
-import org.midonet.midolman.state.l4lb.LBStatus;
-import org.midonet.midolman.state.l4lb.PoolProtocol;
+import org.midonet.cluster.data.boilerplate.l4lb.PoolLBMethod;
+import org.midonet.cluster.data.boilerplate.l4lb.LBStatus;
+import org.midonet.cluster.data.boilerplate.l4lb.PoolProtocol;
 
 import java.net.URI;
 import java.util.UUID;
@@ -106,7 +106,7 @@ public class Pool extends UriResource {
         super();
     }
 
-    public Pool(org.midonet.cluster.data.l4lb.Pool pool) {
+    public Pool(org.midonet.cluster.data.boilerplate.l4lb.Pool pool) {
         super();
         this.loadBalancerId = pool.getLoadBalancerId();
         this.healthMonitorId = pool.getHealthMonitorId();
@@ -123,8 +123,8 @@ public class Pool extends UriResource {
         this.id = pool.getId();
     }
 
-    public org.midonet.cluster.data.l4lb.Pool toData() {
-        return new org.midonet.cluster.data.l4lb.Pool()
+    public org.midonet.cluster.data.boilerplate.l4lb.Pool toData() {
+        return new org.midonet.cluster.data.boilerplate.l4lb.Pool()
                 .setId(this.id)
                 .setLoadBalancerId(this.loadBalancerId)
                 .setHealthMonitorId(this.healthMonitorId)
