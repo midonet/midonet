@@ -39,6 +39,7 @@ import org.midonet.midolman.guice.MidolmanActorsModule;
 import org.midonet.midolman.guice.MidolmanModule;
 import org.midonet.midolman.guice.ResourceProtectionModule;
 import org.midonet.midolman.guice.StateStorageModule;
+import org.midonet.midolman.guice.TopologyModule;
 import org.midonet.midolman.guice.cluster.ClusterClientModule;
 import org.midonet.midolman.guice.StorageModule;
 import org.midonet.midolman.guice.config.ConfigProviderModule;
@@ -130,6 +131,7 @@ public class Midolman {
             new DatapathModule(),
             new ClusterClientModule(),
             new MidolmanActorsModule(),
+            new TopologyModule(),
             new ResourceProtectionModule(),
             new MidolmanModule(),
             new FlowStateStorageModule(),

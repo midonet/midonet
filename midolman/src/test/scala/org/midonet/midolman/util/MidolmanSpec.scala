@@ -136,6 +136,7 @@ trait MidolmanSpec extends FeatureSpecLike
                     bind(classOf[NanoClock]).toInstance(clock)
                 }
             },
+            new TopologyModule(),
             new ResourceProtectionModule(),
             new PrivateModule {
                 override def configure() {
