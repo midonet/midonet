@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2014 - 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,7 @@ public interface MidolmanConfig
             ArpTableConfig, HealthMonitorConfig
 {
     public final static String GROUP_NAME = "midolman";
+    public final static short DEFAULT_MTU = 1500;
 
     @ConfigInt(key = "disconnected_ttl_seconds", defaultValue = 30)
     int getMidolmanDisconnectedTtlSeconds();
@@ -62,8 +63,8 @@ public interface MidolmanConfig
     @ConfigString(key = "bgpd_config", defaultValue = "/etc/quagga")
     public String pathToBGPDConfig();
 
-    @ConfigInt(key = "dhcp_mtu", defaultValue = 1450)
-    int getMidolmanDhcpMtu();
+    @ConfigInt(key = "dhcp_mtu", defaultValue = DEFAULT_MTU)
+    public int getDhcpMtu();
 
     @ConfigString(key = "cache_type", defaultValue = "cassandra")
     public String getMidolmanCacheType();

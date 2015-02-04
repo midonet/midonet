@@ -40,9 +40,13 @@ import org.midonet.odp.ports._
 import org.midonet.packets.IPv4Addr
 import org.midonet.sdn.flows.FlowTagger
 
+object DatapathControllerActorTest {
+    val TestDhcpMtu: Short = 4200
+}
+
 @RunWith(classOf[JUnitRunner])
 class DatapathControllerActorTest extends MidolmanSpec {
-
+    import DatapathControllerActorTest._
     import DatapathController._
     import VirtualToPhysicalMapper.{ZoneChanged, ZoneMembers}
 
@@ -55,6 +59,11 @@ class DatapathControllerActorTest extends MidolmanSpec {
     val dpPortGre = new GreTunnelPort("gre")
     val dpPortInt = new InternalPort("int")
     val dpPortDev = new NetDevPort("eth0")
+
+    override def fillConfig(config: HierarchicalConfiguration) = {
+        config.setProperty("midolman.dhcp_mtu", TestDhcpMtu)
+        super.fillConfig(config)
+    }
 
     class TestableDpC extends DatapathController {
         override def storageFactory = new FlowStateStorageFactory() {
@@ -96,6 +105,13 @@ class DatapathControllerActorTest extends MidolmanSpec {
         dpc = DatapathController.as[TestableDpC]
         dpc.datapath = dpc.datapathConnection.futures.datapathsCreate("midonet").get()
         newHost("host1", hostId)
+    }
+
+    scenario("The default MTU should be retrieved from the config file") {
+        val config = injector.getInstance(classOf[MidolmanConfig])
+        DatapathController.defaultMtu should be (config.getDhcpMtu.toShort)
+        DatapathController.defaultMtu should be (TestDhcpMtu)
+        DatapathController.defaultMtu should not be MidolmanConfig.DEFAULT_MTU
     }
 
     scenario("The DPC retries when the port creation fails") {

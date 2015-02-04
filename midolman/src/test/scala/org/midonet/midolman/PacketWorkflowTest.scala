@@ -24,6 +24,7 @@ import scala.concurrent.duration._
 
 import akka.actor._
 import akka.testkit._
+import org.apache.commons.configuration.HierarchicalConfiguration
 
 import datapath.DatapathChannel
 import org.slf4j.helpers.NOPLogger
@@ -33,8 +34,11 @@ import org.junit.runner.RunWith
 import org.scalatest._
 import org.scalatest.junit.JUnitRunner
 
+import org.midonet.config.ConfigProvider
 import org.midonet.midolman.DeduplicationActor.ActionsCache
+import org.midonet.midolman.FlowController.{FlowAdded, AddWildcardFlow}
 import org.midonet.midolman.UnderlayResolver.Route
+import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.simulation.PacketContext
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackValue, ConnTrackKey}
 import org.midonet.midolman.state.NatState.{NatKey, NatBinding}
@@ -53,6 +57,9 @@ object PacketWorkflowTest {
     case object ExecPacket
     case object FlowCreated
     case object TranslateActions
+
+    val config = ConfigProvider.providerForIniConfig(new HierarchicalConfiguration)
+        .getConfig(classOf[MidolmanConfig])
 
     val NoLogging = Logger(NOPLogger.NOP_LOGGER)
 
@@ -101,7 +108,7 @@ object PacketWorkflowTest {
         val wf = new PacketWorkflow(dpState, null, null, dpChannel,
                                     new ActionsCache(4, CallbackExecutor.Immediate,
                                                      log = NoLogging),
-                                    replicator) {
+                                    replicator, config) {
             override def runSimulation(pktCtx: PacketContext) =
                 throw new Exception("no Coordinator")
             override def translateActions(pktCtx: PacketContext) = {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2014 - 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 package org.midonet.midolman
 
 import java.util.{List => JList, UUID}
+
+import org.midonet.midolman.config.MidolmanConfig
 
 import scala.collection.JavaConversions._
 
@@ -125,7 +127,8 @@ class PacketWorkflow(protected val dpState: DatapathState,
                      val dataClient: DataClient,
                      val dpChannel: DatapathChannel,
                      val actionsCache: ActionsCache,
-                     val replicator: FlowStateReplicator)
+                     val replicator: FlowStateReplicator,
+                     protected val config: MidolmanConfig)
                     (implicit val system: ActorSystem)
         extends PacketHandler with FlowTranslator
         with RoutingWorkflow with UnderlayTrafficHandler {
@@ -402,7 +405,8 @@ class PacketWorkflow(protected val dpState: DatapathState,
         val port = VirtualTopologyActor.tryAsk[Port](context.inputPort)
         val dhcp = context.packet.getEthernet.getPayload.getPayload.getPayload.asInstanceOf[DHCP]
         dhcp.getOpCode == DHCP.OPCODE_REQUEST &&
-            processDhcp(context, port, dhcp, DatapathController.minMtu)
+            processDhcp(context, port, dhcp,
+                config.getDhcpMtu.toShort.min(DatapathController.minMtu))
     }
 
     private def processDhcp(context: PacketContext, inPort: Port,
