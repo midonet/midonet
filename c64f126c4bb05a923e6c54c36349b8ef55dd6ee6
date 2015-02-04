@@ -2,6 +2,46 @@
   "comments": [
     {
       "key": {
+        "uuid": "7a1969be_bbb52acf",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/SessionInventory.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 273,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-02-04T11:21:37Z",
+      "side": 1,
+      "message": "why not ring.peek here?",
+      "range": {
+        "startLine": 273,
+        "startChar": 25,
+        "endLine": 273,
+        "endChar": 29
+      },
+      "revId": "c64f126c4bb05a923e6c54c36349b8ef55dd6ee6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_7bbbb2c4",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/concurrent/SpscRwdRingBuffer.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-02-04T11:21:37Z",
+      "side": 1,
+      "message": "I guess this only works as long as the consumer thread is the only one calling the method. Maybe worth mentioning here.",
+      "revId": "c64f126c4bb05a923e6c54c36349b8ef55dd6ee6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_2df3ce74",
         "filename": "midonet-util/src/main/scala/org/midonet/util/concurrent/SpscRwdRingBuffer.scala",
         "patchSetId": 3
@@ -18,6 +58,29 @@
         "startChar": 70,
         "endLine": 118,
         "endChar": 22
+      },
+      "revId": "c64f126c4bb05a923e6c54c36349b8ef55dd6ee6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_9bb66edb",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/concurrent/SpscRwdRingBuffer.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 126,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-02-04T11:21:37Z",
+      "side": 1,
+      "message": "nit: space",
+      "range": {
+        "startLine": 126,
+        "startChar": 12,
+        "endLine": 126,
+        "endChar": 13
       },
       "revId": "c64f126c4bb05a923e6c54c36349b8ef55dd6ee6",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
@@ -42,6 +105,23 @@
         "endLine": 147,
         "endChar": 29
       },
+      "revId": "c64f126c4bb05a923e6c54c36349b8ef55dd6ee6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_dbb0e6df",
+        "filename": "midonet-util/src/test/scala/org/midonet/util/concurrent/SpscRwdRingBufferTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-02-04T11:21:37Z",
+      "side": 1,
+      "message": "It might be worth adding a case with a big size + consumer thread and a producer to test concurrency.",
       "revId": "c64f126c4bb05a923e6c54c36349b8ef55dd6ee6",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
