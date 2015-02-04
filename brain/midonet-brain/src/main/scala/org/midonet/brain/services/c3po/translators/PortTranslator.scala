@@ -20,22 +20,18 @@ import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 
-import com.google.protobuf.Message
-
 import org.midonet.brain.services.c3po.C3POStorageManager.Operation
 import org.midonet.brain.services.c3po.midonet.{Create, Delete, MidoOp, Update}
-import org.midonet.brain.services.c3po.neutron
 import org.midonet.cluster.data.storage.ReadOnlyStorage
-import org.midonet.cluster.models.Commons.{IPAddress, IPSubnet, IPVersion, UUID}
-import org.midonet.cluster.models.Neutron.NeutronPort
-import org.midonet.cluster.models.Neutron.NeutronPort.{DeviceOwner, IPAllocation}
-import org.midonet.cluster.models.Neutron.NeutronSubnet
-import org.midonet.cluster.models.Topology.{Chain, IpAddrGroup, Network, Port, PortOrBuilder, Rule}
+import org.midonet.cluster.models.Commons.{IPAddress, IPSubnet, UUID}
+import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner
+import org.midonet.cluster.models.Neutron.{NeutronPort, NeutronSubnet}
 import org.midonet.cluster.models.Topology.Network.Dhcp
 import org.midonet.cluster.models.Topology.Rule.Action.{ACCEPT, DROP, JUMP}
 import org.midonet.cluster.models.Topology.Rule.FragmentPolicy.ANY
-import org.midonet.cluster.util.{IPSubnetUtil, UUIDUtil}
+import org.midonet.cluster.models.Topology.{Chain, IpAddrGroup, Network, Port, PortOrBuilder, Rule}
 import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
+import org.midonet.cluster.util.{IPSubnetUtil, UUIDUtil}
 import org.midonet.packets.{ARP, IPv4, IPv6}
 import org.midonet.util.concurrent.toFutureOps
 
@@ -92,7 +88,7 @@ object PortTranslator {
                              chainName: String,
                              ruleIds: Seq[UUID]) = {
         val chainBldr = Chain.newBuilder().setId(chainId).setName(chainName)
-        ruleIds.foreach(chainBldr.addRuleIds(_))
+        ruleIds.foreach(chainBldr.addRuleIds)
         chainBldr.build
     }
 
@@ -126,8 +122,7 @@ class PortTranslator(private val storage: ReadOnlyStorage)
         extends NeutronTranslator[NeutronPort] {
     import org.midonet.brain.services.c3po.translators.PortTranslator._
 
-    override protected def translateCreate(nPort: NeutronPort)
-    : List[MidoOp[_ <: Message]] = {
+    override protected def translateCreate(nPort: NeutronPort): MidoOpList = {
         val midoPortBldr: Port.Builder = if (isRouterGatewayPort(nPort)) {
             // TODO Create a router port and set the provider router ID.
             null
@@ -138,7 +133,7 @@ class PortTranslator(private val storage: ReadOnlyStorage)
         } else null
 
         val portId = nPort.getId
-        var midoOps: ListBuffer[MidoOp[_ <: Message]] = ListBuffer()
+        var midoOps = new MidoOpListBuffer
         if (isVifPort(nPort)) {
             // Generate in/outbound chain IDs from Port ID.
             val inChainId = portId.nextUuid
@@ -150,17 +145,16 @@ class PortTranslator(private val storage: ReadOnlyStorage)
             addMidoOps(vifPortInfo, midoOps)
         }
 
-        if (midoPortBldr != null) midoOps :+= (Create(midoPortBldr.build))
+        if (midoPortBldr != null) midoOps :+= Create(midoPortBldr.build)
         midoOps.toList
     }
 
-    override protected def translateDelete(id: UUID)
-    : List[MidoOp[_ <: Message]] = {
-        var midoOps: ListBuffer[MidoOp[_ <: Message]] = ListBuffer()
+    override protected def translateDelete(id: UUID): MidoOpList = {
+        var midoOps = new MidoOpListBuffer
 
         val nPort = storage.get(classOf[NeutronPort], id).await()
         if (!isFloatingIpPort(nPort))
-            midoOps :+= (Delete(classOf[Port], id))
+            midoOps :+= Delete(classOf[Port], id)
 
         if (isVifPort(nPort)) { // It's a VIF port.
             val mPort = storage.get(classOf[Port], id).await()
@@ -171,17 +165,16 @@ class PortTranslator(private val storage: ReadOnlyStorage)
         midoOps.toList
     }
 
-    override protected def translateUpdate(nPort: NeutronPort)
-    : List[MidoOp[_ <: Message]] = {
-        var midoOps: ListBuffer[MidoOp[_ <: Message]] = ListBuffer()
+    override protected def translateUpdate(nPort: NeutronPort): MidoOpList = {
+        var midoOps = new MidoOpListBuffer
 
         val portId = nPort.getId
         val mPort = storage.get(classOf[Port], portId).await()
         if ((isVifPort(nPort) || isDhcpPort(nPort)) &&
             mPort.getAdminStateUp != nPort.getAdminStateUp)
-            midoOps :+= (Update(mPort.toBuilder()
-                                     .setAdminStateUp(nPort.getAdminStateUp)
-                                     .build))
+            midoOps :+= Update(mPort.toBuilder
+                                    .setAdminStateUp(nPort.getAdminStateUp)
+                                    .build)
 
         if (isVifPort(nPort)) { // It's a VIF port.
             val oldNPort = storage.get(classOf[NeutronPort], portId).await()
@@ -203,7 +196,7 @@ class PortTranslator(private val storage: ReadOnlyStorage)
             updatedIpAddrGrps: ListBuffer[MidoOp[IpAddrGroup]])
 
     private def addMidoOps(portModels: VifPortModels,
-                           midoOps: ListBuffer[MidoOp[_ <: Message]]) {
+                           midoOps: MidoOpListBuffer) {
             midoOps ++= portModels.midoNetworks.values.map(n => Update(n.build))
             midoOps ++= portModels.inRules ++ portModels.outRules
             midoOps ++= portModels.chains
@@ -221,7 +214,6 @@ class PortTranslator(private val storage: ReadOnlyStorage)
     private def buildVifPortModels(nPort: NeutronPort,
                                    nPortOld: NeutronPort,
                                    mPortOld: PortOrBuilder): VifPortModels = {
-        val portId = if (nPort != null) nPort.getId else nPortOld.getId
         val inChainId = mPortOld.getInboundFilterId
         val outChainId = mPortOld.getOutboundFilterId
         val portModels = VifPortModels(mutable.Map[UUID, Network.Builder](),
@@ -322,12 +314,12 @@ class PortTranslator(private val storage: ReadOnlyStorage)
 
             // Compute IP addresses that were removed from the IP Address Group
             // or added to it.
-            val updatedIpAddrG = ipAddrGrp.toBuilder()
+            val updatedIpAddrG = ipAddrGrp.toBuilder
             val ips = nPort.getFixedIpsList.asScala.map(_.getIpAddress)
             val oldIps = if (nPortOld != null) {
                     nPortOld.getFixedIpsList.asScala.map(_.getIpAddress)
                 } else List()
-            var removed = oldIps diff ips
+            val removed = oldIps diff ips
             var added = ips diff oldIps
             for (ipPorts <- updatedIpAddrG.getIpAddrPortsBuilderList.asScala) {
                 if (removed.contains(ipPorts.getIpAddress)) {
@@ -393,7 +385,7 @@ class PortTranslator(private val storage: ReadOnlyStorage)
         // Remove the fixed IPs from IP Address Groups
         for (sgId <- nPortOld.getSecurityGroupsList.asScala) {
             val ipAddrG = storage.get(classOf[IpAddrGroup], sgId).await()
-            val updatedIpAddrG = ipAddrG.toBuilder()
+            val updatedIpAddrG = ipAddrG.toBuilder
             val oldIps = nPortOld.getFixedIpsList.asScala.map(_.getIpAddress)
             for (ipPorts <- updatedIpAddrG.getIpAddrPortsBuilderList.asScala) {
                 if (oldIps.contains(ipPorts.getIpAddress)) {
