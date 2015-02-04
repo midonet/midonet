@@ -21,7 +21,6 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 import scala.collection.mutable
 
-import akka.actor.ActorSystem
 import com.google.common.annotations.VisibleForTesting
 import org.apache.zookeeper.{WatchedEvent, Watcher}
 
@@ -36,7 +35,6 @@ import org.midonet.packets.IPAddr
 import org.midonet.util.functors._
 
 class HostMapper(id: UUID, vt: VirtualTopology, dataClient: DataClient)
-                (implicit actorSystem: ActorSystem)
     extends DeviceMapper[SimHost](id, vt) {
 
     override def logSource =
