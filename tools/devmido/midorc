@@ -28,9 +28,6 @@ fi
 # IP address/hostname to use for the services
 SERVICE_HOST=${SERVICE_HOST:-127.0.0.1}
 
-# Screen name
-SCREEN_NAME=${SCREEN_NAME:-mido}
-
 # Midolman configuration file location
 AGENT_CONF_DIR=${AGENT_CONF_DIR:-/etc/midolman}
 
