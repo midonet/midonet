@@ -38,7 +38,6 @@ import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.ZookeeperConnectionWatcher;
 import org.midonet.midolman.version.DataWriteVersion;
-import org.midonet.midolman.version.guice.VersionModule;
 
 import static org.midonet.cluster.EntityMonitorTest.Accumulator;
 import static org.midonet.cluster.EntityMonitorTest.Actions;
@@ -55,7 +54,6 @@ public class EntityIdSetMonitorTest {
     @Before
     public void setup() throws Exception {
         injector = Guice.createInjector(
-            new VersionModule(),
             new SerializationModule(),
             new ConfigProviderModule(new HierarchicalConfiguration()),
             new MockZookeeperConnectionModule(),

@@ -50,7 +50,6 @@ import org.midonet.brain.guice.BrainModule;
 import org.midonet.cluster.data.neutron.NeutronClusterModule;
 import org.midonet.midolman.guice.StorageModule;
 import org.midonet.midolman.guice.cluster.DataClientModule;
-import org.midonet.midolman.version.guice.VersionModule;
 
 /**
  * Jersey servlet module for MidoNet REST API application.
@@ -92,12 +91,11 @@ public class RestApiJerseyServletModule extends JerseyServletModule {
         log.debug("configureServlets: entered");
 
         install(new ConfigurationModule(servletContext));
-        install(new VersionModule());
+        install(new SerializationModule());
         install(new AuthModule());
         install(new ErrorModule());
         install(new BrainModule());
         installRestApiModule(); // allow mocking
-        install(new SerializationModule());
         install(new ValidationModule());
 
         // Install Zookeeper module until Cluster Client makes it unnecessary

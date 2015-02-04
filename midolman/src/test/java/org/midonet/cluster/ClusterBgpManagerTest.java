@@ -46,7 +46,6 @@ import org.midonet.midolman.state.ZkManager;
 import org.midonet.midolman.state.zkManagers.AdRouteZkManager;
 import org.midonet.midolman.state.zkManagers.BgpZkManager;
 import org.midonet.midolman.version.DataWriteVersion;
-import org.midonet.midolman.version.guice.VersionModule;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.util.eventloop.MockReactor;
 import org.midonet.util.eventloop.Reactor;
@@ -161,7 +160,6 @@ public class ClusterBgpManagerTest {
     public void setup() throws UnknownHostException,
                                KeeperException, InterruptedException {
         Injector injector = Guice.createInjector(
-                new VersionModule(),
                 new SerializationModule(),
                 new ConfigProviderModule(new HierarchicalConfiguration()),
                 new MockZookeeperConnectionModule(),

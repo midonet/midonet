@@ -18,12 +18,11 @@ package org.midonet.packets.util
 
 import scala.collection.JavaConverters._
 
-import org.midonet.packets.util.AddressConversions._
-import org.midonet.packets._
-import org.midonet.packets.ICMP.UNREACH_CODE
-import org.midonet.packets.ICMP.UNREACH_CODE._
-import org.midonet.packets.ICMP.EXCEEDED_CODE
 import org.midonet.packets.ICMP.EXCEEDED_CODE._
+import org.midonet.packets.ICMP.{EXCEEDED_CODE, UNREACH_CODE}
+import org.midonet.packets.ICMP.UNREACH_CODE._
+import org.midonet.packets._
+import org.midonet.packets.util.AddressConversions._
 
 object PacketBuilder {
     implicit def builderToPacket[T <: IPacket](b: PacketBuilder[T]): T = b.packet
@@ -226,7 +225,7 @@ case class IcmpFragNeededBuilder(override val packet: ICMP,
 }
 
 case class TcpBuilder(packet: TCP = new TCP()) extends PacketBuilder[TCP] {
-    import PacketBuilder._
+    import org.midonet.packets.util.PacketBuilder._
     override val ipProto = TCP.PROTOCOL_NUMBER
 
     def ports(ports: PortPair): TcpBuilder = { src(ports.src) ; dst(ports.dst) }
@@ -236,7 +235,7 @@ case class TcpBuilder(packet: TCP = new TCP()) extends PacketBuilder[TCP] {
 }
 
 case class UdpBuilder(packet: UDP = new UDP()) extends PacketBuilder[UDP] {
-    import PacketBuilder._
+    import org.midonet.packets.util.PacketBuilder._
     override val ipProto = UDP.PROTOCOL_NUMBER
 
     def ports(ports: PortPair): UdpBuilder = { src(ports.src) ; dst(ports.dst) }
@@ -245,7 +244,7 @@ case class UdpBuilder(packet: UDP = new UDP()) extends PacketBuilder[UDP] {
 }
 
 case class IPv4Builder(packet: IPv4 = new IPv4()) extends PacketBuilder[IPv4] {
-    import PacketBuilder._
+    import org.midonet.packets.util.PacketBuilder._
     override val etherType = IPv4.ETHERTYPE
 
     override protected def setPayload(b: PacketBuilder[_ <: IPacket]): this.type = {
@@ -271,7 +270,7 @@ case class IPv4Builder(packet: IPv4 = new IPv4()) extends PacketBuilder[IPv4] {
 }
 
 case class ArpBuilder() extends PacketBuilder[ARP] with NonAppendable[ARP] {
-    import PacketBuilder._
+    import org.midonet.packets.util.PacketBuilder._
     override val etherType = ARP.ETHERTYPE
 
     val packet = new ARP()
@@ -298,7 +297,7 @@ case class ArpBuilder() extends PacketBuilder[ARP] with NonAppendable[ARP] {
 
 case class EthBuilder[T <: Ethernet](packet: T = new Ethernet())
         extends PacketBuilder[T] {
-    import PacketBuilder._
+    import org.midonet.packets.util.PacketBuilder._
 
     override protected def setPayload(b: PacketBuilder[_ <: IPacket]): this.type = {
         super.setPayload(b)

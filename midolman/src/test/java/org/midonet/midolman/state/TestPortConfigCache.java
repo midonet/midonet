@@ -16,14 +16,19 @@
 
 package org.midonet.midolman.state;
 
+import java.util.HashSet;
+import java.util.UUID;
+
 import com.google.inject.AbstractModule;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
-import com.google.inject.Injector;
-import com.google.inject.Guice;
+
 import org.apache.zookeeper.CreateMode;
 import org.junit.Before;
 import org.junit.Test;
+
 import org.midonet.midolman.Setup;
 import org.midonet.midolman.guice.serialization.SerializationModule;
 import org.midonet.midolman.serialization.SerializationException;
@@ -33,12 +38,8 @@ import org.midonet.midolman.state.zkManagers.ChainZkManager;
 import org.midonet.midolman.state.zkManagers.ChainZkManager.ChainConfig;
 import org.midonet.midolman.state.zkManagers.PortGroupZkManager;
 import org.midonet.midolman.state.zkManagers.PortZkManager;
-import org.midonet.midolman.version.guice.VersionModule;
 import org.midonet.util.eventloop.MockReactor;
 import org.midonet.util.eventloop.Reactor;
-
-import java.util.HashSet;
-import java.util.UUID;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -131,7 +132,6 @@ public class TestPortConfigCache {
         String basePath = "/midolman";
         injector = Guice.createInjector(
                 new TestModule(basePath),
-                new VersionModule(),
                 new SerializationModule()
         );
         portMgr = injector.getInstance(PortZkManager.class);

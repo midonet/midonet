@@ -55,7 +55,6 @@ import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.ZkManager;
 import org.midonet.midolman.state.zkManagers.FiltersZkManager;
 import org.midonet.midolman.version.DataWriteVersion;
-import org.midonet.midolman.version.guice.VersionModule;
 import org.midonet.odp.FlowMatch;
 import org.midonet.packets.IPv4;
 import org.midonet.packets.IPv4Addr;
@@ -128,7 +127,6 @@ public class TestRules {
 
         Guice.createInjector(
             new TestModule("/midonet"),
-            new VersionModule(),
             new SerializationModule()
         );
     }

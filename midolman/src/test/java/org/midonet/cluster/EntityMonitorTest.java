@@ -54,7 +54,6 @@ import org.midonet.midolman.state.ZkManager;
 import org.midonet.midolman.state.ZookeeperConnectionWatcher;
 import org.midonet.midolman.state.zkManagers.BaseConfig;
 import org.midonet.midolman.version.DataWriteVersion;
-import org.midonet.midolman.version.guice.VersionModule;
 import org.midonet.util.eventloop.MockReactor;
 import org.midonet.util.eventloop.Reactor;
 
@@ -188,7 +187,6 @@ public class EntityMonitorTest {
     @Before
     public void setup() throws Exception {
         injector = Guice.createInjector(
-            new VersionModule(),
             new SerializationModule(),
             new ConfigProviderModule(new HierarchicalConfiguration()),
             new MockZookeeperConnectionModule(),

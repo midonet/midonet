@@ -37,7 +37,6 @@ import org.midonet.midolman.guice.config.TypedConfigModule;
 import org.midonet.midolman.guice.serialization.SerializationModule;
 import org.midonet.midolman.guice.zookeeper.MockZookeeperConnectionModule;
 import org.midonet.midolman.state.Directory;
-import org.midonet.midolman.version.guice.VersionModule;
 import org.midonet.packets.IPv4Subnet;
 
 public class LocalDataClientImplTestBase {
@@ -63,7 +62,6 @@ public class LocalDataClientImplTestBase {
         HierarchicalConfiguration config = fillConfig(
                 new HierarchicalConfiguration());
         injector = Guice.createInjector(
-                new VersionModule(),
                 new SerializationModule(),
                 new ConfigProviderModule(config),
                 new MockZookeeperConnectionModule(),

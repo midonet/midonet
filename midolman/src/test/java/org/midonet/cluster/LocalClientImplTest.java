@@ -58,7 +58,6 @@ import org.midonet.midolman.state.zkManagers.BridgeZkManager;
 import org.midonet.midolman.state.zkManagers.ChainZkManager;
 import org.midonet.midolman.state.zkManagers.ChainZkManager.ChainConfig;
 import org.midonet.midolman.state.zkManagers.RouterZkManager;
-import org.midonet.midolman.version.guice.VersionModule;
 import org.midonet.packets.IPAddr;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
@@ -113,7 +112,6 @@ public class LocalClientImplTest {
         HierarchicalConfiguration config = fillConfig(
             new HierarchicalConfiguration());
         injector = Guice.createInjector(
-            new VersionModule(),
             new SerializationModule(),
             new ConfigProviderModule(config),
             new MockZookeeperConnectionModule(),

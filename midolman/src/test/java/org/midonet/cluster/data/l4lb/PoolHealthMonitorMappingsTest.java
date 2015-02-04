@@ -57,7 +57,6 @@ import org.midonet.midolman.state.zkManagers.PoolHealthMonitorZkManager.PoolHeal
 import org.midonet.midolman.state.zkManagers.PoolMemberZkManager.PoolMemberConfig;
 import org.midonet.midolman.state.zkManagers.PoolZkManager;
 import org.midonet.midolman.state.zkManagers.VipZkManager.VipConfig;
-import org.midonet.midolman.version.guice.VersionModule;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -168,7 +167,6 @@ public class PoolHealthMonitorMappingsTest {
         HierarchicalConfiguration config = fillConfig(
                 new HierarchicalConfiguration());
         injector = Guice.createInjector(
-                new VersionModule(),
                 new SerializationModule(),
                 new ConfigProviderModule(config),
                 new MockZookeeperConnectionModule(),

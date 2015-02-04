@@ -40,7 +40,6 @@ import org.midonet.midolman.guice.config.ConfigProviderModule;
 import org.midonet.midolman.guice.serialization.SerializationModule;
 import org.midonet.midolman.guice.zookeeper.ZKConnectionProvider;
 import org.midonet.midolman.guice.zookeeper.ZookeeperConnectionModule;
-import org.midonet.midolman.version.guice.VersionModule;
 import org.midonet.util.eventloop.Reactor;
 
 public abstract class ZookeeperTest {
@@ -95,7 +94,6 @@ public abstract class ZookeeperTest {
         List<PrivateModule> modules = new ArrayList<>();
         modules.addAll(
             Arrays.asList(
-                new VersionModule(),
                 new SerializationModule(),
                 new ConfigProviderModule(getConfig(zkRoot)),
                 new ZookeeperConnectionModule(),

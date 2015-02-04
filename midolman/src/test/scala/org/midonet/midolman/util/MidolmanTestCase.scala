@@ -60,7 +60,6 @@ import org.midonet.midolman.simulation.PacketContext
 import org.midonet.midolman.topology.{LocalPortActive, VirtualToPhysicalMapper, VirtualTopologyActor}
 import org.midonet.midolman.util.guice.{MockMidolmanModule, OutgoingMessage, TestableMidolmanActorsModule}
 import org.midonet.midolman.util.mock.MockInterfaceScanner
-import org.midonet.midolman.version.guice.VersionModule
 import org.midonet.odp._
 import org.midonet.odp.flows.FlowKeys.inPort
 import org.midonet.odp.flows.{FlowAction, FlowActionOutput, FlowActionSetKey, FlowKeyTunnel}
@@ -216,7 +215,6 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
     protected def getModules(config: HierarchicalConfiguration)
             : List[Module] = {
         List[Module](
-            new VersionModule(),
             new SerializationModule(),
             new ConfigProviderModule(config),
             new InMemoryStorageModule(),
