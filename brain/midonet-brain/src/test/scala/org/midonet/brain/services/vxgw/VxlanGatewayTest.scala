@@ -25,10 +25,11 @@ import rx.subjects.PublishSubject
 
 import org.midonet.brain.southbound.vtep.model.LogicalSwitch
 import org.midonet.cluster.DataClient
-import org.midonet.cluster.data.Bridge.UNTAGGED_VLAN_ID
-import org.midonet.cluster.data.host.Host
-import org.midonet.cluster.data.ports.BridgePort
-import org.midonet.cluster.data.{Bridge, TunnelZone, VTEP}
+import org.midonet.cluster.data.boilerplate.{VTEP, TunnelZone, Bridge}
+import Bridge.UNTAGGED_VLAN_ID
+import org.midonet.cluster.data.boilerplate.host.Host
+import org.midonet.cluster.data.boilerplate.ports.BridgePort
+import org.midonet.cluster.data.Bridge
 import org.midonet.cluster.util.ObservableTestUtils._
 import org.midonet.midolman.host.state.HostZkManager
 import org.midonet.packets.{IPv4Addr, MAC}

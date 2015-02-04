@@ -16,7 +16,7 @@
 package org.midonet.api.network;
 
 import org.midonet.cluster.Client;
-import org.midonet.cluster.data.Port;
+import org.midonet.cluster.data.boilerplate.Port;
 
 /**
  * DTO for interior bridge port.
@@ -31,7 +31,7 @@ public class InteriorBridgePort extends BridgePort implements InteriorPort {
     }
 
     public InteriorBridgePort(
-            org.midonet.cluster.data.ports.BridgePort
+            org.midonet.cluster.data.boilerplate.ports.BridgePort
                     portData) {
         super(portData);
     }
@@ -42,9 +42,9 @@ public class InteriorBridgePort extends BridgePort implements InteriorPort {
     }
 
     @Override
-    public org.midonet.cluster.data.ports.BridgePort toData() {
-        org.midonet.cluster.data.ports.BridgePort data =
-                new org.midonet.cluster.data.ports.BridgePort();
+    public org.midonet.cluster.data.boilerplate.ports.BridgePort toData() {
+        org.midonet.cluster.data.boilerplate.ports.BridgePort data =
+                new org.midonet.cluster.data.boilerplate.ports.BridgePort();
         super.setConfig(data);
         data.setProperty(Port.Property.v1PortType,
                 Client.PortType.InteriorBridge.toString());

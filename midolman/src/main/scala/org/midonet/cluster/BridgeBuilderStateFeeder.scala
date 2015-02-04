@@ -23,6 +23,7 @@ import org.slf4j.{Logger, LoggerFactory}
 
 import org.midonet.cluster.backend.zookeeper.{StateAccessException, ZkConnectionAwareWatcher}
 import org.midonet.cluster.client.{BridgeBuilder, IpMacMap, MacLearningTable}
+import org.midonet.cluster.state.{ReplicatedMap, MacPortMap}
 import org.midonet.midolman.state._
 import org.midonet.packets.{IPv4Addr, MAC}
 import org.midonet.util.eventloop.Reactor

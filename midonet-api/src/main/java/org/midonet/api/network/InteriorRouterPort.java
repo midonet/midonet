@@ -16,7 +16,7 @@
 package org.midonet.api.network;
 
 import org.midonet.cluster.Client;
-import org.midonet.cluster.data.Port;
+import org.midonet.cluster.data.boilerplate.Port;
 import javax.xml.bind.annotation.XmlRootElement;
 
 /**
@@ -30,15 +30,15 @@ public class InteriorRouterPort extends RouterPort implements InteriorPort {
     }
 
     public InteriorRouterPort(
-            org.midonet.cluster.data.ports.RouterPort
+            org.midonet.cluster.data.boilerplate.ports.RouterPort
                     portData) {
         super(portData);
     }
 
     @Override
-    public org.midonet.cluster.data.ports.RouterPort toData() {
-        org.midonet.cluster.data.ports.RouterPort data =
-                new org.midonet.cluster.data.ports.RouterPort();
+    public org.midonet.cluster.data.boilerplate.ports.RouterPort toData() {
+        org.midonet.cluster.data.boilerplate.ports.RouterPort data =
+                new org.midonet.cluster.data.boilerplate.ports.RouterPort();
         super.setConfig(data);
         data.setProperty(Port.Property.v1PortType,
                 Client.PortType.InteriorRouter.toString());

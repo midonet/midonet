@@ -19,14 +19,13 @@ import akka.actor.{ActorRef, Actor}
 import collection.JavaConverters._
 import java.util.{Set => JSet, UUID}
 import scala.collection.breakOut
-
 import org.midonet.cluster.Client
 import org.midonet.cluster.client.PortGroupBuilder
+import org.midonet.cluster.data.boilerplate.PortGroup
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.simulation
 import org.midonet.sdn.flows.FlowTagger
-import org.midonet.cluster.data.PortGroup
 
 object PortGroupManager {
     case class TriggerUpdate(members: Set[UUID])

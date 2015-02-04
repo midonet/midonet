@@ -18,32 +18,30 @@ package org.midonet.midolman.util
 import java.util.UUID
 import java.util.{HashSet => JSet}
 import org.midonet.cluster.backend.zookeeper.DirectoryCallback
-import org.midonet.cluster.data.neutron.ExtraDhcpOpt
+import org.midonet.cluster.data.boilerplate._
+import org.midonet.cluster.data.boilerplate.neutron.ExtraDhcpOpt
 
 import scala.util.Random
 
 import scala.collection.JavaConversions._
 
 import org.midonet.cluster.DataClient
-import org.midonet.cluster.data.{Bridge => ClusterBridge,
-                                 Router => ClusterRouter,
-                                 PortGroup => ClusterPortGroup,
-                                 _}
-import org.midonet.cluster.data.dhcp.{Host => DhcpHost}
-import org.midonet.cluster.data.dhcp.Subnet
-import org.midonet.cluster.data.dhcp.Subnet6
-import org.midonet.cluster.data.host.Host
-import org.midonet.cluster.data.ports.{RouterPort, BridgePort, VxLanPort}
-import org.midonet.cluster.data.rules.{ForwardNatRule, ReverseNatRule}
-import org.midonet.cluster.data.rules.{JumpRule, LiteralRule}
+import org.midonet.cluster.data.{_}
+import org.midonet.cluster.data.boilerplate.dhcp.{Host => DhcpHost}
+import org.midonet.cluster.data.boilerplate.dhcp.Subnet
+import org.midonet.cluster.data.boilerplate.dhcp.Subnet6
+import org.midonet.cluster.data.boilerplate.host.Host
+import org.midonet.cluster.data.boilerplate.ports.{RouterPort, BridgePort, VxLanPort}
+import org.midonet.cluster.data.boilerplate.rules.{ForwardNatRule, ReverseNatRule}
+import org.midonet.cluster.data.boilerplate.rules.{JumpRule, LiteralRule}
 import org.midonet.midolman.layer3.Route.NextHop
 import org.midonet.midolman.rules.{FragmentPolicy, Condition, NatTarget}
 import org.midonet.midolman.rules.RuleResult.Action
 import org.midonet.packets.{IPv4Addr, IPv4Subnet, TCP, MAC}
 import org.apache.zookeeper.KeeperException
-import org.midonet.cluster.data.l4lb.{PoolMember, Pool, VIP, LoadBalancer,
+import org.midonet.cluster.data.boilerplate.l4lb.{PoolMember, Pool, VIP, LoadBalancer,
                                       HealthMonitor}
-import org.midonet.midolman.state.l4lb.{PoolLBMethod, VipSessionPersistence, LBStatus}
+import org.midonet.cluster.data.boilerplate.l4lb.{PoolLBMethod, VipSessionPersistence, LBStatus}
 
 trait VirtualConfigurationBuilders {
 
@@ -60,7 +58,7 @@ trait VirtualConfigurationBuilders {
 
     def newHost(name: String): Host = newHost(name, UUID.randomUUID())
 
-    def newInboundChainOnBridge(name: String, bridge: ClusterBridge): Chain = {
+    def newInboundChainOnBridge(name: String, bridge: Bridge): Chain = {
         val chain = createChain(name, None)
         bridge.setInboundFilter(chain.getId)
         clusterDataClient().bridgesUpdate(bridge)
@@ -68,7 +66,7 @@ trait VirtualConfigurationBuilders {
         chain
     }
 
-    def newOutboundChainOnBridge(name: String, bridge: ClusterBridge): Chain = {
+    def newOutboundChainOnBridge(name: String, bridge: Bridge): Chain = {
         val chain = createChain(name, None)
         bridge.setOutboundFilter(chain.getId)
         clusterDataClient().bridgesUpdate(bridge)
@@ -76,7 +74,7 @@ trait VirtualConfigurationBuilders {
         chain
     }
 
-    def newInboundChainOnRouter(name: String, router: ClusterRouter): Chain = {
+    def newInboundChainOnRouter(name: String, router: Router): Chain = {
         val chain = createChain(name, None)
         router.setInboundFilter(chain.getId)
         clusterDataClient().routersUpdate(router)
@@ -84,7 +82,7 @@ trait VirtualConfigurationBuilders {
         chain
     }
 
-    def newOutboundChainOnRouter(name: String, router: ClusterRouter): Chain = {
+    def newOutboundChainOnRouter(name: String, router: Router): Chain = {
         val chain = createChain(name, None)
         router.setOutboundFilter(chain.getId)
         clusterDataClient().routersUpdate(router)
@@ -184,7 +182,7 @@ trait VirtualConfigurationBuilders {
         clusterDataClient().rulesGet(id).asInstanceOf[ReverseNatRule]
     }
 
-    def removeRuleFromBridge(bridge: ClusterBridge) {
+    def removeRuleFromBridge(bridge: Bridge) {
         bridge.setInboundFilter(null)
         clusterDataClient().bridgesUpdate(bridge)
         Thread.sleep(50)
@@ -240,19 +238,19 @@ trait VirtualConfigurationBuilders {
         tunnelZone
     }
 
-    def newBridge(bridge: ClusterBridge): ClusterBridge = {
+    def newBridge(bridge: Bridge): Bridge = {
         val id = clusterDataClient().bridgesCreate(bridge)
         Thread.sleep(50)
         clusterDataClient().bridgesGet(id)
     }
 
-    def newBridge(name: String): ClusterBridge =
-            newBridge(new ClusterBridge().setName(name))
+    def newBridge(name: String): Bridge =
+            newBridge(new Bridge().setName(name))
 
-    def newBridgePort(bridge: ClusterBridge): BridgePort =
+    def newBridgePort(bridge: Bridge): BridgePort =
         newBridgePort(bridge, Ports.bridgePort(bridge))
 
-    def newBridgePort(bridge: ClusterBridge, port: BridgePort) = {
+    def newBridgePort(bridge: Bridge, port: BridgePort) = {
         port.setDeviceId(bridge.getId)
         val uuid = clusterDataClient().portsCreate(port)
         Thread.sleep(50)
@@ -261,7 +259,7 @@ trait VirtualConfigurationBuilders {
         clusterDataClient().portsGet(uuid).asInstanceOf[BridgePort]
     }
 
-    def newBridgePort(bridge: ClusterBridge,
+    def newBridgePort(bridge: Bridge,
                       vlanId: Option[Short] = None): BridgePort = {
         val jVlanId: java.lang.Short = if(vlanId.isDefined) vlanId.get else null
         val uuid = clusterDataClient()
@@ -270,7 +268,7 @@ trait VirtualConfigurationBuilders {
         clusterDataClient().portsGet(uuid).asInstanceOf[BridgePort]
     }
 
-    def newVxLanPort(bridge: ClusterBridge, port: VxLanPort): VxLanPort = {
+    def newVxLanPort(bridge: Bridge, port: VxLanPort): VxLanPort = {
         port.setDeviceId(bridge.getId)
         val uuid = clusterDataClient().portsCreate(port)
         clusterDataClient().portsGet(uuid).asInstanceOf[VxLanPort]
@@ -281,13 +279,13 @@ trait VirtualConfigurationBuilders {
     }
 
     def newPortGroup(name: String, stateful: Boolean = false) = {
-        val pg = new ClusterPortGroup().setName(name).setStateful(stateful)
+        val pg = new PortGroup().setName(name).setStateful(stateful)
         val id = clusterDataClient().portGroupsCreate(pg)
         Thread.sleep(50)
         clusterDataClient().portGroupsGet(id)
     }
 
-    def updatePortGroup(pg: ClusterPortGroup) = {
+    def updatePortGroup(pg: PortGroup) = {
         clusterDataClient().portGroupsUpdate(pg)
     }
 
@@ -299,16 +297,16 @@ trait VirtualConfigurationBuilders {
         clusterDataClient().portGroupsRemovePortMembership(pgId, portId)
     }
 
-    def newRouter(router: ClusterRouter): ClusterRouter = {
+    def newRouter(router: Router): Router = {
         val id = clusterDataClient().routersCreate(router)
         Thread.sleep(50)
         clusterDataClient().routersGet(id)
     }
 
-    def newRouter(name: String): ClusterRouter =
-            newRouter(new ClusterRouter().setName(name))
+    def newRouter(name: String): Router =
+            newRouter(new Router().setName(name))
 
-    def newRouterPort(router: ClusterRouter, mac: MAC, portAddr: String,
+    def newRouterPort(router: Router, mac: MAC, portAddr: String,
                         nwAddr: String, nwLen: Int): RouterPort = {
         val port = Ports.routerPort(router)
                         .setPortAddr(portAddr)
@@ -320,12 +318,12 @@ trait VirtualConfigurationBuilders {
         clusterDataClient().portsGet(uuid).asInstanceOf[RouterPort]
     }
 
-    def newRouterPort(router: ClusterRouter, mac: MAC, portAddr: IPv4Subnet): RouterPort = {
+    def newRouterPort(router: Router, mac: MAC, portAddr: IPv4Subnet): RouterPort = {
         newRouterPort(router, mac, portAddr.toUnicastString,
             portAddr.toNetworkAddress.toString, portAddr.getPrefixLen)
     }
 
-    def newInteriorRouterPort(router: ClusterRouter, mac: MAC, portAddr: String,
+    def newInteriorRouterPort(router: Router, mac: MAC, portAddr: String,
                               nwAddr: String, nwLen: Int): RouterPort = {
         val port = Ports.routerPort(router)
                         .setPortAddr(portAddr)
@@ -337,7 +335,7 @@ trait VirtualConfigurationBuilders {
         clusterDataClient().portsGet(uuid).asInstanceOf[RouterPort]
     }
 
-    def newRoute(router: ClusterRouter,
+    def newRoute(router: Router,
                  srcNw: String, srcNwLen: Int, dstNw: String, dstNwLen: Int,
                  nextHop: NextHop, nextHopPort: UUID, nextHopGateway: String,
                  weight: Int): UUID = {
@@ -359,29 +357,29 @@ trait VirtualConfigurationBuilders {
         clusterDataClient().routesDelete(routeId)
     }
 
-    def addDhcpSubnet(bridge : ClusterBridge,
+    def addDhcpSubnet(bridge : Bridge,
                       subnet : Subnet) = {
         clusterDataClient().dhcpSubnetsCreate(bridge.getId, subnet)
     }
 
-    def addDhcpHost(bridge : ClusterBridge, subnet : Subnet,
-                    host : org.midonet.cluster.data.dhcp.Host) = {
+    def addDhcpHost(bridge : Bridge, subnet : Subnet,
+                    host : org.midonet.cluster.data.boilerplate.dhcp.Host) = {
         clusterDataClient().dhcpHostsCreate(bridge.getId, subnet.getSubnetAddr, host)
     }
 
-    def updatedhcpHost(bridge: ClusterBridge,
+    def updatedhcpHost(bridge: Bridge,
                        subnet: Subnet, host: DhcpHost) = {
         clusterDataClient().dhcpHostsUpdate(
             bridge.getId, subnet.getSubnetAddr, host)
     }
 
-    def addDhcpSubnet6(bridge : ClusterBridge,
+    def addDhcpSubnet6(bridge : Bridge,
                        subnet : Subnet6) = {
         clusterDataClient().dhcpSubnet6Create(bridge.getId, subnet)
     }
 
-    def addDhcpV6Host(bridge : ClusterBridge, subnet : Subnet6,
-                    host : org.midonet.cluster.data.dhcp.V6Host) = {
+    def addDhcpV6Host(bridge : Bridge, subnet : Subnet6,
+                    host : org.midonet.cluster.data.boilerplate.dhcp.V6Host) = {
         clusterDataClient().dhcpV6HostCreate(bridge.getId,
                                               subnet.getPrefix, host)
     }
@@ -450,7 +448,7 @@ trait VirtualConfigurationBuilders {
         clusterDataClient().loadBalancerDelete(id)
     }
 
-    def setLoadBalancerOnRouter(loadBalancer: LoadBalancer, router: ClusterRouter): Unit = {
+    def setLoadBalancerOnRouter(loadBalancer: LoadBalancer, router: Router): Unit = {
         if (loadBalancer != null) {
             router.setLoadBalancer(loadBalancer.getId)
         } else {

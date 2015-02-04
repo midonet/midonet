@@ -79,7 +79,7 @@ public class ChainResource extends AbstractResource {
     public void delete(@PathParam("id") UUID id)
             throws StateAccessException, SerializationException {
 
-        org.midonet.cluster.data.Chain chainData =
+        org.midonet.cluster.data.boilerplate.Chain chainData =
                 dataClient.chainsGet(id);
         if (chainData == null) {
             return;
@@ -117,7 +117,7 @@ public class ChainResource extends AbstractResource {
                     "Not authorized to view this chain.");
         }
 
-        org.midonet.cluster.data.Chain chainData =
+        org.midonet.cluster.data.boilerplate.Chain chainData =
                 dataClient.chainsGet(id);
         if (chainData == null) {
             throw new NotFoundHttpException(
@@ -187,13 +187,13 @@ public class ChainResource extends AbstractResource {
     public List<Chain> list(@QueryParam("tenant_id") String tenantId)
             throws StateAccessException, SerializationException {
 
-        List<org.midonet.cluster.data.Chain> dataChains = (tenantId == null) ?
+        List<org.midonet.cluster.data.boilerplate.Chain> dataChains = (tenantId == null) ?
                 dataClient.chainsGetAll() :
                 dataClient.chainsFindByTenant(tenantId);
 
         List<Chain> chains = new ArrayList<>();
         if (dataChains != null) {
-            for (org.midonet.cluster.data.Chain dataChain : dataChains) {
+            for (org.midonet.cluster.data.boilerplate.Chain dataChain : dataChains) {
                 Chain chain = new Chain(dataChain);
                 chain.setBaseUri(getBaseUri());
                 chains.add(chain);

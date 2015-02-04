@@ -15,8 +15,6 @@
  */
 package org.midonet.cluster.data.host;
 
-import org.midonet.cluster.data.Entity;
-
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -25,9 +23,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-/**
- * Host metadata
- */
+import org.midonet.cluster.data.Entity;
+
 public class Host extends Entity.Base<UUID, Host.Data, Host> {
 
     static public final int DEFAULT_FLOODING_PROXY_WEIGHT = 1;

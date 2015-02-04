@@ -25,16 +25,15 @@ import com.google.inject.{AbstractModule, Guice, Injector, PrivateModule, Scopes
 
 import org.apache.commons.configuration.HierarchicalConfiguration
 import org.openjdk.jmh.annotations.{TearDown, Setup => JmhSetup}
-
 import org.midonet.cluster.Client
 import org.midonet.cluster.backend.zookeeper.MockZookeeperConnectionModule
+import org.midonet.cluster.backend.zookeeper.serialization.SerializationModule
 import org.midonet.cluster.services.StorageService
 import org.midonet.config.ConfigProvider
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.guice.cluster.ClusterClientModule
 import org.midonet.midolman.guice.config.ConfigProviderModule
 import org.midonet.midolman.guice.datapath.MockDatapathModule
-import org.midonet.midolman.guice.serialization.SerializationModule
 import org.midonet.midolman.guice.state.MockFlowStateStorageModule
 import org.midonet.midolman.guice.{MidolmanActorsModule, MidolmanModule, ResourceProtectionModule, _}
 import org.midonet.midolman.host.scanner.InterfaceScanner

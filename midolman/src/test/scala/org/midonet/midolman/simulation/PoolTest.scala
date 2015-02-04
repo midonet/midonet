@@ -22,13 +22,13 @@ import akka.util.Timeout
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cluster.data.l4lb
-import org.midonet.cluster.data.{Router => ClusterRouter, Entity}
-import org.midonet.cluster.data.ports.RouterPort
+import org.midonet.cluster.data.boilerplate.l4lb
+import org.midonet.cluster.data.Entity
+import org.midonet.cluster.data.boilerplate.ports.RouterPort
 import org.midonet.midolman.PacketWorkflow.{AddVirtualWildcardFlow, SimulationResult}
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.state.NatState.{NatKey, NatBinding}
-import org.midonet.midolman.state.l4lb.LBStatus
+import org.midonet.cluster.data.boilerplate.l4lb.LBStatus
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.MessageAccumulator
@@ -77,10 +77,10 @@ class PoolTest extends MidolmanSpec {
     val routerBackendExteriorPortIps = (0 until numBackends) map {
         n => new IPv4Subnet(s"10.0.$n.254", 24)}
 
-    var router: ClusterRouter = _
-    var loadBalancer: l4lb.LoadBalancer = _
-    var vip: l4lb.VIP = _
-    var poolMembers: Seq[l4lb.PoolMember] = _
+    var router: Router = _
+    var loadBalancer: org.midonet.cluster.data.boilerplate.l4lb.LoadBalancer = _
+    var vip: org.midonet.cluster.data.boilerplate.l4lb.VIP = _
+    var poolMembers: Seq[org.midonet.cluster.data.boilerplate.l4lb.PoolMember] = _
     var exteriorClientPort: RouterPort = _
     var exteriorBackendPorts: Seq[RouterPort] = _
 
@@ -678,7 +678,7 @@ class PoolTest extends MidolmanSpec {
         }
     }
 
-    private[this] def getPoolMemberFromIp(ip: Int): l4lb.PoolMember = {
+    private[this] def getPoolMemberFromIp(ip: Int): org.midonet.cluster.data.boilerplate.l4lb.PoolMember = {
         val ipStr: String = IPv4Addr.intToString(ip)
         poolMembers.find(_.getAddress == ipStr).get
     }

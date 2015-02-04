@@ -23,7 +23,6 @@ import org.apache.zookeeper.Watcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.midonet.cluster.config.ZookeeperConfig;
 import org.midonet.event.api.NsdbEvent;
 
 /**

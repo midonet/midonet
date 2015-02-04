@@ -34,7 +34,7 @@ import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.cluster.backend.zookeeper.serialization.SerializationException;
 import org.midonet.cluster.backend.zookeeper.serialization.Serializer;
 import org.midonet.cluster.client.HostBuilder;
-import org.midonet.cluster.data.TunnelZone;
+import org.midonet.cluster.data.boilerplate.TunnelZone;
 import org.midonet.cluster.backend.zookeeper.ZkConnectionProvider;
 import org.midonet.midolman.host.state.HostDirectory;
 import org.midonet.midolman.host.state.HostZkManager;

@@ -27,8 +27,9 @@ import akka.event.{Logging, LoggingAdapter}
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cluster.data.ports.{BridgePort, VxLanPort}
-import org.midonet.cluster.data.{Bridge, Chain, Port}
+import org.midonet.cluster.data.boilerplate.{Chain, Port, Bridge}
+import org.midonet.cluster.data.boilerplate.ports.{BridgePort, VxLanPort}
+import org.midonet.cluster.data.Chain
 import org.midonet.midolman.UnderlayResolver.Route
 import org.midonet.midolman.rules.RuleResult.Action
 import org.midonet.midolman.rules.{Condition, RuleResult}

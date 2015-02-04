@@ -51,15 +51,15 @@ import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.api.rest_api.ServiceUnavailableHttpException;
 import org.midonet.api.validation.MessageProperty;
 import org.midonet.cluster.DataClient;
-import org.midonet.event.topology.PoolEvent;
-import org.midonet.cluster.backend.zookeeper.serialization.SerializationException;
 import org.midonet.cluster.backend.zookeeper.InvalidStateOperationException;
 import org.midonet.cluster.backend.zookeeper.NoStatePathException;
 import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.cluster.backend.zookeeper.StatePathExistsException;
-import org.midonet.midolman.state.l4lb.LBStatus;
-import org.midonet.midolman.state.l4lb.MappingStatusException;
-import org.midonet.midolman.state.l4lb.MappingViolationException;
+import org.midonet.cluster.backend.zookeeper.serialization.SerializationException;
+import org.midonet.cluster.data.boilerplate.l4lb.LBStatus;
+import org.midonet.cluster.data.boilerplate.l4lb.MappingStatusException;
+import org.midonet.cluster.data.boilerplate.l4lb.MappingViolationException;
+import org.midonet.event.topology.PoolEvent;
 
 import static org.midonet.api.validation.MessageProperty.RESOURCE_EXISTS;
 import static org.midonet.api.validation.MessageProperty.getMessage;
@@ -88,12 +88,12 @@ public class PoolResource extends AbstractResource {
     public List<Pool> list()
             throws StateAccessException, SerializationException {
 
-        List<org.midonet.cluster.data.l4lb.Pool> dataPools = null;
+        List<org.midonet.cluster.data.boilerplate.l4lb.Pool> dataPools = null;
 
         dataPools = dataClient.poolsGetAll();
         List<Pool> pools = new ArrayList<Pool>();
         if (dataPools != null) {
-            for (org.midonet.cluster.data.l4lb.Pool dataPool :
+            for (org.midonet.cluster.data.boilerplate.l4lb.Pool dataPool :
                     dataPools) {
                 Pool pool = new Pool(dataPool);
                 pool.setBaseUri(getBaseUri());
@@ -111,7 +111,7 @@ public class PoolResource extends AbstractResource {
     public Pool get(@PathParam("id") UUID id)
             throws StateAccessException, SerializationException {
 
-        org.midonet.cluster.data.l4lb.Pool poolData =
+        org.midonet.cluster.data.boilerplate.l4lb.Pool poolData =
             dataClient.poolGet(id);
         if (poolData == null)
             throwNotFound(id, "pool");
@@ -237,12 +237,12 @@ public class PoolResource extends AbstractResource {
         public List<Pool> list()
                 throws StateAccessException, SerializationException {
 
-            List<org.midonet.cluster.data.l4lb.Pool> dataPools = null;
+            List<org.midonet.cluster.data.boilerplate.l4lb.Pool> dataPools = null;
 
             dataPools = dataClient.loadBalancerGetPools(loadBalancerId);
             List<Pool> pools = new ArrayList<Pool>();
             if (dataPools != null) {
-                for (org.midonet.cluster.data.l4lb.Pool dataPool : dataPools) {
+                for (org.midonet.cluster.data.boilerplate.l4lb.Pool dataPool : dataPools) {
                     Pool pool = new Pool(dataPool);
                     pool.setBaseUri(getBaseUri());
                     pools.add(pool);

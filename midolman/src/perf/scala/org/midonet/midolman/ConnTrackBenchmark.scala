@@ -25,7 +25,7 @@ import scala.collection.JavaConverters._
 import org.openjdk.jmh.annotations.{Setup => JmhSetup, Level, Benchmark, Scope, State, Fork, Measurement, Warmup, OutputTimeUnit, Mode, BenchmarkMode}
 import org.openjdk.jmh.infra.Blackhole
 
-import org.midonet.cluster.data.ports.BridgePort
+import org.midonet.cluster.data.boilerplate.ports.BridgePort
 import org.midonet.midolman.UnderlayResolver.Route
 import org.midonet.midolman.rules.{RuleResult, Condition}
 import org.midonet.midolman.simulation.Bridge

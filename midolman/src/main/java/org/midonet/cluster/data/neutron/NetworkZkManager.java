@@ -27,18 +27,17 @@ import com.google.inject.Inject;
 
 import org.apache.zookeeper.Op;
 
-import org.midonet.cluster.data.Bridge;
-import org.midonet.cluster.data.Converter;
-import org.midonet.cluster.backend.zookeeper.serialization.SerializationException;
-import org.midonet.cluster.backend.zookeeper.serialization.Serializer;
-import org.midonet.midolman.state.BaseZkManager;
-import org.midonet.midolman.state.MacPortMap;
 import org.midonet.cluster.backend.zookeeper.NoStatePathException;
-import org.midonet.midolman.state.PathBuilder;
-import org.midonet.midolman.state.PortConfig;
-import org.midonet.midolman.state.PortDirectory.BridgePortConfig;
+import org.midonet.cluster.backend.zookeeper.PathBuilder;
 import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.cluster.backend.zookeeper.ZkManager;
+import org.midonet.cluster.backend.zookeeper.serialization.SerializationException;
+import org.midonet.cluster.backend.zookeeper.serialization.Serializer;
+import org.midonet.cluster.data.Converter;
+import org.midonet.cluster.state.MacPortMap;
+import org.midonet.midolman.state.BaseZkManager;
+import org.midonet.midolman.state.PortConfig;
+import org.midonet.midolman.state.PortDirectory.BridgePortConfig;
 import org.midonet.midolman.state.zkManagers.BridgeDhcpV6ZkManager;
 import org.midonet.midolman.state.zkManagers.BridgeDhcpZkManager;
 import org.midonet.midolman.state.zkManagers.BridgeDhcpZkManager.Host;
@@ -47,6 +46,8 @@ import org.midonet.midolman.state.zkManagers.BridgeZkManager.BridgeConfig;
 import org.midonet.midolman.state.zkManagers.PortZkManager;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IPv4Subnet;
+
+import static org.midonet.cluster.data.boilerplate.Bridge.UNTAGGED_VLAN_ID;
 
 public class NetworkZkManager extends BaseZkManager {
 
@@ -69,8 +70,7 @@ public class NetworkZkManager extends BaseZkManager {
         this.dhcpV6ZkManager = dhcpV6ZkManager;
         this.portZkManager = portZkManager;
     }
-
-    /**
+    /*
      * Network methods
      */
 
@@ -138,7 +138,7 @@ public class NetworkZkManager extends BaseZkManager {
         return networks;
     }
 
-    /**
+    /*
      * Subnet methods
      */
 
@@ -437,7 +437,7 @@ public class NetworkZkManager extends BaseZkManager {
     private String getMacPortEntryPath(Port port) {
         String macEntry = MacPortMap.encodePersistentPath(port.macAddress(), port.id);
         String path = paths.getBridgeMacPortEntryPath(port.networkId,
-                                                      Bridge.UNTAGGED_VLAN_ID,
+                                                      UNTAGGED_VLAN_ID,
                                                       macEntry);
         return path;
     }

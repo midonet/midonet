@@ -79,7 +79,7 @@ public class PortGroupResource extends AbstractResource {
     public void delete(@PathParam("id") UUID id)
             throws StateAccessException, SerializationException {
 
-        org.midonet.cluster.data.PortGroup portGroupData =
+        org.midonet.cluster.data.boilerplate.PortGroup portGroupData =
                 dataClient.portGroupsGet(id);
         if (portGroupData == null) {
             return;
@@ -114,7 +114,7 @@ public class PortGroupResource extends AbstractResource {
                     "Not authorized to view this port group.");
         }
 
-        org.midonet.cluster.data.PortGroup portGroupData =
+        org.midonet.cluster.data.boilerplate.PortGroup portGroupData =
                 dataClient.portGroupsGet(id);
         if (portGroupData == null) {
             throw new NotFoundHttpException(
@@ -172,7 +172,7 @@ public class PortGroupResource extends AbstractResource {
                                 @QueryParam("port_id") UUID portId)
             throws StateAccessException, SerializationException {
 
-        List<org.midonet.cluster.data.PortGroup> portGroupDataList = null;
+        List<org.midonet.cluster.data.boilerplate.PortGroup> portGroupDataList = null;
         if (portId != null) {
             portGroupDataList = dataClient.portGroupsFindByPort(portId);
         } else if (tenantId != null) {
@@ -183,7 +183,7 @@ public class PortGroupResource extends AbstractResource {
 
         List<PortGroup> portGroups = new ArrayList<>();
         if (portGroupDataList != null) {
-            for (org.midonet.cluster.data.PortGroup portGroupData :
+            for (org.midonet.cluster.data.boilerplate.PortGroup portGroupData :
                     portGroupDataList) {
                 PortGroup portGroup = new PortGroup(portGroupData);
                 portGroup.setBaseUri(getBaseUri());
@@ -233,12 +233,12 @@ public class PortGroupResource extends AbstractResource {
         public List<PortGroupPort> list() throws StateAccessException,
                 SerializationException {
 
-            List<org.midonet.cluster.data.PortGroup> portGroupDataList =
+            List<org.midonet.cluster.data.boilerplate.PortGroup> portGroupDataList =
                 fetchPortGroupsHelper();
 
             List<PortGroupPort> portGroups = new ArrayList<>();
             if (portGroupDataList != null) {
-                for (org.midonet.cluster.data.PortGroup portGroupData :
+                for (org.midonet.cluster.data.boilerplate.PortGroup portGroupData :
                         portGroupDataList) {
                     PortGroupPort portGroup = new PortGroupPort();
                     portGroup.setPortGroupId(portGroupData.getId());
@@ -260,12 +260,12 @@ public class PortGroupResource extends AbstractResource {
         public List<PortGroup> listV1() throws StateAccessException,
             SerializationException {
 
-            List<org.midonet.cluster.data.PortGroup> portGroupDataList =
+            List<org.midonet.cluster.data.boilerplate.PortGroup> portGroupDataList =
                 fetchPortGroupsHelper();
 
             List<PortGroup> portGroups = new ArrayList<PortGroup>();
             if (portGroupDataList != null) {
-                for (org.midonet.cluster.data.PortGroup portGroupData :
+                for (org.midonet.cluster.data.boilerplate.PortGroup portGroupData :
                     portGroupDataList) {
                     PortGroup portGroup = new PortGroup(portGroupData);
                     portGroup.setBaseUri(getBaseUri());
@@ -275,7 +275,7 @@ public class PortGroupResource extends AbstractResource {
             return portGroups;
         }
 
-        private List<org.midonet.cluster.data.PortGroup> fetchPortGroupsHelper()
+        private List<org.midonet.cluster.data.boilerplate.PortGroup> fetchPortGroupsHelper()
             throws StateAccessException, SerializationException {
             if (!portAuthorizer.authorize(context, AuthAction.READ, portId)) {
                 throw new ForbiddenHttpException(

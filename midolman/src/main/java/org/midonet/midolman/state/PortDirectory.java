@@ -22,7 +22,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.codehaus.jackson.annotate.JsonIgnore;
-import org.midonet.cluster.data.BGP;
+import org.midonet.cluster.data.boilerplate.BGP;
 import org.midonet.midolman.layer3.Route;
 import org.midonet.packets.*;
 

@@ -43,7 +43,7 @@ import org.midonet.packets.IPAddr;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
 
-import static org.midonet.cluster.data.Bridge.UNTAGGED_VLAN_ID;
+import static org.midonet.cluster.data.boilerplate.Bridge.UNTAGGED_VLAN_ID;
 
 public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
 

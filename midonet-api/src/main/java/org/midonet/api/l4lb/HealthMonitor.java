@@ -19,8 +19,8 @@ import org.codehaus.jackson.annotate.JsonIgnore;
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.UriResource;
 import org.midonet.api.validation.VerifyEnumValue;
-import org.midonet.midolman.state.l4lb.HealthMonitorType;
-import org.midonet.midolman.state.l4lb.LBStatus;
+import org.midonet.cluster.data.boilerplate.l4lb.HealthMonitorType;
+import org.midonet.cluster.data.boilerplate.l4lb.LBStatus;
 
 import java.net.URI;
 import java.util.UUID;
@@ -104,7 +104,7 @@ public class HealthMonitor extends UriResource {
     }
 
     public HealthMonitor(
-            org.midonet.cluster.data.l4lb.HealthMonitor healthMonitor) {
+            org.midonet.cluster.data.boilerplate.l4lb.HealthMonitor healthMonitor) {
         super();
         this.id = healthMonitor.getId();
         this.type = healthMonitor.getType().toString();
@@ -115,8 +115,8 @@ public class HealthMonitor extends UriResource {
         this.status = healthMonitor.getStatus().toString();
     }
 
-    public org.midonet.cluster.data.l4lb.HealthMonitor toData() {
-        return new org.midonet.cluster.data.l4lb.HealthMonitor()
+    public org.midonet.cluster.data.boilerplate.l4lb.HealthMonitor toData() {
+        return new org.midonet.cluster.data.boilerplate.l4lb.HealthMonitor()
                 .setId(this.id)
                 .setType(HealthMonitorType.valueOf(this.type))
                 .setDelay(this.delay)

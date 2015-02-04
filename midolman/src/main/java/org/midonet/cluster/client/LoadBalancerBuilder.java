@@ -18,10 +18,10 @@ package org.midonet.cluster.client;
 import java.util.Map;
 import java.util.UUID;
 
-import org.midonet.cluster.data.l4lb.VIP;
+import org.midonet.cluster.data.boilerplate.l4lb.VIP;
 
 public interface LoadBalancerBuilder extends Builder<LoadBalancerBuilder> {
     void setAdminStateUp(boolean adminStateUp);
     void setRouterId(UUID routerId);
-    void setVips(Map<UUID,VIP> vips);
+    void setVips(Map<UUID, VIP> vips);
 }

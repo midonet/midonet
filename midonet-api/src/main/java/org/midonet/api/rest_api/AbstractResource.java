@@ -27,7 +27,7 @@ import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
 import org.midonet.cluster.DataClient;
-import org.midonet.cluster.data.Bridge;
+import org.midonet.cluster.data.boilerplate.Bridge;
 import org.midonet.cluster.data.storage.Storage;
 import org.midonet.cluster.backend.zookeeper.serialization.SerializationException;
 import org.midonet.cluster.backend.zookeeper.NoStatePathException;
@@ -143,7 +143,7 @@ public abstract class AbstractResource {
 
     protected Bridge getBridgeOrThrow(UUID id, boolean badRequest)
             throws StateAccessException, SerializationException {
-        org.midonet.cluster.data.Bridge bridge = dataClient.bridgesGet(id);
+        Bridge bridge = dataClient.bridgesGet(id);
         if (bridge == null) {
             String msg = getMessage(RESOURCE_NOT_FOUND, "bridge", id);
             throw badRequest ? new BadRequestHttpException(msg) :

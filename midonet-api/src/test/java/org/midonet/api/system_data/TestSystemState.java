@@ -30,7 +30,7 @@ import org.midonet.api.rest_api.FuncTest;
 import org.midonet.client.MidonetApi;
 import org.midonet.client.VendorMediaType;
 import org.midonet.client.resource.Router;
-import org.midonet.cluster.data.SystemState;
+import org.midonet.cluster.data.boilerplate.SystemState;
 import org.midonet.cluster.backend.zookeeper.StateAccessException;
 
 import static org.hamcrest.MatcherAssert.assertThat;

@@ -18,7 +18,7 @@ package org.midonet.api.bgp;
 import org.midonet.api.UriResource;
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.bgp.validation.IsUniqueBgpInPort;
-import org.midonet.cluster.data.BGP;
+import org.midonet.cluster.data.boilerplate.BGP;
 import org.midonet.packets.IPv4Addr;
 
 import javax.xml.bind.annotation.XmlRootElement;

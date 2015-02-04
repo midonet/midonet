@@ -30,7 +30,8 @@ import com.typesafe.scalalogging.Logger
 import org.slf4j.LoggerFactory
 
 import org.midonet.Subscription
-import org.midonet.cluster.data.TunnelZone.{HostConfig => TZHostConfig, Type => TunnelType}
+import org.midonet.cluster.data.boilerplate.TunnelZone
+import TunnelZone.{HostConfig => TZHostConfig, Type => TunnelType}
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.DatapathPortEntangler

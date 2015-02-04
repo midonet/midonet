@@ -18,7 +18,7 @@ package org.midonet.api.dhcp;
 
 import org.midonet.api.RelativeUriResource;
 import org.midonet.api.ResourceUriBuilder;
-import org.midonet.cluster.data.dhcp.V6Host;
+import org.midonet.cluster.data.boilerplate.dhcp.V6Host;
 import org.midonet.packets.IPv6Addr;
 
 import javax.xml.bind.annotation.XmlRootElement;

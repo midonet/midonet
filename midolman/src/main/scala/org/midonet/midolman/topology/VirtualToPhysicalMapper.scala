@@ -31,7 +31,7 @@ import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.backend.zookeeper.Directory.TypedWatcher
 import org.midonet.cluster.backend.zookeeper.DirectoryCallback
-import org.midonet.cluster.data.TunnelZone
+import org.midonet.cluster.data.boilerplate.TunnelZone
 import org.midonet.cluster.{Client, DataClient}
 import org.midonet.midolman._
 import org.midonet.midolman.logging.ActorLogWithoutPath

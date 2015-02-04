@@ -37,8 +37,8 @@ import com.google.inject._
 import com.typesafe.scalalogging.Logger
 import org.apache.commons.configuration.HierarchicalConfiguration
 import org.midonet.cluster.backend.zookeeper.MockZookeeperConnectionModule
-import org.midonet.cluster.data.host.Host
-import org.midonet.cluster.data.{Port => VPort}
+import org.midonet.cluster.backend.zookeeper.serialization.SerializationModule
+import org.midonet.cluster.data.boilerplate.host.Host
 import org.midonet.cluster.services.StorageService
 import org.midonet.midolman.DatapathController.{DatapathReady, Initialize}
 import org.midonet.midolman.DeduplicationActor.{DiscardPacket, HandlePackets}
@@ -49,7 +49,6 @@ import org.midonet.midolman.guice._
 import org.midonet.midolman.guice.cluster.ClusterClientModule
 import org.midonet.midolman.guice.config.ConfigProviderModule
 import org.midonet.midolman.guice.datapath.MockDatapathModule
-import org.midonet.midolman.guice.serialization.SerializationModule
 import org.midonet.midolman.guice.state.MockFlowStateStorageModule
 import org.midonet.midolman.host.config.HostConfig
 import org.midonet.midolman.host.guice.HostConfigProvider
@@ -254,8 +253,8 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
         Await.result(promise, timeout)
     }
 
-    def materializePort(port: VPort[_, _],
-                        host: Host, name: String): VPort[_,_] = {
+    def materializePort(port: Port[_, _],
+                        host: Host, name: String): Port[_,_] = {
         val updatedPort =
             clusterDataClient
                 .hostsAddVrnPortMappingAndReturnPort(host.getId, port.getId, name)

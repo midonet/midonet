@@ -28,19 +28,19 @@ import org.apache.zookeeper.Op;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.midonet.cluster.ZookeeperLockFactory;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.ZkManager;
+import org.midonet.cluster.backend.zookeeper.ZkOpList;
+import org.midonet.cluster.backend.zookeeper.ZookeeperLockFactory;
+import org.midonet.cluster.backend.zookeeper.serialization.SerializationException;
 import org.midonet.cluster.data.Rule;
+import org.midonet.cluster.data.boilerplate.util.ZkOpLock;
 import org.midonet.cluster.data.neutron.loadbalancer.HealthMonitor;
 import org.midonet.cluster.data.neutron.loadbalancer.Member;
 import org.midonet.cluster.data.neutron.loadbalancer.Pool;
 import org.midonet.cluster.data.neutron.loadbalancer.PoolHealthMonitor;
 import org.midonet.cluster.data.neutron.loadbalancer.VIP;
-import org.midonet.cluster.data.util.ZkOpLock;
-import org.midonet.cluster.backend.zookeeper.serialization.SerializationException;
 import org.midonet.midolman.state.PortConfig;
-import org.midonet.cluster.backend.zookeeper.StateAccessException;
-import org.midonet.cluster.backend.zookeeper.ZkManager;
-import org.midonet.cluster.backend.zookeeper.ZkOpList;
 import org.midonet.midolman.state.zkManagers.BridgeZkManager;
 
 

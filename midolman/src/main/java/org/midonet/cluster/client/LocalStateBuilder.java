@@ -17,9 +17,6 @@ package org.midonet.cluster.client;
 
 import java.util.UUID;
 
-/**
-* // TODO: mtoader ! Please explain yourself.
-*/
 public interface LocalStateBuilder {
 
     LocalStateBuilder setDatapathName(String datapathName);

@@ -21,8 +21,8 @@ import java.util.UUID
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cluster.data.{Bridge => ClusterBridge, Router => ClusterRouter, Chain}
-import org.midonet.cluster.data.ports.{BridgePort, RouterPort}
+import org.midonet.cluster.data.boilerplate.Chain
+import org.midonet.cluster.data.boilerplate.ports.{BridgePort, RouterPort}
 import org.midonet.midolman.services.{HostIdProviderService}
 import org.midonet.midolman.simulation.{Router, Bridge}
 import org.midonet.midolman.topology.VirtualTopologyActor
@@ -45,9 +45,9 @@ object BridgeWithOneVm {
 
 
 class BridgeWithOneVm(val subnet: IPSubnet[IPv4Addr],
-                      val clusterRouter: ClusterRouter, spec: MidolmanSpec) {
+                      val clusterRouter: Router, spec: MidolmanSpec) {
 
-    var clusterBridge: ClusterBridge = _
+    var clusterBridge: Bridge = _
     var vmPort: BridgePort = _
     var uplinkPort: BridgePort = _
     var routerPort: RouterPort = _
@@ -73,7 +73,7 @@ class BridgeWithOneVm(val subnet: IPSubnet[IPv4Addr],
     def tagFor(port: BridgePort) = FlowTagger.tagForBridgePort(clusterBridge.getId, port.getId)
     def tagFor(port: RouterPort) = FlowTagger.tagForDevice(routerPort.getId)
 
-    private def addAndMaterializeBridgePort(br: ClusterBridge): BridgePort = {
+    private def addAndMaterializeBridgePort(br: Bridge): BridgePort = {
         val port = spec.newBridgePort(br)
         spec.clusterDataClient.portsSetLocalAndActive(port.getId, spec.hostId, true)
         port
@@ -128,7 +128,7 @@ class ChainInvalidationTest extends MidolmanSpec {
     var routerIn: Chain = _
     var routerInJump: Chain = _
 
-    var clusterRouter: ClusterRouter = _
+    var clusterRouter: Router = _
 
     private def buildTopology() {
         val host = newHost("myself",

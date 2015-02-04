@@ -16,8 +16,7 @@
 package org.midonet.api.system_data;
 
 import java.net.URI;
-import java.util.List;
-import java.util.UUID;
+
 import javax.xml.bind.annotation.XmlRootElement;
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.UriResource;
@@ -32,13 +31,14 @@ public class WriteVersion extends UriResource {
         super();
     }
 
-    public WriteVersion(org.midonet.cluster.data.WriteVersion writeVersion) {
+    public WriteVersion(
+        org.midonet.cluster.data.boilerplate.WriteVersion writeVersion) {
         super();
         this.version = writeVersion.getVersion();
     }
 
-    public org.midonet.cluster.data.WriteVersion toData() {
-        return new org.midonet.cluster.data.WriteVersion()
+    public org.midonet.cluster.data.boilerplate.WriteVersion toData() {
+        return new org.midonet.cluster.data.boilerplate.WriteVersion()
                 .setVersion(this.version);
     }
 

@@ -21,9 +21,7 @@ import scala.concurrent.ExecutionContext
 import akka.actor.ActorSystem
 
 import com.google.inject.Injector
-
-import org.midonet.cluster.Client
-import org.midonet.cluster.DataClient
+import org.midonet.cluster.{Client, DataClient}
 import org.midonet.midolman.datapath.DatapathChannel
 import org.midonet.midolman.flows.FlowEjector
 import org.midonet.midolman.io.UpcallDatapathConnectionManager

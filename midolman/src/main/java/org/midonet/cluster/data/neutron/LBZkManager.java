@@ -26,6 +26,7 @@ import com.google.inject.Inject;
 
 import org.apache.zookeeper.Op;
 
+import org.midonet.cluster.backend.zookeeper.PathBuilder;
 import org.midonet.cluster.data.neutron.loadbalancer.HealthMonitor;
 import org.midonet.cluster.data.neutron.loadbalancer.Member;
 import org.midonet.cluster.data.neutron.loadbalancer.Pool;
@@ -34,7 +35,6 @@ import org.midonet.cluster.data.neutron.loadbalancer.VIP;
 import org.midonet.cluster.backend.zookeeper.serialization.SerializationException;
 import org.midonet.cluster.backend.zookeeper.serialization.Serializer;
 import org.midonet.midolman.state.BaseZkManager;
-import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.PortDirectory.RouterPortConfig;
 import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.cluster.backend.zookeeper.ZkManager;

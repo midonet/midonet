@@ -19,7 +19,7 @@ package org.midonet.api.rest_api;
 
 import com.google.common.collect.ImmutableMap;
 import org.midonet.api.validation.MessageProperty;
-import org.midonet.midolman.state.l4lb.MappingStatusException;
+import org.midonet.cluster.data.boilerplate.l4lb.MappingStatusException;
 
 import java.util.HashMap;
 import javax.ws.rs.WebApplicationException;

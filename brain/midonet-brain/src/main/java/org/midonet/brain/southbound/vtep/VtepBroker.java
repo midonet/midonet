@@ -44,7 +44,7 @@ import org.midonet.brain.services.vxgw.VxLanPeerConsolidationException;
 import org.midonet.brain.services.vxgw.VxLanPeerSyncException;
 import org.midonet.brain.southbound.vtep.model.LogicalSwitch;
 import org.midonet.brain.southbound.vtep.model.UcastMac;
-import org.midonet.cluster.data.VtepBinding;
+import org.midonet.cluster.data.boilerplate.VtepBinding;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
 

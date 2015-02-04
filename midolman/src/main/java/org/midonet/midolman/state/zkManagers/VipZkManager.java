@@ -24,14 +24,14 @@ import org.apache.zookeeper.Op;
 
 import org.midonet.cluster.data.neutron.loadbalancer.SessionPersistenceType;
 import org.midonet.cluster.data.neutron.loadbalancer.VIP;
-import org.midonet.midolman.state.l4lb.VipSessionPersistence;
+import org.midonet.cluster.data.boilerplate.l4lb.VipSessionPersistence;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.midonet.cluster.backend.zookeeper.serialization.SerializationException;
 import org.midonet.cluster.backend.zookeeper.serialization.Serializer;
 import org.midonet.midolman.state.AbstractZkManager;
-import org.midonet.midolman.state.PathBuilder;
+import org.midonet.cluster.backend.zookeeper.PathBuilder;
 import org.midonet.cluster.backend.zookeeper.ZkManager;
 
 import static java.util.Arrays.asList;

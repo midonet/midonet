@@ -20,8 +20,7 @@ import java.util.UUID
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cluster.data.ports.RouterPort
-import org.midonet.cluster.data.{Router => ClusterRouter}
+import org.midonet.cluster.data.boilerplate.ports.RouterPort
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman.PacketWorkflow.TemporaryDrop
 import org.midonet.midolman.layer3.Route
@@ -60,7 +59,7 @@ class BlackholeRouteFlowTrackingTest extends MidolmanSpec
     val netmask = 24
 
     var simRouter: Router = null
-    var clusterRouter: ClusterRouter = null
+    var clusterRouter: Router = null
 
     private def buildTopology() {
         val host = newHost("myself",

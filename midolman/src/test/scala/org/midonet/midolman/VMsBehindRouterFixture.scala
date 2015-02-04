@@ -18,11 +18,8 @@ package org.midonet.midolman
 import scala.util.Try
 
 import org.slf4j.LoggerFactory
-
-import org.midonet.cluster.data.{Bridge => ClusterBridge,
-                                 Router => ClusterRouter}
-import org.midonet.cluster.data.host.Host
-import org.midonet.cluster.data.ports.BridgePort
+import org.midonet.cluster.data.boilerplate.host.Host
+import org.midonet.cluster.data.boilerplate.ports.BridgePort
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.layer3.Route.NextHop
 import org.midonet.midolman.topology.LocalPortActive
@@ -63,8 +60,8 @@ trait VMsBehindRouterFixture extends SimulationHelper with
         IPv6Addr.fromString("fe80:0:0:0:0:7ed1:c3ff:4"),
         IPv6Addr.fromString("fe80:0:0:0:0:7ed1:c3ff:5"))
 
-    var bridge: ClusterBridge = null
-    var router: ClusterRouter = null
+    var bridge: Bridge = null
+    var router: Router = null
     var host: Host = null
 
     override def beforeTest() {

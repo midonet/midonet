@@ -16,7 +16,6 @@
 package org.midonet.midolman.topology
 
 import java.util.UUID
-
 import org.midonet.cluster.Client
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman.topology.builders.PortBuilderImpl

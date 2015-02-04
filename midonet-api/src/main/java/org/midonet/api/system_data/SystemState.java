@@ -33,15 +33,16 @@ public class SystemState extends UriResource {
         super();
     }
 
-    public SystemState(org.midonet.cluster.data.SystemState systemState) {
+    public SystemState(
+        org.midonet.cluster.data.boilerplate.SystemState systemState) {
         super();
         this.state = systemState.getState();
         this.availability = systemState.getAvailability();
         this.writeVersion = systemState.getWriteVersion();
     }
 
-    public org.midonet.cluster.data.SystemState toData() {
-        return new org.midonet.cluster.data.SystemState()
+    public org.midonet.cluster.data.boilerplate.SystemState toData() {
+        return new org.midonet.cluster.data.boilerplate.SystemState()
             .setState(this.state)
             .setAvailability(this.availability)
             .setWriteVersion(this.writeVersion);

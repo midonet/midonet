@@ -21,7 +21,7 @@ import javax.validation.ConstraintValidatorContext;
 import com.google.inject.Inject;
 import org.midonet.api.validation.MessageProperty;
 import org.midonet.cluster.DataClient;
-import org.midonet.cluster.data.TunnelZone;
+import org.midonet.cluster.data.boilerplate.TunnelZone;
 import org.midonet.cluster.backend.zookeeper.serialization.SerializationException;
 import org.midonet.cluster.backend.zookeeper.StateAccessException;
 

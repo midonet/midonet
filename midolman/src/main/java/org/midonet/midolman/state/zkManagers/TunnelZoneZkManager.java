@@ -33,11 +33,11 @@ import org.midonet.cluster.backend.zookeeper.serialization.Serializer;
 import org.midonet.cluster.backend.zookeeper.serialization.SerializationException;
 import org.midonet.cluster.backend.zookeeper.Directory;
 import org.midonet.cluster.backend.zookeeper.NoStatePathException;
-import org.midonet.midolman.state.PathBuilder;
+import org.midonet.cluster.backend.zookeeper.PathBuilder;
 import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.cluster.backend.zookeeper.StatePathExistsException;
 import org.midonet.cluster.backend.zookeeper.ZkManager;
-import org.midonet.cluster.data.TunnelZone;
+import org.midonet.cluster.data.boilerplate.TunnelZone;
 import org.midonet.util.functors.CollectionFunctors;
 import org.midonet.util.functors.Functor;
 

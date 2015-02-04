@@ -21,7 +21,7 @@ import org.midonet.api.auth.Authorizer;
 import org.midonet.cluster.backend.zookeeper.serialization.SerializationException;
 import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.cluster.DataClient;
-import org.midonet.cluster.data.Bridge;
+import org.midonet.cluster.data.boilerplate.Bridge;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

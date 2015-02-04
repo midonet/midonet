@@ -34,7 +34,7 @@ import org.midonet.brain.test.RxTestUtils;
 import org.midonet.brain.services.vxgw.monitor.TunnelZoneMonitor;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.backend.EntityIdSetEvent;
-import org.midonet.cluster.data.TunnelZone;
+import org.midonet.cluster.data.boilerplate.TunnelZone;
 import org.midonet.cluster.backend.zookeeper.serialization.SerializationException;
 import org.midonet.cluster.backend.zookeeper.Directory;
 import org.midonet.cluster.backend.zookeeper.StateAccessException;

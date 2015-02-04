@@ -24,6 +24,9 @@ import static org.junit.Assert.*;
 import java.util.UUID;
 
 import org.junit.Test;
+
+import org.midonet.cluster.data.boilerplate.Bridge;
+import org.midonet.cluster.data.boilerplate.Converter;
 import org.midonet.midolman.state.zkManagers.BridgeZkManager.BridgeConfig;
 
 /**

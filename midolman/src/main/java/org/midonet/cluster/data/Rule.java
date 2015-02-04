@@ -22,7 +22,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-
+/**
+ * TODO: migrate to cluster, BUT, this requires decoupling some of the
+ * subclasses from the simulation models (!!)
+ */
 public abstract class Rule
         <RuleData extends Rule.Data, Self
                 extends Rule<RuleData, Self>>

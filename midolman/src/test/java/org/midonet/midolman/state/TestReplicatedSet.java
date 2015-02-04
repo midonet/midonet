@@ -29,6 +29,7 @@ import org.junit.Test;
 
 import org.midonet.cluster.backend.zookeeper.Directory;
 import org.midonet.cluster.backend.zookeeper.MockDirectory;
+import org.midonet.cluster.state.ReplicatedSet;
 import org.midonet.midolman.layer3.Route;
 import org.midonet.cluster.backend.zookeeper.serialization.SerializationException;
 

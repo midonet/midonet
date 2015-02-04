@@ -20,27 +20,28 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import javax.annotation.Nonnull;
+
 import com.google.common.base.Preconditions;
+
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooDefs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.midonet.cluster.data.dhcp.ExtraDhcpOpt;
-import org.midonet.cluster.data.neutron.Route;
-import org.midonet.cluster.backend.zookeeper.serialization.SerializationException;
-import org.midonet.cluster.backend.zookeeper.serialization.Serializer;
-import org.midonet.midolman.state.BaseZkManager;
-import org.midonet.midolman.state.PathBuilder;
+import org.midonet.cluster.backend.zookeeper.PathBuilder;
 import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.cluster.backend.zookeeper.ZkManager;
+import org.midonet.cluster.backend.zookeeper.serialization.SerializationException;
+import org.midonet.cluster.backend.zookeeper.serialization.Serializer;
+import org.midonet.cluster.data.boilerplate.dhcp.ExtraDhcpOpt;
+import org.midonet.cluster.data.neutron.Route;
+import org.midonet.midolman.state.BaseZkManager;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IPv4Subnet;
 import org.midonet.packets.MAC;
 import org.midonet.util.version.Since;
-
-import javax.annotation.Nonnull;
 
 public class BridgeDhcpZkManager extends BaseZkManager {
 

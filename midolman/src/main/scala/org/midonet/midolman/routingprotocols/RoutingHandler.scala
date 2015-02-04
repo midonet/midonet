@@ -26,7 +26,8 @@ import akka.pattern.pipe
 
 import org.midonet.cluster.backend.zookeeper.{StateAccessException, ZkConnectionAwareWatcher}
 import org.midonet.cluster.client.BGPListBuilder
-import org.midonet.cluster.data.{AdRoute, BGP, Route}
+import org.midonet.cluster.data.Route
+import org.midonet.cluster.data.boilerplate.{AdRoute, BGP}
 import org.midonet.cluster.{Client, DataClient}
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman._

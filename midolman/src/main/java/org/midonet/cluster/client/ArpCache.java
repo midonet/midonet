@@ -15,7 +15,7 @@
  */
 package org.midonet.cluster.client;
 
-import org.midonet.midolman.state.ArpCacheEntry;
+import org.midonet.cluster.state.ArpCacheEntry;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
 import org.midonet.util.functors.Callback3;

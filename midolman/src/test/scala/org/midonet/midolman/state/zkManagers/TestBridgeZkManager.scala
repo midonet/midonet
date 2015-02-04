@@ -28,16 +28,12 @@ import org.apache.zookeeper.CreateMode
 import org.junit.Assert._
 import org.slf4j.LoggerFactory
 
-import org.midonet.cluster.backend.zookeeper.{ZkManager, MockDirectory}
-import org.midonet.midolman.Setup
-import org.midonet.midolman.guice.serialization.JsonVersionZkSerializer
+import org.midonet.cluster.backend.zookeeper.serialization.JsonVersionZkSerializer
+import org.midonet.cluster.backend.zookeeper._
 import org.midonet.midolman.state.zkManagers.BridgeZkManager.BridgeConfig
-import org.midonet.midolman.state.PathBuilder
-import org.midonet.midolman.version.VersionComparator
+import org.midonet.cluster.backend.version.VersionComparator
 
 import org.junit.{Test, BeforeClass, AfterClass}
-import org.midonet.midolman.state.ZkSystemDataProvider
-
 
 /**
  * Test for BridgeZkManager.

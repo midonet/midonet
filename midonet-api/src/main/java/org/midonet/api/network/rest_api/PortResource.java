@@ -62,7 +62,7 @@ import org.midonet.api.rest_api.ResourceFactory;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.api.vtep.VtepClusterClient;
 import org.midonet.cluster.DataClient;
-import org.midonet.cluster.data.ports.VxLanPort;
+import org.midonet.cluster.data.boilerplate.ports.VxLanPort;
 import org.midonet.event.topology.PortEvent;
 import org.midonet.cluster.backend.zookeeper.serialization.SerializationException;
 import org.midonet.cluster.backend.zookeeper.StateAccessException;
@@ -106,7 +106,8 @@ public class PortResource extends AbstractResource {
             throws StateAccessException, SerializationException {
 
         // Get the port and validate that this can be deleted
-        org.midonet.cluster.data.Port<?, ?> portData = dataClient.portsGet(id);
+        org.midonet.cluster.data.boilerplate.Port<?, ?>
+            portData = dataClient.portsGet(id);
         if (portData == null) {
             return;
         }
@@ -127,14 +128,14 @@ public class PortResource extends AbstractResource {
         portEvent.delete(id);
     }
 
-    private org.midonet.cluster.data.Port<?, ?> getPortData(UUID id)
+    private org.midonet.cluster.data.boilerplate.Port<?, ?> getPortData(UUID id)
             throws StateAccessException, SerializationException {
         if (!authorizer.authorize(context, AuthAction.READ, id)) {
             throw new ForbiddenHttpException(
                     "Not authorized to view this port.");
         }
 
-        org.midonet.cluster.data.Port<?, ?> portData =
+        org.midonet.cluster.data.boilerplate.Port<?, ?> portData =
                 dataClient.portsGet(id);
         if (portData == null) {
             throw new NotFoundHttpException(
@@ -160,7 +161,8 @@ public class PortResource extends AbstractResource {
             MediaType.APPLICATION_JSON })
     public Port getv1(@PathParam("id") UUID id) throws StateAccessException,
             SerializationException {
-        org.midonet.cluster.data.Port<?, ?> portData = getPortData(id);
+        org.midonet.cluster.data.boilerplate.Port<?, ?>
+            portData = getPortData(id);
 
         Port port = PortFactory.convertToApiPortV1(portData);
         port.setBaseUri(getBaseUri());
@@ -183,7 +185,8 @@ public class PortResource extends AbstractResource {
     @Produces({VendorMediaType.APPLICATION_PORT_V2_JSON})
     public Port get(@PathParam("id") UUID id) throws StateAccessException,
             SerializationException {
-        org.midonet.cluster.data.Port<?, ?> portData = getPortData(id);
+        org.midonet.cluster.data.boilerplate.Port<?, ?>
+            portData = getPortData(id);
 
         Port port = PortFactory.convertToApiPort(portData);
         port.setBaseUri(getBaseUri());
@@ -197,10 +200,10 @@ public class PortResource extends AbstractResource {
             MediaType.APPLICATION_JSON})
     public List<Port> list()
             throws StateAccessException, SerializationException {
-        List<org.midonet.cluster.data.Port<?, ?>> portDataList =
+        List<org.midonet.cluster.data.boilerplate.Port<?, ?>> portDataList =
                 dataClient.portsGetAll();
         List<Port> ports = new ArrayList<>();
-        for (org.midonet.cluster.data.Port<?, ?> portData: portDataList) {
+        for (org.midonet.cluster.data.boilerplate.Port<?, ?> portData: portDataList) {
             Port port = PortFactory.convertToApiPort(portData);
             port.setBaseUri(getBaseUri());
             ports.add(port);
@@ -214,10 +217,10 @@ public class PortResource extends AbstractResource {
     @Produces({ VendorMediaType.APPLICATION_PORT_COLLECTION_JSON })
     public List<Port> listV1()
             throws StateAccessException, SerializationException {
-        List<org.midonet.cluster.data.Port<?, ?>> portDataList =
+        List<org.midonet.cluster.data.boilerplate.Port<?, ?>> portDataList =
                 dataClient.portsGetAll();
         List<Port> ports = new ArrayList<>();
-        for (org.midonet.cluster.data.Port<?, ?> portData: portDataList) {
+        for (org.midonet.cluster.data.boilerplate.Port<?, ?> portData: portDataList) {
             Port port = PortFactory.convertToApiPortV1(portData);
             port.setBaseUri(getBaseUri());
             ports.add(port);
@@ -290,7 +293,8 @@ public class PortResource extends AbstractResource {
 
         dataClient.portsLink(link.getPortId(), link.getPeerId());
 
-        org.midonet.cluster.data.Port<?, ?> portData = dataClient.portsGet(id);
+        org.midonet.cluster.data.boilerplate.Port<?, ?>
+            portData = dataClient.portsGet(id);
         portEvent.link(id, portData);
 
         return Response.created(
@@ -305,7 +309,7 @@ public class PortResource extends AbstractResource {
             SerializationException {
 
         // Idempotent operation: if the port does not exists, just return.
-        org.midonet.cluster.data.Port<?, ?> portData =
+        org.midonet.cluster.data.boilerplate.Port<?, ?> portData =
                 dataClient.portsGet(id);
         if (portData == null) {
             return;
@@ -473,10 +477,10 @@ public class PortResource extends AbstractResource {
                         "Not authorized to view these ports.");
             }
 
-            List<org.midonet.cluster.data.ports.BridgePort> portDataList =
+            List<org.midonet.cluster.data.boilerplate.ports.BridgePort> portDataList =
                     dataClient.portsFindByBridge(bridgeId);
             List<Port> ports = new ArrayList<>(portDataList.size());
-            for (org.midonet.cluster.data.ports.BridgePort portData :
+            for (org.midonet.cluster.data.boilerplate.ports.BridgePort portData :
                     portDataList) {
                 Port port = PortFactory.convertToApiPortV1(portData);
                 port.setBaseUri(getBaseUri());
@@ -503,10 +507,10 @@ public class PortResource extends AbstractResource {
                         "Not authorized to view these ports.");
             }
 
-            List<org.midonet.cluster.data.ports.BridgePort> portDataList =
+            List<org.midonet.cluster.data.boilerplate.ports.BridgePort> portDataList =
                     dataClient.portsFindByBridge(bridgeId);
             List<Port> ports = new ArrayList<>(portDataList.size());
-            for (org.midonet.cluster.data.ports.BridgePort portData :
+            for (org.midonet.cluster.data.boilerplate.ports.BridgePort portData :
                 portDataList) {
                 Port port = PortFactory.convertToApiPort(portData);
                 port.setBaseUri(getBaseUri());
@@ -557,10 +561,10 @@ public class PortResource extends AbstractResource {
                         "Not authorized to view these ports.");
             }
 
-            List<org.midonet.cluster.data.Port<?, ?>> portDataList =
+            List<org.midonet.cluster.data.boilerplate.Port<?, ?>> portDataList =
                     dataClient.portsFindPeersByBridge(bridgeId);
             List<Port> ports = new ArrayList<>(portDataList.size());
-            for (org.midonet.cluster.data.Port<?, ?> portData : portDataList) {
+            for (org.midonet.cluster.data.boilerplate.Port<?, ?> portData : portDataList) {
                 Port port = PortFactory.convertToApiPortV1(portData);
                 port.setBaseUri(getBaseUri());
                 ports.add(port);
@@ -586,10 +590,10 @@ public class PortResource extends AbstractResource {
                         "Not authorized to view these ports.");
             }
 
-            List<org.midonet.cluster.data.Port<?, ?>> portDataList =
+            List<org.midonet.cluster.data.boilerplate.Port<?, ?>> portDataList =
                     dataClient.portsFindPeersByBridge(bridgeId);
             List<Port> ports = new ArrayList<>(portDataList.size());
-            for (org.midonet.cluster.data.Port<?, ?> portData : portDataList) {
+            for (org.midonet.cluster.data.boilerplate.Port<?, ?> portData : portDataList) {
                 Port port = PortFactory.convertToApiPort(portData);
                 port.setBaseUri(getBaseUri());
                 ports.add(port);
@@ -709,10 +713,10 @@ public class PortResource extends AbstractResource {
                         "Not authorized to view these ports.");
             }
 
-            List<org.midonet.cluster.data.Port<?, ?>> portDataList =
+            List<org.midonet.cluster.data.boilerplate.Port<?, ?>> portDataList =
                     dataClient.portsFindByRouter(routerId);
             ArrayList<Port> ports = new ArrayList<>(portDataList.size());
-            for (org.midonet.cluster.data.Port<?, ?> portData : portDataList) {
+            for (org.midonet.cluster.data.boilerplate.Port<?, ?> portData : portDataList) {
                 Port port = PortFactory.convertToApiPortV1(portData);
                 port.setBaseUri(getBaseUri());
                 ports.add(port);
@@ -736,10 +740,10 @@ public class PortResource extends AbstractResource {
                         "Not authorized to view these ports.");
             }
 
-            List<org.midonet.cluster.data.Port<?, ?>> portDataList =
+            List<org.midonet.cluster.data.boilerplate.Port<?, ?>> portDataList =
                     dataClient.portsFindByRouter(routerId);
             ArrayList<Port> ports = new ArrayList<>(portDataList.size());
-            for (org.midonet.cluster.data.Port<?, ?> portData : portDataList) {
+            for (org.midonet.cluster.data.boilerplate.Port<?, ?> portData : portDataList) {
                  Port port = PortFactory.convertToApiPort(portData);
                  port.setBaseUri(getBaseUri());
                  ports.add(port);
@@ -789,10 +793,10 @@ public class PortResource extends AbstractResource {
                         "Not authorized to view these ports.");
             }
 
-            List<org.midonet.cluster.data.Port<?, ?>> portDataList =
+            List<org.midonet.cluster.data.boilerplate.Port<?, ?>> portDataList =
                     dataClient.portsFindPeersByRouter(routerId);
             List<Port> ports = new ArrayList<>(portDataList.size());
-            for (org.midonet.cluster.data.Port<?, ?> portData : portDataList) {
+            for (org.midonet.cluster.data.boilerplate.Port<?, ?> portData : portDataList) {
                 Port port = PortFactory.convertToApiPortV1(portData);
                 port.setBaseUri(getBaseUri());
                 ports.add(port);
@@ -818,10 +822,10 @@ public class PortResource extends AbstractResource {
                         "Not authorized to view these ports.");
             }
 
-            List<org.midonet.cluster.data.Port<?, ?>> portDataList =
+            List<org.midonet.cluster.data.boilerplate.Port<?, ?>> portDataList =
                     dataClient.portsFindPeersByRouter(routerId);
             List<Port> ports = new ArrayList<>(portDataList.size());
-            for (org.midonet.cluster.data.Port<?, ?> portData : portDataList) {
+            for (org.midonet.cluster.data.boilerplate.Port<?, ?> portData : portDataList) {
                 Port port = PortFactory.convertToApiPort(portData);
                 port.setBaseUri(getBaseUri());
                 ports.add(port);
@@ -955,11 +959,11 @@ public class PortResource extends AbstractResource {
                                 "membership.");
             }
 
-            List<org.midonet.cluster.data.Port<?, ?>> portDataList =
+            List<org.midonet.cluster.data.boilerplate.Port<?, ?>> portDataList =
                     dataClient.portsFindByPortGroup(portGroupId);
             List<PortGroupPort> portGroupPorts =
                     new ArrayList<>(portDataList.size());
-            for (org.midonet.cluster.data.Port<?, ?> portData :
+            for (org.midonet.cluster.data.boilerplate.Port<?, ?> portData :
                     portDataList) {
                 PortGroupPort portGroupPort = new PortGroupPort();
                 portGroupPort.setPortGroupId(portGroupId);

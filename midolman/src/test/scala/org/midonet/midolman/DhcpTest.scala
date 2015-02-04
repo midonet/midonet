@@ -24,13 +24,12 @@ import scala.collection.mutable
 
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
-
-import org.midonet.cluster.data.Bridge
-import org.midonet.cluster.data.dhcp.{Host => DhcpHost}
-import org.midonet.cluster.data.dhcp.Opt121
-import org.midonet.cluster.data.dhcp.Subnet
-import org.midonet.cluster.data.dhcp.ExtraDhcpOpt
-import org.midonet.cluster.data.ports.BridgePort
+import org.midonet.cluster.data.boilerplate.Bridge
+import org.midonet.cluster.data.boilerplate.dhcp.{Host => DhcpHost}
+import org.midonet.cluster.data.boilerplate.dhcp.Opt121
+import org.midonet.cluster.data.boilerplate.dhcp.Subnet
+import org.midonet.cluster.data.boilerplate.dhcp.ExtraDhcpOpt
+import org.midonet.cluster.data.boilerplate.ports.BridgePort
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.layer3.Route._
 import org.midonet.midolman.simulation.DhcpValueParser

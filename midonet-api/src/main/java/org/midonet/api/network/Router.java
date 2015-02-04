@@ -17,7 +17,7 @@ package org.midonet.api.network;
 
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.UriResource;
-import org.midonet.cluster.data.Router.Property;
+import org.midonet.cluster.data.boilerplate.Router.Property;
 import org.midonet.util.version.Since;
 
 import javax.validation.GroupSequence;
@@ -80,7 +80,7 @@ public class Router extends UriResource {
      * @param routerData
      *            Router data object
      */
-    public Router(org.midonet.cluster.data.Router routerData) {
+    public Router(org.midonet.cluster.data.boilerplate.Router routerData) {
         this(routerData.getId(), routerData.getData().name,
                 routerData.getProperty(Property.tenant_id));
         this.adminStateUp = routerData.getData().adminStateUp;
@@ -265,9 +265,9 @@ public class Router extends UriResource {
      *
      * @return Router data object
      */
-    public org.midonet.cluster.data.Router toData() {
+    public org.midonet.cluster.data.boilerplate.Router toData() {
 
-        return new org.midonet.cluster.data.Router()
+        return new org.midonet.cluster.data.boilerplate.Router()
                 .setId(this.id)
                 .setName(this.name)
                 .setAdminStateUp(this.adminStateUp)

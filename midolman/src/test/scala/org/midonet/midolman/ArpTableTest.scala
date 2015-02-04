@@ -23,6 +23,7 @@ import scala.concurrent.duration._
 import scala.util.{Failure, Success, Try}
 
 import org.junit.runner.RunWith
+import org.midonet.cluster.state.{ArpCacheEntry, ReplicatedMap}
 import org.midonet.midolman.PacketWorkflow.NoOp
 import org.midonet.odp.FlowMatch
 import org.scalatest.junit.JUnitRunner
@@ -30,8 +31,7 @@ import org.scalatest.junit.JUnitRunner
 import org.midonet.midolman.layer3.Route.NextHop
 import org.midonet.midolman.simulation._
 import org.midonet.midolman.simulation.PacketEmitter.GeneratedPacket
-import org.midonet.midolman.state.ArpCacheEntry
-import org.midonet.midolman.state.ReplicatedMap.Watcher
+import ReplicatedMap.Watcher
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.topology.devices.RouterPort
 import org.midonet.midolman.util.MidolmanSpec

@@ -25,7 +25,6 @@ import scala.compat.Platform
 import scala.concurrent.duration._
 
 import com.typesafe.scalalogging.Logger
-
 import org.midonet.cluster.Client
 import org.midonet.cluster.client._
 import org.midonet.midolman.FlowController

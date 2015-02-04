@@ -24,7 +24,6 @@ import com.google.inject.name.Named
 import org.midonet.cluster.DataClient
 import org.midonet.cluster.backend.zookeeper.{StateAccessException, ZkConnectionAwareWatcher}
 import org.midonet.cluster.state.ZookeeperStateStorage.REACTOR_TAG
-import org.midonet.midolman.state.{Ip4ToMacReplicatedMap, MacPortMap}
 import org.midonet.util.eventloop.Reactor
 
 object ZookeeperStateStorage {
@@ -39,8 +38,8 @@ class ZookeeperStateStorage @Inject() (dataClient: DataClient,
 
     @throws[StateAccessException]
     override def getBridgeMacTable(@Nonnull bridgeId: UUID,
-                          vlanId: Short,
-                          ephemeral: Boolean): MacPortMap = {
+                                   vlanId: Short,
+                                   ephemeral: Boolean): MacPortMap = {
         dataClient.bridgeGetMacTable(bridgeId, vlanId, ephemeral)
     }
 

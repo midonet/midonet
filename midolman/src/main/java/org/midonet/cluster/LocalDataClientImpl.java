@@ -48,65 +48,65 @@ import org.slf4j.LoggerFactory;
 
 import org.midonet.cluster.backend.EntityIdSetMonitor;
 import org.midonet.cluster.backend.EntityMonitor;
+import org.midonet.cluster.backend.SystemDataProvider;
 import org.midonet.cluster.backend.zookeeper.Directory;
 import org.midonet.cluster.backend.zookeeper.DirectoryCallback;
 import org.midonet.cluster.backend.zookeeper.InvalidStateOperationException;
 import org.midonet.cluster.backend.zookeeper.NoStatePathException;
+import org.midonet.cluster.backend.zookeeper.PathBuilder;
 import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.cluster.backend.zookeeper.WatchableZkManager;
+import org.midonet.cluster.backend.zookeeper.ZkConnectionProvider;
+import org.midonet.cluster.backend.zookeeper.ZkLeaderElectionWatcher;
+import org.midonet.cluster.backend.zookeeper.ZkManager;
+import org.midonet.cluster.backend.zookeeper.ZkUtil;
 import org.midonet.cluster.backend.zookeeper.ZookeeperConnectionWatcher;
 import org.midonet.cluster.backend.zookeeper.serialization.SerializationException;
 import org.midonet.cluster.backend.zookeeper.serialization.Serializer;
-import org.midonet.cluster.backend.zookeeper.ZkConnectionProvider;
-import org.midonet.cluster.data.AdRoute;
-import org.midonet.cluster.data.BGP;
-import org.midonet.cluster.data.Bridge;
-import org.midonet.cluster.data.Chain;
 import org.midonet.cluster.data.Converter;
-import org.midonet.cluster.data.HostVersion;
-import org.midonet.cluster.data.IpAddrGroup;
-import org.midonet.cluster.data.Port;
-import org.midonet.cluster.data.PortGroup;
 import org.midonet.cluster.data.Route;
-import org.midonet.cluster.data.Router;
 import org.midonet.cluster.data.Rule;
-import org.midonet.cluster.data.SystemState;
-import org.midonet.cluster.data.TunnelZone;
-import org.midonet.cluster.data.VTEP;
-import org.midonet.cluster.data.VtepBinding;
-import org.midonet.cluster.data.WriteVersion;
-import org.midonet.cluster.data.dhcp.Subnet;
-import org.midonet.cluster.data.dhcp.Subnet6;
-import org.midonet.cluster.data.dhcp.V6Host;
+import org.midonet.cluster.data.boilerplate.AdRoute;
+import org.midonet.cluster.data.boilerplate.BGP;
+import org.midonet.cluster.data.boilerplate.Bridge;
+import org.midonet.cluster.data.boilerplate.Chain;
+import org.midonet.cluster.data.boilerplate.HostVersion;
+import org.midonet.cluster.data.boilerplate.IpAddrGroup;
+import org.midonet.cluster.data.boilerplate.Port;
+import org.midonet.cluster.data.boilerplate.PortGroup;
+import org.midonet.cluster.data.boilerplate.Router;
+import org.midonet.cluster.data.boilerplate.SystemState;
+import org.midonet.cluster.data.boilerplate.TunnelZone;
+import org.midonet.cluster.data.boilerplate.VTEP;
+import org.midonet.cluster.data.boilerplate.VtepBinding;
+import org.midonet.cluster.data.boilerplate.WriteVersion;
+import org.midonet.cluster.data.boilerplate.dhcp.Subnet;
+import org.midonet.cluster.data.boilerplate.dhcp.Subnet6;
+import org.midonet.cluster.data.boilerplate.dhcp.V6Host;
+import org.midonet.cluster.data.boilerplate.host.VirtualPortMapping;
+import org.midonet.cluster.data.boilerplate.l4lb.HealthMonitor;
+import org.midonet.cluster.data.boilerplate.l4lb.LBStatus;
+import org.midonet.cluster.data.boilerplate.l4lb.LoadBalancer;
+import org.midonet.cluster.data.boilerplate.l4lb.MappingStatusException;
+import org.midonet.cluster.data.boilerplate.l4lb.MappingViolationException;
+import org.midonet.cluster.data.boilerplate.l4lb.Pool;
+import org.midonet.cluster.data.boilerplate.l4lb.PoolHealthMonitorMappingStatus;
+import org.midonet.cluster.data.boilerplate.l4lb.PoolMember;
+import org.midonet.cluster.data.boilerplate.l4lb.VIP;
+import org.midonet.cluster.data.boilerplate.ports.BridgePort;
+import org.midonet.cluster.data.boilerplate.ports.VlanMacPort;
+import org.midonet.cluster.data.boilerplate.ports.VxLanPort;
 import org.midonet.cluster.data.host.Host;
 import org.midonet.cluster.data.host.Interface;
-import org.midonet.cluster.data.host.VirtualPortMapping;
-import org.midonet.cluster.data.l4lb.HealthMonitor;
-import org.midonet.cluster.data.l4lb.LoadBalancer;
-import org.midonet.cluster.data.l4lb.Pool;
-import org.midonet.cluster.data.l4lb.PoolMember;
-import org.midonet.cluster.data.l4lb.VIP;
-import org.midonet.cluster.data.ports.BridgePort;
-import org.midonet.cluster.data.ports.VlanMacPort;
-import org.midonet.cluster.data.ports.VxLanPort;
-import org.midonet.midolman.SystemDataProvider;
+import org.midonet.cluster.state.Ip4ToMacReplicatedMap;
+import org.midonet.cluster.state.MacPortMap;
 import org.midonet.midolman.host.state.HostDirectory;
 import org.midonet.midolman.host.state.HostZkManager;
 import org.midonet.midolman.rules.RuleList;
-import org.midonet.midolman.state.Ip4ToMacReplicatedMap;
-import org.midonet.midolman.state.MacPortMap;
-import org.midonet.midolman.state.PathBuilder;
-import org.midonet.midolman.state.PoolHealthMonitorMappingStatus;
 import org.midonet.midolman.state.PortConfig;
 import org.midonet.midolman.state.PortConfigCache;
 import org.midonet.midolman.state.PortDirectory;
 import org.midonet.midolman.state.PortDirectory.VxLanPortConfig;
-import org.midonet.cluster.backend.zookeeper.ZkLeaderElectionWatcher;
-import org.midonet.cluster.backend.zookeeper.ZkManager;
-import org.midonet.cluster.backend.zookeeper.ZkUtil;
-import org.midonet.midolman.state.l4lb.LBStatus;
-import org.midonet.midolman.state.l4lb.MappingStatusException;
-import org.midonet.midolman.state.l4lb.MappingViolationException;
 import org.midonet.midolman.state.zkManagers.AdRouteZkManager;
 import org.midonet.midolman.state.zkManagers.BgpZkManager;
 import org.midonet.midolman.state.zkManagers.BridgeDhcpV6ZkManager;
@@ -1025,7 +1025,7 @@ public class LocalDataClientImpl implements DataClient {
     @Override
     public void dhcpHostsCreate(
             @Nonnull UUID bridgeId, @Nonnull IPv4Subnet subnet,
-            org.midonet.cluster.data.dhcp.Host host)
+            org.midonet.cluster.data.boilerplate.dhcp.Host host)
             throws StateAccessException, SerializationException {
 
         dhcpZkManager.addHost(bridgeId, subnet,
@@ -1035,18 +1035,18 @@ public class LocalDataClientImpl implements DataClient {
     @Override
     public void dhcpHostsUpdate(
             @Nonnull UUID bridgeId, @Nonnull IPv4Subnet subnet,
-            org.midonet.cluster.data.dhcp.Host host)
+            org.midonet.cluster.data.boilerplate.dhcp.Host host)
             throws StateAccessException, SerializationException {
         dhcpZkManager.updateHost(bridgeId, subnet,
                                  Converter.toDhcpHostConfig(host));
     }
 
     @Override
-    public @CheckForNull org.midonet.cluster.data.dhcp.Host dhcpHostsGet(
+    public @CheckForNull org.midonet.cluster.data.boilerplate.dhcp.Host dhcpHostsGet(
             UUID bridgeId, IPv4Subnet subnet, String mac)
             throws StateAccessException, SerializationException {
 
-        org.midonet.cluster.data.dhcp.Host host = null;
+        org.midonet.cluster.data.boilerplate.dhcp.Host host = null;
         if (dhcpZkManager.existsHost(bridgeId, subnet, mac)) {
             BridgeDhcpZkManager.Host hostConfig =
                     dhcpZkManager.getHost(bridgeId, subnet, mac);
@@ -1065,13 +1065,13 @@ public class LocalDataClientImpl implements DataClient {
 
     @Override
     public
-    List<org.midonet.cluster.data.dhcp.Host> dhcpHostsGetBySubnet(
+    List<org.midonet.cluster.data.boilerplate.dhcp.Host> dhcpHostsGetBySubnet(
             UUID bridgeId, IPv4Subnet subnet)
             throws StateAccessException, SerializationException {
 
         List<BridgeDhcpZkManager.Host> hostConfigs =
                 dhcpZkManager.getHosts(bridgeId, subnet);
-        List<org.midonet.cluster.data.dhcp.Host> hosts =
+        List<org.midonet.cluster.data.boilerplate.dhcp.Host> hosts =
                 new ArrayList<>();
         for (BridgeDhcpZkManager.Host hostConfig : hostConfigs) {
             hosts.add(Converter.fromDhcpHostConfig(hostConfig));

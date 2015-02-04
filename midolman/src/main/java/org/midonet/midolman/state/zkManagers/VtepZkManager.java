@@ -25,18 +25,19 @@ import java.util.UUID;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.Watcher;
 
-import org.midonet.cluster.backend.StateVersionException;
+import org.midonet.cluster.backend.version.StateVersionException;
 import org.midonet.cluster.backend.zookeeper.NoStatePathException;
+import org.midonet.cluster.backend.zookeeper.PathBuilder;
 import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.cluster.backend.zookeeper.StatePathExistsException;
 import org.midonet.cluster.backend.zookeeper.WatchableZkManager;
 import org.midonet.cluster.backend.zookeeper.ZkManager;
+import org.midonet.cluster.backend.zookeeper.ZkPathManager;
 import org.midonet.cluster.backend.zookeeper.serialization.SerializationException;
 import org.midonet.cluster.backend.zookeeper.serialization.Serializer;
-import org.midonet.cluster.data.VtepBinding;
+import org.midonet.cluster.data.boilerplate.VTEP;
+import org.midonet.cluster.data.boilerplate.VtepBinding;
 import org.midonet.midolman.state.AbstractZkManager;
-import org.midonet.midolman.state.PathBuilder;
-import org.midonet.midolman.state.ZkPathManager;
 import org.midonet.packets.IPv4Addr;
 
 import static java.util.Arrays.asList;
@@ -44,9 +45,6 @@ import static java.util.Arrays.asList;
 public class VtepZkManager
         extends AbstractZkManager<IPv4Addr, VtepZkManager.VtepConfig>
         implements WatchableZkManager<IPv4Addr, VtepZkManager.VtepConfig> {
-
-    public static final int MIN_VNI = 10000;
-    public static final int MAX_VNI = 0xffffff;
 
     public static class VtepConfig {
         public int mgmtPort;
@@ -298,7 +296,7 @@ public class VtepZkManager
 
             // Try to increment the counter node.
             try {
-                int newVni = (vni < MAX_VNI) ? vni + 1 : MIN_VNI;
+                int newVni = (vni < VTEP.MAX_VNI) ? vni + 1 : VTEP.MIN_VNI;
                 byte[] newData = Integer.toString(newVni).getBytes();
                 zk.update(path, newData, nodeVersion);
                 return vni;

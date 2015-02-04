@@ -18,7 +18,7 @@ package org.midonet.midolman.guice
 
 import com.google.inject.{Inject, PrivateModule, Provider}
 import org.apache.curator.framework.CuratorFramework
-import org.midonet.cluster.config.ZookeeperConfig
+import org.midonet.cluster.backend.zookeeper.ZookeeperConfig
 import org.midonet.cluster.data.storage.{Storage, ZookeeperObjectMapper}
 
 /**

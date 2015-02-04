@@ -17,7 +17,7 @@ package org.midonet.cluster.client;
 
 import java.util.UUID;
 
-import org.midonet.cluster.data.TunnelZone;
+import org.midonet.cluster.data.boilerplate.TunnelZone;
 
 public interface TunnelZones {
     interface BuildersProvider {

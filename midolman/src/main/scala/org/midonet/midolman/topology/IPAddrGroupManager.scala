@@ -17,8 +17,8 @@ package org.midonet.midolman.topology
 
 import akka.actor.{ActorRef, Actor}
 import java.util.{Set => JSet, UUID}
-import org.midonet.packets.IPAddr
 import org.midonet.cluster.Client
+import org.midonet.packets.IPAddr
 import org.midonet.cluster.client.IPAddrGroupBuilder
 import org.midonet.midolman.topology.IPAddrGroupManager.IPAddrsUpdate
 import org.midonet.midolman.simulation.IPAddrGroup

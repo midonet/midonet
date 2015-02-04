@@ -23,9 +23,9 @@ import scala.sys.process._
 
 import org.junit.experimental.categories.Category
 import org.junit.runner.RunWith
-import org.midonet.cluster.data.TunnelZone
-import org.midonet.cluster.data.dhcp.{Opt121, Subnet}
-import org.midonet.cluster.data.ports.BridgePort
+import org.midonet.cluster.data.boilerplate.TunnelZone
+import org.midonet.cluster.data.boilerplate.dhcp.{Opt121, Subnet}
+import org.midonet.cluster.data.boilerplate.ports.BridgePort
 import org.midonet.midolman.host.interfaces.InterfaceDescription
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.layer3.Route.NextHop
@@ -168,7 +168,7 @@ class DhcpInterfaceMtuTestCase extends MidolmanTestCase
         materializePort(brPort2, host, vmPortName)
         requestOfType[LocalPortActive](portsProbe)
 
-        val dhcpHost = new org.midonet.cluster.data.dhcp.Host()
+        val dhcpHost = new org.midonet.cluster.data.boilerplate.dhcp.Host()
                        .setMAC(vmMac)
                        .setIp(vmIP.getAddress)
         addDhcpHost(bridge, dhcpSubnet, dhcpHost)

@@ -39,9 +39,9 @@ import org.slf4j.LoggerFactory
 
 import org.midonet.brain.ClusterNode.Context
 import org.midonet.brain.services.c3po.{C3POConfig, C3POMinion}
-import org.midonet.cluster.data.neutron.NeutronResourceType.{Network => NetworkType, NoData, Port => PortType, Router => RouterType, SecurityGroup => SecurityGroupType}
-import org.midonet.cluster.data.neutron.TaskType._
-import org.midonet.cluster.data.neutron.{NeutronResourceType, TaskType}
+import org.midonet.cluster.data.boilerplate.neutron.NeutronResourceType.{Network => NetworkType, NoData, Port => PortType, Router => RouterType, SecurityGroup => SecurityGroupType}
+import org.midonet.cluster.data.boilerplate.neutron.TaskType._
+import org.midonet.cluster.data.boilerplate.neutron.{NeutronResourceType, TaskType}
 import org.midonet.cluster.data.storage.{ObjectReferencedException, Storage}
 import org.midonet.cluster.models.{Commons, C3PO}
 import org.midonet.cluster.models.Commons.{EtherType, Protocol, RuleDirection}

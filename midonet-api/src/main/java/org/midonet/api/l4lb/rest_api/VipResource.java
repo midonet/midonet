@@ -37,7 +37,7 @@ import org.midonet.cluster.backend.zookeeper.InvalidStateOperationException;
 import org.midonet.cluster.backend.zookeeper.NoStatePathException;
 import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.cluster.backend.zookeeper.StatePathExistsException;
-import org.midonet.midolman.state.l4lb.MappingStatusException;
+import org.midonet.cluster.data.boilerplate.l4lb.MappingStatusException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -84,12 +84,12 @@ public class VipResource extends AbstractResource {
             MediaType.APPLICATION_JSON })
     public List<VIP> list()
             throws StateAccessException, SerializationException {
-        List<org.midonet.cluster.data.l4lb.VIP> vipsData;
+        List<org.midonet.cluster.data.boilerplate.l4lb.VIP> vipsData;
 
         vipsData = dataClient.vipGetAll();
         List<VIP> vips = new ArrayList<VIP>();
         if (vipsData != null) {
-            for (org.midonet.cluster.data.l4lb.VIP vipData: vipsData) {
+            for (org.midonet.cluster.data.boilerplate.l4lb.VIP vipData: vipsData) {
                 VIP vip = new VIP(vipData);
                 vip.setBaseUri(getBaseUri());
                 vips.add(vip);
@@ -115,7 +115,7 @@ public class VipResource extends AbstractResource {
             MediaType.APPLICATION_JSON })
     public VIP get(@PathParam("id") UUID id)
         throws StateAccessException, SerializationException {
-        org.midonet.cluster.data.l4lb.VIP vipData = dataClient.vipGet(id);
+        org.midonet.cluster.data.boilerplate.l4lb.VIP vipData = dataClient.vipGet(id);
         if (vipData == null)
             throwNotFound(id, "VIP");
 
@@ -237,7 +237,7 @@ public class VipResource extends AbstractResource {
         public List<VIP> list()
                 throws StateAccessException, SerializationException {
 
-            List<org.midonet.cluster.data.l4lb.VIP> dataVips = null;
+            List<org.midonet.cluster.data.boilerplate.l4lb.VIP> dataVips = null;
 
             try {
                 dataVips = dataClient.poolGetVips(poolId);
@@ -246,7 +246,7 @@ public class VipResource extends AbstractResource {
             }
             List<VIP> vips = new ArrayList<>();
             if (dataVips != null) {
-                for (org.midonet.cluster.data.l4lb.VIP dataVip : dataVips) {
+                for (org.midonet.cluster.data.boilerplate.l4lb.VIP dataVip : dataVips) {
                     VIP vip = new VIP(dataVip);
                     vip.setBaseUri(getBaseUri());
                     vips.add(vip);

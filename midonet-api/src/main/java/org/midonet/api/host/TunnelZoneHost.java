@@ -29,7 +29,7 @@ import org.midonet.api.host.TunnelZoneHost.TunnelZoneHostUnique;
 import org.midonet.api.host.validation.IsUniqueTunnelZoneMember;
 import org.midonet.api.host.validation.IsValidHostId;
 import org.midonet.api.host.validation.IsValidTunnelZoneId;
-import org.midonet.cluster.data.TunnelZone.HostConfig;
+import org.midonet.cluster.data.boilerplate.TunnelZone.HostConfig;
 import org.midonet.packets.IPv4;
 import org.midonet.packets.IPv4Addr;
 

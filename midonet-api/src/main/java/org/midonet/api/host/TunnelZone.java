@@ -18,8 +18,6 @@ package org.midonet.api.host;
 import org.midonet.api.host.validation.UniqueTunnelZoneName;
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.UriResource;
-import org.codehaus.jackson.annotate.JsonSubTypes;
-import org.codehaus.jackson.annotate.JsonTypeInfo;
 import org.midonet.api.validation.AllowedValue;
 
 import javax.validation.GroupSequence;
@@ -82,7 +80,7 @@ public class TunnelZone extends UriResource {
      *            TunnelZone data object
      */
     public TunnelZone(
-            org.midonet.cluster.data.TunnelZone tunnelZoneData) {
+            org.midonet.cluster.data.boilerplate.TunnelZone tunnelZoneData) {
         this(UUID.fromString(tunnelZoneData.getId().toString()),
                 tunnelZoneData.getName(), tunnelZoneData.getType().toString());
     }
@@ -141,16 +139,16 @@ public class TunnelZone extends UriResource {
     public void setType(String type) { this.type = type; }
 
 
-    public org.midonet.cluster.data.TunnelZone toData() {
-        org.midonet.cluster.data.TunnelZone.Type t = org.midonet.cluster.data.TunnelZone.Type.gre;
+    public org.midonet.cluster.data.boilerplate.TunnelZone toData() {
+        org.midonet.cluster.data.boilerplate.TunnelZone.Type t = org.midonet.cluster.data.boilerplate.TunnelZone.Type.gre;
 
         if (this.type.equals(TunnelZoneType.VxLAN))
-            t = org.midonet.cluster.data.TunnelZone.Type.vxlan;
+            t = org.midonet.cluster.data.boilerplate.TunnelZone.Type.vxlan;
 
         if (this.type.equals(TunnelZoneType.VTEP))
-            t = org.midonet.cluster.data.TunnelZone.Type.vtep;
+            t = org.midonet.cluster.data.boilerplate.TunnelZone.Type.vtep;
 
-        return new org.midonet.cluster.data.TunnelZone()
+        return new org.midonet.cluster.data.boilerplate.TunnelZone()
                 .setId(this.id)
                 .setName(this.name)
                 .setType(t);
@@ -179,7 +177,7 @@ public class TunnelZone extends UriResource {
     /**
      * Convert this object to tunnel zone data object
      */
-    public void setConfig(org.midonet.cluster.data.TunnelZone data) {
+    public void setConfig(org.midonet.cluster.data.boilerplate.TunnelZone data) {
         data.setId(this.id);
         data.setName(this.name);
     }

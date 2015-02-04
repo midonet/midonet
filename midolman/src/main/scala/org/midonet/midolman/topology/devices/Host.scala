@@ -18,7 +18,6 @@ package org.midonet.midolman.topology.devices
 
 import java.util.{Objects, UUID}
 
-import org.midonet.cluster.data.TunnelZone.HostConfig
 import org.midonet.cluster.data.{ZoomClass, ZoomField, ZoomObject}
 import org.midonet.cluster.models.Topology
 import org.midonet.cluster.models.Topology.Host.PortToInterface

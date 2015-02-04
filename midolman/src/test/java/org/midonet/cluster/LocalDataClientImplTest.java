@@ -22,11 +22,11 @@ import java.util.UUID;
 
 import org.junit.Test;
 
-import org.midonet.cluster.data.Route;
-import org.midonet.cluster.data.Router;
-import org.midonet.cluster.data.VTEP;
-import org.midonet.cluster.data.dhcp.Subnet;
-import org.midonet.cluster.data.ports.RouterPort;
+import org.midonet.cluster.data.boilerplate.Route;
+import org.midonet.cluster.data.boilerplate.Router;
+import org.midonet.cluster.data.boilerplate.VTEP;
+import org.midonet.cluster.data.boilerplate.dhcp.Subnet;
+import org.midonet.cluster.data.boilerplate.ports.RouterPort;
 import org.midonet.midolman.layer3.Route.NextHop;
 import org.midonet.cluster.backend.zookeeper.serialization.SerializationException;
 import org.midonet.cluster.backend.zookeeper.StateAccessException;

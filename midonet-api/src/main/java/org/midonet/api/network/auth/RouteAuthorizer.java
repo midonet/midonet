@@ -15,27 +15,27 @@
  */
 package org.midonet.api.network.auth;
 
-import com.google.inject.Inject;
-import org.midonet.api.auth.Authorizer;
-import org.midonet.api.auth.AuthAction;
-import org.midonet.cluster.backend.zookeeper.serialization.SerializationException;
-import org.midonet.cluster.backend.zookeeper.StateAccessException;
-import org.midonet.cluster.DataClient;
-import org.midonet.cluster.data.Route;
-import org.midonet.cluster.data.Router;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.ws.rs.core.SecurityContext;
 import java.util.UUID;
 
-/**
- * Authorizer for route
- */
+import javax.ws.rs.core.SecurityContext;
+
+import com.google.inject.Inject;
+
+import org.slf4j.Logger;
+
+import org.midonet.api.auth.AuthAction;
+import org.midonet.api.auth.Authorizer;
+import org.midonet.cluster.DataClient;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.serialization.SerializationException;
+import org.midonet.cluster.data.Route;
+import org.midonet.cluster.data.boilerplate.Router;
+
+import static org.slf4j.LoggerFactory.getLogger;
+
 public class RouteAuthorizer extends Authorizer<UUID> {
 
-    private final static Logger log = LoggerFactory
-            .getLogger(RouteAuthorizer.class);
+    private final static Logger log = getLogger(RouteAuthorizer.class);
 
     private final DataClient dataClient;
 

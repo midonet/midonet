@@ -18,7 +18,7 @@ package org.midonet.cluster.client;
 import java.util.Set;
 import java.util.UUID;
 
-import org.midonet.cluster.data.PortGroup;
+import org.midonet.cluster.data.boilerplate.PortGroup;
 
 public interface PortGroupBuilder {
     void setConfig(PortGroup portGroup);

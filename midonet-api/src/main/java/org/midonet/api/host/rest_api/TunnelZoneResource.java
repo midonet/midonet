@@ -45,7 +45,7 @@ import org.midonet.api.rest_api.NotFoundHttpException;
 import org.midonet.api.rest_api.ResourceFactory;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.cluster.DataClient;
-import org.midonet.cluster.data.VTEP;
+import org.midonet.cluster.data.boilerplate.VTEP;
 import org.midonet.event.topology.TunnelZoneEvent;
 import org.midonet.cluster.backend.zookeeper.serialization.SerializationException;
 import org.midonet.cluster.backend.zookeeper.StateAccessException;
@@ -73,10 +73,10 @@ public class TunnelZoneResource extends AbstractResource {
     public List<TunnelZone> list() throws StateAccessException,
             SerializationException {
 
-        List<org.midonet.cluster.data.TunnelZone>
+        List<org.midonet.cluster.data.boilerplate.TunnelZone>
                 tunnelZoneDataList = dataClient.tunnelZonesGetAll();
         List<TunnelZone> tunnelZones = new ArrayList<>();
-        for (org.midonet.cluster.data.TunnelZone zoneData :
+        for (org.midonet.cluster.data.boilerplate.TunnelZone zoneData :
                 tunnelZoneDataList) {
             TunnelZone zone = new TunnelZone(zoneData);
             zone.setBaseUri(getBaseUri());
@@ -97,7 +97,7 @@ public class TunnelZoneResource extends AbstractResource {
             throw new NotFoundHttpException();
         }
 
-        org.midonet.cluster.data.TunnelZone zoneData =
+        org.midonet.cluster.data.boilerplate.TunnelZone zoneData =
                 dataClient.tunnelZonesGet(id);
         TunnelZone zone = new TunnelZone(zoneData);
         zone.setBaseUri(getBaseUri());
@@ -111,7 +111,7 @@ public class TunnelZoneResource extends AbstractResource {
     public void delete(@PathParam("id") UUID id)
             throws StateAccessException, SerializationException {
 
-        org.midonet.cluster.data.TunnelZone zoneData =
+        org.midonet.cluster.data.boilerplate.TunnelZone zoneData =
                 dataClient.tunnelZonesGet(id);
         if (zoneData == null) {
             return;
