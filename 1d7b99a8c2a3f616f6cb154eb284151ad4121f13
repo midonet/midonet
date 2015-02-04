@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_1b139e5d",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-02-04T07:36:56Z",
+      "side": 1,
+      "message": "When you find yourself matching on an Option and doing something that feels like a default for at least one case, there\u0027s probably a better way. In this case:\n\n  findDhcpSubnet(network, subnet).foreach { dhcp \u003d\u003e\n      val remove \u003d dhcp.getHostsList.asScala.indexWhere(\n          h \u003d\u003e h.getMac \u003d\u003d mac \u0026\u0026 h.getIpAddress \u003d\u003d ipAddr)\n      if (remove \u003e\u003d 0) dhcp.removeHosts(remove)\n  }\n\nor:\n\n  for (dhcp \u003c- findDhcpSubnet(network, subnet) {\n      // Same as above\n  }",
+      "range": {
+        "startLine": 86,
+        "startChar": 40,
+        "endLine": 91,
+        "endChar": 67
+      },
+      "revId": "1d7b99a8c2a3f616f6cb154eb284151ad4121f13",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
