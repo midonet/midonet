@@ -17,6 +17,8 @@ package org.midonet.midolman.state;
 
 import org.apache.zookeeper.KeeperException.NotEmptyException;
 
+import org.midonet.cluster.backend.zookeeper.StatePathExceptionBase;
+
 /**
  * Thrown when attempting to delete a node which still has children.
  */

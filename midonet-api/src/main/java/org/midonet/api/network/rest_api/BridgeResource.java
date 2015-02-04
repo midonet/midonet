@@ -66,8 +66,8 @@ import org.midonet.api.validation.MessageProperty;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.ports.VlanMacPort;
 import org.midonet.event.topology.BridgeEvent;
-import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.serialization.SerializationException;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
 
@@ -433,7 +433,7 @@ public class BridgeResource extends AbstractResource {
      *
      * @param mp
      *            MacPort entry for the mac table.
-     * @throws org.midonet.midolman.state.StateAccessException
+     * @throws org.midonet.cluster.backend.zookeeper.StateAccessException
      *             Data access error.
      * @return Response object with 201 status code set if successful.
      */
@@ -571,7 +571,7 @@ public class BridgeResource extends AbstractResource {
      *      MAC address of MAC-port mapping to delete.
      * @param portId
      *      UUID of port in MAC-port mapping to delete.
-     * @throws org.midonet.midolman.state.StateAccessException
+     * @throws org.midonet.cluster.backend.zookeeper.StateAccessException
      *      Data access error.
      */
     @DELETE
@@ -595,7 +595,7 @@ public class BridgeResource extends AbstractResource {
      *      MAC address of MAC-port mapping to delete.
      * @param portId
      *      UUID of port in MAC-port mapping to delete.
-     * @throws org.midonet.midolman.state.StateAccessException
+     * @throws org.midonet.cluster.backend.zookeeper.StateAccessException
      *      Data access error.
      */
     @DELETE
@@ -664,7 +664,7 @@ public class BridgeResource extends AbstractResource {
      *
      * @param mp
      *            IP4MacPair entry for the ARP table.
-     * @throws org.midonet.midolman.state.StateAccessException
+     * @throws org.midonet.cluster.backend.zookeeper.StateAccessException
      *             Data access error.
      * @return Response object with 201 status code set if successful.
      */
@@ -731,7 +731,7 @@ public class BridgeResource extends AbstractResource {
      *
      * @param IP4MacPairString
      *            IP4MacPair entry in the ARP table.
-     * @throws org.midonet.midolman.state.StateAccessException
+     * @throws org.midonet.cluster.backend.zookeeper.StateAccessException
      *             Data access error.
      */
     @DELETE

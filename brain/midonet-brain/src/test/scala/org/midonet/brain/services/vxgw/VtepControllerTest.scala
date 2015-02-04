@@ -31,9 +31,9 @@ import org.midonet.brain.BrainTestUtils._
 import org.midonet.brain.southbound.vtep.{VtepConstants, VtepMAC}
 import org.midonet.brain.util.TestZkTools
 import org.midonet.cluster.DataClient
+import org.midonet.cluster.backend.zookeeper.Directory
 import org.midonet.cluster.util.ObservableTestUtils._
 import org.midonet.midolman.host.state.HostZkManager
-import org.midonet.midolman.state.Directory
 import org.midonet.packets.{IPv4Addr, MAC}
 
 @RunWith(classOf[JUnitRunner])

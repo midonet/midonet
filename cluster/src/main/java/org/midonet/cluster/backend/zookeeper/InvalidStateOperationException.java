@@ -13,29 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.midonet.cluster.backend.zookeeper;
 
-package org.midonet.midolman.state;
-
-public class StateAccessException extends Exception {
-
+public class InvalidStateOperationException extends Exception {
     private static final long serialVersionUID = 1L;
 
     /**
      * Default constructor
      */
-    public StateAccessException() {
+    public InvalidStateOperationException() {
         super();
     }
 
-    public StateAccessException(String message) {
+    public InvalidStateOperationException(String message) {
         super(message);
     }
 
-    public StateAccessException(String message, Throwable cause) {
+    public InvalidStateOperationException(String message, Throwable cause) {
         super(message, cause);
-    }
-
-    public StateAccessException(Throwable cause) {
-        super(cause);
     }
 }

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.midolman.serialization;
+package org.midonet.cluster.backend.zookeeper.serialization;
 
 /**
  * Interface for ZooKeeper metadata serializers.
@@ -32,18 +32,12 @@ public interface Serializer {
     /**
      * Convert an array of bytes to an object of type T.
      *
-     *
-     * @param data
-     *            Array of bytes
-     * @param clazz
-     *            Class to convert the bytes to
-     * @param <T>
-     *            The base type of the object serialized in data
+     * @param data Array of bytes
+     * @param clazz Class to convert the bytes to
+     * @param <T> The base type of the object serialized in data
      *
      * @return The deserialized object.
-     *
-     * @throws SerializationException
-     *             IO error.
+     * @throws SerializationException IO error.
      */
     public <T> T deserialize(byte[] data, Class<T> clazz)
             throws SerializationException;

@@ -17,20 +17,19 @@
 package org.midonet.midolman.state.zkManagers;
 
 import com.google.common.base.Objects;
-import java.util.ArrayList;
+
 import java.util.List;
 import java.util.UUID;
 import org.apache.zookeeper.Op;
 
 import org.midonet.cluster.data.neutron.loadbalancer.SessionPersistenceType;
 import org.midonet.cluster.data.neutron.loadbalancer.VIP;
-import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.l4lb.VipSessionPersistence;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.serialization.Serializer;
+import org.midonet.cluster.backend.zookeeper.serialization.SerializationException;
+import org.midonet.cluster.backend.zookeeper.serialization.Serializer;
 import org.midonet.midolman.state.AbstractZkManager;
 import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.ZkManager;

@@ -25,7 +25,7 @@ import org.slf4j.LoggerFactory;
 
 import org.midonet.api.rest_api.FuncTest;
 import org.midonet.midolman.host.state.HostZkManager;
-import org.midonet.midolman.state.ZkConnection;
+import org.midonet.cluster.backend.zookeeper.ZkConnection;
 import org.midonet.midolman.state.zkManagers.FiltersZkManager;
 import org.midonet.midolman.state.zkManagers.RouterZkManager;
 

@@ -32,6 +32,7 @@ import org.apache.zookeeper.ZooDefs.Ids;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 
+import org.midonet.cluster.backend.zookeeper.ZkConnection;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.util.eventloop.CallingThreadReactor;
 import org.midonet.util.functors.Callback;

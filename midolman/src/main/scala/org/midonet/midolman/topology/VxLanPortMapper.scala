@@ -16,21 +16,21 @@
 
 package org.midonet.midolman.topology
 
-import java.util.{UUID, Set => JSet}
+import java.util.{Set => JSet, UUID}
+
+import scala.collection.JavaConversions.asScalaSet
+import scala.concurrent.Future
+import scala.concurrent.duration._
 
 import akka.actor.{Actor, ActorLogging, ActorRef, Props}
 import akka.event.LoggingReceive
 import akka.pattern.{ask, pipe}
 import akka.util.Timeout
 import org.apache.zookeeper.KeeperException
-import org.midonet.midolman.state.Directory.{DefaultTypedWatcher, TypedWatcher}
-import org.midonet.midolman.state.DirectoryCallback
-import org.midonet.midolman.topology.VxLanPortMapper.{VxLanPorts, VxLanMapping, PortsIDRequest}
 
-import scala.collection.JavaConversions.asScalaSet
-import scala.concurrent.Future
-import scala.concurrent.duration._
-
+import org.midonet.cluster.backend.zookeeper.Directory.{DefaultTypedWatcher, TypedWatcher}
+import org.midonet.cluster.backend.zookeeper.{Directory, DirectoryCallback}
+import org.midonet.midolman.topology.VxLanPortMapper.{PortsIDRequest, VxLanMapping, VxLanPorts}
 import org.midonet.midolman.topology.devices.VxLanPort
 
 /** Adapter trait around the DataClient interface which exposes the unique
@@ -78,7 +78,8 @@ class VxLanPortMapper(val vta: ActorRef,
                                                        with ActorLogging {
 
     import context._
-    import org.midonet.midolman.topology.VirtualTopologyActor.PortRequest
+
+import org.midonet.midolman.topology.VirtualTopologyActor.PortRequest
 
     override def preStart() {
         VxLanPortMapper.vniUUIDMap = Map.empty

@@ -25,6 +25,8 @@ import javax.annotation.Nonnull;
 
 import org.apache.zookeeper.Watcher;
 
+import org.midonet.cluster.backend.EntityIdSetMonitor;
+import org.midonet.cluster.backend.EntityMonitor;
 import org.midonet.cluster.data.AdRoute;
 import org.midonet.cluster.data.BGP;
 import org.midonet.cluster.data.Bridge;
@@ -56,16 +58,16 @@ import org.midonet.cluster.data.ports.BridgePort;
 import org.midonet.cluster.data.ports.VlanMacPort;
 import org.midonet.cluster.data.ports.VxLanPort;
 import org.midonet.midolman.host.state.HostDirectory;
-import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.Directory;
-import org.midonet.midolman.state.DirectoryCallback;
-import org.midonet.midolman.state.InvalidStateOperationException;
+import org.midonet.cluster.backend.zookeeper.serialization.SerializationException;
+import org.midonet.cluster.backend.zookeeper.Directory;
+import org.midonet.cluster.backend.zookeeper.DirectoryCallback;
+import org.midonet.cluster.backend.zookeeper.InvalidStateOperationException;
 import org.midonet.midolman.state.Ip4ToMacReplicatedMap;
 import org.midonet.midolman.state.MacPortMap;
 import org.midonet.midolman.state.PoolHealthMonitorMappingStatus;
-import org.midonet.midolman.state.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.midolman.state.ZkLeaderElectionWatcher;
-import org.midonet.midolman.state.ZookeeperConnectionWatcher;
+import org.midonet.cluster.backend.zookeeper.ZookeeperConnectionWatcher;
 import org.midonet.midolman.state.l4lb.LBStatus;
 import org.midonet.midolman.state.l4lb.MappingStatusException;
 import org.midonet.midolman.state.l4lb.MappingViolationException;
@@ -685,7 +687,7 @@ public interface DataClient {
      *
      * @return IP address group. Never null.
      *
-     * @throws org.midonet.midolman.state.NoStatePathException
+     * @throws org.midonet.cluster.backend.zookeeper.NoStatePathException
      *      If no IP address group with the specified ID exists
      */
     @CheckForNull IpAddrGroup ipAddrGroupsGet(UUID id)
@@ -696,7 +698,7 @@ public interface DataClient {
      *
      * @param id ID of IP address group to delete.
      *
-     * @throws org.midonet.midolman.state.NoStatePathException
+     * @throws org.midonet.cluster.backend.zookeeper.NoStatePathException
      *      If no IP address group with the specified ID exists
      */
     void ipAddrGroupsDelete(UUID id)
@@ -712,7 +714,7 @@ public interface DataClient {
      *
      * @return ID of the newly created IP address group.
      *
-     * @throws org.midonet.midolman.state.StatePathExistsException
+     * @throws org.midonet.cluster.backend.zookeeper.StatePathExistsException
      *      If an IP address group with the specified ID already exists.
      */
     UUID ipAddrGroupsCreate(@Nonnull IpAddrGroup ipAddrGroup)
@@ -761,7 +763,7 @@ public interface DataClient {
      *
      * @return True if the address is a member of the specified group.
      *
-     * @throws org.midonet.midolman.state.NoStatePathException
+     * @throws org.midonet.cluster.backend.zookeeper.NoStatePathException
      *      If no IP address group with the specified ID exists.
      */
     boolean ipAddrGroupHasAddr(UUID id, String addr)
@@ -775,7 +777,7 @@ public interface DataClient {
      * @return Set of all IP addresses in the specified IP address group.
      *         May be null, but never empty.
      *
-     * @throws org.midonet.midolman.state.NoStatePathException
+     * @throws org.midonet.cluster.backend.zookeeper.NoStatePathException
      *      If no IP address group with the specified ID exists.
      */
     Set<String> getAddrsByIpAddrGroup(UUID id)
@@ -966,7 +968,7 @@ public interface DataClient {
      * @throws org.midonet.midolman.state.NodeNotEmptyStateException
      *         If the VTEP still has bindings.
      *
-     * @throws org.midonet.midolman.state.NoStatePathException
+     * @throws org.midonet.cluster.backend.zookeeper.NoStatePathException
      *         If the VTEP does not exist.
      */
     public void vtepDelete(IPv4Addr ipAddr)

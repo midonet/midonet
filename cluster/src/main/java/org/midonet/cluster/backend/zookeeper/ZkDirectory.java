@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.midonet.midolman.state;
+package org.midonet.cluster.backend.zookeeper;
 
 import org.midonet.util.eventloop.Reactor;
 import org.apache.zookeeper.*;

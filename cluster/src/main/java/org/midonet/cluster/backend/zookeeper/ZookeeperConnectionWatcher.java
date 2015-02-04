@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.midonet.midolman.state;
+package org.midonet.cluster.backend.zookeeper;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -32,7 +32,6 @@ import org.slf4j.LoggerFactory;
 
 import org.midonet.cluster.config.ZookeeperConfig;
 import org.midonet.event.agent.NsdbEvent;
-import org.midonet.midolman.guice.zookeeper.ZkConnectionProvider;
 import org.midonet.util.eventloop.Reactor;
 
 public class ZookeeperConnectionWatcher implements ZkConnectionAwareWatcher {
@@ -43,8 +42,8 @@ public class ZookeeperConnectionWatcher implements ZkConnectionAwareWatcher {
     private ScheduledFuture<?> disconnectHandle;
     private ZkConnection conn = null;
     private long sessionId = 0;
-    private List<Runnable> reconnectCallbacks = new LinkedList<Runnable>();
-    private List<Runnable> disconnectCallbacks = new LinkedList<Runnable>();
+    private List<Runnable> reconnectCallbacks = new LinkedList<>();
+    private List<Runnable> disconnectCallbacks = new LinkedList<>();
 
     @Inject
     @Named(ZkConnectionProvider.DIRECTORY_REACTOR_TAG)
@@ -53,16 +52,10 @@ public class ZookeeperConnectionWatcher implements ZkConnectionAwareWatcher {
     @Inject
     ZookeeperConfig config;
 
-    @Override
-    public ZkConnection getZkConnection() {
-        return conn;
-    }
-
-    @Override
     public void setZkConnection(ZkConnection conn) {
         this.conn = conn;
-        this.reconnectCallbacks = new LinkedList<Runnable>();
-        this.disconnectCallbacks = new LinkedList<Runnable>();
+        this.reconnectCallbacks = new LinkedList<>();
+        this.disconnectCallbacks = new LinkedList<>();
     }
 
     @Override
@@ -125,7 +118,7 @@ public class ZookeeperConnectionWatcher implements ZkConnectionAwareWatcher {
     private void submitReconnectCallbacks() {
         if (!reconnectCallbacks.isEmpty()) {
             List<Runnable> callbacks = this.reconnectCallbacks;
-            this.reconnectCallbacks = new LinkedList<Runnable>();
+            this.reconnectCallbacks = new LinkedList<>();
             log.info("ZK connection restored, re-issuing {} requests",
                     callbacks.size());
             for (Runnable r: callbacks)
@@ -136,7 +129,7 @@ public class ZookeeperConnectionWatcher implements ZkConnectionAwareWatcher {
     private void submitDisconnectCallbacks() {
         if (!disconnectCallbacks.isEmpty()) {
             List<Runnable> callbacks = this.disconnectCallbacks;
-            this.disconnectCallbacks = new LinkedList<Runnable>();
+            this.disconnectCallbacks = new LinkedList<>();
             log.info("ZK connection lost, firing {} disconnect callbacks",
                      callbacks.size());
             for (Runnable r: callbacks)

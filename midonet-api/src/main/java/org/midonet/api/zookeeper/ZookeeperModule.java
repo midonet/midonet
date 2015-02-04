@@ -24,13 +24,14 @@ import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 
+import org.midonet.cluster.backend.zookeeper.Directory;
+import org.midonet.cluster.backend.zookeeper.ZkConnection;
+import org.midonet.cluster.backend.zookeeper.ZkConnectionAwareWatcher;
+import org.midonet.cluster.backend.zookeeper.SessionAgnosticZkConnectionWatcher;
 import org.midonet.cluster.config.ZookeeperConfig;
 import org.midonet.midolman.guice.zookeeper.DirectoryProvider;
-import org.midonet.midolman.guice.zookeeper.ZkConnectionProvider;
+import org.midonet.cluster.backend.zookeeper.ZkConnectionProvider;
 import org.midonet.midolman.guice.zookeeper.ZookeeperConnectionModule;
-import org.midonet.midolman.state.Directory;
-import org.midonet.midolman.state.ZkConnection;
-import org.midonet.midolman.state.ZkConnectionAwareWatcher;
 import org.midonet.util.eventloop.Reactor;
 import org.midonet.util.eventloop.TryCatchReactor;
 
@@ -45,7 +46,7 @@ public class ZookeeperModule extends AbstractModule {
                 .asEagerSingleton();
 
         bind(ZkConnectionAwareWatcher.class)
-                .to(ZookeeperConnWatcher.class)
+                .to(SessionAgnosticZkConnectionWatcher.class)
                 .asEagerSingleton();
 
         // Bind the ZK connection with watcher

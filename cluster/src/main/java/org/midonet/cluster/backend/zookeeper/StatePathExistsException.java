@@ -13,15 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.midolman.state;
+package org.midonet.cluster.backend.zookeeper;
 
-import org.apache.zookeeper.KeeperException.NoNodeException;
+import java.util.UUID;
 
-public class NoStatePathException extends StatePathExceptionBase {
+import org.apache.zookeeper.KeeperException.NodeExistsException;
+
+public class StatePathExistsException extends StatePathExceptionBase {
     private static final long serialVersionUID = 1L;
 
-    public NoStatePathException(String message, String basePath,
-                                NoNodeException cause) {
+    public StatePathExistsException(String message, String basePath,
+                                    NodeExistsException cause) {
         super(message, cause.getPath(), basePath, cause);
+    }
+
+    /**
+     * Provided for TunnelZoneZkManager(), which generates a
+     * StatePathExistsException without an underlying KeeperException.
+     */
+    public StatePathExistsException(String message, UUID tzId) {
+        super(message);
+        this.nodeInfo = new NodeInfo(NodeType.TUNNEL_ZONE, tzId);
     }
 }

@@ -15,6 +15,8 @@
  */
 package org.midonet.midolman.state;
 
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
+
 /**
  * Thrown when a Zookeeper update fails due to a mismatch between the
  * expected and actual node versions due to a concurrent update.

@@ -40,13 +40,13 @@ import rx.subjects.ReplaySubject;
 import rx.subjects.Subject;
 
 import org.midonet.cluster.DataClient;
-import org.midonet.cluster.EntityIdSetEvent;
-import org.midonet.cluster.EntityIdSetMonitor;
+import org.midonet.cluster.backend.EntityIdSetEvent;
+import org.midonet.cluster.backend.EntityIdSetMonitor;
 import org.midonet.cluster.data.TunnelZone;
 import org.midonet.cluster.data.host.Host;
-import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.StateAccessException;
-import org.midonet.midolman.state.ZookeeperConnectionWatcher;
+import org.midonet.cluster.backend.zookeeper.serialization.SerializationException;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.ZookeeperConnectionWatcher;
 import org.midonet.packets.IPv4Addr;
 
 /**

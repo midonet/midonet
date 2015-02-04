@@ -13,30 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.midolman.serialization;
 
-/**
- * Exception class to indicate serialization error
- */
-public class SerializationException extends Exception {
+package org.midonet.cluster.backend.zookeeper;
+
+public class StateAccessException extends Exception {
+
     private static final long serialVersionUID = 1L;
 
-    @SuppressWarnings("rawtypes")
-    private Class clazz;
-
-    public <T> SerializationException(String msg, Throwable e,
-                                        Class<T> clazz) {
-        super(msg, e);
-        this.clazz = clazz;
+    /**
+     * Default constructor
+     */
+    public StateAccessException() {
+        super();
     }
 
-    public <T> SerializationException(String msg, Throwable e) {
-        super(msg, e);
+    public StateAccessException(String message) {
+        super(message);
     }
 
-    @Override
-    public String getMessage() {
-        return this.clazz + " could not be (de)serialized. " +
-                super.getMessage();
+    public StateAccessException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
+    public StateAccessException(Throwable cause) {
+        super(cause);
     }
 }

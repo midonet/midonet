@@ -18,14 +18,13 @@ package org.midonet.cluster.data.neutron;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.curator.test.TestingServer;
 import org.junit.Before;
 import org.junit.Test;
 
-import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.cluster.backend.zookeeper.serialization.SerializationException;
 import org.midonet.midolman.state.DirectoryVerifier;
 import org.midonet.midolman.state.PathBuilder;
-import org.midonet.midolman.state.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
 
 public final class NeutronZkDataTest extends NeutronPluginTest {
 

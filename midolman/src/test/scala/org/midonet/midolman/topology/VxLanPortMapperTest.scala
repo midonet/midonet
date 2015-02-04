@@ -27,8 +27,8 @@ import org.junit.runner.RunWith
 import org.scalatest._
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.midolman.state.Directory.TypedWatcher
-import org.midonet.midolman.state.DirectoryCallback
+import org.midonet.cluster.backend.zookeeper.Directory.TypedWatcher
+import org.midonet.cluster.backend.zookeeper.{Directory, DirectoryCallback}
 import org.midonet.midolman.topology.VxLanPortMapper.VxLanPorts
 import org.midonet.midolman.topology.devices.{BridgePort, Port, VxLanPort}
 import org.midonet.packets.IPv4Addr

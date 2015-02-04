@@ -17,7 +17,7 @@ package org.midonet.api.auth;
 
 import com.google.inject.Inject;
 import org.midonet.cluster.DataClient;
-import org.midonet.midolman.state.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

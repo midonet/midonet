@@ -19,12 +19,12 @@ package org.midonet.midolman.state;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
 
-public class MockZookeeperConnectionWatcher implements ZkConnectionAwareWatcher {
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.ZkConnection;
+import org.midonet.cluster.backend.zookeeper.ZkConnectionAwareWatcher;
 
-    @Override
-    public ZkConnection getZkConnection() {
-        return null;
-    }
+public class MockZookeeperConnectionWatcher implements
+                                            ZkConnectionAwareWatcher {
 
     @Override
     public void setZkConnection(ZkConnection conn) { }

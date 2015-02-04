@@ -48,6 +48,10 @@ import org.apache.zookeeper.proto.DeleteRequest;
 import org.apache.zookeeper.proto.SetDataRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import org.midonet.cluster.backend.zookeeper.Directory;
+import org.midonet.cluster.backend.zookeeper.DirectoryCallback;
+
 import static org.apache.zookeeper.Watcher.Event.EventType;
 import static org.apache.zookeeper.Watcher.Event.KeeperState;
 

@@ -36,7 +36,7 @@ import org.midonet.api.VendorMediaType;
 import org.midonet.api.rest_api.ResponseUtils;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.SystemState;
-import org.midonet.midolman.state.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
 
 /**
  * Servlet filter for API server state

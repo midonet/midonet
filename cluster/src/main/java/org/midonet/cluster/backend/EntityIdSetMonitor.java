@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.cluster;
+package org.midonet.cluster.backend;
 
 import java.util.HashSet;
 import java.util.List;
@@ -28,11 +28,12 @@ import rx.Observable;
 import rx.subjects.PublishSubject;
 import rx.subjects.Subject;
 
-import org.midonet.midolman.state.Directory;
-import org.midonet.midolman.state.NoStatePathException;
-import org.midonet.midolman.state.StateAccessException;
-import org.midonet.midolman.state.ZkConnectionAwareWatcher;
-import org.midonet.midolman.state.ZookeeperConnectionWatcher;
+import org.midonet.cluster.backend.zookeeper.Directory;
+import org.midonet.cluster.backend.zookeeper.NoStatePathException;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.WatchableZkManager;
+import org.midonet.cluster.backend.zookeeper.ZkConnectionAwareWatcher;
+import org.midonet.cluster.backend.zookeeper.ZookeeperConnectionWatcher;
 
 /**
  * This class watches all the child nodes of a given ZK path, assuming that

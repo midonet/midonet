@@ -24,6 +24,7 @@ import org.midonet.cluster.ClusterIPAddrGroupManager;
 import org.midonet.cluster.ClusterLoadBalancerManager;
 import org.midonet.cluster.ClusterPoolHealthMonitorMapManager;
 import org.midonet.cluster.ClusterPoolManager;
+import org.midonet.cluster.guice.DataClientModule;
 
 
 /**

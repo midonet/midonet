@@ -28,10 +28,10 @@ import org.midonet.api.filter.Ipv6AddrGroupAddr;
 import org.midonet.api.rest_api.*;
 import org.midonet.api.validation.MessageProperty;
 import org.midonet.cluster.DataClient;
-import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.NoStatePathException;
-import org.midonet.midolman.state.StateAccessException;
-import org.midonet.midolman.state.StatePathExistsException;
+import org.midonet.cluster.backend.zookeeper.serialization.SerializationException;
+import org.midonet.cluster.backend.zookeeper.NoStatePathException;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.StatePathExistsException;
 import org.midonet.packets.IPAddr$;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -73,7 +73,7 @@ public class IpAddrGroupResource extends AbstractResource {
      *
      * @param id
      *            IpAddrGroup ID from the request.
-     * @throws org.midonet.midolman.state.StateAccessException
+     * @throws org.midonet.cluster.backend.zookeeper.StateAccessException
      *             Data access error.
      */
     @DELETE
@@ -99,7 +99,7 @@ public class IpAddrGroupResource extends AbstractResource {
      *
      * @param id
      *            IpAddrGroup ID from the request.
-     * @throws org.midonet.midolman.state.StateAccessException
+     * @throws org.midonet.cluster.backend.zookeeper.StateAccessException
      *             Data access error.
      * @return A IpAddrGroup object.
      */
@@ -130,7 +130,7 @@ public class IpAddrGroupResource extends AbstractResource {
      *
      * @param group
      *            IpAddrGroup object.
-     * @throws org.midonet.midolman.state.StateAccessException
+     * @throws org.midonet.cluster.backend.zookeeper.StateAccessException
      *             Data access error.
      * @return Response object with 201 status code set if successful.
      */
@@ -156,7 +156,7 @@ public class IpAddrGroupResource extends AbstractResource {
     /**
      * Handler to getting a collection of IpAddrGroup.
      *
-     * @throws org.midonet.midolman.state.StateAccessException
+     * @throws org.midonet.cluster.backend.zookeeper.StateAccessException
      *             Data access error.
      * @return A list of IpAddrGroup objects.
      */

@@ -24,8 +24,8 @@ import com.google.inject.PrivateModule;
 import org.junit.Before;
 
 import org.midonet.cluster.data.Rule;
-import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.serialization.SerializationException;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.midolman.state.ZookeeperTest;
 import org.midonet.packets.MAC;
 

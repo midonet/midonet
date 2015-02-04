@@ -29,13 +29,13 @@ import akka.util.Timeout
 import com.google.inject.Inject
 import org.slf4j.LoggerFactory
 
+import org.midonet.cluster.backend.zookeeper.Directory.TypedWatcher
+import org.midonet.cluster.backend.zookeeper.DirectoryCallback
 import org.midonet.cluster.data.TunnelZone
 import org.midonet.cluster.{Client, DataClient}
 import org.midonet.midolman._
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.services.HostIdProviderService
-import org.midonet.midolman.state.Directory.TypedWatcher
-import org.midonet.midolman.state.DirectoryCallback
 import org.midonet.midolman.topology.devices.Host
 import org.midonet.util.concurrent._
 
@@ -315,7 +315,8 @@ abstract class VirtualToPhysicalMapperBase extends Actor with ActorLogWithoutPat
     val cluster: DataClient
 
     import context.system
-    import VirtualToPhysicalMapper._
+
+import org.midonet.midolman.topology.VirtualToPhysicalMapper._
 
     override def logSource = "org.midonet.devices.underlay"
 

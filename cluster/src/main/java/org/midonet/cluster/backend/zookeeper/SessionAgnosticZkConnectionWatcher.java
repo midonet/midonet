@@ -13,11 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.api.zookeeper;
+package org.midonet.cluster.backend.zookeeper;
 
 import com.google.inject.Inject;
 
-import org.apache.commons.lang.NotImplementedException;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
@@ -26,24 +25,22 @@ import org.slf4j.LoggerFactory;
 
 import org.midonet.cluster.config.ZookeeperConfig;
 import org.midonet.event.api.NsdbEvent;
-import org.midonet.midolman.state.StateAccessException;
-import org.midonet.midolman.state.ZkConnection;
-import org.midonet.midolman.state.ZkConnectionAwareWatcher;
 
 /**
  * Zookeeper connection watcher for the API server.
  */
-public class ZookeeperConnWatcher implements ZkConnectionAwareWatcher {
+public class SessionAgnosticZkConnectionWatcher implements
+                                                ZkConnectionAwareWatcher {
 
     private final static Logger log = LoggerFactory
-            .getLogger(ZookeeperConnWatcher.class);
+            .getLogger(SessionAgnosticZkConnectionWatcher.class);
     private final static NsdbEvent apiNsdbEvent = new NsdbEvent();
 
     private ZkConnection conn;
     private final ZookeeperConfig config;
 
     @Inject
-    public ZookeeperConnWatcher(ZookeeperConfig config) {
+    public SessionAgnosticZkConnectionWatcher(ZookeeperConfig config) {
         this.config = config;
     }
 
@@ -54,7 +51,7 @@ public class ZookeeperConnWatcher implements ZkConnectionAwareWatcher {
 
         if (watchedEvent.getState() == Event.KeeperState.SyncConnected) {
             apiNsdbEvent.connect();
-        }else if (watchedEvent.getState() == Event.KeeperState.Disconnected) {
+        } else if (watchedEvent.getState() == Event.KeeperState.Disconnected) {
             apiNsdbEvent.disconnect();
         }
 
@@ -77,23 +74,18 @@ public class ZookeeperConnWatcher implements ZkConnectionAwareWatcher {
     }
 
     @Override
-    public ZkConnection getZkConnection() {
-        return conn;
-    }
-
-    @Override
     public void setZkConnection(ZkConnection conn) {
         this.conn = conn;
     }
 
     @Override
     public void scheduleOnReconnect(Runnable runnable) {
-        throw new NotImplementedException();
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public void scheduleOnDisconnect(Runnable runnable) {
-        throw new NotImplementedException();
+        throw new UnsupportedOperationException();
     }
 
     @Override

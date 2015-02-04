@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.cluster;
+package org.midonet.cluster.backend;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,12 +22,13 @@ import rx.Observable;
 import rx.subjects.PublishSubject;
 import rx.subjects.Subject;
 
-import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.Directory;
-import org.midonet.midolman.state.NoStatePathException;
-import org.midonet.midolman.state.StateAccessException;
-import org.midonet.midolman.state.ZkConnectionAwareWatcher;
-import org.midonet.midolman.state.ZookeeperConnectionWatcher;
+import org.midonet.cluster.backend.zookeeper.Directory;
+import org.midonet.cluster.backend.zookeeper.NoStatePathException;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.WatchableZkManager;
+import org.midonet.cluster.backend.zookeeper.ZkConnectionAwareWatcher;
+import org.midonet.cluster.backend.zookeeper.ZookeeperConnectionWatcher;
+import org.midonet.cluster.backend.zookeeper.serialization.SerializationException;
 
 /**
  * This class monitors individual instances of a given type of entity in its ZK

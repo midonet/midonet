@@ -17,11 +17,11 @@ package org.midonet.midolman.state.zkManagers;
 
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.Op;
-import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.serialization.Serializer;
+import org.midonet.cluster.backend.zookeeper.serialization.SerializationException;
+import org.midonet.cluster.backend.zookeeper.serialization.Serializer;
 import org.midonet.midolman.state.AbstractZkManager;
 import org.midonet.midolman.state.PathBuilder;
-import org.midonet.midolman.state.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.midolman.state.ZkManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -91,7 +91,7 @@ public class TunnelZkManager
      * @param tunnelKey
      *            TunnelKey ZooKeeper entry to update.
      * @return A list of Op objects representing the operations to perform.
-     * @throws org.midonet.midolman.serialization.SerializationException
+     * @throws org.midonet.cluster.backend.zookeeper.serialization.SerializationException
      *             Serialization error occurred.
      */
     public List<Op> prepareTunnelUpdate(int tunnelKeyId, TunnelKey tunnelKey)

@@ -13,13 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.cluster;
+package org.midonet.cluster.backend.zookeeper;
 
 import java.util.List;
-import java.util.UUID;
 
-import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.serialization.SerializationException;
 
 /**
  * This interface defines the contract required to any device ZkManager that
@@ -41,6 +39,6 @@ public interface WatchableZkManager<K, T> {
      * @return the item data, or null if it does not exist.
      */
     T get(K key, Runnable watcher) throws StateAccessException,
-                                            SerializationException;
+                                          SerializationException;
 }
 

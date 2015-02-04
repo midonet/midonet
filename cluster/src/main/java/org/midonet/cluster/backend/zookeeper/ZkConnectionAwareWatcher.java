@@ -14,14 +14,12 @@
  * limitations under the License.
  */
 
-package org.midonet.midolman.state;
+package org.midonet.cluster.backend.zookeeper;
 
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.Watcher;
-import org.midonet.midolman.serialization.SerializationException;
 
 public interface ZkConnectionAwareWatcher extends Watcher {
-    ZkConnection getZkConnection();
 
     void setZkConnection(ZkConnection conn);
 

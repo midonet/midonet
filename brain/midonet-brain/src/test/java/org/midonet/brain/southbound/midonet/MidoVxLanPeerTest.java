@@ -40,11 +40,11 @@ import org.midonet.cluster.data.VTEP;
 import org.midonet.cluster.data.host.Host;
 import org.midonet.cluster.data.ports.BridgePort;
 import org.midonet.cluster.data.ports.VxLanPort;
-import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.Directory;
+import org.midonet.cluster.backend.zookeeper.serialization.SerializationException;
+import org.midonet.cluster.backend.zookeeper.Directory;
 import org.midonet.midolman.state.Ip4ToMacReplicatedMap;
 import org.midonet.midolman.state.MacPortMap;
-import org.midonet.midolman.state.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
 

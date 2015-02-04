@@ -28,6 +28,7 @@ import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.midolman.Setup;
 import org.midonet.util.functors.Callback;
 

@@ -25,12 +25,13 @@ import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 
+import org.midonet.cluster.backend.zookeeper.Directory;
+import org.midonet.cluster.backend.zookeeper.ZkConnection;
+import org.midonet.cluster.backend.zookeeper.ZkConnectionAwareWatcher;
+import org.midonet.cluster.backend.zookeeper.ZookeeperConnectionWatcher;
+import org.midonet.cluster.backend.zookeeper.ZkConnectionProvider;
 import org.midonet.cluster.config.ZookeeperConfig;
 import org.midonet.config.ConfigProvider;
-import org.midonet.midolman.state.Directory;
-import org.midonet.midolman.state.ZkConnection;
-import org.midonet.midolman.state.ZkConnectionAwareWatcher;
-import org.midonet.midolman.state.ZookeeperConnectionWatcher;
 import org.midonet.util.eventloop.Reactor;
 import org.midonet.util.eventloop.TryCatchReactor;
 

@@ -22,7 +22,7 @@ import rx.Subscription;
 import rx.functions.Action1;
 import rx.functions.Func1;
 
-import org.midonet.cluster.EntityIdSetEvent;
+import org.midonet.cluster.backend.EntityIdSetEvent;
 import org.midonet.cluster.data.Entity;
 
 abstract class DeviceMonitorTestBase<KEY,

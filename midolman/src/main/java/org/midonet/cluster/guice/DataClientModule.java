@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.midolman.guice.cluster;
+package org.midonet.cluster.guice;
 
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
@@ -38,15 +38,15 @@ import org.midonet.cluster.ClusterRouterManager;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.LocalDataClientImpl;
 import org.midonet.cluster.ZookeeperLockFactory;
+import org.midonet.cluster.backend.zookeeper.Directory;
+import org.midonet.cluster.backend.zookeeper.ZkConnectionAwareWatcher;
+import org.midonet.cluster.backend.zookeeper.serialization.Serializer;
 import org.midonet.cluster.config.ZookeeperConfig;
 import org.midonet.midolman.host.state.HostZkManager;
-import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.BaseZkManager;
-import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.PortConfigCache;
 import org.midonet.midolman.state.PortGroupCache;
-import org.midonet.midolman.state.ZkConnectionAwareWatcher;
 import org.midonet.midolman.state.ZkManager;
 import org.midonet.midolman.state.zkManagers.AdRouteZkManager;
 import org.midonet.midolman.state.zkManagers.BgpZkManager;
@@ -71,7 +71,7 @@ import org.midonet.midolman.state.zkManagers.VipZkManager;
 import org.midonet.midolman.state.zkManagers.VtepZkManager;
 import org.midonet.util.eventloop.Reactor;
 
-import static org.midonet.midolman.guice.zookeeper.ZkConnectionProvider.DIRECTORY_REACTOR_TAG;
+import static org.midonet.cluster.backend.zookeeper.ZkConnectionProvider.DIRECTORY_REACTOR_TAG;
 
 /**
  * Guice module to install dependencies for data access.

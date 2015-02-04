@@ -33,25 +33,26 @@ import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.midonet.cluster.backend.zookeeper.Directory;
+import org.midonet.cluster.backend.zookeeper.DirectoryCallback;
+import org.midonet.cluster.backend.zookeeper.NoStatePathException;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.serialization.SerializationException;
+import org.midonet.cluster.backend.zookeeper.serialization.Serializer;
 import org.midonet.cluster.client.ArpCache;
 import org.midonet.cluster.client.RouterBuilder;
-import org.midonet.midolman.guice.zookeeper.ZkConnectionProvider;
+import org.midonet.cluster.backend.zookeeper.ZkConnectionProvider;
 import org.midonet.midolman.layer3.Route;
-import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.ArpCacheEntry;
 import org.midonet.midolman.state.ArpTable;
-import org.midonet.midolman.state.Directory;
-import org.midonet.midolman.state.DirectoryCallback;
-import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.ReplicatedSet;
-import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.zkManagers.RouteZkManager;
 import org.midonet.midolman.state.zkManagers.RouterZkManager;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
 import org.midonet.util.eventloop.Reactor;
 import org.midonet.util.functors.Callback3;
+
 
 public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
 

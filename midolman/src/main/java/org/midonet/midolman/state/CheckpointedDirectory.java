@@ -17,6 +17,8 @@ package org.midonet.midolman.state;
 
 import java.util.Map;
 
+import org.midonet.cluster.backend.zookeeper.Directory;
+
 public interface CheckpointedDirectory extends Directory {
 
     /**

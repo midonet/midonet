@@ -20,8 +20,8 @@ import java.util.Comparator;
 import com.google.inject.PrivateModule;
 import com.google.inject.TypeLiteral;
 
+import org.midonet.cluster.backend.zookeeper.serialization.Serializer;
 import org.midonet.midolman.SystemDataProvider;
-import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.ZkSystemDataProvider;
 import org.midonet.midolman.version.VersionComparator;
 

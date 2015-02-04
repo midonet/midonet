@@ -13,23 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.midolman.state;
+package org.midonet.cluster.backend.zookeeper.serialization;
 
-public class InvalidStateOperationException extends Exception {
+/**
+ * Exception class to indicate serialization error
+ */
+public class SerializationException extends Exception {
     private static final long serialVersionUID = 1L;
 
-    /**
-     * Default constructor
-     */
-    public InvalidStateOperationException() {
-        super();
+    @SuppressWarnings("rawtypes")
+    private Class clazz;
+
+    public <T> SerializationException(String msg, Throwable e,
+                                        Class<T> clazz) {
+        super(msg, e);
+        this.clazz = clazz;
     }
 
-    public InvalidStateOperationException(String message) {
-        super(message);
+    public <T> SerializationException(String msg, Throwable e) {
+        super(msg, e);
     }
 
-    public InvalidStateOperationException(String message, Throwable cause) {
-        super(message, cause);
+    @Override
+    public String getMessage() {
+        return this.clazz + " could not be (de)serialized. " +
+                super.getMessage();
     }
 }

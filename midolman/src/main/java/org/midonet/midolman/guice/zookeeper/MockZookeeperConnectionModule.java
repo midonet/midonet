@@ -18,10 +18,12 @@ package org.midonet.midolman.guice.zookeeper;
 import javax.inject.Singleton;
 
 import com.google.inject.name.Names;
-import org.midonet.midolman.state.Directory;
+
+import org.midonet.cluster.backend.zookeeper.Directory;
+import org.midonet.cluster.backend.zookeeper.ZkConnectionProvider;
 import org.midonet.midolman.state.MockDirectory;
-import org.midonet.util.eventloop.Reactor;
 import org.midonet.util.eventloop.CallingThreadReactor;
+import org.midonet.util.eventloop.Reactor;
 
 public class MockZookeeperConnectionModule  extends ZookeeperConnectionModule {
 

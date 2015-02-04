@@ -18,8 +18,8 @@ package org.midonet.api.host.validation;
 
 import com.google.inject.Inject;
 import org.midonet.cluster.DataClient;
-import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.serialization.SerializationException;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
 
 import java.util.UUID;
 import javax.validation.ConstraintValidator;

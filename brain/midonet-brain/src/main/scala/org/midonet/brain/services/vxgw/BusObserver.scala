@@ -26,6 +26,7 @@ import rx.Observer
 
 import org.midonet.brain.southbound.vtep.VtepConstants
 import org.midonet.cluster.DataClient
+import org.midonet.cluster.backend.zookeeper.{StateAccessException, ZookeeperConnectionWatcher}
 import org.midonet.midolman.state._
 import org.midonet.packets.{IPv4Addr, MAC}
 import org.midonet.util.functors.makeRunnable
