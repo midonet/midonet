@@ -315,6 +315,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_dbb466f4",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 28
+      },
+      "lineNbr": 194,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-04T09:59:33Z",
+      "side": 1,
+      "message": "I think the concept of shared ownership should be sort of a loose relationship, for example the case Ports, where agents use the ownership metadata to indicate that the port is active on a particular agent. However, this ownership relationship shouldn\u0027t prevent the port being deleted from the topology side (event the port is still active, i.e. owned), using the non-ownership delete. That\u0027s why the legacy delete method deletes an object with shared ownership, regardless of the current owner. And cascading delete should be similar.\n\nI agree though that for exclusive ownership, where the owner metadata implies some strong relationship with a client session, there we shouldn\u0027t mix ownership and bindings, because the object should only be manipulated by its current owner.",
+      "parentUuid": "7a1969be_49cc2f36",
+      "range": {
+        "startLine": 194,
+        "startChar": 13,
+        "endLine": 194,
+        "endChar": 74
+      },
+      "revId": "69459e7e81350bb7d10a6cf6a8486869102654b7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_703abd37",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
         "patchSetId": 28
@@ -398,6 +422,30 @@
       "side": 1,
       "message": "Right. In fact, here\u0027s the definition of isDefined:\n\n  def isDefined: Boolean \u003d !isEmpty\n\nAnd isEmpty is defined as true for None and false for Some (which are subclasses of Option).",
       "parentUuid": "7a1969be_e8aeb9e6",
+      "range": {
+        "startLine": 685,
+        "startChar": 12,
+        "endLine": 691,
+        "endChar": 65
+      },
+      "revId": "69459e7e81350bb7d10a6cf6a8486869102654b7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_3bee5aed",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 28
+      },
+      "lineNbr": 691,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-04T09:59:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_29e573a8",
       "range": {
         "startLine": 685,
         "startChar": 12,
