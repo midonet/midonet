@@ -16,6 +16,24 @@
       "revId": "0064b7d16501cca07582042304a0b959c0da33c0",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_1b0c3e42",
+        "filename": "tools/devmido/unmidostack.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-02-04T13:15:56Z",
+      "side": 1,
+      "message": "You\u0027re right, and this one is a bit tricky.  I think what needs to happen is that when we do mido.sh, it remembers the environment variables used, and use those when you run unmido.sh.  That\u0027s how devstack handles this.",
+      "parentUuid": "7a1969be_3b1dbabe",
+      "revId": "0064b7d16501cca07582042304a0b959c0da33c0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
