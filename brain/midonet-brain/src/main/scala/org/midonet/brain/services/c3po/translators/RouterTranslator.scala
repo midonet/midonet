@@ -18,23 +18,22 @@ package org.midonet.brain.services.c3po.translators
 
 import org.midonet.brain.services.c3po.midonet.{Create, Delete, Update}
 import org.midonet.cluster.data.storage.ReadOnlyStorage
-import org.midonet.cluster.models.Commons.{IPAddress, IPSubnet, IPVersion, UUID}
+import org.midonet.cluster.models.Commons.{IPAddress, IPVersion, UUID}
 import org.midonet.cluster.models.Neutron.{NeutronPort, NeutronRouter}
-import org.midonet.cluster.models.Topology.{Chain, Port, Router}
-import org.midonet.cluster.util.UUIDUtil
+import org.midonet.cluster.models.Topology.{Chain, Router}
 import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
-import org.midonet.packets.MAC
 import org.midonet.util.concurrent.toFutureOps
 
 class RouterTranslator(storage: ReadOnlyStorage)
-    extends NeutronTranslator[NeutronRouter] {
+    extends NeutronTranslator[NeutronRouter]
+    with ChainManager with PortManager {
     import org.midonet.brain.services.c3po.translators.RouterTranslator._
 
     override protected def translateCreate(nr: NeutronRouter): MidoOpList = {
         val router = translate(nr)
-        val inChain = createChain(router.getInboundFilterId,
+        val inChain = newChain(router.getInboundFilterId,
                                   preRouteChainName(nr.getId))
-        val outChain = createChain(router.getOutboundFilterId,
+        val outChain = newChain(router.getOutboundFilterId,
                                    postRouteChainName(nr.getId))
 
         val gwPortOps = gwPortLinkOps(nr)
@@ -81,13 +80,7 @@ class RouterTranslator(storage: ReadOnlyStorage)
         val gwIpAddr = gwPort.getFixedIps(0).getIpAddress
 
         // Create port on tenant router to link to gateway port.
-        val rPort = Port.newBuilder()
-                        .setId(UUIDUtil.randomUuidProto)
-                        .setRouterId(nr.getId)
-                        .setPortSubnet(LL_CIDR)
-                        .setPortAddress(gwIpAddr)
-                        .setAdminStateUp(true)
-                        .setPortMac(MAC.random().toString).build()
+        val rPort = newRouterGwPort(nr.getId, gwIpAddr)
 
         // TODO: Route creation.
 
@@ -106,11 +99,6 @@ protected[translators] object RouterTranslator {
                                .setLsb(0xb627646bf183e517L).build()
 
     val providerRouterName = "Midonet Provider Router"
-
-    val LL_CIDR = IPSubnet.newBuilder()
-                          .setAddress("169.254.255.0")
-                          .setPrefixLength(30)
-                          .setVersion(IPVersion.V4).build()
 
     val LL_GW_IP_1 = IPAddress.newBuilder()
                               .setAddress("169.254.255.1")

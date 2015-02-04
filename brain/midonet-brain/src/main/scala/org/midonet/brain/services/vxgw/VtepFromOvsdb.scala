@@ -141,7 +141,7 @@ class VtepFromOldOvsdbClient(nodeId: UUID, ip: IPv4Addr, port: Int,
 
     override def removeLogicalSwitch(name: String): Try[Unit] = {
         val res = ovsdbClient.deleteLogicalSwitch(name)
-        if (res.isSuccess) Success()
+        if (res.isSuccess) Success(Unit)
         else Failure(new VtepConfigException(res.toString))
     }
 
@@ -180,7 +180,7 @@ class VtepFromOldOvsdbClient(nodeId: UUID, ip: IPv4Addr, port: Int,
         bindings foreach { b => jBindings.add(JPair.of(b._1, b._2)) }
         val res = ovsdbClient.addBindings(ls.uuid, jBindings)
         if (res.isSuccess) {
-            Success()
+            Success(Unit)
         } else {
             Failure(new VtepConfigException(s"Failed creating bindings: $res"))
         }

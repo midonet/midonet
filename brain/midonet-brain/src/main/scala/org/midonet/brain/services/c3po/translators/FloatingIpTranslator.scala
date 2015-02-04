@@ -24,12 +24,9 @@ import org.midonet.cluster.models.Neutron.FloatingIp
 
 /** Provides a Neutron model translator for FloatingIp. */
 class FloatingIpTranslator extends NeutronTranslator[FloatingIp]{
-    override protected def translateCreate(nm: FloatingIp)
-    : List[MidoOp[_ <: Message]] = List()
+    override protected def translateCreate(nm: FloatingIp): MidoOpList = List()
 
-    override protected def translateDelete(id: UUID)
-    : List[MidoOp[_ <: Message]] = List()
+    override protected def translateDelete(id: UUID): MidoOpList = List()
 
-    override protected def translateUpdate(nm: FloatingIp)
-    : List[MidoOp[_ <: Message]] = List()
+    override protected def translateUpdate(nm: FloatingIp): MidoOpList = List()
 }

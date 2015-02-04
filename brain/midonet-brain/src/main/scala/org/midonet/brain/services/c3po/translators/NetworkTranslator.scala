@@ -15,11 +15,7 @@
  */
 package org.midonet.brain.services.c3po.translators
 
-import scala.collection.mutable.ListBuffer
-
-import com.google.protobuf.Message
-
-import org.midonet.brain.services.c3po.midonet.{Create, Delete, MidoOp, Update}
+import org.midonet.brain.services.c3po.midonet.{Create, Delete, Update}
 import org.midonet.brain.services.c3po.translators.RouterTranslator.{providerRouterId, providerRouterName}
 import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.models.Commons.UUID
