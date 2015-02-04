@@ -35,6 +35,15 @@ export TIMESTAMP_FORMAT
 export LOGFILE
 export SCREEN_LOGDIR
 
+# Keep the midonet API URL consistent
+export SERVICE_HOST=$MIDONET_SERVICE_HOST
+export API_PORT=$MIDONET_API_PORT
+
+# Set auth variables for midonet-cli
+export MIDO_USER=$Q_ADMIN_USERNAME
+export MIDO_PROJECT_ID=$SERVICE_TENANT_NAME
+export MIDO_PASSWORD=$SERVICE_PASSWORD
+
 $MIDONET_DIR/tools/devmido/mido.sh
 
 # Restore the options
