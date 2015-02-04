@@ -26,7 +26,7 @@ import org.apache.curator.retry.ExponentialBackoffRetry;
 
 import org.midonet.cluster.config.ZookeeperConfig;
 import org.midonet.midolman.guice.zookeeper.DirectoryProvider;
-import org.midonet.midolman.guice.zookeeper.ZKConnectionProvider;
+import org.midonet.midolman.guice.zookeeper.ZkConnectionProvider;
 import org.midonet.midolman.guice.zookeeper.ZookeeperConnectionModule;
 import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.ZkConnection;
@@ -61,7 +61,7 @@ public class ZookeeperModule extends AbstractModule {
             .asEagerSingleton();
 
         bind(Reactor.class).annotatedWith(
-            Names.named(ZKConnectionProvider.DIRECTORY_REACTOR_TAG))
+            Names.named(ZkConnectionProvider.DIRECTORY_REACTOR_TAG))
                 .toProvider(ZookeeperReactorProvider.class)
                 .asEagerSingleton();
     }

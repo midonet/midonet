@@ -25,12 +25,13 @@ import java.util.UUID;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.midonet.cluster.client.HostBuilder;
 import org.midonet.cluster.data.TunnelZone;
-import org.midonet.midolman.guice.zookeeper.ZKConnectionProvider;
+import org.midonet.midolman.guice.zookeeper.ZkConnectionProvider;
 import org.midonet.midolman.host.state.HostDirectory;
 import org.midonet.midolman.host.state.HostZkManager;
 import org.midonet.midolman.serialization.SerializationException;
@@ -46,7 +47,7 @@ public class ClusterHostManager extends ClusterManager<HostBuilder> {
     HostZkManager hostMgr;
 
     @Inject
-    @Named(ZKConnectionProvider.DIRECTORY_REACTOR_TAG)
+    @Named(ZkConnectionProvider.DIRECTORY_REACTOR_TAG)
     Reactor reactorLoop;
 
     @Inject
