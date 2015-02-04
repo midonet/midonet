@@ -26,24 +26,20 @@ import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooDefs;
 
-import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.serialization.Serializer;
+import org.midonet.cluster.backend.zookeeper.serialization.SerializationException;
+import org.midonet.cluster.backend.zookeeper.serialization.Serializer;
 import org.midonet.midolman.state.AbstractZkManager;
-import org.midonet.midolman.state.Directory;
-import org.midonet.midolman.state.DirectoryCallback;
+import org.midonet.cluster.backend.zookeeper.Directory;
+import org.midonet.cluster.backend.zookeeper.DirectoryCallback;
 import org.midonet.midolman.state.DirectoryCallbackFactory;
 import org.midonet.midolman.state.PathBuilder;
-import org.midonet.midolman.state.StateAccessException;
-import org.midonet.midolman.state.ZkManager;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.ZkManager;
 import org.midonet.midolman.state.zkManagers.HealthMonitorZkManager.HealthMonitorConfig;
 import org.midonet.midolman.state.zkManagers.LoadBalancerZkManager.LoadBalancerConfig;
 import org.midonet.midolman.state.zkManagers.PoolMemberZkManager.PoolMemberConfig;
 import org.midonet.midolman.state.zkManagers.PoolZkManager.PoolConfig;
 import org.midonet.midolman.state.zkManagers.VipZkManager.VipConfig;
-import org.midonet.midolman.state.zkManagers.PoolHealthMonitorZkManager.PoolHealthMonitorConfig.HealthMonitorConfigWithId;
-import org.midonet.midolman.state.zkManagers.PoolHealthMonitorZkManager.PoolHealthMonitorConfig.LoadBalancerConfigWithId;
-import org.midonet.midolman.state.zkManagers.PoolHealthMonitorZkManager.PoolHealthMonitorConfig.PoolMemberConfigWithId;
-import org.midonet.midolman.state.zkManagers.PoolHealthMonitorZkManager.PoolHealthMonitorConfig.VipConfigWithId;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 /**

@@ -19,8 +19,13 @@ import com.google.inject.Inject;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooDefs;
-import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.serialization.Serializer;
+
+import org.midonet.cluster.backend.zookeeper.NoStatePathException;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.StatePathExistsException;
+import org.midonet.cluster.backend.zookeeper.ZkManager;
+import org.midonet.cluster.backend.zookeeper.serialization.SerializationException;
+import org.midonet.cluster.backend.zookeeper.serialization.Serializer;
 import org.midonet.midolman.state.*;
 import org.midonet.midolman.state.zkManagers.RouterZkManager;
 import org.midonet.midolman.state.zkManagers.RouterZkManager.RouterConfig;

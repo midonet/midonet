@@ -18,9 +18,15 @@ package org.midonet.midolman.state.zkManagers;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooDefs.Ids;
-import org.codehaus.jackson.annotate.JsonIgnore;
-import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.serialization.Serializer;
+
+import org.midonet.cluster.backend.zookeeper.Directory;
+import org.midonet.cluster.backend.zookeeper.DirectoryCallback;
+import org.midonet.cluster.backend.zookeeper.NoStatePathException;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.StatePathExistsException;
+import org.midonet.cluster.backend.zookeeper.ZkManager;
+import org.midonet.cluster.backend.zookeeper.serialization.SerializationException;
+import org.midonet.cluster.backend.zookeeper.serialization.Serializer;
 import org.midonet.midolman.state.*;
 import org.midonet.packets.IPAddr$;
 import org.midonet.util.functors.Functors;
@@ -122,7 +128,7 @@ public class IpAddrGroupZkManager extends
      * @param id
      *            The ID of a IP addr group to delete.
      * @return A list of Op objects representing the operations to perform.
-     * @throws org.midonet.midolman.state.StateAccessException
+     * @throws org.midonet.cluster.backend.zookeeper.StateAccessException
      */
     public List<Op> prepareDelete(UUID id) throws StateAccessException,
             SerializationException {
@@ -153,7 +159,7 @@ public class IpAddrGroupZkManager extends
      * Performs an atomic update on the ZooKeeper to add a new IP addr group.
      *
      * @return The UUID of the newly created object.
-     * @throws org.midonet.midolman.state.StateAccessException
+     * @throws org.midonet.cluster.backend.zookeeper.StateAccessException
      */
     public UUID create(IpAddrGroupConfig config) throws StateAccessException,
             SerializationException {
@@ -168,7 +174,7 @@ public class IpAddrGroupZkManager extends
      *
      * @param id
      *            ID of the IP addr group to delete.
-     * @throws org.midonet.midolman.state.StateAccessException
+     * @throws org.midonet.cluster.backend.zookeeper.StateAccessException
      */
     public void delete(UUID id) throws StateAccessException,
             SerializationException {
@@ -181,7 +187,7 @@ public class IpAddrGroupZkManager extends
      * @param id
      *            IP addr group ID to check
      * @return True if exists
-     * @throws org.midonet.midolman.state.StateAccessException
+     * @throws org.midonet.cluster.backend.zookeeper.StateAccessException
      */
     public boolean exists(UUID id) throws StateAccessException {
         return zk.exists(paths.getIpAddrGroupPath(id));
@@ -193,7 +199,7 @@ public class IpAddrGroupZkManager extends
      * @param id
      *            The ID of the ip addr group.
      * @return IpAddrGroupConfig object
-     * @throws org.midonet.midolman.state.StateAccessException
+     * @throws org.midonet.cluster.backend.zookeeper.StateAccessException
      */
     public IpAddrGroupConfig get(UUID id) throws StateAccessException,
             SerializationException {

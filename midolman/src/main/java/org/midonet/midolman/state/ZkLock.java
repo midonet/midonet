@@ -21,13 +21,15 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.ZkManager;
+import org.midonet.cluster.backend.zookeeper.ZkUtil;
 import org.midonet.midolman.Setup;
 import org.midonet.util.functors.Callback;
 

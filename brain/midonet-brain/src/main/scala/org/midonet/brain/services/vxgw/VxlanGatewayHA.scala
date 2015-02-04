@@ -33,10 +33,11 @@ import rx.{Observer, Subscription}
 
 import org.midonet.brain.ClusterNode
 import org.midonet.brain.southbound.vtep.VtepDataClientFactory
-import org.midonet.cluster.EntityIdSetEvent.Type._
-import org.midonet.cluster.{DataClient, EntityIdSetEvent}
-import org.midonet.midolman.state.Directory.DefaultTypedWatcher
-import org.midonet.midolman.state.{StateAccessException, ZookeeperConnectionWatcher}
+import org.midonet.cluster.DataClient
+import org.midonet.cluster.backend.EntityIdSetEvent
+import org.midonet.cluster.backend.EntityIdSetEvent.Type._
+import org.midonet.cluster.backend.zookeeper.Directory.DefaultTypedWatcher
+import org.midonet.cluster.backend.zookeeper.{StateAccessException, ZookeeperConnectionWatcher}
 import org.midonet.util.concurrent.NamedThreadFactory
 import org.midonet.util.functors._
 

@@ -19,13 +19,13 @@ import java.util.*;
 
 import com.google.common.base.Objects;
 import org.midonet.cluster.data.neutron.Router;
-import org.midonet.midolman.serialization.Serializer;
-import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.cluster.backend.zookeeper.serialization.Serializer;
+import org.midonet.cluster.backend.zookeeper.serialization.SerializationException;
 import org.midonet.midolman.state.AbstractZkManager;
-import org.midonet.midolman.state.Directory;
+import org.midonet.cluster.backend.zookeeper.Directory;
 import org.midonet.midolman.state.PathBuilder;
-import org.midonet.midolman.state.StateAccessException;
-import org.midonet.midolman.state.ZkManager;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.ZkManager;
 import org.apache.zookeeper.Op;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -266,7 +266,7 @@ public class RouterZkManager
      * @return A list of Op objects representing the operations to perform.
      * @throws SerializationException
      *             Serialization error occurred.
-     * @throws org.midonet.midolman.state.StateAccessException
+     * @throws org.midonet.cluster.backend.zookeeper.StateAccessException
      */
     public List<Op> prepareRouterDelete(UUID id) throws StateAccessException,
             SerializationException {

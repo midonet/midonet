@@ -17,10 +17,12 @@ package org.midonet.midolman.state
 
 import java.util
 
-import org.apache.zookeeper.CreateMode
-import org.midonet.packets.{IPv4Addr, MAC}
-
 import scala.collection.JavaConversions._
+
+import org.apache.zookeeper.CreateMode
+
+import org.midonet.cluster.backend.zookeeper.{Directory, StateAccessException}
+import org.midonet.packets.{IPv4Addr, MAC}
 
 class Ip4ToMacReplicatedMap(dir: Directory)
     extends ReplicatedMap[IPv4Addr, MAC](dir)

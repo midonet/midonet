@@ -16,15 +16,14 @@
 
 package org.midonet.brain.util
 
-import org.apache.zookeeper.{WatchedEvent, KeeperException}
+import org.apache.zookeeper.{KeeperException, WatchedEvent}
 import org.slf4j.LoggerFactory
 
-import org.midonet.midolman.state.{StateAccessException, ZkConnection, ZookeeperConnectionWatcher}
+import org.midonet.cluster.backend.zookeeper.{StateAccessException, ZkConnection, ZookeeperConnectionWatcher}
 
 object TestZkTools {
     def instantZkConnWatcher = new ZookeeperConnectionWatcher {
         val log = LoggerFactory.getLogger(this.getClass)
-        override def getZkConnection: ZkConnection = ???
         override def setZkConnection(conn: ZkConnection): Unit = ???
         override def scheduleOnDisconnect(runnable: Runnable): Unit = ???
         override def scheduleOnReconnect(runnable: Runnable): Unit = ???

@@ -19,6 +19,7 @@ import javax.annotation.Nonnull;
 
 import org.apache.zookeeper.KeeperException;
 
+import org.midonet.cluster.backend.zookeeper.DirectoryCallback;
 import org.midonet.util.functors.Functor;
 
 /**

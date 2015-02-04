@@ -25,6 +25,10 @@ import org.apache.zookeeper.CreateMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.midonet.cluster.backend.zookeeper.NoStatePathException;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.StatePathExistsException;
+import org.midonet.cluster.backend.zookeeper.ZkManager;
 import org.midonet.cluster.data.SystemState;
 import org.midonet.midolman.SystemDataProvider;
 import org.midonet.midolman.guice.serialization.VerCheck;

@@ -31,9 +31,9 @@ import rx.functions.Action1;
 import org.midonet.brain.services.vxgw.monitor.DeviceMonitor;
 import org.midonet.brain.services.vxgw.monitor.TunnelZoneMonitor;
 import org.midonet.cluster.DataClient;
-import org.midonet.cluster.EntityIdSetEvent;
-import org.midonet.midolman.state.StateAccessException;
-import org.midonet.midolman.state.ZookeeperConnectionWatcher;
+import org.midonet.cluster.backend.EntityIdSetEvent;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.ZookeeperConnectionWatcher;
 
 /**
  * A class that receives a tunnel zone monitor and exposes an observable with

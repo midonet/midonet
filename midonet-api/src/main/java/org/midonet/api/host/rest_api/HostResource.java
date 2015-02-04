@@ -27,14 +27,11 @@ import org.midonet.api.rest_api.BadRequestHttpException;
 import org.midonet.api.rest_api.NotFoundHttpException;
 import org.midonet.api.rest_api.ResourceFactory;
 import org.midonet.api.rest_api.RestApiConfig;
-import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.StateAccessException;
-import org.midonet.midolman.state.NoStatePathException;
+import org.midonet.cluster.backend.zookeeper.serialization.SerializationException;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.NoStatePathException;
 import org.midonet.cluster.DataClient;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import com.sun.jersey.api.client.ClientResponse.Status;
 import javax.annotation.security.RolesAllowed;
 import javax.validation.Validator;
 import javax.ws.rs.*;

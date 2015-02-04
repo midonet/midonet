@@ -24,19 +24,19 @@ import java.util.UUID;
 
 import org.apache.zookeeper.Op;
 
-import org.midonet.cluster.WatchableZkManager;
+import org.midonet.cluster.backend.zookeeper.WatchableZkManager;
 import org.midonet.midolman.state.AbstractZkManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.midonet.midolman.serialization.Serializer;
-import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.Directory;
-import org.midonet.midolman.state.NoStatePathException;
+import org.midonet.cluster.backend.zookeeper.serialization.Serializer;
+import org.midonet.cluster.backend.zookeeper.serialization.SerializationException;
+import org.midonet.cluster.backend.zookeeper.Directory;
+import org.midonet.cluster.backend.zookeeper.NoStatePathException;
 import org.midonet.midolman.state.PathBuilder;
-import org.midonet.midolman.state.StateAccessException;
-import org.midonet.midolman.state.StatePathExistsException;
-import org.midonet.midolman.state.ZkManager;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.StatePathExistsException;
+import org.midonet.cluster.backend.zookeeper.ZkManager;
 import org.midonet.cluster.data.TunnelZone;
 import org.midonet.util.functors.CollectionFunctors;
 import org.midonet.util.functors.Functor;

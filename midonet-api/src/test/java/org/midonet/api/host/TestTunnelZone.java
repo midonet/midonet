@@ -40,8 +40,8 @@ import org.midonet.client.dto.DtoApplication;
 import org.midonet.client.dto.DtoError;
 import org.midonet.client.dto.DtoTunnelZone;
 import org.midonet.client.dto.DtoVtep;
-import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.serialization.SerializationException;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
 
 import static org.midonet.api.vtep.VtepMockableDataClientFactory.MOCK_VTEP1;
 

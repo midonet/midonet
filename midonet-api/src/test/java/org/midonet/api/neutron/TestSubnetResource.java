@@ -22,8 +22,8 @@ import org.midonet.api.ResourceTest;
 import org.midonet.api.rest_api.ConflictHttpException;
 import org.midonet.api.rest_api.NotFoundHttpException;
 import org.midonet.cluster.data.neutron.Subnet;
-import org.midonet.midolman.state.NoStatePathException;
-import org.midonet.midolman.state.StatePathExistsException;
+import org.midonet.cluster.backend.zookeeper.NoStatePathException;
+import org.midonet.cluster.backend.zookeeper.StatePathExistsException;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import javax.ws.rs.core.Response;

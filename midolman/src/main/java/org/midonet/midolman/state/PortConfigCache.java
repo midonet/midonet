@@ -20,9 +20,12 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
-import com.google.inject.Inject;
-import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.serialization.Serializer;
+import org.midonet.cluster.backend.zookeeper.Directory;
+import org.midonet.cluster.backend.zookeeper.NoStatePathException;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.ZkConnectionAwareWatcher;
+import org.midonet.cluster.backend.zookeeper.serialization.SerializationException;
+import org.midonet.cluster.backend.zookeeper.serialization.Serializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

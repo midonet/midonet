@@ -18,6 +18,7 @@ package org.midonet.midolman.state
 import java.util.Map
 import java.util.UUID
 import org.apache.zookeeper.CreateMode
+import org.midonet.cluster.backend.zookeeper.Directory
 import org.midonet.packets.MAC
 import scala.collection.JavaConversions._
 

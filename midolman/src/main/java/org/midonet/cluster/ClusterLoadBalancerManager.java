@@ -33,8 +33,8 @@ import org.slf4j.LoggerFactory;
 import org.midonet.cluster.client.LoadBalancerBuilder;
 import org.midonet.cluster.data.Converter;
 import org.midonet.cluster.data.l4lb.VIP;
-import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.serialization.SerializationException;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.midolman.state.zkManagers.LoadBalancerZkManager;
 import org.midonet.midolman.state.zkManagers.VipZkManager;
 

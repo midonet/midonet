@@ -28,12 +28,12 @@ import org.scalatest.GivenWhenThen
 import org.scalatest.Matchers
 import org.scalatest.OneInstancePerTest
 
+import org.midonet.cluster.backend.zookeeper.MockZookeeperConnectionModule
 import org.midonet.cluster.services.StorageService
 import org.midonet.midolman.guice.config.ConfigProviderModule
 import org.midonet.midolman.guice.datapath.MockDatapathModule
 import org.midonet.midolman.guice.serialization.SerializationModule
 import org.midonet.midolman.guice.state.MockFlowStateStorageModule
-import org.midonet.midolman.guice.zookeeper.MockZookeeperConnectionModule
 import org.midonet.midolman.guice._
 import org.midonet.midolman.guice.cluster.ClusterClientModule
 import org.midonet.midolman.host.scanner.InterfaceScanner

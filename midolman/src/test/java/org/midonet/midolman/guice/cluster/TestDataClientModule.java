@@ -20,9 +20,9 @@ import java.util.concurrent.TimeUnit;
 import org.apache.curator.framework.recipes.locks.InterProcessSemaphoreMutex;
 
 import org.midonet.cluster.ZookeeperLockFactory;
+import org.midonet.cluster.guice.DataClientModule;
 
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doNothing;

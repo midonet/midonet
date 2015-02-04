@@ -15,7 +15,6 @@
  */
 package org.midonet.brain.southbound.midonet;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -42,11 +41,11 @@ import org.midonet.brain.southbound.vtep.VtepConstants;
 import org.midonet.brain.southbound.vtep.VtepMAC;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.Bridge;
-import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.Directory;
+import org.midonet.cluster.backend.zookeeper.serialization.SerializationException;
+import org.midonet.cluster.backend.zookeeper.Directory;
 import org.midonet.midolman.state.Ip4ToMacReplicatedMap;
 import org.midonet.midolman.state.MacPortMap;
-import org.midonet.midolman.state.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
 

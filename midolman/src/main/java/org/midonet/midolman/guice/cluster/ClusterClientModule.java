@@ -15,7 +15,7 @@
  */
 package org.midonet.midolman.guice.cluster;
 
-import org.midonet.midolman.state.Directory;
+import org.midonet.cluster.backend.zookeeper.Directory;
 import org.midonet.cluster.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

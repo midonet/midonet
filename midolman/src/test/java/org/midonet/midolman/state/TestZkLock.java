@@ -18,6 +18,10 @@ package org.midonet.midolman.state;
 
 import org.junit.Before;
 import org.junit.Test;
+
+import org.midonet.cluster.backend.zookeeper.MockDirectory;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.ZkManager;
 import org.midonet.util.functors.Callback;
 
 import static org.hamcrest.CoreMatchers.is;

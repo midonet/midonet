@@ -46,6 +46,18 @@ import org.apache.zookeeper.ZooDefs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.midonet.cluster.backend.EntityIdSetMonitor;
+import org.midonet.cluster.backend.EntityMonitor;
+import org.midonet.cluster.backend.zookeeper.Directory;
+import org.midonet.cluster.backend.zookeeper.DirectoryCallback;
+import org.midonet.cluster.backend.zookeeper.InvalidStateOperationException;
+import org.midonet.cluster.backend.zookeeper.NoStatePathException;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.WatchableZkManager;
+import org.midonet.cluster.backend.zookeeper.ZookeeperConnectionWatcher;
+import org.midonet.cluster.backend.zookeeper.serialization.SerializationException;
+import org.midonet.cluster.backend.zookeeper.serialization.Serializer;
+import org.midonet.cluster.backend.zookeeper.ZkConnectionProvider;
 import org.midonet.cluster.data.AdRoute;
 import org.midonet.cluster.data.BGP;
 import org.midonet.cluster.data.Bridge;
@@ -78,29 +90,20 @@ import org.midonet.cluster.data.ports.BridgePort;
 import org.midonet.cluster.data.ports.VlanMacPort;
 import org.midonet.cluster.data.ports.VxLanPort;
 import org.midonet.midolman.SystemDataProvider;
-import org.midonet.midolman.guice.zookeeper.ZkConnectionProvider;
 import org.midonet.midolman.host.state.HostDirectory;
 import org.midonet.midolman.host.state.HostZkManager;
 import org.midonet.midolman.rules.RuleList;
-import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.serialization.Serializer;
-import org.midonet.midolman.state.Directory;
-import org.midonet.midolman.state.DirectoryCallback;
-import org.midonet.midolman.state.InvalidStateOperationException;
 import org.midonet.midolman.state.Ip4ToMacReplicatedMap;
 import org.midonet.midolman.state.MacPortMap;
-import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.PoolHealthMonitorMappingStatus;
 import org.midonet.midolman.state.PortConfig;
 import org.midonet.midolman.state.PortConfigCache;
 import org.midonet.midolman.state.PortDirectory;
 import org.midonet.midolman.state.PortDirectory.VxLanPortConfig;
-import org.midonet.midolman.state.StateAccessException;
-import org.midonet.midolman.state.ZkLeaderElectionWatcher;
-import org.midonet.midolman.state.ZkManager;
-import org.midonet.midolman.state.ZkUtil;
-import org.midonet.midolman.state.ZookeeperConnectionWatcher;
+import org.midonet.cluster.backend.zookeeper.ZkLeaderElectionWatcher;
+import org.midonet.cluster.backend.zookeeper.ZkManager;
+import org.midonet.cluster.backend.zookeeper.ZkUtil;
 import org.midonet.midolman.state.l4lb.LBStatus;
 import org.midonet.midolman.state.l4lb.MappingStatusException;
 import org.midonet.midolman.state.l4lb.MappingViolationException;
@@ -142,7 +145,6 @@ import org.midonet.util.functors.Functor;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.midonet.cluster.data.Rule.RuleIndexOutOfBoundsException;
-
 @SuppressWarnings("unused")
 public class LocalDataClientImpl implements DataClient {
 

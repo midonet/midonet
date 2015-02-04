@@ -26,6 +26,7 @@ import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.zookeeper.KeeperException;
 import org.junit.Before;
 
+import org.midonet.cluster.backend.zookeeper.Directory;
 import org.midonet.cluster.config.ZookeeperConfig;
 import org.midonet.cluster.data.Bridge;
 import org.midonet.cluster.data.dhcp.Subnet;
@@ -35,9 +36,9 @@ import org.midonet.midolman.guice.cluster.DataClusterClientModule;
 import org.midonet.midolman.guice.config.ConfigProviderModule;
 import org.midonet.midolman.guice.config.TypedConfigModule;
 import org.midonet.midolman.guice.serialization.SerializationModule;
-import org.midonet.midolman.guice.zookeeper.MockZookeeperConnectionModule;
-import org.midonet.midolman.state.Directory;
+import org.midonet.cluster.backend.zookeeper.MockZookeeperConnectionModule;
 import org.midonet.packets.IPv4Subnet;
+
 
 public class LocalDataClientImplTestBase {
 

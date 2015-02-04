@@ -32,11 +32,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.midonet.cluster.client.BridgeBuilder;
-import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.NoStatePathException;
+import org.midonet.cluster.backend.zookeeper.serialization.SerializationException;
+import org.midonet.cluster.backend.zookeeper.NoStatePathException;
 import org.midonet.midolman.state.PortConfig;
 import org.midonet.midolman.state.PortDirectory;
-import org.midonet.midolman.state.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.midolman.state.zkManagers.BridgeZkManager;
 import org.midonet.midolman.state.zkManagers.PortZkManager;
 import org.midonet.packets.IPAddr;
