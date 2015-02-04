@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_cf6e5cc9",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/guice/TopologyModule.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-02-04T19:37:08Z",
+      "side": 1,
+      "message": "Is it worth creating a separate module? Maybe we can just put it in MidolmanModule?",
+      "range": {
+        "startLine": 27,
+        "startChar": 6,
+        "endLine": 27,
+        "endChar": 20
+      },
+      "revId": "cf278befafbb45fbd1f2d619a46ffc8945f5aac9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
