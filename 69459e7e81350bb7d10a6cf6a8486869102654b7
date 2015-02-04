@@ -291,6 +291,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_49cc2f36",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 28
+      },
+      "lineNbr": 194,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-02-04T04:42:03Z",
+      "side": 1,
+      "message": "Tomohiko\u0027s right, I think. You just shouldn\u0027t mix multiple owners with cascading delete. We should probably enforce that during class/binding registration, by not allowing a class which supports multiple ownership to participate in a binding that makes it subject to cascading delete.",
+      "parentUuid": "7a1969be_a87cc173",
+      "range": {
+        "startLine": 194,
+        "startChar": 13,
+        "endLine": 194,
+        "endChar": 74
+      },
+      "revId": "69459e7e81350bb7d10a6cf6a8486869102654b7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_703abd37",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
         "patchSetId": 28
@@ -350,6 +374,30 @@
       "side": 1,
       "message": "But owner.isEmpty is false, meaning that owner.isDefined always return true?",
       "parentUuid": "7a1969be_1417f6ee",
+      "range": {
+        "startLine": 685,
+        "startChar": 12,
+        "endLine": 691,
+        "endChar": 65
+      },
+      "revId": "69459e7e81350bb7d10a6cf6a8486869102654b7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_29e573a8",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 28
+      },
+      "lineNbr": 691,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-02-04T04:42:03Z",
+      "side": 1,
+      "message": "Right. In fact, here\u0027s the definition of isDefined:\n\n  def isDefined: Boolean \u003d !isEmpty\n\nAnd isEmpty is defined as true for None and false for Some (which are subclasses of Option).",
+      "parentUuid": "7a1969be_e8aeb9e6",
       "range": {
         "startLine": 685,
         "startChar": 12,
