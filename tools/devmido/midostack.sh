@@ -17,16 +17,25 @@
 # This script is meant to be sourced from devstack.  It is a wrapper of
 # mido.sh that allows proper exporting of environment variables to mido.sh.
 
-# Keep track of the current directory
-MIDOSTACK_DIR=$(cd $(dirname $0) && pwd)
+# Back up the current options of devstack so that we can change them in here
+# as we wish
+OLD_OPTS=$(set +o)
+
+# Devstack should set errexit option, but setting here again to make sure
+# because this script requires that this option is set
+set -o errexit
+
+# Sanity checks - these must be set
+MIDONET_DIR=${MIDONET_DIR:?Error \$MIDONET_DIR is not set}
+export SERVICE_HOST=${MIDONET_SERVICE_HOST:?Error \$MIDONET_SERVICE_HOST is not set}
+export API_PORT=${MIDONET_API_PORT:?Error \$MIDONET_API_PORT is not set}
 
 # Share the same logging locations
 export TIMESTAMP_FORMAT
 export LOGFILE
 export SCREEN_LOGDIR
 
-# Keep the midonet API URL consistent
-export SERVICE_HOST=$MIDONET_SERVICE_HOST
-export API_PORT=$MIDONET_API_PORT
+$MIDONET_DIR/tools/devmido/mido.sh
 
-$MIDOSTACK_DIR/mido.sh
+# Restore the options
+eval "$OLD_OPTS" 2> /dev/null
