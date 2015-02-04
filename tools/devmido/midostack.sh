@@ -26,4 +26,9 @@ export SCREEN_LOGDIR
 export SERVICE_HOST=$MIDONET_SERVICE_HOST
 export API_PORT=$MIDONET_API_PORT
 
+# Set auth variables for midonet-cli
+export MIDO_USER=$Q_ADMIN_USERNAME
+export MIDO_PROJECT_ID=$ADMIN_TENANT_ID
+export MIDO_PASSWORD=$ADMIN_PASSWORD
+
 $MIDONET_DIR/tools/devmido/mido.sh
