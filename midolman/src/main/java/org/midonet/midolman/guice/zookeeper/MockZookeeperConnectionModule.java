@@ -55,7 +55,7 @@ public class MockZookeeperConnectionModule  extends ZookeeperConnectionModule {
     @Override
     protected void bindReactor() {
         bind(Reactor.class).annotatedWith(
-                Names.named(ZKConnectionProvider.DIRECTORY_REACTOR_TAG))
+                Names.named(ZkConnectionProvider.DIRECTORY_REACTOR_TAG))
                 .to(CallingThreadReactor.class)
                 .asEagerSingleton();
     }

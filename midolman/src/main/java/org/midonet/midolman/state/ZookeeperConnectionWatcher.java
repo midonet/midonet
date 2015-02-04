@@ -32,7 +32,7 @@ import org.slf4j.LoggerFactory;
 
 import org.midonet.cluster.config.ZookeeperConfig;
 import org.midonet.event.agent.NsdbEvent;
-import org.midonet.midolman.guice.zookeeper.ZKConnectionProvider;
+import org.midonet.midolman.guice.zookeeper.ZkConnectionProvider;
 import org.midonet.util.eventloop.Reactor;
 
 public class ZookeeperConnectionWatcher implements ZkConnectionAwareWatcher {
@@ -47,7 +47,7 @@ public class ZookeeperConnectionWatcher implements ZkConnectionAwareWatcher {
     private List<Runnable> disconnectCallbacks = new LinkedList<Runnable>();
 
     @Inject
-    @Named(ZKConnectionProvider.DIRECTORY_REACTOR_TAG)
+    @Named(ZkConnectionProvider.DIRECTORY_REACTOR_TAG)
     Reactor reactorLoop;
 
     @Inject
