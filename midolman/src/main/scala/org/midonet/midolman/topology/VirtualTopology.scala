@@ -160,8 +160,6 @@ class VirtualTopology @Inject() (val store: Storage,
 
     import org.midonet.midolman.topology.VirtualTopology._
 
-    private implicit val actorSystem = actorsService.system
-
     private[topology] val devices =
         new ConcurrentHashMap[UUID, Device]()
     private[topology] val observables =
@@ -199,6 +197,6 @@ class VirtualTopology @Inject() (val store: Storage,
     }
 
     private[topology] def invalidate(tag: FlowTag): Unit = {
-        FlowController.getRef ! InvalidateFlowsByTag(tag)
+        FlowController.getRef()(actorsService.system) ! InvalidateFlowsByTag(tag)
     }
 }
