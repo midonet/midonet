@@ -78,7 +78,7 @@ import org.midonet.cluster.data.ports.BridgePort;
 import org.midonet.cluster.data.ports.VlanMacPort;
 import org.midonet.cluster.data.ports.VxLanPort;
 import org.midonet.midolman.SystemDataProvider;
-import org.midonet.midolman.guice.zookeeper.ZKConnectionProvider;
+import org.midonet.midolman.guice.zookeeper.ZkConnectionProvider;
 import org.midonet.midolman.host.state.HostDirectory;
 import org.midonet.midolman.host.state.HostZkManager;
 import org.midonet.midolman.rules.RuleList;
@@ -234,7 +234,7 @@ public class LocalDataClientImpl implements DataClient {
     private VtepZkManager vtepZkManager;
 
     @Inject
-    @Named(ZKConnectionProvider.DIRECTORY_REACTOR_TAG)
+    @Named(ZkConnectionProvider.DIRECTORY_REACTOR_TAG)
     private Reactor reactor;
 
     final Queue<Callback2<UUID, Boolean>> subscriptionPortsActive =

@@ -19,6 +19,7 @@ package org.midonet.cluster;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -27,7 +28,7 @@ import org.apache.zookeeper.Watcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.midonet.midolman.guice.zookeeper.ZKConnectionProvider;
+import org.midonet.midolman.guice.zookeeper.ZkConnectionProvider;
 import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.DirectoryCallback;
 import org.midonet.midolman.state.ZkConnectionAwareWatcher;
@@ -38,10 +39,11 @@ abstract class ClusterManager<T> {
             .getLogger(ClusterManager.class);
 
     /**
-     * We inject it because we want to use the same {@link Reactor} as {@link org.midonet.midolman.state.ZkDirectory}
+     * We inject it because we want to use the same {@link Reactor} as
+     * {@link org.midonet.midolman.state.ZkDirectory}
      */
     @Inject
-    @Named(ZKConnectionProvider.DIRECTORY_REACTOR_TAG)
+    @Named(ZkConnectionProvider.DIRECTORY_REACTOR_TAG)
     Reactor reactorLoop;
 
     @Inject

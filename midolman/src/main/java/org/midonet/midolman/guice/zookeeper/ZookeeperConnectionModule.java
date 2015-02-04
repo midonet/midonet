@@ -15,15 +15,18 @@
  */
 package org.midonet.midolman.guice.zookeeper;
 
-import com.google.inject.*;
+import com.google.inject.Inject;
+import com.google.inject.Key;
+import com.google.inject.PrivateModule;
+import com.google.inject.Provider;
 import com.google.inject.name.Names;
 
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 
-import org.midonet.config.ConfigProvider;
 import org.midonet.cluster.config.ZookeeperConfig;
+import org.midonet.config.ConfigProvider;
 import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.ZkConnection;
 import org.midonet.midolman.state.ZkConnectionAwareWatcher;
@@ -58,7 +61,7 @@ public class ZookeeperConnectionModule extends PrivateModule {
 
         expose(Key.get(Reactor.class,
                        Names.named(
-                           ZKConnectionProvider.DIRECTORY_REACTOR_TAG)));
+                           ZkConnectionProvider.DIRECTORY_REACTOR_TAG)));
         expose(Directory.class);
 
         bind(ZkConnectionAwareWatcher.class)
@@ -75,14 +78,14 @@ public class ZookeeperConnectionModule extends PrivateModule {
 
     protected void bindZookeeperConnection() {
         bind(ZkConnection.class)
-            .toProvider(ZKConnectionProvider.class)
+            .toProvider(ZkConnectionProvider.class)
             .asEagerSingleton();
         expose(ZkConnection.class);
     }
 
     protected void bindReactor() {
         bind(Reactor.class).annotatedWith(
-            Names.named(ZKConnectionProvider.DIRECTORY_REACTOR_TAG))
+            Names.named(ZkConnectionProvider.DIRECTORY_REACTOR_TAG))
             .toProvider(ZookeeperReactorProvider.class)
             .asEagerSingleton();
     }
