@@ -258,14 +258,12 @@ class HostMapperTest extends MidolmanSpec
     }
 
     private def newTunnelZone(hostId: UUID): TunnelZone = {
-        val tunnelId = UUID.randomUUID()
-        createTunnelZoneBuilder(tunnelId, "foo",
-                                Map(hostId -> IPAddr.fromString("192.168.0.1")))
-                                .build()
+        createTunnelZone(UUID.randomUUID, "foo",
+                         Map(hostId -> IPAddr.fromString("192.168.0.1")))
     }
 
     private def newHost(hostId: UUID, tunnelIds: Set[UUID]): Host = {
-        createHostBuilder(hostId, Map(UUID.randomUUID() -> "eth0"), tunnelIds).build()
+        createHost(hostId, Map(UUID.randomUUID() -> "eth0"), tunnelIds)
     }
 
     private def createZoomObjs: (Host, TunnelZone) = {

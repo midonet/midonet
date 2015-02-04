@@ -941,7 +941,7 @@ private object InMemoryStorageTest {
                            tunnelKey: Int = -1,
                            inFilterId: Commons.UUID = null,
                            outFilterId: Commons.UUID = null,
-                           vxLanPortId: Commons.UUID = null) = {
+                           vxLanPortIds: Seq[Commons.UUID] = Seq.empty) = {
         val builder = Network.newBuilder
             .setId(networkId)
             .setName(name)
@@ -952,8 +952,7 @@ private object InMemoryStorageTest {
             builder.setInboundFilterId(inFilterId)
         if (null != outFilterId)
             builder.setOutboundFilterId(outFilterId)
-        if (null != vxLanPortId)
-            builder.setVxlanPortId(vxLanPortId)
+        builder.addAllVxlanPortIds(vxLanPortIds.asJava)
 
         builder.build
     }
