@@ -18,10 +18,9 @@ package org.midonet.midolman.topology
 import scala.collection.mutable
 import java.util.UUID
 import akka.actor.ActorRef
-
 import org.midonet.cluster.Client
 import org.midonet.cluster.client.TunnelZones
-import org.midonet.cluster.data.TunnelZone
+import org.midonet.cluster.data.boilerplate.TunnelZone
 import org.midonet.midolman.topology.VirtualToPhysicalMapper.ZoneChanged
 import org.midonet.packets.IPv4
 import org.midonet.util.collection.MapperToFirstCall

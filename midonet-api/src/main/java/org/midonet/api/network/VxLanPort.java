@@ -19,7 +19,6 @@ import org.midonet.api.ResourceUriBuilder;
 import org.midonet.packets.IPv4Addr;
 
 import java.net.URI;
-import java.util.List;
 
 public class VxLanPort extends Port {
 
@@ -27,7 +26,7 @@ public class VxLanPort extends Port {
     private int mgmtPort;
     private int vni;
 
-    public VxLanPort(org.midonet.cluster.data.ports.VxLanPort vxLanPort) {
+    public VxLanPort(org.midonet.cluster.data.boilerplate.ports.VxLanPort vxLanPort) {
         super(vxLanPort);
         mgmtIpAddr = vxLanPort.getMgmtIpAddr().toString();
         mgmtPort = vxLanPort.getMgmtPort();
@@ -42,14 +41,14 @@ public class VxLanPort extends Port {
     }
 
     @Override
-    public org.midonet.cluster.data.ports.VxLanPort toData() {
-        org.midonet.cluster.data.ports.VxLanPort vxLanPort =
-                new org.midonet.cluster.data.ports.VxLanPort();
+    public org.midonet.cluster.data.boilerplate.ports.VxLanPort toData() {
+        org.midonet.cluster.data.boilerplate.ports.VxLanPort vxLanPort =
+                new org.midonet.cluster.data.boilerplate.ports.VxLanPort();
         setConfig(vxLanPort);
         return vxLanPort;
     }
 
-    public void setConfig(org.midonet.cluster.data.ports.VxLanPort vxLanPort) {
+    public void setConfig(org.midonet.cluster.data.boilerplate.ports.VxLanPort vxLanPort) {
         super.setConfig(vxLanPort);
         vxLanPort.setMgmtIpAddr(IPv4Addr.fromString(mgmtIpAddr));
         vxLanPort.setMgmtPort(mgmtPort);

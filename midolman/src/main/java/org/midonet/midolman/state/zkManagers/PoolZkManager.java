@@ -15,32 +15,32 @@
  */
 package org.midonet.midolman.state.zkManagers;
 
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+
 import com.google.common.base.Objects;
+
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooDefs.Ids;
 import org.codehaus.jackson.annotate.JsonIgnore;
-
-import org.midonet.cluster.data.neutron.loadbalancer.Pool;
-import org.midonet.cluster.backend.zookeeper.serialization.SerializationException;
-import org.midonet.cluster.backend.zookeeper.serialization.Serializer;
-import org.midonet.midolman.state.AbstractZkManager;
-import org.midonet.cluster.backend.zookeeper.Directory;
-import org.midonet.cluster.backend.zookeeper.DirectoryCallback;
-import org.midonet.midolman.state.l4lb.PoolLBMethod;
-import org.midonet.midolman.state.l4lb.LBStatus;
-import org.midonet.midolman.state.PathBuilder;
-import org.midonet.midolman.state.PoolHealthMonitorMappingStatus;
-import org.midonet.cluster.backend.zookeeper.StateAccessException;
-import org.midonet.cluster.backend.zookeeper.ZkManager;
-import org.midonet.midolman.state.l4lb.PoolProtocol;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import org.midonet.cluster.backend.zookeeper.Directory;
+import org.midonet.cluster.backend.zookeeper.DirectoryCallback;
+import org.midonet.cluster.backend.zookeeper.PathBuilder;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.ZkManager;
+import org.midonet.cluster.backend.zookeeper.serialization.SerializationException;
+import org.midonet.cluster.backend.zookeeper.serialization.Serializer;
+import org.midonet.cluster.data.boilerplate.l4lb.LBStatus;
+import org.midonet.cluster.data.boilerplate.l4lb.PoolHealthMonitorMappingStatus;
+import org.midonet.cluster.data.boilerplate.l4lb.PoolLBMethod;
+import org.midonet.cluster.data.boilerplate.l4lb.PoolProtocol;
+import org.midonet.cluster.data.neutron.loadbalancer.Pool;
+import org.midonet.midolman.state.AbstractZkManager;
 
 import static java.util.Arrays.asList;
 

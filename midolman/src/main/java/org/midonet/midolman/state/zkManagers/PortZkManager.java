@@ -35,7 +35,7 @@ import org.midonet.midolman.state.AbstractZkManager;
 import org.midonet.cluster.backend.zookeeper.Directory;
 import org.midonet.cluster.backend.zookeeper.DirectoryCallback;
 import org.midonet.cluster.backend.zookeeper.NoStatePathException;
-import org.midonet.midolman.state.PathBuilder;
+import org.midonet.cluster.backend.zookeeper.PathBuilder;
 import org.midonet.midolman.state.PortConfig;
 import org.midonet.midolman.state.PortDirectory;
 import org.midonet.cluster.backend.zookeeper.StateAccessException;

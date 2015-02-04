@@ -15,20 +15,23 @@
  */
 package org.midonet.api.filter.auth;
 
+import java.util.UUID;
+
+import javax.ws.rs.core.SecurityContext;
+
 import com.google.inject.Inject;
-import org.midonet.api.auth.AuthAction;
-import org.midonet.api.auth.Authorizer;
-import org.midonet.cluster.backend.zookeeper.serialization.SerializationException;
-import org.midonet.cluster.backend.zookeeper.StateAccessException;
-import org.midonet.cluster.DataClient;
-import org.midonet.cluster.data.Chain;
-import org.midonet.cluster.data.Rule;
-import org.midonet.cluster.data.rules.JumpRule;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ws.rs.core.SecurityContext;
-import java.util.UUID;
+import org.midonet.api.auth.AuthAction;
+import org.midonet.api.auth.Authorizer;
+import org.midonet.cluster.DataClient;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.serialization.SerializationException;
+import org.midonet.cluster.data.Rule;
+import org.midonet.cluster.data.boilerplate.Chain;
+import org.midonet.cluster.data.rules.JumpRule;
 
 /**
  * Authorizer for rule

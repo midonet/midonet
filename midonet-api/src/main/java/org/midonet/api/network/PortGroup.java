@@ -26,7 +26,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.UriResource;
-import org.midonet.cluster.data.PortGroup.Property;
+import org.midonet.cluster.data.boilerplate.PortGroup.Property;
 
 
 /**
@@ -62,7 +62,7 @@ public class PortGroup extends UriResource {
      * @param data
      *            PortGroup data object
      */
-    public PortGroup(org.midonet.cluster.data.PortGroup data) {
+    public PortGroup(org.midonet.cluster.data.boilerplate.PortGroup data) {
         this(data.getId(), data.getName(),
                 data.getProperty(Property.tenant_id), data.isStateful());
     }
@@ -163,9 +163,9 @@ public class PortGroup extends UriResource {
         }
     }
 
-    public org.midonet.cluster.data.PortGroup toData() {
+    public org.midonet.cluster.data.boilerplate.PortGroup toData() {
 
-        return new org.midonet.cluster.data.PortGroup()
+        return new org.midonet.cluster.data.boilerplate.PortGroup()
                 .setId(this.id)
                 .setName(this.name)
                 .setProperty(Property.tenant_id, this.tenantId)

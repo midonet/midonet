@@ -15,7 +15,7 @@
  */
 package org.midonet.api.host;
 
-import org.midonet.cluster.data.TunnelZone;
+import org.midonet.cluster.data.boilerplate.TunnelZone;
 
 import java.util.UUID;
 

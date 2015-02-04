@@ -17,6 +17,8 @@ package org.midonet.midolman.guice.cluster;
 
 import org.midonet.cluster.backend.zookeeper.Directory;
 import org.midonet.cluster.*;
+import org.midonet.cluster.Client;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

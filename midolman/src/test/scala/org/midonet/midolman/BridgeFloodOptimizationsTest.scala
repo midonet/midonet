@@ -22,9 +22,7 @@ import org.apache.commons.configuration.HierarchicalConfiguration
 
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
-
-import org.midonet.cluster.data.{Bridge => ClusterBridge}
-import org.midonet.cluster.data.ports.BridgePort
+import org.midonet.cluster.data.boilerplate.ports.BridgePort
 import org.midonet.midolman.PacketWorkflow.{AddVirtualWildcardFlow, NoOp}
 import org.midonet.midolman.simulation.PacketEmitter.GeneratedPacket
 import org.midonet.midolman.topology.VirtualTopologyActor
@@ -37,7 +35,7 @@ class BridgeFloodOptimizationsTest extends MidolmanSpec {
 
     registerActors(VirtualTopologyActor -> (() => new VirtualTopologyActor))
 
-    var bridge: ClusterBridge = _
+    var bridge: Bridge = _
     var port1, port2, port3: BridgePort = _
     val mac1 = MAC.fromString("02:11:11:11:11:09")
     val ip1 = IPv4Addr.fromString("10.0.1.1")

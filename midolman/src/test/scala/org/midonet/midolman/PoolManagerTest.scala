@@ -20,7 +20,7 @@ import org.scalatest._
 import org.scalatest.junit.JUnitRunner
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman.simulation.{Pool, CustomMatchers}
-import org.midonet.midolman.state.l4lb.PoolLBMethod
+import org.midonet.cluster.data.boilerplate.l4lb.PoolLBMethod
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.topology.VirtualTopologyActor.PoolRequest
 import java.util.UUID

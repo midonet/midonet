@@ -31,7 +31,7 @@ import org.midonet.midolman.state.AbstractZkManager;
 import org.midonet.cluster.backend.zookeeper.Directory;
 import org.midonet.cluster.backend.zookeeper.DirectoryCallback;
 import org.midonet.midolman.state.DirectoryCallbackFactory;
-import org.midonet.midolman.state.PathBuilder;
+import org.midonet.cluster.backend.zookeeper.PathBuilder;
 import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.cluster.backend.zookeeper.ZkManager;
 import org.midonet.util.functors.Functor;

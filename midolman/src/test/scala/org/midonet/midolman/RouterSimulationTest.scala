@@ -23,9 +23,7 @@ import com.typesafe.scalalogging.Logger
 
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
-
-import org.midonet.cluster.data.{Router => ClusterRouter}
-import org.midonet.cluster.data.ports.RouterPort
+import org.midonet.cluster.data.boilerplate.ports.RouterPort
 import org.midonet.midolman.PacketWorkflow.{AddVirtualWildcardFlow, NoOp, TemporaryDrop, Drop}
 import org.midonet.midolman.layer3.Route._
 import org.midonet.midolman.rules.{RuleResult, NatTarget, Condition}
@@ -44,7 +42,7 @@ class RouterSimulationTest extends MidolmanSpec {
 
     registerActors(VirtualTopologyActor -> (() => new VirtualTopologyActor))
 
-    var router: ClusterRouter = _
+    var router: Router = _
     var uplinkPort: RouterPort = _
     var upLinkRoute: UUID = _
 

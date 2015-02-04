@@ -16,8 +16,8 @@
 package org.midonet.midolman.l4lb
 
 import akka.actor.Actor
-import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.cluster.Client
+import org.midonet.midolman.logging.ActorLogWithoutPath
 import java.util.UUID
 import org.midonet.midolman.topology.VirtualTopologyActor
 import scala.collection.immutable.Map

@@ -21,9 +21,9 @@ import scala.collection.mutable
 
 import akka.actor.Props
 import akka.testkit.TestActorRef
-
-import org.midonet.cluster.data.Bridge
-import org.midonet.cluster.data.ports.BridgePort
+import org.midonet.cluster.data.boilerplate.Bridge
+import org.midonet.cluster.data.boilerplate.ports.BridgePort
+import org.midonet.midolman.simulation.Bridge
 import org.midonet.midolman.simulation.{Bridge => SimBridge}
 import org.midonet.midolman.topology.VirtualTopologyActor.{DeviceRequest, Unsubscribe}
 import org.midonet.midolman.util.MidolmanSpec

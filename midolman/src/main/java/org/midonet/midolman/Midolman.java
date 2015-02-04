@@ -43,7 +43,7 @@ import org.midonet.midolman.guice.cluster.ClusterClientModule;
 import org.midonet.midolman.guice.StorageModule;
 import org.midonet.midolman.guice.config.ConfigProviderModule;
 import org.midonet.midolman.guice.datapath.DatapathModule;
-import org.midonet.midolman.guice.serialization.SerializationModule;
+import org.midonet.cluster.backend.zookeeper.serialization.SerializationModule;
 import org.midonet.midolman.guice.state.FlowStateStorageModule;
 import org.midonet.cluster.backend.zookeeper.ZookeeperConnectionModule;
 import org.midonet.midolman.host.guice.HostModule;

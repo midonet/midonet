@@ -82,7 +82,7 @@ public class RouterResource extends AbstractResource {
             throws StateAccessException,
             SerializationException {
 
-        org.midonet.cluster.data.Router routerData =
+        org.midonet.cluster.data.boilerplate.Router routerData =
                 dataClient.routersGet(id);
         if (routerData == null) {
             return;
@@ -120,7 +120,7 @@ public class RouterResource extends AbstractResource {
                     "Not authorized to view this router.");
         }
 
-        org.midonet.cluster.data.Router routerData =
+        org.midonet.cluster.data.boilerplate.Router routerData =
                 dataClient.routersGet(id);
         if (routerData == null) {
             throw new NotFoundHttpException(
@@ -253,13 +253,13 @@ public class RouterResource extends AbstractResource {
     public List<Router> list(@QueryParam("tenant_id") String tenantId)
             throws StateAccessException, SerializationException {
 
-        List<org.midonet.cluster.data.Router> dataRouters = (tenantId == null) ?
+        List<org.midonet.cluster.data.boilerplate.Router> dataRouters = (tenantId == null) ?
                 dataClient.routersGetAll() :
                 dataClient.routersFindByTenant(tenantId);
 
         List<Router> routers = new ArrayList<>();
         if (dataRouters != null) {
-            for (org.midonet.cluster.data.Router dataRouter :
+            for (org.midonet.cluster.data.boilerplate.Router dataRouter :
                     dataRouters) {
                 Router router = new Router(dataRouter);
                 router.setBaseUri(getBaseUri());

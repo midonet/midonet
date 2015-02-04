@@ -18,9 +18,7 @@ package org.midonet.midolman
 
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
-
-import org.midonet.cluster.data.{Router => ClusterRouter}
-import org.midonet.cluster.data.ports.RouterPort
+import org.midonet.cluster.data.boilerplate.ports.RouterPort
 import org.midonet.midolman.PacketWorkflow.AddVirtualWildcardFlow
 import org.midonet.midolman.layer3.Route._
 import org.midonet.midolman.rules.{RuleResult, NatTarget, Condition}
@@ -40,7 +38,7 @@ class DnatPlusSnatTest extends MidolmanSpec {
 
     registerActors(VirtualTopologyActor -> (() => new VirtualTopologyActor))
 
-    var router: ClusterRouter = _
+    var router: Router = _
     var port1: RouterPort = _
     var port2: RouterPort = _
 

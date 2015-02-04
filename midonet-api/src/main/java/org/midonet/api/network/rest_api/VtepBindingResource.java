@@ -41,7 +41,7 @@ import org.midonet.api.rest_api.ResourceFactory;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.api.vtep.VtepClusterClient;
 import org.midonet.cluster.DataClient;
-import org.midonet.cluster.data.Bridge;
+import org.midonet.cluster.data.boilerplate.Bridge;
 import org.midonet.cluster.backend.zookeeper.serialization.SerializationException;
 import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.packets.IPv4Addr;

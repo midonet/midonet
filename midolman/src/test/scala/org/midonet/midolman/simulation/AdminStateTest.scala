@@ -29,8 +29,8 @@ import akka.util.Timeout
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cluster.data.ports.{BridgePort, RouterPort}
-import org.midonet.cluster.data.{Bridge => ClusterBridge, Entity, Router => ClusterRouter}
+import org.midonet.cluster.data.boilerplate.ports.{BridgePort, RouterPort}
+import org.midonet.cluster.data.Entity
 import org.midonet.midolman.PacketWorkflow.SimulationResult
 import org.midonet.midolman._
 import org.midonet.midolman.layer3.Route
@@ -66,10 +66,10 @@ class AdminStateTest extends MidolmanSpec {
     val ipRouterSide = new IPv4Subnet("10.0.1.128", 24)
     val macRouterSide = MAC.random
 
-    var bridge: ClusterBridge = _
+    var bridge: Bridge = _
     var interiorBridgePort: BridgePort = _
     var exteriorBridgePort: BridgePort = _
-    var router: ClusterRouter = _
+    var router: Router = _
     var interiorRouterPort: RouterPort = _
     var exteriorRouterPort: RouterPort = _
 

@@ -79,7 +79,7 @@ public class AdRouteResource extends AbstractResource {
             throws StateAccessException,
             SerializationException {
 
-        org.midonet.cluster.data.AdRoute adRouteData =
+        org.midonet.cluster.data.boilerplate.AdRoute adRouteData =
                 dataClient.adRoutesGet(id);
         if (adRouteData == null) {
             return;
@@ -116,7 +116,7 @@ public class AdRouteResource extends AbstractResource {
                     "Not authorized to view this ad route.");
         }
 
-        org.midonet.cluster.data.AdRoute adRouteData =
+        org.midonet.cluster.data.boilerplate.AdRoute adRouteData =
                 dataClient.adRoutesGet(id);
         if (adRouteData == null) {
             throw new NotFoundHttpException(
@@ -200,11 +200,11 @@ public class AdRouteResource extends AbstractResource {
                         "Not authorized to view these advertised routes.");
             }
 
-            List<org.midonet.cluster.data.AdRoute> adRouteDataList =
+            List<org.midonet.cluster.data.boilerplate.AdRoute> adRouteDataList =
                     dataClient.adRoutesFindByBgp(bgpId);
             List<AdRoute> adRoutes = new ArrayList<AdRoute>();
             if (adRouteDataList != null) {
-                for (org.midonet.cluster.data.AdRoute adRouteData :
+                for (org.midonet.cluster.data.boilerplate.AdRoute adRouteData :
                         adRouteDataList) {
                     AdRoute adRoute = new AdRoute(adRouteData);
                     adRoute.setBaseUri(getBaseUri());

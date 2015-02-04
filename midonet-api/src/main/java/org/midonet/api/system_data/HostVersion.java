@@ -20,7 +20,7 @@ import java.util.UUID;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import org.codehaus.jackson.annotate.JsonIgnore;
-import org.midonet.api.ResourceUriBuilder;
+
 import org.midonet.api.UriResource;
 
 /* Class representing system state info */
@@ -43,14 +43,15 @@ public class HostVersion extends UriResource {
         super();
     }
 
-    public HostVersion(org.midonet.cluster.data.HostVersion hostVersionData) {
+    public HostVersion(
+        org.midonet.cluster.data.boilerplate.HostVersion hostVersionData) {
         super();
         this.version = hostVersionData.getVersion();
         this.hostId = hostVersionData.getHostId();
     }
 
-    public org.midonet.cluster.data.HostVersion toData() {
-        return new org.midonet.cluster.data.HostVersion()
+    public org.midonet.cluster.data.boilerplate.HostVersion toData() {
+        return new org.midonet.cluster.data.boilerplate.HostVersion()
                 .setVersion(this.version)
                 .setHostId(this.hostId);
     }

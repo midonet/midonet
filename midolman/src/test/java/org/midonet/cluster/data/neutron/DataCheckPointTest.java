@@ -42,7 +42,7 @@ import org.midonet.cluster.data.IpAddrGroup;
 import org.midonet.cluster.data.Rule;
 import org.midonet.cluster.data.rules.ForwardNatRule;
 import org.midonet.cluster.data.rules.JumpRule;
-import org.midonet.midolman.Setup;
+import org.midonet.cluster.backend.zookeeper.Setup;
 import org.midonet.midolman.guice.cluster.TestDataClientModule;
 import org.midonet.midolman.guice.config.ConfigProviderModule;
 import org.midonet.midolman.guice.serialization.SerializationModule;

@@ -20,8 +20,8 @@ import scala.collection.mutable.{HashMap, ListBuffer}
 
 import org.junit.experimental.categories.Category
 import org.junit.runner.RunWith
-import org.midonet.cluster.data.dhcp.{Opt121, Subnet}
-import org.midonet.cluster.data.ports.{BridgePort, RouterPort}
+import org.midonet.cluster.data.boilerplate.dhcp.{Opt121, Subnet}
+import org.midonet.cluster.data.boilerplate.ports.{BridgePort, RouterPort}
 import org.midonet.midolman.DeduplicationActor.DiscardPacket
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.layer3.Route.NextHop
@@ -135,7 +135,7 @@ class PingTestCase extends MidolmanTestCase
             case Some(portNo : Short) => vm2PortNumber = portNo
             case None => fail("Not able to find data port number for bridge port 2")
         }
-        val dhcpHost = new org.midonet.cluster.data.dhcp.Host()
+        val dhcpHost = new org.midonet.cluster.data.boilerplate.dhcp.Host()
                            .setMAC(vm2Mac)
                            .setIp(vm2Ip.getAddress)
         addDhcpHost(bridge, dhcpSubnet, dhcpHost)

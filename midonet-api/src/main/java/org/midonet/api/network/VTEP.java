@@ -55,7 +55,7 @@ public class VTEP extends UriResource {
 
     public VTEP() {}
 
-    public VTEP(org.midonet.cluster.data.VTEP vtep, PhysicalSwitch ps) {
+    public VTEP(org.midonet.cluster.data.boilerplate.VTEP vtep, PhysicalSwitch ps) {
         managementIp = vtep.getId().toString();
         managementPort = vtep.getMgmtPort();
         tunnelZoneId = vtep.getTunnelZoneId();
@@ -70,8 +70,8 @@ public class VTEP extends UriResource {
         }
     }
 
-    public org.midonet.cluster.data.VTEP toData() {
-        return new org.midonet.cluster.data.VTEP()
+    public org.midonet.cluster.data.boilerplate.VTEP toData() {
+        return new org.midonet.cluster.data.boilerplate.VTEP()
                 .setId(IPv4Addr.fromString(managementIp))
                 .setMgmtPort(managementPort)
                 .setTunnelZone(tunnelZoneId);

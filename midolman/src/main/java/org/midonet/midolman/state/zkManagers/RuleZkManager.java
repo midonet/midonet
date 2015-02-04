@@ -15,31 +15,43 @@
  */
 package org.midonet.midolman.state.zkManagers;
 
-import java.util.*;
+import java.util.AbstractMap;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.UUID;
 
 import com.google.common.base.Function;
+
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooDefs.Ids;
-import org.midonet.midolman.rules.*;
-import org.midonet.packets.IPv4Addr;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.midonet.cluster.backend.zookeeper.Directory;
+import org.midonet.cluster.backend.zookeeper.DirectoryCallback;
+import org.midonet.cluster.backend.zookeeper.PathBuilder;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.ZkManager;
+import org.midonet.cluster.backend.zookeeper.serialization.SerializationException;
+import org.midonet.cluster.backend.zookeeper.serialization.Serializer;
+import org.midonet.midolman.rules.JumpRule;
+import org.midonet.midolman.rules.NatTarget;
+import org.midonet.midolman.rules.Rule;
+import org.midonet.midolman.rules.RuleBuilder;
+import org.midonet.midolman.rules.RuleList;
+import org.midonet.midolman.rules.RuleMatcher;
 import org.midonet.midolman.rules.RuleMatcher.DefaultDropRuleMatcher;
 import org.midonet.midolman.rules.RuleMatcher.DnatRuleMatcher;
 import org.midonet.midolman.rules.RuleMatcher.DropFragmentRuleMatcher;
 import org.midonet.midolman.rules.RuleMatcher.ReverseSnatRuleMatcher;
 import org.midonet.midolman.rules.RuleMatcher.SnatRuleMatcher;
-import org.midonet.cluster.backend.zookeeper.serialization.Serializer;
-import org.midonet.cluster.backend.zookeeper.serialization.SerializationException;
 import org.midonet.midolman.state.AbstractZkManager;
-import org.midonet.cluster.backend.zookeeper.Directory;
-import org.midonet.cluster.backend.zookeeper.DirectoryCallback;
 import org.midonet.midolman.state.DirectoryCallbackFactory;
-import org.midonet.midolman.state.PathBuilder;
-import org.midonet.cluster.backend.zookeeper.StateAccessException;
-import org.midonet.cluster.backend.zookeeper.ZkManager;
+import org.midonet.packets.IPv4Addr;
 import org.midonet.util.functors.Functor;
 
 import static org.midonet.cluster.data.Rule.RuleIndexOutOfBoundsException;
@@ -56,12 +68,9 @@ public class RuleZkManager extends AbstractZkManager<UUID, Rule> {
     /**
      * Constructor to set ZooKeeper and base path.
      *
-     * @param zk
-     *         Zk data access class
-     * @param paths
-     *         PathBuilder class to construct ZK paths
-     * @param serializer
-     *         ZK data serialization class
+     * @param zk Zk data access class
+     * @param paths PathBuilder class to construct ZK paths
+     * @param serializer ZK data serialization class
      */
     public RuleZkManager(ZkManager zk, PathBuilder paths,
                          Serializer serializer) {
@@ -447,8 +456,7 @@ public class RuleZkManager extends AbstractZkManager<UUID, Rule> {
      * method may re-number the positions of other rules in the same chain in
      * order to insert the new rule at the desired position.
      *
-     * @param rule
-     *            Rule object to add to the ZooKeeper directory.
+     * @param rule Rule object to add to the ZooKeeper directory.
      * @return The UUID of the newly created object.
      * @throws StateAccessException
      * @throws RuleIndexOutOfBoundsException
@@ -490,8 +498,7 @@ public class RuleZkManager extends AbstractZkManager<UUID, Rule> {
      * Gets a list of ZooKeeper rule nodes belonging to a chain with the given
      * ID.
      *
-     * @param chainId
-     *            The ID of the chain to find the rules of.
+     * @param chainId The ID of the chain to find the rules of.
      * @return A list of rule IDs
      * @throws StateAccessException
      */

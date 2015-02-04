@@ -26,9 +26,9 @@ import org.scalatest._
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.mock.MockitoSugar
 
+import org.midonet.cluster.data.boilerplate.l4lb.PoolHealthMonitorMappingStatus
 import org.midonet.cluster.{DataClient, LocalDataClientImpl}
 import org.midonet.midolman.l4lb.HaproxyHealthMonitor.SetupFailure
-import org.midonet.midolman.state.PoolHealthMonitorMappingStatus
 import org.midonet.netlink.AfUnix.Address
 import org.midonet.netlink.{AfUnix, UnixDomainChannel}
 import org.midonet.util.MidonetEventually

@@ -20,8 +20,7 @@ import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 
 import akka.actor.ActorSystem
-
-import org.midonet.cluster.data.BGP
+import org.midonet.cluster.data.boilerplate.BGP
 import org.midonet.midolman.PacketWorkflow.{AddVirtualWildcardFlow, NoOp, SimulationResult, TemporaryDrop}
 import org.midonet.midolman.simulation.PacketContext
 import org.midonet.midolman.topology.VirtualTopologyActor

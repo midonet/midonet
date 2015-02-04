@@ -47,7 +47,7 @@ public class AdRoute extends UriResource {
      * @param data
      *            AdRoute data object
      */
-    public AdRoute(org.midonet.cluster.data.AdRoute data) {
+    public AdRoute(org.midonet.cluster.data.boilerplate.AdRoute data) {
         this(data.getId(), data.getNwPrefix().getHostAddress(),
                 data.getPrefixLength(), data.getBgpId());
     }
@@ -170,10 +170,10 @@ public class AdRoute extends UriResource {
         this.bgpId = bgpId;
     }
 
-    public org.midonet.cluster.data.AdRoute toData () {
+    public org.midonet.cluster.data.boilerplate.AdRoute toData () {
 
         try {
-            return new org.midonet.cluster.data.AdRoute()
+            return new org.midonet.cluster.data.boilerplate.AdRoute()
                     .setId(this.id)
                     .setBgpId(this.bgpId)
                     .setNwPrefix(InetAddress.getByName(this.nwPrefix))

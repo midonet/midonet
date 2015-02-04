@@ -30,9 +30,6 @@ import org.midonet.odp.DpPort;
 
 /**
  * ZooKeeper state objects definitions for Host and Interface data.
- *
- * @author Mihai Claudiu Toader <mtoader@midokura.com>
- *         Date: 2/1/12
  */
 public class HostDirectory {
 

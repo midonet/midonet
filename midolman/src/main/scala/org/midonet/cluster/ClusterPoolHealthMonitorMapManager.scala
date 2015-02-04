@@ -16,17 +16,18 @@
 package org.midonet.cluster
 
 import java.util.{Map => JMap, UUID}
+
 import scala.collection.JavaConverters._
-import scala.collection.mutable.{HashMap => MMap}
 import scala.collection.immutable.{HashMap => IMap}
+import scala.collection.mutable.{HashMap => MMap}
 
 import com.google.inject.Inject
-import org.slf4j.{LoggerFactory, Logger}
+import org.slf4j.{Logger, LoggerFactory}
 
 import org.midonet.cluster.client.PoolHealthMonitorMapBuilder
-import org.midonet.cluster.data.l4lb.Pool
-import org.midonet.midolman.state.zkManagers.PoolHealthMonitorZkManager.PoolHealthMonitorConfig
+import org.midonet.cluster.data.boilerplate.l4lb.Pool
 import org.midonet.midolman.state.zkManagers.PoolHealthMonitorZkManager
+import org.midonet.midolman.state.zkManagers.PoolHealthMonitorZkManager.PoolHealthMonitorConfig
 
 class ClusterPoolHealthMonitorMapManager
         extends ClusterManager[PoolHealthMonitorMapBuilder]{

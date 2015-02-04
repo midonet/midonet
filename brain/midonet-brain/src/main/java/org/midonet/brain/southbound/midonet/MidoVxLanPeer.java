@@ -40,17 +40,17 @@ import org.midonet.brain.services.vxgw.VxLanPeerSyncException;
 import org.midonet.brain.southbound.vtep.VtepConstants;
 import org.midonet.brain.southbound.vtep.VtepMAC;
 import org.midonet.cluster.DataClient;
-import org.midonet.cluster.data.Bridge;
+import org.midonet.cluster.data.boilerplate.Bridge;
 import org.midonet.cluster.backend.zookeeper.serialization.SerializationException;
 import org.midonet.cluster.backend.zookeeper.Directory;
-import org.midonet.midolman.state.Ip4ToMacReplicatedMap;
-import org.midonet.midolman.state.MacPortMap;
+import org.midonet.cluster.state.Ip4ToMacReplicatedMap;
+import org.midonet.cluster.state.MacPortMap;
 import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
 
 import static org.midonet.brain.southbound.vtep.VtepConstants.bridgeIdToLogicalSwitchName;
-import static org.midonet.midolman.state.ReplicatedMap.Watcher;
+import static org.midonet.cluster.state.ReplicatedMap.Watcher;
 
 /**
  * This class allows both watching for changes in mac-port of a set of bridges

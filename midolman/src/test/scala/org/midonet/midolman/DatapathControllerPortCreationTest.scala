@@ -20,9 +20,9 @@ import java.util.UUID
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cluster.data.{Bridge => ClusterBridge, TunnelZone}
-import org.midonet.cluster.data.host.Host
-import org.midonet.cluster.data.ports.BridgePort
+import org.midonet.cluster.data.boilerplate.TunnelZone
+import org.midonet.cluster.data.boilerplate.host.Host
+import org.midonet.cluster.data.boilerplate.ports.BridgePort
 import org.midonet.midolman.DatapathController.Initialize
 import org.midonet.midolman.host.interfaces.InterfaceDescription
 import org.midonet.midolman.host.scanner.InterfaceScanner
@@ -46,7 +46,7 @@ class DatapathControllerPortCreationTest extends MidolmanSpec {
     val ifmtu = 1000
     val ip = IPv4Addr("1.1.1.1")
     var host: Host = null
-    var clusterBridge: ClusterBridge = null
+    var clusterBridge: Bridge = null
     var connManager: MockUpcallDatapathConnectionManager = null
     var interfaceScanner: MockInterfaceScanner = null
 
@@ -74,7 +74,7 @@ class DatapathControllerPortCreationTest extends MidolmanSpec {
     }
 
 
-    private def addAndMaterializeBridgePort(hostId: UUID, br: ClusterBridge,
+    private def addAndMaterializeBridgePort(hostId: UUID, br: Bridge,
             ifname: String): BridgePort = {
         val port = newBridgePort(br)
         port should not be null

@@ -20,13 +20,13 @@ import javax.validation.ConstraintValidatorContext;
 
 import com.google.inject.Inject;
 
-import org.midonet.cluster.data.ports.BridgePort;
-import org.midonet.cluster.backend.zookeeper.serialization.SerializationException;
-import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.api.network.MacPort;
 import org.midonet.api.validation.MessageProperty;
 import org.midonet.cluster.DataClient;
-import org.midonet.cluster.data.Port;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.serialization.SerializationException;
+import org.midonet.cluster.data.boilerplate.Port;
+import org.midonet.cluster.data.boilerplate.ports.BridgePort;
 
 public class MacPortConstraintValidator implements
         ConstraintValidator<MacPortValid, MacPort> {

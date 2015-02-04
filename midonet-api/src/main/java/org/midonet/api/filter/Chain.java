@@ -26,7 +26,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.UriResource;
-import org.midonet.cluster.data.Chain.Property;
+import org.midonet.cluster.data.boilerplate.Chain.Property;
 
 /**
  * Class representing chain.
@@ -59,7 +59,7 @@ public class Chain extends UriResource {
      * @param data
      *            Chain data object
      */
-    public Chain(org.midonet.cluster.data.Chain data) {
+    public Chain(org.midonet.cluster.data.boilerplate.Chain data) {
         this(data.getId(), data.getProperty(Property.tenant_id),
                 data.getName());
     }
@@ -153,9 +153,9 @@ public class Chain extends UriResource {
      *
      * @return Chain data object
      */
-    public org.midonet.cluster.data.Chain toData() {
+    public org.midonet.cluster.data.boilerplate.Chain toData() {
 
-        return new org.midonet.cluster.data.Chain()
+        return new org.midonet.cluster.data.boilerplate.Chain()
                 .setId(this.id)
                 .setName(this.name)
                 .setProperty(Property.tenant_id, this.tenantId);

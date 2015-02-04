@@ -60,7 +60,7 @@ routerEvent.create(routeId, routerData)
 With the resource bundle file shown above, the following log will be recorded.
 
 ```
-2014.03.21 00:38:56.447 tomoe-VirtualBox INFO  org.midonet.event.topology.Router - CREATE routerId=f198060f-7cab-423d-aab4-859db6e2f174, data=org.midonet.cluster.data.Router{id=f198060f-7cab-423d-aab4-859db6e2f174, data=Router.Data{name='sample-router', inboundFilter=null, outboundFilter=null, loadBalancer=null, properties={tenant_id=admin}, adminStateUp=true}}.
+2014.03.21 00:38:56.447 tomoe-VirtualBox INFO  org.midonet.event.topology.Router - CREATE routerId=f198060f-7cab-423d-aab4-859db6e2f174, data=org.midonet.cluster.data.boilerplate.Router{id=f198060f-7cab-423d-aab4-859db6e2f174, data=Router.Data{name='sample-router', inboundFilter=null, outboundFilter=null, loadBalancer=null, properties={tenant_id=admin}, adminStateUp=true}}.
 
 ```
 

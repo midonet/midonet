@@ -22,27 +22,35 @@ import java.util.List;
 import java.util.UUID;
 
 import org.midonet.cluster.Client;
-import org.midonet.cluster.data.dhcp.Opt121;
-import org.midonet.cluster.data.dhcp.Subnet;
-import org.midonet.cluster.data.dhcp.Subnet6;
-import org.midonet.cluster.data.dhcp.V6Host;
+import org.midonet.cluster.data.boilerplate.AdRoute;
+import org.midonet.cluster.data.boilerplate.Bridge;
+import org.midonet.cluster.data.boilerplate.Chain;
+import org.midonet.cluster.data.boilerplate.IpAddrGroup;
+import org.midonet.cluster.data.boilerplate.Port;
+import org.midonet.cluster.data.boilerplate.PortGroup;
+import org.midonet.cluster.data.boilerplate.Router;
+import org.midonet.cluster.data.boilerplate.VTEP;
+import org.midonet.cluster.data.boilerplate.dhcp.Opt121;
+import org.midonet.cluster.data.boilerplate.dhcp.Subnet;
+import org.midonet.cluster.data.boilerplate.dhcp.Subnet6;
+import org.midonet.cluster.data.boilerplate.dhcp.V6Host;
 import org.midonet.cluster.data.host.Host;
 import org.midonet.cluster.data.host.Interface;
-import org.midonet.cluster.data.host.VirtualPortMapping;
-import org.midonet.cluster.data.l4lb.HealthMonitor;
-import org.midonet.cluster.data.l4lb.LoadBalancer;
-import org.midonet.cluster.data.l4lb.Pool;
-import org.midonet.cluster.data.l4lb.PoolMember;
-import org.midonet.cluster.data.l4lb.VIP;
+import org.midonet.cluster.data.boilerplate.host.VirtualPortMapping;
+import org.midonet.cluster.data.boilerplate.l4lb.HealthMonitor;
+import org.midonet.cluster.data.boilerplate.l4lb.LoadBalancer;
+import org.midonet.cluster.data.boilerplate.l4lb.Pool;
+import org.midonet.cluster.data.boilerplate.l4lb.PoolMember;
+import org.midonet.cluster.data.boilerplate.l4lb.VIP;
+import org.midonet.cluster.data.boilerplate.ports.BridgePort;
+import org.midonet.cluster.data.boilerplate.ports.RouterPort;
+import org.midonet.cluster.data.boilerplate.ports.VxLanPort;
 import org.midonet.cluster.data.neutron.ExtraDhcpOpt;
-import org.midonet.cluster.data.ports.BridgePort;
-import org.midonet.cluster.data.ports.RouterPort;
-import org.midonet.cluster.data.ports.VxLanPort;
 import org.midonet.cluster.data.rules.ForwardNatRule;
 import org.midonet.cluster.data.rules.JumpRule;
 import org.midonet.cluster.data.rules.LiteralRule;
-import org.midonet.cluster.data.rules.TraceRule;
 import org.midonet.cluster.data.rules.ReverseNatRule;
+import org.midonet.cluster.data.rules.TraceRule;
 import org.midonet.midolman.host.state.HostDirectory;
 import org.midonet.midolman.state.PortConfig;
 import org.midonet.midolman.state.PortDirectory.BridgePortConfig;
@@ -73,13 +81,13 @@ import static org.midonet.midolman.layer3.Route.NO_GATEWAY;
  */
 public class Converter {
 
-    public static List<org.midonet.cluster.data.dhcp.ExtraDhcpOpt>
+    public static List<org.midonet.cluster.data.boilerplate.dhcp.ExtraDhcpOpt>
         toExtraDhcpOptsList(List<ExtraDhcpOpt> opts) {
 
-        List<org.midonet.cluster.data.dhcp.ExtraDhcpOpt> retOpts =
+        List<org.midonet.cluster.data.boilerplate.dhcp.ExtraDhcpOpt> retOpts =
             new ArrayList<>();
         for (ExtraDhcpOpt opt : opts) {
-            retOpts.add(new org.midonet.cluster.data.dhcp.ExtraDhcpOpt(
+            retOpts.add(new org.midonet.cluster.data.boilerplate.dhcp.ExtraDhcpOpt(
                 opt.optName, opt.optValue));
         }
 
@@ -609,16 +617,16 @@ public class Converter {
     }
 
     public static BridgeDhcpZkManager.Host toDhcpHostConfig(
-            org.midonet.cluster.data.dhcp.Host host) {
+            org.midonet.cluster.data.boilerplate.dhcp.Host host) {
 
         return new BridgeDhcpZkManager.Host(host.getMAC(), host.getIp(),
                 host.getName(), host.getExtraDhcpOpts());
 
     }
 
-    public static org.midonet.cluster.data.dhcp.Host fromDhcpHostConfig
+    public static org.midonet.cluster.data.boilerplate.dhcp.Host fromDhcpHostConfig
             (BridgeDhcpZkManager.Host hostConfig) {
-        return new org.midonet.cluster.data.dhcp.Host()
+        return new org.midonet.cluster.data.boilerplate.dhcp.Host()
                 .setIp(hostConfig.getIp())
                 .setMAC(hostConfig.getMac())
                 .setName(hostConfig.getName())

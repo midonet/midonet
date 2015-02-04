@@ -60,7 +60,7 @@ public class SystemStateResource extends AbstractResource {
                   MediaType.APPLICATION_JSON})
     public SystemState get()
         throws StateAccessException {
-        org.midonet.cluster.data.SystemState systemStateData =
+        org.midonet.cluster.data.boilerplate.SystemState systemStateData =
                 dataClient.systemStateGet();
         SystemState systemState = new SystemState(systemStateData);
         systemState.setBaseUri(getBaseUri());

@@ -25,6 +25,7 @@ import java.lang.{Short => JShort}
 import java.util.UUID
 
 import org.junit.runner.RunWith
+import org.midonet.cluster.data.boilerplate.Bridge
 import org.midonet.midolman.PacketWorkflow.Drop
 import org.scalatest.{Matchers, BeforeAndAfterAll, Suite}
 import org.scalatest.junit.JUnitRunner
@@ -80,7 +81,7 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with Matchers {
         val rtrIpToMac = Map(rtr1ipaddr -> rtr1mac, rtr2ipaddr -> rtr2mac)
 
         val macLearningTables = Map[JShort, MacLearningTable]()
-        macLearningTables.put(data.Bridge.UNTAGGED_VLAN_ID, macPortMap)
+        macLearningTables.put(Bridge.UNTAGGED_VLAN_ID, macPortMap)
 
         brPort.id = UUID.randomUUID()
 

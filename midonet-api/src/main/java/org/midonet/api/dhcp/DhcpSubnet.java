@@ -20,11 +20,10 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.sun.org.apache.xpath.internal.operations.Bool;
 import org.midonet.api.RelativeUriResource;
 import org.midonet.api.ResourceUriBuilder;
-import org.midonet.cluster.data.dhcp.Opt121;
-import org.midonet.cluster.data.dhcp.Subnet;
+import org.midonet.cluster.data.boilerplate.dhcp.Opt121;
+import org.midonet.cluster.data.boilerplate.dhcp.Subnet;
 import org.midonet.packets.IPv4;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IPv4Subnet;

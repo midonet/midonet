@@ -16,7 +16,7 @@
 package org.midonet.midolman.l4lb
 
 import java.util.UUID
-import org.midonet.midolman.state.l4lb.VipSessionPersistence
+import org.midonet.cluster.data.boilerplate.l4lb.VipSessionPersistence
 
 /**
   * Represents a pool member object local to the host.  The host that acts as a

@@ -28,7 +28,7 @@ import org.midonet.cluster.backend.zookeeper.Directory;
 import org.midonet.cluster.backend.zookeeper.ZkConnection;
 import org.midonet.cluster.backend.zookeeper.ZkConnectionAwareWatcher;
 import org.midonet.cluster.backend.zookeeper.SessionAgnosticZkConnectionWatcher;
-import org.midonet.cluster.config.ZookeeperConfig;
+import org.midonet.cluster.backend.zookeeper.ZookeeperConfig;
 import org.midonet.cluster.backend.zookeeper.DirectoryProvider;
 import org.midonet.cluster.backend.zookeeper.ZkConnectionProvider;
 import org.midonet.cluster.backend.zookeeper.ZookeeperConnectionModule;

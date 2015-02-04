@@ -64,7 +64,7 @@ import org.midonet.api.rest_api.ResourceFactory;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.api.validation.MessageProperty;
 import org.midonet.cluster.DataClient;
-import org.midonet.cluster.data.ports.VlanMacPort;
+import org.midonet.cluster.data.boilerplate.ports.VlanMacPort;
 import org.midonet.event.topology.BridgeEvent;
 import org.midonet.cluster.backend.zookeeper.serialization.SerializationException;
 import org.midonet.cluster.backend.zookeeper.StateAccessException;
@@ -75,7 +75,7 @@ import static org.midonet.api.ResourceUriBuilder.MAC_TABLE;
 import static org.midonet.api.ResourceUriBuilder.VLANS;
 import static org.midonet.api.validation.MessageProperty.NO_VXLAN_PORT;
 import static org.midonet.api.validation.MessageProperty.getMessage;
-import static org.midonet.cluster.data.Bridge.UNTAGGED_VLAN_ID;
+import static org.midonet.cluster.data.boilerplate.Bridge.UNTAGGED_VLAN_ID;
 
 
 /**
@@ -106,7 +106,7 @@ public class BridgeResource extends AbstractResource {
             throws StateAccessException,
             SerializationException {
 
-        org.midonet.cluster.data.Bridge bridgeData =
+        org.midonet.cluster.data.boilerplate.Bridge bridgeData =
                 dataClient.bridgesGet(id);
         if (bridgeData == null) {
             return;
@@ -136,7 +136,8 @@ public class BridgeResource extends AbstractResource {
                     "Not authorized to view this bridge.");
         }
 
-        org.midonet.cluster.data.Bridge bridgeData = getBridgeOrThrow(id, false);
+        org.midonet.cluster.data.boilerplate.Bridge
+            bridgeData = getBridgeOrThrow(id, false);
 
         // Convert to the REST API DTO
         Bridge bridge = new Bridge(bridgeData);
@@ -168,7 +169,8 @@ public class BridgeResource extends AbstractResource {
                 MediaType.APPLICATION_JSON})
     public Port getVxLanPort(@PathParam("id") UUID id)
             throws StateAccessException, SerializationException {
-        org.midonet.cluster.data.Bridge bridge = getBridgeOrThrow(id, false);
+        org.midonet.cluster.data.boilerplate.Bridge
+            bridge = getBridgeOrThrow(id, false);
 
         UUID vxlanPortId = bridge.getVxLanPortId();
         if (vxlanPortId == null) {
@@ -189,7 +191,8 @@ public class BridgeResource extends AbstractResource {
                 MediaType.APPLICATION_JSON})
     public List<Port> getVxLanPorts(@PathParam("id") UUID id)
         throws StateAccessException, SerializationException {
-        org.midonet.cluster.data.Bridge bridge = getBridgeOrThrow(id, false);
+        org.midonet.cluster.data.boilerplate.Bridge
+            bridge = getBridgeOrThrow(id, false);
         // at this point, all is migrated to the new list
         List<UUID> vxlanPortIds = bridge.getVxLanPortIds();
         if (vxlanPortIds.isEmpty()) {
@@ -321,7 +324,7 @@ public class BridgeResource extends AbstractResource {
     public List<Bridge> list(@QueryParam("tenant_id") String tenantId)
             throws StateAccessException, SerializationException {
 
-        List<org.midonet.cluster.data.Bridge> dataBridges;
+        List<org.midonet.cluster.data.boilerplate.Bridge> dataBridges;
         if (tenantId == null) {
             dataBridges = dataClient.bridgesGetAll();
         } else {
@@ -329,7 +332,7 @@ public class BridgeResource extends AbstractResource {
         }
         List<Bridge> bridges = new ArrayList<>();
         if (dataBridges != null) {
-            for (org.midonet.cluster.data.Bridge dataBridge :
+            for (org.midonet.cluster.data.boilerplate.Bridge dataBridge :
                     dataBridges) {
                 Bridge bridge = new Bridge(dataBridge);
                 bridge.setBaseUri(getBaseUri());

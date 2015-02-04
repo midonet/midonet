@@ -34,12 +34,13 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 
 import org.midonet.cluster.backend.zookeeper.Directory;
-import org.midonet.cluster.config.ZookeeperConfig;
+import org.midonet.cluster.backend.zookeeper.PathBuilder;
+import org.midonet.cluster.backend.zookeeper.ZookeeperConfig;
 import org.midonet.cluster.guice.DataClientModule;
 import org.midonet.cluster.services.StorageService;
 import org.midonet.midolman.guice.StorageModule;
 import org.midonet.midolman.guice.config.ConfigProviderModule;
-import org.midonet.midolman.guice.serialization.SerializationModule;
+import org.midonet.cluster.backend.zookeeper.serialization.SerializationModule;
 import org.midonet.cluster.backend.zookeeper.ZkConnectionProvider;
 import org.midonet.cluster.backend.zookeeper.ZookeeperConnectionModule;
 import org.midonet.util.eventloop.Reactor;

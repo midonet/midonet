@@ -61,15 +61,16 @@ public class HostVersionResource extends AbstractResource {
     @RolesAllowed({AuthRole.ADMIN})
     @Produces({VendorMediaType.APPLICATION_HOST_VERSION_JSON, MediaType.APPLICATION_JSON})
     public List<HostVersion> get() throws StateAccessException {
-        List<org.midonet.cluster.data.HostVersion> hostVersionsData = dataClient.hostVersionsGet();
+        List<org.midonet.cluster.data.boilerplate.HostVersion> hostVersionsData = dataClient.hostVersionsGet();
         if (hostVersionsData == null) {
             return new ArrayList<>();
         }
 
         return ListUtil.map(hostVersionsData,
-            new Function<org.midonet.cluster.data.HostVersion, HostVersion>() {
+            new Function<org.midonet.cluster.data.boilerplate.HostVersion, HostVersion>() {
                 @Override
-                public HostVersion apply(org.midonet.cluster.data.HostVersion hostVersionData) {
+                public HostVersion apply(
+                    org.midonet.cluster.data.boilerplate.HostVersion hostVersionData) {
                     HostVersion hostVersion = new HostVersion(hostVersionData);
                     hostVersion.setHost(ResourceUriBuilder.getHost(getBaseUri(),
                         hostVersion.getHostId()));

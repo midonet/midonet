@@ -24,7 +24,7 @@ import scala.concurrent.duration._
 import com.typesafe.scalalogging.Logger
 
 import org.midonet.cluster.DataClient
-import org.midonet.cluster.data.dhcp.{Subnet, Host, Opt121}
+import org.midonet.cluster.data.boilerplate.dhcp.{Subnet, Host, Opt121}
 import org.midonet.midolman.topology.devices.{RouterPort, BridgePort, Port}
 import org.midonet.packets._
 

@@ -41,8 +41,8 @@ import org.midonet.client.dto.DtoVtep;
 import org.midonet.client.dto.DtoVtepBinding;
 import org.midonet.client.dto.DtoVtepPort;
 import org.midonet.client.dto.DtoVxLanPort;
-import org.midonet.cluster.data.Converter;
-import org.midonet.cluster.data.host.Host;
+import org.midonet.cluster.data.boilerplate.Converter;
+import org.midonet.cluster.data.boilerplate.host.Host;
 import org.midonet.midolman.state.VtepConnectionState;
 
 import static org.hamcrest.Matchers.arrayContainingInAnyOrder;

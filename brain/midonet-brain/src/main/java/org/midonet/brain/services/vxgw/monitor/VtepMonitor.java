@@ -19,7 +19,7 @@ package org.midonet.brain.services.vxgw.monitor;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.backend.EntityMonitor;
 import org.midonet.cluster.backend.EntityIdSetMonitor;
-import org.midonet.cluster.data.VTEP;
+import org.midonet.cluster.data.boilerplate.VTEP;
 import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.cluster.backend.zookeeper.ZookeeperConnectionWatcher;
 import org.midonet.midolman.state.zkManagers.VtepZkManager;

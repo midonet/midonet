@@ -21,8 +21,8 @@ import java.util.UUID
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cluster.data.{Bridge => ClusterBridge, Rule, Chain}
-import org.midonet.cluster.data.ports.BridgePort
+import org.midonet.cluster.data.boilerplate.{Chain, Rule}
+import org.midonet.cluster.data.boilerplate.ports.BridgePort
 import org.midonet.midolman.PacketWorkflow.Drop
 import org.midonet.midolman.rules.RuleResult
 import org.midonet.midolman.topology.VirtualTopologyActor
@@ -32,7 +32,7 @@ import org.midonet.packets.util.PacketBuilder._
 
 @RunWith(classOf[JUnitRunner])
 class ChainModificationTest extends MidolmanSpec {
-    var bridge: ClusterBridge = _
+    var bridge: Bridge = _
     var inPort: BridgePort = _
     var outPort: BridgePort = _
     var chain: Chain = _

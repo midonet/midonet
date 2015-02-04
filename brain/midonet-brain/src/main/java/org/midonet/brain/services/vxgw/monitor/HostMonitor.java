@@ -21,10 +21,10 @@ import java.util.UUID;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.backend.EntityIdSetMonitor;
 import org.midonet.cluster.backend.EntityMonitor;
-import org.midonet.cluster.data.host.Host;
-import org.midonet.midolman.host.state.HostDirectory;
 import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.cluster.backend.zookeeper.ZookeeperConnectionWatcher;
+import org.midonet.cluster.data.host.Host;
+import org.midonet.midolman.host.state.HostDirectory;
 
 /**
  * Monitors all hosts of the system, exposing observable streams with creation,

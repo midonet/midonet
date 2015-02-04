@@ -32,9 +32,8 @@ import org.midonet.api.auth.cors.CorsConfig;
 import org.midonet.api.serialization.ObjectMapperProvider;
 import org.midonet.api.serialization.WildCardJacksonJaxbJsonProvider;
 import org.midonet.api.servlet.JerseyGuiceTestServletContextListener;
-import org.midonet.api.version.VersionParser;
 import org.midonet.brain.configuration.EmbeddedClusterNodeConfig;
-import org.midonet.cluster.config.ZookeeperConfig;
+import org.midonet.cluster.backend.zookeeper.ZookeeperConfig;
 
 public class FuncTest {
     static final ClientConfig config = new DefaultClientConfig();

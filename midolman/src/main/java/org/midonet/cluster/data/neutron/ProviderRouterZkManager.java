@@ -21,6 +21,7 @@ import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooDefs;
 
 import org.midonet.cluster.backend.zookeeper.NoStatePathException;
+import org.midonet.cluster.backend.zookeeper.PathBuilder;
 import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.cluster.backend.zookeeper.StatePathExistsException;
 import org.midonet.cluster.backend.zookeeper.ZkManager;

@@ -32,7 +32,7 @@ import org.midonet.api.auth.AuthRole;
 import org.midonet.cluster.backend.zookeeper.serialization.SerializationException;
 import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.cluster.DataClient;
-import org.midonet.cluster.data.dhcp.V6Host;
+import org.midonet.cluster.data.boilerplate.dhcp.V6Host;
 import org.midonet.packets.IPv6Subnet;
 
 import javax.annotation.security.PermitAll;

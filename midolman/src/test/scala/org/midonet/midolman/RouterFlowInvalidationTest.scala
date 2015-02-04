@@ -20,9 +20,7 @@ import akka.testkit.TestActorRef
 
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
-
-import org.midonet.cluster.data.{Router => ClusterRouter}
-import org.midonet.cluster.data.ports.RouterPort
+import org.midonet.cluster.data.boilerplate.ports.RouterPort
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman.PacketWorkflow.Drop
 import org.midonet.midolman.layer3.Route._
@@ -39,7 +37,7 @@ class RouterFlowInvalidationTest extends MidolmanSpec {
 
     registerActors(VirtualTopologyActor -> (() => new VirtualTopologyActor))
 
-    var router: ClusterRouter = null
+    var router: Router = null
     var outPort: RouterPort = null
     var inPort: RouterPort = null
     var simRouter: SimRouter = null

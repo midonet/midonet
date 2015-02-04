@@ -24,13 +24,13 @@ import org.apache.zookeeper.Op;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.midonet.cluster.data.neutron.loadbalancer.Member;
+import org.midonet.cluster.backend.zookeeper.PathBuilder;
+import org.midonet.cluster.backend.zookeeper.ZkManager;
 import org.midonet.cluster.backend.zookeeper.serialization.SerializationException;
 import org.midonet.cluster.backend.zookeeper.serialization.Serializer;
+import org.midonet.cluster.data.boilerplate.l4lb.LBStatus;
+import org.midonet.cluster.data.neutron.loadbalancer.Member;
 import org.midonet.midolman.state.AbstractZkManager;
-import org.midonet.midolman.state.PathBuilder;
-import org.midonet.cluster.backend.zookeeper.ZkManager;
-import org.midonet.midolman.state.l4lb.LBStatus;
 
 import static java.util.Arrays.asList;
 

@@ -27,8 +27,8 @@ import org.scalatest.junit.JUnitRunner
 
 import org.slf4j.LoggerFactory
 
-import org.midonet.cluster.data.{Bridge => ClusterBridge, TunnelZone}
-import org.midonet.cluster.data.ports.BridgePort
+import org.midonet.cluster.data.boilerplate.TunnelZone
+import org.midonet.cluster.data.boilerplate.ports.BridgePort
 import org.midonet.midolman.FlowController._
 import org.midonet.midolman.PacketWorkflow.{Drop, SimulationResult}
 import org.midonet.midolman.rules.{Condition, RuleResult}
@@ -55,7 +55,7 @@ class BridgeSimulationTest extends MidolmanSpec {
     private var portOnHost2: BridgePort = _
     private var portOnHost3: BridgePort = _
 
-    private var bridge: ClusterBridge = _
+    private var bridge: Bridge = _
     private var bridgeDevice: Bridge = _
 
 

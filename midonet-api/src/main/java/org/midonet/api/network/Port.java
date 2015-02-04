@@ -119,7 +119,7 @@ public abstract class Port extends UriResource {
         this.deviceId = deviceId;
     }
 
-    public Port(org.midonet.cluster.data.Port<?, ?> portData) {
+    public Port(org.midonet.cluster.data.boilerplate.Port<?, ?> portData) {
         this(UUID.fromString(portData.getId().toString()),
                 portData.getDeviceId());
         this.adminStateUp = portData.isAdminStateUp();
@@ -128,10 +128,10 @@ public abstract class Port extends UriResource {
         this.hostId = portData.getHostId();
         this.interfaceName = portData.getInterfaceName();
         this.peerId = portData.getPeerId();
-        if (portData.getProperty(org.midonet.cluster.data.Port.Property.vif_id)
+        if (portData.getProperty(org.midonet.cluster.data.boilerplate.Port.Property.vif_id)
                 != null) {
             this.vifId = UUID.fromString(portData.getProperty(
-                    org.midonet.cluster.data.Port.Property.vif_id));
+                    org.midonet.cluster.data.boilerplate.Port.Property.vif_id));
         }
     }
 
@@ -255,7 +255,7 @@ public abstract class Port extends UriResource {
      *
      * @return Port data object.
      */
-    public abstract org.midonet.cluster.data.Port<?, ?> toData();
+    public abstract org.midonet.cluster.data.boilerplate.Port<?, ?> toData();
 
     /**
      * Set the Port data fields
@@ -263,7 +263,7 @@ public abstract class Port extends UriResource {
      * @param data
      *            Port data object
      */
-    public void setConfig(org.midonet.cluster.data.Port<?, ?> data) {
+    public void setConfig(org.midonet.cluster.data.boilerplate.Port<?, ?> data) {
         data.setId(this.id);
         data.setAdminStateUp(this.adminStateUp);
         data.setDeviceId(this.deviceId);
@@ -273,7 +273,7 @@ public abstract class Port extends UriResource {
         data.setInterfaceName(this.interfaceName);
         data.setPeerId(this.peerId);
         if (vifId != null) {
-            data.setProperty(org.midonet.cluster.data.Port.Property.vif_id,
+            data.setProperty(org.midonet.cluster.data.boilerplate.Port.Property.vif_id,
                     vifId.toString());
         }
     }

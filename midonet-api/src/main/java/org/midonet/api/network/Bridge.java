@@ -30,9 +30,8 @@ import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.UriResource;
 import org.midonet.api.network.validation.IsVxlanPortIdIntact;
 import org.midonet.api.validation.MessageProperty;
-import org.midonet.cluster.data.Bridge.Property;
+import org.midonet.cluster.data.boilerplate.Bridge.Property;
 import org.midonet.util.version.Since;
-import org.midonet.util.version.Until;
 
 /**
  * Class representing Virtual Bridge.
@@ -76,7 +75,7 @@ public class Bridge extends UriResource {
         this.tenantId = tenantId;
     }
 
-    public Bridge(org.midonet.cluster.data.Bridge bridgeData) {
+    public Bridge(org.midonet.cluster.data.boilerplate.Bridge bridgeData) {
         this(bridgeData.getId(), bridgeData.getName(),
              bridgeData.getProperty(Property.tenant_id));
         this.adminStateUp = bridgeData.isAdminStateUp();
@@ -267,8 +266,8 @@ public class Bridge extends UriResource {
         return ResourceUriBuilder.getVlanMacPortTemplate(getUri());
     }
 
-    public org.midonet.cluster.data.Bridge toData() {
-        return new org.midonet.cluster.data.Bridge()
+    public org.midonet.cluster.data.boilerplate.Bridge toData() {
+        return new org.midonet.cluster.data.boilerplate.Bridge()
                 .setId(this.id)
                 .setName(this.name)
                 .setAdminStateUp(this.adminStateUp)

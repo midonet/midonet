@@ -23,7 +23,8 @@ import scala.util.Random
 
 import com.typesafe.scalalogging.Logger
 import org.junit.runner.RunWith
-import org.midonet.cluster.data.TunnelZone.{Type => TunnelType}
+import org.midonet.cluster.data.boilerplate.TunnelZone
+import TunnelZone.{Type => TunnelType}
 import org.midonet.midolman.datapath.DatapathPortEntangler
 import org.midonet.midolman.topology.rcu.{PortBinding, ResolvedHost}
 import org.midonet.odp.DpPort

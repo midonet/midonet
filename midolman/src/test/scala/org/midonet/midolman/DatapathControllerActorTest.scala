@@ -24,8 +24,7 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 import org.apache.commons.configuration.HierarchicalConfiguration
-
-import org.midonet.cluster.data.TunnelZone
+import org.midonet.cluster.data.boilerplate.TunnelZone
 import org.midonet.config.ConfigProvider
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.host.interfaces.InterfaceDescription

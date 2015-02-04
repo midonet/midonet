@@ -34,6 +34,7 @@ import org.midonet.cluster.DataClient;
 import org.midonet.cluster.backend.zookeeper.serialization.SerializationException;
 import org.midonet.cluster.backend.zookeeper.NoStatePathException;
 import org.midonet.cluster.backend.zookeeper.StateAccessException;
+import org.midonet.cluster.data.boilerplate.VTEP;
 
 import static org.midonet.api.validation.MessageProperty.VTEP_NOT_FOUND;
 import static org.midonet.api.validation.MessageProperty.getMessage;
@@ -53,7 +54,7 @@ abstract public class AbstractVtepResource extends AbstractResource {
         this.factory = factory;
     }
 
-    protected org.midonet.cluster.data.VTEP getVtepOrThrow(
+    protected VTEP getVtepOrThrow(
             String ipAddrStr, boolean badRequest)
             throws StateAccessException, SerializationException
     {

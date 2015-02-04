@@ -19,7 +19,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.curator.framework.recipes.locks.InterProcessSemaphoreMutex;
 
-import org.midonet.cluster.ZookeeperLockFactory;
+import org.midonet.cluster.backend.zookeeper.ZookeeperLockFactory;
 import org.midonet.cluster.guice.DataClientModule;
 
 import static org.mockito.Matchers.any;

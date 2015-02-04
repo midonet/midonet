@@ -15,9 +15,32 @@
  */
 package org.midonet.api.filter.rest_api;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+
+import javax.annotation.security.PermitAll;
+import javax.annotation.security.RolesAllowed;
+import javax.validation.Validator;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
+import javax.ws.rs.core.UriInfo;
+
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.servlet.RequestScoped;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.VendorMediaType;
 import org.midonet.api.auth.AuthRole;
@@ -25,28 +48,18 @@ import org.midonet.api.filter.IpAddrGroup;
 import org.midonet.api.filter.IpAddrGroupAddr;
 import org.midonet.api.filter.Ipv4AddrGroupAddr;
 import org.midonet.api.filter.Ipv6AddrGroupAddr;
-import org.midonet.api.rest_api.*;
+import org.midonet.api.rest_api.AbstractResource;
+import org.midonet.api.rest_api.BadRequestHttpException;
+import org.midonet.api.rest_api.NotFoundHttpException;
+import org.midonet.api.rest_api.ResourceFactory;
+import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.api.validation.MessageProperty;
 import org.midonet.cluster.DataClient;
-import org.midonet.cluster.backend.zookeeper.serialization.SerializationException;
 import org.midonet.cluster.backend.zookeeper.NoStatePathException;
 import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.cluster.backend.zookeeper.StatePathExistsException;
+import org.midonet.cluster.backend.zookeeper.serialization.SerializationException;
 import org.midonet.packets.IPAddr$;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.annotation.security.PermitAll;
-import javax.annotation.security.RolesAllowed;
-import javax.validation.Validator;
-import javax.ws.rs.*;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.core.UriInfo;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
 
 /**
  * Root resource class for IP addr groups.
@@ -110,7 +123,7 @@ public class IpAddrGroupResource extends AbstractResource {
     public IpAddrGroup get(@PathParam("id") UUID id)
             throws StateAccessException, SerializationException {
 
-        org.midonet.cluster.data.IpAddrGroup data = null;
+        org.midonet.cluster.data.boilerplate.IpAddrGroup data = null;
 
         try {
             data = dataClient.ipAddrGroupsGet(id);
@@ -166,11 +179,11 @@ public class IpAddrGroupResource extends AbstractResource {
     public List<IpAddrGroup> list()
             throws StateAccessException, SerializationException {
 
-        List<org.midonet.cluster.data.IpAddrGroup> list =
+        List<org.midonet.cluster.data.boilerplate.IpAddrGroup> list =
                 dataClient.ipAddrGroupsGetAll();
 
         List<IpAddrGroup> groups = new ArrayList<IpAddrGroup>();
-        for (org.midonet.cluster.data.IpAddrGroup data : list) {
+        for (org.midonet.cluster.data.boilerplate.IpAddrGroup data : list) {
             IpAddrGroup group = new IpAddrGroup(data);
             group.setBaseUri(getBaseUri());
             groups.add(group);

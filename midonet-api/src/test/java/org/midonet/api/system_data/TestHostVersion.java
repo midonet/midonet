@@ -33,7 +33,7 @@ import org.midonet.client.resource.HostVersion;
 import org.midonet.client.resource.ResourceCollection;
 import org.midonet.midolman.host.state.HostZkManager;
 import org.midonet.cluster.backend.zookeeper.StateAccessException;
-import org.midonet.midolman.version.DataWriteVersion;
+import org.midonet.cluster.backend.version.DataWriteVersion;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;

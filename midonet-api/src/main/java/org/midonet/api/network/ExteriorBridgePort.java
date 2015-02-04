@@ -16,7 +16,7 @@
 package org.midonet.api.network;
 
 import org.midonet.cluster.Client;
-import org.midonet.cluster.data.Port.Property;
+import org.midonet.cluster.data.boilerplate.Port.Property;
 import java.util.UUID;
 /**
  * DTO for exterior bridge port
@@ -64,7 +64,7 @@ public class ExteriorBridgePort extends BridgePort implements ExteriorPort {
      *            Exterior bridge port data object
      */
     public ExteriorBridgePort(
-            org.midonet.cluster.data.ports.BridgePort
+            org.midonet.cluster.data.boilerplate.ports.BridgePort
                     portData) {
         super(portData);
     }
@@ -80,9 +80,9 @@ public class ExteriorBridgePort extends BridgePort implements ExteriorPort {
     }
 
     @Override
-    public org.midonet.cluster.data.ports.BridgePort toData() {
-        org.midonet.cluster.data.ports.BridgePort data =
-                new org.midonet.cluster.data.ports
+    public org.midonet.cluster.data.boilerplate.ports.BridgePort toData() {
+        org.midonet.cluster.data.boilerplate.ports.BridgePort data =
+                new org.midonet.cluster.data.boilerplate.ports
                         .BridgePort();
         super.setConfig(data);
         data.setProperty(Property.v1PortType,

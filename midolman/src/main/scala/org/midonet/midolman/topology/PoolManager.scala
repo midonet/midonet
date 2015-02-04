@@ -19,12 +19,11 @@ import akka.actor.{ActorRef, Actor}
 import collection.JavaConverters._
 import java.util.{Map => JMap, UUID}
 import scala.collection.breakOut
-
 import org.midonet.cluster.Client
 import org.midonet.cluster.client.PoolBuilder
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman.logging.ActorLogWithoutPath
-import org.midonet.cluster.data.l4lb.{Pool, PoolMember}
+import org.midonet.cluster.data.boilerplate.l4lb.{Pool, PoolMember}
 import org.midonet.midolman.simulation
 import org.midonet.packets.IPv4Addr
 import org.midonet.sdn.flows.FlowTagger
