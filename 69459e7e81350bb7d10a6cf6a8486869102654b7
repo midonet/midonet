@@ -131,6 +131,24 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_0973574e",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/SubscriptionCache.scala",
+        "patchSetId": 28
+      },
+      "lineNbr": 154,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-02-04T00:58:42Z",
+      "side": 1,
+      "message": "Thanks for the explanation. That makes sense.",
+      "parentUuid": "7a1969be_745e2aeb",
+      "revId": "69459e7e81350bb7d10a6cf6a8486869102654b7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_90fe596a",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
         "patchSetId": 28
@@ -166,6 +184,30 @@
       "side": 1,
       "message": "Just to be on the safe side I tested this, but normally it should work. \n\nHere update and create are ZK ops, that don\u0027t know anything about bindings. There is no reason why we couldn\u0027t update Model-A before creating Model-B, even if the first references the latter. If indeed one of these ops fails, then the ZK transaction will also fail rolling back any changes done in the meantime.\n\nThe test that I\u0027ve done is the following:\n\n        val chain1 \u003d pojoChain(name \u003d \"chain1\")\n        val rule1 \u003d pojoRule(name \u003d \"rule1\")\n        zom.create(rule1)\n        await(zom.exists(classOf[PojoRule], rule1.id))\n        rule1.chainId \u003d chain1.id\n        zom.multi(List(DeleteOp(classOf[PojoRule], rule1.id),\n                       CreateOp(chain1),\n                       CreateOp(rule1)))\n        val updatedChain1 \u003d await(zom.get(classOf[PojoChain], chain1.id))\n        val updatedRule1 \u003d await(zom.get(classOf[PojoRule], rule1.id))\n\n        updatedChain1.ruleIds should contain only rule1.id\n        updatedRule1.chainId shouldBe chain1.id\n\nIn any case, the current zoom doesn\u0027t support this kind of transactions either (where we mix a delete + create), because we always perform all deletes at the end of an object.",
       "parentUuid": "7a1969be_90fe596a",
+      "range": {
+        "startLine": 183,
+        "startChar": 13,
+        "endLine": 183,
+        "endChar": 50
+      },
+      "revId": "69459e7e81350bb7d10a6cf6a8486869102654b7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_c9781f2e",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 28
+      },
+      "lineNbr": 183,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-02-04T00:58:42Z",
+      "side": 1,
+      "message": "I think I was confusing transaction-building time binding check and actual ZK writes. Now I see that it works :)",
+      "parentUuid": "7a1969be_d46efe95",
       "range": {
         "startLine": 183,
         "startChar": 13,
@@ -225,6 +267,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_a87cc173",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 28
+      },
+      "lineNbr": 194,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-02-04T00:58:42Z",
+      "side": 1,
+      "message": "Probably we should involve @brandon in this discussion. In general, cascading delete should mean ownership. Therefore in theory, such a case where there are other owners should not happen. Therefore I see 2 options.\n\n- cascading delete take ownership (and logs some warning).\n- throw an exception and fails explicitly.\n\nAnyway, the above case I mentioned is not with cascading delete. It\u0027s a \"ERROR\" on delete left case.",
+      "parentUuid": "7a1969be_b40f02e1",
+      "range": {
+        "startLine": 194,
+        "startChar": 13,
+        "endLine": 194,
+        "endChar": 74
+      },
+      "revId": "69459e7e81350bb7d10a6cf6a8486869102654b7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_703abd37",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
         "patchSetId": 28
@@ -260,6 +326,30 @@
       "side": 1,
       "message": "Done.\nI think we need owner.isDefined, otherwise owner.get will throw an exception.",
       "parentUuid": "7a1969be_703abd37",
+      "range": {
+        "startLine": 685,
+        "startChar": 12,
+        "endLine": 691,
+        "endChar": 65
+      },
+      "revId": "69459e7e81350bb7d10a6cf6a8486869102654b7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_e8aeb9e6",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 28
+      },
+      "lineNbr": 691,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-02-04T00:58:42Z",
+      "side": 1,
+      "message": "But owner.isEmpty is false, meaning that owner.isDefined always return true?",
+      "parentUuid": "7a1969be_1417f6ee",
       "range": {
         "startLine": 685,
         "startChar": 12,
