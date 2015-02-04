@@ -14,19 +14,30 @@
  * limitations under the License.
  */
 
-package org.midonet.brain.services.c3po
+package org.midonet.brain.services.c3po.translators
 
-import scala.collection.mutable.ListBuffer
-
-import com.google.protobuf.Message
-
-import org.midonet.brain.services.c3po.midonet.MidoOp
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.Topology.Chain
 import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
 
+/**
+ * Contains chain-related operations shared by multiple translators.
+ */
+trait ChainManager {
+    protected case class ChainIds(inChainId: UUID, outChainId: UUID)
 
-package object translators {
-    type MidoOpList = List[MidoOp[_ <: Message]]
-    type MidoOpListBuffer = ListBuffer[MidoOp[_ <: Message]]
+    /**
+     * Deterministically generate chain IDs from a device ID.
+     */
+    protected def getChainIds(deviceId: UUID) = {
+        val inChainId = deviceId.nextUuid
+        ChainIds(inChainId, inChainId.nextUuid)
+    }
+
+    protected def newChain(id: UUID, name: String,
+                           ruleIds: Seq[UUID] = Seq()): Chain = {
+        val bldr = Chain.newBuilder.setId(id).setName(name)
+        ruleIds.foreach(bldr.addRuleIds)
+        bldr.build()
+    }
 }

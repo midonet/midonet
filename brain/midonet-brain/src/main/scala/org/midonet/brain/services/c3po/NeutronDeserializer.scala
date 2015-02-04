@@ -65,7 +65,7 @@ object NeutronDeserializer {
         val bldr = builderFor(clazz)
         val classDesc = descriptorFor(clazz)
         for (field <- node.fields.asScala
-             if (!nullOrEmptyString(field.getValue))) {
+             if !nullOrEmptyString(field.getValue)) {
             val name = cleanUpProjectPrefix(field.getKey)
             getFieldDesc(classDesc, name) match {
                 case Some(fd) =>
@@ -175,10 +175,7 @@ object NeutronDeserializer {
 
     private def getFieldDesc(classDesc: Descriptor,
                              fieldName: String): Option[FieldDescriptor] = {
-        classDesc.findFieldByName(fieldName) match {
-            case fd: FieldDescriptor => Some(fd)
-            case null => None
-        }
+        Option(classDesc.findFieldByName(fieldName))
     }
 
     /**
