@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_ef78782d",
+        "filename": "cluster/src/main/java/org/midonet/cluster/client/BGPListBuilder.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-02-04T22:01:28Z",
+      "side": 1,
+      "message": "Return this to midolman. Builders are specific to Midolman.",
+      "revId": "118d1c8149d6edf2eeea40e88eacded7cf685862",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
