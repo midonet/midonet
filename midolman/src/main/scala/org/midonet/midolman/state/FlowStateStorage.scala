@@ -28,8 +28,7 @@ import akka.actor.ActorSystem
 import com.datastax.driver.core._
 import com.google.common.util.concurrent.{FutureCallback, Futures}
 import org.slf4j.{Logger, LoggerFactory}
-
-import org.midonet.cassandra.CassandraClient
+import org.midonet.cluster.backend.cassandra.CassandraClient
 import org.midonet.midolman.state.ConnTrackState.ConnTrackKey
 import org.midonet.midolman.state.NatState.{KeyType, NatKey, NatBinding}
 import org.midonet.packets.{IPv4Addr, IPAddr}
