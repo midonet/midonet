@@ -47,7 +47,6 @@ message Network {
     optional int64 tunnel_key = 5;
     optional UUID inbound_filter_id = 6;
     optional UUID outbound_filter_id = 7;
-    optional UUID vxlan_port_id = 8;
 
     message Dhcp {
         optional IPSubnet subnet_address = 1;
@@ -86,6 +85,7 @@ message Network {
 
     // Backreferences
     repeated UUID port_ids = 101;
+    repeated UUID vxlan_port_ids = 102;
 }
 
 message Router {
