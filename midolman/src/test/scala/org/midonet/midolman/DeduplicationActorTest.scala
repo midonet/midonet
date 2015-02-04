@@ -27,8 +27,7 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.DataClient
-import org.midonet.midolman.DeduplicationActor.ActionsCache
-import org.midonet.midolman.PacketWorkflow.{Simulation, StateMessage}
+import org.midonet.midolman.PacketWorkflow.{FlowCreated, StateMessage}
 import org.midonet.midolman.UnderlayResolver.Route
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.DatapathChannel
@@ -157,7 +156,7 @@ class DeduplicationActorTest extends MidolmanSpec {
             packetsOut should be (4)
 
             When("the simulations are completed")
-            dda.complete(pkts.head.getMatch, null)
+            dda.complete(null)
 
             Then("all state messages are consumed")
             stateMessagesExecuted should be (4)
@@ -178,14 +177,14 @@ class DeduplicationActorTest extends MidolmanSpec {
             packetsOut should be (3)
 
             When("the dda is told to apply the flow with empty actions")
-            dda.complete(pkts(0).getMatch, Nil)
+            dda.complete(Nil)
 
             Then("the packets should be dropped")
             mockDpChannel.packetsSent should be (empty)
             dda.suspended(pkts(0).getMatch) should be (null)
         }
 
-        scenario("emits packets when ApplyFlow contains actions") {
+        scenario("emits suspendes packets after a simulation") {
             Given("three different packets with the same match")
             val pkts = List(makePacket(1), makeUniquePacket(1), makeUniquePacket(1))
 
@@ -199,33 +198,15 @@ class DeduplicationActorTest extends MidolmanSpec {
             packetsOut should be (3)
 
             When("the dda is told to apply the flow with an output action")
-            dda.complete(pkts(0).getMatch, List(output(1)))
+            dda.complete(List(output(1)))
 
             Then("the packets should be sent to the datapath")
             val actual = mockDpChannel.packetsSent.asScala.toList.sortBy { _.## }
             val expected = pkts.tail.sortBy { _.## }
             actual should be (expected)
 
-            And("no pended packets should remain")
+            And("no suspended packets should remain")
             dda.suspended(pkts(0).getMatch) should be (null)
-        }
-
-        scenario("executes packets that hit the actions cache") {
-            Given("an entry in the actions cache")
-            val pkts = List(makePacket(1))
-            dda.addToActionsCache(pkts(0).getMatch -> List(output(1)))
-
-            When("a packet comes that hits the actions cache")
-            ddaRef ! DeduplicationActor.HandlePackets(pkts.toArray)
-
-            Then("the DDA should execute that packet directly")
-            mockDpChannel.packetsSent.asScala should be (pkts)
-
-            And("no pended packets should remain")
-            dda.suspended(pkts(0).getMatch) should be (null)
-
-            And("packetsOut should be called with the correct number")
-            packetsOut should be (1)
         }
 
         scenario("simulates sequences of packets from the datapath") {
@@ -255,8 +236,7 @@ class DeduplicationActorTest extends MidolmanSpec {
             When("the simulation completes")
             val id = UUID.randomUUID()
             val frame: Ethernet = makeFrame(1)
-            dda.completeWithGenerated(pkt.getMatch, List(output(1)),
-                                      GeneratedPacket(id, frame))
+            dda.completeWithGenerated(List(output(1)), GeneratedPacket(id, frame))
 
             Then("the generated packet should be simulated")
             packetsSeen map { _._1.getEthernet } should be (List(pkt.getEthernet, frame))
@@ -300,7 +280,7 @@ class DeduplicationActorTest extends MidolmanSpec {
             packetsOut should be (4)
 
             When("the simulations are completed")
-            dda.complete(pkts.head.getMatch, null)
+            dda.complete(null)
 
             Then("all state messages are consumed without having expired")
             stateMessagesExecuted should be (4)
@@ -308,16 +288,17 @@ class DeduplicationActorTest extends MidolmanSpec {
         }
     }
 
-    class MockPacketHandler(actionsCache: ActionsCache) extends PacketHandler {
+    class MockPacketHandler() extends PacketHandler {
         var p = Promise[Any]()
         var generatedPacket: GeneratedPacket = _
+        var nextActions: List[FlowAction] = _
 
         override def start(pktCtx: PacketContext) = {
             pktCtx.runs += 1
             if (pktCtx.runs == 1) {
                 packetsSeen = packetsSeen :+ (pktCtx.packet, pktCtx.cookie)
                 if (pktCtx.isGenerated) {
-                    Simulation
+                    FlowCreated
                 } else {
                     throw new NotYetException(p.future)
                 }
@@ -332,15 +313,19 @@ class DeduplicationActorTest extends MidolmanSpec {
                     pktCtx.packetEmitter.schedule(generatedPacket)
                     generatedPacket = null
                 }
-                Simulation
+                if (nextActions ne null) {
+                    nextActions foreach pktCtx.addFlowAction
+                    nextActions = null
+                }
+                FlowCreated
             }
         }
 
         override def drop(pktCtx: PacketContext) {
         }
 
-        def complete(wcmatch: FlowMatch, actions: List[FlowAction]): Unit = {
-            actionsCache.actions.put(wcmatch, actions.asJava)
+        def complete(actions: List[FlowAction]): Unit = {
+            nextActions = actions
             p success null
         }
     }
@@ -365,20 +350,17 @@ class DeduplicationActorTest extends MidolmanSpec {
         def suspended(flowMatch: FlowMatch): collection.Set[Packet] =
             suspendedPackets.get(flowMatch)
 
-        def complete(flowMatch: FlowMatch, actions: List[FlowAction]): Unit = {
-            workflow.asInstanceOf[MockPacketHandler].complete(flowMatch, actions)
+        def complete(actions: List[FlowAction]): Unit = {
+            workflow.asInstanceOf[MockPacketHandler].complete(actions)
         }
 
-        def completeWithGenerated(flowMatch: FlowMatch, actions: List[FlowAction],
+        def completeWithGenerated(actions: List[FlowAction],
                                   generatedPacket: GeneratedPacket): Unit = {
             workflow.asInstanceOf[MockPacketHandler].generatedPacket = generatedPacket
-            complete(flowMatch, actions)
+            complete(actions)
         }
 
-        def addToActionsCache(entry: (FlowMatch, List[FlowAction])): Unit =
-            actionsCache.actions.put(entry._1, entry._2.asJava)
-
         def hookPacketHandler(): Unit =
-            workflow = new MockPacketHandler(actionsCache)
+            workflow = new MockPacketHandler()
     }
 }

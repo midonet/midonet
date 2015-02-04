@@ -15,7 +15,7 @@
  */
 package org.midonet.midolman
 
-import java.util.{List => JList, UUID}
+import java.util.UUID
 
 import org.midonet.midolman.config.MidolmanConfig
 
@@ -27,8 +27,6 @@ import com.typesafe.scalalogging.Logger
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.DataClient
-import org.midonet.midolman.DeduplicationActor.ActionsCache
-import org.midonet.midolman.PacketWorkflow.{PipelinePath, TemporaryDrop}
 import org.midonet.midolman.datapath.DatapathChannel
 import org.midonet.midolman.routingprotocols.RoutingWorkflow
 import org.midonet.midolman.simulation.{Coordinator, DhcpImpl, PacketContext}
@@ -37,13 +35,12 @@ import org.midonet.midolman.topology.devices.Port
 import org.midonet.midolman.topology.{VirtualTopologyActor, VxLanPortMapper}
 import org.midonet.odp.FlowMatch.Field
 import org.midonet.odp._
-import org.midonet.odp.flows._
 import org.midonet.packets._
 import org.midonet.sdn.flows.FlowTagger.tagForDpPort
 import org.midonet.sdn.flows.{FlowTagger, WildcardFlow}
 
 trait PacketHandler {
-    def start(context: PacketContext): PacketWorkflow.PipelinePath
+    def start(context: PacketContext): PacketWorkflow.SimulationResult
     def drop(context: PacketContext): Unit
 }
 
@@ -59,27 +56,21 @@ object PacketWorkflow {
     val IDLE_EXPIRATION_MILLIS = 60 * 1000
 
     trait SimulationResult
-
     case object NoOp extends SimulationResult
-
     case object Drop extends SimulationResult
-
     case object TemporaryDrop extends SimulationResult
-
     case object SendPacket extends SimulationResult
-
     case object AddVirtualWildcardFlow extends SimulationResult
-
-    sealed trait PipelinePath
-    case object WildcardTableHit extends PipelinePath
-    case object StateMessage extends PipelinePath
-    case object Simulation extends PipelinePath
-    case object Error extends PipelinePath
+    case object StateMessage extends SimulationResult
+    case object UserspaceFlow extends SimulationResult
+    case object FlowCreated extends SimulationResult
+    case object GeneratedPacket extends SimulationResult
 }
 
 trait UnderlayTrafficHandler { this: PacketWorkflow =>
+    import PacketWorkflow._
 
-    def handleFromTunnel(context: PacketContext, inPortNo: Int): PipelinePath = {
+    def handleFromTunnel(context: PacketContext, inPortNo: Int): SimulationResult = {
         if (dpState isOverlayTunnellingPort inPortNo) {
             if (context.isStateMessage)
                 handleStateMessage(context)
@@ -90,7 +81,7 @@ trait UnderlayTrafficHandler { this: PacketWorkflow =>
         }
     }
 
-    private def handleFromVtep(context: PacketContext): PipelinePath = {
+    private def handleFromVtep(context: PacketContext): SimulationResult = {
         val portIdOpt = VxLanPortMapper uuidOf context.wcmatch.getTunnelKey.toInt
         context.inputPort = portIdOpt.orNull
         processSimulationResult(context, simulatePacketIn(context))
@@ -107,33 +98,28 @@ trait UnderlayTrafficHandler { this: PacketWorkflow =>
         context.idleExpirationMillis = 300 * 1000
     }
 
-    private def handleFromUnderlay(context: PacketContext): PipelinePath = {
+    private def handleFromUnderlay(context: PacketContext): SimulationResult = {
         val tunnelKey = context.wcmatch.getTunnelKey
         dpState.dpPortNumberForTunnelKey(tunnelKey) match {
             case Some(dpPort) =>
                 addActionsForTunnelPacket(context, dpPort)
                 addTranslatedFlow(context)
-                PacketWorkflow.WildcardTableHit
-
             case None =>
                 processSimulationResult(context, TemporaryDrop)
-                PacketWorkflow.Error
         }
     }
 }
 
 class PacketWorkflow(protected val dpState: DatapathState,
-                     val datapath: Datapath,
-                     val dataClient: DataClient,
-                     val dpChannel: DatapathChannel,
-                     val actionsCache: ActionsCache,
-                     val replicator: FlowStateReplicator,
-                     protected val config: MidolmanConfig)
+                     datapath: Datapath,
+                     dataClient: DataClient,
+                     dpChannel: DatapathChannel,
+                     replicator: FlowStateReplicator,
+                     config: MidolmanConfig)
                     (implicit val system: ActorSystem)
         extends PacketHandler with FlowTranslator
         with RoutingWorkflow with UnderlayTrafficHandler {
 
-    import DeduplicationActor._
     import FlowController.{AddWildcardFlow, FlowAdded}
     import PacketWorkflow._
 
@@ -141,7 +127,7 @@ class PacketWorkflow(protected val dpState: DatapathState,
 
     val resultLogger = Logger(LoggerFactory.getLogger("org.midonet.packets.results"))
 
-    override def start(context: PacketContext): PipelinePath = {
+    override def start(context: PacketContext): SimulationResult = {
         context.prepareForSimulation(FlowController.lastInvalidationEvent)
         context.log.debug(s"Initiating processing, attempt: ${context.runs}")
         if (context.ingressed)
@@ -176,14 +162,11 @@ class PacketWorkflow(protected val dpState: DatapathState,
         newWildFlow match {
             case None =>
                 FlowController ! FlowAdded(flow, context.origMatch)
-                addToActionsCacheAndInvalidate(context, flow.getActions)
             case Some(wf) =>
                 FlowController ! AddWildcardFlow(wf, flow,
                                 context.flowRemovedCallbacks,
                                 context.flowTags, context.lastInvalidation,
-                                context.origMatch, actionsCache.pending,
-                                actionsCache.getSlot())
-                actionsCache.actions.put(context.origMatch, flow.getActions)
+                                context.origMatch)
         }
     }
 
@@ -196,28 +179,30 @@ class PacketWorkflow(protected val dpState: DatapathState,
         notifyFlowAdded(context, dpFlow, newWildFlow)
     }
 
-    protected def addTranslatedFlow(context: PacketContext): Unit = {
-        if (context.packet.getReason == Packet.Reason.FlowActionUserspace) {
-            resultLogger.debug("packet came up due to userspace dp action, " +
-                               s"match ${context.origMatch}")
-            context.runFlowRemovedCallbacks()
-            addToActionsCacheAndInvalidate(context, context.flowActions)
-        } else {
-            // ApplyState needs to happen before we add the wildcard flow
-            // because it adds callbacks to the PacketContext and it can also
-            // result in a NotYet exception being thrown.
-            applyState(context)
-            handleFlow(context)
-        }
+    protected def addTranslatedFlow(context: PacketContext): SimulationResult = {
+        val res =
+            if (context.packet.getReason == Packet.Reason.FlowActionUserspace) {
+                resultLogger.debug("packet came up due to userspace dp action, " +
+                                   s"match ${context.origMatch}")
+                context.runFlowRemovedCallbacks()
+                UserspaceFlow
+            } else {
+                // ApplyState needs to happen before we add the wildcard flow
+                // because it adds callbacks to the PacketContext and it can also
+                // result in a NotYet exception being thrown.
+                applyState(context)
+                handleFlow(context)
+            }
 
         dpChannel.executePacket(context.packet, context.flowActions)
+        res
     }
 
-    private def handleFlow(context: PacketContext): Unit = {
+    private def handleFlow(context: PacketContext): SimulationResult = {
         if (context.isGenerated) {
             context.log.warn(s"Tried to add a flow for a generated packet")
             context.runFlowRemovedCallbacks()
-            return
+            return GeneratedPacket
         }
 
         context.origMatch.propagateSeenFieldsFrom(context.wcmatch)
@@ -232,10 +217,11 @@ class PacketWorkflow(protected val dpState: DatapathState,
         if (context.wcmatch.userspaceFieldsSeen) {
             context.log.debug("Userspace fields seen; skipping flow creation")
             context.runFlowRemovedCallbacks()
-            addToActionsCacheAndInvalidate(context, SIMULATE)
+            UserspaceFlow
         } else {
             logResultNewFlow("will create flow", context, wildFlow)
             createFlow(context, wildFlow, Some(wildFlow))
+            FlowCreated
         }
     }
 
@@ -253,10 +239,10 @@ class PacketWorkflow(protected val dpState: DatapathState,
             context.natTx.commit()
     }
 
-    private def handlePacketWithCookie(context: PacketContext): PipelinePath = {
+    private def handlePacketWithCookie(context: PacketContext): SimulationResult = {
         if (!context.origMatch.isUsed(Field.InputPortNumber)) {
             context.log.error("packet had no inPort number")
-            return Error
+            processSimulationResult(context, TemporaryDrop)
         }
 
         val inPortNo = context.origMatch.getInputPortNumber
@@ -272,7 +258,7 @@ class PacketWorkflow(protected val dpState: DatapathState,
             FlowController.queryWildcardFlowTable(context.origMatch) match {
                 case Some(wildflow) =>
                     handleWildcardTableMatch(context, wildflow)
-                    WildcardTableHit
+                    FlowCreated
                 case None =>
                     context.log.debug("missed the wildcard flow table")
                     handleWildcardTableMiss(context, inPortNo)
@@ -308,7 +294,7 @@ class PacketWorkflow(protected val dpState: DatapathState,
       * virtual network and we'll simulate it.
       */
     private def handleWildcardTableMiss(context: PacketContext,
-                                        inPortNo: Int): PipelinePath =
+                                        inPortNo: Int): SimulationResult =
         if (context.origMatch.isFromTunnel) {
             handleFromTunnel(context, inPortNo)
         } else if (resolveVport(context, inPortNo)) {
@@ -342,18 +328,19 @@ class PacketWorkflow(protected val dpState: DatapathState,
      * already computed.
      */
     def processSimulationResult(context: PacketContext,
-                                result: SimulationResult): PipelinePath = {
+                                result: SimulationResult): SimulationResult = {
         result match {
             case AddVirtualWildcardFlow =>
                 addVirtualWildcardFlow(context)
             case SendPacket =>
                 context.runFlowRemovedCallbacks()
                 sendPacket(context)
+                GeneratedPacket
             case NoOp =>
                 context.runFlowRemovedCallbacks()
-                addToActionsCacheAndInvalidate(context, Nil)
                 resultLogger.debug(s"no-op for match ${context.origMatch} " +
                                    s"tags ${context.flowTags}")
+                NoOp
             case TemporaryDrop =>
                 context.clearFlowTags()
                 context.idleExpirationMillis = 0
@@ -364,7 +351,6 @@ class PacketWorkflow(protected val dpState: DatapathState,
                 context.hardExpirationMillis = 0
                 addTranslatedFlow(context)
         }
-        Simulation
     }
 
     protected def simulatePacketIn(context: PacketContext): SimulationResult = {
@@ -382,12 +368,12 @@ class PacketWorkflow(protected val dpState: DatapathState,
         }
     }
 
-    def addVirtualWildcardFlow(context: PacketContext): Unit = {
+    def addVirtualWildcardFlow(context: PacketContext): SimulationResult = {
         translateActions(context)
         addTranslatedFlow(context)
     }
 
-    protected def handleStateMessage(context: PacketContext): PipelinePath = {
+    protected def handleStateMessage(context: PacketContext): SimulationResult = {
         context.log.debug("Accepting a state push message")
         replicator.accept(context.ethernet)
         StateMessage
@@ -430,12 +416,5 @@ class PacketWorkflow(protected val dpState: DatapathState,
                            s"${context.virtualFlowActions}; visited tags ${context.flowTags}")
         translateActions(context)
         dpChannel.executePacket(context.packet, context.flowActions)
-    }
-
-    private def addToActionsCacheAndInvalidate(context: PacketContext,
-                                               actions: JList[FlowAction]): Unit = {
-        val wm = context.origMatch
-        actionsCache.actions.put(wm, actions)
-        actionsCache.pending(actionsCache.getSlot()) = wm
     }
 }

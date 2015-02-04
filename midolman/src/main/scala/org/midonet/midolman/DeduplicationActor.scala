@@ -16,7 +16,7 @@
 
 package org.midonet.midolman
 
-import java.util.{ArrayList, HashMap => JHashMap, List => JList, UUID}
+import java.util.{HashMap => JHashMap, UUID}
 
 import scala.collection.mutable
 import scala.concurrent.duration._
@@ -24,12 +24,11 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
 import akka.actor._
-import com.typesafe.scalalogging.Logger
+
 import org.slf4j.MDC
 
 import org.jctools.queues.MpscArrayQueue
 
-import org.midonet.Util
 import org.midonet.cluster.DataClient
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman.HostRequestProxy.FlowStateBatch
@@ -45,79 +44,15 @@ import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
 import org.midonet.midolman.state._
 import org.midonet.midolman.state.{FlowStatePackets, FlowStateReplicator, FlowStateStorage, NatLeaser}
 import org.midonet.odp.{FlowMatches, FlowMatch, Packet}
-import org.midonet.odp.flows.FlowAction
 import org.midonet.packets.Ethernet
 import org.midonet.sdn.state.{FlowStateTable, FlowStateTransaction}
 import org.midonet.util.collection.Reducer
 import org.midonet.util.concurrent._
 
 object DeduplicationActor {
-    // Messages
     case class HandlePackets(packet: Array[Packet])
-
     case class DiscardPacket(cookie: Int)
-
     case class RestartWorkflow(pktCtx: PacketContext)
-
-    val SIMULATE = new ArrayList[FlowAction]()
-
-    // This class holds a cache of actions we use to apply the result of a
-    // simulation to pending packets while that result isn't written into
-    // the WildcardFlowTable. After updating the table, the FlowController
-    // will place the FlowMatch in the pending ring buffer so the DDA can
-    // evict the entry from the cache.
-    sealed class ActionsCache(var size: Int = 1024, cbExecutor: CallbackExecutor,
-                              log: Logger) {
-        size = Util.findNextPositivePowerOfTwo(size)
-        private val mask = size - 1
-        val actions = new JHashMap[FlowMatch, JList[FlowAction]]()
-        val pending = new Array[FlowMatch](size)
-        var free = 0L
-        var expecting = 0L
-
-        def clearProcessedFlowMatches(): Int = {
-            var cleared = 0
-            while ((free - expecting) > 0) {
-                val idx = index(expecting)
-                val flowMatch = pending(idx)
-                if (flowMatch == null)
-                    return cleared
-
-                actions.remove(flowMatch)
-                pending(idx) = null
-                expecting += 1
-                cleared += 1
-            }
-            cleared
-        }
-
-        def getSlot(): Int = {
-            val res = free
-            if (res - expecting == size) {
-                log.debug("Waiting for the FlowController to catch up")
-                var retries = 200
-                while (clearProcessedFlowMatches() == 0) {
-                    // While we wait on the FlowController, we must avoid the
-                    // deadlock that would ensue if the FlowController were to
-                    // begin waiting on us due to lots of flows being invalidated.
-                    cbExecutor.run()
-                    if (retries > 100) {
-                        retries -= 1
-                    } else if (retries > 0) {
-                        retries -= 1
-                        Thread.`yield`()
-                    } else {
-                        Thread.sleep(0)
-                    }
-                }
-                log.debug("The FlowController has caught up")
-            }
-            free += 1
-            index(res)
-        }
-
-        private def index(x: Long): Int = (x & mask).asInstanceOf[Int]
-    }
 }
 
 class CookieGenerator(val start: Int, val increment: Int) {
@@ -143,9 +78,9 @@ class DeduplicationActor(
             val packetOut: Int => Unit)
             extends Actor with ActorLogWithoutPath {
 
-    import org.midonet.midolman.DatapathController.DatapathReady
-    import org.midonet.midolman.DeduplicationActor._
-    import org.midonet.midolman.PacketWorkflow._
+    import DatapathController.DatapathReady
+    import DeduplicationActor._
+    import PacketWorkflow._
 
     override def logSource = "org.midonet.packet-worker"
 
@@ -163,7 +98,6 @@ class DeduplicationActor(
 
     private val cbExecutor = new CallbackExecutor(2048, self)
     private val genPacketEmitter = new PacketEmitter(new MpscArrayQueue(512), self)
-    protected val actionsCache = new ActionsCache(cbExecutor = cbExecutor, log = log)
 
     protected val connTrackTx = new FlowStateTransaction(connTrackStateTable)
     protected val natTx = new FlowStateTransaction(natStateTable)
@@ -200,8 +134,7 @@ class DeduplicationActor(
                                                  config.getControlPacketsTos.toByte)
             pendingFlowStateBatches foreach (self ! _)
             workflow = new PacketWorkflow(dpState, dp, clusterDataClient,
-                                          dpChannel, actionsCache, replicator,
-                                          config)
+                                          dpChannel, replicator, config)
 
         case m: FlowStateBatch =>
             if (replicator ne null)
@@ -210,7 +143,6 @@ class DeduplicationActor(
                 pendingFlowStateBatches ::= m
 
         case HandlePackets(packets) =>
-            actionsCache.clearProcessedFlowMatches()
 
             connTrackStateTable.expireIdleEntries((), invalidateExpiredConnTrackKeys)
             natStateTable.expireIdleEntries((), invalidateExpiredNatKeys)
@@ -317,43 +249,35 @@ class DeduplicationActor(
             metrics.packetsDropped.mark(dropped + 1)
         }
 
-    /**
-     * Deal with a completed workflow
-     */
-    protected def complete(pktCtx: PacketContext, path: PipelinePath): Unit = {
+    private def complete(pktCtx: PacketContext, simRes: SimulationResult): Unit = {
         pktCtx.log.debug("Packet processed")
         if (pktCtx.runs > 1)
             waitingRoom leave pktCtx
         if (pktCtx.ingressed) {
-            applyFlow(pktCtx)
-            val latency = (NanoClock.DEFAULT.tick -
-                           pktCtx.packet.startTimeNanos).toInt
+            applyFlow(pktCtx, simRes)
+            val latency = NanoClock.DEFAULT.tick - pktCtx.packet.startTimeNanos
             metrics.packetsProcessed.mark()
-            path match {
-                case WildcardTableHit =>
-                    metrics.wildcardTableHit(latency)
-                case Simulation =>
-                    metrics.packetSimulated(latency)
-                case _ =>
+            simRes match {
+                case StateMessage =>
+                case _ => metrics.packetSimulated(latency.toInt)
             }
         }
     }
 
-    private def applyFlow(pktCtx: PacketContext): Unit = {
+    private def applyFlow(pktCtx: PacketContext, simRes: SimulationResult): Unit = {
         val flowMatch = pktCtx.packet.getMatch
-        val actions = actionsCache.actions.get(flowMatch)
         val suspendedPackets = removeSuspendedPackets(flowMatch)
         val numSuspendedPackets = suspendedPackets.size
-        if (actions eq SIMULATE) {
+        if (simRes eq UserspaceFlow) {
             suspendedPackets foreach processPacket
         } else if (numSuspendedPackets > 0) {
             log.debug(s"Sending ${suspendedPackets.size} pended packets")
-            suspendedPackets foreach (dpChannel.executePacket(_, actions))
+            suspendedPackets foreach (dpChannel.executePacket(_, pktCtx.flowActions))
             metrics.packetsProcessed.mark(numSuspendedPackets)
             metrics.pendedPackets.dec(numSuspendedPackets)
         }
 
-        if (!pktCtx.isStateMessage && actions.isEmpty) {
+        if (!pktCtx.isStateMessage && pktCtx.flowActions.isEmpty) {
             system.eventStream.publish(DiscardPacket(pktCtx.cookie))
         }
     }
@@ -391,32 +315,25 @@ class DeduplicationActor(
 
     protected def runWorkflow(pktCtx: PacketContext): Unit =
         try {
-            complete(pktCtx, workflow.start(pktCtx))
+            try {
+                complete(pktCtx, workflow.start(pktCtx))
+            } finally {
+                flushTransactions()
+            }
         } catch {
             case TraceRequiredException =>
-                pktCtx.setTracingEnabled
-                pktCtx.log.debug(
-                    s"Enabling trace for $pktCtx, and rerunning simulation")
-                flushTransactions()
+                pktCtx.setTracingEnabled()
+                pktCtx.log.debug(s"Enabling trace for $pktCtx, and rerunning simulation")
                 runWorkflow(pktCtx)
             case NotYetException(f, msg) =>
                 pktCtx.log.debug(s"Postponing simulation because: $msg")
                 postponeOn(pktCtx, f)
-            case ex: Exception => handleErrorOn(pktCtx, ex)
-        } finally {
-            flushTransactions()
+            case ex: Throwable => handleErrorOn(pktCtx, ex)
         }
 
     private def handlePacket(packet: Packet): Unit = {
         val flowMatch = packet.getMatch
-        val actions = actionsCache.actions.get(flowMatch)
-        if (actions != null) {
-            log.debug("Got actions from the cache {} for match {}",
-                       actions, flowMatch)
-            dpChannel.executePacket(packet, actions)
-            metrics.packetsProcessed.mark()
-            packetOut(1)
-        } else if (FlowStatePackets.isStateMessage(flowMatch)) {
+        if (FlowStatePackets.isStateMessage(flowMatch)) {
             processPacket(packet)
         } else suspendedPackets.get(flowMatch) match {
             case null =>
