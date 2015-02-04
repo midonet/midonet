@@ -305,7 +305,7 @@ public class ZookeeperObjectMapperTest {
                                        int tunnelKey,
                                        Commons.UUID inFilterId,
                                        Commons.UUID outFilterId,
-                                       Commons.UUID vxLanPortId) {
+                                       List<Commons.UUID> vxLanPortIds) {
         Network.Builder networkBuilder = Network.newBuilder();
         networkBuilder.setId(networkId);
         networkBuilder.setName(name);
@@ -316,8 +316,8 @@ public class ZookeeperObjectMapperTest {
             networkBuilder.setInboundFilterId(inFilterId);
         if (outFilterId != null)
             networkBuilder.setOutboundFilterId(outFilterId);
-        if (vxLanPortId != null)
-            networkBuilder.setVxlanPortId(vxLanPortId);
+        if (vxLanPortIds != null)
+            networkBuilder.addAllVxlanPortIds(vxLanPortIds);
 
         return networkBuilder.build();
     }
