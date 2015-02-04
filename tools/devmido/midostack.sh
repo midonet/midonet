@@ -17,9 +17,6 @@
 # This script is meant to be sourced from devstack.  It is a wrapper of
 # mido.sh that allows proper exporting of environment variables to mido.sh.
 
-# Keep track of the current directory
-MIDOSTACK_DIR=$(cd $(dirname $0) && pwd)
-
 # Share the same logging locations
 export TIMESTAMP_FORMAT
 export LOGFILE
@@ -29,4 +26,4 @@ export SCREEN_LOGDIR
 export SERVICE_HOST=$MIDONET_SERVICE_HOST
 export API_PORT=$MIDONET_API_PORT
 
-$MIDOSTACK_DIR/mido.sh
+$MIDONET_DIR/tools/devmido/mido.sh

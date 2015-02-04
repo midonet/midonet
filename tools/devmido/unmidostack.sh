@@ -17,9 +17,5 @@
 # This script is meant to be sourced from devstack.  It is a wrapper of
 # unmido.sh that allows proper exporting of environment variables to unmido.sh.
 
-# Keep track of the current directory
-MIDOSTACK_DIR=$(cd $(dirname $0) && pwd)
-
 export SCREEN_NAME
-
-$MIDOSTACK_DIR/unmido.sh
+$MIDONET_DIR/tools/devmido/unmido.sh
