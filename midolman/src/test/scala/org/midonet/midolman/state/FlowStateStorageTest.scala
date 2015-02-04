@@ -27,8 +27,7 @@ import org.junit.runner.RunWith
 import org.scalatest._
 import org.scalatest.concurrent.Eventually._
 import org.scalatest.junit.JUnitRunner
-
-import org.midonet.cassandra.CassandraClient
+import org.midonet.cluster.backend.cassandra.CassandraClient
 import org.midonet.midolman.state.ConnTrackState.ConnTrackKey
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
 import org.midonet.packets.IPv4Addr
