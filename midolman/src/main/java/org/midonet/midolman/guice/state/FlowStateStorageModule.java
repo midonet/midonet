@@ -22,7 +22,7 @@ import com.google.inject.Provider;
 import com.google.inject.name.Named;
 import com.google.inject.name.Names;
 
-import org.midonet.cassandra.CassandraClient;
+import org.midonet.cluster.backend.cassandra.CassandraClient;
 import org.midonet.midolman.config.MidolmanConfig;
 import org.midonet.midolman.guice.zookeeper.ZkConnectionProvider;
 import org.midonet.midolman.state.FlowStateStorage;

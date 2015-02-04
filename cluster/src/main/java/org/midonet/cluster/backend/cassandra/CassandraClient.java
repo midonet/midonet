@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.midonet.cassandra;
+package org.midonet.cluster.backend.cassandra;
 
 import java.util.HashMap;
 import java.util.Map;
