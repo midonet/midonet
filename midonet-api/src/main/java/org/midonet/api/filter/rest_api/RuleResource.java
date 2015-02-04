@@ -32,8 +32,6 @@ import com.google.inject.assistedinject.Assisted;
 import com.google.inject.servlet.RequestScoped;
 import org.midonet.packets.MAC;
 import org.midonet.event.topology.RuleEvent;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.VendorMediaType;
@@ -49,9 +47,9 @@ import org.midonet.api.rest_api.BadRequestHttpException;
 import org.midonet.api.rest_api.NotFoundHttpException;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.cluster.DataClient;
-import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.NoStatePathException;
-import org.midonet.midolman.state.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.serialization.SerializationException;
+import org.midonet.cluster.backend.zookeeper.NoStatePathException;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import static org.midonet.cluster.data.Rule.RuleIndexOutOfBoundsException;
 
 /**

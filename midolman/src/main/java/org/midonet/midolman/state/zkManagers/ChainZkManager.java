@@ -25,15 +25,15 @@ import org.slf4j.LoggerFactory;
 
 import org.midonet.midolman.rules.Rule;
 import org.midonet.midolman.rules.RuleList;
-import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.serialization.Serializer;
+import org.midonet.cluster.backend.zookeeper.serialization.SerializationException;
+import org.midonet.cluster.backend.zookeeper.serialization.Serializer;
 import org.midonet.midolman.state.AbstractZkManager;
-import org.midonet.midolman.state.Directory;
-import org.midonet.midolman.state.DirectoryCallback;
+import org.midonet.cluster.backend.zookeeper.Directory;
+import org.midonet.cluster.backend.zookeeper.DirectoryCallback;
 import org.midonet.midolman.state.DirectoryCallbackFactory;
 import org.midonet.midolman.state.PathBuilder;
-import org.midonet.midolman.state.StateAccessException;
-import org.midonet.midolman.state.ZkManager;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.ZkManager;
 import org.midonet.util.functors.Functor;
 
 /**
@@ -188,7 +188,7 @@ public class ChainZkManager
      * @param config
      *            ChainConfig object.
      * @return A list of Op objects to represent the operations to perform.
-     * @throws org.midonet.midolman.serialization.SerializationException
+     * @throws org.midonet.cluster.backend.zookeeper.serialization.SerializationException
      *             Serialization error occurred.
      */
     public List<Op> prepareCreate(UUID id, ChainConfig config)
@@ -215,7 +215,7 @@ public class ChainZkManager
      * @param id
      *            Chain ID
      * @return A list of Op objects representing the operations to perform.
-     * @throws org.midonet.midolman.state.StateAccessException
+     * @throws org.midonet.cluster.backend.zookeeper.StateAccessException
      */
     public List<Op> prepareDelete(UUID id)
             throws StateAccessException, SerializationException {

@@ -20,12 +20,12 @@ import rx.Observable;
 import rx.functions.Action1;
 
 import org.midonet.cluster.DataClient;
-import org.midonet.cluster.EntityIdSetEvent;
-import org.midonet.cluster.EntityIdSetMonitor;
-import org.midonet.cluster.EntityMonitor;
+import org.midonet.cluster.backend.EntityIdSetEvent;
+import org.midonet.cluster.backend.EntityIdSetMonitor;
+import org.midonet.cluster.backend.EntityMonitor;
 import org.midonet.cluster.data.Entity;
-import org.midonet.midolman.state.StateAccessException;
-import org.midonet.midolman.state.ZookeeperConnectionWatcher;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.ZookeeperConnectionWatcher;
 
 public abstract class DeviceMonitor<KEY,
                                    TYPE extends Entity.Base<KEY, ?, TYPE>> {

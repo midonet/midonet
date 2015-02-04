@@ -39,10 +39,10 @@ import org.midonet.midolman.host.scanner.InterfaceScanner;
 import org.midonet.midolman.host.state.HostDirectory;
 import org.midonet.midolman.host.state.HostZkManager;
 import org.midonet.midolman.host.updater.InterfaceDataUpdater;
-import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.cluster.backend.zookeeper.serialization.SerializationException;
 import org.midonet.midolman.services.HostIdProviderService;
-import org.midonet.midolman.state.StateAccessException;
-import org.midonet.midolman.state.ZkManager;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.ZkManager;
 import org.midonet.netlink.Callback;
 import org.midonet.netlink.exceptions.NetlinkException;
 

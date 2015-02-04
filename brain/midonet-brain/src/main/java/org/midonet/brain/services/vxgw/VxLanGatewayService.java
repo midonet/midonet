@@ -35,7 +35,6 @@ import org.slf4j.LoggerFactory;
 import rx.Subscription;
 import rx.functions.Action1;
 
-import org.midonet.brain.ClusterMinion;
 import org.midonet.brain.ClusterNode;
 import org.midonet.brain.MinionConfig;
 import org.midonet.brain.services.vxgw.monitor.BridgeMonitor;
@@ -45,7 +44,7 @@ import org.midonet.brain.southbound.vtep.VtepDataClientFactory;
 import org.midonet.brain.southbound.vtep.VtepNotConnectedException;
 import org.midonet.brain.southbound.vtep.VtepStateException;
 import org.midonet.cluster.DataClient;
-import org.midonet.cluster.EntityIdSetEvent;
+import org.midonet.cluster.backend.EntityIdSetEvent;
 import org.midonet.cluster.data.Bridge;
 import org.midonet.cluster.data.VTEP;
 import org.midonet.cluster.data.VtepBinding;
@@ -53,10 +52,10 @@ import org.midonet.cluster.data.ports.VxLanPort;
 import org.midonet.config.ConfigBool;
 import org.midonet.config.ConfigGroup;
 import org.midonet.config.ConfigString;
-import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.NoStatePathException;
-import org.midonet.midolman.state.StateAccessException;
-import org.midonet.midolman.state.ZookeeperConnectionWatcher;
+import org.midonet.cluster.backend.zookeeper.serialization.SerializationException;
+import org.midonet.cluster.backend.zookeeper.NoStatePathException;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.ZookeeperConnectionWatcher;
 import org.midonet.packets.IPv4Addr;
 
 /**

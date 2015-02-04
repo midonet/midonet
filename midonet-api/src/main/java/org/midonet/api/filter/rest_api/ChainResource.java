@@ -29,10 +29,8 @@ import org.midonet.api.filter.rest_api.RuleResource.ChainRuleResource;
 import org.midonet.api.rest_api.*;
 import org.midonet.event.topology.ChainEvent;
 import org.midonet.cluster.DataClient;
-import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.StateAccessException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.midonet.cluster.backend.zookeeper.serialization.SerializationException;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
 
 import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;

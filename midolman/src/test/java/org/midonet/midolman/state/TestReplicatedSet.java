@@ -27,8 +27,10 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import org.midonet.cluster.backend.zookeeper.Directory;
+import org.midonet.cluster.backend.zookeeper.MockDirectory;
 import org.midonet.midolman.layer3.Route;
-import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.cluster.backend.zookeeper.serialization.SerializationException;
 
 
 public class TestReplicatedSet {

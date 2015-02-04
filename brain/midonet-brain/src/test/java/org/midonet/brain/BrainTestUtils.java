@@ -25,6 +25,7 @@ import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 
+import org.midonet.cluster.backend.zookeeper.Directory;
 import org.midonet.cluster.config.ZookeeperConfig;
 import org.midonet.midolman.Setup;
 import org.midonet.midolman.config.MidolmanConfig;
@@ -32,8 +33,7 @@ import org.midonet.midolman.guice.cluster.ClusterClientModule;
 import org.midonet.midolman.guice.config.ConfigProviderModule;
 import org.midonet.midolman.guice.config.TypedConfigModule;
 import org.midonet.midolman.guice.serialization.SerializationModule;
-import org.midonet.midolman.guice.zookeeper.MockZookeeperConnectionModule;
-import org.midonet.midolman.state.Directory;
+import org.midonet.cluster.backend.zookeeper.MockZookeeperConnectionModule;
 
 /**
  * Some utility classes to write tests in the Brain module.

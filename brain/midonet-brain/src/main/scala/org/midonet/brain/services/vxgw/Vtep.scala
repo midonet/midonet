@@ -26,7 +26,7 @@ import rx.{Observable, Observer}
 import org.midonet.brain.southbound.vtep.VtepDataClientFactory
 import org.midonet.brain.southbound.vtep.model.LogicalSwitch
 import org.midonet.cluster.DataClient
-import org.midonet.midolman.state.ZookeeperConnectionWatcher
+import org.midonet.cluster.backend.zookeeper.ZookeeperConnectionWatcher
 import org.midonet.packets.IPv4Addr
 
 /** Defines the interface that any VTEP would offer to a VxGW manager in order

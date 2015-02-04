@@ -28,9 +28,9 @@ import org.midonet.cluster.data.VTEP;
 import org.midonet.cluster.data.dhcp.Subnet;
 import org.midonet.cluster.data.ports.RouterPort;
 import org.midonet.midolman.layer3.Route.NextHop;
-import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.StateAccessException;
-import org.midonet.midolman.state.ZkLeaderElectionWatcher.ExecuteOnBecomingLeader;
+import org.midonet.cluster.backend.zookeeper.serialization.SerializationException;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.ZkLeaderElectionWatcher.ExecuteOnBecomingLeader;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
 

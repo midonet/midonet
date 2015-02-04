@@ -24,18 +24,18 @@ import scala.collection.mutable
 import akka.actor.{Actor, ActorRef, Stash}
 import akka.pattern.pipe
 
+import org.midonet.cluster.backend.zookeeper.{StateAccessException, ZkConnectionAwareWatcher}
 import org.midonet.cluster.client.BGPListBuilder
 import org.midonet.cluster.data.{AdRoute, BGP, Route}
 import org.midonet.cluster.{Client, DataClient}
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
+import org.midonet.midolman._
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.io.{UpcallDatapathConnectionManager, VirtualMachine}
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.routingprotocols.RoutingManagerActor.BgpStatus
-import org.midonet.midolman.state.{StateAccessException, ZkConnectionAwareWatcher}
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.topology.VirtualTopologyActor.PortRequest
-import org.midonet.midolman._
 import org.midonet.midolman.topology.devices.{Port, RouterPort}
 import org.midonet.netlink.AfUnix
 import org.midonet.odp.ports.NetDevPort
@@ -122,7 +122,7 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
                      val selectLoop: SelectLoop)
     extends Actor with ActorLogWithoutPath with Stash with FlowTranslator {
 
-    import RoutingHandler._
+    import org.midonet.midolman.routingprotocols.RoutingHandler._
 
     override protected implicit val system = context.system
 

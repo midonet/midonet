@@ -28,9 +28,9 @@ import org.mockito.Answers;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import org.midonet.cluster.backend.zookeeper.serialization.SerializationException;
 import org.midonet.midolman.SystemDataProvider;
 import org.midonet.midolman.guice.serialization.JsonVersionZkSerializer;
-import org.midonet.midolman.serialization.SerializationException;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
@@ -131,7 +131,7 @@ public class TestJsonVersionZkSerializer {
         String versionConfigStr = String.format(
                 "{\"data\":%s,\"version\":\"%s\"}", innerObjStr, DUMMY_VERSION);
 
-        return versionConfigStr.toString().getBytes();
+        return versionConfigStr.getBytes();
     }
 
     @Before

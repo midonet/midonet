@@ -36,6 +36,7 @@ import akka.util.Timeout
 import com.google.inject._
 import com.typesafe.scalalogging.Logger
 import org.apache.commons.configuration.HierarchicalConfiguration
+import org.midonet.cluster.backend.zookeeper.MockZookeeperConnectionModule
 import org.midonet.cluster.data.host.Host
 import org.midonet.cluster.data.{Port => VPort}
 import org.midonet.cluster.services.StorageService
@@ -50,7 +51,6 @@ import org.midonet.midolman.guice.config.ConfigProviderModule
 import org.midonet.midolman.guice.datapath.MockDatapathModule
 import org.midonet.midolman.guice.serialization.SerializationModule
 import org.midonet.midolman.guice.state.MockFlowStateStorageModule
-import org.midonet.midolman.guice.zookeeper.MockZookeeperConnectionModule
 import org.midonet.midolman.host.config.HostConfig
 import org.midonet.midolman.host.guice.HostConfigProvider
 import org.midonet.midolman.host.interfaces.InterfaceDescription

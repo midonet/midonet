@@ -26,13 +26,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.midonet.brain.ClusterNode;
-import org.midonet.brain.services.vxgw.Vtep;
 import org.midonet.brain.services.vxgw.VxLanGatewayServiceBase;
 import org.midonet.brain.services.vxgw.VxlanGatewayHA;
 import org.midonet.brain.southbound.vtep.VtepDataClientFactory;
 import org.midonet.cluster.DataClient;
 import org.midonet.config.ConfigProvider;
-import org.midonet.midolman.state.ZookeeperConnectionWatcher;
+import org.midonet.cluster.backend.zookeeper.ZookeeperConnectionWatcher;
 
 /**
  * Guice module for REST API.

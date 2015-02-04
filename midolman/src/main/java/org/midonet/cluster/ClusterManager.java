@@ -28,11 +28,12 @@ import org.apache.zookeeper.Watcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.midonet.midolman.guice.zookeeper.ZkConnectionProvider;
-import org.midonet.midolman.state.Directory;
-import org.midonet.midolman.state.DirectoryCallback;
-import org.midonet.midolman.state.ZkConnectionAwareWatcher;
+import org.midonet.cluster.backend.zookeeper.Directory;
+import org.midonet.cluster.backend.zookeeper.DirectoryCallback;
+import org.midonet.cluster.backend.zookeeper.ZkConnectionAwareWatcher;
+import org.midonet.cluster.backend.zookeeper.ZkConnectionProvider;
 import org.midonet.util.eventloop.Reactor;
+
 
 abstract class ClusterManager<T> {
     private static final Logger log = LoggerFactory
@@ -40,7 +41,7 @@ abstract class ClusterManager<T> {
 
     /**
      * We inject it because we want to use the same {@link Reactor} as
-     * {@link org.midonet.midolman.state.ZkDirectory}
+     * {@link org.midonet.cluster.backend.zookeeper.ZkDirectory}
      */
     @Inject
     @Named(ZkConnectionProvider.DIRECTORY_REACTOR_TAG)

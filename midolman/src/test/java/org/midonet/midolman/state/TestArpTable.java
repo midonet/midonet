@@ -16,12 +16,13 @@
 
 package org.midonet.midolman.state;
 
+import org.midonet.cluster.backend.zookeeper.MockDirectory;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
 
 import org.junit.Before;
 import org.junit.Test;
-import static org.junit.Assert.*;
+
 import static org.junit.Assert.assertEquals;
 
 public class TestArpTable {

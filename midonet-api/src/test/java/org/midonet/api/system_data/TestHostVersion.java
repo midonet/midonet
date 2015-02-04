@@ -32,7 +32,7 @@ import org.midonet.client.VendorMediaType;
 import org.midonet.client.resource.HostVersion;
 import org.midonet.client.resource.ResourceCollection;
 import org.midonet.midolman.host.state.HostZkManager;
-import org.midonet.midolman.state.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.midolman.version.DataWriteVersion;
 
 import static org.hamcrest.MatcherAssert.assertThat;

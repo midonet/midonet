@@ -21,8 +21,8 @@ import javax.validation.ConstraintValidatorContext;
 import com.google.inject.Inject;
 
 import org.midonet.cluster.data.ports.BridgePort;
-import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.serialization.SerializationException;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.api.network.MacPort;
 import org.midonet.api.validation.MessageProperty;
 import org.midonet.cluster.DataClient;

@@ -32,12 +32,10 @@ import org.midonet.api.bgp.rest_api.AdRouteResource.BgpAdRouteResource;
 import org.midonet.api.network.auth.PortAuthorizer;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.event.topology.BgpEvent;
-import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.serialization.SerializationException;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.BGP;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;

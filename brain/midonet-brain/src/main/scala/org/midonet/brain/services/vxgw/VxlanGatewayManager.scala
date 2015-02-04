@@ -32,11 +32,12 @@ import org.midonet.brain.services.vxgw
 import org.midonet.brain.southbound.vtep.VtepConstants.bridgeIdToLogicalSwitchName
 import org.midonet.brain.southbound.vtep.VtepNotConnectedException
 import org.midonet.cluster.DataClient
+import org.midonet.cluster.backend.zookeeper.Directory.DefaultTypedWatcher
+import org.midonet.cluster.backend.zookeeper.serialization.SerializationException
+import org.midonet.cluster.backend.zookeeper.{Directory, NoStatePathException, StateAccessException, ZookeeperConnectionWatcher}
 import org.midonet.cluster.data.Bridge
 import org.midonet.cluster.data.Bridge.UNTAGGED_VLAN_ID
 import org.midonet.cluster.data.ports.VxLanPort
-import org.midonet.midolman.serialization.SerializationException
-import org.midonet.midolman.state.Directory.DefaultTypedWatcher
 import org.midonet.midolman.state.ReplicatedMap.Watcher
 import org.midonet.midolman.state._
 import org.midonet.packets.{IPv4Addr, MAC}

@@ -27,6 +27,7 @@ import com.google.inject.Inject
 import org.slf4j.{Logger, LoggerFactory}
 
 import org.midonet.cluster.DataClient
+import org.midonet.cluster.backend.zookeeper.ZkLeaderElectionWatcher
 import org.midonet.config.HostIdGenerator
 import org.midonet.midolman.Referenceable
 import org.midonet.midolman.config.MidolmanConfig
@@ -37,7 +38,7 @@ import org.midonet.midolman.l4lb.HealthMonitorConfigWatcher.BecomeHaproxyNode
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.routingprotocols.IP
 import org.midonet.midolman.state.PoolHealthMonitorMappingStatus
-import org.midonet.midolman.state.ZkLeaderElectionWatcher.ExecuteOnBecomingLeader
+import ZkLeaderElectionWatcher.ExecuteOnBecomingLeader
 
 object HealthMonitor extends Referenceable {
     override val Name = "HealthMonitor"
