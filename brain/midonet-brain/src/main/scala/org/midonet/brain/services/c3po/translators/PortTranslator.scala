@@ -20,15 +20,11 @@ import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 
-import org.midonet.brain.services.c3po.C3POStorageManager.Operation
 import org.midonet.brain.services.c3po.midonet.{Create, Delete, MidoOp, Update}
 import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.models.Commons.{IPAddress, IPSubnet, UUID}
-import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner
 import org.midonet.cluster.models.Neutron.{NeutronPort, NeutronSubnet}
 import org.midonet.cluster.models.Topology.Network.Dhcp
-import org.midonet.cluster.models.Topology.Rule.Action.{ACCEPT, DROP, JUMP}
-import org.midonet.cluster.models.Topology.Rule.FragmentPolicy.ANY
 import org.midonet.cluster.models.Topology.{Chain, IpAddrGroup, Network, Port, PortOrBuilder, Rule}
 import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
 import org.midonet.cluster.util.{IPSubnetUtil, UUIDUtil}
@@ -36,16 +32,6 @@ import org.midonet.packets.{ARP, IPv4, IPv6}
 import org.midonet.util.concurrent.toFutureOps
 
 object PortTranslator {
-    private def isVifPort(nPort: NeutronPort) = !nPort.hasDeviceOwner
-    private def isDhcpPort(nPort: NeutronPort) =
-        nPort.hasDeviceOwner && nPort.getDeviceOwner == DeviceOwner.DHCP
-    private def isFloatingIpPort(nPort: NeutronPort) =
-        nPort.hasDeviceOwner && nPort.getDeviceOwner == DeviceOwner.FLOATINGIP
-    private def isRouterInterfacePort(nPort: NeutronPort) =
-        nPort.hasDeviceOwner && nPort.getDeviceOwner == DeviceOwner.ROUTER_INTERFACE
-    private def isRouterGatewayPort(nPort: NeutronPort) =
-        nPort.hasDeviceOwner && nPort.getDeviceOwner == DeviceOwner.ROUTER_GATEWAY
-
     private def isIpv4(nSubnet: NeutronSubnet) = nSubnet.getIpVersion == 4
     private def isIpv6(nSubnet: NeutronSubnet) = nSubnet.getIpVersion == 6
 
@@ -91,43 +77,11 @@ object PortTranslator {
 
     private def ingressChainName(portId: UUID) =
         "OS_PORT_" + UUIDUtil.fromProto(portId) + "_OUTBOUND"
-
-    private def chainBuilder(chainId: UUID,
-                             chainName: String,
-                             ruleIds: Seq[UUID]) = {
-        val chainBldr = Chain.newBuilder().setId(chainId).setName(chainName)
-        ruleIds.foreach(chainBldr.addRuleIds)
-        chainBldr.build
-    }
-
-    private def reverseFlowRule(chainId: UUID): Rule =
-        Rule.newBuilder().setId(UUIDUtil.randomUuidProto)
-                         .setChainId(chainId)
-                         .setAction(ACCEPT)
-                         .setMatchReturnFlow(true).build
-
-    private def dropRuleBuilder(chainId: UUID): Rule.Builder =
-        Rule.newBuilder().setId(UUIDUtil.randomUuidProto)
-                         .setChainId(chainId)
-                         .setAction(DROP)
-                         .setFragmentPolicy(ANY)
-
-    private def jumpRule(fromChain: UUID, toChain: UUID) =
-        Rule.newBuilder().setId(UUIDUtil.randomUuidProto)
-                         .setAction(JUMP)
-                         .setChainId(fromChain)
-                         .setJumpTo(toChain).build
-
-    def toRuleIdList(ops: Seq[Operation[Rule]]) =
-        ops.map {
-                case Create(r: Rule) => r.getId
-                case Update(r: Rule) => r.getId
-                case Delete(_, id) => id
-        }
 }
 
 class PortTranslator(private val storage: ReadOnlyStorage)
-        extends NeutronTranslator[NeutronPort] {
+        extends NeutronTranslator[NeutronPort]
+        with ChainManager with PortManager with RuleManager {
     import org.midonet.brain.services.c3po.translators.PortTranslator._
 
     override protected def translateCreate(nPort: NeutronPort): MidoOpList = {
@@ -355,10 +309,10 @@ class PortTranslator(private val storage: ReadOnlyStorage)
                                     .setInvDlType(true).build)
 
         // Create in/outbound chains with the IDs of the above rules.
-        val inChain = chainBuilder(inChainId, egressChainName(portId),
-                                   toRuleIdList(portInfo.inRules))
-        val outChain = chainBuilder(outChainId, ingressChainName(portId),
-                                    toRuleIdList(portInfo.outRules))
+        val inChain = newChain(inChainId, egressChainName(portId),
+                               toRuleIdList(portInfo.inRules))
+        val outChain = newChain(outChainId, ingressChainName(portId),
+                                toRuleIdList(portInfo.outRules))
 
         if (nPortOld != null) { // Update
             portInfo.chains += (Update(inChain), Update(outChain))
