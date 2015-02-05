@@ -107,7 +107,7 @@ object PacketWorkflowTest {
                 throw new Exception("no Coordinator")
             override def translateActions(pktCtx: PacketContext) = {
                 testKit ! TranslateActions
-                pktCtx.addFlowAction(output)
+                pktCtx.addFlowAndPacketAction(output)
             }
         }
         (pktCtx, wf)
