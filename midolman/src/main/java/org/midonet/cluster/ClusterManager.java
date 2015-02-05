@@ -28,7 +28,7 @@ import org.apache.zookeeper.Watcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.midonet.midolman.guice.zookeeper.ZkConnectionProvider;
+import org.midonet.midolman.cluster.zookeeper.ZkConnectionProvider;
 import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.DirectoryCallback;
 import org.midonet.midolman.state.ZkConnectionAwareWatcher;

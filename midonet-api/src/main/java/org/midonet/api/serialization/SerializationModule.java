@@ -16,11 +16,6 @@
 package org.midonet.api.serialization;
 
 import com.google.inject.AbstractModule;
-import com.google.inject.Inject;
-import com.google.inject.Provides;
-import com.google.inject.Singleton;
-import org.codehaus.jackson.jaxrs.JacksonJsonProvider;
-import org.midonet.api.version.VersionParser;
 
 /**
  * Bindings specific to serialization in api.
@@ -30,7 +25,7 @@ public class SerializationModule extends AbstractModule {
     @Override
     protected void configure() {
 
-        install(new org.midonet.midolman.guice.serialization
+        install(new org.midonet.midolman.cluster.serialization
                 .SerializationModule());
 
         bind(ObjectMapperProvider.class).asEagerSingleton();

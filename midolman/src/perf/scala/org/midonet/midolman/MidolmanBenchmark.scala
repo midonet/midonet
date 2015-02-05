@@ -28,15 +28,16 @@ import org.openjdk.jmh.annotations.{TearDown, Setup => JmhSetup}
 
 import org.midonet.cluster.Client
 import org.midonet.cluster.services.StorageService
+import org.midonet.cluster.storage.StorageModule
 import org.midonet.config.ConfigProvider
 import org.midonet.midolman.config.MidolmanConfig
-import org.midonet.midolman.guice.cluster.ClusterClientModule
-import org.midonet.midolman.guice.config.ConfigProviderModule
-import org.midonet.midolman.guice.datapath.MockDatapathModule
-import org.midonet.midolman.guice.serialization.SerializationModule
-import org.midonet.midolman.guice.state.MockFlowStateStorageModule
-import org.midonet.midolman.guice.zookeeper.MockZookeeperConnectionModule
-import org.midonet.midolman.guice.{MidolmanActorsModule, MidolmanModule, ResourceProtectionModule, _}
+import org.midonet.midolman.cluster.cluster.ClusterClientModule
+import org.midonet.midolman.cluster.config.ConfigProviderModule
+import org.midonet.midolman.cluster.datapath.MockDatapathModule
+import org.midonet.midolman.cluster.serialization.SerializationModule
+import org.midonet.midolman.cluster.state.MockFlowStateStorageModule
+import org.midonet.midolman.cluster.zookeeper.MockZookeeperConnectionModule
+import org.midonet.midolman.cluster.{MidolmanActorsModule, MidolmanModule, ResourceProtectionModule, _}
 import org.midonet.midolman.host.scanner.InterfaceScanner
 import org.midonet.midolman.services.{DashboardService, DatapathConnectionService, HostIdProviderService, MidolmanActorsService, MidolmanService, SelectLoopService}
 import org.midonet.midolman.simulation.Chain

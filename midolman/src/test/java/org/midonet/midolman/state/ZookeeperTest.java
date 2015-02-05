@@ -35,12 +35,12 @@ import org.junit.BeforeClass;
 
 import org.midonet.cluster.config.ZookeeperConfig;
 import org.midonet.cluster.services.StorageService;
-import org.midonet.midolman.guice.StorageModule;
-import org.midonet.midolman.guice.cluster.DataClientModule;
-import org.midonet.midolman.guice.config.ConfigProviderModule;
-import org.midonet.midolman.guice.serialization.SerializationModule;
-import org.midonet.midolman.guice.zookeeper.ZkConnectionProvider;
-import org.midonet.midolman.guice.zookeeper.ZookeeperConnectionModule;
+import org.midonet.cluster.storage.StorageModule;
+import org.midonet.midolman.cluster.cluster.DataClientModule;
+import org.midonet.midolman.cluster.config.ConfigProviderModule;
+import org.midonet.midolman.cluster.serialization.SerializationModule;
+import org.midonet.midolman.cluster.zookeeper.ZkConnectionProvider;
+import org.midonet.midolman.cluster.zookeeper.ZookeeperConnectionModule;
 import org.midonet.util.eventloop.Reactor;
 
 public abstract class ZookeeperTest {
