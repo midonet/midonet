@@ -59,6 +59,8 @@ sealed trait Port extends ZoomObject with VirtualDevice with Cloneable {
     private var _active: Boolean = false
 
     private var _deviceTag: FlowTag = _
+    private var _txTag: FlowTag = _
+    private var _rxTag: FlowTag = _
 
     def isExterior: Boolean = this.hostId != null && this.interfaceName != null
 
@@ -70,10 +72,14 @@ sealed trait Port extends ZoomObject with VirtualDevice with Cloneable {
 
     override def afterFromProto(): Unit = {
         _deviceTag = FlowTagger.tagForDevice(id)
+        _txTag = FlowTagger.tagForPortTx(id)
+        _rxTag = FlowTagger.tagForPortRx(id)
         super.afterFromProto()
     }
 
     override def deviceTag = _deviceTag
+    def txTag = _deviceTag
+    def rxTag = _deviceTag
 
     def deviceId: UUID
 
