@@ -24,6 +24,7 @@ import org.midonet.brain.{ClusterNode, MinionConfig, ClusterMinion}
 import org.midonet.brain.services.topology.server._
 import org.midonet.cluster.data.storage.Storage
 import org.midonet.cluster.rpc.Commands
+import org.midonet.cluster.services.MidonetBackendService
 import org.midonet.cluster.services.topology.common.{ApiServerHandler, ConnectionManager}
 import org.midonet.cluster.services.topology.server.RequestHandler
 import org.midonet.config._
@@ -33,7 +34,7 @@ import org.midonet.util.netty.{ProtoBufWebSocketServerAdapter, ServerFrontEnd, P
  * Topology api service minion
  */
 class TopologyApiService @Inject()(val nodeContext: ClusterNode.Context,
-                                   val storage: Storage,
+                                   val backend: MidonetBackendService,
                                    val cfg: TopologyApiServiceConfig)
     extends ClusterMinion(nodeContext) {
     private val log = LoggerFactory.getLogger(classOf[TopologyApiService])
@@ -47,7 +48,7 @@ class TopologyApiService @Inject()(val nodeContext: ClusterNode.Context,
         log.info("Starting the Topology API Service")
 
         // Common handlers for protobuf-based requests
-        val sessionManager = new SessionInventory(storage,
+        val sessionManager = new SessionInventory(backend.store,
             cfg.getSessionGracePeriod, cfg.getSessionBufferSize)
         val protocol = new ServerProtocolFactory(sessionManager)
         val connMgr = new ConnectionManager(protocol)
