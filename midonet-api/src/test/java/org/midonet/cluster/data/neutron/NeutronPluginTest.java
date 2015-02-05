@@ -26,7 +26,6 @@ import org.junit.Before;
 import org.midonet.cluster.data.Rule;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
-import org.midonet.midolman.state.ZookeeperTest;
 import org.midonet.packets.MAC;
 
 public abstract class NeutronPluginTest extends ZookeeperTest {
@@ -126,7 +125,7 @@ public abstract class NeutronPluginTest extends ZookeeperTest {
     @Override
     protected List<PrivateModule> getExtraModules() {
         return Arrays.asList(
-            new NeutronClusterModule(),
+            new NeutronClusterApiModule(),
             new PrivateModule() {
                 @Override
                 protected void configure() {
