@@ -35,7 +35,7 @@ import org.slf4j.LoggerFactory;
 
 import org.midonet.cluster.client.ArpCache;
 import org.midonet.cluster.client.RouterBuilder;
-import org.midonet.midolman.guice.zookeeper.ZkConnectionProvider;
+import org.midonet.midolman.cluster.zookeeper.ZkConnectionProvider;
 import org.midonet.midolman.layer3.Route;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
