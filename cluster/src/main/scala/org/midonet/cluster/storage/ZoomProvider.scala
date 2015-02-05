@@ -30,7 +30,7 @@ class ZoomProvider @Inject()(val curator: CuratorFramework)
     extends Provider[Storage] {
 
     override def get: Storage = {
-        val storage = new ZookeeperObjectMapper("", curator)
+        val storage = new ZookeeperObjectMapper("/midonet", curator)
         List(classOf[C3POState],
              classOf[Chain],
              classOf[FloatingIp],
