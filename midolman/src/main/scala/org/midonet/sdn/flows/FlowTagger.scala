@@ -84,6 +84,42 @@ object FlowTagger {
         tag
     }
 
+    case class PortTxTag(port: UUID) extends FlowTag with MeterTag {
+        override def toString = "port:tx:" + port
+    }
+
+    val cachedPortTxTags = new ThreadLocal[TagsTrie] {
+        override def initialValue = new TagsTrie
+    }
+
+    def tagForPortTx(device: UUID): FlowTag = {
+        val segment = cachedPortTxTags.get().getOrAddSegment(device)
+        var tag = segment.value
+        if (tag eq null) {
+            tag = new DeviceTag(device)
+            segment.value = tag
+        }
+        tag
+    }
+
+    case class PortRxTag(port: UUID) extends FlowTag with MeterTag {
+        override def toString = "port:rx:" + port
+    }
+
+    val cachedPortRxTags = new ThreadLocal[TagsTrie] {
+        override def initialValue = new TagsTrie
+    }
+
+    def tagForPortRx(device: UUID): FlowTag = {
+        val segment = cachedPortRxTags.get().getOrAddSegment(device)
+        var tag = segment.value
+        if (tag eq null) {
+            tag = new DeviceTag(device)
+            segment.value = tag
+        }
+        tag
+    }
+
     /**
      * Tag for the flows on "vlanId" addressed to the unknown
      * "dstMac", which were thus flooded on the bridge
