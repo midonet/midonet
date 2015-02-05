@@ -45,3 +45,59 @@ their default values.
 
 You can override these variables by creating a file called `localrc` in the
 same directory and setting new values for them.
+
+
+Setting Up Fake Uplink
+----------------------
+
+Once the MidoNet is running properly, you can set up a fake uplink on the
+host.  The only requirement is that there is a router named
+'MidoNet Provider Router' exists in the system that acts as the virtual gateway
+between MidoNet and the host.
+
+To allow connectivity from the host to MidoNet through the gateway router,
+the following topology is created:
+
+
+            +---------------+
+                            |
+                            | 172.19.0.1/30
+         +------------------+---------------+
+         |                                  |
+         |     Fake uplink linux bridge     |
+         |                                  |
+         +------------------+---------------+        'REAL' WORLD
+                            | veth0
+                            |
+                            |
+                            |
++------+  +-------+  +-------------+  +-----+  +-----+
+                            |
+                            |
+                            |
+              172.19.0.2/30 | veth1
+         +------------------+----------------+        'VIRTUAL' WORLD
+         |                                   |
+         |    MidonetProviderRouter          |
+         |                                   |
+         +------------------+----------------+
+                            |  200.200.200.0/24 (provided by user)
+                            |
+            +---------------+----------------+
+                                        virtual network
+
+
+To set up the scenario above:
+
+   ./create_fake_uplink.sh 200.200.200.0/24
+
+
+To clean up the fake uplink:
+
+   ./delete_fake_uplink.sh 200.200.200.0/24
+
+You can also set the CIDR environment variable instead of passing it in as an
+argument.
+
+If no argument is passed in, and CIDR is not set, then it defaults to
+'200.200.200.0/24'.
