@@ -1,4 +1,4 @@
-/*
+ /*
  * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,13 +20,12 @@ import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 
-import com.google.protobuf.Message
-
 import org.midonet.brain.services.c3po.midonet.{Create, Delete, MidoOp, Update}
+import org.midonet.brain.services.c3po.translators.PortManager._
 import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.models.Commons.{IPAddress, UUID}
 import org.midonet.cluster.models.Neutron.{NeutronPort, NeutronSubnet}
-import org.midonet.cluster.models.Topology.{Chain, Dhcp, IpAddrGroup, Network, Port, PortOrBuilder, Router, Rule}
+import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.util.DhcpUtil.asRichDhcp
 import org.midonet.cluster.util.{IPSubnetUtil, UUIDUtil}
 import org.midonet.packets.ARP
@@ -40,15 +39,14 @@ object PortTranslator {
         "OS_PORT_" + UUIDUtil.fromProto(portId) + "_OUTBOUND"
 }
 
-class PortTranslator(val storage: ReadOnlyStorage)
+class PortTranslator(protected val storage: ReadOnlyStorage)
         extends NeutronTranslator[NeutronPort]
         with ChainManager with PortManager with RouteManager with RuleManager {
     import org.midonet.brain.services.c3po.translators.PortTranslator._
 
     override protected def translateCreate(nPort: NeutronPort): MidoOpList = {
         val midoPortBldr: Port.Builder = if (isRouterGatewayPort(nPort)) {
-            // TODO Create a router port and set the provider router ID.
-            null
+            newProviderRouterGwPort(nPort.getId)
         } else if (!isFloatingIpPort(nPort)) {
             // For all other port types except floating IP port, create a normal
             // bridge (network) port.
@@ -60,9 +58,8 @@ class PortTranslator(val storage: ReadOnlyStorage)
         val portContext = initPortContext
         if (isVifPort(nPort)) {
             // Generate in/outbound chain IDs from Port ID.
-            val chainIds = getChainIds(portId)
-            midoPortBldr.setInboundFilterId(chainIds.inChainId)
-            midoPortBldr.setOutboundFilterId(chainIds.outChainId)
+            midoPortBldr.setInboundFilterId(inChainId(portId))
+            midoPortBldr.setOutboundFilterId(outChainId(portId))
 
             // Add new DHCP host entries
             updateDhcpEntries(nPort,
@@ -87,6 +84,10 @@ class PortTranslator(val storage: ReadOnlyStorage)
         val nPort = storage.get(classOf[NeutronPort], id).await()
         if (!isFloatingIpPort(nPort))
             midoOps += Delete(classOf[Port], id)
+        if (isRouterGatewayPort(nPort)) {
+            midoOps += Delete(classOf[Port],
+                              RouterTranslator.tenantGwPortId(id))
+        }
 
         val portContext = initPortContext
         if (isVifPort(nPort)) { // It's a VIF port.
@@ -127,14 +128,14 @@ class PortTranslator(val storage: ReadOnlyStorage)
             updateDhcpEntries(oldNPort,
                               portContext.midoDhcps,
                               delDhcpHost)
-            // Add new DHCP host entriess
+            // Add new DHCP host entries
             updateDhcpEntries(nPort,
                               portContext.midoDhcps,
                               addDhcpHost)
             updateSecurityBindings(nPort, oldNPort, mPort, portContext)
             addMidoOps(portContext, midoOps)
         }
-        // TODO if a DHCP port, assert that the fixed IPs have't changed.
+        // TODO if a DHCP port, assert that the fixed IPs haven't changed.
 
         midoOps.toList
     }
@@ -201,7 +202,7 @@ class PortTranslator(val storage: ReadOnlyStorage)
                               ipAddr: IPAddress): Unit = if (dhcp.isIpv4) {
         dhcp.setServerAddress(ipAddr)
         val opt121 = dhcp.addOpt121RoutesBuilder()
-        opt121.setDstSubnet(META_DATA_SRVC)
+        opt121.setDstSubnet(RouteManager.META_DATA_SRVC)
               .setGateway(ipAddr)
     }
 
@@ -346,30 +347,26 @@ class PortTranslator(val storage: ReadOnlyStorage)
 
     /* If the first fixed IP address is configured with a gateway IP address,
      * create a route to Meta Data Service.*/
-    private def configureMetaDataService(nPort: NeutronPort)
-    : Option[MidoOp[_ <: Message]] =
-        findGateway(nPort) map { gateway =>
-            val metaDataSvcRoute = createMetaDataServiceRoute(
+    private def configureMetaDataService(nPort: NeutronPort): MidoOpList =
+        findGateway(nPort).toList.flatMap { gateway =>
+            val route = createMetaDataServiceRoute(
                 srcSubnet = IPSubnetUtil.toProto(gateway.nextHopSubnet.getCidr),
                 nextHopPortId = gateway.peerRouterPortId,
-                nextHopGw = gateway.nextHop,
-                routerId = gateway.peerRouter.getId)
-            Update(gateway.peerRouter.toBuilder
-                          .addRoutes(metaDataSvcRoute).build())
+                nextHopGw = gateway.nextHop)
+            List(Create(route))
         }
 
     /* If the first fixed IP address is configured with a gateway IP address,
      * delete a route to Meta Data Service from the gateway router.*/
-    private def deleteMetaDataServiceRoute(nPort: NeutronPort)
-    : Option[MidoOp[_ <: Message]] =
-        findGateway(nPort).flatMap { gateway =>
-            val svcRoute = gateway.peerRouter.getRoutesOrBuilderList.asScala
-                                             .indexWhere(isMetaDataSvrRoute(
-                                                 _, gateway.nextHop))
-            if (svcRoute < 0) None
-            else Some(Update(gateway.peerRouter.toBuilder
-                                    .removeRoutes(svcRoute).build()))
-        }
+    private def deleteMetaDataServiceRoute(nPort: NeutronPort): MidoOpList = {
+        val gateway = findGateway(nPort).getOrElse(return List())
+        val port = storage.get(classOf[Port], gateway.peerRouterPortId).await()
+        val routeIds = port.getRouteIdsList.asScala
+        val routes = routeIds.map(storage.get(classOf[Route], _)).map(_.await())
+        val route = routes.find(isMetaDataSvrRoute(_, gateway.nextHop))
+            .getOrElse(return List())
+        List(Delete(classOf[Route], route.getId))
+    }
 
     /* The next hop gateway context for Neutron Port. */
     private case class Gateway(
@@ -407,4 +404,5 @@ class PortTranslator(val storage: ReadOnlyStorage)
         Port.newBuilder.setId(nPort.getId)
             .setNetworkId(nPort.getNetworkId)
             .setAdminStateUp(nPort.getAdminStateUp)
+
 }

@@ -88,8 +88,7 @@ message Router {
     optional UUID inbound_filter_id = 5;
     optional UUID outbound_filter_id = 6;
     optional UUID load_balancer_id = 7;
-    optional UUID gw_port_id = 8;
-    repeated Route routes = 9;
+    repeated UUID route_ids = 8;
 
     // Backreferences
     repeated UUID port_ids = 101;
@@ -117,13 +116,14 @@ message Port {
     optional IPSubnet port_subnet = 14;
     optional IPAddress port_address = 15;
     optional string port_mac = 16;
+    repeated UUID route_ids = 17;
 
     // VXLAN port specific
-    optional IPAddress vtep_mgmt_ip = 17;
-    optional uint32 vtep_mgmt_port = 18;
-    optional uint32 vtep_vni = 19;
-    optional IPAddress vtep_tunnel_ip = 20;
-    optional UUID vtep_tunnel_zone_id = 21;
+    optional IPAddress vtep_mgmt_ip = 18;
+    optional uint32 vtep_mgmt_port = 19;
+    optional uint32 vtep_vni = 20;
+    optional IPAddress vtep_tunnel_ip = 21;
+    optional UUID vtep_tunnel_zone_id = 22;
 
     // Backreferences
     repeated UUID rule_ids = 101;

@@ -168,13 +168,12 @@ trait TopologyBuilder {
                                inboundFilterId: Option[UUID] = None,
                                outboundFilterId: Option[UUID] = None,
                                loadBalancerId: Option[UUID] = None,
-                               gwPortId: Option[UUID] = None,
-                               routes: Seq[Route] = Seq.empty,
+                               routeIds: Seq[UUID] = Seq.empty,
                                portIds: Set[UUID] = Set.empty): Router = {
         val builder = Router.newBuilder
             .setId(id.asProto)
             .setAdminStateUp(adminStateUp)
-            .addAllRoutes(routes.asJava)
+            .addAllRouteIds(routeIds.map(_.asProto).asJava)
             .addAllPortIds(portIds.map(_.asProto).asJava)
         if (tenandId.isDefined) builder.setTenantId(tenandId.get)
         if (name.isDefined) builder.setName(name.get)
@@ -184,8 +183,6 @@ trait TopologyBuilder {
             builder.setOutboundFilterId(outboundFilterId.get.asProto)
         if (loadBalancerId.isDefined)
             builder.setLoadBalancerId(loadBalancerId.get.asProto)
-        if (gwPortId.isDefined)
-            builder.setGwPortId(gwPortId.get.asProto)
         builder.build()
     }
 

@@ -7,6 +7,7 @@ import java.lang.reflect.Type
 
 import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.models.Commons
+import org.midonet.cluster.models.Commons.{IPVersion, IPAddress}
 import org.midonet.packets.{IPv6Subnet, IPv4Subnet, IPSubnet}
 
 /**
@@ -43,6 +44,19 @@ object IPSubnetUtil {
         toProto(IPSubnet.fromString(cidr))
     }
 
+    def toProto(addr: IPAddress): Commons.IPSubnet = {
+        toProto(addr, if (addr.getVersion == Commons.IPVersion.V4) 32 else 128)
+    }
+
+
+    def toProto(addr: IPAddress, prefLen: Int): Commons.IPSubnet = {
+        Commons.IPSubnet.newBuilder()
+            .setVersion(addr.getVersion)
+            .setAddress(addr.getAddress)
+            .setPrefixLength(prefLen)
+            .build()
+    }
+
     implicit def richIPSubnet(subnet: IPSubnet[_]): RichIPSubnet =
         new RichIPSubnet(subnet)
 
@@ -71,4 +85,8 @@ object IPSubnetUtil {
             IPSubnetUtil.fromProto(value)
     }
 
+    val univSubnet4 = Commons.IPSubnet.newBuilder()
+                                      .setVersion(IPVersion.V4)
+                                      .setAddress("0.0.0.0")
+                                      .setPrefixLength(0).build()
 }

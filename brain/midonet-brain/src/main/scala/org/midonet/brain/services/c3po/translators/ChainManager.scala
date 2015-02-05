@@ -26,13 +26,13 @@ import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
 trait ChainManager {
     protected case class ChainIds(inChainId: UUID, outChainId: UUID)
 
-    /**
-     * Deterministically generate chain IDs from a device ID.
-     */
-    protected def getChainIds(deviceId: UUID) = {
-        val inChainId = deviceId.nextUuid
-        ChainIds(inChainId, inChainId.nextUuid)
-    }
+    /** Deterministically generate inbound chain ID from device ID. */
+    protected def inChainId(deviceId: UUID) =
+        deviceId.xorWith(0xc84db1f73554442bL, 0x8e7b38f2c703ee6aL)
+
+    /** Deterministically generate outbound chain ID from device ID. */
+    protected def outChainId(deviceId: UUID) =
+        deviceId.xorWith(0x20940fb2cac401eL, 0x9ffaf9c05d04b524L)
 
     protected def newChain(id: UUID, name: String,
                            ruleIds: Seq[UUID] = Seq()): Chain = {

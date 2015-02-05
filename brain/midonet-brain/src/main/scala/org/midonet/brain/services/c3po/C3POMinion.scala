@@ -20,6 +20,7 @@ import javax.sql.DataSource
 
 import com.google.inject.Inject
 import com.google.protobuf.Message
+
 import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.recipes.leader.LeaderLatch
 import org.slf4j.LoggerFactory
