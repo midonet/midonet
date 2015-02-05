@@ -18,33 +18,34 @@ package org.midonet.midolman.topology
 import java.util.UUID
 
 import scala.concurrent.Await.{ready, result}
-import scala.concurrent.duration._
 import scala.concurrent.Future
+import scala.concurrent.duration._
 
 import org.apache.commons.configuration.HierarchicalConfiguration
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
-
-import rx.{Observable, Notification}
+import rx.{Notification, Observable}
 
 import org.midonet.cluster.data.storage.{NotFoundException, Storage}
 import org.midonet.cluster.models.Topology.{Port => TopologyPort}
+import org.midonet.cluster.services.MidonetBackend
 import org.midonet.midolman.NotYetException
-import org.midonet.midolman.topology.devices.{Port => SimulationPort, Host}
+import org.midonet.midolman.topology.devices.{Port => SimulationPort}
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.util.reactivex.AwaitableObserver
 
 @RunWith(classOf[JUnitRunner])
 class VirtualTopologyTest extends MidolmanSpec with TopologyBuilder {
 
-    private var vt: VirtualTopology = _
     private implicit var store: Storage = _
+
+    private var vt: VirtualTopology = _
     private val bridgeId = UUID.randomUUID
     private val timeout = 5 seconds
 
     protected override def beforeTest(): Unit = {
         vt = injector.getInstance(classOf[VirtualTopology])
-        store = injector.getInstance(classOf[Storage])
+        store = injector.getInstance(classOf[MidonetBackend]).store
         store.create(createBridge(id = bridgeId))
     }
 

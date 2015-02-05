@@ -37,6 +37,7 @@ import org.midonet.cluster.data.storage.StorageWithOwnership
 import org.midonet.cluster.data.{TunnelZone => OldTunnel, ZoomConvert}
 import org.midonet.cluster.models.Topology.TunnelZone.HostToIp
 import org.midonet.cluster.models.Topology.{Host => ProtoHost, TunnelZone => ProtoTunnelZone}
+import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.util.IPAddressUtil
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.NotYetException
@@ -46,6 +47,7 @@ import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.MessageAccumulator
 import org.midonet.packets.{IPAddr, IPv4Addr}
 import org.midonet.util.reactivex.AwaitableObserver
+
 
 @RunWith(classOf[JUnitRunner])
 class VTPMRedirectorTest extends TestKit(ActorSystem("VTPMRedirectorTest"))
@@ -66,14 +68,14 @@ class VTPMRedirectorTest extends TestKit(ActorSystem("VTPMRedirectorTest"))
 
         // Tests to cover the cases when the new cluster is disabled are
         // present in VirtualToPhysicalMapperTest
-        config.setProperty("zookeeper.cluster_storage_enabled", true)
+        config.setProperty("midonet-backend.enabled", true)
         config
     }
 
     override def beforeTest() {
         vt = injector.getInstance(classOf[VirtualTopology])
         vtpm = VirtualToPhysicalMapper.as[TestableVTPM]
-        store = injector.getInstance(classOf[StorageWithOwnership])
+        store = injector.getInstance(classOf[MidonetBackend]).ownershipStore
     }
 
     private def buildAndStoreTunnelZone(hostId: UUID, hostIp: IPAddr)
@@ -86,7 +88,8 @@ class VTPMRedirectorTest extends TestKit(ActorSystem("VTPMRedirectorTest"))
     }
 
     private def buildAndStoreHost: ProtoHost = {
-        val protoHost = createHost(UUID.randomUUID(), Map(UUID.randomUUID() -> "eth0"),
+        val protoHost = createHost(UUID.randomUUID(),
+                                   Map(UUID.randomUUID() -> "eth0"),
                                    Set.empty)
         store.create(protoHost, protoHost.getId.asJava.toString)
         protoHost
