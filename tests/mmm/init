@@ -59,7 +59,6 @@ fi
 
 sudo update-rc.d zookeeper defaults
 sudo service zookeeper stop || true
-sudo service zookeeper start
 
 # Install cassandra
 sudo apt-get -o Dpkg::Options::=--force-confnew -y --force-yes install dsc21
@@ -76,7 +75,6 @@ sudo service cassandra stop
 sudo rm -rf /var/lib/cassandra/*
 sudo service cassandra stop
 sudo bash -c "echo $(hostname|sed 's/ip-//;s/-/./g') $(hostname -f) $(hostname) >>/etc/hosts"
-sudo service cassandra start
 
 
 # Install ovs kmod
@@ -91,8 +89,6 @@ sudo apt-get -y install haproxy
 
 # Install midolman
 sudo apt-get install -y --force-yes midolman
-sudo update-rc.d midolman enable
-sudo service midolman start
 
 # Install python-midonetclient from source
 MMM_PMC_SOURCE_DIR=${MMM_PMC_SOURCE_DIR:-../../python-midonetclient}
