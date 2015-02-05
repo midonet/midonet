@@ -37,7 +37,7 @@ import org.slf4j.helpers.NOPLogger;
 import com.typesafe.scalalogging.Logger$;
 
 import org.midonet.midolman.TraceRequiredException;
-import org.midonet.midolman.guice.serialization.SerializationModule;
+import org.midonet.midolman.cluster.serialization.SerializationModule;
 import org.midonet.midolman.rules.RuleResult.Action;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.simulation.PacketContext;

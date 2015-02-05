@@ -23,7 +23,6 @@ import scala.collection.JavaConverters._
 import scala.collection.mutable
 
 import com.google.common.annotations.VisibleForTesting
-
 import rx.Observable
 import rx.subjects.PublishSubject
 
@@ -196,7 +195,7 @@ final class HostMapper(hostId: UUID, vt: VirtualTopology)
             .doOnCompleted(makeAction0(hostDeleted()))
 
     private lazy val aliveObservable =
-        vt.store.ownersObservable(classOf[TopologyHost], hostId)
+        vt.ownershipStore.ownersObservable(classOf[TopologyHost], hostId)
             .observeOn(vt.scheduler)
             .map[Boolean](makeFunc1(aliveUpdated))
             .distinctUntilChanged
@@ -211,7 +210,7 @@ final class HostMapper(hostId: UUID, vt: VirtualTopology)
         Observable.merge[Any](Observable.merge(tunnelZonesSubject),
                               aliveObservable,
                               hostObservable)
-            .filter(makeFunc1(isHostReady))
-            .map[SimulationHost](makeFunc1(deviceUpdated))
-            .distinctUntilChanged
+                  .filter(makeFunc1(isHostReady))
+                  .map[SimulationHost](makeFunc1(deviceUpdated))
+                  .distinctUntilChanged
 }
