@@ -19,7 +19,11 @@ import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.CountDownLatch;
 
+import org.apache.curator.test.TestingServer;
+import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,6 +36,8 @@ public class DataLockingTest extends NeutronPluginTest {
     private static final Logger logger =
         LoggerFactory.getLogger(DataLockingTest.class);
 
+    protected static TestingServer server;
+
     private CountDownLatch latch;
     private Queue<Throwable> errors;
 
@@ -39,6 +45,11 @@ public class DataLockingTest extends NeutronPluginTest {
     public void setUp() throws Exception {
         super.setUp();
         errors = new ConcurrentLinkedDeque<>();
+    }
+
+    @After // overriding so we can annotate it
+    public void tearDown() throws Exception {
+        super.tearDown();
     }
 
     private class PortDeleteCreate implements Runnable {
