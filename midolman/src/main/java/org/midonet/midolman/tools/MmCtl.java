@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,6 +52,7 @@ import org.midonet.midolman.host.config.HostConfig;
 import org.midonet.midolman.host.guice.HostConfigProvider;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
+import org.midonet.midolman.state.ZookeeperConnectionWatcher;
 
 
 /**
@@ -275,7 +276,9 @@ public class MmCtl {
                 bind(HostConfig.class)
                         .toProvider(HostConfigProvider.class)
                         .asEagerSingleton();
-                install(new ZookeeperConnectionModule());
+                install(new ZookeeperConnectionModule(
+                    ZookeeperConnectionWatcher.class
+                ));
                 install(new SerializationModule());
                 install(new DataClusterClientModule());
             }

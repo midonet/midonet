@@ -13,39 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.api.zookeeper;
-
-import com.google.inject.Inject;
+package org.midonet.midolman.state;
 
 import org.apache.commons.lang.NotImplementedException;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import org.midonet.cluster.config.ZookeeperConfig;
 import org.midonet.event.api.NsdbEvent;
-import org.midonet.midolman.state.StateAccessException;
-import org.midonet.midolman.state.ZkConnection;
-import org.midonet.midolman.state.ZkConnectionAwareWatcher;
+
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Zookeeper connection watcher for the API server.
  */
-public class ZookeeperConnWatcher implements ZkConnectionAwareWatcher {
+public class SessionUnawareConnectionWatcher
+    implements ZkConnectionAwareWatcher {
 
-    private final static Logger log = LoggerFactory
-            .getLogger(ZookeeperConnWatcher.class);
+    private final static Logger log = getLogger(
+        SessionUnawareConnectionWatcher.class);
     private final static NsdbEvent apiNsdbEvent = new NsdbEvent();
 
     private ZkConnection conn;
-    private final ZookeeperConfig config;
-
-    @Inject
-    public ZookeeperConnWatcher(ZookeeperConfig config) {
-        this.config = config;
-    }
 
     @Override
     synchronized public void process(WatchedEvent watchedEvent) {
@@ -74,11 +64,6 @@ public class ZookeeperConnWatcher implements ZkConnectionAwareWatcher {
         }
 
         log.debug("ZookeeperConnWatcher.process: Exiting");
-    }
-
-    @Override
-    public ZkConnection getZkConnection() {
-        return conn;
     }
 
     @Override
