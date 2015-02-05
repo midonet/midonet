@@ -71,7 +71,7 @@ import org.midonet.midolman.state.zkManagers.VipZkManager;
 import org.midonet.midolman.state.zkManagers.VtepZkManager;
 import org.midonet.util.eventloop.Reactor;
 
-import static org.midonet.midolman.guice.zookeeper.ZKConnectionProvider.DIRECTORY_REACTOR_TAG;
+import static org.midonet.midolman.guice.zookeeper.ZkConnectionProvider.DIRECTORY_REACTOR_TAG;
 
 /**
  * Guice module to install dependencies for data access.

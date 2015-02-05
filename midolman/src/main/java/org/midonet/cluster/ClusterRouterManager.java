@@ -24,14 +24,18 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import org.midonet.cluster.client.ArpCache;
 import org.midonet.cluster.client.RouterBuilder;
-import org.midonet.midolman.guice.zookeeper.ZKConnectionProvider;
+import org.midonet.midolman.guice.zookeeper.ZkConnectionProvider;
 import org.midonet.midolman.layer3.Route;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
@@ -49,8 +53,6 @@ import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
 import org.midonet.util.eventloop.Reactor;
 import org.midonet.util.functors.Callback3;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
 
@@ -61,7 +63,7 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
     RouteZkManager routeManager;
 
     @Inject
-    @Named(ZKConnectionProvider.DIRECTORY_REACTOR_TAG)
+    @Named(ZkConnectionProvider.DIRECTORY_REACTOR_TAG)
     Reactor reactorLoop;
 
     @Inject

@@ -15,13 +15,16 @@
  */
 package org.midonet.midolman.guice.state;
 
-import com.google.inject.*;
+import com.google.inject.Inject;
+import com.google.inject.Key;
+import com.google.inject.PrivateModule;
+import com.google.inject.Provider;
 import com.google.inject.name.Named;
 import com.google.inject.name.Names;
 
 import org.midonet.cassandra.CassandraClient;
 import org.midonet.midolman.config.MidolmanConfig;
-import org.midonet.midolman.guice.zookeeper.ZKConnectionProvider;
+import org.midonet.midolman.guice.zookeeper.ZkConnectionProvider;
 import org.midonet.midolman.state.FlowStateStorage;
 import org.midonet.midolman.state.FlowStateStorage$;
 import org.midonet.midolman.state.FlowStateStorageFactory;
@@ -35,7 +38,7 @@ public class FlowStateStorageModule extends PrivateModule {
 
         requireBinding(MidolmanConfig.class);
         requireBinding(Key.get(Reactor.class, Names.named(
-                ZKConnectionProvider.DIRECTORY_REACTOR_TAG)));
+                ZkConnectionProvider.DIRECTORY_REACTOR_TAG)));
 
         bind(FlowStateStorageFactory.class).toProvider(FlowStateStorageFactoryProvider.class)
                 .asEagerSingleton();
@@ -47,7 +50,7 @@ public class FlowStateStorageModule extends PrivateModule {
         MidolmanConfig config;
 
         @Inject
-        @Named(ZKConnectionProvider.DIRECTORY_REACTOR_TAG)
+        @Named(ZkConnectionProvider.DIRECTORY_REACTOR_TAG)
         Reactor reactor;
 
         @Override

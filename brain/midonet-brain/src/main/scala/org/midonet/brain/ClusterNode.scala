@@ -36,8 +36,8 @@ import org.midonet.config._
 import org.midonet.midolman.guice.cluster.DataClientModule
 import org.midonet.midolman.guice.serialization.SerializationModule
 import org.midonet.midolman.guice.zookeeper.ZookeeperConnectionModule.ZookeeperReactorProvider
-import org.midonet.midolman.guice.zookeeper.{DirectoryProvider, ZKConnectionProvider}
-import org.midonet.midolman.state.{Directory, ZkConnection, ZookeeperConnectionWatcher, ZkConnectionAwareWatcher}
+import org.midonet.midolman.guice.zookeeper.{DirectoryProvider, ZkConnectionProvider}
+import org.midonet.midolman.state.{Directory, ZkConnection, ZkConnectionAwareWatcher, ZookeeperConnectionWatcher}
 import org.midonet.util.eventloop.Reactor
 
 
@@ -149,13 +149,13 @@ object ClusterNode extends App {
             val zkConfig = cfgProvider.getConfig(classOf[ZookeeperConfig])
             bind(classOf[ZookeeperConfig]).toInstance(zkConfig)
             bind(classOf[ZkConnection])
-                .toProvider(classOf[ZKConnectionProvider])
+                .toProvider(classOf[ZkConnectionProvider])
                 .asEagerSingleton()
             bind(classOf[Directory])
                 .toProvider(classOf[DirectoryProvider])
                 .asEagerSingleton()
             bind(classOf[Reactor]).annotatedWith(
-                Names.named(ZKConnectionProvider.DIRECTORY_REACTOR_TAG))
+                Names.named(ZkConnectionProvider.DIRECTORY_REACTOR_TAG))
                 .toProvider(classOf[ZookeeperReactorProvider])
                 .asEagerSingleton()
             bind(classOf[ZkConnectionAwareWatcher])

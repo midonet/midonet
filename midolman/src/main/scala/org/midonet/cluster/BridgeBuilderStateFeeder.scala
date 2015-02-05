@@ -39,7 +39,7 @@ class BridgeBuilderStateFeeder {
     var connWatcher: ZkConnectionAwareWatcher = _
 
     @Inject // the same reactor as ZkDirectory
-    @Named("directoryReactor") // ZKConnectionProvider.DIRECTORY_REACTOR_TAG)
+    @Named("directoryReactor") // ZkConnectionProvider.DIRECTORY_REACTOR_TAG)
     var reactor: Reactor = _   // for some reason the constant doesn't work
 
     /** An implementation of a repliated mac learning table */
