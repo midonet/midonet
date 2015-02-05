@@ -27,12 +27,12 @@ import org.apache.zookeeper.KeeperException;
 
 import org.midonet.cluster.config.ZookeeperConfig;
 import org.midonet.midolman.Setup;
+import org.midonet.midolman.cluster.LegacyClusterModule;
+import org.midonet.midolman.cluster.config.ConfigProviderModule;
+import org.midonet.midolman.cluster.config.TypedConfigModule;
+import org.midonet.midolman.cluster.serialization.SerializationModule;
+import org.midonet.midolman.cluster.zookeeper.MockZookeeperConnectionModule;
 import org.midonet.midolman.config.MidolmanConfig;
-import org.midonet.midolman.guice.cluster.ClusterClientModule;
-import org.midonet.midolman.guice.config.ConfigProviderModule;
-import org.midonet.midolman.guice.config.TypedConfigModule;
-import org.midonet.midolman.guice.serialization.SerializationModule;
-import org.midonet.midolman.guice.zookeeper.MockZookeeperConnectionModule;
 import org.midonet.midolman.state.Directory;
 
 /**
@@ -88,7 +88,7 @@ public class BrainTestUtils {
         modules.add(new ConfigProviderModule(config)); // For ConfigProvider
         // Directory and Reactor
         modules.add(new MockZookeeperConnectionModule());
-        modules.add(new ClusterClientModule());
+        modules.add(new LegacyClusterModule());
         return modules;
     }
 
