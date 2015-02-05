@@ -26,6 +26,7 @@ import com.google.inject.Inject
 
 import rx.Subscriber
 
+import org.midonet.cluster.services.MidonetBackend
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.midolman.topology.VirtualTopology.Device
@@ -34,7 +35,7 @@ import org.midonet.midolman.topology.devices.Port
 
 /**
  * An abstraction layer for the [[VirtualTopologyActor]] that redirects
- * supported requests to the new [[VirtualTopology]].
+ * supported requests to the new [[org.midonet.midolman.topology.VirtualTopology]].
  */
 abstract class VirtualTopologyRedirector extends Actor with MidolmanLogging {
 
@@ -59,7 +60,7 @@ abstract class VirtualTopologyRedirector extends Actor with MidolmanLogging {
     private val subscriptions = new mutable.HashMap[UUID, DeviceSubscriber]()
 
     @Inject
-    private val config: MidolmanConfig = null
+    private val newBackend: MidonetBackend = null
 
     protected def manageDevice(request: DeviceRequest, createManager: Boolean): Unit
     protected def deviceRequested(request: DeviceRequest): Unit
@@ -128,7 +129,7 @@ abstract class VirtualTopologyRedirector extends Actor with MidolmanLogging {
         }
     }
 
-    def receive = if (!config.isClusterStorageEnabled) Actor.emptyBehavior else {
+    def receive = if (!newBackend.isEnabled) Actor.emptyBehavior else {
         case r: PortRequest =>
             log.debug("Request for device {}", r.id)
             onRequest[Port](r)
