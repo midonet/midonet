@@ -52,6 +52,7 @@ object PacketContext {
 trait FlowContext extends Clearable { this: PacketContext =>
     val virtualFlowActions = new ArrayList[FlowAction]()
     val flowActions = new ArrayList[FlowAction]()
+    val packetActions = new ArrayList[FlowAction]()
     // This Set stores the tags by which the flow may be indexed.
     // The index can be used to remove flows associated with the given tag.
     val flowTags = new HashSet[FlowTag]()
@@ -84,8 +85,10 @@ trait FlowContext extends Clearable { this: PacketContext =>
     def addVirtualAction(action: FlowAction): Unit =
         virtualFlowActions.add(action)
 
-    def addFlowAction(action: FlowAction): Unit =
+    def addFlowAndPacketAction(action: FlowAction): Unit = {
         flowActions.add(action)
+        packetActions.add(action)
+    }
 
     def calculateActionsFromMatchDiff(): Unit = {
         wcmatch.doNotTrackSeenFields()
