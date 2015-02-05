@@ -126,7 +126,7 @@ public abstract class NeutronPluginTest extends ZookeeperTest {
     @Override
     protected List<PrivateModule> getExtraModules() {
         return Arrays.asList(
-            new NeutronClusterModule(),
+            new NeutronClusterApiModule(),
             new PrivateModule() {
                 @Override
                 protected void configure() {
