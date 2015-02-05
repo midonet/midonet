@@ -21,21 +21,25 @@ import com.google.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.midonet.cluster.services.StorageService;
+import org.midonet.cluster.services.LegacyStorageService;
+import org.midonet.cluster.services.MidonetBackendService;
 
 /**
  * Manages all the services for Midolman REST API.
  */
-public class RestApiService  extends AbstractService {
+public class RestApiService extends AbstractService {
 
     private static final Logger log = LoggerFactory.getLogger(
             RestApiService.class);
 
-    private final StorageService storageService;
+    private final MidonetBackendService midonetBackendService;
+    private final LegacyStorageService legacyStorageService;
 
     @Inject
-    public RestApiService(StorageService storageService) {
-        this.storageService = storageService;
+    public RestApiService(MidonetBackendService midonetBackendService,
+                          LegacyStorageService legacyStorageService) {
+        this.midonetBackendService = midonetBackendService;
+        this.legacyStorageService = legacyStorageService;
     }
 
     @Override
@@ -43,7 +47,8 @@ public class RestApiService  extends AbstractService {
         log.info("doStart: entered");
 
         try {
-            storageService.startAsync().awaitRunning();
+            legacyStorageService.startAsync().awaitRunning();
+            midonetBackendService.startAsync().awaitRunning();
             notifyStarted();
         } catch (Exception e) {
             log.error("Exception while starting service", e);
@@ -58,13 +63,20 @@ public class RestApiService  extends AbstractService {
         log.info("doStop: entered");
 
         try {
-            storageService.stopAsync().awaitTerminated();
+            midonetBackendService.stopAsync().awaitTerminated();
+        } catch (Exception e) {
+            log.error("Exception while stopping service", e);
+            notifyFailed(e);
+        }
+
+        try {
+            legacyStorageService.stopAsync().awaitTerminated();
             notifyStopped();
         } catch (Exception e) {
             log.error("Exception while stopping service", e);
             notifyFailed(e);
         } finally {
             log.info("doStop: exiting");
-       }
+        }
     }
 }

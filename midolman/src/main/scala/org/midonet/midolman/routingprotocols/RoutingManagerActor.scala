@@ -24,7 +24,7 @@ import com.google.inject.Inject
 import org.midonet.cluster.{Client, DataClient}
 import org.midonet.midolman.DatapathController.DatapathReady
 import org.midonet.midolman.config.MidolmanConfig
-import org.midonet.midolman.guice.MidolmanActorsModule.ZEBRA_SERVER_LOOP
+import org.midonet.midolman.cluster.MidolmanActorsModule.ZEBRA_SERVER_LOOP
 import org.midonet.midolman.io.UpcallDatapathConnectionManager
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.routingprotocols.RoutingHandler.PortActive
