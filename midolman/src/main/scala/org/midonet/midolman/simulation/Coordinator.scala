@@ -197,6 +197,7 @@ class Coordinator(context: PacketContext)
         } else {
             val port = tryAsk[Port](portID)
             context.addFlowTag(port.deviceTag)
+            context.addFlowTag(port.rxTag)
             port match {
                 case p if !p.adminStateUp =>
                     processAdminStateDown(p, isIngress = true)
@@ -236,6 +237,7 @@ class Coordinator(context: PacketContext)
     private def packetEgressesPort(portID: UUID): SimulationResult = {
         val port = tryAsk[Port](portID)
         context.addFlowTag(port.deviceTag)
+        context.addFlowTag(port.txTag)
 
         port match {
             case p if !p.adminStateUp =>
