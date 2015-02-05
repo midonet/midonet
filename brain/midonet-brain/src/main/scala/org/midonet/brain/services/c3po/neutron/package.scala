@@ -17,7 +17,6 @@
 package org.midonet.brain.services.c3po
 
 import com.google.protobuf.Message
-
 import org.midonet.brain.services.c3po.C3POStorageManager.{OpType, Operation}
 import org.midonet.cluster.data.storage.{CreateOp, DeleteOp, UpdateOp}
 import org.midonet.cluster.models.Commons
@@ -33,7 +32,7 @@ package object neutron {
 
     case class Update[T <: Message](model: T) extends NeutronOp[T] {
         override val opType = OpType.Update
-        override def toPersistenceOp = UpdateOp(model)
+        override def toPersistenceOp = UpdateOp(model, null)
     }
 
     case class Delete[T <: Message](clazz: Class[T], id: Commons.UUID)

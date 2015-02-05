@@ -410,10 +410,9 @@ public class L3ZkManager extends BaseZkManager {
         rpCfgPeer.id = UUID.randomUUID();
         ops.addAll(portZkManager.prepareCreate(rpCfgPeer.id, rpCfgPeer));
 
-        // Get the tenant router port and link the routers
+        // Get the provider router port and link the routers
         RouterPortConfig rpCfg = (RouterPortConfig) portZkManager.get(portId);
-        portZkManager.prepareLink(ops, portId, rpCfgPeer.id, rpCfg,
-                rpCfgPeer);
+        portZkManager.prepareLink(ops, portId, rpCfgPeer.id, rpCfg, rpCfgPeer);
 
         // Add a route to this gateway port on the provider router
         routeZkManager.preparePersistPortRouteCreate(ops, prId,
