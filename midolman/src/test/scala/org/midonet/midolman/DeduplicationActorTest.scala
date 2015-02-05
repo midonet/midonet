@@ -314,7 +314,7 @@ class DeduplicationActorTest extends MidolmanSpec {
                     generatedPacket = null
                 }
                 if (nextActions ne null) {
-                    nextActions foreach pktCtx.addFlowAction
+                    nextActions foreach pktCtx.addFlowAndPacketAction
                     nextActions = null
                 }
                 FlowCreated
