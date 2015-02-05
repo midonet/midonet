@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_0f5eb445",
+        "filename": "tools/devmido/midostack.sh",
+        "patchSetId": 2
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 1002732
+      },
+      "writtenOn": "2015-02-05T00:43:10Z",
+      "side": 1,
+      "message": "I guess MIDONET_DIR is supposed to be set by devstack, is that correct?  Might want to add a  comment on how this is set, (optionally plus some checks on existence)",
+      "revId": "e74274610860bbea36efbbf64b6e46f13e0dd5aa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
