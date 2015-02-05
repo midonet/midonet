@@ -114,8 +114,9 @@ public class OvsFlowsEnumerateTest extends AbstractNetlinkProtocolTest {
                       (byte) -1,
                       IPFragmentType.None));
         keys.add(udp(5353, 5353));
-        return new Flow(new FlowMatch(keys), actions(), new FlowStats(10, 3165))
-                    .setLastUsedTime(968726990l);
+        Flow f = new Flow(new FlowMatch(keys), actions(), new FlowStats(10, 3165));
+        f.setLastUsedTime(968726990l);
+        return f;
     }
 
     static public Flow thirdFlow() {

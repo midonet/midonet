@@ -17,7 +17,6 @@ package org.midonet.midolman.flows
 
 import org.jctools.queues.{SpscArrayQueue, QueueFactory}
 import org.jctools.queues.spec.ConcurrentQueueSpec._
-import org.midonet.midolman.FlowController.FlowRemoveCommand
 
 class FlowEjector(val maxPendingRequests: Int) {
     private val queue = new SpscArrayQueue[FlowRemoveCommand](maxPendingRequests)

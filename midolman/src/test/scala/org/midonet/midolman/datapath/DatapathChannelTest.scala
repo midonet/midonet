@@ -26,8 +26,7 @@ import org.midonet.sdn.flows.ManagedFlow
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.concurrent.Eventually._
 
-import org.midonet.midolman.FlowController.FlowRemoveCommand
-import org.midonet.midolman.flows.FlowEjector
+import org.midonet.midolman.flows.{FlowRemoveCommand, FlowEjector}
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.netlink.{MockNetlinkChannelFactory, NetlinkMessage}
 import org.midonet.odp._
@@ -136,7 +135,7 @@ class DatapathChannelTest extends MidolmanSpec {
                                                    new SpscArrayQueue[FlowRemoveCommand](16))
             val managedFlow = new ManagedFlow(null)
             managedFlow.flowMatch.reset(packet.getMatch)
-            flowDelete.reset(managedFlow, 0)
+            flowDelete.reset(managedFlow)
             ejector.eject(flowDelete)
 
             Thread.sleep(500)
@@ -149,7 +148,7 @@ class DatapathChannelTest extends MidolmanSpec {
                 nlChannel.packetsWritten.get() should be (3)
             }
 
-            flowDelete.reset(managedFlow, 0)
+            flowDelete.reset(managedFlow)
             ejector.eject(flowDelete)
 
             eventually {

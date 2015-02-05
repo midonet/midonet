@@ -16,8 +16,6 @@
 
 package org.midonet.midolman
 
-import java.nio.ByteBuffer
-
 import java.util.concurrent.TimeUnit
 import java.util.ArrayList
 
@@ -26,12 +24,10 @@ import scala.collection.mutable.{HashMap, MultiMap}
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
-import akka.actor.{Actor, ActorSystem}
+import akka.actor.Actor
 import akka.event.LoggingReceive
 
 import com.google.inject.Inject
-
-import rx.Observer
 
 import org.jctools.queues.SpscArrayQueue
 
@@ -39,17 +35,15 @@ import com.codahale.metrics.MetricRegistry.name
 import com.codahale.metrics.{Gauge, MetricRegistry}
 
 import org.midonet.midolman.config.MidolmanConfig
-import org.midonet.midolman.flows.FlowEjector
+import org.midonet.midolman.flows._
 import org.midonet.midolman.io.DatapathConnectionPool
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.monitoring.metrics.{FlowTablesGauge, FlowTablesMeter}
 import org.midonet.midolman.management.Metering
 import org.midonet.midolman.monitoring.MeterRegistry
 import org.midonet.midolman.simulation.PacketContext
-import org.midonet.netlink.exceptions.NetlinkException
 import org.midonet.netlink.exceptions.NetlinkException.ErrorCode
-import org.midonet.netlink.{BytesUtil, Callback}
-import org.midonet.odp.{Datapath, Flow, FlowMatch, OvsProtocol}
+import org.midonet.odp.{Datapath, Flow, FlowMatch}
 import org.midonet.sdn.flows.FlowTagger.FlowTag
 import org.midonet.sdn.flows._
 import org.midonet.util.collection.{EventHistory, ArrayObjectPool, ObjectPool}
@@ -66,7 +60,7 @@ object FlowController extends Referenceable {
 
     case class InvalidateFlowsByTag(tag: FlowTag)
 
-    case class FlowUpdateCompleted(flow: Flow) // used in test only
+    case object FlowUpdateCompleted
 
     case object CheckFlowExpiration_
 
@@ -94,68 +88,6 @@ object FlowController extends Referenceable {
         }
 
     def lastInvalidationEvent = invalidationHistory.latest
-
-    sealed abstract class FlowOvsCommand[T](completedRequests: SpscArrayQueue[T])
-                                           (implicit actorSystem: ActorSystem)
-        extends Observer[ByteBuffer] { self: T =>
-
-        var failure: Throwable = _
-
-        def isFailed = failure ne null
-
-        def netlinkErrorCode() =
-            failure match {
-                case ex: NetlinkException => ex.getErrorCodeEnum
-                case _ => NetlinkException.GENERIC_IO_ERROR
-            }
-
-        def clear(): Unit =
-            failure = null
-
-        def prepareRequest(datapathId: Int, protocol: OvsProtocol): ByteBuffer
-
-        final override def onCompleted(): Unit = {
-            completedRequests.offer(this)
-            FlowController ! FlowController.CheckCompletedRequests
-        }
-
-        final override def onError(e: Throwable): Unit = {
-            failure = e
-            onCompleted()
-        }
-    }
-
-    sealed class FlowRemoveCommand(pool: ObjectPool[FlowRemoveCommand],
-                                   completedRequests: SpscArrayQueue[FlowRemoveCommand])
-                                  (implicit actorSystem: ActorSystem)
-        extends FlowOvsCommand[FlowRemoveCommand](completedRequests) {
-
-        private val buf = BytesUtil.instance.allocateDirect(8*1024)
-        val flow = new Flow()
-        var managedFlow: ManagedFlow = _
-        var retries: Int = _
-
-        def reset(managedFlow: ManagedFlow, retries: Int): Unit = {
-            this.managedFlow = managedFlow
-            this.retries = retries
-            managedFlow.ref()
-        }
-
-        override def clear(): Unit = {
-            super.clear()
-            managedFlow = null
-            pool.offer(this)
-        }
-
-        override def prepareRequest(datapathId: Int, protocol: OvsProtocol): ByteBuffer = {
-            buf.clear()
-            protocol.prepareFlowDelete(datapathId, managedFlow.flowMatch.getKeys, buf)
-            buf
-        }
-
-        override def onNext(t: ByteBuffer): Unit =
-            flow.deserialize(t)
-    }
 }
 
 class FlowController extends Actor with ActorLogWithoutPath
@@ -180,9 +112,14 @@ class FlowController extends Actor with ActorLogWithoutPath
     @Inject
     var ejector: FlowEjector = null
 
+    @Inject
+    var retriever: FlowRetriever = null
+
     var pooledFlowRemoveCommands: ArrayObjectPool[FlowRemoveCommand] = _
     var completedFlowRemoveCommands: SpscArrayQueue[FlowRemoveCommand] = _
     val flowRemoveCommandsToRetry = new ArrayList[FlowRemoveCommand]()
+    var pooledFlowGetCommands: ArrayObjectPool[FlowGetCommand] = _
+    var completedFlowGetCommands: SpscArrayQueue[FlowGetCommand] = _
 
     @Inject
     var metricsRegistry: MetricRegistry = null
@@ -223,6 +160,9 @@ class FlowController extends Actor with ActorLogWithoutPath
         completedFlowRemoveCommands = new SpscArrayQueue(ejector.maxPendingRequests)
         pooledFlowRemoveCommands = new ArrayObjectPool(ejector.maxPendingRequests,
                                                        new FlowRemoveCommand(_, completedFlowRemoveCommands))
+        completedFlowGetCommands = new SpscArrayQueue(retriever.maxPendingRequests)
+        pooledFlowGetCommands = new ArrayObjectPool(retriever.maxPendingRequests,
+                                                    new FlowGetCommand(_, completedFlowGetCommands))
     }
 
     def receive = LoggingReceive {
@@ -274,22 +214,9 @@ class FlowController extends Actor with ActorLogWithoutPath
         case CheckFlowExpiration_ =>
             flowManager.checkFlowsExpiration()
 
-        case GetFlowSucceeded_(flow, origMatch, callback) =>
-            log.debug("Retrieved flow from datapath: {}", flow.getMatch)
-            context.system.eventStream.publish(FlowUpdateCompleted(flow))
-            callback.call(flow)
-            if (flow.getStats ne null)
-                meters.updateFlow(origMatch, flow.getStats)
-
-        case GetFlowFailed_(callback) =>
-            callback.call(null)
-
-        case FlowMissing_(flowMatch, callback) =>
-            callback.call(null)
-            meters.forgetFlow(flowMatch)
-
         case CheckCompletedRequests =>
             processRemovedFlows()
+            processRetrievedFlows()
             retryFailedFlowRemovals()
     }
 
@@ -312,7 +239,6 @@ class FlowController extends Actor with ActorLogWithoutPath
 
     private def handleFlowAddedForNewWildcard(wildFlow: ManagedFlow,
                                               pktCtx: PacketContext): Boolean = {
-
         if (!flowManager.add(wildFlow)) {
             log.debug("FlowManager failed to install wildcard flow {}", wildFlow)
             pktCtx.callbackExecutor.schedule(pktCtx.flowRemovedCallbacks)
@@ -330,6 +256,30 @@ class FlowController extends Actor with ActorLogWithoutPath
         true
     }
 
+    private def processRetrievedFlows(): Unit = {
+        var req: FlowGetCommand = null
+        while ({ req = completedFlowGetCommands.poll(); req } ne null) {
+            if (req.isFailed) {
+                flowGetFailed(req)
+                flowManager.retrievedFlow(null, req.managedFlow)
+            } else {
+                log.debug(s"Retrieved flow from datapath: ${req.managedFlow}")
+                context.system.eventStream.publish(FlowUpdateCompleted)
+                flowManager.retrievedFlow(req.flowMetadata, req.managedFlow)
+            }
+        }
+    }
+
+    private def flowGetFailed(req: FlowGetCommand): Unit =
+        req.netlinkErrorCode match {
+            case ErrorCode.ENOENT =>
+                flowManager.retrievedFlow(null, req.managedFlow)
+                meters.forgetFlow(req.managedFlow.flowMatch)
+            case other =>
+                log.error("Got exception when trying to retrieve " +
+                          s"${req.managedFlow}", req.failure)
+        }
+
     private def processRemovedFlows(): Unit = {
         var req: FlowRemoveCommand = null
         while ({ req = completedFlowRemoveCommands.poll(); req } ne null) {
@@ -344,7 +294,7 @@ class FlowController extends Actor with ActorLogWithoutPath
     private def flowDeleteFailed(req: FlowRemoveCommand): Unit = {
         log.debug("Got an exception when trying to remove " +
                   s"${req.managedFlow}", req.failure)
-        req.netlinkErrorCode() match {
+        req.netlinkErrorCode match {
             // Success cases, the flow doesn't exist so userspace
             // can take it as a successful remove:
             case ErrorCode.ENODEV => flowLost(req)
@@ -390,11 +340,10 @@ class FlowController extends Actor with ActorLogWithoutPath
         // Note: we use the request's FlowMatch because any userspace keys
         // that we added to it are no present in the kernel's response and we
         // need them for our bookkeeping, in particular for the MetricsRegistry.
-        val flow = req.flow
         val flowMatch = req.managedFlow.flowMatch
-        log.debug(s"DP confirmed removal of ${req.managedFlow}")
-        if (flow.getStats ne null)
-            meters.updateFlow(flowMatch, flow.getStats)
+        val flowMetadata = req.flowMetadata
+        log.debug(s"DP confirmed removal of flow with match $flowMatch")
+        meters.updateFlow(flowMatch, flowMetadata.getStats)
         meters.forgetFlow(flowMatch)
         req.clear()
     }
@@ -407,15 +356,16 @@ class FlowController extends Actor with ActorLogWithoutPath
 
     sealed class FlowManagerInfoImpl extends FlowManagerHelper with Parkable {
 
-        override def shouldWakeUp() = completedFlowRemoveCommands.size > 0
+        override def shouldWakeUp() =
+            completedFlowRemoveCommands.size > 0 ||
+            completedFlowGetCommands.size > 0
 
-        def removeFlow(flow: ManagedFlow): Unit = {
+        def removeFlow(managedFlow: ManagedFlow): Unit = {
             var req: FlowRemoveCommand = new FlowRemoveCommand(pooledFlowRemoveCommands, completedFlowRemoveCommands)
             while ({ req = pooledFlowRemoveCommands.take; req } eq null) {
-                park()
-                processRemovedFlows()
+                doWorkAndPark()
             }
-            req.reset(flow, 10)
+            req.reset(managedFlow)
             ejector.eject(req)
         }
 
@@ -423,30 +373,21 @@ class FlowController extends Actor with ActorLogWithoutPath
             FlowController.this.removeWildcardFlow(flow)
         }
 
-        def getFlow(flowMatch: FlowMatch, flowCallback: Callback1[Flow]): Unit = {
+        def getFlow(managedFlow: ManagedFlow): Unit = {
+            val flowMatch = managedFlow.flowMatch
             log.debug("requesting flow for flow match: {}", flowMatch)
-            val cb = new Callback[Flow] {
-                def onError(ex: NetlinkException) {
-                    ex.getErrorCodeEnum match {
-                        case ErrorCode.ENOENT =>
-                            self ! FlowMissing_(flowMatch, flowCallback)
-                        case other =>
-                            log.error("Got exception when trying to " +
-                                      "flowsGet() for " + flowMatch, ex)
-                            self ! GetFlowFailed_(flowCallback)
-                    }
-                }
-                def onSuccess(data: Flow) {
-                    val msg = if (data != null) {
-                        GetFlowSucceeded_(data, flowMatch, flowCallback)
-                    } else {
-                        log.warn("getFlow() returned a null flow")
-                        FlowMissing_(flowMatch, flowCallback)
-                    }
-                    self ! msg
-                }
+            var req: FlowGetCommand = null
+            while ({ req = pooledFlowGetCommands.take; req } eq null) {
+                doWorkAndPark()
             }
-            datapathConnection(flowMatch).flowsGet(datapath, flowMatch, cb)
+            req.reset(managedFlow)
+            retriever.retrieve(req)
+        }
+
+        private def doWorkAndPark(): Unit = {
+            processRemovedFlows()
+            processRetrievedFlows()
+            park()
         }
     }
 

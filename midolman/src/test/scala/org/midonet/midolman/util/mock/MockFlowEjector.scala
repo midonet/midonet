@@ -18,8 +18,7 @@ package org.midonet.midolman.util.mock
 
 import java.util.{Map => JMap}
 
-import org.midonet.midolman.FlowController.FlowRemoveCommand
-import org.midonet.midolman.flows.FlowEjector
+import org.midonet.midolman.flows.{FlowRemoveCommand, FlowEjector}
 import org.midonet.odp.{Flow, FlowMatch}
 
 class MockFlowEjector(val flowsTable: JMap[FlowMatch, Flow] = null) extends FlowEjector(32) {

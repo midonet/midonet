@@ -59,7 +59,7 @@ trait FlowTranslator {
         var i = 0
         while (i < actionsCount) {
             virtualActions.get(i) match {
-               case FlowActionOutputToVrnBridge(id, ports) =>
+                case FlowActionOutputToVrnBridge(id, ports) =>
                     expandFloodAction(id, ports, context)
                 case FlowActionOutputToVrnPort(port) =>
                     expandPortAction(port, context)
@@ -69,10 +69,12 @@ trait FlowTranslator {
                             mangleIcmp(context.ethernet, k.icmp_data)
                         case k: FlowKeyICMPEcho =>
                         case _ =>
-                            context.addFlowAction(a)
+                            context.addFlowAndPacketAction(a)
                     }
+                case a: FlowActionUserspace =>
+                    context.flowActions.add(a)
                 case a =>
-                    context.addFlowAction(a)
+                    context.addFlowAndPacketAction(a)
             }
             i += 1
         }
@@ -101,7 +103,7 @@ trait FlowTranslator {
                                           context: PacketContext): Unit = {
         context.log.debug(s"Emitting towards local dp port $portNo")
         if (portNo != NotADpPort) {
-            context.addFlowAction(output(portNo))
+            context.addFlowAndPacketAction(output(portNo))
             context.addFlowTag(FlowTagger tagForDpPort portNo)
         }
     }
@@ -121,8 +123,8 @@ trait FlowTranslator {
             context.addFlowTag(FlowTagger.tagForTunnelRoute(src, dst))
             // Each FlowActionSetKey must be followed by a corresponding
             // FlowActionOutput.
-            context.addFlowAction(setKey(FlowKeys.tunnel(key, src, dst, 0)))
-            context.addFlowAction(routeInfo.get.output)
+            context.addFlowAndPacketAction(setKey(FlowKeys.tunnel(key, src, dst, 0)))
+            context.addFlowAndPacketAction(routeInfo.get.output)
         }
     }
 
@@ -144,8 +146,8 @@ trait FlowTranslator {
         val localIp =  tzMembership.get.asInstanceOf[IPv4Addr].toInt
         val vtepIntIp = vtepIp.toInt
         context.addFlowTag(FlowTagger.tagForTunnelRoute(localIp, vtepIntIp))
-        context.addFlowAction(setKey(FlowKeys.tunnel(vni.toLong, localIp, vtepIntIp, 0)))
-        context.addFlowAction(dpState.vtepTunnellingOutputAction)
+        context.addFlowAndPacketAction(setKey(FlowKeys.tunnel(vni.toLong, localIp, vtepIntIp, 0)))
+        context.addFlowAndPacketAction(dpState.vtepTunnellingOutputAction)
     }
 
     private def expandFloodAction(bridge: UUID, portIds: List[UUID],

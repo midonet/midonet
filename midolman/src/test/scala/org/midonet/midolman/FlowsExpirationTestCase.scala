@@ -191,7 +191,7 @@ class FlowsExpirationTestCase extends MidolmanTestCase
         // we take a time stamp just after getting the del event
         val timeDeleted: Long = System.currentTimeMillis()
 
-        dilatedSleep(delayAsynchAddRemoveInDatapath)
+        dilatedSleep(delayAsynchAddRemoveInDatapath + 1000)
 
         dpConn().futures.flowsGet(datapath, flow.getMatch).get should be (null)
         // check that the invalidation happened in the right time frame
@@ -231,7 +231,7 @@ class FlowsExpirationTestCase extends MidolmanTestCase
         // the lastUsedTime
         setFlowLastUsedTimeToNow(flow.getMatch)
 
-        flowUpdateProbe.expectMsgClass(classOf[FlowUpdateCompleted])
+        flowUpdateProbe.expectMsgClass(FlowUpdateCompleted.getClass)
         // wait for FlowRemoval notification
         ackWCRemoved(Duration(timeOutFlow, TimeUnit.SECONDS))
 
@@ -307,7 +307,7 @@ class FlowsExpirationTestCase extends MidolmanTestCase
         setFlowLastUsedTimeToNow(flow.getMatch)
         // expect that the FlowController requests an update for this flow
         // because (timeLived > timeout/2) and that the update will be received
-        flowUpdateProbe.expectMsgClass(classOf[FlowUpdateCompleted])
+        flowUpdateProbe.expectMsgClass(FlowUpdateCompleted.getClass)
         // wait for flow expiration
         ackWCRemoved(Duration(timeOutFlow, TimeUnit.SECONDS))
 

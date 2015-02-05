@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 
 import org.midonet.odp.Flow;
 import org.midonet.odp.FlowMatch;
+import org.midonet.odp.FlowMetadata;
 import org.midonet.util.functors.Callback1;
 
 // not thread-safe
@@ -180,10 +181,8 @@ public class FlowManager {
     }
 
     private void getKernelFlowLastUsedTime(ManagedFlow flowToExpire) {
-        FlowMatch flowMatch = flowToExpire.flowMatch();
-        UpdateLastUsedTimeCallback callback = new UpdateLastUsedTimeCallback(flowToExpire);
         flowToExpire.ref(); // Callback ref
-        flowManagerHelper.getFlow(flowMatch, callback);
+        flowManagerHelper.getFlow(flowToExpire);
     }
 
     private void checkIdleTimeExpiration() {
@@ -236,6 +235,37 @@ public class FlowManager {
         manageDPFlowTableSpace();
     }
 
+    public void retrievedFlow(FlowMetadata flowMetadata,
+                              ManagedFlow managedFlow) {
+        if (flowMetadata == null || !isAlive(managedFlow)) {
+            // getFlow ref
+            managedFlow.unref();
+            return;
+        }
+
+        if (flowMetadata.getLastUsedTime() > managedFlow.getLastUsedTimeMillis()) {
+            managedFlow.setLastUsedTimeMillis(flowMetadata.getLastUsedTime());
+            log.trace("update lastUsedTime {}", flowMetadata.getLastUsedTime());
+        }
+
+        long expirationDate = managedFlow.getLastUsedTimeMillis() + managedFlow.idleExpirationMillis();
+        if (expirationDate - System.currentTimeMillis() > idleFlowToleranceInterval) {
+            managedFlow.ref(); // timeout queue ref
+            idleTimeOutQueue.add(managedFlow);
+        } else {
+            // we can expire it
+            flowManagerHelper.removeWildcardFlow(managedFlow);
+            log.debug(
+                "Removing managed flow {} for idle expiration, expired {} ms ago",
+                managedFlow,
+                System.currentTimeMillis() - (managedFlow.getLastUsedTimeMillis()
+                                           + managedFlow.idleExpirationMillis()));
+        }
+
+        // getFlow callback ref
+        managedFlow.unref();
+    }
+
     private abstract class WildcardFlowComparator implements Comparator<ManagedFlow> {
 
         @Override
@@ -262,55 +292,6 @@ public class FlowManager {
         @Override
         protected long getExpirationTime(ManagedFlow flow, long now) {
             return flow.getLastUsedTimeMillis() + flow.idleExpirationMillis();
-        }
-    }
-
-    /**
-     * This callback is passed to flowsGet(). When flowsGet() returns with the
-     * updated lastUsedTime we take a decision regarding the expiration of the
-     * wcflow
-     */
-    class UpdateLastUsedTimeCallback implements Callback1<Flow> {
-        ManagedFlow wcFlow;
-
-        UpdateLastUsedTimeCallback(ManagedFlow wcFlow) {
-            this.wcFlow = wcFlow;
-        }
-
-        @Override
-        public void call(Flow flowGotFromKernel) {
-            // the wildcard flow was deleted
-
-            if (flowGotFromKernel == null || !isAlive(wcFlow)) {
-                // getFlow callback ref
-                wcFlow.unref();
-                return;
-            }
-
-            if (flowGotFromKernel.getLastUsedTime() != null) {
-                // update the lastUsedTime
-                if (flowGotFromKernel.getLastUsedTime() > wcFlow.getLastUsedTimeMillis()) {
-                    wcFlow.setLastUsedTimeMillis(flowGotFromKernel.getLastUsedTime());
-                    log.trace("update lastUsedTime {}", flowGotFromKernel.getLastUsedTime());
-                }
-            }
-
-            long expirationDate = wcFlow.getLastUsedTimeMillis() + wcFlow.idleExpirationMillis();
-            if (expirationDate - System.currentTimeMillis() > idleFlowToleranceInterval) {
-                wcFlow.ref(); // timeout queue ref
-                idleTimeOutQueue.add(wcFlow);
-            } else {
-                // we can expire it
-                flowManagerHelper.removeWildcardFlow(wcFlow);
-                log.debug(
-                    "Removing managed flow {} for idle expiration, expired {} ms ago",
-                    wcFlow,
-                    System.currentTimeMillis() - (wcFlow.getLastUsedTimeMillis()
-                        + wcFlow.idleExpirationMillis()));
-            }
-
-            // getFlow callback ref
-            wcFlow.unref();
         }
     }
 }

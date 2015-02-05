@@ -59,7 +59,6 @@ public class FlowStats {
         return bytes;
     }
 
-    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
@@ -84,9 +83,8 @@ public class FlowStats {
             '}';
     }
 
-    public static FlowStats buildFrom(ByteBuffer buf) {
-        long packets = buf.getLong();
-        long bytes = buf.getLong();
-        return new FlowStats(packets, bytes);
+    public void deserialize(ByteBuffer buf) {
+        packets = buf.getLong();
+        bytes = buf.getLong();
     }
 }

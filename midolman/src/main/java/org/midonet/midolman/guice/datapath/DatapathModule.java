@@ -128,7 +128,7 @@ public class DatapathModule extends PrivateModule {
                 @Override
                 public FlowEjector get() {
                     return new FlowEjector(
-                        config.getGlobalIncomingBurstCapacity() * 2);
+                        config.getDatapathMaxFlowCount() * 2);
                 }
             })
             .in(Singleton.class);

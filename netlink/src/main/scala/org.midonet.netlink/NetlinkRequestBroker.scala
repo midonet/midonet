@@ -169,7 +169,7 @@ class NetlinkRequestBroker(reader: NetlinkReader,
             val obs = getObserver(seq, ctx, unhandled)
             ctx.clear()
             obs.onError(e)
-            0
+            NetlinkMessage.NLMSG_ERROR_HEADER_OFFSET
         } finally {
             readBuf.clear()
             doTimeoutExpiration()
