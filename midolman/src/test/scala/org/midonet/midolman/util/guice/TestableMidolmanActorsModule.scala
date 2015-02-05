@@ -33,14 +33,14 @@ import akka.util.Timeout
 
 import org.midonet.midolman.DeduplicationActor.HandlePackets
 import org.midonet.midolman._
-import org.midonet.midolman.guice.MidolmanActorsModule
+import org.midonet.midolman.cluster.MidolmanActorsModule
 import org.midonet.midolman.routingprotocols.RoutingManagerActor
 import org.midonet.midolman.services.MidolmanActorsService
 import org.midonet.midolman.topology.{VirtualToPhysicalMapper, VirtualTopologyActor}
 import org.midonet.util.concurrent.NanoClock
 
 /**
- * A [[org.midonet.midolman.guice.MidolmanActorsModule]] that can will override
+ * A [[org.midonet.midolman.cluster.MidolmanActorsModule]] that can will override
  * the top level actors with probes and also provide an easy way to access the
  * actual actors internal state.
  *

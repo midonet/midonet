@@ -32,7 +32,6 @@ object TopologyZoomUpdaterApp extends App {
     private val cfgFile = args(0)
     private val cfg = ConfigProvider.fromConfigFile(cfgFile)
     private val cfgProvider = ConfigProvider.providerForIniConfig(cfg)
-    private val backendCfg = cfgProvider.getConfig(classOf[MidonetBackendConfig])
     private val updCfg = cfgProvider.getConfig(classOf[TopologyZoomUpdaterConfig])
 
     private val topologyZkUpdaterModule = new AbstractModule {
@@ -45,7 +44,7 @@ object TopologyZoomUpdaterApp extends App {
     }
 
     protected[brain] val injector = Guice.createInjector(
-        new MidonetBackendModule(backendCfg),
+        new MidonetBackendModule(),
         topologyZkUpdaterModule
     )
 

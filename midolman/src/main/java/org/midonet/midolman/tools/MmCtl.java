@@ -19,13 +19,13 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Date;
 import java.util.UUID;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
@@ -50,12 +50,12 @@ import org.midonet.cluster.data.host.Host;
 import org.midonet.cluster.data.host.VirtualPortMapping;
 import org.midonet.config.ConfigProvider;
 import org.midonet.config.HostIdGenerator;
+import org.midonet.midolman.cluster.LegacyClusterModule;
+import org.midonet.midolman.cluster.MidolmanModule;
+import org.midonet.midolman.cluster.config.ConfigProviderModule;
+import org.midonet.midolman.cluster.serialization.SerializationModule;
+import org.midonet.midolman.cluster.zookeeper.ZookeeperConnectionModule;
 import org.midonet.midolman.config.MidolmanConfig;
-import org.midonet.midolman.guice.MidolmanModule;
-import org.midonet.midolman.guice.cluster.DataClusterClientModule;
-import org.midonet.midolman.guice.config.ConfigProviderModule;
-import org.midonet.midolman.guice.serialization.SerializationModule;
-import org.midonet.midolman.guice.zookeeper.ZookeeperConnectionModule;
 import org.midonet.midolman.host.config.HostConfig;
 import org.midonet.midolman.host.guice.HostConfigProvider;
 import org.midonet.midolman.serialization.SerializationException;
@@ -479,7 +479,7 @@ public class MmCtl {
                     ZookeeperConnectionWatcher.class
                 ));
                 install(new SerializationModule());
-                install(new DataClusterClientModule());
+                install(new LegacyClusterModule());
             }
         };
 
