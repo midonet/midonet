@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.midonet.brain.util
 
-import org.apache.zookeeper.{WatchedEvent, KeeperException}
+import org.apache.zookeeper.{KeeperException, WatchedEvent}
 import org.slf4j.LoggerFactory
 
 import org.midonet.midolman.state.{StateAccessException, ZkConnection, ZookeeperConnectionWatcher}
@@ -24,7 +24,6 @@ import org.midonet.midolman.state.{StateAccessException, ZkConnection, Zookeeper
 object TestZkTools {
     def instantZkConnWatcher = new ZookeeperConnectionWatcher {
         val log = LoggerFactory.getLogger(this.getClass)
-        override def getZkConnection: ZkConnection = ???
         override def setZkConnection(conn: ZkConnection): Unit = ???
         override def scheduleOnDisconnect(runnable: Runnable): Unit = ???
         override def scheduleOnReconnect(runnable: Runnable): Unit = ???

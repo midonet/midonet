@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,6 @@ import org.midonet.api.auth.AuthModule;
 import org.midonet.api.auth.LoginFilter;
 import org.midonet.api.auth.StateFilter;
 import org.midonet.api.auth.cors.CrossOriginResourceSharingFilter;
-import org.midonet.api.config.ConfigurationModule;
 import org.midonet.api.error.ErrorModule;
 import org.midonet.api.error.ExceptionFilter;
 import org.midonet.api.network.NetworkModule;
@@ -44,12 +43,15 @@ import org.midonet.api.neutron.NeutronRestApiModule;
 import org.midonet.api.rest_api.RestApiModule;
 import org.midonet.api.serialization.SerializationModule;
 import org.midonet.api.validation.ValidationModule;
-import org.midonet.api.zookeeper.ZookeeperModule;
 import org.midonet.brain.MidoBrainModule;
 import org.midonet.brain.guice.BrainModule;
 import org.midonet.cluster.data.neutron.NeutronClusterModule;
+import org.midonet.config.ConfigProvider;
+import org.midonet.config.providers.ServletContextConfigProvider;
 import org.midonet.midolman.guice.StorageModule;
 import org.midonet.midolman.guice.cluster.DataClientModule;
+import org.midonet.midolman.guice.zookeeper.ZookeeperConnectionModule;
+import org.midonet.midolman.state.SessionUnawareConnectionWatcher;
 
 /**
  * Jersey servlet module for MidoNet REST API application.
@@ -90,7 +92,10 @@ public class RestApiJerseyServletModule extends JerseyServletModule {
 
         log.debug("configureServlets: entered");
 
-        install(new ConfigurationModule(servletContext));
+        final ConfigProvider cfgProvider =
+            new ServletContextConfigProvider(servletContext);
+
+        bind(ConfigProvider.class).toInstance(cfgProvider);
         install(new SerializationModule());
         install(new AuthModule());
         install(new ErrorModule());
@@ -99,7 +104,8 @@ public class RestApiJerseyServletModule extends JerseyServletModule {
         install(new ValidationModule());
 
         // Install Zookeeper module until Cluster Client makes it unnecessary
-        install(new ZookeeperModule());
+        install(new ZookeeperConnectionModule(
+            SessionUnawareConnectionWatcher.class));
         install(new DataClientModule());
 
         // Install Neutron module;

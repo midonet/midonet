@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,17 +39,19 @@ import org.midonet.util.eventloop.TryCatchReactor;
  * by zookeeper.
  */
 public class ZookeeperConnectionModule extends PrivateModule {
+
+    private final Class<? extends ZkConnectionAwareWatcher> connWatcherImpl;
+
+    public ZookeeperConnectionModule(Class<? extends ZkConnectionAwareWatcher> connWatcherImpl) {
+        this.connWatcherImpl = connWatcherImpl;
+    }
     @Override
     protected void configure() {
 
         binder().requireExplicitBindings();
-
         requireBinding(ConfigProvider.class);
-        bind(ZookeeperConfig.class)
-            .toProvider(ZookeeperConfigProvider.class)
-            .asEagerSingleton();
-        expose(ZookeeperConfig.class);
 
+        bindZkConfig();
         bindZookeeperConnection();
         bindDirectory();
         bindReactor();
@@ -57,16 +59,26 @@ public class ZookeeperConnectionModule extends PrivateModule {
         bind(CuratorFramework.class)
             .toProvider(CuratorFrameworkProvider.class)
             .asEagerSingleton();
-        expose(CuratorFramework.class);
 
+        expose(CuratorFramework.class);
         expose(Key.get(Reactor.class,
-                       Names.named(
-                           ZkConnectionProvider.DIRECTORY_REACTOR_TAG)));
+                       Names.named(ZkConnectionProvider.DIRECTORY_REACTOR_TAG)));
         expose(Directory.class);
 
+        bindZkConnectionWatcher();
+    }
+
+    protected final void bindZkConfig() {
+        bind(ZookeeperConfig.class)
+            .toProvider(ZookeeperConfigProvider.class)
+            .asEagerSingleton();
+        expose(ZookeeperConfig.class);
+    }
+
+    protected final void bindZkConnectionWatcher() {
         bind(ZkConnectionAwareWatcher.class)
-                .to(ZookeeperConnectionWatcher.class)
-                .asEagerSingleton();
+            .to(connWatcherImpl)
+            .asEagerSingleton();
         expose(ZkConnectionAwareWatcher.class);
     }
 
@@ -83,7 +95,7 @@ public class ZookeeperConnectionModule extends PrivateModule {
         expose(ZkConnection.class);
     }
 
-    protected void bindReactor() {
+    protected final void bindReactor() {
         bind(Reactor.class).annotatedWith(
             Names.named(ZkConnectionProvider.DIRECTORY_REACTOR_TAG))
             .toProvider(ZookeeperReactorProvider.class)
