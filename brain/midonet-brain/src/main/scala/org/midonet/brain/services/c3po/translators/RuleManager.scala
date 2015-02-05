@@ -17,45 +17,58 @@
 package org.midonet.brain.services.c3po.translators
 
 import org.midonet.brain.services.c3po.C3POStorageManager.Operation
-import org.midonet.brain.services.c3po.midonet.{Delete, Update, Create}
-import org.midonet.cluster.models.Commons.UUID
+import org.midonet.brain.services.c3po.midonet.{Create, Delete, Update}
+import org.midonet.cluster.models.Commons.{IPAddress, UUID}
 import org.midonet.cluster.models.Topology.Rule
 import org.midonet.cluster.models.Topology.Rule.Action._
-import org.midonet.cluster.models.Topology.Rule.{JumpRuleData, FragmentPolicy}
+import org.midonet.cluster.models.Topology.Rule.{FragmentPolicy, JumpRuleData, NatRuleData, NatTarget}
 import org.midonet.cluster.util.UUIDUtil
 
 /**
  * Contains rule-related operations shared by multiple translators.
  */
 trait RuleManager {
+    protected def newRule(chainId: UUID): Rule.Builder =
+        Rule.newBuilder().setChainId(chainId).setId(UUIDUtil.randomUuidProto)
+
     protected def reverseFlowRule(chainId: UUID): Rule =
-        Rule.newBuilder().setId(UUIDUtil.randomUuidProto)
-            .setChainId(chainId)
+        newRule(chainId)
             .setType(Rule.Type.NAT_RULE)
             .setAction(ACCEPT)
             .setMatchReturnFlow(true)
             .build()
 
     protected def dropRuleBuilder(chainId: UUID): Rule.Builder =
-        Rule.newBuilder().setId(UUIDUtil.randomUuidProto)
-            .setChainId(chainId)
+        newRule(chainId)
             .setType(Rule.Type.LITERAL_RULE)
             .setAction(DROP)
             .setFragmentPolicy(FragmentPolicy.ANY)
 
     protected def jumpRule(fromChain: UUID, toChain: UUID): Rule =
-        Rule.newBuilder().setId(UUIDUtil.randomUuidProto)
+        newRule(fromChain)
             .setType(Rule.Type.JUMP_RULE)
             .setAction(JUMP)
             .setJumpRuleData(JumpRuleData.newBuilder
                                  .setJumpTo(toChain)
                                  .build())
-            .setChainId(fromChain)
             .build()
+
+    protected def natRuleData(addr: IPAddress, dnat: Boolean): NatRuleData = {
+        val target = NatTarget.newBuilder
+            .setNwStart(addr).setNwEnd(addr)
+            .setTpStart(1).setTpEnd(0xffff).build()
+        NatRuleData.newBuilder
+            .setDnat(dnat)
+            .addNatTargets(target).build()
+    }
+
+    protected def revNatRuleData(dnat: Boolean): NatRuleData = {
+        NatRuleData.newBuilder.setDnat(dnat).setReverse(true).build()
+    }
 
     protected def toRuleIdList(ops: Seq[Operation[Rule]]) = ops.map {
         case Create(r: Rule) => r.getId
-        case Update(r: Rule) => r.getId
+        case Update(r: Rule, _) => r.getId
         case Delete(_, id) => id
     }
 
