@@ -47,36 +47,20 @@ public abstract class AbstractResource {
     protected final UriInfo uriInfo;
     protected final SecurityContext context;
     protected final Validator validator;
-    protected final Storage store;
     protected final DataClient dataClient;
 
-    // TODO: Remove the overloads that use DataClient once migration to ZOOM
-    // TODO: is complete.
     public AbstractResource(RestApiConfig config, UriInfo uriInfo,
                             SecurityContext context, DataClient dataClient) {
-        this(config, uriInfo, context, dataClient, null, null);
+        this(config, uriInfo, context, dataClient, null);
     }
 
     public AbstractResource(RestApiConfig config, UriInfo uriInfo,
                             SecurityContext context, DataClient dataClient,
                             Validator validator) {
-        this(config, uriInfo, context, dataClient, null, validator);
-    }
-
-    public AbstractResource(RestApiConfig config, UriInfo uriInfo,
-                            SecurityContext context, Storage store,
-                            Validator validator) {
-        this(config, uriInfo, context, null, store, validator);
-    }
-
-    public AbstractResource(RestApiConfig config, UriInfo uriInfo,
-                            SecurityContext context, DataClient dataClient,
-                            Storage store, Validator validator) {
         this.config = config;
         this.uriInfo = uriInfo;
         this.context = context;
         this.dataClient = dataClient;
-        this.store = store;
         this.validator = validator;
     }
 

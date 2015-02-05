@@ -18,7 +18,7 @@ package org.midonet.midolman.util
 
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantLock
-import java.util.{UUID, List => JList}
+import java.util.{List => JList, UUID}
 
 import scala.annotation.tailrec
 import scala.collection.JavaConversions._
@@ -36,21 +36,25 @@ import akka.util.Timeout
 import com.google.inject._
 import com.typesafe.scalalogging.Logger
 import org.apache.commons.configuration.HierarchicalConfiguration
+import org.scalatest._
+import org.scalatest.matchers.{BePropertyMatchResult, BePropertyMatcher}
+import org.slf4j.LoggerFactory
+
 import org.midonet.cluster.data.host.Host
 import org.midonet.cluster.data.{Port => VPort}
-import org.midonet.cluster.services.StorageService
+import org.midonet.cluster.services.{LegacyStorageService, MidonetBackend}
+import org.midonet.cluster.storage.MidonetBackendTestModule
 import org.midonet.midolman.DatapathController.{DatapathReady, Initialize}
 import org.midonet.midolman.DeduplicationActor.{DiscardPacket, HandlePackets}
 import org.midonet.midolman.FlowController.{FlowUpdateCompleted, WildcardFlowAdded, WildcardFlowRemoved}
 import org.midonet.midolman.PacketWorkflow.PacketIn
 import org.midonet.midolman._
-import org.midonet.midolman.guice._
-import org.midonet.midolman.guice.cluster.ClusterClientModule
-import org.midonet.midolman.guice.config.ConfigProviderModule
-import org.midonet.midolman.guice.datapath.MockDatapathModule
-import org.midonet.midolman.guice.serialization.SerializationModule
-import org.midonet.midolman.guice.state.MockFlowStateStorageModule
-import org.midonet.midolman.guice.zookeeper.MockZookeeperConnectionModule
+import org.midonet.midolman.cluster._
+import org.midonet.midolman.cluster.config.ConfigProviderModule
+import org.midonet.midolman.cluster.datapath.MockDatapathModule
+import org.midonet.midolman.cluster.serialization.SerializationModule
+import org.midonet.midolman.cluster.state.MockFlowStateStorageModule
+import org.midonet.midolman.cluster.zookeeper.MockZookeeperConnectionModule
 import org.midonet.midolman.host.config.HostConfig
 import org.midonet.midolman.host.guice.HostConfigProvider
 import org.midonet.midolman.host.interfaces.InterfaceDescription
@@ -65,10 +69,6 @@ import org.midonet.odp.flows.{FlowAction, FlowActionOutput, FlowActionSetKey, Fl
 import org.midonet.odp.protos.MockOvsDatapathConnection
 import org.midonet.packets.Ethernet
 import org.midonet.util.concurrent.MockClock
-import org.midonet.util.functors.Callback0
-import org.scalatest._
-import org.scalatest.matchers.{BePropertyMatchResult, BePropertyMatcher}
-import org.slf4j.LoggerFactory
 
 object MidolmanTestCaseLock {
     val sequential: ReentrantLock = new ReentrantLock()
@@ -151,12 +151,15 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
             val config = fillConfig(new HierarchicalConfiguration())
             injector = Guice.createInjector(getModulesAsJavaIterable(config))
 
-            injector.getInstance(classOf[StorageService])
-                .startAsync()
-                .awaitRunning()
+            injector.getInstance(classOf[LegacyStorageService])
+                    .startAsync()
+                    .awaitRunning()
+            injector.getInstance(classOf[MidonetBackend])
+                    .startAsync()
+                    .awaitRunning()
             injector.getInstance(classOf[MidolmanService])
-                .startAsync()
-                .awaitRunning()
+                    .startAsync()
+                    .awaitRunning()
             interfaceScanner = injector.getInstance(classOf[InterfaceScanner])
                 .asInstanceOf[MockInterfaceScanner]
 
@@ -187,9 +190,15 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
     }
 
     after {
+        injector.getInstance(classOf[LegacyStorageService])
+                .stopAsync()
+                .awaitTerminated()
+        injector.getInstance(classOf[MidonetBackend])
+                .stopAsync()
+                .awaitTerminated()
         injector.getInstance(classOf[MidolmanService])
-            .stopAsync()
-            .awaitTerminated()
+                .stopAsync()
+                .awaitTerminated()
         MidolmanTestCaseLock.sequential.unlock()
         log.info("Released lock")
         afterTest()
@@ -214,7 +223,7 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
         List[Module](
             new SerializationModule(),
             new ConfigProviderModule(config),
-            new InMemoryStorageModule(),
+            new MidonetBackendTestModule(),
             new MockDatapathModule(),
             new MockFlowStateStorageModule(),
             new MockZookeeperConnectionModule(),
@@ -227,7 +236,7 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
                     })
                 }
             },
-            new ClusterClientModule(),
+            new LegacyClusterModule(),
             new MockMidolmanModule(),
             new TestableMidolmanActorsModule(probesByName, actorsByName, clock),
             new ResourceProtectionModule(),
