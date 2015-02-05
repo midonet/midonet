@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_2ab6fe3d",
+        "filename": "midolman/src/main/java/org/midonet/midolman/host/state/HostZkManager.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 567,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-02-05T08:22:34Z",
+      "side": 1,
+      "message": "I guess that port is never null here, but what about \"hostId\"? if that is null, this is a NPE.",
+      "range": {
+        "startLine": 567,
+        "startChar": 16,
+        "endLine": 567,
+        "endChar": 20
+      },
+      "revId": "06ad35afa75f2752306f6cc777621e16dc9b769a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
