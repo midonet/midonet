@@ -178,6 +178,7 @@ final class HostMapper(id: UUID, vt: VirtualTopology)
                                               Observable.merge(tunnelZonesStream))
                 .map[SimHost](makeFunc1(handleUpdate))
                 .filter(makeFunc1(hostReady))
+                .distinctUntilChanged()
         }
         outStream
     }

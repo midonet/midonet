@@ -28,8 +28,8 @@ import org.midonet.brain.services.c3po.NeutronDeserializer.toMessage
 import org.midonet.brain.services.c3po.translators._
 import org.midonet.brain.{ClusterNode, ScheduledClusterMinion, ScheduledMinionConfig}
 import org.midonet.cluster.data.neutron.{SqlNeutronImporter, importer}
-import org.midonet.cluster.data.storage.Storage
 import org.midonet.cluster.models.Neutron._
+import org.midonet.cluster.services.MidonetBackendService
 import org.midonet.cluster.util.UUIDUtil
 import org.midonet.config._
 
@@ -39,23 +39,24 @@ import org.midonet.config._
   * @param nodeContext metadata of the Cluster Node where we're running
   * @param config the configuration of the C3PO service
   * @param dataSrc API for access to the the Neutron DB
-  * @param storage API for access to the MidoNet topology storage
+  * @param backend The MidoNet backend service
   * @param curator API for access to ZK for internal uses of the C3PO service
   */
 class C3POMinion @Inject()(nodeContext: ClusterNode.Context,
                            config: C3POConfig,
                            dataSrc: DataSource,
-                           storage: Storage,
+                           backend: MidonetBackendService,
                            curator: CuratorFramework)
     extends ScheduledClusterMinion(nodeContext, config) {
 
     private val log = LoggerFactory.getLogger(classOf[C3POMinion])
 
+    private val storage = backend.store
     private val dataMgr = initDataManager()
 
-    private val LEADER_LATCH_PATH = "/leader-latch"
-
     private val neutronImporter = new SqlNeutronImporter(dataSrc)
+
+    private val LEADER_LATCH_PATH = "/leader-latch"
     private val leaderLatch = new LeaderLatch(curator, LEADER_LATCH_PATH,
                                               nodeContext.nodeId.toString)
     leaderLatch.start()

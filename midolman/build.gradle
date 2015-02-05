@@ -60,7 +60,8 @@ dependencies {
 
     testCompile libraries.akkatest, libraries.scalatest,
                 libraries.jsonpath_assert, libraries.cassandraunit,
-                libraries.curator_test, libraries.mockit
+                libraries.curator_test, libraries.mockit,
+                libraries.test_frameworks
 }
 
 cobertura {

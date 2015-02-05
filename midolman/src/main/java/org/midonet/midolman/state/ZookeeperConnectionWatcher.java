@@ -32,7 +32,7 @@ import org.slf4j.LoggerFactory;
 
 import org.midonet.cluster.config.ZookeeperConfig;
 import org.midonet.event.agent.NsdbEvent;
-import org.midonet.midolman.guice.zookeeper.ZkConnectionProvider;
+import org.midonet.midolman.cluster.zookeeper.ZkConnectionProvider;
 import org.midonet.util.eventloop.Reactor;
 
 public class ZookeeperConnectionWatcher implements ZkConnectionAwareWatcher {

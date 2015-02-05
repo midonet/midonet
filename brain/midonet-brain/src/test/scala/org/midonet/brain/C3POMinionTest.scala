@@ -27,7 +27,6 @@ import scala.util.{Random, Try}
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.JsonNodeFactory
-import org.apache.commons.configuration.HierarchicalConfiguration
 import org.apache.curator.framework.{CuratorFramework, CuratorFrameworkFactory}
 import org.apache.curator.retry.ExponentialBackoffRetry
 import org.apache.curator.test.TestingServer
@@ -38,21 +37,20 @@ import org.slf4j.LoggerFactory
 
 import org.midonet.brain.ClusterNode.Context
 import org.midonet.brain.services.c3po.{C3POConfig, C3POMinion}
-import org.midonet.cluster.config.ZookeeperConfig
 import org.midonet.cluster.data.neutron.NeutronResourceType.{Config => ConfigType, Network => NetworkType, NoData, Port => PortType, Router => RouterType, SecurityGroup => SecurityGroupType, Subnet => SubnetType}
 import org.midonet.cluster.data.neutron.TaskType._
 import org.midonet.cluster.data.neutron.{NeutronResourceType, TaskType}
-import org.midonet.cluster.data.storage.{ObjectReferencedException, Storage}
+import org.midonet.cluster.data.storage.ObjectReferencedException
 import org.midonet.cluster.models.Commons.{EtherType, Protocol, RuleDirection}
 import org.midonet.cluster.models.Neutron.NeutronConfig.TunnelProtocol
 import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner
 import org.midonet.cluster.models.Neutron.SecurityGroup
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.models.{C3PO, Commons}
-import org.midonet.cluster.storage.ZoomProvider
+import org.midonet.cluster.services.MidonetBackendService
+import org.midonet.cluster.storage.MidonetBackendConfig
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil, UUIDUtil}
-import org.midonet.config.ConfigProvider
 import org.midonet.packets.{IPSubnet, IPv4Subnet, UDP}
 import org.midonet.util.MidonetEventually
 import org.midonet.util.concurrent.toFutureOps
@@ -174,36 +172,37 @@ class C3POMinionTest extends FlatSpec with BeforeAndAfter
     }
 
     private var curator: CuratorFramework = _
-    private var storage: Storage = _
+    private var backend: MidonetBackendService = _
     private var c3po: C3POMinion = _
 
     // ---------------------
     // TEST SETUP
     // ---------------------
 
-    private def getConf = {
-        val conf = new HierarchicalConfiguration
-        conf.setProperty("zookeeper.midolman_root_key", "/test")
-        ConfigProvider.providerForIniConfig(conf)
-            .getConfig(classOf[ZookeeperConfig])
-    }
-
     override protected def beforeAll() {
         try {
             val retryPolicy = new ExponentialBackoffRetry(1000, 10)
             curator = CuratorFrameworkFactory.newClient(ZK_HOST, retryPolicy)
-
             // Populate test data
             createTaskTable()
 
             zk.start()
-            curator.start()
+
+            val cfg = new MidonetBackendConfig {
+                override def zookeeperRootPath: String = "/test"
+                override def isEnabled: Boolean = true
+                // below, not even used for this test
+                override def zookeeperMaxRetries: Int = ???
+                override def zookeeperRetryMs: Int = ???
+                override def zookeeperHosts: String = ???
+            }
+
+            backend = new MidonetBackendService(cfg, curator)
+            backend.startAsync().awaitRunning()
             curator.blockUntilConnected()
 
-            storage = new ZoomProvider(curator, getConf).get()
-
             val nodeCtx = new Context(UUID.randomUUID())
-            c3po = new C3POMinion(nodeCtx, c3poCfg, dataSrc, storage, curator)
+            c3po = new C3POMinion(nodeCtx, c3poCfg, dataSrc, backend, curator)
             c3po.startAsync()
             c3po.awaitRunning(2, TimeUnit.SECONDS)
         } catch {
@@ -211,7 +210,9 @@ class C3POMinionTest extends FlatSpec with BeforeAndAfter
                 log.error("Failing setting up environment", e)
                 cleanup()
         }
-   }
+    }
+
+    private def storage = backend.store
 
     before {
         // Empties the task table and flush the topology before each test run.
@@ -232,7 +233,10 @@ class C3POMinionTest extends FlatSpec with BeforeAndAfter
     }
 
     private def cleanup(): Unit = {
-        Try(c3po.stopAsync()).getOrElse(log.error("Failed stopping c3po"))
+        Try(backend.stopAsync().awaitTerminated())
+                               .getOrElse(log.error("Failed stopping backend"))
+        Try(c3po.stopAsync().awaitTerminated())
+                            .getOrElse(log.error("Failed stopping C3PO"))
         Try(curator.close()).getOrElse(log.error("Failed stopping curator"))
         Try(zk.stop()).getOrElse(log.error("Failed stopping zk"))
         Try(if (dummyConnection != null) dummyConnection.close())

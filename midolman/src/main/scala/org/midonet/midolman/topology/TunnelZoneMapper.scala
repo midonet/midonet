@@ -35,5 +35,7 @@ final class TunnelZoneMapper(id: UUID, vt: VirtualTopology)
     protected override def observable =
         vt.store.observable(classOf[TunnelZone], id)
             .map[SimTunnelZone](
-                makeFunc1(ZoomConvert.fromProto(_, classOf[SimTunnelZone])))
+                makeFunc1({
+                              ZoomConvert.fromProto(_, classOf[SimTunnelZone])
+                          }))
 }
