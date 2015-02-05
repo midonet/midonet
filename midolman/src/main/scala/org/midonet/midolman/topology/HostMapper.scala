@@ -17,14 +17,12 @@
 package org.midonet.midolman.topology
 
 import java.util.UUID
-import java.util.concurrent.atomic.AtomicBoolean
 import javax.annotation.Nullable
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 
 import com.google.common.annotations.VisibleForTesting
-
 import rx.Observable
 import rx.subjects.PublishSubject
 
@@ -196,7 +194,7 @@ final class HostMapper(hostId: UUID, vt: VirtualTopology)
     // Ownership changes modify the version of the host and will thus
     // trigger a host update, hence the 'distinctUntilChanged'.
     private lazy val hostObservable =
-        vt.store.observable(classOf[TopologyHost], hostId)
+    vt.store.observable(classOf[TopologyHost], hostId)
             .subscribeOn(vt.scheduler)
             .observeOn(vt.scheduler)
             .distinctUntilChanged
@@ -210,14 +208,15 @@ final class HostMapper(hostId: UUID, vt: VirtualTopology)
     // emitting any updates.
     protected override lazy val observable: Observable[SimulationHost] =
         Observable.merge[Any](Observable.merge(tunnelZonesSubject),
-                              vt.store.ownersObservable(classOf[TopologyHost],
-                                                        hostId)
-                                  .subscribeOn(vt.scheduler)
-                                  .observeOn(vt.scheduler)
-                                  .map[Boolean](makeFunc1(mapAlive))
-                                  .distinctUntilChanged
-                                  .onErrorResumeNext(Observable.empty),
+                              vt.ownershipStore
+                                .ownersObservable(classOf[TopologyHost], hostId)
+                                .subscribeOn(vt.scheduler)
+                                .observeOn(vt.scheduler)
+                                .map[Boolean](makeFunc1(mapAlive))
+                                .distinctUntilChanged
+                                .onErrorResumeNext(Observable.empty),
                               hostObservable)
             .filter(makeFunc1(isHostReady))
             .map[SimulationHost](makeFunc1(mapDevice))
+            .distinctUntilChanged()
 }

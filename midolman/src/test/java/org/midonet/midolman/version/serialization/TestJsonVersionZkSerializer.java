@@ -29,7 +29,7 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import org.midonet.midolman.SystemDataProvider;
-import org.midonet.midolman.guice.serialization.JsonVersionZkSerializer;
+import org.midonet.midolman.cluster.serialization.JsonVersionZkSerializer;
 import org.midonet.midolman.serialization.SerializationException;
 
 import static org.junit.Assert.assertArrayEquals;
