@@ -39,18 +39,19 @@ import org.apache.commons.configuration.HierarchicalConfiguration
 import org.midonet.cluster.data.host.Host
 import org.midonet.cluster.data.{Port => VPort}
 import org.midonet.cluster.services.StorageService
+import org.midonet.cluster.storage.MidonetBackendTestModule
 import org.midonet.midolman.DatapathController.{DatapathReady, Initialize}
 import org.midonet.midolman.DeduplicationActor.{DiscardPacket, HandlePackets}
 import org.midonet.midolman.FlowController.{AddWildcardFlow, FlowUpdateCompleted, WildcardFlowAdded, WildcardFlowRemoved}
 import org.midonet.midolman.PacketWorkflow.PacketIn
 import org.midonet.midolman._
-import org.midonet.midolman.guice._
-import org.midonet.midolman.guice.cluster.ClusterClientModule
-import org.midonet.midolman.guice.config.ConfigProviderModule
-import org.midonet.midolman.guice.datapath.MockDatapathModule
-import org.midonet.midolman.guice.serialization.SerializationModule
-import org.midonet.midolman.guice.state.MockFlowStateStorageModule
-import org.midonet.midolman.guice.zookeeper.MockZookeeperConnectionModule
+import org.midonet.midolman.cluster._
+import org.midonet.midolman.cluster.cluster.ClusterClientModule
+import org.midonet.midolman.cluster.config.ConfigProviderModule
+import org.midonet.midolman.cluster.datapath.MockDatapathModule
+import org.midonet.midolman.cluster.serialization.SerializationModule
+import org.midonet.midolman.cluster.state.MockFlowStateStorageModule
+import org.midonet.midolman.cluster.zookeeper.MockZookeeperConnectionModule
 import org.midonet.midolman.host.config.HostConfig
 import org.midonet.midolman.host.guice.HostConfigProvider
 import org.midonet.midolman.host.interfaces.InterfaceDescription
@@ -217,7 +218,7 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
         List[Module](
             new SerializationModule(),
             new ConfigProviderModule(config),
-            new InMemoryStorageModule(),
+            new MidonetBackendTestModule(),
             new MockDatapathModule(),
             new MockFlowStateStorageModule(),
             new MockZookeeperConnectionModule(),

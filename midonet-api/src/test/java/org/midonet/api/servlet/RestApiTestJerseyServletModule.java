@@ -20,7 +20,7 @@ import javax.servlet.ServletContext;
 import org.midonet.api.rest_api.RestApiModule;
 import org.midonet.api.vtep.VtepMockableDataClientFactory;
 import org.midonet.brain.southbound.vtep.VtepDataClientFactory;
-import org.midonet.midolman.guice.InMemoryStorageModule;
+import org.midonet.cluster.storage.MidonetBackendTestModule;
 
 /**
  * Jersey servlet module for MidoNet REST API application.
@@ -33,7 +33,7 @@ public class RestApiTestJerseyServletModule extends RestApiJerseyServletModule {
 
     @Override
     protected void installRestApiModule() {
-        install(new InMemoryStorageModule());
+        install(new MidonetBackendTestModule());
         install(new RestApiModule() {
             protected void bindVtepDataClientFactory() {
                 bind(VtepDataClientFactory.class)

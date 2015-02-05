@@ -34,7 +34,7 @@ import org.junit.Test;
 
 import org.midonet.config.ConfigProvider;
 import org.midonet.midolman.Setup;
-import org.midonet.midolman.guice.serialization.SerializationModule;
+import org.midonet.midolman.cluster.serialization.SerializationModule;
 import org.midonet.midolman.host.config.HostConfig;
 import org.midonet.midolman.host.guice.HostConfigProvider;
 import org.midonet.midolman.host.scanner.InterfaceScanner;
