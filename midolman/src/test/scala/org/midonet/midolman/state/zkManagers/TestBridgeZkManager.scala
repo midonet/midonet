@@ -29,7 +29,7 @@ import org.junit.Assert._
 import org.slf4j.LoggerFactory
 
 import org.midonet.midolman.Setup
-import org.midonet.midolman.guice.serialization.JsonVersionZkSerializer
+import org.midonet.midolman.cluster.serialization.JsonVersionZkSerializer
 import org.midonet.midolman.state.zkManagers.BridgeZkManager.BridgeConfig
 import org.midonet.midolman.state.{PathBuilder, ZkManager, MockDirectory}
 import org.midonet.midolman.version.VersionComparator

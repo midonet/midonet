@@ -20,10 +20,10 @@ package org.midonet.brain.services.topology
 import com.google.inject.{AbstractModule, Guice}
 import org.slf4j.LoggerFactory
 
-import org.midonet.brain.{ClusterNodeConfig, ClusterNode}
+import org.midonet.brain.{ClusterNode, ClusterNodeConfig}
 import org.midonet.cluster.data.storage.Storage
-import org.midonet.cluster.storage.{MidonetBackendConfig, MidonetBackendModule, ZoomProvider}
-import org.midonet.config.{HostIdGenerator, ConfigProvider}
+import org.midonet.cluster.storage.{MidonetBackendModule, ZoomProvider}
+import org.midonet.config.{ConfigProvider, HostIdGenerator}
 
 /**
  * Stand-alone application to start the TopologyApiService
@@ -35,7 +35,6 @@ object TopologyApiServiceApp extends App {
     private val cfg = ConfigProvider.fromConfigFile(cfgFile)
     private val cfgProvider = ConfigProvider.providerForIniConfig(cfg)
     private val nodeCfg = cfgProvider.getConfig(classOf[ClusterNodeConfig])
-    private val backendCfg = cfgProvider.getConfig(classOf[MidonetBackendConfig])
     private val apiCfg = cfgProvider.getConfig(classOf[TopologyApiServiceConfig])
     private val nodeContext = new ClusterNode.Context(HostIdGenerator.getHostId(nodeCfg))
 
@@ -50,7 +49,7 @@ object TopologyApiServiceApp extends App {
     }
 
     protected[brain] val injector = Guice.createInjector(
-        new MidonetBackendModule(backendCfg),
+        new MidonetBackendModule(),
         topologyApiServiceModule
     )
 
