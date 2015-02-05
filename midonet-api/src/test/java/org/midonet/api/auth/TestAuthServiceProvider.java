@@ -34,9 +34,9 @@ import org.midonet.api.auth.keystone.KeystoneConfig;
 import org.midonet.api.auth.keystone.v2_0.KeystoneService;
 import org.midonet.api.auth.vsphere.VSphereConfig;
 import org.midonet.api.auth.vsphere.VSphereSSOService;
-import org.midonet.api.config.ConfigurationModule;
 import org.midonet.cluster.DataClient;
 import org.midonet.config.ConfigProvider;
+import org.midonet.config.providers.ServletContextConfigProvider;
 
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
@@ -74,12 +74,14 @@ public class TestAuthServiceProvider {
     public void setUp() {
         MockitoAnnotations.initMocks(this);
 
+        final ConfigProvider cfgProvider =
+            new ServletContextConfigProvider(mockServletContext);
         standardInjector = Guice.createInjector(
-                new ConfigurationModule(mockServletContext),
                 new AuthModule(),
                 new AbstractModule() {
                     @Override
                     protected void configure() {
+                        bind(ConfigProvider.class).toInstance(cfgProvider);
                         bind(DataClient.class).toInstance(mockDataClient);
                     }
                 }
