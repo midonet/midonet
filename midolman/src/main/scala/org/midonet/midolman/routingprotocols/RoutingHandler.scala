@@ -837,6 +837,7 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
         // the very first one to create the BGPd process
         val bgp = bgps.head._2
         bgp.setQuaggaPortNumber(newPort.getPortNo)
+        bgp.setUplinkPid(uplinkPid)
         RoutingWorkflow.routerPortToBgp.put(bgp.getPortId, bgp)
         RoutingWorkflow.inputPortToBgp.put(bgp.getQuaggaPortNumber, bgp)
         invalidateFlows(bgp)

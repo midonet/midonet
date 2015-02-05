@@ -28,7 +28,7 @@ import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.topology.devices.RouterPort
 import org.midonet.odp.FlowMatch
 import org.midonet.odp.FlowMatch.Field
-import org.midonet.odp.flows.FlowActions.output
+import org.midonet.odp.flows.FlowActions.{output, userspace}
 import org.midonet.packets.{ARP, ICMP, IPv4, TCP}
 import org.midonet.sdn.flows.VirtualActions.FlowActionOutputToVrnPort
 
@@ -74,6 +74,9 @@ trait RoutingWorkflow {
         }
 
         if (matchBgp(context, bgp, port)) {
+            if (context.wcmatch.getEtherType == ARP.ETHERTYPE) {
+               context.addVirtualAction(userspace(bgp.getUplinkPid))
+            }
             context.addVirtualAction(output(bgp.getQuaggaPortNumber()))
             AddVirtualWildcardFlow
         } else {
