@@ -82,8 +82,7 @@ public class JerseyGuiceServletContextListener extends
     protected void destroyApplication() {
         log.debug("destroyApplication: entered");
 
-        ClusterNode.Context ctx = injector
-                                  .getInstance(ClusterNode.Context.class);
+        ClusterNode.Context ctx = injector.getInstance(ClusterNode.Context.class);
         if (ctx.embed()) {
             log.info("Stopping embedded Cluster service for node {}",
                      ctx.nodeId());
