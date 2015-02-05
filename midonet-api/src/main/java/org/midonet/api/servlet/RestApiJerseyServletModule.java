@@ -44,9 +44,10 @@ import org.midonet.api.rest_api.RestApiModule;
 import org.midonet.api.serialization.SerializationModule;
 import org.midonet.api.validation.ValidationModule;
 import org.midonet.brain.MidoBrainModule;
-import org.midonet.brain.guice.BrainModule;
 import org.midonet.cluster.data.neutron.NeutronClusterApiModule;
 import org.midonet.cluster.data.neutron.NeutronClusterModule;
+import org.midonet.cluster.storage.MidonetBackendConfig;
+import org.midonet.cluster.storage.MidonetBackendModule;
 import org.midonet.config.ConfigProvider;
 import org.midonet.config.providers.ServletContextConfigProvider;
 import org.midonet.midolman.guice.StorageModule;
@@ -100,8 +101,13 @@ public class RestApiJerseyServletModule extends JerseyServletModule {
         install(new SerializationModule());
         install(new AuthModule());
         install(new ErrorModule());
-        install(new BrainModule());
+        // Dependencies related to the new storage
+        install(new MidonetBackendModule(
+            cfgProvider.getConfig(MidonetBackendConfig.class)
+        ));
+
         installRestApiModule(); // allow mocking
+
         install(new ValidationModule());
 
         // Install Zookeeper module until Cluster Client makes it unnecessary
