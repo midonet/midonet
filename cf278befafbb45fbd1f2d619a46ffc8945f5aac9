@@ -46,6 +46,30 @@
       "revId": "cf278befafbb45fbd1f2d619a46ffc8945f5aac9",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_e0f525cc",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/guice/TopologyModule.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-05T11:33:58Z",
+      "side": 1,
+      "message": "Didn\u0027t see that one. Done.",
+      "parentUuid": "7a1969be_ca7c8a75",
+      "range": {
+        "startLine": 27,
+        "startChar": 6,
+        "endLine": 27,
+        "endChar": 20
+      },
+      "revId": "cf278befafbb45fbd1f2d619a46ffc8945f5aac9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
