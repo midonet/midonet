@@ -22,6 +22,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import com.google.common.base.Objects;
 import com.google.inject.AbstractModule;
@@ -30,12 +31,14 @@ import com.google.inject.Inject;
 import com.google.inject.Injector;
 
 import org.apache.commons.configuration.HierarchicalConfiguration;
+import org.apache.curator.framework.recipes.locks.InterProcessSemaphoreMutex;
 import org.apache.zookeeper.KeeperException;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
 import org.midonet.cluster.DataClient;
+import org.midonet.cluster.ZookeeperLockFactory;
 import org.midonet.cluster.config.ZookeeperConfig;
 import org.midonet.cluster.data.Chain;
 import org.midonet.cluster.data.IpAddrGroup;
@@ -43,7 +46,7 @@ import org.midonet.cluster.data.Rule;
 import org.midonet.cluster.data.rules.ForwardNatRule;
 import org.midonet.cluster.data.rules.JumpRule;
 import org.midonet.midolman.Setup;
-import org.midonet.midolman.guice.cluster.TestDataClientModule;
+import org.midonet.midolman.guice.cluster.DataClientModule;
 import org.midonet.midolman.guice.config.ConfigProviderModule;
 import org.midonet.midolman.guice.serialization.SerializationModule;
 import org.midonet.midolman.guice.zookeeper.MockZookeeperConnectionModule;
@@ -57,6 +60,14 @@ import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.zkManagers.BridgeZkManager;
 import org.midonet.packets.ARP;
+
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyLong;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class DataCheckPointTest {
 
@@ -77,6 +88,23 @@ public class DataCheckPointTest {
 
     CheckpointedDirectory zkDir() {
         return injector.getInstance(CheckpointedDirectory.class);
+    }
+
+    public class TestDataClientModule extends DataClientModule {
+        @Override
+        protected void bindZookeeperLockFactory() {
+            ZookeeperLockFactory lockFactory = mock(ZookeeperLockFactory.class);
+            InterProcessSemaphoreMutex lock = mock(
+                InterProcessSemaphoreMutex.class);
+            when(lockFactory.createShared(anyString())).thenReturn(lock);
+            try {
+                doReturn(true).when(lock).acquire(anyLong(), any(TimeUnit.class));
+                doNothing().when(lock).release();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+            bind(ZookeeperLockFactory.class).toInstance(lockFactory);
+        }
     }
 
     /*

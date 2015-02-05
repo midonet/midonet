@@ -40,15 +40,10 @@ public class NeutronClusterModule extends PrivateModule {
         expose(SecurityGroupZkManager.class);
         expose(LBZkManager.class);
 
-        // Bind Neutron Plugin API
-        bind(NetworkApi.class).to(NeutronPlugin.class).asEagerSingleton();
-        bind(L3Api.class).to(NeutronPlugin.class).asEagerSingleton();
-        bind(SecurityGroupApi.class).to(NeutronPlugin.class).asEagerSingleton();
-        bind(LoadBalancerApi.class).to(NeutronPlugin.class).asEagerSingleton();
+        // The cluster APIs are bound in NeutronClusterApiModule, which lives
+        // inside the API because this is the only actual user (and the last).
 
-        expose(NetworkApi.class);
-        expose(L3Api.class);
-        expose(SecurityGroupApi.class);
-        expose(LoadBalancerApi.class);
+        // Having it separate in the API helps decoupling Guice modules and
+        // dependencies and making them compatible with old ones.
     }
 }

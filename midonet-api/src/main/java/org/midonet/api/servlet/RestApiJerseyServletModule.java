@@ -47,6 +47,7 @@ import org.midonet.api.validation.ValidationModule;
 import org.midonet.api.zookeeper.ZookeeperModule;
 import org.midonet.brain.MidoBrainModule;
 import org.midonet.brain.guice.BrainModule;
+import org.midonet.cluster.data.neutron.NeutronClusterApiModule;
 import org.midonet.cluster.data.neutron.NeutronClusterModule;
 import org.midonet.midolman.guice.StorageModule;
 import org.midonet.midolman.guice.cluster.DataClientModule;
@@ -103,7 +104,7 @@ public class RestApiJerseyServletModule extends JerseyServletModule {
         install(new DataClientModule());
 
         // Install Neutron module;
-        install(new NeutronClusterModule());
+        install(new NeutronClusterApiModule());
         install(new NeutronRestApiModule());
 
         install(new NetworkModule());
