@@ -56,11 +56,6 @@ public class ZookeeperConnectionModule extends PrivateModule {
         bindDirectory();
         bindReactor();
 
-        bind(CuratorFramework.class)
-            .toProvider(CuratorFrameworkProvider.class)
-            .asEagerSingleton();
-
-        expose(CuratorFramework.class);
         expose(Key.get(Reactor.class,
                        Names.named(ZkConnectionProvider.DIRECTORY_REACTOR_TAG)));
         expose(Directory.class);
@@ -100,22 +95,6 @@ public class ZookeeperConnectionModule extends PrivateModule {
             Names.named(ZkConnectionProvider.DIRECTORY_REACTOR_TAG))
             .toProvider(ZookeeperReactorProvider.class)
             .asEagerSingleton();
-    }
-
-    public static class CuratorFrameworkProvider
-        implements Provider<CuratorFramework> {
-        private ZookeeperConfig cfg;
-        @Inject
-        public CuratorFrameworkProvider(ZookeeperConfig cfg) {
-            this.cfg = cfg;
-        }
-        @Override
-        public CuratorFramework get() {
-            // DO not start, the MidostoreSetupService will take care of that
-            return CuratorFrameworkFactory.newClient(
-                cfg.getZkHosts(), new ExponentialBackoffRetry(1000, 10)
-            );
-        }
     }
 
     /**

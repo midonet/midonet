@@ -16,40 +16,34 @@
 
 package org.midonet.cluster.storage
 
-import com.google.inject.AbstractModule
+import com.google.inject.{Inject, PrivateModule, Provider}
 import org.apache.curator.framework.{CuratorFramework, CuratorFrameworkFactory}
 import org.apache.curator.retry.ExponentialBackoffRetry
-import org.slf4j.LoggerFactory
+
+import org.midonet.cluster.config.ZookeeperConfig
 
 /** This Guice module is dedicated to declare general-purpose dependencies that
   * are exposed to MidoNet components that need to access the various storage
   * backends that exist within a deployment.  It should not include any
   * dependencies linked to any specific service or component. */
-class MidonetBackendModule(cfg: MidonetBackendConfig) extends AbstractModule {
-
-    private val log = LoggerFactory.getLogger(classOf[MidonetBackendModule])
+class MidonetBackendModule(cfg: MidonetBackendConfig) extends PrivateModule {
 
     override def configure(): Unit = {
-
-        log.info(s"Connecting to ZooKeeper at ${cfg.zookeeperHosts}.. ")
-        // The hidden, private curator client at the root path.
-        val curator = CuratorFrameworkFactory.builder()
-            .connectString(cfg.zookeeperHosts)
-            .retryPolicy(new ExponentialBackoffRetry(cfg.zookeeperRetryMs,
-                                                     cfg.zookeeperMaxRetries))
-            .build()
-        curator.start()
-        curator.blockUntilConnected()
-        log.info(".. ZooKeeper is connected, ensuring the root path exists..")
-
-        if (curator.checkExists().forPath(cfg.zookeeperRootPath) == null) {
-            curator.create().creatingParentsIfNeeded()
-                            .forPath(cfg.zookeeperRootPath)
-        }
-
-        bind(classOf[CuratorFramework]).toInstance(curator)
-        log.info(".. ZooKeeper is ready")
-
+        bind(classOf[CuratorFramework])
+            .toProvider(classOf[CuratorFrameworkProvider])
+            .asEagerSingleton()
+        expose(classOf[CuratorFramework])
     }
 
 }
+
+class CuratorFrameworkProvider @Inject()(cfg: ZookeeperConfig)
+    extends Provider[CuratorFramework] {
+    override def get(): CuratorFramework = {
+        // DO not start, the MidostoreSetupService will take care of that
+        CuratorFrameworkFactory.newClient(
+            cfg.getZkHosts, new ExponentialBackoffRetry(1000, 10)
+        )
+    }
+}
+
