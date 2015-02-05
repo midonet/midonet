@@ -53,8 +53,8 @@ trait VxlanGatewayTest {
             = Success(new LogicalSwitch(new OdlUUID(UUID.randomUUID().toString),
                                         "random description", name, vni))
         override def ensureBindings(lsName: String,
-                                    bs: Iterable[(String, Short)]) = Success()
-        override def removeLogicalSwitch(name: String): Try[Unit] = Success()
+                                    bs: Iterable[(String, Short)]) =  Success(Unit)
+        override def removeLogicalSwitch(name: String): Try[Unit] = Success(Unit)
     }
 
     class HostOnVtepTunnelZone(floodingProxyWeight: Int) {
