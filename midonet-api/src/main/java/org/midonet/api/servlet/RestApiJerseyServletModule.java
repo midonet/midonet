@@ -44,14 +44,13 @@ import org.midonet.api.rest_api.RestApiModule;
 import org.midonet.api.serialization.SerializationModule;
 import org.midonet.api.validation.ValidationModule;
 import org.midonet.brain.MidoBrainModule;
-import org.midonet.brain.guice.BrainModule;
 import org.midonet.cluster.data.neutron.NeutronClusterApiModule;
-import org.midonet.cluster.data.neutron.NeutronClusterModule;
+import org.midonet.cluster.storage.MidonetBackendModule;
+import org.midonet.cluster.storage.StorageModule;
 import org.midonet.config.ConfigProvider;
 import org.midonet.config.providers.ServletContextConfigProvider;
-import org.midonet.midolman.guice.StorageModule;
-import org.midonet.midolman.guice.cluster.DataClientModule;
-import org.midonet.midolman.guice.zookeeper.ZookeeperConnectionModule;
+import org.midonet.midolman.cluster.LegacyClusterModule;
+import org.midonet.midolman.cluster.zookeeper.ZookeeperConnectionModule;
 import org.midonet.midolman.state.SessionUnawareConnectionWatcher;
 
 /**
@@ -100,14 +99,17 @@ public class RestApiJerseyServletModule extends JerseyServletModule {
         install(new SerializationModule());
         install(new AuthModule());
         install(new ErrorModule());
-        install(new BrainModule());
+        // Dependencies related to the new storage
+        install(new MidonetBackendModule());
+
         installRestApiModule(); // allow mocking
+
         install(new ValidationModule());
 
         // Install Zookeeper module until Cluster Client makes it unnecessary
         install(new ZookeeperConnectionModule(
             SessionUnawareConnectionWatcher.class));
-        install(new DataClientModule());
+        install(new LegacyClusterModule());
 
         // Install Neutron module;
         install(new NeutronClusterApiModule());

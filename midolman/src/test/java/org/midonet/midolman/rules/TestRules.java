@@ -21,11 +21,6 @@ import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 
-import scala.Option;
-import scala.util.Left;
-
-import akka.actor.ActorSystem$;
-
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
@@ -42,7 +37,7 @@ import org.slf4j.helpers.NOPLogger;
 import com.typesafe.scalalogging.Logger$;
 
 import org.midonet.midolman.TraceRequiredException;
-import org.midonet.midolman.guice.serialization.SerializationModule;
+import org.midonet.midolman.cluster.serialization.SerializationModule;
 import org.midonet.midolman.rules.RuleResult.Action;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.simulation.PacketContext;

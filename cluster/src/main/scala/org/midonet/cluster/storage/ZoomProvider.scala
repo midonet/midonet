@@ -62,7 +62,6 @@ class ZoomProvider @Inject()(val curator: CuratorFramework, cfg: ZookeeperConfig
         ).foreach(storage.registerClass)
         storage.declareBinding(classOf[Network], "port_ids", ERROR,
                                classOf[Port], "network_id", CLEAR)
-        storage.build()
         storage
     }
 }
