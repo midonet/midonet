@@ -16,18 +16,17 @@
 package org.midonet.midolman.topology
 
 import java.util.UUID
-import java.util.concurrent.{ThreadFactory, Executors, ConcurrentHashMap}
+import java.util.concurrent.{ConcurrentHashMap, Executors, ThreadFactory}
 
 import scala.concurrent.{Future, Promise}
 import scala.reflect._
 
 import com.google.inject.Inject
-
 import rx.Observable
 import rx.schedulers.Schedulers
 
 import org.midonet.cluster.DataClient
-import org.midonet.cluster.data.storage.StorageWithOwnership
+import org.midonet.cluster.services.MidonetBackend
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.midolman.services.MidolmanActorsService
@@ -153,7 +152,7 @@ object VirtualTopology extends MidolmanLogging {
  * | Port/Network/RouterMapper extends DeviceMapper | (1 per device)
  * +------------------------------------------------+
  */
-class VirtualTopology @Inject() (val store: StorageWithOwnership,
+class VirtualTopology @Inject() (val backend: MidonetBackend,
                                  val dataClient: DataClient,
                                  val connectionWatcher: ZkConnectionAwareWatcher,
                                  val actorsService: MidolmanActorsService)
@@ -189,6 +188,10 @@ class VirtualTopology @Inject() (val store: StorageWithOwnership,
     )
 
     register(this)
+
+    /** Provide access to the Topolog API */
+    def store = backend.store
+    def ownershipStore = backend.ownershipStore
 
     private def observableOf[D <: Device](id: UUID,
                                           tag: ClassTag[D]): Observable[D] = {

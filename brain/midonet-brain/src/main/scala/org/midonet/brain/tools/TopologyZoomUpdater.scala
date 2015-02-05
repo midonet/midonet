@@ -16,7 +16,7 @@
 
 package org.midonet.brain.tools
 
-import java.util.concurrent.{TimeUnit, Executors}
+import java.util.concurrent.{Executors, TimeUnit}
 
 import scala.util.Random
 
@@ -24,11 +24,11 @@ import com.google.common.util.concurrent.AbstractService
 import com.google.inject.Inject
 import org.slf4j.LoggerFactory
 
-import org.midonet.cluster.data.storage.Storage
 import org.midonet.cluster.models.Commons
-import org.midonet.cluster.models.Topology.{Vtep, Network, Router, Port}
+import org.midonet.cluster.models.Topology.{Network, Port, Router, Vtep}
+import org.midonet.cluster.services.MidonetBackendService
 import org.midonet.cluster.util.{IPAddressUtil, UUIDUtil}
-import org.midonet.config.{ConfigLong, ConfigInt, ConfigGroup}
+import org.midonet.config.{ConfigGroup, ConfigInt, ConfigLong}
 import org.midonet.util.functors.makeRunnable
 
 /**
@@ -38,11 +38,13 @@ import org.midonet.util.functors.makeRunnable
  * in the objects and the connections between them may not be
  * consistent with an actual network architecture.
  */
-class TopologyZoomUpdater @Inject()(val storage: Storage,
+class TopologyZoomUpdater @Inject()(val backend: MidonetBackendService,
                                     val cfg: TopologyZoomUpdaterConfig)
     extends AbstractService {
     private val log = LoggerFactory.getLogger(classOf[TopologyZoomUpdater])
     private val pool = Executors.newScheduledThreadPool(cfg.numThreads)
+
+    private val storage = backend.store
 
     object Operation extends Enumeration {
         type Operation = Value
@@ -353,7 +355,7 @@ object TopologyZoomUpdaterConfig {
 /** Configuration for the Topology Tester */
 @ConfigGroup("topology_zoom_updater")
 trait TopologyZoomUpdaterConfig {
-    import TopologyZoomUpdaterConfig._
+    import org.midonet.brain.tools.TopologyZoomUpdaterConfig._
 
     /** Number of threads to use for the scheduled updates */
     @ConfigInt(key = "num_threads", defaultValue = DEFAULT_NUMTHREADS)

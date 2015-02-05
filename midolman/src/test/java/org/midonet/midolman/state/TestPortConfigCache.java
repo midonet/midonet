@@ -30,7 +30,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import org.midonet.midolman.Setup;
-import org.midonet.midolman.guice.serialization.SerializationModule;
+import org.midonet.midolman.cluster.serialization.SerializationModule;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.zkManagers.BridgeZkManager;
