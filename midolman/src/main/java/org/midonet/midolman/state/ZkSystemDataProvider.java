@@ -27,7 +27,7 @@ import org.slf4j.LoggerFactory;
 
 import org.midonet.cluster.data.SystemState;
 import org.midonet.midolman.SystemDataProvider;
-import org.midonet.midolman.guice.serialization.VerCheck;
+import org.midonet.midolman.cluster.serialization.VerCheck;
 
 /**
  * This class is the zookeeper data access class for system data info.

@@ -16,19 +16,18 @@
 package org.midonet.cluster.state
 
 import java.util.UUID
-
 import javax.annotation.Nonnull
 
 import com.google.inject.Inject
 import com.google.inject.name.Named
-
 import rx.Observable
 import rx.subjects.PublishSubject
 
-import org.midonet.cluster.{ClusterRouterManager, DataClient}
-import org.midonet.cluster.config.ZookeeperConfig
-import org.midonet.cluster.data.storage.{StorageWithOwnership, NotFoundException, OwnershipConflictException}
+import org.midonet.cluster.data.storage.{NotFoundException, OwnershipConflictException, StorageWithOwnership}
 import org.midonet.cluster.models.Topology.Port
+import org.midonet.cluster.services.MidonetBackend
+import org.midonet.cluster.storage.MidonetBackendConfig
+import org.midonet.cluster.{ClusterRouterManager, DataClient}
 import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.midolman.serialization.SerializationException
 import org.midonet.midolman.state.zkManagers.PortZkManager
@@ -36,8 +35,8 @@ import org.midonet.midolman.state.{PortConfig, PortDirectory, StateAccessExcepti
 import org.midonet.util.eventloop.Reactor
 import org.midonet.util.functors.makeRunnable
 
-class ZookeeperStateStorage @Inject() (config: ZookeeperConfig,
-                                       storage: StorageWithOwnership,
+class ZookeeperStateStorage @Inject() (backendCfg: MidonetBackendConfig,
+                                       backend: MidonetBackend,
                                        dataClient: DataClient,
                                        @Named("directoryReactor") reactor: Reactor,
                                        connectionWatcher: ZkConnectionAwareWatcher,
@@ -64,13 +63,12 @@ class ZookeeperStateStorage @Inject() (config: ZookeeperConfig,
     override def setPortLocalAndActive(portId: UUID, hostId: UUID,
                                        active: Boolean): Unit = runOnReactor {
         // Activate the port for legacy ZK storage.
-        if (config.isLegacyStorageEnabled) {
+        if (!backendCfg.isEnabled) {
             var portConfig: PortConfig = null
             try {
                 portZkManager.setActivePort(portId, hostId, active)
                 portConfig = portZkManager.get(portId)
-            }
-            catch {
+            } catch {
                 case e: StateAccessException =>
                     log.error("Error retrieving the configuration for port {}",
                               portId, e)
@@ -85,8 +83,9 @@ class ZookeeperStateStorage @Inject() (config: ZookeeperConfig,
             }
         }
         // Activate the port for cluster storage.
-        if (config.isClusterStorageEnabled) {
+        if (backend.isEnabled) {
             try {
+                val storage = backend.ownershipStore
                 if (active) {
                     storage.updateOwner(classOf[Port], portId, hostId,
                                         throwIfExists = true)
