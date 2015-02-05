@@ -191,7 +191,7 @@ class FlowsExpirationTestCase extends MidolmanTestCase
         // we take a time stamp just after getting the del event
         val timeDeleted: Long = System.currentTimeMillis()
 
-        dilatedSleep(delayAsynchAddRemoveInDatapath)
+        dilatedSleep(delayAsynchAddRemoveInDatapath + 1000)
 
         dpConn().futures.flowsGet(datapath, flow.getMatch).get should be (null)
         // check that the invalidation happened in the right time frame
