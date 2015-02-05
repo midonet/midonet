@@ -38,7 +38,7 @@ dependencies {
     compile(project(':midonet-util')) {
         exclude group: 'com.sun', module: 'tools'
     }
-    testCompile project(':midonet-client')
+    testCompile project(':midonet-client'), libraries.jsonpath_assert
 
     providedCompile libraries.servlet
 
@@ -49,8 +49,11 @@ dependencies {
             libraries.jersey_json, libraries.jersey_guice,
             libraries.jersey_core, libraries.jersey_bundle,
             libraries.commons_lang, libraries.commons_lang3,
+            libraries.commons_conf,
             libraries.metrics,
-            libraries.curator_framework, libraries.commons_codec,
+            libraries.curator_framework,
+            libraries.curator_recipes,
+            libraries.commons_codec,
             libraries.hamcrest_core, libraries.hamcrest_lib,
             libraries.validation, libraries.hibernate_validator,
             libraries.guice_multibind, libraries.vmware_midoapi,

@@ -13,7 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.midolman.state;
+
+package org.midonet.cluster.data.neutron;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -41,8 +42,20 @@ import org.midonet.midolman.guice.config.ConfigProviderModule;
 import org.midonet.midolman.guice.serialization.SerializationModule;
 import org.midonet.midolman.guice.zookeeper.ZkConnectionProvider;
 import org.midonet.midolman.guice.zookeeper.ZookeeperConnectionModule;
+import org.midonet.midolman.state.Directory;
+import org.midonet.midolman.state.PathBuilder;
+import org.midonet.midolman.state.ZookeeperConnectionWatcher;
 import org.midonet.util.eventloop.Reactor;
 
+/* This is copied from an identical class at the Midolman module. Making the
+ * class in there visible from this module would imply either creating a jar for
+ * tests containing that class, or moving the ZookeeperTest to the main sources,
+ * but this would also drag JUnit deps, TestingServer, etc. which we want to
+ * avoid.
+ *
+ * Since this whole module will not evolve, and will be removed soon, we're
+ * satisfied with this temporary solution, even if not perfect.
+ */
 public abstract class ZookeeperTest {
 
     // Zookeeper configurations
