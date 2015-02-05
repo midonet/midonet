@@ -42,13 +42,13 @@ import org.midonet.cluster.config.ZookeeperConfig
 import org.midonet.cluster.data.neutron.NeutronResourceType.{Network => NetworkType, NoData, Port => PortType, Router => RouterType, SecurityGroup => SecurityGroupType, Subnet => SubnetType}
 import org.midonet.cluster.data.neutron.TaskType._
 import org.midonet.cluster.data.neutron.{NeutronResourceType, TaskType}
-import org.midonet.cluster.data.storage.{ObjectReferencedException, Storage}
+import org.midonet.cluster.data.storage.{ZookeeperObjectMapper, ObjectReferencedException, Storage}
 import org.midonet.cluster.models.Commons.{EtherType, Protocol, RuleDirection}
 import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner
 import org.midonet.cluster.models.Neutron.SecurityGroup
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.models.{C3PO, Commons}
-import org.midonet.cluster.storage.ZoomProvider
+import org.midonet.cluster.services.MidonetBackendService
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.cluster.util.{IPAddressUtil, UUIDUtil}
 import org.midonet.config.ConfigProvider
@@ -175,18 +175,10 @@ class C3POMinionTest extends FlatSpec with BeforeAndAfter
     // TEST SETUP
     // ---------------------
 
-    private def getConf = {
-        val conf = new HierarchicalConfiguration
-        conf.setProperty("zookeeper.midolman_root_key", "/test")
-        ConfigProvider.providerForIniConfig(conf)
-            .getConfig(classOf[ZookeeperConfig])
-    }
-
     override protected def beforeAll() {
         try {
             val retryPolicy = new ExponentialBackoffRetry(1000, 10)
             curator = CuratorFrameworkFactory.newClient(ZK_HOST, retryPolicy)
-
             // Populate test data
             createTaskTable()
 
@@ -194,7 +186,10 @@ class C3POMinionTest extends FlatSpec with BeforeAndAfter
             curator.start()
             curator.blockUntilConnected()
 
-            storage = new ZoomProvider(curator, getConf).get()
+            storage = new ZookeeperObjectMapper("/" + getClass.getSimpleName,
+                                                curator)
+            MidonetBackendService.setupBindings(storage)
+            storage.build()
 
             val nodeCtx = new Context(UUID.randomUUID())
             c3po = new C3POMinion(nodeCtx, c3poCfg, dataSrc, storage, curator)

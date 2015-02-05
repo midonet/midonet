@@ -19,7 +19,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import org.apache.curator.test.TestingServer;
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import org.midonet.cluster.data.Rule;
@@ -30,14 +33,14 @@ import org.midonet.packets.IPv4Subnet;
 
 public final class NeutronZkDataTest extends NeutronPluginTest {
 
+    protected static TestingServer server;
+
     private DirectoryVerifier dirVerifier;
     private PathBuilder pathBuilder;
 
     @Before
     public void setUp() throws Exception {
-
         super.setUp();
-
         pathBuilder = getPathBuilder();
         dirVerifier = new DirectoryVerifier(getDirectory());
     }

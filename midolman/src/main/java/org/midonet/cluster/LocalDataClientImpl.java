@@ -78,7 +78,7 @@ import org.midonet.cluster.data.ports.BridgePort;
 import org.midonet.cluster.data.ports.VlanMacPort;
 import org.midonet.cluster.data.ports.VxLanPort;
 import org.midonet.midolman.SystemDataProvider;
-import org.midonet.midolman.guice.zookeeper.ZkConnectionProvider;
+import org.midonet.midolman.cluster.zookeeper.ZkConnectionProvider;
 import org.midonet.midolman.host.state.HostDirectory;
 import org.midonet.midolman.host.state.HostZkManager;
 import org.midonet.midolman.rules.RuleList;

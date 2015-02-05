@@ -16,7 +16,7 @@
 
 package org.midonet.midolman.util.guice
 
-import org.midonet.midolman.guice.MidolmanModule
+import org.midonet.midolman.cluster.MidolmanModule
 import org.midonet.midolman.state.{MockNatBlockAllocator, NatBlock, NatRange, NatBlockAllocator}
 import org.midonet.util.functors.Callback
 

@@ -44,6 +44,7 @@ import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.rpc.Commands.Response
 import org.midonet.cluster.rpc.Commands.Response.Deletion
 import org.midonet.cluster.rpc.Commands.Response.Update
+import org.midonet.cluster.services.MidonetBackendService
 import org.midonet.cluster.services.topology.common.TopologyMappings
 import org.midonet.util.concurrent.{NamedThreadFactory, BlockingSpscRwdRingBuffer}
 import org.midonet.util.concurrent.SpscRwdRingBuffer.SequencedItem
