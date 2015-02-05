@@ -22,7 +22,7 @@ import com.google.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.midonet.midolman.guice.MidolmanActorsModule;
+import org.midonet.midolman.cluster.MidolmanActorsModule;
 import org.midonet.util.eventloop.SelectLoop;
 
 /**

@@ -94,7 +94,7 @@ public class BridgeResource extends AbstractResource {
                           SecurityContext context, BridgeAuthorizer authorizer,
                           Validator validator, DataClient dataClient,
                           ResourceFactory factory) {
-        super(config, uriInfo, context, dataClient,validator);
+        super(config, uriInfo, context, dataClient, validator);
         this.authorizer = authorizer;
         this.factory = factory;
     }

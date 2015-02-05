@@ -28,6 +28,7 @@ import rx.subjects.BehaviorSubject
 import rx.subscriptions.Subscriptions
 
 import org.midonet.cluster.data.storage.Storage
+import org.midonet.cluster.services.{MidonetBackend, MidonetBackendService}
 import org.midonet.midolman.topology.VirtualTopology.Device
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.util.functors._
@@ -78,11 +79,11 @@ class DeviceMapperTest extends MidolmanSpec {
     type TestableObserver = AwaitableObserver[TestableDevice]
 
     @Mocked
-    var storage: Storage = _
+    var backend: MidonetBackend = _
     implicit var vt: VirtualTopology = _
 
     override def beforeTest(): Unit = {
-        vt = new VirtualTopology(storage, clusterDataClient, actorsService)
+        vt = new VirtualTopology(backend, clusterDataClient, actorsService)
     }
 
     feature("Test device observable subscription") {

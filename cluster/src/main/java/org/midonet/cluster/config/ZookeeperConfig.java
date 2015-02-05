@@ -59,21 +59,4 @@ public interface ZookeeperConfig {
     @ConfigString(key = "midolman_root_key", defaultValue = "/midonet")
     String getZkRootPath();
 
-    /**
-     * If true, it starts the Curator client.
-     */
-    @ConfigBool(key = "curator_enabled", defaultValue = false)
-    boolean isCuratorEnabled();
-
-    /**
-     * If true, it builds and uses the cluster storage.
-     */
-    @ConfigBool(key = "cluster_storage_enabled", defaultValue = false)
-    boolean isClusterStorageEnabled();
-
-    /**
-     * If true, if uses the legacy storage.
-     */
-    @ConfigBool(key = "legacy_storage_enabled", defaultValue = true)
-    boolean isLegacyStorageEnabled();
 }
