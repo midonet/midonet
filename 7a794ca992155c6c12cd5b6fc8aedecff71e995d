@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_ad2b2581",
+        "filename": "midolman/src/main/java/org/midonet/sdn/flows/FlowManager.java",
+        "patchSetId": 6
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-02-05T17:55:09Z",
+      "side": 1,
+      "message": "why no longer a linked hashmap?",
+      "revId": "7a794ca992155c6c12cd5b6fc8aedecff71e995d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_ed251dac",
+        "filename": "midolman/src/main/java/org/midonet/sdn/flows/FlowManager.java",
+        "patchSetId": 6
+      },
+      "lineNbr": 129,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-02-05T17:55:09Z",
+      "side": 1,
+      "message": "wildflow?\n\ncomments need to be reviewed, such fun.",
+      "revId": "7a794ca992155c6c12cd5b6fc8aedecff71e995d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_4d41d138",
+        "filename": "midolman/src/main/java/org/midonet/sdn/flows/FlowManager.java",
+        "patchSetId": 6
+      },
+      "lineNbr": 134,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-02-05T17:55:09Z",
+      "side": 1,
+      "message": "what is a wildflow?",
+      "revId": "7a794ca992155c6c12cd5b6fc8aedecff71e995d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
