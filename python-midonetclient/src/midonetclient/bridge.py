@@ -70,12 +70,13 @@ class Bridge(resource_base.ResourceBase,
                    vendor_media_type.APPLICATION_PORT_COLLECTION_JSON}
         ports = self.get_children(self.dto['ports'], query, headers, port.Port)
         vxlan_ports_dto = self.dto['vxLanPorts']
-        for vxlan_port_dto in vxlan_ports_dto:
-            vxlan_port = port.Port(vxlan_port_dto, {'uri': vxlan_port_dto},
-                                   self.auth)
-            vxlan_port.get({'Accept': vendor_media_type.APPLICATION_PORT_JSON})
-            if vxlan_port:
-                ports.append(vxlan_port)
+        if vxlan_ports_dto:
+            for vxlan_port_dto in vxlan_ports_dto:
+                vxlan_port = port.Port(vxlan_port_dto, {'uri': vxlan_port_dto},
+                                       self.auth)
+                vxlan_port.get({'Accept': vendor_media_type.APPLICATION_PORT_JSON})
+                if vxlan_port:
+                    ports.append(vxlan_port)
         return ports
 
     def get_peer_ports(self, query=None):
