@@ -557,9 +557,16 @@ public class HostZkManager
 
             PortConfig port = portZkManager.get(portId);
 
-            // Update the port config
-            ops.add(getMapUpdatePortOp(port, portId, null, null));
+            /*
+             Update the port config (nullify the binding data) only if the port has a binding with "hostIdentifier".
 
+             In the sequence of Nova compute's migration, unplug() on the original compute node gets called
+             AFTER plug() on the target compute node gets executed.
+             This check is to make sure that unplug() does not clear the port that has new hostId.
+            */
+            if (port.getHostId() != null && port.getHostId().equals(hostIdentifier)) {
+                ops.add(getMapUpdatePortOp(port, portId, null, null));
+            }
             zk.multi(ops);
         }
 
