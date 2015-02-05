@@ -16,7 +16,7 @@
 
 package org.midonet.cluster.storage
 
-import org.midonet.config.{ConfigGroup, ConfigInt, ConfigString}
+import org.midonet.config.{ConfigBool, ConfigGroup, ConfigInt, ConfigString}
 
 /**
  * This file defines configuration parameters required to bootstrap a connection
@@ -36,4 +36,11 @@ trait MidonetBackendConfig {
 
     @ConfigInt(key = "zookeeper_max_retries", defaultValue = 10)
     def zookeeperMaxRetries: Int
+
+    /* This property is transitional while we support the dual storage stack.
+     * if set, it will tell the Cluster components to use the new storage
+     * stack.  It is not documented for production use.  When the new
+     * storage layer is deployed, this property should disappear. */
+    @ConfigBool(key = "enabled", defaultValue = false)
+    def isEnabled: Boolean
 }

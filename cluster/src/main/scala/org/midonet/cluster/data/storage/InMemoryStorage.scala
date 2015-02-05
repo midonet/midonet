@@ -44,8 +44,10 @@ import org.midonet.util.concurrent.Locks.{withReadLock, withWriteLock}
 import org.midonet.util.eventloop.Reactor
 
 /**
- * A simple in-memory implementation of the [[Storage]] trait, equivalent to
- * the [[ZookeeperObjectMapper]] to use within unit tests.
+ * A simple in-memory implementation of the
+ * [[org.midonet.cluster.data.storage.Storage]] trait, equivalent to
+ * the [[org.midonet.cluster.data.storage.ZookeeperObjectMapper]] to use within
+ * unit tests.
  */
 @Inject
 class InMemoryStorage(reactor: Reactor) extends StorageWithOwnership {

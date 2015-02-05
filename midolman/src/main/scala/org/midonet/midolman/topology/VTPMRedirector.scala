@@ -26,6 +26,8 @@ import com.google.inject.Inject
 import rx.Subscriber
 
 import org.midonet.cluster.config.ZookeeperConfig
+import org.midonet.cluster.services.MidonetBackend
+import org.midonet.cluster.storage.MidonetBackendConfig
 import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.midolman.topology.VirtualToPhysicalMapper.{HostRequest, HostUnsubscribe, TunnelZoneRequest, TunnelZoneUnsubscribe}
 import org.midonet.midolman.topology.VirtualTopology.Device
@@ -41,8 +43,9 @@ import org.midonet.midolman.topology.devices.{Host, TunnelZone}
  * When using the old design, we obtain these devices using managers in
  * the same package.
  *
- * The field cluster_storage_enabled in [[ZookeeperConfig]] controls whether
- * the new or the old design shall be used.
+ * Setting the "enabled" property to true in the midonet-backend
+ * section of the configuration will make the VTPMRedirector use the new storage
+ * stack.  Otherwise, it'll use the old stack.
  */
 abstract class VTPMRedirector extends Actor
                               with MidolmanLogging {
@@ -50,7 +53,7 @@ abstract class VTPMRedirector extends Actor
     override def logSource = "org.midonet.devices.underlay"
 
     @Inject
-    private var config: ZookeeperConfig = _
+    private var newBackend: MidonetBackend = _
 
     /* Device subscriptions per device id */
     private val deviceSubscriptions = new mutable.HashMap[UUID,DeviceSubscriber[_ <: Device]]()
@@ -145,7 +148,7 @@ abstract class VTPMRedirector extends Actor
         removeFromCache[D](deviceId)
     }
 
-    def receive = if (!config.getClusterStorageEnabled) Actor.emptyBehavior else {
+    def receive = if (!newBackend.isEnabled) Actor.emptyBehavior else {
         case r: TunnelZoneRequest =>
             log.debug("Request for tunnel zone with id {}", r.zoneId)
             onRequest[TunnelZone](r)
@@ -154,11 +157,11 @@ abstract class VTPMRedirector extends Actor
             onRequest[Host](r)
         case r: TunnelZoneUnsubscribe =>
             log.debug("Unsubscribe request for tunnel zone {} from {}",
-                      r.zoneId, sender)
+                      r.zoneId, sender())
             onUnsubscribe[TunnelZone](r, sender())
         case r: HostUnsubscribe =>
             log.debug("Unsubscribe request for host {} from {}", r.hostId,
-                      sender)
+                      sender())
             onUnsubscribe[Host](r, sender())
         case OnCompleted(deviceId: UUID, t: ClassTag[_]) =>
             log.debug("Device {} update stream completed", deviceId)

@@ -22,15 +22,14 @@ import scala.collection.JavaConversions._
 import com.google.inject._
 import org.apache.commons.configuration.HierarchicalConfiguration
 import org.scalatest.{BeforeAndAfter, FeatureSpecLike, GivenWhenThen, Matchers, OneInstancePerTest}
-
-import org.midonet.cluster.services.StorageService
-import org.midonet.midolman.guice._
-import org.midonet.midolman.guice.cluster.ClusterClientModule
-import org.midonet.midolman.guice.config.ConfigProviderModule
-import org.midonet.midolman.guice.datapath.MockDatapathModule
-import org.midonet.midolman.guice.serialization.SerializationModule
-import org.midonet.midolman.guice.state.MockFlowStateStorageModule
-import org.midonet.midolman.guice.zookeeper.MockZookeeperConnectionModule
+import org.midonet.cluster.services.{MidonetBackend, LegacyStorageService, MidonetBackendService}
+import org.midonet.cluster.storage.{MidonetBackendTestModule, StateStorageModule}
+import org.midonet.midolman.cluster._
+import org.midonet.midolman.cluster.config.ConfigProviderModule
+import org.midonet.midolman.cluster.datapath.MockDatapathModule
+import org.midonet.midolman.cluster.serialization.SerializationModule
+import org.midonet.midolman.cluster.state.MockFlowStateStorageModule
+import org.midonet.midolman.cluster.zookeeper.MockZookeeperConnectionModule
 import org.midonet.midolman.host.scanner.InterfaceScanner
 import org.midonet.midolman.services.{HostIdProviderService, MidolmanActorsService, MidolmanService}
 import org.midonet.midolman.simulation.CustomMatchers
@@ -72,7 +71,10 @@ trait MidolmanSpec extends FeatureSpecLike
             val config = fillConfig(new HierarchicalConfiguration)
             injector = Guice.createInjector(getModules(config))
 
-            injector.getInstance(classOf[StorageService])
+            injector.getInstance(classOf[LegacyStorageService])
+                .startAsync()
+                .awaitRunning()
+            injector.getInstance(classOf[MidonetBackend])
                 .startAsync()
                 .awaitRunning()
             injector.getInstance(classOf[MidolmanService])
@@ -90,7 +92,10 @@ trait MidolmanSpec extends FeatureSpecLike
         injector.getInstance(classOf[MidolmanService])
             .stopAsync()
             .awaitTerminated()
-        injector.getInstance(classOf[StorageService])
+        injector.getInstance(classOf[MidonetBackend])
+            .stopAsync()
+            .awaitTerminated()
+        injector.getInstance(classOf[LegacyStorageService])
             .stopAsync()
             .awaitTerminated()
     }
@@ -108,8 +113,8 @@ trait MidolmanSpec extends FeatureSpecLike
             new ConfigProviderModule(config),
             new MockDatapathModule(),
             new MockFlowStateStorageModule(),
+            new MidonetBackendTestModule(),
             new MockZookeeperConnectionModule(),
-            new InMemoryStorageModule(),
             new StateStorageModule(),
             new AbstractModule {
                 def configure() {
@@ -120,7 +125,7 @@ trait MidolmanSpec extends FeatureSpecLike
                     })
                 }
             },
-            new ClusterClientModule(),
+            new LegacyClusterModule(),
             new MockMidolmanModule(),
             new MidolmanActorsModule {
                 override def configure() {
