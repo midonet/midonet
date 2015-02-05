@@ -82,9 +82,9 @@ class SubnetTranslator(val storage: ReadOnlyStorage)
         addHostRoutes(newDhcp, ns.getHostRoutesList.asScala)
 
         getDhcpPortIp(ns.getNetworkId).foreach({ip =>
-            newDhcp.addOpt121Routes(opt121FromHostRoute(META_DATA_SRVC,
-                                                        ip.getAddress))})
-
+            newDhcp.addOpt121Routes(
+                opt121FromHostRoute(RouteManager.META_DATA_SRVC,
+                                    ip.getAddress))})
 
         // TODO: connect to provider router if external
         List(Update(newDhcp.build))

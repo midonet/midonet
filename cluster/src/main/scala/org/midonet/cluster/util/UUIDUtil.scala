@@ -41,6 +41,10 @@ object UUIDUtil {
         else toProto(JUUID.fromString(uuidStr))
     }
 
+    def toProto(msb: Long, lsb: Long) = {
+        PUUID.newBuilder().setMsb(msb).setLsb(lsb).build()
+    }
+
     implicit def fromProto(uuid: PUUID): JUUID = {
         new JUUID(uuid.getMsb, uuid.getLsb)
     }
@@ -59,23 +63,17 @@ object UUIDUtil {
         def asJava: JUUID = fromProto(uuid)
 
         /**
-         * Deterministically generate a new Protobuf UUID from an existing one.
-         * Calls can be chained to generate a deterministic series of UUIDs
-         * from a single seed, e.g.:
-         *
-         * val uuid0 = randomUuidProto
-         * val uuid1 = uuid0.nextUuid
-         * val uuid2 = uuid1.nextUuid
-         *
-         * val uuid3 = uuid0.nextUuid // uuid1 == uuid3
-         * val uuid4 = uuid3.nextUuid // uuid2 == uuid4
+         * Can be used to deterministically generate UUIDs derived from
+         * another UUID. For example, see inChainId() and outChainId() in
+         * the ChainManager trait, which each XOR a device ID with a different
+         * statically-generated UUID in order to generate unique, predictable
+         * UUIDs for the device's chains.
          */
-        def nextUuid: PUUID = {
-            val rand = new Random(uuid.getMsb)
-            val msb = rand.nextLong()
-            rand.setSeed(uuid.getLsb)
-            val lsb = rand.nextLong()
-            PUUID.newBuilder().setMsb(msb).setLsb(lsb).build()
+        def xorWith(msb: Long, lsb: Long): PUUID = {
+            // These bits are metadata and should not be flipped.
+            val msbMask = msb & 0xffffffffffff0fffL
+            val lsbMask = lsb & 0x3fffffffffffffffL
+            toProto(uuid.getMsb ^ msbMask, uuid.getLsb ^ lsbMask)
         }
     }
 
