@@ -37,5 +37,4 @@ final class TunnelZoneMapper(id: UUID, vt: VirtualTopology)
             .map[SimTunnelZone](
                 makeFunc1(ZoomConvert.fromProto(_, classOf[SimTunnelZone])))
             .observeOn(vt.scheduler)
-
 }

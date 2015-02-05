@@ -18,7 +18,6 @@ package org.midonet.midolman.topology
 
 import java.util.UUID
 import java.util.concurrent.atomic.AtomicBoolean
-
 import javax.annotation.Nullable
 
 import scala.collection.JavaConverters._
@@ -26,7 +25,6 @@ import scala.collection.mutable
 
 import com.google.common.annotations.VisibleForTesting
 import org.apache.zookeeper.{WatchedEvent, Watcher}
-
 import rx.Observable
 import rx.subjects.{BehaviorSubject, PublishSubject}
 
@@ -217,7 +215,7 @@ final class HostMapper(hostId: UUID, vt: VirtualTopology)
     })
 
     private lazy val hostObservable =
-        vt.store.observable(classOf[TopologyHost], hostId)
+    vt.store.observable(classOf[TopologyHost], hostId)
             .subscribeOn(vt.scheduler)
             .observeOn(vt.scheduler)
             .doOnCompleted(makeAction0(completeHost()))
@@ -232,6 +230,7 @@ final class HostMapper(hostId: UUID, vt: VirtualTopology)
                               aliveObservable, hostObservable)
             .filter(makeFunc1(isHostReady))
             .map[SimulationHost](makeFunc1(mapDevice))
+            .distinctUntilChanged()
 
     private lazy val connectionRetryHandler = makeRunnable(watchAlive())
 

@@ -25,11 +25,11 @@ import scala.concurrent.duration.DurationInt
 import org.apache.commons.configuration.HierarchicalConfiguration
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
-
 import rx.Observable
 
 import org.midonet.cluster.data.storage.{CreateOp, Storage}
 import org.midonet.cluster.models.Topology.{Host, TunnelZone}
+import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.util.IPAddressUtil
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.host.state.HostZkManager
@@ -55,7 +55,7 @@ class HostMapperTest extends MidolmanSpec
 
     protected override def beforeTest() = {
         vt = injector.getInstance(classOf[VirtualTopology])
-        store = injector.getInstance(classOf[Storage])
+        store = injector.getInstance(classOf[MidonetBackend]).store
     }
 
     private def assertThread(): Unit = {
