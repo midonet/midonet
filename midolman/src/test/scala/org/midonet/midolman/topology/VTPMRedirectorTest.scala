@@ -35,6 +35,8 @@ import org.midonet.cluster.data.storage.Storage
 import org.midonet.cluster.data.{TunnelZone => OldTunnel, ZoomConvert}
 import org.midonet.cluster.models.Topology.TunnelZone.HostToIp
 import org.midonet.cluster.models.Topology.{Host => ProtoHost, TunnelZone => ProtoTunnelZone}
+import org.midonet.cluster.services.MidonetBackendService
+import org.midonet.cluster.storage.MidonetBackendModule
 import org.midonet.cluster.util.IPAddressUtil
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.NotYetException
@@ -70,7 +72,7 @@ class VTPMRedirectorTest extends TestKit(ActorSystem("VTPMRedirectorTest"))
     override def beforeTest() {
         vt = injector.getInstance(classOf[VirtualTopology])
         vtpm = VirtualToPhysicalMapper.as[TestableVTPM]
-        store = injector.getInstance(classOf[Storage])
+        store = injector.getInstance(classOf[MidonetBackendService]).store
     }
 
     private def buildAndStoreTunnelZone(hostId: UUID, hostIp: IPAddr)

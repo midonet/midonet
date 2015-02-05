@@ -29,6 +29,7 @@ import rx.Notification
 
 import org.midonet.cluster.data.storage.{NotFoundException, Storage}
 import org.midonet.cluster.models.Topology.{Port => TopologyPort}
+import org.midonet.cluster.services.MidonetBackendService
 import org.midonet.midolman.NotYetException
 import org.midonet.midolman.topology.devices.{Port => SimulationPort}
 import org.midonet.midolman.util.MidolmanSpec
@@ -43,7 +44,7 @@ class VirtualTopologyTest extends MidolmanSpec with TopologyBuilder {
 
     protected override def beforeTest(): Unit = {
         vt = injector.getInstance(classOf[VirtualTopology])
-        store = injector.getInstance(classOf[Storage])
+        store = injector.getInstance(classOf[MidonetBackendService]).store
         store.create(createBridge(id = bridgeId))
     }
 
