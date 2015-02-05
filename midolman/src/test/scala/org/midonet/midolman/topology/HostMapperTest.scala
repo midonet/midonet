@@ -30,6 +30,7 @@ import rx.Observable
 
 import org.midonet.cluster.data.storage.Storage
 import org.midonet.cluster.models.Topology.{Host, TunnelZone}
+import org.midonet.cluster.services.MidonetBackendService
 import org.midonet.cluster.util.IPAddressUtil
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.FlowController
@@ -50,7 +51,7 @@ class HostMapperTest extends MidolmanSpec
 
     protected override def beforeTest() = {
         vt = injector.getInstance(classOf[VirtualTopology])
-        store = injector.getInstance(classOf[Storage])
+        store = injector.getInstance(classOf[MidonetBackendService]).store
     }
 
     override protected def fillConfig(config: HierarchicalConfiguration) = {
