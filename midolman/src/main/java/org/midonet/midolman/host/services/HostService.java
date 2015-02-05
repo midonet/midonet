@@ -20,6 +20,7 @@ import java.lang.reflect.Array;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
@@ -32,6 +33,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.midonet.Subscription;
+import org.midonet.cluster.config.ZookeeperConfig;
+import org.midonet.cluster.data.storage.Storage;
+import org.midonet.cluster.models.Commons;
+import org.midonet.cluster.models.Topology;
+import org.midonet.cluster.util.UUIDUtil;
 import org.midonet.config.HostIdGenerator;
 import org.midonet.midolman.host.config.HostConfig;
 import org.midonet.midolman.host.interfaces.InterfaceDescription;
@@ -73,6 +79,9 @@ public class HostService extends AbstractService
 
     @Inject
     private ZkManager zkManager;
+
+    @Inject
+    private Storage storage;
 
     public final long epoch = System.currentTimeMillis();
 
@@ -163,7 +172,7 @@ public class HostService extends AbstractService
         hostId = HostIdGenerator.getHostId(configuration);
         int retries = configuration.getRetriesForUniqueHostId();
 
-        while (!create(hostId, metadata, hostZkManager) && --retries >= 0) {
+        while (!create(hostId, metadata, hostZkManager, storage) && --retries >= 0) {
             // The ID is already in use, wait. It could be that the ephemeral
             // node has not been deleted yet (if the host just crashed)
             log.warn("Host ID already in use. Waiting for it to be released.");
@@ -178,25 +187,48 @@ public class HostService extends AbstractService
         }
     }
 
+    private static Iterable<Commons.UUID> toProtoUUIDSet(Set<UUID> uuidSet) {
+        Set<Commons.UUID> convertedSet = new HashSet<>();
+        for (UUID juuid: uuidSet) {
+            convertedSet.add(UUIDUtil.toProto(juuid));
+        }
+        return convertedSet;
+    }
+
+    // Hack for the L2 demo ;-)
+    private static Topology.Host buildHostFromMetaData(UUID hostId,
+                                                       HostDirectory.Metadata metaData) {
+        return Topology.Host.newBuilder()
+            .setId(UUIDUtil.toProto(hostId))
+            .addAllTunnelZoneIds(toProtoUUIDSet(metaData.getTunnelZones()))
+            .build();
+    }
+
     private static boolean create(UUID id,
                                   HostDirectory.Metadata metadata,
-                                  HostZkManager zkManager)
+                                  HostZkManager zkManager,
+                                  Storage zoom)
             throws StateAccessException, SerializationException {
 
-        if (zkManager.exists(id)) {
-            if (!metadata.isSameHost(zkManager.get(id))) {
-                if (zkManager.isAlive(id))
-                    return false;
+            if (zkManager.exists(id)) {
+                if (!metadata.isSameHost(zkManager.get(id))) {
+                    if (zkManager.isAlive(id))
+                        return false;
+                }
+                zkManager.updateMetadata(id, metadata);
+            } else {
+                zkManager.createHost(id, metadata);
+
+                // Create the host in Zoom too
+                zoom.create(buildHostFromMetaData(id, metadata));
+                Topology.Host host = zoom.get(Topology.Host.class, id);
+                log.info("Created host in zoom with id: " + host.getId());
             }
-            zkManager.updateMetadata(id, metadata);
-        } else {
-            zkManager.createHost(id, metadata);
-        }
 
-        zkManager.makeAlive(id);
-        zkManager.setHostVersion(id);
+            zkManager.makeAlive(id);
+            zkManager.setHostVersion(id);
 
-        return true;
+            return true;
     }
 
     public UUID getHostId() {
