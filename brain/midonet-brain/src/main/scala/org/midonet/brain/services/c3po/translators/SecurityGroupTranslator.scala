@@ -32,7 +32,7 @@ import org.midonet.util.StringUtil.indent
 import org.midonet.util.concurrent.toFutureOps
 
 class SecurityGroupTranslator(storage: ReadOnlyStorage)
-    extends NeutronTranslator[SecurityGroup] {
+    extends NeutronTranslator[SecurityGroup] with ChainManager {
     import org.midonet.brain.services.c3po.translators.SecurityGroupTranslator._
 
     private case class TranslatedSecurityGroup(
@@ -74,8 +74,8 @@ class SecurityGroupTranslator(storage: ReadOnlyStorage)
         val inboundRules = neutronEgressRules.map(translate)
         val inboundRuleIds = neutronEgressRules.map(_.getId)
 
-        val inboundChainId = sg.getId.nextUuid
-        val outboundChainId = inboundChainId.nextUuid
+        val inboundChainId = inChainId(sg.getId)
+        val outboundChainId = outChainId(sg.getId)
 
         val inboundChain = createChain(
             sg, inboundChainId, egressChainName(sg.getId), inboundRuleIds)
@@ -142,14 +142,12 @@ class SecurityGroupTranslator(storage: ReadOnlyStorage)
                 return List() // Okay. Delete is idempotent.
         }
 
-        val inChainId = sgId.nextUuid
-        val outChainId = inChainId.nextUuid
         val sgrs = sg.getSecurityGroupRulesList.asScala
 
         val ops = new ListBuffer[MidoOp[_ <: Message]]
         ops ++= sgrs.map(sgr => Delete(classOf[Rule], sgr.getId))
-        ops += Delete(classOf[Chain], inChainId)
-        ops += Delete(classOf[Chain], outChainId)
+        ops += Delete(classOf[Chain], inChainId(sgId))
+        ops += Delete(classOf[Chain], outChainId(sgId))
         ops += Delete(classOf[IpAddrGroup], sgId)
         ops.toList
     }

@@ -28,34 +28,34 @@ import org.midonet.cluster.util.UUIDUtil
  * Contains rule-related operations shared by multiple translators.
  */
 trait RuleManager {
+    protected def newRule(chainId: UUID): Rule.Builder =
+        Rule.newBuilder().setChainId(chainId).setId(UUIDUtil.randomUuidProto)
+
     protected def reverseFlowRule(chainId: UUID): Rule =
-        Rule.newBuilder().setId(UUIDUtil.randomUuidProto)
-            .setChainId(chainId)
+        newRule(chainId)
             .setType(Rule.Type.NAT_RULE)
             .setAction(ACCEPT)
             .setMatchReturnFlow(true)
             .build()
 
     protected def dropRuleBuilder(chainId: UUID): Rule.Builder =
-        Rule.newBuilder().setId(UUIDUtil.randomUuidProto)
-            .setChainId(chainId)
+        newRule(chainId)
             .setType(Rule.Type.LITERAL_RULE)
             .setAction(DROP)
             .setFragmentPolicy(FragmentPolicy.ANY)
 
     protected def jumpRule(fromChain: UUID, toChain: UUID): Rule =
-        Rule.newBuilder().setId(UUIDUtil.randomUuidProto)
+        newRule(fromChain)
             .setType(Rule.Type.JUMP_RULE)
             .setAction(JUMP)
             .setJumpRuleData(JumpRuleData.newBuilder
                                  .setJumpTo(toChain)
                                  .build())
-            .setChainId(fromChain)
             .build()
 
     protected def toRuleIdList(ops: Seq[Operation[Rule]]) = ops.map {
         case Create(r: Rule) => r.getId
-        case Update(r: Rule) => r.getId
+        case Update(r: Rule, _) => r.getId
         case Delete(_, id) => id
     }
 
