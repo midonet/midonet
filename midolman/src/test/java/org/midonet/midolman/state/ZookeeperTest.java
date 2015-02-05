@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -97,7 +97,7 @@ public abstract class ZookeeperTest {
             Arrays.asList(
                 new SerializationModule(),
                 new ConfigProviderModule(getConfig(zkRoot)),
-                new ZookeeperConnectionModule(),
+                new ZookeeperConnectionModule(ZookeeperConnectionWatcher.class),
                 new StorageModule(),
                 new DataClientModule())
         );
