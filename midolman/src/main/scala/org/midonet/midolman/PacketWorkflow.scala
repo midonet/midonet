@@ -92,7 +92,7 @@ trait UnderlayTrafficHandler { this: PacketWorkflow =>
         context.addFlowTag(FlowTagger.tagForDpPort(forwardTo.getPortNo))
         context.addFlowTag(FlowTagger.tagForTunnelRoute(
                            origMatch.getTunnelSrc, origMatch.getTunnelDst))
-        context.addFlowAction(forwardTo.toOutputAction)
+        context.addFlowAndPacketAction(forwardTo.toOutputAction)
         context.idleExpirationMillis = 300 * 1000
     }
 
@@ -149,12 +149,12 @@ class PacketWorkflow(protected val dpState: DatapathState,
         if (context.packet.getReason == Packet.Reason.FlowActionUserspace) {
             resultLogger.debug("packet came up due to userspace dp action, " +
                                s"match ${context.origMatch}")
-            dpChannel.executePacket(context.packet, context.flowActions)
+            dpChannel.executePacket(context.packet, context.packetActions)
             context.runFlowRemovedCallbacks()
             UserspaceFlow
         } else {
             applyState(context)
-            dpChannel.executePacket(context.packet, context.flowActions)
+            dpChannel.executePacket(context.packet, context.packetActions)
             handleFlow(context)
         }
 
@@ -314,6 +314,6 @@ class PacketWorkflow(protected val dpState: DatapathState,
         resultLogger.debug(s"Match ${context.origMatch} send with actions " +
                            s"${context.virtualFlowActions}; visited tags ${context.flowTags}")
         translateActions(context)
-        dpChannel.executePacket(context.packet, context.flowActions)
+        dpChannel.executePacket(context.packet, context.packetActions)
     }
 }
