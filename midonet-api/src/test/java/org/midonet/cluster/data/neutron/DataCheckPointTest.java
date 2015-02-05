@@ -32,6 +32,7 @@ import com.google.inject.Injector;
 
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.curator.framework.recipes.locks.InterProcessSemaphoreMutex;
+import org.apache.curator.test.TestingServer;
 import org.apache.zookeeper.KeeperException;
 import org.junit.Assert;
 import org.junit.Before;
@@ -46,10 +47,10 @@ import org.midonet.cluster.data.Rule;
 import org.midonet.cluster.data.rules.ForwardNatRule;
 import org.midonet.cluster.data.rules.JumpRule;
 import org.midonet.midolman.Setup;
-import org.midonet.midolman.guice.cluster.DataClientModule;
-import org.midonet.midolman.guice.config.ConfigProviderModule;
-import org.midonet.midolman.guice.serialization.SerializationModule;
-import org.midonet.midolman.guice.zookeeper.MockZookeeperConnectionModule;
+import org.midonet.midolman.cluster.LegacyClusterModule;
+import org.midonet.midolman.cluster.config.ConfigProviderModule;
+import org.midonet.midolman.cluster.serialization.SerializationModule;
+import org.midonet.midolman.cluster.zookeeper.MockZookeeperConnectionModule;
 import org.midonet.midolman.rules.Condition;
 import org.midonet.midolman.rules.NatTarget;
 import org.midonet.midolman.rules.RuleResult;
@@ -71,6 +72,8 @@ import static org.mockito.Mockito.when;
 
 public class DataCheckPointTest {
 
+    protected static TestingServer server;
+
     @Inject
     NeutronPlugin plugin;
     @Inject
@@ -90,9 +93,10 @@ public class DataCheckPointTest {
         return injector.getInstance(CheckpointedDirectory.class);
     }
 
-    public class TestDataClientModule extends DataClientModule {
+    public class TestDataClientModule extends LegacyClusterModule {
         @Override
-        protected void bindZookeeperLockFactory() {
+        protected void configure() {
+            super.configure();
             ZookeeperLockFactory lockFactory = mock(ZookeeperLockFactory.class);
             InterProcessSemaphoreMutex lock = mock(
                 InterProcessSemaphoreMutex.class);
@@ -105,6 +109,7 @@ public class DataCheckPointTest {
                 throw new RuntimeException(e);
             }
             bind(ZookeeperLockFactory.class).toInstance(lockFactory);
+            expose(ZookeeperLockFactory.class);
         }
     }
 
@@ -462,10 +467,10 @@ public class DataCheckPointTest {
     }
 
     @Before
-    public void initialize() throws InterruptedException, KeeperException {
+    public void setUp() throws InterruptedException, KeeperException {
+        zkRoot = "/test_" + UUID.randomUUID();
         HierarchicalConfiguration
-            config =
-            fillConfig(new HierarchicalConfiguration());
+            config = fillConfig(new HierarchicalConfiguration());
         injector = Guice.createInjector(
             new SerializationModule(),
             new ConfigProviderModule(config),
@@ -475,7 +480,7 @@ public class DataCheckPointTest {
             new AbstractModule() {
                 @Override
                 protected void configure() {
-                        bind(NeutronPlugin.class);
+                    bind(NeutronPlugin.class);
                 }
             }
         );

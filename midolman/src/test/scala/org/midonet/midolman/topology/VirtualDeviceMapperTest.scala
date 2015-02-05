@@ -20,7 +20,6 @@ import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
 
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
-
 import rx.Observable
 import rx.subjects.BehaviorSubject
 

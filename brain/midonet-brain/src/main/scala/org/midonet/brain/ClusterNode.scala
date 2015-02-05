@@ -31,13 +31,12 @@ import org.midonet.brain.services.heartbeat.HeartbeatConfig
 import org.midonet.brain.services.topology.TopologyApiServiceConfig
 import org.midonet.brain.services.vxgw.VxGWServiceConfig
 import org.midonet.cluster.config.ZookeeperConfig
-import org.midonet.cluster.data.storage.Storage
 import org.midonet.cluster.storage._
 import org.midonet.config._
-import org.midonet.midolman.guice.cluster.DataClientModule
-import org.midonet.midolman.guice.serialization.SerializationModule
-import org.midonet.midolman.guice.zookeeper.ZookeeperConnectionModule.ZookeeperReactorProvider
-import org.midonet.midolman.guice.zookeeper.{DirectoryProvider, ZkConnectionProvider}
+import org.midonet.midolman.cluster.LegacyClusterModule
+import org.midonet.midolman.cluster.serialization.SerializationModule
+import org.midonet.midolman.cluster.zookeeper.ZookeeperConnectionModule.ZookeeperReactorProvider
+import org.midonet.midolman.cluster.zookeeper.{DirectoryProvider, ZkConnectionProvider}
 import org.midonet.midolman.state.{Directory, ZkConnection, ZkConnectionAwareWatcher, ZookeeperConnectionWatcher}
 import org.midonet.util.eventloop.Reactor
 
@@ -84,9 +83,6 @@ object ClusterNode extends App {
     private val nodeCfg = cfgProvider.getConfig(classOf[ClusterNodeConfig])
     private val nodeId = HostIdGenerator.getHostId(nodeCfg)
 
-    // Load configurations for backend storages
-    private val backendCfg = cfgProvider.getConfig(classOf[MidonetBackendConfig])
-
     // Load configurations for Cluster Node supported Minions
     private val heartbeatCfg = cfgProvider.getConfig(classOf[HeartbeatConfig])
     private val c3poConfig= cfgProvider.getConfig(classOf[C3POConfig])
@@ -129,9 +125,6 @@ object ClusterNode extends App {
             bind(classOf[VxGWServiceConfig]).toInstance(vxgwCfg)
             bind(classOf[TopologyApiServiceConfig]).toInstance(topologyCfg)
 
-            bind(classOf[Storage]).toProvider(classOf[ZoomProvider])
-                                  .asEagerSingleton()
-
             // Minion definitions, used by the Daemon to start when appropriate
             minionDefs foreach { m =>
                 log.info(s"Register minion: ${m.name}")
@@ -169,12 +162,12 @@ object ClusterNode extends App {
                 .asEagerSingleton()
 
             install(new SerializationModule)
-            install(new DataClientModule)
+            install(new LegacyClusterModule)
         }
     }
 
     protected[brain] var injector = Guice.createInjector(
-        new MidonetBackendModule(backendCfg),
+        new MidonetBackendModule(),
         dataClientDependencies,
         clusterNodeModule
     )

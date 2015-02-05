@@ -17,10 +17,10 @@
 package org.midonet.brain.tools
 
 import com.google.inject.{AbstractModule, Guice}
+import org.midonet.cluster.config.ZookeeperConfig
 import org.slf4j.LoggerFactory
 
-import org.midonet.cluster.data.storage.Storage
-import org.midonet.cluster.storage.{MidonetBackendConfig, MidonetBackendModule, ZoomProvider}
+import org.midonet.cluster.storage.MidonetBackendModule
 import org.midonet.config.ConfigProvider
 
 /**
@@ -33,20 +33,21 @@ object TopologyZoomUpdaterApp extends App {
     private val cfgFile = args(0)
     private val cfg = ConfigProvider.fromConfigFile(cfgFile)
     private val cfgProvider = ConfigProvider.providerForIniConfig(cfg)
-    private val backendCfg = cfgProvider.getConfig(classOf[MidonetBackendConfig])
     private val updCfg = cfgProvider.getConfig(classOf[TopologyZoomUpdaterConfig])
 
     private val topologyZkUpdaterModule = new AbstractModule {
         override def configure(): Unit = {
+            val zkConfig = cfgProvider.getConfig(classOf[ZookeeperConfig])
+            bind(classOf[ZookeeperConfig]).toInstance(zkConfig)
+
+            bind(classOf[ConfigProvider]).toInstance(cfgProvider)
             bind(classOf[TopologyZoomUpdaterConfig]).toInstance(updCfg)
-            bind(classOf[Storage]).toProvider(classOf[ZoomProvider])
-                .asEagerSingleton()
             bind(classOf[TopologyZoomUpdater]).asEagerSingleton()
         }
     }
 
     protected[brain] val injector = Guice.createInjector(
-        new MidonetBackendModule(backendCfg),
+        new MidonetBackendModule(),
         topologyZkUpdaterModule
     )
 
