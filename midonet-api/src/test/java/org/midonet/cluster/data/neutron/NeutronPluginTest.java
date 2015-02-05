@@ -21,14 +21,21 @@ import java.util.UUID;
 
 import com.google.inject.PrivateModule;
 
+import org.apache.curator.test.TestingServer;
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
+import org.slf4j.LoggerFactory;
 
+import org.midonet.cluster.ZookeeperTest;
 import org.midonet.cluster.data.Rule;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.packets.MAC;
 
 public abstract class NeutronPluginTest extends ZookeeperTest {
+
+    protected static TestingServer server;
 
     // Default tenant values
     protected static final String TENANT_ID = "tenant";
@@ -145,6 +152,28 @@ public abstract class NeutronPluginTest extends ZookeeperTest {
 
         // Set up a basic scenario for all the tests for now
         setUpBasicScenario();
+    }
+
+    @BeforeClass
+    public static void initZkTestingServer() throws Exception {
+        if (server == null) {
+            server = new TestingServer(ZK_PORT);
+            server.start();
+        }
+    }
+
+    @AfterClass
+    public static void shutdownZkTestingServer() throws Exception {
+        if (server != null) {
+            try {
+                server.stop();
+            } catch (Throwable e) {
+                LoggerFactory.getLogger(NeutronPluginTest.class)
+                    .warn("Failed to stop ZK testing server", e);
+            } finally {
+                server = null;
+            }
+        }
     }
 
     public void setUpBasicScenario()
