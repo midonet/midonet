@@ -48,7 +48,6 @@ import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner
 import org.midonet.cluster.models.Neutron.SecurityGroup
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.models.{C3PO, Commons}
-import org.midonet.cluster.storage.ZoomProvider
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.cluster.util.{IPAddressUtil, UUIDUtil}
 import org.midonet.config.ConfigProvider
@@ -193,8 +192,6 @@ class C3POMinionTest extends FlatSpec with BeforeAndAfter
             zk.start()
             curator.start()
             curator.blockUntilConnected()
-
-            storage = new ZoomProvider(curator, getConf).get()
 
             val nodeCtx = new Context(UUID.randomUUID())
             c3po = new C3POMinion(nodeCtx, c3poCfg, dataSrc, storage, curator)

@@ -32,20 +32,20 @@ import org.apache.commons.cli.Options;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.midonet.cluster.services.StorageService;
+import org.midonet.cluster.services.MidonetBackendService;
+import org.midonet.cluster.storage.MidonetBackendModule;
 import org.midonet.event.agent.ServiceEvent;
-import org.midonet.midolman.guice.InterfaceScannerModule;
-import org.midonet.midolman.guice.MidolmanActorsModule;
-import org.midonet.midolman.guice.MidolmanModule;
-import org.midonet.midolman.guice.ResourceProtectionModule;
-import org.midonet.midolman.guice.StateStorageModule;
-import org.midonet.midolman.guice.StorageModule;
-import org.midonet.midolman.guice.cluster.ClusterClientModule;
-import org.midonet.midolman.guice.config.ConfigProviderModule;
-import org.midonet.midolman.guice.datapath.DatapathModule;
-import org.midonet.midolman.guice.serialization.SerializationModule;
-import org.midonet.midolman.guice.state.FlowStateStorageModule;
-import org.midonet.midolman.guice.zookeeper.ZookeeperConnectionModule;
+import org.midonet.midolman.cluster.InterfaceScannerModule;
+import org.midonet.midolman.cluster.MidolmanActorsModule;
+import org.midonet.midolman.cluster.MidolmanModule;
+import org.midonet.midolman.cluster.ResourceProtectionModule;
+import org.midonet.cluster.storage.StateStorageModule;
+import org.midonet.midolman.cluster.LegacyClusterModule;
+import org.midonet.midolman.cluster.config.ConfigProviderModule;
+import org.midonet.midolman.cluster.datapath.DatapathModule;
+import org.midonet.midolman.cluster.serialization.SerializationModule;
+import org.midonet.midolman.cluster.state.FlowStateStorageModule;
+import org.midonet.midolman.cluster.zookeeper.ZookeeperConnectionModule;
 import org.midonet.midolman.host.guice.HostModule;
 import org.midonet.midolman.services.MidolmanActorsService;
 import org.midonet.midolman.services.MidolmanService;
@@ -126,10 +126,10 @@ public class Midolman {
             new SerializationModule(),
             new HostModule(),
             new ConfigProviderModule(configFilePath),
-            new StorageModule(),
+            new MidonetBackendModule(),
             new StateStorageModule(),
             new DatapathModule(),
-            new ClusterClientModule(),
+            new LegacyClusterModule(),
             new MidolmanActorsModule(),
             new ResourceProtectionModule(),
             new MidolmanModule(),
@@ -138,7 +138,7 @@ public class Midolman {
         );
 
         // start the services
-        injector.getInstance(StorageService.class)
+        injector.getInstance(MidonetBackendService.class)
             .startAsync()
             .awaitRunning();
         injector.getInstance(MidolmanService.class)
