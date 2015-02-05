@@ -83,6 +83,29 @@ function die {
     exit $exitcode
 }
 
+# Checks an environment variable is not set or has length 0 OR if the
+# exit code is non-zero and prints "message" and exits
+# NOTE: env-var is the variable name without a '$'
+# die_if_not_set $LINENO env-var "message"
+function die_if_not_set {
+    local exitcode=$?
+    local xtrace=$(set +o | grep xtrace)
+    set +o xtrace
+    local line=$1; shift
+    local evar=$1; shift
+    if ! is_set $evar || [ $exitcode != 0 ]; then 
+        die $line "$*" 
+    fi   
+    $xtrace
+}
+
+# Test if the named environment variable is set and not zero length
+# is_set env-var
+function is_set {
+    local var=\$"$1"
+    eval "[ -n \"$var\" ]" # For ex.: sh -c "[ -n \"$var\" ]" would be better, but several exercises depends on this
+}
+
 
 # Package Functions
 # -----------------
