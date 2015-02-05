@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_c0abc987",
+        "filename": "brain/midonet-brain/build.gradle",
+        "patchSetId": 25
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-05T16:10:48Z",
+      "side": 1,
+      "message": "I think so. At least for testing, it may be good to be able to execute each service separately (each service only needs a wrapper emulating the cluster node settings for that particular service)",
+      "parentUuid": "7a1969be_3bc13a2f",
+      "range": {
+        "startLine": 91,
+        "startChar": 5,
+        "endLine": 91,
+        "endChar": 19
+      },
+      "revId": "13b34d007c0bd56bbc2364b47e61ba44068c4ab3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_bbec0ac9",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/TopologyApiService.scala",
         "patchSetId": 25
@@ -36,6 +60,30 @@
       "writtenOn": "2015-02-04T12:34:04Z",
       "side": 1,
       "message": "not sure, false?",
+      "range": {
+        "startLine": 98,
+        "startChar": 48,
+        "endLine": 98,
+        "endChar": 52
+      },
+      "revId": "13b34d007c0bd56bbc2364b47e61ba44068c4ab3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_a09e8d54",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/TopologyApiService.scala",
+        "patchSetId": 25
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-05T16:10:48Z",
+      "side": 1,
+      "message": "Maybe. Heartbeat is false, c3po has no default... let\u0027s go for false",
+      "parentUuid": "7a1969be_bbec0ac9",
       "range": {
         "startLine": 98,
         "startChar": 48,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_20aa9d70",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/TopologyApiService.scala",
+        "patchSetId": 25
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-05T16:10:48Z",
+      "side": 1,
+      "message": "Right now, MN can live without a Topology API service, so I guess it makes sense to set the default to false. In the future, maybe we will need some mechanism to guarantee that there is at least one API service started...",
+      "parentUuid": "7a1969be_fbcde25e",
+      "range": {
+        "startLine": 106,
+        "startChar": 55,
+        "endLine": 106,
+        "endChar": 59
+      },
+      "revId": "13b34d007c0bd56bbc2364b47e61ba44068c4ab3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_5bdb561b",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/TopologyApiService.scala",
         "patchSetId": 25
@@ -82,6 +154,30 @@
       "writtenOn": "2015-02-04T12:34:04Z",
       "side": 1,
       "message": "ditto",
+      "range": {
+        "startLine": 114,
+        "startChar": 51,
+        "endLine": 114,
+        "endChar": 55
+      },
+      "revId": "13b34d007c0bd56bbc2364b47e61ba44068c4ab3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_80b6f1da",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/TopologyApiService.scala",
+        "patchSetId": 25
+      },
+      "lineNbr": 114,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-05T16:10:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_5bdb561b",
       "range": {
         "startLine": 114,
         "startChar": 51,
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_20c1fd2e",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/TopologyApiService.scala",
+        "patchSetId": 25
+      },
+      "lineNbr": 138,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-05T16:10:48Z",
+      "side": 1,
+      "message": "It is set to this value to facilitate testing through midocloud firewalling rules. Anyway this service is intended to replace the REST API, so I think it\u0027s fine to leave like this (btw, 8081 is already taken by some other service in MidoStack)\n\nOn the other hand, a webish port as 8088 is probably not a good choice for the plain socket interface, neither...",
+      "parentUuid": "7a1969be_7b09f294",
+      "range": {
+        "startLine": 138,
+        "startChar": 32,
+        "endLine": 138,
+        "endChar": 36
+      },
+      "revId": "13b34d007c0bd56bbc2364b47e61ba44068c4ab3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_5b9356fa",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/Aggregator.scala",
         "patchSetId": 25
@@ -128,6 +248,30 @@
       "writtenOn": "2015-02-04T12:34:04Z",
       "side": 1,
       "message": "How\u0027s this differnet to Observable.merge(Observable[Observable[]] ?",
+      "range": {
+        "startLine": 42,
+        "startChar": 6,
+        "endLine": 42,
+        "endChar": 16
+      },
+      "revId": "13b34d007c0bd56bbc2364b47e61ba44068c4ab3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_40db591b",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/Aggregator.scala",
+        "patchSetId": 25
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-05T16:10:48Z",
+      "side": 1,
+      "message": "This one has some additional error management code (to be able to deal with sub-observable errors and completions), and also keeps track of what each sub-observable relates to, to avoid duplication. Additionally, it also allows injecting individual values into the stream (needed for protocol ack/nack handling).",
+      "parentUuid": "7a1969be_5b9356fa",
       "range": {
         "startLine": 42,
         "startChar": 6,
@@ -163,6 +307,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_c0fe296b",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/ServerState.scala",
+        "patchSetId": 25
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-05T16:10:48Z",
+      "side": 1,
+      "message": "Yes it is... I\u0027ll update the comment (though it will feel like removing part of the History :-)",
+      "parentUuid": "7a1969be_bb036a72",
+      "range": {
+        "startLine": 33,
+        "startChar": 50,
+        "endLine": 33,
+        "endChar": 59
+      },
+      "revId": "13b34d007c0bd56bbc2364b47e61ba44068c4ab3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_1bf8be7b",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/ServerState.scala",
         "patchSetId": 25
@@ -174,6 +342,30 @@
       "writtenOn": "2015-02-04T12:34:04Z",
       "side": 1,
       "message": "nit: spurious line",
+      "range": {
+        "startLine": 65,
+        "startChar": 0,
+        "endLine": 65,
+        "endChar": 0
+      },
+      "revId": "13b34d007c0bd56bbc2364b47e61ba44068c4ab3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_a03a0d34",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/ServerState.scala",
+        "patchSetId": 25
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-05T16:10:48Z",
+      "side": 1,
+      "message": "Removed",
+      "parentUuid": "7a1969be_1bf8be7b",
       "range": {
         "startLine": 65,
         "startChar": 0,
@@ -203,6 +395,24 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_003fa126",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/ServerState.scala",
+        "patchSetId": 25
+      },
+      "lineNbr": 154,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-05T16:10:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_7b30d256",
+      "revId": "13b34d007c0bd56bbc2364b47e61ba44068c4ab3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_dbfe266b",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/Session.scala",
         "patchSetId": 25
@@ -214,6 +424,30 @@
       "writtenOn": "2015-02-04T12:34:04Z",
       "side": 1,
       "message": "I missed when this went into the protobuf but, why not have the ID in the request always be a String?",
+      "range": {
+        "startLine": 33,
+        "startChar": 7,
+        "endLine": 33,
+        "endChar": 9
+      },
+      "revId": "13b34d007c0bd56bbc2364b47e61ba44068c4ab3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_2003bd10",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/Session.scala",
+        "patchSetId": 25
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-05T16:10:48Z",
+      "side": 1,
+      "message": "I see pros and cons to that:\nPros:\n- the code would be much less cumbersome\n\nCons:\n- There will be 2 different representations for the same id in the protobuf model: the internal id from most of the update objects will be an UUID, while the request will be a string. This can be confusing...\n\nI would prefer going for an alternative solution: unifying all ids to UUID type; currently, only Vteps have string (ip address) ids, so changing that should be feasible (how to map ip address to uuid should be discussed).\n\nThe alternative to storing all ids as strings is also a possibility, but that would mean changing all ids in the model (and it would possibly make more difficult some sanity checks)\n\nIn any case, that would alter the protocol api, so I would delay it to the next patch (we have already \u0027users\u0027 using this version, and it would be good discussing it with them). What do you think?",
+      "parentUuid": "7a1969be_dbfe266b",
       "range": {
         "startLine": 33,
         "startChar": 7,
@@ -249,6 +483,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_aa04ab15",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/SessionInventory.scala",
+        "patchSetId": 25
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-05T16:10:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_bb3a4a34",
+      "range": {
+        "startLine": 92,
+        "startChar": 39,
+        "endLine": 92,
+        "endChar": 48
+      },
+      "revId": "13b34d007c0bd56bbc2364b47e61ba44068c4ab3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_1b3f1e27",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/SessionInventory.scala",
         "patchSetId": 25
@@ -260,6 +518,30 @@
       "writtenOn": "2015-02-04T12:34:04Z",
       "side": 1,
       "message": "where is this defined? couldn\u0027t we give it a constructor to take an id and do the fromProto by itself?",
+      "range": {
+        "startLine": 94,
+        "startChar": 25,
+        "endLine": 94,
+        "endChar": 29
+      },
+      "revId": "13b34d007c0bd56bbc2364b47e61ba44068c4ab3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_8a1d6f69",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/SessionInventory.scala",
+        "patchSetId": 25
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-05T16:10:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_1b3f1e27",
       "range": {
         "startLine": 94,
         "startChar": 25,
@@ -318,6 +600,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_ca5e47e9",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/SessionInventory.scala",
+        "patchSetId": 25
+      },
+      "lineNbr": 152,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-05T16:10:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_9bc78e12",
+      "range": {
+        "startLine": 152,
+        "startChar": 33,
+        "endLine": 152,
+        "endChar": 34
+      },
+      "revId": "13b34d007c0bd56bbc2364b47e61ba44068c4ab3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_7bcc5236",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/SessionInventory.scala",
         "patchSetId": 25
@@ -341,6 +647,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_4a209749",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/SessionInventory.scala",
+        "patchSetId": 25
+      },
+      "lineNbr": 165,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-05T16:10:48Z",
+      "side": 1,
+      "message": "Well, I saw it as a wrapper around the original observable, but maybe StorageEventConverter is more appropriate...\n\nChanging it.",
+      "parentUuid": "7a1969be_7bcc5236",
+      "range": {
+        "startLine": 165,
+        "startChar": 34,
+        "endLine": 165,
+        "endChar": 48
+      },
+      "revId": "13b34d007c0bd56bbc2364b47e61ba44068c4ab3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_dbd106cf",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/SessionInventory.scala",
         "patchSetId": 25
@@ -352,6 +682,30 @@
       "writtenOn": "2015-02-04T12:34:04Z",
       "side": 1,
       "message": "extractId?",
+      "range": {
+        "startLine": 197,
+        "startChar": 22,
+        "endLine": 197,
+        "endChar": 33
+      },
+      "revId": "13b34d007c0bd56bbc2364b47e61ba44068c4ab3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_2acb9b73",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/SessionInventory.scala",
+        "patchSetId": 25
+      },
+      "lineNbr": 197,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-05T16:10:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_dbd106cf",
       "range": {
         "startLine": 197,
         "startChar": 22,
@@ -410,6 +764,54 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_8ac8cf75",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/SessionInventory.scala",
+        "patchSetId": 25
+      },
+      "lineNbr": 208,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-05T16:10:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_bbd6cac3",
+      "range": {
+        "startLine": 208,
+        "startChar": 19,
+        "endLine": 208,
+        "endChar": 22
+      },
+      "revId": "13b34d007c0bd56bbc2364b47e61ba44068c4ab3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_6ac5935a",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/SessionInventory.scala",
+        "patchSetId": 25
+      },
+      "lineNbr": 208,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-05T16:10:48Z",
+      "side": 1,
+      "message": "MsgSequencer looks cooler :-p\nBut buffer is also ok",
+      "parentUuid": "7a1969be_fbd7a2bd",
+      "range": {
+        "startLine": 208,
+        "startChar": 6,
+        "endLine": 208,
+        "endChar": 18
+      },
+      "revId": "13b34d007c0bd56bbc2364b47e61ba44068c4ab3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_1b027e3e",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/SessionInventory.scala",
         "patchSetId": 25
@@ -444,6 +846,30 @@
       "writtenOn": "2015-02-04T12:34:04Z",
       "side": 1,
       "message": "nit: can be removed",
+      "range": {
+        "startLine": 225,
+        "startChar": 33,
+        "endLine": 225,
+        "endChar": 35
+      },
+      "revId": "13b34d007c0bd56bbc2364b47e61ba44068c4ab3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_2a927b57",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/SessionInventory.scala",
+        "patchSetId": 25
+      },
+      "lineNbr": 225,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-05T16:10:48Z",
+      "side": 1,
+      "message": "But it has secondary effects... isn\u0027t this against scala idioms?",
+      "parentUuid": "7a1969be_5be516a7",
       "range": {
         "startLine": 225,
         "startChar": 33,
@@ -525,6 +951,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_0a833f05",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/SessionInventory.scala",
+        "patchSetId": 25
+      },
+      "lineNbr": 413,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-05T16:10:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_bb888ae8",
+      "range": {
+        "startLine": 413,
+        "startChar": 14,
+        "endLine": 413,
+        "endChar": 39
+      },
+      "revId": "13b34d007c0bd56bbc2364b47e61ba44068c4ab3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_1b6d5e33",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/SessionInventory.scala",
         "patchSetId": 25
@@ -536,6 +986,24 @@
       "writtenOn": "2015-02-04T12:34:04Z",
       "side": 1,
       "message": "needed? do we actually need to have terminate() and destroy() separate?\n\nMaybe moving the message simplifies this.",
+      "revId": "13b34d007c0bd56bbc2364b47e61ba44068c4ab3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_8a760f3d",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/SessionInventory.scala",
+        "patchSetId": 25
+      },
+      "lineNbr": 428,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-05T16:10:48Z",
+      "side": 1,
+      "message": "Yes, all functionality was moved to destroy, so there is no need to keep them separate. Changing it.",
+      "parentUuid": "7a1969be_1b6d5e33",
       "revId": "13b34d007c0bd56bbc2364b47e61ba44068c4ab3",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -559,6 +1027,24 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_8aad6f8b",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/SessionInventory.scala",
+        "patchSetId": 25
+      },
+      "lineNbr": 434,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-05T16:10:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_5b77d602",
+      "revId": "13b34d007c0bd56bbc2364b47e61ba44068c4ab3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_db5aa682",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/SessionInventory.scala",
         "patchSetId": 25
@@ -570,6 +1056,30 @@
       "writtenOn": "2015-02-04T12:34:04Z",
       "side": 1,
       "message": "ditto",
+      "range": {
+        "startLine": 457,
+        "startChar": 12,
+        "endLine": 457,
+        "endChar": 21
+      },
+      "revId": "13b34d007c0bd56bbc2364b47e61ba44068c4ab3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_6aaab371",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/SessionInventory.scala",
+        "patchSetId": 25
+      },
+      "lineNbr": 457,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-05T16:10:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_db5aa682",
       "range": {
         "startLine": 457,
         "startChar": 12,
