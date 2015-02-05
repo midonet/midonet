@@ -21,7 +21,7 @@ import org.apache.curator.framework.CuratorFramework
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.config.ZookeeperConfig
-import org.midonet.cluster.data.storage.FieldBinding.DeleteAction.{CLEAR, ERROR}
+import org.midonet.cluster.data.storage.FieldBinding.DeleteAction._
 import org.midonet.cluster.data.storage.{OwnershipType, StorageWithOwnership, Storage, ZookeeperObjectMapper}
 import org.midonet.cluster.models.C3PO.C3POState
 import org.midonet.cluster.models.Neutron._
@@ -75,8 +75,17 @@ abstract class MidonetBackend extends AbstractService {
                              classOf[Port], "network_id", CLEAR)
         store.declareBinding(classOf[Network], "dhcp_ids", ERROR,
                              classOf[Dhcp], "network_id", CLEAR)
+
+        store.declareBinding(classOf[Port], "peer_id", CLEAR,
+                             classOf[Port], "peer_id", CLEAR)
+        store.declareBinding(classOf[Port], "route_ids", CASCADE,
+                             classOf[Route], "next_hop_port_id", CLEAR)
+
         store.declareBinding(classOf[Router], "port_ids", ERROR,
                              classOf[Port], "router_id", CLEAR)
+        store.declareBinding(classOf[Router], "route_ids", CASCADE,
+                             classOf[Route], "router_id", CLEAR)
+
         store.declareBinding(classOf[Host], "tunnel_zone_ids", CLEAR,
                              classOf[TunnelZone], "host_ids", CLEAR)
         store.build()

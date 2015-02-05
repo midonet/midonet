@@ -16,28 +16,92 @@
 
 package org.midonet.brain.services.c3po.translators
 
-import org.midonet.cluster.models.Commons.{IPAddress, UUID, IPVersion, IPSubnet}
-import org.midonet.cluster.models.Neutron.NeutronPort
+import org.midonet.brain.services.c3po.midonet.Update
+import org.midonet.cluster.data.storage.ReadOnlyStorage
+import org.midonet.cluster.models.Commons.{IPAddress, IPSubnet, IPVersion, UUID}
 import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner
-import org.midonet.cluster.models.Topology.Port
-import org.midonet.cluster.util.UUIDUtil
+import org.midonet.cluster.models.Neutron.NeutronPortOrBuilder
+import org.midonet.cluster.models.Topology.{Port, PortOrBuilder}
 import org.midonet.packets.MAC
 
 /**
  * Contains port-related operations shared by multiple translator classes.
  */
-trait PortManager {
+trait PortManager extends RouteManager {
+    import org.midonet.brain.services.c3po.translators.PortManager._
 
-    protected def isVifPort(nPort: NeutronPort) =
+    protected val storage: ReadOnlyStorage
+
+    protected def newTenantRouterGWPort(id: UUID,
+                                        routerId: UUID,
+                                        gwIpAddr: IPAddress,
+                                        mac: Option[String] = None,
+                                        adminStateUp: Boolean = true): Port = {
+        Port.newBuilder()
+            .setId(id)
+            .setRouterId(routerId)
+            .setPortSubnet(LL_CIDR)
+            .setPortAddress(gwIpAddr)
+            .setPortMac(mac.getOrElse(MAC.random().toString))
+            .setAdminStateUp(adminStateUp).build()
+    }
+
+    protected def newProviderRouterGwPortBldr(id: UUID): Port.Builder = {
+        Port.newBuilder()
+            .setId(id)
+            .setRouterId(RouterTranslator.providerRouterId)
+            .setPortSubnet(LL_CIDR)
+            .setPortAddress(LL_GW_IP_1)
+            .setAdminStateUp(true)
+    }
+
+    private def checkNoPeerId(port: PortOrBuilder): Unit = {
+        if (port.hasPeerId)
+            throw new IllegalStateException(
+                s"Port ${port.getId} already connected to ${port.getPeerId}.")
+    }
+
+    /**
+     * Modifies port to set its peerId to peer's ID, and returns list of
+     * operations for creating appropriate routes on the ports, as well as an
+     * operation to set port's peerId.
+     *
+     * Does not set peer's peerId. Storage engine is assumed to handle this.
+     */
+    protected def linkPortOps(port: Port, peer: PortOrBuilder)
+    : MidoOpList = {
+        checkNoPeerId(port)
+        checkNoPeerId(peer)
+
+        val ops = new MidoOpListBuffer
+
+        val portBldr = Port.newBuilder(port)
+        portBldr.setPeerId(peer.getId)
+        ops += Update(portBldr.build(), PortUpdateValidator)
+
+        // For router ports,
+        if (port.hasRouterId)
+            ops ++= addLocalRouteToRouter(port)
+
+        if (peer.hasRouterId)
+            ops ++= addLocalRouteToRouter(peer)
+
+        ops.toList
+    }
+}
+
+object PortManager {
+    def isVifPort(nPort: NeutronPortOrBuilder) =
         !nPort.hasDeviceOwner || nPort.getDeviceOwner == DeviceOwner.NOVA
-    protected def isDhcpPort(nPort: NeutronPort) =
+    def isDhcpPort(nPort: NeutronPortOrBuilder) =
         nPort.hasDeviceOwner && nPort.getDeviceOwner == DeviceOwner.DHCP
-    protected def isFloatingIpPort(nPort: NeutronPort) =
+    def isFloatingIpPort(nPort: NeutronPortOrBuilder) =
         nPort.hasDeviceOwner && nPort.getDeviceOwner == DeviceOwner.FLOATINGIP
-    protected def isRouterInterfacePort(nPort: NeutronPort) =
+    def isRouterInterfacePort(nPort: NeutronPortOrBuilder) =
         nPort.hasDeviceOwner && nPort.getDeviceOwner == DeviceOwner.ROUTER_INTERFACE
-    protected def isRouterGatewayPort(nPort: NeutronPort) =
+    def isRouterGatewayPort(nPort: NeutronPortOrBuilder) =
         nPort.hasDeviceOwner && nPort.getDeviceOwner == DeviceOwner.ROUTER_GATEWAY
+
 
     /** Link-local CIDR */
     val LL_CIDR = IPSubnet.newBuilder()
@@ -45,18 +109,8 @@ trait PortManager {
                   .setPrefixLength(30)
                   .setVersion(IPVersion.V4).build()
 
-    def newRouterGwPort(routerId: UUID,
-                        gwIpAddr: IPAddress,
-                        id: Option[UUID] = None,
-                        mac: Option[String] = None,
-                        adminStateUp: Boolean = true): Port = {
-        Port.newBuilder()
-            .setId(id.getOrElse(UUIDUtil.randomUuidProto))
-            .setRouterId(routerId)
-            .setPortSubnet(LL_CIDR)
-            .setPortAddress(gwIpAddr)
-            .setPortMac(mac.getOrElse(MAC.random().toString))
-            .setAdminStateUp(adminStateUp)
-            .build()
-    }
+    /** Link-local gateway IP */
+    val LL_GW_IP_1 = IPAddress.newBuilder()
+                     .setAddress("169.254.255.1")
+                     .setVersion(IPVersion.V4).build()
 }
