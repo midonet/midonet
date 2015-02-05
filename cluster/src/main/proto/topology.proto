@@ -91,8 +91,7 @@ message Router {
     optional UUID inbound_filter_id = 5;
     optional UUID outbound_filter_id = 6;
     optional UUID load_balancer_id = 7;
-    optional UUID gw_port_id = 8;
-    repeated Route routes = 9;
+    repeated UUID route_ids = 8;
 
     // Backreferences
     repeated UUID port_ids = 101;
@@ -120,9 +119,10 @@ message Port {
     optional IPSubnet port_subnet = 14;
     optional IPAddress port_address = 15;
     optional string port_mac = 16;
+    repeated UUID route_ids = 17;
 
     // VXLAN port specific
-    optional UUID vtep_id = 17;
+    optional UUID vtep_id = 18;
 
     // Backreferences
     repeated UUID rule_ids = 101;
@@ -264,8 +264,12 @@ message Rule {
     }
     message NatRuleData {
         repeated NatTarget nat_targets = 1;
+
         // True if it's a destination NAT rule, otherwise it's a source NAT rule.
         optional bool dnat = 2;
+
+        // True for reverse NAT rules. Reverse NAT rules have no targets.
+        optional bool reverse = 3;
     }
     oneof rule_data {
         JumpRuleData jump_rule_data = 100;

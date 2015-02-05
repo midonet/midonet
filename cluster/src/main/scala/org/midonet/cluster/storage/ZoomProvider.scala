@@ -19,7 +19,7 @@ import com.google.inject.{Inject, Provider}
 import org.apache.curator.framework.CuratorFramework
 
 import org.midonet.cluster.config.ZookeeperConfig
-import org.midonet.cluster.data.storage.FieldBinding.DeleteAction.{CLEAR, ERROR}
+import org.midonet.cluster.data.storage.FieldBinding.DeleteAction.{CASCADE, CLEAR, ERROR}
 import org.midonet.cluster.data.storage.{Storage, ZookeeperObjectMapper}
 import org.midonet.cluster.models.C3PO.C3POState
 import org.midonet.cluster.models.Neutron._
@@ -61,14 +61,27 @@ class ZoomProvider @Inject()(val curator: CuratorFramework, cfg: ZookeeperConfig
              classOf[Vtep],
              classOf[VtepBinding]
         ).foreach(storage.registerClass)
-        storage.declareBinding(classOf[Network], "port_ids", ERROR,
-                               classOf[Port], "network_id", CLEAR)
-        storage.declareBinding(classOf[Network], "dhcp_ids", ERROR,
-                               classOf[Dhcp], "network_id", CLEAR)
+
         // Note: the below does not delete a HostToIp mapping under TunnelZone
         // upon deletion of a Host, which still needs to be done manually.
         storage.declareBinding(classOf[Host], "tunnel_zone_ids", CLEAR,
                                classOf[TunnelZone], "host_ids", CLEAR)
+
+        storage.declareBinding(classOf[Network], "port_ids", ERROR,
+                               classOf[Port], "network_id", CLEAR)
+        storage.declareBinding(classOf[Network], "dhcp_ids", ERROR,
+                               classOf[Dhcp], "network_id", CLEAR)
+
+        storage.declareBinding(classOf[Port], "peer_id", CLEAR,
+                               classOf[Port], "peer_id", CLEAR)
+        storage.declareBinding(classOf[Port], "route_ids", CASCADE,
+                               classOf[Route], "next_hop_port_id", CLEAR)
+
+        storage.declareBinding(classOf[Router], "port_ids", ERROR,
+                               classOf[Port], "router_id", CLEAR)
+        storage.declareBinding(classOf[Router], "route_ids", CASCADE,
+                               classOf[Route], "router_id", CLEAR)
+
         storage.build()
         storage
     }
