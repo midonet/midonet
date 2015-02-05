@@ -67,6 +67,8 @@ sealed trait Port extends ZoomObject with Device {
 
     def deviceId: UUID
     override def deviceTag = _deviceTag
+    val txTag = FlowTagger.tagForPortTx(this.id)
+    val rxTag = FlowTagger.tagForPortRx(this.id)
 }
 
 /** Logical port connected to a peer vtep gateway. This subtype holds the

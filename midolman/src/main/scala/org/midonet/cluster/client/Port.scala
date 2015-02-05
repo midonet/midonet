@@ -36,6 +36,8 @@ sealed trait Port extends Cloneable {
     var peerID: UUID = _
     var vlanId: Short = _
     var deviceTag: FlowTag = _
+    var txTag: FlowTag = _
+    var rxTag: FlowTag = _
     var active = false
 
     def isExterior: Boolean = this.hostID != null && this.interfaceName != null
@@ -98,6 +100,8 @@ sealed trait Port extends Cloneable {
     def setID(id: UUID): this.type = {
         this.id = id
         deviceTag = FlowTagger.tagForDevice(id)
+        txTag = FlowTagger.tagForPortTx(this.id)
+        rxTag = FlowTagger.tagForPortRx(this.id)
         this
     }
 
