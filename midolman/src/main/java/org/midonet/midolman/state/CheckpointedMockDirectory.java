@@ -35,9 +35,6 @@ import org.slf4j.LoggerFactory;
 public class CheckpointedMockDirectory extends MockDirectory
         implements CheckpointedDirectory {
 
-    private final static Logger log = LoggerFactory.getLogger(
-        MockDirectory.class);
-
     private class Checkpoint {
         private Node root;
         private String path;

@@ -19,13 +19,13 @@ import java.util.UUID
 import javax.inject.Named
 
 import com.google.inject.Inject
+import org.slf4j.{Logger, LoggerFactory}
+
 import org.midonet.cluster.client.{BridgeBuilder, IpMacMap, MacLearningTable}
-import org.midonet.midolman.guice.zookeeper.ZkConnectionProvider
 import org.midonet.midolman.state._
 import org.midonet.packets.{IPv4Addr, MAC}
 import org.midonet.util.eventloop.Reactor
 import org.midonet.util.functors.Callback3
-import org.slf4j.{Logger, LoggerFactory}
 
 /**
   * This class constructs various state objects owned by the bridge and feeds
