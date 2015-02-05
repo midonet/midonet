@@ -18,33 +18,31 @@ package org.midonet.brain.services.topology.server
 
 
 import java.util.UUID
-import java.util.concurrent.atomic.{AtomicInteger, AtomicBoolean, AtomicReference}
-import java.util.concurrent.{Future => JavaFuture, Callable, TimeUnit, ConcurrentHashMap, ExecutorService}
-import java.util.concurrent.Executors.newSingleThreadExecutor
-import java.util.concurrent.Executors.newSingleThreadScheduledExecutor
+import java.util.concurrent.Executors.{newSingleThreadExecutor, newSingleThreadScheduledExecutor}
+import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger, AtomicReference}
+import java.util.concurrent.{Callable, ConcurrentHashMap, ExecutorService, Future => JavaFuture, TimeUnit}
 
 import scala.collection.JavaConversions._
 import scala.concurrent.duration.Duration
-import scala.concurrent.{TimeoutException, Await, Promise, ExecutionContext}
-import scala.util.{Success, Failure}
+import scala.concurrent.{Await, ExecutionContext, Promise, TimeoutException}
+import scala.util.{Failure, Success}
 
 import com.google.protobuf.Message
 import org.slf4j.LoggerFactory
 import rx.Observable.OnSubscribe
 import rx.schedulers.Schedulers
 import rx.subscriptions.BooleanSubscription
-import rx.{Subscription, Observer, Observable, Subscriber}
+import rx.{Observable, Observer, Subscriber, Subscription}
 
 import org.midonet.cluster.data.storage.{NotFoundException, Storage}
 import org.midonet.cluster.models.Commons
 import org.midonet.cluster.models.Topology._
-import org.midonet.cluster.rpc.Commands.ResponseType
-import org.midonet.cluster.rpc.Commands.Response
-import org.midonet.cluster.rpc.Commands.Response.{Snapshot, Update, Info, Redirect}
+import org.midonet.cluster.rpc.Commands.Response.{Info, Redirect, Snapshot, Update}
+import org.midonet.cluster.rpc.Commands.{Response, ResponseType}
 import org.midonet.cluster.services.topology.common.TopologyMappings.typeOf
 import org.midonet.cluster.util.UUIDUtil.{fromProto, toProto}
-import org.midonet.util.concurrent.{NamedThreadFactory, BlockingSpscRwdRingBuffer}
 import org.midonet.util.concurrent.SpscRwdRingBuffer.SequencedItem
+import org.midonet.util.concurrent.{BlockingSpscRwdRingBuffer, NamedThreadFactory}
 import org.midonet.util.executors.SameThreadExecutor
 import org.midonet.util.functors.{makeAction0, makeFunc1}
 import org.midonet.util.reactivex.HermitObservable.HermitOversubscribedException
@@ -219,7 +217,7 @@ protected class StorageTransformer(val reqId: UUID)
     class StorageEventConverter(val observer: Observer[Response.Builder],
                                 val reqId: UUID)
         extends Observer[Message] {
-        import SessionInventory._
+        import org.midonet.brain.services.topology.server.SessionInventory._
 
         private var oId: ObservableId = null
 
@@ -355,7 +353,7 @@ class SessionInventory(private val store: Storage,
 
     private def makeSession(sessionId: UUID): Session = new Session {
 
-        import SessionInventory._
+        import org.midonet.brain.services.topology.server.SessionInventory._
 
         private val senderExecutor = newSingleThreadExecutor(
             new NamedThreadFactory("topology-session-sender"))
