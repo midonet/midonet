@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_ea92269e",
+        "filename": "tools/devmido/midostack.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1002749
+      },
+      "writtenOn": "2015-02-05T08:27:45Z",
+      "side": 1,
+      "message": "Check out the variables I used to configure the plugin, based on our conversation:\n\nhttps://github.com/jdevesa/devstack/blob/midonet_integration/lib/neutron_plugins/midonet#L64",
+      "revId": "58bc692cfdfb273a6ec128c9772c2a29c548d2e6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
