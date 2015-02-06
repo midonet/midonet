@@ -27,6 +27,7 @@ reset() {
     BR_A_ID=
     BR_B_ID=
     RT_ID=
+    CHAIN_ID=
     LEFTPORT_A=
     RIGHTPORT_A=
     LEFTPORT_B=
@@ -92,6 +93,12 @@ setup_topology() {
     echo "creating router"
     RT_ID=`midonet-cli -A -e router create name perftest-router`
 
+    echo "creating chain"
+    CHAIN_ID=`midonet-cli -A -e chain create name perftest-chain`
+    midonet-cli -A -e chain $CHAIN_ID add rule src-port 0-65535 \
+        dst-port 0-65535 type accept
+    midonet-cli -A -e router $RT_ID set infilter $CHAIN_ID
+
     echo "creating ports in bridge A"
     LEFTPORT_A=`midonet-cli -A -e bridge $BR_A_ID create port`
     RIGHTPORT_A=`midonet-cli -A -e bridge $BR_A_ID create port`
@@ -128,6 +135,7 @@ setup_topology() {
     echo "bridge A: $BR_A_ID"
     echo "bridge B: $BR_B_ID"
     echo "router: $RT_ID"
+    echo "chain: $CHAIN_ID"
     echo "host: $HOST_ID"
 
     ip netns exec $TOPOLOGY_SOURCE_NETNS ip route add default via $RT_SOURCE_HOST
@@ -153,6 +161,7 @@ tear_down_topology() {
     midonet-cli -A -e router $RT_ID delete port $LEFTPORT_RT
     midonet-cli -A -e router $RT_ID delete port $RIGHTPORT_RT
     midonet-cli -A -e router $RT_ID delete
+    midonet-cli -A -e chain $CHAIN_ID delete
     reset
     print_topology
 }
