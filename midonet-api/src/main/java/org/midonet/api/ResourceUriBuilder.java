@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -79,6 +79,7 @@ public class ResourceUriBuilder {
     public static final String TENANT_ID_PARAM = "tenant_id";
     public static final String LICENSES = "/licenses";
     public static final String LICENSE_STATUS = "/licenses/status";
+    public static final String TRACE_REQUESTS = "/traces";
 
     private ResourceUriBuilder() {
     }
@@ -698,6 +699,16 @@ public class ResourceUriBuilder {
      */
     public static URI getHostVersions(URI baseUri) {
         return UriBuilder.fromUri(getRoot(baseUri)).path(VERSIONS).build();
+    }
+
+    public static URI getTraceRequests(URI baseUri) {
+        return UriBuilder.fromUri(getRoot(baseUri))
+            .path(TRACE_REQUESTS).build();
+    }
+
+    public static URI getTraceRequest(URI baseUri, UUID traceRequestId) {
+        return UriBuilder.fromUri(getTraceRequests(baseUri))
+            .path(traceRequestId.toString()).build();
     }
 
     public static URI getHealthMonitors(URI baseUri) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -459,6 +459,14 @@ public class Application extends UriResource {
     public URI getHostVersions() {
         if (getBaseUri() != null) {
             return ResourceUriBuilder.getHostVersions(getBaseUri());
+        } else {
+            return null;
+        }
+    }
+
+    public URI getTraceRequests() {
+        if (getBaseUri() != null) {
+            return ResourceUriBuilder.getTraceRequests(getBaseUri());
         } else {
             return null;
         }

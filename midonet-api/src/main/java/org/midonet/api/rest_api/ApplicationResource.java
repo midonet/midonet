@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,6 +49,7 @@ import org.midonet.api.network.rest_api.RouterResource;
 import org.midonet.api.network.rest_api.VtepResource;
 import org.midonet.api.system_data.rest_api.HostVersionResource;
 import org.midonet.api.system_data.rest_api.SystemStateResource;
+import org.midonet.api.system_data.rest_api.TraceRequestResource;
 import org.midonet.api.system_data.rest_api.WriteVersionResource;
 import org.midonet.api.version.Version;
 import org.slf4j.Logger;
@@ -228,6 +229,16 @@ public class ApplicationResource extends AbstractResource {
     @Path(ResourceUriBuilder.SYSTEM_STATE)
     public SystemStateResource getSystemStateResource() {
         return factory.getSystemStateResource();
+    }
+
+    /**
+     * Trace request resource locator
+     *
+     * @return TraceRequestResource to handle changes to trace requests.
+     */
+    @Path(ResourceUriBuilder.TRACE_REQUESTS)
+    public TraceRequestResource getTraceRequestResource() {
+        return factory.getTraceRequestResource();
     }
 
     /**
