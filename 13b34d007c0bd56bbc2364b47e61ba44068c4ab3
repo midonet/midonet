@@ -577,6 +577,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_3e3e3db9",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/SessionInventory.scala",
+        "patchSetId": 25
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-06T14:43:28Z",
+      "side": 1,
+      "message": "Changed to single-thread per session and named as suggested.",
+      "parentUuid": "7a1969be_fb3b2236",
+      "range": {
+        "startLine": 119,
+        "startChar": 36,
+        "endLine": 119,
+        "endChar": 55
+      },
+      "revId": "13b34d007c0bd56bbc2364b47e61ba44068c4ab3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_9bc78e12",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/SessionInventory.scala",
         "patchSetId": 25
@@ -835,6 +859,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_fe0e6533",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/SessionInventory.scala",
+        "patchSetId": 25
+      },
+      "lineNbr": 218,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-06T14:43:28Z",
+      "side": 1,
+      "message": "The main goal was ensuring that the consumer thread was awaken if there was work to do. This need was removed by making the ring buffer blocking, so, this part of the code has been removed.",
+      "parentUuid": "7a1969be_1b027e3e",
+      "range": {
+        "startLine": 218,
+        "startChar": 0,
+        "endLine": 218,
+        "endChar": 30
+      },
+      "revId": "13b34d007c0bd56bbc2364b47e61ba44068c4ab3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_5be516a7",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/SessionInventory.scala",
         "patchSetId": 25
@@ -905,6 +953,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_5e13395c",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/SessionInventory.scala",
+        "patchSetId": 25
+      },
+      "lineNbr": 233,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-06T14:43:28Z",
+      "side": 1,
+      "message": "Done. Now it uses a blocking subclass of the ring buffer.",
+      "parentUuid": "7a1969be_7b9a9215",
+      "range": {
+        "startLine": 233,
+        "startChar": 21,
+        "endLine": 233,
+        "endChar": 29
+      },
+      "revId": "13b34d007c0bd56bbc2364b47e61ba44068c4ab3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_1bdb9eee",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/SessionInventory.scala",
         "patchSetId": 25
@@ -916,6 +988,30 @@
       "writtenOn": "2015-02-04T12:34:04Z",
       "side": 1,
       "message": "As this is now, you should get off the ZOOM thread before doing this or otherwise you\u0027re blocking it. But anyway, I think you can remove the whole locking (See above)",
+      "range": {
+        "startLine": 352,
+        "startChar": 28,
+        "endLine": 352,
+        "endChar": 37
+      },
+      "revId": "13b34d007c0bd56bbc2364b47e61ba44068c4ab3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_fe5ca527",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/SessionInventory.scala",
+        "patchSetId": 25
+      },
+      "lineNbr": 352,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-06T14:43:28Z",
+      "side": 1,
+      "message": "Created a single executor thread per session and subscribing on it (the blocking above has been removed, but there is still some chances of blocking behind the scenes)",
+      "parentUuid": "7a1969be_1bdb9eee",
       "range": {
         "startLine": 352,
         "startChar": 28,
