@@ -236,4 +236,9 @@ public class VendorMediaType {
             "application/vnd.org.midonet.IpAddrGroupAddr-v1+json";
     public static final String APPLICATION_IP_ADDR_GROUP_ADDR_COLLECTION_JSON =
             "application/vnd.org.midonet.collection.IpAddrGroupAddr-v1+json";
+
+    public static final String APPLICATION_TRACE_REQUEST_JSON =
+            "application/vnd.org.midonet.TraceRequest-v1+json";
+    public static final String APPLICATION_TRACE_REQUEST_COLLECTION_JSON =
+            "application/vnd.org.midonet.collection.TraceRequest-v1+json";
 }
