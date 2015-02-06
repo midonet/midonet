@@ -89,7 +89,6 @@ object MidolmanMetricCatalog {
     val BASE = "metrics:name=org.midonet.midolman.monitoring.metrics"
 
     val DP_FLOWS_GAUGE = s"$BASE.FlowTablesGauge.currentDatapathFlows"
-    val WILDCARD_FLOWS_GAUGE = s"$BASE.FlowTablesGauge.currentWildcardFlows"
 
     val SIM_TIME = s"$BASE.PacketPipelineAccumulatedTime.simulationAccumulatedTime"
     val SIM_LATENCY = s"$BASE.PacketPipelineHistogram.simulationLatency"
@@ -104,7 +103,6 @@ object MidolmanMetricCatalog {
 
     class AllMetrics(val mbsc: MBeanServerConnection) {
         val dpFlowsGauge = new Gauge(mbsc, DP_FLOWS_GAUGE)
-        val wFlowsGauge = new Gauge(mbsc, WILDCARD_FLOWS_GAUGE)
         val latency = new Histogram(mbsc, SIM_LATENCY)
         val packets = new Meter(mbsc, SIM_PACKETS)
         val gc = new GC(mbsc)
@@ -126,12 +124,9 @@ object MidolmanMetricCatalog {
             List(new StatColumn("50th", 7, latency.get50th, 1000),
                  new StatColumn("75th", 7, latency.get75th, 1000),
                  new StatColumn("95th", 7, latency.get95th, 1000)))
-        val flowTables = new ColumnGroup("flow tables",
-            List(new StatColumn("dpflows", 7, dpFlowsGauge.get),
-                 new StatColumn("wflows", 7, wFlowsGauge.get)))
 
         val columns = List(
-            flowTables,
+            new StatColumn("dpflows", 7, dpFlowsGauge.get),
             latencies,
             new StatColumn("packets", 7, packets.countDelta),
             new StatColumn("gc time", 8, gc.getDelta),

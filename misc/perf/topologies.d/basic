@@ -19,6 +19,7 @@ TOPOLOGY_DEST_HOST="10.25.25.2"
 TOPOLOGY_SOURCE_NET="10.25.25.1/24"
 TOPOLOGY_DEST_NET="10.25.25.2/24"
 BR_ID=
+CHAIN_ID=
 
 #######################################################################
 # Custom functions
@@ -65,6 +66,12 @@ setup_topology() {
     echo "creating bridge"
     BR_ID=`midonet-cli -A -e bridge create name perftest-bridge`
 
+    echo "creating chain"
+    CHAIN_ID=`midonet-cli -A -e chain create name perftest-chain`
+    midonet-cli -A -e chain $CHAIN_ID add rule src-port 0-65535 \
+        dst-port 0-65535 type accept
+    midonet-cli -A -e bridge $BR_ID set infilter $CHAIN_ID
+
     echo "creating ports"
     LEFTPORT=`midonet-cli -A -e bridge $BR_ID create port`
     RIGHTPORT=`midonet-cli -A -e bridge $BR_ID create port`
@@ -80,6 +87,7 @@ setup_topology() {
     echo "source port: $LEFTPORT"
     echo "dest port: $RIGHTPORT"
     echo "bridge: $BR_ID"
+    echo "chain: $CHAIN_ID"
     echo "host: $HOST_ID"
 
     print_topology
@@ -96,7 +104,9 @@ tear_down_topology() {
     midonet-cli -A -e bridge $BR_ID delete port $LEFTPORT
     midonet-cli -A -e bridge $BR_ID delete port $RIGHTPORT
     midonet-cli -A -e bridge $BR_ID delete
+    midonet-cli -A -e chain $CHAIN_ID delete
     BR_ID=
+    CHAIN_ID=
     LEFTPORT=
     RIGHTPORT=
     print_topology

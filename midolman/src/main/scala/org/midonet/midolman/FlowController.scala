@@ -331,21 +331,18 @@ class FlowController extends Actor with ActorLogWithoutPath
                     } else {
                         managedFlow.unref()     // the FlowController's ref
                     }
-                    metrics.currentDpFlows = flowManager.getNumDpFlows
                 }
             } else {
                 log.debug("Skipping obsolete wildcard flow with match {} and tags {}",
                           wildFlow.getMatch, tags)
                 if (dpFlow != null) {
                     flowManagerHelper removeFlow dpFlow.getMatch
-                    metrics.currentDpFlows = flowManager.getNumDpFlows
                 }
                 wildFlow.cbExecutor.schedule(callbacks)
             }
 
         case FlowAdded(dpFlow, wcMatch) =>
             handleFlowAddedForExistingWildcard(dpFlow, wcMatch)
-            metrics.currentDpFlows = flowManager.getNumDpFlows
 
         case InvalidateFlowsByTag(tag) =>
             tagToFlows.remove(tag) match {
@@ -357,7 +354,6 @@ class FlowController extends Actor with ActorLogWithoutPath
                         removeWildcardFlow(wildFlow)
             }
             invalidationHistory.put(tag)
-            metrics.currentDpFlows = flowManager.getNumDpFlows
 
         case RemoveWildcardFlow(wmatch) =>
             log.debug("Removing wcflow for match {}", wmatch)
@@ -368,11 +364,9 @@ class FlowController extends Actor with ActorLogWithoutPath
                     case wflow => removeWildcardFlow(wflow)
                 }
             }
-            metrics.currentDpFlows = flowManager.getNumDpFlows
 
         case CheckFlowExpiration_ =>
             flowManager.checkFlowsExpiration()
-            metrics.currentDpFlows = flowManager.getNumDpFlows
 
         case GetFlowSucceeded_(flow, origMatch, callback) =>
             log.debug("Retrieved flow from datapath: {}", flow.getMatch)
@@ -387,7 +381,6 @@ class FlowController extends Actor with ActorLogWithoutPath
         case FlowMissing_(flowMatch, callback) =>
             callback.call(null)
             flowManager.flowMissing(flowMatch)
-            metrics.currentDpFlows = flowManager.getNumDpFlows
             meters.forgetFlow(flowMatch)
 
         case CheckCompletedRequests =>
@@ -410,7 +403,6 @@ class FlowController extends Actor with ActorLogWithoutPath
             context.system.eventStream.publish(WildcardFlowRemoved(wildFlow.immutable))
             wildFlow.unref() // FlowController's ref
         }
-        metrics.currentDpFlows = flowManager.getNumDpFlows
     }
 
     private def handleFlowAddedForExistingWildcard(dpFlow: Flow,
@@ -454,7 +446,6 @@ class FlowController extends Actor with ActorLogWithoutPath
         }
 
         if (dpFlow != null) {
-            flowManager.add(dpFlow, wildFlow)
             meters.trackFlow(dpFlow.getMatch, wildFlow.tags)
             metrics.dpFlowsMetric.mark()
         }
@@ -536,7 +527,6 @@ class FlowController extends Actor with ActorLogWithoutPath
         override def shouldWakeUp() = completedFlowDeleteCommands.size > 0
 
         def removeFlow(flowMatch: FlowMatch): Unit = {
-            metrics.currentDpFlows = flowManager.getNumDpFlows
             var req: FlowRemoveCommand = null
             while ({ req = pooledFlowDeleteCommands.take; req } eq null) {
                 park()
@@ -578,8 +568,6 @@ class FlowController extends Actor with ActorLogWithoutPath
     }
 
     class FlowTablesMetrics(val flowManager: FlowManager) {
-        @volatile var currentDpFlows: Long = 0L
-
         val currentWildFlowsMetric = metricsRegistry.register(name(
                 classOf[FlowTablesGauge], "currentWildcardFlows"),
                 new Gauge[Long]{
@@ -589,7 +577,7 @@ class FlowController extends Actor with ActorLogWithoutPath
         val currentDpFlowsMetric = metricsRegistry.register(name(
                 classOf[FlowTablesGauge], "currentDatapathFlows"),
                 new Gauge[Long]{
-                    override def getValue = currentDpFlows
+                    override def getValue = flowManager.getNumDpFlows
                 })
 
         val wildFlowsMetric = metricsRegistry.meter(name(

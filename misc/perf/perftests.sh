@@ -250,7 +250,7 @@ install_config_file() {
 stop_midolman() {
     dpkg -s midolman > /dev/null 2>&1 || return 1
     status midolman | grep stop/waiting >/dev/null || stop midolman
-    status midolman | grep stop/waiting >/dev/null || err_exit "stopping midolman"
+    status midolman | grep stop/waiting >/dev/null || true
 }
 
 find_deb() {
@@ -452,8 +452,6 @@ make_graphs() {
     cpu_graph        || err_exit "create cpu graph"
     latency_graph    || err_exit "create latency graph"
     throughput_graph || err_exit "create throughput graph"
-    flows_graph wildflows Wildcard Valued647ba33d4c544 || \
-        err_exit "create wildflows graph"
     flows_graph dpflows Datapath Valueeb5c5dcf0e47ed || \
         err_exit "create dpflows graph"
 }
