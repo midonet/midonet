@@ -63,6 +63,7 @@ public class PortZkManager extends AbstractZkManager<UUID, PortConfig> {
     private final FiltersZkManager filterZkManager;
     private final RouteZkManager routeZkManager;
     private final TunnelZkManager tunnelZkManager;
+    private final TraceRequestZkManager traceReqZkManager;
 
     /**
      * Initializes a PortZkManager object with a ZooKeeper client and the root
@@ -83,6 +84,7 @@ public class PortZkManager extends AbstractZkManager<UUID, PortConfig> {
         this.filterZkManager = new FiltersZkManager(zk, paths, serializer);
         this.routeZkManager = new RouteZkManager(zk, paths, serializer);
         this.tunnelZkManager = new TunnelZkManager(zk, paths, serializer);
+        this.traceReqZkManager = new TraceRequestZkManager(zk, paths, serializer);
     }
 
     public PortZkManager(Directory zk, String basePath, Serializer serializer) {
@@ -711,6 +713,9 @@ public class PortZkManager extends AbstractZkManager<UUID, PortConfig> {
             ops.addAll(chainZkManager.prepareChainBackRefDelete(
                     config.outboundFilter, ResourceType.PORT, id));
         }
+
+        // delete any trace requests for device
+        ops.addAll(traceReqZkManager.prepareDeleteForDevice(id));
 
         if (config instanceof PortDirectory.RouterPortConfig) {
             ops.addAll(prepareDelete(id,
