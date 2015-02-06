@@ -112,6 +112,7 @@ public class RouterZkManager
     PortZkManager portZkManager;
     ChainZkManager chainZkManager;
     LoadBalancerZkManager loadBalancerZkManager;
+    TraceRequestZkManager traceReqZkManager;
 
     private List<Op> updateLoadBalancerAssociation(UUID routerId,
                                                    RouterConfig oldConfig,
@@ -149,6 +150,7 @@ public class RouterZkManager
         portZkManager = new PortZkManager(zk, paths, serializer);
         loadBalancerZkManager = new LoadBalancerZkManager(zk, paths, serializer);
         chainZkManager = new ChainZkManager(zk, paths, serializer);
+        traceReqZkManager = new TraceRequestZkManager(zk, paths, serializer);
     }
 
     public List<Op> prepareClearRefsToChains(UUID id, UUID chainId)
@@ -271,6 +273,9 @@ public class RouterZkManager
     public List<Op> prepareRouterDelete(UUID id) throws StateAccessException,
             SerializationException {
         List<Op> ops = new ArrayList<Op>();
+
+        // delete any trace requests for device
+        traceReqZkManager.deleteForDevice(id);
 
         RouterConfig config = get(id);
         if (config.inboundFilter != null) {

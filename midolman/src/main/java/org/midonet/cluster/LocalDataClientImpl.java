@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,6 +57,7 @@ import org.midonet.cluster.data.Route;
 import org.midonet.cluster.data.Router;
 import org.midonet.cluster.data.Rule;
 import org.midonet.cluster.data.SystemState;
+import org.midonet.cluster.data.TraceRequest;
 import org.midonet.cluster.data.TunnelZone;
 import org.midonet.cluster.data.VTEP;
 import org.midonet.cluster.data.VtepBinding;
@@ -126,6 +127,7 @@ import org.midonet.midolman.state.zkManagers.RouteZkManager;
 import org.midonet.midolman.state.zkManagers.RouterZkManager;
 import org.midonet.midolman.state.zkManagers.RuleZkManager;
 import org.midonet.midolman.state.zkManagers.TenantZkManager;
+import org.midonet.midolman.state.zkManagers.TraceRequestZkManager;
 import org.midonet.midolman.state.zkManagers.TunnelZoneZkManager;
 import org.midonet.midolman.state.zkManagers.VipZkManager;
 import org.midonet.midolman.state.zkManagers.VtepZkManager;
@@ -226,6 +228,9 @@ public class LocalDataClientImpl implements DataClient {
 
     @Inject
     private IpAddrGroupZkManager ipAddrGroupZkManager;
+
+    @Inject
+    private TraceRequestZkManager traceReqZkManager;
 
     @Inject
     private VtepZkManager vtepZkManager;
@@ -3095,6 +3100,144 @@ public class LocalDataClientImpl implements DataClient {
             }
         }
         return hostVersionList;
+    }
+
+    /**
+     * Trace request methods
+     */
+    @Override
+    @CheckForNull
+    public TraceRequest traceRequestGet(UUID id)
+            throws StateAccessException, SerializationException {
+        if (traceReqZkManager.exists(id)) {
+            TraceRequestZkManager.TraceRequestConfig config
+                = traceReqZkManager.get(id);
+            if (config != null) {
+                return Converter.fromTraceRequestConfig(config).setId(id);
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public void traceRequestDelete(UUID id)
+            throws StateAccessException, SerializationException {
+        zkManager.multi(traceReqZkManager.prepareDelete(id));
+    }
+
+    private boolean checkTraceRequestDeviceExists(TraceRequest traceRequest)
+            throws StateAccessException, SerializationException {
+        switch (traceRequest.getDeviceType()) {
+            case ROUTER:
+                return routersGet(traceRequest.getDeviceId()) != null;
+            case BRIDGE:
+                return bridgesGet(traceRequest.getDeviceId()) != null;
+            case PORT:
+                return portsGet(traceRequest.getDeviceId()) != null;
+        }
+        return false;
+    }
+
+    @Override
+    public UUID traceRequestCreate(@Nonnull TraceRequest traceRequest)
+            throws StateAccessException, SerializationException {
+        if (traceRequest.getId() == null) {
+            traceRequest.setId(UUID.randomUUID());
+        }
+        // check device exists
+        if (!checkTraceRequestDeviceExists(traceRequest)) {
+            throw new StateAccessException(
+                    "Device " + traceRequest.getDeviceId()
+                    + " of type " + traceRequest.getDeviceType()
+                    + " does not exist");
+        }
+        UUID id = traceRequest.getId();
+
+        TraceRequestZkManager.TraceRequestConfig config
+            = Converter.toTraceRequestConfig(traceRequest);
+        zkManager.multi(traceReqZkManager.prepareCreate(id, config));
+
+        // device may have been deleted after we checked, but before
+        // we created the trace, if so, the trace is no longer valid,
+        // delete
+        if (!checkTraceRequestDeviceExists(traceRequest)) {
+            traceRequestDelete(traceRequest.getId());
+
+            throw new StateAccessException(
+                    "Device " + traceRequest.getDeviceId() + " deleted");
+        }
+        return id;
+    }
+
+    @Override
+    public List<TraceRequest> traceRequestGetAll()
+            throws StateAccessException, SerializationException {
+        List<TraceRequest> traceRequests = new ArrayList<>();
+        String path = pathBuilder.getTraceRequestsPath();
+        if (zkManager.exists(path)) {
+            Set<String> trIds = zkManager.getChildren(path);
+            for (String id : trIds) {
+                TraceRequest tr = traceRequestGet(UUID.fromString(id));
+                if (tr != null) {
+                    traceRequests.add(tr);
+                }
+            }
+        }
+        return traceRequests;
+    }
+
+    @Override
+    public List<TraceRequest> traceRequestFindByTenant(String tenantId)
+            throws StateAccessException, SerializationException {
+        List<TraceRequest> traceRequests = traceRequestGetAll();
+        Iterator<TraceRequest> iter = traceRequests.iterator();
+        while (iter.hasNext()) {
+            TraceRequest t = iter.next();
+            String ownerId = null;
+            switch (t.getDeviceType()) {
+            case ROUTER:
+                Router r = routersGet(t.getDeviceId());
+                if (r == null
+                    || !r.hasTenantId(tenantId)) {
+                    iter.remove();
+                }
+                break;
+            case BRIDGE:
+                Bridge b = bridgesGet(t.getDeviceId());
+                if (b == null
+                    || !b.hasTenantId(tenantId)) {
+                    iter.remove();
+                }
+                break;
+            case PORT:
+                Port p = portsGet(t.getDeviceId());
+                if (p == null) {
+                    iter.remove();
+                } else {
+                    UUID portDevice = p.getDeviceId();
+                    Bridge bridge = bridgesGet(portDevice);
+                    Router router = routersGet(portDevice);
+                    if (bridge != null) {
+                        if (!bridge.hasTenantId(tenantId)) {
+                            iter.remove();
+                        }
+                    } else if (router != null) {
+                        if (!router.hasTenantId(tenantId)) {
+                            iter.remove();
+                        }
+                    } else {
+                        // port doesn't have a device, so can't belong
+                        // to a tenant
+                        iter.remove();
+                    }
+                }
+                break;
+            default:
+                // no device, so no owner
+                iter.remove();
+            }
+        }
+        return traceRequests;
     }
 
     @Override
