@@ -1,0 +1,188 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_5325f2c0",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/tools/TopologyZoomUpdater.scala",
+        "patchSetId": 21
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-06T13:21:16Z",
+      "side": 1,
+      "message": "Why not adding a few words on the type of topology you\u0027re building? If I not mistaken, it\u0027s a tree with a main router at the top and then more routers with networks right?",
+      "range": {
+        "startLine": 35,
+        "startChar": 3,
+        "endLine": 35,
+        "endChar": 64
+      },
+      "revId": "5ae3d0caac34c2fb12f8b039663880f7d2ecc216",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_932f6aa1",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/tools/TopologyZoomUpdater.scala",
+        "patchSetId": 21
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-06T13:21:16Z",
+      "side": 1,
+      "message": "Throughout this file, you use bridge and network interchangeably. I now know they are the same but for newcomers it\u0027s simpler to stick to one word I think. It reduces the entropy ;-)",
+      "range": {
+        "startLine": 51,
+        "startChar": 29,
+        "endLine": 51,
+        "endChar": 39
+      },
+      "revId": "5ae3d0caac34c2fb12f8b039663880f7d2ecc216",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_b31d4676",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/tools/TopologyZoomUpdater.scala",
+        "patchSetId": 21
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-06T13:21:16Z",
+      "side": 1,
+      "message": "That\u0027s the provider router?",
+      "range": {
+        "startLine": 64,
+        "startChar": 16,
+        "endLine": 64,
+        "endChar": 23
+      },
+      "revId": "5ae3d0caac34c2fb12f8b039663880f7d2ecc216",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_335b1656",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/tools/TopologyZoomUpdater.scala",
+        "patchSetId": 21
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-06T13:21:16Z",
+      "side": 1,
+      "message": "initialDelay \u003d cfg.periodMs eases the reading",
+      "range": {
+        "startLine": 78,
+        "startChar": 51,
+        "endLine": 78,
+        "endChar": 63
+      },
+      "revId": "5ae3d0caac34c2fb12f8b039663880f7d2ecc216",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_93580a58",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/tools/TopologyZoomUpdater.scala",
+        "patchSetId": 21
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-06T13:21:16Z",
+      "side": 1,
+      "message": "period \u003d ...",
+      "range": {
+        "startLine": 78,
+        "startChar": 65,
+        "endLine": 78,
+        "endChar": 77
+      },
+      "revId": "5ae3d0caac34c2fb12f8b039663880f7d2ecc216",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_b336e601",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/tools/TopologyZoomUpdater.scala",
+        "patchSetId": 21
+      },
+      "lineNbr": 200,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-06T13:21:16Z",
+      "side": 1,
+      "message": "I don\u0027t understand why you do this. Just \u0027up\u0027 would seem more natural to me. I\u0027m probably missing something though.",
+      "range": {
+        "startLine": 200,
+        "startChar": 50,
+        "endLine": 200,
+        "endChar": 53
+      },
+      "revId": "5ae3d0caac34c2fb12f8b039663880f7d2ecc216",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_f3405e58",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/tools/TopologyZoomUpdater.scala",
+        "patchSetId": 21
+      },
+      "lineNbr": 274,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-06T13:21:16Z",
+      "side": 1,
+      "message": "There\u0027s nothing worth updating in a vtep?",
+      "range": {
+        "startLine": 274,
+        "startChar": 8,
+        "endLine": 274,
+        "endChar": 21
+      },
+      "revId": "5ae3d0caac34c2fb12f8b039663880f7d2ecc216",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_33095632",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/tools/TopologyZoomUpdaterApp.scala",
+        "patchSetId": 21
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-06T13:21:16Z",
+      "side": 1,
+      "message": "Wouldn\u0027t it be possible to do something like a join on the started service instead of waking up every 10 minutes?",
+      "range": {
+        "startLine": 67,
+        "startChar": 12,
+        "endLine": 68,
+        "endChar": 36
+      },
+      "revId": "5ae3d0caac34c2fb12f8b039663880f7d2ecc216",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
