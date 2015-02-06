@@ -1514,6 +1514,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_b0c1bce6",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/SessionInventory.scala",
+        "patchSetId": 22
+      },
+      "lineNbr": 140,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-02-06T07:37:02Z",
+      "side": 1,
+      "message": "It\u0027s not just ZOOM that may expose observables, Storage API in general exposes it. Thus, it\u0027s better to use Storage here.",
+      "parentUuid": "7a1969be_2f04697d",
+      "range": {
+        "startLine": 140,
+        "startChar": 6,
+        "endLine": 140,
+        "endChar": 21
+      },
+      "revId": "05573213d57960fe9200a3108c72aee3cd7efc79",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_460ef235",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/SessionInventory.scala",
         "patchSetId": 22
