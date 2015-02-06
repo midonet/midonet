@@ -70,35 +70,7 @@
         }
       } ] },
 {
-      "obj" : "metrics:name=org.midonet.midolman.monitoring.metrics.PacketPipelineHistogram.wildcardTableHitLatency",
-      "attr" : ["Count", "Max", "Min", "Mean", "StdDev", "50thPercentile",
-                  "75thPercentile", "95thPercentile", "98thPercentile",
-                  "99thPercentile", "999thPercentile"],
-      "outputWriters" : [ {
-        "@class" : "com.googlecode.jmxtrans.model.output.RRDToolWriter",
-        "settings" : {
-            "templateFile" : "/tmp/midonet-perftests/jmxtrans-templates/wildtable-latencies.xml",
-            "outputFile" : "/tmp/midonet-perftests/target/wildtable-latencies.rrd",
-            "binaryPath" : "/usr/bin",
-            "typeNames" : []
-        }
-      } ] },
-{
-      "obj" : "metrics:name=org.midonet.midolman.monitoring.metrics.PacketPipelineHistogram.packetToPortSetLatency",
-      "attr" : ["Count", "Max", "Min", "Mean", "StdDev", "50thPercentile",
-                  "75thPercentile", "95thPercentile", "98thPercentile",
-                  "99thPercentile", "999thPercentile"],
-      "outputWriters" : [ {
-        "@class" : "com.googlecode.jmxtrans.model.output.RRDToolWriter",
-        "settings" : {
-            "templateFile" : "/tmp/midonet-perftests/jmxtrans-templates/portset-latencies.xml",
-            "outputFile" : "/tmp/midonet-perftests/target/portset-latencies.rrd",
-            "binaryPath" : "/usr/bin",
-            "typeNames" : []
-        }
-      } ] },
-{
-      "obj" : "metrics:name=org.midonet.midolman.monitoring.metrics.PacketPipelineMeter.packetsProcessed",
+      "obj" : "metrics:name=org.midonet.midolman.monitoring.metrics.PacketPipelineMeter.packetsProcessed.packets",
       "attr" : ["Count", "FifteenMinuteRate", "FiveMinuteRate", "OneMinuteRate", "MeanRate"],
       "outputWriters" : [ {
         "@class" : "com.googlecode.jmxtrans.model.output.RRDToolWriter",
@@ -110,37 +82,13 @@
         }
       } ] },
 {
-      "obj" : "metrics:name=org.midonet.midolman.monitoring.metrics.PacketPipelineMeter.packetsSimulated",
+      "obj" : "metrics:name=org.midonet.midolman.monitoring.metrics.PacketPipelineMeter.packetsSimulated.packets",
       "attr" : ["Count", "FifteenMinuteRate", "FiveMinuteRate", "OneMinuteRate", "MeanRate"],
       "outputWriters" : [ {
         "@class" : "com.googlecode.jmxtrans.model.output.RRDToolWriter",
         "settings" : {
             "templateFile" : "/tmp/midonet-perftests/jmxtrans-templates/sim-meter.xml",
             "outputFile" : "/tmp/midonet-perftests/target/sim-meter.rrd",
-            "binaryPath" : "/usr/bin",
-            "typeNames" : []
-        }
-      } ] },
-{
-      "obj" : "metrics:name=org.midonet.midolman.monitoring.metrics.PacketPipelineMeter.wildcardTableHits",
-      "attr" : ["Count", "FifteenMinuteRate", "FiveMinuteRate", "OneMinuteRate", "MeanRate"],
-      "outputWriters" : [ {
-        "@class" : "com.googlecode.jmxtrans.model.output.RRDToolWriter",
-        "settings" : {
-            "templateFile" : "/tmp/midonet-perftests/jmxtrans-templates/wildtable-meter.xml",
-            "outputFile" : "/tmp/midonet-perftests/target/wildtable-meter.rrd",
-            "binaryPath" : "/usr/bin",
-            "typeNames" : []
-        }
-      } ] },
-{
-      "obj" : "metrics:name=org.midonet.midolman.monitoring.metrics.PacketPipelineMeter.packetsToPortSet",
-      "attr" : ["Count", "FifteenMinuteRate", "FiveMinuteRate", "OneMinuteRate", "MeanRate"],
-      "outputWriters" : [ {
-        "@class" : "com.googlecode.jmxtrans.model.output.RRDToolWriter",
-        "settings" : {
-            "templateFile" : "/tmp/midonet-perftests/jmxtrans-templates/portset-meter.xml",
-            "outputFile" : "/tmp/midonet-perftests/target/portset-meter.rrd",
             "binaryPath" : "/usr/bin",
             "typeNames" : []
         }
@@ -158,31 +106,6 @@
         }
       } ] },
 {
-      "obj" : "metrics:name=org.midonet.midolman.monitoring.metrics.PacketPipelineAccumulatedTime.wildcardTableHitAccumulatedTime",
-      "attr" : ["Count"],
-      "outputWriters" : [ {
-        "@class" : "com.googlecode.jmxtrans.model.output.RRDToolWriter",
-        "settings" : {
-            "templateFile" : "/tmp/midonet-perftests/jmxtrans-templates/wildtable-times.xml",
-            "outputFile" : "/tmp/midonet-perftests/target/wildtable-times.rrd",
-            "binaryPath" : "/usr/bin",
-            "typeNames" : ["name"]
-        }
-      } ] },
-{
-      "obj" : "metrics:name=org.midonet.midolman.monitoring.metrics.PacketPipelineAccumulatedTime.packetToPortSetAccumulatedTime",
-      "attr" : ["Count"],
-      "outputWriters" : [ {
-        "@class" : "com.googlecode.jmxtrans.model.output.RRDToolWriter",
-        "settings" : {
-            "templateFile" : "/tmp/midonet-perftests/jmxtrans-templates/portset-times.xml",
-            "outputFile" : "/tmp/midonet-perftests/target/portset-times.rrd",
-            "binaryPath" : "/usr/bin",
-            "typeNames" : ["name"]
-        }
-      } ] },
-
-{
       "obj" : "metrics:name=org.midonet.midolman.monitoring.metrics.PacketPipelineGauge.*",
       "attr" : ["Count", "Value"],
       "outputWriters" : [ {
@@ -195,7 +118,7 @@
         }
       } ] },
 {
-      "obj" : "metrics:name=org.midonet.midolman.monitoring.metrics.PacketPipelineCounter.packetsDropped",
+      "obj" : "metrics:name=org.midonet.midolman.monitoring.metrics.PacketPipelineCounter.packetsDropped.packets",
       "attr" : ["Value"],
       "outputWriters" : [ {
         "@class" : "com.googlecode.jmxtrans.model.output.RRDToolWriter",
@@ -204,18 +127,6 @@
             "outputFile" : "/tmp/midonet-perftests/target/pipeline-drops.rrd",
             "binaryPath" : "/usr/bin",
             "typeNames" : []
-        }
-      } ] },
-{
-      "obj" : "metrics:name=org.midonet.midolman.monitoring.metrics.FlowTablesGauge.currentWildcardFlows",
-      "attr" : ["Value"],
-      "outputWriters" : [ {
-        "@class" : "com.googlecode.jmxtrans.model.output.RRDToolWriter",
-        "settings" : {
-            "templateFile" : "/tmp/midonet-perftests/jmxtrans-templates/wildflows.xml",
-            "outputFile" : "/tmp/midonet-perftests/target/wildflows.rrd",
-            "binaryPath" : "/usr/bin",
-            "typeNames" : ["name"]
         }
       } ] },
 {
@@ -231,7 +142,7 @@
         }
       } ] },
 {
-      "obj" : "metrics:name=org.midonet.midolman.monitoring.metrics.FlowTablesMeter.datapathFlowsCreated",
+      "obj" : "metrics:name=org.midonet.midolman.monitoring.metrics.FlowTablesMeter.datapathFlowsCreated.datapathFlows",
       "attr" : ["Count", "FifteenMinuteRate", "FiveMinuteRate", "OneMinuteRate", "MeanRate"],
       "outputWriters" : [ {
         "@class" : "com.googlecode.jmxtrans.model.output.RRDToolWriter",
@@ -241,19 +152,5 @@
             "binaryPath" : "/usr/bin",
             "typeNames" : []
         }
-      } ] },
-{
-      "obj" : "metrics:name=org.midonet.midolman.monitoring.metrics.FlowTablesMeter.wildcardFlowsCreated",
-      "attr" : ["Count", "FifteenMinuteRate", "FiveMinuteRate", "OneMinuteRate", "MeanRate"],
-      "outputWriters" : [ {
-        "@class" : "com.googlecode.jmxtrans.model.output.RRDToolWriter",
-        "settings" : {
-            "templateFile" : "/tmp/midonet-perftests/jmxtrans-templates/wildflows-meter.xml",
-            "outputFile" : "/tmp/midonet-perftests/target/wildflows-meter.rrd",
-            "binaryPath" : "/usr/bin",
-            "typeNames" : []
-        }
       } ] }
-]
-  } ]
-}
+] } ] }

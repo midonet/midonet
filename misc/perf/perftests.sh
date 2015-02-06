@@ -162,6 +162,9 @@ source_config() {
     elif [ -f profiles.d/default/perftests.conf ] ; then
         . profiles.d/default/perftests.conf
     fi
+    if [ -f $HOME/.midonetperfrc ] ; then
+        . $HOME/.midonetperfrc
+    fi
 }
 
 assert_dependencies() {
@@ -250,7 +253,7 @@ install_config_file() {
 stop_midolman() {
     dpkg -s midolman > /dev/null 2>&1 || return 1
     status midolman | grep stop/waiting >/dev/null || stop midolman
-    status midolman | grep stop/waiting >/dev/null || err_exit "stopping midolman"
+    status midolman | grep stop/waiting >/dev/null || true
 }
 
 find_deb() {
@@ -452,10 +455,7 @@ make_graphs() {
     cpu_graph        || err_exit "create cpu graph"
     latency_graph    || err_exit "create latency graph"
     throughput_graph || err_exit "create throughput graph"
-    flows_graph wildflows Wildcard Valued647ba33d4c544 || \
-        err_exit "create wildflows graph"
-    flows_graph dpflows Datapath Valueeb5c5dcf0e47ed || \
-        err_exit "create dpflows graph"
+    flows_graph      || err_exit "create dpflows graph"
 }
 
 memory_graph() {
@@ -540,17 +540,14 @@ throughput_graph() {
 }
 
 flows_graph() {
-    type=$1
-    name=$2
-    gaugecol=$3
-    rrdtool graph "$GRAPH_DIR/$type.png" \
-        -t "Midolman $name Flow Table" \
+    rrdtool graph "$GRAPH_DIR/dpflows.png" \
+        -t "Midolman Datapath Flow Table" \
         $GRAPH_OPTS --units=si \
         --right-axis '0.1:0' \
         --right-axis-label 'Flows/sec' \
         --vertical-label 'Flows' \
-        "DEF:current=$RRD_DIR/$type.rrd:$gaugecol:AVERAGE" \
-        "DEF:rate=$RRD_DIR/$type-meter.rrd:Count667cf906787399:MAX" \
+        "DEF:current=$RRD_DIR/dpflows.rrd:Valueeb5c5dcf0e47ed:AVERAGE" \
+        "DEF:rate=$RRD_DIR/dpflows-meter.rrd:Count667cf906787399:MAX" \
         'CDEF:rate10=rate,10,*' \
         'AREA:current#555555:Active flows\n' \
         'LINE2:rate10#ff6622:Creation rate\n'
