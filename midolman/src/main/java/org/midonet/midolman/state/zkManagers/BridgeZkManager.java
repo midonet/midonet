@@ -124,6 +124,7 @@ public class BridgeZkManager
     private TunnelZkManager tunnelZkManager;
     private PortZkManager portZkManager;
     private ChainZkManager chainZkManager;
+    private TraceRequestZkManager traceReqZkManager;
 
     /**
      * Initializes a BridgeZkManager object with a ZooKeeper client and the root
@@ -136,6 +137,7 @@ public class BridgeZkManager
         tunnelZkManager = new TunnelZkManager(zk, paths, serializer);
         portZkManager = new PortZkManager(zk, paths, serializer);
         chainZkManager = new ChainZkManager(zk, paths, serializer);
+        traceReqZkManager = new TraceRequestZkManager(zk, paths, serializer);
     }
 
     @Override
@@ -333,6 +335,9 @@ public class BridgeZkManager
 
         // Delete GRE
         ops.addAll(tunnelZkManager.prepareTunnelDelete(config.tunnelKey));
+
+        // delete any trace requests for device
+        ops.addAll(traceReqZkManager.prepareDeleteForDevice(id));
 
         // Delete the bridge
         ops.add(Op.delete(paths.getBridgePath(id), -1));

@@ -112,6 +112,7 @@ public class RouterZkManager
     PortZkManager portZkManager;
     ChainZkManager chainZkManager;
     LoadBalancerZkManager loadBalancerZkManager;
+    TraceRequestZkManager traceReqZkManager;
 
     private List<Op> updateLoadBalancerAssociation(UUID routerId,
                                                    RouterConfig oldConfig,
@@ -149,6 +150,7 @@ public class RouterZkManager
         portZkManager = new PortZkManager(zk, paths, serializer);
         loadBalancerZkManager = new LoadBalancerZkManager(zk, paths, serializer);
         chainZkManager = new ChainZkManager(zk, paths, serializer);
+        traceReqZkManager = new TraceRequestZkManager(zk, paths, serializer);
     }
 
     public List<Op> prepareClearRefsToChains(UUID id, UUID chainId)
@@ -317,6 +319,9 @@ public class RouterZkManager
         if (config.loadBalancer != null) {
             ops.addAll(updateLoadBalancerAssociation(id, config, null));
         }
+
+        // delete any trace requests for device
+        ops.addAll(traceReqZkManager.prepareDeleteForDevice(id));
 
         String routerPath = paths.getRouterPath(id);
         log.debug("Preparing to delete: " + routerPath);

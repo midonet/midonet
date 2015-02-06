@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -66,6 +66,7 @@ import org.midonet.midolman.state.zkManagers.RouteZkManager;
 import org.midonet.midolman.state.zkManagers.RouterZkManager;
 import org.midonet.midolman.state.zkManagers.RuleZkManager;
 import org.midonet.midolman.state.zkManagers.TenantZkManager;
+import org.midonet.midolman.state.zkManagers.TraceRequestZkManager;
 import org.midonet.midolman.state.zkManagers.TunnelZoneZkManager;
 import org.midonet.midolman.state.zkManagers.VipZkManager;
 import org.midonet.midolman.state.zkManagers.VtepZkManager;
@@ -165,6 +166,7 @@ public class DataClientModule extends PrivateModule {
         managers.add(TunnelZoneZkManager.class);
         managers.add(IpAddrGroupZkManager.class);
         managers.add(VtepZkManager.class);
+        managers.add(TraceRequestZkManager.class);
         /*
          * The Cluster.*Managers managers still the L4LB zkmanagers.
          */
