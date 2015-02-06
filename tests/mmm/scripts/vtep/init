@@ -1,4 +1,4 @@
-#! /bin/bash
+#!/bin/bash
 
 # Copyright 2014 Midokura SARL
 #
@@ -13,17 +13,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+#
 
-. mmmrc
-
-(cd midonet-api && bash stop)
-(cd midolman && bash stop)
-(cd dnsmasq && bash stop)
-(cd quagga && bash stop)
-
-(cd cassandra && bash stop)
-(cd zookeeper && bash stop)
-
-(cd scratch && bash stop)
-(cd netns && bash stop)
-(cd vtep && bash stop)
+# Build a docker image for vtep emulator
+sudo docker build -t midonet:vtep_emulator  .
