@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -69,6 +69,7 @@ public class Setup {
         paths.add(pathMgr.getLocksPath());
         paths.add(pathMgr.getLicensesPath());
         paths.add(pathMgr.getNatPath());
+        paths.add(pathMgr.getTraceRequestsPath());
 
         // Neutron paths
         paths.add(pathMgr.getNeutronPath());
