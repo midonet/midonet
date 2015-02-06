@@ -436,9 +436,9 @@ class FlowController extends Actor with ActorLogWithoutPath
     class FlowTablesMetrics(val flowManager: FlowManager) {
         val currentDpFlowsMetric = metricsRegistry.register(name(
                 classOf[FlowTablesGauge], "currentDatapathFlows"),
-                new Gauge[Long]{
-                    override def getValue = flowManager.getNumDpFlows
-                })
+            new Gauge[Long]{
+                 override def getValue = flowManager.getNumDpFlows
+             })
 
         val dpFlowsMetric = metricsRegistry.meter(name(
                 classOf[FlowTablesMeter], "datapathFlowsCreated",
