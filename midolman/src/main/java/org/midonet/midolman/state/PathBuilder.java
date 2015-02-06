@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,6 @@ import org.midonet.packets.IPv4Addr;
 public class PathBuilder extends ZkPathManager {
 
     public static final String TENANTS_PATH = "tenants";
-    public static final String TRACED_CONDITIONS_PATH = "trace-conditions";
     public static final String LICENSES_PATH = "licenses";
 
     @Inject
