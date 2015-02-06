@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_be87cd60",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/TopologyApiService.scala",
+        "patchSetId": 31
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-06T17:59:51Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_d031d80c",
+      "range": {
+        "startLine": 50,
+        "startChar": 8,
+        "endLine": 51,
+        "endChar": 70
+      },
+      "revId": "41a4c53ff9ed0830087025ee9103c4e7f934e492",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_103c10e2",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/TopologyApiService.scala",
         "patchSetId": 31
@@ -36,6 +60,30 @@
       "writtenOn": "2015-02-06T08:55:25Z",
       "side": 1,
       "message": "Probably it\u0027s better to provide a proper factory method for these.",
+      "range": {
+        "startLine": 52,
+        "startChar": 7,
+        "endLine": 56,
+        "endChar": 57
+      },
+      "revId": "41a4c53ff9ed0830087025ee9103c4e7f934e492",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_5e3fb925",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/TopologyApiService.scala",
+        "patchSetId": 31
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-06T17:59:51Z",
+      "side": 1,
+      "message": "Mmm... not sure if it\u0027s worth while: this piece of code is very specific to this class and I don\u0027t expect to have the need to replace it with variations. I would prefer leaving it here, unless there is a clear advantage in moving it away.",
+      "parentUuid": "7a1969be_103c10e2",
       "range": {
         "startLine": 52,
         "startChar": 7,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_3e3c7d2f",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/TopologyApiService.scala",
+        "patchSetId": 31
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-06T17:59:51Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_3022ecb9",
+      "range": {
+        "startLine": 125,
+        "startChar": 22,
+        "endLine": 125,
+        "endChar": 26
+      },
+      "revId": "41a4c53ff9ed0830087025ee9103c4e7f934e492",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_500cc842",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/TopologyApiServiceApp.scala",
         "patchSetId": 31
@@ -88,6 +160,24 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_be17cda2",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/TopologyApiServiceApp.scala",
+        "patchSetId": 31
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-06T17:59:51Z",
+      "side": 1,
+      "message": "It\u0027s called in the ShutdownHook (lines 57-62). An extrange construct, but I would say in my defense that I faithfully copied it from the ClusterNode app. :-)",
+      "parentUuid": "7a1969be_500cc842",
+      "revId": "41a4c53ff9ed0830087025ee9103c4e7f934e492",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_b01d3c76",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/TopologyApiServiceApp.scala",
         "patchSetId": 31
@@ -99,6 +189,30 @@
       "writtenOn": "2015-02-06T08:55:25Z",
       "side": 1,
       "message": "This should go inside the case statement after / before calling Thread.currentThread().interrupt().",
+      "range": {
+        "startLine": 77,
+        "startChar": 12,
+        "endLine": 77,
+        "endChar": 74
+      },
+      "revId": "41a4c53ff9ed0830087025ee9103c4e7f934e492",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_de1289b3",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/TopologyApiServiceApp.scala",
+        "patchSetId": 31
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-06T17:59:51Z",
+      "side": 1,
+      "message": "I don\u0027t think so... it applies to both successful and catched paths. The two possibilities to get out of the loop above are: (1) you are inside the \u0027sleep\u0027, the thread was interrupted, and exited the \u0027sleep\u0027 via exception (which is catched and the interrupt state restored), or (2) you are outside the Thread.sleep when the thread was interrupted, so no exception was raised, but the loop condition failed; in this case there is no exception, but the thread was interrupted also...",
+      "parentUuid": "7a1969be_b01d3c76",
       "range": {
         "startLine": 77,
         "startChar": 12,
@@ -134,6 +248,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_1e0d4191",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/Aggregator.scala",
+        "patchSetId": 31
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-06T17:59:51Z",
+      "side": 1,
+      "message": "The code in the method is synchronized, so there should be no race conditions, right?",
+      "parentUuid": "7a1969be_f0a4d458",
+      "range": {
+        "startLine": 77,
+        "startChar": 12,
+        "endLine": 78,
+        "endChar": 33
+      },
+      "revId": "41a4c53ff9ed0830087025ee9103c4e7f934e492",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_9006401f",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/ServerProtocolFactory.scala",
         "patchSetId": 31
@@ -145,6 +283,24 @@
       "writtenOn": "2015-02-06T08:55:25Z",
       "side": 1,
       "message": "Out of order.",
+      "revId": "41a4c53ff9ed0830087025ee9103c4e7f934e492",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_fe1145ad",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/ServerProtocolFactory.scala",
+        "patchSetId": 31
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-06T17:59:51Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_9006401f",
       "revId": "41a4c53ff9ed0830087025ee9103c4e7f934e492",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -198,6 +354,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_5e269917",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/ServerState.scala",
+        "patchSetId": 31
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-06T17:59:51Z",
+      "side": 1,
+      "message": "ok",
+      "parentUuid": "7a1969be_d3e9e21b",
+      "range": {
+        "startLine": 41,
+        "startChar": 10,
+        "endLine": 41,
+        "endChar": 21
+      },
+      "revId": "41a4c53ff9ed0830087025ee9103c4e7f934e492",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_73310eec",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/ServerState.scala",
         "patchSetId": 31
@@ -209,6 +389,30 @@
       "writtenOn": "2015-02-06T08:55:25Z",
       "side": 1,
       "message": "s/builder/resBuilder/ (or some other more descriptive name).",
+      "range": {
+        "startLine": 53,
+        "startChar": 16,
+        "endLine": 53,
+        "endChar": 23
+      },
+      "revId": "41a4c53ff9ed0830087025ee9103c4e7f934e492",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_3e23dd06",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/ServerState.scala",
+        "patchSetId": 31
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-06T17:59:51Z",
+      "side": 1,
+      "message": "Removed (see below)",
+      "parentUuid": "7a1969be_73310eec",
       "range": {
         "startLine": 53,
         "startChar": 16,
@@ -244,6 +448,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_9e2011f9",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/ServerState.scala",
+        "patchSetId": 31
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-06T17:59:51Z",
+      "side": 1,
+      "message": "I think you are right; removed.",
+      "parentUuid": "7a1969be_d34d6274",
+      "range": {
+        "startLine": 58,
+        "startChar": 8,
+        "endLine": 59,
+        "endChar": 57
+      },
+      "revId": "41a4c53ff9ed0830087025ee9103c4e7f934e492",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_508968c9",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/Session.scala",
         "patchSetId": 31
@@ -261,6 +489,24 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_7e1d55bd",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/Session.scala",
+        "patchSetId": 31
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-06T17:59:51Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_508968c9",
+      "revId": "41a4c53ff9ed0830087025ee9103c4e7f934e492",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_7090e4ec",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/Session.scala",
         "patchSetId": 31
@@ -272,6 +518,30 @@
       "writtenOn": "2015-02-06T08:55:25Z",
       "side": 1,
       "message": "I just wonder if it\u0027s too confusing with UUID...",
+      "range": {
+        "startLine": 31,
+        "startChar": 11,
+        "endLine": 31,
+        "endChar": 15
+      },
+      "revId": "41a4c53ff9ed0830087025ee9103c4e7f934e492",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_de79e9fd",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/Session.scala",
+        "patchSetId": 31
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-06T17:59:51Z",
+      "side": 1,
+      "message": "Yes, it is confusing. The good news is that if we implement the unification of ids (to UUID, instead of String/UUID depending on the object), then all this code is going to disappear. I would prefer leaving it this way by now, and unify the model ids in a different patch.",
+      "parentUuid": "7a1969be_7090e4ec",
       "range": {
         "startLine": 31,
         "startChar": 11,
@@ -307,6 +577,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_1e8421d3",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/SessionInventory.scala",
+        "patchSetId": 31
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-06T17:59:51Z",
+      "side": 1,
+      "message": "Fixed",
+      "parentUuid": "7a1969be_90580058",
+      "range": {
+        "startLine": 124,
+        "startChar": 4,
+        "endLine": 124,
+        "endChar": 7
+      },
+      "revId": "41a4c53ff9ed0830087025ee9103c4e7f934e492",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_7055841c",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/SessionInventory.scala",
         "patchSetId": 31
@@ -318,6 +612,30 @@
       "writtenOn": "2015-02-06T08:55:25Z",
       "side": 1,
       "message": "Ditto.",
+      "range": {
+        "startLine": 127,
+        "startChar": 4,
+        "endLine": 127,
+        "endChar": 7
+      },
+      "revId": "41a4c53ff9ed0830087025ee9103c4e7f934e492",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_be7eade2",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/SessionInventory.scala",
+        "patchSetId": 31
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-06T17:59:51Z",
+      "side": 1,
+      "message": "Fixed",
+      "parentUuid": "7a1969be_7055841c",
       "range": {
         "startLine": 127,
         "startChar": 4,
