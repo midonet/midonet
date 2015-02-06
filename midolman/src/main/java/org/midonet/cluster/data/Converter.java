@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,6 +60,7 @@ import org.midonet.midolman.state.zkManagers.PoolMemberZkManager.PoolMemberConfi
 import org.midonet.midolman.state.zkManagers.PoolZkManager.PoolConfig;
 import org.midonet.midolman.state.zkManagers.PortGroupZkManager.PortGroupConfig;
 import org.midonet.midolman.state.zkManagers.RouterZkManager.RouterConfig;
+import org.midonet.midolman.state.zkManagers.TraceRequestZkManager.TraceRequestConfig;
 import org.midonet.midolman.state.zkManagers.VipZkManager.VipConfig;
 import org.midonet.midolman.state.zkManagers.VtepZkManager;
 import org.midonet.packets.IPv4Addr;
@@ -756,5 +757,23 @@ public class Converter {
         vtepConfig.mgmtPort = vtep.getMgmtPort();
         vtepConfig.tunnelZone = vtep.getTunnelZoneId();
         return vtepConfig;
+    }
+
+
+    public static TraceRequest fromTraceRequestConfig(
+            TraceRequestConfig traceRequestConfig) {
+        return new TraceRequest()
+            .setDeviceType(traceRequestConfig.deviceType)
+            .setDeviceId(traceRequestConfig.deviceId)
+            .setCondition(traceRequestConfig.condition);
+    }
+
+    public static TraceRequestConfig toTraceRequestConfig(
+            TraceRequest traceRequest) {
+        TraceRequestConfig config = new TraceRequestConfig();
+        config.deviceType = traceRequest.getDeviceType();
+        config.deviceId = traceRequest.getDeviceId();
+        config.condition = traceRequest.getCondition();
+        return config;
     }
 }

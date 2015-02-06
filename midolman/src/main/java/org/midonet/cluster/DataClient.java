@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,6 +37,7 @@ import org.midonet.cluster.data.Route;
 import org.midonet.cluster.data.Router;
 import org.midonet.cluster.data.Rule;
 import org.midonet.cluster.data.SystemState;
+import org.midonet.cluster.data.TraceRequest;
 import org.midonet.cluster.data.TunnelZone;
 import org.midonet.cluster.data.VTEP;
 import org.midonet.cluster.data.VtepBinding;
@@ -893,6 +894,23 @@ public interface DataClient {
      */
     public List<HostVersion> hostVersionsGet()
             throws StateAccessException;
+
+    /* Trace request methods */
+    @CheckForNull
+    TraceRequest traceRequestGet(UUID id)
+            throws StateAccessException, SerializationException;
+
+    void traceRequestDelete(UUID id)
+            throws StateAccessException, SerializationException;
+
+    UUID traceRequestCreate(@Nonnull TraceRequest traceRequest)
+            throws StateAccessException, SerializationException;
+
+    List<TraceRequest> traceRequestGetAll()
+            throws StateAccessException, SerializationException;
+
+    List<TraceRequest> traceRequestFindByTenant(String tenantId)
+            throws StateAccessException, SerializationException;
 
     /**
      * Get the node id that is in line right before the given myNode for
