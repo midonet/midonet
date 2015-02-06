@@ -1,5 +1,3 @@
 #! /bin/sh
 
-sh stop.1
-sh stop.2
-sh stop.3
+pkill -f zoo.cfg
