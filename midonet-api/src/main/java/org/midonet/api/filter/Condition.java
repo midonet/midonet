@@ -36,7 +36,7 @@ import static org.midonet.packets.Unsigned.unsign;
 import static org.midonet.midolman.rules.Condition.NO_MASK;
 
 /* Trace class */
-public abstract class Condition extends UriResource {
+public class Condition extends UriResource {
     @Pattern(regexp = IPv4.regex,
              message = "is an invalid IP format")
     private String nwDstAddress;
@@ -591,7 +591,7 @@ public abstract class Condition extends UriResource {
         this.invTpDst = invTpDst;
     }
 
-    protected org.midonet.midolman.rules.Condition makeCondition() {
+    public org.midonet.midolman.rules.Condition makeCondition() {
         org.midonet.midolman.rules.Condition c =
             new org.midonet.midolman.rules.Condition();
         c.conjunctionInv = this.isCondInvert();
@@ -661,7 +661,7 @@ public abstract class Condition extends UriResource {
         return c;
     }
 
-    protected void setFromCondition(org.midonet.midolman.rules.Condition c) {
+    public void setFromCondition(org.midonet.midolman.rules.Condition c) {
         this.setCondInvert(c.conjunctionInv);
         this.setInvInPorts(c.inPortInv);
         this.setInvOutPorts(c.outPortInv);
