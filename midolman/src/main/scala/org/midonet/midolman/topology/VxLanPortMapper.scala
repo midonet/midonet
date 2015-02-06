@@ -25,13 +25,14 @@ import akka.util.Timeout
 import org.apache.zookeeper.KeeperException
 import org.midonet.midolman.state.Directory.{DefaultTypedWatcher, TypedWatcher}
 import org.midonet.midolman.state.DirectoryCallback
-import org.midonet.midolman.topology.VxLanPortMapper.{VxLanPorts, VxLanMapping, PortsIDRequest}
+import org.midonet.midolman.topology.VxLanPortMapper.{TunnelIpAndVni, VxLanPorts, VxLanMapping, PortsIDRequest}
 
 import scala.collection.JavaConversions.asScalaSet
 import scala.concurrent.Future
 import scala.concurrent.duration._
 
 import org.midonet.midolman.topology.devices.VxLanPort
+import org.midonet.packets.{IPv4Addr, IPv4}
 
 /** Adapter trait around the DataClient interface which exposes the unique
  *  setter method needed by the VxLanMapper. */
@@ -42,12 +43,15 @@ trait VxLanIdsProvider {
 
 object VxLanPortMapper {
 
-    var vniUUIDMap: Map[Int,UUID] = Map.empty
+    type TunnelIpAndVni = (IPv4Addr, Int)
+
+    var vniUUIDMap: Map[TunnelIpAndVni,UUID] = Map.empty
 
     /** Synchronous query method to retrieve the uuid of an external vxlan port
-     *  associated to the given vni key. The vni key is 24bits and its highest
-     *  byte is ignored. */
-    def uuidOf(vni: Int): Option[UUID] = vniUUIDMap get (vni & (1 << 24) - 1)
+     *  associated to the given vni key and tunnel IP. The vni key is 24bits and
+      *  its highest byte is ignored. */
+    def uuidOf(tunnelIp: IPv4Addr, vni: Int): Option[UUID] =
+        vniUUIDMap get (tunnelIp, vni & (1 << 24) - 1)
 
     /** Type safe actor Props constructor for #actorOf(). */
     def props(vta: ActorRef, provider: VxLanIdsProvider, dispatcher: String) =
@@ -55,7 +59,7 @@ object VxLanPortMapper {
 
     case object PortsIDRequest
     case class VxLanPorts(vxlanPorts: Seq[UUID])
-    case class VxLanMapping(map: Map[Int,UUID])
+    case class VxLanMapping(map: Map[TunnelIpAndVni, UUID])
 }
 
 /*
@@ -123,6 +127,7 @@ class VxLanPortMapper(val vta: ActorRef,
     }
 
     private def assembleMap(ports: Seq[Any]) =
-        ports.collect { case p: VxLanPort => (p.vtepVni, p.id) }
-             .foldLeft(Map[Int,UUID]()) { _ + _ }
+        ports.collect {
+                 case p: VxLanPort => ((p.vtepTunnelIp, p.vtepVni), p.id)
+             }.foldLeft(Map[TunnelIpAndVni,UUID]()) { _ + _ }
 }
