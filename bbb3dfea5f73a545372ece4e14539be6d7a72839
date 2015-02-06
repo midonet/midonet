@@ -25,6 +25,29 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_7e4b95b0",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VTPMRedirector.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-06T18:01:35Z",
+      "side": 1,
+      "message": "We can replace this with Actor.emptyBehavior",
+      "range": {
+        "startLine": 39,
+        "startChar": 4,
+        "endLine": 42,
+        "endChar": 5
+      },
+      "revId": "bbb3dfea5f73a545372ece4e14539be6d7a72839",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_d3c72211",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VTPMRedirector.scala",
         "patchSetId": 10
