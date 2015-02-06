@@ -47,6 +47,8 @@ class VxLanPortMapperTest extends TestKit(ActorSystem("VxLanPortMapperTest"))
     case class IdsRequest(cb: DirectoryCallback[JSet[UUID]], wchr: TypedWatcher)
 
     val shortRetry = 100.millis
+    val tunIp1 = IPv4Addr.random
+    val tunIp2 = IPv4Addr.random
 
     def vxlanMapper(testKit: ActorRef) = {
         val prov: VxLanIdsProvider = new VxLanIdsProvider {
@@ -64,16 +66,13 @@ class VxLanPortMapperTest extends TestKit(ActorSystem("VxLanPortMapperTest"))
         describe("when starting") {
 
             it("cleans the mapping in its companion object") {
-                VxLanPortMapper.vniUUIDMap += (42 -> UUID.randomUUID)
-
-                val act = vxlanMapper(system.deadLetters)
-
+                VxLanPortMapper.vniUUIDMap += ((tunIp1, 42) -> UUID.randomUUID)
+                vxlanMapper(system.deadLetters)
                 eventually { VxLanPortMapper.vniUUIDMap should have size 0 }
             }
 
             it("sends an initial request to the data client") {
-                val act = vxlanMapper(self)
-
+                vxlanMapper(self)
                 expectMsgType[IdsRequest]
             }
         }
@@ -99,7 +98,7 @@ class VxLanPortMapperTest extends TestKit(ActorSystem("VxLanPortMapperTest"))
             it("filters and keep only vxlan ports") {
                 val act = vxlanMapper(self)
                 expectMsgType[IdsRequest]
-                VxLanPortMapper.vniUUIDMap += (42 -> UUID.randomUUID)
+                VxLanPortMapper.vniUUIDMap += ((tunIp1, 42) -> UUID.randomUUID)
 
                 val nPorts = 5
                 val ids = List.fill(nPorts) { UUID.randomUUID }
@@ -132,9 +131,9 @@ class VxLanPortMapperTest extends TestKit(ActorSystem("VxLanPortMapperTest"))
                     }
                 }
                 val ids: Seq[UUID] = ports map { _.id }
-                val vnis: Seq[Int] = ports map { _.vtepVni }
+                val vnis: Seq[(IPv4Addr, Int)] = ports map { p => (p.vtepTunnelIp, p.vtepVni) }
                 val id2port = (ids zip ports).foldLeft(Map[UUID,Port]()) { _ + _ }
-                val mapping = (vnis zip ids).foldLeft(Map[Int,UUID]()) { _ + _ }
+                val mapping = (vnis zip ids).foldLeft(Map[(IPv4Addr, Int), UUID]()) { _ + _ }
 
                 act ! VxLanPorts(ids)
 
@@ -190,17 +189,17 @@ class VxLanPortMapperTest extends TestKit(ActorSystem("VxLanPortMapperTest"))
 
         it("allows the PacketWorkflow to synchronously query vxlan port ids") {
             val id = UUID.randomUUID
-            VxLanPortMapper.vniUUIDMap += (42 -> id)
-            (VxLanPortMapper uuidOf 10) shouldBe None
-            (VxLanPortMapper uuidOf 42) shouldBe Some(id)
+            VxLanPortMapper.vniUUIDMap += ((tunIp1, 42) -> id)
+            (VxLanPortMapper uuidOf (tunIp1, 10)) shouldBe None
+            (VxLanPortMapper uuidOf (tunIp1, 42)) shouldBe Some(id)
         }
 
         it("ignores the highest byte when looking up port ids") {
             val id = UUID.randomUUID
-            VxLanPortMapper.vniUUIDMap += (42 -> id)
-            (VxLanPortMapper uuidOf 42) shouldBe Some(id)
-            (VxLanPortMapper uuidOf 42 | 0xF0000000) shouldBe Some(id)
-            (VxLanPortMapper uuidOf 42 | 0x03000000) shouldBe Some(id)
+            VxLanPortMapper.vniUUIDMap += ((tunIp1, 42) -> id)
+            (VxLanPortMapper uuidOf (tunIp1, 42)) shouldBe Some(id)
+            (VxLanPortMapper uuidOf (tunIp1, 42 | 0xF0000000)) shouldBe Some(id)
+            (VxLanPortMapper uuidOf (tunIp1, 42 | 0x03000000)) shouldBe Some(id)
         }
     }
 }
