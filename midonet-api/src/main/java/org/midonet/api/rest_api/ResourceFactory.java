@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,6 +47,7 @@ import org.midonet.api.network.rest_api.VtepResource;
 import org.midonet.api.network.rest_api.VxLanPortBindingResource;
 import org.midonet.api.system_data.rest_api.HostVersionResource;
 import org.midonet.api.system_data.rest_api.SystemStateResource;
+import org.midonet.api.system_data.rest_api.TraceRequestResource;
 import org.midonet.api.system_data.rest_api.WriteVersionResource;
 import org.midonet.packets.IPv4Subnet;
 import org.midonet.packets.IPv6Subnet;
@@ -126,6 +127,8 @@ public interface ResourceFactory {
     WriteVersionResource getWriteVersionResource();
 
     SystemStateResource getSystemStateResource();
+
+    TraceRequestResource getTraceRequestResource();
 
     HostVersionResource getHostVersionResource();
 
