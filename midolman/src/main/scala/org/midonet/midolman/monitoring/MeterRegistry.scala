@@ -63,7 +63,7 @@ class MeterRegistry(val maxFlows: Int) {
             tags(i) match {
                 case meter: MeterTag =>
                     metadata.meters add meter
-                    if (meters.contains(meter.meterName)) {
+                    if (meters.containsKey(meter.meterName)) {
                         log.debug(s"tracking a new flow for meter ${meter.meterName}")
                     } else {
                         meters.put(meter.meterName, new FlowStats())
