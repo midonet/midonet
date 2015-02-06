@@ -45,6 +45,30 @@
       "revId": "bbb3dfea5f73a545372ece4e14539be6d7a72839",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_f3d69ec4",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VTPMRedirector.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-06T11:51:15Z",
+      "side": 1,
+      "message": "Have a look at the ReactiveSubscriber in the VT redirector patch - it might be useful. That one ensures that observable notifications are forwarded to the actor on its receive method, so you don\u0027t have to worry about multithreading.",
+      "parentUuid": "7a1969be_d3c72211",
+      "range": {
+        "startLine": 82,
+        "startChar": 8,
+        "endLine": 99,
+        "endChar": 9
+      },
+      "revId": "bbb3dfea5f73a545372ece4e14539be6d7a72839",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
