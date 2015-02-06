@@ -92,6 +92,80 @@
       "revId": "bbb3dfea5f73a545372ece4e14539be6d7a72839",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_7390eeec",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/VTPMRedirectorTest.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-06T15:37:52Z",
+      "side": 1,
+      "message": "Is this needed?",
+      "range": {
+        "startLine": 57,
+        "startChar": 4,
+        "endLine": 57,
+        "endChar": 43
+      },
+      "revId": "bbb3dfea5f73a545372ece4e14539be6d7a72839",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_fe14a5f6",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/VTPMRedirectorTest.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 225,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-06T15:37:52Z",
+      "side": 1,
+      "message": "Test that a tunnel zone update does not reach the former subscriber.",
+      "revId": "bbb3dfea5f73a545372ece4e14539be6d7a72839",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_de0569c3",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/VTPMRedirectorTest.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 247,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-06T15:37:52Z",
+      "side": 1,
+      "message": "Add a test that requests a tunnel zone that does not exist.\nAdd a test that requests a tunnel zone that is already cached.\n\n(same for Host)",
+      "revId": "bbb3dfea5f73a545372ece4e14539be6d7a72839",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_de2c494d",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/VTPMRedirectorTest.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 319,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-06T15:37:52Z",
+      "side": 1,
+      "message": "Test that a subsequent update does not reach the former subscriber.",
+      "revId": "bbb3dfea5f73a545372ece4e14539be6d7a72839",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
