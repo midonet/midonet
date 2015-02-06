@@ -454,7 +454,6 @@ class FlowController extends Actor with ActorLogWithoutPath
         }
 
         if (dpFlow != null) {
-            flowManager.add(dpFlow, wildFlow)
             meters.trackFlow(dpFlow.getMatch, wildFlow.tags)
             metrics.dpFlowsMetric.mark()
         }
@@ -578,8 +577,6 @@ class FlowController extends Actor with ActorLogWithoutPath
     }
 
     class FlowTablesMetrics(val flowManager: FlowManager) {
-        @volatile var currentDpFlows: Long = 0L
-
         val currentWildFlowsMetric = metricsRegistry.register(name(
                 classOf[FlowTablesGauge], "currentWildcardFlows"),
                 new Gauge[Long]{
@@ -589,7 +586,7 @@ class FlowController extends Actor with ActorLogWithoutPath
         val currentDpFlowsMetric = metricsRegistry.register(name(
                 classOf[FlowTablesGauge], "currentDatapathFlows"),
                 new Gauge[Long]{
-                    override def getValue = currentDpFlows
+                    override def getValue = flowManager.getNumDpFlows
                 })
 
         val wildFlowsMetric = metricsRegistry.meter(name(
