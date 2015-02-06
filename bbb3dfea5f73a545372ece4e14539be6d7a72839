@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_d360c237",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VTPMRedirector.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-06T11:49:22Z",
+      "side": 1,
+      "message": "We can replace this by inheriting MidolmanLogging in the VTPMRedirector class, and overriding logSource.\n\nAlso, for log source, we should use a documented namespace.",
+      "range": {
+        "startLine": 36,
+        "startChar": 4,
+        "endLine": 37,
+        "endChar": 68
+      },
+      "revId": "bbb3dfea5f73a545372ece4e14539be6d7a72839",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_d3c72211",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VTPMRedirector.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-06T11:49:22Z",
+      "side": 1,
+      "message": "I think the code in all these methods should be processed on the actor thread in its receive method. Otherwise, it looks like you\u0027ll going to access concurrently from different threads (i.e. the actor thread and the VT thread - from where you receive the observable notifications) most of your internal data structures: deviceSubscriptions + VTPM.*",
+      "range": {
+        "startLine": 82,
+        "startChar": 8,
+        "endLine": 99,
+        "endChar": 9
+      },
+      "revId": "bbb3dfea5f73a545372ece4e14539be6d7a72839",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
