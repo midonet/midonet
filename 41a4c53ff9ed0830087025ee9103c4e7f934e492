@@ -174,6 +174,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_d3e9e21b",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/ServerState.scala",
+        "patchSetId": 31
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-02-06T09:03:09Z",
+      "side": 1,
+      "message": "With a second thought, CnxnFactory is fine.",
+      "parentUuid": "7a1969be_b3526611",
+      "range": {
+        "startLine": 41,
+        "startChar": 10,
+        "endLine": 41,
+        "endChar": 21
+      },
+      "revId": "41a4c53ff9ed0830087025ee9103c4e7f934e492",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_73310eec",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/ServerState.scala",
         "patchSetId": 31
