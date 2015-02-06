@@ -567,6 +567,7 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
                     route.setNextHopGateway(gateway.toString)
                     route.setNextHop(org.midonet.midolman.layer3.Route.NextHop.PORT)
                     route.setNextHopPort(rport.id)
+                    route.setWeight(distance)
                     peerRoutes.remove(route) match {
                         case Some(routeId) => deleteRoute(routeId)
                         case None =>
