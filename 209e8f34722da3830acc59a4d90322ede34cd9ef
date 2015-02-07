@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_598993c9",
+        "filename": "midolman/src/main/java/org/midonet/midolman/host/state/HostZkManager.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 560,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-02-07T14:11:29Z",
+      "side": 1,
+      "message": "nit: over 80 chars",
+      "revId": "209e8f34722da3830acc59a4d90322ede34cd9ef",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
