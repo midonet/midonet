@@ -56,7 +56,7 @@ public class WatchedProcess {
         @Override
         public void run() {
             try {
-                log.debug("Writing to watchdog pipe");
+                log.trace("Writing to watchdog pipe");
                 if (running) {
                     buf.position(0);
                     pipe.write(buf);
