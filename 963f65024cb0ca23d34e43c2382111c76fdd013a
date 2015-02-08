@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_e42b72e9",
+        "filename": "docs/vxgw_service.md",
+        "patchSetId": 5
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 1003720
+      },
+      "writtenOn": "2015-02-08T08:54:23Z",
+      "side": 1,
+      "message": "Typo: \"will have only one...\"",
+      "revId": "963f65024cb0ca23d34e43c2382111c76fdd013a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
