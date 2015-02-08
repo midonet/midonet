@@ -16,6 +16,40 @@
       "revId": "963f65024cb0ca23d34e43c2382111c76fdd013a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_c4cc7638",
+        "filename": "docs/vxgw_service.md",
+        "patchSetId": 5
+      },
+      "lineNbr": 144,
+      "author": {
+        "id": 1003470
+      },
+      "writtenOn": "2015-02-08T10:03:26Z",
+      "side": 1,
+      "message": "Is there any plan to leverage neutron high level resources or just go with MidoNet low level model related APIs?",
+      "revId": "963f65024cb0ca23d34e43c2382111c76fdd013a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_245bca88",
+        "filename": "docs/vxgw_service.md",
+        "patchSetId": 5
+      },
+      "lineNbr": 340,
+      "author": {
+        "id": 1003470
+      },
+      "writtenOn": "2015-02-08T10:03:26Z",
+      "side": 1,
+      "message": "typo: OVSDB",
+      "revId": "963f65024cb0ca23d34e43c2382111c76fdd013a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
