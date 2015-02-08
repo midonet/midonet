@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_e4041280",
+        "filename": "midolman/src/main/java/org/midonet/midolman/guice/zookeeper/ZookeeperConnectionModule.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-02-08T06:51:53Z",
+      "side": 1,
+      "message": "nit: Over 80 chars",
+      "revId": "17e522e6cd8bf05f2bc58c922a5b547e93bafbd1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
