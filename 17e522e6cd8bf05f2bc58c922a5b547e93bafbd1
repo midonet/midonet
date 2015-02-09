@@ -16,6 +16,24 @@
       "revId": "17e522e6cd8bf05f2bc58c922a5b547e93bafbd1",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_343f7927",
+        "filename": "midolman/src/main/java/org/midonet/midolman/guice/zookeeper/ZookeeperConnectionModule.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-02-09T17:05:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_e4041280",
+      "revId": "17e522e6cd8bf05f2bc58c922a5b547e93bafbd1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
