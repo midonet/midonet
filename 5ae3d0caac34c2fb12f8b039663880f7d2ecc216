@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_5117a7ed",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/tools/TopologyZoomUpdater.scala",
+        "patchSetId": 21
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-09T13:11:26Z",
+      "side": 1,
+      "message": "That\u0027s the current topology, but that may change very fast. We are using this code to test the UI interface, and the test topology is likely to change to exercise more scenarios, so a very detailed description would be obsolete very soon.\n\nAnyway, adding some more descriptive comment...",
+      "parentUuid": "7a1969be_5325f2c0",
+      "range": {
+        "startLine": 35,
+        "startChar": 3,
+        "endLine": 35,
+        "endChar": 64
+      },
+      "revId": "5ae3d0caac34c2fb12f8b039663880f7d2ecc216",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_932f6aa1",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/tools/TopologyZoomUpdater.scala",
         "patchSetId": 21
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_f1ddf343",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/tools/TopologyZoomUpdater.scala",
+        "patchSetId": 21
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-09T13:11:26Z",
+      "side": 1,
+      "message": "You are totally right, I\u0027ll change it to Network, which seems to match the new terminology (with the condition that you provide a +1 again for the new version of the patch ;-)",
+      "parentUuid": "7a1969be_932f6aa1",
+      "range": {
+        "startLine": 51,
+        "startChar": 29,
+        "endLine": 51,
+        "endChar": 39
+      },
+      "revId": "5ae3d0caac34c2fb12f8b039663880f7d2ecc216",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_b31d4676",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/tools/TopologyZoomUpdater.scala",
         "patchSetId": 21
@@ -59,6 +107,30 @@
       "writtenOn": "2015-02-06T13:21:16Z",
       "side": 1,
       "message": "That\u0027s the provider router?",
+      "range": {
+        "startLine": 64,
+        "startChar": 16,
+        "endLine": 64,
+        "endChar": 23
+      },
+      "revId": "5ae3d0caac34c2fb12f8b039663880f7d2ecc216",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_d1e27702",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/tools/TopologyZoomUpdater.scala",
+        "patchSetId": 21
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-09T13:11:26Z",
+      "side": 1,
+      "message": "Yes, it represents the provider router",
+      "parentUuid": "7a1969be_b31d4676",
       "range": {
         "startLine": 64,
         "startChar": 16,
@@ -117,6 +189,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_31e78b14",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/tools/TopologyZoomUpdater.scala",
+        "patchSetId": 21
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-09T13:11:26Z",
+      "side": 1,
+      "message": "Ok, I\u0027ll change that...\nMmm... the named parameter syntax does not seem to be supported for java interfaces...",
+      "parentUuid": "7a1969be_93580a58",
+      "range": {
+        "startLine": 78,
+        "startChar": 65,
+        "endLine": 78,
+        "endChar": 77
+      },
+      "revId": "5ae3d0caac34c2fb12f8b039663880f7d2ecc216",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_b336e601",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/tools/TopologyZoomUpdater.scala",
         "patchSetId": 21
@@ -128,6 +224,30 @@
       "writtenOn": "2015-02-06T13:21:16Z",
       "side": 1,
       "message": "I don\u0027t understand why you do this. Just \u0027up\u0027 would seem more natural to me. I\u0027m probably missing something though.",
+      "range": {
+        "startLine": 200,
+        "startChar": 50,
+        "endLine": 200,
+        "endChar": 53
+      },
+      "revId": "5ae3d0caac34c2fb12f8b039663880f7d2ecc216",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_11e40f0c",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/tools/TopologyZoomUpdater.scala",
+        "patchSetId": 21
+      },
+      "lineNbr": 200,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-09T13:11:26Z",
+      "side": 1,
+      "message": "The value of \u0027up\u0027 is the current state, and what I want to do is switching its value",
+      "parentUuid": "7a1969be_b336e601",
       "range": {
         "startLine": 200,
         "startChar": 50,
@@ -163,6 +283,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_51c5e759",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/tools/TopologyZoomUpdater.scala",
+        "patchSetId": 21
+      },
+      "lineNbr": 274,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-09T13:11:26Z",
+      "side": 1,
+      "message": "Not really (well, at least not a simple thing that makes sense to change individually). The main purpose of having a vtep here is testing the string-based ids, as opposed to the \u0027UUID\u0027s that the other objects  use.",
+      "parentUuid": "7a1969be_f3405e58",
+      "range": {
+        "startLine": 274,
+        "startChar": 8,
+        "endLine": 274,
+        "endChar": 21
+      },
+      "revId": "5ae3d0caac34c2fb12f8b039663880f7d2ecc216",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_33095632",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/tools/TopologyZoomUpdaterApp.scala",
         "patchSetId": 21
@@ -174,6 +318,30 @@
       "writtenOn": "2015-02-06T13:21:16Z",
       "side": 1,
       "message": "Wouldn\u0027t it be possible to do something like a join on the started service instead of waking up every 10 minutes?",
+      "range": {
+        "startLine": 67,
+        "startChar": 12,
+        "endLine": 68,
+        "endChar": 36
+      },
+      "revId": "5ae3d0caac34c2fb12f8b039663880f7d2ecc216",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_711aa318",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/tools/TopologyZoomUpdaterApp.scala",
+        "patchSetId": 21
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-09T13:11:26Z",
+      "side": 1,
+      "message": "I would love that, but I haven\u0027t found any clean way to do that. The service stop method has to be called whenever the main thread is interrupted, so we need to block until we receive a ctrl-c signal for the app. The easiest wait is sleep, which gets interrupted on signal, though you cannot tell the thread to sleep \u0027forever\u0027 (An alternative would be invoking \u0027wait\u0027 on an arbitrary object, but that wouldn\u0027t be very elegant, neither).",
+      "parentUuid": "7a1969be_33095632",
       "range": {
         "startLine": 67,
         "startChar": 12,
