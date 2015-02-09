@@ -179,24 +179,21 @@ class PacketWorkflow(protected val dpState: DatapathState,
         notifyFlowAdded(context, dpFlow, newWildFlow)
     }
 
-    protected def addTranslatedFlow(context: PacketContext): SimulationResult = {
-        val res =
-            if (context.packet.getReason == Packet.Reason.FlowActionUserspace) {
-                resultLogger.debug("packet came up due to userspace dp action, " +
-                                   s"match ${context.origMatch}")
-                context.runFlowRemovedCallbacks()
-                UserspaceFlow
-            } else {
-                // ApplyState needs to happen before we add the wildcard flow
-                // because it adds callbacks to the PacketContext and it can also
-                // result in a NotYet exception being thrown.
-                applyState(context)
-                handleFlow(context)
-            }
-
-        dpChannel.executePacket(context.packet, context.flowActions)
-        res
-    }
+    protected def addTranslatedFlow(context: PacketContext): SimulationResult =
+        if (context.packet.getReason == Packet.Reason.FlowActionUserspace) {
+            resultLogger.debug("packet came up due to userspace dp action, " +
+                               s"match ${context.origMatch}")
+            dpChannel.executePacket(context.packet, context.flowActions)
+            context.runFlowRemovedCallbacks()
+            UserspaceFlow
+        } else {
+            // ApplyState needs to happen before we add the wildcard flow
+            // because it adds callbacks to the PacketContext and it can also
+            // result in a NotYet exception being thrown.
+            applyState(context)
+            dpChannel.executePacket(context.packet, context.flowActions)
+            handleFlow(context)
+        }
 
     private def handleFlow(context: PacketContext): SimulationResult = {
         if (context.isGenerated) {
