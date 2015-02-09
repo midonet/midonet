@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_744e11c3",
+        "filename": "tests/mmm/scripts/vtep/start",
+        "patchSetId": 1
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-02-09T17:20:08Z",
+      "side": 1,
+      "message": "I\u0027d suggest to name these vtep_management_ips, or something like that. Otherwise it\u0027s hard to know if it\u0027s tunnel ips, management, the hosts behind vteps..",
+      "range": {
+        "startLine": 21,
+        "startChar": 0,
+        "endLine": 21,
+        "endChar": 14
+      },
+      "revId": "18673478c36f3aaa2ff346c01486f85ad45977b0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_b4c7e911",
+        "filename": "tests/mmm/scripts/vtep/start",
+        "patchSetId": 1
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-02-09T17:20:08Z",
+      "side": 1,
+      "message": "What are gateways in this context? I\u0027d rather see terminology from VTEP/VxGW to make config more evident.",
+      "range": {
+        "startLine": 22,
+        "startChar": 0,
+        "endLine": 22,
+        "endChar": 8
+      },
+      "revId": "18673478c36f3aaa2ff346c01486f85ad45977b0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_94cc6d37",
+        "filename": "tests/mmm/scripts/vtep/start",
+        "patchSetId": 1
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-02-09T17:20:08Z",
+      "side": 1,
+      "message": "I understand from here that we\u0027ll be using 2 hardcoded VTEPs in the physical topology right? Not coming from the yaml.",
+      "range": {
+        "startLine": 23,
+        "startChar": 0,
+        "endLine": 23,
+        "endChar": 15
+      },
+      "revId": "18673478c36f3aaa2ff346c01486f85ad45977b0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_d4d6e5c4",
+        "filename": "tests/mmm/scripts/vtep/start",
+        "patchSetId": 1
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-02-09T17:20:08Z",
+      "side": 1,
+      "message": "These will be moved later to yaml right?",
+      "range": {
+        "startLine": 25,
+        "startChar": 0,
+        "endLine": 25,
+        "endChar": 13
+      },
+      "revId": "18673478c36f3aaa2ff346c01486f85ad45977b0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_d4ed458d",
+        "filename": "tests/mmm/scripts/vtep/start",
+        "patchSetId": 1
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-02-09T17:20:08Z",
+      "side": 1,
+      "message": "This would be very very convenient to be settable from yaml files because the HA tests require to use the same mac on both peers. Non HA tests don\u0027t need that. No need to implement it now, just wanted to sanity check that this is compatible with evolving to yaml-based.",
+      "range": {
+        "startLine": 53,
+        "startChar": 60,
+        "endLine": 53,
+        "endChar": 78
+      },
+      "revId": "18673478c36f3aaa2ff346c01486f85ad45977b0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
