@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_11f6cfd7",
+        "filename": "tools/devmido/create_fake_uplink.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-02-09T11:18:42Z",
+      "side": 1,
+      "message": "Let\u0027s add the licensing info just in case, and change this line to \u0027#!/usr/bin/env bash\u0027 for consistency.",
+      "revId": "f3157e80fc6e78694059d99f77cd9efb14d7434a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_b12c1b4c",
+        "filename": "tools/devmido/create_fake_uplink.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-02-09T11:18:42Z",
+      "side": 1,
+      "message": "Let\u0027s add \u0027die_if_not_set\u0027 function in our \u0027functions\u0027.  I think we should design this script in such way that it could be run on its own.",
+      "revId": "f3157e80fc6e78694059d99f77cd9efb14d7434a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_510047aa",
+        "filename": "tools/devmido/delete_fake_uplink.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-02-09T11:18:42Z",
+      "side": 1,
+      "message": "ditto",
+      "revId": "f3157e80fc6e78694059d99f77cd9efb14d7434a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
