@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_71aaa31a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/MtuIncreaser.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-02-09T14:05:53Z",
+      "side": 1,
+      "message": "Wouldn\u0027t it be best to remove this check entirely? Make it just:\n\nport.isInstanceOf[BridgePort] \u0026\u0026 itfDesc.isDefined",
+      "revId": "7e62e12a056aa30ff4d756c7ba85b78dba9689df",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
