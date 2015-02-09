@@ -177,8 +177,7 @@ class BridgeBuilderImpl(val id: UUID, val flowController: ActorRef,
     override def updateMacEntry(
             vlanId: Short, mac: MAC, oldPort: UUID, newPort: UUID) = {
         log.debug("Mac-Port mapping for MAC {}, VLAN ID {} was updated from {} "
-                  + "to {}",
-                  Array(mac, vlanId.asInstanceOf[Object], oldPort, newPort))
+                  + "to {}", mac, vlanId.asInstanceOf[Object], oldPort, newPort)
 
         if (newPort == null && oldPort != null) {
             log.debug("MAC {}, VLAN ID {} removed from port {}",
@@ -189,13 +188,13 @@ class BridgeBuilderImpl(val id: UUID, val flowController: ActorRef,
         if (newPort != null && oldPort != null
             && !newPort.equals(oldPort)) {
             log.debug("MAC {}, VLAN ID {} moved from port {} to {}",
-                      Array(mac, vlanId.asInstanceOf[Object], oldPort, newPort))
+                      mac, vlanId.asInstanceOf[Object], oldPort, newPort)
             flowController ! InvalidateFlowsByTag(
                     FlowTagger.tagForVlanPort(id, mac, vlanId, oldPort))
         }
         if (newPort != null && oldPort == null){
             log.debug("MAC {}, VLAN ID {} added to port {}",
-                      Array(mac, vlanId.asInstanceOf[Object], newPort))
+                      mac, vlanId.asInstanceOf[Object], newPort)
             // Now we have the MAC entry in the table so we can deliver it to
             // the proper port instead of flooding it. As regards broadcast or
             // arp requests:
