@@ -1,0 +1,113 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_277749d6",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 33
+      },
+      "lineNbr": 503,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-02-09T21:47:42Z",
+      "side": 1,
+      "message": "This seems sufficiently clear with the code below.",
+      "range": {
+        "startLine": 500,
+        "startChar": 20,
+        "endLine": 503,
+        "endChar": 29
+      },
+      "revId": "f87513b1eee8e4e2b1bbd7421d1c13e7284f80ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_0774cdcd",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 33
+      },
+      "lineNbr": 514,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-02-09T21:47:42Z",
+      "side": 1,
+      "message": "ditto",
+      "range": {
+        "startLine": 514,
+        "startChar": 20,
+        "endLine": 514,
+        "endChar": 22
+      },
+      "revId": "f87513b1eee8e4e2b1bbd7421d1c13e7284f80ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_c749158d",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 33
+      },
+      "lineNbr": 1138,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-02-09T21:47:42Z",
+      "side": 1,
+      "message": "still applicable?",
+      "range": {
+        "startLine": 1138,
+        "startChar": 12,
+        "endLine": 1138,
+        "endChar": 59
+      },
+      "revId": "f87513b1eee8e4e2b1bbd7421d1c13e7284f80ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_874f1d92",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 33
+      },
+      "lineNbr": 1163,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-02-09T21:47:42Z",
+      "side": 1,
+      "message": "I guess this implies that even if the State api has no notion of version, it still makes sense that it shares the underlying Storage instance since owners do have version, right?",
+      "range": {
+        "startLine": 1163,
+        "startChar": 25,
+        "endLine": 1163,
+        "endChar": 37
+      },
+      "revId": "f87513b1eee8e4e2b1bbd7421d1c13e7284f80ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_67aae11a",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/util/ObservablePathDirectoryCache.scala",
+        "patchSetId": 33
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-02-09T21:47:42Z",
+      "side": 1,
+      "message": "This just monitors children existence, but not their data?",
+      "revId": "f87513b1eee8e4e2b1bbd7421d1c13e7284f80ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
