@@ -33,7 +33,7 @@ import org.midonet.midolman.topology.VirtualTopologyActor.{Unsubscribe, PortRequ
 import org.midonet.midolman.topology.devices.Port
 
 /**
- * An abstraction layer for the [[VirtualTopologyActor]] that redirects
+ * An abstraction layer for the [[VirtualTopologyActor]] that reRangdirects
  * supported requests to the new [[VirtualTopology]].
  */
 abstract class VirtualTopologyRedirector extends Actor with MidolmanLogging {
