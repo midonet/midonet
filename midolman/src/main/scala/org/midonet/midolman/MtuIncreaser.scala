@@ -81,7 +81,9 @@ class MtuIncreaser extends Actor
         val itfName = port.interfaceName
         val itfDesc = dpState.getDescForInterface(itfName)
         if (port.isInstanceOf[BridgePort] && itfDesc.isDefined &&
-            itfDesc.get.getEndpoint == Endpoint.TUNTAP) {
+            (itfDesc.get.getEndpoint == Endpoint.TUNTAP ||
+                (itfDesc.get.getEndpoint == Endpoint.UNKNOWN &&
+                    itfDesc.get.getName.startsWith("tap")))) {
             s"ip link set mtu $BOUND_INTERFACE_MTU dev $itfName".! match {
                 case 0 =>
                     log.debug(s"Successfully increased the MTU of $itfName")
