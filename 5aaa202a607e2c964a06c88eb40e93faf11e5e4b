@@ -1,0 +1,142 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_3fff5736",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 227,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-02-09T12:56:06Z",
+      "side": 1,
+      "message": "Doesn\u0027t it just return None if not found?",
+      "range": {
+        "startLine": 227,
+        "startChar": 7,
+        "endLine": 227,
+        "endChar": 52
+      },
+      "revId": "5aaa202a607e2c964a06c88eb40e93faf11e5e4b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_9ffc8b40",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 275,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-02-09T12:56:06Z",
+      "side": 1,
+      "message": "This looks a bit confusing, because setDstSubnet and setGateway are at the same level as setServerAddress and addOpt121RoutesBuilder, so they look like they\u0027re being applied to the DchpSubnet.\n\nI would do it more like this:\n\nfindDhcpSubnet(network, subnet).foreach { subnet \u003d\u003e\n  subnet.setServerAddress(ipAddr)\n  val opt121 \u003d subnet.addOpt121RoutesBuilder()\n  opt121.setDstSubnet(META_DATA_SRVC)\n        .setGateway(ipAddr)\n}",
+      "range": {
+        "startLine": 272,
+        "startChar": 0,
+        "endLine": 275,
+        "endChar": 73
+      },
+      "revId": "5aaa202a607e2c964a06c88eb40e93faf11e5e4b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_bf6867f6",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 292,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-02-09T12:56:06Z",
+      "side": 1,
+      "message": "It\u0027s okay either way, but since there\u0027s only one expression here, you can omit the braces if you want.\n\nOr, maybe you could add a method to RouteManager that gives this a name, because it\u0027s not obvious to me what you\u0027re actually checking for here.",
+      "range": {
+        "startLine": 290,
+        "startChar": 39,
+        "endLine": 292,
+        "endChar": 60
+      },
+      "revId": "5aaa202a607e2c964a06c88eb40e93faf11e5e4b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_d111d7ad",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 436,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-02-09T12:56:06Z",
+      "side": 1,
+      "message": "You can use map here.",
+      "range": {
+        "startLine": 436,
+        "startChar": 49,
+        "endLine": 436,
+        "endChar": 54
+      },
+      "revId": "5aaa202a607e2c964a06c88eb40e93faf11e5e4b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_11236f06",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 471,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-02-09T12:56:06Z",
+      "side": 1,
+      "message": "I would use flatMap to avoid the var and simplify the code. \n\n  findGwRouterPort(srcSubnet, portContext).flatMap { gwRPort \u003d\u003e\n    val router \u003d gwRPort.gatewayRouter\n    val svcRoute \u003d // blah blah\n    if (svcRoute \u003c 0) None\n    else Some(Update(router.toBuilder.remoteRoutes(svcRoute).build()))\n  }",
+      "range": {
+        "startLine": 458,
+        "startChar": 0,
+        "endLine": 471,
+        "endChar": 24
+      },
+      "revId": "5aaa202a607e2c964a06c88eb40e93faf11e5e4b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_91175fa3",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 499,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-02-09T12:56:06Z",
+      "side": 1,
+      "message": "That inner loop is pretty ugly. An early return would simplify things a lot and eliminate the var:\n\n    private def findGwRouterPort(subnet: NeutronSubnet,\n                                 portContext: PortContext)\n    : Option[GwRouterPort] \u003d {\n        if (!subnet.hasGatewayIp) return None\n        val network \u003d portContext.midoNetworks(subnet.getNetworkId)\n\n        // Find first logical port whose peer has the gateway IP.\n        for (portId \u003c- network.getPortIdsList.asScala) {\n            val port \u003d storage.get(classOf[Port], portId).await()\n            if (port.hasPeerId) {\n                val peer \u003d storage.get(classOf[Port], port.getPeerId).await()\n                if (subnet.getGatewayIp \u003d\u003d peer.getPortAddress) {\n                    val router \u003d storage.get(classOf[Router],\n                                             peer.getRouterId).await()\n                    return Some(GwRouterPort(peer.getId, router))\n                }\n            }\n        }\n        None\n    }",
+      "range": {
+        "startLine": 477,
+        "startChar": 0,
+        "endLine": 499,
+        "endChar": 15
+      },
+      "revId": "5aaa202a607e2c964a06c88eb40e93faf11e5e4b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
