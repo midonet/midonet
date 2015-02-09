@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_a7bcd96d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PortMapper.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-02-09T21:22:08Z",
+      "side": 1,
+      "message": "I believe Mark preferred just 2015 (the date of the last modification)",
+      "range": {
+        "startLine": 2,
+        "startChar": 16,
+        "endLine": 2,
+        "endChar": 22
+      },
+      "revId": "e0367f73f0a657705a0044e4ad5222972374d05e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_87c1dde6",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PortMapper.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-02-09T21:22:08Z",
+      "side": 1,
+      "message": "These graphs are worth many beers.",
+      "revId": "e0367f73f0a657705a0044e4ad5222972374d05e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
