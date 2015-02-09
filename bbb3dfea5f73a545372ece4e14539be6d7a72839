@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_bf36a701",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VTPMRedirector.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-09T17:08:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_d360c237",
+      "range": {
+        "startLine": 36,
+        "startChar": 4,
+        "endLine": 37,
+        "endChar": 68
+      },
+      "revId": "bbb3dfea5f73a545372ece4e14539be6d7a72839",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_7e4b95b0",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VTPMRedirector.scala",
         "patchSetId": 10
@@ -36,6 +60,30 @@
       "writtenOn": "2015-02-06T18:01:35Z",
       "side": 1,
       "message": "We can replace this with Actor.emptyBehavior",
+      "range": {
+        "startLine": 39,
+        "startChar": 4,
+        "endLine": 42,
+        "endChar": 5
+      },
+      "revId": "bbb3dfea5f73a545372ece4e14539be6d7a72839",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_1f3c1be2",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VTPMRedirector.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-09T17:08:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_7e4b95b0",
       "range": {
         "startLine": 39,
         "startChar": 4,
@@ -95,6 +143,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_74773103",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VTPMRedirector.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-09T17:08:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_f3d69ec4",
+      "range": {
+        "startLine": 82,
+        "startChar": 8,
+        "endLine": 99,
+        "endChar": 9
+      },
+      "revId": "bbb3dfea5f73a545372ece4e14539be6d7a72839",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_d39562e5",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VTPMRedirector.scala",
         "patchSetId": 10
@@ -106,6 +178,30 @@
       "writtenOn": "2015-02-06T12:15:02Z",
       "side": 1,
       "message": "Can replace with placeholder _",
+      "range": {
+        "startLine": 107,
+        "startChar": 46,
+        "endLine": 107,
+        "endChar": 61
+      },
+      "revId": "bbb3dfea5f73a545372ece4e14539be6d7a72839",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_ff401f58",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VTPMRedirector.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-09T17:08:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_d39562e5",
       "range": {
         "startLine": 107,
         "startChar": 46,
@@ -141,6 +237,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_5f25f3c0",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/VTPMRedirectorTest.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-09T17:08:42Z",
+      "side": 1,
+      "message": "Yes it is to set zookeeper.cluster_storage_enabled to true in fillConfig below.",
+      "parentUuid": "7a1969be_7390eeec",
+      "range": {
+        "startLine": 57,
+        "startChar": 4,
+        "endLine": 57,
+        "endChar": 43
+      },
+      "revId": "bbb3dfea5f73a545372ece4e14539be6d7a72839",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_fe14a5f6",
         "filename": "midolman/src/test/scala/org/midonet/midolman/topology/VTPMRedirectorTest.scala",
         "patchSetId": 10
@@ -152,6 +272,24 @@
       "writtenOn": "2015-02-06T15:37:52Z",
       "side": 1,
       "message": "Test that a tunnel zone update does not reach the former subscriber.",
+      "revId": "bbb3dfea5f73a545372ece4e14539be6d7a72839",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_91659f47",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/VTPMRedirectorTest.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 225,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-09T17:08:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_fe14a5f6",
       "revId": "bbb3dfea5f73a545372ece4e14539be6d7a72839",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -175,6 +313,24 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_31db0bef",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/VTPMRedirectorTest.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 247,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-09T17:08:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_de0569c3",
+      "revId": "bbb3dfea5f73a545372ece4e14539be6d7a72839",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_de2c494d",
         "filename": "midolman/src/test/scala/org/midonet/midolman/topology/VTPMRedirectorTest.scala",
         "patchSetId": 10
@@ -186,6 +342,24 @@
       "writtenOn": "2015-02-06T15:37:52Z",
       "side": 1,
       "message": "Test that a subsequent update does not reach the former subscriber.",
+      "revId": "bbb3dfea5f73a545372ece4e14539be6d7a72839",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_f15a1382",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/VTPMRedirectorTest.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 319,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-09T17:08:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_de2c494d",
       "revId": "bbb3dfea5f73a545372ece4e14539be6d7a72839",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
