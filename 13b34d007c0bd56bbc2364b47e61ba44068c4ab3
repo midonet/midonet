@@ -460,6 +460,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_54a7954f",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/Session.scala",
+        "patchSetId": 25
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-02-09T17:40:09Z",
+      "side": 1,
+      "message": "Oh sorry, I explained badly. I mean using ids as Strings *only* in the API protobufs, no in the model protos.\n\nSo, you\u0027d do a GET(uuid, Bridge.class) where the uuid is a string representation. When the API service talks to ZOOM, then it converts the String to UUID.\n\nThis might have the inconvenient of the VTEP, which we can solve in two ways:\n\n- if (type \u003d\u003d VTEP.class).. ugly, but very small and localized\n- Pass the STring to ZOOM as the key. This is strictly not correct, but it should work equally because ZOOM deals with paths as strings so even if you pass a UUID it\u0027ll serialize it into a string before going to ZK.\n\nI\u0027m annoyingly nitpicky on getting this point fixed because the protos are shared with Alex, so changes later will impact him.",
+      "parentUuid": "7a1969be_2003bd10",
+      "range": {
+        "startLine": 33,
+        "startChar": 7,
+        "endLine": 33,
+        "endChar": 9
+      },
+      "revId": "13b34d007c0bd56bbc2364b47e61ba44068c4ab3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_bb3a4a34",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/SessionInventory.scala",
         "patchSetId": 25
