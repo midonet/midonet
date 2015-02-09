@@ -34,6 +34,24 @@
       "revId": "308d0c091c0f0e4d870b849d4a0d2573f107553a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_34ddb971",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/PingTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-02-09T15:22:09Z",
+      "side": 1,
+      "message": "Oki. In a later patch i\u0027ll try to remember and move it to midolmanspec so every test has it handy.",
+      "parentUuid": "7a1969be_14935da4",
+      "revId": "308d0c091c0f0e4d870b849d4a0d2573f107553a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
