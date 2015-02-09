@@ -213,31 +213,7 @@ class ZebraConnection(val dispatcher: ActorRef,
         log.debug("ZebraIpv4RouteAdd: ribType %s flags %d prefix %s".format(
             ZebraRouteTypeTable(ribType), flags, advertised))
 
-        val nextHops =
-            if ((message & ZAPIMessageNextHop) != 0) {
-                val nextHopNum = in.readByte
-                val hops = new Array[NextHop](nextHopNum)
-                for (i <- 0 until nextHopNum) {
-                    val nextHopType = in.readByte
-                    if (nextHopType == ZebraNextHopIpv4) {
-                        val addr = in.readInt
-                        log.info(s"received route: nextHopType $nextHopType addr $addr")
-                        hops(i) = NextHop(RIBType.fromInteger(ribType),
-                            new IPv4Subnet(IPv4Addr.fromBytes(prefix), prefixLen),
-                            IPv4Addr.fromInt(addr))
-                    }
-                }
-                hops
-            } else {
-                Array[NextHop]()
-            }
-
-        val distance =
-            if ((message & ZAPIMessageDistance) != 0) {
-                in.readByte
-            }  else {
-                1.toByte
-            }
+        val (nextHops, distance) = readRoutes(message, ribType, prefix, prefixLen)
 
         var i = 0
         while (i < nextHops.length) {
@@ -272,25 +248,16 @@ class ZebraConnection(val dispatcher: ActorRef,
         log.debug(
             s"ZebraIpv4RouteDelete: ribType ${ZebraRouteTypeTable(ribType)} flags $flags prefix $advertised")
 
-        if ((message & ZAPIMessageNextHop) != 0) {
-            val nextHopNum = in.readByte
-            for (i <- 0 until nextHopNum) {
-                val nextHopType = in.readByte
-                if (nextHopType == ZebraNextHopIpv4) {
-                    val addr = in.readInt
-                    log.info(s"route to delete: nextHopType $nextHopType addr $addr")
+        val (nextHops, distance) = readRoutes(message, ribType, prefix, prefixLen)
 
-                    handler.removeRoute(RIBType.fromInteger(ribType),
-                        new IPv4Subnet(IPv4Addr.fromBytes(prefix), prefixLen),
-                        IPv4Addr.fromInt(addr))
-                }
-            }
+        var i = 0
+        while (i < nextHops.length) {
+            val nextHop = nextHops(i)
+            handler.removeRoute(nextHop.ribType, nextHop.destination,
+                                nextHop.gateway, distance)
+            i += 1
         }
 
-        if ((message & ZAPIMessageDistance) != 0) {
-            val distance = in.readByte
-            // droping for now.
-        }
 
         if ((message & ZAPIMessageMetric) != 0) {
             // droping for now.
@@ -320,6 +287,37 @@ class ZebraConnection(val dispatcher: ActorRef,
 
             case _ => unsupported()
         }
+    }
+
+    private def readRoutes(message: Byte, ribType: Byte, prefix: Array[Byte],
+                           prefixLen: Byte): (Array[NextHop], Byte) = {
+        val nextHops =
+            if ((message & ZAPIMessageNextHop) != 0) {
+                val nextHopNum = in.readByte
+                val hops = new Array[NextHop](nextHopNum)
+                for (i <- 0 until nextHopNum) {
+                    val nextHopType = in.readByte
+                    if (nextHopType == ZebraNextHopIpv4) {
+                        val addr = in.readInt
+                        log.info(s"received route: nextHopType $nextHopType addr $addr")
+                        hops(i) = NextHop(RIBType.fromInteger(ribType),
+                            new IPv4Subnet(IPv4Addr.fromBytes(prefix), prefixLen),
+                            IPv4Addr.fromInt(addr))
+                    }
+                }
+                hops
+            } else {
+                Array[NextHop]()
+            }
+
+        val distance =
+            if ((message & ZAPIMessageDistance) != 0) {
+                in.readByte
+            }  else {
+                1.toByte
+            }
+
+        (nextHops, distance)
     }
 
     override def postStop() {
