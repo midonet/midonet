@@ -15,32 +15,35 @@
  */
 package org.midonet.util.concurrent
 
+import scala.reflect.ClassTag
+
 import akka.actor.Actor
 
-import rx.Observer
+import rx.Subscriber
 
 object ReactiveActor {
 
     sealed trait ReactiveAction
-    case class OnNext[+D <: AnyRef](value: D)
-        extends ReactiveAction
-    case class OnError(e: Throwable) extends ReactiveAction
-    case class OnCompleted() extends ReactiveAction
+    case class OnNext[+I <: AnyRef, +D <: AnyRef]
+    (tag: ClassTag[D], id: I, value: D) extends ReactiveAction
+    case class OnError[+I <: AnyRef, -D <: AnyRef]
+    (tag: ClassTag[D], id: I, e: Throwable) extends ReactiveAction
+    case class OnCompleted[+I <: AnyRef, -D <: AnyRef]
+    (tag: ClassTag[D], id: I) extends ReactiveAction
 
+    protected class ReactiveSubscriber[+I <: AnyRef, -D <: AnyRef]
+    (id: I, actor: ReactiveActor[D])(implicit tag: ClassTag[D])
+        extends Subscriber[D] {
+        final override def onCompleted(): Unit = {
+            actor.self ! OnCompleted(tag, id)
+        }
+        final override def onError(e: Throwable): Unit = {
+            actor.self ! OnError(tag, id, e)
+        }
+        final override def onNext(t: D): Unit = {
+            actor.self ! OnNext(tag, id, t)
+        }
+    }
 }
 
-trait ReactiveActor[D <: AnyRef] extends Actor with Observer[D] {
-
-    import org.midonet.util.concurrent.ReactiveActor._
-
-    protected[this] implicit val observer: Observer[D] = this
-
-    override def onCompleted(): Unit =
-        self ! OnCompleted
-
-    override def onError(e: Throwable): Unit =
-        self ! OnError(e)
-
-    override def onNext(t: D): Unit = if (null != t)
-        self ! OnNext(t)
-}
+trait ReactiveActor[D <: AnyRef] extends Actor
