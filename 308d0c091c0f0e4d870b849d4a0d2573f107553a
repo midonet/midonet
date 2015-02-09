@@ -16,6 +16,24 @@
       "revId": "308d0c091c0f0e4d870b849d4a0d2573f107553a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_14935da4",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/PingTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-02-09T15:20:06Z",
+      "side": 1,
+      "message": "I was using it for testing. Any harm in leaving it in? I always find it handy to have a log instance around for breadcrumbing",
+      "parentUuid": "7a1969be_744bb159",
+      "revId": "308d0c091c0f0e4d870b849d4a0d2573f107553a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
