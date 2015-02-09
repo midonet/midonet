@@ -1,0 +1,577 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_e799b16f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/FlowTranslator.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 190,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-02-09T21:01:14Z",
+      "side": 1,
+      "message": "This needs to remain closure-less since it\u0027s in the fastpath.",
+      "revId": "979c10470e533ce9156c383ac96a814c6312be8a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_c79e3556",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/guice/ClusterModule.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-02-09T21:01:14Z",
+      "side": 1,
+      "message": "Remind me to discuss about this after we get the modules unification patch done.",
+      "revId": "979c10470e533ce9156c383ac96a814c6312be8a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_07a04d8f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Bridge.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-02-09T21:01:14Z",
+      "side": 1,
+      "message": "I\u0027d just move it into the class itself tbh. Why not use the constant that was used before from the data model?",
+      "revId": "979c10470e533ce9156c383ac96a814c6312be8a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_87171da3",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BridgeMapper.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-02-09T21:01:14Z",
+      "side": 1,
+      "message": "What do you think about moving the contents of this guy out of the file? Just to keep the size under control and make it less scary :D",
+      "range": {
+        "startLine": 51,
+        "startChar": 7,
+        "endLine": 51,
+        "endChar": 19
+      },
+      "revId": "979c10470e533ce9156c383ac96a814c6312be8a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_a7b699da",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BridgeMapper.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-02-09T21:01:14Z",
+      "side": 1,
+      "message": "Not necessary now, but I\u0027m thinking that we should keep this to nulls in order to spare the Option overhead. We\u0027re not going to hit this soon, but thinking 10k ports (which is our target for a single bridge), we\u0027re chewing 24KB of heap per bridge. And if we extend this to all devices, mappers, etc., it adds up. Also, the Option return types below adding garbage, etc.\n\nI\u0027m ok to remove these in a later patch.\n\n@Duarte, @Guillermo, thoughts?",
+      "range": {
+        "startLine": 69,
+        "startChar": 33,
+        "endLine": 69,
+        "endChar": 39
+      },
+      "revId": "979c10470e533ce9156c383ac96a814c6312be8a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_a77979fe",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BridgeMapper.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-02-09T21:01:14Z",
+      "side": 1,
+      "message": "I know the warning is all over the place, but I\u0027d add a thread unsafe notice here. E.g., concurrent calls to mapBridge will break stuff.\n\nRandom thought: it\u0027d be awesome to have a couple of simple tests that we know for sure break if the vt scheduler is ever changed to a thread pool.",
+      "revId": "979c10470e533ce9156c383ac96a814c6312be8a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_27caa94f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BridgeMapper.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 135,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-02-09T21:01:14Z",
+      "side": 1,
+      "message": "needed?",
+      "range": {
+        "startLine": 135,
+        "startChar": 61,
+        "endLine": 135,
+        "endChar": 71
+      },
+      "revId": "979c10470e533ce9156c383ac96a814c6312be8a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_877efde2",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BridgeMapper.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 163,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-02-09T21:01:14Z",
+      "side": 1,
+      "message": "does it make sense to make it a val, so it\u0027s not generated always?a",
+      "range": {
+        "startLine": 163,
+        "startChar": 21,
+        "endLine": 163,
+        "endChar": 29
+      },
+      "revId": "979c10470e533ce9156c383ac96a814c6312be8a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_c788f5e9",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BridgeMapper.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 168,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-02-09T21:01:14Z",
+      "side": 1,
+      "message": "ditto",
+      "range": {
+        "startLine": 168,
+        "startChar": 21,
+        "endLine": 168,
+        "endChar": 29
+      },
+      "revId": "979c10470e533ce9156c383ac96a814c6312be8a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_27d109fc",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BridgeMapper.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 239,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-02-09T21:01:14Z",
+      "side": 1,
+      "message": "Do we need to wrap these in the MacPortMapping? I\u0027m just thinking we can spare the garbage passing the raw values.",
+      "range": {
+        "startLine": 239,
+        "startChar": 42,
+        "endLine": 239,
+        "endChar": 56
+      },
+      "revId": "979c10470e533ce9156c383ac96a814c6312be8a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_07ce8d5a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BridgeMapper.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 302,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-02-09T21:01:14Z",
+      "side": 1,
+      "message": "this is intentionally happening on the zk thread right?",
+      "range": {
+        "startLine": 302,
+        "startChar": 9,
+        "endLine": 302,
+        "endChar": 18
+      },
+      "revId": "979c10470e533ce9156c383ac96a814c6312be8a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_8709dd97",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BridgeMapper.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 310,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-02-09T21:01:14Z",
+      "side": 1,
+      "message": "what\u0027s this? the time before the first event is emitted?",
+      "range": {
+        "startLine": 310,
+        "startChar": 49,
+        "endLine": 310,
+        "endChar": 54
+      },
+      "revId": "979c10470e533ce9156c383ac96a814c6312be8a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_e7fed16a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BridgeMapper.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 312,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-02-09T21:01:14Z",
+      "side": 1,
+      "message": "ditto",
+      "range": {
+        "startLine": 312,
+        "startChar": 9,
+        "endLine": 312,
+        "endChar": 18
+      },
+      "revId": "979c10470e533ce9156c383ac96a814c6312be8a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_c703d571",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BridgeMapper.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 317,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-02-09T21:01:14Z",
+      "side": 1,
+      "message": "The retry re-emits the same object that it has? Shouldn\u0027t it regenerate the bridge after a retry?",
+      "range": {
+        "startLine": 317,
+        "startChar": 33,
+        "endLine": 317,
+        "endChar": 39
+      },
+      "revId": "979c10470e533ce9156c383ac96a814c6312be8a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_27f8e97b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BridgeMapper.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 320,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-02-09T21:01:14Z",
+      "side": 1,
+      "message": "nice!",
+      "revId": "979c10470e533ce9156c383ac96a814c6312be8a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_a72b39ea",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BridgeMapper.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 339,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-02-09T21:01:14Z",
+      "side": 1,
+      "message": "It might make sense to split in 3 variables so the resulting deviceObservable reads more straight.",
+      "revId": "979c10470e533ce9156c383ac96a814c6312be8a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_47efe5b0",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BridgeMapper.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 345,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-02-09T21:01:14Z",
+      "side": 1,
+      "message": "more readable if indented under merge and connectionSubject wrapped.",
+      "range": {
+        "startLine": 345,
+        "startChar": 0,
+        "endLine": 345,
+        "endChar": 12
+      },
+      "revId": "979c10470e533ce9156c383ac96a814c6312be8a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_e7353147",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BridgeMapper.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 366,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-02-09T21:01:14Z",
+      "side": 1,
+      "message": "Nit: I\u0027d word this based on the semantics of the completion. E.g., if a completion of the source bridge observable means that the bridge is deleted, we can word this as bridgeDeleted().",
+      "range": {
+        "startLine": 366,
+        "startChar": 29,
+        "endLine": 366,
+        "endChar": 64
+      },
+      "revId": "979c10470e533ce9156c383ac96a814c6312be8a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_c71115ae",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BridgeMapper.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 473,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-02-09T21:01:14Z",
+      "side": 1,
+      "message": "why needed?",
+      "range": {
+        "startLine": 473,
+        "startChar": 30,
+        "endLine": 473,
+        "endChar": 40
+      },
+      "revId": "979c10470e533ce9156c383ac96a814c6312be8a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_67778103",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BridgeMapper.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 526,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-02-09T21:01:14Z",
+      "side": 1,
+      "message": "why is this? shouldn\u0027t this imply that the port we\u0027re trying to watch is already watched?",
+      "range": {
+        "startLine": 526,
+        "startChar": 70,
+        "endLine": 526,
+        "endChar": 78
+      },
+      "revId": "979c10470e533ce9156c383ac96a814c6312be8a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_87655d47",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BridgeMapper.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 558,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-02-09T21:01:14Z",
+      "side": 1,
+      "message": "nit: remove",
+      "range": {
+        "startLine": 558,
+        "startChar": 8,
+        "endLine": 558,
+        "endChar": 38
+      },
+      "revId": "979c10470e533ce9156c383ac96a814c6312be8a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_c75f5571",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BridgeMapper.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 584,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-02-09T21:01:14Z",
+      "side": 1,
+      "message": "Reading this as an operator, it\u0027s confusing. Something like \"refreshing bridge state\", \"processing bridge update\", or something like that sounds more accurate.",
+      "range": {
+        "startLine": 584,
+        "startChar": 34,
+        "endLine": 584,
+        "endChar": 42
+      },
+      "revId": "979c10470e533ce9156c383ac96a814c6312be8a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_27546953",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BridgeMapper.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 595,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-02-09T21:01:14Z",
+      "side": 1,
+      "message": "newline?",
+      "revId": "979c10470e533ce9156c383ac96a814c6312be8a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_07516d62",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BridgeMapper.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 628,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-02-09T21:01:14Z",
+      "side": 1,
+      "message": "Unsupported? it\u0027s known, just not what we expect",
+      "range": {
+        "startLine": 628,
+        "startChar": 30,
+        "endLine": 628,
+        "endChar": 37
+      },
+      "revId": "979c10470e533ce9156c383ac96a814c6312be8a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_674e61c3",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BridgeMapper.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 648,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-02-09T21:01:14Z",
+      "side": 1,
+      "message": "nit: these two assignments should fit in the same line no?",
+      "revId": "979c10470e533ce9156c383ac96a814c6312be8a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_87cc3d37",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopology.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 163,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-02-09T21:01:14Z",
+      "side": 1,
+      "message": "do these need to be public? otherwise we can remove the val",
+      "range": {
+        "startLine": 163,
+        "startChar": 33,
+        "endLine": 163,
+        "endChar": 36
+      },
+      "revId": "979c10470e533ce9156c383ac96a814c6312be8a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_67e5c1a7",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/builders/BridgeBuilderImpl.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-02-09T21:01:14Z",
+      "side": 1,
+      "message": "Duarte asked to have the java lists here, we should confirm this change.",
+      "range": {
+        "startLine": 57,
+        "startChar": 39,
+        "endLine": 57,
+        "endChar": 49
+      },
+      "revId": "979c10470e533ce9156c383ac96a814c6312be8a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
