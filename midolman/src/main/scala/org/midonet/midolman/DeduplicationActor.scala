@@ -82,6 +82,7 @@ class DeduplicationActor(
     import DeduplicationActor._
     import PacketWorkflow._
 
+    private val TraceLoggingContextKey = "traceId"
     override def logSource = "org.midonet.packet-worker"
 
     var dpState: DatapathState = null
@@ -311,6 +312,7 @@ class DeduplicationActor(
             if (context.ingressed)
                 packetOut(1)
             MDC.remove("cookie")
+            MDC.remove(TraceLoggingContextKey)
         }
 
     protected def runWorkflow(pktCtx: PacketContext): Unit =
@@ -322,8 +324,8 @@ class DeduplicationActor(
             }
         } catch {
             case TraceRequiredException =>
-                pktCtx.setTracingEnabled()
                 pktCtx.log.debug(s"Enabling trace for $pktCtx, and rerunning simulation")
+                MDC.put(TraceLoggingContextKey, pktCtx.tracingContext)
                 runWorkflow(pktCtx)
             case NotYetException(f, msg) =>
                 pktCtx.log.debug(s"Postponing simulation because: $msg")

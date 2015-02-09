@@ -16,7 +16,7 @@
 
 package org.midonet.midolman.simulation
 
-import java.util.{Arrays, ArrayList, Set => JSet, UUID}
+import java.util.{Arrays, ArrayList, HashSet, Set => JSet, UUID}
 import scala.collection.JavaConversions._
 import scala.collection.mutable
 
@@ -201,7 +201,7 @@ class PacketContext(val cookie: Int,
                     val packet: Packet,
                     val origMatch: FlowMatch,
                     val egressPort: UUID = null) extends Clearable with FlowContext with StateContext {
-    var tracing: Boolean = false
+    var tracing: JSet[UUID] = null
     var log = PacketContext.defaultLog
 
     def jlog = log.underlying
@@ -277,13 +277,22 @@ class PacketContext(val cookie: Int,
     def addGeneratedPacket(uuid: UUID, ethernet: Ethernet): Unit =
         packetEmitter.schedule(GeneratedPacket(uuid, ethernet))
 
-    def tracingEnabled: Boolean = {
-        tracing
+    def tracingContext : String = {
+        tracing.toString
     }
 
-    def setTracingEnabled(): Unit = {
-        tracing = true
+    def tracingEnabled(traceRequestId: UUID): Boolean = {
+        !(tracing == null) && tracing.contains(traceRequestId)
     }
+
+    def setTracingEnabled(traceRequestId: UUID): Unit = {
+        if (tracing == null) {
+            tracing = new HashSet[UUID]
+        }
+        tracing.add(traceRequestId)
+        log = PacketContext.traceLog
+    }
+
 
     override def toString = s"PacketContext[$cookieStr]"
 }
