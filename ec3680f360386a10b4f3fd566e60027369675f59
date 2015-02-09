@@ -1,0 +1,84 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_c7e2b502",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/SessionInventory.scala",
+        "patchSetId": 32
+      },
+      "lineNbr": 356,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-02-09T19:34:43Z",
+      "side": 1,
+      "message": "nit: both destroyAction and unsubscribeAction could move out of the function.",
+      "revId": "ec3680f360386a10b4f3fd566e60027369675f59",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_67c82175",
+        "filename": "midonet-util/src/test/scala/org/midonet/util/concurrent/BlockingSpscRwdRingBufferTest.scala",
+        "patchSetId": 32
+      },
+      "lineNbr": 153,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-02-09T19:34:43Z",
+      "side": 1,
+      "message": "Could we do this one smaller? It\u0027s only 2 secs and 2 tests, so it\u0027s not the end of the world, but we should keep long waits to a minimum because they add up to the global execution time.",
+      "range": {
+        "startLine": 153,
+        "startChar": 69,
+        "endLine": 153,
+        "endChar": 70
+      },
+      "revId": "ec3680f360386a10b4f3fd566e60027369675f59",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_a7a179ab",
+        "filename": "midonet-util/src/test/scala/org/midonet/util/concurrent/BlockingSpscRwdRingBufferTest.scala",
+        "patchSetId": 32
+      },
+      "lineNbr": 173,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-02-09T19:34:43Z",
+      "side": 1,
+      "message": "Replace with eventually { // condition } to wait just the necessary time? Or, can we make it smaller?",
+      "revId": "ec3680f360386a10b4f3fd566e60027369675f59",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_e7ab7187",
+        "filename": "midonet-util/src/test/scala/org/midonet/util/concurrent/BlockingSpscRwdRingBufferTest.scala",
+        "patchSetId": 32
+      },
+      "lineNbr": 175,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-02-09T19:34:43Z",
+      "side": 1,
+      "message": "There is no reason this should ever last 10 secs no? I entered panic mode :D - should be a lot less ditto below.",
+      "range": {
+        "startLine": 175,
+        "startChar": 31,
+        "endLine": 175,
+        "endChar": 33
+      },
+      "revId": "ec3680f360386a10b4f3fd566e60027369675f59",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
