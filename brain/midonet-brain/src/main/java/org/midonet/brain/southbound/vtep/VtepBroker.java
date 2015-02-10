@@ -16,22 +16,16 @@
 package org.midonet.brain.southbound.vtep;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 
 import com.google.common.base.Strings;
 import com.google.inject.Inject;
 
-import org.apache.commons.lang3.tuple.Pair;
-import org.opendaylight.controller.sal.utils.Status;
-import org.opendaylight.controller.sal.utils.StatusCode;
 import org.opendaylight.ovsdb.lib.message.TableUpdate;
 import org.opendaylight.ovsdb.lib.message.TableUpdates;
 import org.opendaylight.ovsdb.lib.notation.OvsDBSet;
 import org.opendaylight.ovsdb.lib.notation.UUID;
 import org.opendaylight.ovsdb.lib.table.vtep.Ucast_Macs_Local;
-import org.opendaylight.ovsdb.plugin.StatusWithUuid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,23 +35,17 @@ import rx.subjects.PublishSubject;
 import rx.subjects.Subject;
 
 import org.midonet.brain.services.vxgw.MacLocation;
-import org.midonet.brain.services.vxgw.VxLanPeer;
-import org.midonet.brain.services.vxgw.VxLanPeerConsolidationException;
-import org.midonet.brain.services.vxgw.VxLanPeerSyncException;
 import org.midonet.brain.southbound.vtep.model.LogicalSwitch;
 import org.midonet.brain.southbound.vtep.model.McastMac;
 import org.midonet.brain.southbound.vtep.model.UcastMac;
-import org.midonet.cluster.data.VtepBinding;
 import org.midonet.packets.IPv4Addr;
-import org.midonet.packets.MAC;
 
-import static org.midonet.brain.southbound.vtep.VtepConstants.logicalSwitchNameToBridgeId;
 import static org.opendaylight.ovsdb.lib.message.TableUpdate.Row;
 
 /**
  * This class exposes a hardware VTEP as a vxlan gateway peer.
  */
-public class VtepBroker implements VxLanPeer {
+public class VtepBroker {
 
     private final static Logger log = LoggerFactory.getLogger(VtepBroker.class);
 
@@ -146,270 +134,8 @@ public class VtepBroker implements VxLanPeer {
             .subscribe(macLocationStream);        // dump into our Subject
     }
 
-    @Override
-    public void apply(MacLocation ml) {
-        log.debug("Receive MAC location update {}", ml);
-        if (ml == null) {
-            log.warn("Ignoring null MAC-port update");
-            return;
-        }
-
-        if (ml.mac().isUcast()) {
-            if (ml.vxlanTunnelEndpoint() != null) {
-                this.applyUcastAddition(ml);
-            } else {
-                this.applyUcastDelete(ml);
-            }
-        } else {
-            if (ml.vxlanTunnelEndpoint() != null) {
-                this.applyMcastAddition(ml);
-            } else {
-                this.applyMcastDelete(ml);
-            }
-        }
-    }
-
-    /**
-     * Triggers an advertisement of all the known Ucast_Mac_Local entries, which
-     * will generate updates for each entry currently present in the table.
-     *
-     * This operation could make sense in the VxLanPeer interface at some point,
-     * but it's not needed in the Mido peer so keeping it here for now.
-     */
-    public void advertiseMacs() throws VtepNotConnectedException {
-        IPv4Addr tunnelIp = vtepDataClient.getTunnelIp();
-        if (null == tunnelIp) {
-            log.warn("Cannot advertise MACs: VTEP tunnel IP still unknown");
-            return;
-        }
-        Collection<UcastMac> macs = vtepDataClient.listUcastMacsLocal();
-        for (UcastMac ucastMac : macs) {
-            LogicalSwitch ls =
-                vtepDataClient.getLogicalSwitch(ucastMac.logicalSwitch);
-            if (ls == null) {
-                log.warn("Unknown logical switch {}", ucastMac.logicalSwitch);
-                continue;
-            }
-            try {
-                VtepMAC mac = VtepMAC.fromString(ucastMac.mac);
-                IPv4Addr ip = (ucastMac.ipAddr == null)
-                              ? null : IPv4Addr.apply(ucastMac.ipAddr);
-                macLocationStream.onNext(new MacLocation(mac, ip, ls.name,
-                                                         tunnelIp));
-            } catch (MAC.InvalidMacException e) {
-                log.warn("Invalid MAC found in VTEP: ", ucastMac.mac);
-            }
-        }
-    }
-
-    /**
-     * Applies the addition of a unicast MAC.
-     * @param ml The location of the MAC.
-     */
-    private void applyUcastAddition(MacLocation ml) {
-        log.debug("Adding UCAST remote MAC to the VTEP: " + ml);
-        List<UcastMac> ucasts = null;
-        try {
-            ucasts = vtepDataClient.listUcastMacsRemote();
-        } catch (VtepNotConnectedException e) {
-            log.error("VTEP is not connected", e);
-            return;
-        }
-
-        for (UcastMac uc : ucasts) {
-            if (ml.mac().toString().equalsIgnoreCase(uc.mac)) { // NPE safe
-                String mlIp = ml.ipAddr() == null ? "" : ml.ipAddr().toString();
-                String ucIp = Strings.nullToEmpty(uc.ipAddr);
-                if (ucIp.equals(mlIp)) { // horrid, thanks ovsdb
-                    log.debug("UCAST remote MAC already in vtep");
-                    return;
-                }
-            }
-        }
-
-        Status st = vtepDataClient.addUcastMacRemote(ml.logicalSwitchName(),
-                                                     ml.mac().IEEE802(),
-                                                     ml.ipAddr(),
-                                                     ml.vxlanTunnelEndpoint());
-
-        if (st.getCode().equals(StatusCode.CONFLICT)) {
-            log.info("Conflict writing {}, not expected", ml);
-        } else if (!st.isSuccess()) {
-            throw new VxLanPeerSyncException("OVSDB error: " + st, ml,
-                                             st.getCode());
-        }
-    }
-
-    /**
-     * Applies a deletion of a unicast MAC.
-     * @param ml The location of the MAC.
-     */
-    private void applyUcastDelete(MacLocation ml) {
-        log.debug("Removing UCAST remote MAC from the VTEP: " + ml);
-        Status st;
-        if (ml.ipAddr() == null) {
-            // removal, no IP: remove all mappings for that mac
-            st = vtepDataClient.deleteAllUcastMacRemote(ml.logicalSwitchName(),
-                                                        ml.mac().IEEE802());
-
-        } else {
-            // removal, one IP: remove only the IP from the row
-            st = vtepDataClient.deleteUcastMacRemote(ml.logicalSwitchName(),
-                                                     ml.mac().IEEE802(),
-                                                     ml.ipAddr());
-        }
-        if (st.getCode().equals(StatusCode.NOTFOUND)) {
-            log.debug("Trying to delete entry but not present {}", ml);
-        } else if (!st.isSuccess()) {
-            throw new VxLanPeerSyncException("OVSDB error: " + st, ml,
-                                             st.getCode());
-        }
-    }
-
-    /**
-     * Applies the addition of a multicast MAC location.
-     */
-    private void applyMcastAddition(MacLocation ml) {
-        log.debug("Adding MCAST remote MAC to the VTEP: " + ml);
-        List<McastMac> mcasts = null;
-        try {
-            mcasts = vtepDataClient.listMcastMacsRemote();
-        } catch (VtepNotConnectedException e) {
-            log.error("VTEP is not connected", e);
-            return;
-        }
-        for (McastMac mc : mcasts) {
-            if (mc.mac.equals(ml.mac().toString())) {
-                log.debug("MCAST remote MAC already in vtep");
-                return;
-            }
-        }
-        Status st = vtepDataClient.addMcastMacRemote(ml.logicalSwitchName(),
-                                                     ml.mac(),
-                                                     ml.vxlanTunnelEndpoint());
-        if (!st.isSuccess() ) {
-            if (st.getCode().equals(StatusCode.CONFLICT)) {
-                log.info("Conflict writing {}, not expected", ml);
-            } else {
-                throw new VxLanPeerSyncException("OVSDB error: " + st.getCode()
-                                                 + ", " + st.getDescription(),
-                                                 ml, st.getCode());
-            }
-        }
-    }
-
-    /**
-     * Applies the deletion of a multicast MAC location.
-     */
-    private void applyMcastDelete(MacLocation ml) {
-        log.debug("Removing MCAST remote MAC from the VTEP: " + ml);
-        Status st = vtepDataClient.deleteAllMcastMacRemote(
-            ml.logicalSwitchName(), ml.mac());
-        if (!st.isSuccess() && !st.getCode().equals(StatusCode.NOTFOUND)) {
-            throw new VxLanPeerSyncException("OVSDB error " + st.getCode() +
-                                             ", " + st.getDescription(), ml,
-                                             st.getCode());
-        }
-    }
-
-    @Override
     public Observable<MacLocation> observableUpdates() {
         return this.macLocationStream.asObservable();
-    }
-
-    /**
-     * Ensures that the Logical Switch defined in the VtepBinding exists in
-     * the given VTEP. Note that we only create new logical switches from the
-     * VxLanGwService which guarantees that a single node will be doing writes
-     * to the Logical_Switch table. This protects us against races. We expect
-     * that if we try to delete/create a VTEP, we don't need to take into
-     * account any races, and shout if we detect one.
-     */
-    public UUID ensureLogicalSwitchExists(String lsName, int vni)
-        throws VxLanPeerConsolidationException, VtepNotConnectedException {
-        assert(lsName != null);
-        LogicalSwitch ls = vtepDataClient.getLogicalSwitch(lsName);
-        if (ls != null) {
-            if (vni == ls.tunnelKey) {
-                log.debug("Logical switch {} with VNI {} exists", lsName, vni);
-            } else {
-                log.info("Logical switch {} has wrong VNI {}, delete", ls, vni);
-                vtepDataClient.deleteLogicalSwitch(lsName);
-            }
-        }
-
-        UUID lsUuid = null;
-        if (ls == null) { // we will try to add it ourselves
-            StatusWithUuid st = vtepDataClient.addLogicalSwitch(lsName, vni);
-            if (st.isSuccess()) {
-                lsUuid = st.getUuid();
-                log.info("Logical switch {} created, uuid: {}", lsName, lsUuid);
-            } else if (st.getCode().equals(StatusCode.CONFLICT)) {
-                ls = vtepDataClient.getLogicalSwitch(lsName);
-                if (ls != null && ls.tunnelKey.equals(vni)) {
-                    log.warn("Logical switch {} creation conflict, but state " +
-                             "looks correct. Other VxGW nodes active?", lsName);
-                } else if (ls != null) {
-                    throw new VxLanPeerConsolidationException(
-                        "Logical switch creation conflict: row exists with " +
-                        "different VNI. Other VxGW nodes active?", lsName);
-                } else {
-                    throw new VxLanPeerConsolidationException(
-                        "Logical switch creation conflict, but no matching" +
-                        "row found. This is unexpected.", lsName);
-                }
-                lsUuid = st.getUuid();
-            }
-        } else {
-            lsUuid = ls.uuid;
-        }
-
-        return lsUuid;
-    }
-
-    /**
-     * Will remove all the Midonet created logical switches from the VTEP that
-     * that don't have a corresponding network id in the given list.
-     */
-    public void pruneUnwantedLogicalSwitches(
-        Collection<java.util.UUID> wantedNetworks)
-        throws VtepNotConnectedException {
-        Collection<LogicalSwitch> lsList = vtepDataClient.listLogicalSwitches();
-        for (LogicalSwitch ls : lsList) {
-            java.util.UUID networkId = logicalSwitchNameToBridgeId(ls.name);
-            if (networkId == null || wantedNetworks.contains(networkId)) {
-                log.debug("Logical switch {} kept in VTEP", ls);
-                continue;
-            }
-            Status st = vtepDataClient.deleteLogicalSwitch(ls.name);
-            if (st.isSuccess() || st.getCode().equals(StatusCode.NOTFOUND)) {
-                log.info("Unknown logical switch {} was removed from VTEP", ls);
-            } else {
-                log.warn("Cannot remove unknown logical switch {}: {}", ls, st);
-            }
-        }
-    }
-
-    /**
-     * Ensures that all the PortVlanBindigs are configured properly for the
-     * given logical switch, and only those.
-     */
-    public void renewBindings(UUID ls, Collection<VtepBinding> bindings)
-        throws VxLanPeerConsolidationException, VtepNotConnectedException {
-        Status st = vtepDataClient.clearBindings(ls);
-        if (st.getCode() != StatusCode.SUCCESS) {
-            throw new VxLanPeerConsolidationException(
-                "Could not renew bindings for switch", ls.toString(), st);
-        }
-        List<Pair<String, Short>> pvPairs = new ArrayList<>(bindings.size());
-        for (VtepBinding b : bindings) {
-            pvPairs.add(Pair.of(b.getPortName(), b.getVlanId()));
-        }
-        st = vtepDataClient.addBindings(ls, pvPairs);
-        if (st.getCode() != StatusCode.SUCCESS) {
-            throw new VxLanPeerConsolidationException(
-                "Could not renew bindings for switch", ls.toString(), st);
-        }
     }
 
     /**

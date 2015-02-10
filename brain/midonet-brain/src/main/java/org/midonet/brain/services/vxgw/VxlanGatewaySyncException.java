@@ -20,13 +20,13 @@ import org.opendaylight.controller.sal.utils.StatusCode;
 /**
  * An update to a VxLanPeer could not be applied.
  */
-public class VxLanPeerSyncException extends RuntimeException {
+public class VxlanGatewaySyncException extends RuntimeException {
     private static final long serialVersionUID = -1;
     private final MacLocation change;
     public final StatusCode statusCode;
 
-    public VxLanPeerSyncException(String msg, MacLocation change,
-                                  StatusCode statusCode) {
+    public VxlanGatewaySyncException(String msg, MacLocation change,
+                                     StatusCode statusCode) {
         super(msg);
         this.change = change;
         this.statusCode = statusCode;

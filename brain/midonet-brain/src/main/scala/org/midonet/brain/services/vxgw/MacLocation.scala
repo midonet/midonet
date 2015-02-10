@@ -97,4 +97,7 @@ class MacLocation (val mac: VtepMAC, val ipAddr: IPv4Addr,
         }
     }
 
+    /** Tells whether this MAC Location represents a deletion */
+    def isDeletion = vxlanTunnelEndpoint == null
+
 }
