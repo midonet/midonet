@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_c5046d80",
+        "filename": "cluster/src/main/proto/topology.proto",
+        "patchSetId": 7
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-10T10:00:26Z",
+      "side": 1,
+      "message": "Why not making this field #8?",
+      "range": {
+        "startLine": 84,
+        "startChar": 38,
+        "endLine": 84,
+        "endChar": 40
+      },
+      "revId": "1cf0f19ed21f1ea5c9ed202cf468ae7ba3dbe375",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
