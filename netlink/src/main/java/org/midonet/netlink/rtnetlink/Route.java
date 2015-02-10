@@ -19,6 +19,8 @@ package org.midonet.netlink.rtnetlink;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
+import com.google.common.base.Objects;
+
 import org.midonet.netlink.AttributeHandler;
 import org.midonet.netlink.NetlinkMessage;
 import org.midonet.netlink.Reader;
@@ -30,50 +32,84 @@ import org.midonet.packets.IPv4Addr;
 public class Route implements AttributeHandler {
 
     public class Rtmsg {
-        public byte rtm_family;
-        public byte rtm_dst_len;
-        public byte rtm_src_len;
-        public byte rtm_tos;
+        public byte family;
+        public byte dstLen;
+        public byte srcLen;
+        public byte tos;
 
-        public byte rtm_table;      /* Routing table id */
-        public byte rtm_protocol;   /* Routing protocol; see below  */
-        public byte rtm_scope;
-        public byte rtm_type;
+        public byte table;      /* Routing table id */
+        public byte protocol;   /* Routing protocol; see below  */
+        public byte scope;
+        public byte type;
 
-        public int  rtm_flags;
+        public int flags;
 
         @Override
         public String toString() {
-            return String.format("{rtm_family=%d, rtm_dst_len=%d, rtm_src_len=%d, rtm_tos=%d, rtm_table=0x%x, rtm_protocol=%d, rtm_scope=0x%x, rtm_type=%d, rtm_flags=0x%x}",
-                    rtm_family, rtm_dst_len, rtm_src_len, rtm_tos, rtm_table, rtm_protocol, rtm_scope, rtm_type, rtm_flags);
+            return String.format("{family=%d, dstLen=%d, srcLen=%d, tos=%d, table=0x%x, protocol=%d, scope=0x%x, type=%d, flags=0x%x}",
+                    family, dstLen, srcLen, tos, table, protocol, scope, type, flags);
+        }
+
+        @Override
+        public boolean equals(Object object) {
+            if (!(object instanceof Rtmsg)) {
+                return false;
+            }
+
+            Rtmsg that = (Rtmsg) object;
+
+            return this.family == that.family &&
+                    this.dstLen == that.dstLen &&
+                    this.srcLen == that.srcLen &&
+                    this.tos == that.tos &&
+                    this.table == that.table &&
+                    this.protocol == that.protocol &&
+                    this.scope == that.scope &&
+                    this.type == that.type &&
+                    this.flags == that.flags;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hashCode(family, dstLen, srcLen,
+                    tos, table, protocol, scope, type,
+                    flags);
         }
     }
 
     public interface Attr {
-        short RTA_UNSPEC    = 0;
-        short RTA_DST       = 1;
-        short RTA_SRC       = 2;
-        short RTA_IIF       = 3;
-        short RTA_OIF       = 4;
-        short RTA_GATEWAY   = 5;
-        short RTA_PRIORITY  = 6;
-        short RTA_PREFSRC   = 7;
-        short RTA_METRICS   = 8;
-        short RTA_MULTIPATH = 9;
-        short RTA_PROTOINFO = 10; /* no longer used */
-        short RTA_FLOW      = 11;
-        short RTA_CACHEINFO = 12;
-        short RTA_SESSION   = 13; /* no longer used */
-        short RTA_MP_ALGO   = 14; /* no longer used */
-        short RTA_TABLE     = 15;
-        short RTA_MARK      = 16;
+        byte RTA_UNSPEC    = 0;
+        byte RTA_DST       = 1;
+        byte RTA_SRC       = 2;
+        byte RTA_IIF       = 3;
+        byte RTA_OIF       = 4;
+        byte RTA_GATEWAY   = 5;
+        byte RTA_PRIORITY  = 6;
+        byte RTA_PREFSRC   = 7;
+        byte RTA_METRICS   = 8;
+        byte RTA_MULTIPATH = 9;
+        byte RTA_PROTOINFO = 10; /* no longer used */
+        byte RTA_FLOW      = 11;
+        byte RTA_CACHEINFO = 12;
+        byte RTA_SESSION   = 13; /* no longer used */
+        byte RTA_MP_ALGO   = 14; /* no longer used */
+        byte RTA_TABLE     = 15;
+        byte RTA_MARK      = 16;
+    }
+
+    /**
+     * Address families defined in include/linux/socket.h.
+     */
+    public interface Family {
+        byte AF_INET  = (byte) 2;
+        byte AF_INET6 = (byte) 10;
     }
 
     public interface Table {
-        byte RT_TABLE_COMPAT  = (byte)252;
-        byte RT_TABLE_DEFAULT = (byte)253;
-        byte RT_TABLE_MAIN    = (byte)254;
-        byte RT_TABLE_LOCAL   = (byte)255;
+        byte RT_TABLE_COMPAT  = (byte) 252;
+        byte RT_TABLE_DEFAULT = (byte) 253;
+        byte RT_TABLE_MAIN    = (byte) 254;
+        byte RT_TABLE_LOCAL   = (byte) 255;
     }
 
     public interface Proto {
@@ -85,18 +121,34 @@ public class Route implements AttributeHandler {
     }
 
     public interface Type {
-        short RTN_UNSPEC      = 0;
-        short RTN_UNICAST     = 1;
-        short RTN_LOCAL       = 2;        /* Accept locally               */
-        short RTN_BROADCAST   = 3;        /* Accept locally as broadcast, send as broadcast */
-        short RTN_ANYCAST     = 4;        /* Accept locally as broadcast, but send as unicast */
-        short RTN_MULTICAST   = 5;        /* Multicast route              */
-        short RTN_BLACKHOLE   = 6;        /* Drop                         */
-        short RTN_UNREACHABLE = 7;        /* Destination is unreachable   */
-        short RTN_PROHIBIT    = 8;        /* Administratively prohibited  */
-        short RTN_THROW       = 9;        /* Not in this table            */
-        short RTN_NAT         = 10;       /* Translate this address       */
-        short RTN_XRESOLVE    = 11;       /* Use external resolver        */
+        byte RTN_UNSPEC      = 0;
+        byte RTN_UNICAST     = 1;
+        byte RTN_LOCAL       = 2;        /* Accept locally               */
+        byte RTN_BROADCAST   = 3;        /* Accept locally as broadcast, send as broadcast */
+        byte RTN_ANYCAST     = 4;        /* Accept locally as broadcast, but send as unicast */
+        byte RTN_MULTICAST   = 5;        /* Multicast route              */
+        byte RTN_BLACKHOLE   = 6;        /* Drop                         */
+        byte RTN_UNREACHABLE = 7;        /* Destination is unreachable   */
+        byte RTN_PROHIBIT    = 8;        /* Administratively prohibited  */
+        byte RTN_THROW       = 9;        /* Not in this table            */
+        byte RTN_NAT         = 10;       /* Translate this address       */
+        byte RTN_XRESOLVE    = 11;       /* Use external resolver        */
+    }
+
+    public interface Scope {
+        byte RT_SCOPE_UNIVERSE = (byte) 0;
+        /* User defined values  */
+        byte RT_SCOPE_SITE = (byte) 200;
+        byte RT_SCOPE_LINK = (byte) 253;
+        byte RT_SCOPE_HOST = (byte) 254;
+        byte RT_SCOPE_NOWHERE = (byte) 255;
+    }
+
+    public interface Flags {
+        int RTM_F_NOTIFY = 0x100;  /* Notify user of route change */
+        int RTM_F_CLONED = 0x200;  /* This route is cloned  */
+        int RTM_F_EQUALIZE = 0x400; /* Multipath equalizer: NI */
+        int RTM_F_PREFIX = 0x800; /* Prefix addresses  */
     }
 
     @Override
@@ -137,15 +189,15 @@ public class Route implements AttributeHandler {
         Route route = new Route();
         ByteOrder originalOrder = buf.order();
         try {
-            route.rtm.rtm_family = buf.get();
-            route.rtm.rtm_dst_len = buf.get();
-            route.rtm.rtm_src_len = buf.get();
-            route.rtm.rtm_tos = buf.get();
-            route.rtm.rtm_table = buf.get();
-            route.rtm.rtm_protocol = buf.get();
-            route.rtm.rtm_scope = buf.get();
-            route.rtm.rtm_type = buf.get();
-            route.rtm.rtm_flags = buf.getInt();
+            route.rtm.family = buf.get();
+            route.rtm.dstLen = buf.get();
+            route.rtm.srcLen = buf.get();
+            route.rtm.tos = buf.get();
+            route.rtm.table = buf.get();
+            route.rtm.protocol = buf.get();
+            route.rtm.scope = buf.get();
+            route.rtm.type = buf.get();
+            route.rtm.flags = buf.getInt();
         } finally {
             buf.order(originalOrder);
         }
@@ -160,7 +212,7 @@ public class Route implements AttributeHandler {
         try {
             switch (id) {
                 case Attr.RTA_DST:
-                    switch (rtm.rtm_family) {
+                    switch (rtm.family) {
                         case Addr.Family.AF_INET:
                             if (buf.remaining() == 4) {
                                 buf.order(ByteOrder.BIG_ENDIAN);
@@ -170,7 +222,7 @@ public class Route implements AttributeHandler {
                     }
                     break;
                 case Attr.RTA_SRC:
-                    switch (rtm.rtm_family) {
+                    switch (rtm.family) {
                         case Addr.Family.AF_INET:
                             if (buf.remaining() == 4) {
                                 buf.order(ByteOrder.BIG_ENDIAN);
@@ -180,7 +232,7 @@ public class Route implements AttributeHandler {
                     }
                     break;
                 case Attr.RTA_GATEWAY:
-                    switch (rtm.rtm_family) {
+                    switch (rtm.family) {
                         case Addr.Family.AF_INET:
                             if (buf.remaining() == 4) {
                                 buf.order(ByteOrder.BIG_ENDIAN);
@@ -195,72 +247,137 @@ public class Route implements AttributeHandler {
         }
     }
 
-    static public ByteBuffer describeRequest(ByteBuffer buf) {
-
+    static public ByteBuffer describeListRequest(ByteBuffer buf) {
         ByteOrder originalOrder = buf.order();
         try {
-            buf.put((byte)0);
-            buf.put((byte)0);
-            buf.put((byte)0);
-            buf.put((byte)0);
-            buf.put((byte)0);
-            buf.put((byte)0);
-            buf.put((byte)0);
-            buf.put((byte)0);
+            buf.put((byte) 0);
+            buf.put((byte) 0);
+            buf.put((byte) 0);
+            buf.put((byte) 0);
+            buf.put((byte) 0);
+            buf.put((byte) 0);
+            buf.put((byte) 0);
+            buf.put((byte) 0);
             buf.putInt(0);
         } finally {
             buf.order(originalOrder);
         }
-        buf.flip();
+        // buf.flip();
         return buf;
     }
 
     static public ByteBuffer describeGetRequest(ByteBuffer buf, IPv4Addr dst) {
-
         ByteOrder originalOrder = buf.order();
         try {
-            buf.put((byte)Addr.Family.AF_INET);
-            buf.put((byte)32);
-            buf.put((byte)0);
-            buf.put((byte)0);
-            buf.put((byte)0);
-            buf.put((byte)0);
-            buf.put((byte)0);
-            buf.put((byte)0);
+            buf.put((byte) Addr.Family.AF_INET);
+            buf.put((byte) 32);
+            buf.put((byte) 0);
+            buf.put((byte) 0);
+            buf.put((byte) 0);
+            buf.put((byte) 0);
+            buf.put((byte) 0);
+            buf.put((byte) 0);
             buf.putInt(0);
 
             NetlinkMessage.writeRawAttribute(buf, Attr.RTA_DST, dst.toBytes());
         } finally {
             buf.order(originalOrder);
         }
-        buf.flip();
+        // buf.flip();
         return buf;
     }
 
 
 
-    static public ByteBuffer describeNewRouteRequest(ByteBuffer buf, IPv4Addr dst, int prefix, IPv4Addr gw, Link link) {
+    static public ByteBuffer describeNewRequest(ByteBuffer buf, IPv4Addr dst,
+                                                int prefix, IPv4Addr gw,
+                                                Link link) {
+        return describeNewRequest(buf, dst, null, prefix, gw, link);
+    }
+
+    static public ByteBuffer describeNewRequest(ByteBuffer buf, IPv4Addr dst,
+                                                IPv4Addr src, int prefix,
+                                                IPv4Addr gw, Link link) {
         ByteOrder originalOrder = buf.order();
         try {
-            buf.put((byte)Addr.Family.AF_INET);
-            buf.put((byte)prefix);
-            buf.put((byte)0);
-            buf.put((byte)0);
-            buf.put((byte)Table.RT_TABLE_MAIN);
-            buf.put((byte)Proto.RTPROT_BOOT);
-            buf.put((byte)0);
-            buf.put((byte)Type.RTN_UNICAST);
+            buf.put((byte) Addr.Family.AF_INET);
+            buf.put((byte) prefix);
+            buf.put((byte) 0);
+            buf.put((byte) 0);
+            buf.put((byte) Table.RT_TABLE_MAIN);
+            buf.put((byte) Proto.RTPROT_BOOT);
+            buf.put((byte) 0);
+            buf.put((byte) Type.RTN_UNICAST);
             buf.putInt(0);
 
-            if (dst != null)
+            if (dst != null) {
                 NetlinkMessage.writeRawAttribute(buf, Attr.RTA_DST, dst.toBytes());
+            }
+            if (src != null) {
+                NetlinkMessage.writeRawAttribute(buf, Attr.RTA_SRC, src.toBytes());
+            }
             NetlinkMessage.writeRawAttribute(buf, Attr.RTA_GATEWAY, gw.toBytes());
-            NetlinkMessage.writeIntAttr(buf, Attr.RTA_OIF, link.ifi.ifi_index);
+            NetlinkMessage.writeIntAttr(buf, Attr.RTA_OIF, link.ifi.index);
         } finally {
             buf.order(originalOrder);
         }
-        buf.flip();
+        // buf.flip();
         return buf;
     }
 
+    static public ByteBuffer describeSetRequest(ByteBuffer buf, Route route,
+                                                Link link) {
+        ByteOrder originalOrder = buf.order();
+        try {
+            buf.put((byte) Addr.Family.AF_INET);
+            buf.put((byte) ((route.rtm.dstLen != 0) ?
+                    route.rtm.dstLen : 0));
+            buf.put((byte) 0);
+            buf.put((byte) 0);
+            buf.put((byte) Table.RT_TABLE_MAIN);
+            buf.put((byte) Proto.RTPROT_BOOT);
+            buf.put((byte) 0);
+            buf.put((byte) Type.RTN_UNICAST);
+            buf.putInt(0);
+
+            if (route.dst != null) {
+                NetlinkMessage.writeRawAttribute(
+                        buf, Attr.RTA_DST, route.dst.toBytes());
+            }
+            if (route.src != null) {
+                NetlinkMessage.writeRawAttribute(
+                        buf, Attr.RTA_SRC, route.src.toBytes());
+            }
+            NetlinkMessage.writeRawAttribute(
+                    buf, Attr.RTA_GATEWAY, route.gw.toBytes());
+            if (link != null) {
+                NetlinkMessage.writeIntAttr(
+                        buf, Attr.RTA_OIF, link.ifi.index);
+            }
+        } finally {
+            buf.order(originalOrder);
+        }
+        // buf.flip();
+        return buf;
+    }
+
+
+    @Override
+    public boolean equals(Object object) {
+        if (!(object instanceof Route)) {
+            return false;
+        }
+
+        Route that = (Route) object;
+
+        return Objects.equal(this.rtm, that.rtm) &&
+                Objects.equal(this.src, that.src) &&
+                Objects.equal(this.dst, that.dst) &&
+                Objects.equal(this.gw, that.gw);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(rtm, src, dst, gw);
+    }
 }
