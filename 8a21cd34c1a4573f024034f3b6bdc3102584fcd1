@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_3b13e45d",
+        "filename": "midolman/src/main/java/org/midonet/sdn/flows/FlowManager.java",
+        "patchSetId": 15
+      },
+      "lineNbr": 176,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-02-10T17:07:08Z",
+      "side": 1,
+      "message": "this deserves a comment.",
+      "revId": "8a21cd34c1a4573f024034f3b6bdc3102584fcd1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_bb26b4b8",
+        "filename": "midolman/src/main/java/org/midonet/sdn/flows/FlowManager.java",
+        "patchSetId": 15
+      },
+      "lineNbr": 254,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-02-10T17:07:08Z",
+      "side": 1,
+      "message": "shameful. Move out as instance variable?",
+      "revId": "8a21cd34c1a4573f024034f3b6bdc3102584fcd1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
