@@ -16,20 +16,57 @@
 
 package org.midonet.brain.services.c3po.translators
 
+import org.midonet.cluster.data.neutron.MetaDataService
 import org.midonet.cluster.data.storage.ReadOnlyStorage
-import org.midonet.cluster.models.Commons.UUID
+import org.midonet.cluster.models.Commons.{IPAddress, IPSubnet, UUID}
+import org.midonet.cluster.models.Topology.Network.Dhcp.Opt121RouteOrBuilder
 import org.midonet.cluster.models.Topology.Route
+import org.midonet.cluster.models.Topology.RouteOrBuilder
 import org.midonet.cluster.models.Topology.Route.NextHop
+import org.midonet.cluster.util.{IPSubnetUtil, UUIDUtil}
 
 trait RouteManager {
     val storage: ReadOnlyStorage
+    val META_DATA_SRVC = IPSubnetUtil.toProto(MetaDataService.IPv4_ADDRESS)
+    val DEFAULT_WEIGHT = 100
 
-    def createLocalRoute(portId: UUID, portAddr: String, routerId: UUID)
+    def createLocalRoute(portId: UUID, portAddr: IPSubnet, routerId: UUID)
     : Route = {
         Route.newBuilder()
-             .setDstNetworkAddr(portAddr).setDstNetworkLength(32)
+             .setDstSubnet(portAddr)
              .setNextHop(NextHop.LOCAL)
              .setNextHopPortId(portId)
              .setRouterId(routerId).build()
     }
+
+    def createMetaDataServiceRoute(srcSubnet: IPSubnet, nextHopPortId: UUID,
+                                   nextHopGw: IPAddress, routerId: UUID)
+    : Route = {
+        Route.newBuilder
+             .setId(UUIDUtil.randomUuidProto)
+             .setSrcSubnet(srcSubnet)
+             .setDstSubnet(META_DATA_SRVC)
+             .setNextHop(NextHop.PORT)
+             .setNextHopPortId(nextHopPortId)
+             .setNextHopGateway(nextHopGw)
+             .setWeight(DEFAULT_WEIGHT)
+             .setRouterId(routerId)
+             .build
+    }
+
+    /**
+     * Tests if the route is to Meta Data Server.
+     * @param nextHopGw A next hop gateway to Meta Data Server.
+     */
+    def isMetaDataSvrRoute(route: RouteOrBuilder, nextHopGw: IPAddress) =
+        route.getDstSubnet == META_DATA_SRVC &&
+        route.getNextHopGateway == nextHopGw
+
+    /**
+     * Tests if the route is an Opt 121 route to Meta Data Server.
+     * @param nextHopGw A next hop gateway to Meta Data Server.
+     */
+    def isMetaDataSvrOpt121Route(route: Opt121RouteOrBuilder,
+                                 nextHopGw: IPAddress) =
+        route.getDstSubnet == META_DATA_SRVC && route.getGateway == nextHopGw
 }
