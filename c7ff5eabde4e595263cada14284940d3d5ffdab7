@@ -88,6 +88,24 @@
       "revId": "c7ff5eabde4e595263cada14284940d3d5ffdab7",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_0084b3d2",
+        "filename": "cluster/src/main/proto/neutron.proto",
+        "patchSetId": 1
+      },
+      "lineNbr": 220,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-02-10T16:01:14Z",
+      "side": 1,
+      "message": "That\u0027s a good point. It has to be unique per port binding. Therefore, I guess we need Neutron to assign a random UUID and set it to \"id\" and we should also add back references to port binding with both host and port. I\u0027ll make that change shortly.",
+      "parentUuid": "7a1969be_40e7cb12",
+      "revId": "c7ff5eabde4e595263cada14284940d3d5ffdab7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
