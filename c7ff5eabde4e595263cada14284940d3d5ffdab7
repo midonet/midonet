@@ -16,6 +16,24 @@
       "revId": "c7ff5eabde4e595263cada14284940d3d5ffdab7",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_c5746d9e",
+        "filename": "cluster/src/main/proto/neutron.proto",
+        "patchSetId": 1
+      },
+      "lineNbr": 220,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-02-10T06:52:30Z",
+      "side": 1,
+      "message": "It\u0027s a requirement by Zoom, which requires all the models to have an \"id\" field to be persisted via Zoom. If we want to keep this data around in ZK, we need this field. It\u0027s fine that Neutron does not populate it, the translator can fill in whatever we think is appropriate (most likely a host ID).",
+      "parentUuid": "7a1969be_854b9558",
+      "revId": "c7ff5eabde4e595263cada14284940d3d5ffdab7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
