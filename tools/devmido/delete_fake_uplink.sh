@@ -15,15 +15,17 @@
 # limitations under the License.
 
 # This script cleans up the fake uplink created from the
-# 'create_fake_uplink.sh' script
-# Example:
+# 'create_fake_uplink.sh' script.  CIDR is defaulted to 200.200.200.0/24
+# but you can override it by:
+
 #      ./delete_fake_uplink.sh 200.0.0.0/24
+# or
+#      CIDR=200.0.0.0/24 ./delete_fake_uplink.sh
 
 if [[ -n "$1" ]]; then
     CIDR=$1
 else
-    echo "Usage: delete_fake_uplink.sh <CIDR>"
-    exit -1
+    CIDR=${CIDR:-200.200.200.0/24}
 fi
 
 # Save the top directory and source the functions and midorc

@@ -16,15 +16,18 @@
 
 # This script creates the fake uplink assuming that midonet is running
 # correctly.  It takes the IP address CIDR as its argument which gets
-# routed into the MidoNet provider router.
-# Example:
+# routed into the MidoNet provider router.  CIDR is defaulted to
+# 200.200.200.0/24, but you can override by:
+#
 #      ./create_fake_uplink.sh 200.0.0.0/24
+# or
+#      CIDR=200.0.0.0/24 ./create_fake_uplink.sh
+#
 
 if [[ -n "$1" ]]; then
     CIDR=$1
 else
-    echo "Usage: create_fake_uplink.sh <CIDR>"
-    exit -1
+    CIDR=${CIDR:-200.200.200.0/24}
 fi
 
 # Save the top directory and source the functions and midorc
