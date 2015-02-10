@@ -2,6 +2,322 @@
   "comments": [
     {
       "key": {
+        "uuid": "7a1969be_5f8973c9",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/Aggregator.scala",
+        "patchSetId": 32
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-02-10T08:43:29Z",
+      "side": 1,
+      "message": "?",
+      "range": {
+        "startLine": 58,
+        "startChar": 7,
+        "endLine": 58,
+        "endChar": 64
+      },
+      "revId": "ec3680f360386a10b4f3fd566e60027369675f59",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_7ff9cf4c",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/Aggregator.scala",
+        "patchSetId": 32
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-02-10T08:43:29Z",
+      "side": 1,
+      "message": "If it is ever possible that \"add\" is called more than once with the same key / Observable pair, there can be a race here, otherwise it\u0027s fine.",
+      "range": {
+        "startLine": 76,
+        "startChar": 25,
+        "endLine": 78,
+        "endChar": 33
+      },
+      "revId": "ec3680f360386a10b4f3fd566e60027369675f59",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_ffa49f58",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/Aggregator.scala",
+        "patchSetId": 32
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-02-10T08:43:29Z",
+      "side": 1,
+      "message": "?",
+      "range": {
+        "startLine": 101,
+        "startChar": 8,
+        "endLine": 101,
+        "endChar": 19
+      },
+      "revId": "ec3680f360386a10b4f3fd566e60027369675f59",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_a56331b0",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/ServerProtocolFactory.scala",
+        "patchSetId": 32
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-02-10T08:43:29Z",
+      "side": 1,
+      "message": "I\u0027m not sure if this class can stand on its own. Can this be included in some other file? Also ServerProtocolFactory basically creates a new CnxnFactory, so it doesn\u0027t seem to be a \"server protocol\" factory. What do you think?",
+      "range": {
+        "startLine": 34,
+        "startChar": 0,
+        "endLine": 40,
+        "endChar": 63
+      },
+      "revId": "ec3680f360386a10b4f3fd566e60027369675f59",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_ff177f4f",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/ServerState.scala",
+        "patchSetId": 32
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-02-10T08:43:29Z",
+      "side": 1,
+      "message": "Just a suggestion and not mandatory. Maybe you want make these implicit functions to save few spaces below?",
+      "range": {
+        "startLine": 53,
+        "startChar": 4,
+        "endLine": 58,
+        "endChar": 51
+      },
+      "revId": "ec3680f360386a10b4f3fd566e60027369675f59",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_7f038f0f",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/ServerState.scala",
+        "patchSetId": 32
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-02-10T08:43:29Z",
+      "side": 1,
+      "message": "s/liaising/liasoning/ ?",
+      "range": {
+        "startLine": 95,
+        "startChar": 32,
+        "endLine": 95,
+        "endChar": 40
+      },
+      "revId": "ec3680f360386a10b4f3fd566e60027369675f59",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_c5374daf",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/ServerState.scala",
+        "patchSetId": 32
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-02-10T08:43:29Z",
+      "side": 1,
+      "message": "s/funcional/functional/\n\nfuncional is a spanish spelling, eh? :)",
+      "range": {
+        "startLine": 95,
+        "startChar": 14,
+        "endLine": 95,
+        "endChar": 23
+      },
+      "revId": "ec3680f360386a10b4f3fd566e60027369675f59",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_912bdf81",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/Session.scala",
+        "patchSetId": 32
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-02-10T08:43:29Z",
+      "side": 1,
+      "message": "Adding the return type \": Id\" like you do for toProto would make this a bit more readable.",
+      "range": {
+        "startLine": 44,
+        "startChar": 8,
+        "endLine": 44,
+        "endChar": 34
+      },
+      "revId": "ec3680f360386a10b4f3fd566e60027369675f59",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_f120539d",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/SessionInventory.scala",
+        "patchSetId": 32
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-02-10T08:43:29Z",
+      "side": 1,
+      "message": "out-of-order.",
+      "revId": "ec3680f360386a10b4f3fd566e60027369675f59",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_b1741b9d",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/SessionInventory.scala",
+        "patchSetId": 32
+      },
+      "lineNbr": 117,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-02-10T08:43:29Z",
+      "side": 1,
+      "message": "Just a suggestion again. An alternative way to do this is to use reflection via Descriptor. You can refer to how Zoom does this.",
+      "range": {
+        "startLine": 93,
+        "startChar": 8,
+        "endLine": 117,
+        "endChar": 22
+      },
+      "revId": "ec3680f360386a10b4f3fd566e60027369675f59",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_05420510",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/SessionInventory.scala",
+        "patchSetId": 32
+      },
+      "lineNbr": 150,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-02-10T08:43:29Z",
+      "side": 1,
+      "message": "Please remove.",
+      "range": {
+        "startLine": 150,
+        "startChar": 35,
+        "endLine": 150,
+        "endChar": 39
+      },
+      "revId": "ec3680f360386a10b4f3fd566e60027369675f59",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_a53cd194",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/SessionInventory.scala",
+        "patchSetId": 32
+      },
+      "lineNbr": 152,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-02-10T08:43:29Z",
+      "side": 1,
+      "message": "Not clear what it does from the name. HookTransforerOnSubscribe or something more explanatory would be appreciated.",
+      "range": {
+        "startLine": 152,
+        "startChar": 10,
+        "endLine": 152,
+        "endChar": 28
+      },
+      "revId": "ec3680f360386a10b4f3fd566e60027369675f59",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_e546c922",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/SessionInventory.scala",
+        "patchSetId": 32
+      },
+      "lineNbr": 171,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-02-10T08:43:29Z",
+      "side": 1,
+      "message": "Please remove.",
+      "range": {
+        "startLine": 171,
+        "startChar": 38,
+        "endLine": 171,
+        "endChar": 42
+      },
+      "revId": "ec3680f360386a10b4f3fd566e60027369675f59",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_2548e12c",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/SessionInventory.scala",
+        "patchSetId": 32
+      },
+      "lineNbr": 176,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-02-10T08:43:29Z",
+      "side": 1,
+      "message": "It has nothing to do with Storage. I\u0027d name it something like ObservableToEventConverter (though I guess it\u0027s also not very correct :P)",
+      "range": {
+        "startLine": 176,
+        "startChar": 10,
+        "endLine": 176,
+        "endChar": 31
+      },
+      "revId": "ec3680f360386a10b4f3fd566e60027369675f59",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_c7e2b502",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/SessionInventory.scala",
         "patchSetId": 32
