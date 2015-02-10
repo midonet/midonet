@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_c0b61bdc",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/Aggregator.scala",
+        "patchSetId": 32
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-10T16:12:36Z",
+      "side": 1,
+      "message": "I was meaning that any changes to disposed are done inside a \u0027sources.synchronized {}\u0027 block\n(changed the comment to clarify this)",
+      "parentUuid": "7a1969be_5f8973c9",
+      "range": {
+        "startLine": 58,
+        "startChar": 7,
+        "endLine": 58,
+        "endChar": 64
+      },
+      "revId": "ec3680f360386a10b4f3fd566e60027369675f59",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_7ff9cf4c",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/Aggregator.scala",
         "patchSetId": 32
@@ -36,6 +60,30 @@
       "writtenOn": "2015-02-10T08:43:29Z",
       "side": 1,
       "message": "If it is ever possible that \"add\" is called more than once with the same key / Observable pair, there can be a race here, otherwise it\u0027s fine.",
+      "range": {
+        "startLine": 76,
+        "startChar": 25,
+        "endLine": 78,
+        "endChar": 33
+      },
+      "revId": "ec3680f360386a10b4f3fd566e60027369675f59",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_e0b517ce",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/Aggregator.scala",
+        "patchSetId": 32
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-10T16:12:36Z",
+      "side": 1,
+      "message": "Only one thread can be executing this piece of code at a time, so I guess there is no risk",
+      "parentUuid": "7a1969be_7ff9cf4c",
       "range": {
         "startLine": 76,
         "startChar": 25,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_e09eb755",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/Aggregator.scala",
+        "patchSetId": 32
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-10T16:12:36Z",
+      "side": 1,
+      "message": "Possibly a paste error... removed",
+      "parentUuid": "7a1969be_ffa49f58",
+      "range": {
+        "startLine": 101,
+        "startChar": 8,
+        "endLine": 101,
+        "endChar": 19
+      },
+      "revId": "ec3680f360386a10b4f3fd566e60027369675f59",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_a56331b0",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/ServerProtocolFactory.scala",
         "patchSetId": 32
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_80f26398",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/ServerProtocolFactory.scala",
+        "patchSetId": 32
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-10T16:12:36Z",
+      "side": 1,
+      "message": "I\u0027ve moved it to the ServerState.scala file. The ProtocolFactory is intended to generate the first state of a service protocol, and the ServerProtocolFactory returns the Ready state from that file, so it can belong there.\n\nI also agree that CnxnFactory is not the best name with the current implementation. Maybe something like \u0027SessionInfo\u0027 would be more adequate.",
+      "parentUuid": "7a1969be_a56331b0",
+      "range": {
+        "startLine": 34,
+        "startChar": 0,
+        "endLine": 40,
+        "endChar": 63
+      },
+      "revId": "ec3680f360386a10b4f3fd566e60027369675f59",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_ff177f4f",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/ServerState.scala",
         "patchSetId": 32
@@ -105,6 +201,30 @@
       "writtenOn": "2015-02-10T08:43:29Z",
       "side": 1,
       "message": "Just a suggestion and not mandatory. Maybe you want make these implicit functions to save few spaces below?",
+      "range": {
+        "startLine": 53,
+        "startChar": 4,
+        "endLine": 58,
+        "endChar": 51
+      },
+      "revId": "ec3680f360386a10b4f3fd566e60027369675f59",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_c079fbfd",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/ServerState.scala",
+        "patchSetId": 32
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-10T16:12:36Z",
+      "side": 1,
+      "message": "Done (IntelliJ complains a bit, but it seems to work :-)",
+      "parentUuid": "7a1969be_ff177f4f",
       "range": {
         "startLine": 53,
         "startChar": 4,
@@ -163,6 +283,54 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_206a8f1a",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/ServerState.scala",
+        "patchSetId": 32
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-10T16:12:36Z",
+      "side": 1,
+      "message": "oh, you catched me!\nFixed :-)",
+      "parentUuid": "7a1969be_c5374daf",
+      "range": {
+        "startLine": 95,
+        "startChar": 14,
+        "endLine": 95,
+        "endChar": 23
+      },
+      "revId": "ec3680f360386a10b4f3fd566e60027369675f59",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_406d0b32",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/ServerState.scala",
+        "patchSetId": 32
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-10T16:12:36Z",
+      "side": 1,
+      "message": "Changed to \u0027connecting\u0027 (easier to write and pronounce)",
+      "parentUuid": "7a1969be_7f038f0f",
+      "range": {
+        "startLine": 95,
+        "startChar": 32,
+        "endLine": 95,
+        "endChar": 40
+      },
+      "revId": "ec3680f360386a10b4f3fd566e60027369675f59",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_912bdf81",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/Session.scala",
         "patchSetId": 32
@@ -174,6 +342,30 @@
       "writtenOn": "2015-02-10T08:43:29Z",
       "side": 1,
       "message": "Adding the return type \": Id\" like you do for toProto would make this a bit more readable.",
+      "range": {
+        "startLine": 44,
+        "startChar": 8,
+        "endLine": 44,
+        "endChar": 34
+      },
+      "revId": "ec3680f360386a10b4f3fd566e60027369675f59",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_80770302",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/Session.scala",
+        "patchSetId": 32
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-10T16:12:36Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_912bdf81",
       "range": {
         "startLine": 44,
         "startChar": 8,
@@ -203,6 +395,24 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_25ce215b",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/SessionInventory.scala",
+        "patchSetId": 32
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-10T16:12:36Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_f120539d",
+      "revId": "ec3680f360386a10b4f3fd566e60027369675f59",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_b1741b9d",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/SessionInventory.scala",
         "patchSetId": 32
@@ -214,6 +424,30 @@
       "writtenOn": "2015-02-10T08:43:29Z",
       "side": 1,
       "message": "Just a suggestion again. An alternative way to do this is to use reflection via Descriptor. You can refer to how Zoom does this.",
+      "range": {
+        "startLine": 93,
+        "startChar": 8,
+        "endLine": 117,
+        "endChar": 22
+      },
+      "revId": "ec3680f360386a10b4f3fd566e60027369675f59",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_c5bc6d6f",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/SessionInventory.scala",
+        "patchSetId": 32
+      },
+      "lineNbr": 117,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-10T16:12:36Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_b1741b9d",
       "range": {
         "startLine": 93,
         "startChar": 8,
@@ -249,6 +483,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_65d8191e",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/SessionInventory.scala",
+        "patchSetId": 32
+      },
+      "lineNbr": 150,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-10T16:12:36Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_05420510",
+      "range": {
+        "startLine": 150,
+        "startChar": 35,
+        "endLine": 150,
+        "endChar": 39
+      },
+      "revId": "ec3680f360386a10b4f3fd566e60027369675f59",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_a53cd194",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/SessionInventory.scala",
         "patchSetId": 32
@@ -260,6 +518,30 @@
       "writtenOn": "2015-02-10T08:43:29Z",
       "side": 1,
       "message": "Not clear what it does from the name. HookTransforerOnSubscribe or something more explanatory would be appreciated.",
+      "range": {
+        "startLine": 152,
+        "startChar": 10,
+        "endLine": 152,
+        "endChar": 28
+      },
+      "revId": "ec3680f360386a10b4f3fd566e60027369675f59",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_a517b1a2",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/SessionInventory.scala",
+        "patchSetId": 32
+      },
+      "lineNbr": 152,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-10T16:12:36Z",
+      "side": 1,
+      "message": "As I mention below, this is just a helper class to make the code a little bit more readable. As I think it\u0027s difficult to find a clear and short name, I\u0027m adding some additional doc instead...",
+      "parentUuid": "7a1969be_a53cd194",
       "range": {
         "startLine": 152,
         "startChar": 10,
@@ -295,6 +577,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_a5097197",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/SessionInventory.scala",
+        "patchSetId": 32
+      },
+      "lineNbr": 171,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-10T16:12:36Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_e546c922",
+      "range": {
+        "startLine": 171,
+        "startChar": 38,
+        "endLine": 171,
+        "endChar": 42
+      },
+      "revId": "ec3680f360386a10b4f3fd566e60027369675f59",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_2548e12c",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/SessionInventory.scala",
         "patchSetId": 32
@@ -306,6 +612,30 @@
       "writtenOn": "2015-02-10T08:43:29Z",
       "side": 1,
       "message": "It has nothing to do with Storage. I\u0027d name it something like ObservableToEventConverter (though I guess it\u0027s also not very correct :P)",
+      "range": {
+        "startLine": 176,
+        "startChar": 10,
+        "endLine": 176,
+        "endChar": 31
+      },
+      "revId": "ec3680f360386a10b4f3fd566e60027369675f59",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_65ef79b1",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/SessionInventory.scala",
+        "patchSetId": 32
+      },
+      "lineNbr": 176,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-10T16:12:36Z",
+      "side": 1,
+      "message": "Yep, the problem with all this classes is that they are adhoc helpers adding missing bits of information here and there, so it\u0027s difficult to find a short and generic name for them... Nevertheless, I think that the context (the enclosing StorageTransformer class) is enough to see what they do. An alternative would be supressing the classes and defining them inline in the enclosing class \u0027call\u0027 method (but, at least for me, that would less readable).",
+      "parentUuid": "7a1969be_2548e12c",
       "range": {
         "startLine": 176,
         "startChar": 10,
@@ -335,6 +665,24 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_654659c1",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/SessionInventory.scala",
+        "patchSetId": 32
+      },
+      "lineNbr": 356,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-10T16:12:36Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_c7e2b502",
+      "revId": "ec3680f360386a10b4f3fd566e60027369675f59",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_67c82175",
         "filename": "midonet-util/src/test/scala/org/midonet/util/concurrent/BlockingSpscRwdRingBufferTest.scala",
         "patchSetId": 32
@@ -346,6 +694,30 @@
       "writtenOn": "2015-02-09T19:34:43Z",
       "side": 1,
       "message": "Could we do this one smaller? It\u0027s only 2 secs and 2 tests, so it\u0027s not the end of the world, but we should keep long waits to a minimum because they add up to the global execution time.",
+      "range": {
+        "startLine": 153,
+        "startChar": 69,
+        "endLine": 153,
+        "endChar": 70
+      },
+      "revId": "ec3680f360386a10b4f3fd566e60027369675f59",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_c0a1fbaa",
+        "filename": "midonet-util/src/test/scala/org/midonet/util/concurrent/BlockingSpscRwdRingBufferTest.scala",
+        "patchSetId": 32
+      },
+      "lineNbr": 153,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-10T16:12:36Z",
+      "side": 1,
+      "message": "Down to 500 millis",
+      "parentUuid": "7a1969be_67c82175",
       "range": {
         "startLine": 153,
         "startChar": 69,
@@ -375,6 +747,24 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_00831305",
+        "filename": "midonet-util/src/test/scala/org/midonet/util/concurrent/BlockingSpscRwdRingBufferTest.scala",
+        "patchSetId": 32
+      },
+      "lineNbr": 173,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-10T16:12:36Z",
+      "side": 1,
+      "message": "I\u0027ve removed the sleep (the previous test already check the blocking feature)",
+      "parentUuid": "7a1969be_a7a179ab",
+      "revId": "ec3680f360386a10b4f3fd566e60027369675f59",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_e7ab7187",
         "filename": "midonet-util/src/test/scala/org/midonet/util/concurrent/BlockingSpscRwdRingBufferTest.scala",
         "patchSetId": 32
@@ -386,6 +776,30 @@
       "writtenOn": "2015-02-09T19:34:43Z",
       "side": 1,
       "message": "There is no reason this should ever last 10 secs no? I entered panic mode :D - should be a lot less ditto below.",
+      "range": {
+        "startLine": 175,
+        "startChar": 31,
+        "endLine": 175,
+        "endChar": 33
+      },
+      "revId": "ec3680f360386a10b4f3fd566e60027369675f59",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_e087d70d",
+        "filename": "midonet-util/src/test/scala/org/midonet/util/concurrent/BlockingSpscRwdRingBufferTest.scala",
+        "patchSetId": 32
+      },
+      "lineNbr": 175,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-10T16:12:36Z",
+      "side": 1,
+      "message": "Yes, it was never meant to last 10 seconds... just a way to avoid flaky result due to ci spurious delay times. Down to 2 seconds, anyway",
+      "parentUuid": "7a1969be_e7ab7187",
       "range": {
         "startLine": 175,
         "startChar": 31,
