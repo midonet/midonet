@@ -18,8 +18,8 @@ package org.midonet.odp
 
 import java.nio.ByteBuffer
 import java.util.{List => JList}
-
-import org.midonet.netlink.{NLFlag, NetlinkMessage, NetlinkMessageWrapper, NetlinkRequestContext}
+import org.midonet.netlink.{NLFlag, NetlinkMessage, NetlinkRequestContext}
+import org.midonet.netlink.genl.GenlnetlinkMessageWrapper
 import org.midonet.odp.flows.{FlowAction, FlowActions, FlowKey, FlowKeys}
 
 /**
@@ -38,7 +38,7 @@ sealed class OvsProtocol(pid: Int,
 
     def messageFor(buf: ByteBuffer, datapathId: Int,
                    ctx: NetlinkRequestContext) = {
-        val message = NetlinkMessageWrapper(buf).withContext(ctx)
+        val message = GenlnetlinkMessageWrapper(buf).withContext(ctx)
         buf.putInt(datapathId)
         message
     }
