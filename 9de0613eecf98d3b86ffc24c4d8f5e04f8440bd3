@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_655f790f",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/tools/TopologyZoomUpdater.scala",
+        "patchSetId": 23
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-02-10T08:06:54Z",
+      "side": 1,
+      "message": "This is confusing with Seq in scala.",
+      "range": {
+        "startLine": 73,
+        "startChar": 16,
+        "endLine": 73,
+        "endChar": 19
+      },
+      "revId": "9de0613eecf98d3b86ffc24c4d8f5e04f8440bd3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_c59bcdc7",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/tools/TopologyZoomUpdater.scala",
+        "patchSetId": 23
+      },
+      "lineNbr": 221,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-02-10T08:06:54Z",
+      "side": 1,
+      "message": "s/br/network/  ?",
+      "range": {
+        "startLine": 221,
+        "startChar": 26,
+        "endLine": 221,
+        "endChar": 28
+      },
+      "revId": "9de0613eecf98d3b86ffc24c4d8f5e04f8440bd3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
