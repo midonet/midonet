@@ -70,6 +70,24 @@
       "revId": "c7ff5eabde4e595263cada14284940d3d5ffdab7",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_40e7cb12",
+        "filename": "cluster/src/main/proto/neutron.proto",
+        "patchSetId": 1
+      },
+      "lineNbr": 220,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-02-10T15:10:09Z",
+      "side": 1,
+      "message": "Does it have to be globally unique?  Host could have multiple bindings, so we\u0027d could end up with multiple tasks with the same host ID but different bindings.  Port ID on the other hand, might be better since a port can be bound to only one host + interface pair.  But I guess it remains true that there must be a field called \u0027id\u0027 here and it must be populated?",
+      "parentUuid": "7a1969be_00279365",
+      "revId": "c7ff5eabde4e595263cada14284940d3d5ffdab7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
