@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_056e8501",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-10T11:30:59Z",
+      "side": 1,
+      "message": "Should this be a literal rule?",
+      "range": {
+        "startLine": 104,
+        "startChar": 26,
+        "endLine": 104,
+        "endChar": 48
+      },
+      "revId": "11033b12968a177681bc9f78b23ea605de12d732",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_4577ddd4",
+        "filename": "midolman/src/main/java/org/midonet/midolman/rules/Condition.java",
+        "patchSetId": 10
+      },
+      "lineNbr": 170,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-10T11:30:59Z",
+      "side": 1,
+      "message": "traversedDevice and tranversedDeviceInv are not present in the proto, should I add these fields?",
+      "range": {
+        "startLine": 170,
+        "startChar": 4,
+        "endLine": 170,
+        "endChar": 47
+      },
+      "revId": "11033b12968a177681bc9f78b23ea605de12d732",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_8581d591",
+        "filename": "midolman/src/main/java/org/midonet/midolman/rules/Condition.java",
+        "patchSetId": 10
+      },
+      "lineNbr": 196,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-10T11:30:59Z",
+      "side": 1,
+      "message": "Is this byte conversion correct?",
+      "range": {
+        "startLine": 196,
+        "startChar": 20,
+        "endLine": 196,
+        "endChar": 48
+      },
+      "revId": "11033b12968a177681bc9f78b23ea605de12d732",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_657e59b0",
+        "filename": "midolman/src/main/java/org/midonet/midolman/rules/Condition.java",
+        "patchSetId": 10
+      },
+      "lineNbr": 198,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-10T11:30:59Z",
+      "side": 1,
+      "message": "same question",
+      "range": {
+        "startLine": 198,
+        "startChar": 22,
+        "endLine": 198,
+        "endChar": 52
+      },
+      "revId": "11033b12968a177681bc9f78b23ea605de12d732",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
