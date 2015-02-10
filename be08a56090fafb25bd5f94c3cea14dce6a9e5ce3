@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_25f621d8",
+        "filename": "tools/devmido/create_fake_uplink.sh",
+        "patchSetId": 3
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 1002749
+      },
+      "writtenOn": "2015-02-10T08:56:41Z",
+      "side": 1,
+      "message": "My biggest concern if this statement is going to work using the devstack call. sourcing will not work for sure but since we will call this script as a new process it might work. let me try to use this patch with my devstack development to try it before to set the +1",
+      "revId": "be08a56090fafb25bd5f94c3cea14dce6a9e5ce3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_c52c6d4d",
+        "filename": "tools/devmido/functions",
+        "patchSetId": 3
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 1002749
+      },
+      "writtenOn": "2015-02-10T08:56:41Z",
+      "side": 1,
+      "message": "What about the \u0027die\u0027 function? I think you have to move it here as well.",
+      "revId": "be08a56090fafb25bd5f94c3cea14dce6a9e5ce3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
