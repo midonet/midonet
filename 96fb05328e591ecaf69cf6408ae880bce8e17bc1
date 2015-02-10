@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_40d18bfa",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopologyActor.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 317,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-10T16:20:35Z",
+      "side": 1,
+      "message": "http://doc.akka.io/docs/akka/2.3.0-RC1/project/migration-guide-2.2.x-2.3.x.html#Parens_Added_to_sender",
+      "parentUuid": "7a1969be_a052ff10",
+      "range": {
+        "startLine": 317,
+        "startChar": 28,
+        "endLine": 317,
+        "endChar": 30
+      },
+      "revId": "96fb05328e591ecaf69cf6408ae880bce8e17bc1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_00583331",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopologyActor.scala",
         "patchSetId": 5
@@ -36,6 +60,30 @@
       "writtenOn": "2015-02-10T14:55:01Z",
       "side": 1,
       "message": "same",
+      "range": {
+        "startLine": 318,
+        "startChar": 52,
+        "endLine": 318,
+        "endChar": 54
+      },
+      "revId": "96fb05328e591ecaf69cf6408ae880bce8e17bc1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_20ce0f5b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopologyActor.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 318,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-10T16:20:35Z",
+      "side": 1,
+      "message": "See above",
+      "parentUuid": "7a1969be_00583331",
       "range": {
         "startLine": 318,
         "startChar": 52,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_80db831a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopologyActor.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 325,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-10T16:20:35Z",
+      "side": 1,
+      "message": "See above",
+      "parentUuid": "7a1969be_e05cf727",
+      "range": {
+        "startLine": 325,
+        "startChar": 28,
+        "endLine": 325,
+        "endChar": 30
+      },
+      "revId": "96fb05328e591ecaf69cf6408ae880bce8e17bc1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_40418b38",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopologyActor.scala",
         "patchSetId": 5
@@ -82,6 +154,30 @@
       "writtenOn": "2015-02-10T14:55:01Z",
       "side": 1,
       "message": "same",
+      "range": {
+        "startLine": 326,
+        "startChar": 46,
+        "endLine": 326,
+        "endChar": 48
+      },
+      "revId": "96fb05328e591ecaf69cf6408ae880bce8e17bc1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_60d8071e",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopologyActor.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 326,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-10T16:20:35Z",
+      "side": 1,
+      "message": "See above",
+      "parentUuid": "7a1969be_40418b38",
       "range": {
         "startLine": 326,
         "startChar": 46,
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_40f86b7c",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopologyActor.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 348,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-10T16:20:35Z",
+      "side": 1,
+      "message": "Ooops.. just aiding for debugging. Removed.",
+      "parentUuid": "7a1969be_6048075c",
+      "range": {
+        "startLine": 348,
+        "startChar": 8,
+        "endLine": 348,
+        "endChar": 45
+      },
+      "revId": "96fb05328e591ecaf69cf6408ae880bce8e17bc1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_40f98bc7",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopologyActor.scala",
         "patchSetId": 5
@@ -128,6 +248,30 @@
       "writtenOn": "2015-02-10T14:55:01Z",
       "side": 1,
       "message": "I should do the same in the VTPMRedirector",
+      "range": {
+        "startLine": 368,
+        "startChar": 16,
+        "endLine": 368,
+        "endChar": 42
+      },
+      "revId": "96fb05328e591ecaf69cf6408ae880bce8e17bc1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_00ff9368",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopologyActor.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 368,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-10T16:20:35Z",
+      "side": 1,
+      "message": "Yes, maybe I missed this :(",
+      "parentUuid": "7a1969be_40f98bc7",
       "range": {
         "startLine": 368,
         "startChar": 16,
@@ -163,6 +307,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_60ef67b1",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopologyRedirector.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-10T16:20:35Z",
+      "side": 1,
+      "message": "This is only a map of the zoom rx subscriptions. I think we still need to notify the VTA that a subscriber sender exists, so it can add it to its internal maps.",
+      "parentUuid": "7a1969be_806263d6",
+      "range": {
+        "startLine": 66,
+        "startChar": 8,
+        "endLine": 66,
+        "endChar": 37
+      },
+      "revId": "96fb05328e591ecaf69cf6408ae880bce8e17bc1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_20656fe1",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopologyRedirector.scala",
         "patchSetId": 5
@@ -174,6 +342,30 @@
       "writtenOn": "2015-02-10T14:55:01Z",
       "side": 1,
       "message": "This method is unused.",
+      "range": {
+        "startLine": 108,
+        "startChar": 0,
+        "endLine": 118,
+        "endChar": 5
+      },
+      "revId": "96fb05328e591ecaf69cf6408ae880bce8e17bc1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_00367352",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopologyRedirector.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-10T16:20:35Z",
+      "side": 1,
+      "message": "Yes, not needed now because we\u0027re not performing cleaning up of the unused subscriptions, but perhaps we will. I left the method just in case we might used it.",
+      "parentUuid": "7a1969be_20656fe1",
       "range": {
         "startLine": 108,
         "startChar": 0,
@@ -209,6 +401,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_e03a3735",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopologyRedirector.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-10T16:20:35Z",
+      "side": 1,
+      "message": "See previous comment.",
+      "parentUuid": "7a1969be_a0795f95",
+      "range": {
+        "startLine": 125,
+        "startChar": 71,
+        "endLine": 125,
+        "endChar": 73
+      },
+      "revId": "96fb05328e591ecaf69cf6408ae880bce8e17bc1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_c0745b9e",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopologyRedirector.scala",
         "patchSetId": 5
@@ -220,6 +436,30 @@
       "writtenOn": "2015-02-10T14:55:01Z",
       "side": 1,
       "message": "needed?",
+      "range": {
+        "startLine": 126,
+        "startChar": 38,
+        "endLine": 126,
+        "endChar": 40
+      },
+      "revId": "96fb05328e591ecaf69cf6408ae880bce8e17bc1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_403fcb25",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopologyRedirector.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 126,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-10T16:20:35Z",
+      "side": 1,
+      "message": "Same.",
+      "parentUuid": "7a1969be_c0745b9e",
       "range": {
         "startLine": 126,
         "startChar": 38,
@@ -255,6 +495,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_604be7b0",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/VirtualTopologyRedirectorTest.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-10T16:20:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_40722b7d",
+      "range": {
+        "startLine": 100,
+        "startChar": 31,
+        "endLine": 100,
+        "endChar": 40
+      },
+      "revId": "96fb05328e591ecaf69cf6408ae880bce8e17bc1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_00103300",
         "filename": "midolman/src/test/scala/org/midonet/midolman/topology/VirtualTopologyRedirectorTest.scala",
         "patchSetId": 5
@@ -266,6 +530,30 @@
       "writtenOn": "2015-02-10T14:55:01Z",
       "side": 1,
       "message": "As mentioned before, I think that by using TestKit you can use expectMsg directly.",
+      "range": {
+        "startLine": 239,
+        "startChar": 12,
+        "endLine": 239,
+        "endChar": 22
+      },
+      "revId": "96fb05328e591ecaf69cf6408ae880bce8e17bc1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_e0a4f758",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/VirtualTopologyRedirectorTest.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 239,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-10T16:20:35Z",
+      "side": 1,
+      "message": "See my previous comment about TestKit, I think it should be feasible to use it, but just not sure about the actor system, and why the ! implicit doesn\u0027t work.",
+      "parentUuid": "7a1969be_00103300",
       "range": {
         "startLine": 239,
         "startChar": 12,
@@ -301,6 +589,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_20860fba",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/VirtualTopologyTest.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-10T16:20:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_605f670f",
+      "range": {
+        "startLine": 70,
+        "startChar": 31,
+        "endLine": 70,
+        "endChar": 40
+      },
+      "revId": "96fb05328e591ecaf69cf6408ae880bce8e17bc1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_00a67310",
         "filename": "midolman/src/test/scala/org/midonet/midolman/topology/VirtualTopologyTest.scala",
         "patchSetId": 5
@@ -312,6 +624,30 @@
       "writtenOn": "2015-02-10T14:55:01Z",
       "side": 1,
       "message": "Some white space characters?",
+      "range": {
+        "startLine": 129,
+        "startChar": 0,
+        "endLine": 129,
+        "endChar": 12
+      },
+      "revId": "96fb05328e591ecaf69cf6408ae880bce8e17bc1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_601da7bd",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/VirtualTopologyTest.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 129,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-10T16:20:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_00a67310",
       "range": {
         "startLine": 129,
         "startChar": 0,
@@ -347,6 +683,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_8020a3f8",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/VirtualTopologyTest.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 154,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-10T16:20:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_e0aa37d3",
+      "range": {
+        "startLine": 154,
+        "startChar": 0,
+        "endLine": 154,
+        "endChar": 12
+      },
+      "revId": "96fb05328e591ecaf69cf6408ae880bce8e17bc1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_80b9c330",
         "filename": "midolman/src/test/scala/org/midonet/midolman/util/mock/MockMidolmanActorsService.scala",
         "patchSetId": 5
@@ -370,6 +730,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_607487fd",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/util/mock/MockMidolmanActorsService.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-10T16:20:35Z",
+      "side": 1,
+      "message": "I wasn\u0027t sure whether it\u0027s safe to declare a new actor system, other than the one injected with guice from MidolmanSpec - this depends on the test, of course, and the actors used. But it\u0027s strange that when adding TestKit as a base class, calling implicit methods like:\n\n  VirtualTopologyActor !\n\ndoesn\u0027t work.",
+      "parentUuid": "7a1969be_80b9c330",
+      "range": {
+        "startLine": 36,
+        "startChar": 0,
+        "endLine": 49,
+        "endChar": 1
+      },
+      "revId": "96fb05328e591ecaf69cf6408ae880bce8e17bc1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_c0829b51",
         "filename": "midonet-util/src/main/scala/org/midonet/util/concurrent/ReactiveActor.scala",
         "patchSetId": 5
@@ -381,6 +765,30 @@
       "writtenOn": "2015-02-10T14:55:01Z",
       "side": 1,
       "message": "As I understand +I declares I to be a covariant type. This means that Toto[I] is a subtype of Toto[AnyRef] iff I is a subtype of AnyRef. By doing this, does this mean you accept anything that is a subtype of anyref or any parametrized class such that the type parameter is a subtype of anyref?",
+      "range": {
+        "startLine": 25,
+        "startChar": 22,
+        "endLine": 25,
+        "endChar": 23
+      },
+      "revId": "96fb05328e591ecaf69cf6408ae880bce8e17bc1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_809383f9",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/concurrent/ReactiveActor.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-10T16:20:35Z",
+      "side": 1,
+      "message": "Actually I don\u0027t think covariance is needed here, because we\u0027re using these in pattern matching anyway.",
+      "parentUuid": "7a1969be_c0829b51",
       "range": {
         "startLine": 25,
         "startChar": 22,
