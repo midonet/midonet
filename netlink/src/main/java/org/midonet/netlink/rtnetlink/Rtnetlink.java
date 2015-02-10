@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.midonet.netlink;
+package org.midonet.netlink.rtnetlink;
 
 public final class Rtnetlink {
 
@@ -77,6 +77,7 @@ public final class Rtnetlink {
     }
 
     public enum Group {
+        None(0),
         LINK(1),
         NOTIFY(2),
         NEIGH(3),
@@ -99,13 +100,22 @@ public final class Rtnetlink {
         ND_USEROPT(20),
         PHONET_IFADDR(21),
         PHONET_ROUTE(22),
-        DCB(23);
+        DCB(23),
+        IPV4_NETCONF(24),
+        IPV6_NETCONF(25),
+        RTNLGRP_MDB(26);
 
         public final int group;
 
         Group(int group) { this.group = group; }
 
         public int bitmask() { return 1 << (group -1); }
+    }
+
+    public interface ExtFilter {
+        byte RTEXT_FILTER_VF                = (byte) (1 << 0);
+        byte RTEXT_FILTER_BRVLAN            = (byte) (1 << 1);
+        byte RTEXT_FILTER_BRVLAN_COMPRESSED = (byte) (1 << 2);
     }
 
 }
