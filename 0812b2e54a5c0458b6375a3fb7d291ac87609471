@@ -36,6 +36,24 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_40a34b9e",
+        "filename": "tools/devmido/midostack.sh",
+        "patchSetId": 2
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-02-10T15:37:32Z",
+      "side": 1,
+      "message": "Will address it in the next patch",
+      "parentUuid": "7a1969be_407ceb20",
+      "revId": "0812b2e54a5c0458b6375a3fb7d291ac87609471",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_00acb39f",
         "filename": "tools/devmido/midostack.sh",
         "patchSetId": 2
@@ -53,6 +71,24 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_20a0cf8f",
+        "filename": "tools/devmido/midostack.sh",
+        "patchSetId": 2
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-02-10T15:37:32Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_00acb39f",
+      "revId": "0812b2e54a5c0458b6375a3fb7d291ac87609471",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_40950b3f",
         "filename": "tools/devmido/midostack.sh",
         "patchSetId": 2
@@ -64,6 +100,24 @@
       "writtenOn": "2015-02-10T15:24:33Z",
       "side": 1,
       "message": "This command has failed too: I used\n\n    [[ $CMD -eq \"create_fake_uplink\"]] || [[ $CMD -eq \"delete_fake_uplink\" ]]\n\nand seems to work",
+      "revId": "0812b2e54a5c0458b6375a3fb7d291ac87609471",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_80ad438b",
+        "filename": "tools/devmido/midostack.sh",
+        "patchSetId": 2
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-02-10T15:37:32Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_40950b3f",
       "revId": "0812b2e54a5c0458b6375a3fb7d291ac87609471",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
