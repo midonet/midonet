@@ -106,6 +106,24 @@
       "revId": "c7ff5eabde4e595263cada14284940d3d5ffdab7",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_4054eb53",
+        "filename": "cluster/src/main/proto/neutron.proto",
+        "patchSetId": 1
+      },
+      "lineNbr": 220,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-02-10T16:10:58Z",
+      "side": 1,
+      "message": "With a second thought, I think that all we want is to be able to debug. The current Topology model definitions already allow us to track port-binding from host. I think that\u0027s good enough for now. If we want, we can add back references with (MidoNet) port to port binding. Thus we don\u0027t really need to store PortBinding here itself, so let\u0027s forget about storing this ZooKeeper. This requires a slight change with C3PO, but should be fine.",
+      "parentUuid": "7a1969be_0084b3d2",
+      "revId": "c7ff5eabde4e595263cada14284940d3d5ffdab7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
