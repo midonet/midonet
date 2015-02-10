@@ -2,6 +2,75 @@
   "comments": [
     {
       "key": {
+        "uuid": "7a1969be_e52b692e",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/Storage.scala",
+        "patchSetId": 33
+      },
+      "lineNbr": 341,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-02-10T16:46:18Z",
+      "side": 1,
+      "message": "Always \"and\"?",
+      "range": {
+        "startLine": 341,
+        "startChar": 25,
+        "endLine": 341,
+        "endChar": 31
+      },
+      "revId": "f87513b1eee8e4e2b1bbd7421d1c13e7284f80ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_251d8110",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/Storage.scala",
+        "patchSetId": 33
+      },
+      "lineNbr": 349,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-02-10T16:46:18Z",
+      "side": 1,
+      "message": "\"last\" performing.",
+      "range": {
+        "startLine": 349,
+        "startChar": 54,
+        "endLine": 349,
+        "endChar": 64
+      },
+      "revId": "f87513b1eee8e4e2b1bbd7421d1c13e7284f80ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_8058a357",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 33
+      },
+      "lineNbr": 494,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-02-10T16:46:18Z",
+      "side": 1,
+      "message": "Is it correct?",
+      "range": {
+        "startLine": 493,
+        "startChar": 21,
+        "endLine": 494,
+        "endChar": 30
+      },
+      "revId": "f87513b1eee8e4e2b1bbd7421d1c13e7284f80ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_277749d6",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
         "patchSetId": 33
@@ -89,6 +158,29 @@
         "startChar": 20,
         "endLine": 514,
         "endChar": 22
+      },
+      "revId": "f87513b1eee8e4e2b1bbd7421d1c13e7284f80ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_e049978c",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 33
+      },
+      "lineNbr": 586,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-02-10T16:46:18Z",
+      "side": 1,
+      "message": "I thought a node with exclusive ownership can be orphaned, can\u0027t be?",
+      "range": {
+        "startLine": 583,
+        "startChar": 12,
+        "endLine": 586,
+        "endChar": 70
       },
       "revId": "f87513b1eee8e4e2b1bbd7421d1c13e7284f80ad",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
