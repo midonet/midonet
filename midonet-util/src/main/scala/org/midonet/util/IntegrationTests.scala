@@ -15,15 +15,17 @@
  */
 package org.midonet.util
 
-import scala.concurrent.Await
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
 import scala.concurrent.duration.DurationInt
-import scala.util.{Try, Success, Failure}
+import scala.concurrent.{Await, Future}
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.util.{Failure, Success, Try}
 
 object IntegrationTests {
+    object UnexpectedResultException extends RuntimeException
+    object TestPrepareException extends RuntimeException
 
-    type TestSuite = Seq[(String, Future[Any])]
+    type Test = (String, Future[Any])
+    type TestSuite = Seq[Test]
 
     type Report = Seq[(String, Try[String])]
 
@@ -33,10 +35,10 @@ object IntegrationTests {
 
     def printTest(info: (String, Try[String])) = info match {
         case (desc, Success(msg)) =>
-            Console println "[o] " + desc
+            Console println Console.GREEN + "[o] " + desc + Console.RESET
             true
         case (desc, Failure(ex)) =>
-            Console println "[x] " + desc
+            Console println Console.RED + "[x] " + desc + Console.RESET
             ex.printStackTrace
             false
     }

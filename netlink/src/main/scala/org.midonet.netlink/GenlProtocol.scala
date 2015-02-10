@@ -19,6 +19,7 @@ package org.midonet.netlink
 import java.nio.ByteBuffer
 
 import org.midonet.netlink.CtrlFamily.AttrKey
+import org.midonet.netlink.genl.GenlnetlinkMessageWrapper
 
 object GenlProtocol {
 
@@ -27,7 +28,7 @@ object GenlProtocol {
                           pid: Int,
                           ctx: NetlinkRequestContext,
                           buf: ByteBuffer): Unit = {
-        val message = NetlinkMessageWrapper(buf)
+        val message = GenlnetlinkMessageWrapper(buf)
                         .withContext(ctx)
                         .withFlags(flags)
 

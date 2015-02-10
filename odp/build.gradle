@@ -55,10 +55,46 @@ cobertura {
     coverageExcludes = ['.*org.midonet.odp.test.*']
 }
 
-task integrationTest(type: JavaExec, dependsOn: testClasses) {
+class SudoJavaExec extends JavaExec {
+    void sudoCommand(Object... arguments) {
+        executable 'sudo'
+        args = arguments.toList()
+    }
+}
+
+task integrationTest(type: SudoJavaExec, dependsOn: testClasses) {
     main = 'org.midonet.odp.test.OvsIntegrationTest'
     classpath sourceSets.main.runtimeClasspath
     classpath configurations.runtime
     jvmArgs("-Xbootclasspath/p:${project.jdkBootstrap}")
     jvmArgs('-Djava.library.path=/lib:/usr/lib')
+}
+
+task ovsTest(type: Exec, dependsOn: testClasses) {
+  commandLine 'sudo', 'java', '-Djava.library.path=/lib:/usr/lib'
+  commandLine += "-Xbootclasspath/p:${project.jdkBootstrap}"
+  commandLine += '-cp'
+  commandLine += (sourceSets.main.runtimeClasspath +
+                  configurations.runtime).collect { it.toString() }.join(':')
+  commandLine += 'org.midonet.odp.test.OvsIntegrationTest'
+}
+
+task rtnetlinkIntegrationTest(type: SudoJavaExec, dependsOn: testClasses) {
+    main = 'org.midonet.odp.test.RtnetlinkIntegrationTest'
+    classpath sourceSets.main.runtimeClasspath
+    classpath configurations.runtime
+    jvmArgs("-Xbootclasspath/p:${project.jdkBootstrap}")
+    jvmArgs('-Djava.library.path=/lib:/usr/lib')
+}
+
+task rtnetlinkTest(type: Exec, dependsOn: testClasses) {
+  commandLine 'sudo', 'java', '-Djava.library.path=/lib:/usr/lib'
+  commandLine += "-Xbootclasspath/p:${project.jdkBootstrap}"
+  // commandLine += '-Xdebug'
+  // commandLine += '-Xrunjdwp:server=y,transport=dt_socket,address=5004,suspend=y'
+  commandLine += '-cp'
+  commandLine += (sourceSets.main.runtimeClasspath +
+                  configurations.runtime).collect { it.toString() }.join(':')
+  commandLine += 'org.midonet.odp.test.RtnetlinkIntegrationTest'
+  println(commandLine)
 }

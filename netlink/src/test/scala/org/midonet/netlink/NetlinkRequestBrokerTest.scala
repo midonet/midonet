@@ -15,8 +15,8 @@ import org.midonet.netlink.Netlink.Address
 
 @RunWith(classOf[JUnitRunner])
 class NetlinkRequestBrokerTest extends FeatureSpec
-                              with ShouldMatchers
-                              with OneInstancePerTest {
+                               with ShouldMatchers
+                               with OneInstancePerTest {
 
     val maxRequests = 8
     val channel = new MockNetlinkChannel(Netlink.selectorProvider,

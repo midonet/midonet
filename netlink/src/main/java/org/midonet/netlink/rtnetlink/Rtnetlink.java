@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.midonet.netlink;
+package org.midonet.netlink.rtnetlink;
 
 public final class Rtnetlink {
 
@@ -106,6 +106,12 @@ public final class Rtnetlink {
         Group(int group) { this.group = group; }
 
         public int bitmask() { return 1 << (group -1); }
+    }
+
+    public interface ExtFilter {
+        byte RTEXT_FILTER_VF                = (byte) (1 << 0);
+        byte RTEXT_FILTER_BRVLAN            = (byte) (1 << 1);
+        byte RTEXT_FILTER_BRVLAN_COMPRESSED = (byte) (1 << 2);
     }
 
 }

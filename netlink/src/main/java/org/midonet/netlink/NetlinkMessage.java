@@ -35,7 +35,7 @@ public final class NetlinkMessage {
     static public final int NLMSG_TYPE_SIZE = 2;
     static public final int NLMSG_FLAGS_OFFSET = NLMSG_TYPE_OFFSET + NLMSG_TYPE_SIZE;
     static public final int NLMSG_FLAGS_SIZE = 2;
-    static public final int NLMSG_SEQ_OFFSET =  NLMSG_FLAGS_OFFSET + NLMSG_FLAGS_SIZE;;
+    static public final int NLMSG_SEQ_OFFSET =  NLMSG_FLAGS_OFFSET + NLMSG_FLAGS_SIZE;
     static public final int NLMSG_SEQ_SIZE =  4;
     static public final int NLMSG_PID_OFFSET = NLMSG_SEQ_OFFSET + NLMSG_SEQ_SIZE;
     static public final int NLMSG_PID_SIZE = 4;
@@ -55,6 +55,12 @@ public final class NetlinkMessage {
     static public final int NLMSG_ERROR_SIZE = 4;
     static public final int NLMSG_ERROR_HEADER_OFFSET = NLMSG_ERROR_OFFSET + NLMSG_ERROR_SIZE;
     static public final int NLMSG_ERROR_HEADER_SIZE = HEADER_SIZE;
+
+    static public final int RTA_LEN_SIZE = 2;
+    static public final int RTA_LEN_OFFSET = HEADER_SIZE + RTA_LEN_SIZE;
+    static public final int RTA_TYPE_SIZE = 2;
+    static public final int RTA_TYPE_OFFSET = RTA_LEN_OFFSET + RTA_TYPE_SIZE;
+    static public final int RT_HEADER_SIZE = RTA_LEN_SIZE + RTA_TYPE_SIZE;
 
     /** Write onto a ByteBuffer a netlink attribute header.
      *  @param buffer the ByteBuffer the header is written onto.
@@ -390,8 +396,7 @@ public final class NetlinkMessage {
     }
 
     public static void writeHeader(ByteBuffer buf, int size, short commandFamily,
-                                   short flags, int seq, int pid, byte command,
-                                   byte version) {
+                                   short flags, int seq, int pid) {
         int pos = buf.position();
 
         // netlink header section
@@ -400,6 +405,14 @@ public final class NetlinkMessage {
         buf.putShort(pos + NLMSG_FLAGS_OFFSET, flags);
         buf.putInt(pos + NLMSG_SEQ_OFFSET, seq);
         buf.putInt(pos + NLMSG_PID_OFFSET, pid);
+    }
+
+    public static void writeHeader(ByteBuffer buf, int size, short commandFamily,
+                                   short flags, int seq, int pid, byte command,
+                                   byte version) {
+        int pos = buf.position();
+
+        writeHeader(buf, size, commandFamily, flags, seq, pid);
 
         // generic netlink (genl) header section
         buf.put(pos + GENL_CMD_OFFSET, command);
