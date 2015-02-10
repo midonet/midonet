@@ -16,6 +16,40 @@
       "revId": "0812b2e54a5c0458b6375a3fb7d291ac87609471",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_00acb39f",
+        "filename": "tools/devmido/midostack.sh",
+        "patchSetId": 2
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 1002749
+      },
+      "writtenOn": "2015-02-10T15:24:33Z",
+      "side": 1,
+      "message": "Need a \u0027:\u0027 here. Otherwise it fails",
+      "revId": "0812b2e54a5c0458b6375a3fb7d291ac87609471",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_40950b3f",
+        "filename": "tools/devmido/midostack.sh",
+        "patchSetId": 2
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 1002749
+      },
+      "writtenOn": "2015-02-10T15:24:33Z",
+      "side": 1,
+      "message": "This command has failed too: I used\n\n    [[ $CMD -eq \"create_fake_uplink\"]] || [[ $CMD -eq \"delete_fake_uplink\" ]]\n\nand seems to work",
+      "revId": "0812b2e54a5c0458b6375a3fb7d291ac87609471",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
