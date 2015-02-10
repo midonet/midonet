@@ -101,3 +101,21 @@ argument.
 
 If no argument is passed in, and CIDR is not set, then it defaults to
 '200.200.200.0/24'.
+
+
+Devstack Integration
+--------------------
+
+In order to integrate with Devstack, some environment variables defined in
+Devstack need to be exported down to Devmido.  'midostack.sh' does exactly
+that.  It acts as the glue between Devstack and Devmido.  It is simply
+a wrapper script for Devmido scripts that is sourced within Devstack.
+Because it is sourced, it has access to the Devstack environment variables,
+and can export them appropriately to the Devmido scripts.
+
+An example source command to run 'mido.sh' script is:
+
+    source ./midostack.sh mido
+
+Other supported commands include unmido, create_fake_uplink and
+delete_fake_uplink.
