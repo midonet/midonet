@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_453a3dce",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-02-10T06:44:48Z",
+      "side": 1,
+      "message": "Yes I remember that I used to use immutable map and therefore had to use vars. What you\u0027re seeing is what remains of that past:P I\u0027ll change to val and appending with +\u003d.",
+      "parentUuid": "7a1969be_8a68c4f6",
+      "range": {
+        "startLine": 64,
+        "startChar": 8,
+        "endLine": 64,
+        "endChar": 11
+      },
+      "revId": "55a659076bc58c6466b933fa1ecf84bff3b78301",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_ea44d875",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/PortTranslator.scala",
         "patchSetId": 4
@@ -36,6 +60,30 @@
       "writtenOn": "2015-02-10T06:22:23Z",
       "side": 1,
       "message": "Preferred style is to put spaces around the \u003d sign.",
+      "range": {
+        "startLine": 414,
+        "startChar": 25,
+        "endLine": 414,
+        "endChar": 26
+      },
+      "revId": "55a659076bc58c6466b933fa1ecf84bff3b78301",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_653139ec",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 414,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-02-10T06:44:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_ea44d875",
       "range": {
         "startLine": 414,
         "startChar": 25,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_c54d8d74",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 428,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-02-10T06:44:48Z",
+      "side": 1,
+      "message": "Used directly below. I can inline it if you want.",
+      "parentUuid": "7a1969be_0a2214b9",
+      "range": {
+        "startLine": 428,
+        "startChar": 8,
+        "endLine": 428,
+        "endChar": 69
+      },
+      "revId": "55a659076bc58c6466b933fa1ecf84bff3b78301",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_2a2550c2",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/PortTranslator.scala",
         "patchSetId": 4
@@ -82,6 +154,30 @@
       "writtenOn": "2015-02-10T06:22:23Z",
       "side": 1,
       "message": "This isn\u0027t needed anymore.",
+      "range": {
+        "startLine": 431,
+        "startChar": 8,
+        "endLine": 431,
+        "endChar": 49
+      },
+      "revId": "55a659076bc58c6466b933fa1ecf84bff3b78301",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_a5521111",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 431,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-02-10T06:44:48Z",
+      "side": 1,
+      "message": "Removed.",
+      "parentUuid": "7a1969be_2a2550c2",
       "range": {
         "startLine": 431,
         "startChar": 8,
