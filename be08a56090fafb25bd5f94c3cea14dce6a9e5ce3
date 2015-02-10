@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_c5baade0",
+        "filename": "tools/devmido/create_fake_uplink.sh",
+        "patchSetId": 3
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-02-10T09:16:36Z",
+      "side": 1,
+      "message": "I think we\u0027ll need midostack.sh to be the middle shm layer script.  I\u0027ll upload that next.  These scripts in this patch is meant to run independently.",
+      "parentUuid": "7a1969be_25f621d8",
+      "revId": "be08a56090fafb25bd5f94c3cea14dce6a9e5ce3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_c52c6d4d",
         "filename": "tools/devmido/functions",
         "patchSetId": 3
@@ -30,6 +48,24 @@
       "writtenOn": "2015-02-10T08:56:41Z",
       "side": 1,
       "message": "What about the \u0027die\u0027 function? I think you have to move it here as well.",
+      "revId": "be08a56090fafb25bd5f94c3cea14dce6a9e5ce3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_65ee59ee",
+        "filename": "tools/devmido/functions",
+        "patchSetId": 3
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-02-10T09:16:36Z",
+      "side": 1,
+      "message": "Good find!  Will do",
+      "parentUuid": "7a1969be_c52c6d4d",
       "revId": "be08a56090fafb25bd5f94c3cea14dce6a9e5ce3",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
