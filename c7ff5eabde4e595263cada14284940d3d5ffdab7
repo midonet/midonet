@@ -34,6 +34,24 @@
       "revId": "c7ff5eabde4e595263cada14284940d3d5ffdab7",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_206f2f94",
+        "filename": "cluster/src/main/proto/neutron.proto",
+        "patchSetId": 1
+      },
+      "lineNbr": 220,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-02-10T14:39:26Z",
+      "side": 1,
+      "message": "I guess it should be required then no? and whatever value we decide to have, should be added by neutron. Otherwise we\u0027re making additions to the model behind the scenes and the authoritative source of data is neutron after all.",
+      "parentUuid": "7a1969be_c5746d9e",
+      "revId": "c7ff5eabde4e595263cada14284940d3d5ffdab7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
