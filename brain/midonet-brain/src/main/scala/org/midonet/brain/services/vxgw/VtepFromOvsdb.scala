@@ -20,11 +20,16 @@ import java.lang.{Short => JShort}
 import java.util
 import java.util.UUID
 
+import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
+
 import scala.collection.mutable.ListBuffer
 import scala.util.{Failure, Success, Try}
 
+import com.google.common.base.Strings
 import com.google.common.base.Strings.isNullOrEmpty
 import org.apache.commons.lang3.tuple.{Pair => JPair}
+import org.opendaylight.controller.sal.utils.{Status, StatusCode}
 import org.opendaylight.ovsdb.lib.notation.{UUID => OdlUUID}
 import org.slf4j.LoggerFactory
 import rx.{Observable, Observer}
@@ -80,9 +85,9 @@ class VtepFromOldOvsdbClient(nodeId: UUID, ip: IPv4Addr, port: Int,
         }
         override def onNext(ml: MacLocation): Unit = {
             try {
-                oldVtepBroker.apply(ml)
+                apply(ml)
             } catch {
-                case e: VxLanPeerSyncException if e.statusCode != null =>
+                case e: VxlanGatewaySyncException if e.statusCode != null =>
                     log.warn(s"VTEP unreachable when applying $ml")
                 case e: Throwable =>
                     log.warn(s"Could not apply $ml", e)
@@ -90,6 +95,127 @@ class VtepFromOldOvsdbClient(nodeId: UUID, ip: IPv4Addr, port: Int,
         }
     }
 
+    private def apply(ml: MacLocation): Unit = {
+        if (ml == null) {
+            return
+        }
+        log.debug(s"Remote MAC update: $ml")
+        if (ml.mac.isUcast) {
+            if (ml.isDeletion) applyUcastDelete(ml)
+            else applyUcastAddition(ml)
+        } else {
+            if (ml.isDeletion) applyMcastDelete(ml)
+            else applyMcastAddition(ml)
+        }
+    }
+
+    /** Digests the result of a MacLocadtion addition */
+    private def handleAdditionRes(st: Status, ml: MacLocation): Unit = {
+        st.getCode match {
+            case StatusCode.CONFLICT =>
+                log.info(s"Unexpected conflict applying $ml")
+            case code if !st.isSuccess =>
+        }
+    }
+
+    /** Digests the result of a MacLocation removal */
+    private def handleDeletionRes(st: Status, ml: MacLocation):Unit = {
+        st.getCode match {
+            case StatusCode.NOTFOUND => // well, ok
+            case code if !st.isSuccess =>
+                throw new VxlanGatewaySyncException(s"OVSDB error", ml, code)
+        }
+    }
+
+    @inline
+    private def isSame(ml: MacLocation, uc: UcastMac): Boolean = {
+        if (uc.mac.equals(ml.mac.toString)) {
+            true
+        } else if (Strings.isNullOrEmpty(uc.ipAddr)) {
+            ml.ipAddr == null
+        } else {
+            uc.ipAddr.equals(ml.ipAddr.toString)
+        }
+    }
+
+    @inline
+    private def isSame(ml: MacLocation, mc: McastMac): Boolean = {
+        if (mc.mac.equals(ml.mac.toString)) {
+            true
+        } else if (Strings.isNullOrEmpty(mc.ipAddr)) {
+            ml.ipAddr == null
+        } else {
+            mc.ipAddr.equals(ml.ipAddr.toString)
+        }
+    }
+
+    private def applyMcastAddition(ml: MacLocation): Unit = {
+        log.debug("Remote MCast MAC addition {}", ml)
+        // This horrible thing is inefficient, but can't do better since the
+        // OVSDB library doesn't expose its indexed cache, and building it
+        // inside the ovsdbClient requires the same loop we have here..
+        // TODO: revisit when we migrate to the new OVSDB client.
+        val dupe = ovsdbClient.listMcastMacsLocal()
+                              .collectFirst {case u: McastMac => isSame(ml, u)}
+        if (dupe.isDefined) {
+            log.debug("Skip duplicate MCast MAC addition {}", ml)
+            return
+        }
+        handleAdditionRes (
+            ovsdbClient.addMcastMacRemote(ml.logicalSwitchName,
+                                          ml.mac,
+                                          ml.vxlanTunnelEndpoint),
+            ml
+        )
+    }
+
+    private def applyMcastDelete(ml: MacLocation): Unit = {
+        log.debug("Remote MCast MAC deletion {}", ml)
+        handleDeletionRes (
+            ovsdbClient.deleteAllMcastMacRemote(ml.logicalSwitchName, ml.mac),
+            ml
+        )
+    }
+
+    private def applyUcastAddition(ml: MacLocation): Unit = {
+        log.debug("Remote UCast MAC addition {}", ml)
+        log.debug("Remote MCast MAC addition {}", ml)
+        // This horrible thing is inefficient, but can't do better since the
+        // OVSDB library doesn't expose its indexed cache, and building it
+        // inside the ovsdbClient requires the same loop we have here..
+        // TODO: revisit when we migrate to the new OVSDB client.
+        val dupe = ovsdbClient.listUcastMacsLocal()
+                              .collectFirst {case u: UcastMac => isSame(ml, u)}
+        if (dupe.isDefined) {
+            log.debug("Skip duplicate UCast MAC addition {}", ml)
+            return
+        }
+        handleAdditionRes (
+            ovsdbClient.addUcastMacRemote(ml.logicalSwitchName,
+                                          ml.mac.IEEE802(),
+                                          ml.ipAddr,
+                                          ml.vxlanTunnelEndpoint),
+            ml
+        )
+    }
+
+    private def applyUcastDelete(ml: MacLocation): Unit = {
+        log.debug("Remote UCast MAC deletion {}", ml)
+        val st = if (ml.ipAddr == null) {
+            // removal with no IP, remove all mappings for the mac
+            ovsdbClient.deleteAllUcastMacRemote(ml.logicalSwitchName,
+                                                ml.mac.IEEE802())
+        } else {
+            // removal, but only for a given IP
+            ovsdbClient.deleteUcastMacRemote(ml.logicalSwitchName,
+                                             ml.mac.IEEE802, ml.ipAddr)
+        }
+        handleDeletionRes(st, ml)
+    }
+
+    /** Construct a MacLocation object with the given mac, ip and logical
+      * switch ID, by fetching the tunnel IP and logical switch name and
+      * building the MacLocation object with them */
     private def macLocation(mac: String, ip: String, lsId: OdlUUID)
     : Seq[MacLocation] = {
         val tunIp = ovsdbClient.getTunnelIp
