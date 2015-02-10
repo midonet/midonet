@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_a5d85154",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 33
+      },
+      "lineNbr": 503,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-10T09:28:54Z",
+      "side": 1,
+      "message": "Actually, I added these in response to a previous comment from Nicolas that the code wasn\u0027t clear enough. However in the meantime I added more comments above, maybe it\u0027s okay to remove these comments now?",
+      "parentUuid": "7a1969be_277749d6",
+      "range": {
+        "startLine": 500,
+        "startChar": 20,
+        "endLine": 503,
+        "endChar": 29
+      },
+      "revId": "f87513b1eee8e4e2b1bbd7421d1c13e7284f80ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_0774cdcd",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
         "patchSetId": 33
@@ -36,6 +60,30 @@
       "writtenOn": "2015-02-09T21:47:42Z",
       "side": 1,
       "message": "ditto",
+      "range": {
+        "startLine": 514,
+        "startChar": 20,
+        "endLine": 514,
+        "endChar": 22
+      },
+      "revId": "f87513b1eee8e4e2b1bbd7421d1c13e7284f80ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_05de853f",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 33
+      },
+      "lineNbr": 514,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-10T09:28:54Z",
+      "side": 1,
+      "message": "See above.",
+      "parentUuid": "7a1969be_0774cdcd",
       "range": {
         "startLine": 514,
         "startChar": 20,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_457cfd20",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 33
+      },
+      "lineNbr": 1138,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-10T09:28:54Z",
+      "side": 1,
+      "message": "I think so, I didn\u0027t close the class caches here. Maybe I should close them too.",
+      "parentUuid": "7a1969be_c749158d",
+      "range": {
+        "startLine": 1138,
+        "startChar": 12,
+        "endLine": 1138,
+        "endChar": 59
+      },
+      "revId": "f87513b1eee8e4e2b1bbd7421d1c13e7284f80ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_874f1d92",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
         "patchSetId": 33
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_a594d137",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 33
+      },
+      "lineNbr": 1163,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-10T09:28:54Z",
+      "side": 1,
+      "message": "The state is a sort of metadata for the underlying persistent objects, hence it depends on the current storage version.",
+      "parentUuid": "7a1969be_874f1d92",
+      "range": {
+        "startLine": 1163,
+        "startChar": 25,
+        "endLine": 1163,
+        "endChar": 37
+      },
+      "revId": "f87513b1eee8e4e2b1bbd7421d1c13e7284f80ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_67aae11a",
         "filename": "cluster/src/main/scala/org/midonet/cluster/util/ObservablePathDirectoryCache.scala",
         "patchSetId": 33
@@ -105,6 +201,24 @@
       "writtenOn": "2015-02-09T21:47:42Z",
       "side": 1,
       "message": "This just monitors children existence, but not their data?",
+      "revId": "f87513b1eee8e4e2b1bbd7421d1c13e7284f80ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_0527a565",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/util/ObservablePathDirectoryCache.scala",
+        "patchSetId": 33
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-10T09:28:54Z",
+      "side": 1,
+      "message": "Yes, it\u0027s a lightweight version of the ObservablePathChildrenCache, since the ownership information is only stored in the key name.",
+      "parentUuid": "7a1969be_67aae11a",
       "revId": "f87513b1eee8e4e2b1bbd7421d1c13e7284f80ad",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
