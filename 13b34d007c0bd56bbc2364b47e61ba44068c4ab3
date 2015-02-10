@@ -484,6 +484,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_2713c95d",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/Session.scala",
+        "patchSetId": 25
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-10T08:56:11Z",
+      "side": 1,
+      "message": "The problem I see with this approach is that we are creating a different representation between the \u0027id\u0027 of the objects (which would be converted to strings) and the references to that \u0027id\u0027 embedded in other objects (which would remain as UUIDs, unless we scan all the object contents and make the translations). I think that this double representation would be even more confusing for the API users...\n\nAn alternative solution would be representing all UUIDs as strings in Zoom... (but I think it would be good if we could just have an UUID for vteps)",
+      "parentUuid": "7a1969be_54a7954f",
+      "range": {
+        "startLine": 33,
+        "startChar": 7,
+        "endLine": 33,
+        "endChar": 9
+      },
+      "revId": "13b34d007c0bd56bbc2364b47e61ba44068c4ab3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_bb3a4a34",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/SessionInventory.scala",
         "patchSetId": 25
