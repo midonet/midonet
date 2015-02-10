@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_05b5e5ed",
+        "filename": "cluster/src/main/proto/topology.proto",
+        "patchSetId": 6
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-10T09:18:44Z",
+      "side": 1,
+      "message": "Sure :)",
+      "parentUuid": "7a1969be_277c6920",
+      "revId": "743be103f17768faa95e6d8ecde346a0d44e6a9c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_07796d2f",
         "filename": "midolman/src/main/scala/org/midonet/cluster/services/StorageService.scala",
         "patchSetId": 6
@@ -30,6 +48,24 @@
       "writtenOn": "2015-02-09T19:46:12Z",
       "side": 1,
       "message": "Should we add these to ZoomProvider too? I\u0027m unifying these in a separate patch so no need to bother, but you\u0027ll have to remember to check so I don\u0027t forget to add them.",
+      "revId": "743be103f17768faa95e6d8ecde346a0d44e6a9c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_25cbc173",
+        "filename": "midolman/src/main/scala/org/midonet/cluster/services/StorageService.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-10T09:18:44Z",
+      "side": 1,
+      "message": "Yes, I think the unit tests will fail without these because they depend on both the registration and the bindings.",
+      "parentUuid": "7a1969be_07796d2f",
       "revId": "743be103f17768faa95e6d8ecde346a0d44e6a9c",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
