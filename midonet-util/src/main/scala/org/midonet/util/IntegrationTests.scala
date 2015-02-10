@@ -15,15 +15,19 @@
  */
 package org.midonet.util
 
-import scala.concurrent.Await
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
 import scala.concurrent.duration.DurationInt
-import scala.util.{Try, Success, Failure}
+import scala.concurrent.{Await, Future}
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.util.{Failure, Success, Try}
 
 object IntegrationTests {
+    object UnexpectedResultException extends RuntimeException
+    object TestPrepareException extends RuntimeException
 
-    type TestSuite = Seq[(String, Future[Any])]
+    type Test = (String, Future[Any])
+    type TestSuite = Seq[Test]
+    type LazyTest = () => Test
+    type LazyTestSuite = Seq[() => Test]
 
     type Report = Seq[(String, Try[String])]
 
@@ -33,10 +37,10 @@ object IntegrationTests {
 
     def printTest(info: (String, Try[String])) = info match {
         case (desc, Success(msg)) =>
-            Console println "[o] " + desc
+            Console println Console.GREEN + "[o] " + desc + Console.RESET
             true
         case (desc, Failure(ex)) =>
-            Console println "[x] " + desc
+            Console println Console.RED + "[x] " + desc + Console.RESET
             ex.printStackTrace
             false
     }
@@ -48,6 +52,17 @@ object IntegrationTests {
         case (d,t) :: tail =>
             val r = Try(Await.result(t, 2 seconds)) map { case _ => "passed" }
             (d,r) #:: (if (r.isSuccess) toReport(tail) else Stream.empty)
+    }
+
+    def runLazySuite(ts: LazyTestSuite): Report = toReportLazy(ts)
+
+    def toReportLazy(ts: LazyTestSuite): Stream[(String,Try[String])] =
+        ts match {
+        case Nil => Stream.empty
+        case h :: tail =>
+            val (d, test) = h()
+            val r = Try(Await.result(test, 2.seconds)).map(_ => "passed")
+            (d, r) #:: (if (r.isSuccess) toReportLazy(tail) else Stream.empty)
     }
 
 }

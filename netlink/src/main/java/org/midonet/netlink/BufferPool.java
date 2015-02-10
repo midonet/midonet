@@ -35,7 +35,7 @@ public class BufferPool {
     private static final Logger log = LoggerFactory.getLogger(BufferPool.class);
 
     /** dummy object used as the unique value in the concurrent buffer "set". */
-    private static final Object PRESENT = new Object();
+    protected static final Object PRESENT = new Object();
 
     private final int maxBuffers;
     private final int bufSize;

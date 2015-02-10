@@ -18,8 +18,8 @@ package org.midonet.odp
 
 import java.nio.ByteBuffer
 import java.util.{List => JList}
-
-import org.midonet.netlink.{NLFlag, NetlinkMessage, NetlinkMessageWrapper, NetlinkRequestContext}
+import org.midonet.netlink.{NLFlag, NetlinkMessage, NetlinkRequestContext}
+import org.midonet.netlink.genl.GenlnetlinkMessageWrapper
 import org.midonet.odp.flows.{FlowAction, FlowActions, FlowKey, FlowKeys}
 
 /**
@@ -38,25 +38,28 @@ sealed class OvsProtocol(pid: Int,
 
     def messageFor(buf: ByteBuffer, datapathId: Int,
                    ctx: NetlinkRequestContext) = {
-        val message = NetlinkMessageWrapper(buf).withContext(ctx)
+        val message = GenlnetlinkMessageWrapper(buf).withContext(ctx)
         buf.putInt(datapathId)
         message
     }
 
     def enum(buf: ByteBuffer, datapathId: Int, ctx: NetlinkRequestContext): Unit =
         messageFor(buf, datapathId, ctx)
+            .toNetlink
             .withFlags(NLFlag.REQUEST | NLFlag.Get.DUMP)
+            .toGeneric
             .finalize(pid)
 
     def prepareDatapathGet(datapathId: Int, name: String, buf: ByteBuffer): Unit = {
         import org.midonet.odp.OpenVSwitch.Datapath.Attr
 
         val message = messageFor(buf, datapathId, datapathFamily.contextGet)
+            .toNetlink
             .withFlags(NLFlag.REQUEST)
         if (name ne null) {
             NetlinkMessage.writeStringAttr(buf, Attr.Name, name)
         }
-        message.finalize(pid)
+        message.toGeneric.finalize(pid)
     }
 
     def prepareDatapathEnumerate(buf: ByteBuffer): Unit =
@@ -66,23 +69,25 @@ sealed class OvsProtocol(pid: Int,
         import org.midonet.odp.OpenVSwitch.Datapath.Attr
 
         val message = messageFor(buf, 0, datapathFamily.contextNew)
+            .toNetlink
             .withFlags(NLFlag.REQUEST | NLFlag.ECHO)
         NetlinkMessage.writeIntAttr(buf, Attr.UpcallPID, pid)
         if (name ne null) {
             NetlinkMessage.writeStringAttr(buf, Attr.Name, name)
         }
-        message.finalize(pid)
+        message.toGeneric.finalize(pid)
     }
 
     def prepareDatapathDel(datapathId: Int, name: String, buf: ByteBuffer): Unit = {
         import org.midonet.odp.OpenVSwitch.Datapath.Attr
 
         val message = messageFor(buf, datapathId, datapathFamily.contextDel)
+            .toNetlink
             .withFlags(NLFlag.REQUEST | NLFlag.ECHO)
         if (name ne null) {
             NetlinkMessage.writeStringAttr(buf, Attr.Name, name)
         }
-        message.finalize(pid)
+        message.toGeneric.finalize(pid)
     }
 
     def prepareDpPortGet(datapathId: Int, portId: Integer,
@@ -90,6 +95,7 @@ sealed class OvsProtocol(pid: Int,
         import org.midonet.odp.OpenVSwitch.Port.Attr
 
         val message = messageFor(buf, datapathId, portFamily.contextGet)
+            .toNetlink
             .withFlags(NLFlag.REQUEST)
         NetlinkMessage.writeIntAttr(buf, Attr.UpcallPID, pid)
         if (portId != null) {
@@ -98,7 +104,7 @@ sealed class OvsProtocol(pid: Int,
         if (portName != null) {
             NetlinkMessage.writeStringAttr(buf, Attr.Name, portName)
         }
-        message.finalize(pid)
+        message.toGeneric.finalize(pid)
     }
 
     def prepareDpPortEnum(datapathId: Int, buf: ByteBuffer): Unit =
@@ -118,19 +124,21 @@ sealed class OvsProtocol(pid: Int,
         import org.midonet.odp.OpenVSwitch.Port.Attr
 
         val message = messageFor(buf, datapathId, ctx)
+            .toNetlink
             .withFlags(NLFlag.REQUEST | NLFlag.ECHO)
         NetlinkMessage.writeIntAttr(buf, Attr.UpcallPID, pid)
         port.serializeInto(buf)
-        message.finalize(pid)
+        message.toGeneric.finalize(pid)
     }
 
     def prepareFlowGet(datapathId: Int, fmatch: FlowMatch, buf: ByteBuffer): Unit = {
         import org.midonet.odp.OpenVSwitch.Flow.Attr
 
         val message = messageFor(buf, datapathId, flowFamily.contextGet)
+            .toNetlink
             .withFlags(NLFlag.REQUEST)
         NetlinkMessage.writeAttrSeq(buf, Attr.Key, fmatch.getKeys, FlowKeys.writer)
-        message.finalize(pid)
+        message.toGeneric.finalize(pid)
     }
 
     def prepareFlowEnum(datapathId: Int, buf: ByteBuffer): Unit =
@@ -141,6 +149,7 @@ sealed class OvsProtocol(pid: Int,
         import org.midonet.odp.OpenVSwitch.Flow.Attr
 
         val message = messageFor(buf, datapathId, flowFamily.contextNew)
+            .toNetlink
             .withFlags(NLFlag.REQUEST | NLFlag.New.CREATE)
         NetlinkMessage.writeAttrSeq(buf, Attr.Key, flow.getMatch.getKeys, FlowKeys.writer)
         // the actions list is allowed to be empty (drop flow). Nevertheless the
@@ -150,7 +159,7 @@ sealed class OvsProtocol(pid: Int,
         if (supportsFlowMask) {
             NetlinkMessage.writeAttrNested(buf, Attr.Mask, flow.getMask)
         }
-        message.finalize(pid)
+        message.toGeneric.finalize(pid)
     }
 
     def prepareFlowSet(datapathId: Int, supportsFlowMask: Boolean,
@@ -158,6 +167,7 @@ sealed class OvsProtocol(pid: Int,
         import org.midonet.odp.OpenVSwitch.Flow.Attr
 
         val message = messageFor(buf, datapathId, flowFamily.contextSet)
+            .toNetlink
             .withFlags(NLFlag.REQUEST | NLFlag.ECHO)
         NetlinkMessage.writeAttrSeq(buf, Attr.Key, flow.getMatch.getKeys, FlowKeys.writer)
         // the actions list is allowed to be empty (drop flow). Nevertheless the
@@ -167,7 +177,7 @@ sealed class OvsProtocol(pid: Int,
         if (supportsFlowMask) {
             NetlinkMessage.writeAttrNested(buf, Attr.Mask, flow.getMask)
         }
-        message.finalize(pid)
+        message.toGeneric.finalize(pid)
     }
 
     def prepareFlowDelete(datapathId: Int, keys: java.lang.Iterable[FlowKey],
@@ -175,15 +185,17 @@ sealed class OvsProtocol(pid: Int,
         import org.midonet.odp.OpenVSwitch.Flow.Attr
 
         val message = messageFor(buf, datapathId, flowFamily.contextDel)
+            .toNetlink
             .withFlags(NLFlag.REQUEST | NLFlag.ECHO)
         NetlinkMessage.writeAttrSeq(buf, Attr.Key, keys, FlowKeys.writer)
-        message.finalize(pid)
+        message.toGeneric.finalize(pid)
     }
 
     def prepareFlowFlush(datapathId: Int, buf: ByteBuffer): Unit = {
         val message = messageFor(buf, datapathId, flowFamily.contextDel)
+            .toNetlink
             .withFlags(NLFlag.REQUEST | NLFlag.ACK)
-        message.finalize(pid)
+        message.toGeneric.finalize(pid)
     }
 
     def preparePacketExecute(datapathId: Int, packet: Packet, actions: JList[FlowAction],
@@ -191,6 +203,7 @@ sealed class OvsProtocol(pid: Int,
         import org.midonet.odp.OpenVSwitch.Packet.Attr
 
         val message = messageFor(buf, datapathId, packetFamily.contextExec)
+            .toNetlink
             .withFlags(NLFlag.REQUEST)
         // TODO(pino): find out why ovs_packet_cmd_execute throws an
         // EINVAL if we put the PACKET attribute right after the
@@ -201,6 +214,6 @@ sealed class OvsProtocol(pid: Int,
         NetlinkMessage.writeAttrSeq(buf, Attr.Actions, actions, FlowActions.writer)
         NetlinkMessage.writeRawAttribute(buf, Attr.Packet, packet.getEthernet.serialize())
 
-        message.finalize(pid)
+        message.toGeneric.finalize(pid)
     }
 }

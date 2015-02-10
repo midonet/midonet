@@ -21,6 +21,8 @@ import java.nio.ByteOrder;
 import java.util.LinkedList;
 import java.util.List;
 
+import com.google.common.base.Objects;
+
 import org.midonet.netlink.AttributeHandler;
 import org.midonet.netlink.NetlinkMessage;
 import org.midonet.netlink.Reader;
@@ -33,16 +35,38 @@ import org.midonet.packets.IPv6Addr;
 public class Addr implements AttributeHandler {
 
     public class IfaddrMsg {
-        public byte ifa_family;
-        public byte ifa_prefixlen;  /* The prefix length */
-        public byte ifa_flags;      /* Flags             */
-        public byte ifa_scope;      /* Address scope     */
-        public int  ifa_index;      /* Link index        */
+        public byte family;
+        public byte prefixLen;  /* The prefix length */
+        public byte flags;      /* Flags             */
+        public byte scope;      /* Address scope     */
+        public int index;      /* Link index        */
 
         @Override
         public String toString() {
-            return String.format("{ifa_family=%d, ifa_prefixlen=%d, ifa_flags=0x%x, ifa_scope=0x%x, ifa_index=%d}",
-                    ifa_family, ifa_prefixlen, ifa_flags, ifa_scope, ifa_index);
+            return String.format("{family=%d, prefixLen=%d, +" +
+                            "flags=0x%x, scope=0x%x, index=%d}",
+                    family, prefixLen, flags, scope, index);
+        }
+
+        @Override
+        public boolean equals(Object object) {
+            if (!(object instanceof IfaddrMsg)) {
+                return false;
+            }
+
+            IfaddrMsg that = (IfaddrMsg) object;
+
+            return this.family == that.family &&
+                    this.prefixLen == that.prefixLen &&
+                    this.flags == that.flags &&
+                    this.scope == that.scope &&
+                    this.index == that.index;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hashCode(family, prefixLen, flags,
+                    scope, index);
         }
     }
 
@@ -57,9 +81,37 @@ public class Addr implements AttributeHandler {
         short IFA_MULTICAST = 7;
     }
 
+    public interface Flags {
+        byte IFA_F_SECONDARY = 0x01;
+        byte IFA_F_TEMPORARY = IFA_F_SECONDARY;
+        byte IFA_F_NODAD = 0x02;
+        byte IFA_F_OPTIMISTIC= 0x04;
+        byte IFA_F_DADFAILED = 0x08;
+        byte IFA_F_HOMEADDRESS = 0x10;
+        byte IFA_F_DEPRECATED = 0x20;
+        byte IFA_F_TENTATIVE = 0x40;
+        byte IFA_F_PERMANENT = (byte) 0x80;
+        byte IFA_F_MANAGETEMPADDR = (byte) 0x100;
+        byte IFA_F_NOPREFIXROUTE = (byte) 0x200;
+    }
+
+    public interface Scope {
+        byte RT_SCOPE_UNIVERSE = 0;
+        /* User defined values  */
+        byte RT_SCOPE_SITE     = (byte) 200;
+        byte RT_SCOPE_LINK     = (byte) 253;
+        byte RT_SCOPE_HOST     = (byte) 254;
+        byte RT_SCOPE_NOWHERE  = (byte) 255;
+    }
+
+    /**
+     * Address family defined in include/linux/socket.h.
+     */
     public interface Family {
+        byte AF_UNSPEC      = 0;
         byte AF_INET        = 2;
         byte AF_INET6       = 10;
+        byte AF_PACKET      = 17;
     }
 
     @Override
@@ -117,11 +169,11 @@ public class Addr implements AttributeHandler {
         Addr addr = new Addr();
         ByteOrder originalOrder = buf.order();
         try {
-            addr.ifa.ifa_family = buf.get();
-            addr.ifa.ifa_prefixlen = buf.get();
-            addr.ifa.ifa_flags = buf.get();
-            addr.ifa.ifa_scope = buf.get();
-            addr.ifa.ifa_index = buf.getInt();
+            addr.ifa.family = buf.get();
+            addr.ifa.prefixLen = buf.get();
+            addr.ifa.flags = buf.get();
+            addr.ifa.scope = buf.get();
+            addr.ifa.index = buf.getInt();
         } finally {
             buf.order(originalOrder);
         }
@@ -130,14 +182,15 @@ public class Addr implements AttributeHandler {
         return addr;
     }
 
-    public static Addr buildWithIPv4(IPv4Addr ipv4, int prefixlen, int ifindex) {
+    public static Addr buildWithIPv4(IPv4Addr ipv4, int prefixlen,
+                                     int ifindex) {
         Addr addr = new Addr();
 
-        addr.ifa.ifa_family = Family.AF_INET;
-        addr.ifa.ifa_prefixlen = (byte)prefixlen;
-        addr.ifa.ifa_flags = 0;
-        addr.ifa.ifa_scope = 0;
-        addr.ifa.ifa_index = ifindex;
+        addr.ifa.family = Family.AF_INET;
+        addr.ifa.prefixLen = (byte) prefixlen;
+        addr.ifa.flags = 0;
+        addr.ifa.scope = 0;
+        addr.ifa.index = ifindex;
         addr.ipv4.add(ipv4);
         return addr;
     }
@@ -148,7 +201,7 @@ public class Addr implements AttributeHandler {
         try {
             switch (id) {
                 case Attr.IFA_ADDRESS:
-                    switch (ifa.ifa_family) {
+                    switch (ifa.family) {
                         case Family.AF_INET:
                             if (buf.remaining() == 4) {
                                 buf.order(ByteOrder.BIG_ENDIAN);
@@ -170,42 +223,71 @@ public class Addr implements AttributeHandler {
         }
     }
 
-    static public ByteBuffer describeGetRequest(ByteBuffer buf) {
+    static public ByteBuffer describeListRequest(ByteBuffer buf) {
+        return describeGetRequest(buf, 0, Family.AF_INET);
+    }
 
+    static public ByteBuffer describeGetRequest(ByteBuffer buf,
+                                                int linkIndex) {
+        return describeGetRequest(buf, linkIndex, Family.AF_UNSPEC);
+    }
+
+    static public ByteBuffer describeGetRequest(ByteBuffer buf,
+                                                int linkIndex,
+                                                byte addressFamily) {
         ByteOrder originalOrder = buf.order();
         try {
-            buf.put((byte)0);
-            buf.put((byte)0);
-            buf.put((byte)0);
-            buf.put((byte)0);
-            buf.putInt(0);
+            buf.put(addressFamily);
+            buf.put((byte) 0);
+            buf.put((byte) 0);
+            buf.put((byte) (Scope.RT_SCOPE_LINK | Scope.RT_SCOPE_HOST));
+            buf.putInt(linkIndex);
         } finally {
             buf.order(originalOrder);
         }
-        buf.flip();
+
         return buf;
     }
 
     static public ByteBuffer describeNewRequest(ByteBuffer buf, Addr addr) {
         ByteOrder originalOrder = buf.order();
         try {
-            buf.put(addr.ifa.ifa_family);
-            buf.put(addr.ifa.ifa_prefixlen);
-            buf.put(addr.ifa.ifa_flags);
-            buf.put(addr.ifa.ifa_scope);
-            buf.putInt(addr.ifa.ifa_index);
+            buf.put(addr.ifa.family);
+            buf.put(addr.ifa.prefixLen);
+            buf.put(addr.ifa.flags);
+            buf.put(addr.ifa.scope);
+            buf.putInt(addr.ifa.index);
 
-            switch (addr.ifa.ifa_family) {
+            switch (addr.ifa.family) {
                 case Family.AF_INET:
                     for (IPv4Addr ip : addr.ipv4) {
-                        NetlinkMessage.writeRawAttribute(buf, Attr.IFA_LOCAL, ip.toBytes());
+                        NetlinkMessage.writeRawAttribute(
+                                buf, Attr.IFA_LOCAL, ip.toBytes());
                     }
                     break;
             }
         } finally {
             buf.order(originalOrder);
         }
-        buf.flip();
+
         return buf;
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        if (!(object instanceof Addr)) {
+            return false;
+        }
+
+        Addr that = (Addr) object;
+
+        return Objects.equal(this.ifa, that.ifa) &&
+                Objects.equal(this.ipv4, that.ipv4) &&
+                Objects.equal(this.ipv6, that.ipv6);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(ifa, ipv4, ipv6);
     }
 }

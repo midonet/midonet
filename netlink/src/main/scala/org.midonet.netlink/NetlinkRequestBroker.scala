@@ -34,7 +34,7 @@ object NetlinkRequestBroker {
 
     private val unsafe = Util.getUnsafe
 
-    private val NOOP = new Observer[ByteBuffer] {
+    val NOOP = new Observer[ByteBuffer] {
         override def onCompleted(): Unit = { }
         override def onError(e: Throwable): Unit = { }
         override def onNext(t: ByteBuffer): Unit = { }
@@ -268,7 +268,7 @@ final class NetlinkRequestBroker(writer: NetlinkBlockingWriter,
             obs.onNext(readBuf)
             readBuf.limit(oldLimit)
 
-            if (NLFlag.isMultiFlagSet(flags)) {
+            if (NLFlag.isMultiFlagSet(flags)) { // if (NLFlag.isMultiFlagSet(flags) && `type` != NLMessageType.DONE) {
                 return
             }
         }
