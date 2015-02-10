@@ -15,9 +15,6 @@
  */
 package org.midonet.brain.southbound.vtep;
 
-import java.util.Arrays;
-import java.util.List;
-
 import mockit.Expectations;
 import mockit.Mocked;
 import mockit.NonStrictExpectations;
@@ -38,12 +35,9 @@ import rx.subjects.Subject;
 
 import org.midonet.brain.test.RxTestUtils;
 import org.midonet.brain.services.vxgw.MacLocation;
-import org.midonet.brain.services.vxgw.VxLanPeerSyncException;
+import org.midonet.brain.services.vxgw.VxlanGatewaySyncException;
 import org.midonet.brain.southbound.vtep.model.LogicalSwitch;
-import org.midonet.brain.southbound.vtep.model.UcastMac;
 import org.midonet.packets.IPv4Addr;
-
-import static org.midonet.brain.southbound.vtep.VtepConstants.bridgeIdToLogicalSwitchName;
 
 public class VtepTest {
 
@@ -125,7 +119,7 @@ public class VtepTest {
                                          midoVxTunIp));
     }
 
-    @Test(expected = VxLanPeerSyncException.class)
+    @Test(expected = VxlanGatewaySyncException.class)
     public void testBrokerThrowsOnFailedUpdate() throws Exception {
         new Expectations() {{
             vtepDataClient.addUcastMacRemote(lsName, mac1.IEEE802(),
@@ -301,157 +295,9 @@ public class VtepTest {
         obs.evaluate();
     }
 
-    /**
-     * Covers the case where the VtepBroker hasn't yet been able to intercept
-     * the vxlan tunnel IP of the VTEP. In this case, it should not be able
-     * to emit MacLocation items even if the VTEP reports changes in the table.
-     */
-    @Test
-    public void testAdvertiseMacsUnknownVxlanTunnelEndpoint()
-        throws Exception {
-        VtepBroker vb = new VtepBroker(vtepDataClient);
-        // Even though we publish an update, we expect no MacLocations because
-        // the broker doesn't know the vtep's vxlan tunnel IP.
-        RxTestUtils.TestedObservable obs =
-            RxTestUtils.test(vb.observableUpdates());
-        obs.noElements()
-            .noErrors()
-            .notCompleted()
-            .subscribe();
-
-        vb.advertiseMacs();
-        obs.evaluate();
-    }
-
-    @Test
-    public void testAdvertiseMacs() throws Exception {
-
-        new Expectations() {{
-            vtepDataClient.getTunnelIp(); times = 2; result = vxTunEndpoint;
-        }};
-
-        // Make sure to feed the update with a vxlan tunnel ip so the VtepBroker
-        // is able to capture the IP and process MAC updates.
-        vtepUpdStream.onNext(tableUpdatesWithTunnelIp());
-
-        final UUID lsId1 = new UUID("blah1");
-        final UUID lsId2 = new UUID("blah2");
-
-        new Expectations() {{
-            vtepDataClient.listUcastMacsLocal();
-            times = 1;
-            result = Arrays.asList(
-                new UcastMac(sMac1, lsId1, new UUID("loc1"), macIp1.toString()),
-                new UcastMac(sMac2, lsId2, new UUID("loc2"), macIp2.toString())
-            );
-        }};
-
-        new Expectations() {{
-            vtepDataClient.getLogicalSwitch(withAny(new UUID("")));
-            times = 2;
-            result = new Object[] {
-                new LogicalSwitch(lsId1, "dd", "meh1", 1),
-                new LogicalSwitch(lsId2, "oo", "meh2", 2)
-            };
-        }};
-
-        RxTestUtils.TestedObservable obs =
-            RxTestUtils.test(vtepBroker.observableUpdates());
-        obs.expect(new MacLocation(mac1, macIp1, "meh1", vxTunEndpoint),
-                   new MacLocation(mac2, macIp2, "meh2", vxTunEndpoint))
-           .noErrors()
-           .notCompleted()
-           .subscribe();
-
-        vtepBroker.advertiseMacs();
-
-        obs.evaluate();
-    }
-
-    /**
-     * If a Logical Switch is deleted while a MacLocation is processed, we don't
-     * want to die: the VtepBroker should just ignore the MacLocation.
-     */
-    @Test
-    public void testAdvertiseMacsResilientToLogicalSwitchDeletions()
-        throws Exception {
-
-        VtepBroker vb = new VtepBroker(vtepDataClient);
-
-        new Expectations() {{
-            vtepDataClient.getTunnelIp(); times = 3; result = vxTunEndpoint;
-        }};
-
-        // Make sure to feed the update with a vxlan tunnel ip so the VtepBroker
-        // is able to capture the IP and process MAC updates.
-        vtepUpdStream.onNext(tableUpdatesWithTunnelIp());
-
-        final UUID lsId = new UUID("blah2");
-
-        new Expectations() {{
-            vtepDataClient.listUcastMacsLocal();
-            times = 1;
-            result = Arrays.asList(
-                new UcastMac(sMac1, lsId, new UUID("loc1"), null),
-                new UcastMac(sMac2, lsId, new UUID("loc2"), null)
-            );
-        }};
-
-        new Expectations() {{
-            vtepDataClient.getLogicalSwitch(withAny(new UUID("")));
-            times = 2;
-            result = new Object[] {
-                new LogicalSwitch(lsId, "oo", "meh2", 2),
-                null // the switch goes away on the second call
-            };
-        }};
-
-        RxTestUtils.TestedObservable obs =
-            RxTestUtils.test(vb.observableUpdates());
-        obs.expect(new MacLocation(mac1, null, "meh2", vxTunEndpoint))
-            .noErrors()
-            .notCompleted()
-            .subscribe();
-
-        vb.advertiseMacs();
-
-        obs.evaluate();
-    }
-
     @Test
     public void testApplyResilientToNullMacLocations() {
         vtepBroker.apply(null); // expect no NPE
-    }
-
-    @Test
-    public void testPruneUnwantedLogicalSwitches() throws Exception {
-
-        final java.util.UUID boundNetworkId = java.util.UUID.randomUUID();
-
-        final String oldLs =
-            bridgeIdToLogicalSwitchName(java.util.UUID.randomUUID());
-        final String nonMidoLs = "private_logical_switch";
-        final String curLs = bridgeIdToLogicalSwitchName(boundNetworkId);
-
-        // The id of the network that does have a binding
-        List<java.util.UUID> ids = Arrays.asList(boundNetworkId);
-
-        final List<LogicalSwitch> lsList = Arrays.asList(
-            new LogicalSwitch(new UUID("ls1"), "midonet unwanted", oldLs, 1),
-            new LogicalSwitch(new UUID("ls2"), "non midonet", nonMidoLs, 2),
-            new LogicalSwitch(new UUID("ls3"), "midonet wanted", curLs, 3)
-        );
-
-        new Expectations() {{
-            vtepDataClient.listLogicalSwitches();
-            result = lsList;
-            times = 1;
-            vtepDataClient.deleteLogicalSwitch(oldLs);
-            result = new Status(StatusCode.SUCCESS);
-            times = 1;
-        }};
-
-        vtepBroker.pruneUnwantedLogicalSwitches(ids);
     }
 
     private Ucast_Macs_Local makeUcastLocal(String mac, String ip) {
