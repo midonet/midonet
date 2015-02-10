@@ -215,3 +215,10 @@ message NeutronHealthMonitor {
     optional int32 timeout = 7;
     optional string type = 8;
 }
+
+message PortBinding {
+    optional UUID id = 1;  // Probably will be keyed by host ID for debugging.
+    optional UUID host_id = 2;
+    optional string interface_name = 3;
+    optional UUID port_id = 4;
+}
