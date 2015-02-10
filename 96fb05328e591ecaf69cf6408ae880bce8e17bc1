@@ -1,0 +1,395 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_a052ff10",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopologyActor.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 317,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-10T14:55:01Z",
+      "side": 1,
+      "message": "why adding this? I thought that by convention we were not using parentheses for getters...",
+      "range": {
+        "startLine": 317,
+        "startChar": 28,
+        "endLine": 317,
+        "endChar": 30
+      },
+      "revId": "96fb05328e591ecaf69cf6408ae880bce8e17bc1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_00583331",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopologyActor.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 318,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-10T14:55:01Z",
+      "side": 1,
+      "message": "same",
+      "range": {
+        "startLine": 318,
+        "startChar": 52,
+        "endLine": 318,
+        "endChar": 54
+      },
+      "revId": "96fb05328e591ecaf69cf6408ae880bce8e17bc1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_e05cf727",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopologyActor.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 325,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-10T14:55:01Z",
+      "side": 1,
+      "message": "same",
+      "range": {
+        "startLine": 325,
+        "startChar": 28,
+        "endLine": 325,
+        "endChar": 30
+      },
+      "revId": "96fb05328e591ecaf69cf6408ae880bce8e17bc1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_40418b38",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopologyActor.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 326,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-10T14:55:01Z",
+      "side": 1,
+      "message": "same",
+      "range": {
+        "startLine": 326,
+        "startChar": 46,
+        "endLine": 326,
+        "endChar": 48
+      },
+      "revId": "96fb05328e591ecaf69cf6408ae880bce8e17bc1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_6048075c",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopologyActor.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 348,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-10T14:55:01Z",
+      "side": 1,
+      "message": "I don\u0027t understand the purpose of this.",
+      "range": {
+        "startLine": 348,
+        "startChar": 8,
+        "endLine": 348,
+        "endChar": 45
+      },
+      "revId": "96fb05328e591ecaf69cf6408ae880bce8e17bc1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_40f98bc7",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopologyActor.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 368,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-10T14:55:01Z",
+      "side": 1,
+      "message": "I should do the same in the VTPMRedirector",
+      "range": {
+        "startLine": 368,
+        "startChar": 16,
+        "endLine": 368,
+        "endChar": 42
+      },
+      "revId": "96fb05328e591ecaf69cf6408ae880bce8e17bc1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_806263d6",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopologyRedirector.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-10T14:55:01Z",
+      "side": 1,
+      "message": "You don\u0027t do anything special if the subscription already exists. I guess it\u0027s not necessary to call deviceRequested in that case.",
+      "range": {
+        "startLine": 66,
+        "startChar": 8,
+        "endLine": 66,
+        "endChar": 37
+      },
+      "revId": "96fb05328e591ecaf69cf6408ae880bce8e17bc1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_20656fe1",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopologyRedirector.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-10T14:55:01Z",
+      "side": 1,
+      "message": "This method is unused.",
+      "range": {
+        "startLine": 108,
+        "startChar": 0,
+        "endLine": 118,
+        "endChar": 5
+      },
+      "revId": "96fb05328e591ecaf69cf6408ae880bce8e17bc1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_a0795f95",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopologyRedirector.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-10T14:55:01Z",
+      "side": 1,
+      "message": "needed?",
+      "range": {
+        "startLine": 125,
+        "startChar": 71,
+        "endLine": 125,
+        "endChar": 73
+      },
+      "revId": "96fb05328e591ecaf69cf6408ae880bce8e17bc1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_c0745b9e",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopologyRedirector.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 126,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-10T14:55:01Z",
+      "side": 1,
+      "message": "needed?",
+      "range": {
+        "startLine": 126,
+        "startChar": 38,
+        "endLine": 126,
+        "endChar": 40
+      },
+      "revId": "96fb05328e591ecaf69cf6408ae880bce8e17bc1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_40722b7d",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/VirtualTopologyRedirectorTest.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-10T14:55:01Z",
+      "side": 1,
+      "message": "Consolidate with the other timeouts in this class? It would be nice to have a global timeout parameter for tests...",
+      "range": {
+        "startLine": 100,
+        "startChar": 31,
+        "endLine": 100,
+        "endChar": 40
+      },
+      "revId": "96fb05328e591ecaf69cf6408ae880bce8e17bc1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_00103300",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/VirtualTopologyRedirectorTest.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 239,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-10T14:55:01Z",
+      "side": 1,
+      "message": "As mentioned before, I think that by using TestKit you can use expectMsg directly.",
+      "range": {
+        "startLine": 239,
+        "startChar": 12,
+        "endLine": 239,
+        "endChar": 22
+      },
+      "revId": "96fb05328e591ecaf69cf6408ae880bce8e17bc1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_605f670f",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/VirtualTopologyTest.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-10T14:55:01Z",
+      "side": 1,
+      "message": "Why not consolidating this? We could have a global parameter for the timeouts used in tests.\n\nThe same goes for the 5 seconds below.",
+      "range": {
+        "startLine": 70,
+        "startChar": 31,
+        "endLine": 70,
+        "endChar": 40
+      },
+      "revId": "96fb05328e591ecaf69cf6408ae880bce8e17bc1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_00a67310",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/VirtualTopologyTest.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 129,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-10T14:55:01Z",
+      "side": 1,
+      "message": "Some white space characters?",
+      "range": {
+        "startLine": 129,
+        "startChar": 0,
+        "endLine": 129,
+        "endChar": 12
+      },
+      "revId": "96fb05328e591ecaf69cf6408ae880bce8e17bc1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_e0aa37d3",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/VirtualTopologyTest.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 154,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-10T14:55:01Z",
+      "side": 1,
+      "message": "white spaces?",
+      "range": {
+        "startLine": 154,
+        "startChar": 0,
+        "endLine": 154,
+        "endChar": 12
+      },
+      "revId": "96fb05328e591ecaf69cf6408ae880bce8e17bc1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_80b9c330",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/util/mock/MockMidolmanActorsService.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-10T14:55:01Z",
+      "side": 1,
+      "message": "You may not need this. In VTPMRedirectorTest, I extend TestKit(ActorSystem(\"VTPMRedirectorTest\")) and then to wait for a message in return I write: expectMsg(...)",
+      "range": {
+        "startLine": 36,
+        "startChar": 0,
+        "endLine": 49,
+        "endChar": 1
+      },
+      "revId": "96fb05328e591ecaf69cf6408ae880bce8e17bc1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_c0829b51",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/concurrent/ReactiveActor.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-10T14:55:01Z",
+      "side": 1,
+      "message": "As I understand +I declares I to be a covariant type. This means that Toto[I] is a subtype of Toto[AnyRef] iff I is a subtype of AnyRef. By doing this, does this mean you accept anything that is a subtype of anyref or any parametrized class such that the type parameter is a subtype of anyref?",
+      "range": {
+        "startLine": 25,
+        "startChar": 22,
+        "endLine": 25,
+        "endChar": 23
+      },
+      "revId": "96fb05328e591ecaf69cf6408ae880bce8e17bc1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
