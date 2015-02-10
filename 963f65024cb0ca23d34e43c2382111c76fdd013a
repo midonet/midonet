@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_1b6a681a",
+        "filename": "docs/vxgw_service.md",
+        "patchSetId": 5
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-02-10T22:09:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_e42b72e9",
+      "revId": "963f65024cb0ca23d34e43c2382111c76fdd013a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_c4cc7638",
         "filename": "docs/vxgw_service.md",
         "patchSetId": 5
@@ -36,6 +54,24 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_3b6da433",
+        "filename": "docs/vxgw_service.md",
+        "patchSetId": 5
+      },
+      "lineNbr": 144,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-02-10T22:09:10Z",
+      "side": 1,
+      "message": "When we designed the feature there were (as far as I know) no concepts that we could use cleanly. But of course I\u0027d be happy to unify models with neutron as much as possible, are there any that overlap with these?",
+      "parentUuid": "7a1969be_c4cc7638",
+      "revId": "963f65024cb0ca23d34e43c2382111c76fdd013a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_245bca88",
         "filename": "docs/vxgw_service.md",
         "patchSetId": 5
@@ -47,6 +83,24 @@
       "writtenOn": "2015-02-08T10:03:26Z",
       "side": 1,
       "message": "typo: OVSDB",
+      "revId": "963f65024cb0ca23d34e43c2382111c76fdd013a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_7b771c03",
+        "filename": "docs/vxgw_service.md",
+        "patchSetId": 5
+      },
+      "lineNbr": 340,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-02-10T22:09:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_245bca88",
       "revId": "963f65024cb0ca23d34e43c2382111c76fdd013a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
