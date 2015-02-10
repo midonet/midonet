@@ -215,3 +215,9 @@ message NeutronHealthMonitor {
     optional int32 timeout = 7;
     optional string type = 8;
 }
+
+message PortBinding {  // This model itself will not be persisted in Storage.
+    optional UUID host_id = 1;
+    optional string interface_name = 2;
+    optional UUID port_id = 3;
+}
