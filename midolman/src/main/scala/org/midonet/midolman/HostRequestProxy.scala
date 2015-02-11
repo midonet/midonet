@@ -102,7 +102,7 @@ class HostRequestProxy(val hostId: UUID, val storage: FlowStateStorage,
      * up to date version of the Host object.
      */
     private def resolvePorts(host: DevicesHost): ResolvedHost = {
-        val bindings = host.portToInterface.map {
+        val bindings = host.bindings.map {
                 case (id, iface) =>
                     try {
                         val port = VTA.tryAsk[Port](id)
@@ -131,9 +131,9 @@ class HostRequestProxy(val hostId: UUID, val storage: FlowStateStorage,
             VTPM ! HostRequest(hostId)
 
         case h: DevicesHost =>
-            log.debug("Received host update with bindings {}", h.portToInterface)
+            log.debug("Received host update with bindings {}", h.bindings)
             belt.handle(() => {
-                val ps = h.portToInterface.keySet -- lastPorts
+                val ps = h.bindings.keySet -- lastPorts
                 val resolved = resolvePorts(h)
                 stateForPorts(ps).andThen {
                         case Success(stateBatch) =>

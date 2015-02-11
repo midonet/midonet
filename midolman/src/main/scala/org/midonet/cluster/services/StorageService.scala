@@ -24,26 +24,31 @@ import org.midonet.cluster.config.ZookeeperConfig
 import org.midonet.cluster.data.storage.FieldBinding.DeleteAction._
 import org.midonet.cluster.data.storage.Storage
 import org.midonet.cluster.models.Topology._
+import org.midonet.config.ConfigProvider
+import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.state.{Directory, StateAccessException}
 import org.midonet.midolman.version.DataWriteVersion
 import org.midonet.midolman.{Setup, SystemDataProvider}
 
 class StorageService @Inject() (directory: Directory,
-                                config: ZookeeperConfig,
+                                configProvider: ConfigProvider,
                                 systemDataProvider: SystemDataProvider,
                                 curator: CuratorFramework,
                                 store: Storage) extends AbstractService {
 
     protected override def doStart(): Unit = {
         try {
-            val rootKey: String = config.getZkRootPath
+            val zkConfig = configProvider.getConfig(classOf[ZookeeperConfig])
+            val mmConfig = configProvider.getConfig(classOf[MidolmanConfig])
+
+            val rootKey: String = zkConfig.getZkRootPath
             Setup.ensureZkDirectoryStructureExists(directory, rootKey)
             verifyVersion()
             verifySystemState()
-            if (config.getCuratorEnabled) {
+            if (zkConfig.getCuratorEnabled) {
                 curator.start()
             }
-            if (config.getClusterStorageEnabled) {
+            if (mmConfig.isClusterStorageEnabled) {
                 buildStorage()
             }
             notifyStarted()
