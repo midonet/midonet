@@ -25,6 +25,23 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_b6188985",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualToPhysicalMapper.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 204,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-02-11T10:37:53Z",
+      "side": 1,
+      "message": "line breaks",
+      "revId": "b880ad62c1dbeae26775c0ef27bec119507f1322",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_36cad94f",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualToPhysicalMapper.scala",
         "patchSetId": 15
@@ -42,6 +59,23 @@
         "endLine": 280,
         "endChar": 5
       },
+      "revId": "b880ad62c1dbeae26775c0ef27bec119507f1322",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_f6fe816a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualToPhysicalMapper.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 281,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-02-11T10:37:53Z",
+      "side": 1,
+      "message": "I agree that this doesn\u0027t feel right. The actor can\u0027t know where it came from :/",
       "revId": "b880ad62c1dbeae26775c0ef27bec119507f1322",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
