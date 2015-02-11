@@ -16,14 +16,16 @@
 package org.midonet.cluster.state
 
 import java.util.UUID
+
 import javax.annotation.Nonnull
 
 import com.google.inject.Inject
 import com.google.inject.name.Named
+
 import rx.Observable
 import rx.subjects.PublishSubject
 
-import org.midonet.cluster.data.storage.{NotFoundException, OwnershipConflictException, StorageWithOwnership}
+import org.midonet.cluster.data.storage.{NotFoundException, OwnershipConflictException}
 import org.midonet.cluster.models.Topology.Port
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.storage.MidonetBackendConfig
