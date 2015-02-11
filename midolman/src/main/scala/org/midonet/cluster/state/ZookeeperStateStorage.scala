@@ -26,9 +26,9 @@ import rx.Observable
 import rx.subjects.PublishSubject
 
 import org.midonet.cluster.{ClusterRouterManager, DataClient}
-import org.midonet.cluster.config.ZookeeperConfig
 import org.midonet.cluster.data.storage.{StorageWithOwnership, NotFoundException, OwnershipConflictException}
 import org.midonet.cluster.models.Topology.Port
+import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.midolman.serialization.SerializationException
 import org.midonet.midolman.state.zkManagers.PortZkManager
@@ -36,7 +36,7 @@ import org.midonet.midolman.state.{PortConfig, PortDirectory, StateAccessExcepti
 import org.midonet.util.eventloop.Reactor
 import org.midonet.util.functors.makeRunnable
 
-class ZookeeperStateStorage @Inject() (config: ZookeeperConfig,
+class ZookeeperStateStorage @Inject() (config: MidolmanConfig,
                                        storage: StorageWithOwnership,
                                        dataClient: DataClient,
                                        @Named("directoryReactor") reactor: Reactor,

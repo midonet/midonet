@@ -43,7 +43,6 @@ class StorageModule extends PrivateModule {
             .toProvider(classOf[StorageModule.StorageServiceProvider])
             .asEagerSingleton()
         expose(classOf[StorageWithOwnership])
-
         bind(classOf[Storage])
             .to(classOf[StorageWithOwnership])
             .asEagerSingleton()

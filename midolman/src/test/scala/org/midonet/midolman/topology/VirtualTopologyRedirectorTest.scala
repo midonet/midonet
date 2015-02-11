@@ -64,7 +64,7 @@ class VirtualTopologyRedirectorTest extends MidolmanSpec with TopologyBuilder {
     protected override def fillConfig(config: HierarchicalConfiguration)
     : HierarchicalConfiguration = {
         super.fillConfig(config)
-        config.setProperty("zookeeper.cluster_storage_enabled", true)
+        config.setProperty("midolman.cluster_storage_enabled", true)
         config
     }
 

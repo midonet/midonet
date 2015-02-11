@@ -37,12 +37,10 @@ case class CreateWithOwnerOp(obj: Obj, owner: String)
 case class UpdateOp[T <: Obj](obj: T, validator: UpdateValidator[T])
     extends PersistenceOp
 
-private[storage]
 case class UpdateWithOwnerOp[T <: Obj](obj: T, owner: String,
                                        validator: UpdateValidator[T])
     extends PersistenceOp
 
-private[storage]
 case class UpdateOwnerOp(clazz: Class[_], id: ObjId, owner: String,
                          throwIfExists: Boolean)
     extends PersistenceOp
@@ -181,7 +179,6 @@ trait Storage extends ReadOnlyStorage {
      * object must have a field named "id", and an appropriate unique ID must
      * already be assigned to the object before the call.
      */
-    @throws[NotFoundException]
     @throws[ObjectExistsException]
     @throws[ReferenceConflictException]
     def create(obj: Obj): Unit = multi(List(CreateOp(obj)))
