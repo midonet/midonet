@@ -18,28 +18,41 @@ package org.midonet.midolman.datapath
 
 import java.nio.ByteBuffer
 
-import scala.concurrent.duration._
-
-import com.lmax.disruptor.{LifecycleAware, EventPoller, Sequencer}
+import com.lmax.disruptor.{Sequencer, LifecycleAware, EventPoller}
 import rx.Observer
 
 import org.slf4j.LoggerFactory
 import com.typesafe.scalalogging.Logger
 
 import org.midonet.midolman.datapath.DisruptorDatapathChannel._
-import org.midonet.midolman.flows.FlowEjector
 import org.midonet.netlink._
-import org.midonet.odp.{OvsNetlinkFamilies, OvsProtocol}
-import org.midonet.util.concurrent.{Backchannel, NanoClock}
+import org.midonet.netlink.exceptions.NetlinkException
+import org.midonet.odp.{FlowMatch, OvsNetlinkFamilies, OvsProtocol}
+import org.midonet.Util
+import org.midonet.util.concurrent.{NanoClock, Backchannel}
 
-sealed class FlowProcessor(flowEjector: FlowEjector,
-                           channelFactory: NetlinkChannelFactory,
-                           datapathId: Int,
-                           ovsFamilies: OvsNetlinkFamilies,
-                           clock: NanoClock)
-     extends EventPoller.Handler[DatapathEvent]
-     with Backchannel
-     with LifecycleAware {
+object FlowProcessor {
+    private val unsafe = Util.getUnsafe
+
+    /**
+     * Used for unsafe access to the lastSequence field, so we can do a volatile
+     * read on the writer thread while avoiding doing a volatile write to it
+     * from the producer thread.
+     */
+    private val sequenceAddress = unsafe.objectFieldOffset(
+        classOf[FlowProcessor].getDeclaredField("lastSequence"))
+}
+
+class FlowProcessor(families: OvsNetlinkFamilies,
+                    maxPendingRequests: Int,
+                    maxRequestSize: Int,
+                    channelFactory: NetlinkChannelFactory,
+                    clock: NanoClock)
+    extends EventPoller.Handler[DatapathEvent]
+    with Backchannel
+    with LifecycleAware {
+
+    import FlowProcessor._
 
     private val log = Logger(LoggerFactory.getLogger(
         "org.midonet.datapath.flow-processor"))
@@ -52,14 +65,11 @@ sealed class FlowProcessor(flowEjector: FlowEjector,
     }
 
     private val writer = new NetlinkBlockingWriter(channel)
-    private val requestReply = new NetlinkRequestBroker(
-        new NetlinkReader(channel),
-        writer,
-        flowEjector.maxPendingRequests,
-        BytesUtil.instance.allocateDirect(8*1024),
-        clock,
-        5 seconds)
-    private val protocol = new OvsProtocol(pid, ovsFamilies)
+    private val broker = new NetlinkRequestBroker(
+        writer, new NetlinkReader(channel), maxPendingRequests, maxRequestSize,
+        BytesUtil.instance.allocateDirect(8 * 1024), clock)
+
+    private val protocol = new OvsProtocol(pid, families)
 
     private var lastSequence = Sequencer.INITIAL_CURSOR_VALUE
 
@@ -78,44 +88,66 @@ sealed class FlowProcessor(flowEjector: FlowEjector,
         true
     }
 
-    override def shouldProcess(): Boolean = {
-        val flowDelete = flowEjector.peek()
-        (flowDelete ne null) && flowDelete.managedFlow.flowMatch.getSequence <= lastSequence
-    }
+    def capacity = broker.capacity
 
-    override def process(): Unit = {
-        while (shouldProcess()) {
-            val flowDelete = flowEjector.poll()
-            log.debug(s"Deleting flow ${flowDelete.managedFlow}")
-            val buf = flowDelete.prepareRequest(datapathId, protocol)
-            requestReply.writeRequest(buf, flowDelete)
+    def hasPendingOperations = broker.hasRequestsToWrite
+
+    /**
+     * Tries to eject a flow only if the corresponding Disruptor sequence is
+     * greater than the one specified, meaning that the corresponding flow
+     * create operation hasn't been completed yet.
+     */
+    def tryEject(sequence: Long, datapathId: Int, flowMatch: FlowMatch,
+                 obs: Observer[ByteBuffer]): Boolean = {
+        var brokerSeq = 0
+        val disruptorSeq = unsafe.getLongVolatile(this, sequenceAddress)
+        if (disruptorSeq >= sequence && { brokerSeq = broker.nextSequence()
+                                          brokerSeq } != NetlinkRequestBroker.FULL) {
+            protocol.prepareFlowDelete(datapathId, flowMatch.getKeys, broker.get(brokerSeq))
+            broker.publishRequest(brokerSeq, obs)
+            true
+        } else {
+            false
         }
     }
 
-    val defaultObserver = new Observer[ByteBuffer] {
-            override def onCompleted(): Unit =
-                log.warn("Unexpected reply - probably the late answer of a request that timed out")
+    override def shouldProcess(): Boolean =
+        broker.hasRequestsToWrite
 
-            override def onError(e: Throwable): Unit = onCompleted()
-            override def onNext(t: ByteBuffer): Unit = { }
+    override def process(): Unit =
+        broker.writePublishedRequests()
+
+    val defaultObserver = new Observer[ByteBuffer] {
+        override def onCompleted(): Unit =
+            log.warn("Unexpected reply; probably the late answer of a request that timed out")
+
+        override def onError(e: Throwable): Unit = e match {
+            case ne: NetlinkException if ne.getErrorCodeEnum == NetlinkException.ErrorCode.EEXIST =>
+                log.debug("Tried to add duplicate DP flow")
+            case ne: NetlinkException =>
+                log.warn(s"Unexpected error with code ${ne.getErrorCodeEnum}; " +
+                         "probably the late answer of a request that timed out")
+            }
+
+        override def onNext(t: ByteBuffer): Unit = { }
     }
 
-    val remover = new Thread("flow-remover") {
+    val replies = new Thread("flow-processor-replies") {
         override def run(): Unit =
             try {
                 while (channel.isOpen) {
-                    requestReply.readReply(defaultObserver)
+                    broker.readReply(defaultObserver)
                 }
             } catch { case ignored: Throwable => }
     }
 
     override def onStart(): Unit = {
-        remover.setDaemon(true)
-        remover.start()
+        replies.setDaemon(true)
+        replies.start()
     }
 
     override def onShutdown(): Unit = {
         channel.close()
-        remover.interrupt()
+        replies.interrupt()
     }
 }
