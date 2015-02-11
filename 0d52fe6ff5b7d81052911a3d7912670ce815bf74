@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_f6dde143",
+        "filename": "tools/devmido/midostack.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 1002749
+      },
+      "writtenOn": "2015-02-11T08:50:42Z",
+      "side": 1,
+      "message": "user\u003droot\ngroup\u003droot\n\nmissing?",
+      "revId": "0d52fe6ff5b7d81052911a3d7912670ce815bf74",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
