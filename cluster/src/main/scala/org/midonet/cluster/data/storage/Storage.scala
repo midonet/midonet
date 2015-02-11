@@ -181,7 +181,6 @@ trait Storage extends ReadOnlyStorage {
      * object must have a field named "id", and an appropriate unique ID must
      * already be assigned to the object before the call.
      */
-    @throws[NotFoundException]
     @throws[ObjectExistsException]
     @throws[ReferenceConflictException]
     def create(obj: Obj): Unit
@@ -336,7 +335,6 @@ trait StorageWithOwnership extends Storage {
     /**
      * Creates an object with the specified owner.
      */
-    @throws[NotFoundException]
     @throws[ObjectExistsException]
     @throws[ReferenceConflictException]
     @throws[OwnershipConflictException]
