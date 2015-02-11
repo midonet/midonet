@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_36d139fc",
+        "filename": "docs/vxgw_service.md",
+        "patchSetId": 6
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 1003470
+      },
+      "writtenOn": "2015-02-11T10:06:00Z",
+      "side": 1,
+      "message": "I think it worth to add data model diagram  for new/modified entities",
+      "revId": "3330344decf06e47ef4d5edeef1cb4c27133d715",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_36f8197c",
+        "filename": "docs/vxgw_service.md",
+        "patchSetId": 6
+      },
+      "lineNbr": 237,
+      "author": {
+        "id": 1003470
+      },
+      "writtenOn": "2015-02-11T10:06:00Z",
+      "side": 1,
+      "message": "The diagram can be useful to explain the SW components interaction",
+      "revId": "3330344decf06e47ef4d5edeef1cb4c27133d715",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
