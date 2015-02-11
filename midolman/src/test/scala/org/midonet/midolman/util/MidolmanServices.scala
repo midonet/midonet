@@ -24,14 +24,14 @@ import akka.actor.ActorSystem
 
 import com.google.inject.Injector
 
+import org.midonet.cluster.Client
+import org.midonet.cluster.DataClient
 import org.midonet.cluster.state.StateStorage
-import org.midonet.cluster.{Client, DataClient}
-import org.midonet.midolman.datapath.DatapathChannel
-import org.midonet.midolman.flows.FlowEjector
+import org.midonet.midolman.datapath.{FlowProcessor, DatapathChannel}
 import org.midonet.midolman.io.UpcallDatapathConnectionManager
 import org.midonet.midolman.services.HostIdProviderService
-import org.midonet.midolman.util.mock.{MockDatapathChannel, MockFlowEjector, MockUpcallDatapathConnectionManager}
-import org.midonet.odp.protos.{MockOvsDatapathConnection, OvsDatapathConnection}
+import org.midonet.midolman.util.mock.{MockFlowProcessor, MockDatapathChannel, MockUpcallDatapathConnectionManager}
+import org.midonet.odp.protos.{OvsDatapathConnection, MockOvsDatapathConnection}
 
 trait MidolmanServices {
     var injector: Injector
@@ -58,8 +58,8 @@ trait MidolmanServices {
     }
 
     def mockFlowEjector = {
-        injector.getInstance(classOf[FlowEjector])
-                .asInstanceOf[MockFlowEjector]
+        injector.getInstance(classOf[FlowProcessor])
+                .asInstanceOf[MockFlowProcessor]
     }
 
     def dpConn()(implicit ec: ExecutionContext, as: ActorSystem):

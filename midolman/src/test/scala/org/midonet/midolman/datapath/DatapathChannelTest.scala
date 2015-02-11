@@ -18,16 +18,18 @@ package org.midonet.midolman.datapath
 
 import java.nio.ByteBuffer
 import java.util.ArrayList
+import scala.concurrent.duration._
 
+import com.lmax.disruptor.RingBuffer
 import org.jctools.queues.SpscArrayQueue
 
 import org.junit.runner.RunWith
-import org.midonet.sdn.flows.ManagedFlow
+import org.scalatest.concurrent.PatienceConfiguration.Timeout
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.concurrent.Eventually._
 
-import org.midonet.midolman.FlowController.FlowRemoveCommand
-import org.midonet.midolman.flows.FlowEjector
+import org.midonet.midolman.datapath.DisruptorDatapathChannel.DatapathEvent
+import org.midonet.midolman.FlowController.FlowOperation
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.netlink.{MockNetlinkChannelFactory, NetlinkMessage}
 import org.midonet.odp._
@@ -35,7 +37,9 @@ import org.midonet.odp.family.{DatapathFamily, FlowFamily, PacketFamily, PortFam
 import org.midonet.odp.flows.{FlowKey, FlowKeys, FlowAction, FlowActions}
 import org.midonet.packets.util.PacketBuilder._
 import org.midonet.packets.{Ethernet, IPv4Addr, MAC}
+import org.midonet.sdn.flows.ManagedFlow
 import org.midonet.util.collection.ArrayObjectPool
+import org.midonet.util.concurrent.{EventPollerHandlerAdapter, BackchannelEventProcessor, AggregateEventPollerHandler}
 
 @RunWith(classOf[JUnitRunner])
 class DatapathChannelTest extends MidolmanSpec {
@@ -44,12 +48,21 @@ class DatapathChannelTest extends MidolmanSpec {
     val nlChannel = factory.channel
     nlChannel.setPid(10)
 
-    val ejector = new FlowEjector(10)
+    val capacity = 1024
+
     val ovsFamilies = new OvsNetlinkFamilies(new DatapathFamily(1), new PortFamily(2),
                                              new FlowFamily(3), new PacketFamily(4), 5, 6)
-    val dpChannel = new DisruptorDatapathChannel(capacity = 16, threads = 1,
-                                                 ejector, factory, ovsFamilies,
-                                                 clock)
+    val flowProcessor = new FlowProcessor(ovsFamilies, 1024, 2048, factory, clock)
+    val ringBuffer = RingBuffer.createSingleProducer[DatapathEvent](
+        DisruptorDatapathChannel.Factory, capacity)
+    val processors = Array(new BackchannelEventProcessor[DatapathEvent](
+        ringBuffer,
+        new AggregateEventPollerHandler(
+            flowProcessor,
+            new EventPollerHandlerAdapter(new PacketExecutor(1, 0, factory))),
+        flowProcessor))
+
+    val dpChannel = new DisruptorDatapathChannel(ovsFamilies, ringBuffer, processors)
 
     val ethernet = { eth src MAC.random() dst MAC.random() } <<
                    { ip4 src IPv4Addr.random dst IPv4Addr.random } << payload(Array[Byte](0))
@@ -118,7 +131,7 @@ class DatapathChannelTest extends MidolmanSpec {
             while (i < 10000) {
                 dpChannel.executePacket(packet, actions)
                 i += 1
-                i - nlChannel.packetsWritten.get() should be <= dpChannel.capacity
+                i - nlChannel.packetsWritten.get() should be <= capacity
             }
         }
 
@@ -130,30 +143,31 @@ class DatapathChannelTest extends MidolmanSpec {
             }
 
             packet.getMatch.getSequence should be (0)
-
             packet.getMatch.setSequence(1)
-            val flowDelete = new FlowRemoveCommand(new ArrayObjectPool(0, _ => null),
-                                                   new SpscArrayQueue[FlowRemoveCommand](16))
+
+            val flowDelete = new FlowOperation(new ArrayObjectPool(0, _ => null),
+                                               new SpscArrayQueue(16))
             val managedFlow = new ManagedFlow(null)
             managedFlow.flowMatch.reset(packet.getMatch)
-            flowDelete.reset(managedFlow, 0)
-            ejector.eject(flowDelete)
-
-            Thread.sleep(500)
+            flowDelete.reset(FlowOperation.DELETE, managedFlow, 0)
+            flowProcessor.tryEject(1, datapathId, managedFlow.flowMatch,
+                                   flowDelete) should be (false)
 
             nlChannel.packetsWritten.get() should be (1)
 
             dpChannel.createFlow(new Flow(packet.getMatch, actions))
 
             eventually {
-                nlChannel.packetsWritten.get() should be (3)
+                nlChannel.packetsWritten.get() should be (2)
             }
 
-            flowDelete.reset(managedFlow, 0)
-            ejector.eject(flowDelete)
+            eventually {
+                flowProcessor.tryEject(1, datapathId, managedFlow.flowMatch,
+                                       flowDelete) should be (true)
+            }
 
             eventually {
-                nlChannel.packetsWritten.get() should be (4)
+                nlChannel.packetsWritten.get() should be (3)
             }
         }
     }

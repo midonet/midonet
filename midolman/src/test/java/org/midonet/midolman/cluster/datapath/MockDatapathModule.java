@@ -25,12 +25,12 @@ import com.google.inject.Provider;
 
 import org.midonet.midolman.config.MidolmanConfig;
 import org.midonet.midolman.datapath.DatapathChannel;
-import org.midonet.midolman.flows.FlowEjector;
+import org.midonet.midolman.datapath.FlowProcessor;
 import org.midonet.midolman.io.DatapathConnectionPool;
 import org.midonet.midolman.io.MockDatapathConnectionPool;
 import org.midonet.midolman.io.UpcallDatapathConnectionManager;
 import org.midonet.midolman.util.mock.MockDatapathChannel;
-import org.midonet.midolman.util.mock.MockFlowEjector;
+import org.midonet.midolman.util.mock.MockFlowProcessor;
 import org.midonet.midolman.util.mock.MockUpcallDatapathConnectionManager;
 import org.midonet.odp.Flow;
 import org.midonet.odp.FlowMatch;
@@ -66,7 +66,7 @@ public class MockDatapathModule extends DatapathModule {
     }
 
     @Override
-    protected void bindFlowEjector() {
-        bind(FlowEjector.class).toInstance(new MockFlowEjector(flowsTable));
+    protected void bindFlowProcessor() {
+        bind(FlowProcessor.class).toInstance(new MockFlowProcessor(flowsTable));
     }
 }
