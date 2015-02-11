@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_b68fe922",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VTPMRedirector.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-11T09:49:14Z",
+      "side": 1,
+      "message": "Is this needed now?",
+      "range": {
+        "startLine": 34,
+        "startChar": 0,
+        "endLine": 36,
+        "endChar": 1
+      },
+      "revId": "b880ad62c1dbeae26775c0ef27bec119507f1322",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_36cad94f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualToPhysicalMapper.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 280,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-11T09:49:14Z",
+      "side": 1,
+      "message": "As in my VT redirector patch, this part needs checking, since until now sender actors weren\u0027t expecting such a message. In my patch I intended this to end an async tryAsk with failure, but whether we should send such a message to subscribing actors is still WIP.",
+      "range": {
+        "startLine": 275,
+        "startChar": 4,
+        "endLine": 280,
+        "endChar": 5
+      },
+      "revId": "b880ad62c1dbeae26775c0ef27bec119507f1322",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
