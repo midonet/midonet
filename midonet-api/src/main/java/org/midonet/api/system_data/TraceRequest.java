@@ -43,22 +43,26 @@ public class TraceRequest extends UriResource {
     @NotNull
     private Condition condition;
 
+    @NotNull
+    private boolean enabled;
+
     public TraceRequest() {
         super();
     }
 
     public TraceRequest(UUID id, DeviceType deviceType,
-                        UUID deviceId) {
-        this(id, deviceType, deviceId, new Condition());
-    }
-
-    public TraceRequest(UUID id, DeviceType deviceType,
-                        UUID deviceId, Condition condition) {
+                        UUID deviceId, Condition condition, boolean enabled) {
         super();
         this.id = id;
         this.deviceType = deviceType;
         this.deviceId = deviceId;
         this.condition = condition;
+        this.enabled = enabled;
+    }
+
+    public TraceRequest(UUID id, DeviceType deviceType,
+                        UUID deviceId, Condition condition) {
+        this(id, deviceType, deviceId, condition, false);
     }
 
     public TraceRequest(org.midonet.cluster.data.TraceRequest traceRequest) {
@@ -68,6 +72,7 @@ public class TraceRequest extends UriResource {
         this.deviceId = traceRequest.getDeviceId();
         this.condition = new Condition();
         this.condition.setFromCondition(traceRequest.getCondition());
+        this.enabled = (traceRequest.getEnabledRule() != null);
     }
 
     public void setId(UUID id) {
@@ -100,6 +105,33 @@ public class TraceRequest extends UriResource {
 
     public Condition getCondition() {
         return condition;
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+    }
+
+    public boolean getEnabled() {
+        return enabled;
+    }
+
+    @XmlRootElement
+    public static class Enablement {
+        private boolean enabled = false;
+
+        public Enablement() {}
+
+        public Enablement(boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        public boolean getEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
+        }
     }
 
     public org.midonet.cluster.data.TraceRequest toData() {
