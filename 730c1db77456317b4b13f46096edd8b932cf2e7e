@@ -81,6 +81,24 @@
       "revId": "730c1db77456317b4b13f46096edd8b932cf2e7e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_3b2641b8",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/concurrent/ReactiveActor.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-11T14:59:46Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_5845036f",
+      "revId": "730c1db77456317b4b13f46096edd8b932cf2e7e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
