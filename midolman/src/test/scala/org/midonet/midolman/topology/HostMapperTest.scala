@@ -58,7 +58,7 @@ class HostMapperTest extends MidolmanSpec
 
         // Tests to cover the cases when the new cluster is disabled are
         // present in VirtualToPhysicalMapperTest
-        config.setProperty("zookeeper.cluster_storage_enabled", true)
+        config.setProperty("midolman.cluster_storage_enabled", true)
         config
     }
 

@@ -32,9 +32,15 @@ import org.apache.zookeeper.CreateMode;
 import org.junit.Before;
 import org.junit.Test;
 
+import org.midonet.cluster.config.ZookeeperConfig;
+import org.midonet.cluster.data.storage.InMemoryStorage;
+import org.midonet.cluster.data.storage.StorageWithOwnership;
 import org.midonet.config.ConfigProvider;
 import org.midonet.midolman.Setup;
+import org.midonet.midolman.config.MidolmanConfig;
+import org.midonet.midolman.guice.MidolmanModule;
 import org.midonet.midolman.guice.serialization.SerializationModule;
+import org.midonet.midolman.guice.zookeeper.ZookeeperConnectionModule;
 import org.midonet.midolman.host.config.HostConfig;
 import org.midonet.midolman.host.guice.HostConfigProvider;
 import org.midonet.midolman.host.scanner.InterfaceScanner;
@@ -49,6 +55,8 @@ import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.ZkManager;
 import org.midonet.midolman.util.mock.MockInterfaceScanner;
 import org.midonet.midolman.version.DataWriteVersion;
+import org.midonet.util.eventloop.CallingThreadReactor;
+import org.midonet.util.eventloop.Reactor;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
@@ -69,12 +77,20 @@ public class HostServiceTest {
         @Override
         protected void configure() {
             bind(PathBuilder.class).toInstance(new PathBuilder(basePath));
-            bind(InterfaceDataUpdater.class).to(DefaultInterfaceDataUpdater.class);
+            bind(InterfaceDataUpdater.class).to(
+                DefaultInterfaceDataUpdater.class);
             bind(InterfaceScanner.class).to(MockInterfaceScanner.class);
             bind(HostConfigProvider.class).asEagerSingleton();
-            bind(ConfigProvider.class).toInstance(
-                    ConfigProvider.providerForIniConfig(configuration));
+            bind(ConfigProvider.class)
+                .toInstance(ConfigProvider.providerForIniConfig(configuration));
             bind(HostConfig.class).toProvider(HostConfigProvider.class);
+            bind(ZookeeperConfig.class)
+                .toProvider(
+                    ZookeeperConnectionModule.ZookeeperConfigProvider.class);
+            bind(MidolmanConfig.class)
+                .toProvider(MidolmanModule.MidolmanConfigProvider.class);
+            bind(Reactor.class).to(CallingThreadReactor.class);
+            bind(StorageWithOwnership.class).to(InMemoryStorage.class);
         }
 
         @Provides @Singleton

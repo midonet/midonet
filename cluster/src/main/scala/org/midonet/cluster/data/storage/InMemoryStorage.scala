@@ -51,8 +51,7 @@ import org.midonet.util.eventloop.Reactor
  * A simple in-memory implementation of the [[Storage]] trait, equivalent to
  * the [[ZookeeperObjectMapper]] to use within unit tests.
  */
-@Inject
-class InMemoryStorage(reactor: Reactor) extends StorageWithOwnership {
+class InMemoryStorage @Inject()(reactor: Reactor) extends StorageWithOwnership {
 
     private class ReactorScheduler extends Scheduler {
         private val worker = new ReactorWorker()
