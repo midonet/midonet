@@ -110,6 +110,11 @@ public class NetlinkException extends Exception {
         return null;
     }
 
+    @Override
+    public Throwable fillInStackTrace() {
+        return this;
+    }
+
     public int getErrorCode() {
         return errorCode;
     }
