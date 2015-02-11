@@ -38,21 +38,14 @@ class NetlinkReader(val channel: NetlinkChannel) {
 
     /**
      * Reads from the channel into the destination buffer. Netlink errors are
-     * communicated by throwing a NetlinkException. This method will not modify
-     * the buffer's position. The amount of bytes read is returned and it
-     * matches dst.remaining().
+     * communicated by throwing a NetlinkException. Returns the amount of
+     * bytes read.
      */
     @throws(classOf[IOException])
     @throws(classOf[NetlinkException])
     def read(dst: ByteBuffer): Int = {
         val start = dst.position()
-        val nbytes = try {
-            channel.read(dst)
-        } finally {
-            dst.position(start)
-        }
-
-        dst.limit(nbytes)
+        val nbytes = channel.read(dst)
 
         if (nbytes >= NetlinkMessage.HEADER_SIZE) {
             val msgType = dst.getShort(start + NetlinkMessage.NLMSG_TYPE_OFFSET)
