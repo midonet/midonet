@@ -62,7 +62,6 @@ public class TestTraceRequest extends JerseyTest {
 
     private Topology topology;
     private WebResource traceResource;
-    private DtoWebResource dtoWebResource;
 
     public TestTraceRequest() {
         super(FuncTest.getBuilder()
@@ -79,7 +78,7 @@ public class TestTraceRequest extends JerseyTest {
     public void setUp() throws InterruptedException,
                                KeeperException,
                                StateAccessException {
-        dtoWebResource = new DtoWebResource(resource());
+        DtoWebResource dtoWebResource = new DtoWebResource(resource());
 
         Topology.Builder builder = new Topology.Builder(dtoWebResource);
 
@@ -333,5 +332,137 @@ public class TestTraceRequest extends JerseyTest {
         assertThat("Create should have failed",
                    response.getClientResponseStatus(),
                    equalTo(Status.INTERNAL_SERVER_ERROR));
+    }
+
+    @Test(timeout=60000)
+    public void testEnableDisable() throws StateAccessException {
+        TraceRequest portTrace = new TraceRequest(UUID.randomUUID(), "foobar",
+                DeviceType.PORT, topology.getRouterPort(PORT0).getId(),
+                new Condition());
+
+        ClientResponse response = traceResource
+            .header(HEADER_X_AUTH_TOKEN, ADMIN0)
+            .post(ClientResponse.class, portTrace);
+        assertThat("Create should have succeeded",
+                response.getClientResponseStatus(), equalTo(Status.CREATED));
+        portTrace.setId(toUUID(response.getLocation()));
+        portTrace.setBaseUri(resource().getURI());
+
+        TraceRequest readRequest = traceResource.uri(portTrace.getUri())
+            .get(TraceRequest.class);
+        assertThat("Trace hasn't been enabled",
+                   readRequest.getEnabled(), equalTo(false));
+
+        portTrace.setEnabled(false);
+        response = traceResource.uri(portTrace.getUri())
+            .put(ClientResponse.class, portTrace);
+        assertThat("Got correct http response code",
+                   response.getClientResponseStatus(),
+                   equalTo(Status.NO_CONTENT));
+        readRequest = traceResource.uri(portTrace.getUri())
+            .get(TraceRequest.class);
+        assertThat("Trace still hasn't been enabled",
+                   readRequest.getEnabled(), equalTo(false));
+
+        portTrace.setEnabled(true);
+        response = traceResource.uri(portTrace.getUri())
+            .put(ClientResponse.class, portTrace);
+        assertThat("Got correct http response code",
+                   response.getClientResponseStatus(),
+                   equalTo(Status.NO_CONTENT));
+
+        readRequest = traceResource.uri(portTrace.getUri())
+            .get(TraceRequest.class);
+        assertThat("Trace has been enabled",
+                   readRequest.getEnabled(), equalTo(true));
+    }
+
+    @Test(timeout=60000)
+    public void testEnableDisablePermissions() throws StateAccessException {
+        TraceRequest bridgeTrace = new TraceRequest(UUID.randomUUID(), "foobar",
+                DeviceType.BRIDGE, topology.getBridge(BRIDGE0).getId(),
+                new Condition());
+
+        ClientResponse response = traceResource
+            .header(HEADER_X_AUTH_TOKEN, ADMIN0)
+            .post(ClientResponse.class, bridgeTrace);
+        assertThat("Create should have succeeded",
+                response.getClientResponseStatus(), equalTo(Status.CREATED));
+        bridgeTrace.setId(toUUID(response.getLocation()));
+        bridgeTrace.setBaseUri(resource().getURI());
+
+        TraceRequest readRequest = traceResource.uri(bridgeTrace.getUri())
+            .get(TraceRequest.class);
+        assertThat("Trace hasn't been enabled",
+                   readRequest.getEnabled(), equalTo(false));
+
+        bridgeTrace.setEnabled(false);
+        response = traceResource.uri(bridgeTrace.getUri())
+            .header(HEADER_X_AUTH_TOKEN, TENANT0)
+            .put(ClientResponse.class, bridgeTrace);
+        assertThat("Request was forbidden", response.getClientResponseStatus(),
+                   equalTo(Status.FORBIDDEN));
+
+        readRequest = traceResource.uri(bridgeTrace.getUri())
+            .get(TraceRequest.class);
+        assertThat("Trace hasn't been enabled",
+                   readRequest.getEnabled(), equalTo(false));
+
+        bridgeTrace.setEnabled(true);
+        response = traceResource.uri(bridgeTrace.getUri())
+            .header(HEADER_X_AUTH_TOKEN, ADMIN0)
+            .put(ClientResponse.class, bridgeTrace);
+        assertThat("Got correct http response code",
+                   response.getClientResponseStatus(),
+                   equalTo(Status.NO_CONTENT));
+
+        readRequest = traceResource.uri(bridgeTrace.getUri())
+            .get(TraceRequest.class);
+        assertThat("Trace has been enabled",
+                   readRequest.getEnabled(), equalTo(true));
+    }
+
+    @Test(timeout=60000)
+    public void testEnabledOnCreation() throws StateAccessException {
+        TraceRequest bridgeTrace = new TraceRequest(UUID.randomUUID(), "foobar",
+                DeviceType.BRIDGE, topology.getBridge(BRIDGE0).getId(),
+                new Condition(), true);
+
+        ClientResponse response = traceResource
+            .header(HEADER_X_AUTH_TOKEN, ADMIN0)
+            .post(ClientResponse.class, bridgeTrace);
+        assertThat("Create should have succeeded",
+                response.getClientResponseStatus(), equalTo(Status.CREATED));
+        bridgeTrace.setId(toUUID(response.getLocation()));
+        bridgeTrace.setBaseUri(resource().getURI());
+
+        TraceRequest readRequest = traceResource.uri(bridgeTrace.getUri())
+            .get(TraceRequest.class);
+        assertThat("Trace has been enabled",
+                   readRequest.getEnabled(), equalTo(true));
+    }
+
+    @Test(timeout=60000)
+    public void testConflictingPut() throws StateAccessException {
+        TraceRequest bridgeTrace = new TraceRequest(UUID.randomUUID(), "foobar",
+                DeviceType.BRIDGE, topology.getBridge(BRIDGE0).getId(),
+                new Condition(), true);
+
+        ClientResponse response = traceResource
+            .header(HEADER_X_AUTH_TOKEN, ADMIN0)
+            .post(ClientResponse.class, bridgeTrace);
+        assertThat("Create should have succeeded",
+                response.getClientResponseStatus(), equalTo(Status.CREATED));
+        bridgeTrace.setId(toUUID(response.getLocation()));
+        bridgeTrace.setBaseUri(resource().getURI());
+
+        bridgeTrace.setEnabled(true);
+        bridgeTrace.setDeviceId(UUID.randomUUID());
+        response = traceResource.uri(bridgeTrace.getUri())
+            .header(HEADER_X_AUTH_TOKEN, ADMIN0)
+            .put(ClientResponse.class, bridgeTrace);
+        assertThat("Got correct http response code",
+                   response.getClientResponseStatus(),
+                   equalTo(Status.CONFLICT));
     }
 }

@@ -46,18 +46,27 @@ public class TraceRequest extends UriResource {
     @NotNull
     private Condition condition;
 
+    @NotNull
+    private boolean enabled;
+
     public TraceRequest() {
         super();
     }
 
     public TraceRequest(UUID id, String name, DeviceType deviceType,
-                        UUID deviceId, Condition condition) {
+                        UUID deviceId, Condition condition, boolean enabled) {
         super();
         this.id = id;
         this.name = name;
         this.deviceType = deviceType;
         this.deviceId = deviceId;
         this.condition = condition;
+        this.enabled = enabled;
+    }
+
+    public TraceRequest(UUID id, String name, DeviceType deviceType,
+                        UUID deviceId, Condition condition) {
+        this(id, name, deviceType, deviceId, condition, false);
     }
 
     public TraceRequest(org.midonet.cluster.data.TraceRequest traceRequest) {
@@ -68,6 +77,7 @@ public class TraceRequest extends UriResource {
         this.deviceId = traceRequest.getDeviceId();
         this.condition = new Condition();
         this.condition.setFromCondition(traceRequest.getCondition());
+        this.enabled = (traceRequest.getEnabledRule() != null);
     }
 
     public void setId(UUID id) {
@@ -110,6 +120,14 @@ public class TraceRequest extends UriResource {
         return condition;
     }
 
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+    }
+
+    public boolean getEnabled() {
+        return enabled;
+    }
+
     public org.midonet.cluster.data.TraceRequest toData() {
         org.midonet.midolman.rules.Condition c = condition.makeCondition();
         return new org.midonet.cluster.data.TraceRequest()
@@ -118,6 +136,15 @@ public class TraceRequest extends UriResource {
             .setDeviceType(deviceType)
             .setDeviceId(deviceId)
             .setCondition(c);
+    }
+
+    @Override
+    public String toString() {
+        return "TraceRequest{name=" + name
+            + ", deviceType=" + deviceType
+            + ", deviceId=" + deviceId
+            + ", condition=" + condition
+            + ", enabled=" + enabled + "}";
     }
 
     /**
