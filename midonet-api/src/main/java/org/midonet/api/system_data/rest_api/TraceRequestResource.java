@@ -25,6 +25,7 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -57,6 +58,7 @@ import org.midonet.api.rest_api.AbstractResource;
 import org.midonet.api.rest_api.NotFoundHttpException;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.api.system_data.TraceRequest;
+import org.midonet.api.system_data.TraceRequest.Enablement;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.cluster.DataClient;
@@ -224,9 +226,59 @@ public class TraceRequestResource extends AbstractResource {
                     "Not authorized to add a trace to this device.");
         }
 
-        UUID id = dataClient.traceRequestCreate(traceRequestData);
+        UUID id = dataClient.traceRequestCreate(traceRequestData,
+                                                traceRequest.getEnabled());
         return Response.created(
                 ResourceUriBuilder.getTraceRequest(getBaseUri(), id)).build();
     }
 
+    /**
+     * Update the enabled status of the resource
+     */
+    @PUT
+    @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })
+    @Path("{id}/enabled")
+    @Consumes({ VendorMediaType.APPLICATION_BRIDGE_JSON,
+                VendorMediaType.APPLICATION_BRIDGE_JSON_V2,
+                VendorMediaType.APPLICATION_BRIDGE_JSON_V3,
+                MediaType.APPLICATION_JSON })
+    public void setEnabled(@PathParam("id") UUID id, Enablement enablement)
+            throws StateAccessException, SerializationException,
+            RuleIndexOutOfBoundsException {
+        org.midonet.cluster.data.TraceRequest traceRequest
+            = dataClient.traceRequestGet(id);
+        if (traceRequest == null) {
+            throw new NotFoundHttpException("Trace request doesn't exist");
+        }
+        Authorizer<UUID> authorizer = getAuthorizer(
+                traceRequest.getDeviceType());
+        if (!authorizer.authorize(context, AuthAction.WRITE,
+                                  traceRequest.getDeviceId())) {
+            throw new ForbiddenHttpException(
+                    "Not authorized to enable a trace to this device.");
+        }
+
+        if (enablement.getEnabled()) {
+            dataClient.traceRequestEnable(id);
+        } else {
+            dataClient.traceRequestDisable(id);
+        }
+    }
+
+    @GET
+    @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })
+    @Path("{id}/enabled")
+    @Consumes({ VendorMediaType.APPLICATION_BRIDGE_JSON,
+                VendorMediaType.APPLICATION_BRIDGE_JSON_V2,
+                VendorMediaType.APPLICATION_BRIDGE_JSON_V3,
+                MediaType.APPLICATION_JSON })
+    public Enablement getEnabled(@PathParam("id") UUID id)
+            throws StateAccessException, SerializationException {
+        org.midonet.cluster.data.TraceRequest traceRequest
+            = dataClient.traceRequestGet(id);
+        if (traceRequest == null) {
+            throw new NotFoundHttpException("Trace request doesn't exist");
+        }
+        return new Enablement(traceRequest.getEnabledRule() != null);
+    }
 }
