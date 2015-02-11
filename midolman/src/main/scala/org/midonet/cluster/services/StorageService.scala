@@ -43,7 +43,7 @@ class StorageService @Inject() (directory: Directory,
             if (config.getCuratorEnabled) {
                 curator.start()
             }
-            if (config.getClusterStorageEnabled) {
+            if (config.isClusterStorageEnabled) {
                 buildStorage()
             }
             notifyStarted()
