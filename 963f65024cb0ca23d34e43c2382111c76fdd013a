@@ -72,6 +72,24 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_56c1552d",
+        "filename": "docs/vxgw_service.md",
+        "patchSetId": 5
+      },
+      "lineNbr": 144,
+      "author": {
+        "id": 1003470
+      },
+      "writtenOn": "2015-02-11T09:48:52Z",
+      "side": 1,
+      "message": "I think the question is if we want to bind neutron networks to VTEPs or want to leave it at MidoNet level (virtual bridge). We can resolve it later.",
+      "parentUuid": "7a1969be_3b6da433",
+      "revId": "963f65024cb0ca23d34e43c2382111c76fdd013a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_245bca88",
         "filename": "docs/vxgw_service.md",
         "patchSetId": 5
