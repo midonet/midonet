@@ -142,6 +142,24 @@
       "revId": "c7ff5eabde4e595263cada14284940d3d5ffdab7",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_fe301758",
+        "filename": "cluster/src/main/proto/neutron.proto",
+        "patchSetId": 1
+      },
+      "lineNbr": 220,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-02-11T23:16:03Z",
+      "side": 1,
+      "message": "Adding an ID means that the Neutron side needs to manage it. That is, when it wants to delete the binding it needs to set the corresponding ID, but currently the Neutron side doesn\u0027t maintain such info and is unable to do that. The translator, therefore, would need to search through the list of bindings and find the corresponding entry / ID. That\u0027s certainly possible but seems like a cumbersome thing to do just for debugging. I\u0027ll go with this version for now. Please let me know if you think that it\u0027d be better to have this model in ZooKeeper.",
+      "parentUuid": "7a1969be_dec8bb76",
+      "revId": "c7ff5eabde4e595263cada14284940d3d5ffdab7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
