@@ -16,9 +16,13 @@
 package org.midonet.midolman.host.services;
 
 import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
+
+import scala.concurrent.Await;
+import scala.concurrent.Future;
+import scala.concurrent.duration.Duration;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
@@ -28,13 +32,21 @@ import com.google.inject.Singleton;
 
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.zookeeper.CreateMode;
-
-import org.junit.Before;
 import org.junit.Test;
 
+import org.midonet.cluster.data.storage.OwnershipType;
+import org.midonet.cluster.data.storage.StorageWithOwnership;
+import org.midonet.cluster.models.Topology;
+import org.midonet.cluster.services.MidonetBackend;
+import org.midonet.cluster.storage.MidonetBackendConfig;
+import org.midonet.cluster.storage.MidonetBackendConfigProvider;
+import org.midonet.cluster.storage.MidonetTestBackend;
+import org.midonet.cluster.util.UUIDUtil;
 import org.midonet.config.ConfigProvider;
 import org.midonet.midolman.Setup;
+import org.midonet.midolman.cluster.MidolmanModule;
 import org.midonet.midolman.cluster.serialization.SerializationModule;
+import org.midonet.midolman.config.MidolmanConfig;
 import org.midonet.midolman.host.config.HostConfig;
 import org.midonet.midolman.host.guice.HostConfigProvider;
 import org.midonet.midolman.host.scanner.InterfaceScanner;
@@ -56,6 +68,8 @@ import static org.junit.Assert.assertThat;
 public class HostServiceTest {
     private ZkManager zkManager;
     private HostZkManager hostZkManager;
+    private StorageWithOwnership store;
+
     private UUID hostId;
     private String hostName;
     private String versionPath;
@@ -69,12 +83,19 @@ public class HostServiceTest {
         @Override
         protected void configure() {
             bind(PathBuilder.class).toInstance(new PathBuilder(basePath));
-            bind(InterfaceDataUpdater.class).to(DefaultInterfaceDataUpdater.class);
+            bind(InterfaceDataUpdater.class)
+                .to(DefaultInterfaceDataUpdater.class);
             bind(InterfaceScanner.class).to(MockInterfaceScanner.class);
             bind(HostConfigProvider.class).asEagerSingleton();
-            bind(ConfigProvider.class).toInstance(
-                    ConfigProvider.providerForIniConfig(configuration));
+            bind(ConfigProvider.class)
+                .toInstance(ConfigProvider.providerForIniConfig(configuration));
             bind(HostConfig.class).toProvider(HostConfigProvider.class);
+            bind(MidonetBackendConfig.class)
+                .toProvider(MidonetBackendConfigProvider.class);
+            bind(MidolmanConfig.class)
+                .toProvider(MidolmanModule.MidolmanConfigProvider.class);
+            bind(MidonetBackend.class)
+                .to(MidonetTestBackend.class).asEagerSingleton();
         }
 
         @Provides @Singleton
@@ -102,8 +123,7 @@ public class HostServiceTest {
         }
     }
 
-    @Before
-    public void setup() throws UnknownHostException {
+    public void setup(Boolean backendEnabled) throws Exception {
         hostId = UUID.randomUUID();
         configuration = new HierarchicalConfiguration();
         configuration.addNodes(HostConfig.GROUP_NAME,
@@ -114,17 +134,22 @@ public class HostServiceTest {
                 Arrays.asList(new HierarchicalConfiguration.Node
                         ("retries_gen_id", "0")
                 ));
+        configuration.setProperty("midonet-backend.enabled", backendEnabled);
 
         injector = Guice.createInjector(new SerializationModule(),
                                         new TestModule());
 
         zkManager = injector.getInstance(ZkManager.class);
         hostZkManager = injector.getInstance(HostZkManager.class);
+        store = injector.getInstance(MidonetBackend.class).ownershipStore();
         versionPath = injector.getInstance(PathBuilder.class)
                         .getHostVersionPath(hostId, DataWriteVersion.CURRENT);
         alivePath = injector.getInstance(PathBuilder.class)
                         .getHostPath(hostId) + "/alive";
         hostName = InetAddress.getLocalHost().getHostName();
+
+        store.registerClass(Topology.Host.class, OwnershipType.Exclusive());
+        store.build();
     }
 
     private HostService makeHostService() {
@@ -132,80 +157,156 @@ public class HostServiceTest {
     }
 
     @Test
-    public void createsNewZkHost() throws Throwable {
-        startAndStop();
-        assertHostState();
+    public void createsNewZkHostInLegacyStore() throws Throwable {
+        setup(false);
+        HostService hostService = startService();
+        assertLegacyHostState();
+        stopService(hostService);
     }
 
     @Test
-    public void recoversZkHostIfAlive() throws Throwable {
-        startAndStop();
-
-        startAndStop();
-        assertHostState();
+    public void createsNewZkHostInBackendStore() throws Throwable {
+        setup(true);
+        HostService hostService = startService();
+        assertBackendHostState();
+        stopService(hostService);
     }
 
     @Test
-    public void recoversZkHostIfNotAlive() throws Throwable {
-        startAndStop();
+    public void recoversZkHostIfAliveInLegacyStore() throws Throwable {
+        setup(false);
+        HostService hostService = startService();
+        stopService(hostService);
+        hostService = startService();
+        assertLegacyHostState();
+        stopService(hostService);
+    }
 
+    @Test
+    public void recoversZkHostIfAliveInBackendStore() throws Throwable {
+        setup(true);
+        HostService hostService = startService();
+        stopService(hostService);
+        hostService = startService();
+        assertBackendHostState();
+        stopService(hostService);
+    }
+
+    @Test
+    public void recoversZkHostIfNotAliveInLegacyStore() throws Throwable {
+        setup(false);
+        startAndStopService();
         zkManager.deleteEphemeral(alivePath);
-
-        startAndStop();
-        assertHostState();
+        HostService hostService = startService();
+        assertLegacyHostState();
+        stopService(hostService);
     }
 
     @Test
-    public void recoversZkHostVersion() throws Throwable {
-        startAndStop();
-
+    public void recoversZkHostVersionInLegacyStore() throws Throwable {
+        setup(false);
+        startAndStopService();
         zkManager.deleteEphemeral(versionPath);
-
-        startAndStop();
-        assertHostState();
+        HostService hostService = startService();
+        assertLegacyHostState();
+        stopService(hostService);
     }
 
     @Test
-    public void recoversZkHostAndUpdatesMetadata() throws Throwable {
-        startAndStop();
+    public void recoversZkHostAndUpdatesMetadataInLegacyStore() throws Throwable {
+        setup(false);
+        startAndStopService();
 
         updateMetadata();
         zkManager.deleteEphemeral(alivePath);
 
-        startAndStop();
-        assertHostState();
+        HostService hostService = startService();
+        assertLegacyHostState();
+        stopService(hostService);
     }
 
     @Test(expected = HostService.HostIdAlreadyInUseException.class)
-    public void recoversZkHostLoopsIfMetadataIsDifferent() throws Throwable {
-        startAndStop();
+    public void recoversZkHostLoopsIfMetadataIsDifferentInLegacyStore()
+        throws Throwable {
+        setup(false);
+        startAndStopService();
 
         updateMetadata();
 
-        startAndStop();
+        startAndStopService();
     }
 
-    private void assertHostState() throws Exception {
+    @Test
+    public void hostServiceDoesNotOverwriteExistingHostInBackendStore()
+        throws Throwable {
+        setup(true);
+        startAndStopService();
+
+        Topology.Host oldHost = await(store.get(Topology.Host.class, hostId));
+        Topology.Host newHost = oldHost.toBuilder()
+            .addTunnelZoneIds(UUIDUtil.toProto(UUID.randomUUID()))
+            .build();
+        store.update(newHost);
+
+        startAndStopService();
+
+        Topology.Host host = await(store.get(Topology.Host.class, hostId));
+
+        assertThat(host.getTunnelZoneIds(0), is(newHost.getTunnelZoneIds(0)));
+    }
+
+    @Test
+    public void cleanupServiceAfterStopInBackendStore() throws Throwable {
+        setup(true);
+        startAndStopService();
+
+        assertThat((Boolean) await(store.exists(Topology.Host.class, hostId)),
+                   is(true));
+        assertThat(await(store.getOwners(Topology.Host.class, hostId))
+                       .isEmpty(), is(true));
+    }
+
+    private void assertLegacyHostState() throws Exception {
         assertThat(hostZkManager.exists(hostId), is(true));
         assertThat(hostZkManager.isAlive(hostId), is(true));
         assertThat(hostZkManager.get(hostId).getName(), is(hostName));
         assertThat(zkManager.exists(versionPath), is(true));
     }
 
-    private void startAndStop() throws Throwable {
+    private void assertBackendHostState() throws Exception {
+        assertThat((Boolean)await(store.exists(Topology.Host.class, hostId)),
+                   is(true));
+        assertThat(await(store.get(Topology.Host.class, hostId)).getName(),
+                   is(hostName));
+        assertThat(await(store.getOwners(Topology.Host.class, hostId))
+                       .contains(hostId.toString()), is(true));
+    }
+
+    private HostService startService() throws Throwable {
         HostService hostService = makeHostService();
         try {
             hostService.startAsync().awaitRunning();
         } catch (RuntimeException e) {
             throw e.getCause();
         }
+        return hostService;
+    }
 
+    private void stopService(HostService hostService) throws Throwable {
         hostService.stopAsync().awaitTerminated();
+    }
+
+    private void startAndStopService() throws Throwable {
+        stopService(startService());
     }
 
     private void updateMetadata() throws Exception {
         HostDirectory.Metadata metadata = new HostDirectory.Metadata();
         metadata.setName("name");
         hostZkManager.updateMetadata(hostId, metadata);
+    }
+
+    private static <T> T await(Future<T> future) throws Exception {
+        return Await.result(future, Duration.apply(5, TimeUnit.SECONDS));
     }
 }
