@@ -16,6 +16,24 @@
       "revId": "0d52fe6ff5b7d81052911a3d7912670ce815bf74",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_be1dffbf",
+        "filename": "tools/devmido/midostack.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-02-11T23:25:52Z",
+      "side": 1,
+      "message": "Could you explain a bit more?",
+      "parentUuid": "7a1969be_f6dde143",
+      "revId": "0d52fe6ff5b7d81052911a3d7912670ce815bf74",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
