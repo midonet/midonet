@@ -170,7 +170,6 @@ trait DeviceHandler {
  * @param handler the DeviceHandler responsible for this type of devices
  * @param retrieve how to retrieve a local cached copy of the device
  * @param updateCache how to update a local cached copy of a device
- * @tparam T
  */
 class DeviceHandlersManager[T <: AnyRef](handler: DeviceHandler,
                                          retrieve: UUID => Option[T],
@@ -203,9 +202,9 @@ class DeviceHandlersManager[T <: AnyRef](handler: DeviceHandler,
      *  Else if not a subscriber, returns None. */
     def subscriberStatus(deviceId: UUID, subscriber: ActorRef) = {
         val regular = deviceSubscribers.get(deviceId)
-            .map{ _.contains(subscriber) }
+            .map(_.contains(subscriber))
         val oneShot = deviceOneShotSubscribers.get(deviceId)
-            .map{ ! _.contains(subscriber) }
+            .map(!_.contains(subscriber))
 
         (regular, oneShot) match {
             case (Some(true), _) => regular
@@ -224,7 +223,7 @@ class DeviceHandlersManager[T <: AnyRef](handler: DeviceHandler,
     }
 
     def addSubscriber(deviceId: UUID, subscriber: ActorRef, updates: Boolean,
-                      createHandlerIfNeeded: Boolean) {
+                      createHandler: Boolean) {
         (subscriberStatus(deviceId, subscriber), updates, retrieve(deviceId))
             match {
                 case (None, _, None) =>
@@ -244,26 +243,28 @@ class DeviceHandlersManager[T <: AnyRef](handler: DeviceHandler,
                 case _ => // do nothing
             }
 
-        if (createHandlerIfNeeded)
+        if (createHandler) {
             ensureHandler(deviceId)
+        }
     }
 
     def updateAndNotifySubscribers(deviceId: UUID, device: T,
-                                   createHandlerIfNeeded: Boolean) {
-        updateAndNotifySubscribers(deviceId, device, device, createHandlerIfNeeded)
+                                   createHandler: Boolean) {
+        updateAndNotifySubscribers(deviceId, device, device, createHandler)
     }
 
     def updateAndNotifySubscribers(deviceId: UUID, device: T, message: AnyRef,
-                                   createHandlerIfNeeded: Boolean) {
+                                   createHandler: Boolean) {
         updateCache(deviceId, device)
-        notifySubscribers(deviceId, message, createHandlerIfNeeded)
+        notifySubscribers(deviceId, message, createHandler)
     }
 
     def notifySubscribers(deviceId: UUID, message: AnyRef,
-                          createHandlerIfNeeded: Boolean) {
+                          createHandler: Boolean) {
 
-        if (createHandlerIfNeeded)
+        if (createHandler) {
             ensureHandler(deviceId)
+        }
 
         for {
             source <- List(deviceSubscribers, deviceOneShotSubscribers)
@@ -274,7 +275,10 @@ class DeviceHandlersManager[T <: AnyRef](handler: DeviceHandler,
         deviceOneShotSubscribers.remove(deviceId)
     }
 
-    def hasSubscribers(id: UUID): Boolean = !deviceSubscribers(id).isEmpty
+    def hasSubscribers(id: UUID): Boolean = {
+        deviceSubscribers.getOrElse(id, Set.empty).nonEmpty
+    }
+
     def removeAllSubscriptions(id: UUID) = deviceSubscribers.remove(id)
 
     @inline
@@ -380,7 +384,7 @@ abstract class VirtualToPhysicalMapperBase extends VTPMRedirector {
         context actorOf (props, "VxLanPortMapper")
     }
 
-    protected override def deviceUpdated(update: AnyRef, createHandlerIfNeeded: Boolean)
+    protected override def deviceUpdated(update: AnyRef, createHandler: Boolean)
     : Unit = update match {
 
         /* If this is the first time we get a NewTunnelZone or a ZoneChanged
@@ -395,7 +399,7 @@ abstract class VirtualToPhysicalMapperBase extends VTPMRedirector {
             val msg = if (DeviceCaches.tunnelZone(tunnelZone.id).isEmpty) newMembers
                       else tunnelZone.diffMembers(oldZone)
             tunnelZonesMgr.updateAndNotifySubscribers(tunnelZone.id, newMembers,
-                                                      msg, createHandlerIfNeeded)
+                                                      msg, createHandler)
         case zoneChanged: ZoneChanged =>
             val zId = zoneChanged.zone
             val zoneType = zoneChanged.zoneType
@@ -405,26 +409,27 @@ abstract class VirtualToPhysicalMapperBase extends VTPMRedirector {
             val msg = if (DeviceCaches.tunnelZone(zId).isEmpty) newMembers
                       else zoneChanged
             tunnelZonesMgr.updateAndNotifySubscribers(zId, newMembers, msg,
-                                                      createHandlerIfNeeded)
+                                                      createHandler)
 
         case host: Host =>
-            hostsMgr.updateAndNotifySubscribers(host.id, host, createHandlerIfNeeded)
+            hostsMgr.updateAndNotifySubscribers(host.id, host, createHandler)
 
-        case _ => throw new IllegalArgumentException("Unsupported update in VTPM"
-                                                     + s" $update")
+        case _ => throw new IllegalArgumentException(
+            s"Unsupported update in VTPM $update")
     }
 
     protected override def deviceRequested(request: VTPMRequest[_],
-                                           createHandlerIfNeeded: Boolean)
+                                           createHandler: Boolean)
     : Unit = request match {
 
             case HostRequest(hostId, updates) =>
-                hostsMgr.addSubscriber(hostId, sender, updates, createHandlerIfNeeded)
+                hostsMgr.addSubscriber(hostId, sender(), updates,
+                                       createHandler)
             case TunnelZoneRequest(zoneId) =>
-                tunnelZonesMgr.addSubscriber(zoneId, sender, updates=true,
-                                             createHandlerIfNeeded)
-            case _ => throw new IllegalArgumentException("Unsupported request in VTPM:"
-                                                         + s" $request")
+                tunnelZonesMgr.addSubscriber(zoneId, sender(), updates=true,
+                                             createHandler)
+            case _ => throw new IllegalArgumentException(
+                s"Unsupported request in VTPM: $request")
     }
 
     protected override def unsubscribeClient(unsubscription: AnyRef, sender: ActorRef)
@@ -484,19 +489,19 @@ abstract class VirtualToPhysicalMapperBase extends VTPMRedirector {
 
     override def receive = super.receive orElse {
         case request: VTPMRequest[_] =>
-            deviceRequested(request, createHandlerIfNeeded=true)
+            deviceRequested(request, createHandler=true)
 
         case host: Host =>
-            deviceUpdated(host, createHandlerIfNeeded=true)
+            deviceUpdated(host, createHandler=true)
 
         case zoneChanged: ZoneChanged =>
-            deviceUpdated(zoneChanged, createHandlerIfNeeded=true)
+            deviceUpdated(zoneChanged, createHandler=true)
 
         case HostUnsubscribe(hostId) =>
-            unsubscribeClient(HostUnsubscribe(hostId), sender)
+            unsubscribeClient(HostUnsubscribe(hostId), sender())
 
         case TunnelZoneUnsubscribe(zoneId) =>
-            unsubscribeClient(TunnelZoneUnsubscribe(zoneId), sender)
+            unsubscribeClient(TunnelZoneUnsubscribe(zoneId), sender())
 
         case msg@LocalPortActive(id, active) =>
             notifyLocalPortActive(id, active)

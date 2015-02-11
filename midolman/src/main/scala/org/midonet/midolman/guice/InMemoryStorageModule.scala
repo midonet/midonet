@@ -17,7 +17,7 @@ package org.midonet.midolman.guice
 
 import com.google.inject.PrivateModule
 
-import org.midonet.cluster.data.storage.{Storage, InMemoryStorage, StorageWithOwnership}
+import org.midonet.cluster.data.storage.{InMemoryStorage, Storage, StorageWithOwnership}
 
 class InMemoryStorageModule extends PrivateModule {
 
