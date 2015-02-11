@@ -22,6 +22,30 @@
       "revId": "730c1db77456317b4b13f46096edd8b932cf2e7e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_3873e7ea",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/TopologyBuilder.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-11T14:29:40Z",
+      "side": 1,
+      "message": "Let\u0027s do that in another patch. For now this method works with the existing code! ;-) I also had to adapt to changes in this class. I was previously using the retuned builders to sometimes set other fields.",
+      "parentUuid": "7a1969be_d8aa9318",
+      "range": {
+        "startLine": 111,
+        "startChar": 35,
+        "endLine": 112,
+        "endChar": 63
+      },
+      "revId": "730c1db77456317b4b13f46096edd8b932cf2e7e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
