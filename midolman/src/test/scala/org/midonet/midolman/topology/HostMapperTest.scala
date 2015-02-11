@@ -44,13 +44,6 @@ class HostMapperTest extends MidolmanSpec
     private var store: StorageWithOwnership = _
     private final val timeout = 5 seconds
 
-    protected override def fillConfig(config: HierarchicalConfiguration)
-    : HierarchicalConfiguration = {
-        super.fillConfig(config)
-        config.setProperty("zookeeper.cluster_storage_enabled", true)
-        config
-    }
-
     protected override def beforeTest() = {
         vt = injector.getInstance(classOf[VirtualTopology])
         store = injector.getInstance(classOf[MidonetBackend]).ownershipStore
