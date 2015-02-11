@@ -19,12 +19,13 @@ import java.nio.ByteBuffer
 import java.util.{List => JList}
 
 import com.lmax.disruptor._
+import com.typesafe.scalalogging.Logger
 
-import org.midonet.midolman.flows.FlowEjector
+import org.midonet.midolman.datapath.DisruptorDatapathChannel.DatapathEvent
 import org.midonet.netlink._
 import org.midonet.odp._
 import org.midonet.odp.flows.FlowAction
-import org.midonet.util.concurrent._
+import org.slf4j.LoggerFactory
 
 trait DatapathChannel {
     def executePacket(packet: Packet, actions: JList[FlowAction]): Unit
@@ -46,24 +47,18 @@ object DisruptorDatapathChannel {
     }
 }
 
-class DisruptorDatapathChannel(val capacity: Int,
-                               threads: Int,
-                               flowEjector: FlowEjector,
-                               channelFactory: NetlinkChannelFactory,
-                               ovsFamilies: OvsNetlinkFamilies,
-                               clock: NanoClock) extends DatapathChannel {
-    import org.midonet.midolman.datapath.DisruptorDatapathChannel._
+class DisruptorDatapathChannel(ovsFamilies: OvsNetlinkFamilies,
+                               ringBuffer: RingBuffer[DatapathEvent],
+                               processors: Array[_ <: EventProcessor]) extends DatapathChannel {
+    import DisruptorDatapathChannel._
 
-    private val ringBuffer = RingBuffer.createMultiProducer[DatapathEvent](Factory, capacity)
-    private val barrier = ringBuffer.newBarrier()
-
-    private var processors: Seq[EventProcessor] = _
-    private var datapath: Datapath = _
+    private var datapathId: Int = _
+    private var supportsMegaflow: Boolean = _
     private val protocol = new OvsProtocol(0, ovsFamilies)
 
     def start(datapath: Datapath): Unit = {
-        this.datapath = datapath
-        processors = createProcessors()
+        datapathId = datapath.getIndex
+        supportsMegaflow = datapath.supportsMegaflow()
 
         processors foreach { proc =>
             ringBuffer.addGatingSequences(proc.getSequence)
@@ -80,23 +75,6 @@ class DisruptorDatapathChannel(val capacity: Int,
         }
     }
 
-    private def createProcessors(): Seq[EventProcessor] = {
-        val flowHandler = new FlowProcessor(flowEjector, channelFactory,
-                                            datapath.getIndex, ovsFamilies, clock)
-        if (threads <= 1) {
-            val handler = new AggregateEventPollerHandler(
-                flowHandler,
-                new EventPollerHandlerAdapter(new PacketExecutor(1, 0, channelFactory)))
-            List(new BackchannelEventProcessor(ringBuffer, handler, flowHandler))
-        } else {
-            val numPacketHandlers = threads - 1
-            (0 until numPacketHandlers).map { id =>
-                val pexec = new PacketExecutor(numPacketHandlers, id, channelFactory)
-                new BatchEventProcessor(ringBuffer, barrier, pexec)
-            } :+ new BackchannelEventProcessor(ringBuffer, flowHandler, flowHandler)
-        }
-    }
-
     def stop(): Unit =
         processors foreach (_.halt())
 
@@ -110,7 +88,7 @@ class DisruptorDatapathChannel(val capacity: Int,
         val event = ringBuffer.get(seq)
         event.bb.clear()
 
-        protocol.preparePacketExecute(datapath.getIndex, packet, actions, event.bb)
+        protocol.preparePacketExecute(datapathId, packet, actions, event.bb)
         event.op = PACKET_EXECUTION
         ringBuffer.publish(seq)
     }
@@ -122,8 +100,7 @@ class DisruptorDatapathChannel(val capacity: Int,
         val event = ringBuffer.get(seq)
         event.bb.clear()
 
-        protocol.prepareFlowCreate(datapath.getIndex, datapath.supportsMegaflow(),
-                                   flow, event.bb)
+        protocol.prepareFlowCreate(datapathId, supportsMegaflow, flow, event.bb)
         event.op = FLOW_CREATE
         ringBuffer.publish(seq)
     }

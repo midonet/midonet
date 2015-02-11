@@ -406,8 +406,4 @@ public final class NetlinkMessage {
         buf.put(pos + GENL_VER_OFFSET, version);
         buf.putShort(pos + GENL_RESERVED_OFFSET, (short) 0);
     }
-
-    public static boolean isTruncated(ByteBuffer buf) {
-        return buf.remaining() < buf.getInt(buf.position() + NLMSG_LEN_OFFSET);
-    }
 }

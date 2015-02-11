@@ -20,6 +20,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 import com.lmax.disruptor.EventPoller.PollState
 import com.lmax.disruptor._
+
 import org.midonet.util.concurrent.WakerUpper.Parkable
 
 object BackchannelEventProcessor {
