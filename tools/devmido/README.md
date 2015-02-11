@@ -86,12 +86,12 @@ the following topology is created:
 
 To set up the scenario above:
 
-   ./create_fake_uplink.sh 200.200.200.0/24
+    ./create_fake_uplink.sh 200.200.200.0/24
 
 
 To clean up the fake uplink:
 
-   ./delete_fake_uplink.sh 200.200.200.0/24
+    ./delete_fake_uplink.sh 200.200.200.0/24
 
 You can also set the CIDR environment variable instead of passing it in as an
 argument.
