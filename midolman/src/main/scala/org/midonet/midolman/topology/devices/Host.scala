@@ -54,7 +54,7 @@ class Host extends ZoomObject with Device {
     def this(host: Host) = {
         this()
         id = host.id
-        portToInterface = host.portToInterface
+        bindings = host.bindings
         tunnelZoneIds = host.tunnelZoneIds
         tunnelZones = host.tunnelZones
         alive = host.alive
@@ -64,7 +64,7 @@ class Host extends ZoomObject with Device {
     var id: UUID = _
     @ZoomField(name = "port_interface_mapping",
                converter = classOf[PortInterfaceConverter])
-    var portToInterface = Map.empty[UUID, String]
+    var bindings = Map.empty[UUID, String]
     @ZoomField(name = "tunnel_zone_ids", converter = classOf[UUIDConverter])
     var tunnelZoneIds = Set.empty[UUID]
 
@@ -79,22 +79,26 @@ class Host extends ZoomObject with Device {
              zones: Map[UUID, IPAddr]) = {
         this()
         id = hostId
-        portToInterface = ports
+        bindings = ports
         tunnelZoneIds = zones.keySet
         tunnelZones = zones
         alive = isHostAlive
     }
+    
+    override def toString =
+        s"Host {id=$id alive=$alive bindings=$bindings " +
+        s"tunnelZoneIds=$tunnelZoneIds}"
 
     override def equals(o: Any): Boolean = o match {
         case host: Host =>
             host.alive == alive &&
             host.id == id &&
-            host.portToInterface == portToInterface &&
+            host.bindings == bindings &&
             host.tunnelZoneIds == tunnelZoneIds &&
             host.tunnelZones == tunnelZones
         case _ => false
     }
 
     override def hashCode: Int =
-        Objects.hashCode(alive, id, portToInterface, tunnelZoneIds, tunnelZones)
+        Objects.hashCode(alive, id, bindings, tunnelZoneIds, tunnelZones)
 }

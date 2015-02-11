@@ -15,27 +15,19 @@
  */
 package org.midonet.midolman.guice
 
-import com.google.inject.name.{Named, Names}
-import com.google.inject.{Inject, PrivateModule, Provider}
+import com.google.inject.PrivateModule
 
-import org.midonet.cluster.data.storage.{InMemoryStorage, Storage}
-import org.midonet.util.eventloop.{CallingThreadReactor, Reactor}
-
-object InMemoryStorageModule {
-
-    private class StorageProvider extends Provider[Storage] {
-        override def get: Storage = new InMemoryStorage
-    }
-
-}
+import org.midonet.cluster.data.storage.{InMemoryStorage, Storage, StorageWithOwnership}
 
 class InMemoryStorageModule extends PrivateModule {
 
-    import org.midonet.midolman.guice.InMemoryStorageModule._
-
     protected override def configure(): Unit = {
+        bind(classOf[StorageWithOwnership])
+            .to(classOf[InMemoryStorage])
+            .asEagerSingleton()
+        expose(classOf[StorageWithOwnership])
         bind(classOf[Storage])
-            .toProvider(classOf[StorageProvider])
+            .to(classOf[StorageWithOwnership])
             .asEagerSingleton()
         expose(classOf[Storage])
     }

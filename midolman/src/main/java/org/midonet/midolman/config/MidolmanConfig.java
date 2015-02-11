@@ -100,4 +100,12 @@ public interface MidolmanConfig
 
     @ConfigString(key = "input_channel_threading", defaultValue = "one_to_many")
     public String getInputChannelThreading();
+
+    /** If true, it builds and uses the cluster storage. */
+    @ConfigBool(key = "cluster_storage_enabled", defaultValue = false)
+    boolean isClusterStorageEnabled();
+
+    /** If true, if uses the legacy storage. */
+    @ConfigBool(key = "legacy_storage_enabled", defaultValue = true)
+    boolean isLegacyStorageEnabled();
 }
