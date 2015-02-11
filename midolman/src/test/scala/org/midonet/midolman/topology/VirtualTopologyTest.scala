@@ -49,13 +49,6 @@ class VirtualTopologyTest extends MidolmanSpec with TopologyBuilder {
         store.create(createBridge(id = bridgeId))
     }
 
-    protected override def fillConfig(config: HierarchicalConfiguration)
-    : HierarchicalConfiguration = {
-        super.fillConfig(config)
-        config.setProperty("zookeeper.cluster_storage_enabled", true)
-        config
-    }
-
     feature("The topology returns a port with tryGet()") {
         scenario("The port does not exist") {
             Given("A random port identifier")
