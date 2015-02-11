@@ -58,34 +58,31 @@ between MidoNet and the host.
 To allow connectivity from the host to MidoNet through the gateway router,
 the following topology is created:
 
-
+<pre>
             +---------------+
                             |
                             | 172.19.0.1/30
          +------------------+---------------+
-         |                                  |
-         |     Fake uplink linux bridge     |
-         |                                  |
+         |     Fake Uplink Linux Bridge     |
          +------------------+---------------+        'REAL' WORLD
                             | veth0
                             |
                             |
                             |
- +------+  +-------+  +-------------+  +-----+  +-----+
+    +------+  +-------+  +-------------+  +-----+  +-----+
                             |
                             |
                             |
               172.19.0.2/30 | veth1
          +------------------+----------------+        'VIRTUAL' WORLD
-         |                                   |
-         |    MidonetProviderRouter          |
-         |                                   |
+         |     MidoNet Provider Router       |
          +------------------+----------------+
                             |  200.200.200.0/24 (provided by user)
                             |
             +---------------+----------------+
                                         virtual network
 
+</pre>
 
 To set up the scenario above:
 
