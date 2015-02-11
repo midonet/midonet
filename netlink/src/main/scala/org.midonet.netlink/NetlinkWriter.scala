@@ -18,7 +18,6 @@ package org.midonet.netlink
 
 import java.io.IOException
 import java.nio.ByteBuffer
-import java.nio.channels.Selector
 
 import scala.concurrent.duration._
 
@@ -28,22 +27,13 @@ import scala.concurrent.duration._
 class NetlinkWriter(val channel: NetlinkChannel) {
 
     /**
-     * Writes from the source buffer into the the channel. This method will not
-     * modify the buffer's position and limit, returning only the amount of
-     * bytes written. We assume the buffers contains one or more correctly
+     * Writes from the source buffer into the the channel. Returns the amount
+     * of bytes written. We assume the buffers contains one or more correctly
      * formatted Netlink messages.
      */
     @throws(classOf[IOException])
-    def write(src: ByteBuffer): Int = {
-        val oldLimit = src.limit()
-        val start = src.position()
-        try {
-            channel.write(src)
-        } finally {
-            src.position(start)
-            src.limit(oldLimit)
-        }
-    }
+    def write(src: ByteBuffer): Int =
+        channel.write(src)
 }
 
 class NetlinkBlockingWriter(channel: NetlinkChannel) extends NetlinkWriter(channel) {
@@ -58,15 +48,10 @@ class NetlinkBlockingWriter(channel: NetlinkChannel) extends NetlinkWriter(chann
     @throws(classOf[IOException])
     override def write(src: ByteBuffer): Int = {
         var nbytes = 0
-        while ({ nbytes = super.write(src); nbytes } == 0) {
-            if (src.remaining() == 0)
-                return 0
-
-            if (!channel.isOpen)
-                return 0
-
-            selector.select(timeout)
-        }
+        do {
+            nbytes = super.write(src)
+        } while (nbytes == 0 && src.remaining() > 0 && channel.isOpen &&
+                 { selector.select(timeout); true })
         nbytes
     }
 }
