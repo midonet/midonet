@@ -117,7 +117,7 @@ public class MockDirectory implements Directory {
 
         synchronized void setData(byte[] data, boolean multi) {
             if (enableDebugLog)
-                log.debug("[child]setData => {}", data);
+                log.debug("[child]setData({}) => {}", path, new String(data));
             this.data = data;
 
             fireWatchers(multi, EventType.NodeDataChanged);
@@ -233,7 +233,7 @@ public class MockDirectory implements Directory {
 
     private Node rootNode;
     private final Map<Watcher, WatchedEvent> multiDataWatchers;
-    public boolean enableDebugLog = false;
+    public boolean enableDebugLog = true;
 
     private MockDirectory(Node root, Map<Watcher, WatchedEvent> multiWatchers) {
         rootNode = root;
