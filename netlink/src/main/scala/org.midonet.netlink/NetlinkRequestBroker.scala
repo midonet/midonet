@@ -28,57 +28,11 @@ import org.midonet.Util
 import org.midonet.util.concurrent.NanoClock
 
 object NetlinkRequestBroker {
+    val FULL = 0
+    private val UPCALL_SEQ = 0
     private val FREE = 0
-    private val UPCALL = 0
+
     private val unsafe = Util.getUnsafe
-
-    private sealed class RequestContext {
-
-        /**
-         * The time when the underlying request expires.
-         */
-        var expiration: Long = _
-
-        /**
-         * onNext is called with the Netlink reply payload (which can be part
-         * of a multi); onError is called when the Netlink reply is an error;
-         * onComplete is called on an ACK or at the end of all the answers to
-         * the request.
-         */
-        var observer: Observer[ByteBuffer] = _
-
-        /**
-         * The sequence number currently active for this context. Because we
-         * re-use NetlinkContext instances, we need this field to validate
-         * whether we're getting a reply for a valid request or if it is the
-         * delayed reply for a timed out request
-         */
-        var sequence: Int = _
-
-        private val sequenceAddress = unsafe.objectFieldOffset(
-                        classOf[RequestContext].getDeclaredField("sequence"))
-
-        /**
-         * Called by the thread handling replies. Protects this context
-         * against being incorrectly expired by setting expiration to
-         * Long.MaxValue.
-         */
-        def clear(): Unit = {
-            expiration = Long.MaxValue
-            observer = null
-            unsafe.putOrderedInt(this, sequenceAddress, FREE)
-        }
-
-        /**
-         * Prepare this context for a request.
-         */
-        def prepare(expiration: Long, observer: Observer[ByteBuffer],
-                    sequence: Int): Unit = {
-            this.expiration = expiration
-            this.observer = observer
-            unsafe.putOrderedInt(this, sequenceAddress, sequence)
-        }
-    }
 
     private val NOOP = new Observer[ByteBuffer] {
         override def onCompleted(): Unit = { }
@@ -86,64 +40,190 @@ object NetlinkRequestBroker {
         override def onNext(t: ByteBuffer): Unit = { }
     }
 
-    private val timeoutException = new NetlinkException(
+    private object timeoutException extends NetlinkException(
         NetlinkException.ErrorCode.ETIMEOUT,
         "Timeout while waiting for Nelink replies") {
 
         override def fillInStackTrace() = this
     }
+
+    private val sequenceAddress = unsafe.objectFieldOffset(
+        classOf[NetlinkRequestBroker].getDeclaredField("sequence"))
+
+    private val BASE: Long = unsafe.arrayBaseOffset(classOf[Array[Int]])
+    private val SCALE: Long = unsafe.arrayIndexScale(classOf[Array[Int]])
 }
 
 /**
  * Class through which to make Netlink requests that require a reply.
- * Thread-safe for concurrent callers of request and readReply,
- * although the individual methods are not thread-safe.
+ * Thread-safe for concurrent callers of nextSequence/get/publishRequest,
+ * writePublishedRequests and readReply, although the individual methods
+ * are not thread-safe.
+ *
+ * TODO: Use @Contended on some of these fields when on java 8
  */
-class NetlinkRequestBroker(reader: NetlinkReader,
-                           writer: NetlinkBlockingWriter,
-                           maxPendingRequests: Int,
-                           readBuf: ByteBuffer,
-                           clock: NanoClock,
-                           timeout: Duration = 1 second) {
+final class NetlinkRequestBroker(writer: NetlinkBlockingWriter,
+                                 reader: NetlinkReader,
+                                 maxPendingRequests: Int,
+                                 maxRequestSize: Int,
+                                 readBuf: ByteBuffer,
+                                 clock: NanoClock,
+                                 timeout: Duration = 10 seconds) {
     import NetlinkRequestBroker._
 
     val capacity = Util.findNextPositivePowerOfTwo(maxPendingRequests)
     private val mask = capacity - 1
-    private var sequenceNumber = 0
-    private val timeoutNanos = timeout.toNanos
-    private val requests = new Array[RequestContext](capacity)
+
+    /**
+     * The pre-allocated buffer. Each request is assigned a slice from this buffer.
+     */
+    private val buffer = BytesUtil.instance.allocateDirect(capacity * maxRequestSize)
+    private val buffers = new Array[ByteBuffer](capacity)
 
     {
         var i = 0
         while (i < capacity) {
-            requests(i) = new RequestContext
-            requests(i).clear()
+            buffer.limit(buffer.position() + maxRequestSize)
+            buffers(i) = buffer.slice().order(buffer.order())
+            buffer.position(buffer.limit())
             i += 1
         }
     }
 
     /**
-     * Makes a request, consisting of a serialized Netlink message, and
-     * registers an Observer through which the reply will be streamed.
-     * Returns the number of bytes written.
+     * The highest published sequence for writing. Used to synchronize between
+     * the producer thread and the write thread.
      */
-    def writeRequest(src: ByteBuffer, observer: Observer[ByteBuffer]): Int = {
-        val ctx = acquireContext(clock.tick + timeoutNanos, observer)
-        try {
-            if (ctx ne null) {
-                src.putInt(src.position() + NetlinkMessage.NLMSG_SEQ_OFFSET,
-                           ctx.sequence)
-                writer.write(src)
-            } else {
-                0
-            }
-        } catch { case t: Throwable =>
-            if (ctx ne null) {
-                ctx.clear()
-            }
-            observer.onError(t)
-            0
+    private var sequence = 0
+
+    /**
+     * The highest written sequence. Confined to the writer thread.
+     */
+    private var writtenSequence = 0
+
+    /**
+     * The observers registered by the producer thread, through which the
+     * reader thread will feed the replies.
+     */
+    private val observers = new Array[Observer[ByteBuffer]](capacity)
+
+    /**
+     * The expiration deadlines set by the producer thread and processed by
+     * the reader thread.
+     */
+    private val expirations = new Array[Long](capacity)
+    private val timeoutNanos = timeout.toNanos
+
+    {
+        var i = 0
+        while (i < capacity) {
+            expirations(i) = Long.MaxValue
+            i += 1
         }
+    }
+
+    /**
+     * The sequences that are awaiting replies.
+     */
+    private val sequences = new Array[Int](capacity)
+
+    /**
+     * This method returns true whether there may be some requests to write.
+     * It is assumed that this method is called by the writer thread or by some
+     * thread that synchronized with it (e.g., the WakerUpper).
+     */
+    def hasRequestsToWrite: Boolean =
+        unsafe.getIntVolatile(this, sequenceAddress) != writtenSequence
+
+    def publisherSequence = unsafe.getIntVolatile(this, sequenceAddress)
+    def writerSequence = writtenSequence
+
+    /**
+     * Gets the next sequence available for publishing a request. This method
+     * synchronizes with the reader thread by skipping over sequences that are
+     * still awaiting a reply.
+     */
+    def nextSequence(): Int = {
+        var seq = sequence
+        if (seq == UPCALL_SEQ) {
+            // It will take more than capacity iterations to circle back to
+            // UPCALL_SEQ, so we only need to perform the check here.
+            seq = UPCALL_SEQ + 1
+        }
+        val end = seq + capacity
+        do {
+            if (sequences(seq & mask) == FREE) {
+                return seq
+            }
+            seq += 1
+        } while (seq != end)
+        FULL
+    }
+
+    /**
+     * Returns the ByteBuffer corresponding to the specified sequence number.
+     * The caller must serialize a valid Netlink request into this buffer. Note
+     * that the sequence number will be written by the writer, so it need not
+     * be filled by the caller.
+     */
+    def get(seq: Int): ByteBuffer =
+        buffers(seq & mask)
+
+    /**
+     * Publishes a Netlink request, registering an Observer through which the
+     * reply will be streamed. Synchronizes with the writer thread via the
+     * sequenceAddress field and, transitively, with the reader thread.
+     */
+    def publishRequest(seq: Int, observer: Observer[ByteBuffer]): Unit = {
+        val pos = seq & mask
+        observers(pos) = observer
+        sequences(pos) = seq
+        unsafe.putOrderedInt(this, sequenceAddress, seq + 1)
+    }
+
+    /**
+     * Writes all the new published requests. Returns the number of
+     * bytes written.
+     */
+    def writePublishedRequests(): Int = {
+        val publishedSeq = unsafe.getIntVolatile(this, sequenceAddress)
+        var seq = writtenSequence
+
+        if (publishedSeq == seq)
+            return 0
+
+        if (seq == UPCALL_SEQ)
+            seq = UPCALL_SEQ + 1
+
+        var nbytes = 0
+        do {
+            val pos = seq & mask
+            // Check if the sequence was published or if it was jumped over
+            // because the reply hasn't arrived yet.
+            if (sequences(pos) == seq) {
+                val buf = buffers(pos)
+                try {
+                    buf.putInt(buf.position() + NetlinkMessage.NLMSG_SEQ_OFFSET, seq)
+                    expirations(pos) = clock.tick + timeoutNanos
+                    nbytes += writer.write(buf)
+                } catch { case e: Throwable =>
+                    val obs = observers(pos)
+                    freeSequence(pos)
+                    obs.onError(e)
+                } finally {
+                    // We have to clear the buffer here instead of on handleReply()
+                    // because IOUtil modifies the buffer's position after the write
+                    // has been performed, racing with a concurrent handleReply().
+                    // This can theoretically race with a call to get(), but we
+                    // assume the write thread has made progress before we circle
+                    // back to this position.
+                    buf.clear()
+                }
+            }
+            seq += 1
+        } while (seq != publishedSeq)
+        writtenSequence = seq
+        nbytes
     }
 
     /**
@@ -155,6 +235,7 @@ class NetlinkRequestBroker(reader: NetlinkReader,
     def readReply(unhandled: Observer[ByteBuffer] = NOOP): Int =
         try {
             val nbytes = reader.read(readBuf)
+            readBuf.flip()
             var start = 0
             while (readBuf.remaining() >= NetlinkMessage.HEADER_SIZE) {
                 val size = readBuf.getInt(start + NetlinkMessage.NLMSG_LEN_OFFSET)
@@ -165,9 +246,9 @@ class NetlinkRequestBroker(reader: NetlinkReader,
             nbytes
         } catch { case e: NetlinkException =>
             val seq = readBuf.getInt(NetlinkMessage.NLMSG_SEQ_OFFSET)
-            val ctx = getContext(seq)
-            val obs = getObserver(seq, ctx, unhandled)
-            ctx.clear()
+            val pos = seq & mask
+            val obs = getObserver(pos, seq, unhandled)
+            freeSequence(pos)
             obs.onError(e)
             0
         } finally {
@@ -178,8 +259,8 @@ class NetlinkRequestBroker(reader: NetlinkReader,
     private def handleReply(reply: ByteBuffer, unhandled: Observer[ByteBuffer],
                             start: Int, size: Int): Unit = {
         val seq = readBuf.getInt(start + NetlinkMessage.NLMSG_SEQ_OFFSET)
-        val ctx = getContext(seq)
-        val observer = getObserver(seq, ctx, unhandled)
+        val pos = seq & mask
+        val obs = getObserver(pos, seq, unhandled)
 
         val `type` = readBuf.getShort(start + NetlinkMessage.NLMSG_TYPE_OFFSET)
         if (`type` >= NLMessageType.NLMSG_MIN_TYPE &&
@@ -190,7 +271,7 @@ class NetlinkRequestBroker(reader: NetlinkReader,
             val oldLimit = readBuf.limit()
             readBuf.limit(start + size)
             readBuf.position(start + NetlinkMessage.GENL_HEADER_SIZE)
-            observer.onNext(readBuf)
+            obs.onNext(readBuf)
             readBuf.limit(oldLimit)
 
             if (NLFlag.isMultiFlagSet(flags)) {
@@ -198,55 +279,40 @@ class NetlinkRequestBroker(reader: NetlinkReader,
             }
         }
 
-        ctx.clear()
-        observer.onCompleted()
+        freeSequence(pos)
+        obs.onCompleted()
     }
 
-    private def getContext(seq: Int) = requests(seq & mask)
-
-    private def getObserver(seq: Int, ctx: RequestContext,
-                            orElse: Observer[ByteBuffer]) =
-        if (seq != UPCALL && ctx.sequence == seq) {
-            ctx.observer
+    private def getObserver(pos: Int, seq: Int,
+                            unhandled: Observer[ByteBuffer]): Observer[ByteBuffer] =
+        if (seq == UPCALL_SEQ || sequences(pos) != seq) {
+            unhandled
         } else {
-            orElse
+            observers(pos)
         }
-
-    private def nextSequenceNumber(): Int = {
-        var seq = sequenceNumber + 1
-        if (seq == UPCALL) {
-            seq = UPCALL + 1
-        }
-        sequenceNumber = seq
-        seq
-    }
-
-    private def acquireContext(expiration: Long,
-                               observer: Observer[ByteBuffer]): RequestContext = {
-        var i = 0
-        do {
-            val seq = nextSequenceNumber()
-            val ctx = requests(seq & mask)
-            if (ctx.sequence == FREE) {
-                ctx.prepare(expiration, observer, seq)
-                return ctx
-            }
-            i += 1
-        } while (i < capacity)
-        null
-    }
 
     private def doTimeoutExpiration(): Unit = {
         val currentTime = clock.tick
         var i = 0
         while (i < capacity) {
-            val ctx = requests(i)
-            if (ctx.sequence != FREE && currentTime > ctx.expiration) {
-                val obs = ctx.observer
-                ctx.clear()
+            if (sequences(i) != FREE && currentTime > expirations(i)) {
+                val obs = observers(i)
+                freeSequence(i)
+                buffers(i).clear()
                 obs.onError(timeoutException)
             }
             i += 1
         }
+    }
+
+    private def freeSequence(pos: Int): Unit = {
+        // Synchronizes with the producer thread. For theoretical correctness,
+        // the producer thread should do volatile reads of the contents of the
+        // *sequences* array, but in practice, it's extremely unlikely for the
+        // producer to not see this update due to having a previous value cached
+        // in a register when it circles back to the *pos* position.
+        observers(pos) = null
+        expirations(pos) = Long.MaxValue
+        unsafe.putOrderedInt(sequences, BASE + (pos * SCALE), FREE)
     }
 }
