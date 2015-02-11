@@ -21,6 +21,7 @@ import scala.collection.mutable
 import scala.reflect._
 
 import akka.actor.{Actor, ActorRef}
+
 import com.google.inject.Inject
 import rx.Subscriber
 
@@ -44,21 +45,21 @@ import org.midonet.midolman.topology.devices.{Host, TunnelZone}
  * section of the configuration will make the VTPMRedirector use the new storage
  * stack.  Otherwise, it'll use the old stack.
  */
-abstract class VTPMRedirector extends Actor
-                              with MidolmanLogging {
+abstract class VTPMRedirector extends Actor with MidolmanLogging {
 
     override def logSource = "org.midonet.devices.underlay"
 
     @Inject
-    var newBackend: MidonetBackend = _
+    var backend: MidonetBackend = _
 
     /* Device subscriptions per device id */
-    private val deviceSubscriptions = new mutable.HashMap[UUID,DeviceSubscriber[_ <: Device]]()
+    private val deviceSubscriptions =
+        new mutable.HashMap[UUID,DeviceSubscriber[_ <: Device]]()
 
     /* Methods implemented by sub-classes */
     protected def deviceRequested(request: VTPMRequest[_],
-                                  createHandlerIfNeeded: Boolean): Unit
-    protected def deviceUpdated(device: AnyRef, createHandlerIfNeeded: Boolean): Unit
+                                  createHandler: Boolean): Unit
+    protected def deviceUpdated(device: AnyRef, createHandler: Boolean): Unit
     protected def removeAllClientSubscriptions[D <: Device](deviceId: UUID)
                                                            (implicit t: ClassTag[D]): Unit
     protected def removeFromCache[D <: Device](id: UUID)
@@ -77,10 +78,12 @@ abstract class VTPMRedirector extends Actor
                                                (implicit t: ClassTag[D])
                                                          extends Subscriber[D] {
 
-        override def onCompleted(): Unit = self ! OnCompleted[D](deviceId, t)
-        override def onError(e: Throwable): Unit = self ! OnError[D](deviceId, e,
-                                                                     t)
-        override def onNext(device: D): Unit = self ! OnNext[D](deviceId, device)
+        override def onCompleted(): Unit =
+            self ! OnCompleted[D](deviceId, t)
+        override def onError(e: Throwable): Unit =
+            self ! OnError[D](deviceId, e, t)
+        override def onNext(device: D): Unit =
+            self ! OnNext[D](deviceId, device)
     }
 
 
@@ -93,7 +96,7 @@ abstract class VTPMRedirector extends Actor
         }
 
         // Add the sender to the client subscribers list.
-        deviceRequested(request, createHandlerIfNeeded=false)
+        deviceRequested(request, createHandler=false)
 
         // Get or create the virtual topology subscription for this device.
         deviceSubscriptions.getOrElseUpdate(deviceId, {
@@ -116,8 +119,8 @@ abstract class VTPMRedirector extends Actor
             case HostUnsubscribe(hostId) => hostId
         }
         if(!hasSubscribers[D](deviceId)) {
-            log.debug("Device {} has no more subscribers, trying to" +
-                      " unsubscribe from the corresponding observable.", deviceId)
+            log.debug("Device {} has no more subscribers, trying to " +
+                      "unsubscribe from the corresponding observable.", deviceId)
 
             removeFromCache[D](deviceId)
 
@@ -125,8 +128,9 @@ abstract class VTPMRedirector extends Actor
                 case Some(subscription) =>
                     subscription.unsubscribe()
                 case None =>
-                    throw new IllegalStateException(s"Device $deviceId does not" +
-                                                    " have a subscription to an observable")
+                    throw new IllegalStateException(
+                        s"Device $deviceId does not have a subscription to an " +
+                        s"observable")
             }
         }
     }
@@ -145,7 +149,7 @@ abstract class VTPMRedirector extends Actor
         removeFromCache[D](deviceId)
     }
 
-    def receive = if (!newBackend.isEnabled) Actor.emptyBehavior else {
+    def receive = if (!backend.isEnabled) Actor.emptyBehavior else {
         case r: TunnelZoneRequest =>
             log.debug("Request for tunnel zone with id {}", r.zoneId)
             onRequest[TunnelZone](r)
@@ -168,6 +172,6 @@ abstract class VTPMRedirector extends Actor
             onError(deviceId, e)(t)
         case OnNext(deviceId: UUID, device: Device) =>
             log.debug("Device {} update", deviceId)
-            deviceUpdated(device, createHandlerIfNeeded=false)
+            deviceUpdated(device, createHandler=false)
     }
 }
