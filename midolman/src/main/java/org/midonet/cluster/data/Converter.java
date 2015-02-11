@@ -769,7 +769,8 @@ public class Converter {
         return new TraceRequest()
             .setDeviceType(traceRequestConfig.deviceType)
             .setDeviceId(traceRequestConfig.deviceId)
-            .setCondition(traceRequestConfig.condition);
+            .setCondition(traceRequestConfig.condition)
+            .setEnabledRule(traceRequestConfig.enabledRule);
     }
 
     public static TraceRequestConfig toTraceRequestConfig(
@@ -778,6 +779,7 @@ public class Converter {
         config.deviceType = traceRequest.getDeviceType();
         config.deviceId = traceRequest.getDeviceId();
         config.condition = traceRequest.getCondition();
+        config.enabledRule = traceRequest.getEnabledRule();
         return config;
     }
 }

@@ -23,6 +23,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Queue;
 import java.util.Set;
 import java.util.UUID;
@@ -78,6 +79,7 @@ import org.midonet.cluster.data.l4lb.VIP;
 import org.midonet.cluster.data.ports.BridgePort;
 import org.midonet.cluster.data.ports.VlanMacPort;
 import org.midonet.cluster.data.ports.VxLanPort;
+import org.midonet.cluster.data.rules.TraceRule;
 import org.midonet.midolman.SystemDataProvider;
 import org.midonet.midolman.guice.zookeeper.ZkConnectionProvider;
 import org.midonet.midolman.host.state.HostDirectory;
@@ -716,11 +718,8 @@ public class LocalDataClientImpl implements DataClient {
         zkManager.multi(ops);
     }
 
-    @Override
-    public UUID chainsCreate(@Nonnull Chain chain)
+    private UUID prepareChainsCreate(@Nonnull Chain chain, List<Op> ops)
             throws StateAccessException, SerializationException {
-        log.debug("chainsCreate entered: chain={}", chain);
-
         if (chain.getId() == null) {
             chain.setId(UUID.randomUUID());
         }
@@ -728,19 +727,27 @@ public class LocalDataClientImpl implements DataClient {
         ChainZkManager.ChainConfig chainConfig =
                 Converter.toChainConfig(chain);
 
-        List<Op> ops =
-                chainZkManager.prepareCreate(chain.getId(), chainConfig);
+        ops.addAll(chainZkManager.prepareCreate(chain.getId(), chainConfig));
 
         // Create the top level directories for
         String tenantId = chain.getProperty(Chain.Property.tenant_id);
         if (!Strings.isNullOrEmpty(tenantId)) {
             ops.addAll(tenantZkManager.prepareCreate(tenantId));
         }
+        return chain.getId();
+    }
 
+    @Override
+    public UUID chainsCreate(@Nonnull Chain chain)
+            throws StateAccessException, SerializationException {
+        log.debug("chainsCreate entered: chain={}", chain);
+
+        List<Op> ops = new ArrayList<Op>();
+        UUID chainId = prepareChainsCreate(chain, ops);
         zkManager.multi(ops);
 
         log.debug("chainsCreate exiting: chain={}", chain);
-        return chain.getId();
+        return chainId;
     }
 
     @Override
@@ -3166,7 +3173,13 @@ public class LocalDataClientImpl implements DataClient {
     @Override
     public void traceRequestDelete(UUID id)
             throws StateAccessException, SerializationException {
-        zkManager.multi(traceReqZkManager.prepareDelete(id));
+        List<Op> ops = new ArrayList<Op>();
+        TraceRequest request = traceRequestGet(id);
+        if (request == null) {
+            throw new StateAccessException("Trace does not exist");
+        }
+        ops.addAll(traceReqZkManager.prepareDelete(id));
+        zkManager.multi(ops);
     }
 
     private boolean checkTraceRequestDeviceExists(TraceRequest traceRequest)
@@ -3184,7 +3197,16 @@ public class LocalDataClientImpl implements DataClient {
 
     @Override
     public UUID traceRequestCreate(@Nonnull TraceRequest traceRequest)
-            throws StateAccessException, SerializationException {
+            throws StateAccessException, SerializationException,
+            RuleIndexOutOfBoundsException {
+        return traceRequestCreate(traceRequest, false);
+    }
+
+    @Override
+    public UUID traceRequestCreate(@Nonnull TraceRequest traceRequest,
+                                   boolean enabled)
+            throws StateAccessException, SerializationException,
+            RuleIndexOutOfBoundsException {
         if (traceRequest.getId() == null) {
             traceRequest.setId(UUID.randomUUID());
         }
@@ -3199,7 +3221,12 @@ public class LocalDataClientImpl implements DataClient {
 
         TraceRequestZkManager.TraceRequestConfig config
             = Converter.toTraceRequestConfig(traceRequest);
-        zkManager.multi(traceReqZkManager.prepareCreate(id, config));
+        List<Op> ops = new ArrayList<Op>();
+        ops.addAll(traceReqZkManager.prepareCreate(id, config));
+        if (enabled) {
+            ops.addAll(traceRequestPrepareEnable(traceRequest));
+        }
+        zkManager.multi(ops);
 
         // device may have been deleted after we checked, but before
         // we created the trace, if so, the trace is no longer valid,
@@ -3282,6 +3309,142 @@ public class LocalDataClientImpl implements DataClient {
             }
         }
         return traceRequests;
+    }
+
+    /**
+     * If the agent crashes after this is called but before it
+     * is assigned to a device, a chain will be orphaned.
+     */
+    private UUID traceFindOrCreateChain(TraceRequest request)
+            throws StateAccessException, SerializationException {
+        String name = traceReqZkManager.traceRequestChainName(
+                request.getId());
+        for (Chain chain : chainsGetAll()) {
+            if (chain.getName().equals(name)) {
+                return chain.getId();
+            }
+        }
+        Chain chain = new Chain().setName(name);
+        chainsCreate(chain);
+        return chain.getId();
+    }
+
+    private UUID traceFindOrCreateRule(UUID chainId, TraceRequest request,
+                                       List<Op> ops)
+            throws StateAccessException, SerializationException,
+            RuleIndexOutOfBoundsException {
+        for (Rule<?,?> r : rulesFindByChain(chainId)) {
+            if (r instanceof TraceRule) {
+                TraceRule rule = (TraceRule)r;
+                if (Objects.equals(rule.getRequestId(), request.getId())) {
+                    return rule.getId(); // only one rule per request for now
+                }
+            }
+        }
+
+        TraceRule rule = new TraceRule(request.getId(),
+                                       request.getCondition());
+        rule.setChainId(chainId).setPosition(1).setId(UUID.randomUUID());
+
+        ops.addAll(ruleZkManager.prepareInsertPositionOrdering(
+                           rule.getId(), Converter.toRuleConfig(rule), 1));
+        return rule.getId();
+    }
+
+    private List<Op> traceRequestPrepareEnable(TraceRequest request)
+            throws StateAccessException, SerializationException,
+            RuleIndexOutOfBoundsException {
+        List<Op> ops = new ArrayList<Op>();
+        if (request.getEnabledRule() != null) {
+            return ops; // already enabled
+        }
+        UUID id = request.getId();
+        UUID deviceId = request.getDeviceId();
+        UUID ruleId = null;
+        switch (request.getDeviceType()) {
+        case BRIDGE:
+            Bridge bridge = bridgesGet(deviceId);
+            if (bridge != null) {
+                UUID chainId = bridge.getInboundFilter();
+                if (chainId == null) {
+                    chainId = traceFindOrCreateChain(request);
+                    bridge.setInboundFilter(chainId);
+                    ops.addAll(bridgeZkManager.prepareUpdate(bridge.getId(),
+                           Converter.toBridgeConfig(bridge)));
+                }
+                ruleId = traceFindOrCreateRule(chainId, request, ops);
+            } else {
+                throw new IllegalStateException("Bridge device does not exist");
+            }
+            break;
+        case PORT:
+            Port port = portsGet(deviceId);
+            if (port != null) {
+                UUID chainId = port.getInboundFilter();
+                if (chainId == null) {
+                    chainId = traceFindOrCreateChain(request);
+                    port.setInboundFilter(chainId);
+                    ops.addAll(portZkManager.prepareUpdate(deviceId,
+                                       Converter.toPortConfig(port)));
+                }
+                ruleId = traceFindOrCreateRule(chainId, request, ops);
+            } else {
+                throw new IllegalStateException("Port device does not exist");
+            }
+            break;
+        case ROUTER:
+            Router router = routersGet(deviceId);
+            if (router != null) {
+                UUID chainId = router.getInboundFilter();
+                if (chainId == null) {
+                    chainId = traceFindOrCreateChain(request);
+                    router.setInboundFilter(chainId);
+                    ops.addAll(routerZkManager.prepareUpdate(router.getId(),
+                                       Converter.toRouterConfig(router)));
+                }
+                ruleId = traceFindOrCreateRule(chainId, request, ops);
+            } else {
+                throw new IllegalStateException("Router device does not exist");
+            }
+            break;
+        default:
+            throw new IllegalStateException(
+                    "Unknown device type " + request.getDeviceType());
+        }
+
+        request.setEnabledRule(ruleId);
+        ops.addAll(traceReqZkManager.prepareUpdate(request.getId(),
+                           Converter.toTraceRequestConfig(request)));
+        return ops;
+    }
+
+    @Override
+    public void traceRequestEnable(UUID id)
+            throws StateAccessException, SerializationException,
+            RuleIndexOutOfBoundsException {
+        log.debug("Entered(traceRequestEnable): id={}", id);
+        TraceRequest request = traceRequestGet(id);
+        if (request == null) {
+            throw new IllegalStateException("Trace request does not exist");
+        }
+        zkManager.multi(traceRequestPrepareEnable(request));
+        log.debug("Exited(traceRequestEnable): id={}", id);
+    }
+
+    private List<Op> traceRequestPrepareDisable(TraceRequest request)
+            throws StateAccessException, SerializationException {
+        return traceReqZkManager.prepareDisable(request.getId());
+    }
+
+    public void traceRequestDisable(UUID id)
+            throws StateAccessException, SerializationException {
+        log.debug("Entered(traceRequestEnable): id={}", id);
+        TraceRequest request = traceRequestGet(id);
+        if (request == null) {
+            throw new IllegalStateException("Trace request does not exist");
+        }
+        zkManager.multi(traceRequestPrepareDisable(request));
+        log.debug("Exited(traceRequestDisable): id={}", id);
     }
 
     @Override

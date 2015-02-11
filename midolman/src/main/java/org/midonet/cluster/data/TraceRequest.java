@@ -54,6 +54,15 @@ public class TraceRequest
         return this;
     }
 
+    public UUID getEnabledRule() {
+        return getData().enabledRule;
+    }
+
+    public TraceRequest setEnabledRule(UUID enabledRule) {
+        getData().enabledRule = enabledRule;
+        return this;
+    }
+
     @Override
     public TraceRequest self() {
         return this;
@@ -67,6 +76,7 @@ public class TraceRequest
         public DeviceType deviceType;
         public UUID deviceId;
         public Condition condition;
+        public UUID enabledRule;
 
         @Override
         public boolean equals(Object other) {
@@ -80,19 +90,21 @@ public class TraceRequest
             Data that = (Data)other;
             return deviceType == that.deviceType
                 && Objects.equals(deviceId, that.deviceId)
-                && Objects.equals(condition, that.condition);
+                && Objects.equals(condition, that.condition)
+                && Objects.equals(enabledRule, that.enabledRule);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(deviceType, deviceId, condition);
+            return Objects.hash(deviceType, deviceId, condition, enabledRule);
         }
 
         @Override
         public String toString() {
             return "TraceRequest.Data{deviceType=" + deviceType
                 + ", deviceId=" + deviceId
-                + ", condition=" + condition + "}";
+                + ", condition=" + condition
+                + ", enabledRule=" + enabledRule + "}";
         }
     }
 }
