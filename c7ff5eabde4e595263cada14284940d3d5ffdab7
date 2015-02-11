@@ -124,6 +124,24 @@
       "revId": "c7ff5eabde4e595263cada14284940d3d5ffdab7",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_dec8bb76",
+        "filename": "cluster/src/main/proto/neutron.proto",
+        "patchSetId": 1
+      },
+      "lineNbr": 220,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-02-11T21:53:21Z",
+      "side": 1,
+      "message": "Were we not going to store all neutron protos in ZK (for debugging and auditing purposes)?\n\nIMO if adding the id from neutron isn\u0027t a great cost, I\u0027d prefer adding them. Been burned a enough times already by not having standard ids :D",
+      "parentUuid": "7a1969be_4054eb53",
+      "revId": "c7ff5eabde4e595263cada14284940d3d5ffdab7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
