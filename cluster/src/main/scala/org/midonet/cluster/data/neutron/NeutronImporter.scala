@@ -75,6 +75,8 @@ object NeutronResourceType extends Enumeration {
         NeutronResourceType(7, classOf[Neutron.SecurityGroupRule])
     val RouterInterface =
         NeutronResourceType(8, classOf[NeutronRouterInterface])
+    val PortBinding =
+        NeutronResourceType(12, classOf[PortBinding])
 
     private val vals = Array(NoData, Network, Subnet, Router, Port, FloatingIp,
                              SecurityGroup, SecurityGroupRule, RouterInterface)
