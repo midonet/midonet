@@ -31,26 +31,27 @@ object OvsNetlinkFamilies {
     @throws(classOf[IOException])
     @throws(classOf[NetlinkException])
     def discover(channel: NetlinkChannel): OvsNetlinkFamilies = {
-        val requestReply = new NetlinkRequestBroker(
-            new NetlinkReader(channel), new NetlinkBlockingWriter(channel),
-            6, BytesUtil.instance.allocate(2048), NanoClock.DEFAULT)
+        val broker = new NetlinkRequestBroker(
+            new NetlinkBlockingWriter(channel), new NetlinkReader(channel),
+            1, 2048, BytesUtil.instance.allocate(2048), NanoClock.DEFAULT)
         val pid = channel.getLocalAddress.getPid
-        val buf = BytesUtil.instance.allocate(2048)
 
         def request[T >: Null](family: String, f: ByteBuffer => T): T = {
-            buf.clear()
+            val seq = broker.nextSequence()
             GenlProtocol.familyNameRequest(family, NLFlag.REQUEST, pid,
-                                           CtrlFamily.Context.GetFamily, buf)
+                                           CtrlFamily.Context.GetFamily, broker.get(seq))
+
             @volatile var res: T = null
-            requestReply.writeRequest(buf, new Observer[ByteBuffer] {
+            broker.publishRequest(seq, new Observer[ByteBuffer] {
                 override def onCompleted(): Unit = { }
                 override def onError(e: Throwable): Unit = throw e
                 override def onNext(bb: ByteBuffer): Unit = res = f(bb)
             })
 
-            while (res == null) {
-                requestReply.readReply()
-            }
+            broker.writePublishedRequests()
+
+            while (broker.readReply() == 0) { }
+
             res
         }
 
