@@ -58,7 +58,7 @@ class HostMapperTest extends MidolmanSpec
 
         // Tests to cover the cases when the new cluster is disabled are
         // present in VirtualToPhysicalMapperTest
-        config.setProperty("zookeeper.cluster_storage_enabled", true)
+        config.setProperty("midolman.cluster_storage_enabled", true)
         config
     }
 
@@ -211,11 +211,11 @@ class HostMapperTest extends MidolmanSpec
     private def assertEquals(simHost: SimHost, protoHost: Host,
                              tunnelZones: Set[TunnelZone]) = {
         protoHost.getId.asJava shouldBe simHost.id
-        protoHost.getPortInterfaceMappingCount shouldBe simHost.portToInterface.size
+        protoHost.getPortInterfaceMappingCount shouldBe simHost.bindings.size
         protoHost.getPortInterfaceMappingList.foreach(portInterface => {
             val portId = portInterface.getPortId
             val interface = portInterface.getInterfaceName
-            simHost.portToInterface.get(portId) shouldBe Some(interface)
+            simHost.bindings.get(portId) shouldBe Some(interface)
         })
         protoHost.getTunnelZoneIdsCount shouldBe simHost.tunnelZoneIds.size
         protoHost.getTunnelZoneIdsList.foreach(tunnelId =>

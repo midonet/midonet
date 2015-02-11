@@ -21,11 +21,12 @@ import scala.collection.mutable
 import scala.reflect._
 
 import akka.actor.{Actor, ActorRef}
+
 import com.google.inject.Inject
 
 import rx.Subscriber
 
-import org.midonet.cluster.config.ZookeeperConfig
+import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.midolman.topology.VirtualToPhysicalMapper.{HostRequest, HostUnsubscribe, TunnelZoneRequest, TunnelZoneUnsubscribe}
 import org.midonet.midolman.topology.VirtualTopology.Device
@@ -41,24 +42,24 @@ import org.midonet.midolman.topology.devices.{Host, TunnelZone}
  * When using the old design, we obtain these devices using managers in
  * the same package.
  *
- * The field cluster_storage_enabled in [[ZookeeperConfig]] controls whether
+ * The field cluster_storage_enabled in [[MidolmanConfig]] controls whether
  * the new or the old design shall be used.
  */
-abstract class VTPMRedirector extends Actor
-                              with MidolmanLogging {
+abstract class VTPMRedirector extends Actor with MidolmanLogging {
 
     override def logSource = "org.midonet.devices.underlay"
 
     @Inject
-    private var config: ZookeeperConfig = _
+    private var config: MidolmanConfig = null
 
     /* Device subscriptions per device id */
-    private val deviceSubscriptions = new mutable.HashMap[UUID,DeviceSubscriber[_ <: Device]]()
+    private val deviceSubscriptions =
+        new mutable.HashMap[UUID,DeviceSubscriber[_ <: Device]]()
 
     /* Methods implemented by sub-classes */
     protected def deviceRequested(request: VTPMRequest[_],
-                                  createHandlerIfNeeded: Boolean): Unit
-    protected def deviceUpdated(device: AnyRef, createHandlerIfNeeded: Boolean): Unit
+                                  createHandler: Boolean): Unit
+    protected def deviceUpdated(device: AnyRef, createHandler: Boolean): Unit
     protected def removeAllClientSubscriptions[D <: Device](deviceId: UUID)
                                                            (implicit t: ClassTag[D]): Unit
     protected def removeFromCache[D <: Device](id: UUID)
@@ -77,10 +78,12 @@ abstract class VTPMRedirector extends Actor
                                                (implicit t: ClassTag[D])
                                                          extends Subscriber[D] {
 
-        override def onCompleted(): Unit = self ! OnCompleted[D](deviceId, t)
-        override def onError(e: Throwable): Unit = self ! OnError[D](deviceId, e,
-                                                                     t)
-        override def onNext(device: D): Unit = self ! OnNext[D](deviceId, device)
+        override def onCompleted(): Unit =
+            self ! OnCompleted[D](deviceId, t)
+        override def onError(e: Throwable): Unit =
+            self ! OnError[D](deviceId, e, t)
+        override def onNext(device: D): Unit =
+            self ! OnNext[D](deviceId, device)
     }
 
 
@@ -93,7 +96,7 @@ abstract class VTPMRedirector extends Actor
         }
 
         // Add the sender to the client subscribers list.
-        deviceRequested(request, createHandlerIfNeeded=false)
+        deviceRequested(request, createHandler=false)
 
         // Get or create the virtual topology subscription for this device.
         deviceSubscriptions.getOrElseUpdate(deviceId, {
@@ -116,8 +119,8 @@ abstract class VTPMRedirector extends Actor
             case HostUnsubscribe(hostId) => hostId
         }
         if(!hasSubscribers[D](deviceId)) {
-            log.debug("Device {} has no more subscribers, trying to" +
-                      " unsubscribe from the corresponding observable.", deviceId)
+            log.debug("Device {} has no more subscribers, trying to " +
+                      "unsubscribe from the corresponding observable.", deviceId)
 
             removeFromCache[D](deviceId)
 
@@ -125,8 +128,9 @@ abstract class VTPMRedirector extends Actor
                 case Some(subscription) =>
                     subscription.unsubscribe()
                 case None =>
-                    throw new IllegalStateException(s"Device $deviceId does not" +
-                                                    " have a subscription to an observable")
+                    throw new IllegalStateException(
+                        s"Device $deviceId does not have a subscription to an " +
+                        s"observable")
             }
         }
     }
@@ -145,7 +149,7 @@ abstract class VTPMRedirector extends Actor
         removeFromCache[D](deviceId)
     }
 
-    def receive = if (!config.getClusterStorageEnabled) Actor.emptyBehavior else {
+    def receive = if (!config.isClusterStorageEnabled) Actor.emptyBehavior else {
         case r: TunnelZoneRequest =>
             log.debug("Request for tunnel zone with id {}", r.zoneId)
             onRequest[TunnelZone](r)
@@ -154,11 +158,11 @@ abstract class VTPMRedirector extends Actor
             onRequest[Host](r)
         case r: TunnelZoneUnsubscribe =>
             log.debug("Unsubscribe request for tunnel zone {} from {}",
-                      r.zoneId, sender)
+                      r.zoneId, sender())
             onUnsubscribe[TunnelZone](r, sender())
         case r: HostUnsubscribe =>
             log.debug("Unsubscribe request for host {} from {}", r.hostId,
-                      sender)
+                      sender())
             onUnsubscribe[Host](r, sender())
         case OnCompleted(deviceId: UUID, t: ClassTag[_]) =>
             log.debug("Device {} update stream completed", deviceId)
@@ -168,6 +172,6 @@ abstract class VTPMRedirector extends Actor
             onError(deviceId, e)(t)
         case OnNext(deviceId: UUID, device: Device) =>
             log.debug("Device {} update", deviceId)
-            deviceUpdated(device, createHandlerIfNeeded=false)
+            deviceUpdated(device, createHandler=false)
     }
 }
