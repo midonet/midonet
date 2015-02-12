@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_c14bbaae",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VTPMRedirector.scala",
+        "patchSetId": 18
+      },
+      "lineNbr": 129,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-12T12:47:52Z",
+      "side": 1,
+      "message": "Here the redirector unsubscribes from the VT, yet you don\u0027t clear the VTPM caches, meaning that any subsequent tryAsk with hit stale information in the local cache.",
+      "range": {
+        "startLine": 118,
+        "startChar": 8,
+        "endLine": 129,
+        "endChar": 9
+      },
+      "revId": "b01b880d0312c6d7e2d278a1e4990606f1e9eac8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
