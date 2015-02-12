@@ -30,7 +30,6 @@ import org.midonet.cluster.data.storage.{InMemoryStorage, Storage}
 import org.midonet.cluster.models.Topology.Network
 import org.midonet.cluster.rpc.Commands.{ResponseType, Response}
 import org.midonet.cluster.util.UUIDUtil
-import org.midonet.util.eventloop.CallingThreadReactor
 import org.midonet.util.reactivex.AwaitableObserver
 import org.midonet.util.reactivex.HermitObservable.HermitOversubscribedException
 

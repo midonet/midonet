@@ -18,11 +18,11 @@ package org.midonet.brain.services.topology
 
 
 import com.google.inject.{AbstractModule, Guice, Singleton}
-import org.midonet.cluster.config.ZookeeperConfig
-import org.midonet.cluster.services.MidonetBackend
 import org.slf4j.LoggerFactory
 
 import org.midonet.brain.{ClusterNode, ClusterNodeConfig}
+import org.midonet.cluster.config.ZookeeperConfig
+import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.storage.MidonetBackendModule
 import org.midonet.config.{ConfigProvider, HostIdGenerator}
 
