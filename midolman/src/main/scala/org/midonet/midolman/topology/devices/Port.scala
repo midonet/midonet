@@ -56,7 +56,7 @@ sealed trait Port extends ZoomObject with VirtualDevice with Cloneable {
     @ZoomField(name = "vlan_id")
     var vlanId: Short = _
 
-    var active: Boolean = false
+    private var _active: Boolean = false
 
     private var _deviceTag: FlowTag = _
 
@@ -65,6 +65,8 @@ sealed trait Port extends ZoomObject with VirtualDevice with Cloneable {
     def isInterior: Boolean = this.peerId != null
 
     def isPlugged: Boolean = this.isInterior || this.isExterior
+
+    def isActive: Boolean = _active
 
     override def afterFromProto(): Unit = {
         _deviceTag = FlowTagger.tagForDevice(id)
@@ -77,7 +79,7 @@ sealed trait Port extends ZoomObject with VirtualDevice with Cloneable {
 
     def copy(active: Boolean): this.type = {
         val port = super.clone().asInstanceOf[this.type]
-        port.active = active
+        port._active = active
         port
     }
 }
@@ -108,6 +110,7 @@ class VxLanPort extends Port {
     override def deviceId = networkId
     override def isExterior = true
     override def isInterior = false
+    override def isActive = true
 }
 
 class BridgePort extends Port {

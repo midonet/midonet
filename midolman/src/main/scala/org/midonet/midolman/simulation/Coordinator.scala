@@ -275,7 +275,7 @@ class Coordinator(context: PacketContext)
         context.addFlowTag(port.deviceTag)
 
         if (port.isExterior && port.adminStateUp &&
-            port.active && port.id != context.inPortId) {
+            port.isActive && port.id != context.inPortId) {
 
             if (port.outboundFilter ne null) {
                 context.outPortId = portId
