@@ -48,19 +48,17 @@ object TopologyZoomUpdaterApp extends App {
         new MidonetBackendModule(backendCfg),
         topologyZkUpdaterModule
     )
+    private val app = injector.getInstance(classOf[TopologyZoomUpdater])
 
     sys.addShutdownHook {
         log.info("Terminating instance of Topology Updater")
-        injector.getInstance(classOf[TopologyZoomUpdater])
-                .stopAsync()
-                .awaitTerminated()
+        if (app.isRunning)
+            app.stopAsync().awaitTerminated()
     }
 
     try {
         log.info("Starting instance of Topology Updater")
-        injector.getInstance(classOf[TopologyZoomUpdater])
-                .startAsync()
-                .awaitRunning()
+        app.startAsync().awaitRunning()
         log.info("Started instance of Topology Updater")
 
         try {
