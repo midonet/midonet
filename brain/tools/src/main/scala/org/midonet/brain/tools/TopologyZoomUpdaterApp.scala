@@ -19,8 +19,8 @@ package org.midonet.brain.tools
 import com.google.inject.{AbstractModule, Guice, Singleton}
 import org.slf4j.LoggerFactory
 
-import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.config.ZookeeperConfig
+import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.storage.MidonetBackendModule
 import org.midonet.config.ConfigProvider
 
@@ -53,20 +53,22 @@ object TopologyZoomUpdaterApp extends App {
         topologyZkUpdaterModule
     )
 
+    private val backend = injector.getInstance(classOf[MidonetBackend])
+    private var srv: TopologyZoomUpdater = null
+
     sys.addShutdownHook {
         log.info("Terminating instance of Topology Updater")
-        injector.getInstance(classOf[TopologyZoomUpdater])
-            .stopAsync().awaitTerminated()
-        injector.getInstance(classOf[MidonetBackend])
-            .stopAsync().awaitTerminated()
+        if (srv != null && srv.isRunning)
+            srv.stopAsync().awaitTerminated()
+        if (backend.isRunning)
+            backend.stopAsync().awaitTerminated()
     }
 
     try {
         log.info("Starting instance of Topology Updater")
-        injector.getInstance(classOf[MidonetBackend])
-            .startAsync().awaitRunning()
-        injector.getInstance(classOf[TopologyZoomUpdater])
-            .startAsync().awaitRunning()
+        backend.startAsync().awaitRunning()
+        srv = injector.getInstance(classOf[TopologyZoomUpdater])
+        srv.startAsync().awaitRunning()
         log.info("Started instance of Topology Updater")
 
         try {
