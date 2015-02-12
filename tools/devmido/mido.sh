@@ -251,9 +251,12 @@ cp $AGENT_BUILD_DIR/midonet-jdk-bootstrap-*.jar $DEPS_DIR/midonet-jdk-bootstrap.
 cp -r $AGENT_BUILD_DIR $DEPS_DIR/dep
 
 # Place our executables in /usr/local/bin
+MM_CTL="/usr/local/bin/mm-ctl"
+MM_DPCTL="/usr/local/bin/mm-dpctl"
 sed -e "s@%DEPS_DIR%@$DEPS_DIR@" \
     -e "s@%TOP_DIR%@$TOP_DIR@" \
-    $DEVMIDO_DIR/binproxy | sudo tee /usr/local/bin/mm-dpctl /usr/local/bin/mm-ctl
+    $DEVMIDO_DIR/binproxy | sudo tee $MM_CTL $MM_DPCTL
+sudo chmod +x $MM_CTL $MM_DPCTL
 
 # Create the midolman's conf dir in case it doesn't exist
 if [ ! -d $AGENT_CONF_DIR ]; then
