@@ -22,6 +22,30 @@
       "revId": "b01b880d0312c6d7e2d278a1e4990606f1e9eac8",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_cc3491e0",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VTPMRedirector.scala",
+        "patchSetId": 18
+      },
+      "lineNbr": 129,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-12T14:34:05Z",
+      "side": 1,
+      "message": "fixed. I also updated the tests to make sure this is tested.",
+      "parentUuid": "7a1969be_c14bbaae",
+      "range": {
+        "startLine": 118,
+        "startChar": 8,
+        "endLine": 129,
+        "endChar": 9
+      },
+      "revId": "b01b880d0312c6d7e2d278a1e4990606f1e9eac8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
