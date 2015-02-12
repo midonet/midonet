@@ -43,8 +43,8 @@ public class ZookeeperConnectionWatcher implements ZkConnectionAwareWatcher {
     private ScheduledFuture<?> disconnectHandle;
     private ZkConnection conn = null;
     private long sessionId = 0;
-    private List<Runnable> reconnectCallbacks = new LinkedList<Runnable>();
-    private List<Runnable> disconnectCallbacks = new LinkedList<Runnable>();
+    private List<Runnable> reconnectCallbacks = new LinkedList<>();
+    private List<Runnable> disconnectCallbacks = new LinkedList<>();
 
     @Inject
     @Named(ZkConnectionProvider.DIRECTORY_REACTOR_TAG)
@@ -54,15 +54,10 @@ public class ZookeeperConnectionWatcher implements ZkConnectionAwareWatcher {
     ZookeeperConfig config;
 
     @Override
-    public ZkConnection getZkConnection() {
-        return conn;
-    }
-
-    @Override
     public void setZkConnection(ZkConnection conn) {
         this.conn = conn;
-        this.reconnectCallbacks = new LinkedList<Runnable>();
-        this.disconnectCallbacks = new LinkedList<Runnable>();
+        this.reconnectCallbacks = new LinkedList<>();
+        this.disconnectCallbacks = new LinkedList<>();
     }
 
     @Override
