@@ -16,6 +16,24 @@
       "revId": "f1142bd2aa02c55f083c4268e0a81f0c0c24dbc4",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_e7940639",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/Port.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-02-12T21:34:08Z",
+      "side": 1,
+      "message": "Because it\u0027s public, so anyone can come anytime and override it with a false (which does happen somewhere else, after fetching the active node and counting the number of children, which is 0 always).",
+      "parentUuid": "7a1969be_275e1ee7",
+      "revId": "f1142bd2aa02c55f083c4268e0a81f0c0c24dbc4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
