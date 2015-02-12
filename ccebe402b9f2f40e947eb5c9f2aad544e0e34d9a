@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_61b76687",
+        "filename": "midolman/src/main/java/org/midonet/midolman/host/config/HostConfig.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-02-12T13:36:00Z",
+      "side": 1,
+      "message": "Yes, this feels very odd here. IMO there should be nothing in midolman with any notion of neutron db, let alone sql connections.\n\nI understand current code org requires us to touch in here, but we should try to have this config elsewhere, and probably move mm-ctl to a command elsewhere (probably in /cluster or /brain).",
+      "parentUuid": "7a1969be_61100602",
+      "revId": "ccebe402b9f2f40e947eb5c9f2aad544e0e34d9a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_a1f95eca",
         "filename": "midolman/src/main/java/org/midonet/midolman/tools/MmCtl.java",
         "patchSetId": 1
