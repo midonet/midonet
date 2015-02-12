@@ -119,12 +119,14 @@ message Port {
     optional string port_mac = 16;
 
     // VXLAN port specific
-    // TODO: This should be replaced by vtep_id, and the vni moved to Network
-    optional IPAddress vtep_mgmt_ip = 17;
-    optional uint32 vtep_mgmt_port = 18;
-    optional uint32 vtep_vni = 19;
-    optional IPAddress vtep_tunnel_ip = 20;
-    optional UUID vtep_tunnel_zone_id = 21;
+    optional UUID vtep_id = 17;
+    // TODO: The following is mostly replaced by vtep_id,
+    // and the vni should be moved to Network
+    optional IPAddress vtep_mgmt_ip = 18;
+    optional uint32 vtep_mgmt_port = 19;
+    optional uint32 vtep_vni = 20;
+    optional IPAddress vtep_tunnel_ip = 21;
+    optional UUID vtep_tunnel_zone_id = 22;
 
     // Backreferences
     repeated UUID rule_ids = 101;
