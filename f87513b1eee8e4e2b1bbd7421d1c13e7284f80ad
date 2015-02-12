@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_ccdbf119",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/Storage.scala",
+        "patchSetId": 33
+      },
+      "lineNbr": 341,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-12T17:40:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_e52b692e",
+      "range": {
+        "startLine": 341,
+        "startChar": 25,
+        "endLine": 341,
+        "endChar": 31
+      },
+      "revId": "f87513b1eee8e4e2b1bbd7421d1c13e7284f80ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_251d8110",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/Storage.scala",
         "patchSetId": 33
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_0c05097a",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/Storage.scala",
+        "patchSetId": 33
+      },
+      "lineNbr": 349,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-12T17:40:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_251d8110",
+      "range": {
+        "startLine": 349,
+        "startChar": 54,
+        "endLine": 349,
+        "endChar": 64
+      },
+      "revId": "f87513b1eee8e4e2b1bbd7421d1c13e7284f80ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_8058a357",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
         "patchSetId": 33
@@ -59,6 +107,30 @@
       "writtenOn": "2015-02-10T16:46:18Z",
       "side": 1,
       "message": "Is it correct?",
+      "range": {
+        "startLine": 493,
+        "startChar": 21,
+        "endLine": 494,
+        "endChar": 30
+      },
+      "revId": "f87513b1eee8e4e2b1bbd7421d1c13e7284f80ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_acf9554f",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 33
+      },
+      "lineNbr": 494,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-12T17:40:25Z",
+      "side": 1,
+      "message": "This is for backwards compatibility with the non-ownership delete, which is allowed for shared ownership regardless of the owners set.\n\nNormally, the ownership validation should determine where a deletion is allowed.",
+      "parentUuid": "7a1969be_8058a357",
       "range": {
         "startLine": 493,
         "startChar": 21,
@@ -176,6 +248,30 @@
       "writtenOn": "2015-02-10T16:46:18Z",
       "side": 1,
       "message": "I thought a node with exclusive ownership can be orphaned, can\u0027t be?",
+      "range": {
+        "startLine": 583,
+        "startChar": 12,
+        "endLine": 586,
+        "endChar": 70
+      },
+      "revId": "f87513b1eee8e4e2b1bbd7421d1c13e7284f80ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_ac9035ed",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 33
+      },
+      "lineNbr": 586,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-12T17:40:25Z",
+      "side": 1,
+      "message": "Maybe you are right and we should allow this case: to allow graceful removal of ownership upon shutdown.\n\nInitially, I intended orphan to mean only when the ownership node is deleted by zk.\n\nI will address this in the subsequent patch.",
+      "parentUuid": "7a1969be_e049978c",
       "range": {
         "startLine": 583,
         "startChar": 12,
