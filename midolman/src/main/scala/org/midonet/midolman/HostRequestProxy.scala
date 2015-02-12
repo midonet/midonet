@@ -22,7 +22,6 @@ import scala.util.{Failure, Success}
 
 import akka.actor.{Actor, ActorRef}
 
-import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.state.ConnTrackState.ConnTrackKey
 import org.midonet.midolman.state.FlowStateStorage
@@ -61,8 +60,7 @@ object HostRequestProxy {
   * the host object.
   */
 class HostRequestProxy(val hostId: UUID, val storage: FlowStateStorage,
-                       val subscriber: ActorRef, config: MidolmanConfig)
-                                                 extends Actor
+                       val subscriber: ActorRef) extends Actor
                                                  with ActorLogWithoutPath
                                                  with SingleThreadExecutionContextProvider {
 
@@ -123,8 +121,7 @@ class HostRequestProxy(val hostId: UUID, val storage: FlowStateStorage,
                     }
             }.toSeq.filter(_.isDefined).map(opt => (opt.get.portId, opt.get))
 
-        ResolvedHost(host.id, host.alive, config.getDatapath, bindings.toMap,
-                     host.tunnelZones)
+        ResolvedHost(host.id, host.alive, bindings.toMap, host.tunnelZones)
     }
 
     override def receive = super.receive orElse {

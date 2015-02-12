@@ -1029,7 +1029,7 @@ class NatTest extends MidolmanSpec {
             Option(portMap.inverse.get(vportId))
         }
         override def getDpPortName(num: Integer): Option[String] = ???
-        override def host = new ResolvedHost(hostId, true, "", Map(), Map())
+        override def host = new ResolvedHost(hostId, true, Map(), Map())
         override def peerTunnelInfo(peer: UUID)
                 : Option[org.midonet.midolman.UnderlayResolver.Route] = None
         override def isVtepTunnellingPort(portNumber: Integer): Boolean = ???
