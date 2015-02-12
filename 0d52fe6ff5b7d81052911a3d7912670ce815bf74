@@ -34,6 +34,24 @@
       "revId": "0d52fe6ff5b7d81052911a3d7912670ce815bf74",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_5e6e8b02",
+        "filename": "tools/devmido/midostack.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 1002749
+      },
+      "writtenOn": "2015-02-12T07:21:56Z",
+      "side": 1,
+      "message": "According to installation guide, the user and root in qemu.conf should be set to root: http://docs.midonet.org/docs/latest/quick-start-guide/ubuntu-1404_juno/content/_compute_node.html\n\nCheck out current midostack\u0027s statements: https://github.com/midonet/midostack/blob/master/scripts/post_devstack.d/030.configure_libvirt.sh#L25",
+      "parentUuid": "7a1969be_be1dffbf",
+      "revId": "0d52fe6ff5b7d81052911a3d7912670ce815bf74",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
