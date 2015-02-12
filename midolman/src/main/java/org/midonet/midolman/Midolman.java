@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,8 +39,8 @@ import org.midonet.midolman.guice.MidolmanActorsModule;
 import org.midonet.midolman.guice.MidolmanModule;
 import org.midonet.midolman.guice.ResourceProtectionModule;
 import org.midonet.midolman.guice.StateStorageModule;
-import org.midonet.midolman.guice.cluster.ClusterClientModule;
 import org.midonet.midolman.guice.StorageModule;
+import org.midonet.midolman.guice.cluster.ClusterClientModule;
 import org.midonet.midolman.guice.config.ConfigProviderModule;
 import org.midonet.midolman.guice.datapath.DatapathModule;
 import org.midonet.midolman.guice.serialization.SerializationModule;
@@ -49,6 +49,7 @@ import org.midonet.midolman.guice.zookeeper.ZookeeperConnectionModule;
 import org.midonet.midolman.host.guice.HostModule;
 import org.midonet.midolman.services.MidolmanActorsService;
 import org.midonet.midolman.services.MidolmanService;
+import org.midonet.midolman.state.ZookeeperConnectionWatcher;
 
 public class Midolman {
 
@@ -121,7 +122,7 @@ public class Midolman {
         }
 
         injector = Guice.createInjector(
-            new ZookeeperConnectionModule(),
+            new ZookeeperConnectionModule(ZookeeperConnectionWatcher.class),
             new SerializationModule(),
             new HostModule(),
             new ConfigProviderModule(configFilePath),
