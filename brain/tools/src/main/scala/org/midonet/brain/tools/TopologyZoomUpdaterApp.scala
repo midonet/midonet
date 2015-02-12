@@ -16,10 +16,11 @@
 
 package org.midonet.brain.tools
 
-import com.google.inject.{AbstractModule, Guice}
-import org.midonet.cluster.config.ZookeeperConfig
+import com.google.inject.{AbstractModule, Guice, Singleton}
+import org.midonet.cluster.services.{MidonetBackend, MidonetBackendService}
 import org.slf4j.LoggerFactory
 
+import org.midonet.cluster.config.ZookeeperConfig
 import org.midonet.cluster.storage.MidonetBackendModule
 import org.midonet.config.ConfigProvider
 
@@ -37,12 +38,14 @@ object TopologyZoomUpdaterApp extends App {
 
     private val topologyZkUpdaterModule = new AbstractModule {
         override def configure(): Unit = {
+            // TODO: required for legacy modules, remove asap
             val zkConfig = cfgProvider.getConfig(classOf[ZookeeperConfig])
             bind(classOf[ZookeeperConfig]).toInstance(zkConfig)
 
             bind(classOf[ConfigProvider]).toInstance(cfgProvider)
             bind(classOf[TopologyZoomUpdaterConfig]).toInstance(updCfg)
-            bind(classOf[TopologyZoomUpdater]).asEagerSingleton()
+            //bind(classOf[TopologyZoomUpdater]).asEagerSingleton()
+            bind(classOf[TopologyZoomUpdater]).in(classOf[Singleton])
         }
     }
 
@@ -51,18 +54,22 @@ object TopologyZoomUpdaterApp extends App {
         topologyZkUpdaterModule
     )
 
+    // TODO the backend storage should be started in the module...
+    private val backend = injector.getInstance(classOf[MidonetBackend])
+    backend.startAsync().awaitRunning()
+    private val app = injector.getInstance(classOf[TopologyZoomUpdater])
+
     sys.addShutdownHook {
         log.info("Terminating instance of Topology Updater")
-        injector.getInstance(classOf[TopologyZoomUpdater])
-                .stopAsync()
-                .awaitTerminated()
+        if (app.isRunning)
+            app.stopAsync().awaitTerminated()
+        if (backend.isRunning)
+            backend.stopAsync().awaitTerminated()
     }
 
     try {
         log.info("Starting instance of Topology Updater")
-        injector.getInstance(classOf[TopologyZoomUpdater])
-                .startAsync()
-                .awaitRunning()
+        app.startAsync().awaitRunning()
         log.info("Started instance of Topology Updater")
 
         try {
