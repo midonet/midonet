@@ -19,7 +19,13 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Date;
 import java.util.UUID;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
@@ -34,6 +40,8 @@ import org.apache.commons.cli.OptionGroup;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
+import org.codehaus.jackson.node.JsonNodeFactory;
+import org.codehaus.jackson.node.ObjectNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,6 +50,7 @@ import org.midonet.cluster.data.host.Host;
 import org.midonet.cluster.data.host.VirtualPortMapping;
 import org.midonet.config.ConfigProvider;
 import org.midonet.config.HostIdGenerator;
+import org.midonet.midolman.config.ClusterConfig;
 import org.midonet.midolman.config.MidolmanConfig;
 import org.midonet.midolman.guice.MidolmanModule;
 import org.midonet.midolman.guice.cluster.DataClusterClientModule;
@@ -61,6 +70,37 @@ import org.midonet.midolman.state.StateAccessException;
 public class MmCtl {
 
     private static final Logger log = LoggerFactory.getLogger(MmCtl.class);
+
+    private enum TASK_TYPE {
+        CREATE_TASK_TYPE(1),
+        DELETE_TASK_TYPE(2);
+
+        private final int id;
+
+        private TASK_TYPE(int id) {
+            this.id = id;
+        }
+    }
+
+    private enum DATA_TYPE {
+        HOST_BINDING_DATA_TYPE(12);
+
+        private final int id;
+
+        private DATA_TYPE(int id) { this.id = id; }
+    }
+
+    private final String INSERT_TASK =
+        "insert into midonet_tasks values (default, ?, ?, ?, ?, ?, ?, ?)";
+
+    private final String INSERT_PORT_BINDING =
+        "insert into midonet_port_binding values (?, ?, ?, ?)";
+
+    private final String DELETE_PORT_BINDING =
+        "delete from midonet_port_binding where id = ?";
+
+    private final String PORT_BINDING_QUERY =
+        "select id from midonet_port_binding where port_id = ?";
 
     private enum MM_CTL_RET_CODE {
 
@@ -119,10 +159,13 @@ public class MmCtl {
 
     private final DataClient dataClient;
     private final HostConfig hostConfig;
+    private final ClusterConfig clusterConfig;
 
-    public MmCtl(DataClient dataClient, HostConfig hostConfig) {
+    public MmCtl(DataClient dataClient, HostConfig hostConfig,
+                 ClusterConfig clusterConfig) {
         this.dataClient = dataClient;
         this.hostConfig = hostConfig;
+        this.clusterConfig = clusterConfig;
     }
 
     private UUID getHostId() throws IOException {
@@ -135,32 +178,189 @@ public class MmCtl {
         log.debug("MmCtl.bindPort entered. portId=" + portId + ", deviceName="
                 + deviceName);
 
+        UUID hostId;
         try {
-            dataClient.hostsAddVrnPortMapping(getHostId(), portId, deviceName);
+            hostId = getHostId();
         } catch (IOException e) {
             return MM_CTL_RET_CODE.HOST_ID_NOT_IN_FILE.getResult(e);
+        }
+
+        try {
+            dataClient.hostsAddVrnPortMapping(hostId, portId, deviceName);
         } catch (StateAccessException e) {
             return MM_CTL_RET_CODE.STATE_ERROR.getResult(e);
         } catch (Exception e) {
             return MM_CTL_RET_CODE.UNKNOWN_ERROR.getResult(e);
         }
 
+        createBindEntries(portId, deviceName, hostId);
+
         return MM_CTL_RET_CODE.SUCCESS.getResult();
+    }
+
+    private String getPortBindingData(UUID portId, UUID bindingId,
+                                      String deviceName, UUID hostId) {
+        JsonNodeFactory jnf = JsonNodeFactory.instance;
+        ObjectNode json = jnf.objectNode();
+        json.put("id", bindingId.toString());
+        json.put("host_id", hostId.toString());
+        json.put("interface_name", deviceName);
+        json.put("port_id", portId.toString());
+        return json.toString();
+    }
+
+    private Connection connectToDatabase() {
+        try {
+            //TODO: support other drivers.
+            Class.forName("com.mysql.jdbc.Driver");
+        } catch (ClassNotFoundException e) {
+            log.error("Driver class not available");
+            throw new RuntimeException(e);
+        }
+
+        try {
+            Connection connection =
+                DriverManager.getConnection(
+                    "jdbc:" + clusterConfig.getTasksDbConn());
+            try {
+                PreparedStatement ps = connection.prepareStatement("BEGIN");
+                ps.executeUpdate();
+                return connection;
+            } catch (SQLException e) {
+                failCloseConnection(connection);
+                throw new RuntimeException(e);
+            }
+        } catch (SQLException e) {
+
+            log.error("Could not connect to database: " +
+                      clusterConfig.getTasksDbConn());
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void failCloseConnection(Connection connection) {
+        try {
+            PreparedStatement ps = connection.prepareStatement("ROLLBACK");
+            ps.executeUpdate();
+            connection.close();
+        } catch (SQLException e) {
+            // we are in deep trouble now. We not only are failing to close
+            // the connection when an error happened, but we can not even
+            // rollback the transaction
+            log.error("UNABLE TO CLOSE CONNECTION OR ROLLBACK CHANGES!!");
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void successCloseConnection(Connection connection) {
+        try {
+            PreparedStatement ps = connection.prepareStatement("COMMIT");
+            ps.executeUpdate();
+            connection.close();
+        } catch (SQLException e) {
+            log.error("Unable to close connection");
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void insertTask(Connection connect, UUID bindingId,
+                            TASK_TYPE taskType, UUID portId,
+                            String deviceName, UUID hostId)
+            throws SQLException {
+        PreparedStatement ps = connect.prepareStatement(INSERT_TASK);
+        ps.setInt(1, taskType.id);
+        ps.setInt(2, DATA_TYPE.HOST_BINDING_DATA_TYPE.id);
+        ps.setString(3, getPortBindingData(bindingId, portId, deviceName,
+                                           hostId));
+        ps.setString(4, bindingId.toString()); //resource id
+        ps.setString(5, UUID.randomUUID().toString()); // transaction id
+        ps.setDate(6, new java.sql.Date(new Date().getTime()));
+        ps.setString(7, hostId.toString()); //tenant id
+        ps.executeUpdate();
+    }
+
+    private void insertPortBinding(Connection connect, UUID id, UUID portId,
+                                   String interfaceName, UUID hostId)
+            throws SQLException {
+        PreparedStatement ps = connect.prepareStatement(INSERT_PORT_BINDING);
+        ps.setString(1, id.toString());
+        ps.setString(2, portId.toString());
+        ps.setString(3, hostId.toString());
+        ps.setString(4, interfaceName);
+        ps.executeUpdate();
+    }
+
+    private void deletePortBinding(Connection connect, UUID bindingId)
+            throws SQLException {
+        PreparedStatement ps = connect.prepareStatement(DELETE_PORT_BINDING);
+        ps.setString(1, bindingId.toString());
+        ps.executeUpdate();
+    }
+
+    private void createBindEntries(UUID portId, String deviceName,
+                                   UUID hostId) {
+        Connection connect = connectToDatabase();
+        try {
+            UUID bindingId = UUID.randomUUID();
+            insertTask(connect, bindingId, TASK_TYPE.CREATE_TASK_TYPE, portId,
+                       deviceName, hostId);
+            insertPortBinding(connect, bindingId, portId, deviceName, hostId);
+        } catch (SQLException e) {
+            log.error("Failed to create port binding entries");
+            failCloseConnection(connect);
+            throw new RuntimeException(e);
+        }
+        successCloseConnection(connect);
+    }
+
+    private UUID getBindingId(Connection connect, UUID portId) {
+        try {
+            PreparedStatement ps = connect.prepareStatement(PORT_BINDING_QUERY);
+            ps.setString(1, portId.toString());
+            ResultSet rs = ps.executeQuery();
+            rs.next();
+            return UUID.fromString(rs.getString("id"));
+        } catch (SQLException e) {
+            failCloseConnection(connect);
+            log.error("getBindingId failed: " + e.getMessage());
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void removeBindEntries(UUID portId, UUID hostId) {
+        Connection connect = connectToDatabase();
+        try {
+            UUID bindingId = getBindingId(connect, portId);
+            insertTask(connect, bindingId, TASK_TYPE.DELETE_TASK_TYPE, portId,
+                       null, hostId);
+            deletePortBinding(connect, bindingId);
+        } catch (SQLException e) {
+            failCloseConnection(connect);
+            log.error("removeBindEntries failed: " + e.getMessage());
+            throw new RuntimeException(e);
+        }
+        successCloseConnection(connect);
     }
 
     private MmCtlResult unbindPort(UUID portId) {
         log.debug("MmCtl.unbindPort entered. portId=" + portId);
 
-        String errMsg = "Failed to unbind port and interface";
+        UUID hostId;
         try {
-            dataClient.hostsDelVrnPortMapping(getHostId(), portId);
+            hostId = getHostId();
         } catch (IOException e) {
             return MM_CTL_RET_CODE.HOST_ID_NOT_IN_FILE.getResult(e);
+        }
+
+        try {
+            dataClient.hostsDelVrnPortMapping(hostId, portId);
         } catch (StateAccessException e) {
             return MM_CTL_RET_CODE.STATE_ERROR.getResult(e);
         } catch (Exception e) {
             return MM_CTL_RET_CODE.UNKNOWN_ERROR.getResult(e);
         }
+
+        removeBindEntries(portId, hostId);
 
         return MM_CTL_RET_CODE.SUCCESS.getResult();
     }
@@ -322,7 +522,8 @@ public class MmCtl {
             // Set up Guice dependencies
             Injector injector = getInjector(configFilePath);
             MmCtl mmctl = new MmCtl(injector.getInstance(DataClient.class),
-                    injector.getInstance(HostConfig.class));
+                    injector.getInstance(HostConfig.class),
+                    injector.getInstance(ClusterConfig.class));
 
             MmCtlResult res = null;
             if (cl.hasOption("bind-port")) {

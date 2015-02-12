@@ -31,7 +31,7 @@ import org.midonet.config.ConfigString;
 @ConfigGroup(MidolmanConfig.GROUP_NAME)
 public interface MidolmanConfig
     extends ZookeeperConfig, CassandraConfig, DatapathConfig,
-            ArpTableConfig, HealthMonitorConfig
+            ArpTableConfig, HealthMonitorConfig, ClusterConfig
 {
     public final static String GROUP_NAME = "midolman";
     public final static short DEFAULT_MTU = 1500;
