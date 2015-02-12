@@ -57,6 +57,24 @@
       "revId": "d856079a7aa1d83c2d206cf7716bdee1ce172142",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_4147ca1f",
+        "filename": "midolman/src/main/java/org/midonet/cluster/LocalDataClientImpl.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 3173,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-02-12T10:20:01Z",
+      "side": 1,
+      "message": "I don\u0027t think zoom depends on the neutron db. it\u0027s just an ORM for zk.",
+      "parentUuid": "7a1969be_61cbe6a5",
+      "revId": "d856079a7aa1d83c2d206cf7716bdee1ce172142",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
