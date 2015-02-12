@@ -19,7 +19,11 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Date;
 import java.util.UUID;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
@@ -61,6 +65,14 @@ import org.midonet.midolman.state.StateAccessException;
 public class MmCtl {
 
     private static final Logger log = LoggerFactory.getLogger(MmCtl.class);
+
+    private static final int BIND_TASK_TYPE = 5;
+    private static final int UNBIND_TASK_TYPE = 6;
+
+    private static final int HOST_BINDING_DATA_TYPE = 12;
+
+    private static String BIND_TASK_UPDATE =
+        "insert into midonet_tasks values (default, ?, ?, ?, ?, ?, ?, ?)";
 
     private enum MM_CTL_RET_CODE {
 
@@ -145,7 +157,54 @@ public class MmCtl {
             return MM_CTL_RET_CODE.UNKNOWN_ERROR.getResult(e);
         }
 
+        insertBindTask(portId, deviceName);
+
         return MM_CTL_RET_CODE.SUCCESS.getResult();
+    }
+
+    private String getPortBindingData(UUID portId, String deviceName) {
+        StringBuilder sb = new StringBuilder("{");
+        sb.append("\"host_id\":");
+        sb.append(hostConfig.getHostId());
+        sb.append(",");
+        sb.append("\"interface_name\":");
+        sb.append(deviceName);
+        sb.append(",");
+        sb.append("\"port_id\":");
+        sb.append(portId.toString());
+        sb.append("}");
+        return sb.toString();
+    }
+
+    private Connection connectToDatabase() throws Exception {
+        //TODO: support other drivers.
+        Class.forName("com.mysql.jdbc.Driver");
+        return DriverManager.getConnection("jdbc:" + hostConfig.getSqlConn());
+    }
+
+    private void insertTask(int taskType, UUID portId, String deviceName) {
+        try {
+            Connection connect = connectToDatabase();
+            PreparedStatement ps = connect.prepareStatement(BIND_TASK_UPDATE);
+            ps.setInt(1, taskType);
+            ps.setInt(2, HOST_BINDING_DATA_TYPE);
+            ps.setString(3, getPortBindingData(portId, deviceName));
+            ps.setString(4, null); //resource id
+            ps.setString(5, "mm-ctl"); // transaction id
+            ps.setDate(6, new java.sql.Date(new Date().getTime()));
+            ps.setString(7, "mm-ctl"); //tenant id
+            ps.executeUpdate();
+        } catch (Exception e) {
+            log.error("insertTask failed: " + e.getMessage());
+        }
+    }
+
+    private void insertBindTask(UUID portId, String deviceName) {
+        insertTask(BIND_TASK_TYPE, portId, deviceName);
+    }
+
+    private void insertUnbindTask(UUID portId) {
+        insertTask(UNBIND_TASK_TYPE, portId, null);
     }
 
     private MmCtlResult unbindPort(UUID portId) {
@@ -161,6 +220,8 @@ public class MmCtl {
         } catch (Exception e) {
             return MM_CTL_RET_CODE.UNKNOWN_ERROR.getResult(e);
         }
+
+        insertUnbindTask(portId);
 
         return MM_CTL_RET_CODE.SUCCESS.getResult();
     }

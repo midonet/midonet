@@ -55,7 +55,7 @@ dependencies {
             libraries.jetty_websocket, libraries.jetty_deploy, libraries.jminix,
             libraries.jsonpath, libraries.curator_recipes,
             libraries.scala_logging, libraries.scallop, libraries.protobuf,
-            libraries.disruptor
+            libraries.disruptor, libraries.mysql_jdbc
 
     testCompile libraries.akkatest, libraries.scalatest,
                 libraries.jsonpath_assert, libraries.cassandraunit,

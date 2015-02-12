@@ -69,4 +69,13 @@ public interface HostConfig extends HostIdConfig {
     @ConfigInt(key = "retries_gen_id", defaultValue = 5 * 60 * 1000)
     public int getRetriesForUniqueHostId();
 
+    /**
+     * Get the mysql connection string
+     *
+     * @return mysql connection string
+     */
+    @ConfigString(key = "sql_connection",
+        defaultValue = "mysql://localhost/neutron?user=root&password=gogomid0")
+    public String getSqlConn();
+
 }
