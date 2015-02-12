@@ -97,7 +97,7 @@ public abstract class ZookeeperTest {
             Arrays.asList(
                 new SerializationModule(),
                 new ConfigProviderModule(getConfig(zkRoot)),
-                new ZookeeperConnectionModule(),
+                new ZookeeperConnectionModule(ZookeeperConnectionWatcher.class),
                 new StorageModule(),
                 new DataClientModule())
         );
