@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_8ce73912",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/layer4/NatTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-02-12T16:03:18Z",
+      "side": 1,
+      "message": "I was hoping we could get rid of this :(",
+      "revId": "550afd9a78980c3ae5b5b86815beeb8229bfdcb6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_cc1ad116",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/layer4/NatTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 1014,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-02-12T16:03:18Z",
+      "side": 1,
+      "message": "This method could live in the VirtualTopologyHelper; I think i\u0027ve already implemented something similar in another test.",
+      "revId": "550afd9a78980c3ae5b5b86815beeb8229bfdcb6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
