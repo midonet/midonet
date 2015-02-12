@@ -19,6 +19,7 @@ package org.midonet.brain.services.c3po
 import java.util.concurrent.TimeUnit
 import java.util.{HashMap => JHashMap, Map => JMap, UUID => JUUID}
 
+import scala.collection.mutable.ListBuffer
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 
@@ -51,6 +52,8 @@ object C3POStorageManager {
         val Create = Value(1)
         val Delete = Value(2)
         val Update = Value(3)
+        val Bind = Value(4)
+        val Unbind = Value(5)
 
         private val ops = Array(Create, Delete, Update)
         def valueOf(i: Int) = ops(i - 1)
@@ -59,7 +62,7 @@ object C3POStorageManager {
     /** A generic operation on a model */
     trait Operation[T <: Message] {
         def opType: OpType.OpType
-        def toPersistenceOp: PersistenceOp
+        def toPersistenceOp: Option[PersistenceOp]
     }
 
     /** A failure occurred when interpreting or executing an operation. */
@@ -163,20 +166,27 @@ final class C3POStorageManager(storage: Storage) {
     }
 
     @throws[ProcessingException]
-    private def toPersistenceOps[T <: Message](task: neutron.Task[T]) = {
+    private def toPersistenceOps[T <: Message](task: neutron.Task[T])
+    : List[PersistenceOp] = {
         val modelClass = task.op match {
             case c: neutron.Create[T] => c.model.getClass
             case u: neutron.Update[T] => u.model.getClass
             case d: neutron.Delete[T] => d.clazz
+            case b: neutron.Bind[T] => b.model.getClass
+            case ub: neutron.Unbind[T] => ub.model.getClass
         }
         if (!apiTranslators.containsKey(modelClass)) {
             throw new ProcessingException(s"No translator for $modelClass.")
         }
 
-        Seq(task.op.toPersistenceOp) ++  // Persists the original model
-                apiTranslators.get(modelClass)
-                              .asInstanceOf[NeutronTranslator[T]]
-                              .translate(task.op)
-                              .map { midoOp => midoOp.toPersistenceOp }
+        val persistenceOps: ListBuffer[PersistenceOp] = ListBuffer()
+        persistenceOps ++= task.op.toPersistenceOp  // Persists the original
+        persistenceOps ++=
+            apiTranslators.get(modelClass)
+                          .asInstanceOf[NeutronTranslator[T]]
+                          .translate(task.op)
+                          .flatMap { midoOp => midoOp.toPersistenceOp }
+
+        persistenceOps.toList
     }
 }

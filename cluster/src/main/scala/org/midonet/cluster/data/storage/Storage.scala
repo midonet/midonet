@@ -72,6 +72,10 @@ object OwnershipType extends Enumeration {
 
 case class ObjWithOwner(obj: Obj, owners: Seq[ObjId])
 
+case class BindOp(obj: Obj) extends PersistenceOp
+
+case class UnbindOp(obj: Obj) extends PersistenceOp
+
 /**
  * Used in update operations to perform validation that depends on knowing the
  * current state of the object to be validated.

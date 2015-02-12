@@ -49,6 +49,8 @@ object TaskType extends Enumeration {
     val Delete = TaskType(2, "Delete")
     val Update = TaskType(3, "Update")
     val Flush = TaskType(4, "Flush")
+    val Bind = TaskType(5, "Bind")
+    val Unbind = TaskType(6, "Unbind")
 
     private val vals = Array(Create, Delete, Update, Flush)
     def valueOf(i: Int) = vals(i - 1)
@@ -75,11 +77,11 @@ object NeutronResourceType extends Enumeration {
         NeutronResourceType(7, classOf[Neutron.SecurityGroupRule])
     val RouterInterface =
         NeutronResourceType(8, classOf[NeutronRouterInterface])
-    val PortBinding =
-        NeutronResourceType(12, classOf[PortBinding])
+    val PortBinding = NeutronResourceType(12, classOf[PortBinding])
 
     private val vals = Array(NoData, Network, Subnet, Router, Port, FloatingIp,
-                             SecurityGroup, SecurityGroupRule, RouterInterface)
+                             SecurityGroup, SecurityGroupRule, RouterInterface,
+                             PortBinding)
     def valueOf(i: Int) = vals(i)
 }
 
@@ -183,6 +185,8 @@ class SqlNeutronImporter(dataSrc: DataSource) extends NeutronImporter {
             case TaskType.Delete => importer.Delete(id, rsrcType, rsrcId)
             case TaskType.Update => importer.Update(id, rsrcType, json)
             case TaskType.Flush  => importer.Flush(id)
+            case TaskType.Bind  => importer.Bind(id, rsrcType, json)
+            case TaskType.Unbind  => importer.Unbind(id, rsrcType, json)
         }
     }
 

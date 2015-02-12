@@ -19,7 +19,7 @@ package org.midonet.brain.services.c3po
 import com.google.protobuf.Message
 
 import org.midonet.brain.services.c3po.C3POStorageManager.{OpType, Operation}
-import org.midonet.cluster.data.storage.{CreateOp, DeleteOp, UpdateOp}
+import org.midonet.cluster.data.storage.{BindOp, CreateOp, DeleteOp, UnbindOp, UpdateOp}
 import org.midonet.cluster.models.Commons
 
 package object neutron {
@@ -28,12 +28,12 @@ package object neutron {
 
     case class Create[T <: Message](model: T) extends NeutronOp[T] {
         override val opType = OpType.Create
-        override def toPersistenceOp = CreateOp(model)
+        override def toPersistenceOp = Some(CreateOp(model))
     }
 
     case class Update[T <: Message](model: T) extends NeutronOp[T] {
         override val opType = OpType.Update
-        override def toPersistenceOp = UpdateOp(model)
+        override def toPersistenceOp = Some(UpdateOp(model))
     }
 
     case class Delete[T <: Message](clazz: Class[T], id: Commons.UUID)
@@ -42,8 +42,18 @@ package object neutron {
         /* C3PODataManager's deletion semantics is delete-if-exists by default
          * and no-op if the object doesn't exist. Revisit if we need to make
          * this configurable. */
-        override def toPersistenceOp = DeleteOp(clazz, id,
-                                                ignoreIfNotExists = true)
+        override def toPersistenceOp =
+            Some(DeleteOp(clazz, id, ignoreIfNotExists = true))
+    }
+
+    case class Bind[T <: Message](model: T) extends NeutronOp[T] {
+        override val opType = OpType.Bind
+        override def toPersistenceOp = None
+    }
+
+    case class Unbind[T <: Message](model: T) extends NeutronOp[T] {
+        override val opType = OpType.Unbind
+        override def toPersistenceOp = None
     }
 
     sealed case class Transaction(txnId: String,

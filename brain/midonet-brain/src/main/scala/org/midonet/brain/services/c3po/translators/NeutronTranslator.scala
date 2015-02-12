@@ -47,6 +47,8 @@ trait NeutronTranslator[NeutronModel <: Message] {
             case neutron.Create(nm) => translateCreate(nm)
             case neutron.Update(nm) => translateUpdate(nm)
             case neutron.Delete(_, id) => translateDelete(id)
+            case neutron.Bind(nm) => translateBind(nm)
+            case neutron.Unbind(nm) => translateUnbind(nm)
         }
     } catch {
         case NonFatal(ex) => throw new TranslationException(op, ex)
@@ -55,6 +57,8 @@ trait NeutronTranslator[NeutronModel <: Message] {
     protected def translateCreate(nm: NeutronModel): MidoOpList
     protected def translateUpdate(nm: NeutronModel): MidoOpList
     protected def translateDelete(id: UUID): MidoOpList
+    protected def translateBind(nm: NeutronModel): MidoOpList = ???
+    protected def translateUnbind(nm: NeutronModel): MidoOpList = ???
 }
 
 /** Thrown by by implementations when they fail to perform the requested

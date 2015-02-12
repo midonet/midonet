@@ -103,6 +103,10 @@ class C3POMinion @Inject()(nodeContext: ClusterNode.Context,
                 neutron.Update(toMessage(json, rsrcType.clazz))
             case importer.Delete(_, rsrcType, objId) =>
                 neutron.Delete(rsrcType.clazz, UUIDUtil.toProto(objId))
+            case importer.Bind(_, rsrcType, json) =>
+                neutron.Bind(toMessage(json, rsrcType.clazz))
+            case importer.Unbind(_, rsrcType, json) =>
+                neutron.Unbind(toMessage(json, rsrcType.clazz))
             case importer.Flush(_) =>
                 // TODO: Trigger a rebuild, because this shouldn't happen.
                 throw new IllegalArgumentException(

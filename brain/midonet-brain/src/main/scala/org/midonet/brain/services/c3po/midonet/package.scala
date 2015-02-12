@@ -29,12 +29,12 @@ package object midonet {
 
     case class Create[T <: Message](model: T) extends MidoOp[T] {
         override val opType = OpType.Create
-        override def toPersistenceOp = CreateOp(model)
+        override def toPersistenceOp = Some(CreateOp(model))
     }
 
     case class Update[T <: Message](model: T) extends MidoOp[T] {
         override val opType = OpType.Update
-        override def toPersistenceOp = UpdateOp(model)
+        override def toPersistenceOp = Some(UpdateOp(model))
     }
 
     case class Delete[T <: Message](clazz: Class[T], id: Commons.UUID)
@@ -43,8 +43,8 @@ package object midonet {
         /* C3PODataManager's deletion semantics is delete-if-exists by default
          * and no-op if the object doesn't exist. Revisit if we need to make
          * this configurable. */
-        override def toPersistenceOp = DeleteOp(clazz, id,
-                                                ignoreIfNotExists = true)
+        override def toPersistenceOp =
+            Some(DeleteOp(clazz, id, ignoreIfNotExists = true))
     }
 
 }

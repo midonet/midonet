@@ -37,6 +37,12 @@ package object importer {
                       rsrcType: NeutronResourceType[_ <: Message],
                       json: String) extends Task
     case class Flush(taskId: Int) extends Task
+    case class Bind(taskId: Int,
+                    rsrcType: NeutronResourceType[_ <: Message],
+                    json: String) extends Task
+    case class Unbind(taskId: Int,
+                      rsrcType: NeutronResourceType[_ <: Message],
+                      json: String) extends Task
 
     class Transaction(val id: String, val tasks: List[Task]) {
         val lastTaskId = tasks.last.taskId
