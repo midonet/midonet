@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_275e1ee7",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/Port.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-02-12T20:21:55Z",
+      "side": 1,
+      "message": "why  not override the var?",
+      "revId": "f1142bd2aa02c55f083c4268e0a81f0c0c24dbc4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
