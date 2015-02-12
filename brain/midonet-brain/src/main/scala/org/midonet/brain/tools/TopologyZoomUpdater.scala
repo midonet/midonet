@@ -18,18 +18,26 @@ package org.midonet.brain.tools
 
 import java.util.concurrent.{TimeUnit, Executors}
 
+import scala.collection.JavaConversions._
+import scala.concurrent.Await
+import scala.concurrent.duration.Duration
+import scala.reflect.ClassTag
 import scala.util.Random
 
 import com.google.common.util.concurrent.AbstractService
 import com.google.inject.Inject
+import com.google.protobuf.Message
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.data.storage.Storage
 import org.midonet.cluster.models.Commons
-import org.midonet.cluster.models.Topology.{Vtep, Network, Router, Port}
-import org.midonet.cluster.util.UUIDUtil
+import org.midonet.cluster.models.Topology
+import org.midonet.cluster.util.{IPAddressUtil, UUIDUtil}
 import org.midonet.config.{ConfigLong, ConfigInt, ConfigGroup}
 import org.midonet.util.functors.makeRunnable
+
+import TopologyZoomUpdater._
+import TopologyEntity._
 
 /**
  * Topology Zoom Updater service for testing topology components.
@@ -38,7 +46,20 @@ import org.midonet.util.functors.makeRunnable
  * in the objects and the connections between them may not be
  * consistent with an actual network architecture.
  */
-class TopologyZoomUpdater @Inject()(val storage: Storage,
+object TopologyZoomUpdater {
+    val random = new Random()
+
+    def randomIp: String = {
+        val (b1, b2, b3, b4) = (
+            1 + random.nextInt(254),
+            1 + random.nextInt(254),
+            1 + random.nextInt(254),
+            1 + random.nextInt(254))
+        s"$b1.$b2.$b3.$b4"
+    }
+    def randomId: Commons.UUID = UUIDUtil.randomUuidProto
+}
+class TopologyZoomUpdater @Inject()(implicit val storage: Storage,
                                     val cfg: TopologyZoomUpdaterConfig)
     extends AbstractService {
     private val log = LoggerFactory.getLogger(classOf[TopologyZoomUpdater])
@@ -50,27 +71,37 @@ class TopologyZoomUpdater @Inject()(val storage: Storage,
     }
     import Operation._
 
-    // ProviderRouterPort, RouterPort, Router
-    private type RouterInfo = (Port, Port, Router)
-    // RouterId, RouterPort, BridgePort, Bridge
-    private type NetworkInfo = (Commons.UUID, Port, Port, Network)
-    // BridgeId, Port
-    private type PortInfo = (Commons.UUID, Port)
-    // Vtep
-    private type VtepInfo = Vtep
-
     private val runnable: Runnable =
         makeRunnable({try {doSomething()} catch {
             case e: Throwable => log.error("failed scheduled execution", e)
         }})
 
-    private val random = new Random()
-    private var pRouter: Router = _
-    private var routers: Map[Commons.UUID, RouterInfo] = Map()
-    private var networks: Map[Commons.UUID, NetworkInfo] = Map()
-    private var ports: Map[Commons.UUID, PortInfo] = Map()
-    private var vteps: Map[String, VtepInfo] = Map()
-    private var seq: Long = 0
+    private var providerRouter: Router = _
+    private var fixedRouter: Router = _
+    private var fixedNetwork: Network = _
+    private var fixedVtep: Vtep = _
+    private var fixedPortGroup: PortGroup = _
+    private var fixedIpAddrGroup: IpAddrGroup = _
+
+    /** updatable routers */
+    def routers: Iterable[Router] =
+        providerRouter.getRemoteDevices
+            .flatMap({_.as(classOf[Router])})
+            .filterNot({_.getId == fixedRouter.getId})
+
+    /** updatable networks */
+    def networks: Iterable[Network] =
+        routers.flatMap({_.getRemoteDevices.flatMap({_.as(classOf[Network])})})
+
+    /** updatable ports */
+    def ports: Iterable[Port] =
+        fixedNetwork.getPorts.filter({_.getTargetDevice == None})
+
+    /** updatable vteps */
+    private var vtepIds: Set[String] = Set()
+    def vteps: Iterable[Vtep] = vtepIds map Vtep.get
+
+    private var count: Long = 0
 
     @Override
     override def doStart(): Unit = {
@@ -113,170 +144,70 @@ class TopologyZoomUpdater @Inject()(val storage: Storage,
         notifyStopped()
     }
 
-    private def randomIp: String = {
-        val (b1, b2, b3, b4) = (1 + random.nextInt(254),
-                                1 + random.nextInt(254),
-                                1 + random.nextInt(254),
-                                1 + random.nextInt(254))
-        s"$b1.$b2.$b3.$b4"
-    }
-
-    private def createRouter(name: String): Router = {
-        val router = Router.newBuilder()
-            .setId(UUIDUtil.randomUuidProto)
-            .setName(name)
-            .build
-        storage.create(router)
-        router
-    }
-
-    private def createNetwork(name: String): Network = {
-        val network = Network.newBuilder()
-            .setId(UUIDUtil.randomUuidProto)
-            .setName(name)
-            .build
-        storage.create(network)
-        network
-    }
-
-    private def createPort(router: Router): Port = {
-        val port = Port.newBuilder()
-            .setId(UUIDUtil.randomUuidProto)
-            .setRouterId(router.getId)
-            .build
-        storage.create(port)
-        port
-    }
-
-    private def createPort(network: Network): Port = {
-        val port = Port.newBuilder()
-            .setId(UUIDUtil.randomUuidProto)
-            .setNetworkId(network.getId)
-            .build
-        storage.create(port)
-        port
-    }
-
-    private def createVtep(): Vtep = {
-        val vtep = Vtep.newBuilder()
-            .setId(randomIp)
-            .setManagementPort(6632)
-            .build
-        storage.create(vtep)
-        vtep
-    }
-
-    private def linkPorts(p1: Port, p2: Port): (Port, Port) = {
-        val updatedPort = p1.toBuilder.setPeerId(p2.getId).build()
-        storage.update(updatedPort)
-        (updatedPort, p2)
-    }
-
     private def buildLayout() = {
         log.debug("building initial layout")
-        pRouter = createRouter("pRouter")
-        for (idx <- 0 to cfg.initialRouters - 1) {
+
+        providerRouter = Router("providerRouter").create()
+        fixedRouter = Router("fixedRouter").create().linkTo(providerRouter)
+        fixedNetwork = Network("fixedNetwork").create().linkTo(fixedRouter)
+        fixedPortGroup = PortGroup("fixedPortGroup").create()
+        fixedIpAddrGroup = IpAddrGroup("fixedIpAddrGroup").create()
+        fixedVtep = Vtep("fixedVtep").create()
+
+        for (idx <- 0 to cfg.initialRouters - 1)
             addRouter()
-        }
-        for (idx <- 0 to cfg.initialVteps - 1) {
+        for (idx <- 0 to cfg.initialVteps - 1)
             addVtep()
-        }
+        for (idx <- 0 to cfg.initialPortsPerNetwork - 1)
+            fixedPortGroup.addPort(fixedNetwork.createPort())
     }
 
     private def cleanUp() = {
-        routers.foreach(rt => {rmRouter(rt._2._3)})
-        vteps.foreach(vt => {rmVtep(vt._2)})
-        storage.delete(classOf[Router], pRouter.getId)
-    }
-
-    private def addPort(br: Network) = {
-        val port = createPort(br)
-        ports = ports + (port.getId -> (br.getId, port))
-    }
-
-    private def rmPort(p: Port) = {
-        storage.delete(classOf[Port], p.getId)
-        ports = ports - p.getId
-    }
-
-    private def updatePort(p: Port) = {
-        val up: Boolean = p.hasAdminStateUp && p.getAdminStateUp
-        val updated = p.toBuilder.setAdminStateUp(!up).build()
-        val entry = ports(p.getId)
-        val newEntry = (entry._1, updated)
-        storage.update(updated)
-        ports = ports.updated(updated.getId, newEntry)
-    }
-
-    private def addNetwork(rt: Router) = {
-        seq += 1
-        val br = createNetwork("b_" + rt.getName + "_" + seq)
-        val (p1, p2) = linkPorts(createPort(br), createPort(rt))
-        networks = networks + (br.getId -> (rt.getId, p1, p2, br))
-        for (p <- 0 to cfg.initialPortsPerNetwork - 1) {
-            addPort(br)
-        }
-    }
-
-    private def rmNetwork(br: Network) = {
-        ports.filter({_._2._1 == br.getId}).map({_._2._2}).foreach({rmPort})
-        val info: NetworkInfo = networks(br.getId)
-        storage.delete(classOf[Port], info._2.getId)
-        storage.delete(classOf[Port], info._3.getId)
-        storage.delete(classOf[Network], br.getId)
-        networks = networks - br.getId
-    }
-
-    private def updateNetwork(br: Network) = {
-        val up: Boolean = br.hasAdminStateUp && br.getAdminStateUp
-        val updated = br.toBuilder.setAdminStateUp(!up).build()
-        val entry = networks(br.getId)
-        val newEntry = (entry._1, entry._2, entry._3, updated)
-        storage.update(updated)
-        networks = networks.updated(updated.getId, newEntry)
+        fixedIpAddrGroup.delete()
+        fixedPortGroup.delete()
+        vteps foreach rmVtep
+        fixedVtep.delete()
+        providerRouter.delete()
     }
 
     private def addRouter() = {
-        seq += 1
-        val rt = createRouter("r" + seq)
-        val (p1, p2) = linkPorts(createPort(rt), createPort(pRouter))
-        routers = routers + (rt.getId -> (p1, p2, rt))
+        count += 1
+        val rt = Router("r" + count).create().linkTo(providerRouter)
         for (p <- 0 to cfg.initialNetworksPerRouter) {
             addNetwork(rt)
         }
     }
 
-    private def rmRouter(rt: Router) = {
-        networks.filter({_._2._1 == rt.getId}).map({_._2._4}).foreach({rmNetwork})
-        val info: RouterInfo = routers(rt.getId)
-        storage.delete(classOf[Port], info._1.getId)
-        storage.delete(classOf[Port], info._2.getId)
-        storage.delete(classOf[Router], rt.getId)
-        routers = routers - rt.getId
-    }
-
-    private def updateRouter(rt: Router) = {
-        val up: Boolean = rt.hasAdminStateUp && rt.getAdminStateUp
-        val updated = rt.toBuilder.setAdminStateUp(!up).build()
-        val entry = routers(rt.getId)
-        val newEntry = (entry._1, entry._2, updated)
-        storage.update(updated)
-        routers = routers.updated(updated.getId, newEntry)
+    private def addNetwork(rt: Router) = {
+        count += 1
+        Network("b_" + rt.getName + "_" + count).create().linkTo(rt)
     }
 
     private def addVtep() = {
-        val vtep = createVtep()
-        vteps = vteps + (vtep.getId -> vtep)
+        count += 1
+        val vtep = Vtep("vtep" + count).create()
+        vtepIds = vtepIds + vtep.getId
+        fixedNetwork.bindVtep(vtep)
     }
 
-    private def rmVtep(vt: Vtep) = {
-        vteps = vteps - vt.getId
-        storage.delete(classOf[Vtep], vt.getId)
-    }
+    private def updateNetwork(br: Network) =
+        br.setAdminStateUp(!br.getAdminStateUp)
+
+    private def updateRouter(rt: Router) =
+        rt.setAdminStateUp(!rt.getAdminStateUp)
+
+    private def updatePort(p: Port) =
+        p.setAdminStateUp(!p.getAdminStateUp)
 
     private def updateVtep(vt: Vtep) = {
         // do nothing
     }
+
+    private def rmVtep(vt: Vtep) = {
+        vtepIds = vtepIds - vt.getId
+        vt.delete()
+    }
+
 
     /* choose the next operation (removal, addition or update)
      * @param cur: is the current number of elements
@@ -290,43 +221,38 @@ class TopologyZoomUpdater @Inject()(val storage: Storage,
         }
     }
 
-    private def getRandomEntry[T](m: Map[_, T]): T = {
-        m.toArray.apply(random.nextInt(m.size))._2
-    }
+    private def getRandomEntry[T: ClassTag](list: Iterable[T]): T =
+        list.toArray.apply(random.nextInt(list.size))
 
     /* perform a random operation */
     private def doSomething() = {
         random.nextInt(4) match {
             case 0 =>
                 log.debug("updating routers")
-                val rt = getRandomEntry(routers)._3
+                val rt = getRandomEntry(routers)
                 chooseOperation(routers.size, cfg.initialRouters) match {
                     case UPDATE => updateRouter(rt)
-                    case REMOVAL => rmRouter(rt)
+                    case REMOVAL => rt.delete()
                     case ADDITION => addRouter()
                 }
             case 1 =>
                 log.debug("updating networks")
-                val rt = getRandomEntry(routers)._3
-                val br = getRandomEntry(networks)._4
+                val rt = getRandomEntry(routers)
+                val br = getRandomEntry(networks)
                 chooseOperation(networks.size,
                                 cfg.initialRouters *
                                     cfg.initialNetworksPerRouter) match {
                     case UPDATE => updateNetwork(br)
-                    case REMOVAL => rmNetwork(br)
+                    case REMOVAL => br.delete()
                     case ADDITION => addNetwork(rt)
                 }
             case 2 =>
-                log.debug("updating ports")
-                val br = getRandomEntry(networks)._4
-                val p = getRandomEntry(ports)._2
-                chooseOperation(networks.size,
-                                cfg.initialRouters *
-                                    cfg.initialNetworksPerRouter *
-                                    cfg.initialPortsPerNetwork) match {
+                log.debug("updating ports") // this also may update port groups
+                val p = getRandomEntry(ports)
+                chooseOperation(ports.size, cfg.initialPortsPerNetwork) match {
                     case UPDATE => updatePort(p)
-                    case REMOVAL => rmPort(p)
-                    case ADDITION => addPort(br)
+                    case REMOVAL => p.delete()
+                    case ADDITION => fixedNetwork.createPort()
                 }
             case 3 =>
                 log.debug("updating vteps")
@@ -340,13 +266,612 @@ class TopologyZoomUpdater @Inject()(val storage: Storage,
     }
 }
 
+/**
+ * Common operations for all topology objects
+ */
+class TopologyEntity(var proto: T forSome {type T <: Message})
+                    (implicit val storage: Storage) {
+    val idField = proto.getDescriptorForType.findFieldByName("id")
+    val nameField = proto.getDescriptorForType.findFieldByName("name")
+    def create(): T forSome {type T <: TopologyEntity} =
+        {storage.create(proto); this}
+    def update(): T forSome {type T <: TopologyEntity} =
+        {storage.update(proto); this}
+    def delete(): Unit = {
+        storage.delete(proto.getClass, proto.getField(idField))
+    }
+    protected def getId[I](k: Class[I]): I =
+        proto.getField(idField).asInstanceOf[I]
+    def getName: String = if (nameField == null) ""
+        else proto.getField(nameField).asInstanceOf[String]
+
+    protected def clearField(f: String): T
+            forSome {type T <: TopologyEntity} = {
+        val field = proto.getDescriptorForType.findFieldByName(f)
+        proto = proto.toBuilder.clearField(field).build()
+        this
+    }
+    protected def setField(f: String, v: Any): T
+            forSome {type T <: TopologyEntity} = {
+        val field = proto.getDescriptorForType.findFieldByName(f)
+        proto = proto.toBuilder.clearField(field).setField(field, v).build()
+        this
+    }
+    protected def getRepeatedField[T](f: String, k: Class[T]): Iterable[T] = {
+        val field = proto.getDescriptorForType.findFieldByName(f)
+        if (field != null) {
+            val maxIdx = proto.getRepeatedFieldCount(field) - 1
+            for {idx <- 0 to maxIdx}
+                yield proto.getRepeatedField(field, idx).asInstanceOf[T]
+        } else {
+            List[T]()
+        }
+    }
+    protected def setRepeatedField(f: String, l: Iterable[AnyRef]): T
+            forSome {type T <: TopologyEntity} = {
+        val field = proto.getDescriptorForType.findFieldByName(f)
+        val builder = proto.toBuilder.clearField(field)
+        for (v <- l) {
+            builder.addRepeatedField(field, v)
+        }
+        proto = builder.build()
+        this
+    }
+
+    def is[T <: TopologyEntity](k: Class[T]): Boolean = proto match {
+        case v: T => true
+        case _ => false
+    }
+    def as[T <: TopologyEntity](k: Class[T]): Option[T] = proto match {
+        case v: T => Some(v.asInstanceOf[T])
+        case _ => None
+    }
+}
+object TopologyEntity {
+    def getProto[T](k: Class[T], id: AnyRef)(implicit storage: Storage): T =
+        Await.result(storage.get(k, id), Duration.Inf)
+    def getAllProtos[T](k: Class[T])(implicit storage: Storage): Iterable[T] =
+        Await.result(storage.getAll(k), Duration.Inf)
+            .map({Await.result(_, Duration.Inf)})
+}
+
+/**
+ * Virtual Switching device model (i.e. Routers and Networks)
+ * Note: the name is not the best one...
+ */
+abstract class VSwitch(proto: T forSome  {type T <: Message})
+                      (implicit storage: Storage)
+    extends TopologyEntity(proto) {
+    def createPort(): Port
+    def removePort(p: Port): R forSome {type R <: VSwitch}
+}
+
+/**
+ * Port model
+ */
+object Port {
+    def get(id: Commons.UUID)(implicit storage: Storage): Port =
+        new Port(getProto(classOf[Topology.Port], id))
+    def getAll(implicit storage: Storage): Iterable[Port] =
+        getAllProtos(classOf[Topology.Port]).map({new Port(_)})
+}
+class Port(proto: Topology.Port)(implicit storage: Storage)
+    extends TopologyEntity(proto) {
+    def this(rt: Router)(implicit storage: Storage) =
+        this(Topology.Port.newBuilder()
+                 .setId(randomId).setRouterId(rt.getId).build)
+    def this(nw: Network)(implicit storage: Storage) =
+        this(Topology.Port.newBuilder()
+                 .setId(randomId).setNetworkId(nw.getId).build)
+
+    def model = proto.asInstanceOf[Topology.Port]
+    def getId: Commons.UUID = getId(classOf[Commons.UUID])
+
+    override def create() = super.create().asInstanceOf[Port]
+    override def update() = super.update().asInstanceOf[Port]
+    override def delete(): Unit = {
+        linkTo(null)
+        getPortGroups.foreach({_.removePort(this)})
+        getDevice.foreach({_.removePort(this)})
+        super.delete()
+    }
+
+    def getAdminStateUp: Boolean = model.getAdminStateUp
+    def setAdminStateUp(v: Boolean): Port =
+        setField("admin_state_up", v).update().asInstanceOf[Port]
+
+    // Get associated device (Network or Router)
+    def getDevice: Option[VSwitch] = {
+        if (model.hasRouterId) {
+            Some(Router.get(model.getRouterId))
+        } else if (model.hasNetworkId) {
+            Some(Network.get(model.getNetworkId))
+        } else {
+            None
+        }
+    }
+
+    // Get associated port groups
+    def getPortGroups: Iterable[PortGroup] =
+        model.getPortGroupIdsList map PortGroup.get
+
+    def addPortGroup(pg: PortGroup): Port = {
+        setRepeatedField("port_group_ids",
+                         model.getPortGroupIdsList.toSet + pg.getId)
+        update()
+    }
+
+    def removePortGroup(pg: PortGroup): Port = {
+        setRepeatedField("port_group_ids",
+                         model.getPortGroupIdsList.toSet - pg.getId)
+        update()
+    }
+
+    // Remove back-references to ports linked to this one
+    private def removeRemotePort(p: Port): Port =
+        setRepeatedField("port_ids", model.getPortIdsList.toSet - p.getId)
+            .update().asInstanceOf[Port]
+
+    // Link this port to a port in a target device and remove previous
+    // links, if any. Set to null to unlink
+    def linkTo(p: Port): Port = {
+        val oldPeer = model.getPeerId
+        if (oldPeer != null) {
+            Port.get(oldPeer).delete()
+        }
+        if (p != null) {
+            p.removeRemotePort(this)
+            setField("peer_id", p.getId)
+        } else {
+            clearField("peer_id")
+        }
+        update()
+    }
+
+    // Get back-references to ports linked to this one
+    def getRemotePorts: Iterable[Port] = model.getPortIdsList map Port.get
+
+    // Get the target port to which this one is linked
+    def getTargetPort: Option[Port] =
+        if (model.getPeerId != null) Some(Port.get(model.getPeerId)) else None
+
+    // Get the devices linked to this one
+    def getRemoteDevices: Iterable[VSwitch] =
+        getRemotePorts flatMap {_.getDevice}
+
+    // Get the device to which this port is linked
+    def getTargetDevice: Option[VSwitch] =
+        getTargetPort flatMap {_.getDevice}
+    
+    // Set VxLan parameters
+    def setVxLanAttributes(vtep: Vtep, vni: Int): Port = {
+        setField("vtep_mgmt_ip", IPAddressUtil.toProto(vtep.getId))
+        setField("vtep_mgmt_port", vtep.mgmtPort)
+        setField("vtep_tunnel_ip", IPAddressUtil.toProto(vtep.tunnelIp))
+        setField("vtep_tunnel_zone_id", vtep.tunnelZone.getId)
+        setField("vtep_vni", vni)
+        this
+    }
+
+    def matchVtepBinding(binding: VtepBinding): Boolean =
+        binding.mgmtIp == model.getVtepMgmtIp.getAddress &&
+        binding.vlanId == model.getVtepVni
+}
+
+/**
+ * Router model
+ */
+object Router {
+    def apply(name: String)(implicit storage: Storage): Router =
+        new Router(name)
+    def get(id: Commons.UUID)(implicit storage: Storage): Router =
+        new Router(getProto(classOf[Topology.Router], id))
+    def getAll(implicit storage: Storage): Iterable[Router] =
+        getAllProtos(classOf[Topology.Router]).map({new Router(_)})
+}
+class Router(proto: Topology.Router)(implicit storage: Storage)
+    extends VSwitch(proto) {
+    def this(name: String)(implicit storage: Storage) =
+        this(Topology.Router.newBuilder().setId(randomId).setName(name).build)
+    def model = proto.asInstanceOf[Topology.Router]
+    def getId: Commons.UUID = getId(classOf[Commons.UUID])
+
+    override def create() = super.create().asInstanceOf[Router]
+    override def update() = super.update().asInstanceOf[Router]
+    override def delete(): Unit = {
+        getRemoteDevices.foreach({_.delete()})
+        getPorts.foreach({_.delete()})
+        super.delete()
+    }
+
+    def getAdminStateUp: Boolean = model.getAdminStateUp
+    def setAdminStateUp(v: Boolean): Router =
+        setField("admin_state_up", v).update().asInstanceOf[Router]
+
+    // create an attached port
+    def createPort(): Port = {
+        val port = new Port(this).create()
+        setRepeatedField("port_ids", model.getPortIdsList.toSet + port.getId)
+            .update()
+        port
+    }
+    // Remove the reference to an attached port
+    def removePort(p: Port): Router =
+        setRepeatedField("port_ids", model.getPortIdsList.toSet - p.getId)
+            .update().asInstanceOf[Router]
+
+    // Link this router to another router
+    def linkTo(rt: Router): Router = {
+        createPort().linkTo(rt.createPort())
+        this
+    }
+
+    // Get attached ports
+    def getPorts: Iterable[Port] = model.getPortIdsList map Port.get
+
+    // Get devices linked to this router
+    def getRemoteDevices: Iterable[VSwitch] =
+        getPorts.flatMap({_.getRemoteDevices})
+}
+
+
+/**
+ * Network model
+ */
+object Network {
+    def apply(name: String)(implicit storage: Storage) = new Network(name)
+    def get(id: Commons.UUID)(implicit storage: Storage): Network =
+        new Network(getProto(classOf[Topology.Network], id))
+    def getAll(implicit storage: Storage): Iterable[Network] =
+        getAllProtos(classOf[Topology.Network]).map({new Network(_)})
+}
+class Network(proto: Topology.Network)(implicit storage: Storage)
+    extends VSwitch(proto) {
+    def this(name: String)(implicit storage: Storage) =
+        this(Topology.Network.newBuilder().setId(randomId).setName(name).build)
+    def model = proto.asInstanceOf[Topology.Network]
+    def getId: Commons.UUID = getId(classOf[Commons.UUID])
+
+    override def create() = super.create().asInstanceOf[Network]
+    override def update() = super.update().asInstanceOf[Network]
+    override def delete(): Unit = {
+        vtepBindings.foreach({_.delete()})
+        getRemoteDevices.foreach({_.delete()})
+        getPorts.foreach({_.delete()})
+        super.delete()
+    }
+
+    def getAdminStateUp: Boolean = model.getAdminStateUp
+    def setAdminStateUp(v: Boolean): Network =
+        setField("admin_state_up", v).update().asInstanceOf[Network]
+
+    // create an attached port
+    def createPort(): Port = {
+        val port = new Port(this).create()
+        setRepeatedField("port_ids", model.getPortIdsList.toSet + port.getId)
+            .update()
+        port
+    }
+
+    // remove the reference to an attached port
+    def removePort(p: Port): Network =
+        setRepeatedField("port_ids", model.getPortIdsList.toSet - p.getId)
+            .update().asInstanceOf[Network]
+
+    // Link this network to a router
+    def linkTo(rt: Router): Network = {
+        createPort().linkTo(rt.createPort())
+        this
+    }
+
+    // Get attached ports
+    def getPorts: Iterable[Port] = model.getPortIdsList map Port.get
+
+    // Get devices linked to this network
+    def getRemoteDevices: Iterable[VSwitch] =
+        getPorts.flatMap({_.getRemoteDevices})
+
+    // get the list of vxlan ports
+    private def getVxLanPorts: Iterable[Port] =
+        model.getVxlanPortIdsList map Port.get
+    
+    // Create vtep binding
+    def bindVtep(vtep: Vtep): Network = {
+        val binding = VtepBinding(this, vtep).create()
+        val port = new Port(this)
+            .setVxLanAttributes(vtep, binding.vlanId).create()
+        setRepeatedField("vxlan_port_ids",
+                         model.getPortIdsList.toSet + port.getId)
+        update()
+    }
+
+    // Remove vtep binding
+    def removeVtepBinding(binding: VtepBinding): Network = {
+        val ports = getVxLanPorts.filter({_.matchVtepBinding(binding)})
+        setRepeatedField("vxlan_port_ids",
+                         model.getPortIdsList.toSet --ports.map({_.getId}).toSet)
+        ports.foreach {_.delete()}
+        update()
+    }
+
+    def vtepBindings: Iterable[VtepBinding] =
+        VtepBinding.getAll.filter({_.networkId == getId})
+
+}
+
+/**
+ * Tunnel zone model
+ */
+object TunnelZone {
+    def apply(name: String, t: Topology.TunnelZone.Type)
+             (implicit storage: Storage): TunnelZone = new TunnelZone(name, t)
+    def get(id: Commons.UUID)(implicit storage: Storage): TunnelZone =
+        new TunnelZone(getProto(classOf[Topology.TunnelZone], id))
+    def getAll(implicit storage: Storage): Iterable[TunnelZone] =
+        getAllProtos(classOf[Topology.TunnelZone]).map({new TunnelZone(_)})
+}
+class TunnelZone(proto: Topology.TunnelZone)(implicit storage: Storage)
+    extends TopologyEntity(proto) {
+    def this(name: String, t: Topology.TunnelZone.Type)
+            (implicit storage: Storage) =
+        this(Topology.TunnelZone.newBuilder()
+                 .setId(randomId).setName(name).setType(t).build())
+    def model = proto.asInstanceOf[Topology.TunnelZone]
+    def getId: Commons.UUID = getId(classOf[Commons.UUID])
+
+    override def create() = super.create().asInstanceOf[TunnelZone]
+    override def update() = super.update().asInstanceOf[TunnelZone]
+}
+
+/**
+ * Vtep model
+ */
+object Vtep {
+    def apply(tzName: String)(implicit storage: Storage): Vtep =
+        new Vtep(tzName)
+    def get(id: String)(implicit storage: Storage): Vtep =
+        new Vtep(getProto(classOf[Topology.Vtep], id))
+    def getAll(implicit storage: Storage): Iterable[Vtep] =
+        getAllProtos(classOf[Topology.Vtep]).map({new Vtep(_)})
+}
+class Vtep(proto: Topology.Vtep)(implicit storage: Storage)
+    extends TopologyEntity(proto) {
+    def this(tzName: String)(implicit storage: Storage) =
+        this(Topology.Vtep.newBuilder()
+                 .setId(randomIp)
+                 .setManagementPort(6632)
+                 .setTunnelIps(0, randomIp)
+                 .setTunnelZoneId(
+                    TunnelZone(tzName, Topology.TunnelZone.Type.VTEP)
+                        .create().getId)
+                 .build())
+    def model = proto.asInstanceOf[Topology.Vtep]
+    def getId: String = getId(classOf[String])
+
+    override def create() = super.create().asInstanceOf[Vtep]
+    override def update() = super.update().asInstanceOf[Vtep]
+    override def delete(): Unit = {
+        getBindings foreach {_.delete()}
+        tunnelZone.delete()
+        super.delete()
+    }
+
+    def tunnelZone: TunnelZone = TunnelZone.get(model.getTunnelZoneId)
+    def mgmtPort: Int = model.getManagementPort
+    def tunnelIp: String = model.getTunnelIps(0)
+
+    def addBinding(binding: VtepBinding): Vtep = {
+        setRepeatedField("bindings",
+                         model.getBindingsList.toSet + binding.getId)
+        update()
+    }
+    def removeBinding(binding: VtepBinding): Vtep = {
+        setRepeatedField("bindings",
+                         model.getBindingsList.toSet - binding.getId)
+        update()
+    }
+
+    def getBindings: Iterable[VtepBinding] =
+        model.getBindingsList map VtepBinding.get
+}
+
+/**
+ * Vtep binding model
+ */
+object VtepBinding {
+    def apply(nw: Network, vtep: Vtep)(implicit storage: Storage): VtepBinding =
+        new VtepBinding(nw, vtep)
+    def get(id: Commons.UUID)(implicit storage: Storage): VtepBinding =
+        new VtepBinding(getProto(classOf[Topology.VtepBinding], id))
+    def getAll(implicit storage: Storage): Iterable[VtepBinding] =
+        getAllProtos(classOf[Topology.VtepBinding]).map({new VtepBinding(_)})
+}
+class VtepBinding(proto: Topology.VtepBinding)(implicit storage: Storage)
+    extends TopologyEntity(proto) {
+    def this(nw: Network, vtep: Vtep)(implicit storage: Storage) =
+        this(Topology.VtepBinding.newBuilder()
+                 .setId(randomId)
+                 .setNetworkId(nw.getId)
+                 .setVlanId(10000 + random.nextInt(8192))
+                 .setVtepId(vtep.getId)
+                 .setPortName("port" + random.nextInt())
+                 .build())
+    def model = proto.asInstanceOf[Topology.VtepBinding]
+    def getId: Commons.UUID = getId(classOf[Commons.UUID])
+
+    override def create() = super.create().asInstanceOf[VtepBinding]
+    override def update() = super.update().asInstanceOf[VtepBinding]
+    override def delete(): Unit = {
+        Vtep.get(mgmtIp).removeBinding(this)
+        Network.get(networkId).removeVtepBinding(this)
+        super.delete()
+    }
+    
+    def vlanId = model.getVlanId
+    def mgmtIp = model.getVtepId
+    def networkId = model.getNetworkId
+}
+
+/**
+ * Host model
+ */
+object Host {
+    def apply(name: String)(implicit storage: Storage): Host = new Host(name)
+    def get(id: Commons.UUID)(implicit storage: Storage): Host =
+        new Host(getProto(classOf[Topology.Host], id))
+    def getAll(implicit storage: Storage): Iterable[Host] =
+        getAllProtos(classOf[Topology.Host]).map({new Host(_)})
+}
+class Host(proto: Topology.Host)(implicit storage: Storage)
+    extends TopologyEntity(proto) {
+    def this(name: String)(implicit storage: Storage) =
+        this(Topology.Host.newBuilder()
+                 .setId(randomId).setName(name).build())
+    def model = proto.asInstanceOf[Topology.Host]
+    def getId: Commons.UUID = getId(classOf[Commons.UUID])
+
+    override def create() = super.create().asInstanceOf[Host]
+    override def update() = super.update().asInstanceOf[Host]
+}
+
+/**
+ * Port group model
+ */
+object PortGroup {
+    def apply(name: String)(implicit storage: Storage): PortGroup =
+        new PortGroup(name)
+    def get(id: Commons.UUID)(implicit storage: Storage): PortGroup =
+        new PortGroup(getProto(classOf[Topology.PortGroup], id))
+    def getAll(implicit storage: Storage): Iterable[PortGroup] =
+        getAllProtos(classOf[Topology.PortGroup]).map({new PortGroup(_)})
+}
+class PortGroup(proto: Topology.PortGroup)(implicit storage: Storage)
+    extends TopologyEntity(proto) {
+    def this(name: String)(implicit storage: Storage) =
+        this(Topology.PortGroup.newBuilder()
+                 .setId(randomId).setName(name).build())
+    def model = proto.asInstanceOf[Topology.PortGroup]
+    def getId: Commons.UUID = getId(classOf[Commons.UUID])
+
+    override def create() = super.create().asInstanceOf[PortGroup]
+    override def update() = super.update().asInstanceOf[PortGroup]
+    override def delete(): Unit = {
+        getPorts.foreach {_.removePortGroup(this)}
+        super.delete()
+    }
+
+    def addPort(p: Port): Unit = {
+        p.addPortGroup(this)
+        setRepeatedField("port_ids", model.getPortIdsList.toSet + p.getId)
+        update()
+    }
+
+    def removePort(p: Port): Unit = {
+        p.removePortGroup(this)
+        setRepeatedField("port_ids", model.getPortIdsList.toSet - p.getId)
+        update()
+    }
+
+    def getPorts: Iterable[Port] = model.getPortIdsList map Port.get
+}
+
+/**
+ * IpAddress group model
+ */
+object IpAddrGroup {
+    def apply(name: String)(implicit storage: Storage): IpAddrGroup =
+        new IpAddrGroup(name)
+    def get(id: Commons.UUID)(implicit storage: Storage): IpAddrGroup =
+        new IpAddrGroup(getProto(classOf[Topology.IpAddrGroup], id))
+    def getAll(implicit storage: Storage): Iterable[IpAddrGroup] =
+        getAllProtos(classOf[Topology.IpAddrGroup]).map({new IpAddrGroup(_)})
+}
+class IpAddrGroup(proto: Topology.IpAddrGroup)(implicit storage: Storage)
+    extends TopologyEntity(proto) {
+    def this(name: String)(implicit storage: Storage) =
+        this(Topology.IpAddrGroup.newBuilder()
+                 .setId(randomId).setName(name).build())
+    def model = proto.asInstanceOf[Topology.IpAddrGroup]
+    def getId: Commons.UUID = getId(classOf[Commons.UUID])
+
+    override def create() = super.create().asInstanceOf[IpAddrGroup]
+    override def update() = super.update().asInstanceOf[IpAddrGroup]
+}
+
+/**
+ * Chain model
+ */
+object Chain {
+    def apply(name: String)(implicit storage: Storage): Chain = new Chain(name)
+    def get(id: Commons.UUID)(implicit storage: Storage): Chain =
+        new Chain(getProto(classOf[Topology.Chain], id))
+    def getAll(implicit storage: Storage): Iterable[Chain] =
+        getAllProtos(classOf[Topology.Chain]).map({new Chain(_)})
+}
+class Chain(proto: Topology.Chain)(implicit storage: Storage)
+    extends TopologyEntity(proto) {
+    def this(name: String)(implicit storage: Storage) =
+        this(Topology.Chain.newBuilder().setId(randomId).setName(name).build())
+    def model = proto.asInstanceOf[Topology.Chain]
+    def getId: Commons.UUID = getId(classOf[Commons.UUID])
+
+    override def create() = super.create().asInstanceOf[Chain]
+    override def update() = super.update().asInstanceOf[Chain]
+}
+
+/**
+ * Route model
+ */
+object Route {
+    def apply()(implicit storage: Storage): Route = new Route()
+    def get(id: Commons.UUID)(implicit storage: Storage): Route =
+        new Route(getProto(classOf[Topology.Route], id))
+    def getAll(implicit storage: Storage): Iterable[Route] =
+        getAllProtos(classOf[Topology.Route]).map({new Route(_)})
+}
+class Route(proto: Topology.Route)(implicit storage: Storage)
+    extends TopologyEntity(proto) {
+    def this()(implicit storage: Storage) =
+        this(Topology.Route.newBuilder().setId(randomId).build())
+    def model = proto.asInstanceOf[Topology.Route]
+    def getId: Commons.UUID = getId(classOf[Commons.UUID])
+
+    override def create() = super.create().asInstanceOf[Route]
+    override def update() = super.update().asInstanceOf[Route]
+}
+
+/**
+ * Rule model
+ */
+object Rule {
+    def apply()(implicit storage: Storage): Rule = new Rule()
+    def get(id: Commons.UUID)(implicit storage: Storage): Rule =
+        new Rule(getProto(classOf[Topology.Rule], id))
+    def getAll(implicit storage: Storage): Iterable[Rule] =
+        getAllProtos(classOf[Topology.Rule]).map({new Rule(_)})
+}
+class Rule(proto: Topology.Rule)(implicit storage: Storage)
+    extends TopologyEntity(proto) {
+    def this()(implicit storage: Storage) =
+        this(Topology.Rule.newBuilder().setId(randomId).build())
+    def model = proto.asInstanceOf[Topology.Rule]
+    def getId: Commons.UUID = getId(classOf[Commons.UUID])
+
+    override def create() = super.create().asInstanceOf[Rule]
+    override def update() = super.update().asInstanceOf[Rule]
+}
+
+
+/**
+ * Configuration
+ */
 object TopologyZoomUpdaterConfig {
     final val NROUTERS = 4
     final val NBRIDGES = 4
     final val NPORTS = 4
     final val NVTEPS = 4
     final val DEFAULT_NUMTHREADS = 1
-    final val DEFAULT_INTERVAL = 10000
+    final val DEFAULT_INTERVAL = 0
 }
 
 /** Configuration for the Topology Tester */
