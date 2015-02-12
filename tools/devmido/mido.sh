@@ -254,6 +254,7 @@ cp -r $AGENT_BUILD_DIR $DEPS_DIR/dep
 sed -e "s@%DEPS_DIR%@$DEPS_DIR@" \
     -e "s@%TOP_DIR%@$TOP_DIR@" \
     $DEVMIDO_DIR/binproxy | sudo tee /usr/local/bin/mm-dpctl /usr/local/bin/mm-ctl
+sudo chmod +x /usr/local/bin/mm-dpctl /usr/local/bin/mm-ctl
 
 # Create the midolman's conf dir in case it doesn't exist
 if [ ! -d $AGENT_CONF_DIR ]; then
