@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "7a1969be_41d06a50",
+        "filename": "midolman/src/main/java/org/midonet/cluster/LocalDataClientImpl.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 3169,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-02-12T10:10:12Z",
+      "side": 1,
+      "message": "note to self: disable a trace before deleting.",
+      "range": {
+        "startLine": 3169,
+        "startChar": 42,
+        "endLine": 3169,
+        "endChar": 55
+      },
+      "revId": "d856079a7aa1d83c2d206cf7716bdee1ce172142",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_a1ddde72",
         "filename": "midolman/src/main/java/org/midonet/cluster/LocalDataClientImpl.java",
         "patchSetId": 2
@@ -13,6 +36,24 @@
       "writtenOn": "2015-02-12T09:56:22Z",
       "side": 1,
       "message": "Given how there\u0027s not referential integrity, I think that the checks below don\u0027t mean much (the device can be deleted right after  they\u0027re executed). Also, deleting a device may leak any trace requests that exist for that device. Maybe we should implement backreferences from the devices to the trace request - maybe ZOOM already supports this.",
+      "revId": "d856079a7aa1d83c2d206cf7716bdee1ce172142",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_61cbe6a5",
+        "filename": "midolman/src/main/java/org/midonet/cluster/LocalDataClientImpl.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 3173,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-02-12T10:10:12Z",
+      "side": 1,
+      "message": "zoom depends on the neutron db afaik, which being mysql should support foreign keys. I was thinking of adding backrefs, I\u0027ll look into it.",
+      "parentUuid": "7a1969be_a1ddde72",
       "revId": "d856079a7aa1d83c2d206cf7716bdee1ce172142",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
