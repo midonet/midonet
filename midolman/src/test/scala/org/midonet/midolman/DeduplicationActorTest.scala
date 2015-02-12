@@ -87,7 +87,7 @@ class DeduplicationActorTest extends MidolmanSpec {
             override def getVportForDpPortNumber(portNum: Integer): Option[UUID] = ???
             override def getDpPortNumberForVport(vportId: UUID): Option[Integer] = ???
             override def getDpPortName(num: Integer): Option[String] = ???
-            override def host = new ResolvedHost(UUID.randomUUID(), true, "",
+            override def host = new ResolvedHost(UUID.randomUUID(), true,
                                                  Map(), Map())
             override def peerTunnelInfo(peer: UUID): Option[Route] = ???
             override def isVtepTunnellingPort(portNumber: Integer): Boolean = ???
