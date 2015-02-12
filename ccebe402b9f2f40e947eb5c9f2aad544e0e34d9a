@@ -1,0 +1,106 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_61100602",
+        "filename": "midolman/src/main/java/org/midonet/midolman/host/config/HostConfig.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-02-12T10:56:32Z",
+      "side": 1,
+      "message": "I don\u0027t have a strong opinion on this, but maybe we need to put this in a different config section since the other configs are purely about the host itself.  Guillermo, how do you feel about it?",
+      "revId": "ccebe402b9f2f40e947eb5c9f2aad544e0e34d9a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_a1f95eca",
+        "filename": "midolman/src/main/java/org/midonet/midolman/tools/MmCtl.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-02-12T10:56:32Z",
+      "side": 1,
+      "message": "Make these enums.  Also, couldn\u0027t we just re-use CREATE and DELETE?  I don\u0027t think we need new action types.",
+      "revId": "ccebe402b9f2f40e947eb5c9f2aad544e0e34d9a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_41150af0",
+        "filename": "midolman/src/main/java/org/midonet/midolman/tools/MmCtl.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-02-12T10:56:32Z",
+      "side": 1,
+      "message": "These should be enums",
+      "revId": "ccebe402b9f2f40e947eb5c9f2aad544e0e34d9a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_81f6e2d5",
+        "filename": "midolman/src/main/java/org/midonet/midolman/tools/MmCtl.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 166,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-02-12T10:56:32Z",
+      "side": 1,
+      "message": "Is there a protobuf model that we can serialize?",
+      "revId": "ccebe402b9f2f40e947eb5c9f2aad544e0e34d9a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_212d6e47",
+        "filename": "midolman/src/main/java/org/midonet/midolman/tools/MmCtl.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 193,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-02-12T10:56:32Z",
+      "side": 1,
+      "message": "I think the cluster is expecting a specific format that includes UUID.  You can generate a random UUID for this.",
+      "revId": "ccebe402b9f2f40e947eb5c9f2aad544e0e34d9a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_0132f2a6",
+        "filename": "midolman/src/main/java/org/midonet/midolman/tools/MmCtl.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 195,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-02-12T10:56:32Z",
+      "side": 1,
+      "message": "Could we use host ID for this?",
+      "revId": "ccebe402b9f2f40e947eb5c9f2aad544e0e34d9a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
