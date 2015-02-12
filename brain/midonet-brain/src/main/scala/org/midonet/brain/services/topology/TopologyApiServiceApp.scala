@@ -22,7 +22,7 @@ import org.slf4j.LoggerFactory
 
 import org.midonet.brain.{ClusterNode, ClusterNodeConfig}
 import org.midonet.cluster.config.ZookeeperConfig
-import org.midonet.cluster.storage.{MidonetBackendConfig, MidonetBackendModule}
+import org.midonet.cluster.storage.MidonetBackendModule
 import org.midonet.config.{ConfigProvider, HostIdGenerator}
 
 /** Stand-alone application to start the TopologyApiService */
