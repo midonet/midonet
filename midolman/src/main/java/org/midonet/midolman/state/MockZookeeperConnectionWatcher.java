@@ -22,11 +22,6 @@ import org.apache.zookeeper.WatchedEvent;
 public class MockZookeeperConnectionWatcher implements ZkConnectionAwareWatcher {
 
     @Override
-    public ZkConnection getZkConnection() {
-        return null;
-    }
-
-    @Override
     public void setZkConnection(ZkConnection conn) { }
 
     @Override
