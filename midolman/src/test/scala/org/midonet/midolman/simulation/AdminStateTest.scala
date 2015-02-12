@@ -401,7 +401,7 @@ class AdminStateTest extends MidolmanSpec {
         val cookieStr: String = ""
 
         protected val dpState: DatapathState = new DatapathState {
-            val host = rcu.ResolvedHost(hostId, true, "mido", Map.empty, Map.empty)
+            val host = rcu.ResolvedHost(hostId, true, Map.empty, Map.empty)
             def peerTunnelInfo(peer: UUID) = null
             def overlayTunnellingOutputAction: FlowActionOutput = null
             def dpPortNumberForTunnelKey(key: Long) = None

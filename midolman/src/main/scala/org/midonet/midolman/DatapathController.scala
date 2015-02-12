@@ -243,10 +243,6 @@ class DatapathController extends Actor
     var initializer: ActorRef = system.deadLetters  // only used in tests
 
     var host: ResolvedHost = null
-    // If a Host message arrives while one is being processed, we stash it
-    // in this variable. We don't use Akka's stash here, because we only
-    // care about the last Host message (i.e. ignore intermediate messages).
-    var nextHost: ResolvedHost = null
 
     var portWatcher: Subscription = null
     var portWatcherEnabled = true
@@ -275,17 +271,11 @@ class DatapathController extends Actor
             subscribeToHost(hostService.getHostId)
 
         case h: ResolvedHost =>
-            // If we already had the host info, process this after init.
-            this.host match {
-                case null =>
-                    // Only set it if the datapath is known.
-                    if (null != h.datapath) {
-                        this.host = h
-                        dpState.host = h
-                        readDatapathInformation(h.datapath)
-                    }
-                case _ =>
-                    this.nextHost = h
+            val oldHost = host
+            host = h
+            dpState.host = h
+            if (oldHost eq null) {
+                readDatapathInformation()
             }
 
         case ExistingDatapathPorts_(datapathObj, ports) =>
@@ -375,20 +365,6 @@ class DatapathController extends Actor
         dpState.updateVPortInterfaceBindings(host.ports)
     }
 
-    private def processNextHost() {
-        if (null != nextHost) {
-            val oldZones = host.zones
-            val newZones = nextHost.zones
-
-            host = nextHost
-            dpState.host = host
-            nextHost = null
-
-            dpState.updateVPortInterfaceBindings(host.ports)
-            doDatapathZonesUpdate(oldZones, newZones)
-        }
-    }
-
     private def doDatapathZonesUpdate(
             oldZones: Map[UUID, IPAddr],
             newZones: Map[UUID, IPAddr]) {
@@ -420,9 +396,15 @@ class DatapathController extends Actor
             }
             self ! Initialize
 
-        case h: ResolvedHost =>
-            this.nextHost = h
-            processNextHost()
+        case hostUpdate: ResolvedHost =>
+            val oldZones = host.zones
+            val newZones = hostUpdate.zones
+
+            host = hostUpdate
+            dpState.host = hostUpdate
+
+            dpState.updateVPortInterfaceBindings(host.ports)
+            doDatapathZonesUpdate(oldZones, newZones)
 
         case m@ZoneMembers(zone, zoneType, members) =>
             log.debug("ZoneMembers event: {}", m)
@@ -512,7 +494,7 @@ class DatapathController extends Actor
     /*
      * ONLY USE THIS DURING INITIALIZATION.
      */
-    private def readDatapathInformation(wantedDatapath: String) {
+    private def readDatapathInformation() {
         def handleExistingDP(dp: Datapath) {
             log.info("The datapath already existed. Flushing the flows.")
             datapathConnection.flowsFlush(dp,
@@ -526,12 +508,9 @@ class DatapathController extends Actor
             // Query the datapath ports without waiting for the flush to exit.
             queryDatapathPorts(dp)
         }
-        log.info("Wanted datapath: {}", wantedDatapath)
 
         val retryTask = new Runnable {
-            def run() {
-                readDatapathInformation(wantedDatapath)
-            }
+            def run() = readDatapathInformation()
         }
 
         val dpCreateCallback = new Callback[Datapath] {
@@ -554,7 +533,7 @@ class DatapathController extends Actor
                     case ErrorCode.ENODEV =>
                         log.info("Datapath is missing. Creating.")
                         datapathConnection.datapathsCreate(
-                            wantedDatapath, dpCreateCallback)
+                            midolmanConfig.getDatapath, dpCreateCallback)
                     case ErrorCode.ETIMEOUT =>
                         log.error("Timeout while getting the datapath")
                         system.scheduler.scheduleOnce(100 millis, retryTask)
@@ -564,7 +543,7 @@ class DatapathController extends Actor
             }
         }
 
-        datapathConnection.datapathsGet(wantedDatapath, dpGetCallback)
+        datapathConnection.datapathsGet(midolmanConfig.getDatapath, dpGetCallback)
     }
 
     /*
