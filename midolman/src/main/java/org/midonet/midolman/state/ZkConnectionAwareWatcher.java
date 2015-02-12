@@ -21,7 +21,6 @@ import org.apache.zookeeper.Watcher;
 import org.midonet.midolman.serialization.SerializationException;
 
 public interface ZkConnectionAwareWatcher extends Watcher {
-    ZkConnection getZkConnection();
 
     void setZkConnection(ZkConnection conn);
 
