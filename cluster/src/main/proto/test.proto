@@ -111,3 +111,47 @@ message TestKeyValue {
     optional UUID id = 1;
     optional string value = 2;
 }
+
+message TestOneOfMessage {
+
+    optional UUID id = 1;
+    optional string name = 2;
+    optional FakeDevice device = 3;
+
+    oneof class {
+        TestFirst first = 4;
+        TestSecond second = 5;
+        TestThird third = 6;
+    }
+}
+
+message TestFirst {
+    optional UUID first_id = 1;
+    optional string first_name = 2;
+}
+
+message TestSecond {
+    optional UUID second_id = 1;
+    optional string second_name = 2;
+}
+
+message TestThird {
+
+    optional UUID third_id = 1;
+    optional string third_name = 2;
+
+    oneof third {
+        TestThirdAlpha alpha = 3;
+        TestThirdBeta beta = 4;
+    }
+}
+
+message TestThirdAlpha {
+    optional UUID alpha_id = 1;
+    optional string alpha_name = 2;
+}
+
+message TestThirdBeta {
+    optional UUID beta_id = 1;
+    optional string beta_name = 2;
+}

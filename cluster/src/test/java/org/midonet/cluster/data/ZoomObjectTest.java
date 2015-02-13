@@ -36,27 +36,6 @@ import static org.midonet.cluster.models.TestModels.TestMessage;
 public class ZoomObjectTest {
 
     @Test
-    public void testConversionWithInstanceMethods() {
-        TestMessage message = buildMessage();
-
-        TestableZoomObject pojo = new TestableZoomObject(message);
-
-        assertPojo(message, pojo);
-        assertEquals(pojo.after, pojo.int32Field);
-        assertEquals(pojo.baseAfter, pojo.baseField);
-        assertEquals(pojo.before, 0);
-        assertEquals(pojo.baseBefore, 0);
-
-        TestMessage proto = pojo.toProto(TestMessage.class);
-
-        assertProto(message, proto);
-        assertEquals(pojo.after, pojo.int32Field);
-        assertEquals(pojo.baseAfter, pojo.baseField);
-        assertEquals(pojo.before, pojo.int32Field);
-        assertEquals(pojo.baseBefore, pojo.baseField);
-    }
-
-    @Test
     public void testConversionWithStaticMethods() {
         TestMessage message = buildMessage();
 
@@ -76,26 +55,6 @@ public class ZoomObjectTest {
         assertEquals(pojo.baseAfter, pojo.baseField);
         assertEquals(pojo.before, pojo.int32Field);
         assertEquals(pojo.baseBefore, pojo.baseField);
-    }
-
-    @Test
-    public void testConversionToBuilder() {
-        // Build the prototype message and convert to POJO.
-        TestMessage proto = buildMessage();
-        TestableZoomObject pojo = new TestableZoomObject(proto);
-
-        // Convert pojo back to proto builder, and use builder to alter id.
-        java.util.UUID uuid2 = java.util.UUID.randomUUID();
-        TestMessage.Builder builder =
-            (TestMessage.Builder)pojo.toProtoBuilder(TestMessage.class);
-        builder.setUuidField(UUIDUtil.toProto(uuid2));
-        TestMessage message = builder.build();
-
-        // Check that message is equal to proto other than the id change.
-        assertNotEquals(message, proto);
-        assertProto(message,
-                    TestMessage.newBuilder(proto)
-                        .setUuidField(UUIDUtil.toProto(uuid2)).build());
     }
 
     static TestMessage buildMessage() {
@@ -236,12 +195,6 @@ public class ZoomObjectTest {
         private String name;
         @ZoomField(name = "port_ids")
         private List<String> portIds;
-
-        public Device() { }
-
-        public Device(FakeDevice device) {
-            super(device);
-        }
     }
 
     static abstract class BaseZoomObject extends ZoomObject {
@@ -251,14 +204,8 @@ public class ZoomObjectTest {
         protected int baseAfter;
         protected int baseBefore;
 
-        public BaseZoomObject() { }
-
-        public BaseZoomObject(MessageOrBuilder proto) {
-            super(proto);
-        }
-
         @Override
-        public void afterFromProto() {
+        public void afterFromProto(MessageOrBuilder proto) {
             baseAfter = baseField;
         }
         @Override
@@ -350,15 +297,9 @@ public class ZoomObjectTest {
         private int before;
         private int after;
 
-        public TestableZoomObject() { }
-
-        public TestableZoomObject(TestMessage proto) {
-            super(proto);
-        }
-
         @Override
-        public void afterFromProto() {
-            super.afterFromProto();
+        public void afterFromProto(MessageOrBuilder proto) {
+            super.afterFromProto(proto);
             after = int32Field;
         }
         @Override
