@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_5245da6e",
+        "filename": "specs/1.9/metadata_service.rst",
+        "patchSetId": 1
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-02-13T18:30:37Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_32d77ec3",
+      "revId": "1911258e8afa372289521b3d041bcea7518b4e29",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_72d8d6ef",
         "filename": "specs/1.9/metadata_service.rst",
         "patchSetId": 1
@@ -30,6 +48,24 @@
       "writtenOn": "2015-02-13T09:40:26Z",
       "side": 1,
       "message": "AFAIK, in MidoNet virtual\u0027s infrastructure all the requests from the virtual machine are routed to the tenant router, which redirects 169.254.169.254 calls back down to the tenant network bridge, which it has a port from where the metadata agent is listening.\n\nAfter this dissertation... do we really need the 121 routes? Do we use them?\n\nI think we can handle metadata even in this use case.",
+      "revId": "1911258e8afa372289521b3d041bcea7518b4e29",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_bf0336b7",
+        "filename": "specs/1.9/metadata_service.rst",
+        "patchSetId": 1
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-02-13T18:30:37Z",
+      "side": 1,
+      "message": "I think that\u0027s actually not completely correct.  we still need to handle MD requests even when there is no tenant router.  That\u0027s when the option 121 host routes are useful.",
+      "parentUuid": "7a1969be_72d8d6ef",
       "revId": "1911258e8afa372289521b3d041bcea7518b4e29",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -53,6 +89,24 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_df31d2a3",
+        "filename": "specs/1.9/metadata_service.rst",
+        "patchSetId": 1
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-02-13T18:30:37Z",
+      "side": 1,
+      "message": "Sorry, I meant the Neutron API server.  I will fix it.  The point I wanted to make was that, in some API requests, the Neutron API server and metadata agent make concurrent requests that often lead to errors (I\u0027d say 80% of our bugs come from this), and the new design should completely eliminate these issues.",
+      "parentUuid": "7a1969be_52d2fad2",
+      "revId": "1911258e8afa372289521b3d041bcea7518b4e29",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_b2e24e9d",
         "filename": "specs/1.9/metadata_service.rst",
         "patchSetId": 1
@@ -70,6 +124,24 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_1f2c0a47",
+        "filename": "specs/1.9/metadata_service.rst",
+        "patchSetId": 1
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-02-13T18:30:37Z",
+      "side": 1,
+      "message": "MidoNet is capable but I personally don\u0027t think that\u0027s a good design.  I prefer to leave the L7 handling at least as a service not too deeply embedded in MidoNet agent.\n\nI also don\u0027t really think that there\u0027s much to worry about with regards to Jetty servers consuming too much resource (but I definitely think we should test this out to verify), and I don\u0027t think the number of networks per host will be that big, and the amount of metadata traffic from these VMs won\u0027t be enough to raise concerns (we already have a mechanism to prevent a single VM to saturate the pipe).",
+      "parentUuid": "7a1969be_b2e24e9d",
+      "revId": "1911258e8afa372289521b3d041bcea7518b4e29",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_9202b23c",
         "filename": "specs/1.9/metadata_service.rst",
         "patchSetId": 1
@@ -81,6 +153,24 @@
       "writtenOn": "2015-02-13T09:40:26Z",
       "side": 1,
       "message": "Even it implies one more request, I suggest to use Keystone URI and credentials. It is the canonical way to get service endpoints in OpenStack.",
+      "revId": "1911258e8afa372289521b3d041bcea7518b4e29",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_5fe4c20c",
+        "filename": "specs/1.9/metadata_service.rst",
+        "patchSetId": 1
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-02-13T18:30:37Z",
+      "side": 1,
+      "message": "A very interesting point.  While I don\u0027t particularly disagree, the openstack components specify URLs in their config files (/etc/neutron/neutron.conf, /etc/nova/nova.conf).  Could you explain a bit more why it\u0027s better for us to go away from that model?",
+      "parentUuid": "7a1969be_9202b23c",
       "revId": "1911258e8afa372289521b3d041bcea7518b4e29",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -122,6 +212,24 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_dfa6f2c0",
+        "filename": "specs/1.9/metadata_service.rst",
+        "patchSetId": 1
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-02-13T18:30:37Z",
+      "side": 1,
+      "message": "Right, I think leaving only L2-L4 manipulation by the agent keeps the cleaner separation of concerns.",
+      "parentUuid": "7a1969be_725bb654",
+      "revId": "1911258e8afa372289521b3d041bcea7518b4e29",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_727456cf",
         "filename": "specs/1.9/metadata_service.rst",
         "patchSetId": 1
@@ -139,6 +247,24 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_ffddae15",
+        "filename": "specs/1.9/metadata_service.rst",
+        "patchSetId": 1
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-02-13T18:30:37Z",
+      "side": 1,
+      "message": "Right that\u0027s exactly the idea.  It should never have to go through the simulation.  The match would be 169.254.169.254:80 plus the in-port or source IP.  For the return flow, it would match on the destination IP address which is the VM\u0027s address.  It\u0027s possible to have VMs with the same IP address, but they can be differentiated by matching on the source port (jetty port) since it maps to a network.  Does that make sense?  I\u0027ll update with this info.",
+      "parentUuid": "7a1969be_727456cf",
+      "revId": "1911258e8afa372289521b3d041bcea7518b4e29",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_f26846f7",
         "filename": "specs/1.9/metadata_service.rst",
         "patchSetId": 1
@@ -150,6 +276,24 @@
       "writtenOn": "2015-02-13T10:33:55Z",
       "side": 1,
       "message": "I think this is a great idea.\n\nDoesn\u0027t this cover all cases? It even applies to our current solution - we could stop playing tricks with the routes. And the same trick applies if you want the router to route the MD traffic - just use the router\u0027s MAC in the Bridge\u0027s MAC table entry for 169.254.169.254.",
+      "revId": "1911258e8afa372289521b3d041bcea7518b4e29",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_dfbb92c2",
+        "filename": "specs/1.9/metadata_service.rst",
+        "patchSetId": 1
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-02-13T18:30:37Z",
+      "side": 1,
+      "message": "I could be wrong on this, but I don\u0027t think this is achievable unless one of your interfaces gets the link local address also, so that the host can add a route entry in that link local network.  And AFAIK, this typically does not happen on Linux distros (unless the user manually configures it so), and that is why Neutron had to resort to Option 121 host routes (dst 169.254.169.254 via dhcp port IP) to enable it.  So unfortunately, we still need to rely on the host routes since that\u0027s as automatically as it could be it seems.",
+      "parentUuid": "7a1969be_f26846f7",
       "revId": "1911258e8afa372289521b3d041bcea7518b4e29",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
