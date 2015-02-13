@@ -17,10 +17,12 @@ package org.midonet.cluster.data
 
 import java.lang.reflect.{Array => JArray, Field, InvocationTargetException, ParameterizedType, Type}
 import java.util
-import java.util.{List => JList, UUID}
+import java.util.{List => JList}
 
 import scala.collection.concurrent.TrieMap
 import scala.collection.JavaConversions._
+import scala.collection.mutable
+import scala.collection.mutable.ArrayBuffer
 
 import com.google.protobuf.Descriptors.{EnumDescriptor, EnumValueDescriptor}
 import com.google.protobuf.GeneratedMessage.Builder
@@ -28,26 +30,40 @@ import com.google.protobuf.{ByteString, Descriptors, MessageOrBuilder}
 
 /**
  * Converts Java objects to/from Protocol Buffers messages. The class converts
- * all objects fields that are annotated with the <code>ZoomField</code>
- * annotation. The object class may optionally be annotated with the
- * <code>ZoomClass</code> annotation to specify additional conversion
- * options, such as a custom converter or corresponding message class.
+ * all objects fields that are annotated with the [[ZoomField]] annotation. The
+ * object class may optionally be annotated with the [[ZoomClass]] annotation to
+ * specify additional conversion options, such as a custom converter or
+ * corresponding message class.
  *
- * The Java object class must extend the <code>ZoomObject</code> class, and
- * provide a parameter-less constructor.
+ * The Java object class must extend the [[ZoomObject]] class, and provide a
+ * parameter-less constructor.
  */
 object ZoomConvert {
-    private val BUILDER_METHOD = "newBuilder"
-    private val DESCRIPTOR_METHOD = "getDescriptor"
+    private final val BuilderMethod = "newBuilder"
+    private final val DescriptorMethod = "getDescriptor"
 
-    private val BYTE = classOf[Byte]
-    private val SHORT = classOf[Short]
-    private val BYTE_ARRAY = classOf[Array[Byte]]
+    private final val ByteClass = classOf[Byte]
+    private final val ShortClass = classOf[Short]
+    private final val ByteArrayClass = classOf[Array[Byte]]
+
+    private type ProtoBuilder = Builder[_ <: Builder[_ <: AnyRef]]
+
+    private case class FieldInfo(field: Field, zoomField: ZoomField)
+    private case class ClassInfo(clazz: Class[_], zoomClass: ZoomClass,
+                                 zoomOneOf: ZoomOneOf,
+                                 fieldsInfo: Seq[FieldInfo])
+    private case class BuilderInfo(builder: ProtoBuilder, field: String = null)
+
+    private val classes = new TrieMap[Class[_], Seq[ClassInfo]]
 
     private val converters =
-        new TrieMap[Class[_ <: Converter[_,_]], Converter[_,_]]()
-    converters += classOf[DefaultConverter] -> new DefaultConverter()
-    converters += classOf[ObjectConverter] -> new ObjectConverter()
+        new TrieMap[Class[_ <: Converter[_,_]], Converter[_,_]]
+    converters += classOf[DefaultConverter] -> new DefaultConverter
+    converters += classOf[ObjectConverter] -> new ObjectConverter
+
+    private val arrayConverters = new TrieMap[Class[_], ArrayConverter]
+    private val listConverters = new TrieMap[Class[_], ListConverter]
+    private val setConverters = new TrieMap[Class[_], SetConverter]
 
     /**
      * Converts a Java object to a Protocol Buffers message.
@@ -56,29 +72,10 @@ object ZoomConvert {
      * @param protoClass The Protocol Buffers message class.
      * @return The Protocol Buffers message.
      */
-    def toProto[T <: ZoomObject, U <: MessageOrBuilder](
-        pojo: T, protoClass: Class[U]): U = {
-        toProtoBuilder(pojo, protoClass).build().asInstanceOf[U]
-    }
-
-    def toProtoBuilder[T <: ZoomObject, U <: MessageOrBuilder](
-            pojo: T, protoClass: Class[U]): Builder[_] = {
+    def toProto[T <: ZoomObject, U <: MessageOrBuilder]
+        (pojo: T, protoClass: Class[U]): U = {
         pojo.beforeToProto()
-
-        to(pojo, newBuilder(protoClass),
-           pojo.getClass.asInstanceOf[Class[T]], protoClass)
-    }
-
-    /**
-     * Converts a Protocol Buffers message to an existing Java object instance.
-     *
-     * @param pojo The existing Java object.
-     * @param proto The Protocol Buffers message.
-     */
-    def fromProto[T <: ZoomObject, U <: MessageOrBuilder](
-            pojo: T, proto: U): Unit = {
-        from(proto, pojo, pojo.getClass)
-        pojo.afterFromProto()
+        to(pojo, pojo.getClass.asInstanceOf[Class[T]], protoClass)
     }
 
     /**
@@ -90,18 +87,68 @@ object ZoomConvert {
      * @param pojoClass The Java object class.
      * @return The Java object.
      */
-    def fromProto[T >: Null <: ZoomObject, U <: MessageOrBuilder](
-            proto: U, pojoClass: Class[T]): T = {
-        if (null == proto) {
+    def fromProto[T >: Null <: ZoomObject, U <: MessageOrBuilder]
+        (proto: U, pojoClass: Class[T]): T = {
+        if (proto eq null) {
             return null
         }
 
-        val clazz = newFactory(proto, pojoClass)
-        val pojo = clazz.newInstance().asInstanceOf[T]
-
-        from(proto, pojo, clazz)
-        pojo.afterFromProto()
+        val pojo: T = from(proto, newFactory(proto, pojoClass))
+        pojo.afterFromProto(proto)
         pojo
+    }
+
+    /**
+     * Returns the classes and the fields from the inheritance hierarchy of the
+     * specified class.
+     * @param pojoClass The class.
+     * @return The fields as a sequence of [[ClassInfo]] instances containing
+     *         the information about the classes from the given class
+     *         inheritance hierarchy. Each [[ClassInfo]] includes the
+     *         [[ZoomClass]] annotation, the [[ZoomOneOf]] annotation and the
+     *         sequence of fields annotated with [[ZoomField]].
+     */
+    private def getClasses(pojoClass: Class[_]): Seq[ClassInfo] = {
+        // Get the class information from the cache.
+        classes.get(pojoClass) match {
+            case Some(seq) => return seq
+            case None =>
+        }
+
+        // Create a map between inheritance level and fields.
+        val fieldsSeq = new ArrayBuffer[ClassInfo]
+        var clazz = pojoClass
+
+        do {
+            val fields = clazz.getDeclaredFields
+            val fieldsList = new ArrayBuffer[FieldInfo](fields.length)
+            var fieldIndex = 0
+            while ( fieldIndex < fields.length ) {
+                val zoomField = fields(fieldIndex).getAnnotation(classOf[ZoomField])
+                if (zoomField ne null) {
+                    fieldsList += FieldInfo(fields(fieldIndex), zoomField)
+                }
+                fieldIndex += 1
+            }
+
+            val classInfo = ClassInfo(clazz,
+                                      clazz.getAnnotation(classOf[ZoomClass]),
+                                      clazz.getAnnotation(classOf[ZoomOneOf]),
+                                      fieldsList)
+            fieldsSeq += classInfo
+
+            clazz = clazz.getSuperclass match {
+                case superClass: Class[_]
+                    if classOf[ZoomObject] != superClass &&
+                       classOf[ZoomObject].isAssignableFrom(superClass) =>
+                    superClass
+                case _ => null
+            }
+        } while (clazz ne null)
+
+        classes.putIfAbsent(pojoClass, fieldsSeq)
+
+        fieldsSeq
     }
 
     /**
@@ -110,68 +157,105 @@ object ZoomConvert {
      * from all classes in the object's inheritance hierarchy.
      *
      * @param pojo The Java object.
-     * @param builder The Protocol Buffers builder used to convert the object.
-     *                If different from <code>null</code> the method uses the
-     *                specified builder to create the Protocol Buffers message.
-     *                Otherwise, the method creates a new builder according
-     *                to the current Protocol Buffers message class.
      * @param pojoClass The Java object class, representing the level in the
      *                  object's inheritance hierarchy at which the conversion
      *                  is performed.
      * @param protoClass The Protocol Buffers class for the output message.
-     * @return A Protocol Buffers builder.
      */
     private def to[T <: ZoomObject, U <: MessageOrBuilder](
-            pojo: T, builder: Builder[_], pojoClass: Class[_],
-            protoClass: Class[U]): Builder[_] = {
+            pojo: T, pojoClass: Class[_], protoClass: Class[U]): U = {
 
-        // Get the Protobufs builder for the current class.
-        val descriptor = builder.getDescriptorForType
+        val builders = new mutable.Stack[BuilderInfo]
+        builders.push(BuilderInfo(newBuilder(protoClass)))
 
-        // Convert all fields to the current Protobufs builder.
-        for (pojoField <- pojoClass.getDeclaredFields) {
-            val zoomField = pojoField.getAnnotation(classOf[ZoomField])
+        // Get the classes information.
+        val classes = getClasses(pojoClass)
 
-            if (null != zoomField) {
+        // Get the message builder for the current class.
+        var descriptor = builders.top.builder.getDescriptorForType
+
+        // Iterate over all levels starting from the top class, and add the
+        // fields to the Protocol Buffers message
+        var level = classes.length
+        while (level > 0) {
+            level -= 1
+            var index = 0
+            // If the class has a one-of annotation, extract the message from
+            // the one-of field.
+            val zoomOneOf = classes(level).zoomOneOf
+            if (zoomOneOf ne null) {
+                val oneOfField = descriptor.findFieldByName(zoomOneOf.name)
+                if (oneOfField eq null) {
+                    throw new ConvertException(
+                        s"Message ${descriptor.getName} does not have a " +
+                        s"one-of field ${zoomOneOf.name}")
+                } else {
+                    builders.push(BuilderInfo(
+                        builders.top.builder.getFieldBuilder(oneOfField)
+                            .asInstanceOf[ProtoBuilder],
+                        zoomOneOf.name))
+                    descriptor = builders.top.builder.getDescriptorForType
+                }
+            }
+
+            while (index < classes(level).fieldsInfo.length) {
+                val pojoField = classes(level).fieldsInfo(index).field
+                val zoomField = classes(level).fieldsInfo(index).zoomField
                 val protoField = descriptor.findFieldByName(zoomField.name)
 
                 // Verify the field exists or is optional.
-                if (null == protoField) {
+                if (protoField eq null) {
                     throw new ConvertException(
                         s"Message ${descriptor.getName} does not have a " +
                         s"field with name ${zoomField.name}")
                 } else try {
                     // Get the field value.
                     val pojoValue = pojo.getField(pojoField)
-
                     // Ignore the null fields.
                     if (null != pojoValue) {
                         val converter = getConverter(pojoField, protoField,
                                                      zoomField)
                         val protoValue = converter.to(pojoValue,
                                                       pojoField.getGenericType)
-                        builder.setField(protoField, protoValue)
+                        builders.top.builder.setField(protoField, protoValue)
                     }
                 } catch {
                     case e @ (_ : InstantiationException |
                               _ : IllegalAccessException |
-                              _ : IllegalArgumentException) =>
+                              _ : IllegalArgumentException |
+                              _ : ClassCastException) =>
                         throw new ConvertException(
                             s"Class $pojoClass failed to convert field "
                             + s"${zoomField.name} from Java type "
                             + s"${pojoField.getType} to Protocol Buffers type "
                             + s"${protoField.getType}", e);
                 }
+                index += 1
             }
         }
 
-        pojoClass.getSuperclass match {
-            case superClass: Class[_]
-                if classOf[ZoomObject] != superClass &&
-                   classOf[ZoomObject].isAssignableFrom(superClass) =>
-                    to(pojo, builder, superClass, protoClass)
-            case _ => builder
+        // Get the last builder from the builders stack.
+        var builderInfo = builders.pop()
+        while (builders.nonEmpty) {
+            descriptor = builders.top.builder.getDescriptorForType
+            val oneOfField = descriptor.findFieldByName(builderInfo.field)
+            try {
+                builders.top.builder.setField(oneOfField,
+                                              builderInfo.builder.build())
+            } catch {
+                case e @ (_ : InstantiationException |
+                          _ : IllegalAccessException |
+                          _ : IllegalArgumentException |
+                          _ : ClassCastException) =>
+                    throw new ConvertException(
+                        s"Class $pojoClass failed to convert super class " +
+                        s"${classes(level).getClass} to one-of field " +
+                        s"${builderInfo.field}")
+            }
+            builderInfo = builders.pop()
         }
+
+        builderInfo.builder.build().asInstanceOf[U]
     }
 
     /**
@@ -183,45 +267,66 @@ object ZoomConvert {
      * annotation.
      *
      * @param proto The Protocol Buffers message.
-     * @param pojo The output Java object.
      * @param pojoClass The Java object class, representing the level in the
      *                  object's inheritance hierarchy at which the conversion
      *                  is performed.
      */
     private def from[T <: ZoomObject, U <: MessageOrBuilder](
-        proto: U, pojo: T, pojoClass: Class[_]): MessageOrBuilder = {
+        proto: U, pojoClass: Class[_]): T = {
 
+        // Get the classes information.
+        val classes = getClasses(pojoClass)
 
-        // Get the Protobufs message to convert the current instance.
-        val protoThis = pojoClass.getSuperclass match {
-            case superClass: Class[_]
-                if classOf[ZoomObject].isAssignableFrom(superClass) =>
-                    from(proto, pojo, superClass)
-            case _ => proto
-        }
+        // Create the Java instance.
+        val pojo = pojoClass.newInstance().asInstanceOf[T]
 
-        val descriptor = protoThis.getDescriptorForType
+        // Get the message and descriptor for the current message.
+        var message: MessageOrBuilder = proto
+        var descriptor = message.getDescriptorForType
 
-        // Convert the fields.
-        for (pojoField <- pojoClass.getDeclaredFields) {
-            val zoomField = pojoField.getAnnotation(classOf[ZoomField])
+        // Iterate over all levels starting from the top class, and add the
+        // fields to the Java instance.
+        var level = classes.length
+        while (level > 0) {
+            level -= 1
+            // If the class has a one-of annotation, extract the message from
+            // the one-of field.
+            val zoomOneOf = classes(level).zoomOneOf
+            if (zoomOneOf ne null) {
+                val oneOfField = descriptor.findFieldByName(zoomOneOf.name)
+                message = if (oneOfField eq null) {
+                    throw new ConvertException(
+                        s"Message ${descriptor.getName} does not have a " +
+                        s"one-of field ${zoomOneOf.name}")
+                } else message.getField(oneOfField) match {
+                    case msg: MessageOrBuilder =>
+                        descriptor = msg.getDescriptorForType
+                        msg
+                    case _ =>
+                        throw new ConvertException(
+                            s"Message ${descriptor.getName} one-of field " +
+                            s"${zoomOneOf.name} is not a Protocol Buffers " +
+                            s"message")
+                }
+            }
 
-            // Ignore the fields without the ZoomField annotation.
-            if (null != zoomField) {
+            var index = 0
+            while (index < classes(level).fieldsInfo.length) {
+                val pojoField = classes(level).fieldsInfo(index).field
+                val zoomField = classes(level).fieldsInfo(index).zoomField
                 val protoField = descriptor.findFieldByName(zoomField.name)
 
                 // Verify the field exists or is optional.
-                if (null == protoField) {
+                if (protoField eq null) {
                     throw new ConvertException(
                         s"Message ${descriptor.getName} does not have a " +
                         s"field ${zoomField.name}")
-                } else if (protoField.isRepeated ||
-                           proto.hasField(protoField)) {
-                    // We simply ignore an unset Protobuf field, and the
-                    // corresponding POJO field would be set to null or
-                    // otherwise an appropriate type-default value.
+                } else if (protoField.isRepeated || message.hasField(protoField)) {
+                    // We ignore unset message fields, and let the
+                    // corresponding POJO field set to the its type-default
+                    // value.
                     try {
-                        val protoValue = protoThis.getField(protoField)
+                        val protoValue = message.getField(protoField)
                         val converter = getConverter(pojoField, protoField,
                                                      zoomField)
                         val pojoValue = converter.from(protoValue,
@@ -239,9 +344,11 @@ object ZoomConvert {
                                 s"${pojoField.getType}", e)
                     }
                 }
+                index += 1
             }
         }
-        protoThis
+
+        pojo
     }
 
     /**
@@ -249,11 +356,11 @@ object ZoomConvert {
      * @param clazz The class for a Protocol Buffers message.
      * @return A Protocol Buffers builder for the given message class.
      */
-    private def newBuilder[U <: MessageOrBuilder](clazz: Class[U]):
-            Builder[_] = {
+    private def newBuilder[U <: MessageOrBuilder](clazz: Class[U])
+    : ProtoBuilder = {
         try {
-            clazz.getMethod(ZoomConvert.BUILDER_METHOD)
-                .invoke(null).asInstanceOf[Builder[_ <: Builder[_ <: AnyRef]]]
+            clazz.getMethod(ZoomConvert.BuilderMethod)
+                .invoke(null).asInstanceOf[ProtoBuilder]
         } catch {
             case e @ (_ : NoSuchMethodException |
                       _ : IllegalAccessException |
@@ -307,45 +414,22 @@ object ZoomConvert {
 
         pojoField.getGenericType match {
             case c: Class[_] if c.isArray =>
-                new ArrayConverter(
-                    getScalarConverter(pojoField.getType.getComponentType,
-                                       zoomField))
+                getArrayConverter(pojoField.getType.getComponentType, zoomField)
             case generic: ParameterizedType
                 if generic.getRawType.equals(classOf[JList[_]]) =>
                 val elClass = generic.getActualTypeArguments()(0)
                     .asInstanceOf[Class[_]]
-                new ListConverter(getScalarConverter(elClass, zoomField))
+                getListConverter(elClass, zoomField)
             case generic: ParameterizedType
                 if generic.getRawType.equals(classOf[Set[_]]) =>
                 val elClass = generic.getActualTypeArguments()(0)
                     .asInstanceOf[Class[_]]
-                new SetConverter(getScalarConverter(elClass, zoomField))
+                getSetConverter(elClass, zoomField)
             case generic: ParameterizedType
-                if generic.getRawType.equals(classOf[Map[_, _]]) =>
+                if generic.getRawType.equals(classOf[Map[_,_]]) =>
                 getMapConverter(zoomField)
             case _ => getScalarConverter(pojoField.getType, zoomField)
         }
-    }
-
-    /**
-     * Gets a converter instance for a zoomField of type Map. In this
-     * case the field must have a custom converter.
-     *
-     * The method stores all converter in a converter cache such that if a
-     * converter for a gien type already exists, the method does not create
-     * a new object.
-     *
-     * @param zoomField The ZoomField annotation.
-     * @return The converter instance.
-     */
-    private def getMapConverter(zoomField: ZoomField): Converter[_,_] = {
-        val converter = if (zoomField.converter != classOf[DefaultConverter]) {
-            zoomField.converter
-        } else {
-            throw new ConvertException("A ZoomField of type Map must" +
-                                       " have a custom converter")
-        }
-        converters.getOrElseUpdate(converter, converter.newInstance())
     }
 
     /**
@@ -361,8 +445,8 @@ object ZoomConvert {
      * @param zoomField The ZoomField annotation.
      * @return The converter instance.
      */
-    private def getScalarConverter(clazz: Class[_],
-                                   zoomField: ZoomField): Converter[_,_] = {
+    private def getScalarConverter(clazz: Class[_], zoomField: ZoomField)
+    : Converter[_,_] = {
         val zoomClass = clazz.getAnnotation(classOf[ZoomClass])
         val converter = if (zoomField.converter != classOf[DefaultConverter]) {
             zoomField.converter
@@ -372,6 +456,40 @@ object ZoomConvert {
             classOf[DefaultConverter]
         }
         converters.getOrElseUpdate(converter, converter.newInstance())
+    }
+
+    /** Gets a converter instance for an [[Array]] field. */
+    @inline
+    private def getArrayConverter(elClass: Class[_], zoomField: ZoomField)
+    : ArrayConverter = {
+        arrayConverters.getOrElseUpdate(
+            elClass,
+            new ArrayConverter(getScalarConverter(elClass, zoomField)))
+    }
+
+    /** Gets a converter instance for a [[List]] field. */
+    @inline
+    private def getListConverter(elClass: Class[_], zoomField: ZoomField)
+    : ListConverter = {
+        listConverters.getOrElseUpdate(
+            elClass,
+            new ListConverter(getScalarConverter(elClass, zoomField)))
+    }
+
+    /** Gets a converter instance for a [[Set]] field. */
+    @inline
+    private def getSetConverter(elClass: Class[_], zoomField: ZoomField)
+    : SetConverter = {
+        setConverters.getOrElseUpdate(
+            elClass,
+            new SetConverter(getScalarConverter(elClass, zoomField)))
+    }
+
+    /** Gets a converter instance for a [[Map]] field. */
+    @inline
+    private def getMapConverter(zoomField: ZoomField): Converter[_,_] = {
+        converters.getOrElseUpdate(zoomField.converter,
+                                   zoomField.converter.newInstance())
     }
 
     /**
@@ -433,9 +551,9 @@ object ZoomConvert {
      */
     protected[data] class DefaultConverter extends Converter[Any, Any] {
         override def toProto(pojoValue: Any, clazz: Type): Any = clazz match {
-            case BYTE => pojoValue.asInstanceOf[Byte].toInt
-            case SHORT => pojoValue.asInstanceOf[Short].toInt
-            case BYTE_ARRAY =>
+            case ByteClass => pojoValue.asInstanceOf[Byte].toInt
+            case ShortClass => pojoValue.asInstanceOf[Short].toInt
+            case ByteArrayClass =>
                 ByteString.copyFrom(pojoValue.asInstanceOf[Array[Byte]])
             case enumClass: Class[_] if enumClass.isEnum =>
                 val protoEnum =
@@ -457,7 +575,7 @@ object ZoomConvert {
                         s"Enumeration $clazz does not have field $pojoValue")
                 }
                 try {
-                    protoEnum.getMethod(ZoomConvert.DESCRIPTOR_METHOD)
+                    protoEnum.getMethod(ZoomConvert.DescriptorMethod)
                              .invoke(null)
                              .asInstanceOf[EnumDescriptor]
                              .findValueByName(enumValue)
@@ -475,9 +593,9 @@ object ZoomConvert {
         }
 
         override def fromProto(protoValue: Any, clazz: Type): Any = clazz match {
-            case BYTE => protoValue.asInstanceOf[Int].toByte
-            case SHORT => protoValue.asInstanceOf[Int].toShort
-            case BYTE_ARRAY => protoValue.asInstanceOf[ByteString].toByteArray
+            case ByteClass => protoValue.asInstanceOf[Int].toByte
+            case ShortClass => protoValue.asInstanceOf[Int].toShort
+            case ByteArrayClass => protoValue.asInstanceOf[ByteString].toByteArray
             case enumClass: Class[_] if enumClass.isEnum =>
                 val protoEnum =
                     enumClass.getAnnotation(classOf[ZoomEnum]) match {
@@ -520,8 +638,7 @@ object ZoomConvert {
         override def toProto(value: Any, clazz: Type): Any = clazz match {
             case c: Class[_] if classOf[ZoomObject].isAssignableFrom(c) =>
                 val protoClass = c.getAnnotation(classOf[ZoomClass]).clazz()
-                ZoomConvert.to(value.asInstanceOf[ZoomObject],
-                               newBuilder(protoClass), c, protoClass).build()
+                ZoomConvert.to(value.asInstanceOf[ZoomObject], c, protoClass)
             case _ => throw new ConvertException(
                 s"Object converter not supported for class $clazz");
         }
