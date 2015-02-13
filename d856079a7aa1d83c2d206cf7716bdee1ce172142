@@ -75,6 +75,24 @@
       "revId": "d856079a7aa1d83c2d206cf7716bdee1ce172142",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_523cbae2",
+        "filename": "midolman/src/main/java/org/midonet/cluster/LocalDataClientImpl.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 3173,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-02-13T10:33:21Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_4147ca1f",
+      "revId": "d856079a7aa1d83c2d206cf7716bdee1ce172142",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
