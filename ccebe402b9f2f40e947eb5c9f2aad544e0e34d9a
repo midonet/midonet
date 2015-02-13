@@ -72,6 +72,24 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_ed522712",
+        "filename": "midolman/src/main/java/org/midonet/midolman/tools/MmCtl.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-02-13T11:12:38Z",
+      "side": 1,
+      "message": "Well, the binding should be a first class model too with its own id, no? Which gets generated randomly from neutron. I think that\u0027s what we were saying elsewhere.\n\nIf Neutron needs to operate on the binding entity, then it should be stored in the neutron db.. (this is why I don\u0027t quite like about doing bindings from mm-ctl). We\u0027re under the requirement that neutron manipulates the topology after all..\n\nI really don\u0027t like adding non CRUD commands, because it breaks the whole design of the neutron - mn interface, which is meant to lack all entity-specific semantics.",
+      "parentUuid": "7a1969be_52cb1aa5",
+      "revId": "ccebe402b9f2f40e947eb5c9f2aad544e0e34d9a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_41150af0",
         "filename": "midolman/src/main/java/org/midonet/midolman/tools/MmCtl.java",
         "patchSetId": 1
@@ -83,6 +101,24 @@
       "writtenOn": "2015-02-12T10:56:32Z",
       "side": 1,
       "message": "These should be enums",
+      "revId": "ccebe402b9f2f40e947eb5c9f2aad544e0e34d9a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_4d589b32",
+        "filename": "midolman/src/main/java/org/midonet/midolman/tools/MmCtl.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-02-13T11:12:38Z",
+      "side": 1,
+      "message": "+1",
+      "parentUuid": "7a1969be_41150af0",
       "revId": "ccebe402b9f2f40e947eb5c9f2aad544e0e34d9a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
