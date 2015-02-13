@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_2da55f53",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/PacketWorkflow.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-02-13T15:32:16Z",
+      "side": 1,
+      "message": "Silly style comments: eq instead of \u003d\u003d, common case first, factoring processSimulationResult out and changing the log message to debug.",
+      "revId": "e4f3922f7cbdf5fe502089ea0c6cc795d195e8b5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
