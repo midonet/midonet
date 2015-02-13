@@ -1,0 +1,106 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_32d77ec3",
+        "filename": "specs/1.9/metadata_service.rst",
+        "patchSetId": 1
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 1002749
+      },
+      "writtenOn": "2015-02-13T09:40:26Z",
+      "side": 1,
+      "message": "nit: fromo",
+      "revId": "1911258e8afa372289521b3d041bcea7518b4e29",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_72d8d6ef",
+        "filename": "specs/1.9/metadata_service.rst",
+        "patchSetId": 1
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 1002749
+      },
+      "writtenOn": "2015-02-13T09:40:26Z",
+      "side": 1,
+      "message": "AFAIK, in MidoNet virtual\u0027s infrastructure all the requests from the virtual machine are routed to the tenant router, which redirects 169.254.169.254 calls back down to the tenant network bridge, which it has a port from where the metadata agent is listening.\n\nAfter this dissertation... do we really need the 121 routes? Do we use them?\n\nI think we can handle metadata even in this use case.",
+      "revId": "1911258e8afa372289521b3d041bcea7518b4e29",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_b2e24e9d",
+        "filename": "specs/1.9/metadata_service.rst",
+        "patchSetId": 1
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 1002749
+      },
+      "writtenOn": "2015-02-13T09:40:26Z",
+      "side": 1,
+      "message": "Isn\u0027t MidoNet by itself capable to handle L7 requests? Will not these many Jetty servers overload the host resources?",
+      "revId": "1911258e8afa372289521b3d041bcea7518b4e29",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_9202b23c",
+        "filename": "specs/1.9/metadata_service.rst",
+        "patchSetId": 1
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 1002749
+      },
+      "writtenOn": "2015-02-13T09:40:26Z",
+      "side": 1,
+      "message": "Even it implies one more request, I suggest to use Keystone URI and credentials. It is the canonical way to get service endpoints in OpenStack.",
+      "revId": "1911258e8afa372289521b3d041bcea7518b4e29",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_12bd2269",
+        "filename": "specs/1.9/metadata_service.rst",
+        "patchSetId": 1
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 1002749
+      },
+      "writtenOn": "2015-02-13T09:40:26Z",
+      "side": 1,
+      "message": "Sorry for insist on this: can\u0027t it just be a single server? MidoNet can know from which virtual machine and network comes the HTTP request based on the virtual port, right? So maybe MidoNet can append the network information in the request and send it to a single Jetty server. So when the request from the virtual machine:\n\n    curl http://169.254.169.254\n\ncan reach the jetty server this way:\n\n    curl http://169.254.169.254/\u003cnetwork_id\u003e\n\nIf we could do this, we might avoid some schedule/unschedule jetty servers issues and jetty spawning time delays.",
+      "revId": "1911258e8afa372289521b3d041bcea7518b4e29",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_d2aa6a18",
+        "filename": "specs/1.9/metadata_service.rst",
+        "patchSetId": 1
+      },
+      "lineNbr": 179,
+      "author": {
+        "id": 1002749
+      },
+      "writtenOn": "2015-02-13T09:40:26Z",
+      "side": 1,
+      "message": "That\u0027s great. The installation of midonet becomes more and more easy.",
+      "revId": "1911258e8afa372289521b3d041bcea7518b4e29",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
