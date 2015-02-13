@@ -34,6 +34,24 @@
       "revId": "082946e6fabc3d8483307b48a37e3b8e77beedbb",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_322c9e47",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/C3POMinion.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-02-13T01:59:54Z",
+      "side": 1,
+      "message": "Of course we can further fake it by creating an artificial unique ID by string concatenating port ID, host ID, and interface name.  I don\u0027t know which is cleaner or not.",
+      "parentUuid": "7a1969be_f26326af",
+      "revId": "082946e6fabc3d8483307b48a37e3b8e77beedbb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
