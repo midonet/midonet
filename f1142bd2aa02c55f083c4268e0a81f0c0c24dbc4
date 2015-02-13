@@ -34,6 +34,24 @@
       "revId": "f1142bd2aa02c55f083c4268e0a81f0c0c24dbc4",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_b27eceac",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/Port.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-13T10:24:26Z",
+      "side": 1,
+      "message": "I agree it\u0027s better like this, the port mapper will write the the alive val.",
+      "parentUuid": "7a1969be_e7940639",
+      "revId": "f1142bd2aa02c55f083c4268e0a81f0c0c24dbc4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
