@@ -26,15 +26,6 @@ import com.google.protobuf.MessageOrBuilder
 abstract class ZoomObject {
 
     /**
-     * Initializes the objects fields annotated with the [[ZoomField]]
-     * annotation from the specified Protocol Buffers message.
-     */
-    def this(proto: MessageOrBuilder) {
-        this()
-        ZoomConvert.fromProto(this, proto)
-    }
-
-    /**
      * Converts the current instance to a Protocol Buffers message of the
      * specified type.
      * @param clazz The message class.
@@ -45,20 +36,10 @@ abstract class ZoomObject {
     }
 
     /**
-     * Converts the current instance to a Protocol Buffers message builder of
-     * the specified type.
-     * @param clazz The message class.
-     * @return The builder.
-     */
-    final def toProtoBuilder[T <: MessageOrBuilder](clazz: Class[T]): Builder[_] = {
-        ZoomConvert.toProtoBuilder(this, clazz)
-    }
-
-    /**
      * When overridden in a derived class, allows the execution of custom tasks
      * after the conversion of the object from a Protocol Buffers message.
      */
-    protected[data] def afterFromProto(): Unit = {
+    protected[data] def afterFromProto(proto: MessageOrBuilder): Unit = {
     }
 
     /**
