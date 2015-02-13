@@ -96,7 +96,7 @@ object FlowTagger {
         val segment = cachedPortTxTags.get().getOrAddSegment(device)
         var tag = segment.value
         if (tag eq null) {
-            tag = new DeviceTag(device)
+            tag = new PortTxTag(device)
             segment.value = tag
         }
         tag
@@ -114,7 +114,7 @@ object FlowTagger {
         val segment = cachedPortRxTags.get().getOrAddSegment(device)
         var tag = segment.value
         if (tag eq null) {
-            tag = new DeviceTag(device)
+            tag = new PortRxTag(device)
             segment.value = tag
         }
         tag
