@@ -16,6 +16,24 @@
       "revId": "e4f3922f7cbdf5fe502089ea0c6cc795d195e8b5",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_0d4b4388",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/PacketWorkflow.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-02-13T15:54:27Z",
+      "side": 1,
+      "message": "Not sure about the log level. If we\u0027re getting traffic from a vtep that we don\u0027t know anything about this is at best, a configuration problem, at worst a security alert. So info seems fitting.",
+      "parentUuid": "7a1969be_2da55f53",
+      "revId": "e4f3922f7cbdf5fe502089ea0c6cc795d195e8b5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
