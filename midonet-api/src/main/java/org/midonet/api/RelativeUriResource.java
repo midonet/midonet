@@ -24,7 +24,7 @@ import com.google.protobuf.MessageOrBuilder;
 import org.midonet.cluster.data.ZoomObject;
 
 
-public abstract class RelativeUriResource extends ZoomObject {
+public abstract class RelativeUriResource {
 
     private URI parentUri = null;
 
@@ -32,13 +32,6 @@ public abstract class RelativeUriResource extends ZoomObject {
      * Default constructor
      */
     public RelativeUriResource() {
-    }
-
-    /**
-     * Protobuf-conversion constructor.
-     */
-    public RelativeUriResource(MessageOrBuilder proto) {
-        super(proto);
     }
 
     /**
