@@ -64,7 +64,4 @@ class TunnelZone extends ZoomObject with Device {
     @ZoomField(name = "hosts", converter = classOf[HostIpConverter])
     var hosts: Map[UUID, IPAddr] = _
 
-    override def afterFromProto(): Unit = {
-        super.afterFromProto()
-    }
 }
