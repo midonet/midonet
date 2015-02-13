@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_0d96a3f0",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/services/c3po/translators/PortTranslatorTest.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 373,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-02-13T15:30:38Z",
+      "side": 1,
+      "message": "whitespaces",
+      "range": {
+        "startLine": 373,
+        "startChar": 0,
+        "endLine": 373,
+        "endChar": 8
+      },
+      "revId": "1cce6ab9520300c9042c3a647b44445e96b2495d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
