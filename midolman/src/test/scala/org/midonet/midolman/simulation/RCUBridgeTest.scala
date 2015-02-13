@@ -93,7 +93,7 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with Matchers {
         brPort.hostId = UUID.randomUUID()
         brPort.interfaceName = "eth0"
         brPort.networkId = bridge.id
-        brPort.afterFromProto()
+        brPort.afterFromProto(null)
     }
 
     override def afterAll() {
