@@ -35,7 +35,7 @@ class InternalObjectMapperException private[storage](message: String,
 class ServiceUnavailableException(message: String)
     extends StorageException(message)
 
-class NotFoundException private[storage](val clazz: Class[_], val id: ObjId)
+class NotFoundException (val clazz: Class[_], val id: ObjId)
     extends StorageException(
         if (id != None) s"There is no ${clazz.getSimpleName} with ID $id."
         else s"There is no ${clazz.getSimpleName} with the specified ID.")
