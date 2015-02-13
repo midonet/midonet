@@ -15,7 +15,6 @@
 # limitations under the License.
 
 (cd midonet-api && bash -xe init)
-(cd midonet-cp && bash -xe init)
 (cd zookeeper && bash -xe init)
 (cd cassandra && bash -xe init)
 (cd midolman && bash -xe init)
