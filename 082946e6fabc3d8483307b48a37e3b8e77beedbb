@@ -16,6 +16,24 @@
       "revId": "082946e6fabc3d8483307b48a37e3b8e77beedbb",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_f26326af",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/C3POMinion.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-02-13T01:37:00Z",
+      "side": 1,
+      "message": "I hope that you guys had read my commit descriptions:)\n\n\n(Copying my comment at Joe\u0027s patch (https://review.gerrithub.io/#/c/215815/1/midolman/src/main/java/org/midonet/midolman/tools/MmCtl.java)\nI don\u0027t think we can reuse CREATE / DELETE because the CREATE of C3PO (the importer) is always on a first class model object with a ***unique ID***. Joe told me that Neutron doesn\u0027t manage such an ID that\u0027s unique per the port, host and interface triplet. We can fake it by assigning some random UUID to the PortBinding object, but then DELETE doesn\u0027t work  because C3PO DELETE is an action on a class / id pair and the Neutron side has no way of retrieving such an ID.",
+      "parentUuid": "7a1969be_81ad4234",
+      "revId": "082946e6fabc3d8483307b48a37e3b8e77beedbb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
