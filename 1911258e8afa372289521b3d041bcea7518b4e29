@@ -36,6 +36,23 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_52d2fad2",
+        "filename": "specs/1.9/metadata_service.rst",
+        "patchSetId": 1
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 1002773
+      },
+      "writtenOn": "2015-02-13T10:33:55Z",
+      "side": 1,
+      "message": "What Neutron agent are you referring to? Is that the agent that proxies the MD request to Nova?",
+      "revId": "1911258e8afa372289521b3d041bcea7518b4e29",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_b2e24e9d",
         "filename": "specs/1.9/metadata_service.rst",
         "patchSetId": 1
@@ -81,6 +98,58 @@
       "writtenOn": "2015-02-13T09:40:26Z",
       "side": 1,
       "message": "Sorry for insist on this: can\u0027t it just be a single server? MidoNet can know from which virtual machine and network comes the HTTP request based on the virtual port, right? So maybe MidoNet can append the network information in the request and send it to a single Jetty server. So when the request from the virtual machine:\n\n    curl http://169.254.169.254\n\ncan reach the jetty server this way:\n\n    curl http://169.254.169.254/\u003cnetwork_id\u003e\n\nIf we could do this, we might avoid some schedule/unschedule jetty servers issues and jetty spawning time delays.",
+      "revId": "1911258e8afa372289521b3d041bcea7518b4e29",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_725bb654",
+        "filename": "specs/1.9/metadata_service.rst",
+        "patchSetId": 1
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 1002773
+      },
+      "writtenOn": "2015-02-13T10:33:55Z",
+      "side": 1,
+      "message": "MN could indeed manipulate the L7 packet, but it means that all the packets for the MD request have to go through the Netlink channel. The main problem is that it makes it harder to handle the request with sockets, Jetty server code, etc.\n\nI think that\u0027s why Ryu is proposing that MN Agent only sets up L2-L4 transformations on the packets, and the packets then go through the veth to the host network stack.",
+      "parentUuid": "7a1969be_12bd2269",
+      "revId": "1911258e8afa372289521b3d041bcea7518b4e29",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_727456cf",
+        "filename": "specs/1.9/metadata_service.rst",
+        "patchSetId": 1
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 1002773
+      },
+      "writtenOn": "2015-02-13T10:33:55Z",
+      "side": 1,
+      "message": "What does this flow-rule look like?\n\ne.g. match all packets to 169.254.169.254:80 and actions:\n1) translate to 169.254.169.254:12345, where 12345 is the L4 port the Jetty server maps to that VM\u0027s Neutron Network. \n2) forward to the Jetty datapath port (similar to the flow-rules we set up for our Quagga namespace).\n\nWith such a rule, MD request packets never go through simulation.\nYou can have equivalent return rules, so that the reply packets don\u0027t go through simulation either.\n\nSo this will end up looking exactly like the bypass rules we set up for the Quagga namespace (on L3 gateway nodes) with the difference that we\u0027re dynamically changing the rules as we need new L4 ports for the Jetty server to listen on).",
+      "revId": "1911258e8afa372289521b3d041bcea7518b4e29",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_f26846f7",
+        "filename": "specs/1.9/metadata_service.rst",
+        "patchSetId": 1
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 1002773
+      },
+      "writtenOn": "2015-02-13T10:33:55Z",
+      "side": 1,
+      "message": "I think this is a great idea.\n\nDoesn\u0027t this cover all cases? It even applies to our current solution - we could stop playing tricks with the routes. And the same trick applies if you want the router to route the MD traffic - just use the router\u0027s MAC in the Bridge\u0027s MAC table entry for 169.254.169.254.",
       "revId": "1911258e8afa372289521b3d041bcea7518b4e29",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
