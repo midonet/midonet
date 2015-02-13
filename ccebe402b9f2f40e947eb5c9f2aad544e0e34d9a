@@ -54,6 +54,24 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_52cb1aa5",
+        "filename": "midolman/src/main/java/org/midonet/midolman/tools/MmCtl.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-02-13T01:31:15Z",
+      "side": 1,
+      "message": "I requested Joe to add these. I don\u0027t think we can reuse CREATE / DELETE because the CREATE of C3PO (the importer) is always on a first class model object with a ***unique ID***. Joe told me that Neutron doesn\u0027t manage such an ID that\u0027s unique per the port, host and interface triplet. We can fake it by assigning some random UUID to the PortBinding object, but then DELETE doesn\u0027t work  because C3PO DELETE is an action on a class / id pair and the Neutron side has no way of retrieving such an ID.",
+      "parentUuid": "7a1969be_a1f95eca",
+      "revId": "ccebe402b9f2f40e947eb5c9f2aad544e0e34d9a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_41150af0",
         "filename": "midolman/src/main/java/org/midonet/midolman/tools/MmCtl.java",
         "patchSetId": 1
@@ -100,6 +118,24 @@
       "side": 1,
       "message": "+1, we should do that.",
       "parentUuid": "7a1969be_81f6e2d5",
+      "revId": "ccebe402b9f2f40e947eb5c9f2aad544e0e34d9a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_92c47293",
+        "filename": "midolman/src/main/java/org/midonet/midolman/tools/MmCtl.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 166,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-02-13T01:31:15Z",
+      "side": 1,
+      "message": "Are we building a json String? Then we should use the proper json library, you can find examples in the brain project. Let me know if you need a pointer.\n\nWe shouldn\u0027t send protobuf here as we\u0027d need to special case port-binding deserialization.",
+      "parentUuid": "7a1969be_61a00644",
       "revId": "ccebe402b9f2f40e947eb5c9f2aad544e0e34d9a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
