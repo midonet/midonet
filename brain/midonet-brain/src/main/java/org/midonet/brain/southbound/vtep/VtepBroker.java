@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.google.common.base.Strings;
 import com.google.inject.Inject;
 
 import org.apache.commons.lang3.tuple.Pair;
@@ -43,6 +44,7 @@ import org.midonet.brain.services.vxgw.VxLanPeer;
 import org.midonet.brain.services.vxgw.VxLanPeerConsolidationException;
 import org.midonet.brain.services.vxgw.VxLanPeerSyncException;
 import org.midonet.brain.southbound.vtep.model.LogicalSwitch;
+import org.midonet.brain.southbound.vtep.model.McastMac;
 import org.midonet.brain.southbound.vtep.model.UcastMac;
 import org.midonet.cluster.data.VtepBinding;
 import org.midonet.packets.IPv4Addr;
@@ -205,6 +207,25 @@ public class VtepBroker implements VxLanPeer {
      */
     private void applyUcastAddition(MacLocation ml) {
         log.debug("Adding UCAST remote MAC to the VTEP: " + ml);
+        List<UcastMac> ucasts = null;
+        try {
+            ucasts = vtepDataClient.listUcastMacsRemote();
+        } catch (VtepNotConnectedException e) {
+            log.error("VTEP is not connected", e);
+            return;
+        }
+
+        for (UcastMac uc : ucasts) {
+            if (ml.mac().toString().equalsIgnoreCase(uc.mac)) { // NPE safe
+                String mlIp = ml.ipAddr() == null ? "" : ml.ipAddr().toString();
+                String ucIp = Strings.nullToEmpty(uc.ipAddr);
+                if (ucIp.equals(mlIp)) { // horrid, thanks ovsdb
+                    log.debug("UCAST remote MAC already in vtep");
+                    return;
+                }
+            }
+        }
+
         Status st = vtepDataClient.addUcastMacRemote(ml.logicalSwitchName(),
                                                      ml.mac().IEEE802(),
                                                      ml.ipAddr(),
@@ -247,6 +268,19 @@ public class VtepBroker implements VxLanPeer {
      */
     private void applyMcastAddition(MacLocation ml) {
         log.debug("Adding MCAST remote MAC to the VTEP: " + ml);
+        List<McastMac> mcasts = null;
+        try {
+            mcasts = vtepDataClient.listMcastMacsRemote();
+        } catch (VtepNotConnectedException e) {
+            log.error("VTEP is not connected", e);
+            return;
+        }
+        for (McastMac mc : mcasts) {
+            if (mc.mac.equals(ml.mac().toString())) {
+                log.debug("MCAST remote MAC already in vtep");
+                return;
+            }
+        }
         Status st = vtepDataClient.addMcastMacRemote(ml.logicalSwitchName(),
                                                      ml.mac(),
                                                      ml.vxlanTunnelEndpoint());
