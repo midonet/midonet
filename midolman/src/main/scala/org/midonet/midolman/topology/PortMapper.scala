@@ -27,10 +27,9 @@ final class PortMapper(id: UUID, vt: VirtualTopology)
 
     override def logSource = s"org.midonet.devices.port.port-$id"
 
-    protected override def observable = {
-        vt.store.observable(classOf[TopologyPort], id)
-                .map[SimulationPort](
-                    makeFunc1(ZoomConvert.fromProto(_, classOf[SimulationPort]))
-            )
-    }
+    protected override val observable = vt.store
+        .observable(classOf[TopologyPort], id)
+        .observeOn(vt.scheduler)
+        .map[SimulationPort](
+            makeFunc1(ZoomConvert.fromProto(_, classOf[SimulationPort])))
 }

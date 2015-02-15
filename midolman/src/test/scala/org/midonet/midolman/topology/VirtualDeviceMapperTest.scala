@@ -81,8 +81,6 @@ class VirtualDeviceMapperTest extends MidolmanSpec {
 
     type TestableObserver = AwaitableObserver[TestableDevice]
 
-    @Mocked
-    var storage: Storage = _
     implicit var vt: VirtualTopology = _
 
     registerActors(FlowController -> (() => new FlowController
@@ -91,7 +89,7 @@ class VirtualDeviceMapperTest extends MidolmanSpec {
     def fc = FlowController.as[FlowController with MessageAccumulator]
 
     override def beforeTest(): Unit = {
-        vt = new VirtualTopology(storage, clusterDataClient, actorsService)
+        vt = injector.getInstance(classOf[VirtualTopology])
     }
 
     feature("Test the flows tags are invalidated") {
