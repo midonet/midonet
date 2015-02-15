@@ -18,8 +18,6 @@ package org.midonet.midolman.topology
 import java.util.UUID
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
 
-import mockit.Mocked
-
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
@@ -27,7 +25,6 @@ import rx.Observable
 import rx.subjects.BehaviorSubject
 import rx.subscriptions.Subscriptions
 
-import org.midonet.cluster.data.storage.Storage
 import org.midonet.midolman.topology.VirtualTopology.Device
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.util.functors._
@@ -77,12 +74,10 @@ class DeviceMapperTest extends MidolmanSpec {
 
     type TestableObserver = AwaitableObserver[TestableDevice]
 
-    @Mocked
-    var storage: Storage = _
     implicit var vt: VirtualTopology = _
 
     override def beforeTest(): Unit = {
-        vt = new VirtualTopology(storage, clusterDataClient, actorsService)
+        vt = injector.getInstance(classOf[VirtualTopology])
     }
 
     feature("Test device observable subscription") {
@@ -94,7 +89,7 @@ class DeviceMapperTest extends MidolmanSpec {
             TestableObservable(UUID.randomUUID, stream.out)
 
             Then("The device observable should not be subscribed")
-            stream.refCount.get should be (0)
+            stream.refCount.get shouldBe 0
         }
 
         scenario("A used observable subscribes to storage") {
@@ -106,13 +101,13 @@ class DeviceMapperTest extends MidolmanSpec {
             val observable = TestableObservable(UUID.randomUUID, stream.out)
 
             Then("The device observable should not be subscribed")
-            stream.refCount.get should be (0)
+            stream.refCount.get shouldBe 0
 
             When("An observer subscribes")
             observable.subscribe(observer)
 
             Then("The device observable should have one subscription")
-            stream.refCount.get should be (1)
+            stream.refCount.get shouldBe 1
         }
 
         scenario("Multiple subscribers use the same subscription to storage") {
@@ -125,19 +120,19 @@ class DeviceMapperTest extends MidolmanSpec {
             val observable = TestableObservable(UUID.randomUUID, stream.out)
 
             Then("The device mapper should not be subscribed")
-            stream.refCount.get should be (0)
+            stream.refCount.get shouldBe 0
 
             When("An observer subscribes")
             observable.subscribe(observer1)
 
             Then("The device mapper should have one subscription")
-            stream.refCount.get should be (1)
+            stream.refCount.get shouldBe 1
 
             When("A second observer subscribes")
             observable.subscribe(observer2)
 
             Then("The device mapper should have one subscription")
-            stream.refCount.get should be (1)
+            stream.refCount.get shouldBe 1
         }
 
         scenario("Unsubscribing does not affect subscription to storage") {
@@ -150,7 +145,7 @@ class DeviceMapperTest extends MidolmanSpec {
             val observable = TestableObservable(UUID.randomUUID, stream.out)
 
             Then("The device mapper should not be subscribed")
-            stream.refCount.get should be (0)
+            stream.refCount.get shouldBe 0
 
             When("Both observers subscribes")
             val subscription1 = observable subscribe observer1
@@ -168,7 +163,7 @@ class DeviceMapperTest extends MidolmanSpec {
             subscription2.isUnsubscribed shouldBe true
 
             And("The device observable should have one subscription")
-            stream.refCount.get should be (1)
+            stream.refCount.get shouldBe 1
         }
 
         scenario("Stream completion notifies future subscribers") {
@@ -186,7 +181,7 @@ class DeviceMapperTest extends MidolmanSpec {
             val subscription = observable subscribe observer
 
             Then("The subscription should be the empty subscription")
-            subscription should be (Subscriptions.unsubscribed())
+            subscription shouldBe Subscriptions.unsubscribed()
 
             And("The observer should have received an IllegalStateException")
             observer.getOnNextEvents shouldBe empty
@@ -210,10 +205,10 @@ class DeviceMapperTest extends MidolmanSpec {
             val subscription = observable.subscribe(observer)
 
             Then("The subscription should be the empty subscription")
-            subscription should be (Subscriptions.unsubscribed)
+            subscription shouldBe Subscriptions.unsubscribed
 
             And("The observer should have received the exception")
-            observer.getOnErrorEvents should contain only (e)
+            observer.getOnErrorEvents should contain only e
             observer.getOnCompletedEvents shouldBe empty
             observer.getOnNextEvents shouldBe empty
         }
@@ -237,13 +232,13 @@ class DeviceMapperTest extends MidolmanSpec {
             observable.subscribe(observer1)
 
             Then("The first observer should see the device")
-            observer1.getOnNextEvents should contain only (TestableDevice(id, 0))
+            observer1.getOnNextEvents should contain only TestableDevice(id, 0)
 
             When("A second observer subscribes to the observable")
             observable.subscribe(observer2)
 
             Then("The second observer should see the device")
-            observer2.getOnNextEvents should contain only (TestableDevice(id, 0))
+            observer2.getOnNextEvents should contain only TestableDevice(id, 0)
         }
 
         scenario("The observer does not receive a device until created") {
@@ -406,7 +401,7 @@ class DeviceMapperTest extends MidolmanSpec {
             observer.getOnCompletedEvents should have size 1
 
             And("The observer should be unsubscribed")
-            subscription.isUnsubscribed should be (true)
+            subscription.isUnsubscribed shouldBe true
         }
 
         scenario("Observers receive device errors") {
@@ -453,16 +448,16 @@ class DeviceMapperTest extends MidolmanSpec {
             val future = observable.asFuture
 
             Then("The future is not completed")
-            future.isCompleted should be (false)
+            future.isCompleted shouldBe false
 
             When("The stream sends a device update")
             stream.in.onNext(TestableDevice(id, 0))
 
             Then("The future should have completed with the device")
-            future.isCompleted should be (true)
+            future.isCompleted shouldBe true
             future.value should not be None
-            future.value.get.isSuccess should be (true)
-            future.value.get.get should be (TestableDevice(id, 0))
+            future.value.get.isSuccess shouldBe true
+            future.value.get.get shouldBe TestableDevice(id, 0)
         }
 
         scenario("The future completes sync on update") {
@@ -478,10 +473,10 @@ class DeviceMapperTest extends MidolmanSpec {
             val future = observable.asFuture
 
             Then("The future should have completed with the device")
-            future.isCompleted should be (true)
+            future.isCompleted shouldBe true
             future.value should not be None
-            future.value.get.isSuccess should be (true)
-            future.value.get.get should be (TestableDevice(id, 0))
+            future.value.get.isSuccess shouldBe true
+            future.value.get.get shouldBe TestableDevice(id, 0)
         }
 
         scenario("The future completes async on completed") {
@@ -494,16 +489,16 @@ class DeviceMapperTest extends MidolmanSpec {
             val future = observable.asFuture
 
             Then("The future is not completed")
-            future.isCompleted should be (false)
+            future.isCompleted shouldBe false
 
             When("The stream emits on completed")
             stream.in.onCompleted()
 
             Then("The future should have completed with an error")
-            future.isCompleted should be (true)
+            future.isCompleted shouldBe true
             future.value should not be None
-            future.value.get.isFailure should be (true)
-            future.value.get.failed.get should be (RichObservable.COMPLETED_EXCEPTION)
+            future.value.get.isFailure shouldBe true
+            future.value.get.failed.get shouldBe RichObservable.COMPLETED_EXCEPTION
         }
 
         scenario("The future completes sync on completed") {
@@ -519,10 +514,10 @@ class DeviceMapperTest extends MidolmanSpec {
             val future = observable.asFuture
 
             Then("The future should have completed with the device")
-            future.isCompleted should be (true)
+            future.isCompleted shouldBe true
             future.value should not be None
-            future.value.get.isFailure should be (true)
-            future.value.get.failed.get should be (DeviceMapper.SUBSCRIPTION_EXCEPTION)
+            future.value.get.isFailure shouldBe true
+            future.value.get.failed.get shouldBe DeviceMapper.SUBSCRIPTION_EXCEPTION
         }
 
         scenario("The future completes async on error") {
@@ -535,17 +530,17 @@ class DeviceMapperTest extends MidolmanSpec {
             val future = observable.asFuture
 
             Then("The future is not completed")
-            future.isCompleted should be (false)
+            future.isCompleted shouldBe false
 
             When("The stream emits an error")
             val e = new NullPointerException()
             stream.in.onError(e)
 
             Then("The future should have completed with the error")
-            future.isCompleted should be (true)
+            future.isCompleted shouldBe true
             future.value should not be None
-            future.value.get.isFailure should be (true)
-            future.value.get.failed.get should be (e)
+            future.value.get.isFailure shouldBe true
+            future.value.get.failed.get shouldBe e
         }
 
         scenario("The future completes sync on error") {
@@ -562,10 +557,10 @@ class DeviceMapperTest extends MidolmanSpec {
             val future = observable.asFuture
 
             Then("The future should have completed with the error")
-            future.isCompleted should be (true)
+            future.isCompleted shouldBe true
             future.value should not be None
-            future.value.get.isFailure should be (true)
-            future.value.get.failed.get should be (e)
+            future.value.get.isFailure shouldBe true
+            future.value.get.failed.get shouldBe e
         }
     }
 
@@ -577,13 +572,13 @@ class DeviceMapperTest extends MidolmanSpec {
             TestableObservable(id, stream.out)
 
             Then("The virtual topology does not contain the device")
-            vt.devices.containsKey(id) should be (false)
+            vt.devices.containsKey(id) shouldBe false
 
             When("The stream sends a device update")
             stream.in.onNext(TestableDevice(id, 0))
 
             Then("The virtual topology should not contain the device")
-            vt.devices.containsKey(id) should be (false)
+            vt.devices.containsKey(id) shouldBe false
         }
 
         scenario("The cache contains the latest device") {
@@ -596,21 +591,21 @@ class DeviceMapperTest extends MidolmanSpec {
             observable.subscribe(new TestableObserver()).unsubscribe()
 
             Then("The virtual topology does not contain the device")
-            vt.devices.containsKey(id) should be (false)
+            vt.devices.containsKey(id) shouldBe false
 
             When("The stream sends a device update")
             stream.in.onNext(TestableDevice(id, 0))
 
             Then("The virtual topology should contain the device")
-            vt.devices.containsKey(id) should be (true)
-            vt.devices.get(id) should be (TestableDevice(id, 0))
+            vt.devices.containsKey(id) shouldBe true
+            vt.devices.get(id) shouldBe TestableDevice(id, 0)
 
             When("The stream sends another device update")
             stream.in.onNext(TestableDevice(id, 1))
 
             Then("The virtual topology should contain the last version")
-            vt.devices.containsKey(id) should be (true)
-            vt.devices.get(id) should be (TestableDevice(id, 1))
+            vt.devices.containsKey(id) shouldBe true
+            vt.devices.get(id) shouldBe TestableDevice(id, 1)
         }
 
         scenario("The cache does not contains the device after an error") {
@@ -623,20 +618,20 @@ class DeviceMapperTest extends MidolmanSpec {
             observable.subscribe(new TestableObserver()).unsubscribe()
 
             Then("The virtual topology does not contain the device")
-            vt.devices.containsKey(id) should be (false)
+            vt.devices.containsKey(id) shouldBe false
 
             When("The stream sends a device update")
             stream.in.onNext(TestableDevice(id, 0))
 
             Then("The virtual topology should contain the device")
-            vt.devices.containsKey(id) should be (true)
-            vt.devices.get(id) should be (TestableDevice(id, 0))
+            vt.devices.containsKey(id) shouldBe true
+            vt.devices.get(id) shouldBe TestableDevice(id, 0)
 
             When("The stream sends an error update")
             stream.in.onError(new NullPointerException())
 
             Then("The virtual topology does not contain the device")
-            vt.devices.containsKey(id) should be (false)
+            vt.devices.containsKey(id) shouldBe false
         }
 
         scenario("The cache does not contain the device after deletion") {
@@ -649,20 +644,20 @@ class DeviceMapperTest extends MidolmanSpec {
             observable.subscribe(new TestableObserver()).unsubscribe()
 
             Then("The virtual topology does not contain the device")
-            vt.devices.containsKey(id) should be (false)
+            vt.devices.containsKey(id) shouldBe false
 
             When("The stream sends a device update")
             stream.in.onNext(TestableDevice(id, 0))
 
             Then("The virtual topology should contain the device")
-            vt.devices.containsKey(id) should be (true)
-            vt.devices.get(id) should be (TestableDevice(id, 0))
+            vt.devices.containsKey(id) shouldBe true
+            vt.devices.get(id) shouldBe TestableDevice(id, 0)
 
             When("The stream sends a completed update")
             stream.in.onError(new NullPointerException())
 
             Then("The virtual topology does not contain the device")
-            vt.devices.containsKey(id) should be (false)
+            vt.devices.containsKey(id) shouldBe false
         }
     }
 }
