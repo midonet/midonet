@@ -62,6 +62,10 @@ class HostMapperTest extends MidolmanSpec
         config
     }
 
+    private def assertThread(): Unit = {
+        assert(vt.threadId == Thread.currentThread.getId)
+    }
+
     feature("A host should come with its tunnel zones membership") {
         scenario("The host is in one tunnel zone") {
             Given("A host member of one tunnel zone")
@@ -74,7 +78,7 @@ class HostMapperTest extends MidolmanSpec
             val observable = Observable.create(hostMapper)
 
             When("We subscribe to the host")
-            val hostObs = new AwaitableObserver[SimHost](1)
+            val hostObs = new AwaitableObserver[SimHost](1, assertThread())
             observable.subscribe(hostObs)
 
             Then("We obtain a simulation host with the host's tunnel zone membership")
@@ -97,7 +101,7 @@ class HostMapperTest extends MidolmanSpec
             val observable = Observable.create(hostMapper)
 
             When("We subscribe to the host")
-            val hostObs = new AwaitableObserver[SimHost](2)
+            val hostObs = new AwaitableObserver[SimHost](2, assertThread())
             observable.subscribe(hostObs)
 
             And("Add a 2nd tunnel zone the host is a member of")
@@ -127,7 +131,7 @@ class HostMapperTest extends MidolmanSpec
             val observable = Observable.create(hostMapper)
 
             When("We subscribe to the host")
-            val hostObs = new AwaitableObserver[SimHost](2)
+            val hostObs = new AwaitableObserver[SimHost](2, assertThread())
             observable.subscribe(hostObs)
 
             And("We remove the host from the tunnel zone")
@@ -155,7 +159,7 @@ class HostMapperTest extends MidolmanSpec
             val observable = Observable.create(hostMapper)
 
             When("We subscribe to the host")
-            val hostObs = new AwaitableObserver[SimHost](2)
+            val hostObs = new AwaitableObserver[SimHost](2, assertThread())
             observable.subscribe(hostObs)
 
             And("We delete the host")
@@ -182,7 +186,7 @@ class HostMapperTest extends MidolmanSpec
             val observable = Observable.create(hostMapper)
 
             When("We subscribe to the host")
-            val hostObs = new AwaitableObserver[SimHost](1)
+            val hostObs = new AwaitableObserver[SimHost](1, assertThread())
             observable.subscribe(hostObs)
 
             Then("We obtain a host that is alive")
@@ -211,11 +215,11 @@ class HostMapperTest extends MidolmanSpec
     private def assertEquals(simHost: SimHost, protoHost: Host,
                              tunnelZones: Set[TunnelZone]) = {
         protoHost.getId.asJava shouldBe simHost.id
-        protoHost.getPortInterfaceMappingCount shouldBe simHost.portToInterface.size
+        protoHost.getPortInterfaceMappingCount shouldBe simHost.portBindings.size
         protoHost.getPortInterfaceMappingList.foreach(portInterface => {
             val portId = portInterface.getPortId
             val interface = portInterface.getInterfaceName
-            simHost.portToInterface.get(portId) shouldBe Some(interface)
+            simHost.portBindings.get(portId) shouldBe Some(interface)
         })
         protoHost.getTunnelZoneIdsCount shouldBe simHost.tunnelZoneIds.size
         protoHost.getTunnelZoneIdsList.foreach(tunnelId =>
@@ -239,10 +243,8 @@ class HostMapperTest extends MidolmanSpec
         val hostZkManager = injector.getInstance(classOf[HostZkManager])
         hostZkManager.ensureHostPathExists(hostId)
 
-        alive match {
-            case true => hostZkManager.makeAlive(hostId)
-            case false => hostZkManager.makeNotAlive(hostId)
-        }
+        if (alive) hostZkManager.makeAlive(hostId)
+        else hostZkManager.makeNotAlive(hostId)
     }
 
     private def addTunnelZoneToHost(protoHost: Host): (Host, TunnelZone) = {

@@ -32,8 +32,9 @@ final class TunnelZoneMapper(id: UUID, vt: VirtualTopology)
 
     override def logSource = s"org.midonet.devices.tunnelzone.tunnelzone-$id"
 
-    protected override def observable =
+    protected override val observable =
         vt.store.observable(classOf[TunnelZone], id)
             .map[SimTunnelZone](
                 makeFunc1(ZoomConvert.fromProto(_, classOf[SimTunnelZone])))
+            .observeOn(vt.scheduler)
 }
