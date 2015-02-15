@@ -27,15 +27,9 @@ import org.scalatest.{FeatureSpec, Matchers}
 import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.models.Topology
 import org.midonet.cluster.util.UUIDUtil._
-import org.midonet.sdn.flows.FlowTagger
-import org.midonet.sdn.flows.FlowTagger.FlowTag
 
 @RunWith(classOf[JUnitRunner])
 class HostConversionTest extends FeatureSpec with Matchers {
-
-    private def deviceTag(proto: Topology.Host): FlowTag = {
-        FlowTagger.tagForDevice(proto.getId.asJava)
-    }
 
     feature("Conversion for host") {
         scenario("Test conversion from Protocol Buffer message") {
@@ -55,11 +49,11 @@ class HostConversionTest extends FeatureSpec with Matchers {
 
     private def assertEquals(proto: Topology.Host, zoomObj: Host) = {
         proto.getId.asJava should be(zoomObj.id)
-        proto.getPortInterfaceMappingCount should be(zoomObj.bindings.size)
+        proto.getPortInterfaceMappingCount shouldBe zoomObj.portBindings.size
         for (portMapping <- proto.getPortInterfaceMappingList) {
             val protoInterface = portMapping.getInterfaceName
-            val zoomInterface = zoomObj.bindings.get(portMapping.getPortId)
-            zoomInterface should be(Some(protoInterface))
+            val zoomInterface = zoomObj.portBindings.get(portMapping.getPortId)
+            zoomInterface shouldBe Some(protoInterface)
         }
         proto.getTunnelZoneIdsCount shouldBe zoomObj.tunnelZoneIds.toParArray.length
         for (tunnelId <- proto.getTunnelZoneIdsList) {
@@ -81,8 +75,8 @@ class HostConversionTest extends FeatureSpec with Matchers {
     private def newZoomObj = {
         val zoomObj = new Host
         zoomObj.id = UUID.randomUUID()
-        zoomObj.bindings = Map(UUID.randomUUID() -> "eth0",
-                               UUID.randomUUID() -> "eth1")
+        zoomObj.portBindings = Map(UUID.randomUUID() -> "eth0",
+                                   UUID.randomUUID() -> "eth1")
         zoomObj.tunnelZoneIds = Set(UUID.randomUUID(),
                                     UUID.randomUUID())
         zoomObj

@@ -168,6 +168,9 @@ class VirtualTopologyTest extends MidolmanSpec with TopologyBuilder {
             And("Waiting for the notifications")
             observer.await(timeout) shouldBe true
 
+            And("Waiting for the topology to be updated")
+            observer.await(5 seconds) shouldBe true
+
             And("Requesting the port")
             val device = VirtualTopology.tryGet[SimulationPort](id)
 
