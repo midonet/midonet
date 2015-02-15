@@ -29,6 +29,7 @@ final class PortMapper(id: UUID, vt: VirtualTopology)
 
     protected override def observable = {
         vt.store.observable(classOf[TopologyPort], id)
+                .subscribeOn(vt.scheduler)
                 .map[SimulationPort](
                     makeFunc1(ZoomConvert.fromProto(_, classOf[SimulationPort]))
             )
