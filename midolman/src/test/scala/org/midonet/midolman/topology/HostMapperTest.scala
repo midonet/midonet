@@ -211,11 +211,11 @@ class HostMapperTest extends MidolmanSpec
     private def assertEquals(simHost: SimHost, protoHost: Host,
                              tunnelZones: Set[TunnelZone]) = {
         protoHost.getId.asJava shouldBe simHost.id
-        protoHost.getPortInterfaceMappingCount shouldBe simHost.portToInterface.size
+        protoHost.getPortInterfaceMappingCount shouldBe simHost.portBindings.size
         protoHost.getPortInterfaceMappingList.foreach(portInterface => {
             val portId = portInterface.getPortId
             val interface = portInterface.getInterfaceName
-            simHost.portToInterface.get(portId) shouldBe Some(interface)
+            simHost.portBindings.get(portId) shouldBe Some(interface)
         })
         protoHost.getTunnelZoneIdsCount shouldBe simHost.tunnelZoneIds.size
         protoHost.getTunnelZoneIdsList.foreach(tunnelId =>
@@ -239,10 +239,8 @@ class HostMapperTest extends MidolmanSpec
         val hostZkManager = injector.getInstance(classOf[HostZkManager])
         hostZkManager.ensureHostPathExists(hostId)
 
-        alive match {
-            case true => hostZkManager.makeAlive(hostId)
-            case false => hostZkManager.makeNotAlive(hostId)
-        }
+        if (alive) hostZkManager.makeAlive(hostId)
+        else hostZkManager.makeNotAlive(hostId)
     }
 
     private def addTunnelZoneToHost(protoHost: Host): (Host, TunnelZone) = {

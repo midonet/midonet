@@ -19,6 +19,9 @@ package org.midonet.midolman.topology
 import java.util.UUID
 import java.util.concurrent.atomic.AtomicBoolean
 
+import javax.annotation.Nullable
+
+import scala.collection.JavaConverters._
 import scala.collection.mutable
 
 import com.google.common.annotations.VisibleForTesting
@@ -28,48 +31,66 @@ import rx.Observable
 import rx.subjects.{BehaviorSubject, PublishSubject}
 
 import org.midonet.cluster.data.ZoomConvert
-import org.midonet.cluster.models.Topology.Host
-import org.midonet.midolman.topology.devices.{Host => SimHost, TunnelZone}
+import org.midonet.cluster.models.Topology.{Host => TopologyHost}
+import org.midonet.cluster.util.UUIDUtil._
+import org.midonet.midolman.state.StateAccessException
+import org.midonet.midolman.topology.HostMapper.TunnelZoneState
+import org.midonet.midolman.topology.devices.{Host => SimulationHost, TunnelZone}
 import org.midonet.packets.IPAddr
 import org.midonet.util.functors._
 
-final class HostMapper(id: UUID, vt: VirtualTopology)
-    extends DeviceMapper[SimHost](id, vt) {
+object HostMapper {
 
-    override def logSource = s"org.midonet.devices.host.host-$id"
+    /**
+     * Stores the state for a tunnel zone.
+     */
+    private final class TunnelZoneState(tunnelZoneId: UUID) {
 
-    private var simHost = emptySimHost
-    private var aliveStatusReceived = false
-    private val hostAliveStream = BehaviorSubject.create[Boolean]()
-    private val aliveWatcher = hostAliveWatcher
-    private val tunnelZonesStream =
-        BehaviorSubject.create[Observable[TunnelZone]]()
+        private var currentTunnelZone: TunnelZone = null
+        private val filter = PublishSubject.create[TunnelZone]()
+
+        val observable = VirtualTopology.observable[TunnelZone](tunnelZoneId)
+                                        .takeUntil(filter)
+
+        /** Sets the tunnel zone for this tunnel zone state, and returns the
+          * previous tunnel zone or null. */
+        @Nullable
+        def :=(tunnelZone: TunnelZone): TunnelZone = {
+            val previousTunnelZone = currentTunnelZone
+            currentTunnelZone = tunnelZone
+            previousTunnelZone
+        }
+        /** Completes the observable corresponding to this tunnel zone state */
+        def complete() = filter.onCompleted()
+        /** Gets the current tunnel zone or null, if none is set. */
+        @Nullable
+        def tunnelZone: TunnelZone = currentTunnelZone
+        /** Indicates whether the tunnel zone state has received the tunnel
+          * zone data */
+        def isReady: Boolean = currentTunnelZone ne null
+    }
+
+}
+
+/**
+ * A class that implements the [[DeviceMapper]] for a [[SimulationHost]]
+ */
+final class HostMapper(hostId: UUID, vt: VirtualTopology)
+    extends DeviceMapper[SimulationHost](hostId, vt) {
+
+    override def logSource = s"org.midonet.devices.host.host-$hostId"
+
+    private var currentHost: TopologyHost = null
+    private var alive: Option[Boolean] = None
+    private val aliveSubject = BehaviorSubject.create[Boolean]()
+    private val aliveWatcher = new Watcher {
+        override def process(event: WatchedEvent) = watchAlive()
+    }
+    private val tunnelZonesSubject =
+        PublishSubject.create[Observable[TunnelZone]]()
     private val tunnelZones = mutable.Map[UUID, TunnelZoneState]()
 
-    private val observableCreated = new AtomicBoolean(false)
-    private var outStream: Observable[SimHost] = _
-
-    private final class TunnelZoneState(tunnelId: UUID) {
-        var hostIp: IPAddr = null
-        private val mark = PublishSubject.create[TunnelZone]()
-        val observable = VirtualTopology
-            .observable[TunnelZone](tunnelId)
-            .takeUntil(mark)
-        def complete() = mark.onCompleted()
-    }
-
-    // TODO(nicolas): Rely on Zoom to obtain an observable on the alive
-    //                status of the host when available.
-    private def hostAliveWatcher: Watcher = new Watcher {
-        override def process(event: WatchedEvent) =
-            hostAliveStream.onNext(vt.dataClient.hostsIsAlive(id, aliveWatcher))
-    }
-
-    private def emptySimHost: SimHost = {
-        val simHost = new SimHost
-        simHost.tunnelZoneIds = Set.empty
-        simHost
-    }
+    private val initialized = new AtomicBoolean
 
     /**
      * @return True iff the HostMapper is observing updates to the given tunnel
@@ -79,106 +100,138 @@ final class HostMapper(id: UUID, vt: VirtualTopology)
     protected[topology] def isObservingTunnel(tunnelId: UUID): Boolean =
         tunnelZones.contains(tunnelId)
 
-    private def rebuildHost(host: SimHost): SimHost = {
-        // Copying the alive status
-        host.alive = simHost.alive
-        simHost = host
-
-        // Taking care of new tunnel zones the host is a member of.
-        host.tunnelZoneIds.filterNot(tunnelZones.contains).foreach(tzId => {
-            tunnelZones(tzId) = new TunnelZoneState(tzId)
-            tunnelZonesStream.onNext(tunnelZones(tzId).observable)
-        })
-        // Taking care of tunnel zones the host is not a member of anymore.
-        tunnelZones.keys.filterNot(host.tunnelZoneIds.contains).foreach(tzId => {
-            tunnelZones(tzId).complete()
-            tunnelZones.remove(tzId)
-        })
-
-        simHost
-    }
-
     /**
-     * This method handles host, tunnel zones, and host alive status updates.
+     * Processes the host, tunnel zone and alive status updates and indicates
+     * if the host device is ready, when the host, alive status and all tunnel
+     * zones were received.
      * A host update triggers a host rebuild, which does the following:
-     * <ol>
-     *    <li> it subscribes to new tunnel zones the host is a member of, and
-     *    <li> it removes tunnel zones the host is not a member of anymore </li>
-     *         (the tunnel zone observable completes whenever the corresponding
-     *         tunnel zone id is not part of the host's tunnelZoneId set). </li>
-     * </ol>
-     *
-     * A tunnel zone update leads to storing the host ip in the [[tunnelZones]]
+     * - it subscribes to new tunnel zones the host is a member of, and
+     * - it removes tunnel zones the host is not a member of anymore (the tunnel
+     * zone observable completes whenever the corresponding tunnel zone id is
+     * not part of the host's tunnelZoneId set).
+     * A tunnel zone update leads to storing the host IP in the [[tunnelZones]]
      * map. When all the tunnel zones for the host have been received, the host
      * field tunnelZones is constructed.
      * Updates of the host alive status are reflected in the the alive field of
      * the host.
      */
-    private def handleUpdate(update: Any): SimHost = update match {
-        case host: SimHost =>
-            log.debug(s"Received update for host $id")
-            rebuildHost(host)
+    private def isHostReady(update: Any): Boolean = {
+        update match {
+            case host: TopologyHost =>
+                log.debug("Update for host", hostId)
 
-        case isAlive: Boolean =>
-            log.debug(s"The host $id became ${if (isAlive) "alive" else "dead"}")
-            aliveStatusReceived = true
-            simHost.alive = isAlive
-            new SimHost(simHost)
+                val tunnelZoneIds = Set(
+                    host.getTunnelZoneIdsList.asScala.map(_.asJava).toArray: _*)
 
-        case simTunnel: TunnelZone =>
-            log.debug(s"Received update for tunnel zone ${simTunnel.id} in host $id")
+                // Complete the observables for the tunnel zones no longer part
+                // of this host.
+                for ((tunnelZoneId, tunnelZoneState) <- tunnelZones.toList
+                     if !tunnelZoneIds.contains(tunnelZoneId)) {
+                    tunnelZoneState.complete()
+                    tunnelZones -= tunnelZoneId
+                }
 
-            // We store the host's ip in the corresponding tunnel zone state.
-            // We cannot just keep the ip in the host because we would
-            // lose this information when a host update arrives while receiving
-            // the tunnel zones the host is a member of.
-            tunnelZones(simTunnel.id).hostIp = simTunnel.hosts(id)
+                // Create state for the new tunnel zones of this host, and
+                // notify their observable on the tunnel zones observable.
+                for (tunnelZoneId <- tunnelZoneIds
+                     if !tunnelZones.contains(tunnelZoneId)) {
+                    val tunnelZoneState = new TunnelZoneState(tunnelZoneId)
+                    tunnelZones += tunnelZoneId -> tunnelZoneState
+                    tunnelZonesSubject onNext tunnelZoneState.observable
+                }
 
-            if (areAllTunnelZonesReceived(simHost)) {
-                simHost.tunnelZones = tunnelZones.map(idtzState => {
-                    (idtzState._1, idtzState._2.hostIp)
-                }).toMap
-            }
-            new SimHost(simHost)
+                currentHost = host
+            case a: Boolean =>
+                log.debug("Host {} alive changed: {}", hostId, Boolean.box(a))
+                alive = Some(a)
+            case tunnelZone: TunnelZone if tunnelZones.contains(tunnelZone.id) =>
+                log.debug("Update for tunnel zone {}", tunnelZone.id)
+                tunnelZones(tunnelZone.id) := tunnelZone
+            case _ => log.error("Unexpected update: ignoring")
+        }
 
-        case _ => throw new IllegalArgumentException("The Host Mapper received"
-                      + "a device of an unsupported type")
+        val ready = (currentHost ne null) && alive.isDefined &&
+                    tunnelZones.count(!_._2.isReady) == 0
+        log.debug("Host {} ready: {}", hostId, Boolean.box(ready))
+        ready
     }
 
-    private def areAllTunnelZonesReceived(host: SimHost) =
-        host.tunnelZoneIds.forall(tzId =>
-            tunnelZones.contains(tzId) && tunnelZones(tzId).hostIp != null
-        )
+    /**
+     * A map function that creates the host simulation device from the current
+     * host, tunnel-zones and alive information.
+     */
+    private def mapDevice(update: Any): SimulationHost = {
+        log.debug("Processing and creating host {} device", hostId)
+
+        // Compute the tunnel zones to IP mapping for this host.
+        val tunnelZoneIps = new mutable.HashMap[UUID, IPAddr]()
+        for ((tunnelZoneId, tunnelZoneState) <- tunnelZones) {
+            tunnelZoneState.tunnelZone.hosts get hostId match {
+                case Some(addr) => tunnelZoneIps += tunnelZoneId -> addr
+                case None =>
+            }
+        }
+
+        val host = ZoomConvert.fromProto(currentHost, classOf[SimulationHost])
+        host.alive = alive.get
+        host.tunnelZones = tunnelZoneIps.toMap
+        host
+    }
 
     /**
-     * This method returns true iff the following has been received at least
-     * once:
-     * the host, the alive status of the host, and the host IPs for tunnel zones
-     * the host is a member of.
+     * This method is called when the host observable completes. It triggers a
+     * completion of the device observable, by completing all tunnel-zone
+     * observables, and the alive observable.
      */
-    private def hostReady(host: SimHost): Boolean =
-        host.id != null && aliveStatusReceived && areAllTunnelZonesReceived(host)
-
-    private val onHostCompleted = makeAction0({
-        tunnelZonesStream.onCompleted()
-        hostAliveStream.onCompleted()
+    private def completeHost(): Unit = {
+        log.debug("Host {} deleted", hostId)
+        tunnelZonesSubject.onCompleted()
+        aliveSubject.onCompleted()
         tunnelZones.values.foreach(_.complete())
         tunnelZones.clear()
-    })
+    }
 
-    private val hostObservable = vt.store.observable(classOf[Host], id)
-        .map[SimHost](makeFunc1(ZoomConvert.fromProto(_, classOf[SimHost])))
-        .doOnCompleted(onHostCompleted)
-
-    protected override def observable: Observable[SimHost] = {
-        if (observableCreated.compareAndSet(false, true)) {
-            hostAliveStream.onNext(vt.dataClient.hostsIsAlive(id, aliveWatcher))
-            outStream = Observable.merge[Any](hostObservable,
-                                              hostAliveStream,
-                                              Observable.merge(tunnelZonesStream))
-                .map[SimHost](makeFunc1(handleUpdate))
-                .filter(makeFunc1(hostReady))
+    /**
+     * Gets the alive state of the current host, emits this information on the
+     * alive subject, and installs a watcher that triggers an update of the
+     * alive state when it changes.
+     */
+    private def watchAlive(): Unit = {
+        try {
+            vt.executor.submit(makeRunnable {
+                aliveSubject.onNext(vt.dataClient.hostsIsAlive(hostId,
+                                                               aliveWatcher))
+            })
+        } catch {
+            case e: StateAccessException =>
+                log.warn("Error retrieving alive state for host {}", hostId, e)
+                vt.connectionWatcher.handleError(hostId.toString,
+                                                 connectionRetryHandler, e)
         }
-        outStream
+    }
+
+    private lazy val hostObservable =
+        vt.store.observable(classOf[TopologyHost], hostId)
+            .subscribeOn(vt.scheduler)
+            .doOnCompleted(makeAction0(completeHost()))
+
+    // The device observable merges the tunnel-zones, host and alive observable.
+    // Publish subjects such as the tunnel-zones observable must be added to the
+    // merge before observables that may trigger their update, such as the host
+    // observable, which ensures they are subscribed to before emitting any
+    // updates.
+    private lazy val deviceObservable =
+        Observable.merge[Any](Observable.merge(tunnelZonesSubject),
+                              hostObservable, aliveSubject)
+            .filter(makeFunc1(isHostReady))
+            .map[SimulationHost](makeFunc1(mapDevice))
+
+    private lazy val connectionRetryHandler = makeRunnable(watchAlive())
+
+    protected override def observable: Observable[SimulationHost] = {
+        if (initialized.compareAndSet(false, true)) {
+            watchAlive()
+        }
+        deviceObservable
     }
 }
