@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_932c71ad",
+        "filename": "brain/tools/src/main/scala/org/midonet/brain/tools/TopologyZoomUpdater.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 351,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-02-16T03:12:59Z",
+      "side": 1,
+      "message": "Does this have any advantage over proto: Message?",
+      "range": {
+        "startLine": 351,
+        "startChar": 32,
+        "endLine": 351,
+        "endChar": 61
+      },
+      "revId": "2a86d7069a155c3e84ec8b1d528e00fd4741e570",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_f3184586",
+        "filename": "brain/tools/src/main/scala/org/midonet/brain/tools/TopologyZoomUpdater.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 351,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-02-16T03:12:59Z",
+      "side": 1,
+      "message": "Should be private or protected var",
+      "range": {
+        "startLine": 351,
+        "startChar": 21,
+        "endLine": 351,
+        "endChar": 24
+      },
+      "revId": "2a86d7069a155c3e84ec8b1d528e00fd4741e570",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
