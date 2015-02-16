@@ -45,6 +45,54 @@
       "revId": "2a86d7069a155c3e84ec8b1d528e00fd4741e570",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_8ebba60d",
+        "filename": "brain/tools/src/main/scala/org/midonet/brain/tools/TopologyZoomUpdater.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 351,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-16T09:11:31Z",
+      "side": 1,
+      "message": "Yep, \u0027protected\u0027 (it is used from the subclasses)",
+      "parentUuid": "7a1969be_f3184586",
+      "range": {
+        "startLine": 351,
+        "startChar": 21,
+        "endLine": 351,
+        "endChar": 24
+      },
+      "revId": "2a86d7069a155c3e84ec8b1d528e00fd4741e570",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_aebe62fd",
+        "filename": "brain/tools/src/main/scala/org/midonet/brain/tools/TopologyZoomUpdater.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 351,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-16T09:11:31Z",
+      "side": 1,
+      "message": "After the conversation we had the other day, probably there is no advantage. I was expecting this to keep information about the specific subclass, but I saw that\u0027s not the case. I will changed into Message.",
+      "parentUuid": "7a1969be_932c71ad",
+      "range": {
+        "startLine": 351,
+        "startChar": 32,
+        "endLine": 351,
+        "endChar": 61
+      },
+      "revId": "2a86d7069a155c3e84ec8b1d528e00fd4741e570",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
