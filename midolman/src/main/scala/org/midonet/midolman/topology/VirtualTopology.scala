@@ -16,23 +16,26 @@
 package org.midonet.midolman.topology
 
 import java.util.UUID
-import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.{ThreadFactory, Executors, ConcurrentHashMap}
 
 import scala.concurrent.{Future, Promise}
 import scala.reflect._
 
 import com.google.inject.Inject
-
 import rx.Observable
+import rx.schedulers.Schedulers
 
 import org.midonet.cluster.DataClient
 import org.midonet.cluster.data.storage.Storage
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
+
+import org.midonet.midolman.simulation.Chain
 import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.midolman.services.MidolmanActorsService
 import org.midonet.midolman.topology.devices._
 import org.midonet.midolman.{FlowController, NotYetException}
 import org.midonet.sdn.flows.FlowTagger.FlowTag
+import org.midonet.util.concurrent.NamedThreadFactory
 import org.midonet.util.reactivex._
 
 /**
@@ -160,6 +163,17 @@ class VirtualTopology @Inject() (val store: Storage,
 
     import org.midonet.midolman.topology.VirtualTopology._
 
+    @volatile private[topology] var threadId: Long = _
+    private[topology] val executor = Executors.newSingleThreadExecutor(
+        new ThreadFactory {
+            override def newThread(r: Runnable): Thread = {
+                val thread = new Thread(r, "virtual-topology-thread")
+                threadId = thread.getId
+                thread
+            }
+        })
+    private[topology] val scheduler = Schedulers.from(executor)
+
     private[topology] val devices =
         new ConcurrentHashMap[UUID, Device]()
     private[topology] val observables =
@@ -171,7 +185,8 @@ class VirtualTopology @Inject() (val store: Storage,
         classTag[BridgePort] -> ((id: UUID) => new PortMapper(id, this)),
         classTag[VxLanPort] -> ((id: UUID) => new PortMapper(id, this)),
         classTag[TunnelZone] -> ((id: UUID) => new TunnelZoneMapper(id, this)),
-        classTag[Host] -> ((id: UUID) => new HostMapper(id, this))
+        classTag[Host] -> ((id: UUID) => new HostMapper(id, this)),
+        classTag[Chain] -> ((id: UUID) => new ChainMapper(id, this))
     )
 
     register(this)
