@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_04b155f8",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/PortBindingTranslator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-02-16T23:03:27Z",
+      "side": 1,
+      "message": "That\u0027s a good point, I didn\u0027t think about that. Currently ZOOM doesn\u0027t support, I believe, back-references to/from nested message. So if we are to use back-reference, it\u0027s gonna be from Neutron PortBinding and Port? That\u0027d work but I\u0027m not sure if across Neutron/MidoNet boundary back-referencing is a way to go. Also, I guess the exception message is a little friendly this way.",
+      "parentUuid": "7a1969be_3313fd67",
+      "range": {
+        "startLine": 45,
+        "startChar": 0,
+        "endLine": 49,
+        "endChar": 64
+      },
+      "revId": "963d76e7c86a3c735c8f7d28eca08552c55c7e8a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_2e0a7221",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/PortBindingTranslator.scala",
         "patchSetId": 3
@@ -71,6 +95,54 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_6495a93f",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/PortBindingTranslator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-02-16T23:03:27Z",
+      "side": 1,
+      "message": "You\u0027re right. Thanks.",
+      "parentUuid": "7a1969be_2e0a7221",
+      "range": {
+        "startLine": 52,
+        "startChar": 12,
+        "endLine": 52,
+        "endChar": 17
+      },
+      "revId": "963d76e7c86a3c735c8f7d28eca08552c55c7e8a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_44922d58",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/PortBindingTranslator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-02-16T23:03:27Z",
+      "side": 1,
+      "message": "A great point!",
+      "parentUuid": "7a1969be_ae1dc268",
+      "range": {
+        "startLine": 52,
+        "startChar": 20,
+        "endLine": 52,
+        "endChar": 65
+      },
+      "revId": "963d76e7c86a3c735c8f7d28eca08552c55c7e8a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_9303d10e",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/PortBindingTranslator.scala",
         "patchSetId": 3
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_849c256b",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/PortBindingTranslator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-02-16T23:03:27Z",
+      "side": 1,
+      "message": "A good catch. Thanks.",
+      "parentUuid": "7a1969be_9303d10e",
+      "range": {
+        "startLine": 55,
+        "startChar": 50,
+        "endLine": 55,
+        "endChar": 54
+      },
+      "revId": "963d76e7c86a3c735c8f7d28eca08552c55c7e8a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_b306cd1e",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/PortBindingTranslator.scala",
         "patchSetId": 3
@@ -105,6 +201,30 @@
       "writtenOn": "2015-02-16T09:17:26Z",
       "side": 1,
       "message": "You can omit this.",
+      "range": {
+        "startLine": 57,
+        "startChar": 60,
+        "endLine": 57,
+        "endChar": 64
+      },
+      "revId": "963d76e7c86a3c735c8f7d28eca08552c55c7e8a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_a49fa15e",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/PortBindingTranslator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-02-16T23:03:27Z",
+      "side": 1,
+      "message": "Ack.",
+      "parentUuid": "7a1969be_b306cd1e",
       "range": {
         "startLine": 57,
         "startChar": 60,
@@ -197,6 +317,24 @@
       "writtenOn": "2015-02-16T09:17:26Z",
       "side": 1,
       "message": "Needs newline separating it from portBinding() definition.",
+      "revId": "963d76e7c86a3c735c8f7d28eca08552c55c7e8a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_c4a61dc1",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/services/c3po/translators/PortBindingTranslatorTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-02-16T23:03:27Z",
+      "side": 1,
+      "message": "You\u0027re right. Thanks!",
+      "parentUuid": "7a1969be_2e21d29f",
       "revId": "963d76e7c86a3c735c8f7d28eca08552c55c7e8a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
