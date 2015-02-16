@@ -16,18 +16,20 @@
 package org.midonet.midolman.topology
 
 import java.util.UUID
-import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.{ThreadFactory, Executors, ConcurrentHashMap}
 
 import scala.concurrent.{Future, Promise}
 import scala.reflect._
 
 import com.google.inject.Inject
-
 import rx.Observable
+import rx.schedulers.Schedulers
 
 import org.midonet.cluster.DataClient
 import org.midonet.cluster.data.storage.Storage
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
+
+import org.midonet.midolman.simulation.Chain
 import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.midolman.services.MidolmanActorsService
 import org.midonet.midolman.topology.devices._
@@ -162,6 +164,17 @@ class VirtualTopology @Inject() (val store: Storage,
 
     override def logSource = "org.midonet.devices.devices-service"
 
+    @volatile private[topology] var threadId: Long = _
+    private[topology] val executor = Executors.newSingleThreadExecutor(
+        new ThreadFactory {
+            override def newThread(r: Runnable): Thread = {
+                val thread = new Thread(r, "virtual-topology-thread")
+                threadId = thread.getId
+                thread
+            }
+        })
+    private[topology] val scheduler = Schedulers.from(executor)
+
     private[topology] val devices =
         new ConcurrentHashMap[UUID, Device]()
     private[topology] val observables =
@@ -173,7 +186,8 @@ class VirtualTopology @Inject() (val store: Storage,
         classTag[BridgePort] -> (new PortMapper(_, this)),
         classTag[VxLanPort] -> (new PortMapper(_, this)),
         classTag[TunnelZone] -> (new TunnelZoneMapper(_, this)),
-        classTag[Host] -> (new HostMapper(_, this))
+        classTag[Host] -> (new HostMapper(_, this)),
+        classTag[Chain] -> (new ChainMapper(_, this))
     )
 
     register(this)

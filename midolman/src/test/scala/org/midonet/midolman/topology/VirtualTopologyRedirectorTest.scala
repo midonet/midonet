@@ -17,11 +17,12 @@ package org.midonet.midolman.topology
 
 import java.util.UUID
 
+import scala.collection.JavaConverters._
 import scala.concurrent.Await.{ready, result}
 import scala.concurrent.Future
 import scala.concurrent.duration._
 
-import akka.actor.{Status, Props}
+import akka.actor.Props
 import akka.testkit.TestActorRef
 
 import org.apache.commons.configuration.HierarchicalConfiguration
@@ -31,10 +32,13 @@ import org.scalatest.junit.JUnitRunner
 import rx.Observable
 
 import org.midonet.cluster.data.storage.{NotFoundException, Storage}
-import org.midonet.cluster.models.Topology.{Port => TopologyPort}
+import org.midonet.cluster.models.Topology.Rule.Action
+import org.midonet.cluster.models.Topology.{Port => TopologyPort, Chain => TopologyChain, Rule}
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
+import org.midonet.midolman.rules.{RuleResult, LiteralRule}
 import org.midonet.midolman.{FlowController, NotYetException}
-import org.midonet.midolman.topology.VirtualTopologyActor.{Unsubscribe, PortRequest}
+import org.midonet.midolman.simulation.{Chain => SimulationChain}
+import org.midonet.midolman.topology.VirtualTopologyActor.{ChainRequest, Unsubscribe, PortRequest}
 import org.midonet.midolman.topology.devices.{Port => SimulationPort, BridgePort}
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.{AwaitableActor, MessageAccumulator}
@@ -86,6 +90,63 @@ class VirtualTopologyRedirectorTest extends MidolmanSpec with TopologyBuilder {
     }
 
     feature("Test tryAsk") {
+        scenario("Chain does not exist") {
+            Given("A random chain identifier")
+            val chainId = UUID.randomUUID
+
+            When("Requesting the chain")
+            val e1 = intercept[NotYetException] {
+                VirtualTopologyActor.tryAsk[SimulationChain](chainId)
+            }
+
+            Then("The request throws a NotYetException with a future")
+            val future = e1.waitFor.asInstanceOf[Future[SimulationChain]]
+
+            When("Waiting for the future to complete")
+            val e2 = intercept[Exception] {
+                result(future, timeout)
+            }.getCause.asInstanceOf[NotFoundException]
+
+            Then("The future fails with a NotFoundException")
+            e2.clazz shouldBe classOf[TopologyChain]
+            e2.id shouldBe chainId
+        }
+
+        scenario("Chain exists") {
+            val chainId = UUID.randomUUID
+            val ruleId = UUID.randomUUID
+            val rule = createLiteralRule(ruleId, Some(chainId),
+                                         Some(Action.ACCEPT), setCond = false)
+
+            store.create(rule)
+            val chain = createChain(chainId, Some("test-chain"),
+                                    List(rule.getId))
+            ready(store.get(classOf[Rule], ruleId), timeout)
+            store.create(chain)
+            ready(store.get(classOf[TopologyChain], chainId), timeout)
+
+            When("Request the chain")
+            val e = intercept[NotYetException] {
+                VirtualTopologyActor.tryAsk[SimulationChain](chainId)
+            }
+
+            Then("The request throws a NotYetException with a future")
+            val future = e.waitFor.asInstanceOf[Future[SimulationChain]]
+            ready(future, timeout)
+
+            And("The future completes successfully with the given chain")
+            future.isCompleted shouldBe true
+            future.value should not be None
+            val simChain = future.value.get.get
+            simChain.id shouldBe chainId
+            simChain.name shouldBe "test-chain"
+            simChain.getRules.asScala.toList should contain theSameElementsAs
+                List(new LiteralRule(simChain.getRules.get(0).getCondition,
+                                     RuleResult.Action.ACCEPT,
+                                     simChain.getRules.get(0).chainId,
+                                     0 /* position */))
+        }
+
         scenario("Port does not exist") {
             Given("A random port identifier")
             val portId = UUID.randomUUID
@@ -232,6 +293,53 @@ class VirtualTopologyRedirectorTest extends MidolmanSpec with TopologyBuilder {
     }
 
     feature("Test request with update false") {
+        scenario("The chain does not exist") {
+            Given("A random chain identifier")
+            val chainId = UUID.randomUUID
+
+            When("Sending a chain request to the VTA and waiting for replu")
+            val future = VirtualTopologyActor
+                .ask(ChainRequest(chainId, update = false))(timeout)
+
+            When("And waitinf for the virtual topology to reply")
+            val e = intercept[Exception] {
+                result(future, timeout)
+            }.asInstanceOf[NotFoundException]
+
+            Then("The virtual topology returns a NotFoundException")
+            e.clazz shouldBe classOf[TopologyChain]
+        }
+
+        scenario("The chain exists") {
+            Given("A chain")
+            val chainId = UUID.randomUUID
+            val ruleId = UUID.randomUUID
+            val rule = createLiteralRule(ruleId, Some(chainId),
+                                         Some(Rule.Action.ACCEPT),
+                                         setCond = false)
+            store.create(rule)
+            ready(store.get(classOf[Rule], ruleId), timeout)
+            val chain = createChain(chainId, Some("test-chain"),
+                                    List(rule.getId))
+            store.create(chain)
+            ready(store.get(classOf[TopologyChain], chainId), timeout)
+
+            When("Sending a chain request to the VTA and waiting for reply")
+            VirtualTopologyActor ! ChainRequest(chainId, update = true)
+            sender.await(timeout)
+
+            Then("The sender receives a message with the port")
+            expectLast { case c: SimulationChain =>
+                c.id shouldBe chainId
+                c.name shouldBe "test-chain"
+                c.getRules.asScala.toList should contain theSameElementsAs
+                List(new LiteralRule(c.getRules.get(0).getCondition,
+                                     RuleResult.Action.ACCEPT,
+                                     c.getRules.get(0).chainId,
+                                     0 /* position */))
+            }
+        }
+
         scenario("The port does not exist") {
             Given("A random port identifier")
             val portId = UUID.randomUUID

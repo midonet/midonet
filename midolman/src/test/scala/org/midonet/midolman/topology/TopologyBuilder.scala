@@ -20,9 +20,6 @@ import java.util.UUID
 import scala.collection.JavaConverters._
 import scala.util.Random
 
-import org.midonet
-
-import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.models.Commons
 import org.midonet.cluster.models.Commons.{IPAddress, IPVersion}
 import org.midonet.cluster.models.Topology.Host.PortToInterface
@@ -416,7 +413,8 @@ trait TopologyBuilder {
 
     private def createRuleBuilder(id: UUID, chainId: Option[UUID],
                                   action: Option[Rule.Action],
-                                  matchFwdFlow: Option[Boolean] = None)
+                                  matchFwdFlow: Option[Boolean] = None,
+                                  setCond: Boolean = true)
     : Rule.Builder = {
         val builder = Rule.newBuilder.setId(id.asProto)
         if (chainId.isDefined)
@@ -424,18 +422,26 @@ trait TopologyBuilder {
         if (action.isDefined)
             builder.setAction(action.get)
 
-        if (matchFwdFlow.isDefined)
-            setConditionAllFieldsDefault(builder, matchForwardFlow = matchFwdFlow)
-        else
-            setConditionAllFieldsDefault(builder)
+        if (setCond) {
+            if (matchFwdFlow.isDefined)
+                setConditionAllFieldsDefault(builder,
+                                             matchForwardFlow = matchFwdFlow)
+            else
+                setConditionAllFieldsDefault(builder)
+        } else {
+            if (matchFwdFlow.isDefined)
+                setCondition(builder, matchForwardFlow = matchFwdFlow)
+        }
+
         builder
     }
 
     protected def createLiteralRule(id: UUID,
                                     chainId: Option[UUID] = None,
-                                    action: Option[Rule.Action] = None)
+                                    action: Option[Rule.Action] = None,
+                                    setCond : Boolean = true)
     : Rule = {
-        createRuleBuilder(id, chainId, action)
+        createRuleBuilder(id, chainId, action, setCond = setCond)
             .setType(Rule.Type.LITERAL_RULE)
             .build()
     }
@@ -492,16 +498,16 @@ trait TopologyBuilder {
         builder.build()
     }
 
-    protected def createChainBuilder(id: UUID, name: Option[String],
-                                     ruleIds: Seq[UUID]): Chain.Builder = {
+    protected def createChain(id: UUID, name: Option[String],
+                              ruleIds: Seq[Commons.UUID]): Chain = {
         val builder = Chain.newBuilder
             .setId(id.asProto)
-            .addAllRuleIds(ruleIds.map(_.asProto).asJava)
+            .addAllRuleIds(ruleIds.asJava)
 
         if (name.isDefined)
             builder.setName(name.get)
 
-        builder
+        builder.build()
     }
 
     protected def createIPSubnetBuilder(version: IPVersion, prefix: String,

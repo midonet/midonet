@@ -22,6 +22,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
+import com.google.common.annotations.VisibleForTesting;
+
 import scala.Option;
 import scala.collection.Map;
 
@@ -29,9 +31,10 @@ import org.midonet.midolman.rules.JumpRule;
 import org.midonet.midolman.rules.Rule;
 import org.midonet.midolman.rules.RuleResult;
 import org.midonet.midolman.rules.RuleResult.Action;
+import org.midonet.midolman.topology.VirtualTopology;
 import org.midonet.sdn.flows.FlowTagger;
 
-public class Chain {
+public class Chain implements VirtualTopology.VirtualDevice {
     public final UUID id;
     private final List<Rule> rules;
     private final Map<UUID, Chain> jumpTargets;
@@ -45,6 +48,10 @@ public class Chain {
         this.jumpTargets = jumpTargets;
         this.name = name;
         flowInvTag = FlowTagger.tagForDevice(id);
+    }
+
+    public FlowTagger.FlowTag deviceTag() {
+        return flowInvTag;
     }
 
     public int hashCode() {
@@ -66,6 +73,11 @@ public class Chain {
     public Chain getJumpTarget(UUID to) {
         Option<Chain> match = jumpTargets.get(to);
         return match.isDefined() ? match.get() : null;
+    }
+
+    @VisibleForTesting
+    public boolean isJumpTargetsEmpty() {
+        return jumpTargets.isEmpty();
     }
 
     /**
