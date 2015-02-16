@@ -17,7 +17,6 @@ package org.midonet.cluster.services
 
 import com.google.common.util.concurrent.AbstractService
 import com.google.inject.Inject
-
 import org.apache.curator.framework.CuratorFramework
 
 import org.midonet.cluster.config.ZookeeperConfig
@@ -78,14 +77,19 @@ class StorageService @Inject() (directory: Directory,
     protected def buildStorage(): Unit = {
         store.registerClass(classOf[Port])
         store.registerClass(classOf[Network])
-        store.registerClass(classOf[Router])
         store.registerClass(classOf[Host], OwnershipType.Exclusive)
         store.registerClass(classOf[TunnelZone])
+
+        store.registerClass(classOf[Chain])
+        store.registerClass(classOf[Rule])
+        store.registerClass(classOf[Router])
 
         store.declareBinding(classOf[Network], "port_ids", ERROR,
                              classOf[Port], "network_id", CLEAR)
         store.declareBinding(classOf[Router], "port_ids", ERROR,
                              classOf[Port], "router_id", CLEAR)
+        store.declareBinding(classOf[Chain], "rule_ids", ERROR,
+                             classOf[Rule], "chain_id", CLEAR)
         store.build()
     }
 

@@ -404,8 +404,7 @@ trait TopologyBuilder {
     }
 
     private def createRuleBuilder(id: UUID, chainId: Option[UUID],
-                                  action: Option[Rule.Action],
-                                  matchFwdFlow: Option[Boolean] = None)
+                                  action: Option[Rule.Action])
     : Rule.Builder = {
         val builder = Rule.newBuilder.setId(id.asProto)
         if (chainId.isDefined)
@@ -413,31 +412,27 @@ trait TopologyBuilder {
         if (action.isDefined)
             builder.setAction(action.get)
 
-        if (matchFwdFlow.isDefined)
-            setConditionAllFieldsDefault(builder, matchForwardFlow = matchFwdFlow)
-        else
-            setConditionAllFieldsDefault(builder)
         builder
     }
 
-    protected def createLiteralRule(id: UUID,
-                                    chainId: Option[UUID] = None,
-                                    action: Option[Rule.Action] = None)
-    : Rule = {
+    protected def createLiteralRuleBuilder(id: UUID,
+                                           chainId: Option[UUID] = None,
+                                           action: Option[Rule.Action] = None)
+    : Rule.Builder = {
         createRuleBuilder(id, chainId, action)
             .setType(Rule.Type.LITERAL_RULE)
-            .build()
     }
 
-    protected def createTraceRule(id: UUID,
-                                  chainId: Option[UUID] = None): Rule = {
+    protected def createTraceRuleBuilder(id: UUID,
+                                         chainId: Option[UUID] = None)
+    : Rule.Builder = {
         createRuleBuilder(id, chainId, Option(Action.CONTINUE))
             .setType(Rule.Type.TRACE_RULE)
-            .build()
     }
 
-    protected def createJumpRule(id: UUID, chainId: Option[UUID] = None,
-                                 jumpChainId: Option[UUID] = None): Rule = {
+    protected def createJumpRuleBuilder(id: UUID, chainId: Option[UUID] = None,
+                                        jumpChainId: Option[UUID] = None)
+    : Rule.Builder = {
         val builder = createRuleBuilder(id, chainId, Option(Action.JUMP))
             .setType(Rule.Type.JUMP_RULE)
 
@@ -445,7 +440,7 @@ trait TopologyBuilder {
             builder.setJumpRuleData(JumpRuleData.newBuilder
                                         .setJumpTo(jumpChainId.get.asProto)
                                         .build())
-        builder.build()
+        builder
     }
 
     protected def createNatTarget(startAddr: IPAddress =
@@ -462,12 +457,12 @@ trait TopologyBuilder {
             .build()
     }
 
-    protected def createNatRule(id: UUID, chainId: Option[UUID] = None,
-                                matchFwdFlow: Option[Boolean] = None,
-                                dnat: Option[Boolean] = None,
-                                targets:  Set[NatTarget]): Rule = {
-        val builder = createRuleBuilder(id, chainId, Option(Action.CONTINUE),
-                                        matchFwdFlow)
+    protected def createNatRuleBuilder(id: UUID, chainId: Option[UUID] = None,
+                                       dnat: Option[Boolean] = None,
+                                       matchFwdFlow: Option[Boolean] = None,
+                                       targets:  Set[NatTarget])
+    : Rule.Builder = {
+        val builder = createRuleBuilder(id, chainId, Option(Action.CONTINUE))
             .setType(Rule.Type.NAT_RULE)
             .setNatRuleData(NatRuleData.newBuilder
                 .addAllNatTargets(targets.asJava)
@@ -478,19 +473,23 @@ trait TopologyBuilder {
                 .setDnat(dnat.get)
                 .build()
 
-        builder.build()
+        if (matchFwdFlow.isDefined) {
+            builder.setMatchForwardFlow(matchFwdFlow.get)
+            builder.setMatchReturnFlow(!matchFwdFlow.get)
+        }
+        builder
     }
 
-    protected def createChainBuilder(id: UUID, name: Option[String],
-                                     ruleIds: Seq[UUID]): Chain.Builder = {
+    protected def createChain(id: UUID, name: Option[String],
+                              ruleIds: Seq[Commons.UUID]): Chain = {
         val builder = Chain.newBuilder
             .setId(id.asProto)
-            .addAllRuleIds(ruleIds.map(_.asProto).asJava)
+            .addAllRuleIds(ruleIds.asJava)
 
         if (name.isDefined)
             builder.setName(name.get)
 
-        builder
+        builder.build()
     }
 
     protected def createIPSubnetBuilder(version: IPVersion, prefix: String,
@@ -531,7 +530,6 @@ trait TopologyBuilder {
             builder.setInterfaceName(interfaceName.get)
         builder
     }
-
 }
 
 object TopologyBuilder {
