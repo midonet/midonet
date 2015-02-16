@@ -150,7 +150,8 @@ class VxlanGatewayHA @Inject()(nodeCtx: ClusterNode.Context,
                 dataClient.bridgeGetAndWatch(id, watcher)
             }
         ) match {
-            case Success(b) if b.getVxLanPortIds.isEmpty =>
+            case Success(b) if b.getVxLanPortIds == null
+                               || b.getVxLanPortIds.isEmpty =>
                 log.info(s"Updated network ${b.getId} not part of a VxGW")
             case Success(b) =>
                 initVxlanGatewayManager(b.getId)
