@@ -20,16 +20,16 @@ import java.util.UUID
 import scala.collection.mutable
 import scala.reflect.ClassTag
 
-import akka.actor.{ActorRef, Actor}
-
+import akka.actor.{Actor, ActorRef}
 import com.google.inject.Inject
 
 import rx.Subscriber
 
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.midolman.logging.MidolmanLogging
+import org.midonet.midolman.simulation.Chain
 import org.midonet.midolman.topology.VirtualTopology.Device
-import org.midonet.midolman.topology.VirtualTopologyActor.{Unsubscribe, PortRequest, DeviceRequest}
+import org.midonet.midolman.topology.VirtualTopologyActor.{ChainRequest, DeviceRequest, PortRequest, Unsubscribe}
 import org.midonet.midolman.topology.devices.Port
 
 /**
@@ -130,8 +130,11 @@ abstract class VirtualTopologyRedirector extends Actor with MidolmanLogging {
 
     def receive = if (!newBackend.isEnabled) Actor.emptyBehavior else {
         case r: PortRequest =>
-            log.debug("Request for device {}", r.id)
+            log.debug("Request for port: {}", r.id)
             onRequest[Port](r)
+        case r: ChainRequest =>
+            log.debug("Request for chain: {}", r.id)
+            onRequest[Chain](r)
         case u: Unsubscribe =>
             log.debug("Unsubscribe for device {} from {}", u.id, sender())
             onUnsubscribe(u.id, sender())
