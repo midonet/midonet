@@ -88,6 +88,8 @@ abstract class MidonetBackend extends AbstractService {
 
         store.declareBinding(classOf[Host], "tunnel_zone_ids", CLEAR,
                              classOf[TunnelZone], "host_ids", CLEAR)
+
+        // TODO(nicolas): Add bindings between a chain and its rules
         store.build()
     }
 
