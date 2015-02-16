@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_84c5455d",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/PortBindingTranslator.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-02-16T23:04:01Z",
+      "side": 1,
+      "message": "ZOOM doesn\u0027t have back-reference support to/from nested message, so we don\u0027t use back-reference unless we back-reference port from Neutron PortBinding object, which I\u0027m not sure we should do.",
+      "parentUuid": "7a1969be_6ed10afb",
+      "range": {
+        "startLine": 65,
+        "startChar": 8,
+        "endLine": 65,
+        "endChar": 41
+      },
+      "revId": "b3a2d9e3f15f1c68837f452fae84554ea5a47c6f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_4ecece5b",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/PortBindingTranslator.scala",
         "patchSetId": 4
@@ -36,6 +60,30 @@
       "writtenOn": "2015-02-16T11:38:59Z",
       "side": 1,
       "message": "ditto",
+      "range": {
+        "startLine": 99,
+        "startChar": 0,
+        "endLine": 99,
+        "endChar": 41
+      },
+      "revId": "b3a2d9e3f15f1c68837f452fae84554ea5a47c6f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_e4a199aa",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/PortBindingTranslator.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-02-16T23:04:01Z",
+      "side": 1,
+      "message": "ZOOM doesn\u0027t have back-reference support to/from nested message, so we don\u0027t use back-reference unless we back-reference port from Neutron PortBinding object, which I\u0027m not sure we should do.",
+      "parentUuid": "7a1969be_4ecece5b",
       "range": {
         "startLine": 99,
         "startChar": 0,
