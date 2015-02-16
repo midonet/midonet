@@ -49,34 +49,41 @@ class RuleConversionTest extends FeatureSpec with Matchers
         }
 
         scenario("Test conversion for a literal rule") {
-            val rule = createLiteralRule(id = UUID.randomUUID(),
-                                         chainId = Some(UUID.randomUUID()),
-                                         Some(Action.ACCEPT))
+            val builder = createLiteralRuleBuilder(id = UUID.randomUUID(),
+                              chainId = Some(UUID.randomUUID()),
+                              Some(Action.ACCEPT))
+            setConditionAllFieldsDefault(builder)
+            val rule = builder.build
             val simRule = ZoomConvert.fromProto(rule, classOf[SimRule])
             assertEquals(rule, simRule)
         }
 
         scenario("Test conversion for a trace rule") {
-            val rule = createTraceRule(id = UUID.randomUUID(),
-                                       chainId = Some(UUID.randomUUID()))
+            val builder = createTraceRuleBuilder(id = UUID.randomUUID(),
+                                                 chainId = Some(UUID.randomUUID()))
+            setConditionAllFieldsDefault(builder)
+            val rule = builder.build()
             val simRule = ZoomConvert.fromProto(rule, classOf[SimRule])
             assertEquals(rule, simRule)
         }
 
         scenario("Test conversion for a jump rule") {
-            val rule = createJumpRule(id = UUID.randomUUID(),
-                                      chainId = Some(UUID.randomUUID()),
-                                      jumpChainId = Some(UUID.randomUUID()))
+            val builder = createJumpRuleBuilder(id = UUID.randomUUID(),
+                                                chainId = Some(UUID.randomUUID()),
+                                                jumpChainId = Some(UUID.randomUUID()))
+            setConditionAllFieldsDefault(builder)
+            val rule = builder.build()
             val simRule = ZoomConvert.fromProto(rule, classOf[SimRule])
             assertEquals(rule, simRule)
         }
 
         scenario("Test conversion for a forward NAT rule") {
-            val rule = createNatRule(id = UUID.randomUUID,
-                                     chainId = Some(UUID.randomUUID),
-                                     matchFwdFlow = Some(true),
-                                     dnat = Some(false),
-                                     Set(createNatTarget()))
+            val builder = createNatRuleBuilder(id = UUID.randomUUID,
+                                               chainId = Some(UUID.randomUUID),
+                                               dnat = Some(false),
+                                               targets = Set(createNatTarget()))
+            setConditionAllFieldsDefault(builder, matchForwardFlow = Some(true))
+            val rule = builder.build()
             val simRule = ZoomConvert.fromProto(rule, classOf[SimRule])
             assertEquals(rule, simRule)
             simRule.asInstanceOf[ForwardNatRule].isFloatingIp shouldBe false
@@ -87,11 +94,11 @@ class RuleConversionTest extends FeatureSpec with Matchers
                                             IPAddressUtil.toProto("192.168.0.1"),
                                             portStart = 0,
                                             portEnd = 0)
-            val rule = createNatRule(id = UUID.randomUUID,
-                                     chainId = Some(UUID.randomUUID),
-                                     matchFwdFlow = Some(true),
-                                     targets = Set(natTarget))
-
+            val builder = createNatRuleBuilder(id = UUID.randomUUID,
+                                               chainId = Some(UUID.randomUUID),
+                                               targets = Set(natTarget))
+            setConditionAllFieldsDefault(builder, matchForwardFlow = Some(true))
+            val rule = builder.build()
             val simRule = ZoomConvert.fromProto(rule, classOf[SimRule])
             assertEquals(rule, simRule)
             simRule.asInstanceOf[ForwardNatRule].isFloatingIp shouldBe true
@@ -100,11 +107,13 @@ class RuleConversionTest extends FeatureSpec with Matchers
         }
 
         scenario("Test conversion for a reverse NAT rule") {
-            val rule = createNatRule(id = UUID.randomUUID(),
-                                     chainId = Some(UUID.randomUUID()),
-                                     matchFwdFlow = Some(false),
-                                     dnat = Some(true),
-                                     Set(createNatTarget()))
+            val builder = createNatRuleBuilder(id = UUID.randomUUID(),
+                                               chainId = Some(UUID.randomUUID()),
+                                               dnat = Some(true),
+                                               targets = Set(createNatTarget()))
+            setConditionAllFieldsDefault(builder, matchForwardFlow = Some(false))
+
+            val rule = builder.build()
             val simRule = ZoomConvert.fromProto(rule, classOf[SimRule])
             assertEquals(rule, simRule)
         }
@@ -112,8 +121,9 @@ class RuleConversionTest extends FeatureSpec with Matchers
 
     feature("Protocol buffer validation") {
         scenario("Test protobuf validation with a rule without an action") {
-            val rule = createLiteralRule(id = UUID.randomUUID(),
-                                         chainId = Some(UUID.randomUUID()))
+            val rule = createLiteralRuleBuilder(id = UUID.randomUUID(),
+                                                chainId = Some(UUID.randomUUID()))
+                .build()
 
             intercept[ZoomConvert.ConvertException] {
                 ZoomConvert.fromProto(rule, classOf[SimRule])
@@ -121,10 +131,9 @@ class RuleConversionTest extends FeatureSpec with Matchers
         }
 
         scenario("Test protobuf validation with a jump rule without a JUMP action") {
-            val rule = createJumpRule(id = UUID.randomUUID(),
-                                      chainId = Some(UUID.randomUUID()),
-                                      jumpChainId = Some(UUID.randomUUID()))
-                      .toBuilder
+            val rule = createJumpRuleBuilder(id = UUID.randomUUID(),
+                                             chainId = Some(UUID.randomUUID()),
+                                             jumpChainId = Some(UUID.randomUUID()))
                       .setAction(Rule.Action.ACCEPT)
                       .build()
 
@@ -134,10 +143,11 @@ class RuleConversionTest extends FeatureSpec with Matchers
         }
 
         scenario("A nat rule that's neither a fwd nor a reverse rule") {
-            val rule = createNatRule(id = UUID.randomUUID(),
-                                     chainId = Some(UUID.randomUUID()),
-                                     dnat = Some(false),
-                                     targets = Set(createNatTarget()))
+            val rule = createNatRuleBuilder(id = UUID.randomUUID(),
+                                            chainId = Some(UUID.randomUUID()),
+                                            dnat = Some(false),
+                                            targets = Set(createNatTarget()))
+                .build()
 
             intercept[ZoomConvert.ConvertException] {
                 ZoomConvert.fromProto(rule, classOf[SimRule])
@@ -145,10 +155,11 @@ class RuleConversionTest extends FeatureSpec with Matchers
         }
 
         scenario("A reverse nat rule without dnat set") {
-            val rule = createNatRule(id = UUID.randomUUID(),
-                                     chainId = Some(UUID.randomUUID()),
-                                     matchFwdFlow = Some(false),
-                                     targets = Set(createNatTarget()))
+            val rule = createNatRuleBuilder(id = UUID.randomUUID(),
+                                            chainId = Some(UUID.randomUUID()),
+                                            targets = Set(createNatTarget()))
+                .setMatchForwardFlow(false)
+                .build()
 
             intercept[ZoomConvert.ConvertException] {
                 ZoomConvert.fromProto(rule, classOf[SimRule])
@@ -156,11 +167,13 @@ class RuleConversionTest extends FeatureSpec with Matchers
         }
 
         scenario("A fwd nat rule with no targets") {
-            val rule = createNatRule(id = UUID.randomUUID(),
-                                     chainId = Some(UUID.randomUUID()),
-                                     matchFwdFlow = Some(true),
-                                     dnat = Some(true),
-                                     Set.empty)
+            val rule = createNatRuleBuilder(id = UUID.randomUUID(),
+                                            chainId = Some(UUID.randomUUID()),
+                                            dnat = Some(true),
+                                            matchFwdFlow = Some(true),
+                                            Set.empty)
+                .setMatchForwardFlow(true)
+                .build()
 
             intercept[ZoomConvert.ConvertException] {
                 ZoomConvert.fromProto(rule, classOf[SimRule])
@@ -168,9 +181,8 @@ class RuleConversionTest extends FeatureSpec with Matchers
         }
 
         scenario("A trace rule with an action different than CONTINUE") {
-            val rule = createTraceRule(id = UUID.randomUUID(),
-                                       chainId = Some(UUID.randomUUID()))
-                .toBuilder
+            val rule = createTraceRuleBuilder(id = UUID.randomUUID(),
+                                              chainId = Some(UUID.randomUUID()))
                 .setAction(Action.JUMP)
                 .build()
 
