@@ -21,7 +21,7 @@ import scala.concurrent.Await.{ready, result}
 import scala.concurrent.Future
 import scala.concurrent.duration._
 
-import akka.actor.{Status, Props}
+import akka.actor.Props
 import akka.testkit.TestActorRef
 
 import org.apache.commons.configuration.HierarchicalConfiguration
@@ -30,13 +30,17 @@ import org.scalatest.junit.JUnitRunner
 
 import rx.Observable
 
-import org.midonet.cluster.data.storage.{NotFoundException, Storage}
-import org.midonet.cluster.models.Topology.{Port => TopologyPort}
 import org.midonet.cluster.services.MidonetBackend
+import org.midonet.cluster.data.storage.{CreateOp, NotFoundException}
+import org.midonet.cluster.models.Topology.Rule.Action
+import org.midonet.cluster.models.Topology.{Port => TopologyPort}
+import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
+import org.midonet.midolman.rules.{RuleResult, LiteralRule}
 import org.midonet.midolman.{FlowController, NotYetException}
-import org.midonet.midolman.topology.VirtualTopologyActor.{Unsubscribe, PortRequest}
+import org.midonet.midolman.topology.VirtualTopologyActor.{ChainRequest, Unsubscribe, PortRequest}
 import org.midonet.midolman.topology.devices.{Port => SimulationPort, BridgePort}
+import org.midonet.midolman.simulation.{Chain => SimChain}
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.{AwaitableActor, MessageAccumulator}
 import org.midonet.sdn.flows.FlowTagger
@@ -505,6 +509,30 @@ class VirtualTopologyRedirectorTest extends MidolmanSpec with TopologyBuilder {
             Then("The VTA should receive the message")
             vta.messages.size shouldBe 1
             vta.messages.last shouldBe msg
+        }
+    }
+
+    feature("Test supported devices") {
+        scenario("Test that chains are supported") {
+            val literalRule = createLiteralRuleBuilder(id = UUID.randomUUID(),
+                                                       action = Some(Action.ACCEPT))
+                .build()
+            val chain = createChain(UUID.randomUUID(), Some("test-chain"),
+                                    List(literalRule.getId))
+            backend.store.multi(List(CreateOp(literalRule), CreateOp(chain)))
+
+            VirtualTopologyActor ! ChainRequest(chain.getId.asJava,
+                                                update = false)
+            sender.await(timeout)
+
+            expectLast({
+                case simChain: SimChain =>
+                    simChain.id shouldBe chain.getId.asJava
+                    simChain.name shouldBe "test-chain"
+                    val rule = simChain.getRules.get(0)
+                    rule.getClass shouldBe classOf[LiteralRule]
+                    rule.action shouldBe RuleResult.Action.ACCEPT
+            })
         }
     }
 }
