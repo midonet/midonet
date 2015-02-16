@@ -28,6 +28,8 @@ import rx.schedulers.Schedulers
 import org.midonet.cluster.DataClient
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
+
+import org.midonet.midolman.simulation.Chain
 import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.midolman.services.MidolmanActorsService
 import org.midonet.midolman.state.ZkConnectionAwareWatcher
@@ -184,7 +186,8 @@ class VirtualTopology @Inject() (val backend: MidonetBackend,
         classTag[BridgePort] -> (new PortMapper(_, this)),
         classTag[VxLanPort] -> (new PortMapper(_, this)),
         classTag[TunnelZone] -> (new TunnelZoneMapper(_, this)),
-        classTag[Host] -> (new HostMapper(_, this))
+        classTag[Host] -> (new HostMapper(_, this)),
+        classTag[Chain] -> (new ChainMapper(_, this))
     )
 
     register(this)

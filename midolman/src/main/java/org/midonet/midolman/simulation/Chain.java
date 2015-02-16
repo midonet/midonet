@@ -22,6 +22,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
+import com.google.common.annotations.VisibleForTesting;
+
 import scala.Option;
 import scala.collection.Map;
 
@@ -72,6 +74,11 @@ public class Chain implements VirtualDevice {
     public Chain getJumpTarget(UUID to) {
         Option<Chain> match = jumpTargets.get(to);
         return match.isDefined() ? match.get() : null;
+    }
+
+    @VisibleForTesting
+    public boolean isJumpTargetsEmpty() {
+        return jumpTargets.isEmpty();
     }
 
     /**
