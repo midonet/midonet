@@ -1,0 +1,205 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_3313fd67",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/PortBindingTranslator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-02-16T09:17:26Z",
+      "side": 1,
+      "message": "Leaving this as is for now, but can we use Zoom bindings to catch this? Should we?",
+      "range": {
+        "startLine": 45,
+        "startChar": 0,
+        "endLine": 49,
+        "endChar": 64
+      },
+      "revId": "963d76e7c86a3c735c8f7d28eca08552c55c7e8a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_2e0a7221",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/PortBindingTranslator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-02-16T09:17:26Z",
+      "side": 1,
+      "message": "What does \"n\" stand for? I would assume Neutron, but it\u0027s a Midonet object. Changing it to host.",
+      "range": {
+        "startLine": 52,
+        "startChar": 12,
+        "endLine": 52,
+        "endChar": 17
+      },
+      "revId": "963d76e7c86a3c735c8f7d28eca08552c55c7e8a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_ae1dc268",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/PortBindingTranslator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-02-16T09:17:26Z",
+      "side": 1,
+      "message": "We can reduce latency by moving this to the beginning of the function, before calling await() on the future returned by exists(). This allows us to await both results in parallel.",
+      "range": {
+        "startLine": 52,
+        "startChar": 20,
+        "endLine": 52,
+        "endChar": 65
+      },
+      "revId": "963d76e7c86a3c735c8f7d28eca08552c55c7e8a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_9303d10e",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/PortBindingTranslator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-02-16T09:17:26Z",
+      "side": 1,
+      "message": "You can use if(nHost.getPortInterfaceMappingList.asScala.exitsts(...)) {...}\n\nfind(...) only makes sense if you actually need a reference to the thing you found. If you just need to know whether one exists, you can use that.",
+      "range": {
+        "startLine": 55,
+        "startChar": 50,
+        "endLine": 55,
+        "endChar": 54
+      },
+      "revId": "963d76e7c86a3c735c8f7d28eca08552c55c7e8a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_b306cd1e",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/PortBindingTranslator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-02-16T09:17:26Z",
+      "side": 1,
+      "message": "You can omit this.",
+      "range": {
+        "startLine": 57,
+        "startChar": 60,
+        "endLine": 57,
+        "endChar": 64
+      },
+      "revId": "963d76e7c86a3c735c8f7d28eca08552c55c7e8a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_eeffbaff",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/PortBindingTranslator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-02-16T09:17:26Z",
+      "side": 1,
+      "message": "Changing to this for the sake of readability:\n\n        val pimBldr \u003d updatedHost.addPortInterfaceMappingBuilder()\n        pimBldr.setInterfaceName(binding.getInterfaceName)\n               .setPortId(binding.getPortId)",
+      "range": {
+        "startLine": 64,
+        "startChar": 0,
+        "endLine": 66,
+        "endChar": 48
+      },
+      "revId": "963d76e7c86a3c735c8f7d28eca08552c55c7e8a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_ce047e17",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/PortBindingTranslator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-02-16T09:17:26Z",
+      "side": 1,
+      "message": "No need to use a ListBuffer. This can just be List(Update(updatedHost.build()))",
+      "range": {
+        "startLine": 68,
+        "startChar": 0,
+        "endLine": 69,
+        "endChar": 22
+      },
+      "revId": "963d76e7c86a3c735c8f7d28eca08552c55c7e8a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_13188180",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/PortBindingTranslator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-02-16T09:17:26Z",
+      "side": 1,
+      "message": "Cause is null by default, so this can be omitted.",
+      "range": {
+        "startLine": 77,
+        "startChar": 16,
+        "endLine": 77,
+        "endChar": 29
+      },
+      "revId": "963d76e7c86a3c735c8f7d28eca08552c55c7e8a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_2e21d29f",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/services/c3po/translators/PortBindingTranslatorTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-02-16T09:17:26Z",
+      "side": 1,
+      "message": "Needs newline separating it from portBinding() definition.",
+      "revId": "963d76e7c86a3c735c8f7d28eca08552c55c7e8a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
