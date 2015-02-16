@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_299a6c63",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/InMemoryStorage.scala",
+        "patchSetId": 18
+      },
+      "lineNbr": 195,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-16T17:12:04Z",
+      "side": 1,
+      "message": "Isn\u0027t this the same as:\nFuture.failed(new NotFoundException(clazz, id))\n? (just a little shorter... )",
+      "range": {
+        "startLine": 193,
+        "startChar": 29,
+        "endLine": 195,
+        "endChar": 27
+      },
+      "revId": "92ee6814dddb8ee2165ff233f5e7680a2aef1bd3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_e904d47f",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/InMemoryStorage.scala",
+        "patchSetId": 18
+      },
+      "lineNbr": 320,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-16T17:12:04Z",
+      "side": 1,
+      "message": "I think this equivalent to \nFuture.successful(value)",
+      "range": {
+        "startLine": 320,
+        "startChar": 29,
+        "endLine": 320,
+        "endChar": 63
+      },
+      "revId": "92ee6814dddb8ee2165ff233f5e7680a2aef1bd3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_290d4c91",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/TransactionManager.scala",
+        "patchSetId": 18
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-16T17:12:04Z",
+      "side": 1,
+      "message": "an atomic set of operations?",
+      "range": {
+        "startLine": 49,
+        "startChar": 3,
+        "endLine": 49,
+        "endChar": 29
+      },
+      "revId": "92ee6814dddb8ee2165ff233f5e7680a2aef1bd3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
