@@ -20,9 +20,6 @@ import java.util.UUID
 import scala.collection.JavaConverters._
 import scala.util.Random
 
-import org.midonet
-
-import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.models.Commons
 import org.midonet.cluster.models.Commons.{IPAddress, IPVersion}
 import org.midonet.cluster.models.Topology.Host.PortToInterface
@@ -377,16 +374,16 @@ trait TopologyBuilder {
         builder.build()
     }
 
-    protected def createChainBuilder(id: UUID, name: Option[String],
-                                     ruleIds: Seq[UUID]): Chain.Builder = {
+    protected def createChain(id: UUID, name: Option[String],
+                              ruleIds: Seq[Commons.UUID]): Chain = {
         val builder = Chain.newBuilder
             .setId(id.asProto)
-            .addAllRuleIds(ruleIds.map(_.asProto).asJava)
+            .addAllRuleIds(ruleIds.asJava)
 
         if (name.isDefined)
             builder.setName(name.get)
 
-        builder
+        builder.build()
     }
 
     protected def createIPSubnetBuilder(version: IPVersion, prefix: String,

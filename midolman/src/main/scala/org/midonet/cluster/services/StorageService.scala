@@ -17,13 +17,12 @@ package org.midonet.cluster.services
 
 import com.google.common.util.concurrent.AbstractService
 import com.google.inject.Inject
-
 import org.apache.curator.framework.CuratorFramework
 
 import org.midonet.cluster.config.ZookeeperConfig
 import org.midonet.cluster.data.storage.FieldBinding.DeleteAction._
 import org.midonet.cluster.data.storage.Storage
-import org.midonet.cluster.models.Topology._
+import org.midonet.cluster.models.Topology.{Chain, Host, Port, Rule, TunnelZone, _}
 import org.midonet.midolman.state.{Directory, StateAccessException}
 import org.midonet.midolman.version.DataWriteVersion
 import org.midonet.midolman.{Setup, SystemDataProvider}
@@ -78,9 +77,12 @@ class StorageService @Inject() (directory: Directory,
     protected def buildStorage(): Unit = {
         store.registerClass(classOf[Port])
         store.registerClass(classOf[Network])
-        store.registerClass(classOf[Router])
         store.registerClass(classOf[Host])
         store.registerClass(classOf[TunnelZone])
+
+        store.registerClass(classOf[Chain])
+        store.registerClass(classOf[Rule])
+        store.registerClass(classOf[Router])
 
         store.declareBinding(classOf[Network], "port_ids", ERROR,
                              classOf[Port], "network_id", CLEAR)

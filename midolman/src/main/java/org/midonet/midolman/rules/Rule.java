@@ -31,6 +31,7 @@ import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.models.Topology;
 import org.midonet.cluster.util.UUIDUtil;
 import org.midonet.midolman.state.zkManagers.BaseConfig;
+
 import org.midonet.sdn.flows.FlowTagger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -101,6 +102,7 @@ public abstract class Rule extends BaseConfig {
                         "Rule: " + protoRule.getId() + " is a JUMP rule but " +
                         "does not have its action set to JUMP");
                 break;
+
             case NAT_RULE:
                 // validateProto is called after performing the zoom conversion.
                 // As a consequence the rule must have nat_rule_data set,
