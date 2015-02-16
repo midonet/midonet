@@ -27,12 +27,10 @@ import org.codehaus.jackson.annotate.JsonTypeInfo;
 
 import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomConvert;
-import org.midonet.cluster.data.ZoomEnum;
 import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.data.ZoomObject;
 import org.midonet.cluster.models.Topology;
 import org.midonet.cluster.util.UUIDUtil;
-import org.midonet.midolman.topology.VirtualTopology;
 import org.midonet.sdn.flows.FlowTagger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -87,7 +85,8 @@ public abstract class Rule extends ZoomObject {
         switch (protoRule.getType()) {
             case JUMP_TYPE:
                 if (protoRule.getAction() != Topology.Rule.Action.JUMP ||
-                    !protoRule.hasJumpRuleData())
+                    !protoRule.hasJumpRuleData() ||
+                    protoRule.getJumpRuleData().getJumpTo() == null)
                     throw new ZoomConvert.ConvertException(
                         "Rule: " + protoRule.getId() + " is a JUMP rule but " +
                         "does not have its action set to JUMP or is missing " +
