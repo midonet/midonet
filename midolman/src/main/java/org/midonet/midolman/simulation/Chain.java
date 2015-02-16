@@ -25,6 +25,8 @@ import java.util.UUID;
 import scala.Option;
 import scala.collection.Map;
 
+import com.google.common.annotations.VisibleForTesting;
+
 import org.midonet.midolman.rules.JumpRule;
 import org.midonet.midolman.rules.Rule;
 import org.midonet.midolman.rules.RuleResult;
@@ -72,6 +74,11 @@ public class Chain implements VirtualDevice {
     public Chain getJumpTarget(UUID to) {
         Option<Chain> match = jumpTargets.get(to);
         return match.isDefined() ? match.get() : null;
+    }
+
+    @VisibleForTesting
+    public boolean isJumpTargetsEmpty() {
+        return jumpTargets.isEmpty();
     }
 
     /**

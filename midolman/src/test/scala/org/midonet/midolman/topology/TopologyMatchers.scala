@@ -111,6 +111,7 @@ object TopologyMatchers {
                                   with DeviceMatcher[TopologyRule]
                                   with TopologyMatchers {
         override def shouldBeDeviceOf(r: TopologyRule): Unit = {
+            r.getId.asJava shouldBe rule.id
             r.getAction.name shouldBe rule.action.name
             r.getChainId shouldBe rule.chainId.asProto
 

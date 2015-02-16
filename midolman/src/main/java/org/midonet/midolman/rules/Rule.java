@@ -16,15 +16,16 @@
 
 package org.midonet.midolman.rules;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+
+import com.google.protobuf.MessageOrBuilder;
 
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.annotate.JsonSubTypes;
 import org.codehaus.jackson.annotate.JsonTypeInfo;
-
-import com.google.protobuf.MessageOrBuilder;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,10 +34,10 @@ import org.midonet.cluster.data.ZoomConvert;
 import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.models.Topology;
 import org.midonet.cluster.util.UUIDUtil;
-import org.midonet.midolman.state.zkManagers.BaseConfig;
-import org.midonet.sdn.flows.FlowTagger;
 import org.midonet.midolman.rules.RuleResult.Action;
 import org.midonet.midolman.simulation.PacketContext;
+import org.midonet.midolman.state.zkManagers.BaseConfig;
+import org.midonet.sdn.flows.FlowTagger;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY,
     property = "type")
@@ -109,6 +110,7 @@ public abstract class Rule extends BaseConfig {
                         "Rule: " + protoRule.getId() + " is a JUMP rule but " +
                         "does not have its action set to JUMP");
                 break;
+
             case NAT_RULE:
                 // A reverse nat rule must have the dnat field set. A forward
                 // nat rule does not since it can encode a floating ip.

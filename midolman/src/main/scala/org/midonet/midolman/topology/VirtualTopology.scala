@@ -22,6 +22,7 @@ import scala.concurrent.{Future, Promise}
 import scala.reflect._
 
 import com.google.inject.Inject
+
 import rx.Observable
 import rx.schedulers.Schedulers
 
@@ -32,7 +33,7 @@ import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.midolman.services.MidolmanActorsService
-import org.midonet.midolman.simulation.Bridge
+import org.midonet.midolman.simulation.{Bridge, Chain}
 import org.midonet.midolman.state.ZkConnectionAwareWatcher
 import org.midonet.midolman.topology.devices._
 import org.midonet.midolman.{FlowController, NotYetException}
@@ -190,7 +191,8 @@ class VirtualTopology @Inject() (val backend: MidonetBackend,
         classTag[VxLanPort] -> (new PortMapper(_, this)),
         classTag[TunnelZone] -> (new TunnelZoneMapper(_, this)),
         classTag[Host] -> (new HostMapper(_, this)),
-        classTag[Bridge] -> (new BridgeMapper(_, this)(actorsService.system))
+        classTag[Bridge] -> (new BridgeMapper(_, this)(actorsService.system)),
+        classTag[Chain] -> (new ChainMapper(_, this))
     )
 
     register(this)

@@ -32,13 +32,13 @@ import org.midonet.cluster.util.IPSubnetUtil._
 import org.midonet.cluster.util.MACUtil._
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil, RangeUtil, UUIDUtil}
-import org.midonet.midolman.rules.{Condition, FragmentPolicy}
+import org.midonet.midolman.rules.FragmentPolicy
 import org.midonet.packets._
 import org.midonet.util.Range
 
 trait TopologyBuilder {
 
-    import org.midonet.midolman.topology.TopologyBuilder._
+    import TopologyBuilder._
 
     protected def createBridgePort(id: UUID = UUID.randomUUID,
                                    bridgeId: Option[UUID] = None,
@@ -205,87 +205,6 @@ trait TopologyBuilder {
     }
 
 
-    protected def setConditionAllFieldsDefault(builder: Rule.Builder,
-        conjunctionInv: Boolean = true,
-        matchForwardFlow: Option[Boolean] = None,
-        inPortIds: Set[UUID] = Set(UUID.randomUUID()),
-        inPortInv: Boolean = true,
-        outPortIds: Set[UUID] = Set(UUID.randomUUID()),
-        outPortInv: Boolean = true,
-        portGroup: UUID = UUID.randomUUID(),
-        invPortGroup: Boolean = true,
-        ipAddrGroupIdSrc: UUID = UUID.randomUUID(),
-        invIpAddrGroupIdSrc: Boolean = true,
-        ipAddrGroupIdDst: UUID = UUID.randomUUID(),
-        invIpAddrGroupIdDst: Boolean = true,
-        etherType: Int = random.nextInt(),
-        invDlType: Boolean = true,
-        ethSrc: MAC = MAC.random,
-        ethSrcMask: Long = Condition.NO_MASK,
-        invDlSrc: Boolean = true,
-        ethDst: MAC = MAC.random,
-        dlDstMask: Long = Condition.NO_MASK,
-        invDlDst: Boolean = true,
-        nwTos: Byte =
-            random.nextInt(128).asInstanceOf[Byte],
-        nwTosInv: Boolean = true,
-        nwProto: Byte =
-            random.nextInt(128).asInstanceOf[Byte],
-        nwProtoInv: Boolean = true,
-        nwSrcIp: IPSubnet[_] = randomIPv4Subnet,
-        nwDstIp: IPSubnet[_] = randomIPv4Subnet,
-        tpSrc: Range[Integer] = randomPortRange,
-        tpDst: Range[Integer] = randomPortRange,
-        nwSrcInv: Boolean = true,
-        nwDstInv: Boolean = true,
-        tpSrcInv: Boolean = true,
-        tpDstInv: Boolean = true,
-        traversedDevice: UUID = UUID.randomUUID,
-        traversedDeviceInv: Boolean = true,
-        fragmentPolicy: FragmentPolicy =
-            FragmentPolicy.ANY): Rule.Builder = {
-
-        if (matchForwardFlow.isDefined) {
-            builder.setMatchForwardFlow(matchForwardFlow.get)
-            builder.setMatchReturnFlow(!matchForwardFlow.get)
-        }
-        builder
-            .setConjunctionInv(conjunctionInv)
-            .addAllInPortIds(inPortIds.map(_.asProto).asJava)
-            .setInPortInv(inPortInv)
-            .addAllOutPortIds(outPortIds.map(_.asProto).asJava)
-            .setOutPortInv(outPortInv)
-            .setPortGroupId(portGroup.asProto)
-            .setInvPortGroup(invPortGroup)
-            .setIpAddrGroupIdSrc(ipAddrGroupIdSrc.asProto)
-            .setInvIpAddrGroupIdSrc(invIpAddrGroupIdSrc)
-            .setIpAddrGroupIdDst(ipAddrGroupIdDst.asProto)
-            .setInvIpAddrGroupIdDst(invIpAddrGroupIdDst)
-            .setDlType(etherType)
-            .setInvDlType(invDlType)
-            .setDlSrc(ethSrc.toString)
-            .setDlSrcMask(ethSrcMask)
-            .setInvDlSrc(invDlSrc)
-            .setDlDst(ethDst.toString)
-            .setDlDstMask(dlDstMask)
-            .setInvDlDst(invDlDst)
-            .setNwTos(nwTos)
-            .setNwTosInv(nwTosInv)
-            .setNwProto(nwProto)
-            .setNwProtoInv(nwProtoInv)
-            .setNwSrcIp(IPSubnetUtil.toProto(nwSrcIp))
-            .setNwDstIp(IPSubnetUtil.toProto(nwDstIp))
-            .setTpSrc(RangeUtil.toProto(tpSrc))
-            .setTpDst(RangeUtil.toProto(tpDst))
-            .setNwSrcInv(nwSrcInv)
-            .setNwDstInv(nwDstInv)
-            .setTpSrcInv(tpSrcInv)
-            .setTpDstInv(tpDstInv)
-            .setTraversedDevice(traversedDevice.asProto)
-            .setTraversedDeviceInv(traversedDeviceInv)
-            .setFragmentPolicy(Rule.FragmentPolicy.valueOf(fragmentPolicy.name))
-    }
-
     protected def setCondition(builder: Rule.Builder,
                                conjunctionInv: Option[Boolean] = None,
                                matchForwardFlow: Option[Boolean] = None,
@@ -402,8 +321,7 @@ trait TopologyBuilder {
     }
 
     private def createRuleBuilder(id: UUID, chainId: Option[UUID],
-                                  action: Option[Rule.Action],
-                                  matchFwdFlow: Option[Boolean] = None)
+                                  action: Option[Rule.Action])
     : Rule.Builder = {
         val builder = Rule.newBuilder.setId(id.asProto)
         if (chainId.isDefined)
@@ -411,31 +329,27 @@ trait TopologyBuilder {
         if (action.isDefined)
             builder.setAction(action.get)
 
-        if (matchFwdFlow.isDefined)
-            setConditionAllFieldsDefault(builder, matchForwardFlow = matchFwdFlow)
-        else
-            setConditionAllFieldsDefault(builder)
         builder
     }
 
-    protected def createLiteralRule(id: UUID,
-                                    chainId: Option[UUID] = None,
-                                    action: Option[Rule.Action] = None)
-    : Rule = {
+    protected def createLiteralRuleBuilder(id: UUID,
+                                           chainId: Option[UUID] = None,
+                                           action: Option[Rule.Action] = None)
+    : Rule.Builder = {
         createRuleBuilder(id, chainId, action)
             .setType(Rule.Type.LITERAL_RULE)
-            .build()
     }
 
-    protected def createTraceRule(id: UUID,
-                                  chainId: Option[UUID] = None): Rule = {
+    protected def createTraceRuleBuilder(id: UUID,
+                                         chainId: Option[UUID] = None)
+    : Rule.Builder = {
         createRuleBuilder(id, chainId, Option(Action.CONTINUE))
             .setType(Rule.Type.TRACE_RULE)
-            .build()
     }
 
-    protected def createJumpRule(id: UUID, chainId: Option[UUID] = None,
-                                 jumpChainId: Option[UUID] = None): Rule = {
+    protected def createJumpRuleBuilder(id: UUID, chainId: Option[UUID] = None,
+                                        jumpChainId: Option[UUID] = None)
+    : Rule.Builder = {
         val builder = createRuleBuilder(id, chainId, Option(Action.JUMP))
             .setType(Rule.Type.JUMP_RULE)
 
@@ -443,7 +357,7 @@ trait TopologyBuilder {
             builder.setJumpRuleData(JumpRuleData.newBuilder
                                         .setJumpTo(jumpChainId.get.asProto)
                                         .build())
-        builder.build()
+        builder
     }
 
     protected def createNatTarget(startAddr: IPAddress =
@@ -460,12 +374,12 @@ trait TopologyBuilder {
             .build()
     }
 
-    protected def createNatRule(id: UUID, chainId: Option[UUID] = None,
-                                matchFwdFlow: Option[Boolean] = None,
-                                dnat: Option[Boolean] = None,
-                                targets:  Set[NatTarget] = Set.empty): Rule = {
-        val builder = createRuleBuilder(id, chainId, Option(Action.CONTINUE),
-                                        matchFwdFlow)
+    protected def createNatRuleBuilder(id: UUID, chainId: Option[UUID] = None,
+                                       dnat: Option[Boolean] = None,
+                                       matchFwdFlow: Option[Boolean] = None,
+                                       targets:  Set[NatTarget])
+    : Rule.Builder = {
+        val builder = createRuleBuilder(id, chainId, Option(Action.CONTINUE))
             .setType(Rule.Type.NAT_RULE)
             .setNatRuleData(NatRuleData.newBuilder
                 .addAllNatTargets(targets.asJava)
@@ -476,19 +390,23 @@ trait TopologyBuilder {
                 .setDnat(dnat.get)
                 .build()
 
-        builder.build()
+        if (matchFwdFlow.isDefined) {
+            builder.setMatchForwardFlow(matchFwdFlow.get)
+            builder.setMatchReturnFlow(!matchFwdFlow.get)
+        }
+        builder
     }
 
-    protected def createChainBuilder(id: UUID, name: Option[String],
-                                     ruleIds: Seq[UUID]): Chain.Builder = {
+    protected def createChain(id: UUID, name: Option[String],
+                              ruleIds: Seq[Commons.UUID]): Chain = {
         val builder = Chain.newBuilder
             .setId(id.asProto)
-            .addAllRuleIds(ruleIds.map(_.asProto).asJava)
+            .addAllRuleIds(ruleIds.asJava)
 
         if (name.isDefined)
             builder.setName(name.get)
 
-        builder
+        builder.build()
     }
 
     protected def createIPSubnetBuilder(version: IPVersion, prefix: String,
@@ -529,7 +447,6 @@ trait TopologyBuilder {
             builder.setInterfaceName(interfaceName.get)
         builder
     }
-
 }
 
 object TopologyBuilder {
@@ -588,12 +505,6 @@ object TopologyBuilder {
     private val random = new Random()
 
     def randomIPv4Subnet = new IPv4Subnet(random.nextInt(), random.nextInt(32))
-
-    def randomPortRange = {
-        val start = random.nextInt(65535)
-        val end = start + random.nextInt(65536 - start)
-        new Range[Integer](start, end)
-    }
 
     implicit def asRichPort(port: Port): RichPort = new RichPort(port)
 
