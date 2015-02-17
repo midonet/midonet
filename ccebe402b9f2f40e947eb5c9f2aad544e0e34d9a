@@ -126,6 +126,24 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_6ebbc7e5",
+        "filename": "midolman/src/main/java/org/midonet/midolman/host/config/HostConfig.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-02-17T12:00:35Z",
+      "side": 1,
+      "message": "It is executed by the compute virtualization platform like nova (or ovirt, libvirt, or whatever) when the VM/container is about to launch.  It requires the tap/veth name that was just created on that host, and the host ID that the VM was selected to be launched, and bind it to vport.  It is our version of:\n\n\u003e ovs-vsctl add-if midonet tap_foo\n\nIt\u0027s just that our design stores the binding information centrally in ZK which requires access to cluster (via tasks).  We are most likely going to change this model (i will explain in the comment) but this is we currently add a local host interface to our datapath.\n\nIsn\u0027t mm-dpctl packaged with agent?  It should be.\n\nSomewhere in our product we need a tool to actually map the physical layer (tap/veth) to the virtual (vport).  This is the tool that we have.",
+      "parentUuid": "7a1969be_6e2d8746",
+      "revId": "ccebe402b9f2f40e947eb5c9f2aad544e0e34d9a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_a1f95eca",
         "filename": "midolman/src/main/java/org/midonet/midolman/tools/MmCtl.java",
         "patchSetId": 1
