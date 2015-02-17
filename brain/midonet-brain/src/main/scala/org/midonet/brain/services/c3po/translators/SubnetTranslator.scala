@@ -16,20 +16,78 @@
 
 package org.midonet.brain.services.c3po.translators
 
-import com.google.protobuf.Message
+import java.{util => ju}
 
-import org.midonet.brain.services.c3po.midonet.MidoOp
-import org.midonet.cluster.models.Commons.UUID
+import scala.collection.JavaConverters._
+
+import com.google.protobuf.ProtocolStringList
+
+import org.midonet.brain.services.c3po.midonet.{Create, Delete, Update}
+import org.midonet.cluster.data.storage.ReadOnlyStorage
+import org.midonet.cluster.models.Commons.{IPAddress, UUID}
 import org.midonet.cluster.models.Neutron.NeutronSubnet
+import org.midonet.cluster.models.Topology.Dhcp
+import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil}
+import org.midonet.util.concurrent.toFutureOps
 
-class SubnetTranslator extends NeutronTranslator[NeutronSubnet] {
+// TODO: add code to handle connection to provider router.
+class SubnetTranslator(storage: ReadOnlyStorage)
+    extends NeutronTranslator[NeutronSubnet] {
 
-    override protected def translateCreate(nm: NeutronSubnet)
-    : List[MidoOp[_ <: Message]] = List()
+    import org.midonet.brain.services.c3po.translators.SubnetTranslator._
 
-    override protected def translateDelete(id: UUID)
-    : List[MidoOp[_ <: Message]] = List()
+    override protected def translateCreate(ns: NeutronSubnet) : MidoOpList = {
 
-    override protected def translateUpdate(nm: NeutronSubnet)
-    : List[MidoOp[_ <: Message]] = List()
+        val dhcp = Dhcp.newBuilder
+            .setId(ns.getId)
+            .setNetworkId(ns.getNetworkId)
+            .setDefaultGateway(ns.getGatewayIp)
+            .setServerAddress(ns.getGatewayIp)
+            .setEnabled(ns.getEnableDhcp)
+            .setSubnetAddress(IPSubnetUtil.toProto(ns.getCidr))
+            .addAllDnsServerAddress(
+                asIpAddressJavaCollection(ns.getDnsNameserversList)).build
+
+        // TODO: connect to provider router if external
+        // TODO: handle option 121 routes
+
+        List(Create(dhcp))
+    }
+
+    override protected def translateDelete(id: UUID) : MidoOpList = {
+        List(Delete(classOf[Dhcp], id))
+    }
+
+    override protected def translateUpdate(ns: NeutronSubnet) : MidoOpList = {
+
+        val origDhcp = storage.get(classOf[Dhcp], ns.getId).await()
+        val newDhcp = origDhcp.toBuilder
+            .setDefaultGateway(ns.getGatewayIp)
+            .setEnabled(ns.getEnableDhcp)
+            .setSubnetAddress(IPSubnetUtil.toProto(ns.getCidr))
+            .clearDnsServerAddress()
+            .addAllDnsServerAddress(
+                asIpAddressJavaCollection(ns.getDnsNameserversList)).build
+
+        // TODO: handle option 121 routes
+
+        List(Update(newDhcp))
+    }
+}
+
+protected[translators] object SubnetTranslator {
+
+    import IPAddressUtil._
+
+    /**
+     * Given a list of IP addresses in a ProtocolString format, return a list
+     * of the same addresses as a Java Collection of IPAddress objects.
+     *
+     * @param addrs List of IP addresses in ProtocolString format
+     * @return Java Collection of IPAddress objects
+     */
+    def asIpAddressJavaCollection(addrs: ProtocolStringList)
+    : ju.Collection[IPAddress] = {
+        addrs.asScala.map(toProto).asJavaCollection
+    }
 }

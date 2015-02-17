@@ -28,8 +28,7 @@ import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.models.Commons.{IPAddress, IPSubnet, IPVersion, UUID}
 import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner
 import org.midonet.cluster.models.Neutron.{NeutronPort, NeutronSubnet}
-import org.midonet.cluster.models.Topology.Network.Dhcp
-import org.midonet.cluster.models.Topology.{Chain, IpAddrGroup, Network, Port, PortOrBuilder, Route, Router, Rule}
+import org.midonet.cluster.models.Topology.{Chain, Dhcp, IpAddrGroup, Network, Port, PortOrBuilder, Route, Router, Rule}
 import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
 import org.midonet.cluster.util.{IPSubnetUtil, UUIDUtil}
 import org.midonet.packets.{ARP, IPv4, IPv6}
