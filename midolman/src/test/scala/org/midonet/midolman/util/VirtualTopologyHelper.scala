@@ -17,6 +17,7 @@ package org.midonet.midolman.util
 
 import java.util.{ArrayList, LinkedList, List, Queue, UUID}
 
+import scala.collection.JavaConversions._
 import scala.collection.mutable
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext, Future}
@@ -48,7 +49,9 @@ import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.topology.VirtualTopologyActor.{BridgeRequest, ChainRequest, IPAddrGroupRequest, PortRequest, RouterRequest}
 import org.midonet.odp.flows.{FlowAction, FlowActionOutput, FlowKeys}
 import org.midonet.odp._
-import org.midonet.packets.{IPv4Addr, MAC, Ethernet}
+import org.midonet.odp.flows._
+import org.midonet.packets.{IPv4Addr, MAC, Ethernet, IPv4, ICMP, TCP, UDP}
+import org.midonet.packets.util.AddressConversions._
 import org.midonet.sdn.flows.FlowTagger.FlowTag
 import org.midonet.sdn.state.FlowStateTransaction
 import org.midonet.util.functors.Callback0
@@ -158,6 +161,64 @@ trait VirtualTopologyHelper {
             conntrackTx.flush()
         if (natTx ne NO_NAT)
             natTx.flush()
+    }
+
+    def applyPacketActions(packet: Ethernet,
+                           actions: List[FlowAction]): Ethernet = {
+        val eth = Ethernet.deserialize(packet.serialize())
+        var ip: IPv4 = null
+        var tcp: TCP = null
+        var udp: UDP = null
+        var icmp: ICMP = null
+        eth.getEtherType match {
+            case IPv4.ETHERTYPE =>
+                ip = eth.getPayload.asInstanceOf[IPv4]
+                ip.getProtocol match {
+                    case TCP.PROTOCOL_NUMBER =>
+                        tcp = ip.getPayload.asInstanceOf[TCP]
+                    case UDP.PROTOCOL_NUMBER =>
+                        udp = ip.getPayload.asInstanceOf[UDP]
+                    case ICMP.PROTOCOL_NUMBER =>
+                        icmp = ip.getPayload.asInstanceOf[ICMP]
+                }
+        }
+
+        val actionsSet = actions.flatMap(action => action match {
+            case a: FlowActionSetKey => Option(a)
+            case _ => None
+        }).toSet
+
+        // TODO(guillermo) incomplete, but it should cover testing needs
+        actionsSet foreach { action =>
+            action.getFlowKey match {
+                case key: FlowKeyEthernet =>
+                    if (key.eth_dst != null)
+                        eth.setDestinationMACAddress(key.eth_dst)
+                    if (key.eth_src != null)
+                        eth.setSourceMACAddress(key.eth_src)
+                case key: FlowKeyIPv4 =>
+                    if (key.ipv4_dst != 0)
+                        ip.setDestinationAddress(key.ipv4_dst)
+                    if (key.ipv4_src != 0)
+                        ip.setSourceAddress(key.ipv4_src)
+                    if (key.ipv4_ttl != 0)
+                        ip.setTtl(key.ipv4_ttl)
+                case key: FlowKeyTCP =>
+                    if (key.tcp_dst != 0) tcp.setDestinationPort(key.tcp_dst)
+                    if (key.tcp_src != 0) tcp.setSourcePort(key.tcp_src)
+                case key: FlowKeyUDP =>
+                    if (key.udp_dst != 0) udp.setDestinationPort(key.udp_dst)
+                    if (key.udp_src != 0) udp.setSourcePort(key.udp_src)
+                case key: FlowKeyICMPError =>
+                    throw new IllegalArgumentException(
+                        s"ICMP should be handled in userspace")
+                case unmatched =>
+                    throw new IllegalArgumentException(
+                        s"Won't translate ${unmatched}")
+            }
+        }
+
+        eth
     }
 
     def packetWorkflow(dpPortToVport: Map[Int, UUID])
