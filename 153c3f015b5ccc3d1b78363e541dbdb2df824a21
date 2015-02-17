@@ -45,6 +45,29 @@
       "revId": "153c3f015b5ccc3d1b78363e541dbdb2df824a21",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_8e8723d7",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/SubnetTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-02-17T14:10:11Z",
+      "side": 1,
+      "message": "map ( IPAddressUtil.toProto ) should be enough\n\nAlso a static import of IPAddressUtil would help",
+      "range": {
+        "startLine": 91,
+        "startChar": 25,
+        "endLine": 91,
+        "endChar": 56
+      },
+      "revId": "153c3f015b5ccc3d1b78363e541dbdb2df824a21",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
