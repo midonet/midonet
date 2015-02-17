@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_4486adba",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 303,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-17T18:01:17Z",
+      "side": 1,
+      "message": "Thanks for the tip! Done.",
+      "parentUuid": "7a1969be_64f8097d",
+      "range": {
+        "startLine": 295,
+        "startChar": 0,
+        "endLine": 303,
+        "endChar": 52
+      },
+      "revId": "d71a35068e39f094d07731621a56e8f3eaf33b30",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_4437cde3",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/SecurityGroupTranslator.scala",
         "patchSetId": 16
@@ -36,6 +60,30 @@
       "writtenOn": "2015-02-16T20:22:46Z",
       "side": 1,
       "message": "nitpick: the protobuf set* methods accept a MessageOrBuilder type, so the .build is not strictly necessary when setting a field...",
+      "range": {
+        "startLine": 219,
+        "startChar": 39,
+        "endLine": 219,
+        "endChar": 47
+      },
+      "revId": "d71a35068e39f094d07731621a56e8f3eaf33b30",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_648929ca",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/SecurityGroupTranslator.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 219,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-17T18:01:17Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_4437cde3",
       "range": {
         "startLine": 219,
         "startChar": 39,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_e4bcf96e",
+        "filename": "cluster/src/main/proto/topology.proto",
+        "patchSetId": 16
+      },
+      "lineNbr": 205,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-17T18:01:17Z",
+      "side": 1,
+      "message": "Yes, I think so too. I remember asking the same question a while back. The reasoning is that we want to make everything optional to be able to evolve the model as we want and still be backward compatible. If we decide to make certain fields mandatory, I guess we should have a separate patch for that. That patch would revisit all the protos.",
+      "parentUuid": "7a1969be_64af69e4",
+      "range": {
+        "startLine": 205,
+        "startChar": 4,
+        "endLine": 205,
+        "endChar": 12
+      },
+      "revId": "d71a35068e39f094d07731621a56e8f3eaf33b30",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_c4a0ddf6",
         "filename": "cluster/src/main/proto/topology.proto",
         "patchSetId": 16
@@ -82,6 +154,30 @@
       "writtenOn": "2015-02-16T20:22:46Z",
       "side": 1,
       "message": "From the code, it looks like this reordering is made to make these values match the Action values defined somewhere else (org.midonet.midolman.rules.RuleResult.Action?)... If so, it would be good to add a comment indicating that, in case of modifications, the other file should also be modified. (The comment should also be present in the other file)",
+      "range": {
+        "startLine": 212,
+        "startChar": 5,
+        "endLine": 214,
+        "endChar": 17
+      },
+      "revId": "d71a35068e39f094d07731621a56e8f3eaf33b30",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_c4c1fde5",
+        "filename": "cluster/src/main/proto/topology.proto",
+        "patchSetId": 16
+      },
+      "lineNbr": 214,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-17T18:01:17Z",
+      "side": 1,
+      "message": "The re-ordering is unintentional. I\u0027ll revert it back to the original order to avoid confusion.",
+      "parentUuid": "7a1969be_c4a0ddf6",
       "range": {
         "startLine": 212,
         "startChar": 5,
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_4474edce",
+        "filename": "cluster/src/main/proto/topology.proto",
+        "patchSetId": 16
+      },
+      "lineNbr": 260,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-17T18:01:17Z",
+      "side": 1,
+      "message": "I did it to make the proto more modular but sure I\u0027ll removing the nesting.",
+      "parentUuid": "7a1969be_24ff3169",
+      "range": {
+        "startLine": 218,
+        "startChar": 0,
+        "endLine": 260,
+        "endChar": 5
+      },
+      "revId": "d71a35068e39f094d07731621a56e8f3eaf33b30",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_045dd521",
         "filename": "cluster/src/test/scala/org/midonet/cluster/data/storage/StorageTester.scala",
         "patchSetId": 16
@@ -128,6 +248,30 @@
       "writtenOn": "2015-02-16T20:22:46Z",
       "side": 1,
       "message": "I guess ignoring the \u0027action\u0027 argument is intended (?)",
+      "range": {
+        "startLine": 269,
+        "startChar": 34,
+        "endLine": 269,
+        "endChar": 52
+      },
+      "revId": "d71a35068e39f094d07731621a56e8f3eaf33b30",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_04bcb568",
+        "filename": "cluster/src/test/scala/org/midonet/cluster/data/storage/StorageTester.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 269,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-17T18:01:17Z",
+      "side": 1,
+      "message": "ooops no... Thanks for spotting this!",
+      "parentUuid": "7a1969be_045dd521",
       "range": {
         "startLine": 269,
         "startChar": 34,
@@ -163,6 +307,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_e4635918",
+        "filename": "midolman/src/main/java/org/midonet/midolman/rules/Condition.java",
+        "patchSetId": 16
+      },
+      "lineNbr": 162,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-17T18:01:17Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_64412939",
+      "range": {
+        "startLine": 162,
+        "startChar": 4,
+        "endLine": 162,
+        "endChar": 69
+      },
+      "revId": "d71a35068e39f094d07731621a56e8f3eaf33b30",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_0474b597",
         "filename": "midolman/src/main/java/org/midonet/midolman/rules/Condition.java",
         "patchSetId": 16
@@ -174,6 +342,30 @@
       "writtenOn": "2015-02-16T20:22:46Z",
       "side": 1,
       "message": "Just a comment (no need to change anything), but I tend to prefer ArrayList for this kind of temporary lists. They should be slightly faster if the size is known in advance...",
+      "range": {
+        "startLine": 163,
+        "startChar": 39,
+        "endLine": 163,
+        "endChar": 49
+      },
+      "revId": "d71a35068e39f094d07731621a56e8f3eaf33b30",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_a4aa0117",
+        "filename": "midolman/src/main/java/org/midonet/midolman/rules/Condition.java",
+        "patchSetId": 16
+      },
+      "lineNbr": 163,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-17T18:01:17Z",
+      "side": 1,
+      "message": "Since it\u0027s in UUIDUtil now I just use a .map(..)",
+      "parentUuid": "7a1969be_0474b597",
       "range": {
         "startLine": 163,
         "startChar": 39,
