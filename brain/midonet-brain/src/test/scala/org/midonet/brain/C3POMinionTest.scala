@@ -39,15 +39,15 @@ import org.slf4j.LoggerFactory
 
 import org.midonet.brain.ClusterNode.Context
 import org.midonet.brain.services.c3po.{C3POConfig, C3POMinion}
-import org.midonet.cluster.data.neutron.NeutronResourceType.{Network => NetworkType, NoData, Port => PortType, Router => RouterType, SecurityGroup => SecurityGroupType}
+import org.midonet.cluster.data.neutron.NeutronResourceType.{Network => NetworkType, NoData, Port => PortType, Router => RouterType, SecurityGroup => SecurityGroupType, Subnet => SubnetType}
 import org.midonet.cluster.data.neutron.TaskType._
 import org.midonet.cluster.data.neutron.{NeutronResourceType, TaskType}
 import org.midonet.cluster.data.storage.{ObjectReferencedException, Storage}
-import org.midonet.cluster.models.{Commons, C3PO}
 import org.midonet.cluster.models.Commons.{EtherType, Protocol, RuleDirection}
 import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner
 import org.midonet.cluster.models.Neutron.SecurityGroup
 import org.midonet.cluster.models.Topology._
+import org.midonet.cluster.models.{C3PO, Commons}
 import org.midonet.cluster.storage.ZoomProvider
 import org.midonet.cluster.util.UUIDUtil
 import org.midonet.cluster.util.UUIDUtil.toProto
@@ -160,39 +160,6 @@ class C3POMinionTest extends FlatSpec with BeforeAndAfter
         s"$id, ${taskType.id}, ${dataType.id},'$json', $rsrcIdStr, '$txnId', " +
         "datetime('now'))"
     }
-
-    val network1Uuid = UUID.fromString("d32019d3-bc6e-4319-9c1d-6722fc136a22")
-    val network1Json =
-        """{
-            "status": "ACTIVE",
-            "name": "private-network",
-            "admin_state_up": true,
-            "tenant_id": "4fd44f30292945e481c7b8a0c8908869",
-            "shared": true,
-            "id": "d32019d3-bc6e-4319-9c1d-6722fc136a22",
-            "router:external": true
-        }"""
-    val network1Json2 =
-        """{
-            "status": "ACTIVE",
-            "name": "public-network",
-            "admin_state_up": false,
-            "tenant_id": "4fd44f30292945e481c7b8a0c8908869",
-            "shared": true,
-            "id": "d32019d3-bc6e-4319-9c1d-6722fc136a22",
-            "router:external": true
-        }"""
-    val network2Uuid = UUID.fromString("a305c946-fda6-4940-8ab1-fcf0d4d35dfd")
-    val network2Json =
-        """{
-            "status": "ACTIVE",
-            "name": "corporate-network",
-            "admin_state_up": true,
-            "tenant_id": "4fd44f30292945e481c7b8a0c8908869",
-            "shared": true,
-            "id": "a305c946-fda6-4940-8ab1-fcf0d4d35dfd",
-            "router:external": false
-        }"""
 
     private var curator: CuratorFramework = _
     private var storage: Storage = _
@@ -343,29 +310,82 @@ class C3POMinionTest extends FlatSpec with BeforeAndAfter
         r
     }
 
+    private def networkJson(id: UUID, tenantId: String, name: String = null,
+                            shared: Boolean = false,
+                            adminStateUp: Boolean = true,
+                            external: Boolean = false): JsonNode = {
+        val n = nodeFactory.objectNode
+        n.put("id", id.toString)
+        n.put("tenant_id", tenantId)
+        if (name != null) n.put("name", name)
+        n.put("admin_state_up", adminStateUp)
+        n.put("external", external)
+        n
+    }
+
+    private def subnetJson(id: UUID, networkId: UUID, tenantId: String,
+                           name: String = null, cidr: String = null,
+                           ipVersion: Int = 4, gatewayIp: String = null,
+                           enableDhcp: Boolean = true,
+                           dnsNameservers: List[String] = null): JsonNode = {
+        val s = nodeFactory.objectNode
+        s.put("id", id.toString)
+        s.put("network_id", networkId.toString)
+        s.put("tenant_id", tenantId)
+        if (name != null) s.put("name", name)
+        if (cidr != null) s.put("cidr", cidr)
+        s.put("ip_version", ipVersion)
+        if (gatewayIp != null) s.put("gateway_ip", gatewayIp)
+        s.put("enable_dhcp", enableDhcp)
+        if (dnsNameservers != null) {
+            val nameServers = s.putArray("dns_nameservers")
+            for (nameServer <- dnsNameservers) {
+                nameServers.add(nameServer)
+            }
+        }
+
+        s
+    }
 
     "C3PO" should "poll DB and update ZK via C3POStorageMgr" in {
         val threadSleepMs = 2000
+
+        val network1Uuid = UUID.randomUUID()
+
         // Initially the Storage is empty.
         storage.exists(classOf[Network], network1Uuid).await() shouldBe false
 
-        // Creates Network 1
+        // Create a private Network
+        val network1Name = "private-network"
+        val network1Json = networkJson(network1Uuid, "tenant1", network1Name)
         executeSqlStmts(insertMidoNetTaskSql(2, Create, NetworkType,
-                                             network1Json, network1Uuid, "tx1"))
+                                             network1Json.toString,
+                                             network1Uuid, "tx1"))
         Thread.sleep(threadSleepMs)
 
         storage.exists(classOf[Network], network1Uuid).await() shouldBe true
         val network1 = storage.get(classOf[Network], network1Uuid).await()
         network1.getId shouldBe toProto(network1Uuid)
-        network1.getName shouldBe "private-network"
+        network1.getName shouldBe network1Name
         network1.getAdminStateUp shouldBe true
 
         // Creates Network 2 and updates Network 1
+        val network2Uuid = UUID.randomUUID()
+        val network2Name = "corporate-network"
+        val network2Json = networkJson(network2Uuid, "tenant1", network2Name)
+
+        // Create a public Network
+        val network1Name2 = "public-network"
+        val network1Json2 = networkJson(network1Uuid, "tenant1", network1Name2,
+                                       external = true, adminStateUp = false)
+
         executeSqlStmts(
-                insertMidoNetTaskSql(id = 3, Create, NetworkType, network2Json,
-                                     network2Uuid, "tx2"),
-                insertMidoNetTaskSql(id = 4, Update, NetworkType, network1Json2,
-                                     network1Uuid, "tx2"))
+                insertMidoNetTaskSql(id = 3, Create, NetworkType,
+                                     network2Json.toString, network2Uuid,
+                                     "tx2"),
+                insertMidoNetTaskSql(id = 4, Update, NetworkType,
+                                     network1Json2.toString, network1Uuid,
+                                     "tx2"))
         Thread.sleep(threadSleepMs)
 
         storage.exists(classOf[Network], network2Uuid).await() shouldBe true
@@ -391,10 +411,12 @@ class C3POMinionTest extends FlatSpec with BeforeAndAfter
 
         // Can create Network 1 & 2 again.
         executeSqlStmts(
-                insertMidoNetTaskSql(id = 2, Create, NetworkType, network1Json,
-                                     network1Uuid, "tx4"),
-                insertMidoNetTaskSql(id = 3, Create, NetworkType, network2Json,
-                                     network2Uuid, "tx4"))
+                insertMidoNetTaskSql(id = 2, Create, NetworkType,
+                                     network1Json.toString, network1Uuid,
+                                     "tx4"),
+                insertMidoNetTaskSql(id = 3, Create, NetworkType,
+                                     network2Json.toString, network2Uuid,
+                                     "tx4"))
         Thread.sleep(threadSleepMs)
 
         storage.exists(classOf[Network], network1Uuid).await() shouldBe true
@@ -404,8 +426,11 @@ class C3POMinionTest extends FlatSpec with BeforeAndAfter
     it should "manage port binding to a Network" in {
         val threadSleepMs = 1000
         // Creates Network 1.
+        val network1Uuid = UUID.randomUUID()
+        val network1Json = networkJson(network1Uuid, "tenant1", "private-net")
         executeSqlStmts(insertMidoNetTaskSql(
-                id = 2, Create, NetworkType, network1Json, network1Uuid, "tx1"))
+                id = 2, Create, NetworkType, network1Json.toString,
+                network1Uuid, "tx1"))
         Thread.sleep(threadSleepMs)
 
         val vifPortUuid = UUID.randomUUID()
@@ -587,6 +612,65 @@ class C3POMinionTest extends FlatSpec with BeforeAndAfter
 
         val tx3Futures = storage.getAll(classOf[Router]).await()
         tx3Futures.size shouldBe 0
+    }
+
+    it should "handle Subnet CRUD" in {
+        val nId = UUID.randomUUID()
+        val nJson = networkJson(nId, "net tenant")
+        executeSqlStmts(insertMidoNetTaskSql(1, Create, NetworkType,
+                                             nJson.toString, nId, "tx1"))
+        Thread.sleep(1000)
+
+        val sName = "test sub"
+        val sId = UUID.randomUUID()
+        val cidr = IPv4Subnet.fromCidr("10.0.0.0/24")
+        val gatewayIp = "10.0.0.1"
+        val nameServers = List("8.8.8.8")
+        val sJson = subnetJson(sId, nId, "net tenant", name = "test sub",
+                               cidr = cidr.toString, gatewayIp = gatewayIp,
+                               dnsNameservers = nameServers)
+        executeSqlStmts(insertMidoNetTaskSql(2, Create, SubnetType,
+                                             sJson.toString, sId, "tx2"))
+        Thread.sleep(1000)
+
+        val dhcp = storage.get(classOf[Dhcp], sId).await()
+        dhcp should not be null
+        dhcp.getDefaultGateway.getAddress should be(gatewayIp)
+        dhcp.getEnabled should be(true)
+        dhcp.getSubnetAddress.getAddress should be(cidr.getAddress.toString)
+        dhcp.getSubnetAddress.getPrefixLength should be(cidr.getPrefixLen)
+        dhcp.getDnsServerAddressCount should be(1)
+        nameServers should contain(dhcp.getDnsServerAddress(0).getAddress)
+
+        // TODO: Add Option121/host route tests
+
+        // Update the subnet
+        val cidr2 = IPv4Subnet.fromCidr("10.0.1.0/24")
+        val gatewayIp2 = "10.0.1.1"
+        val nameServers2 = List("8.8.4.4")
+        val sJson2 = subnetJson(sId, nId, "net tenant", name = "test sub2",
+                                cidr = cidr2.toString, gatewayIp = gatewayIp2,
+                                dnsNameservers = nameServers2)
+        executeSqlStmts(insertMidoNetTaskSql(3, Update, SubnetType,
+                                             sJson2.toString, sId, "tx3"))
+        Thread.sleep(1000)
+
+        val dhcp2 = storage.get(classOf[Dhcp], sId).await()
+        dhcp2 should not be null
+        dhcp2.getDefaultGateway.getAddress should be(gatewayIp2)
+        dhcp2.getEnabled should be(true)
+        dhcp2.getSubnetAddress.getAddress should be(cidr2.getAddress.toString)
+        dhcp2.getSubnetAddress.getPrefixLength should be(cidr2.getPrefixLen)
+        dhcp2.getDnsServerAddressCount should be(1)
+        nameServers2 should contain(dhcp2.getDnsServerAddress(0).getAddress)
+
+        // Delete it
+        executeSqlStmts(
+            insertMidoNetTaskSql(4, Delete, SubnetType, null, sId, "tx4"))
+        Thread.sleep(1000)
+
+        val dhcpList = storage.getAll(classOf[Dhcp]).await()
+        dhcpList.size should be(0)
     }
 
     case class ChainPair(inChain: Chain, outChain: Chain)
