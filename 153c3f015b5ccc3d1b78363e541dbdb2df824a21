@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_6ede2713",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/SubnetTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-02-17T13:08:31Z",
+      "side": 1,
+      "message": "List(Delete(classOf[Dhcp], id))",
+      "range": {
+        "startLine": 58,
+        "startChar": 8,
+        "endLine": 60,
+        "endChar": 18
+      },
+      "revId": "153c3f015b5ccc3d1b78363e541dbdb2df824a21",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_aee81fb5",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/SubnetTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-02-17T13:08:31Z",
+      "side": 1,
+      "message": "I think this does the same thing:\n\n  for (addr \u003c- ns.getDnsNameserversList.asScala)\n     newDhcp.addDnsServerAddress(IPAddressUtil.toProto(addr))\n  \n  List(Update(newDhcp.build()))",
+      "range": {
+        "startLine": 71,
+        "startChar": 0,
+        "endLine": 76,
+        "endChar": 29
+      },
+      "revId": "153c3f015b5ccc3d1b78363e541dbdb2df824a21",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
