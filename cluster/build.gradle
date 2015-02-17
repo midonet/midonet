@@ -53,7 +53,8 @@ dependencies {
             libraries.scala,
             libraries.scala_async
 
-    testCompile libraries.curator_test,
+    testCompile libraries.commons_conf,
+                libraries.curator_test,
                 libraries.hamcrest,
                 libraries.logback,
                 libraries.scalatest,
