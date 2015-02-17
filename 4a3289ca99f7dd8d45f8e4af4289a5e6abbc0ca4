@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_912466b0",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/VxlanGatewayHA.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 250,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-02-17T16:18:31Z",
+      "side": 1,
+      "message": "Not really",
+      "parentUuid": "7a1969be_497408cf",
+      "range": {
+        "startLine": 250,
+        "startChar": 4,
+        "endLine": 250,
+        "endChar": 28
+      },
+      "revId": "4a3289ca99f7dd8d45f8e4af4289a5e6abbc0ca4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_495b6854",
         "filename": "midonet-api/src/main/java/org/midonet/api/rest_api/RestApiModule.java",
         "patchSetId": 12
@@ -36,6 +60,30 @@
       "writtenOn": "2015-02-16T18:46:27Z",
       "side": 1,
       "message": "Just a question: will we ever have to switch between HA and non-HA?",
+      "range": {
+        "startLine": 48,
+        "startChar": 13,
+        "endLine": 48,
+        "endChar": 33
+      },
+      "revId": "4a3289ca99f7dd8d45f8e4af4289a5e6abbc0ca4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_f13afacb",
+        "filename": "midonet-api/src/main/java/org/midonet/api/rest_api/RestApiModule.java",
+        "patchSetId": 12
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-02-17T16:18:31Z",
+      "side": 1,
+      "message": "Nope, I just couldn\u0027t come up with a better name.",
+      "parentUuid": "7a1969be_495b6854",
       "range": {
         "startLine": 48,
         "startChar": 13,
