@@ -33,6 +33,8 @@ class ZoomProvider @Inject()(val curator: CuratorFramework)
         val storage = new ZookeeperObjectMapper("", curator)
         List(classOf[C3POState],
              classOf[Chain],
+             classOf[Dhcp],
+             classOf[DhcpV6],
              classOf[FloatingIp],
              classOf[Host],
              classOf[IpAddrGroup],
