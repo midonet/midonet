@@ -19,7 +19,7 @@ package org.midonet.brain.services.c3po.translators
 import org.midonet.cluster.data.neutron.MetaDataService
 import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.models.Commons.{IPAddress, IPSubnet, UUID}
-import org.midonet.cluster.models.Topology.Network.Dhcp.Opt121RouteOrBuilder
+import org.midonet.cluster.models.Topology.Dhcp.Opt121RouteOrBuilder
 import org.midonet.cluster.models.Topology.Route
 import org.midonet.cluster.models.Topology.RouteOrBuilder
 import org.midonet.cluster.models.Topology.Route.NextHop

@@ -36,7 +36,9 @@ class TopologyMappingsTest extends FeatureSpec with Matchers {
                      Topology.Type.RULE,
                      Topology.Type.TUNNEL_ZONE,
                      Topology.Type.VTEP,
-                     Topology.Type.VTEP_BINDING)
+                     Topology.Type.VTEP_BINDING,
+                     Topology.Type.DHCP,
+                     Topology.Type.DHCPV6)
 
     val classes = List(classOf[Topology.Chain],
                        classOf[Topology.Host],
@@ -49,7 +51,9 @@ class TopologyMappingsTest extends FeatureSpec with Matchers {
                        classOf[Topology.Rule],
                        classOf[Topology.TunnelZone],
                        classOf[Topology.Vtep],
-                       classOf[Topology.VtepBinding])
+                       classOf[Topology.VtepBinding],
+                       classOf[Topology.Dhcp],
+                       classOf[Topology.DhcpV6])
 
     feature("map topology classes to type ids")
     {
