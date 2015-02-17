@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_ce2bde80",
+        "filename": "midolman/src/main/java/org/midonet/midolman/host/config/HostConfig.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-02-17T11:27:54Z",
+      "side": 1,
+      "message": "Using this password is convenient because it works with midostack. This password is used all over midostack, and I thought was our default safe password, is it not?",
+      "parentUuid": "7a1969be_2d3b9f3b",
+      "revId": "ccebe402b9f2f40e947eb5c9f2aad544e0e34d9a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_61100602",
         "filename": "midolman/src/main/java/org/midonet/midolman/host/config/HostConfig.java",
         "patchSetId": 1
@@ -66,6 +84,24 @@
       "side": 1,
       "message": "I agree. To me mm-ctl looks like totally unrelated to the agent, much less so when it\u0027s connecting to neutron DB. It feels part of the integration layer even if it gets distributed with the agent. As such, I wouldn\u0027t really put this here.",
       "parentUuid": "7a1969be_61b76687",
+      "revId": "ccebe402b9f2f40e947eb5c9f2aad544e0e34d9a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_0e2696b7",
+        "filename": "midolman/src/main/java/org/midonet/midolman/host/config/HostConfig.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-02-17T11:27:54Z",
+      "side": 1,
+      "message": "Hi Guillermo, Galo, mm-ctl is related to the agent in that it binds ports, so it needs to be available on all hosts that have the agent and is not needed on any hosts that don\u0027t have the agent. I can put this config in a different section though.",
+      "parentUuid": "7a1969be_8d3f3325",
       "revId": "ccebe402b9f2f40e947eb5c9f2aad544e0e34d9a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -125,6 +161,24 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_4e624bae",
+        "filename": "midolman/src/main/java/org/midonet/midolman/tools/MmCtl.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-02-17T11:27:54Z",
+      "side": 1,
+      "message": "Changed to create/delete.",
+      "parentUuid": "7a1969be_ed522712",
+      "revId": "ccebe402b9f2f40e947eb5c9f2aad544e0e34d9a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_41150af0",
         "filename": "midolman/src/main/java/org/midonet/midolman/tools/MmCtl.java",
         "patchSetId": 1
@@ -154,6 +208,24 @@
       "side": 1,
       "message": "+1",
       "parentUuid": "7a1969be_41150af0",
+      "revId": "ccebe402b9f2f40e947eb5c9f2aad544e0e34d9a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_6e3aaace",
+        "filename": "midolman/src/main/java/org/midonet/midolman/tools/MmCtl.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-02-17T11:27:54Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_4d589b32",
       "revId": "ccebe402b9f2f40e947eb5c9f2aad544e0e34d9a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -213,6 +285,24 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_ae593f00",
+        "filename": "midolman/src/main/java/org/midonet/midolman/tools/MmCtl.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 166,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-02-17T11:27:54Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_92c47293",
+      "revId": "ccebe402b9f2f40e947eb5c9f2aad544e0e34d9a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_212d6e47",
         "filename": "midolman/src/main/java/org/midonet/midolman/tools/MmCtl.java",
         "patchSetId": 1
@@ -230,6 +320,24 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_8e5c43ef",
+        "filename": "midolman/src/main/java/org/midonet/midolman/tools/MmCtl.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 193,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-02-17T11:27:54Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_212d6e47",
+      "revId": "ccebe402b9f2f40e947eb5c9f2aad544e0e34d9a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_0132f2a6",
         "filename": "midolman/src/main/java/org/midonet/midolman/tools/MmCtl.java",
         "patchSetId": 1
@@ -241,6 +349,24 @@
       "writtenOn": "2015-02-12T10:56:32Z",
       "side": 1,
       "message": "Could we use host ID for this?",
+      "revId": "ccebe402b9f2f40e947eb5c9f2aad544e0e34d9a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_ee72177b",
+        "filename": "midolman/src/main/java/org/midonet/midolman/tools/MmCtl.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 195,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-02-17T11:27:54Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_0132f2a6",
       "revId": "ccebe402b9f2f40e947eb5c9f2aad544e0e34d9a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
