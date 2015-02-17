@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_0e02130b",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/storage/ZoomProvider.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-02-17T16:27:54Z",
+      "side": 1,
+      "message": "I wanted to avoid this and instead pass a namespaced Curator, but I\u0027m happy to do that after we refactor the guice modules.",
+      "range": {
+        "startLine": 30,
+        "startChar": 58,
+        "endLine": 30,
+        "endChar": 79
+      },
+      "revId": "bdce55acbea5eb2e98609d55027883cc87cead59",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
