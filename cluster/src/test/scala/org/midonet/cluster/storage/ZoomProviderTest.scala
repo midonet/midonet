@@ -57,7 +57,9 @@ class ZoomProviderTest extends FeatureSpec
                 classOf[Rule],
                 classOf[TunnelZone],
                 classOf[Vtep],
-                classOf[VtepBinding]
+                classOf[VtepBinding],
+                classOf[Dhcp],
+                classOf[DhcpV6]
             )
 
             // Check that type enumeration matches the class set size

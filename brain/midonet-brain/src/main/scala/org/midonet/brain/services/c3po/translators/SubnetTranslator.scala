@@ -16,20 +16,57 @@
 
 package org.midonet.brain.services.c3po.translators
 
-import com.google.protobuf.Message
+import scala.collection.JavaConverters._
 
-import org.midonet.brain.services.c3po.midonet.MidoOp
+import org.midonet.brain.services.c3po.midonet.{Create, Delete, Update}
+import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.Neutron.NeutronSubnet
+import org.midonet.cluster.models.Topology.Dhcp
+import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil}
+import org.midonet.util.concurrent.toFutureOps
 
-class SubnetTranslator extends NeutronTranslator[NeutronSubnet] {
+// TODO: add code to handle connection to provider router.
+class SubnetTranslator(storage: ReadOnlyStorage)
+    extends NeutronTranslator[NeutronSubnet] {
 
-    override protected def translateCreate(nm: NeutronSubnet)
-    : List[MidoOp[_ <: Message]] = List()
+    override protected def translateCreate(ns: NeutronSubnet): MidoOpList = {
 
-    override protected def translateDelete(id: UUID)
-    : List[MidoOp[_ <: Message]] = List()
+        val dhcp = Dhcp.newBuilder
+            .setId(ns.getId)
+            .setNetworkId(ns.getNetworkId)
+            .setDefaultGateway(ns.getGatewayIp)
+            .setServerAddress(ns.getGatewayIp)
+            .setEnabled(ns.getEnableDhcp)
+            .setSubnetAddress(IPSubnetUtil.toProto(ns.getCidr))
 
-    override protected def translateUpdate(nm: NeutronSubnet)
-    : List[MidoOp[_ <: Message]] = List()
+        for (addr <- ns.getDnsNameserversList.asScala)
+            dhcp.addDnsServerAddress(IPAddressUtil.toProto(addr))
+
+        // TODO: connect to provider router if external
+        // TODO: handle option 121 routes
+
+        List(Create(dhcp.build))
+    }
+
+    override protected def translateDelete(id: UUID): MidoOpList = {
+        List(Delete(classOf[Dhcp], id))
+    }
+
+    override protected def translateUpdate(ns: NeutronSubnet): MidoOpList = {
+
+        val origDhcp = storage.get(classOf[Dhcp], ns.getId).await()
+        val newDhcp = origDhcp.toBuilder
+            .setDefaultGateway(ns.getGatewayIp)
+            .setEnabled(ns.getEnableDhcp)
+            .setSubnetAddress(IPSubnetUtil.toProto(ns.getCidr))
+            .clearDnsServerAddress()
+
+        for (addr <- ns.getDnsNameserversList.asScala)
+            newDhcp.addDnsServerAddress(IPAddressUtil.toProto(addr))
+
+        // TODO: handle option 121 routes
+
+        List(Update(newDhcp.build))
+    }
 }

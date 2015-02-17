@@ -35,6 +35,8 @@ class ZoomProvider @Inject()(val curator: CuratorFramework, cfg: ZookeeperConfig
                                                 curator)
         List(classOf[C3POState],
              classOf[Chain],
+             classOf[Dhcp],
+             classOf[DhcpV6],
              classOf[FloatingIp],
              classOf[Host],
              classOf[IpAddrGroup],
