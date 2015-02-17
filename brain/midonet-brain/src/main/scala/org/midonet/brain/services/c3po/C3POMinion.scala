@@ -122,7 +122,7 @@ class C3POMinion @Inject()(nodeContext: ClusterNode.Context,
                 new LoadBalancerPoolMemberTranslator,
              classOf[NeutronNetwork] -> new NetworkTranslator(storage),
              classOf[NeutronRouter] -> new RouterTranslator(storage),
-             classOf[NeutronSubnet] -> new SubnetTranslator,
+             classOf[NeutronSubnet] -> new SubnetTranslator(storage),
              classOf[NeutronPort] -> new PortTranslator(storage),
              classOf[SecurityGroup] -> new SecurityGroupTranslator(storage),
              classOf[VIP] -> new VipTranslator
