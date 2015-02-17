@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_b16fe2c4",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/InMemoryStorage.scala",
+        "patchSetId": 18
+      },
+      "lineNbr": 195,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-17T16:33:51Z",
+      "side": 1,
+      "message": "Looks like it is :) Thanks!",
+      "parentUuid": "7a1969be_299a6c63",
+      "range": {
+        "startLine": 193,
+        "startChar": 29,
+        "endLine": 195,
+        "endChar": 27
+      },
+      "revId": "92ee6814dddb8ee2165ff233f5e7680a2aef1bd3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_e904d47f",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/InMemoryStorage.scala",
         "patchSetId": 18
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_9172a6ab",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/InMemoryStorage.scala",
+        "patchSetId": 18
+      },
+      "lineNbr": 320,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-17T16:33:51Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_e904d47f",
+      "range": {
+        "startLine": 320,
+        "startChar": 29,
+        "endLine": 320,
+        "endChar": 63
+      },
+      "revId": "92ee6814dddb8ee2165ff233f5e7680a2aef1bd3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_290d4c91",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/TransactionManager.scala",
         "patchSetId": 18
@@ -59,6 +107,30 @@
       "writtenOn": "2015-02-16T17:12:04Z",
       "side": 1,
       "message": "an atomic set of operations?",
+      "range": {
+        "startLine": 49,
+        "startChar": 3,
+        "endLine": 49,
+        "endChar": 29
+      },
+      "revId": "92ee6814dddb8ee2165ff233f5e7680a2aef1bd3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_d1637edb",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/TransactionManager.scala",
+        "patchSetId": 18
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-17T16:33:51Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_290d4c91",
       "range": {
         "startLine": 49,
         "startChar": 3,
