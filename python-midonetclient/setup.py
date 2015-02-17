@@ -54,7 +54,6 @@ setuptools.setup(name=MODULE_NAME,
       scripts=["src/bin/midonet-cli"],
       install_requires=[
           "httplib2",
-          "readline",
           "webob",
       ],
       zip_safe=False,
