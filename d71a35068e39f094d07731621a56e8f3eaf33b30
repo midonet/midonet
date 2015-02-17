@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "7a1969be_64f8097d",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 303,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-02-17T04:34:34Z",
+      "side": 1,
+      "message": "Again, I\u0027m not a big fan of moving the conditions into a nested class, not only because of bindings, but because it requires making this change all over the place. But if you\u0027re going to do that, there\u0027s a better way:\n\n    val ipSpoofRuleBldr \u003d dropRuleBuilder(inChainId)\n    ipSpoofRuleBldr.getConditionBuilder\n                   .setNwSrcIp(ipSubnet).setNwSrcInv(true)\n                   .setDlType(ipEtherType)\n                   .build()\n    portInfo.inRules +\u003d Create(ipSpoofRuleBldr.build())",
+      "range": {
+        "startLine": 295,
+        "startChar": 0,
+        "endLine": 303,
+        "endChar": 52
+      },
+      "revId": "d71a35068e39f094d07731621a56e8f3eaf33b30",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_4437cde3",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/SecurityGroupTranslator.scala",
         "patchSetId": 16
