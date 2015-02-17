@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_ae277f63",
+        "filename": "midolman/src/main/java/org/midonet/midolman/host/config/ClusterAgentConfig.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-02-17T11:40:03Z",
+      "side": 1,
+      "message": "Just carrying over from the previous patch, IMO this doesn\u0027t belong in midolman at all.",
+      "range": {
+        "startLine": 26,
+        "startChar": 17,
+        "endLine": 26,
+        "endChar": 35
+      },
+      "revId": "c16cf7322f2f6150e3c13649243b0195e6c2c715",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_8e2a832a",
+        "filename": "midolman/src/main/java/org/midonet/midolman/tools/MmCtl.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-02-17T11:40:03Z",
+      "side": 1,
+      "message": "Does the plugin dump all the port bindings when the full reimport is triggered?",
+      "revId": "c16cf7322f2f6150e3c13649243b0195e6c2c715",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
