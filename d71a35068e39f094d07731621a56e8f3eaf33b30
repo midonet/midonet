@@ -71,6 +71,29 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_24ff3169",
+        "filename": "cluster/src/main/proto/topology.proto",
+        "patchSetId": 16
+      },
+      "lineNbr": 260,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-02-17T04:25:24Z",
+      "side": 1,
+      "message": "Any particular reason for this? Zoom bindings don\u0027t work with nested fields, so if we do this, we either won\u0027t be able to use bindings, or will need to modify Zoom to allow bindings on nested fields. The latter should be doable, but if there\u0027s no real need to nest it, I\u0027d rather not go to the trouble.",
+      "range": {
+        "startLine": 218,
+        "startChar": 0,
+        "endLine": 260,
+        "endChar": 5
+      },
+      "revId": "d71a35068e39f094d07731621a56e8f3eaf33b30",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_045dd521",
         "filename": "cluster/src/test/scala/org/midonet/cluster/data/storage/StorageTester.scala",
         "patchSetId": 16
