@@ -97,6 +97,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_8eb443d2",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/PortBindingTranslator.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-02-17T12:55:39Z",
+      "side": 1,
+      "message": "Done, for both create and update, with tests adjusted accordingly, both to avoid breaking, and to test the new behavior.",
+      "parentUuid": "7a1969be_047315ea",
+      "range": {
+        "startLine": 65,
+        "startChar": 8,
+        "endLine": 65,
+        "endChar": 41
+      },
+      "revId": "b3a2d9e3f15f1c68837f452fae84554ea5a47c6f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_4ecece5b",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/PortBindingTranslator.scala",
         "patchSetId": 4
