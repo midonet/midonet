@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_d4ab6c1c",
+        "filename": "cluster/src/main/proto/topology.proto",
+        "patchSetId": 17
+      },
+      "lineNbr": 253,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-18T08:15:23Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_d4688c23",
+      "range": {
+        "startLine": 253,
+        "startChar": 18,
+        "endLine": 253,
+        "endChar": 28
+      },
+      "revId": "09b0647e39f89b4b646a0b6cb66ef34cc3bf0de8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_14734416",
         "filename": "cluster/src/main/proto/topology.proto",
         "patchSetId": 17
@@ -36,6 +60,30 @@
       "writtenOn": "2015-02-18T07:03:53Z",
       "side": 1,
       "message": "Why not call this JumpRule?",
+      "range": {
+        "startLine": 264,
+        "startChar": 12,
+        "endLine": 264,
+        "endChar": 20
+      },
+      "revId": "09b0647e39f89b4b646a0b6cb66ef34cc3bf0de8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_94ba946c",
+        "filename": "cluster/src/main/proto/topology.proto",
+        "patchSetId": 17
+      },
+      "lineNbr": 264,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-18T08:15:23Z",
+      "side": 1,
+      "message": "I see this as additional data of the jump rule and not the jump rule itself (it\u0027s all the rule fields plus these fields that make up a jump rule).\n\nI\u0027ll rename it JumpRuleData because JumpData is a weird name I agree ;-)",
+      "parentUuid": "7a1969be_14734416",
       "range": {
         "startLine": 264,
         "startChar": 12,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_f4b0288d",
+        "filename": "cluster/src/main/proto/topology.proto",
+        "patchSetId": 17
+      },
+      "lineNbr": 274,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-18T08:15:23Z",
+      "side": 1,
+      "message": "same comment.",
+      "parentUuid": "7a1969be_7461d838",
+      "range": {
+        "startLine": 274,
+        "startChar": 12,
+        "endLine": 274,
+        "endChar": 19
+      },
+      "revId": "09b0647e39f89b4b646a0b6cb66ef34cc3bf0de8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_f454a855",
         "filename": "cluster/src/main/scala/org/midonet/cluster/util/UUIDUtil.scala",
         "patchSetId": 17
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_34abe01e",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/util/UUIDUtil.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-18T08:15:23Z",
+      "side": 1,
+      "message": "It\u0027s called from a java class....",
+      "parentUuid": "7a1969be_f454a855",
+      "range": {
+        "startLine": 49,
+        "startChar": 4,
+        "endLine": 50,
+        "endChar": 52
+      },
+      "revId": "09b0647e39f89b4b646a0b6cb66ef34cc3bf0de8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_344f60bf",
         "filename": "midolman/src/main/java/org/midonet/midolman/rules/Condition.java",
         "patchSetId": 17
@@ -105,6 +201,30 @@
       "writtenOn": "2015-02-18T07:03:53Z",
       "side": 1,
       "message": "If out goal is to initialize these using zoom convert, shouldn\u0027t we leave these for a different patch?",
+      "range": {
+        "startLine": 159,
+        "startChar": 0,
+        "endLine": 209,
+        "endChar": 5
+      },
+      "revId": "09b0647e39f89b4b646a0b6cb66ef34cc3bf0de8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_14a6a453",
+        "filename": "midolman/src/main/java/org/midonet/midolman/rules/Condition.java",
+        "patchSetId": 17
+      },
+      "lineNbr": 209,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-18T08:15:23Z",
+      "side": 1,
+      "message": "will do",
+      "parentUuid": "7a1969be_344f60bf",
       "range": {
         "startLine": 159,
         "startChar": 0,
