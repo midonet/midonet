@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_02fae2bc",
+        "filename": "midonet-api/src/test/java/org/midonet/cluster/data/neutron/DataCheckPointTest.java",
+        "patchSetId": 11
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-02-18T16:52:27Z",
+      "side": 1,
+      "message": "Over 80 chars",
+      "revId": "79747ceee911117bbcb23b3c079079c36ec27a70",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
