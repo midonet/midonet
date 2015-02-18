@@ -69,7 +69,8 @@ TOPOLOGY_SOURCE_HOST=
 TOPOLOGY_DEST_HOST=
 TOPOLOGY_SOURCE_NET=
 TOPOLOGY_DEST_NET=
-
+TOPOLOGY_SOURCE_MAC="aa:bb:cc:00:00:22"
+TOPOLOGY_DEST_MAC="aa:bb:cc:00:00:44"
 
 #######################################################################
 # Private globals
@@ -79,6 +80,8 @@ BASEDIR=/var/lib/midonet-perftests
 TMPDIR=/tmp/midonet-perftests
 LOGFILE=$TMPDIR/perftests.log
 TMP_RRDDIR=/tmp/midonet-perftests/target
+
+LOADGEN=./loadgen.sh
 
 HOST=
 PROFILE=
@@ -166,7 +169,6 @@ source_config() {
 
 assert_dependencies() {
     which vconfig || err_exit "vconfig not installed (apt-get install vlan)"
-    which midonet-cli || err_exit "midonet-cli not installed"
     which midonet-cli || err_exit "midonet-cli not installed"
     which nmap || err_exit "nmap not installed"
     which rrdtool || err_exit "rrdtool not installed"
@@ -364,26 +366,25 @@ connectivity_check() {
 
 warm_up() {
     test_phase "Warming up midolman"
-    # 100 pkts/sec, 10ms between probes, 6000 ports, 10 scans
-    # it should take close to 10 minutes
+    # 1000 pkts/sec, 5000 packets, 10 scans
     i=0
     while [ $i -lt 10 ] ; do
         let i=i+1
-        port_scan 100 10 6000 $TOPOLOGY_SOURCE_NETNS $TOPOLOGY_DEST_HOST
+        generate_traffic 5000 1000
     done
     sleep 90
 }
 
 test_throughput() {
     test_phase "Find max throughput in 65k port scans"
-    rate=4000
+    rate=5000
     while [ $rate -le $THROUGHPUT_SCAN_MAX_RATE ] ; do
         sleep 5
-        port_scan $rate 1 65000 $TOPOLOGY_SOURCE_NETNS $TOPOLOGY_DEST_HOST
-	sleep 5
-        port_scan $rate 1 65000 $TOPOLOGY_SOURCE_NETNS $TOPOLOGY_DEST_HOST
-	sleep 5
-        port_scan $rate 1 65000 $TOPOLOGY_SOURCE_NETNS $TOPOLOGY_DEST_HOST
+        generate_traffic 65000 $rate
+        sleep 5
+        generate_traffic 65000 $rate
+        sleep 5
+        generate_traffic 65000 $rate
         let rate=rate+500
     done
 }
@@ -396,44 +397,47 @@ long_running_tests() {
     i=0
     while [ $i -lt $iterations ] ; do
         let i=i+1
-        port_scan $rate 1 50000 $TOPOLOGY_SOURCE_NETNS $TOPOLOGY_DEST_HOST
+        generate_traffic 50000 $rate
     done
 }
 
-port_scan() {
-    if [ -z $1 ] ; then
-        err_exit "Usage: port_scan RATE DELAY NUM_PORTS NAMESPACE DESTINATION"
-    fi
-    if [ -z $2 ] ; then
-        err_exit "Usage: port_scan RATE DELAY NUM_PORTS NAMESPACE DESTINATION"
-    fi
-    if [ -z $3 ] ; then
-        err_exit "Usage: port_scan RATE DELAY NUM_PORTS NAMESPACE DESTINATION"
-    fi
-    if [ -z $4 ] ; then
-        err_exit "Usage: port_scan RATE DELAY NUM_PORTS NAMESPACE DESTINATION"
-    fi
-    if [ -z $5 ] ; then
-        err_exit "Usage: port_scan RATE DELAY NUM_PORTS NAMESPACE DESTINATION"
+generate_traffic() {
+    if [ -z $1 ] || [ -z $2 ] || [ -z $3 ] || [ -z $4 ] ; then
+        err_exit "Usage: generate_traffic NUM_PACKETS RATE"
     fi
 
-    srcport=$RANDOM
-    rate=$1
-    delay="$2ms"
-    numports="$3"
-    ns="$4"
-    host="$5"
-    opts="--max-scan-delay $delay --min-rate $rate --max-rate $rate --send-ip -Pn -v -r -n"
+    count="$1"
+    rate="$2"
+    delay="$((1000000000 / $rate))"
+
+    srcif="${TOPOLOGY_SOURCE_NETNS}ns"
+    dstif="${TOPOLOGY_DEST_NETNS}ns"
 
     echo "--------------------------------------"
-    echo "Doing a $numports port scan on $host"
-    echo "    src port: $srcport"
-    echo "    port range: 1-$numports"
-    echo "    rate: $rate packets/second"
-    echo "    max delay: $delay"
+    echo "Generating traffic to $ns"
+    echo "           target mac: $mac"
+    echo "    number of packets: $count"
+    echo "                 rate: $rate"
+    echo "                delay: $delay"
     echo "--------------------------------------"
 
-    ip netns exec $ns nmap $host $opts -p "1-$numports" -g $srcport || err_exit "port scan"
+    tcpdump_out=mktemp || exit 1
+    trap 'rm -rf "$tcpdump_out"' EXIT INT TERM HUP
+    ip netns exec $TOPOLOGY_DEST_NETNS tcpdump udp -i dstif >$tcpdump_out 2>&1 &
+    tcpdump_pid=$!
+
+    ip netns exec $TOPOLOGY_SOURCE_NETNS $LOADGEN 0 $srcif $TOPOLOGY_SOURCE_MAC \
+        $count $delay || err_exit "generate traffic"
+
+    kill -INT $tcpdump_pid
+
+    packets=`tac $tcpdump_out | grep -oP '\d+ (?=packets received by filter)'`
+
+    if [ $packets -ne $count ]; then
+        echo "[FAIL] - Only received $packets packets out of $count"
+    else
+        echo '[OK]'
+    fi
 }
 
 #######################################################################
@@ -626,15 +630,16 @@ upload_report() {
 
 add_ns() {
     if [ -z $1 ] ; then
-        err_exit "Usage: add_ns NAME ADDRESS"
+        err_exit "Usage: add_ns NAME MAC ADDRESS"
     fi
     if [ -z $2 ] ; then
-        err_exit "Usage: add_ns NAME ADDRESS"
+        err_exit "Usage: add_ns NAME MAC ADDRESS"
     fi
     ns="$1"
     dpif="${ns}dp"
     nsif="${ns}ns"
-    addr="$2"
+    mac="$2"
+    addr="$3"
 
     echo "-------------------------------------------------------------"
     echo "Creating network namespace -$ns- with address -$addr-"
@@ -644,6 +649,7 @@ add_ns() {
     ip link add name $dpif type veth peer name $nsif || return 1
     ip link set $dpif up || return 1
     ip link set $nsif netns $ns || return 1
+    ip netns exec $ns ip link set address $mac dev $nsif || return 1
     ip netns exec $ns ip link set $nsif up || return 1
     ip netns exec $ns ip addr add $addr dev $nsif || return 1
     ip netns exec $ns ifconfig lo up || return 1
@@ -674,8 +680,8 @@ cleanup_ns() {
 
 create_scenario() {
     test_phase "Creating test scenario"
-    add_ns $TOPOLOGY_SOURCE_NETNS $TOPOLOGY_SOURCE_NET
-    add_ns $TOPOLOGY_DEST_NETNS $TOPOLOGY_DEST_NET
+    add_ns $TOPOLOGY_SOURCE_NETNS $TOPOLOGY_SOURCE_MAC $TOPOLOGY_SOURCE_NET
+    add_ns $TOPOLOGY_DEST_NETNS $TOPOLOGY_DEST_MAC $TOPOLOGY_DEST_NET
     setup_topology
 }
 
