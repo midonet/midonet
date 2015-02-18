@@ -18,17 +18,19 @@ package org.midonet.midolman.datapath
 
 import java.nio.ByteBuffer
 
+import scala.concurrent.duration._
+
 import com.lmax.disruptor.{LifecycleAware, EventPoller, Sequencer}
 import rx.Observer
 
+import org.slf4j.LoggerFactory
 import com.typesafe.scalalogging.Logger
+
 import org.midonet.midolman.datapath.DisruptorDatapathChannel._
 import org.midonet.midolman.flows.FlowEjector
 import org.midonet.netlink._
-import org.midonet.netlink.exceptions.NetlinkException
 import org.midonet.odp.{OvsNetlinkFamilies, OvsProtocol}
 import org.midonet.util.concurrent.{Backchannel, NanoClock}
-import org.slf4j.LoggerFactory
 
 sealed class FlowProcessor(flowEjector: FlowEjector,
                            channelFactory: NetlinkChannelFactory,
@@ -55,7 +57,8 @@ sealed class FlowProcessor(flowEjector: FlowEjector,
         writer,
         flowEjector.maxPendingRequests,
         BytesUtil.instance.allocateDirect(8*1024),
-        clock)
+        clock,
+        5 seconds)
     private val protocol = new OvsProtocol(pid, ovsFamilies)
 
     private var lastSequence = Sequencer.INITIAL_CURSOR_VALUE
@@ -77,13 +80,13 @@ sealed class FlowProcessor(flowEjector: FlowEjector,
 
     override def shouldProcess(): Boolean = {
         val flowDelete = flowEjector.peek()
-        (flowDelete ne null) && flowDelete.flowMatch.getSequence <= lastSequence
+        (flowDelete ne null) && flowDelete.managedFlow.flowMatch.getSequence <= lastSequence
     }
 
     override def process(): Unit = {
         while (shouldProcess()) {
             val flowDelete = flowEjector.poll()
-            log.debug(s"Deleting flow with match ${flowDelete.flowMatch}")
+            log.debug(s"Deleting flow ${flowDelete.managedFlow}")
             val buf = flowDelete.prepareRequest(datapathId, protocol)
             requestReply.writeRequest(buf, flowDelete)
         }
@@ -91,19 +94,11 @@ sealed class FlowProcessor(flowEjector: FlowEjector,
 
     val defaultObserver = new Observer[ByteBuffer] {
             override def onCompleted(): Unit =
-                log.warn("Unexpected completion")
+                log.warn("Unexpected reply - probably the late answer of a request that timed out")
 
-            override def onError(e: Throwable): Unit =
-                if (e.isInstanceOf[NetlinkException] &&
-                    e.asInstanceOf[NetlinkException].getErrorCodeEnum == NetlinkException.ErrorCode.EEXIST) {
-                    log.debug("Tried to add duplicate DP flow")
-                } else {
-                    log.warn("Unexpected error", e)
-                }
-
-            override def onNext(t: ByteBuffer): Unit =
-                log.warn("Unexpected answer")
-            }
+            override def onError(e: Throwable): Unit = onCompleted()
+            override def onNext(t: ByteBuffer): Unit = { }
+    }
 
     val remover = new Thread("flow-remover") {
         override def run(): Unit =

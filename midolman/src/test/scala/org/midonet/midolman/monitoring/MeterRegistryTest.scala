@@ -15,19 +15,20 @@
  */
 package org.midonet.midolman.monitoring
 
-import java.util.UUID
+import java.util.{ArrayList, UUID}
+
 import scala.collection.JavaConverters._
 
-import org.midonet.odp.flows.FlowStats
-import org.midonet.odp.{FlowMatches, Packet, FlowMatch}
-import org.midonet.packets.{IPv4Addr, MAC, Ethernet}
-import org.midonet.sdn.flows.FlowTagger
-import org.midonet.sdn.flows.FlowTagger.{MeterTag, FlowTag}
 import org.scalatest.{Matchers, FeatureSpec}
 import org.scalatest.junit.JUnitRunner
 import org.junit.runner.RunWith
 
+import org.midonet.odp.flows.FlowStats
+import org.midonet.odp.FlowMatches
+import org.midonet.packets.{IPv4Addr, MAC, Ethernet}
 import org.midonet.packets.util.PacketBuilder._
+import org.midonet.sdn.flows.FlowTagger
+import org.midonet.sdn.flows.FlowTagger.MeterTag
 
 @RunWith(classOf[JUnitRunner])
 class MeterRegistryTest extends FeatureSpec with Matchers {
@@ -53,8 +54,8 @@ class MeterRegistryTest extends FeatureSpec with Matchers {
     val metersA: List[MeterTag] = List(deviceA, commonDevice)
     val metersB: List[MeterTag] = List(deviceB, commonDevice)
 
-    val tagsA: Array[FlowTag] = (nonMeterRandomTag :: metersA).toArray
-    val tagsB: Array[FlowTag] = (nonMeterRandomTag :: metersB).toArray
+    val tagsA = new ArrayList((nonMeterRandomTag :: metersA).asJava)
+    val tagsB = new ArrayList((nonMeterRandomTag :: metersB).asJava)
 
     feature("Meter registry") {
         scenario("registers new meters") {

@@ -469,12 +469,15 @@ public class FlowMatch {
         srcPort = that.srcPort;
         dstPort = that.dstPort;
         icmpId = that.icmpId;
-        vlanIds = new ArrayList<>(that.vlanIds);
+        vlanIds.clear();
+        vlanIds.addAll(that.vlanIds);
         setIcmpData(that.icmpData);
         usedFields = that.usedFields;
         trackSeenFields = that.trackSeenFields;
         seenFields = that.seenFields;
         sequence = that.sequence;
+        keys.clear();
+        keys.addAll(that.keys);
         invalidateHashCode();
     }
 
@@ -488,12 +491,13 @@ public class FlowMatch {
         this.networkDst = null;
         this.ethSrc = null;
         this.ethDst = null;
-        this.vlanIds = null;
+        vlanIds.clear();
         this.etherType = (short) FlowKeyEtherType.Type.ETH_P_NONE.value;
         this.usedFields = 0;
         this.trackSeenFields = 1;
         this.seenFields = 0;
         this.sequence = -1;
+        keys.clear();
         invalidateHashCode();
     }
 
@@ -731,18 +735,14 @@ public class FlowMatch {
 
     @Nonnull
     public FlowMatch addVlanId(short vlanId) {
-        if (!isUsed(Field.VlanId)) {
-            fieldUsed(Field.VlanId);
-        }
+        fieldUsed(Field.VlanId);
         this.vlanIds.add(vlanId);
         return this;
     }
 
     @Nonnull
     public FlowMatch addVlanIds(List<Short> vlanIds) {
-        if (!isUsed(Field.VlanId)) {
-            fieldUsed(Field.VlanId);
-        }
+        fieldUsed(Field.VlanId);
         this.vlanIds.addAll(vlanIds);
         return this;
     }
@@ -757,7 +757,6 @@ public class FlowMatch {
         return this;
     }
 
-    @Nullable
     public List<Short> getVlanIds() {
         fieldSeen(Field.VlanId);
         return vlanIds;

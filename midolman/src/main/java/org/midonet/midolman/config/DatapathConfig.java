@@ -31,19 +31,17 @@ public interface DatapathConfig {
     @ConfigInt(key = "send_buffer_pool_buf_size_kb", defaultValue = 16)
     public int getSendBufferPoolBufSizeKb();
 
+    /**
+     * The flows have idle times, so the table should take care of itself.
+     * Having a smaller table (a limited size table) means that the system would
+     * be potentially evicting valid flows often, causing more simulations and
+     * hence, more CPU usage.
+     */
     @ConfigInt(key = "max_flow_count", defaultValue = 10000)
     public int getDatapathMaxFlowCount();
 
     @ConfigInt(key = "msgs_per_batch", defaultValue = 200)
     public int getMaxMessagesPerBatch();
-
-    /**
-     * The wildcard flows have idle times, so the table should take care of itself. Having a smaller table (a limited
-     * size table) means that the system would be potentially evicting valid flows often, causing more simulations and
-     * hence, more CPU usage.
-     */
-    @ConfigInt(key = "max_wildcard_flow_count", defaultValue = 10000)
-    public int getDatapathMaxWildcardFlowCount();
 
     @ConfigInt(key = "vxlan_vtep_udp_port", defaultValue = 4789)
     public int getVxLanVtepUdpPort();
