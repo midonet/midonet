@@ -28,6 +28,7 @@ import scala.util.{Random, Try}
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.JsonNodeFactory
+import org.apache.commons.configuration.HierarchicalConfiguration
 
 import org.apache.curator.framework.{CuratorFramework, CuratorFrameworkFactory}
 import org.apache.curator.retry.ExponentialBackoffRetry
@@ -39,6 +40,7 @@ import org.slf4j.LoggerFactory
 
 import org.midonet.brain.ClusterNode.Context
 import org.midonet.brain.services.c3po.{C3POConfig, C3POMinion}
+import org.midonet.cluster.config.ZookeeperConfig
 import org.midonet.cluster.data.neutron.NeutronResourceType.{Network => NetworkType, NoData, Port => PortType, Router => RouterType, SecurityGroup => SecurityGroupType}
 import org.midonet.cluster.data.neutron.TaskType._
 import org.midonet.cluster.data.neutron.{NeutronResourceType, TaskType}
@@ -51,6 +53,7 @@ import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.storage.ZoomProvider
 import org.midonet.cluster.util.UUIDUtil
 import org.midonet.cluster.util.UUIDUtil.toProto
+import org.midonet.config.ConfigProvider
 import org.midonet.packets.{IPSubnet, IPv4Subnet, UDP}
 import org.midonet.util.concurrent.toFutureOps
 
@@ -202,6 +205,13 @@ class C3POMinionTest extends FlatSpec with BeforeAndAfter
     // TEST SETUP
     // ---------------------
 
+    private def getConf = {
+        val conf = new HierarchicalConfiguration
+        conf.setProperty("zookeeper.midolman_root_key", "/test")
+        ConfigProvider.providerForIniConfig(conf)
+            .getConfig(classOf[ZookeeperConfig])
+    }
+
     override protected def beforeAll() {
         try {
             val retryPolicy = new ExponentialBackoffRetry(1000, 10)
@@ -214,7 +224,7 @@ class C3POMinionTest extends FlatSpec with BeforeAndAfter
             curator.start()
             curator.blockUntilConnected()
 
-            storage = new ZoomProvider(curator).get()
+            storage = new ZoomProvider(curator, getConf).get()
 
             val nodeCtx = new Context(UUID.randomUUID())
             c3po = new C3POMinion(nodeCtx, c3poCfg, dataSrc, storage, curator)

@@ -18,6 +18,7 @@ package org.midonet.cluster.storage
 import com.google.inject.{Inject, Provider}
 import org.apache.curator.framework.CuratorFramework
 
+import org.midonet.cluster.config.ZookeeperConfig
 import org.midonet.cluster.data.storage.FieldBinding.DeleteAction.{CLEAR, ERROR}
 import org.midonet.cluster.data.storage.{Storage, ZookeeperObjectMapper}
 import org.midonet.cluster.models.C3PO.C3POState
@@ -26,11 +27,12 @@ import org.midonet.cluster.models.Topology._
 
 /** This class build Zoom instances, ready to operate on all the models that are
   * supported by MidoNet. */
-class ZoomProvider @Inject()(val curator: CuratorFramework)
+class ZoomProvider @Inject()(val curator: CuratorFramework, cfg: ZookeeperConfig)
     extends Provider[Storage] {
 
     override def get: Storage = {
-        val storage = new ZookeeperObjectMapper("", curator)
+        val storage = new ZookeeperObjectMapper(cfg.getZkRootPath + "/zoom",
+                                                curator)
         List(classOf[C3POState],
              classOf[Chain],
              classOf[FloatingIp],

@@ -16,7 +16,10 @@
 
 package org.midonet.cluster.storage
 
+import org.apache.commons.configuration.HierarchicalConfiguration
 import org.junit.runner.RunWith
+
+import org.midonet.cluster.config.ZookeeperConfig
 import org.midonet.cluster.models.C3PO.C3POState
 import org.midonet.cluster.models.Neutron._
 import org.midonet.cluster.models.Topology._
@@ -24,13 +27,23 @@ import org.midonet.cluster.util.CuratorTestFramework
 import org.scalatest.{Matchers, FeatureSpec}
 import org.scalatest.junit.JUnitRunner
 
+import org.midonet.config.ConfigProvider
+
 @RunWith(classOf[JUnitRunner])
 class ZoomProviderTest extends FeatureSpec
-                               with Matchers
-                               with CuratorTestFramework {
+                       with Matchers
+                       with CuratorTestFramework {
+
+    private def getConf = {
+        val conf = new HierarchicalConfiguration
+        conf.setProperty("zookeeper.midolman_root_key", ZK_ROOT)
+        ConfigProvider.providerForIniConfig(conf)
+            .getConfig(classOf[ZookeeperConfig])
+    }
+
     feature("pre-registered classes") {
         scenario("check all topology proto classes") {
-            val zoomProvider = new ZoomProvider(curator)
+            val zoomProvider = new ZoomProvider(curator, getConf)
             val storage = zoomProvider.get
             val classes = Set(
                 classOf[Chain],
@@ -55,7 +68,7 @@ class ZoomProviderTest extends FeatureSpec
         }
 
         scenario("check neutron classes") {
-            val zoomProvider = new ZoomProvider(curator)
+            val zoomProvider = new ZoomProvider(curator, getConf)
             val storage = zoomProvider.get
             val classes = Set(
                 classOf[NeutronHealthMonitor],
@@ -74,7 +87,7 @@ class ZoomProviderTest extends FeatureSpec
         }
 
         scenario("c3po classes") {
-            val zoomProvider = new ZoomProvider(curator)
+            val zoomProvider = new ZoomProvider(curator, getConf)
             val storage = zoomProvider.get
             val classes = Set(
                 classOf[C3POState]
