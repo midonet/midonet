@@ -114,7 +114,9 @@ def teardown():
     VTM.destroy()
 
 @attr(version="v1.3.0", slow=False)
-@bindings(binding_onehost, binding_multihost)
+# Commented out as a workaround for MNA-108
+#@bindings(binding_onehost, binding_multihost)
+@bindings(binding_multihost)
 def test_multi_member_loadbalancing():
     """
     Title: Balances traffic correctly when multiple pool members are active,
