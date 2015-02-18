@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_024ca241",
+        "filename": "cluster/src/main/java/org/midonet/cluster/config/ZookeeperConfig.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-18T16:41:54Z",
+      "side": 1,
+      "message": "Agree. I would wait for the guice changes too. Then I could rebase these patches on top.",
+      "parentUuid": "7a1969be_623bd69c",
+      "range": {
+        "startLine": 69,
+        "startChar": 0,
+        "endLine": 79,
+        "endChar": 1
+      },
+      "revId": "296756f8ae6b684d81eb46941b79df06f3b396a4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_22e39e34",
         "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
         "patchSetId": 2
@@ -36,6 +60,24 @@
       "writtenOn": "2015-02-18T16:39:39Z",
       "side": 1,
       "message": "Ctor injection?",
+      "revId": "296756f8ae6b684d81eb46941b79df06f3b396a4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_42569ad3",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-18T16:41:54Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_22e39e34",
       "revId": "296756f8ae6b684d81eb46941b79df06f3b396a4",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -65,6 +107,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_2251ded8",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 128,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-18T16:41:54Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_a2ce6eb2",
+      "range": {
+        "startLine": 127,
+        "startChar": 0,
+        "endLine": 128,
+        "endChar": 15
+      },
+      "revId": "296756f8ae6b684d81eb46941b79df06f3b396a4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_823892a1",
         "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
         "patchSetId": 2
@@ -76,6 +142,30 @@
       "writtenOn": "2015-02-18T16:39:39Z",
       "side": 1,
       "message": "If we could remove the dep on zk it\u0027d be awesome, for cleanness and sanity. I think I know how:\n\n- Make the HostModule() take a parameter to indicate new or old storage\n- Make HostModule construct the HostService instance by itself, passing this param.\n\nLet\u0027s chat f2f and see if you agree, it\u0027ll be faster :)",
+      "range": {
+        "startLine": 175,
+        "startChar": 12,
+        "endLine": 175,
+        "endChar": 44
+      },
+      "revId": "296756f8ae6b684d81eb46941b79df06f3b396a4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_825ff2e4",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 175,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-18T16:41:54Z",
+      "side": 1,
+      "message": "Sure.",
+      "parentUuid": "7a1969be_823892a1",
       "range": {
         "startLine": 175,
         "startChar": 12,
