@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_975bb62d",
+        "filename": "midolman/src/main/java/org/midonet/midolman/rules/JumpRule.java",
+        "patchSetId": 18
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-18T09:28:20Z",
+      "side": 1,
+      "message": "Use ZoomConvert?",
+      "range": {
+        "startLine": 61,
+        "startChar": 4,
+        "endLine": 66,
+        "endChar": 5
+      },
+      "revId": "3a3dd3e1aadcd290fb4430313ba61e104a3b7b71",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
