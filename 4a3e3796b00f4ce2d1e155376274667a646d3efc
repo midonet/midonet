@@ -1,0 +1,72 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_6203d60d",
+        "filename": "midolman/src/main/java/org/midonet/midolman/rules/TraceRule.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-02-18T16:00:39Z",
+      "side": 1,
+      "message": "s/setTrancingEnabled/enableTracing?",
+      "revId": "4a3e3796b00f4ce2d1e155376274667a646d3efc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_0214a242",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/PacketContext.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 204,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-02-18T16:00:39Z",
+      "side": 1,
+      "message": "i\u0027d like this to always be instantiated and to be cleared in the clear method. this way it can be reused. i also think it\u0027s necessary for when the packetcontext is suspended.",
+      "revId": "4a3e3796b00f4ce2d1e155376274667a646d3efc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_8227f2b5",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/PacketContext.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 255,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-02-18T16:00:39Z",
+      "side": 1,
+      "message": "override def clear(): Unit \u003d {\n   super.clear() // very important call\n   //clear tracing\n}",
+      "revId": "4a3e3796b00f4ce2d1e155376274667a646d3efc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_421e9a64",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/PacketContext.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 275,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-02-18T16:00:39Z",
+      "side": 1,
+      "message": "postpone should clear trace requests too i think",
+      "revId": "4a3e3796b00f4ce2d1e155376274667a646d3efc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
