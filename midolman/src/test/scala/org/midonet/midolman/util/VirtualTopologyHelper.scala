@@ -217,7 +217,7 @@ trait VirtualTopologyHelper {
     def packetWorkflow(dpPortToVport: Map[Int, UUID])
                       (implicit hostId: UUID, client: DataClient) = new PacketWorkflow(
         new DatapathState {
-            override def host: ResolvedHost = new ResolvedHost(hostId, true, "midonet", Map(), Map())
+            override def host: ResolvedHost = new ResolvedHost(hostId, true, Map(), Map())
             override def peerTunnelInfo(peer: UUID): Option[UnderlayRoute] = None
             override def isVtepTunnellingPort(portNumber: Integer): Boolean = false
             override def isOverlayTunnellingPort(portNumber: Integer): Boolean = false
@@ -237,7 +237,7 @@ trait VirtualTopologyHelper {
             override def start(datapath: Datapath): Unit = { }
             override def stop(): Unit = { }
         }, new FlowStateReplicator(null, null, null, new UnderlayResolver {
-            override def host: ResolvedHost = new ResolvedHost(UUID.randomUUID(), true, "", Map(), Map())
+            override def host: ResolvedHost = new ResolvedHost(UUID.randomUUID(), true, Map(), Map())
             override def peerTunnelInfo(peer: UUID): Option[UnderlayRoute] = None
             override def vtepTunnellingOutputAction: FlowActionOutput = null
             override def isVtepTunnellingPort(portNumber: Integer): Boolean = false

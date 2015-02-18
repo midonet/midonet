@@ -193,8 +193,8 @@ class FlowTranslatorTest extends MidolmanSpec {
 
     def makeHost(bindings: Map[UUID, String],
                  hostIp: IPv4Addr = IPv4Addr("102.32.2.2")) = new ResolvedHost(
-            hostId, true, "midonet",
-            bindings.map{
+            hostId, true,
+            bindings.map {
                 case (id, iface) => makeBinding(id, iface)
             }.toMap,
             Map(UUID.randomUUID() -> hostIp))
@@ -307,7 +307,7 @@ class FlowTranslatorTest extends MidolmanSpec {
                 interfaceName = "in"
             }
             val rcuHost = new ResolvedHost(
-                hostId, true, "midonet",
+                hostId, true,
                 Map(inPort.getId -> PortBinding(inPort.getId, clientInPort.tunnelKey, "inPort"),
                     port0.getId -> PortBinding(port0.getId, clientPort0.tunnelKey, "port0")),
                 Map(

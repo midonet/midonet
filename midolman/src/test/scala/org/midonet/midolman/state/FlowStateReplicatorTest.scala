@@ -438,7 +438,7 @@ class MockUnderlayResolver(hostId: UUID, hostIp: IPv4Addr,
 
     val output = FlowActions.output(23)
 
-    override def host = ResolvedHost(hostId, true, "midonet", Map.empty, Map.empty)
+    override def host = ResolvedHost(hostId, true, Map.empty, Map.empty)
 
     override def peerTunnelInfo(peer: UUID): Option[Route] = {
         if (peers.contains(peer))
