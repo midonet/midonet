@@ -114,6 +114,23 @@
       "revId": "e3b8c9f4f59ccc382a002da9feb148442ac5a948",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_174a26ac",
+        "filename": "brain/vtep/src/main/scala/org/midonet/vtep/VtepConnection.scala",
+        "patchSetId": 18
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-02-18T14:12:27Z",
+      "side": 1,
+      "message": "This is small enough that it might make sense into the client file.",
+      "revId": "e3b8c9f4f59ccc382a002da9feb148442ac5a948",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
