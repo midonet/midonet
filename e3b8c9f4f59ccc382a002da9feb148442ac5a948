@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_37f3e29f",
+        "filename": "brain/vtep/src/main/scala/org/midonet/vtep/OvsdbVtepConnection.scala",
+        "patchSetId": 18
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-02-18T14:11:34Z",
+      "side": 1,
+      "message": "move to the catch below?",
+      "range": {
+        "startLine": 70,
+        "startChar": 12,
+        "endLine": 70,
+        "endChar": 21
+      },
+      "revId": "e3b8c9f4f59ccc382a002da9feb148442ac5a948",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_b70d1293",
+        "filename": "brain/vtep/src/main/scala/org/midonet/vtep/OvsdbVtepConnection.scala",
+        "patchSetId": 18
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-02-18T14:11:34Z",
+      "side": 1,
+      "message": "This probably ends up blocking the caller thread.\n\nWe should probably delegate this to a connection thread. This also would allow removing the monitors altogether and replace with a boolean.",
+      "range": {
+        "startLine": 78,
+        "startChar": 43,
+        "endLine": 78,
+        "endChar": 50
+      },
+      "revId": "e3b8c9f4f59ccc382a002da9feb148442ac5a948",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_772c3a03",
+        "filename": "brain/vtep/src/main/scala/org/midonet/vtep/OvsdbVtepConnection.scala",
+        "patchSetId": 18
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-02-18T14:11:34Z",
+      "side": 1,
+      "message": "not catch if it\u0027s rethrowing as-is",
+      "range": {
+        "startLine": 83,
+        "startChar": 12,
+        "endLine": 83,
+        "endChar": 33
+      },
+      "revId": "e3b8c9f4f59ccc382a002da9feb148442ac5a948",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_b736b250",
+        "filename": "brain/vtep/src/main/scala/org/midonet/vtep/OvsdbVtepConnection.scala",
+        "patchSetId": 18
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-02-18T14:11:34Z",
+      "side": 1,
+      "message": "move out of try",
+      "range": {
+        "startLine": 102,
+        "startChar": 12,
+        "endLine": 102,
+        "endChar": 37
+      },
+      "revId": "e3b8c9f4f59ccc382a002da9feb148442ac5a948",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_f73f8a23",
+        "filename": "brain/vtep/src/main/scala/org/midonet/vtep/OvsdbVtepConnection.scala",
+        "patchSetId": 18
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-02-18T14:11:34Z",
+      "side": 1,
+      "message": "should it be exposed?",
+      "range": {
+        "startLine": 118,
+        "startChar": 4,
+        "endLine": 118,
+        "endChar": 7
+      },
+      "revId": "e3b8c9f4f59ccc382a002da9feb148442ac5a948",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
