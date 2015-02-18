@@ -36,6 +36,24 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_82ea520d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/PacketContext.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 204,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-02-18T16:26:56Z",
+      "side": 1,
+      "message": "PacketContext are only reused in the case of a postponement. Tracing is only used in the case if it is enabled. If this is instantiated by default, it will mean a new object for each flow, which in the vast majority of cases will never be used. Unless you\u0027re planning on making packet context a reused object?",
+      "parentUuid": "7a1969be_0214a242",
+      "revId": "4a3e3796b00f4ce2d1e155376274667a646d3efc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_8227f2b5",
         "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/PacketContext.scala",
         "patchSetId": 1
