@@ -30,7 +30,9 @@ import org.scalatest.{Matchers, Suite}
 
 import org.midonet.cluster.data.storage.FieldBinding.DeleteAction._
 import org.midonet.cluster.data.storage.ZookeeperObjectMapperTest._
+import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.util.{ClassAwaitableObserver, CuratorTestFramework, ParentDeletedException, PathCacheDisconnectedException}
+import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.util.reactivex.AwaitableObserver
 
 @RunWith(classOf[JUnitRunner])
@@ -48,7 +50,9 @@ class ZookeeperObjectMapperTests extends Suite
 
     private def initAndBuildZoom(zom: ZookeeperObjectMapper) {
         List(classOf[PojoBridge], classOf[PojoRouter], classOf[PojoPort],
-             classOf[PojoChain], classOf[PojoRule]).foreach {
+             classOf[PojoChain], classOf[PojoRule], classOf[Network],
+             classOf[Router], classOf[Port], classOf[Chain],
+             classOf[Rule]).foreach {
             clazz => zom.registerClass(clazz)
         }
 
@@ -82,6 +86,36 @@ class ZookeeperObjectMapperTests extends Suite
         zom.declareBinding(classOf[PojoRule], "portIds", CLEAR,
                            classOf[PojoPort], "ruleIds", CLEAR)
 
+
+        zom.declareBinding(classOf[Network], "inbound_filter_id", CLEAR,
+                           classOf[Chain], "network_ids", CLEAR)
+        zom.declareBinding(classOf[Network], "outbound_filter_id", CLEAR,
+                           classOf[Chain], "network_ids", CLEAR)
+
+        zom.declareBinding(classOf[Router], "inbound_filter_id", CLEAR,
+                           classOf[Chain], "router_ids", CLEAR)
+        zom.declareBinding(classOf[Router], "outbound_filter_id", CLEAR,
+                           classOf[Chain], "router_ids", CLEAR)
+
+        zom.declareBinding(classOf[Port], "network_id", CLEAR,
+                           classOf[Network], "port_ids", ERROR)
+        zom.declareBinding(classOf[Port], "router_id", CLEAR,
+                           classOf[Router], "port_ids", ERROR)
+        zom.declareBinding(classOf[Port], "inbound_filter_id", CLEAR,
+                           classOf[Chain], "port_ids", CLEAR)
+        zom.declareBinding(classOf[Port], "outbound_filter_id", CLEAR,
+                           classOf[Chain], "port_ids", CLEAR)
+        zom.declareBinding(classOf[Port], "peer_id", CLEAR,
+                           classOf[Port], "peer_id", CLEAR)
+
+        zom.declareBinding(classOf[Chain], "rule_ids", CASCADE,
+                           classOf[Rule], "chain_id", CLEAR)
+
+        zom.declareBinding(classOf[Rule], "in_port_ids", CLEAR,
+                           classOf[Port], "inbound_filter_id", CLEAR)
+        zom.declareBinding(classOf[Rule], "out_port_ids", CLEAR,
+                           classOf[Port], "outbound_filter_id", CLEAR)
+
         zom.build()
     }
 
@@ -93,7 +127,7 @@ class ZookeeperObjectMapperTests extends Suite
         override def hashCode: Int = id.hashCode
     }
 
-    def testMultiCreate() {
+    def testMultiCreateJava() {
         val bridge = pojoBridge()
         val port = pojoPort(bridgeId = bridge.id)
         zom.multi(List(CreateOp(bridge), CreateOp(port)))
@@ -102,7 +136,16 @@ class ZookeeperObjectMapperTests extends Suite
         updatedBridge.portIds.asScala should equal(List(port.id))
     }
 
-    def testMultiCreateUpdateAndDelete() {
+    def testMultiCreateProto() {
+        val network = protoNetwork()
+        val port = protoPort(networkId = network.getId)
+        zom.multi(List(CreateOp(network), CreateOp(port)))
+
+        val updatedNetwork = await(zom.get(classOf[Network], network.getId.asJava))
+        updatedNetwork.getPortIdsList.asScala should contain only port.getId
+    }
+
+    def testMultiCreateUpdateAndDeleteJava() {
         val chain = pojoChain(name = "chain1")
         zom.create(chain)
 
@@ -137,7 +180,42 @@ class ZookeeperObjectMapperTests extends Suite
         await(zom.exists(classOf[PojoChain], chain.id)) shouldBe false
     }
 
-    def testMultiUpdateAndCascadingDelete() {
+    def testMultiCreateUpdateAndDeleteProto() {
+        val chain = protoChain(name = "chain1")
+        zom.create(chain)
+
+        val chain2 = protoChain(name = "chain2")
+        val network = protoNetwork(inChainId = chain.getId)
+        val networkUpdate = protoNetwork(id = network.getId,
+                                       inChainId = chain.getId,
+                                       outChainId = chain2.getId)
+        val router = protoRouter(outChainId = chain.getId)
+        val routerUpdate = protoRouter(id = router.getId,
+                                       inChainId = chain2.getId,
+                                       outChainId = chain.getId)
+        zom.multi(List(CreateOp(chain2),
+                       CreateOp(network),
+                       CreateOp(router),
+                       UpdateOp(networkUpdate),
+                       UpdateOp(routerUpdate),
+                       DeleteOp(classOf[Chain], chain.getId)))
+
+        val updatedChain2 = await(zom.get(classOf[Chain], chain2.getId.asJava))
+        updatedChain2.getNetworkIdsList.asScala should contain only network.getId
+        updatedChain2.getRouterIdsList.asScala should contain only router.getId
+
+        val updatedNetwork = await(zom.get(classOf[Network], network.getId.asJava))
+        updatedNetwork.hasInboundFilterId shouldBe false
+        updatedNetwork.getOutboundFilterId shouldBe chain2.getId
+
+        val updatedRouter = await(zom.get(classOf[Router], router.getId.asJava))
+        updatedRouter.getInboundFilterId shouldBe chain2.getId
+        updatedRouter.hasOutboundFilterId shouldBe false
+
+        await(zom.exists(classOf[PojoChain], chain.getId.asJava)) shouldBe false
+    }
+
+    def testMultiUpdateAndCascadingDeleteJava() {
         val chain1 = pojoChain(name = "chain1")
         val rule1 = pojoRule(name = "rule1", chainId = chain1.id)
         val rule2 = pojoRule(name = "rule2", chainId = chain1.id)
@@ -161,7 +239,31 @@ class ZookeeperObjectMapperTests extends Suite
         updatedRule3.chainId should equal(chain2.id)
     }
 
-    def testMultiWithUpdateOfDeletedObject() {
+    def testMultiUpdateAndCascadingDeleteProto() {
+        val chain1 = protoChain(name = "chain1")
+        val rule1 = protoRule(chainId = chain1.getId)
+        val rule2 = protoRule(chainId = chain1.getId)
+        val rule3 = protoRule(chainId = chain1.getId)
+        zom.multi(List(CreateOp(chain1), CreateOp(rule1),
+                       CreateOp(rule2), CreateOp(rule3)))
+
+        val chain2 = protoChain(name = "chain2")
+        val rule3Update = protoRule(id = rule3.getId, chainId = chain2.getId)
+        zom.multi(List(CreateOp(chain2), UpdateOp(rule3Update),
+                       DeleteOp(classOf[Chain], chain1.getId.asJava)))
+
+        await(zom.exists(classOf[Chain], chain1.getId.asJava)) shouldBe false
+        await(zom.exists(classOf[Rule], rule1.getId.asJava)) shouldBe false
+        await(zom.exists(classOf[Rule], rule2.getId.asJava)) shouldBe false
+
+        val updatedChain2 = await(zom.get(classOf[Chain], chain2.getId.asJava))
+        updatedChain2.getRuleIdsList.asScala should contain only rule3.getId
+
+        val updatedRule3 = await(zom.get(classOf[Rule], rule3.getId.asJava))
+        updatedRule3.getChainId shouldBe chain2.getId
+    }
+
+    def testMultiWithUpdateOfDeletedObjectJava() {
         val chain = pojoChain()
         val rule = pojoRule(chainId = chain.id)
         try {
@@ -177,7 +279,23 @@ class ZookeeperObjectMapperTests extends Suite
         }
     }
 
-    def testMultiWithRedundantDelete() {
+    def testMultiWithUpdateOfDeletedObjectProto() {
+        val chain = protoChain()
+        val rule = protoRule(chainId = chain.getId)
+        try {
+            zom.multi(List(CreateOp(chain), CreateOp(rule),
+                           DeleteOp(classOf[Chain], chain.getId.asJava),
+                           UpdateOp(rule)))
+            fail("Rule update should fail due to rule being deleted by " +
+                 "cascade from chain deletion.")
+        } catch {
+            case nfe: NotFoundException =>
+                nfe.clazz should be(classOf[Rule])
+                nfe.id shouldBe rule.getId
+        }
+    }
+
+    def testMultiWithRedundantDeleteJava() {
         val chain = pojoChain()
         val rule = pojoRule(chainId = chain.id)
         try {
@@ -193,7 +311,23 @@ class ZookeeperObjectMapperTests extends Suite
         }
     }
 
-    def testMultiIdGet() {
+    def testMultiWithRedundantDeleteProto() {
+        val chain = protoChain()
+        val rule = protoRule(chainId = chain.getId)
+        try {
+            zom.multi(List(CreateOp(chain), CreateOp(rule),
+                           DeleteOp(classOf[Chain], chain.getId),
+                           DeleteOp(classOf[Rule], rule.getId)))
+            fail("Rule deletion should fail due to rule being deleted by " +
+                 "cascade from chain deletion.")
+        } catch {
+            case nfe: NotFoundException =>
+                nfe.clazz should be(classOf[Rule])
+                nfe.id shouldBe rule.getId
+        }
+    }
+
+    def testMultiIdGetJava() {
         implicit val es = ExecutionContext.global
         val chains = List("chain0", "chain1", "chain2").map(pojoChain)
         zom.multi(chains.map(CreateOp))
@@ -204,17 +338,38 @@ class ZookeeperObjectMapperTests extends Suite
         twoChains.map(_.name) should equal(List("chain0", "chain1"))
     }
 
-    def testCreateAndUpdate(): Unit = {
+    def testMultiIdGetProto() {
+        implicit val es = ExecutionContext.global
+        val chains = List("chain0", "chain1", "chain2")
+            .map(protoChain(UUID.randomUUID, _))
+        zom.multi(chains.map(CreateOp))
+        val twoIds = chains.take(2).map(_.getId.asJava).asJava
+        val twoChains = await(
+            Future.sequence(zom.getAll(classOf[Chain], twoIds.asScala))
+        )
+        twoChains.map(_.getName) should equal(List("chain0", "chain1"))
+    }
+
+    def testCreateAndUpdateJava(): Unit = {
         val bridge = pojoBridge()
         zom.create(bridge)
         zom.multi(List(UpdateOp(bridge), UpdateOp(bridge)))
     }
 
-    def testDeleteIfExists() {
-        zom.deleteIfExists(classOf[PojoBridge], UUID.randomUUID)
+    def testCreateAndUpdateProto(): Unit = {
+        val network = protoNetwork()
+        zom.create(network)
+        zom.multi(List(UpdateOp(network), UpdateOp(network)))
     }
 
-    def testDeleteIfExistsOnDeletedObject() {
+    def testDeleteIfExistsJava() {
+        zom.deleteIfExists(classOf[PojoBridge], UUID.randomUUID)
+    }
+    def testDeleteIfExistsProto() {
+        zom.deleteIfExists(classOf[Network], UUID.randomUUID)
+    }
+
+    def testDeleteIfExistsOnDeletedObjectJava() {
         val bridge = pojoBridge()
         zom.create(bridge)
         zom.delete(classOf[PojoBridge], bridge.id)
@@ -222,14 +377,29 @@ class ZookeeperObjectMapperTests extends Suite
         zom.deleteIfExists(classOf[PojoBridge], bridge.id)
     }
 
-    def testDeleteIfExistsOnDeletedObjectMulti() {
+    def testDeleteIfExistsOnDeletedObjectProto() {
+        val network = protoNetwork()
+        zom.create(network)
+        zom.delete(classOf[Network], network.getId.asJava)
+        // Idempotent delete.
+        zom.deleteIfExists(classOf[Network], network.getId.asJava)
+    }
+
+    def testDeleteIfExistsOnDeletedObjectMultiJava() {
         val bridge = pojoBridge()
         zom.create(bridge)
         zom.multi(List(DeleteOp(classOf[PojoBridge], bridge.id),
                        DeleteOp(classOf[PojoBridge], bridge.id, true)))
     }
 
-    def testMultiWithRedundantDeleteIfExists() {
+    def testDeleteIfExistsOnDeletedObjectMultiProto() {
+        val network = protoNetwork()
+        zom.create(network)
+        zom.multi(List(DeleteOp(classOf[Network], network.getId.asJava),
+                       DeleteOp(classOf[Network], network.getId.asJava, true)))
+    }
+
+    def testMultiWithRedundantDeleteIfExistsJava() {
         val chain = pojoChain()
         val rule = pojoRule(chainId = chain.id)
         // The following two multis cannot be turned into a single multi.
@@ -239,6 +409,18 @@ class ZookeeperObjectMapperTests extends Suite
         zom.multi(List(CreateOp(chain), CreateOp(rule)))
         zom.multi(List(DeleteOp(classOf[PojoChain], chain.id),
                        DeleteOp(classOf[PojoRule], rule.id, true)))
+    }
+
+    def testMultiWithRedundantDeleteIfExistsProto() {
+        val chain = protoChain()
+        val rule = protoRule(chainId = chain.getId.asJava)
+        // The following two multis cannot be turned into a single multi.
+        // Apparently it is a current limitation of ZOOM that in a single multi
+        // one cannot delete an object that's just been created due to a race
+        // to the backend ZooKeeper.
+        zom.multi(List(CreateOp(chain), CreateOp(rule)))
+        zom.multi(List(DeleteOp(classOf[Chain], chain.getId.asJava),
+                       DeleteOp(classOf[Rule], rule.getId.asJava, true)))
     }
 
     private def createBridge() : PojoBridge = {
@@ -544,7 +726,7 @@ class ZookeeperObjectMapperTests extends Suite
             zom.create(state, owner2)
         }
         e.clazz shouldBe classOf[SharedState]
-        e.id shouldBe state.id
+        e.id shouldBe state.id.toString
     }
 
     def testUpdateSharedExistingOwner(): Unit = {
@@ -1071,6 +1253,51 @@ private object ZookeeperObjectMapperTests {
                  portIds: List[UUID] = null) = {
         if (portIds == null) new PojoRule(name, chainId)
         else new PojoRule(name, chainId, portIds:_*)
+    }
+
+    def protoNetwork(id: UUID = UUID.randomUUID, name: String = null,
+                     inChainId: UUID = null, outChainId: UUID = null): Network = {
+        val builder = Network.newBuilder.setId(id.asProto)
+        if (name ne null) builder.setName(name)
+        if (inChainId ne null) builder.setInboundFilterId(inChainId.asProto)
+        if (outChainId ne null) builder.setOutboundFilterId(outChainId.asProto)
+        builder.build()
+    }
+
+    def protoRouter(id: UUID = UUID.randomUUID, name: String = null,
+                    inChainId: UUID = null, outChainId: UUID = null): Router = {
+        val builder = Router.newBuilder.setId(id.asProto)
+        if (name ne null) builder.setName(name)
+        if (inChainId ne null) builder.setInboundFilterId(inChainId.asProto)
+        if (outChainId ne null) builder.setOutboundFilterId(outChainId.asProto)
+        builder.build()
+    }
+
+    def protoPort(id: UUID = UUID.randomUUID, peerId: UUID = null,
+                  networkId: UUID = null, routerId: UUID = null,
+                  inChainId: UUID = null, outChainId: UUID = null): Port = {
+        val builder = Port.newBuilder.setId(id.asProto)
+        if (peerId ne null) builder.setPeerId(peerId.asProto)
+        if (networkId ne null) builder.setNetworkId(networkId.asProto)
+        if (routerId ne null) builder.setRouterId(routerId.asProto)
+        if (inChainId ne null) builder.setInboundFilterId(inChainId.asProto)
+        if (outChainId ne null) builder.setOutboundFilterId(outChainId.asProto)
+        builder.build()
+    }
+
+    def protoChain(id: UUID = UUID.randomUUID, name: String = null): Chain = {
+        val builder = Chain.newBuilder.setId(id.asProto)
+        if (name ne null) builder.setName(name)
+        builder.build()
+    }
+
+    def protoRule(id: UUID = UUID.randomUUID, chainId: UUID = null,
+                  inPortIds: Seq[UUID] = null, outPortIds: Seq[UUID] = null): Rule = {
+        val builder = Rule.newBuilder.setId(id.asProto)
+        if (chainId ne null) builder.setChainId(chainId.asProto)
+        if (inPortIds ne null) builder.addAllInPortIds(inPortIds.map(_.asProto).asJava)
+        if (outPortIds ne null) builder.addAllOutPortIds(outPortIds.map(_.asProto).asJava)
+        builder.build()
     }
 
     def await[T](f: Future[T]) =
