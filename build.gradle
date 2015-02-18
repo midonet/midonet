@@ -272,7 +272,7 @@ configure(subprojects.findAll {!it.name.contains('ovsdb')}) {
     }
 
     test {
-        maxParallelForks = 8
+        maxParallelForks = 4
     }
 
     dependencies {
