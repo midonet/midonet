@@ -382,6 +382,7 @@ class DatapathController extends Actor
 
         log.info(s"Process the host's interface-vport bindings. $host")
         dpState.updateVPortInterfaceBindings(host.ports)
+        processNextHost()
     }
 
     private def processNextHost() {
