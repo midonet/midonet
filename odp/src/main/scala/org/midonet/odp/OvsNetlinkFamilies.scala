@@ -31,11 +31,11 @@ object OvsNetlinkFamilies {
     @throws(classOf[IOException])
     @throws(classOf[NetlinkException])
     def discover(channel: NetlinkChannel): OvsNetlinkFamilies = {
+        val buf = BytesUtil.instance.allocate(2048)
         val requestReply = new NetlinkRequestBroker(
             new NetlinkReader(channel), new NetlinkBlockingWriter(channel),
-            6, BytesUtil.instance.allocate(2048), NanoClock.DEFAULT)
+            6, buf, NanoClock.DEFAULT)
         val pid = channel.getLocalAddress.getPid
-        val buf = BytesUtil.instance.allocate(2048)
 
         def request[T >: Null](family: String, f: ByteBuffer => T): T = {
             buf.clear()
