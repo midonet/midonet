@@ -190,6 +190,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_b7587233",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/util/UUIDUtil.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-18T09:28:14Z",
+      "side": 1,
+      "message": "Then, using ZoomConvert, this shouldn\u0027t be needed.",
+      "parentUuid": "7a1969be_34abe01e",
+      "range": {
+        "startLine": 49,
+        "startChar": 4,
+        "endLine": 50,
+        "endChar": 52
+      },
+      "revId": "09b0647e39f89b4b646a0b6cb66ef34cc3bf0de8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_344f60bf",
         "filename": "midolman/src/main/java/org/midonet/midolman/rules/Condition.java",
         "patchSetId": 17
