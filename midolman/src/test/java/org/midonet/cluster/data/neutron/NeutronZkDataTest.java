@@ -17,15 +17,17 @@ package org.midonet.cluster.data.neutron;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
-import org.apache.curator.test.TestingServer;
 import org.junit.Before;
 import org.junit.Test;
 
+import org.midonet.cluster.data.Rule;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.DirectoryVerifier;
 import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.StateAccessException;
+import org.midonet.packets.IPv4Subnet;
 
 public final class NeutronZkDataTest extends NeutronPluginTest {
 
@@ -39,6 +41,24 @@ public final class NeutronZkDataTest extends NeutronPluginTest {
 
         pathBuilder = getPathBuilder();
         dirVerifier = new DirectoryVerifier(getDirectory());
+    }
+
+    private void verifyMetadataRoute(UUID routerId, String srcCidr,
+                                     int expectedMatchCnt) {
+
+        String routesPath = pathBuilder.getRoutesPath();
+        IPv4Subnet srcSubnet = IPv4Subnet.fromCidr(srcCidr);
+
+        Map<String, Object> matches = new HashMap<>();
+        matches.put("srcNetworkAddr", srcSubnet.toNetworkAddress().toString());
+        matches.put("srcNetworkLength", srcSubnet.getPrefixLen());
+        matches.put("dstNetworkAddr",
+                    MetaDataService.IPv4_SUBNET.toNetworkAddress().toString());
+        matches.put("dstNetworkLength", 32);
+        matches.put("routerId", routerId);
+
+        dirVerifier.assertChildrenFieldsMatch(routesPath, matches,
+                                              expectedMatchCnt);
     }
 
     private void verifyFipDnatRule(int expectedMatchCnt) {
@@ -89,13 +109,35 @@ public final class NeutronZkDataTest extends NeutronPluginTest {
     }
 
     @Test
-    public void testBasicScenario()
-        throws SerializationException, StateAccessException {
+    public void testFloatingIp()
+        throws SerializationException, StateAccessException,
+               Rule.RuleIndexOutOfBoundsException {
 
         verifyFloatingIpRules();
 
         plugin.deleteNetwork(extNetwork.id);
 
         verifyNoFloatingIpRules();
+    }
+
+    @Test
+    public void testMetadataRouteWhenDhcpPortCreatedAfterRouter()
+        throws Rule.RuleIndexOutOfBoundsException, SerializationException,
+               StateAccessException {
+
+        // First test the normal case
+        verifyMetadataRoute(router.id, subnet.cidr, 1);
+
+        // Delete the DHCP port
+        plugin.deletePort(dhcpPort.id);
+
+        // Verify no metadata route
+        verifyMetadataRoute(router.id, subnet.cidr, 0);
+
+        // Add a new DHCP port
+        plugin.createPort(dhcpPort);
+
+        // Verify that the metadata is re-added
+        verifyMetadataRoute(router.id, subnet.cidr, 1);
     }
 }

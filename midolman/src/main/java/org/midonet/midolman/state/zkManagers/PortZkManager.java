@@ -882,12 +882,13 @@ public class PortZkManager extends AbstractZkManager<UUID, PortConfig> {
         }
 
         return findFirstRouterPortMatchFromBridge(bridgeId,
-                new Function<PortDirectory.RouterPortConfig, Boolean>() {
+                new Function<PortConfig, Boolean>() {
 
                     @Override
-                    public Boolean apply(
-                            PortDirectory.RouterPortConfig rpCfg) {
-                        return rpCfg.portAddressEquals(gatewayIp);
+                    public Boolean apply(PortConfig pCfg) {
+                        return (pCfg instanceof PortDirectory.RouterPortConfig)
+                            && ((PortDirectory.RouterPortConfig) pCfg)
+                            .portAddressEquals(gatewayIp);
                     }
                 }
         );
@@ -916,7 +917,7 @@ public class PortZkManager extends AbstractZkManager<UUID, PortConfig> {
 
     public PortDirectory.RouterPortConfig findFirstRouterPortMatchFromBridge(
             UUID bridgeId,
-            Function<PortDirectory.RouterPortConfig, Boolean> matcher)
+            Function<PortConfig, Boolean> matcher)
             throws StateAccessException, SerializationException {
         List<UUID> ids = getBridgeLogicalPortIDs(bridgeId);
         for (UUID id : ids) {
@@ -925,10 +926,10 @@ public class PortZkManager extends AbstractZkManager<UUID, PortConfig> {
             if (cfg.peerId == null) {
                 continue;
             }
-            PortDirectory.RouterPortConfig rpCfg =
-                    (PortDirectory.RouterPortConfig) get(cfg.peerId);
-            if (matcher.apply(rpCfg)) {
-                return rpCfg;
+
+            PortConfig pCfg = get(cfg.peerId);
+            if (matcher.apply(pCfg)) {
+                return (PortDirectory.RouterPortConfig) pCfg;
             }
         }
 
