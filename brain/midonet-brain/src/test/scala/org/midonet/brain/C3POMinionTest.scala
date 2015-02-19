@@ -20,7 +20,6 @@ import java.io.PrintWriter
 import java.sql.{Connection, DriverManager}
 import java.util.UUID
 import java.util.concurrent.TimeUnit
-
 import javax.sql.DataSource
 
 import scala.collection.JavaConverters._
@@ -29,7 +28,6 @@ import scala.util.{Random, Try}
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.JsonNodeFactory
 import org.apache.commons.configuration.HierarchicalConfiguration
-
 import org.apache.curator.framework.{CuratorFramework, CuratorFrameworkFactory}
 import org.apache.curator.retry.ExponentialBackoffRetry
 import org.apache.curator.test.TestingServer
@@ -51,10 +49,11 @@ import org.midonet.cluster.models.Neutron.SecurityGroup
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.models.{C3PO, Commons}
 import org.midonet.cluster.storage.ZoomProvider
-import org.midonet.cluster.util.{IPAddressUtil, UUIDUtil}
+import org.midonet.cluster.util.IPAddressUtil.{toProto => IPProto}
 import org.midonet.cluster.util.UUIDUtil.toProto
+import org.midonet.cluster.util.{IPAddressUtil, UUIDUtil}
 import org.midonet.config.ConfigProvider
-import org.midonet.packets.{IPAddr, IPSubnet, IPv4Subnet, UDP}
+import org.midonet.packets.{IPSubnet, IPv4Subnet, UDP}
 import org.midonet.util.concurrent.toFutureOps
 
 /** Tests the service that synces the Neutron DB into Midonet's backend. */
@@ -105,7 +104,8 @@ class C3POMinionTest extends FlatSpec with BeforeAndAfter
     // Adapt the DriverManager interface to DataSource interface.
     // SQLite doesn't seem to provide JDBC 2.0 API.
     private val dataSrc = new DataSource() {
-        override def getConnection() = DriverManager.getConnection(DB_CONNECT_STR)
+        override def getConnection() =
+            DriverManager.getConnection (DB_CONNECT_STR)
         override def getConnection(username: String, password: String) = null
         override def getLoginTimeout = -1
         override def getLogWriter = null
@@ -125,15 +125,21 @@ class C3POMinionTest extends FlatSpec with BeforeAndAfter
     // ---------------------
 
     private def executeSqlStmts(sqls: String*) {
+        var retries = 5
+        var ok = false
         var c: Connection = null
-        try {
-            c = dataSrc.getConnection()
-            val stmt = c.createStatement()
-            sqls.foreach(stmt.executeUpdate)
-            stmt.close()
-        } finally {
-            if (c != null) c.close()
-        }
+        do {
+            retries = retries - 1
+            try {
+                c = dataSrc.getConnection()
+                val stmt = c.createStatement()
+                sqls.foreach(stmt.executeUpdate)
+                stmt.close()
+                ok = true
+            } finally {
+                if (c != null) c.close()
+            }
+        } while (!ok && retries > 0)
     }
 
     private def createTaskTable() = {
@@ -489,7 +495,7 @@ class C3POMinionTest extends FlatSpec with BeforeAndAfter
         storage.exists(classOf[Port], vifPortId).await() shouldBe false
         // Back reference was cleared.
         val finalNw1 = storage.get(classOf[Network], network1Uuid).await()
-        finalNw1.getPortIdsList should not contain (vifPortId)
+        finalNw1.getPortIdsList should not contain vifPortId
         // You can delete the Network1 now.
         storage.delete(classOf[Network], network1Uuid)
     }
@@ -632,7 +638,6 @@ class C3POMinionTest extends FlatSpec with BeforeAndAfter
         Thread.sleep(1000)
 
         // Create a subnet
-        val sName = "test sub"
         val sId = UUID.randomUUID()
         val cidr = IPv4Subnet.fromCidr("10.0.0.0/24")
         val gatewayIp = "10.0.0.1"
@@ -648,13 +653,12 @@ class C3POMinionTest extends FlatSpec with BeforeAndAfter
         val dhcp = storage.get(classOf[Dhcp], sId).await()
         dhcp should not be null
         dhcp.getDefaultGateway.getAddress should be(gatewayIp)
-        dhcp.getEnabled should be(true)
+        dhcp.getEnabled shouldBe true
         dhcp.getSubnetAddress.getAddress should be(cidr.getAddress.toString)
         dhcp.getSubnetAddress.getPrefixLength should be(cidr.getPrefixLen)
         dhcp.getServerAddress.getAddress should be(gatewayIp)
-        dhcp.getDnsServerAddressCount should be(1)
-        dhcp.getDnsServerAddress(0) should be(
-            IPAddressUtil.toProto(nameServers(0)))
+        dhcp.getDnsServerAddressCount shouldBe 1
+        dhcp.getDnsServerAddress(0) shouldBe IPAddressUtil.toProto(nameServers(0))
 
         // TODO: Add Option121/host route tests
 
@@ -672,14 +676,13 @@ class C3POMinionTest extends FlatSpec with BeforeAndAfter
         // Verify the updated subnet
         val dhcp2 = storage.get(classOf[Dhcp], sId).await()
         dhcp2 should not be null
-        dhcp2.getDefaultGateway.getAddress should be(gatewayIp2)
-        dhcp2.getEnabled should be(true)
-        dhcp2.getSubnetAddress.getAddress should be(cidr2.getAddress.toString)
-        dhcp2.getSubnetAddress.getPrefixLength should be(cidr2.getPrefixLen)
-        dhcp2.getServerAddress.getAddress should be(gatewayIp) // unchanged
-        dhcp2.getDnsServerAddressCount should be(1)
-        dhcp2.getDnsServerAddress(0) should be(
-            IPAddressUtil.toProto(nameServers2(0)))
+        dhcp2.getDefaultGateway.getAddress shouldBe gatewayIp2
+        dhcp2.getEnabled shouldBe true
+        dhcp2.getSubnetAddress.getAddress shouldBe cidr2.getAddress.toString
+        dhcp2.getSubnetAddress.getPrefixLength shouldBe cidr2.getPrefixLen
+        dhcp2.getServerAddress.getAddress shouldBe gatewayIp  // unchanged
+        dhcp2.getDnsServerAddressCount shouldBe 1
+        dhcp2.getDnsServerAddress(0) shouldBe IPProto(nameServers2(0))
 
         // Delete the subnet
         executeSqlStmts(
