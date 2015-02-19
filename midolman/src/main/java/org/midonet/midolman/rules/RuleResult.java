@@ -19,14 +19,25 @@ package org.midonet.midolman.rules;
 import java.util.Objects;
 import java.util.UUID;
 
+import org.midonet.cluster.data.ZoomEnum;
+import org.midonet.cluster.data.ZoomEnumValue;
+import org.midonet.cluster.models.Topology;
+
 public class RuleResult {
 
+    @ZoomEnum(clazz = Topology.Rule.Action.class)
     public enum Action {
+        @ZoomEnumValue(value = "ACCEPT")
         ACCEPT(true),
+        @ZoomEnumValue(value = "CONTINUE")
         CONTINUE(false),
+        @ZoomEnumValue(value = "DROP")
         DROP(true),
+        @ZoomEnumValue(value = "JUMP")
         JUMP(false),
+        @ZoomEnumValue(value = "REJECT")
         REJECT(true),
+        @ZoomEnumValue(value = "RETURN")
         RETURN(false);
 
         private final boolean decisive;
