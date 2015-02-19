@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_28d7ffee",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/InMemoryStorage.scala",
+        "patchSetId": 22
+      },
+      "lineNbr": 201,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-19T17:15:19Z",
+      "side": 1,
+      "message": "True; updated.",
+      "parentUuid": "7a1969be_686297ae",
+      "range": {
+        "startLine": 201,
+        "startChar": 17,
+        "endLine": 201,
+        "endChar": 28
+      },
+      "revId": "31f12276ddf328c34a290e30c188708185bb4780",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_a872cfaa",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/InMemoryStorage.scala",
         "patchSetId": 22
@@ -36,6 +60,30 @@
       "writtenOn": "2015-02-19T10:39:23Z",
       "side": 1,
       "message": "Why do we use a scheduler here?",
+      "range": {
+        "startLine": 249,
+        "startChar": 49,
+        "endLine": 249,
+        "endChar": 71
+      },
+      "revId": "31f12276ddf328c34a290e30c188708185bb4780",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_a30dd039",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/InMemoryStorage.scala",
+        "patchSetId": 22
+      },
+      "lineNbr": 249,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-19T17:15:19Z",
+      "side": 1,
+      "message": "This is an error: it should be observerOn, rather than subscribeOn.\n\nThe scheduler here is intended to emulate the actual ZK behavior, where notifications are received on a different event thread than the calling thread.\n\nI\u0027ve also made some improvements on this in the last patch, where the futures for async operations are also completed on a different I/O thread.",
+      "parentUuid": "7a1969be_a872cfaa",
       "range": {
         "startLine": 249,
         "startChar": 49,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_a324b0af",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/InMemoryStorage.scala",
+        "patchSetId": 22
+      },
+      "lineNbr": 279,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-19T17:15:19Z",
+      "side": 1,
+      "message": "No, here set is used to simulate the changes that would be applied to the storage. If for example we would have two ops deleting o, the second one will throw an exception.\n\nIf everything goes fine (no exception), the set should contain the final set of owners, but that\u0027s discarded here. Changes are only committed when it is confirmed that all other ops in the transaction don\u0027t generate errors.",
+      "parentUuid": "7a1969be_0897a391",
+      "range": {
+        "startLine": 279,
+        "startChar": 41,
+        "endLine": 279,
+        "endChar": 49
+      },
+      "revId": "31f12276ddf328c34a290e30c188708185bb4780",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_e891679b",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/InMemoryStorage.scala",
         "patchSetId": 22
@@ -82,6 +154,30 @@
       "writtenOn": "2015-02-19T10:39:23Z",
       "side": 1,
       "message": "Ditto.",
+      "range": {
+        "startLine": 283,
+        "startChar": 41,
+        "endLine": 283,
+        "endChar": 49
+      },
+      "revId": "31f12276ddf328c34a290e30c188708185bb4780",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_033b04d2",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/InMemoryStorage.scala",
+        "patchSetId": 22
+      },
+      "lineNbr": 283,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-19T17:15:19Z",
+      "side": 1,
+      "message": "See above.",
+      "parentUuid": "7a1969be_e891679b",
       "range": {
         "startLine": 283,
         "startChar": 41,
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_036944be",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/InMemoryStorage.scala",
+        "patchSetId": 22
+      },
+      "lineNbr": 310,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-19T17:15:19Z",
+      "side": 1,
+      "message": "Thanks, done!",
+      "parentUuid": "7a1969be_88d1d359",
+      "range": {
+        "startLine": 305,
+        "startChar": 0,
+        "endLine": 310,
+        "endChar": 62
+      },
+      "revId": "31f12276ddf328c34a290e30c188708185bb4780",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_48919b98",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/InMemoryStorage.scala",
         "patchSetId": 22
@@ -128,6 +248,30 @@
       "writtenOn": "2015-02-19T10:39:23Z",
       "side": 1,
       "message": "Might as well stick this in a val rather than repeating the expression six times.",
+      "range": {
+        "startLine": 367,
+        "startChar": 20,
+        "endLine": 367,
+        "endChar": 40
+      },
+      "revId": "31f12276ddf328c34a290e30c188708185bb4780",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_e36348db",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/InMemoryStorage.scala",
+        "patchSetId": 22
+      },
+      "lineNbr": 367,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-19T17:15:19Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_48919b98",
       "range": {
         "startLine": 367,
         "startChar": 20,
@@ -163,6 +307,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_f5913f9b",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/InMemoryStorage.scala",
+        "patchSetId": 22
+      },
+      "lineNbr": 422,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-19T17:15:19Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_c8de2b3f",
+      "range": {
+        "startLine": 394,
+        "startChar": 0,
+        "endLine": 422,
+        "endChar": 61
+      },
+      "revId": "31f12276ddf328c34a290e30c188708185bb4780",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_e8c9677a",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/TransactionManager.scala",
         "patchSetId": 22
@@ -174,6 +342,30 @@
       "writtenOn": "2015-02-19T10:39:23Z",
       "side": 1,
       "message": "I think this would be a bit clearer if you deconstructed the tuple:\n\n  for ((key, txOp) \u003c- ops) txOp match {\n    // replace op._1 with \"key\" and op._2 with \"txOp\"\n  }",
+      "range": {
+        "startLine": 467,
+        "startChar": 13,
+        "endLine": 467,
+        "endChar": 15
+      },
+      "revId": "31f12276ddf328c34a290e30c188708185bb4780",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_b5f7c7f4",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/TransactionManager.scala",
+        "patchSetId": 22
+      },
+      "lineNbr": 467,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-19T17:15:19Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_e8c9677a",
       "range": {
         "startLine": 467,
         "startChar": 13,
@@ -209,6 +401,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_d542430f",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/TransactionManager.scala",
+        "patchSetId": 22
+      },
+      "lineNbr": 469,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-19T17:15:19Z",
+      "side": 1,
+      "message": "Yes, I was thinking to not create another instances of a TxOp, but rather reuse the existing one. It\u0027s true that each TxCreate, TxUpdate, TxDelete will still contain the ownership ops.",
+      "parentUuid": "7a1969be_68a577b4",
+      "range": {
+        "startLine": 469,
+        "startChar": 33,
+        "endLine": 469,
+        "endChar": 38
+      },
+      "revId": "31f12276ddf328c34a290e30c188708185bb4780",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_c8ac6ba3",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
         "patchSetId": 22
@@ -220,6 +436,30 @@
       "writtenOn": "2015-02-19T10:39:23Z",
       "side": 1,
       "message": "Deconstructing this to (Key(clazz, id), txOp) might clarify things a bit here.",
+      "range": {
+        "startLine": 231,
+        "startChar": 17,
+        "endLine": 231,
+        "endChar": 19
+      },
+      "revId": "31f12276ddf328c34a290e30c188708185bb4780",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_b5e18700",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 22
+      },
+      "lineNbr": 231,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-19T17:15:19Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_c8ac6ba3",
       "range": {
         "startLine": 231,
         "startChar": 17,
@@ -255,6 +495,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_15e85be1",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 22
+      },
+      "lineNbr": 233,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-19T17:15:19Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_a8af6f93",
+      "range": {
+        "startLine": 233,
+        "startChar": 39,
+        "endLine": 233,
+        "endChar": 47
+      },
+      "revId": "31f12276ddf328c34a290e30c188708185bb4780",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_c883cb02",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZoomExceptions.scala",
         "patchSetId": 22
@@ -266,6 +530,30 @@
       "writtenOn": "2015-02-19T10:39:23Z",
       "side": 1,
       "message": "Should this just be private?",
+      "range": {
+        "startLine": 143,
+        "startChar": 40,
+        "endLine": 143,
+        "endChar": 49
+      },
+      "revId": "31f12276ddf328c34a290e30c188708185bb4780",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_95bbabe4",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZoomExceptions.scala",
+        "patchSetId": 22
+      },
+      "lineNbr": 143,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-19T17:15:19Z",
+      "side": 1,
+      "message": "As private it\u0027s not accessible to the other classes in the package.",
+      "parentUuid": "7a1969be_c883cb02",
       "range": {
         "startLine": 143,
         "startChar": 40,
@@ -301,6 +589,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_95a28bac",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZoomExceptions.scala",
+        "patchSetId": 22
+      },
+      "lineNbr": 152,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-19T17:15:19Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_8889d328",
+      "range": {
+        "startLine": 151,
+        "startChar": 67,
+        "endLine": 152,
+        "endChar": 25
+      },
+      "revId": "31f12276ddf328c34a290e30c188708185bb4780",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_688c5736",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZoomExceptions.scala",
         "patchSetId": 22
@@ -312,6 +624,30 @@
       "writtenOn": "2015-02-19T10:39:23Z",
       "side": 1,
       "message": "by?\n\nOr not? I\u0027m not entirely sure what\u0027s going on here.",
+      "range": {
+        "startLine": 155,
+        "startChar": 67,
+        "endLine": 155,
+        "endChar": 70
+      },
+      "revId": "31f12276ddf328c34a290e30c188708185bb4780",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_b5afc793",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZoomExceptions.scala",
+        "patchSetId": 22
+      },
+      "lineNbr": 155,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-19T17:15:19Z",
+      "side": 1,
+      "message": "It is by, yes.",
+      "parentUuid": "7a1969be_688c5736",
       "range": {
         "startLine": 155,
         "startChar": 67,
