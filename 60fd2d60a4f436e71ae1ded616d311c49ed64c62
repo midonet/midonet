@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_8800b302",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/neutron/NeutronImporter.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-02-19T05:49:31Z",
+      "side": 1,
+      "message": "In Scala, Map is immutable by default, so you can just do\n\n\nprivate val vals \u003d Map((NoData, NoData.id),\n                       (Subnet.id, Subnet),\n                       ....)",
+      "range": {
+        "startLine": 81,
+        "startChar": 23,
+        "endLine": 89,
+        "endChar": 70
+      },
+      "revId": "60fd2d60a4f436e71ae1ded616d311c49ed64c62",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
