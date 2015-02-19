@@ -79,7 +79,7 @@ object RoutingHandler {
 
     private case class RemovePeerRoute(ribType: RIBType.Value,
                                        destination: IPv4Subnet,
-                                       gateway: IPv4Addr, distance: Byte)
+                                       gateway: IPv4Addr)
 
     private case class DpPortCreateSuccess(port: DpPort, pid: Int)
     private case class DpPortDeleteSuccess(port: DpPort)
@@ -285,8 +285,8 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
         }
 
         def removeRoute(ribType: RIBType.Value, destination: IPv4Subnet,
-                        gateway: IPv4Addr, distance: Byte) {
-            self ! RemovePeerRoute(ribType, destination, gateway, distance)
+                        gateway: IPv4Addr) {
+            self ! RemovePeerRoute(ribType, destination, gateway)
         }
     }
 
@@ -550,8 +550,8 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
                     // ignore
             }
 
-        case RemovePeerRoute(ribType, destination, gateway, distance) =>
-            log.info(s"($phase) RemovePeerRoute: $ribType, $destination, $gateway, $distance")
+        case RemovePeerRoute(ribType, destination, gateway) =>
+            log.info(s"($phase) RemovePeerRoute: $ribType, $destination, $gateway")
             phase match {
                 case NotStarted =>
                     log.error("({}) RemovePeerRoute: unexpected", phase)
@@ -566,7 +566,6 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
                     route.setNextHopGateway(gateway.toString)
                     route.setNextHop(org.midonet.midolman.layer3.Route.NextHop.PORT)
                     route.setNextHopPort(rport.id)
-                    route.setWeight(distance)
                     peerRoutes.remove(route) match {
                         case Some(routeId) => deleteRoute(routeId)
                         case None =>
