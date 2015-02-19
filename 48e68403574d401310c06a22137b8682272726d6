@@ -1,0 +1,101 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_7d96dbf1",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/C3POMinionTest.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 332,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-02-19T04:05:26Z",
+      "side": 1,
+      "message": "s/external/router:external/",
+      "range": {
+        "startLine": 332,
+        "startChar": 15,
+        "endLine": 332,
+        "endChar": 23
+      },
+      "revId": "48e68403574d401310c06a22137b8682272726d6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_ddab8f1c",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/C3POMinionTest.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 630,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-02-19T04:05:26Z",
+      "side": 1,
+      "message": "This should start from 2 by the spec.",
+      "range": {
+        "startLine": 630,
+        "startChar": 45,
+        "endLine": 630,
+        "endChar": 46
+      },
+      "revId": "48e68403574d401310c06a22137b8682272726d6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_fdb00b8d",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/C3POMinionTest.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 653,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-02-19T04:05:26Z",
+      "side": 1,
+      "message": "This should be other way around:\n\ndhcp.getDnsServerAddress should contain IPAddressUtil.toProto(nameServers(0))",
+      "revId": "48e68403574d401310c06a22137b8682272726d6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_1da6c753",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/C3POMinionTest.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 668,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-02-19T04:05:26Z",
+      "side": 1,
+      "message": "We should also test that the server address is unchanged.",
+      "revId": "48e68403574d401310c06a22137b8682272726d6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_3dabc31e",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/C3POMinionTest.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 675,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-02-19T04:05:26Z",
+      "side": 1,
+      "message": "Ditto.",
+      "revId": "48e68403574d401310c06a22137b8682272726d6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
