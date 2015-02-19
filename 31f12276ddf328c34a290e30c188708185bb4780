@@ -1,0 +1,326 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_686297ae",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/InMemoryStorage.scala",
+        "patchSetId": 22
+      },
+      "lineNbr": 201,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-02-19T10:39:23Z",
+      "side": 1,
+      "message": "The comment on this method says it needs a read lock, but the comment here says lock-free.",
+      "range": {
+        "startLine": 201,
+        "startChar": 17,
+        "endLine": 201,
+        "endChar": 28
+      },
+      "revId": "31f12276ddf328c34a290e30c188708185bb4780",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_a872cfaa",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/InMemoryStorage.scala",
+        "patchSetId": 22
+      },
+      "lineNbr": 249,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-02-19T10:39:23Z",
+      "side": 1,
+      "message": "Why do we use a scheduler here?",
+      "range": {
+        "startLine": 249,
+        "startChar": 49,
+        "endLine": 249,
+        "endChar": 71
+      },
+      "revId": "31f12276ddf328c34a290e30c188708185bb4780",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_0897a391",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/InMemoryStorage.scala",
+        "patchSetId": 22
+      },
+      "lineNbr": 279,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-02-19T10:39:23Z",
+      "side": 1,
+      "message": "What does this do? The set doesn\u0027t escape the method, does it?",
+      "range": {
+        "startLine": 279,
+        "startChar": 41,
+        "endLine": 279,
+        "endChar": 49
+      },
+      "revId": "31f12276ddf328c34a290e30c188708185bb4780",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_e891679b",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/InMemoryStorage.scala",
+        "patchSetId": 22
+      },
+      "lineNbr": 283,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-02-19T10:39:23Z",
+      "side": 1,
+      "message": "Ditto.",
+      "range": {
+        "startLine": 283,
+        "startChar": 41,
+        "endLine": 283,
+        "endChar": 49
+      },
+      "revId": "31f12276ddf328c34a290e30c188708185bb4780",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_88d1d359",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/InMemoryStorage.scala",
+        "patchSetId": 22
+      },
+      "lineNbr": 310,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-02-19T10:39:23Z",
+      "side": 1,
+      "message": "It\u0027s fine as is, but FYI, filter + map \u003d collect:\n\n  val delOwners \u003d ownerOps.collect{case op: TxDeleteOwner \u003d\u003e op.owner}\n  if (!delOwners.forall(owners.keySet.contains))\n      throw new OwnershipConflictException(\n          clazz.toString, id.toString, delDiff.head)",
+      "range": {
+        "startLine": 305,
+        "startChar": 0,
+        "endLine": 310,
+        "endChar": 62
+      },
+      "revId": "31f12276ddf328c34a290e30c188708185bb4780",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_48919b98",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/InMemoryStorage.scala",
+        "patchSetId": 22
+      },
+      "lineNbr": 367,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-02-19T10:39:23Z",
+      "side": 1,
+      "message": "Might as well stick this in a val rather than repeating the expression six times.",
+      "range": {
+        "startLine": 367,
+        "startChar": 20,
+        "endLine": 367,
+        "endChar": 40
+      },
+      "revId": "31f12276ddf328c34a290e30c188708185bb4780",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_c8de2b3f",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/InMemoryStorage.scala",
+        "patchSetId": 22
+      },
+      "lineNbr": 422,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-02-19T10:39:23Z",
+      "side": 1,
+      "message": "These appear to be the same in both implementations of Storage. Should we move the definitions up to the trait?",
+      "range": {
+        "startLine": 394,
+        "startChar": 0,
+        "endLine": 422,
+        "endChar": 61
+      },
+      "revId": "31f12276ddf328c34a290e30c188708185bb4780",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_e8c9677a",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/TransactionManager.scala",
+        "patchSetId": 22
+      },
+      "lineNbr": 467,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-02-19T10:39:23Z",
+      "side": 1,
+      "message": "I think this would be a bit clearer if you deconstructed the tuple:\n\n  for ((key, txOp) \u003c- ops) txOp match {\n    // replace op._1 with \"key\" and op._2 with \"txOp\"\n  }",
+      "range": {
+        "startLine": 467,
+        "startChar": 13,
+        "endLine": 467,
+        "endChar": 15
+      },
+      "revId": "31f12276ddf328c34a290e30c188708185bb4780",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_68a577b4",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/TransactionManager.scala",
+        "patchSetId": 22
+      },
+      "lineNbr": 469,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-02-19T10:39:23Z",
+      "side": 1,
+      "message": "Shouldn\u0027t we be stripping out the ownerOps? I guess it doesn\u0027t matter since they\u0027re ignored by callers of flattenOps, but the sequence of operations actually returned has the owner ops duplicated.",
+      "range": {
+        "startLine": 469,
+        "startChar": 33,
+        "endLine": 469,
+        "endChar": 38
+      },
+      "revId": "31f12276ddf328c34a290e30c188708185bb4780",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_c8ac6ba3",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 22
+      },
+      "lineNbr": 231,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-02-19T10:39:23Z",
+      "side": 1,
+      "message": "Deconstructing this to (Key(clazz, id), txOp) might clarify things a bit here.",
+      "range": {
+        "startLine": 231,
+        "startChar": 17,
+        "endLine": 231,
+        "endChar": 19
+      },
+      "revId": "31f12276ddf328c34a290e30c188708185bb4780",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_a8af6f93",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 22
+      },
+      "lineNbr": 233,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-02-19T10:39:23Z",
+      "side": 1,
+      "message": "I would replace with _ since it\u0027s not used. Same with TxUpdate and TxDelete.",
+      "range": {
+        "startLine": 233,
+        "startChar": 39,
+        "endLine": 233,
+        "endChar": 47
+      },
+      "revId": "31f12276ddf328c34a290e30c188708185bb4780",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_c883cb02",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZoomExceptions.scala",
+        "patchSetId": 22
+      },
+      "lineNbr": 143,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-02-19T10:39:23Z",
+      "side": 1,
+      "message": "Should this just be private?",
+      "range": {
+        "startLine": 143,
+        "startChar": 40,
+        "endLine": 143,
+        "endChar": 49
+      },
+      "revId": "31f12276ddf328c34a290e30c188708185bb4780",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_8889d328",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZoomExceptions.scala",
+        "patchSetId": 22
+      },
+      "lineNbr": 152,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-02-19T10:39:23Z",
+      "side": 1,
+      "message": "Can this be more specific? \"Because it is owned by another owner?\" for example?",
+      "range": {
+        "startLine": 151,
+        "startChar": 67,
+        "endLine": 152,
+        "endChar": 25
+      },
+      "revId": "31f12276ddf328c34a290e30c188708185bb4780",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_688c5736",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZoomExceptions.scala",
+        "patchSetId": 22
+      },
+      "lineNbr": 155,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-02-19T10:39:23Z",
+      "side": 1,
+      "message": "by?\n\nOr not? I\u0027m not entirely sure what\u0027s going on here.",
+      "range": {
+        "startLine": 155,
+        "startChar": 67,
+        "endLine": 155,
+        "endChar": 70
+      },
+      "revId": "31f12276ddf328c34a290e30c188708185bb4780",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
