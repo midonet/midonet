@@ -22,9 +22,9 @@ import java.util.concurrent.atomic.{AtomicInteger, AtomicBoolean, AtomicReferenc
 import java.util.concurrent.{Future => JavaFuture, Callable, TimeUnit, ConcurrentHashMap, ExecutorService}
 import java.util.concurrent.Executors.newSingleThreadExecutor
 import java.util.concurrent.Executors.newSingleThreadScheduledExecutor
-import java.util.concurrent.Executors.newCachedThreadPool
 
 import org.midonet.cluster.models.Commons
+import org.midonet.util.executors.SameThreadExecutor
 import rx.schedulers.Schedulers
 
 import scala.collection.JavaConversions._
@@ -103,10 +103,6 @@ object SessionInventory {
     } catch {
         case t: Throwable => null
     }
-
-    /* Thread pool for asynchronous session tasks */
-    private val sessionExecutor = newCachedThreadPool(
-        new NamedThreadFactory("topology-session"))
 
     /* Thread pool to handle session expirations */
     val sessionTimer = newSingleThreadScheduledExecutor(
@@ -248,7 +244,14 @@ protected class Buffer(minCapacity: Int, reader: ExecutorService)
     }
 
     // future thread return value (for final join)
-    private var threadResult: JavaFuture[Null] = null
+    private val threadResult = new AtomicReference[JavaFuture[Null]](null)
+    private def waitForConsumerTermination(): Unit = {
+        val termination = threadResult.getAndSet(null)
+        if (termination != null) {
+            ring.pauseRead()
+            termination.get()
+        }
+    }
 
     /**
      * Subscribe to the ring buffer at the specified position
@@ -258,21 +261,23 @@ protected class Buffer(minCapacity: Int, reader: ExecutorService)
             throw new HermitOversubscribedException
         ring.resumeRead()
         ring.seek(seqno)
-        threadResult = reader.submit(consumer)
+        threadResult.set(reader.submit(consumer))
         val subs = BooleanSubscription.create(
             // on unsubscribe:
             makeAction0
             {
-                val termination = threadResult
                 if (subscriber.get() == s) {
-                    // signal and wait for thread termination
-                    ring.pauseRead()
-                    termination.get()
+                    waitForConsumerTermination()
                     subscriber.set(null)
                 }
             })
         s.add(subs)
         subs
+    }
+
+    def stop(): Unit = {
+        ring.complete()
+        waitForConsumerTermination()
     }
 }
 
@@ -305,12 +310,10 @@ class SessionInventory(private val store: Storage,
             new NamedThreadFactory("topology-session-subscriber"))
         private val scheduler = Schedulers.from(receiverExecutor)
 
-        private implicit val ec =
-            ExecutionContext.fromExecutorService(sessionExecutor)
-
         private val funnel = new Aggregator[ObservableId, Response.Builder]()
         private val buffer = new Buffer(bufferSize, senderExecutor)
-        funnel.observable().observeOn(scheduler).subscribe(buffer)
+        private val bufferSubscription =
+            funnel.observable().observeOn(scheduler).subscribe(buffer)
 
         private val session = this
 
@@ -377,6 +380,14 @@ class SessionInventory(private val store: Storage,
                 log.debug("destroying session: " + sessionId)
                 funnel.dispose()
                 inventory.remove(sessionId)
+                bufferSubscription.unsubscribe()
+                buffer.stop()
+                receiverExecutor.shutdown()
+                senderExecutor.shutdown()
+                if (!receiverExecutor.awaitTermination(5, TimeUnit.SECONDS))
+                    receiverExecutor.shutdownNow()
+                if (!senderExecutor.awaitTermination(5, TimeUnit.SECONDS))
+                    senderExecutor.shutdownNow()
                 expirationComplete.success(true)
             }
         }
@@ -406,7 +417,7 @@ class SessionInventory(private val store: Storage,
                                  ofType + " " + id, other)
                         funnel.inject(nackWith.toBuilder)
                 }
-            }
+            } (ExecutionContext.fromExecutor(SameThreadExecutor))
         }
 
         override def watch[M <: Message](id: Id, ofType: Class[M],

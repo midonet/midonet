@@ -16,7 +16,6 @@
 
 package org.midonet.brain.services.topology.server
 
-import java.util.ArrayList
 import java.util.UUID
 import java.util.concurrent.{TimeUnit, CountDownLatch}
 
@@ -35,7 +34,6 @@ import org.scalatest.junit.JUnitRunner
 import org.scalatest.{FeatureSpec, Matchers}
 import org.slf4j.LoggerFactory
 
-import rx.functions.Action1
 import rx.{Observable, Observer}
 import rx.subjects.{ReplaySubject, Subject}
 
@@ -52,7 +50,7 @@ import org.midonet.util.netty._
 @RunWith(classOf[JUnitRunner])
 class ServerFrontEndTest extends FeatureSpec with Matchers {
 
-    val WAIT_TIME = Duration.create(5000, TimeUnit.MILLISECONDS)
+    val WAIT_TIME = Duration.create(10000, TimeUnit.MILLISECONDS)
 
     def genUUID(msb: Long, lsb: Long): Commons.UUID =
         UUIDUtil.toProto(new UUID(msb, lsb))
@@ -140,9 +138,9 @@ class ServerFrontEndTest extends FeatureSpec with Matchers {
                                          port)
 
             srv.startAsync().awaitRunning()
-            srv.isRunning should be (true)
+            srv.isRunning shouldBe true
             srv.stopAsync().awaitTerminated()
-            srv.isRunning should be (false)
+            srv.isRunning shouldBe false
         }
     }
 
@@ -171,7 +169,7 @@ class ServerFrontEndTest extends FeatureSpec with Matchers {
 
         abstract class clientEngine extends Observer[CommEvent] {
             def observable: Observable[Commands.Response]
-            def awaitCompletion(): Unit
+            def awaitCompletion(t: Duration): Unit
         }
 
         def newClient = new clientEngine {
@@ -180,10 +178,10 @@ class ServerFrontEndTest extends FeatureSpec with Matchers {
             private val out: Subject[Commands.Response, Commands.Response] =
                 ReplaySubject.create()
             private val obs: Observable[Commands.Response] =
-                out.asObservable.doOnCompleted(makeAction0 {
+                out.doOnCompleted(makeAction0 {
                     lck.countDown()
                     log.debug("COMPLETED")
-                })
+                }).asObservable()
             private var channel: ChannelHandlerContext = null
             private var sendNext = 1
             private val sender = new ChannelFutureListener {
@@ -197,7 +195,8 @@ class ServerFrontEndTest extends FeatureSpec with Matchers {
                 }
             }
             override def observable = obs
-            override def awaitCompletion() = lck.await(10, TimeUnit.SECONDS)
+            override def awaitCompletion(t: Duration) =
+                lck.await(t.toMillis, TimeUnit.MILLISECONDS)
             override def onError(exc: Throwable): Unit = {
                 log.error("error on client observable", exc)
                 out.onCompleted()
@@ -228,7 +227,7 @@ class ServerFrontEndTest extends FeatureSpec with Matchers {
             val srv = new ServerFrontEnd(
                 new ProtoBufSocketAdapter(handler, serverExpected), port)
             srv.startAsync().awaitRunning()
-            srv.isRunning should be (true)
+            srv.isRunning shouldBe true
 
             val answers = new AwaitableObserver[Commands.Response](4)
             val client = newClient
@@ -239,8 +238,9 @@ class ServerFrontEndTest extends FeatureSpec with Matchers {
                 new ProtoBufSocketAdapter(clienthandler, clientExpected), host, port)
 
             cli.startAsync().awaitRunning()
-            cli.isRunning should be (true)
+            cli.isRunning shouldBe true
 
+            client.awaitCompletion(WAIT_TIME)
             answers.await(WAIT_TIME)
 
             cli.stopAsync().awaitTerminated()
@@ -251,7 +251,7 @@ class ServerFrontEndTest extends FeatureSpec with Matchers {
             val events = collectionAsScalaIterable(answers.getOnNextEvents).toArray
             events.size should be (4)
             responses.zip(events)
-                .forall(x => {x._1 == x._2}) should be (true)
+                .forall(x => {x._1 == x._2}) shouldBe true
         }
 
     }
@@ -270,9 +270,9 @@ class ServerFrontEndTest extends FeatureSpec with Matchers {
                 new ProtoBufWebSocketServerAdapter(handler, expected, path), port)
 
             srv.startAsync().awaitRunning()
-            srv.isRunning should be (true)
+            srv.isRunning shouldBe true
             srv.stopAsync().awaitTerminated()
-            srv.isRunning should be (false)
+            srv.isRunning shouldBe false
        }
     }
 }
