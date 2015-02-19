@@ -16,6 +16,7 @@
 
 package org.midonet.midolman
 
+import java.util.UUID.randomUUID
 import java.util.{ArrayList, HashSet, UUID}
 import java.util.concurrent.TimeUnit
 
@@ -70,8 +71,7 @@ class ConnTrackBenchmark extends MidolmanBenchmark {
     var rightPort: BridgePort = _
 
     val underlayResolver = new UnderlayResolver {
-        override def host= new ResolvedHost(UUID.randomUUID(), true, "midonet",
-                                            Map(), Map())
+        override def host= new ResolvedHost(randomUUID(), true, Map(), Map())
         override def peerTunnelInfo(peer: UUID): Option[Route] = None
         override def isVtepTunnellingPort(portNumber: Integer): Boolean = false
         override def isOverlayTunnellingPort(portNumber: Integer): Boolean = false
