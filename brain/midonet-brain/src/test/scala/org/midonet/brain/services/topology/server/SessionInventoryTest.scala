@@ -475,7 +475,7 @@ class SessionInventoryTest extends FeatureSpec
         {
             val sId = UUID.randomUUID()
             val session = inv.claim(sId)
-            val collector = new AwaitableObserver[Response](2)
+            val collector = new AwaitableObserver[Response](1)
             val subs = session.observable().subscribe(collector)
 
             val req = UUID.randomUUID()
@@ -493,7 +493,7 @@ class SessionInventoryTest extends FeatureSpec
         {
             val sId = UUID.randomUUID()
             val session = inv.claim(sId)
-            val collector = new AwaitableObserver[Response](4)
+            val collector = new AwaitableObserver[Response](2)
             val subs = session.observable().subscribe(collector)
 
             val req1 = UUID.randomUUID()
@@ -503,6 +503,8 @@ class SessionInventoryTest extends FeatureSpec
             store.create(bridge(oId, "bridge"))
             session.watch(Uuid(oId), classOf[Network], nack(req1))
             store.update(bridge(oId, "bridge-1"))
+            collector.await(WAIT_TIME)
+            collector.reset(1)
             session.terminate()
             store.update(bridge(oId, "bridge-2"))
             store.delete(classOf[Network], UUIDUtil.toProto(oId))
