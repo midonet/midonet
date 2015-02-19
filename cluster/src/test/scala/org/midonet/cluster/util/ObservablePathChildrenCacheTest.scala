@@ -23,6 +23,7 @@ import scala.collection.mutable.ListBuffer
 import ch.qos.logback.classic.Level
 import org.apache.curator.framework.recipes.cache.ChildData
 import org.apache.curator.retry.RetryOneTime
+import org.junit.After
 import org.junit.runner.RunWith
 import org.scalatest._
 import org.scalatest.junit.JUnitRunner
@@ -31,11 +32,14 @@ import rx.Observable
 import rx.observers.{TestObserver, TestSubscriber}
 
 import org.midonet.cluster.util.ObservableTestUtils.observer
+import org.midonet.util.MidonetEventually
+import org.midonet.util.functors.makeRunnable
 
 @RunWith(classOf[JUnitRunner])
 class ObservablePathChildrenCacheTest extends Suite
                                       with CuratorTestFramework
-                                      with Matchers {
+                                      with Matchers
+                                      with MidonetEventually {
 
     val log = LoggerFactory.getLogger(classOf[ObservablePathChildrenCache])
 
@@ -65,6 +69,11 @@ class ObservablePathChildrenCacheTest extends Suite
         def extractData(): List[String] =
             childObserver.getOnNextEvents.map(d => new String(d.getData)).toList
 
+    }
+
+    @After
+    override def teardown(): Unit = {
+        zk.getTempDirectory.delete()
     }
 
     /** Verifes all the child observables and ensures that they contain exactly
@@ -194,24 +203,31 @@ class ObservablePathChildrenCacheTest extends Suite
         val collector = new ChildDataAccumulator()
         val opcc = ObservablePathChildrenCache.create(curator, ZK_ROOT)
         opcc.subscribe(collector)
-        Thread sleep 500
-        collector.getOnNextEvents should have size 2 // data is there
 
-        // Delete one node
-        val deletedPath = s"$ZK_ROOT/1"
-        curator.delete().forPath(deletedPath)
+        eventually {
+            collector.getOnNextEvents should have size 2
+            collector.children.head.getOnNextEvents should have size 1
+        }
 
-        Thread sleep 500  // let Curator catch up
+        val delPath = collector.children.head.getOnNextEvents.get(0).getPath
+        log.debug(s"Deleting $delPath")
+        curator.delete().forPath(delPath)
 
-        // Order is not deterministic, so let's find out which one is deleted
-        val (deleted, kept) = collector.children.partition (
-            _.getOnNextEvents.head.getPath.equals(deletedPath)
-        )
-        kept.head.getOnCompletedEvents should be (empty)
-        deleted.head.getOnCompletedEvents should not be empty
+        eventually {
+            collector.children.head.getOnCompletedEvents should have size 1
+            collector.getOnNextEvents should have size 2
+        }
+
+        collector.children.tail foreach { to =>
+            to.getOnNextEvents should have size 1
+            to.getOnCompletedEvents shouldBe empty
+            to.getOnErrorEvents shouldBe empty
+        }
+
         // The overall collector should not complete, since there is one active
         // child
-        collector.getOnCompletedEvents should be (empty)
+        collector.getOnCompletedEvents shouldBe empty
+        collector.getOnErrorEvents shouldBe empty
     }
 
     /* Creates a node with initial state, asserts that we get the primed
@@ -236,10 +252,10 @@ class ObservablePathChildrenCacheTest extends Suite
         val _1 = new TestObserver[ChildData]()
         opcc.observableChild(nodeData.keys.head).subscribe(_1)
 
-        Thread sleep 500
-
-        collector.extractData().head shouldEqual childData
-        childData shouldEqual new String(_1.getOnNextEvents.head.getData)
+        eventually {
+           collector.extractData().head shouldEqual childData
+           childData shouldEqual new String(_1.getOnNextEvents.head.getData)
+        }
 
         // Let's trigger some updates
         val path = nodeData.keys.head
@@ -247,9 +263,7 @@ class ObservablePathChildrenCacheTest extends Suite
         curator.setData().forPath(path, "b".getBytes)
         curator.setData().forPath(path, "c".getBytes)
 
-        Thread sleep 500
-
-        "c" shouldEqual new String(opcc.child(path).getData)
+        eventually { "c" shouldEqual new String(opcc.child(path).getData) }
 
         // We don't necessarily get all updates, but at least converge to "c"
         // on the last one
@@ -270,20 +284,18 @@ class ObservablePathChildrenCacheTest extends Suite
 
         opcc.subscribe(collector)
 
-        Thread sleep 1000
-
-        collector.getOnNextEvents should have size 1
+        eventually { collector.getOnNextEvents should have size 1 }
 
         val newChildData = "new"
         val newChildPath = ZK_ROOT + "/newchild"
         curator.create().forPath(ZK_ROOT + "/newchild", newChildData.getBytes)
 
-        Thread sleep 1000
+        eventually {
+            collector.getOnNextEvents should have size 2
+            collector.getOnErrorEvents shouldBe empty
+            collector.getOnCompletedEvents shouldBe empty
+        }
 
-        collector.getOnErrorEvents should be (empty)
-        collector.getOnCompletedEvents should be (empty)
-
-        collector.getOnNextEvents should have size 2
         collector.extractData() should contain (oldChildData)
         collector.extractData() should contain (newChildData)
 
@@ -294,10 +306,9 @@ class ObservablePathChildrenCacheTest extends Suite
     /* This tests ensures that there are no gaps in child observables if
      * subscriptions and new children appear concurrently. This is focused
      * mostly on syncing the subscribe() and newChild() handling. */
-    @Ignore
     def testRaceConditionOnSubscription() {
 
-        // Avoid spam on the Curator lib, hits performance
+        // Avoid spam on the test zk server, hits performance
         val zkLogger = LoggerFactory.getLogger("org.apache.zookeeper")
                                     .asInstanceOf[ch.qos.logback.classic.Logger]
         zkLogger.setLevel(Level.toLevel("INFO"))
@@ -311,31 +322,23 @@ class ObservablePathChildrenCacheTest extends Suite
         val opcc = ObservablePathChildrenCache.create(curator, ZK_ROOT)
 
         // Let the OPCC catch up to the initial state
-        var maxRetries = 20
-        while (opcc.allChildren.size < nInitial) {
-            if (maxRetries <= 0) {
-                fail("Timeout waiting for storage preseeding")
-            }
-            maxRetries -= 1
-            Thread.sleep(200)
+        eventually {
+           opcc.allChildren should have size nInitial
         }
-        opcc.allChildren should have size nInitial
 
         // This thread will add elements until reaching nTotal children
         val step = 5
-        val updater = new Runnable() {
-            override def run() {
-                log.info("I'm creating additional paths..")
-                try {
-                    nInitial until (nTotal, step) foreach { i =>
-                        makePaths(i, i + step)
-                        Thread sleep 10
-                    }
-                } catch {
-                    case _: Throwable => fail("Cannot create paths")
+        val updater = makeRunnable {
+            log.info("I'm creating additional paths..")
+            try {
+                nInitial until (nTotal, step) foreach { i =>
+                    makePaths(i, i + step)
+                    Thread sleep 10
                 }
-                log.info("All children created")
+            } catch {
+                case _: Throwable => fail("Cannot create paths")
             }
+            log.info("All children created")
         }
 
         val es: ExecutorService = new ForkJoinPool(nSubs + 1)
@@ -368,16 +371,9 @@ class ObservablePathChildrenCacheTest extends Suite
 
         }
 
-        maxRetries = 20
-        while (opcc.allChildren.size < nTotal) {
-            if (maxRetries <= 0) {
-                fail("Timeout waiting for child nodes to be created")
-            }
-            maxRetries -= 1
-            Thread.sleep(1000)
+        eventually {
+            opcc.allChildren should have size nTotal
         }
-
-        opcc.allChildren should have size nTotal
 
         // Extract all elements present in the cache
         val children = opcc.allChildren
@@ -421,9 +417,9 @@ class ObservablePathChildrenCacheConnectionTest extends Suite
     with Matchers {
 
     // Relaxed retry policy to spare time to the tests
-    override protected val retryPolicy = new RetryOneTime(500)
+    override protected val retryPolicy = new RetryOneTime(1000)
 
-    override def cnxnTimeoutMs = 1000
+    override def cnxnTimeoutMs = 2000
     override def sessionTimeoutMs = 10000
 
     def testOnErrorEmittedWhenCacheLosesConnection(): Unit = {

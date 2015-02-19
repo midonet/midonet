@@ -248,7 +248,7 @@ class OnSubscribeToPathChildren(zk: CuratorFramework, path: String)
             cs = childStreams.remove(e.getData.getPath)
         }
         if (!connectionLost) {
-            cs.foreach(_.onCompleted())
+            cs.foreach { _.onCompleted() }
         }
     }
 
