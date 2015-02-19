@@ -17,6 +17,9 @@ package org.midonet.midolman.rules;
 
 import java.util.EnumSet;
 
+import org.midonet.cluster.data.ZoomEnum;
+import org.midonet.cluster.data.ZoomEnumValue;
+import org.midonet.cluster.models.Topology;
 import org.midonet.odp.flows.IPFragmentType;
 
 import static org.midonet.odp.flows.IPFragmentType.*;
@@ -26,26 +29,31 @@ import static org.midonet.odp.flows.IPFragmentType.*;
  * Condition to cause rules to match some combination of unfragmented
  * packets, header fragments, and non-header fragments.
  */
+@ZoomEnum(clazz = Topology.Rule.FragmentPolicy.class)
 public enum FragmentPolicy {
     /**
      * Matches any packet, fragmented or not.
      */
+    @ZoomEnumValue(value = "ANY")
     ANY(First, Later, None),
 
     /**
      * Matches only non-header fragment packets.
      */
+    @ZoomEnumValue(value = "NONHEADER")
     NONHEADER(Later),
 
     /**
      * Matches unfragmented packets and header fragments, i.e., any
      * packet with full headers.
      */
+    @ZoomEnumValue(value = "HEADER")
     HEADER(First, None),
 
     /**
      * Matches only unfragmented packets.
      */
+    @ZoomEnumValue(value = "UNFRAGMENTED")
     UNFRAGMENTED(None);
 
     private final EnumSet<IPFragmentType> acceptedFragmentTypes;
