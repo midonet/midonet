@@ -26,6 +26,7 @@ import org.apache.curator.framework.api._
 import org.apache.curator.framework.recipes.cache.PathChildrenCache.StartMode
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent.Type._
 import org.apache.curator.framework.recipes.cache._
+import org.apache.curator.framework.state.{ConnectionStateListener, ConnectionState}
 import org.apache.zookeeper.KeeperException.Code.{NONODE, OK}
 import org.apache.zookeeper.KeeperException.NoNodeException
 import org.apache.zookeeper.WatchedEvent
@@ -117,9 +118,8 @@ class OnSubscribeToPathChildren(zk: CuratorFramework, path: String)
                     log.debug(s"connection suspended $path")
                 case CONNECTION_RECONNECTED =>
                     log.debug(s"connection restored $path")
-                case CONNECTION_LOST => lostConnection(
-                    new PathCacheDisconnectedException()
-                )
+                case CONNECTION_LOST =>
+                    lostConnection(new PathCacheDisconnectedException())
                 case INITIALIZED =>
                     initialized = true
                     doInitialize = null // gc the callback
@@ -127,6 +127,22 @@ class OnSubscribeToPathChildren(zk: CuratorFramework, path: String)
             }
         }
     }
+
+    // The listener that will deal with connection state changes. Curator
+    // has a custom thread managing the connection, so processing this needs to
+    // be thread-safe with data notifications (that run on the event thread)
+    private var connListener = new ConnectionStateListener {
+        override def stateChanged(client: CuratorFramework,
+                                  newState: ConnectionState): Unit = {
+            newState match {
+                case ConnectionState.LOST =>
+                    lostConnection(new PathCacheDisconnectedException())
+                case _ =>
+            }
+        }
+    }
+
+    zk.getConnectionStateListenable.addListener(connListener)
 
     lazy private val cache = new PathChildrenCache(zk, path, true)
     cache.getListenable.addListener(cacheListener)
@@ -212,11 +228,13 @@ class OnSubscribeToPathChildren(zk: CuratorFramework, path: String)
     private def lostConnection(e: Throwable): Unit = {
         connectionLost = true
         cache.getListenable.removeListener(cacheListener)
+        zk.getConnectionStateListenable.removeListener(connListener)
         cache.close()
         stream.onError(e)
         childStreams.values.foreach(_ onError e)
         childStreams.clear()
         cacheListener = null
+        connListener = null
         watcher = null
     }
 
