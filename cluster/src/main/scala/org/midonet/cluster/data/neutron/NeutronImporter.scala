@@ -78,9 +78,13 @@ object NeutronResourceType extends Enumeration {
     val PortBinding =
         NeutronResourceType(12, classOf[PortBinding])
 
-    private val vals = Array(NoData, Network, Subnet, Router, Port, FloatingIp,
-                             SecurityGroup, SecurityGroupRule, RouterInterface,
-                             PortBinding)
+    private val vals = Map(NoData.id -> NoData, Network.id -> Network,
+                           Subnet.id -> Subnet, Router.id -> Router,
+                           Port.id -> Port, FloatingIp.id -> FloatingIp,
+                           SecurityGroup.id -> SecurityGroup,
+                           SecurityGroupRule.id -> SecurityGroupRule,
+                           PortBinding.id -> PortBinding)
+
     def valueOf(i: Int) = vals(i)
 }
 
