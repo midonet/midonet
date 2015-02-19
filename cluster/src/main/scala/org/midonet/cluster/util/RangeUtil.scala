@@ -18,16 +18,22 @@ package org.midonet.cluster.util
 import java.lang.reflect.Type
 
 import org.midonet.cluster.data.ZoomConvert
-import org.midonet.packets.MAC
+import org.midonet.cluster.models.Commons.Int32Range
+import org.midonet.util.Range
 
-object MACUtil {
-    sealed class Converter extends ZoomConvert.Converter[MAC, String] {
+object RangeUtil {
+    sealed class Converter extends ZoomConvert.Converter[Range[Integer],
+                                                         Int32Range] {
 
-        override def toProto(value: MAC, clazz: Type): String =
-            value.toString
+        override def toProto(value: Range[Integer], clazz: Type): Int32Range =
+            Int32Range.newBuilder
+                .setStart(value.start())
+                .setEnd(value.end())
+                .build()
 
-        override def fromProto(value: String, clazz: Type): MAC =
-            MAC.fromString(value)
+        override def fromProto(value: Int32Range, clazz: Type): Range[Integer] = {
+            val range = new Range[Integer](value.getStart, value.getEnd)
+            range
+        }
     }
 }
-

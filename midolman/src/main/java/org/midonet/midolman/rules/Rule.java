@@ -18,10 +18,21 @@ package org.midonet.midolman.rules;
 
 import java.util.*;
 
+import com.google.protobuf.MessageOrBuilder;
+
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.annotate.JsonSubTypes;
 import org.codehaus.jackson.annotate.JsonTypeInfo;
+
+import org.midonet.cluster.data.ZoomClass;
+import org.midonet.cluster.data.ZoomConvert;
+import org.midonet.cluster.data.ZoomEnum;
+import org.midonet.cluster.data.ZoomField;
+import org.midonet.cluster.data.ZoomObject;
+import org.midonet.cluster.models.Topology;
+import org.midonet.cluster.util.UUIDUtil;
+import org.midonet.midolman.topology.VirtualTopology;
 import org.midonet.sdn.flows.FlowTagger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,11 +49,16 @@ import org.midonet.midolman.simulation.PacketContext;
     @JsonSubTypes.Type(value = ForwardNatRule.class, name = "ForwardNat"),
     @JsonSubTypes.Type(value = ReverseNatRule.class, name = "ReverseNat")
 })
-public abstract class Rule {
+
+@ZoomClass(clazz = Topology.Rule.class, factory = Rule.RuleFactory.class)
+public abstract class Rule extends ZoomObject {
     private final static Logger log = LoggerFactory.getLogger(Rule.class);
 
-    private Condition condition;
+    protected Condition condition;
+
+    @ZoomField(name = "action")
     public Action action;
+    @ZoomField(name = "chain_id", converter = UUIDUtil.Converter.class)
     public UUID chainId;
     @JsonIgnore
     public FlowTagger.UserTag meter;
@@ -58,6 +74,48 @@ public abstract class Rule {
         this.chainId = chainId;
     }
 
+    public void afterFromProto(MessageOrBuilder proto) {
+        condition = ZoomConvert.fromProto(proto, Condition.class);
+        validateProto((Topology.Rule) proto);
+    }
+
+    private void validateProto(Topology.Rule protoRule) {
+        if (!protoRule.hasAction())
+            throw new IllegalArgumentException("Rule " + protoRule.getId() +
+                                               " has no action set");
+
+        switch (protoRule.getType()) {
+            case JUMP_TYPE:
+                if (protoRule.getAction() != Topology.Rule.Action.JUMP ||
+                    !protoRule.hasJumpRuleData())
+                    throw new ZoomConvert.ConvertException(
+                        "Rule: " + protoRule.getId() + " is a JUMP rule but " +
+                        "does not have its action set to JUMP or is missing " +
+                        " its associated jump data");
+                break;
+            case NAT_TYPE:
+                if (!protoRule.hasNatRuleData() || !protoRule.getNatRuleData()
+                                                       .hasDnat())
+                    throw new ZoomConvert.ConvertException(
+                        "NAT rule: " + protoRule.getId() + " must have its " +
+                        "boolean dnat set");
+
+                if (protoRule.getMatchForwardFlow() &&
+                    protoRule.getNatRuleData().getNatTargetsCount() == 0)
+                        throw new ZoomConvert.ConvertException("Rule: " +
+                            protoRule.getId() + " is a forward NAT rule but " +
+                            "has no targets set");
+                break;
+
+            case TRACE_TYPE:
+                if (protoRule.getAction() != Topology.Rule.Action.CONTINUE)
+                    throw new IllegalArgumentException(
+                        "Trace rule: " + protoRule.getId() + " must have its " +
+                        " action set to CONTINUE");
+                break;
+        }
+    }
+
     @JsonProperty
     public void setMeterName(String meterName) {
         meter = FlowTagger.tagForUserMeter(meterName);
@@ -69,6 +127,7 @@ public abstract class Rule {
     }
 
     // Default constructor for the Jackson deserialization.
+    // This constructor is also used by ZoomConvert.
     public Rule() {
         super();
     }
@@ -166,5 +225,27 @@ public abstract class Rule {
             sb.append(", meter=").append(meter);
         sb.append("]");
         return sb.toString();
+    }
+
+    public static class RuleFactory implements ZoomConvert.Factory<Rule, Topology.Rule> {
+        public java.lang.Class<? extends Rule> getType(Topology.Rule proto) {
+            switch (proto.getType()) {
+                case JUMP_TYPE: return JumpRule.class;
+                case LITERAL_TYPE: return LiteralRule.class;
+                case TRACE_TYPE: return TraceRule.class;
+                case NAT_TYPE:
+                    if (proto.getMatchForwardFlow())
+                        return ForwardNatRule.class;
+                    else if (proto.getMatchReturnFlow())
+                        return ReverseNatRule.class;
+                    else
+                        throw new ZoomConvert.ConvertException("Rule: " +
+                            proto.getId() + " is neither a forward nor a " +
+                            "reverse  NAT rule");
+                default:
+                    throw new ZoomConvert.ConvertException("Unknown rule " +
+                        "type: " + proto.getType());
+            }
+        }
     }
 }

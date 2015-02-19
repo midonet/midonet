@@ -190,7 +190,8 @@ trait TopologyBuilder {
     }
 
     protected def createRoute(id: UUID = UUID.randomUUID,
-                              srcNetwork: IPSubnet[_] = randomIPv4Subnet,
+                              srcNetwork: IPSubnet[_] = TopologyBuilder
+                                  .randomIPv4Subnet,
                               dstNetwork: IPSubnet[_] = randomIPv4Subnet,
                               nextHop: NextHop = NextHop.BLACKHOLE,
                               nextHopPortId: UUID = UUID.randomUUID,
