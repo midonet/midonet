@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_751c2f78",
+        "filename": "brain/midonet-brain/src/main/java/org/midonet/brain/southbound/vtep/VtepBroker.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 220,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-19T19:36:00Z",
+      "side": 1,
+      "message": "Is atomicity important here? Meaning that the mac may get inserted right after the call to listUcastMacsRemote...",
+      "range": {
+        "startLine": 209,
+        "startChar": 8,
+        "endLine": 220,
+        "endChar": 8
+      },
+      "revId": "7795b427795a0dbb330fee0749a6381014967c70",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_d5136364",
+        "filename": "brain/midonet-brain/src/main/java/org/midonet/brain/southbound/vtep/VtepBroker.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 277,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-19T19:36:00Z",
+      "side": 1,
+      "message": "same question",
+      "range": {
+        "startLine": 266,
+        "startChar": 8,
+        "endLine": 277,
+        "endChar": 9
+      },
+      "revId": "7795b427795a0dbb330fee0749a6381014967c70",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
