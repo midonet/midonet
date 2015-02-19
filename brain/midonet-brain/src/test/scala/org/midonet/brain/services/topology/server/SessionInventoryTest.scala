@@ -438,7 +438,7 @@ class SessionInventoryTest extends FeatureSpec
         {
             val sId = UUID.randomUUID()
             val session = inv.claim(sId)
-            val collector = new AwaitableObserver[Response](4)
+            val collector = new AwaitableObserver[Response](3)
             val subs = session.observable().subscribe(collector)
 
             val req1 = UUID.randomUUID()
@@ -453,6 +453,8 @@ class SessionInventoryTest extends FeatureSpec
             store.create(bridge(b1, "bridge1"))
             store.create(bridge(b2, "bridge2"))
 
+            collector.await(WAIT_TIME)
+            collector.reset(1)
             session.unwatchAll(classOf[Network], ack(req2), nack(req2))
 
             store.update(bridge(b1, "bridge1-update"))
@@ -475,7 +477,7 @@ class SessionInventoryTest extends FeatureSpec
         {
             val sId = UUID.randomUUID()
             val session = inv.claim(sId)
-            val collector = new AwaitableObserver[Response](2)
+            val collector = new AwaitableObserver[Response](1)
             val subs = session.observable().subscribe(collector)
 
             val req = UUID.randomUUID()
@@ -493,7 +495,7 @@ class SessionInventoryTest extends FeatureSpec
         {
             val sId = UUID.randomUUID()
             val session = inv.claim(sId)
-            val collector = new AwaitableObserver[Response](4)
+            val collector = new AwaitableObserver[Response](2)
             val subs = session.observable().subscribe(collector)
 
             val req1 = UUID.randomUUID()
@@ -503,6 +505,8 @@ class SessionInventoryTest extends FeatureSpec
             store.create(bridge(oId, "bridge"))
             session.watch(Uuid(oId), classOf[Network], nack(req1))
             store.update(bridge(oId, "bridge-1"))
+            collector.await(WAIT_TIME)
+            collector.reset(1)
             session.terminate()
             store.update(bridge(oId, "bridge-2"))
             store.delete(classOf[Network], UUIDUtil.toProto(oId))

@@ -22,9 +22,9 @@ import java.util.concurrent.atomic.{AtomicInteger, AtomicBoolean, AtomicReferenc
 import java.util.concurrent.{Future => JavaFuture, Callable, TimeUnit, ConcurrentHashMap, ExecutorService}
 import java.util.concurrent.Executors.newSingleThreadExecutor
 import java.util.concurrent.Executors.newSingleThreadScheduledExecutor
-import java.util.concurrent.Executors.newCachedThreadPool
 
 import org.midonet.cluster.models.Commons
+import org.midonet.util.executors.SameThreadExecutor
 import rx.schedulers.Schedulers
 
 import scala.collection.JavaConversions._
@@ -104,19 +104,22 @@ object SessionInventory {
         case t: Throwable => null
     }
 
-    /* Thread pool for asynchronous session tasks */
-    private val sessionExecutor = newCachedThreadPool(
-        new NamedThreadFactory("topology-session"))
-
     /* Thread pool to handle session expirations */
     val sessionTimer = newSingleThreadScheduledExecutor(
         new NamedThreadFactory("topology-session-timer"))
+
+    /* Thread to handle data updates from zoom */
+    val dataExecutor = newSingleThreadExecutor(
+        new NamedThreadFactory("topology-session-data"))
 
     /* Pre-set session buffer size */
     val SESSION_BUFFER_SIZE: Int = 1 << 12
 
     /* Expiration time for non connected sessions, in milliseconds */
     val SESSION_GRACE_PERIOD: Long = 120000
+
+    /* Grace time for executors shutdown, in milliseconds */
+    val EXECUTOR_GRACE_PERIOD: Long = 5000
 
 }
 
@@ -248,7 +251,14 @@ protected class Buffer(minCapacity: Int, reader: ExecutorService)
     }
 
     // future thread return value (for final join)
-    private var threadResult: JavaFuture[Null] = null
+    private val threadResult = new AtomicReference[JavaFuture[Null]](null)
+    private def waitForConsumerTermination(): Unit = {
+        val termination = threadResult.getAndSet(null)
+        if (termination != null) {
+            ring.pauseRead()
+            termination.get()
+        }
+    }
 
     /**
      * Subscribe to the ring buffer at the specified position
@@ -258,21 +268,23 @@ protected class Buffer(minCapacity: Int, reader: ExecutorService)
             throw new HermitOversubscribedException
         ring.resumeRead()
         ring.seek(seqno)
-        threadResult = reader.submit(consumer)
+        threadResult.set(reader.submit(consumer))
         val subs = BooleanSubscription.create(
             // on unsubscribe:
             makeAction0
             {
-                val termination = threadResult
                 if (subscriber.get() == s) {
-                    // signal and wait for thread termination
-                    ring.pauseRead()
-                    termination.get()
+                    waitForConsumerTermination()
                     subscriber.set(null)
                 }
             })
         s.add(subs)
         subs
+    }
+
+    def stop(): Unit = {
+        ring.complete()
+        waitForConsumerTermination()
     }
 }
 
@@ -301,16 +313,12 @@ class SessionInventory(private val store: Storage,
 
         private val senderExecutor = newSingleThreadExecutor(
             new NamedThreadFactory("topology-session-sender"))
-        private val receiverExecutor = newSingleThreadExecutor(
-            new NamedThreadFactory("topology-session-subscriber"))
-        private val scheduler = Schedulers.from(receiverExecutor)
-
-        private implicit val ec =
-            ExecutionContext.fromExecutorService(sessionExecutor)
+        private val scheduler = Schedulers.from(dataExecutor)
 
         private val funnel = new Aggregator[ObservableId, Response.Builder]()
         private val buffer = new Buffer(bufferSize, senderExecutor)
-        funnel.observable().observeOn(scheduler).subscribe(buffer)
+        private val bufferSubscription =
+            funnel.observable().observeOn(scheduler).subscribe(buffer)
 
         private val session = this
 
@@ -377,6 +385,12 @@ class SessionInventory(private val store: Storage,
                 log.debug("destroying session: " + sessionId)
                 funnel.dispose()
                 inventory.remove(sessionId)
+                bufferSubscription.unsubscribe()
+                buffer.stop()
+                senderExecutor.shutdown()
+                if (!senderExecutor.awaitTermination(EXECUTOR_GRACE_PERIOD,
+                                                     TimeUnit.MILLISECONDS))
+                    senderExecutor.shutdownNow()
                 expirationComplete.success(true)
             }
         }
@@ -406,7 +420,7 @@ class SessionInventory(private val store: Storage,
                                  ofType + " " + id, other)
                         funnel.inject(nackWith.toBuilder)
                 }
-            }
+            } (ExecutionContext.fromExecutor(SameThreadExecutor))
         }
 
         override def watch[M <: Message](id: Id, ofType: Class[M],
