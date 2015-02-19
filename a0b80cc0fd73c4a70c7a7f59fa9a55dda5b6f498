@@ -1,0 +1,142 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_e391889b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 180,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-19T14:55:07Z",
+      "side": 1,
+      "message": "It\u0027s nitpicking but why not making this a sentence? ;-)\n\"Try to take ownership\"",
+      "range": {
+        "startLine": 180,
+        "startChar": 23,
+        "endLine": 180,
+        "endChar": 41
+      },
+      "revId": "a0b80cc0fd73c4a70c7a7f59fa9a55dda5b6f498",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_63d47847",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 181,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-19T14:55:07Z",
+      "side": 1,
+      "message": "add parameter name?",
+      "range": {
+        "startLine": 181,
+        "startChar": 55,
+        "endLine": 181,
+        "endChar": 69
+      },
+      "revId": "a0b80cc0fd73c4a70c7a7f59fa9a55dda5b6f498",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_43917c98",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 182,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-19T14:55:07Z",
+      "side": 1,
+      "message": "Update the host object?",
+      "range": {
+        "startLine": 182,
+        "startChar": 23,
+        "endLine": 182,
+        "endChar": 41
+      },
+      "revId": "a0b80cc0fd73c4a70c7a7f59fa9a55dda5b6f498",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_43bfbcfb",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 183,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-19T14:55:07Z",
+      "side": 1,
+      "message": "multi instead of the two operations",
+      "range": {
+        "startLine": 181,
+        "startChar": 20,
+        "endLine": 183,
+        "endChar": 54
+      },
+      "revId": "a0b80cc0fd73c4a70c7a7f59fa9a55dda5b6f498",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_e3bfc8fa",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 183,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-19T14:55:07Z",
+      "side": 1,
+      "message": "name parameter?",
+      "range": {
+        "startLine": 183,
+        "startChar": 49,
+        "endLine": 183,
+        "endChar": 53
+      },
+      "revId": "a0b80cc0fd73c4a70c7a7f59fa9a55dda5b6f498",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_c359ecff",
+        "filename": "midolman/src/test/java/org/midonet/midolman/host/services/HostServiceTest.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-19T14:55:07Z",
+      "side": 1,
+      "message": "add tests for createCluster in HostService.scala",
+      "range": {
+        "startLine": 77,
+        "startChar": 8,
+        "endLine": 77,
+        "endChar": 17
+      },
+      "revId": "a0b80cc0fd73c4a70c7a7f59fa9a55dda5b6f498",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
