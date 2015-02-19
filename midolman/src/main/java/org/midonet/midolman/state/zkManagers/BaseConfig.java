@@ -19,7 +19,10 @@ import org.codehaus.jackson.annotate.JsonIgnore;
 
 import java.util.UUID;
 
-public abstract class BaseConfig {
+import org.midonet.cluster.data.ZoomObject;
+
+public abstract class BaseConfig extends ZoomObject {
     @JsonIgnore
+    // Ignored by ZoomConvert.
     public transient UUID id = null;
 }

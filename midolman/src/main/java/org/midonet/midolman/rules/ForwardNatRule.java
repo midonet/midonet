@@ -20,14 +20,23 @@ import java.util.Arrays;
 import java.util.Set;
 import java.util.UUID;
 
+import com.google.common.annotations.VisibleForTesting;
+import com.google.protobuf.MessageOrBuilder;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.midonet.cluster.data.ZoomClass;
+import org.midonet.cluster.data.ZoomField;
+import org.midonet.cluster.models.Topology;
+import org.midonet.cluster.util.IPAddressUtil;
+import org.midonet.midolman.NatTargetUtil;
 import org.midonet.midolman.rules.RuleResult.Action;
 import org.midonet.midolman.simulation.PacketContext;
 import org.midonet.packets.*;
 
 public class ForwardNatRule extends NatRule {
+    @ZoomField(name = "nat_targets", converter = NatTargetUtil.Converter.class)
     protected transient Set<NatTarget> targetsSet;
     protected transient NatTarget[] targets;
     private boolean floatingIp;
@@ -36,6 +45,7 @@ public class ForwardNatRule extends NatRule {
             .getLogger(ForwardNatRule.class);
 
     // Default constructor for the Jackson deserialization.
+    // This constructor is also used by ZoomConvert.
     public ForwardNatRule() {
         super();
     }
@@ -62,6 +72,28 @@ public class ForwardNatRule extends NatRule {
 
     public boolean isFloatingIp() {
         return floatingIp;
+    }
+
+    @VisibleForTesting
+    public NatTarget[] getTargetsArray() {
+        return targets;
+    }
+
+    public void afterFromProto(MessageOrBuilder message) {
+        super.afterFromProto(message);
+
+        setNatTargets(targetsSet);
+        floatingIp = false;
+        if (targetsSet.size() == 1) {
+            NatTarget tg = targetsSet.iterator().next();
+            if (tg.nwStart.equals(tg.nwEnd) && 0 == tg.tpStart && 0 == tg.tpEnd) {
+                floatingIp = true;
+                floatingIpAddr = tg.nwStart;
+            }
+        }
+
+        log.debug("Created a {} forward nat rule",
+                  (floatingIp) ? "FloatingIp" : "normal");
     }
 
     @Override
