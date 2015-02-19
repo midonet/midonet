@@ -35,7 +35,8 @@ public class UcastMac {
 
     public UcastMac(MAC mac, UUID logicalSwitch, UUID locator,
                     IPv4Addr ipAddr) {
-        this(mac.toString(), logicalSwitch, locator, ipAddr.toString());
+        this(mac.toString(), logicalSwitch, locator,
+             ipAddr == null ? null : ipAddr.toString());
     }
 
     public UcastMac(String mac, UUID logicalSwitch, UUID locator,
