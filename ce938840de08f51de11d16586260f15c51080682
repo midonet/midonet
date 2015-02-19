@@ -1,0 +1,303 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_03fae4bc",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 4
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-19T15:47:07Z",
+      "side": 1,
+      "message": "complete sentence so that it\u0027s easier to understand?",
+      "range": {
+        "startLine": 16,
+        "startChar": 7,
+        "endLine": 16,
+        "endChar": 30
+      },
+      "revId": "ce938840de08f51de11d16586260f15c51080682",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_a313100c",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 4
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-19T15:47:07Z",
+      "side": 1,
+      "message": "mappers",
+      "range": {
+        "startLine": 16,
+        "startChar": 0,
+        "endLine": 16,
+        "endChar": 6
+      },
+      "revId": "ce938840de08f51de11d16586260f15c51080682",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_431b3c1b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-19T15:47:07Z",
+      "side": 1,
+      "message": "stopSubject?",
+      "range": {
+        "startLine": 53,
+        "startChar": 51,
+        "endLine": 53,
+        "endChar": 57
+      },
+      "revId": "ce938840de08f51de11d16586260f15c51080682",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_23c0c029",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-19T15:47:07Z",
+      "side": 1,
+      "message": "Add a comment to say that notifications for tunnel zones will be scheduled on the vt thread?\n\nAlso add an .observeOn in the tunnel zone mapper.",
+      "range": {
+        "startLine": 52,
+        "startChar": 8,
+        "endLine": 53,
+        "endChar": 58
+      },
+      "revId": "ce938840de08f51de11d16586260f15c51080682",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_434a1cc6",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 121,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-19T15:47:07Z",
+      "side": 1,
+      "message": "there\u0027s a missing {}",
+      "range": {
+        "startLine": 121,
+        "startChar": 42,
+        "endLine": 121,
+        "endChar": 43
+      },
+      "revId": "ce938840de08f51de11d16586260f15c51080682",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_831374b7",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 145,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-19T15:47:07Z",
+      "side": 1,
+      "message": "Is that needed?",
+      "range": {
+        "startLine": 145,
+        "startChar": 63,
+        "endLine": 145,
+        "endChar": 75
+      },
+      "revId": "ce938840de08f51de11d16586260f15c51080682",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_631638a9",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 155,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-19T15:47:07Z",
+      "side": 1,
+      "message": "needed?",
+      "range": {
+        "startLine": 155,
+        "startChar": 47,
+        "endLine": 155,
+        "endChar": 59
+      },
+      "revId": "ce938840de08f51de11d16586260f15c51080682",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_037dc41c",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 201,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-19T15:47:07Z",
+      "side": 1,
+      "message": "The try catch should be inside makeRunnable",
+      "range": {
+        "startLine": 201,
+        "startChar": 31,
+        "endLine": 201,
+        "endChar": 45
+      },
+      "revId": "ce938840de08f51de11d16586260f15c51080682",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_23a9e07b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 215,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-19T15:47:07Z",
+      "side": 1,
+      "message": "observeOn",
+      "range": {
+        "startLine": 215,
+        "startChar": 13,
+        "endLine": 215,
+        "endChar": 24
+      },
+      "revId": "ce938840de08f51de11d16586260f15c51080682",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_43c97c77",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 222,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-19T15:47:07Z",
+      "side": 1,
+      "message": "Add a warning with exclamation marks! ;-) in the comment to make sure no one changes the order in the merge.",
+      "range": {
+        "startLine": 218,
+        "startChar": 7,
+        "endLine": 222,
+        "endChar": 15
+      },
+      "revId": "ce938840de08f51de11d16586260f15c51080682",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_a31030a9",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PortMapper.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-19T15:47:07Z",
+      "side": 1,
+      "message": "observeOn",
+      "range": {
+        "startLine": 32,
+        "startChar": 17,
+        "endLine": 32,
+        "endChar": 28
+      },
+      "revId": "ce938840de08f51de11d16586260f15c51080682",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_837a54ef",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/DeviceMapperTest.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-19T15:47:07Z",
+      "side": 1,
+      "message": "add the name of the parameters in a 1-line comment?  /* paraName */",
+      "range": {
+        "startLine": 85,
+        "startChar": 61,
+        "endLine": 85,
+        "endChar": 65
+      },
+      "revId": "ce938840de08f51de11d16586260f15c51080682",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_036e642f",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/VirtualDeviceMapperTest.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-19T15:47:07Z",
+      "side": 1,
+      "message": "/* paramName */ ?",
+      "range": {
+        "startLine": 94,
+        "startChar": 61,
+        "endLine": 94,
+        "endChar": 65
+      },
+      "revId": "ce938840de08f51de11d16586260f15c51080682",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
