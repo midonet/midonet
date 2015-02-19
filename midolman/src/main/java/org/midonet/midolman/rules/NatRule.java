@@ -18,9 +18,13 @@ package org.midonet.midolman.rules;
 
 import java.util.UUID;
 
+import org.midonet.cluster.data.ZoomField;
+import org.midonet.cluster.data.ZoomOneOf;
 import org.midonet.midolman.rules.RuleResult.Action;
 
+@ZoomOneOf(name = "nat_rule_data")
 public abstract class NatRule extends Rule {
+    @ZoomField(name = "dnat")
     public boolean dnat;
 
     public NatRule(Condition condition, Action action, boolean dnat) {

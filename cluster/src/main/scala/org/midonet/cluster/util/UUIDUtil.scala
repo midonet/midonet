@@ -18,6 +18,7 @@ package org.midonet.cluster.util
 import java.lang.reflect.Type
 import java.util.{UUID => JUUID}
 
+import scala.collection.JavaConversions._
 import scala.util.Random
 
 import org.midonet.cluster.data.ZoomConvert
@@ -44,6 +45,9 @@ object UUIDUtil {
     implicit def fromProto(uuid: PUUID): JUUID = {
         new JUUID(uuid.getMsb, uuid.getLsb)
     }
+
+    implicit def fromProtoUUIDList(uuidList: java.util.List[PUUID])
+    : java.util.List[JUUID] = uuidList.map(_.asJava)
 
     implicit def asRichJavaUuid(uuid: JUUID): RichJavaUuid =
         new RichJavaUuid(uuid)

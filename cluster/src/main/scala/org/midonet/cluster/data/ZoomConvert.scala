@@ -17,7 +17,7 @@ package org.midonet.cluster.data
 
 import java.lang.reflect.{Array => JArray, Field, InvocationTargetException, ParameterizedType, Type}
 import java.util
-import java.util.{List => JList}
+import java.util.{List => JList, Set => JSet}
 
 import scala.collection.concurrent.TrieMap
 import scala.collection.JavaConversions._
@@ -43,6 +43,7 @@ object ZoomConvert {
     private final val DescriptorMethod = "getDescriptor"
 
     private final val ByteClass = classOf[Byte]
+    private final val JByteClass = classOf[java.lang.Byte]
     private final val ShortClass = classOf[Short]
     private final val ByteArrayClass = classOf[Array[Byte]]
 
@@ -64,6 +65,7 @@ object ZoomConvert {
     private val arrayConverters = new TrieMap[Class[_], ArrayConverter]
     private val listConverters = new TrieMap[Class[_], ListConverter]
     private val setConverters = new TrieMap[Class[_], SetConverter]
+    private val jSetConverters = new TrieMap[Class[_], JavaSetConverter]
 
     /**
      * Converts a Java object to a Protocol Buffers message.
@@ -336,7 +338,8 @@ object ZoomConvert {
                         case e @ (_ : InstantiationException |
                                   _ : IllegalAccessException |
                                   _ : IllegalArgumentException |
-                                  _ : NullPointerException) =>
+                                  _ : NullPointerException |
+                                  _ : ClassCastException) =>
                             throw new ConvertException(
                                 s"Class $pojoClass failed to convert field " +
                                 s"${zoomField.name} from Protocol Buffers type " +
@@ -426,6 +429,11 @@ object ZoomConvert {
                     .asInstanceOf[Class[_]]
                 getSetConverter(elClass, zoomField)
             case generic: ParameterizedType
+                if generic.getRawType.equals(classOf[JSet[_]]) =>
+                val elClass = generic.getActualTypeArguments()(0)
+                    .asInstanceOf[Class[_]]
+                getJavaSetConverter(elClass, zoomField)
+            case generic: ParameterizedType
                 if generic.getRawType.equals(classOf[Map[_,_]]) =>
                 getMapConverter(zoomField)
             case _ => getScalarConverter(pojoField.getType, zoomField)
@@ -483,6 +491,15 @@ object ZoomConvert {
         setConverters.getOrElseUpdate(
             elClass,
             new SetConverter(getScalarConverter(elClass, zoomField)))
+    }
+
+    /** Gets a converter instance for a [[JSet]] field. */
+    @inline
+    private def getJavaSetConverter(elClass: Class[_], zoomField: ZoomField)
+    : JavaSetConverter = {
+        jSetConverters.getOrElseUpdate(
+            elClass,
+            new JavaSetConverter(getScalarConverter(elClass, zoomField)))
     }
 
     /** Gets a converter instance for a [[Map]] field. */
@@ -552,6 +569,7 @@ object ZoomConvert {
     protected[data] class DefaultConverter extends Converter[Any, Any] {
         override def toProto(pojoValue: Any, clazz: Type): Any = clazz match {
             case ByteClass => pojoValue.asInstanceOf[Byte].toInt
+            case JByteClass => pojoValue.asInstanceOf[java.lang.Byte].toInt
             case ShortClass => pojoValue.asInstanceOf[Short].toInt
             case ByteArrayClass =>
                 ByteString.copyFrom(pojoValue.asInstanceOf[Array[Byte]])
@@ -594,6 +612,7 @@ object ZoomConvert {
 
         override def fromProto(protoValue: Any, clazz: Type): Any = clazz match {
             case ByteClass => protoValue.asInstanceOf[Int].toByte
+            case JByteClass => protoValue.asInstanceOf[Integer].toByte
             case ShortClass => protoValue.asInstanceOf[Int].toShort
             case ByteArrayClass => protoValue.asInstanceOf[ByteString].toByteArray
             case enumClass: Class[_] if enumClass.isEnum =>
@@ -715,7 +734,7 @@ object ZoomConvert {
      * @param converter The converter for the list component type.
      */
     protected[data] class SetConverter(converter: Converter[_,_])
-            extends Converter[Set[_], JList[_]] {
+        extends Converter[Set[_], JList[_]] {
 
         override def toProto(value: Set[_], clazz: Type): JList[_] = clazz match {
             case generic: ParameterizedType
@@ -729,6 +748,32 @@ object ZoomConvert {
         override def fromProto(value: JList[_], clazz: Type): Set[_] = clazz match {
             case generic: ParameterizedType
                 if generic.getRawType.equals(classOf[Set[_]]) =>
+                val elClass = generic.getActualTypeArguments()(0)
+                Set(value.map(el => converter.from(el, elClass)).toArray: _*)
+            case _ => throw new ConvertException(
+                s"Set converter cannot convert $clazz to Protocol Buffers")
+        }
+    }
+
+    /**
+     * Converter class for a Java set.
+     * @param converter The converter for the list component type.
+     */
+    protected[data] class JavaSetConverter(converter: Converter[_,_])
+        extends Converter[JSet[_], JList[_]] {
+
+        override def toProto(value: JSet[_], clazz: Type): JList[_] = clazz match {
+            case generic: ParameterizedType
+                if generic.getRawType.equals(classOf[Set[_]]) =>
+                val elClass = generic.getActualTypeArguments()(0)
+                value.map(el => converter.to(el, elClass)).toSeq
+            case _ => throw new ConvertException(
+                s"Set converter cannot convert $clazz to Protocol Buffers")
+        }
+
+        override def fromProto(value: JList[_], clazz: Type): JSet[_] = clazz match {
+            case generic: ParameterizedType
+                if generic.getRawType.equals(classOf[JSet[_]]) =>
                 val elClass = generic.getActualTypeArguments()(0)
                 Set(value.map(el => converter.from(el, elClass)).toArray: _*)
             case _ => throw new ConvertException(
