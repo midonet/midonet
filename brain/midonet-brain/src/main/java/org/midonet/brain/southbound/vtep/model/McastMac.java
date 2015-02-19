@@ -19,6 +19,9 @@ import java.util.Objects;
 
 import org.opendaylight.ovsdb.lib.notation.UUID;
 
+import org.midonet.brain.southbound.vtep.VtepMAC;
+import org.midonet.packets.IPv4Addr;
+
 /**
  * Represents an entry in any of the Mcast_Mac tables.
  */
@@ -28,6 +31,12 @@ public class McastMac {
     public final UUID logicalSwitch;
     public final UUID locatorSet;
     public final String ipAddr;
+
+    public McastMac(VtepMAC mac, UUID logicalSwitch, UUID locator,
+                    IPv4Addr ipAddr) {
+        this(mac.toString(), logicalSwitch, locator,
+             ipAddr == null ? null : ipAddr.toString());
+    }
 
     public McastMac(String mac, UUID logicalSwitch, UUID locatorSet,
                     String ipAddr) {
