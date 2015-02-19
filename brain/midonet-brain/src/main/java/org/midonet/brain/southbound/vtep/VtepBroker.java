@@ -43,6 +43,7 @@ import org.midonet.brain.services.vxgw.VxLanPeer;
 import org.midonet.brain.services.vxgw.VxLanPeerConsolidationException;
 import org.midonet.brain.services.vxgw.VxLanPeerSyncException;
 import org.midonet.brain.southbound.vtep.model.LogicalSwitch;
+import org.midonet.brain.southbound.vtep.model.McastMac;
 import org.midonet.brain.southbound.vtep.model.UcastMac;
 import org.midonet.cluster.data.VtepBinding;
 import org.midonet.packets.IPv4Addr;
@@ -205,6 +206,19 @@ public class VtepBroker implements VxLanPeer {
      */
     private void applyUcastAddition(MacLocation ml) {
         log.debug("Adding UCAST remote MAC to the VTEP: " + ml);
+        try {
+            List<UcastMac> ucasts = vtepDataClient.listUcastMacsRemote();
+            for (UcastMac uc : ucasts) {
+                if (uc.mac.equals(ml.mac().toString())) {
+                    log.debug("UCAST remote MAC already in vtep");
+                    return;
+                }
+            }
+        } catch (VtepNotConnectedException e) {
+            log.error("VTEP is not connected", e);
+            return;
+        }
+
         Status st = vtepDataClient.addUcastMacRemote(ml.logicalSwitchName(),
                                                      ml.mac().IEEE802(),
                                                      ml.ipAddr(),
@@ -249,6 +263,18 @@ public class VtepBroker implements VxLanPeer {
      */
     private void applyMcastAddition(MacLocation ml) {
         log.debug("Adding MCAST remote MAC to the VTEP: " + ml);
+        try {
+            List<McastMac> mcasts = vtepDataClient.listMcastMacsRemote();
+            for (McastMac mc : mcasts) {
+                if (mc.mac.equals(ml.mac().toString())) {
+                    log.debug("MCAST remote MAC already in vtep");
+                    return;
+                }
+            }
+        } catch (VtepNotConnectedException e) {
+            log.error("VTEP is not connected", e);
+            return;
+        }
         Status st = vtepDataClient.addMcastMacRemote(ml.logicalSwitchName(),
                                                      ml.mac(),
                                                      ml.vxlanTunnelEndpoint());
