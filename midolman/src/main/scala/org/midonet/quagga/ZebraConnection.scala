@@ -248,13 +248,12 @@ class ZebraConnection(val dispatcher: ActorRef,
         log.debug(
             s"ZebraIpv4RouteDelete: ribType ${ZebraRouteTypeTable(ribType)} flags $flags prefix $advertised")
 
-        val (nextHops, distance) = readRoutes(message, ribType, prefix, prefixLen)
+        val (nextHops, _) = readRoutes(message, ribType, prefix, prefixLen)
 
         var i = 0
         while (i < nextHops.length) {
             val nextHop = nextHops(i)
-            handler.removeRoute(nextHop.ribType, nextHop.destination,
-                                nextHop.gateway, distance)
+            handler.removeRoute(nextHop.ribType, nextHop.destination, nextHop.gateway)
             i += 1
         }
 
