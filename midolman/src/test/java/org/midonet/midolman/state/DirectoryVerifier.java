@@ -89,7 +89,7 @@ public class DirectoryVerifier {
         String q = buildQueryPath(key);
         try {
             Object item = JsonPath.read(strData, q);
-            return Objects.equals(item, value);
+            return Objects.equals(item.toString(), value.toString());
         } catch (PathNotFoundException ex) {
             return false;
         }
