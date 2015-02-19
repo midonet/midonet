@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_c3de0c3f",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-19T15:11:32Z",
+      "side": 1,
+      "message": "Make two sentences out of this one? It\u0027s kind of hard to parse at the moment.",
+      "range": {
+        "startLine": 9,
+        "startChar": 0,
+        "endLine": 10,
+        "endChar": 67
+      },
+      "revId": "e3905bbcc0bbb46b7a4639480f30146705fe7818",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
