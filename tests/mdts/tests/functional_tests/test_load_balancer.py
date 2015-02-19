@@ -35,7 +35,6 @@ STICKY_VIP = ("100.100.2.9", 10009)
 SENDER = None
 NUM_BACKENDS = 3
 
-
 web_servers = []
 
 binding_onehost = {
@@ -101,6 +100,7 @@ binding_multihost = {
 def setup():
     PTM.build()
     VTM.build()
+    set_router_filter()
 
 def teardown():
     global web_servers
@@ -112,6 +112,12 @@ def teardown():
     time.sleep(2)
     PTM.destroy()
     VTM.destroy()
+
+def set_router_filter():
+    router = VTM.get_router("router-000-001")
+    outbound_filter = VTM.get_chain("drop_non_nat_rev")
+    router.set_outbound_filter(outbound_filter)
+    time.sleep(5)
 
 @attr(version="v1.3.0", slow=False)
 # Commented out as a workaround for MNA-108

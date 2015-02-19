@@ -84,6 +84,18 @@ virtual_topology:
                     admin_state_up: true
                     protocol_port: 10009
                     session_persistence: SOURCE_IP
+  chains:
+    - chain:
+        id: 1
+        name: drop_non_nat_rev
+        rules:
+          - rule:
+              id: 1
+              position: 1
+              nw_proto: 6
+              nw_src_address: 10.0.2.0
+              nw_src_length: 24
+              type: drop
 
   routers:
     - router:
