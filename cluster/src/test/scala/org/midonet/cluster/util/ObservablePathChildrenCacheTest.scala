@@ -423,7 +423,7 @@ class ObservablePathChildrenCacheConnectionTest extends Suite
     // Relaxed retry policy to spare time to the tests
     override protected val retryPolicy = new RetryOneTime(500)
 
-    override def cnxnTimeoutMs = 3000
+    override def cnxnTimeoutMs = 1000
     override def sessionTimeoutMs = 10000
 
     def testOnErrorEmittedWhenCacheLosesConnection(): Unit = {
@@ -435,7 +435,7 @@ class ObservablePathChildrenCacheConnectionTest extends Suite
         ts1.getOnErrorEvents shouldBe empty
         ts1.getOnCompletedEvents shouldBe empty
         zk.stop() // interrupt the connection
-        assert(ts1.e.await(cnxnTimeoutMs * 2, TimeUnit.MILLISECONDS))
+        assert(ts1.e.await(cnxnTimeoutMs * 5, TimeUnit.MILLISECONDS))
         ts1.getOnErrorEvents should have size 1
         assert(
             ts1.getOnErrorEvents.get(0)
