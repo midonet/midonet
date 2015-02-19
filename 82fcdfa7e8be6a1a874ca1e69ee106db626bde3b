@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_28b53f31",
+        "filename": "cluster-cli/src/main/scala/org/midonet/cluster/cli/ClusterCliConfig.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-02-19T07:53:08Z",
+      "side": 1,
+      "message": "Just a suggestion. Perhaps just \"timeout_millis\" for conciseness?",
+      "range": {
+        "startLine": 49,
+        "startChar": 22,
+        "endLine": 49,
+        "endChar": 46
+      },
+      "revId": "82fcdfa7e8be6a1a874ca1e69ee106db626bde3b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
