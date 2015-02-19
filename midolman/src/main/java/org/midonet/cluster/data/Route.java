@@ -17,6 +17,7 @@ package org.midonet.cluster.data;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 
 import org.midonet.packets.IPv4Addr;
@@ -220,7 +221,7 @@ public class Route extends Entity.Base<UUID, Route.Data, Route> {
             } else if (!nextHopPort.equals(rt.nextHopPort))
                 return false;
             if (null == attributes || null == rt.attributes) {
-                if (attributes != rt.attributes)
+                if (!Objects.equals(attributes, rt.attributes))
                     return false;
             } else if (!attributes.equals(rt.attributes))
                 return false;
@@ -231,7 +232,7 @@ public class Route extends Entity.Base<UUID, Route.Data, Route> {
                 return false;
 
             if (null == nextHopGateway || null == rt.nextHopGateway) {
-                if (nextHopGateway != rt.nextHopGateway)
+                if (!Objects.equals(nextHopGateway, rt.nextHopGateway))
                     return false;
             } else if (!nextHopGateway.equals(rt.nextHopGateway))
                 return false;
@@ -239,8 +240,7 @@ public class Route extends Entity.Base<UUID, Route.Data, Route> {
             return dstNetworkAddr.equals(rt.dstNetworkAddr)
                     && dstNetworkLength == rt.dstNetworkLength
                     && srcNetworkAddr.equals(rt.srcNetworkAddr)
-                    && srcNetworkLength == rt.srcNetworkLength
-                    && weight == rt.weight;
+                    && srcNetworkLength == rt.srcNetworkLength;
         }
 
         @Override
@@ -250,7 +250,6 @@ public class Route extends Entity.Base<UUID, Route.Data, Route> {
             hash = 17 * hash + srcNetworkLength;
             hash = 31 * hash + dstNetworkAddr.hashCode();
             hash = 23 * hash + dstNetworkLength;
-            hash = 11 * hash + weight;
 
             if (null != routerId)
                 hash = 47 * hash + routerId.hashCode();
