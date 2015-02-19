@@ -1,0 +1,251 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_c80aab20",
+        "filename": "brain/tools/build.gradle",
+        "patchSetId": 7
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-02-19T06:36:16Z",
+      "side": 1,
+      "message": "I don\u0027t think we need these.",
+      "range": {
+        "startLine": 27,
+        "startChar": 0,
+        "endLine": 30,
+        "endChar": 1
+      },
+      "revId": "ac3abdad00848494376811d3282ceefe837cb175",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_28309fe7",
+        "filename": "brain/tools/build.gradle",
+        "patchSetId": 7
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-02-19T06:36:16Z",
+      "side": 1,
+      "message": "Are we using this?",
+      "range": {
+        "startLine": 51,
+        "startChar": 12,
+        "endLine": 51,
+        "endChar": 25
+      },
+      "revId": "ac3abdad00848494376811d3282ceefe837cb175",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_a80daf39",
+        "filename": "brain/tools/conf/logback.xml",
+        "patchSetId": 7
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-02-19T06:36:16Z",
+      "side": 1,
+      "message": "s/2014/2015/",
+      "range": {
+        "startLine": 3,
+        "startChar": 14,
+        "endLine": 3,
+        "endChar": 18
+      },
+      "revId": "ac3abdad00848494376811d3282ceefe837cb175",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_0814c342",
+        "filename": "brain/tools/conf/logback.xml",
+        "patchSetId": 7
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-02-19T06:36:16Z",
+      "side": 1,
+      "message": "Please remove these.",
+      "range": {
+        "startLine": 45,
+        "startChar": 4,
+        "endLine": 76,
+        "endChar": 84
+      },
+      "revId": "ac3abdad00848494376811d3282ceefe837cb175",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_481ebb64",
+        "filename": "brain/tools/src/main/scala/org/midonet/brain/tools/TopologyZoomUpdater.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-02-19T06:36:16Z",
+      "side": 1,
+      "message": "It seems it\u0027s more customary to import these inside \"class TopologyZoomUpdater\", etc.",
+      "range": {
+        "startLine": 43,
+        "startChar": 0,
+        "endLine": 44,
+        "endChar": 23
+      },
+      "revId": "ac3abdad00848494376811d3282ceefe837cb175",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_2819bf79",
+        "filename": "brain/tools/src/main/scala/org/midonet/brain/tools/TopologyZoomUpdater.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 132,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-02-19T06:36:16Z",
+      "side": 1,
+      "message": "Not just \"networks\"? Why don\u0027t we do similarly with routers and networks?",
+      "range": {
+        "startLine": 132,
+        "startChar": 8,
+        "endLine": 132,
+        "endChar": 20
+      },
+      "revId": "ac3abdad00848494376811d3282ceefe837cb175",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_882713b6",
+        "filename": "brain/tools/src/main/scala/org/midonet/brain/tools/TopologyZoomUpdater.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 545,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-02-19T06:36:16Z",
+      "side": 1,
+      "message": "Please remove.",
+      "range": {
+        "startLine": 545,
+        "startChar": 0,
+        "endLine": 545,
+        "endChar": 4
+      },
+      "revId": "ac3abdad00848494376811d3282ceefe837cb175",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_682a977f",
+        "filename": "brain/tools/src/main/scala/org/midonet/brain/tools/TopologyZoomUpdater.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 679,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-02-19T06:36:16Z",
+      "side": 1,
+      "message": "Ditto.",
+      "range": {
+        "startLine": 679,
+        "startChar": 0,
+        "endLine": 679,
+        "endChar": 4
+      },
+      "revId": "ac3abdad00848494376811d3282ceefe837cb175",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_c8210ba1",
+        "filename": "brain/tools/src/main/scala/org/midonet/brain/tools/TopologyZoomUpdater.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 841,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-02-19T06:36:16Z",
+      "side": 1,
+      "message": "Ditto.",
+      "range": {
+        "startLine": 841,
+        "startChar": 0,
+        "endLine": 841,
+        "endChar": 4
+      },
+      "revId": "ac3abdad00848494376811d3282ceefe837cb175",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_083b23d2",
+        "filename": "brain/tools/src/main/scala/org/midonet/brain/tools/TopologyZoomUpdater.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 1065,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-02-19T06:36:16Z",
+      "side": 1,
+      "message": "\"the topology is created once on startup\"\n\n\nBut I\u0027d suggest we use a separate config variable for the control.",
+      "range": {
+        "startLine": 1064,
+        "startChar": 55,
+        "endLine": 1065,
+        "endChar": 28
+      },
+      "revId": "ac3abdad00848494376811d3282ceefe837cb175",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_48351bd9",
+        "filename": "brain/tools/src/main/scala/org/midonet/brain/tools/TopologyZoomUpdaterApp.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-02-19T06:36:16Z",
+      "side": 1,
+      "message": "I don\u0027t think we should keep a static reference to TopologyZoomUpdater by ourself. We should let the injector handle it, so I think the old way is better.",
+      "revId": "ac3abdad00848494376811d3282ceefe837cb175",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
