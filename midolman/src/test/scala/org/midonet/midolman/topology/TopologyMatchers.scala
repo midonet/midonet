@@ -21,13 +21,17 @@ import com.google.protobuf.MessageOrBuilder
 
 import org.scalatest.Matchers
 
-import org.midonet.cluster.models.Topology.{Network => TopologyBridge, Port => TopologyPort}
+import org.midonet.cluster.models.Topology.{Port => TopologyPort, Network => TopologyBridge, Rule => TopologyRule}
+import org.midonet.cluster.util.{RangeUtil, IPSubnetUtil}
 import org.midonet.cluster.util.IPAddressUtil._
 import org.midonet.cluster.util.IPSubnetUtil._
 import org.midonet.cluster.util.UUIDUtil._
+import org.midonet.midolman.rules.{Condition, Rule, JumpRule, NatRule, ForwardNatRule, NatTarget}
 import org.midonet.midolman.simulation.Bridge
+import org.midonet.midolman.topology.devices.VxLanPort
+import org.midonet.midolman.topology.TopologyMatchers.{BridgeMatcher, BridgePortMatcher, RouterPortMatcher}
 import org.midonet.midolman.topology.TopologyMatchers._
-import org.midonet.midolman.topology.devices.{BridgePort, Port, RouterPort, VxLanPort}
+import org.midonet.midolman.topology.devices.{ RouterPort, Port, BridgePort}
 import org.midonet.packets.MAC
 
 object TopologyMatchers {
@@ -103,6 +107,103 @@ object TopologyMatchers {
         }
     }
 
+    class RuleMatcher(rule: Rule) extends Matchers
+                                  with DeviceMatcher[TopologyRule]
+                                  with TopologyMatchers {
+        override def shouldBeDeviceOf(r: TopologyRule): Unit = {
+            r.getAction.name shouldBe rule.action.name
+            r.getChainId shouldBe rule.chainId.asProto
+
+            rule.getCondition shouldBeDeviceOf r
+        }
+    }
+
+    class JumpRuleMatcher(rule: JumpRule) extends RuleMatcher(rule) {
+        override def shouldBeDeviceOf(r: TopologyRule): Unit = {
+            super.shouldBeDeviceOf(r)
+            rule.jumpToChainID shouldBe r.getJumpRuleData.getJumpTo.asJava
+        }
+    }
+
+    class NatRuleMatcher(rule: NatRule) extends RuleMatcher(rule) {
+        override def shouldBeDeviceOf(r: TopologyRule): Unit = {
+            super.shouldBeDeviceOf(r)
+            if (r.getMatchForwardFlow) {
+                val fwdNatRule = rule.asInstanceOf[ForwardNatRule]
+                fwdNatRule.getTargetsArray should not be null
+                val targets = fwdNatRule.getNatTargets
+                val protoTargets = r.getNatRuleData.getNatTargetsList.asScala
+                targets should contain theSameElementsAs protoTargets.map({
+                    target =>
+                        new NatTarget(toIPv4Addr(target.getNwStart),
+                                      toIPv4Addr(target.getNwEnd),
+                                      target.getTpStart, target.getTpEnd)
+                })
+
+                if (targets.size() == 1) {
+                    val target = targets.iterator.next
+
+                    if (target.nwStart == target.nwEnd &&
+                        target.tpStart == 0 && target.tpEnd == 0) {
+
+                        fwdNatRule.isFloatingIp shouldBe true
+
+                    } else
+                        fwdNatRule.isFloatingIp shouldBe false
+                } else
+                    fwdNatRule.isFloatingIp shouldBe false
+            }
+        }
+    }
+
+    class ConditionMatcher(cond: Condition) extends Matchers
+                                            with DeviceMatcher[TopologyRule] {
+        override def shouldBeDeviceOf(r: TopologyRule): Unit = {
+            r.getConjunctionInv shouldBe cond.conjunctionInv
+            r.getMatchForwardFlow shouldBe cond.matchForwardFlow
+            r.getMatchReturnFlow shouldBe cond.matchReturnFlow
+
+            r.getInPortIdsCount shouldBe cond.inPortIds.size
+            r.getInPortIdsList.asScala.map(_.asJava) should
+                contain theSameElementsAs cond.inPortIds.asScala
+            r.getInPortInv shouldBe cond.inPortInv
+
+            r.getOutPortIdsCount shouldBe cond.outPortIds.size
+            r.getOutPortIdsList.asScala.map(_.asJava) should
+                contain theSameElementsAs cond.outPortIds.asScala
+            r.getOutPortInv shouldBe cond.outPortInv
+
+            r.getPortGroupId shouldBe cond.portGroup.asProto
+            r.getInvPortGroup shouldBe cond.invPortGroup
+            r.getIpAddrGroupIdSrc shouldBe cond.ipAddrGroupIdSrc.asProto
+            r.getInvIpAddrGroupIdSrc shouldBe cond.invIpAddrGroupIdSrc
+            r.getIpAddrGroupIdDst shouldBe cond.ipAddrGroupIdDst.asProto
+            r.getInvIpAddrGroupIdDst shouldBe cond.invIpAddrGroupIdDst
+            r.getDlType shouldBe cond.etherType
+            r.getInvDlType shouldBe cond.invDlType
+            r.getDlSrc shouldBe cond.ethSrc.toString
+            r.getDlSrcMask shouldBe cond.ethSrcMask
+            r.getInvDlSrc shouldBe cond.invDlSrc
+            r.getDlDst shouldBe cond.ethDst.toString
+            r.getDlDstMask shouldBe cond.dlDstMask
+            r.getInvDlDst shouldBe cond.invDlDst
+            r.getNwTos shouldBe cond.nwTos
+            r.getNwTosInv shouldBe cond.nwTosInv
+            r.getNwProto shouldBe cond.nwProto
+            r.getNwProtoInv shouldBe cond.nwProtoInv
+            r.getNwSrcIp shouldBe IPSubnetUtil.toProto(cond.nwSrcIp)
+            r.getNwDstIp shouldBe IPSubnetUtil.toProto(cond.nwDstIp)
+            r.getTpSrc shouldBe RangeUtil.toProto(cond.tpSrc)
+            r.getTpDst shouldBe RangeUtil.toProto(cond.tpDst)
+            r.getNwSrcInv shouldBe cond.nwSrcInv
+            r.getNwDstInv shouldBe cond.nwDstInv
+            r.getTpSrcInv shouldBe cond.tpSrcInv
+            r.getTpDstInv shouldBe cond.tpDstInv
+            r.getTraversedDevice shouldBe cond.traversedDevice.asProto
+            r.getTraversedDeviceInv shouldBe cond.traversedDeviceInv
+            r.getFragmentPolicy.name shouldBe cond.fragmentPolicy.name
+        }
+    }
 }
 
 trait TopologyMatchers {
@@ -127,4 +228,15 @@ trait TopologyMatchers {
     implicit def asMatcher(bridge: Bridge): BridgeMatcher =
         new BridgeMatcher(bridge)
 
+    implicit def asMatcher(rule: Rule): RuleMatcher =
+        new RuleMatcher(rule)
+
+    implicit def asMatcher(rule: JumpRule): RuleMatcher =
+        new JumpRuleMatcher(rule)
+
+    implicit def asMatcher(rule: NatRule): RuleMatcher =
+        new NatRuleMatcher(rule)
+
+    implicit def asMatcher(cond: Condition): ConditionMatcher =
+        new ConditionMatcher(cond)
 }

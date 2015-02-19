@@ -36,6 +36,7 @@ public class TraceRule extends Rule {
     }
 
     // Default constructor for the Jackson deserialization.
+    // This constructor is also used by ZoomConvert.
     public TraceRule() {
         super();
     }

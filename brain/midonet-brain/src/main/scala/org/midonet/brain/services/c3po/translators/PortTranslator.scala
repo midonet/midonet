@@ -225,6 +225,7 @@ class PortTranslator(protected val storage: ReadOnlyStorage)
         val inChainId = mPort.getInboundFilterId
         val outChainId = mPort.getOutboundFilterId
         val mac = nPort.getMacAddress
+
         // Create an IP spoofing protection rule.
         for (dhcp <- portCtx.midoDhcps.values if dhcp.getHostsCount > 0) {
             // NOTE: if a port belongs to more than 1 subnet, the drop rules
@@ -246,8 +247,10 @@ class PortTranslator(protected val storage: ReadOnlyStorage)
         portCtx.inRules += Create(dropRuleBuilder(inChainId)
                                   .setDlSrc(mac)
                                   .setInvDlSrc(true).build)
+
         // Create return flow rules matching for inbound chain.
         portCtx.inRules += Create(returnFlowRule(inChainId))
+
         // Add jump rules to corresponding inbound / outbound chains of IP
         // Address Groups (Neutron's Security Groups) that the port belongs to.
         for (sgId <- nPort.getSecurityGroupsList.asScala) {

@@ -18,9 +18,17 @@ package org.midonet.midolman.rules;
 
 import java.util.UUID;
 
+import org.midonet.cluster.data.ZoomClass;
+import org.midonet.cluster.data.ZoomConvert;
+import org.midonet.cluster.data.ZoomField;
+import org.midonet.cluster.data.ZoomOneOf;
+import org.midonet.cluster.models.Topology;
 import org.midonet.midolman.rules.RuleResult.Action;
 
+@ZoomClass(clazz = Topology.Rule.class, factory = NatRule.NatRuleFactory.class)
+@ZoomOneOf(name = "nat_rule_data")
 public abstract class NatRule extends Rule {
+    @ZoomField(name = "dnat")
     public boolean dnat;
 
     public NatRule(Condition condition, Action action, boolean dnat) {
@@ -66,5 +74,20 @@ public abstract class NatRule extends Rule {
         StringBuilder sb = new StringBuilder(super.toString());
         sb.append(", dnat=").append(dnat);
         return sb.toString();
+    }
+
+    public static class NatRuleFactory
+        implements ZoomConvert.Factory<NatRule, Topology.Rule> {
+
+        public Class<? extends NatRule> getType(Topology.Rule proto) {
+            if (proto.getMatchForwardFlow())
+                return ForwardNatRule.class;
+            else if (proto.getMatchReturnFlow())
+                return ReverseNatRule.class;
+            else
+                throw new ZoomConvert.ConvertException("Rule: " +
+                    proto.getId() + " is neither a forward nor a reverse " +
+                    "NAT rule");
+        }
     }
 }

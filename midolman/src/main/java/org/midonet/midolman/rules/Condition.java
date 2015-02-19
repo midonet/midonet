@@ -19,7 +19,14 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
+import org.midonet.cluster.data.ZoomClass;
+import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.data.neutron.SecurityGroupRule;
+import org.midonet.cluster.models.Topology;
+import org.midonet.cluster.util.IPSubnetUtil;
+import org.midonet.cluster.util.MACUtil;
+import org.midonet.cluster.util.RangeUtil;
+import org.midonet.cluster.util.UUIDUtil;
 import org.midonet.midolman.simulation.IPAddrGroup;
 import org.midonet.midolman.simulation.PacketContext;
 import org.midonet.midolman.state.zkManagers.BaseConfig;
@@ -31,41 +38,77 @@ import org.midonet.packets.Unsigned;
 import org.midonet.sdn.flows.FlowTagger;
 import org.midonet.util.Range;
 
+@ZoomClass(clazz = Topology.Rule.class)
 public class Condition extends BaseConfig {
+    @ZoomField(name = "conjunction_inv")
     public boolean conjunctionInv;
+    @ZoomField(name = "match_forward_flow")
     public boolean matchForwardFlow;
+    @ZoomField(name = "match_return_flow")
     public boolean matchReturnFlow;
+    @ZoomField(name = "in_port_ids", converter = UUIDUtil.Converter.class)
     public Set<UUID> inPortIds;
+    @ZoomField(name = "in_port_inv")
     public boolean inPortInv;
+    @ZoomField(name = "out_port_ids", converter = UUIDUtil.Converter.class)
     public Set<UUID> outPortIds;
+    @ZoomField(name = "out_port_inv")
     public boolean outPortInv;
+    @ZoomField(name = "port_group_id", converter = UUIDUtil.Converter.class)
     public UUID portGroup;
+    @ZoomField(name = "inv_port_group")
     public boolean invPortGroup;
+    @ZoomField(name = "ip_addr_group_id_src", converter = UUIDUtil.Converter.class)
     public UUID ipAddrGroupIdSrc;
+    @ZoomField(name = "inv_ip_addr_group_id_src")
     public boolean invIpAddrGroupIdSrc;
+    @ZoomField(name = "ip_addr_group_id_dst", converter = UUIDUtil.Converter.class)
     public UUID ipAddrGroupIdDst;
+    @ZoomField(name = "inv_ip_addr_group_id_dst")
     public boolean invIpAddrGroupIdDst;
+    @ZoomField(name = "dl_type")
     public Integer etherType; // Ethernet frame type.
+    @ZoomField(name = "inv_dl_type")
     public boolean invDlType;
+    @ZoomField(name = "dl_src", converter = MACUtil.Converter.class)
     public MAC ethSrc; // Source MAC address.
+    @ZoomField(name = "dl_src_mask")
     public long ethSrcMask = NO_MASK; // Top 16 bits ignored.
+    @ZoomField(name = "inv_dl_src")
     public boolean invDlSrc;
+    @ZoomField(name = "dl_dst", converter = MACUtil.Converter.class)
     public MAC ethDst; // Destination MAC address.
+    @ZoomField(name = "dl_dst_mask")
     public long dlDstMask = NO_MASK; // Top 16 bits ignored.
+    @ZoomField(name = "inv_dl_dst")
     public boolean invDlDst;
+    @ZoomField(name = "nw_tos")
     public Byte nwTos;
+    @ZoomField(name = "nw_tos_inv")
     public boolean nwTosInv;
+    @ZoomField(name = "nw_proto")
     public Byte nwProto;
+    @ZoomField(name = "nw_proto_inv")
     public boolean nwProtoInv;
+    @ZoomField(name = "nw_src_ip", converter = IPSubnetUtil.Converter.class)
     public IPSubnet<?> nwSrcIp; // Source IP address.
+    @ZoomField(name = "nw_dst_ip", converter = IPSubnetUtil.Converter.class)
     public IPSubnet<?> nwDstIp; // Destination IP address.
+    @ZoomField(name = "tp_src", converter = RangeUtil.Converter.class)
     public Range<Integer> tpSrc; // Source TCP port.
+    @ZoomField(name = "tp_dst", converter = RangeUtil.Converter.class)
     public Range<Integer> tpDst; // Destination TCP port.
+    @ZoomField(name = "nw_src_inv")
     public boolean nwSrcInv;
+    @ZoomField(name = "nw_dst_inv")
     public boolean nwDstInv;
+    @ZoomField(name = "tp_src_inv")
     public boolean tpSrcInv;
+    @ZoomField(name = "tp_dst_inv")
     public boolean tpDstInv;
+    @ZoomField(name = "traversed_device", converter = UUIDUtil.Converter.class)
     public UUID traversedDevice;
+    @ZoomField(name = "traversed_device_inv")
     public boolean traversedDeviceInv;
 
     private FlowTagger.FlowTag _traversedDeviceTag = null;
@@ -79,6 +122,7 @@ public class Condition extends BaseConfig {
 
     // In production, this should always be initialized via the API, but there
     // are a bunch of tests that bypass the API and create conditions directly.
+    @ZoomField(name = "fragment_policy")
     public FragmentPolicy fragmentPolicy = FragmentPolicy.UNFRAGMENTED;
 
     // These are needed for simulation, but derived from information
@@ -124,6 +168,7 @@ public class Condition extends BaseConfig {
     }
 
     // Default constructor for the Jackson deserialization.
+    // This constructor is also used by ZoomConvert.
     public Condition() { super(); }
 
     public Condition(SecurityGroupRule sgRule) {
@@ -193,7 +238,8 @@ public class Condition extends BaseConfig {
             return conjunctionInv;
         if (!matchPort(this.outPortIds, outPortId, this.outPortInv))
             return conjunctionInv;
-        if (!matchField(etherType, Unsigned.unsign(pktMatch.getEtherType()), invDlType))
+        if (!matchField(etherType, Unsigned.unsign(pktMatch.getEtherType()),
+                        invDlType))
             return conjunctionInv;
         if (!matchMAC(ethSrc, pktMatch.getEthSrc(), ethSrcMask, invDlSrc))
             return conjunctionInv;
@@ -332,7 +378,7 @@ public class Condition extends BaseConfig {
         if (null != etherType) {
             sb.append("etherType=").append(etherType.intValue()).append(", ");
             if(invDlType)
-                sb.append("invDlType").append(invDlType).append(", ");
+                sb.append("invEthType").append(invDlType).append(", ");
         }
         if (null != ethSrc) {
             sb.append("ethSrc=").append(ethSrc).append(", ");
