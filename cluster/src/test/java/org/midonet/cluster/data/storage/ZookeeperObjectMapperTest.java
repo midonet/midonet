@@ -43,6 +43,7 @@ import org.junit.Test;
 import org.midonet.cluster.data.storage.FieldBinding.DeleteAction;
 import org.midonet.cluster.models.Commons;
 import org.midonet.cluster.util.ClassAwaitableObserver;
+import org.midonet.cluster.util.UUIDUtil;
 import org.midonet.util.reactivex.AwaitableObserver;
 
 import static org.apache.zookeeper.KeeperException.*;
@@ -587,7 +588,7 @@ public class ZookeeperObjectMapperTest {
             fail("Should not be able to create object with in-use ID.");
         } catch (ObjectExistsException ex) {
             assertEquals(PojoChain.class, ex.clazz());
-            assertEquals(chain.id, ex.id());
+            assertEquals(chain.id.toString(), ex.id());
         }
     }
 
@@ -624,7 +625,7 @@ public class ZookeeperObjectMapperTest {
             fail("Should not be able to create object with in-use ID.");
         } catch (ObjectExistsException ex) {
             assertEquals(Network.class, ex.clazz());
-            assertEquals(NETWORK_UUID, ex.id());
+            assertEquals(UUIDUtil.fromProto(NETWORK_UUID).toString(), ex.id());
         }
     }
 

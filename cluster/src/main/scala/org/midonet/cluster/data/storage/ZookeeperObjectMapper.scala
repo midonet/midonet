@@ -232,7 +232,7 @@ class ZookeeperObjectMapper(
          * @return None if the object has been marked for deletion.
          */
         private def cacheGet(clazz: Class[_], id: ObjId): Option[ObjSnapshot] = {
-            objCache.getOrElseUpdate(Key(clazz, id),
+            objCache.getOrElseUpdate(getKey(clazz, id),
                                      Some(getSnapshot(clazz, id)))
         }
 
@@ -323,7 +323,7 @@ class ZookeeperObjectMapper(
             }
 
             val thisId = getObjectId(obj)
-            val key = Key(obj.getClass, thisId)
+            val key = getKey(obj.getClass, thisId)
 
             if(objCache.contains(key) && !isDeleted(key)) {
                 throw new ObjectExistsException(key.clazz, key.id)
@@ -426,7 +426,7 @@ class ZookeeperObjectMapper(
         private def updateCacheAndOp(clazz: Class[_], id: ObjId,
                                      snapshot: ObjSnapshot, obj: Obj,
                                      owner: Option[String]): Unit = {
-            val key = Key(clazz, id)
+            val key = getKey(clazz, id)
 
             val ownerOps = updateOwnerOps(snapshot.owners, owner)
             ops.get(key) match {
@@ -458,7 +458,7 @@ class ZookeeperObjectMapper(
         def delete(clazz: Class[_], id: ObjId, ignoresNeo: Boolean,
                    owner: Option[String]): Unit = {
             assert(isRegistered(clazz))
-            val key = Key(clazz, id)
+            val key = getKey(clazz, id)
 
             val ObjSnapshot(thisObj, thisVersion, thisOwners) = try {
                 cacheGet(clazz, id) match {
@@ -544,17 +544,18 @@ class ZookeeperObjectMapper(
                 return
             }
 
+            val thisId = getObjectId(thisObj)
             for (bdg <- allBindings.get(key.clazz).asScala
                  if bdg.hasBackReference;
                  thatId <- bdg.getFwdReferenceAsList(thisObj).asScala.distinct
-                 if !isDeleted(Key(bdg.getReferencedClass, thatId))) {
+                 if !isDeleted(getKey(bdg.getReferencedClass, thatId))) {
 
                 bdg.onDeleteThis match {
                     case DeleteAction.ERROR =>
                         throw new ObjectReferencedException(
                             key.clazz, key.id, bdg.getReferencedClass, thatId)
                     case DeleteAction.CLEAR =>
-                        clearBackreference(bdg, key.id, thatId)
+                        clearBackreference(bdg, thisId, thatId)
                     case DeleteAction.CASCADE =>
                         // Breaks if A has bindings with cascading delete to B
                         // and C, and B has a binding to C with ERROR semantics.
@@ -587,7 +588,7 @@ class ZookeeperObjectMapper(
             }
 
             val owners = thisOwners - owner
-            val key = Key(clazz, id)
+            val key = getKey(clazz, id)
             ops.get(key) match {
                 case None =>
                     // No previous op: add a TxUpdate with a TxDeleteOwner for
@@ -1283,7 +1284,7 @@ object ZookeeperObjectMapper {
         }
     }
 
-    private case class Key(clazz: Class[_], id: ObjId)
+    private case class Key(clazz: Class[_], id: String)
     private case class ObjSnapshot(obj: Obj, version: Int, owners: Set[String])
 
     private trait TxOp
@@ -1316,12 +1317,18 @@ object ZookeeperObjectMapper {
         }
     }
 
+    @inline
     private[storage] def getIdString(clazz: Class[_], id: ObjId): String = {
         if (classOf[Message].isAssignableFrom(clazz)) {
             ProtoFieldBinding.getIdString(id)
         } else {
             id.toString
         }
+    }
+
+    @inline
+    private def getKey(clazz: Class[_], id: ObjId): Key = {
+        Key(clazz, getIdString(clazz, id))
     }
 
     private[storage] def serialize(obj: Obj): Array[Byte] = {
