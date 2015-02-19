@@ -21,14 +21,20 @@ import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.midonet.cluster.data.ZoomField;
+import org.midonet.cluster.data.ZoomOneOf;
+import org.midonet.cluster.util.UUIDUtil;
 import org.midonet.midolman.rules.RuleResult.Action;
 import org.midonet.midolman.simulation.PacketContext;
 
+@ZoomOneOf(name = "jump_rule_data")
 public class JumpRule extends Rule {
 
     private final static Logger log = LoggerFactory.getLogger(JumpRule.class);
     private static final long serialVersionUID = -7212783590950701193L;
+    @ZoomField(name = "jump_to", converter = UUIDUtil.Converter.class)
     public UUID jumpToChainID;
+    @ZoomField(name = "jump_chain_name")
     public String jumpToChainName;
 
     public JumpRule(
@@ -39,6 +45,7 @@ public class JumpRule extends Rule {
     }
 
     // Default constructor for the Jackson deserialization.
+    // This constructor is also needed by ZoomConvert.
     public JumpRule() {
         super();
     }

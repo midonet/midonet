@@ -19,7 +19,6 @@ package org.midonet.brain.services.c3po.translators
 import scala.collection.JavaConverters._
 import scala.concurrent.Promise
 
-import com.google.protobuf.Descriptors.EnumValueDescriptor
 import com.google.protobuf.Message
 import org.junit.runner.RunWith
 import org.mockito.Mockito.{mock, when}
@@ -33,8 +32,6 @@ import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.ModelsUtil._
 import org.midonet.cluster.models.Neutron.{NeutronPort, NeutronSubnet}
-import org.midonet.cluster.models.Topology.Rule.FragmentPolicy
-import org.midonet.cluster.models.Topology.Rule._
 import org.midonet.cluster.models.Topology.{Chain, IpAddrGroup, Network, Port, Router, Rule}
 import org.midonet.cluster.util.UUIDUtil.{asRichProtoUuid, randomUuidProto}
 import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil, UUIDUtil}

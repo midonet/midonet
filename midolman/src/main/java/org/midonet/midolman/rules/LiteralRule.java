@@ -38,6 +38,7 @@ public class LiteralRule extends Rule {
     }
 
     // Default constructor for the Jackson deserialization.
+    // This constructor is also used by ZoomConvert.
     public LiteralRule() {
         super();
     }
