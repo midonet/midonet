@@ -1,0 +1,142 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_23f8c048",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/util/UUIDUtil.scala",
+        "patchSetId": 20
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-19T16:05:39Z",
+      "side": 1,
+      "message": "Undo.",
+      "range": {
+        "startLine": 21,
+        "startChar": 0,
+        "endLine": 21,
+        "endChar": 41
+      },
+      "revId": "255f4ac2c683d35f4cb3c0e1d07120ee7866aa51",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_43fdfc39",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/util/UUIDUtil.scala",
+        "patchSetId": 20
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-19T16:05:39Z",
+      "side": 1,
+      "message": "Undo",
+      "range": {
+        "startLine": 49,
+        "startChar": 0,
+        "endLine": 51,
+        "endChar": 0
+      },
+      "revId": "255f4ac2c683d35f4cb3c0e1d07120ee7866aa51",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_8396d4ee",
+        "filename": "cluster/src/test/scala/org/midonet/cluster/data/storage/StorageTester.scala",
+        "patchSetId": 20
+      },
+      "lineNbr": 271,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-19T16:05:39Z",
+      "side": 1,
+      "message": "Undo?",
+      "range": {
+        "startLine": 268,
+        "startChar": 8,
+        "endLine": 271,
+        "endChar": 9
+      },
+      "revId": "255f4ac2c683d35f4cb3c0e1d07120ee7866aa51",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_a3a3104e",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/TopologyBuilder.scala",
+        "patchSetId": 20
+      },
+      "lineNbr": 194,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-19T16:05:39Z",
+      "side": 1,
+      "message": "Undo",
+      "range": {
+        "startLine": 193,
+        "startChar": 56,
+        "endLine": 194,
+        "endChar": 34
+      },
+      "revId": "255f4ac2c683d35f4cb3c0e1d07120ee7866aa51",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_4394dce1",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/TopologyBuilder.scala",
+        "patchSetId": 20
+      },
+      "lineNbr": 217,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-19T16:05:39Z",
+      "side": 1,
+      "message": "Nit-picky comment: maybe we should set the chainId argument as second for all these methods.",
+      "range": {
+        "startLine": 217,
+        "startChar": 43,
+        "endLine": 217,
+        "endChar": 64
+      },
+      "revId": "255f4ac2c683d35f4cb3c0e1d07120ee7866aa51",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_e384e8b2",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/TopologyBuilder.scala",
+        "patchSetId": 20
+      },
+      "lineNbr": 219,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-19T16:05:39Z",
+      "side": 1,
+      "message": "Do we really need the val?",
+      "range": {
+        "startLine": 219,
+        "startChar": 8,
+        "endLine": 219,
+        "endChar": 22
+      },
+      "revId": "255f4ac2c683d35f4cb3c0e1d07120ee7866aa51",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
