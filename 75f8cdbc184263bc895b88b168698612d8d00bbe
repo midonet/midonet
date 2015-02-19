@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_a3af9093",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/C3POMinionTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-02-19T15:19:47Z",
+      "side": 1,
+      "message": "why not use eventually?",
+      "revId": "75f8cdbc184263bc895b88b168698612d8d00bbe",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
