@@ -32,6 +32,7 @@ import org.midonet.cluster.models.Neutron.SecurityGroup
 import org.midonet.cluster.models.Neutron.SecurityGroupRule
 import org.midonet.cluster.models.Neutron.VIP
 import org.midonet.cluster.models.Topology.Chain
+import org.midonet.cluster.models.Topology.Dhcp
 import org.midonet.cluster.models.Topology.Host
 import org.midonet.cluster.models.Topology.IpAddrGroup
 import org.midonet.cluster.models.Topology.Network
@@ -110,6 +111,9 @@ object ModelsUtil {
 
      def mNetworkFromTxt(protoTxt: String) =
         protoFromTxt(protoTxt, Network.newBuilder).asInstanceOf[Network]
+
+     def mDhcpFromTxt(protoTxt: String) =
+        protoFromTxt(protoTxt, Dhcp.newBuilder).asInstanceOf[Dhcp]
 
      def mRouterFromTxt(protoTxt: String) =
         protoFromTxt(protoTxt, Router.newBuilder).asInstanceOf[Router]

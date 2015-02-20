@@ -23,6 +23,7 @@ import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.Neutron.NeutronSubnet
 import org.midonet.cluster.models.Topology.Dhcp
+import org.midonet.cluster.util.DhcpUtil.asRichNeutronSubnet
 import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil}
 import org.midonet.util.concurrent.toFutureOps
 
@@ -31,6 +32,7 @@ class SubnetTranslator(storage: ReadOnlyStorage)
     extends NeutronTranslator[NeutronSubnet] {
 
     override protected def translateCreate(ns: NeutronSubnet): MidoOpList = {
+        if (ns.isIpv6) return List()  // Doesn't handle IPv6 yet.
 
         val dhcp = Dhcp.newBuilder
             .setId(ns.getId)
@@ -54,6 +56,7 @@ class SubnetTranslator(storage: ReadOnlyStorage)
     }
 
     override protected def translateUpdate(ns: NeutronSubnet): MidoOpList = {
+        if (ns.isIpv6) return List()  // Doesn't handle IPv6 yet.
 
         val origDhcp = storage.get(classOf[Dhcp], ns.getId).await()
         val newDhcp = origDhcp.toBuilder
