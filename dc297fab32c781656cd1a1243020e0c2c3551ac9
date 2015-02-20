@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_a913eeb6",
+        "filename": "midolman/src/main/java/org/midonet/midolman/rules/JumpRule.java",
+        "patchSetId": 23
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-20T18:04:57Z",
+      "side": 1,
+      "message": "As far as I could determine, this is okay, but it could be nice if somebody could confirm.",
+      "range": {
+        "startLine": 36,
+        "startChar": 25,
+        "endLine": 36,
+        "endChar": 36
+      },
+      "revId": "dc297fab32c781656cd1a1243020e0c2c3551ac9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_49451ab2",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/TopologyBuilder.scala",
+        "patchSetId": 23
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-20T18:04:57Z",
+      "side": 1,
+      "message": "Can we do without this?",
+      "range": {
+        "startLine": 20,
+        "startChar": 0,
+        "endLine": 20,
+        "endChar": 41
+      },
+      "revId": "dc297fab32c781656cd1a1243020e0c2c3551ac9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_29409ea4",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/TopologyBuilder.scala",
+        "patchSetId": 23
+      },
+      "lineNbr": 250,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-20T18:04:57Z",
+      "side": 1,
+      "message": "Is this val needed?",
+      "range": {
+        "startLine": 250,
+        "startChar": 8,
+        "endLine": 250,
+        "endChar": 22
+      },
+      "revId": "dc297fab32c781656cd1a1243020e0c2c3551ac9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_093b2239",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/TopologyBuilder.scala",
+        "patchSetId": 23
+      },
+      "lineNbr": 259,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-20T18:04:57Z",
+      "side": 1,
+      "message": "Same",
+      "range": {
+        "startLine": 259,
+        "startChar": 8,
+        "endLine": 259,
+        "endChar": 22
+      },
+      "revId": "dc297fab32c781656cd1a1243020e0c2c3551ac9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_694a96c6",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/TopologyBuilder.scala",
+        "patchSetId": 23
+      },
+      "lineNbr": 269,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-20T18:04:57Z",
+      "side": 1,
+      "message": "Same",
+      "range": {
+        "startLine": 269,
+        "startChar": 8,
+        "endLine": 269,
+        "endChar": 22
+      },
+      "revId": "dc297fab32c781656cd1a1243020e0c2c3551ac9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
