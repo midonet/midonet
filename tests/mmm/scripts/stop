@@ -26,4 +26,3 @@
 
 (cd scratch && bash stop)
 (cd netns && bash stop)
-(cd vtep && bash stop)
