@@ -48,6 +48,54 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_ae2ad429",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 4
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-20T10:47:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_a313100c",
+      "range": {
+        "startLine": 16,
+        "startChar": 0,
+        "endLine": 16,
+        "endChar": 6
+      },
+      "revId": "ce938840de08f51de11d16586260f15c51080682",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_ce275063",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 4
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-20T10:47:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_03fae4bc",
+      "range": {
+        "startLine": 16,
+        "startChar": 7,
+        "endLine": 16,
+        "endChar": 30
+      },
+      "revId": "ce938840de08f51de11d16586260f15c51080682",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_431b3c1b",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
         "patchSetId": 4
