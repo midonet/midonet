@@ -45,6 +45,30 @@
       "revId": "4dcb3d620308bdc4efb6f50f89d5b1436e50598d",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_293b7ed2",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/InMemoryStorage.scala",
+        "patchSetId": 28
+      },
+      "lineNbr": 532,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-20T14:43:47Z",
+      "side": 1,
+      "message": "You\u0027re right, I\u0027ve been having the same problem in the device mappers. I shall make a custom thread factory that saves the thread ID.",
+      "parentUuid": "7a1969be_4ea0809f",
+      "range": {
+        "startLine": 532,
+        "startChar": 50,
+        "endLine": 532,
+        "endChar": 76
+      },
+      "revId": "4dcb3d620308bdc4efb6f50f89d5b1436e50598d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
