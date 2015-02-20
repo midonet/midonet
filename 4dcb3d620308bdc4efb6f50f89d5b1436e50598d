@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_0e96884c",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/InMemoryStorage.scala",
+        "patchSetId": 28
+      },
+      "lineNbr": 162,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-02-20T11:17:04Z",
+      "side": 1,
+      "message": "Future.failed(new NotFoundEception) spares the more expensive throw.",
+      "range": {
+        "startLine": 162,
+        "startChar": 29,
+        "endLine": 162,
+        "endChar": 34
+      },
+      "revId": "4dcb3d620308bdc4efb6f50f89d5b1436e50598d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_4ea0809f",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/InMemoryStorage.scala",
+        "patchSetId": 28
+      },
+      "lineNbr": 532,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-02-20T11:17:04Z",
+      "side": 1,
+      "message": "how do you know that this is actually the IO thread?",
+      "range": {
+        "startLine": 532,
+        "startChar": 50,
+        "endLine": 532,
+        "endChar": 76
+      },
+      "revId": "4dcb3d620308bdc4efb6f50f89d5b1436e50598d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
