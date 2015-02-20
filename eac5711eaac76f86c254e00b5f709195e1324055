@@ -16,6 +16,24 @@
       "revId": "eac5711eaac76f86c254e00b5f709195e1324055",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_2e542420",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/TopologyBuilder.scala",
+        "patchSetId": 22
+      },
+      "lineNbr": 271,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-20T14:22:09Z",
+      "side": 1,
+      "message": "Yep, I don\u0027t know why I created a val actually...",
+      "parentUuid": "7a1969be_2ef8a448",
+      "revId": "eac5711eaac76f86c254e00b5f709195e1324055",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
