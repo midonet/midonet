@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_ebc5de3d",
+        "filename": "brain/midonet-brain/src/main/java/org/midonet/brain/southbound/vtep/VtepBroker.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 220,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-02-20T08:59:45Z",
+      "side": 1,
+      "message": "Is it meant to be a stop-gap measure to deal with the customer situation? Having to scan the entire list of macs every time adding a new one seems too slow. Will we investigate the root cause for duplicates? From the JIRA issue, it seems that duplicates are added periodically.\n\nA suggestion is to add addUcastRemoteWithout dup to VtepDataClient, but if this is just a temporary stuff, may not be worthwhile.",
+      "parentUuid": "7a1969be_6b8c4e36",
+      "range": {
+        "startLine": 209,
+        "startChar": 8,
+        "endLine": 220,
+        "endChar": 8
+      },
+      "revId": "7795b427795a0dbb330fee0749a6381014967c70",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_d5136364",
         "filename": "brain/midonet-brain/src/main/java/org/midonet/brain/southbound/vtep/VtepBroker.java",
         "patchSetId": 1
