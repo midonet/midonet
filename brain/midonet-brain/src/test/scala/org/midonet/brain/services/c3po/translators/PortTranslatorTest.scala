@@ -35,7 +35,7 @@ import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.models.Commons.{IPAddress, IPSubnet, UUID}
 import org.midonet.cluster.models.ModelsUtil._
 import org.midonet.cluster.models.Neutron.{NeutronPort, NeutronSubnet}
-import org.midonet.cluster.models.Topology.{Chain, IpAddrGroup, Network, Port, Router, Rule}
+import org.midonet.cluster.models.Topology.{Chain, Dhcp, IpAddrGroup, Network, Port, Router, Rule}
 import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil, UUIDUtil}
 import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
 import org.midonet.cluster.util.UUIDUtil.randomUuidProto
@@ -157,24 +157,6 @@ class PortTranslatorTest extends FlatSpec with BeforeAndAfter
     val ipv6Addr1Txt = "fe80:0:0:0:0:202:b3ff:8329"
     val ipv6Addr1 = IPAddressUtil.toProto(ipv6Addr1Txt)
 
-    val midoNetworkWithSubnets = s"""
-            $midoNetworkBase
-            dhcp_subnets {
-              subnet_address {
-                version: V4
-                address: "$ipv4Subnet1Addr"
-                prefix_length: 8
-              }
-            }
-            dhcp_subnets {
-              subnet_address {
-                version: V6
-                address: "$ipv6Addr1Txt"
-                prefix_length: 64
-              }
-            }"""
-    val mNetworkWithSubnets = mNetworkFromTxt(midoNetworkWithSubnets)
-
     val nIpv4Subnet1Id = randomUuidProto
     val nIpv4Subnet1 = nSubnetFromTxt(s"""
         id { $nIpv4Subnet1Id }
@@ -190,6 +172,27 @@ class PortTranslatorTest extends FlatSpec with BeforeAndAfter
         cidr: '$ipv6Subnet1Cidr'
         ip_version: 6
         """)
+
+    val midoIpv4Dhcp = s"""
+            id { $nIpv4Subnet1Id }
+            network_id { $networkId }
+            subnet_address { $ipv4Subnet1 }
+        """
+    val mIpv4Dhcp = mDhcpFromTxt(midoIpv4Dhcp)
+
+    val midoIpv6Dhcp = s"""
+            id { $nIpv6Subnet1Id }
+            network_id { $networkId }
+            subnet_address { $ipv6Subnet1 }
+        """
+    val mIpv6Dhcp = mDhcpFromTxt(midoIpv6Dhcp)
+
+    val midoNetworkWithSubnets = s"""
+            $midoNetworkBase
+            dhcp { $nIpv4Subnet1Id }
+            dhcp { $nIpv6Subnet1Id }
+        """
+    val mNetworkWithSubnets = mNetworkFromTxt(midoNetworkWithSubnets)
 
     /* Finds an operation on Chain with the specified chain ID, and returns a
      * first one found.
@@ -262,36 +265,21 @@ class VifPortTranslationTest extends PortTranslatorTest {
         outbound_chain_id { $ipAddrGroup2OutChainId }
         """)
 
-    val mNetworkWithHostsAdded = mNetworkFromTxt(s"""
-        $midoNetworkBase
-        dhcp_subnets {
-          subnet_address {
-            version: V4
-            address: "127.0.0.0"
-            prefix_length: 8
-          }
+    val mIpv4DhcpWithHostAdded = mDhcpFromTxt(s"""
+          $mIpv4Dhcp
           hosts {
             mac: "$mac"
-            ip_address {
-              version: V4
-              address: "$ipv4Addr1Txt"
-            }
+            ip_address { $ipv4Addr1 }
           }
-        }
-        dhcp_subnets {
-          subnet_address {
-            version: V6
-            address: "$ipv6Addr1Txt"
-            prefix_length: 64
-          }
+        """)
+
+    val mIpv6DhcpWithHostAdded = mDhcpFromTxt(s"""
+          $mIpv6Dhcp
           hosts {
             mac: "$mac"
-            ip_address {
-              version: V6
-              address: "$ipv6Addr1Txt"
-            }
+            ip_address { $ipv6Addr1 }
           }
-        }""")
+        """)
 }
 
 /**
@@ -307,20 +295,21 @@ class VifPortCreateTranslationTest extends VifPortTranslationTest {
             .thenReturn(Promise.successful(nIpv4Subnet1).future)
         when(storage.get(classOf[NeutronSubnet], nIpv6Subnet1Id))
             .thenReturn(Promise.successful(nIpv6Subnet1).future)
-        when(storage.get(classOf[Network], networkId))
-            .thenReturn(Promise.successful(mNetworkWithSubnets).future)
-        when(storage.get(classOf[Port], portId))
-            .thenReturn(Promise.successful(midoPortBaseUp).future)
+        when(storage.get(classOf[Dhcp], nIpv4Subnet1Id))
+            .thenReturn(Promise.successful(mIpv4Dhcp).future)
+        when(storage.get(classOf[Dhcp], nIpv6Subnet1Id))
+            .thenReturn(Promise.successful(mIpv6Dhcp).future)
         when(storage.get(classOf[IpAddrGroup], sgId1))
             .thenReturn(Promise.successful(ipAddrGroup1).future)
         when(storage.get(classOf[IpAddrGroup], sgId2))
             .thenReturn(Promise.successful(ipAddrGroup2).future)
     }
 
-    "Fixed IPs for a new VIF port" should "create DHCP subnets" in {
+    "Fixed IPs for a new VIF port" should "add hosts to DHCPs" in {
         val midoOps = translator.translate(neutron.Create(vifPortWithFixedIps))
 
-        midoOps should contain (midonet.Update(mNetworkWithHostsAdded))
+        midoOps should contain (midonet.Update(mIpv4DhcpWithHostAdded))
+        midoOps should contain (midonet.Update(mIpv6DhcpWithHostAdded))
     }
 
     "A created VIF port" should "have security bindings" in {
@@ -481,8 +470,10 @@ class VifPortUpdateDeleteTranslationTest extends VifPortTranslationTest {
             .thenReturn(Promise.successful(nIpv4Subnet1).future)
         when(storage.get(classOf[NeutronSubnet], nIpv6Subnet1Id))
             .thenReturn(Promise.successful(nIpv6Subnet1).future)
-        when(storage.get(classOf[Network], networkId))
-            .thenReturn(Promise.successful(mNetworkWithHostsAdded).future)
+        when(storage.get(classOf[Dhcp], nIpv4Subnet1Id))
+            .thenReturn(Promise.successful(mIpv4DhcpWithHostAdded).future)
+        when(storage.get(classOf[Dhcp], nIpv6Subnet1Id))
+            .thenReturn(Promise.successful(mIpv6DhcpWithHostAdded).future)
         when(storage.get(classOf[Port], portId))
             .thenReturn(Promise.successful(mPortWithChains).future)
         when(storage.get(classOf[NeutronPort], portId))
@@ -520,30 +511,14 @@ class VifPortUpdateDeleteTranslationTest extends VifPortTranslationTest {
     "UPDATE VIF port with fixed IPs" should "delete old DHCP host entries " +
     "and create new DHCP host entries" in {
         val midoOps = translator.translate(neutron.Update(vifPortWithFixedIps2))
-        val networkWithUpdatedDhcpHosts = mNetworkFromTxt(s"""
-            $midoNetworkBase
-            dhcp_subnets {
-              subnet_address {
-                version: V4
-                address: "$ipv4Subnet1Addr"
-                prefix_length: 8
-              }
+        val mIpv4DhcpWithHostUpdated = mDhcpFromTxt(s"""
+              $mIpv4Dhcp
               hosts {
                 mac: "$mac"
-                ip_address {
-                  version: V4
-                  address: "$updatedFixedIpTxt"
-                }
+                ip_address { $updatedFixedIp }
               }
-            }
-            dhcp_subnets {
-              subnet_address {
-                version: V6
-                address: "$ipv6Addr1Txt"
-                prefix_length: 64
-              }
-            }""")
-        midoOps should contain (midonet.Update(networkWithUpdatedDhcpHosts))
+            """)
+        midoOps should contain (midonet.Update(mIpv4DhcpWithHostUpdated))
     }
 
     val vifPortWithFipsAndSgs2 = nPortFromTxt(s"""
@@ -695,24 +670,9 @@ class VifPortUpdateDeleteTranslationTest extends VifPortTranslationTest {
 
         val midoOps = translator.translate(neutron.Delete(classOf[NeutronPort],
                                                           portId))
-        val networkWithNoDhcpHosts = mNetworkFromTxt(s"""
-            $midoNetworkBase
-            dhcp_subnets {
-              subnet_address {
-                version: V4
-                address: "$ipv4Subnet1Addr"
-                prefix_length: 8
-              }
-            }
-            dhcp_subnets {
-              subnet_address {
-                version: V6
-                address: "$ipv6Addr1Txt"
-                prefix_length: 64
-              }
-            }""")
 
-        midoOps should contain (midonet.Update(networkWithNoDhcpHosts))
+        midoOps should contain (midonet.Update(mIpv4Dhcp))
+        midoOps should contain (midonet.Update(mIpv6Dhcp))
         midoOps should contain (midonet.Delete(classOf[Rule], inChainRule1))
         midoOps should contain (midonet.Delete(classOf[Rule], inChainRule2))
         midoOps should contain (midonet.Delete(classOf[Rule], inChainRule3))
@@ -789,38 +749,17 @@ class DhcpPortTranslationTest extends PortTranslatorTest {
         port_ids { $portWithPeerId }
         """)
 
-    protected val mNetworkWithDhcpConfigured = mNetworkFromTxt(s"""
-        $midoNetworkBase
-        dhcp_subnets {
-          subnet_address {
-            version: V4
-            address: "$ipv4Subnet1Addr"
-            prefix_length: 8
-          }
-          server_address {
-            version: V4
-            address: '$ipv4Addr1Txt'
-          }
+    protected val mIpv4DhcpWithDhcpConfigured = mDhcpFromTxt(s"""
+          $mIpv4Dhcp
+          server_address { $ipv4Addr1 }
           opt121_routes {
             dst_subnet {
               version: V4
               address: "169.254.169.254"
               prefix_length: 32
             }
-            gateway {
-              version: V4
-              address: '$ipv4Addr1Txt'
-            }
+            gateway { $ipv4Addr1 }
           }
-        }
-        dhcp_subnets {
-          subnet_address {
-            version: V6
-            address: "$ipv6Addr1Txt"
-            prefix_length: 64
-          }
-        }
-        port_ids { $portWithPeerId }
         """)
 }
 
@@ -832,6 +771,10 @@ class DhcpPortCreateTranslationTest extends DhcpPortTranslationTest {
 
         when(storage.get(classOf[Network], networkId))
             .thenReturn(Promise.successful(mNetworkWithDhcpPort).future)
+        when(storage.get(classOf[Dhcp], nIpv4Subnet1Id))
+            .thenReturn(Promise.successful(mIpv4Dhcp).future)
+        when(storage.get(classOf[Dhcp], nIpv6Subnet1Id))
+            .thenReturn(Promise.successful(mIpv6Dhcp).future)
         when(storage.get(classOf[NeutronSubnet], nIpv4Subnet1Id))
             .thenReturn(Promise.successful(nIpv4Subnet1WithGwIP).future)
         when(storage.get(classOf[NeutronSubnet], nIpv6Subnet1Id))
@@ -850,7 +793,7 @@ class DhcpPortCreateTranslationTest extends DhcpPortTranslationTest {
                       .asInstanceOf[List[Operation[Message]]]
 
         midoOps should contain (midonet.Create(midoPortBaseUp))
-        midoOps should contain (midonet.Update(mNetworkWithDhcpConfigured))
+        midoOps should contain (midonet.Update(mIpv4DhcpWithDhcpConfigured))
 
         val routerOp = findRouterOp(midoOps, OpType.Update, routerId)
         routerOp should not be (null)
@@ -911,7 +854,11 @@ class DhcpPortUpdateDeleteTranslationTest extends DhcpPortTranslationTest {
         when(storage.get(classOf[NeutronPort], portId))
             .thenReturn(Promise.successful(dhcpPort).future)
         when(storage.get(classOf[Network], networkId))
-            .thenReturn(Promise.successful(mNetworkWithDhcpConfigured).future)
+            .thenReturn(Promise.successful(mNetworkWithDhcpPort).future)
+        when(storage.get(classOf[Dhcp], nIpv4Subnet1Id))
+            .thenReturn(Promise.successful(mIpv4DhcpWithDhcpConfigured).future)
+        when(storage.get(classOf[Dhcp], nIpv6Subnet1Id))
+            .thenReturn(Promise.successful(mIpv6Dhcp).future)
         when(storage.get(classOf[NeutronSubnet], nIpv4Subnet1Id))
             .thenReturn(Promise.successful(nIpv4Subnet1WithGwIP).future)
         when(storage.get(classOf[NeutronSubnet], nIpv6Subnet1Id))
@@ -937,7 +884,7 @@ class DhcpPortUpdateDeleteTranslationTest extends DhcpPortTranslationTest {
         val midoOps = translator.translate(
                 neutron.Delete(classOf[NeutronPort], portId))
         midoOps should contain (midonet.Delete(classOf[Port], portId))
-        midoOps should contain (midonet.Update(mNetworkWithDhcpPort))
+        midoOps should contain (midonet.Update(mIpv4Dhcp))
         midoOps should contain (midonet.Update(mRouterWithRoute))
     }
 }

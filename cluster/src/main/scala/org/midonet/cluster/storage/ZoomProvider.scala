@@ -36,7 +36,6 @@ class ZoomProvider @Inject()(val curator: CuratorFramework, cfg: ZookeeperConfig
         List(classOf[C3POState],
              classOf[Chain],
              classOf[Dhcp],
-             classOf[DhcpV6],
              classOf[FloatingIp],
              classOf[Host],
              classOf[IpAddrGroup],
@@ -62,6 +61,8 @@ class ZoomProvider @Inject()(val curator: CuratorFramework, cfg: ZookeeperConfig
         ).foreach(storage.registerClass)
         storage.declareBinding(classOf[Network], "port_ids", ERROR,
                                classOf[Port], "network_id", CLEAR)
+        storage.declareBinding(classOf[Network], "dhcp", ERROR,
+                               classOf[Dhcp], "network_id", CLEAR)
         storage.build()
         storage
     }

@@ -28,15 +28,14 @@ import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.models.Commons.{IPAddress, IPSubnet, IPVersion, UUID}
 import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner
 import org.midonet.cluster.models.Neutron.{NeutronPort, NeutronSubnet}
-import org.midonet.cluster.models.Topology.{Chain, Dhcp, IpAddrGroup, Network, Port, PortOrBuilder, Route, Router, Rule}
+import org.midonet.cluster.models.Topology.{Chain, Dhcp, DhcpOrBuilder, IpAddrGroup, Network, Port, PortOrBuilder, Route, Router, Rule}
+import org.midonet.cluster.util.DhcpUtil.asRichDhcp
 import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
 import org.midonet.cluster.util.{IPSubnetUtil, UUIDUtil}
-import org.midonet.packets.{ARP, IPv4, IPv6}
+import org.midonet.packets.ARP
 import org.midonet.util.concurrent.toFutureOps
 
 object PortTranslator {
-    private def isIpv4(nSubnet: NeutronSubnet) = nSubnet.getIpVersion == 4
-    private def isIpv6(nSubnet: NeutronSubnet) = nSubnet.getIpVersion == 6
     private def egressChainName(portId: UUID) =
         "OS_PORT_" + UUIDUtil.fromProto(portId) + "_INBOUND"
 
@@ -70,16 +69,14 @@ class PortTranslator(val storage: ReadOnlyStorage)
 
             // Add new DHCP host entries
             updateDhcpEntries(nPort,
-                              portContext.midoNetworks,
-                              portContext.neutronSubnet,
+                              portContext.midoDhcps,
                               addDhcpHost)
             updateSecurityBindings(nPort, null, midoPortBldr, portContext)
         } else if (isDhcpPort(nPort)) {
             updateDhcpEntries(nPort,
-                              portContext.midoNetworks,
-                              portContext.neutronSubnet,
+                              portContext.midoDhcps,
                               addDhcpServer)
-            midoOps ++= configureMetaDataService(nPort, portContext)
+            midoOps ++= configureMetaDataService(nPort)
         }
         addMidoOps(portContext, midoOps)
 
@@ -99,16 +96,14 @@ class PortTranslator(val storage: ReadOnlyStorage)
             val mPort = storage.get(classOf[Port], id).await()
             // Delete old DHCP host entries
             updateDhcpEntries(nPort,
-                              portContext.midoNetworks,
-                              mutable.Map(), // Not interested in old subnets.
+                              portContext.midoDhcps,
                               delDhcpHost)
             deleteSecurityBindings(nPort, mPort, portContext)
         } else if (isDhcpPort(nPort)) {
             updateDhcpEntries(nPort,
-                              portContext.midoNetworks,
-                              portContext.neutronSubnet,
+                              portContext.midoDhcps,
                               delDhcpServer)
-            midoOps ++= deleteMetaDataServiceRoute(nPort, portContext)
+            midoOps ++= deleteMetaDataServiceRoute(nPort)
         }
         addMidoOps(portContext, midoOps)
 
@@ -133,13 +128,11 @@ class PortTranslator(val storage: ReadOnlyStorage)
             val oldNPort = storage.get(classOf[NeutronPort], portId).await()
             // Delete old DHCP host entries
             updateDhcpEntries(oldNPort,
-                              portContext.midoNetworks,
-                              mutable.Map(), // Not interested in old subnets.
+                              portContext.midoDhcps,
                               delDhcpHost)
             // Add new DHCP host entriess
             updateDhcpEntries(nPort,
-                              portContext.midoNetworks,
-                              portContext.neutronSubnet,
+                              portContext.midoDhcps,
                               addDhcpHost)
             updateSecurityBindings(nPort, oldNPort, mPort, portContext)
             addMidoOps(portContext, midoOps)
@@ -149,168 +142,123 @@ class PortTranslator(val storage: ReadOnlyStorage)
         midoOps.toList
     }
 
-    /* A container class holding context associated with a Neutron Port CRUD.
-     */
+    /* A container class holding context associated with a Neutron Port CRUD. */
     private case class PortContext(
-            midoNetworks: mutable.Map[UUID, Network.Builder],
-            neutronSubnet: mutable.Map[UUID, NeutronSubnet],
+            midoDhcps: mutable.Map[UUID, Dhcp.Builder],
             inRules: ListBuffer[MidoOp[Rule]],
             outRules: ListBuffer[MidoOp[Rule]],
             chains: ListBuffer[MidoOp[Chain]],
             updatedIpAddrGrps: ListBuffer[MidoOp[IpAddrGroup]])
 
     private def initPortContext =
-        PortContext(mutable.Map[UUID, Network.Builder](),
-                    mutable.Map[UUID, NeutronSubnet](),
+        PortContext(mutable.Map[UUID, Dhcp.Builder](),
                     ListBuffer[MidoOp[Rule]](),
                     ListBuffer[MidoOp[Rule]](),
                     ListBuffer[MidoOp[Chain]](),
                     ListBuffer[MidoOp[IpAddrGroup]]())
 
 
-    private def addMidoOps(portModels: PortContext,
+    private def addMidoOps(portContext: PortContext,
                            midoOps: MidoOpListBuffer) {
-            midoOps ++= portModels.midoNetworks.values.map(n => Update(n.build))
-            midoOps ++= portModels.inRules ++ portModels.outRules
-            midoOps ++= portModels.chains
-            midoOps ++= portModels.updatedIpAddrGrps
+            midoOps ++= portContext.midoDhcps.values.map(d => Update(d.build))
+            midoOps ++= portContext.inRules ++ portContext.outRules
+            midoOps ++= portContext.chains
+            midoOps ++= portContext.updatedIpAddrGrps
     }
 
-    /* Update DHCP subnet entries in the Network's DHCP settings. */
+    /* Update DHCP configuration by applying the given updateFun. */
     private def updateDhcpEntries(
             nPort: NeutronPort,
-            networkCache: mutable.Map[UUID, Network.Builder],
-            subnetCache: mutable.Map[UUID, NeutronSubnet],
-            updateFun: (Network.Builder, IPSubnet, String, IPAddress) => Unit) {
+            subnetCache: mutable.Map[UUID, Dhcp.Builder],
+            updateFun: (Dhcp.Builder, String, IPAddress) => Unit) {
         for (ipAlloc <- nPort.getFixedIpsList.asScala) {
-            val subnet = storage.get(classOf[NeutronSubnet],
-                                     ipAlloc.getSubnetId).await()
-            subnetCache.put(ipAlloc.getSubnetId, subnet)
-            val ipSubnet = IPSubnetUtil.toProto(subnet.getCidr)
-            val network = networkCache.getOrElseUpdate(
-                    subnet.getNetworkId,
-                    storage.get(classOf[Network], subnet.getNetworkId)
-                                                .await().toBuilder)
-
+            val subnet = subnetCache.getOrElseUpdate(
+                    ipAlloc.getSubnetId,
+                    storage.get(classOf[Dhcp],
+                                ipAlloc.getSubnetId).await().toBuilder)
             val mac = nPort.getMacAddress
             val ipAddress = ipAlloc.getIpAddress
-            updateFun(network, ipSubnet, mac, ipAddress)
+            updateFun(subnet, mac, ipAddress)
         }
     }
 
-    /* Find a DHCP subnet of the give bridge with the specified IP Subnet. */
-    private def findDhcpSubnet(network: Network.Builder,
-                               subnet: IPSubnet): Option[Dhcp.Builder] = {
-        network.getDhcpSubnetsBuilderList.asScala
-               .find( _.getSubnetAddress == subnet)
+    /* Adds a host entry with the given mac / IP address pair to DHCP. */
+    private def addDhcpHost(
+            dhcp: Dhcp.Builder, mac: String, ipAddr: IPAddress) {
+        dhcp.addHostsBuilder()
+            .setMac(mac)
+            .setIpAddress(ipAddr)
     }
 
-    /* Looks up a subnet in the specified Network with corresponding subnet
-     * address, and adds a host entry with the given mac / IP address pair. It's
-     * a no-op if the subnet is not created with the Network, which is assumed
-     * to have been checked by the caller. Such a case shouldn't really happen
-     * since the Neutron API is the only component that updates Topology.
-     */
-    private def addDhcpHost(network: Network.Builder, subnet: IPSubnet,
-                            mac: String, ipAddr: IPAddress) {
-        findDhcpSubnet(network, subnet).foreach(_.addHostsBuilder()
-                                                 .setMac(mac)
-                                                 .setIpAddress(ipAddr))
+    /* Deletes a host entry with the given mac / IP address pair in DHCP. */
+    private def delDhcpHost(
+            dhcp: Dhcp.Builder, mac: String, ipAddr: IPAddress) {
+        val remove = dhcp.getHostsList.asScala.indexWhere(
+            h => h.getMac == mac && h.getIpAddress == ipAddr)
+        if (remove >= 0) dhcp.removeHosts(remove)
     }
 
-    /* Looks up a subnet in the specified Network with corresponding subnet
-     * address, and deletes a host entry with the given mac / IP address pair.
-     * It's a no-op if the subnet does not exist / is already deleted, which is
-     * assumed to have been checked by the caller. Such a case shouldn't really
-     * happen since the Neutron API is the only component that updates Topology.
-     */
-    private def delDhcpHost(network: Network.Builder, subnet: IPSubnet,
-                            mac: String, ipAddr: IPAddress) {
-        findDhcpSubnet(network, subnet).foreach { dhcp =>
-                val remove = dhcp.getHostsList.asScala.indexWhere(
-                    h => h.getMac == mac && h.getIpAddress == ipAddr)
-                if (remove >= 0) dhcp.removeHosts(remove)
-        }
+    /* Configures the DHCP server and an OPT 121 route to it with the given IP
+     * address (the mac is actually not being used here). */
+    private def addDhcpServer(dhcp: Dhcp.Builder, mac: String,
+                              ipAddr: IPAddress) = if (dhcp.isIpv4) {
+        dhcp.setServerAddress(ipAddr)
+        val opt121 = dhcp.addOpt121RoutesBuilder()
+        opt121.setDstSubnet(META_DATA_SRVC)
+              .setGateway(ipAddr)
     }
 
-    /* Looks up a subnet in the given Network with the corresponding subnet
-     * address and configures the DHCP server and an OPT 121 route to it with
-     * the given IP address (the mac is actually not being used here). This
-     * method is a no-op if the specified subnet does not exist with the
-     * Network.
-     */
-    private def addDhcpServer(network: Network.Builder, subnet: IPSubnet,
-                              mac: String, ipAddr: IPAddress) {
-        if (subnet.getVersion == IPVersion.V4)
-            findDhcpSubnet(network, subnet).foreach({subnet =>
-                subnet.setServerAddress(ipAddr)
-                val opt121 = subnet.addOpt121RoutesBuilder()
-                opt121.setDstSubnet(META_DATA_SRVC)
-                      .setGateway(ipAddr)
-            })
-    }
-
-    /* Looks up a subnet in the given Network with the corresponding subnet
-     * address and removes the DHCP server and OPT 121 route configurations with
-     * the given IP address (the mac is actually not being used here). This
-     * method is a no-op if the specified subnet does not exist with the
-     * Network.
-     */
-    private def delDhcpServer(network: Network.Builder, subnet: IPSubnet,
-                              mac: String, nextHopGw: IPAddress) {
-        if (subnet.getVersion == IPVersion.V4)
-            findDhcpSubnet(network, subnet).foreach({dhcpSubnet =>
-                dhcpSubnet.clearServerAddress()
-                val route = dhcpSubnet.getOpt121RoutesOrBuilderList.asScala
-                            .indexWhere(isMetaDataSvrOpt121Route(_, nextHopGw))
-                if (route >= 0) dhcpSubnet.removeOpt121Routes(route)
-            })
+    /* Removes the DHCP server and OPT 121 route configurations with the given
+     * IP address from DHCP (the mac is actually not being used here). */
+    private def delDhcpServer(dhcp: Dhcp.Builder, mac: String,
+                              nextHopGw: IPAddress) = if (dhcp.isIpv4) {
+        dhcp.clearServerAddress()
+        val route = dhcp.getOpt121RoutesOrBuilderList.asScala
+                        .indexWhere(isMetaDataSvrOpt121Route(_, nextHopGw))
+        if (route >= 0) dhcp.removeOpt121Routes(route)
     }
 
     /* Create chains, rules and IP Address Groups associated with nPort. */
     private def updateSecurityBindings(nPort: NeutronPort,
                                        nPortOld: NeutronPort,
                                        mPort: PortOrBuilder,
-                                       portInfo: PortContext) {
+                                       portCxt: PortContext) {
         val portId = nPort.getId
         val inChainId = mPort.getInboundFilterId
         val outChainId = mPort.getOutboundFilterId
         val mac = nPort.getMacAddress
         // Create an IP spoofing protection rule.
-        for (subnet <- portInfo.neutronSubnet.values) {
-            val ipSubnet = IPSubnetUtil.toProto(subnet.getCidr)
-            val ipEtherType = if (isIpv4(subnet)) IPv4.ETHERTYPE
-                              else IPv6.ETHERTYPE
+        for (dhcp <- portCxt.midoDhcps.values if dhcp.getHostsCount > 0) {
             // NOTE: if a port belongs to more than 1 subnet, the drop rules
             // that would be created below would drop all packets. Currently
             // we don't "handle" more than 1 IP address per port, so there
             // should be no problem, but this can potentially cause problems.
-            portInfo.inRules += Create(dropRuleBuilder(inChainId)
-                                       .setNwSrcIp(ipSubnet)
-                                       .setNwSrcInv(true)
-                                       .setDlType(ipEtherType).build)
+            portCxt.inRules += Create(dropRuleBuilder(inChainId)
+                                      .setNwSrcIp(dhcp.getSubnetAddress)
+                                      .setNwSrcInv(true)
+                                      .setDlType(dhcp.etherType).build)
 
             // TODO If a port is attached to an external NeutronNetwork,
             // add a route to the provider router.
         }
 
         // Create reverse flow rules.
-        portInfo.outRules += Create(reverseFlowRule(outChainId))
+        portCxt.outRules += Create(reverseFlowRule(outChainId))
         // MAC spoofing protection
-        portInfo.inRules += Create(dropRuleBuilder(inChainId)
-                                   .setDlSrc(mac)
-                                   .setInvDlSrc(true).build)
+        portCxt.inRules += Create(dropRuleBuilder(inChainId)
+                                  .setDlSrc(mac)
+                                  .setInvDlSrc(true).build)
         // Create reverse flow rules matching for inbound chain.
-        portInfo.inRules += Create(reverseFlowRule(inChainId))
+        portCxt.inRules += Create(reverseFlowRule(inChainId))
         // Add jump rules to corresponding inbound / outbound chains of IP
         // Address Groups (Neutron's Security Groups) that the port belongs to.
         for (sgId <- nPort.getSecurityGroupsList.asScala) {
             val ipAddrGrp = storage.get(classOf[IpAddrGroup], sgId).await()
             // Jump rules to inbound / outbound chains of IP Address Groups
-            portInfo.inRules += Create(jumpRule(inChainId,
-                                                ipAddrGrp.getInboundChainId))
-            portInfo.outRules += Create(jumpRule(outChainId,
-                                                 ipAddrGrp.getOutboundChainId))
+            portCxt.inRules += Create(jumpRule(inChainId,
+                                               ipAddrGrp.getInboundChainId))
+            portCxt.outRules += Create(jumpRule(outChainId,
+                                                ipAddrGrp.getOutboundChainId))
 
             // Compute IP addresses that were removed from the IP Address Group
             // or added to it.
@@ -336,34 +284,34 @@ class PortTranslator(val storage: ReadOnlyStorage)
                 updatedIpAddrG.addIpAddrPortsBuilder()
                               .setIpAddress(newIp)
                               .addPortId(portId)
-            portInfo.updatedIpAddrGrps += Update(updatedIpAddrG.build)
+            portCxt.updatedIpAddrGrps += Update(updatedIpAddrG.build)
         }
 
         // Drop non-ARP traffic that wasn't accepted by earlier rules.
-        portInfo.inRules += Create(dropRuleBuilder(inChainId)
+        portCxt.inRules += Create(dropRuleBuilder(inChainId)
+                                  .setDlType(ARP.ETHERTYPE)
+                                  .setInvDlType(true).build)
+        portCxt.outRules += Create(dropRuleBuilder(outChainId)
                                    .setDlType(ARP.ETHERTYPE)
                                    .setInvDlType(true).build)
-        portInfo.outRules += Create(dropRuleBuilder(outChainId)
-                                    .setDlType(ARP.ETHERTYPE)
-                                    .setInvDlType(true).build)
 
         // Create in/outbound chains with the IDs of the above rules.
         val inChain = newChain(inChainId, egressChainName(portId),
-                               toRuleIdList(portInfo.inRules))
+                               toRuleIdList(portCxt.inRules))
         val outChain = newChain(outChainId, ingressChainName(portId),
-                                toRuleIdList(portInfo.outRules))
+                                toRuleIdList(portCxt.outRules))
 
         if (nPortOld != null) { // Update
-            portInfo.chains += (Update(inChain), Update(outChain))
+            portCxt.chains += (Update(inChain), Update(outChain))
 
             val iChain = storage.get(classOf[Chain], inChainId).await()
-            portInfo.inRules ++= iChain.getRuleIdsList.asScala
-                                       .map(Delete(classOf[Rule], _))
+            portCxt.inRules ++= iChain.getRuleIdsList.asScala
+                                      .map(Delete(classOf[Rule], _))
             val oChain = storage.get(classOf[Chain], outChainId).await()
-            portInfo.outRules ++= oChain.getRuleIdsList.asScala
-                                        .map(Delete(classOf[Rule], _))
+            portCxt.outRules ++= oChain.getRuleIdsList.asScala
+                                       .map(Delete(classOf[Rule], _))
         } else { // Create
-            portInfo.chains += (Create(inChain), Create(outChain))
+            portCxt.chains += (Create(inChain), Create(outChain))
         }
     }
 
@@ -401,49 +349,48 @@ class PortTranslator(val storage: ReadOnlyStorage)
 
     /* If the first fixed IP address is configured with a gateway IP address,
      * create a route to Meta Data Service.*/
-    private def configureMetaDataService(nPort: NeutronPort,
-                                         portContext: PortContext)
-    : Option[MidoOp[_ <: Message]] = if (nPort.getFixedIpsCount > 0) {
-        val nextHopGateway = nPort.getFixedIps(0).getIpAddress
-        val nextHopGatewaySubnetId = nPort.getFixedIps(0).getSubnetId
-        val srcSubnet = portContext.neutronSubnet(nextHopGatewaySubnetId)
-
-        findGateway(srcSubnet, portContext) map { gateway =>
+    private def configureMetaDataService(nPort: NeutronPort)
+    : Option[MidoOp[_ <: Message]] =
+        findGateway(nPort) map { gateway =>
             val metaDataSvcRoute = createMetaDataServiceRoute(
-                srcSubnet = IPSubnetUtil.toProto(srcSubnet.getCidr),
-                nextHopPortId = gateway.routerPortId,
-                nextHopGw = nextHopGateway,
-                routerId = gateway.router.getId)
-            Update(gateway.router.toBuilder.addRoutes(metaDataSvcRoute).build())
+                srcSubnet = IPSubnetUtil.toProto(gateway.nextHopSubnet.getCidr),
+                nextHopPortId = gateway.peerRouterPortId,
+                nextHopGw = gateway.nextHop,
+                routerId = gateway.peerRouter.getId)
+            Update(gateway.peerRouter.toBuilder
+                          .addRoutes(metaDataSvcRoute).build())
         }
-    } else None
 
     /* If the first fixed IP address is configured with a gateway IP address,
      * delete a route to Meta Data Service from the gateway router.*/
-    private def deleteMetaDataServiceRoute(nPort: NeutronPort,
-                                           portContext: PortContext)
-    : Option[MidoOp[_ <: Message]] = if (nPort.getFixedIpsCount > 0) {
-        val nextHopGateway = nPort.getFixedIps(0).getIpAddress
-        val nextHopGatewaySubnetId = nPort.getFixedIps(0).getSubnetId
-        val srcSubnet = portContext.neutronSubnet(nextHopGatewaySubnetId)
-
-        findGateway(srcSubnet, portContext).flatMap { gateway =>
-            val svcRoute = gateway.router.getRoutesOrBuilderList.asScala
-                                         .indexWhere(isMetaDataSvrRoute(
-                                                 _, nextHopGateway))
+    private def deleteMetaDataServiceRoute(nPort: NeutronPort)
+    : Option[MidoOp[_ <: Message]] =
+        findGateway(nPort).flatMap { gateway =>
+            val svcRoute = gateway.peerRouter.getRoutesOrBuilderList.asScala
+                                             .indexWhere(isMetaDataSvrRoute(
+                                                 _, gateway.nextHop))
             if (svcRoute < 0) None
-            else Some(Update(gateway.router.toBuilder
+            else Some(Update(gateway.peerRouter.toBuilder
                                     .removeRoutes(svcRoute).build()))
         }
-    } else None
 
-    private case class Gateway(routerPortId: UUID, router: Router)
-    /* Find gateway router & router port configured with the subnet. */
-    private def findGateway(subnet: NeutronSubnet,
-                            portContext: PortContext) : Option[Gateway] = {
+    /* The next hop gateway context for Neutron Port. */
+    private case class Gateway(
+            nextHop: IPAddress, nextHopSubnet: NeutronSubnet,
+            peerRouterPortId: UUID, peerRouter: Router)
+
+    /* Find gateway router & router port configured with the port's fixed IP. */
+    private def findGateway(nPort: NeutronPort) : Option[Gateway] =
+    if (nPort.getFixedIpsCount > 0) {
+        val nextHopGateway = nPort.getFixedIps(0).getIpAddress
+        val nextHopGatewaySubnetId = nPort.getFixedIps(0).getSubnetId
+
+        val subnet = storage.get(classOf[NeutronSubnet],
+                                    nextHopGatewaySubnetId).await()
         if (!subnet.hasGatewayIp) return None
-        val network = portContext.midoNetworks(subnet.getNetworkId)
+
         // Find a first logical port that has a peer port with the gateway IP.
+        val network = storage.get(classOf[Network], subnet.getNetworkId).await()
         for (portId <- network.getPortIdsList.asScala) {
             val port = storage.get(classOf[Port], portId).await()
             if (port.hasPeerId) {
@@ -451,12 +398,13 @@ class PortTranslator(val storage: ReadOnlyStorage)
                 if (subnet.getGatewayIp == peer.getPortAddress) {
                     val router = storage.get(classOf[Router],
                                              peer.getRouterId).await()
-                    return Some(Gateway(peer.getId, router))
+                    return Some(Gateway(
+                            nextHopGateway, subnet, peer.getId, router))
                 }
             }
         }
         None
-    }
+    } else None
 
     private def translateNeutronPort(nPort: NeutronPort): Port.Builder =
         Port.newBuilder.setId(nPort.getId)
