@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_2ef8a448",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/TopologyBuilder.scala",
+        "patchSetId": 22
+      },
+      "lineNbr": 271,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-02-20T13:52:38Z",
+      "side": 1,
+      "message": "not necessary to change, just for future occasions:\n\n:NatTarget.Builder \u003d NatTarget.newBuilder().. would\u0027ve been equally valid, and more concise.",
+      "revId": "eac5711eaac76f86c254e00b5f709195e1324055",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
