@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_2bf89648",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 197,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-20T09:47:17Z",
+      "side": 1,
+      "message": "validator \u003d null?",
+      "range": {
+        "startLine": 197,
+        "startChar": 65,
+        "endLine": 197,
+        "endChar": 69
+      },
+      "revId": "2886f8ade7a29408d36ed95c69877af7d18dcdde",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_ab480688",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/VTPMRedirectorTest.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 191,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-20T09:47:17Z",
+      "side": 1,
+      "message": "Why removing this? It tests that the observable is completed if the device is deleted. If it\u0027s deleted here shouldn\u0027t it be added in TunnelZoneMapperTest?",
+      "range": {
+        "startLine": 181,
+        "startChar": 12,
+        "endLine": 191,
+        "endChar": 51
+      },
+      "revId": "2886f8ade7a29408d36ed95c69877af7d18dcdde",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_0b5f9a42",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/VTPMRedirectorTest.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 343,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-20T09:47:17Z",
+      "side": 1,
+      "message": "Same comment for the host",
+      "range": {
+        "startLine": 328,
+        "startChar": 11,
+        "endLine": 343,
+        "endChar": 16
+      },
+      "revId": "2886f8ade7a29408d36ed95c69877af7d18dcdde",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_2b7d36b2",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/VirtualTopologyTest.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 248,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-20T09:47:17Z",
+      "side": 1,
+      "message": "consolidate timeout?",
+      "range": {
+        "startLine": 248,
+        "startChar": 56,
+        "endLine": 248,
+        "endChar": 64
+      },
+      "revId": "2886f8ade7a29408d36ed95c69877af7d18dcdde",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
