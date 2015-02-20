@@ -15,12 +15,9 @@
  */
 package org.midonet.brain.southbound.vtep;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
-import mockit.Expectations;
-import mockit.Mocked;
-import mockit.NonStrictExpectations;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -36,13 +33,17 @@ import org.opendaylight.ovsdb.lib.table.vtep.Ucast_Macs_Local;
 import rx.subjects.PublishSubject;
 import rx.subjects.Subject;
 
-import org.midonet.brain.test.RxTestUtils;
 import org.midonet.brain.services.vxgw.MacLocation;
 import org.midonet.brain.services.vxgw.VxLanPeerSyncException;
 import org.midonet.brain.southbound.vtep.model.LogicalSwitch;
+import org.midonet.brain.southbound.vtep.model.McastMac;
 import org.midonet.brain.southbound.vtep.model.UcastMac;
+import org.midonet.brain.test.RxTestUtils;
 import org.midonet.packets.IPv4Addr;
 
+import mockit.Expectations;
+import mockit.Mocked;
+import mockit.NonStrictExpectations;
 import static org.midonet.brain.southbound.vtep.VtepConstants.bridgeIdToLogicalSwitchName;
 
 public class VtepTest {
@@ -103,6 +104,9 @@ public class VtepTest {
     @Test
     public void testBrokerAppliesUpdate() throws Exception {
         new Expectations() {{
+            vtepDataClient.listUcastMacsRemote();
+            times = 1; result = new ArrayList<UcastMac>();
+
             vtepDataClient.addUcastMacRemote(lsName, mac1.IEEE802(),
                                              macIp1, midoVxTunIp);
             times = 1;
@@ -113,12 +117,66 @@ public class VtepTest {
     }
 
     @Test
-    public void testBrokerAppliesUpdateNullIp() {
+    public void testBrokerDoesntDupeUcastWithIp() throws Exception {
+        final UUID locatorId = new UUID(java.util.UUID.randomUUID().toString());
+        final UUID lsId = new UUID(java.util.UUID.randomUUID().toString());
         new Expectations() {{
+            vtepDataClient.listUcastMacsRemote();
+            times = 1; result = Arrays.asList(new UcastMac(mac1.IEEE802(), lsId,
+                                                           locatorId, macIp1));
+        }};
+        vtepBroker.apply(new MacLocation(mac1, macIp1, lsName, midoVxTunIp));
+    }
+
+    @Test
+    public void testBrokerDoesntDupeUcastWithoutIp() throws Exception {
+        final UUID locatorId = new UUID(java.util.UUID.randomUUID().toString());
+        final UUID lsId = new UUID(java.util.UUID.randomUUID().toString());
+        new Expectations() {{
+            vtepDataClient.listUcastMacsRemote();
+            times = 1; result = Arrays.asList(new UcastMac(mac1.IEEE802(), lsId,
+                                                           locatorId, null));
+        }};
+        vtepBroker.apply(new MacLocation(mac1, null, lsName, midoVxTunIp));
+    }
+
+    @Test
+    public void testBrokerDoesntDupeMcastWithIp() throws Exception {
+        final UUID locatorId = new UUID(java.util.UUID.randomUUID().toString());
+        final UUID lsId = new UUID(java.util.UUID.randomUUID().toString());
+        new Expectations() {{
+            vtepDataClient.listMcastMacsRemote();
+            times = 1; result = Arrays.asList(new McastMac(VtepMAC.UNKNOWN_DST,
+                                                           lsId, locatorId,
+                                                           macIp1));
+        }};
+        vtepBroker.apply(new MacLocation(VtepMAC.UNKNOWN_DST, macIp1, lsName,
+                                         midoVxTunIp));
+    }
+
+    @Test
+    public void testBrokerDoesntDupeMcastWithoutIp() throws Exception {
+        final UUID locatorId = new UUID(java.util.UUID.randomUUID().toString());
+        final UUID lsId = new UUID(java.util.UUID.randomUUID().toString());
+        new Expectations() {{
+            vtepDataClient.listMcastMacsRemote();
+            times = 1; result = Arrays.asList(new McastMac(VtepMAC.UNKNOWN_DST,
+                                                           lsId, locatorId,
+                                                           null));
+        }};
+        vtepBroker.apply(new MacLocation(VtepMAC.UNKNOWN_DST, null, lsName,
+                                         midoVxTunIp));
+    }
+
+    @Test
+    public void testBrokerAppliesUpdateNullIp() throws Exception {
+        new Expectations() {{
+            vtepDataClient.listUcastMacsRemote();
+            times = 1; result = new ArrayList<UcastMac>();
+
             vtepDataClient.addUcastMacRemote(lsName, mac1.IEEE802(), null,
                                              midoVxTunIp);
-            times = 1;
-            result = new Status(StatusCode.SUCCESS);
+            times = 1; result = new Status(StatusCode.SUCCESS);
         }};
 
         vtepBroker.apply(new MacLocation(mac1, null, lsName,
@@ -128,6 +186,9 @@ public class VtepTest {
     @Test(expected = VxLanPeerSyncException.class)
     public void testBrokerThrowsOnFailedUpdate() throws Exception {
         new Expectations() {{
+            vtepDataClient.listUcastMacsRemote();
+            times = 1; result = new ArrayList<UcastMac>();
+
             vtepDataClient.addUcastMacRemote(lsName, mac1.IEEE802(),
                                              macIp1, midoVxTunIp);
             times = 1;
@@ -154,6 +215,9 @@ public class VtepTest {
     @Test
     public void testUpdateHandlerUpdatesUcastMacRemote() throws Exception {
         new Expectations() {{
+            vtepDataClient.listUcastMacsRemote();
+            times = 1; result = new ArrayList<UcastMac>();
+
             vtepDataClient.addUcastMacRemote(lsName, mac1.IEEE802(), macIp1,
                                              midoVxTunIp);
             times = 1;
