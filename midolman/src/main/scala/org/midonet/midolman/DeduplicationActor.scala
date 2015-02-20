@@ -206,11 +206,11 @@ class DeduplicationActor(
             datapath = dp
             dpState = state
             replicator = new FlowStateReplicator(connTrackStateTable,
-                natStateTable,
-                storage,
-                dpState,
-                FlowController ! _,
-                datapath)
+                                                 natStateTable,
+                                                 storage,
+                                                 dpState,
+                                                 FlowController ! InvalidateFlowsByTag(_),
+                                                 datapath)
             pendingFlowStateBatches foreach (self ! _)
             workflow = new PacketWorkflow(dpState, datapath, clusterDataClient,
                                           dpConnPool, cbExecutor, actionsCache,
