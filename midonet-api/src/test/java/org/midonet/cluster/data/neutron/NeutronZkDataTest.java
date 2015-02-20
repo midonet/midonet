@@ -24,7 +24,6 @@ import org.junit.Test;
 
 import org.midonet.cluster.data.Rule;
 import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.DirectoryVerifier;
 import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.packets.IPv4Subnet;
