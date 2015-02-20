@@ -34,6 +34,24 @@
       "revId": "dd4405a131a84ce4603a9b25865ed503a77c7061",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_0bf95a80",
+        "filename": "midolman/src/main/java/org/midonet/midolman/rules/Rule.java",
+        "patchSetId": 21
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-20T09:06:20Z",
+      "side": 1,
+      "message": "Yes it is used in at least one other place: org.midonet.cluster.data.Rule. I\u0027ll create an issue for this.",
+      "parentUuid": "7a1969be_d86efa00",
+      "revId": "dd4405a131a84ce4603a9b25865ed503a77c7061",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
