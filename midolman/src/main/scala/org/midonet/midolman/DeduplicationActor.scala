@@ -130,7 +130,7 @@ class DeduplicationActor(
                                                  natStateTable,
                                                  storage,
                                                  dpState,
-                                                 FlowController ! _,
+                                                 FlowController ! InvalidateFlowsByTag(_),
                                                  config.getControlPacketsTos.toByte)
             pendingFlowStateBatches foreach (self ! _)
             workflow = new PacketWorkflow(dpState, dp, clusterDataClient,
