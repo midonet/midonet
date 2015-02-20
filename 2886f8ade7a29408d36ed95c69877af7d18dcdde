@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_ee3cccc1",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 197,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-20T10:08:39Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_2bf89648",
+      "range": {
+        "startLine": 197,
+        "startChar": 65,
+        "endLine": 197,
+        "endChar": 69
+      },
+      "revId": "2886f8ade7a29408d36ed95c69877af7d18dcdde",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_ab480688",
         "filename": "midolman/src/test/scala/org/midonet/midolman/topology/VTPMRedirectorTest.scala",
         "patchSetId": 5
@@ -36,6 +60,30 @@
       "writtenOn": "2015-02-20T09:47:17Z",
       "side": 1,
       "message": "Why removing this? It tests that the observable is completed if the device is deleted. If it\u0027s deleted here shouldn\u0027t it be added in TunnelZoneMapperTest?",
+      "range": {
+        "startLine": 181,
+        "startChar": 12,
+        "endLine": 191,
+        "endChar": 51
+      },
+      "revId": "2886f8ade7a29408d36ed95c69877af7d18dcdde",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_ce2110a1",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/VTPMRedirectorTest.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 191,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-20T10:08:39Z",
+      "side": 1,
+      "message": "I don\u0027t understand the comment. What is the change?",
+      "parentUuid": "7a1969be_ab480688",
       "range": {
         "startLine": 181,
         "startChar": 12,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_0e3b28d2",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/VTPMRedirectorTest.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 343,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-20T10:08:39Z",
+      "side": 1,
+      "message": "Same as above.",
+      "parentUuid": "7a1969be_0b5f9a42",
+      "range": {
+        "startLine": 328,
+        "startChar": 11,
+        "endLine": 343,
+        "endChar": 16
+      },
+      "revId": "2886f8ade7a29408d36ed95c69877af7d18dcdde",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_2b7d36b2",
         "filename": "midolman/src/test/scala/org/midonet/midolman/topology/VirtualTopologyTest.scala",
         "patchSetId": 5
@@ -82,6 +154,30 @@
       "writtenOn": "2015-02-20T09:47:17Z",
       "side": 1,
       "message": "consolidate timeout?",
+      "range": {
+        "startLine": 248,
+        "startChar": 56,
+        "endLine": 248,
+        "endChar": 64
+      },
+      "revId": "2886f8ade7a29408d36ed95c69877af7d18dcdde",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_ae5bf42c",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/VirtualTopologyTest.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 248,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-20T10:08:39Z",
+      "side": 1,
+      "message": "I already replied to this comment on a different patch. Although this is a minor issue, I think improvements like these should be addressed in separate patches, not only because it\u0027s not the purpose of this one, but also because doing it here for ever patch, it will just create a lot of merge conflicts where solving them is a lot of wasted time.",
+      "parentUuid": "7a1969be_2b7d36b2",
       "range": {
         "startLine": 248,
         "startChar": 56,
