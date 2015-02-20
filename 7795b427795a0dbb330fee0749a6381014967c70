@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_6e8c5c36",
+        "filename": "brain/midonet-brain/src/main/java/org/midonet/brain/southbound/vtep/VtepBroker.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 213,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-02-20T11:20:21Z",
+      "side": 1,
+      "message": "It shouldn\u0027t but there is no action that the operator can take from here.",
+      "parentUuid": "7a1969be_ebfdde3c",
+      "range": {
+        "startLine": 213,
+        "startChar": 24,
+        "endLine": 213,
+        "endChar": 29
+      },
+      "revId": "7795b427795a0dbb330fee0749a6381014967c70",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_751c2f78",
         "filename": "brain/midonet-brain/src/main/java/org/midonet/brain/southbound/vtep/VtepBroker.java",
         "patchSetId": 1
@@ -108,6 +132,30 @@
       "side": 1,
       "message": "Thank you for the off-line explanation.",
       "parentUuid": "7a1969be_ebc5de3d",
+      "range": {
+        "startLine": 209,
+        "startChar": 8,
+        "endLine": 220,
+        "endChar": 8
+      },
+      "revId": "7795b427795a0dbb330fee0749a6381014967c70",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_ce83d002",
+        "filename": "brain/midonet-brain/src/main/java/org/midonet/brain/southbound/vtep/VtepBroker.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 220,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-02-20T11:20:21Z",
+      "side": 1,
+      "message": "Yeah, this is a preventive measure, we haven\u0027t been able to reproduce the error in our environment, but apparently it happened in a user deployment.",
+      "parentUuid": "7a1969be_0b031a43",
       "range": {
         "startLine": 209,
         "startChar": 8,
