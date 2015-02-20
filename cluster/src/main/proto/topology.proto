@@ -35,7 +35,6 @@ enum Type {
     VTEP = 11;
     VTEP_BINDING = 12;
     DHCP=13;
-    DHCPV6=14;
 }
 
 message Network {
@@ -50,12 +49,10 @@ message Network {
     optional UUID inbound_filter_id = 6;
     optional UUID outbound_filter_id = 7;
 
-    repeated Dhcp dhcp_subnets = 8;
-    repeated DhcpV6 dhcp_v6_subnets = 9;
-
     // Backreferences
     repeated UUID port_ids = 101;
     repeated UUID vxlan_port_ids = 102;
+    repeated UUID dhcp = 103;
 }
 
 message Dhcp {
@@ -81,18 +78,6 @@ message Dhcp {
     repeated Host hosts = 9;
 
     optional bool enabled = 10;
-}
-
-message DhcpV6 {
-    optional UUID id = 1;
-    optional UUID network_id = 2;
-    optional IPSubnet subnet_address = 3;
-    message Host {
-        optional string client_id = 1;
-        optional IPAddress fixed_address = 2;
-        optional string name = 3;
-    }
-    repeated Host hosts = 4;
 }
 
 message Router {
