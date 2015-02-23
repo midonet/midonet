@@ -18,40 +18,68 @@ package org.midonet.midolman.layer3;
 
 import com.google.common.base.Objects;
 import java.io.Serializable;
+import java.lang.reflect.Type;
 import java.util.UUID;
 
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonPropertyOrder;
 
+import org.midonet.cluster.data.ZoomConvert;
+import org.midonet.cluster.data.ZoomEnum;
+import org.midonet.cluster.data.ZoomEnumValue;
+import org.midonet.cluster.data.ZoomField;
+import org.midonet.cluster.data.ZoomObject;
+import org.midonet.cluster.models.Commons;
+import org.midonet.cluster.models.Topology;
+import org.midonet.cluster.util.IPSubnetUtil;
+import org.midonet.cluster.util.UUIDUtil;
 import org.midonet.packets.IPv4;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IPv4Subnet;
 
 
 @JsonPropertyOrder(alphabetic=true)
-public class Route implements Serializable {
+public class Route extends ZoomObject implements Serializable {
 
     private static final long serialVersionUID = -5913569441176193396L;
     public static final int NO_GATEWAY = 0xffffffff;
     public static final int DEFAULT_WEIGHT = 100;
 
+    @ZoomEnum(clazz = Topology.Route.NextHop.class)
     public enum NextHop {
-        BLACKHOLE, REJECT, PORT, LOCAL;
+        @ZoomEnumValue(value = "BLACKHOLE")
+        BLACKHOLE,
+        @ZoomEnumValue(value = "REJECT")
+        REJECT,
+        @ZoomEnumValue(value = "PORT")
+        PORT,
+        @ZoomEnumValue(value = "LOCAL")
+        LOCAL;
 
         public boolean toPort() {
             return this.equals(PORT) || this.equals(LOCAL);
         }
     }
 
+    @ZoomField(name = "src_subnet", converter = SubnetConverter.class)
     public int srcNetworkAddr;
+    @ZoomField(name = "src_subnet", converter = PrefixConverter.class)
     public int srcNetworkLength;
+    @ZoomField(name = "dst_subnet", converter = SubnetConverter.class)
     public int dstNetworkAddr;
+    @ZoomField(name = "dst_subnet", converter = PrefixConverter.class)
     public int dstNetworkLength;
+    @ZoomField(name = "next_hop")
     public NextHop nextHop;
+    @ZoomField(name = "next_hop_port_id", converter = UUIDUtil.Converter.class)
     public UUID nextHopPort;
+    @ZoomField(name = "next_hop_gateway", converter = AddressConverter.class)
     public int nextHopGateway;
+    @ZoomField(name = "weight")
     public int weight;
+    @ZoomField(name = "attributes")
     public String attributes;
+    @ZoomField(name = "router_id", converter = UUIDUtil.Converter.class)
     public UUID routerId;
 
     public Route(int srcNetworkAddr, int srcNetworkLength, int dstNetworkAddr,
@@ -177,14 +205,13 @@ public class Route implements Serializable {
 
     public static Route fromString(String str) {
         String[] parts = str.split(",");
-        Route rt = new Route(Integer.parseInt(parts[0]),
+        return new Route(Integer.parseInt(parts[0]),
                 Byte.parseByte(parts[1]), Integer.parseInt(parts[2]),
                 Byte.parseByte(parts[3]), parts[4].isEmpty() ? null
                         : NextHop.valueOf(parts[4]), parts[5].isEmpty() ? null
                         : UUID.fromString(parts[5]),
                 Integer.parseInt(parts[6]), Integer.parseInt(parts[7]),
                 parts.length > 8? parts[8] : null, null);
-        return rt;
     }
 
     public static Route defaultRoute(UUID nextHopPortId, int weight,
@@ -218,5 +245,45 @@ public class Route implements Serializable {
     @JsonIgnore
     public boolean hasNextHopGateway(int gateway) {
         return nextHopGateway == gateway;
+    }
+
+    public static class AddressConverter
+        extends ZoomConvert.Converter<Integer, Commons.IPAddress> {
+        @Override
+        public Commons.IPAddress toProto(Integer value, Type clazz) {
+            return Commons.IPAddress.newBuilder()
+                .setAddress(IPv4Addr.apply(value).toString())
+                .setVersion(Commons.IPVersion.V4)
+                .build();
+        }
+        @Override
+        public Integer fromProto(Commons.IPAddress value, Type clazz) {
+            return IPv4Addr.apply(value.getAddress()).toInt();
+        }
+    }
+
+    public static class SubnetConverter
+        extends ZoomConvert.Converter<Integer, Commons.IPSubnet> {
+        @Override
+        public Commons.IPSubnet toProto(Integer value, Type clazz) {
+            throw new ZoomConvert.ConvertException("Not supported");
+        }
+        @Override
+        public Integer fromProto(Commons.IPSubnet value, Type clazz) {
+            return new IPv4Subnet(value.getAddress(), value.getPrefixLength())
+                .getIntAddress();
+        }
+    }
+
+    public static class PrefixConverter
+        extends ZoomConvert.Converter<Integer, Commons.IPSubnet> {
+        @Override
+        public Commons.IPSubnet toProto(Integer value, Type clazz) {
+            throw new ZoomConvert.ConvertException("Not supported");
+        }
+        @Override
+        public Integer fromProto(Commons.IPSubnet value, Type clazz) {
+            return value.getPrefixLength();
+        }
     }
 }

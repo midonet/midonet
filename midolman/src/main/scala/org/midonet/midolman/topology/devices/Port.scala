@@ -23,6 +23,7 @@ import scala.collection.JavaConverters._
 
 import com.google.protobuf.MessageOrBuilder
 
+import org.midonet.cluster.data.ZoomConvert.ConvertException
 import org.midonet.cluster.data._
 import org.midonet.cluster.models.Topology
 import org.midonet.cluster.util.IPAddressUtil.{Converter => IPAddressConverter}
@@ -157,7 +158,9 @@ class RouterPort extends Port {
     @ZoomField(name = "port_address", converter = classOf[IPAddressConverter])
     var portIp: IPv4Addr = _
     @ZoomField(name = "port_mac", converter = classOf[MACConverter])
-    var portMac: MAC = null
+    var portMac: MAC = _
+    @ZoomField(name = "route_ids", converter = classOf[UUIDConverter])
+    var routeIds: Set[UUID] = _
 
     private var _portAddr: IPv4Subnet = _
 
@@ -181,7 +184,7 @@ sealed class PortFactory extends ZoomConvert.Factory[Port, Topology.Port] {
         if (proto.hasVtepId) classOf[VxLanPort]
         else if (proto.hasNetworkId) classOf[BridgePort]
         else if (proto.hasRouterId) classOf[RouterPort]
-        else throw new IllegalArgumentException("Unknown port type")
+        else throw new ConvertException("Unknown port type")
     }
 }
 

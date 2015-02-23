@@ -51,7 +51,7 @@ object ChainMapper {
         val observable = vt.store.observable(classOf[TopologyRule],ruleId)
             .takeUntil(mark)
             .map[SimRule](makeFunc1(ZoomConvert.fromProto(_, classOf[SimRule])))
-            .observeOn(vt.scheduler)
+            .observeOn(vt.vtScheduler)
             .doOnNext(makeAction1(newRule => {
                 previousRule = currentRule
                 currentRule = newRule
@@ -163,11 +163,11 @@ final class ChainMapper(chainId: UUID, vt: VirtualTopology)
         chainProto
     }
 
-     private def chainReady(update: Any): Boolean = {
-         assertThread()
-         val ready = rules.forall(_._2.isReady) && areChainsReady
-         log.debug("Chain ready: {}", Boolean.box(ready))
-         ready
+    private def chainReady(update: Any): Boolean = {
+        assertThread()
+        val ready = rules.forall(_._2.isReady) && areChainsReady
+        log.debug("Chain ready: {}", Boolean.box(ready))
+        ready
     }
 
     private def chainDeleted() = {
@@ -215,7 +215,7 @@ final class ChainMapper(chainId: UUID, vt: VirtualTopology)
                                   .map[TopologyChain](makeFunc1(ruleUpdated)),
                               vt.store.observable(classOf[TopologyChain],
                                                   chainId)
-                                  .observeOn(vt.scheduler)
+                                  .observeOn(vt.vtScheduler)
                                   .map[TopologyChain](makeFunc1(chainUpdated))
                                   .doOnCompleted(makeAction0(chainDeleted())))
             .filter(makeFunc1(chainReady))

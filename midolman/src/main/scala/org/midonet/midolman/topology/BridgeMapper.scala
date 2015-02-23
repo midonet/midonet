@@ -309,7 +309,7 @@ final class BridgeMapper(bridgeId: UUID, implicit val vt: VirtualTopology)
             vt.config.getMacPortMappingExpireMillis, // Initial delay
             2000L, // Update interval
             MILLISECONDS, // Time unit
-            vt.scheduler)
+            vt.vtScheduler)
         .subscribe(makeAction1(onMacExpirationTimer), makeAction1(onThrow))
     // A subject that emits updates when a storage connection was
     // re-established.
@@ -338,14 +338,14 @@ final class BridgeMapper(bridgeId: UUID, implicit val vt: VirtualTopology)
     // Obs[Obs[MacTableUpdate]]->| subscribe(macUpdated) |
     //                           +-----------------------+
     private lazy val connectionObservable = connectionSubject
-        .observeOn(vt.scheduler)
+        .observeOn(vt.vtScheduler)
     private lazy val portsObservable = Observable
         .merge(portsSubject)
         .filter(makeFunc1(isPortKnown))
         .map[TopologyBridge](makeFunc1(portUpdated))
     private lazy val bridgeObservable = vt.store
         .observable(classOf[TopologyBridge], bridgeId)
-        .observeOn(vt.scheduler)
+        .observeOn(vt.vtScheduler)
         .doOnCompleted(makeAction0(bridgeDeleted()))
         .doOnNext(makeAction1(bridgeUpdated))
     private lazy val deviceObservable = Observable
