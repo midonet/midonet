@@ -51,7 +51,7 @@ class LoadBalancerMapperTest extends MidolmanSpec
     }
 
     private def assertThread(): Unit = {
-        assert(vt.threadId == Thread.currentThread.getId)
+        assert(vt.vtThreadId == Thread.currentThread.getId)
     }
     
     private def makeObservable() = new TestObserver[SimLB] 

@@ -20,24 +20,55 @@ import java.util.UUID
 import scala.concurrent.ExecutionContext
 
 import akka.actor.ActorSystem
-import org.midonet.midolman.PacketWorkflow.{TemporaryDrop, Drop, NoOp, SimulationResult}
 
-import org.midonet.midolman.topology.devices.{Port, RouterPort}
+import com.typesafe.scalalogging.Logger
+
 import org.midonet.midolman.NotYetException
+import org.midonet.midolman.PacketWorkflow.{Drop, NoOp, SimulationResult}
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.rules.RuleResult
 import org.midonet.midolman.simulation.PacketEmitter.GeneratedPacket
+import org.midonet.midolman.simulation.Router.{Config, RoutingTable, TagManager}
 import org.midonet.midolman.topology.VirtualTopologyActor._
-import org.midonet.midolman.topology._
+import org.midonet.midolman.topology.devices.{Port, RouterPort}
 import org.midonet.odp.flows.FlowKeys
 import org.midonet.odp.{FlowMatch, Packet}
 import org.midonet.packets._
 import org.midonet.util.concurrent._
+import org.midonet.util.functors.Callback0
 
-/** The IPv4 specific implementation of a Router. */
+object Router {
+
+    /**
+     * Provides the configuration for a [[Router]].
+     */
+    case class Config(adminStateUp: Boolean = true,
+                      inboundFilter: UUID = null,
+                      outboundFilter: UUID = null,
+                      loadBalancer: UUID = null) {
+        override def toString =
+            s"adminStateUp=$adminStateUp inboundFilter=$inboundFilter " +
+            s"outboundFilter=$outboundFilter loadBalancer=$loadBalancer"
+    }
+
+    /**
+     * Provided to the [[Router]] for operations on tags.
+     */
+    trait TagManager {
+        def addTag(dstIp: IPAddr)
+        def getFlowRemovalCallback(dstIp: IPAddr): Callback0
+    }
+
+    trait RoutingTable {
+        def lookup(flowMatch: FlowMatch): Iterable[Route]
+        def lookup(flowMatch: FlowMatch, log: Logger): Iterable[Route]
+    }
+}
+
+/** The IPv4 specific implementation of a [[Router]]. */
 class Router(override val id: UUID,
-             override val cfg: RouterConfig,
-             override val rTable: RoutingTableWrapper[IPv4Addr],
+             override val cfg: Config,
+             override val rTable: RoutingTable,
              override val routerMgrTagger: TagManager,
              val arpTable: ArpTable)
             (implicit system: ActorSystem)
@@ -362,4 +393,9 @@ class Router(override val id: UUID,
 
         _sendIPPacket(tryAsk[RouterPort](rt.nextHopPort), rt)
     }
+
+    override def toString =
+        s"Router [id=$id adminStateUp=${cfg.adminStateUp} " +
+        s"inboundFilter=${cfg.inboundFilter} outboundFilter=${cfg.outboundFilter} " +
+        s"loadBalancer=${cfg.loadBalancer}]"
 }

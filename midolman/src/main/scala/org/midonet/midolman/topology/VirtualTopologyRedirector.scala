@@ -21,14 +21,16 @@ import scala.collection.mutable
 import scala.reflect.ClassTag
 
 import akka.actor.{Actor, ActorRef}
+
 import com.google.inject.Inject
+
 import rx.Subscriber
 
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.midolman.logging.MidolmanLogging
-import org.midonet.midolman.simulation.{Bridge, Chain, IPAddrGroup, LoadBalancer, PortGroup}
+import org.midonet.midolman.simulation.{Bridge, Chain, IPAddrGroup, LoadBalancer, PortGroup, Router}
 import org.midonet.midolman.topology.VirtualTopology.Device
-import org.midonet.midolman.topology.VirtualTopologyActor.{BridgeRequest, ChainRequest, DeviceRequest, IPAddrGroupRequest, LoadBalancerRequest, PortRequest, Unsubscribe, _}
+import org.midonet.midolman.topology.VirtualTopologyActor.{BridgeRequest, ChainRequest, DeviceRequest, IPAddrGroupRequest, LoadBalancerRequest, PortRequest, RouterRequest, Unsubscribe, _}
 import org.midonet.midolman.topology.devices.Port
 
 /**
@@ -134,6 +136,9 @@ abstract class VirtualTopologyRedirector extends Actor with MidolmanLogging {
         case r: BridgeRequest =>
             log.debug("Request for bridge {}", r.id)
             onRequest[Bridge](r)
+        case r: RouterRequest =>
+            log.debug("Request for router {}", r.id)
+            onRequest[Router](r)
         case r: ChainRequest =>
             log.debug("Request for chain: {}", r.id)
             onRequest[Chain](r)
