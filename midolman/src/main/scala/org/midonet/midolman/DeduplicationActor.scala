@@ -84,7 +84,6 @@ class DeduplicationActor(
     import DeduplicationActor._
     import PacketWorkflow._
 
-    private val TraceLoggingContextKey = "traceId"
     override def logSource = "org.midonet.packet-worker"
 
     var dpState: DatapathState = null
@@ -181,6 +180,7 @@ class DeduplicationActor(
                 MDC.put("cookie", pktCtx.cookieStr)
                 runWorkflow(pktCtx)
                 MDC.remove("cookie")
+                MDC.remove(TraceState.TraceLoggingContextKey)
             }
             // Else the packet may have already been expired and dropped
     }
@@ -324,7 +324,7 @@ class DeduplicationActor(
             if (context.ingressed)
                 packetOut(1)
             MDC.remove("cookie")
-            MDC.remove(TraceLoggingContextKey)
+            MDC.remove(TraceState.TraceLoggingContextKey)
         }
 
     protected def runWorkflow(pktCtx: PacketContext): Unit =
@@ -337,16 +337,16 @@ class DeduplicationActor(
         } catch {
             case TraceRequiredException =>
                 pktCtx.log.debug(s"Enabling trace for $pktCtx, and rerunning simulation")
-                MDC.put(TraceLoggingContextKey, pktCtx.tracingContext)
+                pktCtx.wcmatch.reset(pktCtx.origMatch)
                 runWorkflow(pktCtx)
             case NotYetException(f, msg) =>
                 pktCtx.log.debug(s"Postponing simulation because: $msg")
                 postponeOn(pktCtx, f)
             case ex: Throwable => handleErrorOn(pktCtx, ex)
         } finally {
-            // trace state cannot be flushed with the rest of the state
-            // as the trace request ids need to persist across calls to
-            // workflow.start(pktCtx)
+            // this cannot be flushed with the rest of the
+            // state, as additions to the transaction should persist
+            // as subsequent trace rules are hit
             traceStateTx.flush()
         }
 

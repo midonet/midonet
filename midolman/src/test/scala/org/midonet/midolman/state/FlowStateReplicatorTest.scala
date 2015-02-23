@@ -126,9 +126,9 @@ class FlowStateReplicatorTest extends FeatureSpec
 
     val rand = new Random
     val traces = Map(new TraceKey(FlowMatches.generateFlowMatch(rand))
-                         -> TraceContext(UUID.randomUUID),
+                         -> new TraceContext().enable(UUID.randomUUID),
                      new TraceKey(FlowMatches.generateFlowMatch(rand))
-                         -> TraceContext(UUID.randomUUID))
+                         -> new TraceContext().enable(UUID.randomUUID))
 
     dpChannel.packetsExecuteSubscribe((p: Packet, actions: JList[FlowAction]) => {
             val pkt = new Packet(p.getEthernet.clone(), p.getMatch)

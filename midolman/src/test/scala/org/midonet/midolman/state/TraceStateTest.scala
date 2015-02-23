@@ -76,4 +76,33 @@ class TraceStateTest extends MidolmanSpec {
         val key4: TraceKey = new TraceKey(fm3)
         key4.equals(key) should be (true)
     }
+
+    scenario("Trace key matches flow after transform") {
+        val (sMac,dMac,sIp,dIp,sPort,dPort) = (MAC.random, MAC.random,
+                                               "192.168.10.1", "192.168.10.2",
+                                               1234.toShort, 80.toShort)
+        val natIp = "10.10.10.10"
+        val payloadtxt = "foobar"
+        val packet = { eth src sMac dst dMac } <<
+            { ip4 src sIp dst dIp } <<
+            { tcp src sPort dst dPort } << payload(payloadtxt)
+
+        val nattedPacket = { eth src sMac dst dMac } <<
+            { ip4 src sIp dst natIp } <<
+            { tcp src sPort dst dPort } << payload(payloadtxt)
+
+        val key = new TraceKey(FlowMatches.fromEthernetPacket(packet))
+        key.matches(packet) should be (true)
+
+        val actions = new ArrayList[FlowAction]
+        val ipv4 = packet.getPayload.asInstanceOf[IPv4]
+        actions.add(FlowActions.setKey(
+                        FlowKeys.ipv4(IPv4Addr(sIp), IPv4Addr(natIp),
+                                      ipv4.getProtocol, ipv4.getDiffServ,
+                                      ipv4.getTtl,
+                                      IPFragmentType.fromByte(ipv4.getFlags))))
+        val key2 = new TraceKey(FlowMatches.fromEthernetPacket(packet),
+                                actions)
+        key2.matches(nattedPacket) should be (true)
+    }
 }
