@@ -36,8 +36,8 @@ import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.NotYetException
 import org.midonet.midolman.rules.{LiteralRule, RuleResult}
-import org.midonet.midolman.simulation.{Chain => SimChain, IPAddrGroup, LoadBalancer => SimLB, PortGroup}
-import org.midonet.midolman.topology.VirtualTopologyActor.{ChainRequest, IPAddrGroupRequest, LoadBalancerRequest, PortGroupRequest, PortRequest, Unsubscribe}
+import org.midonet.midolman.simulation.{Chain => SimChain, LoadBalancer => SimLB, Router, IPAddrGroup, PortGroup}
+import org.midonet.midolman.topology.VirtualTopologyActor._
 import org.midonet.midolman.topology.devices.{BridgePort, Port => SimulationPort}
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.{AwaitableActor, MessageAccumulator}
@@ -502,6 +502,17 @@ class VirtualTopologyRedirectorTest extends MidolmanSpec with TopologyBuilder
     }
 
     feature("Test supported devices") {
+        scenario("Support for router") {
+            val proto = createRouter()
+            backend.store create proto
+
+            VirtualTopologyActor ! RouterRequest(proto.getId)
+            sender await timeout
+
+            expectLast({
+                case device: Router => device shouldBeDeviceOf proto
+            })
+        }
         scenario("Test that chains are supported") {
             val chainId = UUID.randomUUID
             val literalRule = createLiteralRuleBuilder(id = UUID.randomUUID(),
