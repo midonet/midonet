@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_baf7aef4",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/SubnetTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-02-23T07:40:24Z",
+      "side": 1,
+      "message": "Changed to throw a TranslationException.",
+      "parentUuid": "7a1969be_faaac6d0",
+      "revId": "62b4332a50617bfeda7fc11b930d4fef0ddc33d8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_5abafa23",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/SubnetTranslator.scala",
         "patchSetId": 2
@@ -30,6 +48,30 @@
       "writtenOn": "2015-02-23T07:11:43Z",
       "side": 1,
       "message": "ditto",
+      "range": {
+        "startLine": 59,
+        "startChar": 0,
+        "endLine": 59,
+        "endChar": 65
+      },
+      "revId": "62b4332a50617bfeda7fc11b930d4fef0ddc33d8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_1adec26d",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/SubnetTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-02-23T07:40:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_5abafa23",
       "range": {
         "startLine": 59,
         "startChar": 0,
