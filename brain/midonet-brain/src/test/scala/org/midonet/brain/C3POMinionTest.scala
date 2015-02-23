@@ -50,7 +50,7 @@ import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.models.{C3PO, Commons}
 import org.midonet.cluster.storage.ZoomProvider
 import org.midonet.cluster.util.UUIDUtil._
-import org.midonet.cluster.util.{IPAddressUtil, UUIDUtil}
+import org.midonet.cluster.util.{IPSubnetUtil, IPAddressUtil, UUIDUtil}
 import org.midonet.config.ConfigProvider
 import org.midonet.packets.{IPSubnet, IPv4Subnet, UDP}
 import org.midonet.util.MidonetEventually
@@ -233,30 +233,40 @@ class C3POMinionTest extends FlatSpec with BeforeAndAfter
             .getOrElse(log.error("Failed stopping the keep alive DB cnxn"))
     }
 
+    case class IPAlloc(ipAddress: String, subnetId: String)
+
     private def portJson(name: String, id: UUID,
                          networkId: UUID,
                          adminStateUp: Boolean,
                          mac_address: String = null,
-                         fixedIps: List[JsonNode] = null,
+                         fixedIps: List[IPAlloc] = null,
                          deviceId: UUID = null,
                          deviceOwner: DeviceOwner = null,
                          tenantId: String = null,
                          securityGroups: List[UUID] = null): JsonNode = {
-        val sg = nodeFactory.objectNode
-        sg.put("name", name)
-        sg.put("id", id.toString)
-        sg.put("network_id", networkId.toString)
-        sg.put("admin_state_up", adminStateUp)
-        sg.put("mac_address", mac_address)
-        if (fixedIps != null) sg.putArray("fixed_ips").addAll(fixedIps.asJava)
-        if (deviceId != null) sg.put("device_id", deviceId.toString)
-        if (deviceOwner != null) sg.put("device_owner", deviceOwner.toString)
-        if (tenantId != null) sg.put("tenant_id", tenantId)
+        val p = nodeFactory.objectNode
+        p.put("name", name)
+        p.put("id", id.toString)
+        p.put("network_id", networkId.toString)
+        p.put("admin_state_up", adminStateUp)
+        p.put("mac_address", mac_address)
+        if (fixedIps != null) {
+            val fi = p.putArray("fixed_ips")
+            for (fixedIp <- fixedIps) {
+                val ip = nodeFactory.objectNode
+                ip.put("ip_address", fixedIp.ipAddress)
+                ip.put("subnet_id", fixedIp.subnetId)
+                fi.add(ip)
+            }
+        }
+        if (deviceId != null) p.put("device_id", deviceId.toString)
+        if (deviceOwner != null) p.put("device_owner", deviceOwner.toString)
+        if (tenantId != null) p.put("tenant_id", tenantId)
         if (securityGroups != null) {
-            val sgList = sg.putArray("security_groups")
+            val sgList = p.putArray("security_groups")
             securityGroups.map(sgid => sgList.add(sgid.toString))
         }
-        sg
+        p
     }
 
     private def sgJson(name: String, id: UUID,
@@ -336,11 +346,14 @@ class C3POMinionTest extends FlatSpec with BeforeAndAfter
         n
     }
 
+    case class HostRoute(destination: String, nexthop: String)
+
     private def subnetJson(id: UUID, networkId: UUID, tenantId: String,
                            name: String = null, cidr: String = null,
                            ipVersion: Int = 4, gatewayIp: String = null,
                            enableDhcp: Boolean = true,
-                           dnsNameservers: List[String] = null): JsonNode = {
+                           dnsNameservers: List[String] = null,
+                           hostRoutes: List[HostRoute] = null): JsonNode = {
         val s = nodeFactory.objectNode
         s.put("id", id.toString)
         s.put("network_id", networkId.toString)
@@ -354,6 +367,15 @@ class C3POMinionTest extends FlatSpec with BeforeAndAfter
             val nameServers = s.putArray("dns_nameservers")
             for (nameServer <- dnsNameservers) {
                 nameServers.add(nameServer)
+            }
+        }
+        if (hostRoutes != null) {
+            val routes = s.putArray("host_routes")
+            for (route <- hostRoutes) {
+                val r = nodeFactory.objectNode
+                r.put("destination", route.destination)
+                r.put("nexthop", route.nexthop)
+                routes.add(r)
             }
         }
 
@@ -639,9 +661,13 @@ class C3POMinionTest extends FlatSpec with BeforeAndAfter
         val cidr = IPv4Subnet.fromCidr("10.0.0.0/24")
         val gatewayIp = "10.0.0.1"
         val nameServers = List("8.8.8.8")
+        val hrDest = "10.0.0.0/24"
+        val hrNexthop = "10.0.0.27"
+        val hostRoutes = List(HostRoute(hrDest, hrNexthop))
         val sJson = subnetJson(sId, nId, "net tenant", name = "test sub",
                                cidr = cidr.toString, gatewayIp = gatewayIp,
-                               dnsNameservers = nameServers)
+                               dnsNameservers = nameServers,
+                               hostRoutes = hostRoutes)
         executeSqlStmts(insertMidoNetTaskSql(3, Create, SubnetType,
                                              sJson.toString, sId, "tx2"))
         Thread.sleep(1000)
@@ -655,9 +681,22 @@ class C3POMinionTest extends FlatSpec with BeforeAndAfter
         dhcp.getSubnetAddress.getPrefixLength should be(cidr.getPrefixLen)
         dhcp.getServerAddress.getAddress should be(gatewayIp)
         dhcp.getDnsServerAddressCount shouldBe 1
-        dhcp.getDnsServerAddress(0) shouldBe IPAddressUtil.toProto(nameServers(0))
+        dhcp.getDnsServerAddress(0) shouldBe
+            IPAddressUtil.toProto(nameServers(0))
+        dhcp.getOpt121RoutesCount shouldBe 1
+        dhcp.getOpt121Routes(0).getDstSubnet shouldBe
+            IPSubnetUtil.toProto(hrDest)
+        dhcp.getOpt121Routes(0).getGateway shouldBe
+            IPAddressUtil.toProto(hrNexthop)
 
-        // TODO: Add Option121/host route tests
+        // Create a DHCP port to verify that the metadata opt121 route
+        val portId = UUID.randomUUID()
+        val dhcpPortIp = "10.0.0.7"
+        val pJson = portJson(name = "port1", id = portId, networkId = nId,
+            adminStateUp = true, deviceOwner = DeviceOwner.DHCP,
+            fixedIps = List(IPAlloc(dhcpPortIp, sId.toString))).toString
+        executeSqlStmts(insertMidoNetTaskSql(id = 4, Create, PortType, pJson,
+            portId, "tx3"))
 
         // Update the subnet
         val cidr2 = IPv4Subnet.fromCidr("10.0.1.0/24")
@@ -666,8 +705,8 @@ class C3POMinionTest extends FlatSpec with BeforeAndAfter
         val sJson2 = subnetJson(sId, nId, "net tenant", name = "test sub2",
                                 cidr = cidr2.toString, gatewayIp = gatewayIp2,
                                 dnsNameservers = dnss)
-        executeSqlStmts(insertMidoNetTaskSql(4, Update, SubnetType,
-                                             sJson2.toString, sId, "tx3"))
+        executeSqlStmts(insertMidoNetTaskSql(5, Update, SubnetType,
+                                             sJson2.toString, sId, "tx4"))
         Thread.sleep(1000)
 
         // Verify the updated subnet
@@ -680,10 +719,13 @@ class C3POMinionTest extends FlatSpec with BeforeAndAfter
         dhcp2.getServerAddress.getAddress shouldBe gatewayIp  // unchanged
         dhcp2.getDnsServerAddressCount shouldBe 1
         dhcp2.getDnsServerAddress(0) shouldBe IPAddressUtil.toProto(dnss(0))
+        dhcp2.getOpt121RoutesCount shouldBe 1
+        dhcp2.getOpt121Routes(0).getGateway shouldBe
+            IPAddressUtil.toProto(dhcpPortIp)
 
         // Delete the subnet
         executeSqlStmts(
-            insertMidoNetTaskSql(5, Delete, SubnetType, null, sId, "tx4"))
+            insertMidoNetTaskSql(6, Delete, SubnetType, null, sId, "tx5"))
         Thread.sleep(1000)
 
         // Verify deletion
