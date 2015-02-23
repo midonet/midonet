@@ -20,7 +20,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -33,13 +32,18 @@ import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.midonet.cluster.client.ArpCache;
+import rx.Observable;
+import rx.subjects.PublishSubject;
+import rx.subjects.Subject;
+
 import org.midonet.cluster.client.RouterBuilder;
 import org.midonet.midolman.cluster.zookeeper.ZkConnectionProvider;
 import org.midonet.midolman.layer3.Route;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
+import org.midonet.midolman.state.ArpCache;
 import org.midonet.midolman.state.ArpCacheEntry;
+import org.midonet.midolman.state.ArpCacheUpdate;
 import org.midonet.midolman.state.ArpTable;
 import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.DirectoryCallback;
@@ -50,9 +54,7 @@ import org.midonet.midolman.state.ZkManager;
 import org.midonet.midolman.state.zkManagers.RouteZkManager;
 import org.midonet.midolman.state.zkManagers.RouterZkManager;
 import org.midonet.packets.IPv4Addr;
-import org.midonet.packets.MAC;
 import org.midonet.util.eventloop.Reactor;
-import org.midonet.util.functors.Callback3;
 
 public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
 
@@ -515,8 +517,8 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
         public final UUID routerId;
         ArpTable arpTable;
         Reactor reactor;
-        private final Set<Callback3<IPv4Addr, MAC, MAC>> listeners =
-                        new LinkedHashSet<Callback3<IPv4Addr, MAC, MAC>>();
+        private final Subject<ArpCacheUpdate, ArpCacheUpdate> updates =
+            PublishSubject.create();
 
         public ArpCacheImpl(ArpTable arpTable, UUID routerId, Reactor reactor) {
             this.routerId = routerId;
@@ -526,7 +528,7 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
         }
 
         @Override
-        public UUID getRouterId() {
+        public UUID routerId() {
             return routerId;
         }
 
@@ -544,13 +546,10 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
                 }
             }
 
-            synchronized (listeners) {
-                for (Callback3<IPv4Addr, MAC, MAC> cb: listeners) {
-                    cb.call(key,
-                            (oldV != null) ? oldV.macAddr : null,
-                            (newV != null) ? newV.macAddr : null);
-                }
-            }
+            updates.onNext(new ArpCacheUpdate(
+                key,
+                oldV != null ? oldV.macAddr : null,
+                newV != null ? newV.macAddr : null));
         }
 
         @Override
@@ -570,7 +569,7 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
                         arpTable.put(ipAddr, entry);
                     } catch (Exception e) {
                         log.error("Failed adding ARP entry. IP: {} MAC: {}",
-                                  new Object[]{ipAddr, entry, e});
+                                  ipAddr, entry, e);
                     }
                 }});
         }
@@ -590,20 +589,8 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
                 }});
         }
 
-        @Override
-        public void notify(Callback3<IPv4Addr, MAC, MAC> cb) {
-            synchronized (listeners) {
-                listeners.add(cb);
-            }
+        public Observable<ArpCacheUpdate> observable() {
+            return updates.asObservable();
         }
-
-        @Override
-        public void unsubscribe(Callback3<IPv4Addr, MAC, MAC> cb) {
-            synchronized (listeners) {
-                listeners.remove(cb);
-            }
-        }
-
-
     }
 }

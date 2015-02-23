@@ -516,6 +516,18 @@ class VirtualTopologyRedirectorTest extends MidolmanSpec with TopologyBuilder
             })
         }
 
+        scenario("Support for router") {
+            val proto = createRouter()
+            backend.store create proto
+
+            VirtualTopologyActor ! RouterRequest(proto.getId)
+            sender await timeout
+
+            expectLast({
+                case device: Router => device shouldBeDeviceOf proto
+            })
+        }
+
         scenario("Support for chain") {
             val proto = createChain()
             backend.store create proto

@@ -41,7 +41,7 @@ sourceSets {
 }
 
 dependencies {
-    compile project(':cluster'),
+    compile project(':nsdb'),
             project(':midonet-util'),
             project(':cluster:midonet-cluster'),
             project(':midolman'), // temporary for MidonetBackendModule
