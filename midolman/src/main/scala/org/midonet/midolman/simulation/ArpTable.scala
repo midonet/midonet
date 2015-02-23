@@ -24,11 +24,12 @@ import scala.concurrent.duration.Duration
 import akka.actor.ActorSystem
 import com.typesafe.scalalogging.Logger
 
-import org.midonet.cluster.client.ArpCache
+import rx.{Subscription, Observer, Subscriber}
+
 import org.midonet.midolman._
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.simulation.PacketEmitter.GeneratedPacket
-import org.midonet.midolman.state.ArpCacheEntry
+import org.midonet.midolman.state.{ArpCacheUpdate, ArpCacheEntry}
 import org.midonet.midolman.topology.devices.RouterPort
 import org.midonet.packets.{ARP, Ethernet, IPv4Addr, MAC}
 import org.midonet.util.UnixClock
@@ -60,15 +61,15 @@ trait SynchronizedMultiMap[A, B] extends mutable.MultiMap[A, B] with
     }
 }
 
-class ArpTableImpl(val arpCache: ArpCache, cfg: MidolmanConfig,
-                   val observer: (IPv4Addr, MAC, MAC) => Unit)
+class ArpTableImpl(val arpCache: state.ArpCache, cfg: MidolmanConfig,
+                   val callback: (IPv4Addr, MAC, MAC) => Unit)
                   (implicit system: ActorSystem,
                             ec: ExecutionContext) extends ArpTable {
 
     val clock = UnixClock.get
 
     private val log = Logger(org.slf4j.LoggerFactory.getLogger(
-        "org.midonet.devices.arp-table.arp-table-" + arpCache.getRouterId))
+        "org.midonet.devices.arp-table.arp-table-" + arpCache.routerId))
     private val ARP_RETRY_MILLIS = cfg.getArpRetryIntervalSeconds * 1000
     private val ARP_TIMEOUT_MILLIS = cfg.getArpTimeoutSeconds * 1000
     private val ARP_STALE_MILLIS = cfg.getArpStaleSeconds * 1000
@@ -76,35 +77,39 @@ class ArpTableImpl(val arpCache: ArpCache, cfg: MidolmanConfig,
     private val arpWaiters = new mutable.HashMap[IPv4Addr,
                                             mutable.Set[Promise[MAC]]] with
             SynchronizedMultiMap[IPv4Addr, Promise[MAC]]
-    private var arpCacheCallback: Callback3[IPv4Addr, MAC, MAC] = null
+    private val arpCacheObserver = new Observer[ArpCacheUpdate] {
+        override def onNext(update: ArpCacheUpdate): Unit = {
+            if (update.newMac eq null)
+                return
+            log.debug("Invalidating flows for {}", update.ipAddr)
 
-    override def start() {
-        arpCacheCallback = new Callback3[IPv4Addr, MAC, MAC] {
-            def call(ip: IPv4Addr, oldMac: MAC, newMac: MAC) {
-                if (newMac == null)
-                    return
-                log.debug("invalidating flows for {}", ip)
-
-                /* Do not invalidate flows the first time that a mac is set.
-                 * That could render the simulations that triggered the ARP
-                 * request invalid. */
-                if (oldMac != null)
-                    observer(ip, oldMac, newMac)
-                arpWaiters.remove(ip) match {
-                    case Some(waiters)  =>
-                        log.debug(s"notify ${waiters.size} waiters for $ip at $newMac")
-                        waiters map { _ success newMac }
-                    case _ =>
-                }
+            /* Do not invalidate flows the first time that a mac is set.
+             * That could render the simulations that triggered the ARP
+             * request invalid. */
+            if (update.oldMac ne null)
+                callback(update.ipAddr, update.oldMac, update.newMac)
+            arpWaiters.remove(update.ipAddr) match {
+                case Some(waiters)  =>
+                    log.debug("Notify {} waiters for {} at {}",
+                              Int.box(waiters.size), update.ipAddr,
+                              update.newMac)
+                    waiters foreach { _ success update.newMac }
+                case _ =>
             }
         }
-        arpCache.notify(arpCacheCallback)
+        override def onCompleted(): Unit = {}
+        override def onError(e: Throwable): Unit = {}
+    }
+    @volatile private var arpCacheSubscription: Subscription = null
+
+    override def start() {
+        arpCacheSubscription = arpCache.observable.subscribe(arpCacheObserver)
     }
 
     override def stop() {
-        if (arpCacheCallback != null) {
-            arpCache.unsubscribe(arpCacheCallback)
-            arpCacheCallback = null
+        if (arpCacheSubscription ne null) {
+            arpCacheSubscription.unsubscribe()
+            arpCacheSubscription = null
         }
     }
 
@@ -142,7 +147,7 @@ class ArpTableImpl(val arpCache: ArpCache, cfg: MidolmanConfig,
         val p = Promise[MAC]()
         arpWaiters.addBinding(ip, p)
         promiseOnExpire[MAC](p, timeout, removeArpWaiter(ip, _),
-                             () => ArpTimeoutException(arpCache.getRouterId, ip))
+                             () => ArpTimeoutException(arpCache.routerId, ip))
     }
 
     def get(ip: IPv4Addr, port: RouterPort)

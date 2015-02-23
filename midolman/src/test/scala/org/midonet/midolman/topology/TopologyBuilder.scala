@@ -20,6 +20,7 @@ import java.util.UUID
 import scala.collection.JavaConverters._
 import scala.util.Random
 
+import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.models.Commons.IPAddress
 import org.midonet.cluster.models.Topology.Host.PortBinding
 import org.midonet.cluster.models.Topology.IpAddrGroup.IpAddrPorts
@@ -34,6 +35,8 @@ import org.midonet.cluster.util.{IPSubnetUtil, RangeUtil, UUIDUtil}
 import org.midonet.midolman.rules.FragmentPolicy
 import org.midonet.packets._
 import org.midonet.util.Range
+
+import org.midonet.midolman.{layer3 => l3}
 
 trait TopologyBuilder {
 
@@ -72,13 +75,15 @@ trait TopologyBuilder {
                                    portGroupIds: Set[UUID] = Set.empty,
                                    portSubnet: IPSubnet[_] = randomIPv4Subnet,
                                    portAddress: IPAddr = IPv4Addr.random,
-                                   portMac: MAC = MAC.random): Port = {
+                                   portMac: MAC = MAC.random,
+                                   routeIds: Set[UUID] = Set.empty): Port = {
         val builder = createPortBuilder(
             id, inboundFilterId, outboundFilterId, tunnelKey, peerId, vifId,
             hostId, interfaceName, adminStateUp, portGroupIds)
             .setPortSubnet(portSubnet.asProto)
             .setPortAddress(portAddress.asProto)
             .setPortMac(portMac.toString)
+            .addAllRouteIds(routeIds.map(_.asProto).asJava)
         if (routerId.isDefined) builder.setRouterId(routerId.get.asProto)
         builder.build()
     }
@@ -184,22 +189,23 @@ trait TopologyBuilder {
                               srcNetwork: IPSubnet[_] = randomIPv4Subnet,
                               dstNetwork: IPSubnet[_] = randomIPv4Subnet,
                               nextHop: NextHop = NextHop.BLACKHOLE,
-                              nextHopPortId: UUID = UUID.randomUUID,
+                              nextHopPortId: Option[UUID] = None,
                               nextHopGateway: Option[String] = None,
                               weight: Option[Int] = None,
                               attributes: Option[String] = None,
-                              routerId: UUID = UUID.randomUUID): Route = {
+                              routerId: Option[UUID] = None): Route = {
         val builder = Route.newBuilder
             .setId(id.asProto)
             .setSrcSubnet(srcNetwork.asProto)
             .setDstSubnet(dstNetwork.asProto)
             .setNextHop(nextHop)
-            .setNextHopPortId(nextHopPortId.asProto)
-            .setRouterId(routerId.asProto)
+        if (nextHopPortId.isDefined)
+            builder.setNextHopPortId(nextHopPortId.get.asProto)
         if (nextHopGateway.isDefined)
             builder.setNextHopGateway(nextHopGateway.get.asProtoIPAddress)
         if (weight.isDefined) builder.setWeight(weight.get)
         if (attributes.isDefined) builder.setAttributes(attributes.get)
+        if (routerId.isDefined) builder.setRouterId(routerId.get.asProto)
         builder.build()
     }
 
@@ -402,8 +408,7 @@ trait TopologyBuilder {
             .setId(id.asProto)
             .addAllRuleIds(ruleIds.map(_.asProto).asJava)
 
-        if (name.isDefined)
-            builder.setName(name.get)
+        if (name.isDefined) builder.setName(name.get)
 
         builder.build()
     }
@@ -518,6 +523,70 @@ object TopologyBuilder {
             port.toBuilder.clearPortAddress().build()
         def clearPortMac(mac: MAC): Port =
             port.toBuilder.clearPortMac().build()
+        def addPortId(portId: UUID): Port =
+            port.toBuilder.addPortIds(portId.asProto).build()
+        def addRouteId(routeId: UUID): Port =
+            port.toBuilder.addRouteIds(routeId.asProto).build()
+        def addRuleId(ruleId: UUID): Port =
+            port.toBuilder.addRuleIds(ruleId.asProto).build()
+    }
+
+    class RichBridge(bridge: Network) {
+        def setName(name: String): Network =
+            bridge.toBuilder.setName(name).build()
+        def setTenantId(tenantId: String): Network =
+            bridge.toBuilder.setTenantId(tenantId).build()
+        def setAdminStateUp(adminStateUp: Boolean): Network =
+            bridge.toBuilder.setAdminStateUp(adminStateUp).build()
+        def setTunnelKey(tunnelKey: Long): Network =
+            bridge.toBuilder.setTunnelKey(tunnelKey).build()
+        def setInboundFilterId(filterId: UUID): Network =
+            bridge.toBuilder.setInboundFilterId(filterId.asProto).build()
+        def setOutboundFilterId(filterId: UUID): Network =
+            bridge.toBuilder.setOutboundFilterId(filterId.asProto).build()
+        def setVni(vni: Int): Network =
+            bridge.toBuilder.setVni(vni).build()
+    }
+
+    class RichRouter(router: Router) {
+        def setName(name: String): Router =
+            router.toBuilder.setName(name).build()
+        def setTenantId(tenantId: String): Router =
+            router.toBuilder.setTenantId(tenantId).build()
+        def setAdminStateUp(adminStateUp: Boolean): Router =
+            router.toBuilder.setAdminStateUp(adminStateUp).build()
+        def setInboundFilterId(filterId: UUID): Router =
+            router.toBuilder.setInboundFilterId(filterId.asProto).build()
+        def setOutboundFilterId(filterId: UUID): Router =
+            router.toBuilder.setOutboundFilterId(filterId.asProto).build()
+        def setLoadBalancerId(loadBalancerId: UUID): Router =
+            router.toBuilder.setLoadBalancerId(loadBalancerId.asProto).build()
+        def addPortId(portId: UUID): Router =
+            router.toBuilder.addPortIds(portId.asProto).build()
+        def addRouteId(routeId: UUID): Router =
+            router.toBuilder.addRouteIds(routeId.asProto).build()
+    }
+
+    class RichRoute(route: Route) {
+
+        def asJava: l3.Route = ZoomConvert.fromProto(route, classOf[l3.Route])
+
+        def setSrcNetwork(ipSubnet: IPSubnet[_]): Route =
+            route.toBuilder.setSrcSubnet(ipSubnet.asProto).build()
+        def setDstNetwork(ipSubnet: IPSubnet[_]): Route =
+            route.toBuilder.setDstSubnet(ipSubnet.asProto).build()
+        def setNextHop(nextHop: NextHop): Route =
+            route.toBuilder.setNextHop(nextHop).build()
+        def setNextHopPortId(portId: UUID): Route =
+            route.toBuilder.setNextHopPortId(portId.asProto).build()
+        def setNextHopGateway(ipAddress: IPAddr): Route =
+            route.toBuilder.setNextHopGateway(ipAddress.asProto).build()
+        def setWeight(weight: Int): Route =
+            route.toBuilder.setWeight(weight).build()
+        def setAttributed(attributes: String): Route =
+            route.toBuilder.setAttributes(attributes).build()
+        def setRouterId(routerId: UUID): Route =
+            route.toBuilder.setRouterId(routerId.asProto).build()
     }
 
     private val random = new Random()
@@ -526,4 +595,11 @@ object TopologyBuilder {
 
     implicit def asRichPort(port: Port): RichPort = new RichPort(port)
 
+    implicit def asRichBridge(bridge: Network): RichBridge =
+        new RichBridge(bridge)
+
+    implicit def asRichRouter(router: Router): RichRouter =
+        new RichRouter(router)
+
+    implicit def asRichRoute(route: Route): RichRoute = new RichRoute(route)
 }

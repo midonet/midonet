@@ -64,7 +64,7 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
     }
 
     private def assertThread(): Unit = {
-        assert(vt.threadId == Thread.currentThread.getId)
+        assert(vt.vtThreadId == Thread.currentThread.getId)
     }
 
     feature("Obtaining a chain with its observable") {
