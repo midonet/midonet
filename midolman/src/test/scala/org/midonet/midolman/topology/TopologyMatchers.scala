@@ -21,18 +21,18 @@ import com.google.protobuf.MessageOrBuilder
 
 import org.scalatest.Matchers
 
-import org.midonet.cluster.models.Topology.{Port => TopologyPort, Network => TopologyBridge, Rule => TopologyRule}
-import org.midonet.cluster.util.{RangeUtil, IPSubnetUtil}
+import org.midonet.cluster.models.Topology.{Network => TopologyBridge, Port => TopologyPort, Route => TopologyRoute, Router => TopologyRouter, Rule => TopologyRule}
 import org.midonet.cluster.util.IPAddressUtil._
 import org.midonet.cluster.util.IPSubnetUtil._
 import org.midonet.cluster.util.UUIDUtil._
-import org.midonet.midolman.rules.{Condition, Rule, JumpRule, NatRule, ForwardNatRule, NatTarget}
-import org.midonet.midolman.simulation.Bridge
-import org.midonet.midolman.topology.devices.VxLanPort
-import org.midonet.midolman.topology.TopologyMatchers.{BridgeMatcher, BridgePortMatcher, RouterPortMatcher}
-import org.midonet.midolman.topology.TopologyMatchers._
-import org.midonet.midolman.topology.devices.{ RouterPort, Port, BridgePort}
-import org.midonet.packets.MAC
+import org.midonet.cluster.util.{IPSubnetUtil, RangeUtil}
+import org.midonet.midolman.layer3.Route
+import org.midonet.midolman.layer3.Route.NextHop
+import org.midonet.midolman.rules.{Condition, ForwardNatRule, JumpRule, NatRule, NatTarget, Rule}
+import org.midonet.midolman.simulation.{Bridge, Router}
+import org.midonet.midolman.topology.TopologyMatchers.{BridgeMatcher, BridgePortMatcher, RouterPortMatcher, _}
+import org.midonet.midolman.topology.devices.{BridgePort, Port, RouterPort, VxLanPort}
+import org.midonet.packets.{IPv4Addr, MAC}
 
 object TopologyMatchers {
 
@@ -107,6 +107,45 @@ object TopologyMatchers {
         }
     }
 
+    class RouterMatcher(router: Router) extends Matchers
+                                        with DeviceMatcher[TopologyRouter] {
+        override def shouldBeDeviceOf(r: TopologyRouter): Unit = {
+            router.id shouldBe r.getId.asJava
+            router.cfg.adminStateUp shouldBe r.getAdminStateUp
+            router.cfg.inboundFilter shouldBe (if (r.hasInboundFilterId)
+                r.getInboundFilterId.asJava else null)
+            router.cfg.outboundFilter shouldBe (if (r.hasOutboundFilterId)
+                r.getOutboundFilterId.asJava else null)
+            router.cfg.loadBalancer shouldBe (if (r.hasLoadBalancerId)
+                r.getLoadBalancerId.asJava else null)
+        }
+    }
+
+    class RouteMatcher(route: Route) extends Matchers
+                                     with DeviceMatcher[TopologyRoute] {
+        override def shouldBeDeviceOf(r: TopologyRoute): Unit = {
+            route.srcNetworkAddr shouldBe (if (r.hasSrcSubnet)
+                IPv4Addr(r.getSrcSubnet.getAddress).addr else 0)
+            route.dstNetworkAddr shouldBe (if (r.hasDstSubnet)
+                IPv4Addr(r.getDstSubnet.getAddress).addr else 0)
+            route.nextHop shouldBe (r.getNextHop match {
+                case TopologyRoute.NextHop.BLACKHOLE => NextHop.BLACKHOLE
+                case TopologyRoute.NextHop.REJECT => NextHop.REJECT
+                case TopologyRoute.NextHop.PORT => NextHop.PORT
+                case TopologyRoute.NextHop.LOCAL => NextHop.LOCAL
+            })
+            route.nextHopPort shouldBe (if (r.hasNextHopPortId)
+                r.getNextHopPortId.asJava else null)
+            route.nextHopGateway shouldBe (if (r.hasNextHopGateway)
+                IPv4Addr(r.getNextHopGateway.getAddress).toInt else 0)
+            route.weight shouldBe r.getWeight
+            route.attributes shouldBe (if (r.hasAttributes) r.getAttributes
+            else null)
+            route.routerId shouldBe (if (r.hasRouterId) r.getRouterId.asJava
+            else null)
+        }
+    }
+
     class RuleMatcher(rule: Rule) extends Matchers
                                   with DeviceMatcher[TopologyRule]
                                   with TopologyMatchers {
@@ -134,12 +173,12 @@ object TopologyMatchers {
                 fwdNatRule.getTargetsArray should not be null
                 val targets = fwdNatRule.getNatTargets
                 val protoTargets = r.getNatRuleData.getNatTargetsList.asScala
-                targets should contain theSameElementsAs protoTargets.map({
+                targets should contain theSameElementsAs protoTargets.map(
                     target =>
                         new NatTarget(toIPv4Addr(target.getNwStart),
                                       toIPv4Addr(target.getNwEnd),
                                       target.getTpStart, target.getTpEnd)
-                })
+                )
 
                 if (targets.size() == 1) {
                     val target = targets.iterator.next
@@ -205,6 +244,7 @@ object TopologyMatchers {
             r.getFragmentPolicy.name shouldBe cond.fragmentPolicy.name
         }
     }
+
 }
 
 trait TopologyMatchers {
@@ -229,6 +269,12 @@ trait TopologyMatchers {
     implicit def asMatcher(bridge: Bridge): BridgeMatcher =
         new BridgeMatcher(bridge)
 
+    implicit def asMatcher(router: Router): RouterMatcher =
+        new RouterMatcher(router)
+
+    implicit def asMatcher(route: Route): RouteMatcher =
+        new RouteMatcher(route)
+
     implicit def asMatcher(rule: Rule): RuleMatcher =
         new RuleMatcher(rule)
 
@@ -240,4 +286,5 @@ trait TopologyMatchers {
 
     implicit def asMatcher(cond: Condition): ConditionMatcher =
         new ConditionMatcher(cond)
+
 }

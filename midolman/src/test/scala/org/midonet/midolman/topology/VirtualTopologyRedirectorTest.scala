@@ -520,7 +520,7 @@ class VirtualTopologyRedirectorTest extends MidolmanSpec with TopologyBuilder {
                                                        action = Some(Action.ACCEPT))
                 .build()
             val chain = createChain(chainId, Some("test-chain"),
-                                    List(literalRule.getId))
+                                    Set(literalRule.getId))
             backend.store.multi(List(CreateOp(literalRule), CreateOp(chain)))
 
             VirtualTopologyActor ! ChainRequest(chain.getId.asJava,

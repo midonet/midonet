@@ -49,7 +49,7 @@ class ChainManagerTest extends TestKit(ActorSystem("ChainManagerTest"))
     feature("ChainManager handles chain's rules") {
         scenario("Load chain with two rules") {
             Given("a chain with two rules")
-            val chain = createChain("chain1")
+            val chain = newChain("chain1")
             newTcpDstRuleOnChain(chain, 1, 80, Action.DROP)
 
             When("the VTA receives a request for it")
@@ -64,7 +64,7 @@ class ChainManagerTest extends TestKit(ActorSystem("ChainManagerTest"))
 
         scenario("Receive update when a rule is added") {
             Given("a chain with one rule")
-            val chain = createChain("chain1")
+            val chain = newChain("chain1")
             newTcpDstRuleOnChain(chain, 1, 80, Action.DROP)
 
             When("the VTA receives a subscription request for it")
@@ -91,8 +91,8 @@ class ChainManagerTest extends TestKit(ActorSystem("ChainManagerTest"))
     feature("ChainManager loads target chains for jump rules") {
         scenario("Load chain with a jump to another chain") {
             Given("a chain with a jump to another chain")
-            val chain1 = createChain("chain1")
-            val chain2 = createChain("chain2")
+            val chain1 = newChain("chain1")
+            val chain2 = newChain("chain2")
             newJumpRuleOnChain(chain1, 1, new Condition(), chain2.getId)
 
             When("the VTA receives a request for it")
@@ -109,8 +109,8 @@ class ChainManagerTest extends TestKit(ActorSystem("ChainManagerTest"))
 
         scenario("Add a second jump rule to a chain") {
             Given("A chain with a jump to a second chain")
-            val chain1 = createChain("chain1")
-            val chain2 = createChain("chain2")
+            val chain1 = newChain("chain1")
+            val chain2 = newChain("chain2")
             newJumpRuleOnChain(chain1, 1, new Condition(), chain2.getId)
 
             When("the VTA receives a request for it")
@@ -121,7 +121,7 @@ class ChainManagerTest extends TestKit(ActorSystem("ChainManagerTest"))
             vta.getAndClear()
 
             And("a second jump rule to a third chain is added")
-            val chain3 = createChain("chain3")
+            val chain3 = newChain("chain3")
             newJumpRuleOnChain(chain1, 2, new Condition(), chain3.getId)
 
             Then("the VTA should send an update with both jumps")
@@ -139,8 +139,8 @@ class ChainManagerTest extends TestKit(ActorSystem("ChainManagerTest"))
 
         scenario("Add a jump to a third chain on the second chain") {
             Given("a chain with a jump to a second chain")
-            val chain1 = createChain("chain1")
-            val chain2 = createChain("chain2")
+            val chain1 = newChain("chain1")
+            val chain2 = newChain("chain2")
             newJumpRuleOnChain(chain1, 1, new Condition(), chain2.getId)
 
             When("the VTA receives a request for it")
@@ -151,7 +151,7 @@ class ChainManagerTest extends TestKit(ActorSystem("ChainManagerTest"))
             vta.getAndClear()
 
             And("a jump to a third chain is added to the second chain")
-            val chain3 = createChain("chain3")
+            val chain3 = newChain("chain3")
             newJumpRuleOnChain(chain2, 1, new Condition(), chain3.getId)
 
             Then("the VTA should send an update with " +
@@ -178,9 +178,9 @@ class ChainManagerTest extends TestKit(ActorSystem("ChainManagerTest"))
         scenario("Add a rule to a jump target chain") {
             Given("a chain with a jump to a second chain" +
                   "with a jump to a third chain")
-            val chain1 = createChain("chain1")
-            val chain2 = createChain("chain2")
-            val chain3 = createChain("chain3")
+            val chain1 = newChain("chain1")
+            val chain2 = newChain("chain2")
+            val chain3 = newChain("chain3")
             newJumpRuleOnChain(chain1, 1, new Condition(), chain2.getId)
             newJumpRuleOnChain(chain2, 1, new Condition(), chain3.getId)
 
@@ -216,7 +216,7 @@ class ChainManagerTest extends TestKit(ActorSystem("ChainManagerTest"))
             val addr = "10.0.1.1"
             addAddrToIpAddrGroup(ipAddrGroup.getId, addr)
 
-            val chain = createChain("chain1")
+            val chain = newChain("chain1")
             newIpAddrGroupRuleOnChain(chain, 1, Action.DROP,
                                       Some(ipAddrGroup.getId), None)
 
@@ -236,7 +236,7 @@ class ChainManagerTest extends TestKit(ActorSystem("ChainManagerTest"))
             val addr1 = "10.0.1.1"
             addAddrToIpAddrGroup(ipAddrGroup.getId, addr1)
 
-            val chain = createChain("chain1")
+            val chain = newChain("chain1")
             newIpAddrGroupRuleOnChain(chain, 1, Action.DROP,
                 Some(ipAddrGroup.getId), None)
 
@@ -270,7 +270,7 @@ class ChainManagerTest extends TestKit(ActorSystem("ChainManagerTest"))
             addAddrToIpAddrGroup(ipAddrGroup.getId, addr1)
             addAddrToIpAddrGroup(ipAddrGroup.getId, addr2)
 
-            val chain = createChain("chain1")
+            val chain = newChain("chain1")
             newIpAddrGroupRuleOnChain(chain, 1, Action.DROP,
                 None, Some(ipAddrGroup.getId))
 
