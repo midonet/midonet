@@ -64,7 +64,7 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
     }
 
     private def assertThread(): Unit = {
-        assert(vt.threadId == Thread.currentThread.getId)
+        assert(vt.vtThreadId == Thread.currentThread.getId)
     }
 
     feature("Obtaining a chain with its observable") {
@@ -74,7 +74,7 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
             val rule1 = buildAndStoreLiteralRule(chainId,
                                                  ProtoRule.Action.ACCEPT)
             val chain = buildAndStoreChain(chainId, "test-chain",
-                                           List(rule1.getId.asJava))
+                                           Set(rule1.getId))
 
             When("We subscribe to the chain")
             val obs = new AwaitableObserver[SimChain](1, assertThread())
@@ -131,7 +131,7 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
             val rule = buildAndStoreLiteralRule(chainId,
                                                 ProtoRule.Action.ACCEPT)
             val chain = buildAndStoreChain(chainId, "test-chain",
-                                           List(rule.getId))
+                                           Set(rule.getId))
 
             When("We ask for the chain with a get")
             val future = VirtualTopology.get[SimChain](chainId)
@@ -147,7 +147,7 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
             val rule = buildAndStoreLiteralRule(chainId,
                                                 ProtoRule.Action.ACCEPT)
             val chain = buildAndStoreChain(chainId, "test-chain",
-                                           List(rule.getId))
+                                           Set(rule.getId))
 
             When("We ask for the chain with tryGet")
             val nye = intercept[NotYetException] {
@@ -172,8 +172,7 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
         scenario("Deleting a chain") {
             Given("A topology with one chain")
             val chainId = UUID.randomUUID()
-            val chain = buildAndStoreChain(chainId, "test-chain",
-                                           List.empty)
+            val chain = buildAndStoreChain(chainId, "test-chain", Set.empty)
 
             When("We subscribe to the chain")
             val obs = new AwaitableObserver[SimChain](1, assertThread())
@@ -197,10 +196,10 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
             val chainId = UUID.randomUUID()
             val jumpChainId = UUID.randomUUID()
             val jumpChain = buildAndStoreChain(jumpChainId, "jump-chain",
-                                               List.empty)
+                                               Set.empty)
             val jumpRule = buildAndStoreJumpRule(chainId, jumpChainId)
             val chain = buildAndStoreChain(chainId, "test-chain",
-                                           List(jumpRule.getId))
+                                           Set(jumpRule.getId))
 
             When("We subscribe to the chain")
             val obs = new AwaitableObserver[SimChain](1, assertThread())
@@ -214,7 +213,7 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
             And("When we make the jump rule point to another chain")
             val newJumpChainId = UUID.randomUUID()
             val newJumpChain = buildAndStoreChain(newJumpChainId, "jump-chain2",
-                                                  List.empty)
+                                                  Set.empty)
             val updatedJumpRule = updateJumpRule(jumpRule, chainId,
                                                  newJumpChain.getId)
 
@@ -226,7 +225,7 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
 
             And("When we modify the chain the jump rule points to")
             val updatedJumpChain = createChain(newJumpChainId,
-                                               Option("jump-chain3"), Seq.empty)
+                                               Option("jump-chain3"))
             store.update(updatedJumpChain)
 
             Then("We receive the chain with the updated jump chain")
@@ -266,10 +265,10 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
             val chainId = UUID.randomUUID()
             val jumpChainId = UUID.randomUUID()
             val jumpChain = buildAndStoreChain(jumpChainId, "jump-chain",
-                                               List.empty)
+                                               Set.empty)
             val jumpRule1 = buildAndStoreJumpRule(chainId, jumpChainId)
             val chain = buildAndStoreChain(chainId, "test-chain",
-                                           List(jumpRule1.getId))
+                                           Set(jumpRule1.getId))
 
             When("We subscribe to the chain")
             val obs = new AwaitableObserver[SimChain](1, assertThread())
@@ -422,7 +421,7 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
     }
 
     private def buildAndStoreChain(chainId: UUID, name: String,
-                                   ruleIds: Seq[Commons.UUID])
+                                   ruleIds: Set[UUID])
     : ProtoChain = {
         val chain = createChain(chainId, Some(name), ruleIds)
         store.create(chain)
