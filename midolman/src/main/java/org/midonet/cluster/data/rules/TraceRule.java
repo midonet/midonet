@@ -25,9 +25,15 @@ import java.util.UUID;
  * Rule for tracing
  */
 public class TraceRule extends Rule<Rule.Data, TraceRule> {
+    private final UUID requestId;
 
-    public TraceRule(Condition condition) {
+    public TraceRule(UUID requestId, Condition condition) {
         super(null, condition, new Data());
+        this.requestId = requestId;
+    }
+
+    public UUID getRequestId() {
+        return requestId;
     }
 
     @Override
