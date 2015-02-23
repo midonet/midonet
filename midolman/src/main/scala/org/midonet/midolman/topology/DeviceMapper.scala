@@ -53,7 +53,7 @@ object DeviceMapper {
  *  - the [[DeviceMapper]] observer can execute the custom actions before
  *    subscribers are notified.
  */
-abstract class DeviceMapper[D <: Device](id: UUID, vt: VirtualTopology)
+abstract class DeviceMapper[D <: Device](val id: UUID, vt: VirtualTopology)
                                         (implicit tag: ClassTag[D])
     extends OnSubscribe[D] with Observer[D] with MidolmanLogging {
 
@@ -118,10 +118,10 @@ abstract class DeviceMapper[D <: Device](id: UUID, vt: VirtualTopology)
      */
     @throws[DeviceMapperException]
     @inline protected def assertThread(): Unit = {
-        if (vt.threadId != Thread.currentThread.getId) {
+        if (vt.vtThreadId != Thread.currentThread.getId) {
             throw new DeviceMapperException(
                 tag.runtimeClass, id,
-                s"Call expected on thread ${vt.threadId} but received on " +
+                s"Call expected on thread ${vt.vtThreadId} but received on " +
                 s"${Thread.currentThread().getId}")
         }
     }

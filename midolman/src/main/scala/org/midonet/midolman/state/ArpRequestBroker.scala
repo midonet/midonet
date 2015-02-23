@@ -18,7 +18,8 @@ package org.midonet.midolman.state
 import java.lang.{Long => JLong}
 import java.util
 import java.util.{ArrayDeque, Comparator, PriorityQueue, UUID}
-import scala.concurrent.{Promise, Future}
+
+import scala.concurrent.{Future, Promise}
 import scala.util.Random
 
 import com.google.common.collect.ArrayListMultimap
@@ -26,17 +27,16 @@ import com.typesafe.scalalogging.Logger
 import org.jctools.queues.SpscLinkedQueue
 import org.slf4j.LoggerFactory
 
-import org.midonet.cluster.client.ArpCache
 import org.midonet.midolman.NotYetException
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.flows.InvalidationSource
-import org.midonet.midolman.simulation._
 import org.midonet.midolman.simulation.PacketEmitter.GeneratedPacket
+import org.midonet.midolman.simulation._
 import org.midonet.midolman.topology.devices.RouterPort
 import org.midonet.packets.{Ethernet, IPv4Addr, MAC}
 import org.midonet.sdn.flows.FlowTagger
 import org.midonet.util.UnixClock
-import org.midonet.util.functors.Callback3
+import org.midonet.util.functors.makeAction1
 
 object ArpRequestBroker {
     case class MacChange(ip: IPv4Addr, oldMac: MAC, newMac: MAC)
@@ -209,13 +209,11 @@ class SingleRouterArpRequestBroker(id: UUID,
     private val macsDiscovered = new SpscLinkedQueue[MacChange]()
 
     /**
-     * Notify this ArpRequestBroker that the ArpTable has discovered a new
+     * Notify this ArpRequestBroker when the ArpTable has discovered a new
      * MAC - IP address association. May be called from any thread.
      */
-    arpCache.notify(new Callback3[IPv4Addr, MAC, MAC] {
-        override def call(ip: IPv4Addr, oldMac: MAC, newMac: MAC): Unit = {
-            macsDiscovered.add(MacChange(ip, oldMac, newMac))
-        }
+    arpCache.observable.subscribe(makeAction1[ArpCacheUpdate] { u =>
+        macsDiscovered.add(MacChange(u.ipAddr, u.oldMac, u.newMac))
     })
 
     private val stalenessJitter: Long = {

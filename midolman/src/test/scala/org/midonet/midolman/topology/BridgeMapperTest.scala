@@ -28,7 +28,6 @@ import rx.observers.TestObserver
 import org.midonet.cluster.models.Topology.{Port => TopologyPort, Network => TopologyBridge}
 import org.midonet.cluster.data.storage.{NotFoundException, UpdateOp, CreateOp, Storage}
 import org.midonet.cluster.services.MidonetBackend
-import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.simulation.{Bridge => SimulationBridge}
 import org.midonet.midolman.simulation.Bridge.UntaggedVlanId
 import org.midonet.midolman.util.MidolmanSpec
@@ -42,6 +41,9 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
                        with TopologyMatchers with MidonetEventually {
 
     import TopologyBuilder._
+
+    private type BridgeObserver = TestObserver[SimulationBridge]
+        with AwaitableObserver[SimulationBridge]
 
     private var store: Storage = _
     private var vt: VirtualTopology = _
@@ -71,18 +73,16 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
         // thread, when the device was notified in the mapper's behavior subject
         // previous to the subscription.
         new TestObserver[SimulationBridge]
-        with AwaitableObserver[SimulationBridge]
-        with AssertableObserver[SimulationBridge] {
+            with AwaitableObserver[SimulationBridge]
+            with AssertableObserver[SimulationBridge] {
             override def assert() =
                 BridgeMapperTest.this.assert(
-                    vt.threadId == Thread.currentThread.getId ||
+                    vt.vtThreadId == Thread.currentThread.getId ||
                     threadId == Thread.currentThread.getId)
         }
     }
 
-    private def testBridgeCreated(bridgeId: UUID,
-                                  obs: TestObserver[SimulationBridge]
-                                       with AwaitableObserver[SimulationBridge])
+    private def testBridgeCreated(bridgeId: UUID, obs: BridgeObserver)
     : TopologyBridge = {
         Given("A bridge mapper")
         val mapper = new BridgeMapper(bridgeId, vt)
@@ -97,17 +97,15 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
         Observable.create(mapper).subscribe(obs)
 
         Then("The observer should receive the bridge device")
-        obs.awaitOnNext(1, 5 seconds) shouldBe true
+        obs.awaitOnNext(1, timeout) shouldBe true
         val device = obs.getOnNextEvents.get(0)
         device shouldBeDeviceOf bridge
 
         bridge
     }
 
-    private def testBridgeUpdated(bridge: TopologyBridge,
-                                  obs: TestObserver[SimulationBridge] with AwaitableObserver[SimulationBridge],
-                                  event: Int)
-    : SimulationBridge = {
+    private def testBridgeUpdated(bridge: TopologyBridge, obs: BridgeObserver,
+                                  event: Int) : SimulationBridge = {
         When("The bridge is updated")
         store.update(bridge)
 
@@ -119,9 +117,7 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
         device
     }
 
-    private def testBridgeDeleted(bridgeId: UUID,
-                                  obs: TestObserver[SimulationBridge]
-                                       with AwaitableObserver[SimulationBridge])
+    private def testBridgeDeleted(bridgeId: UUID, obs: BridgeObserver)
     : Unit = {
         When("The bridge is deleted")
         store.delete(classOf[TopologyBridge], bridgeId)

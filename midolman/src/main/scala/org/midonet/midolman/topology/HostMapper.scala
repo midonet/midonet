@@ -190,13 +190,13 @@ final class HostMapper(hostId: UUID, vt: VirtualTopology)
     // trigger a host update, hence the 'distinctUntilChanged'.
     private lazy val hostObservable =
         vt.store.observable(classOf[TopologyHost], hostId)
-            .observeOn(vt.scheduler)
+            .observeOn(vt.vtScheduler)
             .distinctUntilChanged
             .doOnCompleted(makeAction0(hostDeleted()))
 
     private lazy val aliveObservable =
         vt.store.ownersObservable(classOf[TopologyHost], hostId)
-            .observeOn(vt.scheduler)
+            .observeOn(vt.vtScheduler)
             .map[Boolean](makeFunc1(aliveUpdated))
             .distinctUntilChanged
             .onErrorResumeNext(Observable.empty)

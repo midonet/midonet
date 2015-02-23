@@ -16,9 +16,8 @@
 package org.midonet.midolman.util
 
 
-import org.midonet.cluster.client.ArpCache
 import org.midonet.midolman.simulation.Router
-import org.midonet.midolman.state.ArpCacheEntry
+import org.midonet.midolman.state.{ArpCache, ArpCacheEntry}
 import org.midonet.packets.{IPv4Addr, MAC}
 import org.midonet.util.UnixClock
 
