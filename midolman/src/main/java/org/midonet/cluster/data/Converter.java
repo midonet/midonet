@@ -511,7 +511,7 @@ public class Converter {
         if (rule instanceof TraceRule) {
             TraceRule typedRule = (TraceRule) rule;
             ruleConfig = new org.midonet.midolman.rules.TraceRule(
-                    typedRule.getCondition());
+                    typedRule.getRequestId(), typedRule.getCondition());
         }
 
         if (rule instanceof JumpRule) {
@@ -568,7 +568,10 @@ public class Converter {
         }
 
         if (ruleConfig instanceof org.midonet.midolman.rules.TraceRule) {
-            rule = new TraceRule(ruleConfig.getCondition());
+            org.midonet.midolman.rules.TraceRule casted
+                = (org.midonet.midolman.rules.TraceRule)ruleConfig;
+            rule = new TraceRule(casted.getRequestId(),
+                    ruleConfig.getCondition());
         }
 
         if (ruleConfig instanceof org.midonet.midolman.rules.JumpRule) {
