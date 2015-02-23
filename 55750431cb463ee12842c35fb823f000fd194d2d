@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_fc4e43c0",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-23T10:24:13Z",
+      "side": 1,
+      "message": "I remembering seeing somewhere a comment saying that Mark prefers just 2015 here.",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 22
+      },
+      "revId": "55750431cb463ee12842c35fb823f000fd194d2d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_fcada389",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PortMapper.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-23T10:24:13Z",
+      "side": 1,
+      "message": "add assertThread?",
+      "range": {
+        "startLine": 50,
+        "startChar": 4,
+        "endLine": 56,
+        "endChar": 14
+      },
+      "revId": "55750431cb463ee12842c35fb823f000fd194d2d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
