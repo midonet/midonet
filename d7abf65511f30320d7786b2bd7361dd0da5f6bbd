@@ -2,6 +2,98 @@
   "comments": [
     {
       "key": {
+        "uuid": "7a1969be_7cd253d3",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 148,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-02-23T10:35:54Z",
+      "side": 1,
+      "message": "Why not a?",
+      "range": {
+        "startLine": 148,
+        "startChar": 63,
+        "endLine": 148,
+        "endChar": 77
+      },
+      "revId": "d7abf65511f30320d7786b2bd7361dd0da5f6bbd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_fce5a3a8",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 148,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-02-23T10:35:54Z",
+      "side": 1,
+      "message": "liveness?",
+      "range": {
+        "startLine": 148,
+        "startChar": 35,
+        "endLine": 148,
+        "endChar": 40
+      },
+      "revId": "d7abf65511f30320d7786b2bd7361dd0da5f6bbd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_bcdb2bec",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 149,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-02-23T10:35:54Z",
+      "side": 1,
+      "message": "Is it worth having the Option instead of null?",
+      "range": {
+        "startLine": 149,
+        "startChar": 24,
+        "endLine": 149,
+        "endChar": 31
+      },
+      "revId": "d7abf65511f30320d7786b2bd7361dd0da5f6bbd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_dce0a798",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 153,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-02-23T10:35:54Z",
+      "side": 1,
+      "message": "Just warn, it\u0027s not deadly.\n\nMaybe also show what msg this was, for diagnosing.",
+      "range": {
+        "startLine": 153,
+        "startChar": 26,
+        "endLine": 153,
+        "endChar": 31
+      },
+      "revId": "d7abf65511f30320d7786b2bd7361dd0da5f6bbd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_fcf123ce",
         "filename": "midolman/src/test/scala/org/midonet/midolman/topology/VirtualTopologyTest.scala",
         "patchSetId": 5
