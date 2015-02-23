@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_63bbc7e5",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/InMemoryStorage.scala",
+        "patchSetId": 32
+      },
+      "lineNbr": 174,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-23T21:35:07Z",
+      "side": 1,
+      "message": "These comments are intended to clarify how we synchronize the access to the underlying stored data (i.e. object data and owners). In this particular case the read lock is found in InstanceNode.getSnapshot, when calling:\n\n  instances.getOrElse(...).getSnapshot",
+      "parentUuid": "7a1969be_36bbd2e6",
+      "range": {
+        "startLine": 174,
+        "startChar": 12,
+        "endLine": 174,
+        "endChar": 26
+      },
+      "revId": "cc18c4fb6b7b26aeb258242b99e095f96dc65d53",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_d19a486d",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/InMemoryStorage.scala",
         "patchSetId": 32
@@ -36,6 +60,30 @@
       "writtenOn": "2015-02-23T18:32:58Z",
       "side": 1,
       "message": "name parameter or put comment?",
+      "range": {
+        "startLine": 462,
+        "startChar": 42,
+        "endLine": 462,
+        "endChar": 47
+      },
+      "revId": "cc18c4fb6b7b26aeb258242b99e095f96dc65d53",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_a36e5fff",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/InMemoryStorage.scala",
+        "patchSetId": 32
+      },
+      "lineNbr": 462,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-23T21:35:07Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_d19a486d",
       "range": {
         "startLine": 462,
         "startChar": 42,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_8371a3e2",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/Storage.scala",
+        "patchSetId": 32
+      },
+      "lineNbr": 354,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-23T21:35:07Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_f1adc489",
+      "range": {
+        "startLine": 354,
+        "startChar": 39,
+        "endLine": 354,
+        "endChar": 41
+      },
+      "revId": "cc18c4fb6b7b26aeb258242b99e095f96dc65d53",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_56ebeeaf",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZoomExceptions.scala",
         "patchSetId": 32
@@ -82,6 +154,30 @@
       "writtenOn": "2015-02-23T18:32:58Z",
       "side": 1,
       "message": "modified/deleted",
+      "range": {
+        "startLine": 155,
+        "startChar": 58,
+        "endLine": 155,
+        "endChar": 66
+      },
+      "revId": "cc18c4fb6b7b26aeb258242b99e095f96dc65d53",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_e377b7d2",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZoomExceptions.scala",
+        "patchSetId": 32
+      },
+      "lineNbr": 155,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-23T21:35:07Z",
+      "side": 1,
+      "message": "By modified I intended any CRUD operation performed for this object and/or its owners. Would \"changed\" or \"operated on\" have been a better choice?",
+      "parentUuid": "7a1969be_56ebeeaf",
       "range": {
         "startLine": 155,
         "startChar": 58,
