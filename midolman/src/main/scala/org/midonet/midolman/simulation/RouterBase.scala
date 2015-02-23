@@ -18,16 +18,17 @@ package org.midonet.midolman.simulation
 import java.util.UUID
 
 import akka.actor.ActorSystem
-import org.midonet.midolman.PacketWorkflow.{Drop, TemporaryDrop, NoOp, SimulationResult}
-import org.midonet.midolman.routingprotocols.RoutingWorkflow
 
-import org.midonet.midolman.topology.devices.RouterPort
 import org.midonet.midolman.NotYetException
+import org.midonet.midolman.PacketWorkflow.{Drop, NoOp, SimulationResult, TemporaryDrop}
 import org.midonet.midolman.layer3.Route
+import org.midonet.midolman.routingprotocols.RoutingWorkflow
 import org.midonet.midolman.rules.RuleResult
 import org.midonet.midolman.simulation.Icmp._
-import org.midonet.midolman.topology.{RouterConfig, RoutingTableWrapper, TagManager}
+import org.midonet.midolman.simulation.Router.{Config, RoutingTable, TagManager}
+import org.midonet.midolman.topology.VirtualTopology.VirtualDevice
 import org.midonet.midolman.topology.VirtualTopologyActor._
+import org.midonet.midolman.topology.devices.RouterPort
 import org.midonet.odp.FlowMatch
 import org.midonet.odp.FlowMatch.Field
 import org.midonet.odp.flows.IPFragmentType
@@ -40,19 +41,19 @@ import org.midonet.sdn.flows.FlowTagger
  * such as ARP vs. NDP.
  */
 abstract class RouterBase[IP <: IPAddr](val id: UUID,
-                                        val cfg: RouterConfig,
-                                        val rTable: RoutingTableWrapper[IP],
+                                        val cfg: Config,
+                                        val rTable: RoutingTable,
                                         val routerMgrTagger: TagManager)
-                                   (implicit system: ActorSystem,
-                                             icmpErrors: IcmpErrorSender[IP])
-    extends Coordinator.Device with RoutingWorkflow {
+                                       (implicit system: ActorSystem,
+                                        icmpErrors: IcmpErrorSender[IP])
+    extends Coordinator.Device with RoutingWorkflow with VirtualDevice {
 
-    import Coordinator._
+    import org.midonet.midolman.simulation.Coordinator._
 
     def isValidEthertype(ether: Short): Boolean
 
     val routeBalancer = new RouteBalancer(rTable)
-    val deviceTag = FlowTagger.tagForDevice(id)
+    override val deviceTag = FlowTagger.tagForDevice(id)
 
     /**
      * Process the packet. Will validate first the ethertype and ensure that

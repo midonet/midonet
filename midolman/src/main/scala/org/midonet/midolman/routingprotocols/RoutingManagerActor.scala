@@ -88,7 +88,7 @@ class RoutingManagerActor extends ReactiveActor[LocalPortActive]
 
     override def preStart() {
         super.preStart()
-        stateStorage.observableLocalPortActive.subscribe(this)
+        stateStorage.localPortActiveObservable.subscribe(this)
     }
 
     override def receive = {
