@@ -62,8 +62,6 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
     protected override def fillConfig(config: Config) = {
         super.fillConfig(ConfigFactory.parseString(
             s"""
-              |zookeeper.cluster_storage_enabled : true
-              |zookeeper.use_new_stack : true
               |midolman.enable_bridge_arp : true
               |bridge.mac_port_mapping_expire : "${macTtl.toMillis}ms"
             """.stripMargin).withFallback(config))
@@ -76,7 +74,7 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
         // thread, when the device was notified in the mapper's behavior subject
         // previous to the subscription.
         new AwaitableObserver[SimulationBridge](
-            count, assert(vt.threadId == Thread.currentThread.getId ||
+            count, assert(vt.vtThreadId == Thread.currentThread.getId ||
                           threadId == Thread.currentThread.getId))
     }
 

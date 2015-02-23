@@ -34,12 +34,6 @@ Use this option to override the ZooKeeper path that MidoNet will use. Useful
 mainly for test environments.
 """
 
-    curator_enabled : false
-    curator_enabled_description : """ """
-
-    cluster_storage_enabled : false
-    cluster_storage_enabled_description : """ """
-
     max_retries : 10
     max_retries_description : """ """
 

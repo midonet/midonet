@@ -109,8 +109,6 @@ object MidoNodeConfigurator {
             |    session_gracetime : ${zookeeper.session_timeout}
             |    root_key : "/midonet/v1"
             |    midolman_root_key = ${zookeeper.root_key}
-            |    curator_enabled : false
-            |    cluster_storage_enabled : false
             |    max_retries : 10
             |    base_retry : 1s
             |    use_new_stack : false

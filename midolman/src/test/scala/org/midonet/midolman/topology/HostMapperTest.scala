@@ -43,18 +43,13 @@ class HostMapperTest extends MidolmanSpec
     private var store: StorageWithOwnership = _
     private final val timeout = 5 seconds
 
-    protected override def fillConfig(config: Config) = {
-        super.fillConfig(config).withValue("zookeeper.use_new_stack",
-                                           ConfigValueFactory.fromAnyRef(true))
-    }
-
     protected override def beforeTest() = {
         vt = injector.getInstance(classOf[VirtualTopology])
         store = injector.getInstance(classOf[MidonetBackend]).ownershipStore
     }
 
     private def assertThread(): Unit = {
-        assert(vt.threadId == Thread.currentThread.getId)
+        assert(vt.vtThreadId == Thread.currentThread.getId)
     }
 
     feature("A host should come with its tunnel zones membership") {

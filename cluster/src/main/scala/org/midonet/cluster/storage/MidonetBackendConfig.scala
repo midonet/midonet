@@ -29,8 +29,6 @@ class MidonetBackendConfig(val conf: Config) {
     def sessionTimeout = conf.getDuration("zookeeper.session_timeout", TimeUnit.MILLISECONDS).toInt
     def graceTime = conf.getDuration("zookeeper.session_gracetime", TimeUnit.MILLISECONDS).toInt
     def rootKey = conf.getString("zookeeper.root_key")
-    def curatorEnabled = conf.getBoolean("zookeeper.curator_enabled")
-    def clusterStorageEnabled = conf.getBoolean("zookeeper.cluster_storage_enabled")
     def maxRetries = conf.getInt("zookeeper.max_retries")
     def retryMs = conf.getDuration("zookeeper.base_retry", TimeUnit.MILLISECONDS)
     def useNewStack = conf.getBoolean("zookeeper.use_new_stack")
