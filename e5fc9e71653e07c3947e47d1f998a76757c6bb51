@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_90e28eff",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BridgeMapper.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 343,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-23T14:50:26Z",
+      "side": 1,
+      "message": "Shouldn\u0027t this appear last to make sure that we are subscribed to ports observable by the time the bridge starts subscribing to ports?",
+      "range": {
+        "startLine": 340,
+        "startChar": 8,
+        "endLine": 343,
+        "endChar": 55
+      },
+      "revId": "e5fc9e71653e07c3947e47d1f998a76757c6bb51",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
