@@ -18,6 +18,7 @@ package org.midonet.brain.services.topology
 
 
 import com.google.inject.{AbstractModule, Guice}
+import org.midonet.cluster.config.ZookeeperConfig
 import org.slf4j.LoggerFactory
 
 import org.midonet.brain.{ClusterNodeConfig, ClusterNode}
@@ -41,6 +42,10 @@ object TopologyApiServiceApp extends App {
 
     private val topologyApiServiceModule = new AbstractModule {
         override def configure(): Unit = {
+            // TODO: required for legacy modules, remove asap
+            val zkConfig = cfgProvider.getConfig(classOf[ZookeeperConfig])
+            bind(classOf[ZookeeperConfig]).toInstance(zkConfig)
+
             bind(classOf[TopologyApiServiceConfig]).toInstance(apiCfg)
             bind(classOf[ClusterNode.Context]).toInstance(nodeContext)
             bind(classOf[Storage]).toProvider(classOf[ZoomProvider])
