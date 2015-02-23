@@ -65,7 +65,7 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
     }
 
     private def assertThread(): Unit = {
-        assert(vt.threadId == Thread.currentThread.getId)
+        assert(vt.vtThreadId == Thread.currentThread.getId)
     }
 
     private def subscribeToChain(count: Int, chainId: UUID) = {

@@ -40,5 +40,5 @@ class IPAddrGroupMapper(addrGroupId: UUID, vt: VirtualTopology) extends
     protected override lazy val observable =
         vt.store.observable(classOf[TopologyIPAddrGroup], addrGroupId)
             .map[SimIPAddrGroup](makeFunc1(toSimIPAddrGroup))
-            .observeOn(vt.scheduler)
+            .observeOn(vt.vtScheduler)
 }

@@ -46,7 +46,7 @@ object LoadBalancerMapper {
         /** The vip observable, notifications on the VT thread. */
         val observable = vt.store.observable(classOf[TopologyVIP], vipId)
             .map[SimVip](makeFunc1(ZoomConvert.fromProto(_, classOf[SimVip])))
-            .observeOn(vt.scheduler)
+            .observeOn(vt.vtScheduler)
             .doOnNext(makeAction1(currentVip = _))
             .takeUntil(mark)
 
@@ -122,7 +122,7 @@ final class LoadBalancerMapper(lbId: UUID, vt: VirtualTopology)
 
     private lazy val loadBalancerObservable =
         vt.store.observable[TopologyLB](classOf[TopologyLB], lbId)
-            .observeOn(vt.scheduler)
+            .observeOn(vt.vtScheduler)
             .doOnCompleted(makeAction0(loadBalancerDeleted()))
 
     // The output device observable for the load-balancer mapper:

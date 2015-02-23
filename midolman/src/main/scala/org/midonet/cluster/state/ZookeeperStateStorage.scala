@@ -22,6 +22,8 @@ import javax.annotation.Nonnull
 import com.google.inject.Inject
 import com.google.inject.name.Named
 
+import org.apache.zookeeper.CreateMode.EPHEMERAL
+
 import rx.Observable
 import rx.subjects.PublishSubject
 
@@ -30,10 +32,11 @@ import org.midonet.cluster.models.Topology.Port
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.storage.MidonetBackendConfig
 import org.midonet.cluster.{ClusterRouterManager, DataClient}
+import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.logging.MidolmanLogging
-import org.midonet.midolman.serialization.SerializationException
+import org.midonet.midolman.serialization.{SerializationException, Serializer}
 import org.midonet.midolman.simulation.Bridge.UntaggedVlanId
-import org.midonet.midolman.state.zkManagers.PortZkManager
+import org.midonet.midolman.state.zkManagers.{PortZkManager, RouterZkManager}
 import org.midonet.midolman.state.{PortConfig, PortDirectory, StateAccessException, _}
 import org.midonet.util.eventloop.Reactor
 import org.midonet.util.functors.makeRunnable
@@ -48,11 +51,42 @@ class ZookeeperStateStorage @Inject() (backendCfg: MidonetBackendConfig,
                                        @Named("directoryReactor") reactor: Reactor,
                                        connectionWatcher: ZkConnectionAwareWatcher,
                                        // Legacy
+                                       serializer: Serializer,
                                        zkManager: ZkManager,
                                        portZkManager: PortZkManager,
+                                       routerZkManager: RouterZkManager,
                                        routerManager: ClusterRouterManager,
                                        pathBuilder: PathBuilder)
-    extends StateStorage with MidolmanLogging {
+        extends StateStorage with MidolmanLogging {
+
+    /**
+     * An implementation of a route replicated set.
+     */
+    @throws[StateAccessException]
+    private class ReplicatedRouteTable(routerId: UUID)
+        extends ReplicatedSet[Route](
+            routerZkManager.getRoutingTableDirectory(routerId), EPHEMERAL) {
+
+        protected override def encode(route: Route): String = {
+            try {
+                new String(serializer.serialize(route))
+            } catch {
+                case e: Throwable =>
+                    log.error("Could not serialize route {}", route, e)
+                    null
+            }
+        }
+
+        protected override def decode(str: String): Route = {
+            try {
+                serializer.deserialize(str.getBytes, classOf[Route])
+            } catch {
+                case e: Throwable =>
+                    log.error("Could not deserialize route {}", str, e)
+                    null
+            }
+        }
+    }
 
     private val subjectLocalPortActive = PublishSubject.create[LocalPortActive]
 
@@ -61,8 +95,8 @@ class ZookeeperStateStorage @Inject() (backendCfg: MidonetBackendConfig,
     @throws[StateAccessException]
     override def bridgeMacTable(@Nonnull bridgeId: UUID, vlanId: Short,
                                 ephemeral: Boolean): MacPortMap = {
-        ensureBridge(bridgeId)
-        ensureBridgeVlan(bridgeId, vlanId)
+        ensureBridgePaths(bridgeId)
+        ensureBridgeVlanPaths(bridgeId, vlanId)
         val map = dataClient.bridgeGetMacTable(bridgeId, vlanId, ephemeral)
         map.setConnectionWatcher(connectionWatcher)
         map
@@ -70,10 +104,28 @@ class ZookeeperStateStorage @Inject() (backendCfg: MidonetBackendConfig,
 
     @throws[StateAccessException]
     override def bridgeIp4MacMap(@Nonnull bridgeId: UUID): Ip4ToMacReplicatedMap = {
-        ensureBridge(bridgeId)
+        ensureBridgePaths(bridgeId)
         val map = dataClient.getIp4MacMap(bridgeId)
         map.setConnectionWatcher(connectionWatcher)
         map
+    }
+
+    @throws[StateAccessException]
+    override def routerRoutingTable(@Nonnull routerId: UUID)
+    : ReplicatedSet[Route] = {
+        ensureRouterPaths(routerId)
+        val routingTable = new ReplicatedRouteTable(routerId)
+        routingTable.setConnectionWatcher(connectionWatcher)
+        routingTable
+    }
+
+    @throws[StateAccessException]
+    override def routerArpTable(@Nonnull routerId: UUID): ArpTable = {
+        ensureRouterPaths(routerId)
+        val arpTable = new ArpTable(routerZkManager
+                                        .getArpTableDirectory(routerId))
+        arpTable.setConnectionWatcher(connectionWatcher)
+        arpTable
     }
 
     override def setPortLocalAndActive(portId: UUID, hostId: UUID,
@@ -119,14 +171,15 @@ class ZookeeperStateStorage @Inject() (backendCfg: MidonetBackendConfig,
         subjectLocalPortActive.onNext(LocalPortActive(portId, active))
     }
 
-    override def observableLocalPortActive: Observable[LocalPortActive] =
+    override def localPortActiveObservable: Observable[LocalPortActive] =
         subjectLocalPortActive.asObservable
 
     private def runOnReactor(fn: => Unit) = reactor.submit(makeRunnable(fn))
 
     /** Ensures that the path for the specified bridge is created in the
       * legacy storage. */
-    private def ensureBridge(bridgeId: UUID) = {
+    @throws[StateAccessException]
+    private def ensureBridgePaths(bridgeId: UUID) = {
         // Create path.
         val bridgePath = pathBuilder.getBridgePath(bridgeId)
         val bridgeMacPortsPath =
@@ -140,7 +193,10 @@ class ZookeeperStateStorage @Inject() (backendCfg: MidonetBackendConfig,
         createPath(bridgeVlansPath)
     }
 
-    private def ensureBridgeVlan(bridgeId: UUID, vlanId: Short): Unit = {
+    /** Ensures that the path for the specified bridge and VLAN is created in
+      * the legacy storage. */
+    @throws[StateAccessException]
+    private def ensureBridgeVlanPaths(bridgeId: UUID, vlanId: Short): Unit = {
         // Create the VLAN if different from the default VLAN.
         if (vlanId != UntaggedVlanId) {
 
@@ -153,6 +209,22 @@ class ZookeeperStateStorage @Inject() (backendCfg: MidonetBackendConfig,
             createPath(bridgeVlanPath)
             createPath(bridgeVlanMacPortsPath)
         }
+    }
+
+    /** Ensures that the path for the specified router is created in the legacy
+      * storage. */
+    @throws[StateAccessException]
+    private def ensureRouterPaths(routerId: UUID): Unit = {
+        // Create path.
+        val routerPath = pathBuilder.getRouterPath(routerId)
+        val routerArpTablePath = pathBuilder.getRouterArpTablePath(routerId)
+        val routerRoutingTablePath = pathBuilder.getRouterRoutingTablePath(routerId)
+
+        // Create the router path if it does not exist.
+        log.info("Creating router {} path in state storage.", routerId)
+        createPath(routerPath)
+        createPath(routerArpTablePath)
+        createPath(routerRoutingTablePath)
     }
 
     /** Creates a path with no data in the legacy storage */
