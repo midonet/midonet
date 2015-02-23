@@ -15,10 +15,16 @@
  */
 package org.midonet.api.filter;
 
+import java.util.UUID;
+import javax.validation.constraints.NotNull;
+
 /**
  * Trace rule DTO
  */
 public class TraceRule extends Rule {
+
+    @NotNull
+    private UUID requestId;
 
     public TraceRule() {
         super();
@@ -26,6 +32,11 @@ public class TraceRule extends Rule {
 
     public TraceRule(org.midonet.cluster.data.rules.TraceRule rule) {
         super(rule);
+        this.requestId = rule.getRequestId();
+    }
+
+    public UUID getRequestId() {
+        return this.requestId;
     }
 
     @Override
@@ -36,7 +47,8 @@ public class TraceRule extends Rule {
     @Override
     public org.midonet.cluster.data.rules.TraceRule toData () {
         org.midonet.cluster.data.rules.TraceRule data
-            = new org.midonet.cluster.data.rules.TraceRule(makeCondition());
+            = new org.midonet.cluster.data.rules.TraceRule(requestId,
+                                                           makeCondition());
         super.setData(data);
         return data;
     }

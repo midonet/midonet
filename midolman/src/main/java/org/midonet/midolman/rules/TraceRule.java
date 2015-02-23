@@ -30,9 +30,12 @@ public class TraceRule extends Rule {
     private final static Logger log =
         LoggerFactory.getLogger(TraceRule.class);
 
-    public TraceRule(Condition condition) {
+    private UUID requestId;
+
+    public TraceRule(UUID requestId, Condition condition) {
         // never actually sets the result action
         super(condition, Action.CONTINUE);
+        this.requestId = requestId;
     }
 
     // Default constructor for the Jackson deserialization.
@@ -41,14 +44,20 @@ public class TraceRule extends Rule {
         super();
     }
 
-    public TraceRule(Condition condition, UUID chainId,
+    public TraceRule(UUID requestId, Condition condition, UUID chainId,
                      int position) {
         super(condition, Action.CONTINUE, chainId, position);
+        this.requestId = requestId;
+    }
+
+    public UUID getRequestId() {
+        return requestId;
     }
 
     @Override
     public void apply(PacketContext pktCtx, RuleResult res, UUID ownerId) {
-        if (!pktCtx.tracingEnabled()) {
+        if (!pktCtx.tracingEnabled(requestId)) {
+            pktCtx.enableTracing(requestId);
             throw TraceRequiredException.instance();
         }
         // else do nothing, tracing has already been enabled for the packet
@@ -56,7 +65,7 @@ public class TraceRule extends Rule {
 
     @Override
     public int hashCode() {
-        return 11 * super.hashCode() + "TraceRule".hashCode();
+        return 11 * super.hashCode() + requestId.hashCode();
     }
 
     @Override
@@ -65,13 +74,15 @@ public class TraceRule extends Rule {
             return true;
         if (!(other instanceof TraceRule))
             return false;
-        return super.equals(other);
+        return super.equals(other)
+            && this.requestId == ((TraceRule)other).requestId;
     }
 
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder("TraceRule [");
         sb.append(super.toString());
+        sb.append(", requestId=").append(requestId);
         sb.append("]");
         return sb.toString();
     }
