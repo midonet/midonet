@@ -29,3 +29,4 @@ sleep 10
 (cd midolman && bash -x start)
 
 (cd midonet-api && bash -x start)
+(cd vtep && bash -x start)

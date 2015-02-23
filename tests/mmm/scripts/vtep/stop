@@ -1,4 +1,4 @@
-#! /bin/bash
+#!/bin/bash -x
 
 # Copyright 2014 Midokura SARL
 #
@@ -14,16 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-. mmmrc
+sudo docker ps | egrep "mdts.vtep-emulator" | awk '{print $1}' | xargs docker rm -f > /dev/null 2>&1
 
-(cd midonet-api && bash stop)
-(cd midolman && bash stop)
-(cd dnsmasq && bash stop)
-(cd quagga && bash stop)
-
-(cd cassandra && bash stop)
-(cd zookeeper && bash stop)
-
-(cd scratch && bash stop)
-(cd netns && bash stop)
-(cd vtep && bash stop)
+exit 0
