@@ -51,7 +51,7 @@ class PortGroupsMapperTest extends MidolmanSpec with TopologyBuilder
     }
 
     private def assertThread(): Unit = {
-        assert(vt.threadId == Thread.currentThread.getId)
+        assert(vt.vtThreadId == Thread.currentThread.getId)
     }
 
     feature("The port groups mapper emits port group devices") {

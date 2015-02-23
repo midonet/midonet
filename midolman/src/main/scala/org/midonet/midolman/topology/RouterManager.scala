@@ -15,24 +15,27 @@
  */
 package org.midonet.midolman.topology
 
-import collection.{Set => ROSet, mutable, Iterable}
-import collection.JavaConversions._
 import java.util.UUID
 
+import scala.collection.JavaConversions._
+import scala.collection.{Set => ROSet, mutable}
+
 import org.midonet.cluster.Client
-import org.midonet.cluster.client.ArpCache
-import org.midonet.midolman.topology.VirtualTopologyActor.InvalidateFlowsByTag
 import org.midonet.midolman.config.MidolmanConfig
-import org.midonet.midolman.layer3.{RoutingTableIfc, InvalidationTrie, Route}
+import org.midonet.midolman.layer3.{InvalidationTrie, Route, RoutingTableIfc}
+import org.midonet.midolman.simulation.Router.{Config, RoutingTable, TagManager}
 import org.midonet.midolman.simulation.{ArpTable, ArpTableImpl, Router}
+import org.midonet.midolman.state.ArpCache
 import org.midonet.midolman.topology.RouterManager._
+import org.midonet.midolman.topology.VirtualTopologyActor.InvalidateFlowsByTag
 import org.midonet.midolman.topology.builders.RouterBuilderImpl
 import org.midonet.odp.FlowMatch
 import org.midonet.packets.{IPAddr, IPv4Addr, MAC}
 import org.midonet.sdn.flows.FlowTagger
 import org.midonet.util.functors.Callback0
 
-class RoutingTableWrapper[IP <: IPAddr](val rTable: RoutingTableIfc[IP]) {
+class RoutingTableWrapper[IP <: IPAddr](val rTable: RoutingTableIfc[IP])
+    extends RoutingTable {
 
     import collection.JavaConversions._
 
@@ -46,7 +49,7 @@ class RoutingTableWrapper[IP <: IPAddr](val rTable: RoutingTableIfc[IP]) {
 object RouterManager {
     val Name = "RouterManager"
 
-    case class TriggerUpdate(cfg: RouterConfig, arpCache: ArpCache,
+    case class TriggerUpdate(cfg: Router.Config, arpCache: ArpCache,
                              rTable: RoutingTableWrapper[IPv4Addr])
 
     case class InvalidateFlows(addedRoutes: ROSet[Route],
@@ -61,20 +64,6 @@ object RouterManager {
 
 }
 
-case class RouterConfig(adminStateUp: Boolean = true,
-                        inboundFilter: UUID = null,
-                        outboundFilter: UUID = null,
-                        loadBalancer: UUID = null)
-
-/**
- * Provided to the Router for operations on Tags.
- */
-trait TagManager {
-    def addTag(dstIp: IPAddr)
-
-    def getFlowRemovalCallback(dstIp: IPAddr): Callback0
-}
-
 /**
  * TODO (galo, ipv6) this class is still heavily dependant on IPv4. There are
  * two points to tackle:
@@ -87,12 +76,11 @@ trait TagManager {
  */
 class RouterManager(id: UUID, val client: Client, val config: MidolmanConfig)
         extends DeviceWithChains {
-    import context.system
-    import context.dispatcher
+    import context.{dispatcher, system}
 
     override def logSource = s"org.midonet.devices.router.router-$id"
 
-    protected var cfg: RouterConfig = null
+    protected var cfg: Config = null
     private var changed = false
     private var rTable: RoutingTableWrapper[IPv4Addr] = null
     private var arpCache: ArpCache = null
