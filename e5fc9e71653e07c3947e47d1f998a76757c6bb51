@@ -22,6 +22,30 @@
       "revId": "e5fc9e71653e07c3947e47d1f998a76757c6bb51",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_30647a21",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BridgeMapper.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 343,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-23T15:19:37Z",
+      "side": 1,
+      "message": "I didn\u0027t upload the last version of the patch, I\u0027m waiting to merge the zoom patch, so I can complete the unit tests.",
+      "parentUuid": "7a1969be_90e28eff",
+      "range": {
+        "startLine": 340,
+        "startChar": 8,
+        "endLine": 343,
+        "endChar": 55
+      },
+      "revId": "e5fc9e71653e07c3947e47d1f998a76757c6bb51",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
