@@ -36,7 +36,6 @@ import org.apache.zookeeper.KeeperException;
 import org.junit.Before;
 import org.junit.Test;
 
-import org.midonet.cluster.client.ArpCache;
 import org.midonet.cluster.client.BridgeBuilder;
 import org.midonet.cluster.client.IpMacMap;
 import org.midonet.cluster.client.MacLearningTable;
@@ -51,6 +50,7 @@ import org.midonet.midolman.cluster.zookeeper.MockZookeeperConnectionModule;
 import org.midonet.midolman.guice.config.MidolmanConfigModule;
 import org.midonet.midolman.layer3.Route;
 import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.midolman.state.ArpCache;
 import org.midonet.midolman.state.ArpCacheEntry;
 import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.StateAccessException;
