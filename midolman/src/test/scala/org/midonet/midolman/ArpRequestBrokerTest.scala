@@ -15,7 +15,8 @@
  */
 package org.midonet.midolman
 
-import java.util.{UUID, ArrayDeque}
+import java.util.{ArrayDeque, UUID}
+
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Success
 
@@ -24,27 +25,26 @@ import org.apache.curator.test.TestingServer
 import org.apache.zookeeper.CreateMode
 import org.junit.runner.RunWith
 import org.scalatest._
-import org.scalatest.junit.JUnitRunner
 import org.scalatest.concurrent.Eventually._
+import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.ClusterRouterManager.ArpCacheImpl
-import org.midonet.cluster.client.ArpCache
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.flows.InvalidationSource
-import org.midonet.midolman.simulation._
 import org.midonet.midolman.simulation.PacketEmitter.GeneratedPacket
-import org.midonet.midolman.state._
+import org.midonet.midolman.simulation._
 import org.midonet.midolman.state.ArpRequestBroker._
+import org.midonet.midolman.state._
 import org.midonet.midolman.topology.devices.RouterPort
-import org.midonet.odp.{Packet, FlowMatch}
-import org.midonet.packets._
-import org.midonet.packets.util.PacketBuilder
 import org.midonet.midolman.util.ArpCacheHelper
 import org.midonet.odp.flows.FlowKeys
+import org.midonet.odp.{FlowMatch, Packet}
+import org.midonet.packets._
+import org.midonet.packets.util.PacketBuilder
 import org.midonet.sdn.flows.FlowTagger
 import org.midonet.sdn.flows.FlowTagger.FlowTag
-import org.midonet.util.eventloop.{TryCatchReactor, Reactor}
 import org.midonet.util.UnixClock
+import org.midonet.util.eventloop.{Reactor, TryCatchReactor}
 
 @RunWith(classOf[JUnitRunner])
 class ArpRequestBrokerTest extends Suite

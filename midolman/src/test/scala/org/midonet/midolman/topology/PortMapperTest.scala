@@ -47,7 +47,7 @@ class PortMapperTest extends MidolmanSpec with TopologyBuilder
     }
 
     private def assertThread(): Unit = {
-        assert(vt.threadId == Thread.currentThread.getId)
+        assert(vt.vtThreadId == Thread.currentThread.getId)
     }
 
     private def makeObservable() = new TestObserver[SimPort]
