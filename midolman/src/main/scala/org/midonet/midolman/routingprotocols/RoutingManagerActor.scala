@@ -87,7 +87,7 @@ class RoutingManagerActor extends ReactiveActor[LocalPortActive]
     override def preStart() {
         super.preStart()
         if (config.getMidolmanBGPEnabled) {
-            stateStorage.observableLocalPortActive.subscribe(this)
+            stateStorage.localPortActiveObservable.subscribe(this)
             bgpPortIdx = config.getMidolmanBGPPortStartIndex
         }
     }

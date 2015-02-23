@@ -36,7 +36,11 @@ class VIP (val id: UUID, val adminStateUp: Boolean, val poolId: UUID,
         val pktMatch = pktContext.wcmatch
 
         adminStateUp && pktMatch.getNetworkSrcIP == address &&
-                pktMatch.getSrcPort.toInt == protocolPort &&
+                pktMatch.getSrcPort == protocolPort &&
                 pktMatch.getNetworkProto == TCP.PROTOCOL_NUMBER
     }
+
+    override def toString =
+        s"VIP [id=$id adminStateUp=$adminStateUp poolId=$poolId " +
+        s"address=$address port=$protocolPort isStickySource=$isStickySourceIP]"
 }
