@@ -18,6 +18,7 @@ package org.midonet.cluster.client;
 import java.util.UUID;
 
 import org.midonet.midolman.layer3.Route;
+import org.midonet.midolman.state.ArpCache;
 
 public interface RouterBuilder extends DeviceBuilder<RouterBuilder> {
     void setArpCache(ArpCache table);
