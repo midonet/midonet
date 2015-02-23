@@ -77,7 +77,7 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
         // thread, when the device was notified in the mapper's behavior subject
         // previous to the subscription.
         new AwaitableObserver[SimulationBridge](
-            count, assert(vt.threadId == Thread.currentThread.getId ||
+            count, assert(vt.vtThreadId == Thread.currentThread.getId ||
                           threadId == Thread.currentThread.getId))
     }
 
