@@ -43,18 +43,26 @@ object ChainMapper {
      * @param vt The virtual topology object.
      */
     private final class RuleState(ruleId: UUID, vt: VirtualTopology) {
-        private def ruleUpdated(rule: TopologyRule): SimRule = {
-            previousRule = currentRule
-            currentRule = ZoomConvert.fromProto(rule, classOf[SimRule])
-            currentRule
-        }
 
+        private val mark = PublishSubject.create[SimRule]()
         private var previousRule: SimRule = null
+        private var currentRule: SimRule = null
+
+        /** The observable emitting Rule updates. */
+        val observable = vt.store.observable(classOf[TopologyRule],ruleId)
+            .observeOn(vt.vtScheduler)
+            .takeUntil(mark)
+            .map[SimRule](makeFunc1(ruleUpdated))
+
         /** Returns the previously obtained rule. */
         def prevRule = previousRule
-        private var currentRule: SimRule = null
         /** Returns the last obtained rule. */
         def curRule = currentRule
+        /**
+         * Completes the rule observable. This is called when the chain does
+         * not reference this rule anymore.
+         */
+        def complete() = mark.onCompleted()
         /**
          * Returns true iff the rule is ready to be consumed.
          * When a rule is removed from a chain, its chain id field is cleared.
@@ -62,18 +70,12 @@ object ChainMapper {
          * rule.
          */
         def isReady = (currentRule ne null) && (currentRule.chainId ne null)
-        private val mark = PublishSubject.create[SimRule]()
-        /** The observable emitting Rule updates. */
-        val observable = vt.store.observable(classOf[TopologyRule],ruleId)
-            .observeOn(vt.scheduler)
-            .takeUntil(mark)
-            .map[SimRule](makeFunc1(ruleUpdated))
 
-        /**
-         * Completes the rule observable. This is called when the chain does
-         * not reference this rule anymore.
-         */
-        def complete() = mark.onCompleted()
+        private def ruleUpdated(rule: TopologyRule): SimRule = {
+            previousRule = currentRule
+            currentRule = ZoomConvert.fromProto(rule, classOf[SimRule])
+            currentRule
+        }
     }
 
     /**
@@ -307,7 +309,7 @@ final class ChainMapper(chainId: UUID, vt: VirtualTopology)
 
     private lazy val chainObservable =
         vt.store.observable(classOf[TopologyChain], chainId)
-            .observeOn(vt.scheduler)
+            .observeOn(vt.vtScheduler)
             .map[TopologyChain](makeFunc1(chainUpdated))
             .doOnCompleted(makeAction0(chainDeleted()))
 

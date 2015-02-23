@@ -24,7 +24,6 @@ import java.util.Stack;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.midonet.packets.IPAddr;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IPv4Subnet;
 
@@ -33,15 +32,20 @@ public class InvalidationTrie extends RoutesTrie {
     private final static Logger log = LoggerFactory.getLogger(
         InvalidationTrie.class);
 
-     // TODO(ross) if in the routing table there's a route that is a child of the
-     // route corresponding to the node we pass, we shouldn't invalidate the ip
-     // destination that are below this more specific route.
+    /**
+     * Returns all destination IP addresses that share the same prefix of the
+     * given invalidation trie node.
+     *
+     * TODO(ross) If in the routing table there's a route that is a child of the
+     * route corresponding to the node we pass, we shouldn't invalidate the
+     * destination IPs that are below this more specific route.
+     */
     public static Iterable<IPv4Addr>
         getAllDescendantsIpDestination(RoutesTrie.TrieNode node){
         if (node == null)
             return Collections.emptyList();
-        List<IPv4Addr> destIps = new ArrayList<IPv4Addr>();
-        Stack<TrieNode> stack = new Stack<TrieNode>();
+        List<IPv4Addr> destIps = new ArrayList<>();
+        Stack<TrieNode> stack = new Stack<>();
         stack.add(node);
         while(!stack.empty()){
             TrieNode n = stack.pop();
@@ -56,14 +60,21 @@ public class InvalidationTrie extends RoutesTrie {
         return destIps;
     }
 
+    /**
+     * Returns the invalidation trie node that corresponds to the destination
+     * network (address and prefix) of a given route. This node can be used
+     * with the getAllDescendantsIpDestination() method to determine all
+     * destination IP addresses that share the same prefix represented by this
+     * node, and should be invalidated when the route has changed.
+     */
     public RoutesTrie.TrieNode projectRouteAndGetSubTree(Route rt) {
 
         boolean inLeftChild;
         RoutesTrie.TrieNode node = dstPrefixTrie;
-        int rt_dst = rt.dstNetworkAddr;
+        int rtDst = rt.dstNetworkAddr;
         log.debug("Root {}, # roots {}", dstPrefixTrie, numRoutes);
         while (null != node && rt.dstNetworkLength >= node.bitlen
-            && IPv4Subnet.addrMatch(rt_dst, node.addr, node.bitlen)) {
+            && IPv4Subnet.addrMatch(rtDst, node.addr, node.bitlen)) {
             log.debug("traversing {}", node);
             // The addresses match, descend to the children.
             if (rt.dstNetworkLength == node.bitlen) {
@@ -73,7 +84,7 @@ public class InvalidationTrie extends RoutesTrie {
                 return node;
             }
             // Use bit at position bitlen to decide on left or right branch.
-            inLeftChild = 0 == (rt_dst & (0x80000000 >>> node.bitlen));
+            inLeftChild = 0 == (rtDst & (0x80000000 >>> node.bitlen));
             node = (inLeftChild) ? node.left : node.right;
         }
 
@@ -86,7 +97,7 @@ public class InvalidationTrie extends RoutesTrie {
 
             For case 1 the subtree empty. For case 2 the subtree is the tree
             whose root is node.  */
-            int diffBit = findMSB(node.addr ^ rt_dst);
+            int diffBit = findMSB(node.addr ^ rtDst);
             // Case 1
             /*if (diffBit < node.bitlen && diffBit < rt.dstNetworkLength) { // Case 1
                 return null;
@@ -97,7 +108,7 @@ public class InvalidationTrie extends RoutesTrie {
             }
 
         }
-        // the trie is emptu or subtree is empty
+        // The trie is empty or subtree is empty
         return null;
     }
 
