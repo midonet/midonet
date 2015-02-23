@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_3a545e20",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/SessionInventory.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 387,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-23T09:21:08Z",
+      "side": 1,
+      "message": "Ok",
+      "parentUuid": "7a1969be_c913ca0b",
+      "range": {
+        "startLine": 387,
+        "startChar": 55,
+        "endLine": 387,
+        "endChar": 56
+      },
+      "revId": "c10684adb4f1c885ec1337a7a7f27643d3663e38",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_690456c0",
         "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/services/topology/server/SessionInventoryTest.scala",
         "patchSetId": 2
@@ -36,6 +60,30 @@
       "writtenOn": "2015-02-20T16:21:05Z",
       "side": 1,
       "message": "I don\u0027t understand why you lowered that to 3. The delete operation also results in a notification...",
+      "range": {
+        "startLine": 496,
+        "startChar": 60,
+        "endLine": 496,
+        "endChar": 61
+      },
+      "revId": "c10684adb4f1c885ec1337a7a7f27643d3663e38",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_5a595a59",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/services/topology/server/SessionInventoryTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 496,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-23T09:21:08Z",
+      "side": 1,
+      "message": "Because the second update and the delete occur after the session has been terminated, so no events should be reported for them. There should be 2 events corresponding to the initial update after subscription (create), the udate before termination, and an additional event corresponding to the completion of the update observable on terminate.",
+      "parentUuid": "7a1969be_690456c0",
       "range": {
         "startLine": 496,
         "startChar": 60,
