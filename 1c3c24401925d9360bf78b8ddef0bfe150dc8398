@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_8259a400",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/SessionInventory.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-23T12:43:20Z",
+      "side": 1,
+      "message": "Import order.",
+      "range": {
+        "startLine": 26,
+        "startChar": 0,
+        "endLine": 51,
+        "endChar": 80
+      },
+      "revId": "1c3c24401925d9360bf78b8ddef0bfe150dc8398",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_e25058d6",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/services/topology/server/ServerFrontEndTest.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-23T12:43:20Z",
+      "side": 1,
+      "message": "If you import scala.concurrent.duration._, you could write\n\n  val WaitTime \u003d 10 seconds",
+      "range": {
+        "startLine": 53,
+        "startChar": 20,
+        "endLine": 53,
+        "endChar": 65
+      },
+      "revId": "1c3c24401925d9360bf78b8ddef0bfe150dc8398",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_025654d2",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/services/topology/server/ServerFrontEndTest.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-23T12:43:20Z",
+      "side": 1,
+      "message": "Scala constants should be written in upper camel case:\n\n  http://docs.scala-lang.org/style/naming-conventions.html#constants-values-variable-and-methods",
+      "range": {
+        "startLine": 53,
+        "startChar": 8,
+        "endLine": 53,
+        "endChar": 17
+      },
+      "revId": "1c3c24401925d9360bf78b8ddef0bfe150dc8398",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_22d43046",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/services/topology/server/SessionInventoryTest.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 507,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-23T12:43:20Z",
+      "side": 1,
+      "message": "Minor comment for future usage: the await method takes a second optional argument that resets the counter:\n\n  collector.await(WAIT_TIME, 1)",
+      "range": {
+        "startLine": 506,
+        "startChar": 12,
+        "endLine": 507,
+        "endChar": 30
+      },
+      "revId": "1c3c24401925d9360bf78b8ddef0bfe150dc8398",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
