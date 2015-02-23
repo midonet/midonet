@@ -65,7 +65,7 @@ class DeviceWithChainsMapperTest extends MidolmanSpec with TopologyBuilder
 
         @volatile private var device: TestableDevice = null
         private lazy val deviceObservable = obs
-            .observeOn(vt.scheduler)
+            .observeOn(vt.vtScheduler)
             .doOnCompleted(makeAction0(deviceDeleted()))
             .doOnNext(makeAction1(deviceUpdated))
         protected lazy val observable = Observable

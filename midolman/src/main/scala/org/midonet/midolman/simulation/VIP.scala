@@ -65,7 +65,7 @@ class VIP extends ZoomObject {
 
     override def toString =
         s"VIP [id=$id adminStateUp=$adminStateUp poolId=$poolId " +
-        s"address=$address protocolPort=$protocolPort " +
+        s"address=$address port=$protocolPort " +
         s"isStickySourceIp=$isStickySourceIP]"
 
     def matches(pktContext: PacketContext) = {
