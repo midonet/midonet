@@ -28,6 +28,7 @@ import org.midonet.midolman.rules.NatTarget
 import org.midonet.midolman.simulation.PacketContext
 import org.midonet.midolman.state.ConnTrackState._
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
+import org.midonet.midolman.state.TraceState.{TraceKey, TraceContext}
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.odp.flows.FlowKeys
 import org.midonet.odp.{FlowMatch, Packet}
@@ -57,7 +58,8 @@ class NatStateTest extends MidolmanSpec {
         val ctx = new PacketContext(1, new Packet(eth, fmatch), fmatch)
         ctx.initialize(new FlowStateTransaction[ConnTrackKey, ConnTrackValue](null),
                        natTx,
-                       HappyGoLuckyLeaser)
+                       HappyGoLuckyLeaser,
+                       new FlowStateTransaction[TraceKey, TraceContext](null))
         ctx
     }
 

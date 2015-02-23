@@ -44,6 +44,7 @@ import org.midonet.midolman.simulation.{Coordinator, PacketContext, PacketEmitte
 import org.midonet.midolman.state.ConnTrackState._
 import org.midonet.midolman.state.{FlowStateReplicator, HappyGoLuckyLeaser}
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
+import org.midonet.midolman.state.TraceState.{TraceKey, TraceContext}
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.topology.VirtualTopologyActor.{BridgeRequest, ChainRequest, IPAddrGroupRequest, PortRequest, RouterRequest}
 import org.midonet.odp.flows.{FlowAction, FlowActionOutput, FlowKeys}
@@ -90,18 +91,20 @@ trait VirtualTopologyHelper {
 
     val NO_CONNTRACK = new FlowStateTransaction[ConnTrackKey, ConnTrackValue](null)
     val NO_NAT = new FlowStateTransaction[NatKey, NatBinding](null)
+    val NO_TRACE = new FlowStateTransaction[TraceKey, TraceContext](null)
 
     def packetContextFor(frame: Ethernet, inPort: UUID = null,
                          emitter: Queue[PacketEmitter.GeneratedPacket] = new LinkedList,
                          inPortNumber: Int = 0)
                         (implicit conntrackTx: FlowStateTransaction[ConnTrackKey, ConnTrackValue] = NO_CONNTRACK,
-                                  natTx: FlowStateTransaction[NatKey, NatBinding] = NO_NAT)
+                                  natTx: FlowStateTransaction[NatKey, NatBinding] = NO_NAT,
+                                  traceTx: FlowStateTransaction[TraceKey, TraceContext] = NO_TRACE)
     : PacketContext = {
         val fmatch = new FlowMatch(FlowKeys.fromEthernetPacket(frame))
         fmatch.setInputPortNumber(inPortNumber)
         val context = new PacketContext(-1, new Packet(frame, fmatch), fmatch)
         context.packetEmitter = new PacketEmitter(emitter, actorSystem.deadLetters)
-        context.initialize(conntrackTx, natTx, HappyGoLuckyLeaser)
+        context.initialize(conntrackTx, natTx, HappyGoLuckyLeaser, traceTx)
         context.prepareForSimulation(0)
         context.inputPort = inPort
         context.inPortId = inPort
@@ -132,9 +135,10 @@ trait VirtualTopologyHelper {
 
     def simulate(pktCtx: PacketContext)
                 (implicit conntrackTx: FlowStateTransaction[ConnTrackKey, ConnTrackValue] = NO_CONNTRACK,
-                          natTx: FlowStateTransaction[NatKey, NatBinding] = NO_NAT)
+                          natTx: FlowStateTransaction[NatKey, NatBinding] = NO_NAT,
+                          traceTx: FlowStateTransaction[TraceKey, TraceContext] = NO_TRACE)
     : (SimulationResult, PacketContext) = {
-        pktCtx.initialize(conntrackTx, natTx, HappyGoLuckyLeaser)
+        pktCtx.initialize(conntrackTx, natTx, HappyGoLuckyLeaser, traceTx)
         val r = force {
             flushTransactions(conntrackTx, natTx)
             pktCtx.clear()
@@ -236,7 +240,7 @@ trait VirtualTopologyHelper {
             override def createFlow(flow: Flow): Unit = { }
             override def start(datapath: Datapath): Unit = { }
             override def stop(): Unit = { }
-        }, new FlowStateReplicator(null, null, null, new UnderlayResolver {
+        }, new FlowStateReplicator(null, null, null, null, new UnderlayResolver {
             override def host: ResolvedHost = new ResolvedHost(UUID.randomUUID(), true, Map(), Map())
             override def peerTunnelInfo(peer: UUID): Option[UnderlayRoute] = None
             override def vtepTunnellingOutputAction: FlowActionOutput = null
@@ -247,6 +251,7 @@ trait VirtualTopologyHelper {
             override def accumulateNewKeys(
                           conntrackTx: FlowStateTransaction[ConnTrackKey, ConnTrackValue],
                           natTx: FlowStateTransaction[NatKey, NatBinding],
+                          traceTx: FlowStateTransaction[TraceKey, TraceContext],
                           ingressPort: UUID, egressPorts: List[UUID],
                           tags: JHashSet[FlowTag],
                           callbacks: ArrayList[Callback0]): Unit = { }

@@ -39,6 +39,7 @@ import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.simulation.PacketContext
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackValue, ConnTrackKey}
 import org.midonet.midolman.state.NatState.{NatKey, NatBinding}
+import org.midonet.midolman.state.TraceState.{TraceKey, TraceContext}
 import org.midonet.midolman.state.{HappyGoLuckyLeaser, MockFlowStateTable, FlowStateReplicator}
 import org.midonet.midolman.topology.rcu.ResolvedHost
 import org.midonet.midolman.util.mock.MockDatapathChannel
@@ -63,6 +64,7 @@ object PacketWorkflowTest {
 
     val conntrackTable = new MockFlowStateTable[ConnTrackKey, ConnTrackValue]()
     val natTable = new MockFlowStateTable[NatKey, NatBinding]()
+    val traceTable = new MockFlowStateTable[TraceKey, TraceContext]()
 
     var statePushed = false
 
@@ -81,9 +83,10 @@ object PacketWorkflowTest {
         pktCtx.callbackExecutor = CallbackExecutor.Immediate
         pktCtx.initialize(new FlowStateTransaction(conntrackTable),
                           new FlowStateTransaction(natTable),
-                          HappyGoLuckyLeaser)
+                          HappyGoLuckyLeaser,
+                          new FlowStateTransaction(traceTable))
 
-        val replicator = new FlowStateReplicator(null, null, null, new UnderlayResolver {
+        val replicator = new FlowStateReplicator(null, null, null, null, new UnderlayResolver {
             override def host: ResolvedHost = new ResolvedHost(UUID.randomUUID(), true, Map(), Map())
             override def peerTunnelInfo(peer: UUID): Option[Route] = ???
             override def vtepTunnellingOutputAction: FlowActionOutput = ???
@@ -97,6 +100,7 @@ object PacketWorkflowTest {
             override def accumulateNewKeys(
                           conntrackTx: FlowStateTransaction[ConnTrackKey, ConnTrackValue],
                           natTx: FlowStateTransaction[NatKey, NatBinding],
+                          traceTx: FlowStateTransaction[TraceKey, TraceContext],
                           ingressPort: UUID, egressPorts: JList[UUID],
                           tags: JHashSet[FlowTag],
                           callbacks: ArrayList[Callback0]): Unit = { }
