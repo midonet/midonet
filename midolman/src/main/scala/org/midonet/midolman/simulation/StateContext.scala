@@ -19,19 +19,25 @@ package org.midonet.midolman.simulation
 import org.midonet.midolman.state.{NatLeaser, FlowState, ConnTrackState, NatState}
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackValue, ConnTrackKey}
 import org.midonet.midolman.state.NatState.{NatKey, NatBinding}
+import org.midonet.midolman.state.TraceState
+import org.midonet.midolman.state.TraceState.{TraceKey, TraceContext}
 import org.midonet.sdn.state.FlowStateTransaction
 
 trait StateContext extends FlowState
                    with ConnTrackState
-                   with NatState { this: PacketContext =>
+                   with NatState
+                   with TraceState { this: PacketContext =>
 
     def initialize(conntrackTx: FlowStateTransaction[ConnTrackKey, ConnTrackValue],
                    natTx: FlowStateTransaction[NatKey, NatBinding],
-                   natLeaser: NatLeaser) {
+                   natLeaser: NatLeaser,
+                   traceTx: FlowStateTransaction[TraceKey, TraceContext]) {
         this.conntrackTx = conntrackTx
         this.natTx = natTx
         this.natLeaser = natLeaser
+        this.traceTx = traceTx
     }
 
-    def containsForwardStateKeys = conntrackTx.size() > 0 || natTx.size() > 0
+    def containsForwardStateKeys =
+        conntrackTx.size() > 0 || natTx.size() > 0 || traceTx.size() > 0
 }

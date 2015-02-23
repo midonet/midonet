@@ -191,6 +191,7 @@ class PacketWorkflow(protected val dpState: DatapathState,
             context.log.debug("Applying connection state")
             replicator.accumulateNewKeys(context.conntrackTx,
                                          context.natTx,
+                                         context.traceTx,
                                          context.inputPort,
                                          context.outPorts,
                                          context.flowTags,
@@ -198,6 +199,7 @@ class PacketWorkflow(protected val dpState: DatapathState,
             replicator.pushState(dpChannel)
             context.conntrackTx.commit()
             context.natTx.commit()
+            context.traceTx.commit()
     }
 
     private def handlePacketIngress(context: PacketContext): SimulationResult = {

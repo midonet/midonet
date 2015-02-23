@@ -19,9 +19,14 @@ package org.midonet.midolman.state
 import java.io.ByteArrayInputStream
 import java.util.UUID
 
+import com.google.protobuf.ByteString
+
 import org.midonet.midolman.state.ConnTrackState._
 import org.midonet.midolman.state.NatState._
+import org.midonet.midolman.state.TraceState.TraceKey
 import org.midonet.odp.FlowMatch
+import org.midonet.odp.FlowMatch.Field
+import org.midonet.odp.flows.IPFragmentType
 import org.midonet.packets._
 import org.midonet.rpc.{FlowStateProto => Proto}
 
@@ -173,6 +178,71 @@ object FlowStatePackets {
     def natBindingFromProto(proto: Proto.NatValue) =
         NatBinding(ipAddressFromProto(proto.getIp).asInstanceOf[IPv4Addr],
                    proto.getPort)
+
+    def traceKeyToProto(key: TraceKey, proto: Proto.TraceEntry.Builder): Unit = {
+        val m = key.flowMatch
+
+        if (m.isUsed(Field.EthSrc)) { proto.setEthSrc(m.getEthSrc.asLong) }
+        if (m.isUsed(Field.EthDst)) { proto.setEthDst(m.getEthDst.asLong) }
+        if (m.isUsed(Field.EtherType)) { proto.setEtherType(m.getEtherType) }
+        if (m.isUsed(Field.NetworkSrc)) { proto.setIpSrc(m.getNetworkSrcIP) }
+        if (m.isUsed(Field.NetworkDst)) { proto.setIpDst(m.getNetworkDstIP) }
+        if (m.isUsed(Field.NetworkProto)) {
+            proto.setIpProto(m.getNetworkProto)
+        }
+        if (m.isUsed(Field.NetworkTTL)) { proto.setIpTtl(m.getNetworkTTL) }
+        if (m.isUsed(Field.NetworkTOS)) { proto.setIpTos(m.getNetworkTOS) }
+        if (m.isUsed(Field.FragmentType)) {
+            proto.setIpFrag(m.getIpFragmentType().value)
+        }
+        if (m.isUsed(Field.SrcPort)) { proto.setTpSrc(m.getSrcPort) }
+        if (m.isUsed(Field.DstPort)) { proto.setTpDst(m.getDstPort) }
+        if (m.isUsed(Field.IcmpId)) { proto.setIcmpId(m.getIcmpIdentifier) }
+        if (m.isUsed(Field.IcmpData)) {
+            proto.setIcmpData(ByteString.copyFrom(m.getIcmpData()))
+        }
+        if (m.isUsed(Field.VlanId)) {
+            val vlans = m.getVlanIds
+            var i = vlans.size
+            while (i > 0) {
+                i -= 1
+                proto.addVlanIds(vlans.get(i).toInt)
+            }
+        }
+    }
+
+    def traceKeyFromProto(proto: Proto.TraceEntry): TraceKey = {
+        val m = new FlowMatch
+        if (proto.hasEthSrc) { m.setEthSrc(new MAC(proto.getEthSrc)) }
+        if (proto.hasEthDst) { m.setEthDst(new MAC(proto.getEthDst)) }
+        if (proto.hasEtherType) { m.setEtherType(proto.getEtherType.toShort) }
+        if (proto.hasIpSrc) {
+            m.setNetworkSrc(
+                ipAddressFromProto(proto.getIpSrc()).asInstanceOf[IPv4Addr])
+        }
+        if (proto.hasIpDst) {
+            m.setNetworkDst(
+                ipAddressFromProto(proto.getIpDst()).asInstanceOf[IPv4Addr])
+        }
+        if (proto.hasIpProto) { m.setNetworkProto(proto.getIpProto.toByte) }
+        if (proto.hasIpTtl) { m.setNetworkTTL(proto.getIpTtl.toByte) }
+        if (proto.hasIpTos) { m.setNetworkTOS(proto.getIpTos.toByte) }
+        if (proto.hasIpFrag) {
+            m.setIpFragmentType(IPFragmentType.fromByte(proto.getIpFrag.toByte))
+        }
+        if (proto.hasTpSrc) { m.setSrcPort(proto.getTpSrc) }
+        if (proto.hasTpDst) { m.setDstPort(proto.getTpDst) }
+        if (proto.hasIcmpId) { m.setIcmpIdentifier(proto.getIcmpId.toShort) }
+        if (proto.hasIcmpData) { m.setIcmpData(proto.getIcmpData.toByteArray) }
+
+        val vlans = proto.getVlanIdsList()
+        var i = vlans.size()
+        while (i > 0) {
+            i -= 1
+            m.addVlanId(vlans.get(i).toShort)
+        }
+        new TraceKey(m)
+    }
 
     def parseDatagram(p: Ethernet): Proto.StateMessage  = {
         if (p.getDestinationMACAddress != DST_MAC ||

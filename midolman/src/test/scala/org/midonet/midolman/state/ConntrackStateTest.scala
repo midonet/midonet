@@ -26,6 +26,7 @@ import org.scalatest.junit.JUnitRunner
 import org.midonet.midolman.simulation.PacketContext
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackValue, ConnTrackKey}
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
+import org.midonet.midolman.state.TraceState.{TraceKey, TraceContext}
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.topology.VirtualTopologyActor.PortRequest
 import org.midonet.midolman.topology.devices.BridgePort
@@ -67,7 +68,8 @@ class ConntrackStateTest extends MidolmanSpec {
         val ctx = new PacketContext(1, new Packet(eth, fmatch), fmatch, egressPort)
         ctx.initialize(connTrackTx,
                        new FlowStateTransaction[NatKey, NatBinding](null),
-                       HappyGoLuckyLeaser)
+                       HappyGoLuckyLeaser,
+                       new FlowStateTransaction[TraceKey, TraceContext](null))
         ctx.inputPort = portId
         ctx
     }
