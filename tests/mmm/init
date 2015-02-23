@@ -68,7 +68,8 @@ sudo update-rc.d zookeeper defaults
 sudo service zookeeper stop || true
 
 # Install cassandra
-sudo apt-get -o Dpkg::Options::=--force-confnew -y --force-yes install dsc21
+sudo apt-get -o Dpkg::Options::=--force-confnew -y --force-yes install dsc20=2.0.10-1 cassandra=2.0.10
+sudo apt-mark hold dsc20 cassandra
 
 sudo update-rc.d cassandra enable
 CASSANDRA_CONF_FILE='/etc/cassandra/cassandra.yaml'
