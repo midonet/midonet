@@ -78,7 +78,7 @@ The MidoNet Agent uses a single datapath port for all tunnels to all
 VTEPs. We use the name "vtep", and associate it to a UDP port (defined
 in midolman.conf and set to 4789 by default).  As we will see below, the
 Agent will inject the relevant flow actions to encapsulate the
-to-be-tunnelled packet before outputting to the port.  On ingess, the
+to-be-tunnelled packet before outputting to the port.  On ingress, the
 datapath will parse the tunnelled packet for us, providing the source IP
 (the VTEP's) and the VNI, which the Coordinator uses to find the Bridge
 where the packet is meant to be injected.
