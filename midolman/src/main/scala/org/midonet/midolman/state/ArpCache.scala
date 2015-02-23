@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.cluster.client;
 
-import java.util.UUID;
+package org.midonet.midolman.state
 
-import org.midonet.midolman.layer3.Route;
-import org.midonet.midolman.state.ArpCache;
+import java.util.UUID
 
-public interface RouterBuilder extends DeviceBuilder<RouterBuilder> {
-    void setArpCache(ArpCache table);
-    void setLoadBalancer(UUID loadBalancerId);
-    void addRoute(Route rt);
-    void removeRoute(Route rt);
+import rx.Observable
+
+import org.midonet.packets.{MAC, IPv4Addr}
+
+/** An ARP cache update. */
+case class ArpCacheUpdate(ipAddr: IPv4Addr, oldMac: MAC, newMac: MAC)
+
+/**
+ * A trait for a router's ARP cache.
+ */
+trait ArpCache {
+    def get(ipAddr: IPv4Addr): ArpCacheEntry
+    def add(ipAddr: IPv4Addr, entry: ArpCacheEntry): Unit
+    def remove(ipAddr: IPv4Addr): Unit
+    def routerId: UUID
+    def observable: Observable[ArpCacheUpdate]
 }

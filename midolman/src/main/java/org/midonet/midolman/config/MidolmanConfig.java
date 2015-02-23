@@ -95,6 +95,9 @@ public interface MidolmanConfig
     @ConfigInt(key = "simulation_threads", defaultValue = 1)
     public int getSimulationThreads();
 
+    @ConfigBool(key = "topology_async_io", defaultValue = true)
+    public boolean getTopologyAsyncIo();
+
     @ConfigInt(key = "output_channels", defaultValue = 1)
     public int getNumOutputChannels();
 

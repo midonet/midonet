@@ -31,6 +31,14 @@ import org.midonet.midolman.topology.VirtualTopology.Device
 object DeviceMapper {
     protected[topology] val SubscriptionException =
         new IllegalStateException("Device observable not connected")
+
+    object MapperState extends Enumeration {
+        class MapperState(val isInitialized: Boolean, val isStarted: Boolean)
+            extends Val
+        val Latent = new MapperState(false, false)
+        val Started = new MapperState(true, true)
+        val Stopped = new MapperState(true, false)
+    }
 }
 
 /**
@@ -118,10 +126,10 @@ abstract class DeviceMapper[D <: Device](id: UUID, vt: VirtualTopology)
      */
     @throws[DeviceMapperException]
     @inline protected def assertThread(): Unit = {
-        if (vt.threadId != Thread.currentThread.getId) {
+        if (vt.vtThreadId != Thread.currentThread.getId) {
             throw new DeviceMapperException(
                 tag.runtimeClass, id,
-                s"Call expected on thread ${vt.threadId} but received on " +
+                s"Call expected on thread ${vt.vtThreadId} but received on " +
                 s"${Thread.currentThread().getId}")
         }
     }
