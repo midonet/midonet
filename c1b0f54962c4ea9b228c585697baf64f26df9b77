@@ -1,0 +1,89 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_7a09b6dc",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/SubnetTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-02-23T08:02:46Z",
+      "side": 1,
+      "message": "Since it\u0027s a builder, why not just do:\n\nOpt121Route.newBuilder\n        .setDstSubnet()\n        .setGateawy().build",
+      "revId": "c1b0f54962c4ea9b228c585697baf64f26df9b77",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_da10aa03",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/SubnetTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-02-23T08:02:46Z",
+      "side": 1,
+      "message": "ditto",
+      "revId": "c1b0f54962c4ea9b228c585697baf64f26df9b77",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_ba132e0c",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/SubnetTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-02-23T08:02:46Z",
+      "side": 1,
+      "message": "ditto",
+      "revId": "c1b0f54962c4ea9b228c585697baf64f26df9b77",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_5a04babf",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/SubnetTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-02-23T08:02:46Z",
+      "side": 1,
+      "message": "Just a question, we need this as well as \u0027await()\u0027 above?",
+      "revId": "c1b0f54962c4ea9b228c585697baf64f26df9b77",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_3aff3eac",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/SubnetTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-02-23T08:02:46Z",
+      "side": 1,
+      "message": "I could be wrong, but wasn\u0027t there something like p.isDhcp or something?",
+      "revId": "c1b0f54962c4ea9b228c585697baf64f26df9b77",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
