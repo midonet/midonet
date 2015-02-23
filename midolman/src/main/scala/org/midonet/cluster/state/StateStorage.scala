@@ -21,8 +21,9 @@ import javax.annotation.Nonnull
 
 import rx.Observable
 
-import org.midonet.midolman.state.{ZkConnectionAwareWatcher, Ip4ToMacReplicatedMap, StateAccessException, MacPortMap}
-import org.midonet.util.eventloop.Reactor
+import org.midonet.cluster.state.StateStorage.ReplicatedRouteSet
+import org.midonet.midolman.layer3.Route
+import org.midonet.midolman.state.{Ip4ToMacReplicatedMap, MacPortMap, StateAccessException, _}
 
 /**
  * Indicates when a virtual network port becomes active.
@@ -31,6 +32,14 @@ import org.midonet.util.eventloop.Reactor
  * @param active True if the port is ready to emit/receive, false otherwise.
  */
 case class LocalPortActive(portId: UUID, active: Boolean)
+
+object StateStorage {
+
+    final val UntaggedVlanId: Short = 0
+
+    type ReplicatedRouteSet = ReplicatedSet[Route]
+
+}
 
 /**
  * A trait defining the cluster state API. Currently, this trait represents a
@@ -53,6 +62,18 @@ trait StateStorage {
     def bridgeIp4MacMap(@Nonnull bridgeId: UUID): Ip4ToMacReplicatedMap
 
     /**
+     * Gets the directory for the router's routing table.
+     */
+    @throws[StateAccessException]
+    def routerRoutingTable(@Nonnull routerId: UUID): ReplicatedRouteSet
+
+    /**
+     * Gets the ARP table for the specified router.
+     */
+    @throws[StateAccessException]
+    def routerArpTable(@Nonnull routerId: UUID): ArpTable
+
+    /**
      * Inform the storage cluster that the port is active. This may be used by
      * the cluster to do trigger related processing e.g. updating the router's
      * forwarding table if this port belongs to a router.
@@ -73,6 +94,6 @@ trait StateStorage {
      * The notifications are emitted on the thread specified by the storage
      * reactor.
      */
-    def observableLocalPortActive: Observable[LocalPortActive]
+    def localPortActiveObservable: Observable[LocalPortActive]
 
 }

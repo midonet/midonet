@@ -6,6 +6,7 @@ package org.midonet.cluster.util
 import java.lang.reflect.Type
 
 import org.midonet.cluster.data.ZoomConvert
+import org.midonet.cluster.data.ZoomConvert.ConvertException
 import org.midonet.cluster.models.Commons
 import org.midonet.cluster.models.Commons.{IPVersion, IPAddress}
 import org.midonet.packets.{IPv6Subnet, IPv4Subnet, IPSubnet}
@@ -76,12 +77,12 @@ object IPSubnetUtil {
     sealed class Converter
             extends ZoomConvert.Converter[IPSubnet[_], Commons.IPSubnet] {
 
-        override def toProto(value: IPSubnet[_],
-                             clazz: Type): Commons.IPSubnet =
+        override def toProto(value: IPSubnet[_], clazz: Type)
+        : Commons.IPSubnet =
             IPSubnetUtil.toProto(value)
 
-        override def fromProto(value: Commons.IPSubnet,
-                               clazz: Type): IPSubnet[_] =
+        override def fromProto(value: Commons.IPSubnet, clazz: Type)
+        : IPSubnet[_] =
             IPSubnetUtil.fromProto(value)
     }
 
