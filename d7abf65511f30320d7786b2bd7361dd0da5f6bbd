@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_fcf123ce",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/VirtualTopologyTest.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-23T10:02:28Z",
+      "side": 1,
+      "message": "It\u0027d be nice to have a class variable named timeout. I\u0027m fine if you don\u0027t address this in this patch and want to merge directly though.",
+      "range": {
+        "startLine": 84,
+        "startChar": 56,
+        "endLine": 84,
+        "endChar": 64
+      },
+      "revId": "d7abf65511f30320d7786b2bd7361dd0da5f6bbd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
