@@ -1,0 +1,113 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_1a21a24d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopologyActor.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 303,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-02-23T08:09:13Z",
+      "side": 1,
+      "message": "If you can make this method look like manageDevice (and actually rename it as manageDevice), it\u0027d be more readable, I think. For example, you can avoid nesting by returning early on if (manageDevices(r.id)) is true, etc.",
+      "range": {
+        "startLine": 303,
+        "startChar": 4,
+        "endLine": 303,
+        "endChar": 67
+      },
+      "revId": "b8532c00b67f511d197acac758f77cd7199c8829",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_baa96ee1",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopologyActor.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 305,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-02-23T08:09:13Z",
+      "side": 1,
+      "message": "This log message is cryptic...",
+      "range": {
+        "startLine": 305,
+        "startChar": 22,
+        "endLine": 305,
+        "endChar": 46
+      },
+      "revId": "b8532c00b67f511d197acac758f77cd7199c8829",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_fa1be619",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopologyActor.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 309,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-02-23T08:09:13Z",
+      "side": 1,
+      "message": "Perhaps you can factor this into a helper.",
+      "range": {
+        "startLine": 307,
+        "startChar": 12,
+        "endLine": 309,
+        "endChar": 64
+      },
+      "revId": "b8532c00b67f511d197acac758f77cd7199c8829",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_1ab08242",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopologyActor.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 330,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-02-23T08:09:13Z",
+      "side": 1,
+      "message": "Why don\u0027t we just in-line this, though admittedly not related to this patch\u0027s main change.",
+      "revId": "b8532c00b67f511d197acac758f77cd7199c8829",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_daa6ea0f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopologyRedirector.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 123,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-02-23T08:09:13Z",
+      "side": 1,
+      "message": "Probably you can call remove and match its return value here.",
+      "range": {
+        "startLine": 123,
+        "startChar": 26,
+        "endLine": 123,
+        "endChar": 29
+      },
+      "revId": "b8532c00b67f511d197acac758f77cd7199c8829",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
