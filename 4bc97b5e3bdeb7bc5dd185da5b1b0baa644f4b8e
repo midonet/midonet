@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_d067e6b5",
+        "filename": "midolman/src/main/java/org/midonet/cluster/ZookeeperTest.java",
+        "patchSetId": 12
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-23T15:00:36Z",
+      "side": 1,
+      "message": "\u0027we put it\u0027?",
+      "range": {
+        "startLine": 55,
+        "startChar": 73,
+        "endLine": 56,
+        "endChar": 5
+      },
+      "revId": "4bc97b5e3bdeb7bc5dd185da5b1b0baa644f4b8e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_30bbdae6",
+        "filename": "midolman/src/main/scala/org/midonet/cluster/services/MidonetBackendService.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-23T15:00:36Z",
+      "side": 1,
+      "message": "Which is the criteria to decide which bindings are defined?",
+      "range": {
+        "startLine": 93,
+        "startChar": 8,
+        "endLine": 96,
+        "endChar": 65
+      },
+      "revId": "4bc97b5e3bdeb7bc5dd185da5b1b0baa644f4b8e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
