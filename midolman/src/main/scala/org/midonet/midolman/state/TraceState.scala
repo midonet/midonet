@@ -16,16 +16,18 @@
 
 package org.midonet.midolman.state
 
-import java.util.{ArrayList, Collections, List, UUID}
+import java.util.{ArrayList, Collections, List, Objects, UUID}
 
-import org.slf4j.LoggerFactory
+import org.slf4j.{LoggerFactory,MDC}
 import scala.collection.JavaConverters._
 
 import org.midonet.midolman.simulation.PacketContext
 import org.midonet.midolman.state.FlowState.FlowStateKey
-import org.midonet.odp.flows.{FlowAction, FlowActionSetKey}
+import org.midonet.odp.FlowMatch
+import org.midonet.odp.flows.{FlowAction, FlowActions, FlowActionSetKey}
 import org.midonet.odp.flows.{FlowKey, FlowKeyEthernet, FlowKeyEtherType}
 import org.midonet.odp.flows.{FlowKeyIPv4, FlowKeyIPv6, FlowKeyTCP, FlowKeyUDP}
+import org.midonet.odp.flows.{FlowKeyTunnel}
 import org.midonet.packets.{Ethernet, MAC,  IPv4, IPv6}
 import org.midonet.packets.{IPv4Addr, IPv6Addr, IPAddr}
 import org.midonet.packets.{TCP, UDP, IPacket}
@@ -33,6 +35,13 @@ import org.midonet.sdn.state.FlowStateTransaction
 
 object TraceState {
     val log = LoggerFactory.getLogger(classOf[TraceState])
+
+    val TraceTunnelKeyMask = 0x80000
+    val TraceLoggingContextKey = "traceIds"
+
+    def traceBitPresent(tunnelId: Long): Boolean = {
+        (tunnelId & TraceTunnelKeyMask) != 0
+    }
 
     object TraceKey {
         def fromEthernet(
@@ -129,6 +138,7 @@ object TraceState {
                         dstPort = udp.udp_src
                         networkProto = UDP.PROTOCOL_NUMBER
                     }
+                    case _ => {}
                 }
             }
 
@@ -153,11 +163,39 @@ object TraceState {
             extends FlowStateKey {
     }
 
-    case class TraceContext(flowTraceId: UUID = UUID.randomUUID) {
+    class TraceContext {
+        var flowTraceId: UUID = null
         val requests: List[UUID] = new ArrayList[UUID](1)
+
+        def enabled(): Boolean = flowTraceId != null
+        def enable(flowTraceId: UUID = UUID.randomUUID): TraceContext = {
+            this.flowTraceId = flowTraceId
+            this
+        }
+        def clear(): Unit = {
+            flowTraceId = null
+            requests.clear()
+        }
+        def reset(other: TraceContext): Unit = {
+            clear
+            flowTraceId = other.flowTraceId
+            requests.addAll(other.requests)
+        }
 
         def addRequest(request: UUID): Boolean = requests.add(request)
         def containsRequest(request: UUID): Boolean = requests.contains(request)
+
+        override def hashCode(): Int = Objects.hashCode(flowTraceId, requests)
+        override def equals(other: Any): Boolean = other match {
+            case that: TraceContext => {
+                Objects.equals(flowTraceId, that.flowTraceId) &&
+                Objects.equals(requests, that.requests)
+            }
+            case _ => false
+        }
+
+        override def toString: String =
+            s"Trace[flowId=$flowTraceId,requests=$requests]"
     }
 }
 
@@ -166,6 +204,8 @@ trait TraceState extends FlowState { this: PacketContext =>
 
     var tracing: List[UUID] = new ArrayList[UUID]
     var traceTx: FlowStateTransaction[TraceKey, TraceContext] = _
+    val traceContext: TraceContext = new TraceContext
+
     private var clearEnabled = true
 
     def prepareForSimulationWithTracing(): Unit = {
@@ -177,12 +217,136 @@ trait TraceState extends FlowState { this: PacketContext =>
         runFlowRemovedCallbacks()
     }
 
-    override def clear(): Unit = {
+    abstract override def clear(): Unit = {
         super.clear()
 
         if (clearEnabled) {
             tracing.clear()
             traceTx.flush()
         }
+    }
+
+    def tracingContext : String = traceContext.toString
+
+    def tracingEnabled: Boolean = traceContext.enabled
+
+    def tracingEnabled(traceRequestId: UUID): Boolean = {
+        traceContext.enabled && traceContext.containsRequest(traceRequestId)
+    }
+
+    def enableTracing(traceRequestId: UUID): Unit = {
+        if (!traceContext.enabled) {
+            val key = TraceKey.fromEthernet(ethernet)
+            val storedCtx = traceTx.get(key)
+            if (storedCtx == null) {
+                traceContext.enable()
+                traceTx.putAndRef(key, traceContext)
+            } else {
+                traceContext.reset(storedCtx)
+            }
+        }
+        traceContext.addRequest(traceRequestId)
+        log = PacketContext.traceLog
+        MDC.put(TraceLoggingContextKey, tracingContext)
+    }
+
+    def traceFlowId(): UUID =
+        if (traceContext.enabled) {
+            traceContext.flowTraceId
+        } else {
+            null
+        }
+
+    private def cloneTunnelKey(tunnelKey: FlowKeyTunnel): FlowKeyTunnel = {
+        val newKey = new FlowKeyTunnel(tunnelKey.tun_id,
+                                       tunnelKey.ipv4_src,
+                                       tunnelKey.ipv4_dst,
+                                       tunnelKey.ipv4_tos,
+                                       tunnelKey.ipv4_ttl)
+        newKey.tun_flags = tunnelKey.tun_flags
+        newKey
+    }
+
+    private def interestingKey(k: FlowKey): Boolean =
+        k.isInstanceOf[FlowKeyEthernet] || k.isInstanceOf[FlowKeyEtherType] ||
+            k.isInstanceOf[FlowKeyIPv4] || k.isInstanceOf[FlowKeyIPv6] ||
+            k.isInstanceOf[FlowKeyTCP] || k.isInstanceOf[FlowKeyUDP]
+
+    // setkey actions will modify the packet before it hits the egress
+    // host. Add a tracekey that will match this packet
+    def addModifiedTraceKeys(): Unit = {
+        if (tracingEnabled) {
+            var i = 0
+            var addModifiedKey = false
+            while (i < flowActions.size) {
+                flowActions.get(i) match {
+                    case set: FlowActionSetKey
+                            if interestingKey(set.getFlowKey) => {
+                                addModifiedKey = true
+                    }
+                    case _ => {}
+                }
+                i += 1
+            }
+            if (addModifiedKey) {
+                traceTx.putAndRef(TraceKey.fromEthernet(ethernet, flowActions),
+                                  traceContext)
+            }
+        }
+    }
+
+    def setTraceTunnelBit(actions: List[FlowAction]): List[FlowAction] = {
+        var copied = false
+        var i = 0
+        var actions2 = actions
+        while (i < actions2.size) {
+            actions2.get(i) match {
+                case setKey: FlowActionSetKey => {
+                    setKey.getFlowKey match {
+                        case t: FlowKeyTunnel => {
+                            if (!copied) {
+                                actions2 = new ArrayList(actions)
+                                copied = true
+                            }
+                            val newTunnelKey = cloneTunnelKey(t)
+                            newTunnelKey.tun_id =
+                                newTunnelKey.tun_id | TraceTunnelKeyMask
+                            actions2.set(i, FlowActions.setKey(newTunnelKey))
+                        }
+                        case _ => {}
+                    }
+                }
+                case _ => {}
+            }
+            i += 1
+        }
+        actions2
+    }
+
+    def hasTraceTunnelBit(fmatch: FlowMatch): Boolean = {
+        TraceState.traceBitPresent(fmatch.getTunnelKey) &&
+            fmatch.getTunnelKey != FlowStatePackets.TUNNEL_KEY
+    }
+
+    def stripTraceBit(matches: FlowMatch*): Unit = {
+        matches.foreach(m => {
+                            m.doNotTrackSeenFields
+                            m.setTunnelKey(
+                                (m.getTunnelKey & ~TraceTunnelKeyMask))
+                            m.doTrackSeenFields
+                        })
+    }
+
+    def enableTracingFromTable(): Unit = {
+        val key = TraceKey.fromEthernet(ethernet)
+        val storedContext = traceTx.get(key)
+        if (storedContext == null) {
+            log.warn("Couldn't find trace state for {}", key)
+            traceContext.enable()
+        } else {
+            traceContext.reset(storedContext)
+        }
+        log = PacketContext.traceLog
+        MDC.put(TraceLoggingContextKey, tracingContext)
     }
 }

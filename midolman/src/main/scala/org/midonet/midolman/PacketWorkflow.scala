@@ -16,6 +16,7 @@
 package org.midonet.midolman
 
 import java.util.UUID
+import java.{util => ju}
 
 import akka.actor._
 
@@ -32,6 +33,7 @@ import org.midonet.midolman.topology.devices.Port
 import org.midonet.midolman.topology.{VirtualTopologyActor, VxLanPortMapper}
 import org.midonet.odp.FlowMatch.Field
 import org.midonet.odp._
+import org.midonet.odp.flows.FlowAction
 import org.midonet.packets._
 import org.midonet.sdn.flows.FlowTagger.tagForDpPort
 import org.midonet.sdn.flows.FlowTagger
@@ -161,7 +163,7 @@ class PacketWorkflow(protected val dpState: DatapathState,
             UserspaceFlow
         } else {
             applyState(context)
-            dpChannel.executePacket(context.packet, context.packetActions)
+            executePacket(context, context.packet, context.packetActions)
             handleFlow(context)
         }
 
@@ -170,6 +172,11 @@ class PacketWorkflow(protected val dpState: DatapathState,
             context.log.warn(s"Tried to add a flow for a generated packet")
             context.runFlowRemovedCallbacks()
             GeneratedPacket
+        } else if (context.origMatch.isFromTunnel && context.tracingEnabled) {
+            // don't create a flow for traced contexts on the egress host
+            context.log.warn("Skipping flow creation for traced flow on egress")
+            context.runFlowRemovedCallbacks()
+            SendPacket
         } else {
             logResultNewFlow("will create flow", context)
             context.origMatch.propagateSeenFieldsFrom(context.wcmatch)
@@ -189,6 +196,7 @@ class PacketWorkflow(protected val dpState: DatapathState,
     def applyState(context: PacketContext): Unit =
         if (!context.isDrop) {
             context.log.debug("Applying connection state")
+            context.addModifiedTraceKeys
             replicator.accumulateNewKeys(context.conntrackTx,
                                          context.natTx,
                                          context.traceTx,
@@ -323,6 +331,16 @@ class PacketWorkflow(protected val dpState: DatapathState,
         resultLogger.debug(s"Match ${context.origMatch} send with actions " +
                            s"${context.virtualFlowActions}; visited tags ${context.flowTags}")
         translateActions(context)
-        dpChannel.executePacket(context.packet, context.packetActions)
+        executePacket(context, context.packet, context.packetActions)
+    }
+
+    private def executePacket(context: PacketContext,
+                              packet: Packet,
+                              actions: ju.List[FlowAction]): Unit = {
+        var actions2 = actions
+        if (context.tracingEnabled) {
+            actions2 = context.setTraceTunnelBit(actions)
+        }
+        dpChannel.executePacket(context.packet, actions2)
     }
 }

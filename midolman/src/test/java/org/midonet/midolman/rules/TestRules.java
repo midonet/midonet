@@ -52,9 +52,12 @@ import org.midonet.midolman.state.ZkManager;
 import org.midonet.midolman.state.zkManagers.FiltersZkManager;
 import org.midonet.midolman.version.DataWriteVersion;
 import org.midonet.odp.FlowMatch;
+import org.midonet.odp.Packet;
+import org.midonet.packets.Ethernet;
 import org.midonet.packets.IPv4;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IPv4Subnet;
+import org.midonet.packets.TCP;
 import org.midonet.sdn.state.FlowStateTable;
 import org.midonet.sdn.state.FlowStateTransaction;
 import org.midonet.sdn.state.ShardedFlowStateTable;
@@ -268,6 +271,29 @@ public class TestRules {
 
         Rule rule = new TraceRule(requestId, cond);
         Rule rule2 = new TraceRule(requestId2, cond);
+
+        /* Generate the actual packet as it is used
+         * to look up the flow in the trace table
+         */
+        TCP tcp = new TCP();
+        tcp.setSourcePort(pktMatch.getSrcPort());
+        tcp.setDestinationPort(pktMatch.getDstPort());
+        IPv4 ip = new IPv4();
+        ip.setSourceAddress(IPv4Addr.fromInt(0x0a001406));
+        ip.setDestinationAddress(IPv4Addr.fromInt(0x0a000b22));
+        ip.setProtocol(pktMatch.getNetworkProto());
+        ip.setDiffServ(pktMatch.getNetworkTOS());
+        ip.setPayload(tcp);
+        Ethernet eth = new Ethernet();
+        eth.setSourceMACAddress(pktMatch.getEthSrc());
+        eth.setDestinationMACAddress(pktMatch.getEthDst());
+        eth.setEtherType(pktMatch.getEtherType());
+        eth.setPayload(ip);
+
+        pktCtx = new PacketContext(1, new Packet(eth, pktMatch),
+                                   pktMatch, null);
+        pktCtx.initialize(conntrackTx, natTx, HappyGoLuckyLeaser$.MODULE$,
+                traceTx);
 
         // If the condition doesn't match the result is not modified.
         RuleResult res = new RuleResult(null, null);
