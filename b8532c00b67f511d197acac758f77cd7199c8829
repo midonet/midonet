@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_dc8ee7cf",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopologyActor.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 303,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-23T11:42:57Z",
+      "side": 1,
+      "message": "I merged manageDevice and deviceInit methods, but check I made the right changes. I\u0027m not 100% sure I understood the comment.",
+      "parentUuid": "7a1969be_1a21a24d",
+      "range": {
+        "startLine": 303,
+        "startChar": 4,
+        "endLine": 303,
+        "endChar": 67
+      },
+      "revId": "b8532c00b67f511d197acac758f77cd7199c8829",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_baa96ee1",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopologyActor.scala",
         "patchSetId": 9
@@ -36,6 +60,30 @@
       "writtenOn": "2015-02-23T08:09:13Z",
       "side": 1,
       "message": "This log message is cryptic...",
+      "range": {
+        "startLine": 305,
+        "startChar": 22,
+        "endLine": 305,
+        "endChar": 46
+      },
+      "revId": "b8532c00b67f511d197acac758f77cd7199c8829",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_1cc07fdf",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopologyActor.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 305,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-23T11:42:57Z",
+      "side": 1,
+      "message": "Used the managerDevice() log message.",
+      "parentUuid": "7a1969be_baa96ee1",
       "range": {
         "startLine": 305,
         "startChar": 22,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_5cbaf76e",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopologyActor.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 309,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-23T11:42:57Z",
+      "side": 1,
+      "message": "Now, these appear only in one method.",
+      "parentUuid": "7a1969be_fa1be619",
+      "range": {
+        "startLine": 307,
+        "startChar": 12,
+        "endLine": 309,
+        "endChar": 64
+      },
+      "revId": "b8532c00b67f511d197acac758f77cd7199c8829",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_1ab08242",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopologyActor.scala",
         "patchSetId": 9
@@ -82,6 +154,24 @@
       "writtenOn": "2015-02-23T08:09:13Z",
       "side": 1,
       "message": "Why don\u0027t we just in-line this, though admittedly not related to this patch\u0027s main change.",
+      "revId": "b8532c00b67f511d197acac758f77cd7199c8829",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_7c45336f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopologyActor.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 330,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-23T11:42:57Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_1ab08242",
       "revId": "b8532c00b67f511d197acac758f77cd7199c8829",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
