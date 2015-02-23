@@ -64,5 +64,5 @@ final class PortMapper(id: UUID, vt: VirtualTopology)
                 .distinctUntilChanged
                 .onErrorResumeNext(Observable.empty),
             combinator)
-            .observeOn(vt.scheduler)
+            .observeOn(vt.vtScheduler)
 }

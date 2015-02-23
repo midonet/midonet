@@ -118,10 +118,10 @@ abstract class DeviceMapper[D <: Device](id: UUID, vt: VirtualTopology)
      */
     @throws[DeviceMapperException]
     @inline protected def assertThread(): Unit = {
-        if (vt.threadId != Thread.currentThread.getId) {
+        if (vt.vtThreadId != Thread.currentThread.getId) {
             throw new DeviceMapperException(
                 tag.runtimeClass, id,
-                s"Call expected on thread ${vt.threadId} but received on " +
+                s"Call expected on thread ${vt.vtThreadId} but received on " +
                 s"${Thread.currentThread().getId}")
         }
     }
