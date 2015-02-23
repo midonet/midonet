@@ -47,6 +47,7 @@ import org.midonet.midolman.state.HappyGoLuckyLeaser$;
 import org.midonet.midolman.state.MockDirectory;
 import org.midonet.midolman.state.NatState;
 import org.midonet.midolman.state.PathBuilder;
+import org.midonet.midolman.state.TraceState;
 import org.midonet.midolman.state.ZkManager;
 import org.midonet.midolman.state.zkManagers.FiltersZkManager;
 import org.midonet.midolman.version.DataWriteVersion;
@@ -75,6 +76,7 @@ public class TestRules {
     PacketContext pktCtx;
     FlowStateTransaction<ConnTrackState.ConnTrackKey, Boolean> conntrackTx;
     FlowStateTransaction<NatState.NatKey, NatState.NatBinding> natTx;
+    FlowStateTransaction<TraceState.TraceKey, TraceState.TraceContext> traceTx;
 
     @BeforeClass
     public static void setupOnce() {
@@ -191,9 +193,14 @@ public class TestRules {
                 ShardedFlowStateTable.create();
         FlowStateTable<NatState.NatKey, NatState.NatBinding> natTable =
                 shardedNat.addShard(Logger$.MODULE$.apply(NOPLogger.NOP_LOGGER));
+        FlowStateTable<TraceState.TraceKey, TraceState.TraceContext> traceTable =
+            ShardedFlowStateTable.<TraceState.TraceKey, TraceState.TraceContext>create().addShard(
+                    Logger$.MODULE$.apply(NOPLogger.NOP_LOGGER));
         conntrackTx = new FlowStateTransaction<>(conntrackTable);
         natTx = new FlowStateTransaction<>(natTable);
-        pktCtx.initialize(conntrackTx, natTx, HappyGoLuckyLeaser$.MODULE$);
+        traceTx = new FlowStateTransaction(traceTable);
+        pktCtx.initialize(conntrackTx, natTx, HappyGoLuckyLeaser$.MODULE$,
+                          traceTx);
     }
 
     @Test
