@@ -18,6 +18,7 @@ package org.midonet.midolman.state
 
 import java.nio.ByteBuffer
 import java.util.{ArrayList, HashSet => JHashSet, List => JList, Set => JSet, UUID}
+import java.util.Random
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable
@@ -33,12 +34,14 @@ import org.midonet.midolman.UnderlayResolver
 import org.midonet.midolman.simulation.PortGroup
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackKey, ConnTrackValue}
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
+import org.midonet.midolman.state.TraceState.{TraceKey, TraceContext}
 import org.midonet.midolman.topology.devices.{BridgePort, Port}
 import org.midonet.midolman.topology.rcu.ResolvedHost
 import org.midonet.midolman.util.mock.MockDatapathChannel
 import org.midonet.odp.flows.{FlowAction, FlowActionOutput, FlowActions}
-import org.midonet.odp.{FlowMatches, Packet}
+import org.midonet.odp.{FlowMatch, FlowMatches, Packet}
 import org.midonet.packets._
+import org.midonet.packets.util.PacketBuilder._
 import org.midonet.rpc.FlowStateProto
 import org.midonet.sdn.flows.FlowTagger.{FlowStateTag, FlowTag}
 import org.midonet.sdn.state.{FlowStateTable, FlowStateTransaction, IdleExpiration}
@@ -54,8 +57,10 @@ class FlowStateReplicatorTest extends FeatureSpec
                               with GivenWhenThen {
     implicit def stringToIp(str: String): IPv4Addr = IPv4Addr.fromString(str)
 
+    val log = LoggerFactory.getLogger(classOf[FlowStateReplicatorTest])
     type ConnTrackTx = FlowStateTransaction[ConnTrackKey, ConnTrackValue]
     type NatTx = FlowStateTransaction[NatKey, NatBinding]
+    type TraceTx = FlowStateTransaction[TraceKey, TraceContext]
 
     var ports = mutable.Map[UUID, Port]()
     var portGroups = mutable.Map[UUID, PortGroup]()
@@ -108,6 +113,7 @@ class FlowStateReplicatorTest extends FeatureSpec
 
     var connTrackTx: ConnTrackTx = _
     var natTx: NatTx = _
+    var traceTx: TraceTx = _
 
     val connTrackKeys =
         List(ConnTrackKey("10.0.0.1", 1234, "10.0.0.2", 22, 1, UUID.randomUUID()),
@@ -117,7 +123,22 @@ class FlowStateReplicatorTest extends FeatureSpec
         NatKey(NatState.FWD_SNAT, "192.168.10.1", 10001, "17.16.15.1", 80, 1, UUID.randomUUID()) ->
                NatBinding("1.2.3.4", 54321),
         NatKey(NatState.FWD_SNAT, "192.168.10.2", 10002, "17.16.15.2", 443, 2, UUID.randomUUID()) ->
-               NatBinding("4.3.2.1", 12345))
+            NatBinding("4.3.2.1", 12345))
+
+    val rand = new Random
+    val tracePkt1 = { eth src MAC.random() dst MAC.random } <<
+        { ip4 src IPv4Addr.random dst IPv4Addr.random } <<
+        { udp src 1234 dst 5432 }
+    val tracePkt2 = { eth src MAC.random() dst MAC.random } <<
+        { ip4 src IPv4Addr.random dst IPv4Addr.random } <<
+        { tcp src 1234 dst 5432 }
+
+    val traces = Map(TraceKey.fromFlowMatch(
+                         FlowMatches.fromEthernetPacket(tracePkt1))
+                         -> TraceContext(UUID.randomUUID),
+                     TraceKey.fromFlowMatch(
+                         FlowMatches.fromEthernetPacket(tracePkt2))
+                         -> TraceContext(UUID.randomUUID))
 
     dpChannel.packetsExecuteSubscribe((p: Packet, actions: JList[FlowAction]) => {
             val pkt = new Packet(p.getEthernet.clone(), p.getMatch)
@@ -142,19 +163,24 @@ class FlowStateReplicatorTest extends FeatureSpec
         recipient = new TestableFlowStateReplicator(ports, portGroups, recipientUnderlay)
         connTrackTx = new ConnTrackTx(sender.conntrackTable)
         natTx = new NatTx(sender.natTable)
+        traceTx = new TraceTx(sender.traceTable)
         packetsSeen = List.empty
     }
 
     private def sendAndAcceptTransactions(): List[(Packet, List[FlowAction])] = {
-        sender.accumulateNewKeys(connTrackTx, natTx, ingressPort.id,
+        sender.accumulateNewKeys(connTrackTx, natTx, traceTx,
+                                 ingressPort.id,
                                  List(egressPort1.id).asJava,
                                  new JHashSet[FlowTag](),
                                  new ArrayList[Callback0])
         sender.pushState(dpChannel)
         natTx.commit()
         connTrackTx.commit()
+        traceTx.commit()
         natTx.flush()
         connTrackTx.flush()
+        traceTx.flush()
+
         packetsSeen should not be empty
         val passedPacketsSeen = packetsSeen
         acceptPushedState()
@@ -258,7 +284,8 @@ class FlowStateReplicatorTest extends FeatureSpec
             }
 
             When("The transaction is added to the replicator")
-            sender.accumulateNewKeys(connTrackTx, natTx, ingressPortNoGroup.id,
+            sender.accumulateNewKeys(connTrackTx, natTx, traceTx,
+                                     ingressPortNoGroup.id,
                                      List(egressPortNoGroup.id).asJava,
                                      new JHashSet[FlowTag](),
                                      new ArrayList[Callback0])
@@ -276,6 +303,24 @@ class FlowStateReplicatorTest extends FeatureSpec
                 sender.natTable.get(k) should equal (v)
             }
         }
+
+        scenario("Replicate trace keys") {
+            Given("A set of trace keys")
+            for ((k, v) <- traces) {
+                traceTx.putAndRef(k, v)
+            }
+
+            When("The transaction is added to the replicator and sent")
+            sendAndAcceptTransactions()
+
+            Then("The trace keys should appear at the other side")
+            for ((k, v) <- traces) {
+                log.info("k {} v {} get {} sender {}", k, v,
+                         recipient.traceTable.get(k),
+                         sender.traceTable.get(k))
+                recipient.traceTable.get(k) should equal (v)
+            }
+        }
     }
 
     feature("Unref callbacks are correctly added") {
@@ -288,7 +333,8 @@ class FlowStateReplicatorTest extends FeatureSpec
 
             When("The transaction is commited and added to the replicator")
             connTrackTx.commit()
-            sender.accumulateNewKeys(connTrackTx, natTx, ingressPort.id,
+            sender.accumulateNewKeys(connTrackTx, natTx, traceTx,
+                                     ingressPort.id,
                                      List(egressPort1.id).asJava,
                                      new JHashSet[FlowTag](), callbacks)
 
@@ -316,8 +362,8 @@ class FlowStateReplicatorTest extends FeatureSpec
 
             When("The transaction is commited and added to the replicator")
             natTx.commit()
-            sender.accumulateNewKeys(connTrackTx, natTx, ingressPort.id,
-                List(egressPort1.id).asJava,
+            sender.accumulateNewKeys(connTrackTx, natTx, traceTx,
+                ingressPort.id, List(egressPort1.id).asJava,
                 new JHashSet[FlowTag](), callbacks)
 
             Then("The unref callbacks should have been correctly added")
@@ -330,6 +376,34 @@ class FlowStateReplicatorTest extends FeatureSpec
             (0 to 1) foreach { callbacks.get(_).call() }
             (0 to 1) map { natMappings.drop(_).head._1 } foreach { key =>
                 sender.natTable.unrefedKeys should contain (key)
+            }
+        }
+
+        scenario("For trace keys") {
+            Given("A trace key and a trace ref() in a transaction")
+            traceTx.putAndRef(traces.head._1, traces.head._2)
+            val secondTrace = traces.drop(1).head
+            sender.traceTable.putAndRef(secondTrace._1, secondTrace._2)
+            traceTx.ref(secondTrace._1)
+
+            val callbacks = new ArrayList[Callback0]
+
+            When("The transaction is committed and added to the replicator")
+            traceTx.commit()
+            sender.accumulateNewKeys(connTrackTx, natTx, traceTx, ingressPort.id,
+                                     List(egressPort1.id).asJava,
+                                     new JHashSet[FlowTag](), callbacks)
+
+            Then("The unref callbacks should have been correctly added")
+
+            callbacks should have size 2
+            (0 to 1) map { traces.drop(_).head._1 } foreach { key =>
+                sender.traceTable.unrefedKeys should not contain (key)
+            }
+
+            (0 to 1) foreach { callbacks.get(_).call() }
+            (0 to 1) map { traces.drop(_).head._1 } foreach { key =>
+                sender.traceTable.unrefedKeys should contain (key)
             }
         }
     }
@@ -401,6 +475,19 @@ class FlowStateReplicatorTest extends FeatureSpec
             recipient.invalidatedKeys should have length (1)
             recipient.invalidatedKeys should contain (k)
         }
+
+        scenario("For trace keys") {
+            Given("A trace key")
+            val (k, v) = traces.head
+            traceTx.putAndRef(k, v)
+
+            When("A host received it from a peer")
+            sendAndAcceptTransactions()
+
+            Then("Flows tagged with it should be invalidated")
+            recipient.invalidatedKeys should have length (1)
+            recipient.invalidatedKeys should contain (k)
+        }
     }
 }
 
@@ -410,9 +497,11 @@ class TestableFlowStateReplicator(
         val underlay: UnderlayResolver) extends {
     val conntrackTable = new MockFlowStateTable[ConnTrackKey, ConnTrackValue]()
     val natTable = new MockFlowStateTable[NatKey, NatBinding]()
+    val traceTable = new MockFlowStateTable[TraceKey, TraceContext]()
     val invalidatedKeys = mutable.MutableList[FlowStateTag]()
     val invalidateFlowsFor: (FlowStateTag) => Unit = invalidatedKeys.+=
-} with BaseFlowStateReplicator(conntrackTable, natTable, new MockStateStorage,
+} with BaseFlowStateReplicator(conntrackTable, natTable, traceTable,
+                               new MockStateStorage,
                                underlay, invalidateFlowsFor,
                                0) {
 

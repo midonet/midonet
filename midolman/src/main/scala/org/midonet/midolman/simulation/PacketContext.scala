@@ -203,7 +203,6 @@ class PacketContext(val cookie: Int,
                     val packet: Packet,
                     val origMatch: FlowMatch,
                     val egressPort: UUID = null) extends Clearable with FlowContext with StateContext {
-    var tracing: JSet[UUID] = new HashSet[UUID]
     var log = PacketContext.defaultLog
 
     def jlog = log.underlying
@@ -257,7 +256,7 @@ class PacketContext(val cookie: Int,
 
     override def clear(): Unit = {
         super.clear()
-        tracing.clear()
+        wcmatch.reset(origMatch)
     }
 
     def prepareForSimulation(lastInvalidationSeen: Long) {
@@ -276,8 +275,6 @@ class PacketContext(val cookie: Int,
     def postpone() {
         idle = true
         clear()
-        runFlowRemovedCallbacks()
-        wcmatch.reset(origMatch)
         inputPort = null
     }
 

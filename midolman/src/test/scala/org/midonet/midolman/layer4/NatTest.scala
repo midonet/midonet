@@ -50,6 +50,7 @@ import org.midonet.midolman.state.{FlowState, HappyGoLuckyLeaser}
 import org.midonet.midolman.state.{MockStateStorage, NatState}
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackKey, ConnTrackValue}
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
+import org.midonet.midolman.state.TraceState.{TraceKey, TraceContext}
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.topology.devices.{BridgePort => TopBrPort}
 import org.midonet.midolman.topology.rcu.ResolvedHost
@@ -1011,6 +1012,7 @@ class NatTest extends MidolmanSpec {
         new CookieGenerator(1, 1), mockDpChannel, clusterDataClient,
         new ShardedFlowStateTable[ConnTrackKey, ConnTrackValue](clock).addShard(),
         new ShardedFlowStateTable[NatKey, NatBinding](clock).addShard(),
+        new ShardedFlowStateTable[TraceKey, TraceContext](clock).addShard(),
         new MockStateStorage(), HappyGoLuckyLeaser,
         new PacketPipelineMetrics(injector.getInstance(classOf[MetricRegistry])),
         x => Unit)

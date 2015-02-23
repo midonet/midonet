@@ -43,6 +43,7 @@ import org.midonet.midolman.state.ConnTrackState.{ConnTrackKey, ConnTrackValue}
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
 import org.midonet.midolman.state._
 import org.midonet.midolman.state.{FlowStatePackets, FlowStateReplicator, FlowStateStorage, NatLeaser}
+import org.midonet.midolman.state.TraceState.{TraceKey, TraceContext}
 import org.midonet.odp.{FlowMatches, FlowMatch, Packet}
 import org.midonet.packets.Ethernet
 import org.midonet.sdn.state.{FlowStateTable, FlowStateTransaction}
@@ -72,6 +73,7 @@ class DeduplicationActor(
             val clusterDataClient: DataClient,
             val connTrackStateTable: FlowStateTable[ConnTrackKey, ConnTrackValue],
             val natStateTable: FlowStateTable[NatKey, NatBinding],
+            val traceStateTable: FlowStateTable[TraceKey, TraceContext],
             val storage: FlowStateStorage,
             val natLeaser: NatLeaser,
             val metrics: PacketPipelineMetrics,
@@ -102,6 +104,7 @@ class DeduplicationActor(
 
     protected val connTrackTx = new FlowStateTransaction(connTrackStateTable)
     protected val natTx = new FlowStateTransaction(natStateTable)
+    protected val traceStateTx = new FlowStateTransaction(traceStateTable)
     protected var replicator: FlowStateReplicator = _
 
     protected var workflow: PacketHandler = _
@@ -126,6 +129,7 @@ class DeduplicationActor(
             dpState = state
             replicator = new FlowStateReplicator(connTrackStateTable,
                                                  natStateTable,
+                                                 traceStateTable,
                                                  storage,
                                                  dpState,
                                                  FlowController ! InvalidateFlowsByTag(_),
@@ -146,6 +150,7 @@ class DeduplicationActor(
             connTrackStateTable.expireIdleEntries((), invalidateExpiredConnTrackKeys)
             natStateTable.expireIdleEntries((), invalidateExpiredNatKeys)
             natLeaser.obliterateUnusedBlocks()
+            traceStateTable.expireIdleEntries()
 
             var i = 0
             while (i < packets.length && packets(i) != null) {
@@ -200,7 +205,7 @@ class DeduplicationActor(
         log.debug(s"Creating new PacketContext for cookie $cookie")
         val context = new PacketContext(cookie, packet, fmatch, egressPort)
         context.reset(cbExecutor, genPacketEmitter)
-        context.initialize(connTrackTx, natTx, natLeaser)
+        context.initialize(connTrackTx, natTx, natLeaser, traceStateTx)
         context.log = PacketTracing.loggerFor(fmatch)
         context
     }
@@ -327,6 +332,7 @@ class DeduplicationActor(
             case TraceRequiredException =>
                 pktCtx.log.debug(s"Enabling trace for $pktCtx, and rerunning simulation")
                 MDC.put(TraceLoggingContextKey, pktCtx.tracingContext)
+                pktCtx.prepareForSimulationWithTracing
                 runWorkflow(pktCtx)
             case NotYetException(f, msg) =>
                 pktCtx.log.debug(s"Postponing simulation because: $msg")
@@ -360,5 +366,10 @@ class DeduplicationActor(
     private def flushTransactions(): Unit = {
         connTrackTx.flush()
         natTx.flush()
+
+        // Note that trace state cannot be flushed with the rest of the state
+        // as the trace request ids need to persist across calls to
+        // workflow.start(pktCtx). It gets flushed in PacketContext#clear()
+        // instead
     }
 }
