@@ -21,7 +21,7 @@ import java.util.concurrent.atomic.AtomicLong
 import com.typesafe.scalalogging.Logger
 
 import org.midonet.midolman.layer3.Route
-import org.midonet.midolman.topology.RoutingTableWrapper
+import org.midonet.midolman.simulation.Router.RoutingTable
 import org.midonet.odp.FlowMatch
 import org.midonet.packets.IPAddr
 
@@ -29,7 +29,7 @@ import org.midonet.packets.IPAddr
  * Handles lookups on the routing table. If multiple routes match, chooses
  * one in a pseudo-random way, to provide basic balancing.
  */
-class RouteBalancer[IP <: IPAddr](val rTable: RoutingTableWrapper[IP]) {
+class RouteBalancer[IP <: IPAddr](val rTable: RoutingTable) {
     val lookups: AtomicLong = new AtomicLong()
 
     def lookup(mmatch: FlowMatch, logger: Logger): Route = {

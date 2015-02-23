@@ -57,7 +57,7 @@ class HostMapperTest extends MidolmanSpec
     }
 
     private def assertThread(): Unit = {
-        assert(vt.threadId == Thread.currentThread.getId)
+        assert(vt.vtThreadId == Thread.currentThread.getId)
     }
 
     feature("A host should come with its tunnel zones membership") {
