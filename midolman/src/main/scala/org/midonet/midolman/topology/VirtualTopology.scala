@@ -16,12 +16,14 @@
 package org.midonet.midolman.topology
 
 import java.util.UUID
+import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.{ConcurrentHashMap, Executors, ThreadFactory}
 
 import scala.concurrent.{Future, Promise}
 import scala.reflect._
 
 import com.google.inject.Inject
+
 import rx.Observable
 import rx.schedulers.Schedulers
 
@@ -32,11 +34,13 @@ import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.midolman.services.MidolmanActorsService
-import org.midonet.midolman.simulation.Bridge
+import org.midonet.midolman.simulation.{Bridge, Router}
 import org.midonet.midolman.state.ZkConnectionAwareWatcher
 import org.midonet.midolman.topology.devices._
 import org.midonet.midolman.{FlowController, NotYetException}
 import org.midonet.sdn.flows.FlowTagger.FlowTag
+import org.midonet.util.executors.SameThreadExecutor
+import org.midonet.util.functors.makeRunnable
 import org.midonet.util.reactivex._
 
 /**
@@ -167,16 +171,27 @@ class VirtualTopology @Inject() (val backend: MidonetBackend,
 
     override def logSource = "org.midonet.devices.devices-service"
 
-    @volatile private[topology] var threadId: Long = _
-    private[topology] val executor = Executors.newSingleThreadExecutor(
+    @volatile private[topology] var vtThreadId: Long = _
+    private val vtExecutor = Executors.newSingleThreadExecutor(
         new ThreadFactory {
             override def newThread(r: Runnable): Thread = {
                 val thread = new Thread(r, "devices-service")
-                threadId = thread.getId
+                vtThreadId = thread.getId
                 thread
             }
         })
-    private[topology] val scheduler = Schedulers.from(executor)
+    private[topology] val vtScheduler = Schedulers.from(vtExecutor)
+
+    private val ioThreadIndex = new AtomicInteger()
+    private val ioExecutorFactory = new ThreadFactory {
+        override def newThread(r: Runnable): Thread = {
+            new Thread(r, s"devices-io-${ioThreadIndex.getAndIncrement}")
+        }
+    }
+    private val ioExecutor =
+        if (config.getTopologyAsyncIo)
+            Executors.newCachedThreadPool(ioExecutorFactory)
+        else SameThreadExecutor
 
     private[topology] val devices =
         new ConcurrentHashMap[UUID, Device]()
@@ -190,7 +205,8 @@ class VirtualTopology @Inject() (val backend: MidonetBackend,
         classTag[VxLanPort] -> (new PortMapper(_, this)),
         classTag[TunnelZone] -> (new TunnelZoneMapper(_, this)),
         classTag[Host] -> (new HostMapper(_, this)),
-        classTag[Bridge] -> (new BridgeMapper(_, this)(actorsService.system))
+        classTag[Bridge] -> (new BridgeMapper(_, this)(actorsService.system)),
+        classTag[Router] -> (new RouterMapper(_, this)(actorsService.system))
     )
 
     register(this)
@@ -219,5 +235,41 @@ class VirtualTopology @Inject() (val backend: MidonetBackend,
 
     private[topology] def invalidate(tag: FlowTag): Unit = {
         FlowController.getRef()(actorsService.system) ! InvalidateFlowsByTag(tag)
+    }
+
+    /** Safely executes a task on the virtual topology thread. */
+    private[topology] def executeVt(task: => Unit) = {
+        vtExecutor.execute(makeRunnable {
+            try {
+                task
+            } catch {
+                case e: Throwable =>
+                    log.error("Uncaught exception on topology thread.", e)
+            }
+        })
+    }
+
+    /** Safely executes a task on the IO thread(s). */
+    private[topology] def executeIo(task: => Unit) = {
+        ioExecutor.execute(makeRunnable {
+            try {
+                task
+            } catch {
+                case e: Throwable =>
+                    log.error("Uncaught exception on topology IO thread.", e)
+            }
+        })
+    }
+
+    /**
+     * Checks that this method is executed on the virtual topology thread.
+     */
+    @throws[DeviceMapperException]
+    @inline private[topology] def assertThread(): Unit = {
+        if (vtThreadId != Thread.currentThread.getId) {
+            throw new DeviceMapperException(
+                s"Call expected on thread $vtThreadId but received on " +
+                s"${Thread.currentThread().getId}")
+        }
     }
 }

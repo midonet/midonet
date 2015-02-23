@@ -20,7 +20,7 @@ import java.util.UUID
 import scala.collection.mutable
 import scala.reflect.ClassTag
 
-import akka.actor.{ActorRef, Actor}
+import akka.actor.{Actor, ActorRef}
 
 import com.google.inject.Inject
 
@@ -28,9 +28,9 @@ import rx.Subscriber
 
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.midolman.logging.MidolmanLogging
-import org.midonet.midolman.simulation.Bridge
+import org.midonet.midolman.simulation.{Bridge, Router}
 import org.midonet.midolman.topology.VirtualTopology.Device
-import org.midonet.midolman.topology.VirtualTopologyActor.{BridgeRequest, Unsubscribe, PortRequest, DeviceRequest}
+import org.midonet.midolman.topology.VirtualTopologyActor.{BridgeRequest, DeviceRequest, PortRequest, RouterRequest, Unsubscribe}
 import org.midonet.midolman.topology.devices.Port
 
 /**
@@ -136,6 +136,9 @@ abstract class VirtualTopologyRedirector extends Actor with MidolmanLogging {
         case r: BridgeRequest =>
             log.debug("Request for bridge {}", r.id)
             onRequest[Bridge](r)
+        case r: RouterRequest =>
+            log.debug("Request for bridge {}", r.id)
+            onRequest[Router](r)
         case u: Unsubscribe =>
             log.debug("Unsubscribe for device {} from {}", u.id, sender())
             onUnsubscribe(u.id, sender())
