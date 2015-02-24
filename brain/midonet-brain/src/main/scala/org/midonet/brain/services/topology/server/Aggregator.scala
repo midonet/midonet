@@ -16,7 +16,9 @@
 
 package org.midonet.brain.services.topology.server
 
+import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicBoolean
 
 import scala.collection.JavaConversions._
 
@@ -32,12 +34,16 @@ import org.midonet.util.functors.{makeAction0, makeFunc1}
  * An Aggregator is an aggregation component that groups a bunch of individual
  * observables. It exposes a protected API to manipulate the aggregation,
  * adding or removing observables transparently to subscribers.
+ * The completion and errors in the individual observables are not propagated
+ * to the aggregated observable; therefore, any completion/error notifications
+ * should be converted into an 'onNext' event in order to reach the final
+ * subscriber.
  * NOTE: data from observables added before a particular subscriber is
  * subscribed is ignored.
  *
- * @param KEY is the observable Id type (the key to distinguish the 'source'
+ * @tparam KEY is the observable Id type (the key to distinguish the 'source'
  *            observables)
- * @param TYPE is the type of the elements emitted by the observables
+ * @tparam TYPE is the type of the elements emitted by the observables
  */
 class Aggregator[KEY,TYPE] {
     private val log = LoggerFactory.getLogger(classOf[Aggregator[KEY, TYPE]])
@@ -52,38 +58,50 @@ class Aggregator[KEY,TYPE] {
 
     /* The index of subscriptions for each Observable key */
     type Terminator = ConnectableObservable[Null]
-    private val sources = new ConcurrentHashMap[KEY, Terminator]()
+    case class SourceControl(terminator: Terminator, owner: UUID)
+    private val sources = new ConcurrentHashMap[KEY, SourceControl]()
 
     /* Indicate that the collector has been disposed of */
-    /* Note: changes are protected via 'sources.synchronized' */
-    @volatile
-    private var disposed = false
+    private val disposed = new AtomicBoolean(false)
 
     /** subscribe to the funnel */
     def observable(): Observable[TYPE] = stream
 
-    /** Add the given Observable into the Aggregator */
-    def add(key: KEY, o: Observable[_ <: TYPE]): Unit = sources.synchronized
-    {
-        lazy val terminator: Terminator = Observable.just(null).publish()
-        lazy val src = o.asInstanceOf[Observable[TYPE]].takeUntil(terminator)
-            .onErrorResumeNext(makeFunc1[Throwable, Observable[TYPE]](err => {
+    /** Add the given Observable into the Aggregator; it returns the owner
+      * of the entry, if it already exists, or the new owner, if successfully
+      * set; completion and error events are not propagated to the aggregated
+      * observable */
+    def add(key: KEY, o: Observable[_ <: TYPE], owner: UUID): UUID = {
+        if (disposed.get())
+            throw new IllegalStateException(
+                "observable aggregator already disposed")
+
+        val terminator: Terminator = Observable.just(null).publish()
+        val previous = sources.putIfAbsent(key, SourceControl(terminator, owner))
+        if (previous == null) {
+            val src = o.asInstanceOf[Observable[TYPE]].takeUntil(terminator)
+                .onErrorResumeNext(makeFunc1[Throwable, Observable[TYPE]](err => {
                 log.error("error in aggregated observable: " + key, err)
                 Observable.empty()
-            }))
-            .doOnCompleted(makeAction0({drop(key)}))
-
-        if (!disposed && !sources.containsKey(key)) {
-            sources.put(key, terminator)
+            })).doOnCompleted(makeAction0({drop(key)}))
             collector.onNext(src)
+            // rollback on dispose (make sure the observable is removed)
+            if (disposed.get()) {
+                // This connect ensures that the observable is completed
+                terminator.connect()
+                drop(key)
+            }
+            owner
+        } else {
+            previous.owner
         }
     }
 
     /** Remove observables from the Aggregator */
-    def drop(what: KEY): Unit = sources.synchronized {
-        val terminator = sources.remove(what)
-        if (terminator != null) {
-            terminator.connect()
+    def drop(what: KEY): Unit = {
+        val controller = sources.remove(what)
+        if (controller != null) {
+            controller.terminator.connect()
         }
     }
 
@@ -91,16 +109,20 @@ class Aggregator[KEY,TYPE] {
       * completing the collected observables (implicitly releasing the
       * underlying subscriptions) and triggering  the completion of the
       * output funnel */
-    def dispose(): Unit = sources.synchronized {
-        disposed = true
-        sources.values().foreach { _.connect() }
-        collector.onCompleted()
+    def dispose(): Unit = {
+        if (disposed.compareAndSet(false, true)) {
+            // Note that a sources.clear() is not needed, since
+            // connecting the terminator triggers the observable's
+            // onComplete action, that removes its entry from sources
+            sources.values() foreach {_.terminator.connect()}
+            collector.onCompleted()
+        }
     }
 
     /** Allows injecting a single message into the outbound funnel,
       * as long as the Aggregator is not disposed */
     def inject(m: TYPE): Unit = {
-        if (!disposed)
+        if (!disposed.get())
             collector.onNext(Observable.just(m))
     }
 }
