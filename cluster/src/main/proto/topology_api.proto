@@ -67,10 +67,23 @@ option java_outer_classname = "Commands";
 // After sending the Get command, the client may receive:
 //   - A "Response" message containing a "Nack", if the Get request was
 //     unsuccessful (e.g. trying to get data about a non-existing id).
-//   - One or more "Response" messages containing either "Update" or "Deletion"
-//     responses, corresponding to the requested items.
-// Note that subscriptions are idempotent: multiple subscriptions on the same
-// entities do not result in multiple copies of the updates.
+//   - A "Response" message containing an "Ack", if the Get request was
+//     correctly received and processed. Note that "Ack" indicates that the
+//     request was correct, but not necessarily that it was 'successful' (e.g.
+//     a subscription to a specific entity may return an 'ack' for the
+//     subscription, followed by an 'error' indicating that the specific
+//     entity does not exist).
+//     The non-subscription queries may return the 'ack' piggy-backed with
+//     the data, indicating the request id in the response.
+//   - One or more "Response" messages containing either "Update", "Deletion"
+//     or "Snapshot" responses, corresponding to the requested items.
+//   - An "Error" message indicating that something failed in the operation
+//     (for example, trying to watch a single entity that does not exist, or
+//     a loss of connection to the storage backend).
+// Note that subscriptions are idempotent: multiple subscriptions to the same
+// entities do not result in multiple copies of the updates. In this case,
+// a "Redirect" message is sent, indicating the original request id for that
+// repeated subscription.
 //
 // A subscription can be revoked with a "Request" message containing an
 // "Unsubscribe" command. Apart from the compulsory "req_id" and "type"
@@ -89,25 +102,10 @@ option java_outer_classname = "Commands";
 // subscriptions for that client and terminates the session.
 // Note that a session terminated with a "Bye" request cannot be resumed
 // in a new connection.
-// After sending the "Bye" command, the client will receive
-//   - A "Response" message containing an "Ack", indicating that the
-//       termination command has been processed by the server.
-// After sending the Bye Ack message, the server may or may not terminate
-// the connection. In any case, it is safe for the client to disconnect
-// after receiving the Ack.
+// After sending the Bye Ack message, the server should terminate
+// the connection.
 //
 
-
-
-// Used to accommodate different types of ids for different types of topology
-// entities.
-message ID {
-    oneof id {
-        string name = 1;
-        UUID uuid = 2;
-        string strId = 3; // Vteps have string ids
-    }
-}
 
 // Used by clients to communicate commands to the cluster serving the
 // Midonet topology. The first message after opening the connection must
@@ -131,28 +129,23 @@ message Request {
     message Get { // Ask the cluster to provide the given entities
         required UUID req_id = 1;               // Request id
         required Type type = 2;                 // Entities of this type..
-        optional ID id = 3;                     // .. and id (which MUST
-                                                // match the format for the
-                                                // specific Topology.Type)
+        optional UUID id = 3;                   // .. and id (which MUST
         optional bool subscribe = 4;            // .. and subscribe
     }
     message Unsubscribe { // Tell cluster to NOT send updates about it
         required UUID req_id = 1;        // Request id
         required Type type = 2;          // Type of the entity
-        optional ID id = 3;              // Id of the entity, if not
+        optional UUID id = 3;            // Id of the entity, if not
                                          // set, all the objects of type;
-                                         // Must match the format for the
-                                         // specific Topology.Type
     }
     message Bye {   // Tell the cluster we're dropping the cnxn
         required UUID req_id = 1;
     }
     oneof request {
-        string name = 1;
-        Handshake handshake = 2;      // Connect to the cluster
-        Get get = 3;                  // Subscribe to some entities
-        Unsubscribe unsubscribe = 4;  // Unsubscribe from some entities
-        Bye bye = 5;                  // Disconnect from the cluster
+        Handshake handshake = 1;      // Connect to the cluster
+        Get get = 2;                  // Get/Subscribe to some entities
+        Unsubscribe unsubscribe = 3;  // Unsubscribe from some entities
+        Bye bye = 4;                  // Disconnect from the cluster
     }
 }
 
@@ -165,21 +158,29 @@ message Request {
 //         copy of the data every time that the cluster becomes aware of
 //         a change in the entity (including deletions).
 // - Bye: not replied, the client can consider it a fire-and-forget
+
+// Response types
+enum ResponseType {
+    ACK = 1;      // Request has been accepted
+    REDIRECT = 2; // Redirect to a previous equivalent request
+    NACK = 3;     // Request has been denied
+    ERROR = 4;    // Error condition
+    DELETION = 5; // Object deleted
+    UPDATE = 6;   // Object updated
+    SNAPSHOT = 7; // Object id list
+}
+
 message Response {
-    message Ack {      // acknowledge request req_id
-        required UUID req_id = 1;  // Id of the request we're ack'ing
+    message Redirect {
+        optional UUID original_req_id = 1;
     }
-    message NAck {      // don't acknowledge request req_id
-        required UUID req_id = 1; // Id of the request we're ack'ing
-    }
-    message Deletion { // entity with the given id/type is no more
-        required ID id = 1; // MUST match the id format for the Topology.Type
-        required Type type = 2;
+    message Info {
+        optional string msg = 1; // Informational message (for error conditions)
     }
     message Update {          // the latest known state of an entity
         oneof update {
-            string name = 1;
-            Chain chain = 2;
+            Chain chain = 1;
+            Dhcp dhcp = 2;
             Host host = 3;
             IpAddrGroup ip_addr_group = 4;
             Network network = 5;
@@ -193,12 +194,20 @@ message Response {
             VtepBinding vtep_binding = 13;
         }
     }
-    optional int64 seqno = 1; // Session sequence number
-    oneof response {
-        string name = 2;
-        Ack ack = 3;
-        NAck nack = 4;
-        Deletion deletion = 5;
+    message Snapshot {
+        repeated UUID obj_ids = 1;
+    }
+
+    required ResponseType type = 1;
+    optional int64 seqno = 2;   // Session sequence number
+    optional UUID req_id = 3;   // Request-specific indicator (used to
+                                // piggy-back acks on non-subscription requests)
+    optional Type obj_type = 4; // Referred object type (for deletion/update)
+    optional UUID obj_id = 5;   // Referred object id (for deletion/update)
+    oneof payload {
         Update update = 6;
+        Snapshot snapshot = 7;
+        Redirect redirect = 8;
+        Info info = 9;
     }
 }
