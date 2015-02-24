@@ -231,7 +231,7 @@ class FlowsExpirationTestCase extends MidolmanTestCase
         // the lastUsedTime
         setFlowLastUsedTimeToNow(flow.getMatch)
 
-        flowUpdateProbe.expectMsgClass(classOf[FlowUpdateCompleted])
+        flowUpdateProbe.expectMsg(FlowUpdateCompleted)
         // wait for FlowRemoval notification
         ackWCRemoved(Duration(timeOutFlow, TimeUnit.SECONDS))
 
@@ -307,7 +307,7 @@ class FlowsExpirationTestCase extends MidolmanTestCase
         setFlowLastUsedTimeToNow(flow.getMatch)
         // expect that the FlowController requests an update for this flow
         // because (timeLived > timeout/2) and that the update will be received
-        flowUpdateProbe.expectMsgClass(classOf[FlowUpdateCompleted])
+        flowUpdateProbe.expectMsg(FlowUpdateCompleted)
         // wait for flow expiration
         ackWCRemoved(Duration(timeOutFlow, TimeUnit.SECONDS))
 

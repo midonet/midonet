@@ -20,7 +20,9 @@ import java.nio.ByteBuffer;
 
 import com.google.common.primitives.Longs;
 
-public class FlowStats {
+import org.midonet.netlink.NetlinkSerializable;
+
+public class FlowStats extends NetlinkSerializable {
 
     /** Number of matched packets. */
     /*__u64*/ public long packets;
@@ -88,5 +90,12 @@ public class FlowStats {
         long packets = buf.getLong();
         long bytes = buf.getLong();
         return new FlowStats(packets, bytes);
+    }
+
+    @Override
+    public int serializeInto(ByteBuffer buffer) {
+        buffer.putLong(packets);
+        buffer.putLong(bytes);
+        return 16;
     }
 }
