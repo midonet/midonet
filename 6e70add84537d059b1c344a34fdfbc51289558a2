@@ -22,6 +22,30 @@
       "revId": "6e70add84537d059b1c344a34fdfbc51289558a2",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_b935f2dc",
+        "filename": "midolman/src/main/java/org/midonet/midolman/rules/JumpRule.java",
+        "patchSetId": 27
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-24T09:23:59Z",
+      "side": 1,
+      "message": "roll-backed the change.",
+      "parentUuid": "7a1969be_c2b0bc8d",
+      "range": {
+        "startLine": 36,
+        "startChar": 25,
+        "endLine": 36,
+        "endChar": 36
+      },
+      "revId": "6e70add84537d059b1c344a34fdfbc51289558a2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
