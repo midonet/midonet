@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_8687f1d6",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/InMemoryStorage.scala",
+        "patchSetId": 33
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-24T08:04:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_86453119",
+      "revId": "e3cfb14e8b9535aa012a451dba601264a722a527",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_e64b4529",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/InMemoryStorage.scala",
         "patchSetId": 33
@@ -30,6 +48,24 @@
       "writtenOn": "2015-02-24T03:40:16Z",
       "side": 1,
       "message": "A stylistic comment. It\u0027s an implementation comment, so /* */ style comment is more appropriate?",
+      "revId": "e3cfb14e8b9535aa012a451dba601264a722a527",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_c668c923",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/InMemoryStorage.scala",
+        "patchSetId": 33
+      },
+      "lineNbr": 140,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-24T08:04:10Z",
+      "side": 1,
+      "message": "Then this also apply to the other comments, right?",
+      "parentUuid": "7a1969be_e64b4529",
       "revId": "e3cfb14e8b9535aa012a451dba601264a722a527",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -59,6 +95,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_e66d0534",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/InMemoryStorage.scala",
+        "patchSetId": 33
+      },
+      "lineNbr": 174,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-24T08:04:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_c6460921",
+      "range": {
+        "startLine": 174,
+        "startChar": 12,
+        "endLine": 174,
+        "endChar": 16
+      },
+      "revId": "e3cfb14e8b9535aa012a451dba601264a722a527",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_c66d699b",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
         "patchSetId": 33
@@ -70,6 +130,30 @@
       "writtenOn": "2015-02-24T03:40:16Z",
       "side": 1,
       "message": "Isn\u0027t the following more readable?\n\nopForException(ops, e) match {\n    case (key , oop): (Key, TxOwnerOp) \u003d\u003e\n        throw new OwnershipConflictException(\n                        key.clazz.getSimpleName, key.id.toString,\n                        Set.empty[String], oop.owner)\n    case _ \u003d\u003e\n        throw new ObjectExistsException(key.clazz, key.id)\n}\n\nI guess it\u0027s a matter of taste...",
+      "range": {
+        "startLine": 298,
+        "startChar": 12,
+        "endLine": 299,
+        "endChar": 25
+      },
+      "revId": "e3cfb14e8b9535aa012a451dba601264a722a527",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_a684add4",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 33
+      },
+      "lineNbr": 299,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-24T08:04:10Z",
+      "side": 1,
+      "message": "Agree",
+      "parentUuid": "7a1969be_c66d699b",
       "range": {
         "startLine": 298,
         "startChar": 12,
