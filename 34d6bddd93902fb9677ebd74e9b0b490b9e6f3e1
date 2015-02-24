@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_5c382ca0",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/BridgeMapperTest.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 976,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-24T17:55:54Z",
+      "side": 1,
+      "message": "Tab",
+      "revId": "34d6bddd93902fb9677ebd74e9b0b490b9e6f3e1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_9c42a40e",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/BridgeMapperTest.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 1434,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-24T17:55:54Z",
+      "side": 1,
+      "message": "To do",
+      "range": {
+        "startLine": 1416,
+        "startChar": 4,
+        "endLine": 1434,
+        "endChar": 5
+      },
+      "revId": "34d6bddd93902fb9677ebd74e9b0b490b9e6f3e1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
