@@ -292,10 +292,11 @@ message TunnelZone {
 }
 
 message Vtep {
-    optional string id = 1;         // This is actually an IP address.
-    optional uint32 management_port = 2;
-    optional UUID tunnel_zone_id = 3;
-    repeated string tunnel_ips = 4;
+    optional UUID id = 1;
+    optional IPAddress management_ip = 2;
+    optional uint32 management_port = 3;
+    optional UUID tunnel_zone_id = 4;
+    repeated string tunnel_ips = 5;
 
     repeated UUID bindings = 101;   // A back-ref to VTEP bindings.
 }
