@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_398c6235",
+        "filename": "cluster/src/main/proto/topology.proto",
+        "patchSetId": 28
+      },
+      "lineNbr": 207,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-24T13:18:54Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_b96332dc",
+      "range": {
+        "startLine": 207,
+        "startChar": 8,
+        "endLine": 207,
+        "endChar": 20
+      },
+      "revId": "2a8ac247e1d82855cfd275f13592f054daa148f0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_595f9ee5",
         "filename": "midolman/src/test/scala/org/midonet/midolman/topology/TopologyBuilder.scala",
         "patchSetId": 28
@@ -36,6 +60,30 @@
       "writtenOn": "2015-02-24T10:58:39Z",
       "side": 1,
       "message": "Why not make these java.utilUUID, to save us the conversion in the unit tests?",
+      "range": {
+        "startLine": 214,
+        "startChar": 47,
+        "endLine": 214,
+        "endChar": 59
+      },
+      "revId": "2a8ac247e1d82855cfd275f13592f054daa148f0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_d9954e41",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/TopologyBuilder.scala",
+        "patchSetId": 28
+      },
+      "lineNbr": 214,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-24T13:18:54Z",
+      "side": 1,
+      "message": "sure",
+      "parentUuid": "7a1969be_595f9ee5",
       "range": {
         "startLine": 214,
         "startChar": 47,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_99ac76a2",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/TopologyBuilder.scala",
+        "patchSetId": 28
+      },
+      "lineNbr": 238,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-24T13:18:54Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_d9af0ee2",
+      "range": {
+        "startLine": 238,
+        "startChar": 18,
+        "endLine": 238,
+        "endChar": 35
+      },
+      "revId": "2a8ac247e1d82855cfd275f13592f054daa148f0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_99591601",
         "filename": "midolman/src/test/scala/org/midonet/midolman/topology/TopologyBuilder.scala",
         "patchSetId": 28
@@ -82,6 +154,30 @@
       "writtenOn": "2015-02-24T10:58:39Z",
       "side": 1,
       "message": "As for previous methods, should we make these non-essential arguments Option[...], indicating whether the fields are set. This allows us to test the cases when some fields are not set.",
+      "range": {
+        "startLine": 245,
+        "startChar": 55,
+        "endLine": 245,
+        "endChar": 67
+      },
+      "revId": "2a8ac247e1d82855cfd275f13592f054daa148f0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_19a0869e",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/TopologyBuilder.scala",
+        "patchSetId": 28
+      },
+      "lineNbr": 245,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-24T13:18:54Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_99591601",
       "range": {
         "startLine": 245,
         "startChar": 55,
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_b990524f",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/TopologyBuilder.scala",
+        "patchSetId": 28
+      },
+      "lineNbr": 246,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-24T13:18:54Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_3962a2ad",
+      "range": {
+        "startLine": 246,
+        "startChar": 46,
+        "endLine": 246,
+        "endChar": 50
+      },
+      "revId": "2a8ac247e1d82855cfd275f13592f054daa148f0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_795c1aee",
         "filename": "midolman/src/test/scala/org/midonet/midolman/topology/TopologyBuilder.scala",
         "patchSetId": 28
@@ -140,6 +260,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_f99aca6c",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/TopologyBuilder.scala",
+        "patchSetId": 28
+      },
+      "lineNbr": 262,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-24T13:18:54Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_795c1aee",
+      "range": {
+        "startLine": 262,
+        "startChar": 41,
+        "endLine": 262,
+        "endChar": 61
+      },
+      "revId": "2a8ac247e1d82855cfd275f13592f054daa148f0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_19ba4623",
         "filename": "midolman/src/test/scala/org/midonet/midolman/topology/TopologyBuilder.scala",
         "patchSetId": 28
@@ -151,6 +295,30 @@
       "writtenOn": "2015-02-24T09:47:54Z",
       "side": 1,
       "message": "Missing space.",
+      "range": {
+        "startLine": 264,
+        "startChar": 5,
+        "endLine": 264,
+        "endChar": 6
+      },
+      "revId": "2a8ac247e1d82855cfd275f13592f054daa148f0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_59895e25",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/TopologyBuilder.scala",
+        "patchSetId": 28
+      },
+      "lineNbr": 264,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-24T13:18:54Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_19ba4623",
       "range": {
         "startLine": 264,
         "startChar": 5,
