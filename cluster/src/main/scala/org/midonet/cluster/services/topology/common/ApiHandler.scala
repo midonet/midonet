@@ -44,14 +44,14 @@ class ApiHandler[Expected <: Message](private val observer: Observer[CommEvent])
     extends SimpleChannelInboundHandler[Expected] {
     private val log = LoggerFactory.getLogger(classOf[ApiHandler[Expected]])
 
-    override def channelRegistered(ctx: ChannelHandlerContext): Unit = {
+    override def channelActive(ctx: ChannelHandlerContext): Unit = {
         observer.onNext(Connect(ctx))
-        super.channelRegistered(ctx)
+        super.channelActive(ctx)
     }
 
-    override def channelUnregistered(ctx: ChannelHandlerContext): Unit = {
+    override def channelInactive(ctx: ChannelHandlerContext): Unit = {
         observer.onNext(Disconnect(ctx))
-        super.channelUnregistered(ctx)
+        super.channelInactive(ctx)
     }
 
     override def channelRead0(ctx: ChannelHandlerContext, msg: Expected):

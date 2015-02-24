@@ -19,8 +19,6 @@ package org.midonet.brain.services.topology.server
 import java.util.UUID
 import java.util.concurrent.{TimeUnit, CountDownLatch}
 
-import org.midonet.util.reactivex.AwaitableObserver
-
 import scala.collection.JavaConversions._
 import scala.concurrent.duration.Duration
 import scala.util.Random
@@ -45,6 +43,7 @@ import org.midonet.cluster.services.topology.server.RequestHandler
 import org.midonet.cluster.util.UUIDUtil
 import org.midonet.util.functors.makeAction0
 import org.midonet.util.netty._
+import org.midonet.util.reactivex.AwaitableObserver
 
 
 @RunWith(classOf[JUnitRunner])
@@ -55,10 +54,7 @@ class ServerFrontEndTest extends FeatureSpec with Matchers {
     def genUUID(msb: Long, lsb: Long): Commons.UUID =
         UUIDUtil.toProto(new UUID(msb, lsb))
 
-    def genAck(id: Commons.UUID): Message =
-        Commands.Response.newBuilder().setAck(
-            Commands.Response.Ack.newBuilder().setReqId(id).build()
-        ).build()
+    def genAck(id: Commons.UUID): Message = ServerState.makeAck(id)
 
     def genHandshake(reqId: Commons.UUID, cnxId: Commons.UUID): Message =
         Commands.Request.newBuilder().setHandshake(
