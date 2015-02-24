@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_66de3513",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/SubnetTranslator.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-02-24T06:25:19Z",
+      "side": 1,
+      "message": "You can make SubnetTranslator extend org.midonet.brain.services.c3po.translators.RouteManager and use META_DATA_SRVC here.",
+      "range": {
+        "startLine": 79,
+        "startChar": 16,
+        "endLine": 79,
+        "endChar": 52
+      },
+      "revId": "d497b28b48cde488df4c6927f7d2df04f86d55ba",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_a6e82db5",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/SubnetTranslator.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-02-24T06:25:19Z",
+      "side": 1,
+      "message": "Instead of retrieving all the ports here, we should use bindings and change the Dhcp to have back references to ports.",
+      "revId": "d497b28b48cde488df4c6927f7d2df04f86d55ba",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
