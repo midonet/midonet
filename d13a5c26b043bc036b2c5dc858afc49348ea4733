@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_998476d5",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/ZoomConvert.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 491,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-24T14:31:14Z",
+      "side": 1,
+      "message": "Shouldn\u0027t we check that it\u0027s not the default converter? The map converter must be custom.",
+      "range": {
+        "startLine": 491,
+        "startChar": 35,
+        "endLine": 491,
+        "endChar": 54
+      },
+      "revId": "d13a5c26b043bc036b2c5dc858afc49348ea4733",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
