@@ -22,7 +22,7 @@ import org.midonet.util.functors.Callback1;
 
 public interface FlowManagerHelper {
 
-    public void getFlow(FlowMatch flowMatch, Callback1<Flow> getFlowCb);
+    public void getFlow(ManagedFlow flow);
 
     public void removeFlow(ManagedFlow flow);
 
