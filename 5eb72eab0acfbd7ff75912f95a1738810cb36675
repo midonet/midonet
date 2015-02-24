@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_19c5263c",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/TransactionManager.scala",
+        "patchSetId": 35
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-24T13:55:00Z",
+      "side": 1,
+      "message": "Here a small comment perhaps in parenthesis saying that membership will also be updated could help.",
+      "range": {
+        "startLine": 97,
+        "startChar": 56,
+        "endLine": 97,
+        "endChar": 64
+      },
+      "revId": "5eb72eab0acfbd7ff75912f95a1738810cb36675",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_f9bf6aa8",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/TransactionManager.scala",
+        "patchSetId": 35
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-24T13:55:00Z",
+      "side": 1,
+      "message": "Again here a comment saying that the TxCreate op persists as long as one owner remains would be clearer.",
+      "range": {
+        "startLine": 98,
+        "startChar": 38,
+        "endLine": 98,
+        "endChar": 70
+      },
+      "revId": "5eb72eab0acfbd7ff75912f95a1738810cb36675",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_39e102d1",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/TransactionManager.scala",
+        "patchSetId": 35
+      },
+      "lineNbr": 329,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-24T13:55:00Z",
+      "side": 1,
+      "message": "This is still unclear to me...",
+      "range": {
+        "startLine": 326,
+        "startChar": 19,
+        "endLine": 329,
+        "endChar": 28
+      },
+      "revId": "5eb72eab0acfbd7ff75912f95a1738810cb36675",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
