@@ -106,8 +106,23 @@ class FlowProcessor(families: OvsNetlinkFamilies,
         }
     }
 
-    override def shouldProcess(): Boolean =
-        broker.hasRequestsToWrite
+    def tryGet(datapathId: Int, flowMatch: FlowMatch,
+               obs: Observer[ByteBuffer]): Boolean = {
+        var seq = 0
+        if ({ seq = broker.nextSequence(); seq } != NetlinkRequestBroker.FULL) {
+            protocol.prepareFlowGet(datapathId, flowMatch, broker.get(seq))
+            broker.publishRequest(seq, obs)
+            true
+        } else {
+            false
+        }
+    }
+
+    override def shouldProcess(): Boolean = {
+        val res = broker.hasRequestsToWrite
+        log.debug(s"should process is $res")
+        res
+    }
 
     override def process(): Unit =
         broker.writePublishedRequests()
