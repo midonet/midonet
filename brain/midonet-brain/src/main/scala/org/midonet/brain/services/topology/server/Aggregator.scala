@@ -16,6 +16,7 @@
 
 package org.midonet.brain.services.topology.server
 
+import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 
 import scala.collection.JavaConversions._
@@ -52,7 +53,8 @@ class Aggregator[KEY,TYPE] {
 
     /* The index of subscriptions for each Observable key */
     type Terminator = ConnectableObservable[Null]
-    private val sources = new ConcurrentHashMap[KEY, Terminator]()
+    case class SourceControl(terminator: Terminator, owner: UUID)
+    private val sources = new ConcurrentHashMap[KEY, SourceControl]()
 
     /* Indicate that the collector has been disposed of */
     /* Note: changes are protected via 'sources.synchronized' */
@@ -62,9 +64,11 @@ class Aggregator[KEY,TYPE] {
     /** subscribe to the funnel */
     def observable(): Observable[TYPE] = stream
 
-    /** Add the given Observable into the Aggregator */
-    def add(key: KEY, o: Observable[_ <: TYPE]): Unit = sources.synchronized
-    {
+    /** Add the given Observable into the Aggregator; it returns the owner
+      * of the entry, if it already exists, or the new owner, if successfully
+      * set */
+    def add(key: KEY, o: Observable[_ <: TYPE], owner: UUID): UUID =
+        sources.synchronized {
         lazy val terminator: Terminator = Observable.just(null).publish()
         lazy val src = o.asInstanceOf[Observable[TYPE]].takeUntil(terminator)
             .onErrorResumeNext(makeFunc1[Throwable, Observable[TYPE]](err => {
@@ -73,17 +77,24 @@ class Aggregator[KEY,TYPE] {
             }))
             .doOnCompleted(makeAction0({drop(key)}))
 
-        if (!disposed && !sources.containsKey(key)) {
-            sources.put(key, terminator)
+        if (disposed)
+            throw new IllegalStateException(
+                "observable aggregator already disposed")
+
+        if (!sources.containsKey(key)) {
+            sources.put(key, SourceControl(terminator, owner))
             collector.onNext(src)
+            owner
+        } else {
+            sources.get(key).owner
         }
     }
 
     /** Remove observables from the Aggregator */
     def drop(what: KEY): Unit = sources.synchronized {
-        val terminator = sources.remove(what)
-        if (terminator != null) {
-            terminator.connect()
+        val controller = sources.remove(what)
+        if (controller != null) {
+            controller.terminator.connect()
         }
     }
 
@@ -93,7 +104,7 @@ class Aggregator[KEY,TYPE] {
       * output funnel */
     def dispose(): Unit = sources.synchronized {
         disposed = true
-        sources.values().foreach { _.connect() }
+        sources.values().foreach { _.terminator.connect() }
         collector.onCompleted()
     }
 
