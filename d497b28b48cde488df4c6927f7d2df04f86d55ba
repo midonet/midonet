@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_e6b0658d",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/SubnetTranslator.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-02-24T08:09:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_66de3513",
+      "range": {
+        "startLine": 79,
+        "startChar": 16,
+        "endLine": 79,
+        "endChar": 52
+      },
+      "revId": "d497b28b48cde488df4c6927f7d2df04f86d55ba",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_a6e82db5",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/SubnetTranslator.scala",
         "patchSetId": 4
@@ -36,6 +60,24 @@
       "writtenOn": "2015-02-24T06:25:19Z",
       "side": 1,
       "message": "Instead of retrieving all the ports here, we should use bindings and change the Dhcp to have back references to ports.",
+      "revId": "d497b28b48cde488df4c6927f7d2df04f86d55ba",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_06a66153",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/SubnetTranslator.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-02-24T08:09:48Z",
+      "side": 1,
+      "message": "I changed this code to get the port by networkID, reducing the total number of ports searched through.",
+      "parentUuid": "7a1969be_a6e82db5",
       "revId": "d497b28b48cde488df4c6927f7d2df04f86d55ba",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
