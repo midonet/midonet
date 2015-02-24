@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_b96332dc",
+        "filename": "cluster/src/main/proto/topology.proto",
+        "patchSetId": 28
+      },
+      "lineNbr": 207,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-02-24T09:47:54Z",
+      "side": 1,
+      "message": "Nitpick: The _TYPE seems redundant. We don\u0027t call the actions ACCEPT_ACTION and CONTINUE_ACTION. I guess you want to be able to distinguish them from the Action values without qualifying them? Maybe _RULE would be better than _TYPE?\n\nThis is just a suggestion, though, and I won\u0027t veto for it. It\u0027s okay as is. Just feels a little off to me.",
+      "range": {
+        "startLine": 207,
+        "startChar": 8,
+        "endLine": 207,
+        "endChar": 20
+      },
+      "revId": "2a8ac247e1d82855cfd275f13592f054daa148f0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_d9af0ee2",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/TopologyBuilder.scala",
+        "patchSetId": 28
+      },
+      "lineNbr": 238,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-02-24T09:47:54Z",
+      "side": 1,
+      "message": "It\u0027s your call, but you can reuse this in the two previous builder functions. Actually, why not add type and/or action parameters, too? Is there any case where you wouldn\u0027t want to provide them when calling this function?",
+      "range": {
+        "startLine": 238,
+        "startChar": 18,
+        "endLine": 238,
+        "endChar": 35
+      },
+      "revId": "2a8ac247e1d82855cfd275f13592f054daa148f0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_19ba4623",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/TopologyBuilder.scala",
+        "patchSetId": 28
+      },
+      "lineNbr": 264,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-02-24T09:47:54Z",
+      "side": 1,
+      "message": "Missing space.",
+      "range": {
+        "startLine": 264,
+        "startChar": 5,
+        "endLine": 264,
+        "endChar": 6
+      },
+      "revId": "2a8ac247e1d82855cfd275f13592f054daa148f0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
