@@ -27,7 +27,6 @@ import org.midonet.cluster.DataClient
 import org.midonet.midolman.HostRequestProxy.FlowStateBatch
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.DatapathChannel
-import org.midonet.midolman.io.DatapathConnectionPool
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackKey, ConnTrackValue}
@@ -66,9 +65,6 @@ class PacketsEntryPoint extends Actor with ActorLogWithoutPath
     var config: MidolmanConfig = null
 
     implicit val as = context.system
-
-    @Inject
-    var dpConnPool: DatapathConnectionPool = null
 
     @Inject
     var dpChannel: DatapathChannel = _
