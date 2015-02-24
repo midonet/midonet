@@ -35,6 +35,7 @@ import com.lmax.disruptor.SequenceBarrier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.midonet.Util;
 import org.midonet.midolman.config.MidolmanConfig;
 import org.midonet.midolman.datapath.DatapathChannel;
 import org.midonet.midolman.datapath.DisruptorDatapathChannel;
@@ -123,9 +124,11 @@ public class DatapathModule extends PrivateModule {
 
                 @Override
                 public DatapathChannel get() {
+                    int capacity = Util.findNextPositivePowerOfTwo(
+                        config.getGlobalIncomingBurstCapacity() * 2);
                     RingBuffer<DatapathEvent> ringBuffer = RingBuffer.createMultiProducer(
                         Factory$.MODULE$,
-                        config.getGlobalIncomingBurstCapacity() * 2);
+                        capacity);
                     SequenceBarrier barrier = ringBuffer.newBarrier();
                     EventProcessor processors[] = createProcessors(
                         config.getNumOutputChannels(),
