@@ -106,6 +106,18 @@ class FlowProcessor(families: OvsNetlinkFamilies,
         }
     }
 
+    def tryGet(datapathId: Int, flowMatch: FlowMatch,
+               obs: Observer[ByteBuffer]): Boolean = {
+        var seq = 0
+        if ({ seq = broker.nextSequence(); seq } != NetlinkRequestBroker.FULL) {
+            protocol.prepareFlowGet(datapathId, flowMatch, broker.get(seq))
+            broker.publishRequest(seq, obs)
+            true
+        } else {
+            false
+        }
+    }
+
     override def shouldProcess(): Boolean =
         broker.hasRequestsToWrite
 
