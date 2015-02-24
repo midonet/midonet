@@ -22,6 +22,30 @@
       "revId": "d13a5c26b043bc036b2c5dc858afc49348ea4733",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_99b75686",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/ZoomConvert.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 491,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-24T15:07:06Z",
+      "side": 1,
+      "message": "I think the check is redundant, because if we fallback to the default converter, the conversion will fail nonetheless. And even if we check that the converter is not the default converter, there is no guarantee it is a good converter.\n\nTherefore, what good does the extra if do?\n\nBy doing these extra checks (which are not really needed - we would expect the converter to be the good one for well written code), we execute extra instructions and there is a higher probability that the compiler cannot inline this method leading to worse performance.",
+      "parentUuid": "7a1969be_998476d5",
+      "range": {
+        "startLine": 491,
+        "startChar": 35,
+        "endLine": 491,
+        "endChar": 54
+      },
+      "revId": "d13a5c26b043bc036b2c5dc858afc49348ea4733",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
