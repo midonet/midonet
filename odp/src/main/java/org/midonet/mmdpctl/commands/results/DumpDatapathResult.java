@@ -43,9 +43,8 @@ public class DumpDatapathResult implements Result {
 
         Collections.sort(toPrint, new Comparator<Flow>() {
             @Override public int compare(Flow o1, Flow o2) {
-                long t1 = 0, t2 = 0;
-                if (o1.getLastUsedTime() != null) t1 = o1.getLastUsedTime();
-                if (o2.getLastUsedTime() != null) t2 = o2.getLastUsedTime();
+                long t1 = o1.getLastUsedTime();
+                long t2 = o2.getLastUsedTime();
                 return Long.compare(t1, t2); // oldest first (lowest long)
             }
         });

@@ -19,11 +19,15 @@ package org.midonet.midolman.util.mock
 import java.nio.ByteBuffer
 import java.util.{Map => JMap}
 
+import com.typesafe.scalalogging.Logger
+import org.midonet.odp.OpenVSwitch.Flow.Attr
 import org.midonet.odp.family.{PacketFamily, FlowFamily, PortFamily, DatapathFamily}
+import org.midonet.odp.flows.FlowKeys
+import org.slf4j.LoggerFactory
 import rx.Observer
 
 import org.midonet.midolman.datapath.FlowProcessor
-import org.midonet.netlink.MockNetlinkChannelFactory
+import org.midonet.netlink.{NetlinkMessage, MockNetlinkChannelFactory}
 import org.midonet.odp.{OvsNetlinkFamilies, Flow, FlowMatch}
 import org.midonet.util.concurrent.MockClock
 
@@ -36,6 +40,9 @@ class MockFlowProcessor(val flowsTable: JMap[FlowMatch, Flow] = null)
                               new MockClock) {
     var flowDelCb: Flow => Unit = _
 
+    private val log = Logger(LoggerFactory.getLogger(
+        "org.midonet.datapath.mock-flow-processor"))
+
     override def tryEject(sequence: Long, datapathId: Int, flowMatch: FlowMatch,
                           obs: Observer[ByteBuffer]): Boolean = {
         if (flowDelCb ne null) {
@@ -43,6 +50,25 @@ class MockFlowProcessor(val flowsTable: JMap[FlowMatch, Flow] = null)
         }
         if (flowsTable ne null) {
             flowsTable.remove(flowMatch)
+        }
+        true
+    }
+
+    override def tryGet(datapathId: Int, flowMatch: FlowMatch,
+                        obs: Observer[ByteBuffer]): Boolean = {
+        log.debug("Try get")
+        if (flowsTable ne null) {
+            val flow = flowsTable.get(flowMatch)
+            log.debug("Got flow " + flow)
+            val buf = ByteBuffer.allocate(1024)
+            buf.putInt(datapathId)
+            NetlinkMessage.writeAttrSeq(buf, Attr.Key, flow.getMatch().getKeys,
+                                        FlowKeys.writer)
+            NetlinkMessage.writeLongAttr(buf, Attr.Used, flow.getLastUsedTime)
+            buf.flip()
+
+            obs.onNext(buf)
+            obs.onCompleted()
         }
         true
     }
