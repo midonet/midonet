@@ -45,7 +45,7 @@ message Network {
     optional bool admin_state_up = 4;
 
     // MidoNet-specific fields
-    optional int64 tunnel_key = 5;
+    optional uint64 tunnel_key = 5;
     optional UUID inbound_filter_id = 6;
     optional UUID outbound_filter_id = 7;
 
@@ -101,7 +101,7 @@ message Port {
     optional UUID router_id = 3;
     optional UUID inbound_filter_id = 4;
     optional UUID outbound_filter_id = 5;
-    optional int64 tunnel_key = 6;
+    optional uint64 tunnel_key = 6;
     optional UUID peer_id = 7;
     optional UUID vif_id = 8;
     optional UUID host_id = 9;
@@ -119,11 +119,13 @@ message Port {
     optional string port_mac = 16;
 
     // VXLAN port specific
-    optional IPAddress vtep_mgmt_ip = 17;
-    optional uint32 vtep_mgmt_port = 18;
-    optional uint32 vtep_vni = 19;
-    optional IPAddress vtep_tunnel_ip = 20;
-    optional UUID vtep_tunnel_zone_id = 21;
+    optional UUID vtep_id = 17;
+    // TODO: This should be replaced by vtep_id, and the vni moved to Network
+    optional IPAddress vtep_mgmt_ip = 18;
+    optional uint32 vtep_mgmt_port = 19;
+    optional uint32 vtep_vni = 20;
+    optional IPAddress vtep_tunnel_ip = 21;
+    optional UUID vtep_tunnel_zone_id = 22;
 
     // Backreferences
     repeated UUID rule_ids = 101;
@@ -295,10 +297,11 @@ message TunnelZone {
 }
 
 message Vtep {
-    optional string id = 1;         // This is actually an IP address.
-    optional uint32 management_port = 2;
-    optional UUID tunnel_zone_id = 3;
-    repeated string tunnel_ips = 4;
+    optional UUID id = 1;
+    optional IPAddress management_ip = 2;
+    optional uint32 management_port = 3;
+    optional UUID tunnel_zone_id = 4;
+    repeated string tunnel_ips = 5;
 
     repeated UUID bindings = 101;   // A back-ref to VTEP bindings.
 }
@@ -308,7 +311,7 @@ message VtepBinding {
     optional string port_name = 2;
     optional uint32 vlan_id = 3;    // A VLAN ID is a short int.
     optional UUID network_id = 4;
-    optional string vtep_id = 5;    // A forward ref to VtEP.
+    optional UUID vtep_id = 5;      // A forward ref to VtEP.
 }
 
 message Host {
