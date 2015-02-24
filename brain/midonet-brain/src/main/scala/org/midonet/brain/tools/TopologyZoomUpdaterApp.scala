@@ -17,10 +17,11 @@
 package org.midonet.brain.tools
 
 import com.google.inject.{AbstractModule, Guice}
+import org.slf4j.LoggerFactory
+
 import org.midonet.cluster.data.storage.Storage
 import org.midonet.cluster.storage.{MidonetBackendConfig, MidonetBackendModule, ZoomProvider}
 import org.midonet.config.ConfigProvider
-import org.slf4j.LoggerFactory
 
 /**
  * Stand-alone application to populate the storage backend with
