@@ -20,24 +20,25 @@ import java.util.UUID
 import java.util.concurrent.Executor
 import java.util.concurrent.atomic.{AtomicInteger, AtomicReference, AtomicLong}
 
-import com.google.common.util.concurrent.Service
-import com.google.common.util.concurrent.Service.Listener
-import io.netty.channel.Channel
-import org.midonet.cluster.models.{Commons, Topology}
-import org.midonet.cluster.util.UUIDUtil
-import org.slf4j.LoggerFactory
-import rx.subjects.{PublishSubject, Subject}
-import rx.{Observable, Observer}
-
-import org.midonet.cluster.rpc.Commands
-import org.midonet.cluster.services.topology.common._
-import org.midonet.util.functors.makeAction0
-import org.midonet.util.netty.{ProtoBufWebSocketClientAdapter, ClientFrontEnd, ProtoBufWebSocketAdapter, ProtoBufSocketAdapter}
-
 import scala.collection.concurrent.TrieMap
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, ExecutionContext, Future, Promise}
 import scala.util.{Try, Failure, Success}
+
+import com.google.common.util.concurrent.Service
+import com.google.common.util.concurrent.Service.Listener
+import io.netty.channel.Channel
+import org.slf4j.LoggerFactory
+import rx.subjects.{PublishSubject, Subject}
+import rx.{Observable, Observer}
+
+import org.midonet.cluster.models.{Commons, Topology}
+import org.midonet.cluster.rpc.Commands
+import org.midonet.cluster.rpc.Commands.ResponseType
+import org.midonet.cluster.services.topology.common._
+import org.midonet.cluster.util.UUIDUtil
+import org.midonet.util.functors.makeAction0
+import org.midonet.util.netty.{ProtoBufWebSocketClientAdapter, ClientFrontEnd, ProtoBufWebSocketAdapter, ProtoBufSocketAdapter}
 
 /**
  * A client session for the Topology service. It publishes an observable
@@ -155,10 +156,10 @@ class ClientSession(val host: String, val port: Int, val wspath: String,
     // Identify Ack/Nack messages from the Topology API service protocol
     private def parse(msg: Commands.Response): Option[(Commons.UUID, Boolean)] =
         msg match {
-            case m: Commands.Response if m.hasAck =>
-                Some((m.getAck.getReqId, true))
-            case m: Commands.Response if m.hasNack =>
-                Some((m.getNack.getReqId, false))
+            case m: Commands.Response if m.getType == ResponseType.ACK =>
+                Some((m.getReqId, true))
+            case m: Commands.Response if m.getType == ResponseType.NACK =>
+                Some((m.getReqId, false))
             case _ => None
         }
 
@@ -243,6 +244,9 @@ class ClientSession(val host: String, val port: Int, val wspath: String,
                     new ClientCommandRejectedException(
                         UUIDUtil.fromProto(id).toString))}
             case _ =>
+                // check piggy-backed ack
+                if (proto.hasReqId)
+                    pending.remove(proto.getReqId).map{_.trySuccess(true)}
                 updateStream.onNext(proto)
         }
     }
@@ -290,7 +294,7 @@ class ClientSession(val host: String, val port: Int, val wspath: String,
         (id, req)
     }
 
-    private def newGet(tp: Topology.Type, watch: Boolean, oid: Commands.ID):
+    private def newGet(tp: Topology.Type, watch: Boolean, oid: Commons.UUID):
                 (Commons.UUID, Commands.Request) = {
         val id = UUIDUtil.randomUuidProto
         val getRequest = Commands.Request.Get.newBuilder()
@@ -305,7 +309,7 @@ class ClientSession(val host: String, val port: Int, val wspath: String,
         (id, req)
     }
 
-    private def newUnsubs(tp: Topology.Type, oid: Commands.ID):
+    private def newUnsubs(tp: Topology.Type, oid: Commons.UUID):
                 (Commons.UUID, Commands.Request) = {
         val id = UUIDUtil.randomUuidProto
         val unsubsRequest = Commands.Request.Unsubscribe.newBuilder()
@@ -370,59 +374,51 @@ class ClientSession(val host: String, val port: Int, val wspath: String,
         }
     }
 
+    private def command(reqPair: (Commons.UUID, Commands.Request))
+        : RequestState = {
+        val futureResp = Promise[Boolean]()
+        val (reqId, req) = reqPair
+        pending.put(reqId, futureResp)
+        log.debug("sending command: {}", req)
+        connected.future.onSuccess {case ctx => ctx.sendAndFlush(req)}
+        RequestState(reqId, futureResp.future)
+    }
+
     /**
      * Retrieve the last state of a specific object
      */
-    def get(tp: Topology.Type, id: Commands.ID): Unit = {
-        val (_, req) = newGet(tp, watch = false, id)
-        log.debug("sending command (get): " + req)
-        connected.future.onSuccess {case ctx => ctx.sendAndFlush(req)}
-    }
+    def get(tp: Topology.Type, id: Commons.UUID): RequestState =
+        command(newGet(tp, watch = false, id))
+
+    /**
+     * Retrieve the set of ids of the objects of a given type
+     */
+    def getAll(tp: Topology.Type): RequestState =
+        command(newGet(tp, watch = false, null))
 
     /**
      * Watch changes to a given object
      */
-    def watch(tp: Topology.Type, id: Commands.ID): Unit = {
-        val (_, req) = newGet(tp, watch = true, id)
-        log.debug("sending command (watch): " + req)
-        connected.future.onSuccess {case ctx => ctx.sendAndFlush(req)}
-    }
+    def watch(tp: Topology.Type, id: Commons.UUID): RequestState =
+        command(newGet(tp, watch = true, id))
 
     /**
      * Watch changes to any object of a given type
      */
-    def watchAll(tp: Topology.Type): Future[Boolean] = {
-        val futureResp = Promise[Boolean]()
-        val (reqId, req) = newGet(tp, watch = true, null)
-        pending.put(reqId, futureResp)
-        log.debug("sending command (watchAll): " + req)
-        connected.future.onSuccess {case ctx => ctx.sendAndFlush(req)}
-        futureResp.future
-    }
+    def watchAll(tp: Topology.Type): RequestState =
+        command(newGet(tp, watch = true, null))
 
     /**
      * Unsubscribe to changes to a given object
      */
-    def unwatch(tp: Topology.Type, id: Commands.ID): Future[Boolean] = {
-        val futureResp = Promise[Boolean]()
-        val (reqId, req) = newUnsubs(tp, id)
-        pending.put(reqId, futureResp)
-        log.debug("sending command (unwatch): " + req)
-        connected.future.onSuccess {case ctx => ctx.sendAndFlush(req)}
-        futureResp.future
-    }
+    def unwatch(tp: Topology.Type, id: Commons.UUID): RequestState =
+        command(newUnsubs(tp, id))
 
     /**
      * Unsubscribe to changes to any object of a given type
      */
-    def unwatchAll(tp: Topology.Type): Future[Boolean] = {
-        val futureResp = Promise[Boolean]()
-        val (reqId, req) = newUnsubs(tp, null)
-        pending.put(reqId, futureResp)
-        log.debug("sending command (unwatchAll): " + req)
-        connected.future.onSuccess {case ctx => ctx.sendAndFlush(req)}
-        futureResp.future
-    }
+    def unwatchAll(tp: Topology.Type): RequestState =
+        command(newUnsubs(tp, null))
 
     /**
      * Retrieve the sequence number of the last event received from the server
@@ -431,9 +427,13 @@ class ClientSession(val host: String, val port: Int, val wspath: String,
 }
 
 object ClientSession {
+    case class RequestState(reqId: Commons.UUID, futureResp: Future[Boolean])
+
     class ClientException(msg: String) extends Exception(msg)
+
     class ClientHandshakeRejectedException(msg: String)
         extends ClientException(msg)
+
     class ClientCommandRejectedException(msg: String)
         extends ClientException(msg)
 }
