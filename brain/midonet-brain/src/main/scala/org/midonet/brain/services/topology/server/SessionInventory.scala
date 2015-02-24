@@ -22,10 +22,8 @@ import java.util.concurrent.atomic.{AtomicInteger, AtomicBoolean, AtomicReferenc
 import java.util.concurrent.{Future => JavaFuture, Callable, TimeUnit, ConcurrentHashMap, ExecutorService}
 import java.util.concurrent.Executors.newSingleThreadExecutor
 import java.util.concurrent.Executors.newSingleThreadScheduledExecutor
+import java.util.concurrent.Executors.newCachedThreadPool
 
-import org.midonet.cluster.models.Commons
-import org.midonet.util.executors.SameThreadExecutor
-import rx.schedulers.Schedulers
 
 import scala.collection.JavaConversions._
 import scala.concurrent.duration.Duration
@@ -35,24 +33,27 @@ import scala.util.{Success, Failure}
 import com.google.protobuf.Message
 import org.slf4j.LoggerFactory
 import rx.Observable.OnSubscribe
-import rx.functions.Func1
+import rx.schedulers.Schedulers
 import rx.subscriptions.BooleanSubscription
 import rx.{Subscription, Observer, Observable, Subscriber}
 
 import org.midonet.cluster.data.storage.{NotFoundException, Storage}
+import org.midonet.cluster.models.Commons
 import org.midonet.cluster.models.Topology._
+import org.midonet.cluster.rpc.Commands.ResponseType
 import org.midonet.cluster.rpc.Commands.Response
-import org.midonet.cluster.rpc.Commands.Response.Deletion
-import org.midonet.cluster.rpc.Commands.Response.Update
+import org.midonet.cluster.rpc.Commands.Response.{Snapshot, Update, Info, Redirect}
 import org.midonet.cluster.services.topology.common.TopologyMappings
+import org.midonet.cluster.util.UUIDUtil
 import org.midonet.util.concurrent.{NamedThreadFactory, BlockingSpscRwdRingBuffer}
 import org.midonet.util.concurrent.SpscRwdRingBuffer.SequencedItem
-import org.midonet.util.functors.makeAction0
+import org.midonet.util.executors.SameThreadExecutor
+import org.midonet.util.functors.{makeAction0, makeFunc1}
 import org.midonet.util.reactivex.HermitObservable.HermitOversubscribedException
 
 object SessionInventory {
     /** Identifies anything upon which a subscription can be made */
-    case class ObservableId(id: Id, ofType: Class[_ <: Message])
+    case class ObservableId(id: UUID, ofType: Class[_ <: Message])
 
     class UnknownTopologyEntityException
         extends RuntimeException("unknown topology entity type")
@@ -61,9 +62,10 @@ object SessionInventory {
         extends TimeoutException("session expired")
 
     /** generate an update response */
-    def updateBuilder(m: Message): Response.Builder = {
+    def updateBuilder(m: Message, reqId: UUID): Response.Builder = {
         val u: Update = m match {
             case h: Chain => Update.newBuilder().setChain(h).build()
+            case h: Dhcp => Update.newBuilder().setDhcp(h).build()
             case h: Host => Update.newBuilder().setHost(h).build()
             case h: IpAddrGroup => Update.newBuilder().setIpAddrGroup(h).build()
             case h: Network => Update.newBuilder().setNetwork(h).build()
@@ -77,29 +79,78 @@ object SessionInventory {
             case h: VtepBinding => Update.newBuilder().setVtepBinding(h).build()
             case _ => throw new UnknownTopologyEntityException
         }
-        Response.newBuilder().setUpdate(u)
+        val objInfo = extractId(m)
+        val response = Response.newBuilder()
+            .setType(ResponseType.UPDATE)
+            .setObjType(TopologyMappings.typeOf(objInfo.ofType).get)
+            .setObjId(UUIDUtil.toProto(objInfo.id))
+            .setUpdate(u)
+        if (reqId == null) response
+        else response.setReqId(UUIDUtil.toProto(reqId))
     }
 
     /** generate a deletion response */
-    def deletionBuilder[T <: Message](id: Id, k: Class[T]): Response.Builder =
+    def deletionBuilder[T <: Message](id: UUID, k: Class[T], reqId: UUID)
+        : Response.Builder =
         TopologyMappings.typeOf(k) match {
-            case Some(t) => Response.newBuilder().setDeletion(
-                Deletion.newBuilder()
-                    .setId(Id.toProto(id))
-                    .setType(t))
+            case Some(t) =>
+                val response = Response.newBuilder()
+                    .setType(ResponseType.DELETION)
+                    .setObjType(TopologyMappings.typeOf(k).get)
+                    .setObjId(UUIDUtil.toProto(id))
+                if (reqId == null) response
+                else response.setReqId(UUIDUtil.toProto(reqId))
             case None => throw new UnknownTopologyEntityException
         }
+
+    /** generate a snapshot response */
+    def snapshotBuilder[T <: Message](ids: Seq[UUID], k: Class[T], reqId: UUID)
+        : Response.Builder = {
+        Response.newBuilder()
+            .setType(ResponseType.SNAPSHOT)
+            .setReqId(UUIDUtil.toProto(reqId))
+            .setObjType(TopologyMappings.typeOf(k).get)
+            .setSnapshot(
+                Snapshot.newBuilder().addAllObjIds(ids map UUIDUtil.toProto))
+    }
+
+    /** generate ack/nack */
+    def ackBuilder(accept: Boolean, reqId: UUID, msg: String = null)
+        : Response.Builder = {
+        val response = Response.newBuilder().setReqId(UUIDUtil.toProto(reqId))
+        if (accept) response.setType(ResponseType.ACK)
+        else response.setType(ResponseType.NACK)
+        if (msg != null)
+            response.setInfo(Info.newBuilder().setMsg(msg))
+        response
+    }
+
+    /** generate error information */
+    def redirectBuilder(reqId: UUID, originalReqId: UUID)
+    : Response.Builder = {
+        Response.newBuilder()
+            .setType(ResponseType.REDIRECT)
+            .setReqId(UUIDUtil.toProto(reqId))
+            .setRedirect(Redirect.newBuilder()
+                             .setOriginalReqId(UUIDUtil.toProto(originalReqId)))
+    }
+
+    /** generate error information */
+    def errorBuilder(reqId: UUID, msg: String = null)
+    : Response.Builder = {
+        val response = Response.newBuilder()
+            .setType(ResponseType.ERROR)
+            .setReqId(UUIDUtil.toProto(reqId))
+        if (msg != null)
+            response.setInfo(Response.Info.newBuilder().setMsg(msg))
+        response
+    }
 
     /** extract class/id information from the message */
     def extractId(m: Message): ObservableId = try {
         val idField = m.getDescriptorForType.findFieldByName("id")
-        if (m.getDescriptorForType.getName == "Vtep") {
-            val id = m.getField(idField).asInstanceOf[String]
-            ObservableId(StrId(id), m.getClass)
-        } else {
-            val id = m.getField(idField).asInstanceOf[Commons.UUID]
-            ObservableId(ProtoUuid(id), m.getClass)
-        }
+        val id = m.getField(idField).asInstanceOf[Commons.UUID]
+        ObservableId(UUIDUtil.fromProto(id), m.getClass)
     } catch {
         case t: Throwable => null
     }
@@ -128,14 +179,15 @@ object SessionInventory {
  * object deletion events and adding the necessary information to updates to
  * build proper protocol responses.
  *
- * @param nackWith is the message to send in case of 'NotFound' situations
+ * @param reqId is the request originating this stream (used for notifications
+ *              to user)
  */
-protected class StorageTransformer(val nackWith: Response)
+protected class StorageTransformer(val reqId: UUID)
     extends Observable.Transformer[Message, Response.Builder] {
 
     override def call(s: Observable[Message])
     : Observable[Response.Builder] = {
-        val onSubscribe = new StorageOnSubscribe(s, nackWith)
+        val onSubscribe = new StorageOnSubscribe(s, reqId)
         Observable.create(onSubscribe)
             .doOnUnsubscribe(makeAction0 {onSubscribe.cancel()})
     }
@@ -148,7 +200,7 @@ protected class StorageTransformer(val nackWith: Response)
      * with additional information.
      */
     class StorageOnSubscribe(val source: Observable[_ <: Message],
-                             val nackWith: Response)
+                             val reqId: UUID)
         extends OnSubscribe[Response.Builder] {
         /* Remember the subscription to the source observable */
         private var sub: Subscription = null
@@ -162,17 +214,17 @@ protected class StorageTransformer(val nackWith: Response)
         override def call(client: Subscriber[_ >: Response.Builder]): Unit = {
             sub = source.subscribe(new StorageEventConverter(
                 client.asInstanceOf[Subscriber[Response.Builder]],
-                nackWith))
+                reqId))
         }
     }
 
     /** Convenient wrapper to convert observable completions into
       * explicit object deletion events, and wrap updates into responses
       * @param observer is the receiver of the processed messages
-      * @param nackWith message to respond to NotFound situations
+      * @param reqId the request originating the current stream
       */
     class StorageEventConverter(val observer: Observer[Response.Builder],
-                         val nackWith: Response)
+                                val reqId: UUID)
         extends Observer[Message] {
         import SessionInventory._
 
@@ -180,20 +232,21 @@ protected class StorageTransformer(val nackWith: Response)
 
         override def onCompleted(): Unit = {
             if (oId != null)
-                observer.onNext(deletionBuilder(oId.id, oId.ofType))
+                observer.onNext(deletionBuilder(oId.id, oId.ofType, reqId))
             observer.onCompleted()
         }
         override def onError(exc: Throwable): Unit = exc match {
             case e: NotFoundException =>
-                observer.onNext(nackWith.toBuilder)
+                observer.onNext(errorBuilder(reqId, "not found"))
                 observer.onCompleted()
             case t: Throwable =>
+                observer.onNext(errorBuilder(reqId, "error on watch"))
                 observer.onError(t)
         }
         override def onNext(data: Message): Unit = {
             if (oId == null)
                 oId = extractId(data)
-            observer.onNext(updateBuilder(data))
+            observer.onNext(updateBuilder(data, reqId))
         }
     }
 }
@@ -327,6 +380,9 @@ class SessionInventory(private val store: Storage,
         private val expirationComplete = Promise[Boolean]()
         setExpiration(gracePeriod)
 
+        private val sameContext =
+            ExecutionContext.fromExecutor(SameThreadExecutor)
+
         class SessionTimeout(ms: Long) {
             val status = new AtomicInteger(0)
             val expire = new Runnable {
@@ -400,76 +456,102 @@ class SessionInventory(private val store: Storage,
                 funnel.inject(rsp.toBuilder)
         }
 
-        override def get[M <: Message](id: Id, ofType: Class[M],
-                                       nackWith: Response): Unit = {
+        override def get[M <: Message](id: UUID, ofType: Class[M],
+                                       reqId: UUID): Unit = {
             log.debug(s"get: $id ($ofType)")
             // Get the item from the storage, and forward
-            store.get(ofType, Id.value(id)).onComplete {
+            store.get(ofType, UUIDUtil.toProto(id)).onComplete {
                 case Success(m) =>
-                    funnel.inject(updateBuilder(m))
+                    funnel.inject(updateBuilder(m, reqId))
                 case Failure(exc) => exc match {
                     case nf: NotFoundException =>
-                        funnel.inject(nackWith.toBuilder)
+                        funnel.inject(
+                            ackBuilder(accept = false, reqId,
+                                       s"not found: $id ($ofType)"))
                     case other: Throwable =>
-                        // TODO: client probably doesn't know about this;
-                        // and we have no means to pass more accurate
-                        // information. By now, just log it and pass the
-                        // nack to client so, it knows that the get did
-                        // not succeed
-                        log.warn("cannot retrieve topology entity: "+
-                                 ofType + " " + id, other)
-                        funnel.inject(nackWith.toBuilder)
+                        log.warn(
+                            s"cannot retrieve topology entity: $id ($ofType)",
+                            other)
+                        funnel.inject(
+                            ackBuilder(accept = false, reqId,
+                                       s"error on retrieve: $id ($ofType)"))
                 }
-            } (ExecutionContext.fromExecutor(SameThreadExecutor))
+            } (sameContext)
         }
 
-        override def watch[M <: Message](id: Id, ofType: Class[M],
-                                         nackWith: Response): Unit = {
+        override def getAll[M <: Message](ofType: Class[M], reqId: UUID)
+            : Unit = {
+            log.debug(s"getAll: $ofType")
+            store.getAll(ofType).onComplete {
+                case Success(list) =>
+                    val idList = list map {extractId(_).id}
+                    funnel.inject(snapshotBuilder(idList, ofType, reqId))
+                case Failure(exc) =>
+                    log.warn(s"cannot retrieve topology entities: $ofType", exc)
+                    funnel.inject(ackBuilder(accept = false, reqId,
+                                             s"error on retrieve: $ofType"))
+            } (sameContext)
+        }
+
+        override def watch[M <: Message](id: UUID, ofType: Class[M],
+                                         reqId: UUID): Unit = {
             log.debug(s"watch: $id ($ofType)")
             val obsId = ObservableId(id, ofType)
             val src = store.observable(ofType.asInstanceOf[Class[Message]],
-                                       Id.value(id))
-            funnel.add(obsId, src.compose(new StorageTransformer(nackWith)))
+                                       UUIDUtil.toProto(id))
+            try {
+                val oldReq = funnel.add(
+                    obsId, src.compose(new StorageTransformer(reqId)), reqId)
+                if (reqId == oldReq)
+                    funnel.inject(ackBuilder(accept = true, reqId))
+                else
+                    funnel.inject(redirectBuilder(reqId, oldReq))
+            } catch {
+                case exc: Throwable =>
+                    log.warn("can't subscribe to topology entity: " + id +
+                             s" ($ofType)", exc)
+                    funnel.inject(ackBuilder(accept = false, reqId,
+                                             s"error subscribing: $id ($ofType)"))
+            }
         }
 
-        override def unwatch[M <: Message](id: Id, klass: Class[M],
-                                           ackWith: Response,
-                                           nackWith: Response): Unit = {
-            log.debug(s"unwatch: $id ($klass)")
-            funnel.drop(ObservableId(id, klass))
-            funnel.inject(ackWith.toBuilder)
+        override def unwatch[M <: Message](id: UUID, ofType: Class[M],
+                                           reqId: UUID): Unit = {
+            log.debug(s"unwatch: $id ($ofType)")
+            funnel.drop(ObservableId(id, ofType))
+            funnel.inject(ackBuilder(accept = true, reqId))
         }
 
-        /** Express interest in all the entities of the given type
-          * The ACK is necessary so that we can inform the client that the
-          * full subscription was received */
-        override def watchAll[M <: Message](ofType: Class[M],
-                                            ackWith: Response,
-                                            nackWith: Response): Unit = {
+        /** Express interest in all the entities of the given type */
+        override def watchAll[M <: Message](ofType: Class[M], reqId: UUID)
+            : Unit = {
             log.debug(s"watchAll: $ofType")
             val obsId = ObservableId(null, ofType)
             val src: Observable[Observable[Response.Builder]] =
                 store.observable(ofType.asInstanceOf[Class[Message]]).map(
-                    new Func1[Observable[Message], Observable[Response.Builder]] {
-                        override def call(o: Observable[Message])
-                        : Observable[Response.Builder] =
-                            o.compose(new StorageTransformer(nackWith))
-                    }
+                    makeFunc1 {_.compose(new StorageTransformer(reqId))}
                 )
-            funnel.add(obsId, Observable.merge(src))
-            // TODO: There is no practical way to know if we actually
-            // succeed... by now, if a nack and an ack appear, nack should
-            // be considered authoritative
-            funnel.inject(ackWith.toBuilder)
+            try {
+                val oldReq = funnel.add(obsId, Observable.merge(src), reqId)
+                if (reqId == oldReq)
+                    funnel.inject(ackBuilder(accept = true, reqId))
+                else
+                    funnel.inject(redirectBuilder(reqId, oldReq))
+            } catch {
+                case exc: Throwable =>
+                    log.warn("cannot subscribe to topology entities: " +
+                              ofType, exc)
+                    funnel.inject(ackBuilder(accept = false, reqId,
+                                             s"error subscribing: $ofType"))
+            }
         }
 
         /** Cancel interest in all elements of the given type */
-        override def unwatchAll[M <: Message](ofType: Class[M],
-                                              ackWith: Response,
-                                              nackWith: Response): Unit = {
+        override def unwatchAll[M <: Message](ofType: Class[M], reqId: UUID)
+            : Unit = {
             log.debug(s"unwatchAll: $ofType")
             funnel.drop(ObservableId(null, ofType))
-            funnel.inject(ackWith.toBuilder)
+            funnel.inject(ackBuilder(accept = true, reqId))
         }
 
     }
