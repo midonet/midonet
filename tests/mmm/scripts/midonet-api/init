@@ -31,6 +31,10 @@ fi
 
 sed -i 's/org.midonet.api.auth.keystone.v2_0.KeystoneService/org.midonet.api.auth.MockAuthService/g' /usr/share/midonet-api/WEB-INF/web.xml
 
+# Enable vxlan gw
+awk '/midobrain-vxgw_enabled/{vxgw_section++};{if(vxgw_section && $0 !~ /.*vxgw.*/){print "    <param-value>true</param-value>"; vxgw_section=0 ; } else{ print}}' /usr/share/midonet-api/WEB-INF/web.xml > /tmp/web.xml.$$
+mv /tmp/web.xml.$$ /usr/share/midonet-api/WEB-INF/web.xml
+
 # Copy the configuration file template for Tomcat7
 sudo cp ../../../../midonet-api/conf/midonet-api.xml \
     /etc/tomcat7/Catalina/localhost/midonet-api.xml
