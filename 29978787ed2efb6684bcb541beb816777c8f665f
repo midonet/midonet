@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_d9ca6e4e",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/TopologyBuilder.scala",
+        "patchSetId": 29
+      },
+      "lineNbr": 263,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-24T13:46:00Z",
+      "side": 1,
+      "message": "We could have used random here. I also meant the Option to do it for the other fields too, not just for name (see createBridgePort), but let\u0027s do it in a different patch.",
+      "range": {
+        "startLine": 263,
+        "startChar": 45,
+        "endLine": 263,
+        "endChar": 81
+      },
+      "revId": "29978787ed2efb6684bcb541beb816777c8f665f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
