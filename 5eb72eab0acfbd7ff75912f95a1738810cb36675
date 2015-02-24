@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_19e6c6b4",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/TransactionManager.scala",
+        "patchSetId": 35
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-24T14:51:44Z",
+      "side": 1,
+      "message": "Isn\u0027t this already addressed by the comment at line 355? The diagram only intends to illustrate how subsequent operations in a transaction are merged.",
+      "parentUuid": "7a1969be_19c5263c",
+      "range": {
+        "startLine": 97,
+        "startChar": 56,
+        "endLine": 97,
+        "endChar": 64
+      },
+      "revId": "5eb72eab0acfbd7ff75912f95a1738810cb36675",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_f9bf6aa8",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/TransactionManager.scala",
         "patchSetId": 35
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_19fd263b",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/TransactionManager.scala",
+        "patchSetId": 35
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-24T14:51:44Z",
+      "side": 1,
+      "message": "Same as before but at line 368.",
+      "parentUuid": "7a1969be_f9bf6aa8",
+      "range": {
+        "startLine": 98,
+        "startChar": 38,
+        "endLine": 98,
+        "endChar": 70
+      },
+      "revId": "5eb72eab0acfbd7ff75912f95a1738810cb36675",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_39e102d1",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/TransactionManager.scala",
         "patchSetId": 35
@@ -59,6 +107,30 @@
       "writtenOn": "2015-02-24T13:55:00Z",
       "side": 1,
       "message": "This is still unclear to me...",
+      "range": {
+        "startLine": 326,
+        "startChar": 19,
+        "endLine": 329,
+        "endChar": 28
+      },
+      "revId": "5eb72eab0acfbd7ff75912f95a1738810cb36675",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_f972ca0f",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/TransactionManager.scala",
+        "patchSetId": 35
+      },
+      "lineNbr": 329,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-24T14:51:44Z",
+      "side": 1,
+      "message": "I don\u0027t understand what should be proper action to this comment. If you need some clarification related to the idempotent deletion, perhaps we should carry the discussion outside of this patch.\n\nHere, this comment (as far as I can tell) intends to clarify that:\n- multiple deletion of an object should be allowed if triggered by the user\n- but it should throw an exception when triggered by the referencing mechanism\n\nIn this sense, ownership describes the implicit relationship between referenced objects with cascading delete bindings. It is neither related to the ephemeral ownership, nor is a change that is new to this patch.\n\nI think Tomohiko would be a better person to clarify your doubts in this matter:\nhttps://github.com/midonet/midonet/commit/24fca9190f5db52c19e9887fdfa41f4097bb8aeb",
+      "parentUuid": "7a1969be_39e102d1",
       "range": {
         "startLine": 326,
         "startChar": 19,
