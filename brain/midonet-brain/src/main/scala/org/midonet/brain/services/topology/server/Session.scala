@@ -21,65 +21,31 @@ import java.util.UUID
 import com.google.protobuf.Message
 import rx.Observable
 
-import org.midonet.cluster.models.Commons
-import org.midonet.cluster.rpc.Commands
 import org.midonet.cluster.rpc.Commands.Response
-import org.midonet.cluster.util.UUIDUtil
-
-/** Accomodation for different types of ids */
-abstract class Id
-case class Uuid(uuid: UUID) extends Id
-case class StrId(strId: String) extends Id
-
-object ProtoUuid {
-    def apply(protoId: Commons.UUID): Uuid =
-        new Uuid(UUIDUtil.fromProto(protoId))
-}
-
-object Id {
-    def value(id: Id) = id match {
-        case Uuid(uuid) => uuid
-        case StrId(str) => str
-    }
-    def fromProto(id: Commands.ID): Id = id match {
-        case i: Commands.ID if i.hasUuid => ProtoUuid(i.getUuid)
-        case i: Commands.ID if i.hasStrId => StrId(i.getStrId)
-        case _ => null
-    }
-    def toProto(id: Id): Commands.ID = {
-        val builder = Commands.ID.newBuilder()
-        id match {
-            case Uuid(uuid) => builder.setUuid(UUIDUtil.toProto(uuid))
-            case StrId(str) => builder.setStrId(str)
-        }
-        builder.build()
-    }
-}
-
 
 /** Broker between an underlying communication channel with a client and the
   * underlying provider of the update stream of topology elements. */
 trait Session {
     /** Send a request for an element of the topology. ACK is not required
       * because the data itself will serve as the ACK. */
-    def get[T <: Message](id: Id, ofType: Class[T], nackWith: Response)
-    /** Express interest in an element of the topology. ACK is not required
+    def get[T <: Message](id: UUID, ofType: Class[T], reqId: UUID)
+    /** Send a request to get the ids of all objects of a given type.
+      * ACK is not required because the data itself will serve as the ACK. */
+    def getAll[T <: Message](ofType: Class[T], reqId: UUID)
+     /** Express interest in an element of the topology. ACK is not required
       * because the data itself will serve as the ACK, given that subscriptions
       * guarantee the latest state of the entity will always be streamed as
       * soon as the subscription is made. */
-    def watch[T <: Message](id: Id, ofType: Class[T], nackWith: Response)
+    def watch[T <: Message](id: UUID, ofType: Class[T], reqId: UUID)
     /** Express interest in all the entities of the given type
       * The ACK is necessary so that we can inform the client that the
       * full subscription was received */
-    def watchAll[T <: Message](ofType: Class[T], ackWith: Response,
-                               nackWith: Response)
+    def watchAll[T <: Message](ofType: Class[T], reqId: UUID)
     /** Cancel interest in an element of the topology. ACK confirms that the
       * unsubscription happened. */
-    def unwatch[T <: Message](id: Id, ofType: Class[T], ackWith: Response,
-                              nackWith: Response)
+    def unwatch[T <: Message](id: UUID, ofType: Class[T], reqId: UUID)
     /** Cancel interest in all elements of the given type */
-    def unwatchAll[T <: Message](ofType: Class[T], ackWith: Response,
-                   nackWith: Response)
+    def unwatchAll[T <: Message](ofType: Class[T], reqId: UUID)
     /** The session should be terminated and all associated data updates should
       * be canceled */
     def terminate()

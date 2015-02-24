@@ -25,8 +25,7 @@ import org.slf4j.LoggerFactory
 import rx.{Observer, Subscription}
 
 import org.midonet.cluster.models.{Commons, Topology}
-import org.midonet.cluster.rpc.Commands.{ID, Response}
-import org.midonet.cluster.rpc.Commands.Response.{Deletion, Update}
+import org.midonet.cluster.rpc.Commands.{ResponseType, Response}
 import org.midonet.cluster.services.topology.client.ClientSession
 import org.midonet.cluster.util.UUIDUtil
 import org.midonet.config.{ConfigInt, ConfigString, ConfigGroup}
@@ -100,58 +99,45 @@ class TopologySnoopy @Inject()(val cfg: TopologySnoopyConfig)
         session.awaitTermination(atMost)
 
     private def prettyString(msg: Response): String = msg match {
-        case r: Response if r.hasUpdate => prettyString(r.getUpdate)
-        case r: Response if r.hasDeletion => prettyString(r.getDeletion)
-        case other => "UNIDENTIFIED MESSAGE: " + other.toString
+        case r: Response if r.getType == ResponseType.UPDATE =>
+            prettyStringUpdate(r)
+        case r: Response if r.getType == ResponseType.DELETION =>
+            prettyStringDeletion(r)
+        case r: Response if r.getType == ResponseType.SNAPSHOT =>
+            prettyStringSnapshot(r)
+        case r: Response if r.getType == ResponseType.REDIRECT =>
+            prettyStringRedirect(r)
+        case r: Response if r.getType == ResponseType.ERROR =>
+            prettyStringError(r)
+        case other => "UNEXPECTED MESSAGE: " + other.toString
     }
 
-    private def prettyString(update: Update): String =
-        "UPDATE: " + (update match {
-            case u: Update if u.hasChain =>
-                "CHAIN " + prettyString(u.getChain.getId)
-            case u: Update if u.hasHost =>
-                "HOST " + prettyString(u.getHost.getId)
-            case u: Update if u.hasIpAddrGroup =>
-                "IPADDRGROUP " + prettyString(u.getIpAddrGroup.getId)
-            case u: Update if u.hasNetwork =>
-                "NETWORK " + prettyString(u.getNetwork.getId)
-            case u: Update if u.hasPort =>
-                "PORT " + prettyString(u.getPort.getId)
-            case u: Update if u.hasPortGroup =>
-                "PORTGROUP " + prettyString(u.getPortGroup.getId)
-            case u: Update if u.hasRoute =>
-                "ROUTE " + prettyString(u.getRoute.getId)
-            case u: Update if u.hasRouter =>
-                "ROUTER " + prettyString(u.getRouter.getId)
-            case u: Update if u.hasRule =>
-                "RULE " + prettyString(u.getRule.getId)
-            case u: Update if u.hasTunnelZone =>
-                "TUNNELZONE " + prettyString(u.getTunnelZone.getId)
-            case u: Update if u.hasVtep =>
-                "VTEP " + prettyString(u.getVtep.getId)
-            case u: Update if u.hasVtepBinding =>
-                "VTEPBINDING " + prettyString(u.getVtepBinding.getId)
-            case u: Update => ""
-        }) + "\n" + update.toString
+    private def prettyStringUpdate(update: Response): String =
+        "UPDATE: " + prettyString(update.getObjType) +
+            " " + prettyString(update.getObjId) +
+            "\n" + update.getUpdate.toString
 
-    private def prettyString(deletion: Deletion): String =
-        "DELETION: " +
-            prettyString(deletion.getType) + " " +
-            prettyString(deletion.getId)
+    private def prettyStringDeletion(deletion: Response): String =
+        "DELETION: " + prettyString(deletion.getObjType) +
+            " " + prettyString(deletion.getObjId)
+
+    private def prettyStringSnapshot(snapshot: Response): String =
+        "SNAPSHOT: " + prettyString(snapshot.getObjType) +
+            "\n" + snapshot.getSnapshot.toString
+
+    private def prettyStringRedirect(redirect: Response): String =
+        "REDIRECT: " + prettyString(redirect.getReqId) +
+            " -> " + prettyString(redirect.getRedirect.getOriginalReqId)
+
+    private def prettyStringError(error: Response): String =
+        "ERROR: " + prettyString(error.getReqId) +
+            "\n" + error.getInfo.getMsg
 
     private def prettyString(id: Commons.UUID): String =
         UUIDUtil.fromProto(id).toString
 
     private def prettyString(t: Topology.Type): String =
         t.getValueDescriptor.getName + "(" + t.getNumber + ")"
-
-    private def prettyString(id: ID): String = id match {
-        case uuid: ID if uuid.hasUuid => prettyString(uuid.getUuid)
-        case strid: ID if strid.hasStrId => strid.getStrId
-        case other => "<UNKNOWN ID>"
-    }
-
-    private def prettyString(s: String): String = s
 
 
 }
