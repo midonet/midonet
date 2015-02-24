@@ -16,11 +16,12 @@
 
 package org.midonet.brain.tools
 
+import scala.concurrent.duration.Duration
+
 import com.google.inject.{AbstractModule, Guice}
-import org.midonet.config.ConfigProvider
 import org.slf4j.LoggerFactory
 
-import scala.concurrent.duration.Duration
+import org.midonet.config.ConfigProvider
 
 /**
  * Stand-alone application to start the Topology Snoopy (Topology api client)
