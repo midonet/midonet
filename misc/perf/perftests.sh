@@ -417,7 +417,7 @@ generate_traffic() {
     echo "                delay: $delay ns"
     echo "--------------------------------------"
 
-    tcpdump_out=mktemp || exit 1
+    tcpdump_out=mktemp || err_exit "preparing tcp dump"
     trap 'rm -rf "$tcpdump_out"' EXIT INT TERM HUP
     ip netns exec $TOPOLOGY_DEST_NETNS tcpdump udp -i $dstif >$tcpdump_out 2>&1 &
     tcpdump_pid=$!
