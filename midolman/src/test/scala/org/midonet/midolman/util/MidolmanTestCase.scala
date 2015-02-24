@@ -143,7 +143,7 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
         wflowRemovedProbe = makeEventProbe(classOf[WildcardFlowRemoved])
         portsProbe = makeEventProbe(classOf[LocalPortActive])
         discardPacketProbe = makeEventProbe(classOf[DiscardPacket])
-        flowUpdateProbe = makeEventProbe(classOf[FlowUpdateCompleted])
+        flowUpdateProbe = makeEventProbe(FlowUpdateCompleted.getClass)
     }
 
     before {
