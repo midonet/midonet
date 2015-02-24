@@ -79,7 +79,7 @@ class ConnectionTest extends FeatureSpec with Matchers {
             val ctx = Mockito.mock(classOf[ChannelHandlerContext])
             val cMgr = Mockito.mock(classOf[ConnectionManager])
             val req = Commands.Request.getDefaultInstance
-            val ack = Commands.Response.Ack.getDefaultInstance
+            val ack = Commands.Response.getDefaultInstance
             val protocol = new TestLoopProtocolFactory(ack)
             Mockito.when(senderFactory.get(ctx)).thenReturn(sender)
             Mockito.when(sender.getWriteExecutionContext).thenReturn(writeEC)
@@ -103,7 +103,7 @@ class ConnectionTest extends FeatureSpec with Matchers {
             val ctx = Mockito.mock(classOf[ChannelHandlerContext])
             val cMgr = Mockito.mock(classOf[ConnectionManager])
             val exc = Mockito.mock(classOf[Throwable])
-            val ack = Commands.Response.Ack.getDefaultInstance
+            val ack = Commands.Response.getDefaultInstance
             val protocol = new TestLoopProtocolFactory(ack)
             Mockito.when(senderFactory.get(ctx)).thenReturn(sender)
             Mockito.when(sender.getWriteExecutionContext).thenReturn(writeEC)
@@ -126,7 +126,7 @@ class ConnectionTest extends FeatureSpec with Matchers {
             val sender = Mockito.mock(classOf[MessageSender])
             val ctx = Mockito.mock(classOf[ChannelHandlerContext])
             val cMgr = Mockito.mock(classOf[ConnectionManager])
-            val ack = Commands.Response.Ack.getDefaultInstance
+            val ack = Commands.Response.getDefaultInstance
             val protocol = new TestLoopProtocolFactory(ack)
             Mockito.when(senderFactory.get(ctx)).thenReturn(sender)
             Mockito.when(sender.getWriteExecutionContext).thenReturn(writeEC)
@@ -251,16 +251,16 @@ class ConnectionTest extends FeatureSpec with Matchers {
             val done2 = sender.send(msg)
             Mockito.verifyZeroInteractions(ctx)
             Mockito.verifyZeroInteractions(channel)
-            done1.isCompleted should be (false)
-            done2.isCompleted should be (false)
+            done1.isCompleted shouldBe false
+            done2.isCompleted shouldBe false
 
             start.success(true)
             Mockito.verify(ctx, Mockito.times(1)).write(msg)
             Mockito.verify(channel, Mockito.times(1)).addListener(cb1.capture())
             Mockito.verifyNoMoreInteractions(ctx)
             Mockito.verifyNoMoreInteractions(channel)
-            done1.isCompleted should be (false)
-            done2.isCompleted should be (false)
+            done1.isCompleted shouldBe false
+            done2.isCompleted shouldBe false
 
             cb1.getValue.operationComplete(channel)
             Mockito.verify(ctx, Mockito.times(2)).write(msg)
@@ -268,15 +268,15 @@ class ConnectionTest extends FeatureSpec with Matchers {
             Mockito.verify(channel, Mockito.times(1)).isSuccess
             Mockito.verifyNoMoreInteractions(ctx)
             Mockito.verifyNoMoreInteractions(channel)
-            done1.isCompleted should be (true)
-            done2.isCompleted should be (false)
+            done1.isCompleted shouldBe true
+            done2.isCompleted shouldBe false
 
             cb2.getValue.operationComplete(channel)
             Mockito.verifyZeroInteractions(ctx)
             Mockito.verify(channel, Mockito.times(2)).isSuccess
             Mockito.verifyNoMoreInteractions(channel)
-            done1.isCompleted should be (true)
-            done2.isCompleted should be (true)
+            done1.isCompleted shouldBe true
+            done2.isCompleted shouldBe true
 
         }
 
