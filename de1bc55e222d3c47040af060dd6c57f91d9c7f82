@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_c6d8c981",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/SubnetTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-02-24T02:05:35Z",
+      "side": 1,
+      "message": "These are out-of-order.",
+      "range": {
+        "startLine": 19,
+        "startChar": 0,
+        "endLine": 21,
+        "endChar": 59
+      },
+      "revId": "de1bc55e222d3c47040af060dd6c57f91d9c7f82",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_26e8bd0f",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/SubnetTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-02-24T02:05:35Z",
+      "side": 1,
+      "message": "I think it\u0027s better to be aligned with .newBuilder().",
+      "range": {
+        "startLine": 52,
+        "startChar": 16,
+        "endLine": 53,
+        "endChar": 73
+      },
+      "revId": "de1bc55e222d3c47040af060dd6c57f91d9c7f82",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_66d11557",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/SubnetTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-02-24T02:05:35Z",
+      "side": 1,
+      "message": "Can you put this into a helper function?",
+      "range": {
+        "startLine": 77,
+        "startChar": 8,
+        "endLine": 81,
+        "endChar": 9
+      },
+      "revId": "de1bc55e222d3c47040af060dd6c57f91d9c7f82",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_06e30134",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/SubnetTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-02-24T02:05:35Z",
+      "side": 1,
+      "message": "This is done on the PortTranslator side. So you don\u0027t need to do this here.",
+      "range": {
+        "startLine": 83,
+        "startChar": 8,
+        "endLine": 89,
+        "endChar": 9
+      },
+      "revId": "de1bc55e222d3c47040af060dd6c57f91d9c7f82",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
