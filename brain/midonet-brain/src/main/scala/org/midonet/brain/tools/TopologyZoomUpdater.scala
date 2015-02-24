@@ -27,7 +27,7 @@ import org.slf4j.LoggerFactory
 import org.midonet.cluster.data.storage.Storage
 import org.midonet.cluster.models.Commons
 import org.midonet.cluster.models.Topology.{Vtep, Network, Router, Port}
-import org.midonet.cluster.util.UUIDUtil
+import org.midonet.cluster.util.{IPAddressUtil, UUIDUtil}
 import org.midonet.config.{ConfigLong, ConfigInt, ConfigGroup}
 import org.midonet.util.functors.makeRunnable
 
@@ -69,7 +69,7 @@ class TopologyZoomUpdater @Inject()(val storage: Storage,
     private var routers: Map[Commons.UUID, RouterInfo] = Map()
     private var networks: Map[Commons.UUID, NetworkInfo] = Map()
     private var ports: Map[Commons.UUID, PortInfo] = Map()
-    private var vteps: Map[String, VtepInfo] = Map()
+    private var vteps: Map[Commons.UUID, VtepInfo] = Map()
     private var seq: Long = 0
 
     @Override
@@ -159,7 +159,8 @@ class TopologyZoomUpdater @Inject()(val storage: Storage,
 
     private def createVtep(): Vtep = {
         val vtep = Vtep.newBuilder()
-            .setId(randomIp)
+            .setId(UUIDUtil.randomUuidProto)
+            .setManagementIp(IPAddressUtil.toProto(randomIp))
             .setManagementPort(6632)
             .build
         storage.create(vtep)

@@ -22,9 +22,8 @@ import com.google.protobuf.Message
 import org.slf4j.LoggerFactory
 import rx.{Observer, Subscription}
 
-import org.midonet.brain.services.topology.server.ServerState.{SessionInfo, replyAck, replyNAck}
+import org.midonet.brain.services.topology.server.ServerState.SessionInfo
 import org.midonet.cluster.models.Commons
-import org.midonet.cluster.rpc.Commands.Response._
 import org.midonet.cluster.rpc.Commands._
 import org.midonet.cluster.services.topology.common.{ProtocolFactory, Interruption}
 import org.midonet.cluster.services.topology.common.ProtocolFactory.State
@@ -54,25 +53,18 @@ object ServerState {
         def subscription: Option[Subscription]
     }
 
-    private implicit def ack(reqId: Commons.UUID): Ack = {
-        Ack.newBuilder()
-           .setReqId(Commons.UUID.newBuilder().mergeFrom(reqId))
-           .build()
-    }
-    private implicit def nack(reqId: Commons.UUID): NAck = {
-        NAck.newBuilder()
-            .setReqId(Commons.UUID.newBuilder().mergeFrom(reqId))
+    def makeAck(id: Commons.UUID) =
+        SessionInventory.ackBuilder(accept = true, UUIDUtil.fromProto(id))
             .build()
-    }
-    def replyAck(id: Commons.UUID) =
-        Response.newBuilder().setAck(id).build()
-    def replyNAck(id: Commons.UUID) =
-        Response.newBuilder().setNack(id).build()
+    def makeNAck(id: Commons.UUID, msg: String = null) =
+        SessionInventory.ackBuilder(accept = false, UUIDUtil.fromProto(id), msg)
+            .build()
 }
 
 /** The Connection is listening for the handshake exchange, either for a new
   * connection or to resume an interrupted connection. */
 final case class Ready(s: SessionInfo) extends State {
+    import ServerState._
     override def process(msg: Any) = msg match {
         case m: Request if m.hasHandshake =>
             val hs = m.getHandshake
@@ -84,11 +76,14 @@ final case class Ready(s: SessionInfo) extends State {
                 // remaining in the session, in case of recovery
                 // (otherwise, the client would reject any prior messages
                 // before the handshake ack)
-                s.output.foreach({_.onNext(replyAck(hs.getReqId))})
+                s.output foreach {_.onNext(makeAck(hs.getReqId))}
                 Active(s)
             } else {
-                s.output.foreach({_.onNext(replyNAck(hs.getReqId))})
-                s.output.foreach({_.onCompleted()})
+                s.output.foreach(obs => {
+                    obs.onNext(makeNAck(hs.getReqId,
+                                        s"handshake rejected: $cnxn"))
+                    obs.onCompleted()
+                })
                 Closed(s)
             }
         case Interruption => Closed(s)
@@ -100,43 +95,44 @@ final case class Ready(s: SessionInfo) extends State {
 /** We have a functional Session connecting the client and the topology
   * so we're able to process messages from the client. */
 final case class Active(s: SessionInfo) extends State {
+    import ServerState._
     private val session = s.session.get
     override def process(msg: Any) = msg match {
         case m: Request if m.hasGet && m.getGet.hasSubscribe &&
                            m.getGet.getSubscribe =>
             klassOf(m.getGet.getType) match {
                 case None =>
-                    session.noOp(replyNAck(m.getGet.getReqId))
+                    session.noOp(makeNAck(m.getGet.getReqId, s"invalid type"))
                 case Some(k) if m.getGet.hasId =>
-                    session.watch(Id.fromProto(m.getGet.getId), k,
-                                  replyNAck(m.getGet.getReqId))
+                    session.watch(UUIDUtil.fromProto(m.getGet.getId), k,
+                                  UUIDUtil.fromProto(m.getGet.getReqId))
                 case Some(k) =>
-                    session.watchAll(k, replyAck(m.getGet.getReqId),
-                                     replyNAck(m.getGet.getReqId))
+                    session.watchAll(k, UUIDUtil.fromProto(m.getGet.getReqId))
             }
             this
         case m: Request if m.hasGet =>
             klassOf(m.getGet.getType) match {
                 case None =>
-                    session.noOp(replyNAck(m.getGet.getReqId))
-                case Some(k) if !m.getGet.hasId =>
-                    session.noOp(replyNAck(m.getGet.getReqId))
+                    session.noOp(makeNAck(m.getGet.getReqId, s"invalid type"))
+                case Some(k) if m.getGet.hasId =>
+                    session.get(UUIDUtil.fromProto(m.getGet.getId), k,
+                                UUIDUtil.fromProto(m.getGet.getReqId))
                 case Some(k) =>
-                    session.get(Id.fromProto(m.getGet.getId), k,
-                                replyNAck(m.getGet.getReqId))
+                    session.getAll(k, UUIDUtil.fromProto(m.getGet.getReqId))
             }
             this
         case m: Request if m.hasUnsubscribe =>
             klassOf(m.getUnsubscribe.getType) match {
                 case None =>
-                    session.noOp(replyNAck(m.getUnsubscribe.getReqId))
+                    session.noOp(makeNAck(m.getUnsubscribe.getReqId,
+                                          s"invalid type"))
                 case Some(k) if m.getUnsubscribe.hasId =>
-                    session.unwatch(Id.fromProto(m.getUnsubscribe.getId), k,
-                                    replyAck(m.getUnsubscribe.getReqId),
-                                    replyNAck(m.getUnsubscribe.getReqId))
+                    session.unwatch(
+                        UUIDUtil.fromProto(m.getUnsubscribe.getId), k,
+                        UUIDUtil.fromProto(m.getUnsubscribe.getReqId))
                 case Some(k) =>
-                    session.unwatchAll(k, replyAck(m.getUnsubscribe.getReqId),
-                                       replyNAck(m.getUnsubscribe.getReqId))
+                    session.unwatchAll(
+                        k, UUIDUtil.fromProto(m.getUnsubscribe.getReqId))
 
             }
             this
