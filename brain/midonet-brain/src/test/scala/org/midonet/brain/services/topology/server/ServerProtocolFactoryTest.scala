@@ -17,16 +17,16 @@
 package org.midonet.brain.services.topology.server
 
 import java.util.UUID
-import com.google.protobuf.Message
 
+import com.google.protobuf.Message
 import org.junit.runner.RunWith
 import org.mockito.{ArgumentCaptor, Mockito}
 import org.scalatest._
 import org.scalatest.junit.JUnitRunner
-
 import rx.{Observable, Observer}
 
 import org.midonet.cluster.rpc.Commands
+import org.midonet.cluster.rpc.Commands.ResponseType
 import org.midonet.cluster.util.UUIDUtil
 
 /** Tests the Topology API protocol implementation. */
@@ -47,7 +47,7 @@ class ServerProtocolFactoryTest extends FeatureSpec with Matchers {
         scenario("basic life cycle") {
             val si = Mockito.mock(classOf[SessionInventory])
             val fac = new ServerProtocolFactory(si)
-            fac should not be (null)
+            fac shouldNot be (null)
             Mockito.verifyZeroInteractions(si)
         }
 
@@ -56,7 +56,7 @@ class ServerProtocolFactoryTest extends FeatureSpec with Matchers {
             val fac = new ServerProtocolFactory(si)
             val out = Mockito.mock(classOf[Observer[Message]])
             val state = fac.start(out)
-            state.isInstanceOf[Ready] should be (true)
+            state.isInstanceOf[Ready] shouldBe true
             Mockito.verifyZeroInteractions(si)
             Mockito.verifyZeroInteractions(out)
         }
@@ -74,7 +74,7 @@ class ServerProtocolFactoryTest extends FeatureSpec with Matchers {
 
             val factory = new ServerProtocolFactory(si)
             val state = factory.start(out)
-            state.isInstanceOf[Ready] should be (true)
+            state.isInstanceOf[Ready] shouldBe true
             Mockito.verifyZeroInteractions(si)
             Mockito.verifyZeroInteractions(out)
 
@@ -82,12 +82,12 @@ class ServerProtocolFactoryTest extends FeatureSpec with Matchers {
 
             val resp = ArgumentCaptor.forClass(classOf[Commands.Response])
             Mockito.verify(out, Mockito.times(1)).onNext(resp.capture)
-            resp.getValue.hasAck should be (true)
-            resp.getValue.getAck.getReqId should be (reqId)
+            resp.getValue.getType shouldBe ResponseType.ACK
+            resp.getValue.getReqId shouldBe reqId
 
             Mockito.verify(si, Mockito.times(1)).claim(cnxUuid)
 
-            next.isInstanceOf[Active] should be (true)
+            next.isInstanceOf[Active] shouldBe true
         }
     }
 }

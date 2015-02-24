@@ -24,16 +24,15 @@ import org.mockito.Mockito
 import org.scalatest._
 import org.scalatest.junit.JUnitRunner
 import org.slf4j.LoggerFactory
+import rx.{Observer, Subscription}
 
 import org.midonet.brain.services.topology.server.ServerState.SessionInfo
 import org.midonet.cluster.models.{Commons, Topology}
 import org.midonet.cluster.rpc.Commands.Request._
-import org.midonet.cluster.rpc.Commands.Response._
-import org.midonet.cluster.rpc.Commands.{ID, Request, Response}
+import org.midonet.cluster.rpc.Commands.{Request, Response}
 import org.midonet.cluster.services.topology.common.{TopologyMappings, Interruption}
 import org.midonet.cluster.services.topology.common.ProtocolFactory.State
 import org.midonet.cluster.util.UUIDUtil
-import rx.{Observer, Subscription}
 
 /** Tests the protocol states for the topology API servicde implementation. */
 @RunWith(classOf[JUnitRunner])
@@ -44,44 +43,46 @@ class ServerStateTest extends FlatSpec with Matchers {
     val req = Request.newBuilder()
 
     def randUuid = UUIDUtil.toProto(UUID.randomUUID())
-    def randId = ID.newBuilder()
-        .setUuid(UUIDUtil.toProto(UUID.randomUUID()))
-        .build()
+    def randId = UUIDUtil.randomUuidProto
 
     def genHandshake(reqId: Commons.UUID = randUuid, seqno: Long = 0) =
         req.clear().setHandshake(Handshake.newBuilder()
-                   .setCnxnId(randUuid).setReqId(reqId).setSeqno(seqno).build())
-        .build()
-    def genBye(reqId: Commons.UUID = randUuid) = req.clear().setBye(
-        Bye.newBuilder().setReqId(reqId).build())
-        .build()
-    def genAck(reqId: Commons.UUID) = resp.setAck(
-        Ack.newBuilder().setReqId(reqId).build())
-        .build()
-    def genNAck(reqId: Commons.UUID) = resp.setNack(
-        NAck.newBuilder().setReqId(reqId).build())
-        .build()
+                   .setCnxnId(randUuid).setReqId(reqId).setSeqno(seqno)
+        ).build()
+    def genBye(reqId: Commons.UUID = randUuid) =
+        req.clear().setBye(Bye.newBuilder().setReqId(reqId)).build()
+    def genAck(reqId: Commons.UUID) = ServerState.makeAck(reqId)
+    def genNAck(reqId: Commons.UUID) = ServerState.makeNAck(reqId)
     def genGet(reqId: Commons.UUID = randUuid, subscribe: Boolean = false) =
-        req.clear().setGet(Get.newBuilder().setReqId(reqId)
+        req.clear().setGet(Get.newBuilder()
+                   .setReqId(reqId)
                    .setSubscribe(subscribe)
                    .setId(randId)
                    .setType(Topology.Type.NETWORK)
-                   .build()).build()
+        ).build()
+    def genGetAll(reqId: Commons.UUID = randUuid) =
+        req.clear().setGet(Get.newBuilder()
+                   .setReqId(reqId)
+                   .setType(Topology.Type.NETWORK)
+        ).build()
     def genSub(reqId: Commons.UUID = randUuid) = genGet(reqId, subscribe = true)
     def genSubAll(reqId: Commons.UUID = randUuid) =
-        req.clear().setGet(Get.newBuilder().setReqId(reqId)
-                               .setSubscribe(true)
-                               .setType(Topology.Type.NETWORK)
-                               .build()).build()
+        req.clear().setGet(Get.newBuilder()
+                   .setReqId(reqId)
+                   .setSubscribe(true)
+                   .setType(Topology.Type.NETWORK)
+        ).build()
     def genUnsub(reqId: Commons.UUID = randUuid) =
-        req.clear().setUnsubscribe(Unsubscribe.newBuilder().setReqId(reqId)
+        req.clear().setUnsubscribe(Unsubscribe.newBuilder()
+                   .setReqId(reqId)
                    .setType(Topology.Type.NETWORK)
                    .setId(randId)
-                   .build()).build()
+        ).build()
     def genUnsubAll(reqId: Commons.UUID = randUuid) =
-        req.clear().setUnsubscribe(Unsubscribe.newBuilder().setReqId(reqId)
-                                       .setType(Topology.Type.NETWORK)
-                                       .build()).build()
+        req.clear().setUnsubscribe(Unsubscribe.newBuilder()
+                   .setReqId(reqId)
+                   .setType(Topology.Type.NETWORK)
+        ).build()
 
     val someId = randId
     val cnxnId = randUuid
@@ -185,46 +186,51 @@ class ServerStateTest extends FlatSpec with Matchers {
         val get = genGet()
         Active(sfactory).after(get).remains
         Mockito.verify(lastSession).get(
-            Id.fromProto(get.getGet.getId),
+            UUIDUtil.fromProto(get.getGet.getId),
             TopologyMappings.klassOf(get.getGet.getType).get,
-            genNAck(get.getGet.getReqId))
+            UUIDUtil.fromProto(get.getGet.getReqId))
+        Mockito.verifyZeroInteractions(lastSubscription)
+    }
+    it should "process getAll" in {
+        val getAll = genGetAll()
+        Active(sfactory).after(getAll).remains
+        Mockito.verify(lastSession).getAll(
+            TopologyMappings.klassOf(getAll.getGet.getType).get,
+            UUIDUtil.fromProto(getAll.getGet.getReqId))
         Mockito.verifyZeroInteractions(lastSubscription)
     }
     it should "process subscribe" in {
         val sub = genSub()
         Active(sfactory).after(sub).remains
         Mockito.verify(lastSession).watch(
-            Id.fromProto(sub.getGet.getId),
+            UUIDUtil.fromProto(sub.getGet.getId),
             TopologyMappings.klassOf(sub.getGet.getType).get,
-            genNAck(sub.getGet.getReqId))
+            UUIDUtil.fromProto(sub.getGet.getReqId))
         Mockito.verifyZeroInteractions(lastSubscription)
     }
     it should "process subscribe all" in {
-        val sub = genSubAll()
-        Active(sfactory).after(sub).remains
+        val subAll = genSubAll()
+        Active(sfactory).after(subAll).remains
         Mockito.verify(lastSession).watchAll(
-            TopologyMappings.klassOf(sub.getGet.getType).get,
-            genAck(sub.getGet.getReqId),
-            genNAck(sub.getGet.getReqId))
+            TopologyMappings.klassOf(subAll.getGet.getType).get,
+            UUIDUtil.fromProto(subAll.getGet.getReqId))
         Mockito.verifyZeroInteractions(lastSubscription)
     }
     it should "process unsubscribe" in {
         val unsub = genUnsub()
         Active(sfactory).after(unsub).remains
         Mockito.verify(lastSession).unwatch(
-            Id.fromProto(unsub.getUnsubscribe.getId),
+            UUIDUtil.fromProto(unsub.getUnsubscribe.getId),
             TopologyMappings.klassOf(unsub.getUnsubscribe.getType).get,
-            genAck(unsub.getUnsubscribe.getReqId),
-            genNAck(unsub.getUnsubscribe.getReqId))
+            UUIDUtil.fromProto(unsub.getUnsubscribe.getReqId))
         Mockito.verifyZeroInteractions(lastSubscription)
     }
     it should "process unsubscribe all" in {
-        val unsub = genUnsubAll()
-        Active(sfactory).after(unsub).remains
+        val unsubAll = genUnsubAll()
+        Active(sfactory).after(unsubAll).remains
         Mockito.verify(lastSession).unwatchAll(
-            TopologyMappings.klassOf(unsub.getUnsubscribe.getType).get,
-            genAck(unsub.getUnsubscribe.getReqId),
-            genNAck(unsub.getUnsubscribe.getReqId))
+            TopologyMappings.klassOf(unsubAll.getUnsubscribe.getType).get,
+            UUIDUtil.fromProto(unsubAll.getUnsubscribe.getReqId))
         Mockito.verifyZeroInteractions(lastSubscription)
     }
     it should "process bye " in {
