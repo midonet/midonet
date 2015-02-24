@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_061661f1",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/SubnetTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-02-24T05:42:57Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_c6d8c981",
+      "range": {
+        "startLine": 19,
+        "startChar": 0,
+        "endLine": 21,
+        "endChar": 59
+      },
+      "revId": "de1bc55e222d3c47040af060dd6c57f91d9c7f82",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_26e8bd0f",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/SubnetTranslator.scala",
         "patchSetId": 2
@@ -71,6 +95,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_a6b5cdef",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/SubnetTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-02-24T05:42:57Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_66d11557",
+      "range": {
+        "startLine": 77,
+        "startChar": 8,
+        "endLine": 81,
+        "endChar": 9
+      },
+      "revId": "de1bc55e222d3c47040af060dd6c57f91d9c7f82",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_06e30134",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/SubnetTranslator.scala",
         "patchSetId": 2
@@ -82,6 +130,30 @@
       "writtenOn": "2015-02-24T02:05:35Z",
       "side": 1,
       "message": "This is done on the PortTranslator side. So you don\u0027t need to do this here.",
+      "range": {
+        "startLine": 83,
+        "startChar": 8,
+        "endLine": 89,
+        "endChar": 9
+      },
+      "revId": "de1bc55e222d3c47040af060dd6c57f91d9c7f82",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_66891526",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/SubnetTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-02-24T05:42:57Z",
+      "side": 1,
+      "message": "Even though this is assigned on the PortTranslator side we still have to set it here to avoid the value being lost. We aren\u0027t given this info as a part of the NeutronSubnet, so we have to go look for it.",
+      "parentUuid": "7a1969be_06e30134",
       "range": {
         "startLine": 83,
         "startChar": 8,
