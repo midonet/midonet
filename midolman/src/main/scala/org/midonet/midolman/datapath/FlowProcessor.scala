@@ -98,8 +98,12 @@ class FlowProcessor(families: OvsNetlinkFamilies,
         val disrutporSeq = unsafe.getLongVolatile(this, sequenceAddress)
         if (disrutporSeq >= sequence && { brokerSeq = broker.nextSequence()
                                           brokerSeq } != NetlinkRequestBroker.FULL) {
-            protocol.prepareFlowDelete(datapathId, flowMatch.getKeys, broker.get(brokerSeq))
-            broker.publishRequest(brokerSeq, obs)
+            try {
+                protocol.prepareFlowDelete(datapathId, flowMatch.getKeys, broker.get(brokerSeq))
+                broker.publishRequest(brokerSeq, obs)
+            } catch { case e: Throwable =>
+                obs.onError(e)
+            }
             true
         } else {
             false
@@ -110,8 +114,12 @@ class FlowProcessor(families: OvsNetlinkFamilies,
                obs: Observer[ByteBuffer]): Boolean = {
         var seq = 0
         if ({ seq = broker.nextSequence(); seq } != NetlinkRequestBroker.FULL) {
-            protocol.prepareFlowGet(datapathId, flowMatch, broker.get(seq))
-            broker.publishRequest(seq, obs)
+            try {
+                protocol.prepareFlowGet(datapathId, flowMatch, broker.get(seq))
+                broker.publishRequest(seq, obs)
+            } catch { case e: Throwable =>
+                obs.onError(e)
+            }
             true
         } else {
             false
