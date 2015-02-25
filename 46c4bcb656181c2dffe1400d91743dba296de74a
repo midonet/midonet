@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_cd7744d3",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/TunnelZoneTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-25T17:47:02Z",
+      "side": 1,
+      "message": "Just curious: why? doesn\u0027t the updated tunnelzone from neutron contain an updated host list?\n\nAnd why is it a \u0027create\u0027 and not an \u0027update\u0027?",
+      "range": {
+        "startLine": 40,
+        "startChar": 11,
+        "endLine": 40,
+        "endChar": 69
+      },
+      "revId": "46c4bcb656181c2dffe1400d91743dba296de74a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_ed7cc0b7",
+        "filename": "cluster/src/main/proto/topology.proto",
+        "patchSetId": 2
+      },
+      "lineNbr": 294,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-25T17:47:02Z",
+      "side": 1,
+      "message": "Doesn\u0027t the \u0027HostToIp hosts\u0027 above act already as a \u0027backreference\u0027? Isn\u0027t this redundant?",
+      "range": {
+        "startLine": 293,
+        "startChar": 3,
+        "endLine": 294,
+        "endChar": 33
+      },
+      "revId": "46c4bcb656181c2dffe1400d91743dba296de74a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
