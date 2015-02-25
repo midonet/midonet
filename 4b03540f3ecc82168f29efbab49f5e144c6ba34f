@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_489ce2c0",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/Aggregator.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-25T18:24:04Z",
+      "side": 1,
+      "message": "Then it should also start one line below the double \u0027*\u0027...\nMaybe it is not fully standard, but it is more compact (I copied the style from one of master Galo\u0027s files, anyway :-p)",
+      "parentUuid": "7a1969be_8dac2ca2",
+      "range": {
+        "startLine": 69,
+        "startChar": 12,
+        "endLine": 69,
+        "endChar": 14
+      },
+      "revId": "4b03540f3ecc82168f29efbab49f5e144c6ba34f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_cd958441",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/Aggregator.scala",
         "patchSetId": 7
@@ -36,6 +60,30 @@
       "writtenOn": "2015-02-25T17:38:56Z",
       "side": 1,
       "message": "sources.putIfAbsent(key, SourceControl(terminator, owner)) eq null\n\nCurrently containsKey may evaluate to false and you call collector.onNext even though the key was added slightly after the check. Isn\u0027t that a problem?",
+      "range": {
+        "startLine": 84,
+        "startChar": 12,
+        "endLine": 84,
+        "endChar": 37
+      },
+      "revId": "4b03540f3ecc82168f29efbab49f5e144c6ba34f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_08baea22",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/Aggregator.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-25T18:24:04Z",
+      "side": 1,
+      "message": "No, it\u0027s not a problem because this is inside a \u0027synchronized\u0027 block. But as everyone is asking the same, it means that, at least, I should put a comment clarifying it :-)\nDone.",
+      "parentUuid": "7a1969be_cd958441",
       "range": {
         "startLine": 84,
         "startChar": 12,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_08e82a0f",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/ServerState.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-25T18:24:04Z",
+      "side": 1,
+      "message": "I think the parenthesis are not needed, but the braces are...\nDone.",
+      "parentUuid": "7a1969be_8d138c65",
+      "range": {
+        "startLine": 79,
+        "startChar": 33,
+        "endLine": 79,
+        "endChar": 34
+      },
+      "revId": "4b03540f3ecc82168f29efbab49f5e144c6ba34f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_6d161057",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/Session.scala",
         "patchSetId": 7
@@ -82,6 +154,30 @@
       "writtenOn": "2015-02-25T18:01:12Z",
       "side": 1,
       "message": "Do all these methods have Unit return type?",
+      "range": {
+        "startLine": 34,
+        "startChar": 58,
+        "endLine": 34,
+        "endChar": 59
+      },
+      "revId": "4b03540f3ecc82168f29efbab49f5e144c6ba34f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_88cb7aa4",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/Session.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-25T18:24:04Z",
+      "side": 1,
+      "message": "In practice yes, but it is not enforced (I guess that a particular implementation might choose to return something). Do you think it is better to specify it?",
+      "parentUuid": "7a1969be_6d161057",
       "range": {
         "startLine": 34,
         "startChar": 58,
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_2886c665",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/SessionInventory.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 544,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-25T18:24:04Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_4d7a34f2",
+      "range": {
+        "startLine": 544,
+        "startChar": 20,
+        "endLine": 544,
+        "endChar": 29
+      },
+      "revId": "4b03540f3ecc82168f29efbab49f5e144c6ba34f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_4dbd1468",
         "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/services/topology/server/SessionInventoryTest.scala",
         "patchSetId": 7
@@ -128,6 +248,30 @@
       "writtenOn": "2015-02-25T17:38:56Z",
       "side": 1,
       "message": "Test that updates after",
+      "range": {
+        "startLine": 311,
+        "startChar": 8,
+        "endLine": 311,
+        "endChar": 34
+      },
+      "revId": "4b03540f3ecc82168f29efbab49f5e144c6ba34f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_a891169c",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/services/topology/server/SessionInventoryTest.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 311,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-25T18:24:04Z",
+      "side": 1,
+      "message": "I guess you mean the scenario title is unclear...\nChanged it to \u0027watch pre-created entities\u0027.",
+      "parentUuid": "7a1969be_4dbd1468",
       "range": {
         "startLine": 311,
         "startChar": 8,
@@ -163,6 +307,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_08914a99",
+        "filename": "cluster/src/main/proto/topology_api.proto",
+        "patchSetId": 7
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-25T18:24:04Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_8db70c86",
+      "range": {
+        "startLine": 70,
+        "startChar": 39,
+        "endLine": 70,
+        "endChar": 40
+      },
+      "revId": "4b03540f3ecc82168f29efbab49f5e144c6ba34f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_cdb0e48d",
         "filename": "cluster/src/main/proto/topology_api.proto",
         "patchSetId": 7
@@ -186,6 +354,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_e88b0e66",
+        "filename": "cluster/src/main/proto/topology_api.proto",
+        "patchSetId": 7
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-25T18:24:04Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_cdb0e48d",
+      "range": {
+        "startLine": 71,
+        "startChar": 41,
+        "endLine": 72,
+        "endChar": 22
+      },
+      "revId": "4b03540f3ecc82168f29efbab49f5e144c6ba34f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_2d67f826",
         "filename": "cluster/src/main/proto/topology_api.proto",
         "patchSetId": 7
@@ -197,6 +389,30 @@
       "writtenOn": "2015-02-25T17:38:56Z",
       "side": 1,
       "message": "to?",
+      "range": {
+        "startLine": 83,
+        "startChar": 66,
+        "endLine": 83,
+        "endChar": 68
+      },
+      "revId": "4b03540f3ecc82168f29efbab49f5e144c6ba34f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_c8dd7272",
+        "filename": "cluster/src/main/proto/topology_api.proto",
+        "patchSetId": 7
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-25T18:24:04Z",
+      "side": 1,
+      "message": "Maybe. Changed",
+      "parentUuid": "7a1969be_2d67f826",
       "range": {
         "startLine": 83,
         "startChar": 66,
