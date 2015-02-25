@@ -48,6 +48,52 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_8d138c65",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/ServerState.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-25T18:01:12Z",
+      "side": 1,
+      "message": "Are the braces needed?",
+      "range": {
+        "startLine": 79,
+        "startChar": 33,
+        "endLine": 79,
+        "endChar": 34
+      },
+      "revId": "4b03540f3ecc82168f29efbab49f5e144c6ba34f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_6d161057",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/Session.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-25T18:01:12Z",
+      "side": 1,
+      "message": "Do all these methods have Unit return type?",
+      "range": {
+        "startLine": 34,
+        "startChar": 58,
+        "endLine": 34,
+        "endChar": 59
+      },
+      "revId": "4b03540f3ecc82168f29efbab49f5e144c6ba34f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_4d7a34f2",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/SessionInventory.scala",
         "patchSetId": 7
