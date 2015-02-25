@@ -30,6 +30,8 @@ import org.apache.commons.configuration.HierarchicalConfiguration
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
+import rx.Observable
+
 import org.midonet.cluster.data.TunnelZone.HostConfig
 import org.midonet.cluster.data.storage.Storage
 import org.midonet.cluster.data.{TunnelZone => OldTunnel, ZoomConvert}
@@ -43,6 +45,7 @@ import org.midonet.midolman.topology.devices.{Host => SimHost}
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.MessageAccumulator
 import org.midonet.packets.{IPAddr, IPv4Addr}
+import org.midonet.util.reactivex.AwaitableObserver
 
 @RunWith(classOf[JUnitRunner])
 class VTPMRedirectorTest extends TestKit(ActorSystem("VTPMRedirectorTest"))
@@ -175,8 +178,17 @@ class VTPMRedirectorTest extends TestKit(ActorSystem("VTPMRedirectorTest"))
                                 .setIp(hostIp.asInstanceOf[IPv4Addr]))
             expectMsg(ZoneMembers(tunnelId, OldTunnel.Type.vtep, hosts))
 
+            When("We create an observer to the VT observable")
+            val observer = new AwaitableObserver[SimHost](2)
+            vt.observables(tunnelId.asJava)
+                .asInstanceOf[Observable[SimHost]]
+                .subscribe(observer)
+
             And("When we update the tunnel zone")
             store.delete(classOf[ProtoTunnelZone], tunnelId)
+
+            And("We wait for the deletion to be notified")
+            observer.await(5 seconds) shouldBe true
 
             Then("tryAsk should result in a NotYetException as the VTPM DeviceCaches"
                  + "should have been cleared")
@@ -297,6 +309,7 @@ class VTPMRedirectorTest extends TestKit(ActorSystem("VTPMRedirectorTest"))
 
             And("When we remove the host form the tunnel zone")
             store.update(protoHost)
+
             Then("We receive the host without any tunnel zones")
             expectMsg(simHost)
         }
@@ -312,10 +325,22 @@ class VTPMRedirectorTest extends TestKit(ActorSystem("VTPMRedirectorTest"))
             val simHost = ZoomConvert.fromProto(protoHost, classOf[SimHost])
             expectMsg(simHost)
 
+            When("We create an observer to the VT observable")
+            val observer = new AwaitableObserver[SimHost](2)
+            vt.observables(protoHost.getId.asJava)
+                .asInstanceOf[Observable[SimHost]]
+                .subscribe(observer)
+
             And("When we delete the host")
             store.delete(classOf[ProtoHost], protoHost.getId)
 
-            Then("tryAsk results in a NotYetException as the VTPM DeviceCaches"
+            And("We wait for the deletion to be notified")
+            observer.await(5 seconds) shouldBe true
+
+            Then("The observer should receive a completed notification")
+            observer.getOnCompletedEvents should not be empty
+
+            And("tryAsk results in a NotYetException as the VTPM DeviceCaches"
                  + " have been cleared")
             intercept[NotYetException] {
                 val hostRequest = HostRequest(protoHost.getId, update=false)
