@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_ad35a8dc",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/guice/StorageModule.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-25T15:56:25Z",
+      "side": 1,
+      "message": "Do we want to expose the StorageWithOwnership separately from the Storage? Isn\u0027t it enough to expose the Storage?",
+      "range": {
+        "startLine": 45,
+        "startChar": 8,
+        "endLine": 45,
+        "endChar": 45
+      },
+      "revId": "2c29e2918252af4ee1c8a329672dad5de2fedd5c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_4d06b4cf",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 237,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-25T15:56:25Z",
+      "side": 1,
+      "message": "Maybe it is better to decrease the latch also in case of error and set a shared variable to indicate the error situation, instead of relaying on the timeout?",
+      "range": {
+        "startLine": 237,
+        "startChar": 25,
+        "endLine": 237,
+        "endChar": 65
+      },
+      "revId": "2c29e2918252af4ee1c8a329672dad5de2fedd5c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_cd4bc429",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 247,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-25T15:56:25Z",
+      "side": 1,
+      "message": "await does not return InterruptedException on timeout, but on thread interruption (i.e. shutdown). We should check the return value of await, and generate a timeout exception ourselves if it returns \u0027false\u0027...",
+      "range": {
+        "startLine": 240,
+        "startChar": 8,
+        "endLine": 247,
+        "endChar": 9
+      },
+      "revId": "2c29e2918252af4ee1c8a329672dad5de2fedd5c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_2d51b80e",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VTPMRedirector.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-25T15:56:25Z",
+      "side": 1,
+      "message": "Just curious: wouldn\u0027t it be better to declare the injected MidolmanConfig as an injected constructor parameter?",
+      "range": {
+        "startLine": 52,
+        "startChar": 4,
+        "endLine": 53,
+        "endChar": 45
+      },
+      "revId": "2c29e2918252af4ee1c8a329672dad5de2fedd5c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_0d631cdd",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/Host.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-25T15:56:25Z",
+      "side": 1,
+      "message": "extra spaces",
+      "range": {
+        "startLine": 87,
+        "startChar": 0,
+        "endLine": 87,
+        "endChar": 4
+      },
+      "revId": "2c29e2918252af4ee1c8a329672dad5de2fedd5c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
