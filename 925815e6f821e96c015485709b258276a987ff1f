@@ -22,6 +22,30 @@
       "revId": "925815e6f821e96c015485709b258276a987ff1f",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_f75011d6",
+        "filename": "cluster/src/main/proto/topology.proto",
+        "patchSetId": 3
+      },
+      "lineNbr": 291,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-02-25T04:26:13Z",
+      "side": 1,
+      "message": "Ok how come it\u0027s different from other resources, like Vtep below where I see \u0027bindings\u0027?  Is it the case that we will change all resources to fit this singular model later?",
+      "parentUuid": "7a1969be_d7c4f593",
+      "range": {
+        "startLine": 291,
+        "startChar": 13,
+        "endLine": 291,
+        "endChar": 27
+      },
+      "revId": "925815e6f821e96c015485709b258276a987ff1f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
