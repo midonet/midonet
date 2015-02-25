@@ -18,6 +18,7 @@ package org.midonet.cluster.data.neutron;
 import java.util.List;
 import java.util.UUID;
 
+import com.google.common.base.Objects;
 import com.google.inject.Inject;
 
 import org.apache.zookeeper.Op;
@@ -184,7 +185,12 @@ public class ExternalNetZkManager extends BaseZkManager {
     public void prepareUpdateExtSubnet(List<Op> ops, Subnet subnet)
         throws StateAccessException, SerializationException {
 
+        // Update only if the gateway is changed.
         Subnet oldSubnet = networkZkManager.getSubnet(subnet.id);
+        if (Objects.equal(oldSubnet.gatewayIp, subnet.gatewayIp)) {
+            return;
+        }
+
         RouterPortConfig pCfg = portZkManager.findGatewayRouterPortFromBridge(
             oldSubnet.networkId, oldSubnet.gatewayIpAddr());
 
