@@ -48,6 +48,9 @@ message Network {
     optional uint64 tunnel_key = 5;
     optional UUID inbound_filter_id = 6;
     optional UUID outbound_filter_id = 7;
+    // If the Network is bound to any VTEPs, it'll be assigned a VNI
+    // that is used for all bindings to all VTEPs
+    optional uint32 vni = 8;
 
     // Backreferences
     repeated UUID port_ids = 101;
@@ -120,12 +123,6 @@ message Port {
 
     // VXLAN port specific
     optional UUID vtep_id = 17;
-    // TODO: This should be replaced by vtep_id, and the vni moved to Network
-    optional IPAddress vtep_mgmt_ip = 18;
-    optional uint32 vtep_mgmt_port = 19;
-    optional uint32 vtep_vni = 20;
-    optional IPAddress vtep_tunnel_ip = 21;
-    optional UUID vtep_tunnel_zone_id = 22;
 
     // Backreferences
     repeated UUID rule_ids = 101;
