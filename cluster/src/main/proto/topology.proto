@@ -289,6 +289,9 @@ message TunnelZone {
         optional IPAddress ip = 2;
     }
     repeated HostToIp hosts = 4; // Hosts in this zone
+
+    // Backreferences
+    repeated UUID host_ids = 101;
 }
 
 message Vtep {

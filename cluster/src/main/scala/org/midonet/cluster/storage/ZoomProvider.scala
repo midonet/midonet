@@ -63,6 +63,10 @@ class ZoomProvider @Inject()(val curator: CuratorFramework, cfg: ZookeeperConfig
                                classOf[Port], "network_id", CLEAR)
         storage.declareBinding(classOf[Network], "dhcp_ids", ERROR,
                                classOf[Dhcp], "network_id", CLEAR)
+        // Note: the below does not delete a HostToIp mapping under TunnelZone
+        // upon deletion of a Host, which still needs to be done manually.
+        storage.declareBinding(classOf[Host], "tunnel_zone_ids", CLEAR,
+                               classOf[TunnelZone], "host_ids", CLEAR)
         storage.build()
         storage
     }
