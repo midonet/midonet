@@ -286,7 +286,7 @@ message TunnelZone {
 
     message HostToIp {
         optional UUID host_id = 1;
-        optional IPAddress ip = 2;
+        optional IPAddress ip= 2;
     }
     repeated HostToIp hosts = 4; // Hosts in this zone
 }
