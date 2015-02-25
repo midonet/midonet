@@ -96,15 +96,12 @@ class VxLanPort extends Port {
     @ZoomField(name = "network_id", converter = classOf[UUIDConverter])
     var networkId: UUID = _
 
-    @ZoomField(name = "vtep_mgmt_ip", converter = classOf[IPAddressConverter])
+    // These are legacy fields that will not be present in the Proto-based
+    // models, and instead be replaced with a vtepId: UUID
     var vtepMgmtIp: IPv4Addr = _
-    @ZoomField(name = "vtep_mgmt_port")
     var vtepMgmtPort: Int = _
-    @ZoomField(name = "vtep_tunnel_ip", converter = classOf[IPAddressConverter])
     var vtepTunnelIp: IPv4Addr = _
-    @ZoomField(name = "vtep_tunnel_zone_id", converter = classOf[UUIDConverter])
     var vtepTunnelZoneId: UUID = _
-    @ZoomField(name = "vtep_vni")
     var vtepVni: Int = _
 
     override def deviceId = networkId
@@ -147,7 +144,7 @@ class RouterPort extends Port {
 
 sealed class PortFactory extends ZoomConvert.Factory[Port, Topology.Port] {
     override def getType(proto: Topology.Port): Class[_ <: Port] = {
-        if (proto.hasVtepMgmtIp) classOf[VxLanPort]
+        if (proto.hasVtepId) classOf[VxLanPort]
         else if (proto.hasNetworkId) classOf[BridgePort]
         else if (proto.hasRouterId) classOf[RouterPort]
         else throw new IllegalArgumentException("Unknown port type")

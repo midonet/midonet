@@ -17,17 +17,17 @@ package org.midonet.midolman.topology.devices
 
 import java.util.UUID
 
-import scala.util.Random
 import scala.collection.JavaConversions._
+import scala.util.Random
 
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
-import org.scalatest.{Matchers, FeatureSpec}
+import org.scalatest.{FeatureSpec, Matchers}
 
 import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.models.{Commons, Topology}
 import org.midonet.cluster.util.UUIDUtil._
-import org.midonet.packets.{IPv4Subnet, MAC, IPv4Addr}
+import org.midonet.packets.{IPv4Addr, IPv4Subnet, MAC}
 
 @RunWith(classOf[JUnitRunner])
 class PortConversionTest extends FeatureSpec with Matchers {
@@ -97,6 +97,12 @@ class PortConversionTest extends FeatureSpec with Matchers {
         }
     }
 
+    /*
+    Disabled: for now, we don't convert from the new proto to the old Port since
+              we're going to change the contents of the VxlanPort in the new
+              model, removing all vtep data and just leaving a reference to the
+              VTEP itself.
+
     feature("Conversion for VXLAN port") {
         scenario("Test conversion from Protocol Buffers message") {
             val proto = newProto
@@ -131,6 +137,7 @@ class PortConversionTest extends FeatureSpec with Matchers {
             assertEquals(port, proto)
         }
     }
+    */
 
     private def newProto = {
         Topology.Port.newBuilder
@@ -208,12 +215,4 @@ class PortConversionTest extends FeatureSpec with Matchers {
         port.deviceId should be (proto.getRouterId.asJava)
     }
 
-    private def assertEquals(port: VxLanPort, proto: Topology.Port): Unit = {
-        assertEquals(port.asInstanceOf[Port], proto)
-        port.vtepMgmtIp.toString should be (proto.getVtepMgmtIp.getAddress)
-        port.vtepMgmtPort should be (proto.getVtepMgmtPort)
-        port.vtepTunnelIp.toString should be (proto.getVtepTunnelIp.getAddress)
-        port.vtepTunnelZoneId should be (proto.getVtepTunnelZoneId.asJava)
-        port.vtepVni should be (proto.getVtepVni)
-    }
 }

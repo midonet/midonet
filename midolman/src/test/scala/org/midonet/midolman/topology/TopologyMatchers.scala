@@ -18,16 +18,15 @@ package org.midonet.midolman.topology
 import scala.collection.JavaConverters._
 
 import com.google.protobuf.MessageOrBuilder
-
 import org.scalatest.Matchers
 
-import org.midonet.cluster.models.Topology.{Port => TopologyPort, Network => TopologyBridge}
+import org.midonet.cluster.models.Topology.{Network => TopologyBridge, Port => TopologyPort}
 import org.midonet.cluster.util.IPAddressUtil._
 import org.midonet.cluster.util.IPSubnetUtil._
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.simulation.Bridge
-import org.midonet.midolman.topology.TopologyMatchers.{BridgeMatcher, VxLanPortMatcher, RouterPortMatcher, BridgePortMatcher}
-import org.midonet.midolman.topology.devices.{VxLanPort, RouterPort, Port, BridgePort}
+import org.midonet.midolman.topology.TopologyMatchers.{BridgeMatcher, BridgePortMatcher, RouterPortMatcher}
+import org.midonet.midolman.topology.devices.{BridgePort, Port, RouterPort}
 import org.midonet.packets.MAC
 
 object TopologyMatchers {
@@ -72,18 +71,6 @@ object TopologyMatchers {
         }
     }
 
-    class VxLanPortMatcher(port: VxLanPort)
-        extends PortMatcher(port) {
-        override def shouldBeDeviceOf(p: TopologyPort): Unit = {
-            super.shouldBeDeviceOf(p)
-            port.vtepMgmtIp shouldBe p.getVtepMgmtIp.asIPv4Address
-            port.vtepMgmtPort shouldBe p.getVtepMgmtPort
-            port.vtepTunnelIp shouldBe p.getVtepTunnelIp.asIPv4Address
-            port.vtepTunnelZoneId shouldBe p.getVtepTunnelZoneId.asJava
-            port.vtepVni shouldBe p.getVtepVni
-        }
-    }
-
     class BridgeMatcher(bridge: Bridge) extends Matchers
                                         with DeviceMatcher[TopologyBridge] {
         override def shouldBeDeviceOf(b: TopologyBridge): Unit = {
@@ -108,9 +95,6 @@ trait TopologyMatchers {
 
     implicit def asMatcher(port: RouterPort): RouterPortMatcher =
         new RouterPortMatcher(port)
-
-    implicit def asMatcher(port: VxLanPort): VxLanPortMatcher =
-        new VxLanPortMatcher(port)
 
     implicit def asMatcher(bridge: Bridge): BridgeMatcher =
         new BridgeMatcher(bridge)

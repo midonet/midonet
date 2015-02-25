@@ -17,6 +17,7 @@ package org.midonet.cluster.util
 
 import java.lang.reflect.Type
 import java.util.{UUID => JUUID}
+import javax.annotation.Nonnull
 
 import scala.util.Random
 
@@ -34,6 +35,10 @@ object UUIDUtil {
                   .setMsb(uuid.getMostSignificantBits)
                   .setLsb(uuid.getLeastSignificantBits)
                   .build()
+    }
+
+    def toProto(@Nonnull msb: Long, @Nonnull lsb: Long): PUUID = {
+        PUUID.newBuilder().setMsb(msb).setLsb(lsb).build()
     }
 
     def toProto(uuidStr: String): PUUID = {
