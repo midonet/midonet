@@ -76,10 +76,10 @@ bindings2 = {
 #      - 10.0.2.27/24
 #
 
-vtep_management_ip = '10.0.0.103' # The emulator's MGMT ip
+vtep1_management_ip = '10.0.0.128' # The emulator's MGMT ip
 vtep_management_port = '6632' # The emulator's MGMT port
 port_name = 'port0' # Preconfigured in the VTEP emulator
-vlan_id = 0 # Preconfigured in the VTEP emulator
+vlan_id = 5 # Preconfigured in the VTEP emulator
 
 # Hosts that can talk to the VTEP should be added to this tunnel zone, the
 # membership IP determines the src ip that the host will set in the vxlan
@@ -89,7 +89,7 @@ vtep_tz_name = 'vteptz'
 # The device connected to the emulator. Make sure that the
 # mmm_physical_test_vxlangw defines a VM plugged to the host that belongs to
 # the same range
-vm_on_vtep = '10.0.2.26'
+vm_on_vtep1 = '10.0.2.26'
 
 # The VTEP itself must be able to communicate directly with this IP, which is
 # Midolmans host. This can be tricky. In the MidoCloud, this involves:
@@ -113,8 +113,8 @@ def setup():
     PTM.build()
     VTM.build()
 
-    # Sets up a VTEP and add a binding.
-    set_up_vtep()
+    # Sets up a VTEP1 and add a binding.
+    set_up_vtep1()
 
 
 def teardown():
@@ -141,16 +141,16 @@ def teardown():
     PTM.destroy()
     VTM.destroy()
 
-@nottest
+
 @bindings(bindings1)
 def test_ping_host_on_vtep_from_one_mm():
     '''Tests if a VM can ping an IP address behind a VTEP from one host.'''
     sender = BM.get_iface_for_port('bridge-000-001', 1)
 
-    pcap_filter = 'src host %s and icmp' % vm_on_vtep
+    pcap_filter = 'src host %s and icmp' % vm_on_vtep1
 
     # Ping an IP address on the physical VTEP from a VM on a virtual bridge.
-    f1 = sender.ping_ipv4_addr(vm_on_vtep)
+    f1 = sender.ping_ipv4_addr(vm_on_vtep1)
     f2 = async_assert_that(sender, receives(pcap_filter, within_sec(5)))
     wait_on_futures([f1, f2])
 
@@ -161,30 +161,30 @@ def test_ping_host_on_vtep_from_all_mm():
 
     raw_input("Press ENTER to continue and cleanup...")
 
-    pcap_filter = 'src host %s and icmp' % vm_on_vtep
+    pcap_filter = 'src host %s and icmp' % vm_on_vtep1
 
     sender = BM.get_iface_for_port('bridge-000-001', 1)
 
     # Ping an IP address on the physical VTEP from a VM on a virtual bridge.
-    f1 = sender.ping_ipv4_addr(vm_on_vtep)
+    f1 = sender.ping_ipv4_addr(vm_on_vtep1)
     f2 = async_assert_that(sender, receives(pcap_filter, within_sec(5)))
     wait_on_futures([f1, f2])
 
     sender = BM.get_iface_for_port('bridge-000-001', 2)
 
     # Ping an IP address on the physical VTEP from a VM on a virtual bridge.
-    f1 = sender.ping_ipv4_addr(vm_on_vtep)
+    f1 = sender.ping_ipv4_addr(vm_on_vtep1)
     f2 = async_assert_that(sender, receives(pcap_filter, within_sec(5)))
     wait_on_futures([f1, f2])
 
     sender = BM.get_iface_for_port('bridge-000-001', 3)
 
     # Ping an IP address on the physical VTEP from a VM on a virtual bridge.
-    f1 = sender.ping_ipv4_addr(vm_on_vtep)
+    f1 = sender.ping_ipv4_addr(vm_on_vtep1)
     f2 = async_assert_that(sender, receives(pcap_filter, within_sec(5)))
     wait_on_futures([f1, f2])
 
-def set_up_vtep():
+def set_up_vtep1():
     '''Helper function to set up a VTEP and a binding.
 
     Part of this setup should be declared in the virtual topology data,
@@ -225,13 +225,12 @@ def set_up_vtep():
         index = index + 1
 
     vtep = api.add_vtep()\
-             .name('My VTEP')\
-             .management_ip(vtep_management_ip)\
+             .management_ip(vtep1_management_ip)\
              .management_port(vtep_management_port)\
              .tunnel_zone_id(tz.get_id())\
              .create()
 
-    LOG.debug('Created a VTEP at %s' % vtep_management_ip)
+    LOG.debug('Created a VTEP at %s' % vtep1_management_ip)
 
     # Add a new VTEP binding.
     # Look up a bridge with which to bind the VTEP.
