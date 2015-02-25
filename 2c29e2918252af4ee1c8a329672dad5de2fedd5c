@@ -190,6 +190,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_ad90084f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VTPMRedirector.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-25T16:37:33Z",
+      "side": 1,
+      "message": "Okay: I think the main reason we could\u0027t do that was the unit tests, where instances for Midolman actors are created with new, without arguments, and fields are injected after the instance was created using\n\n  injector.injectMembers(instance)",
+      "parentUuid": "7a1969be_6db8d0e5",
+      "range": {
+        "startLine": 52,
+        "startChar": 4,
+        "endLine": 53,
+        "endChar": 45
+      },
+      "revId": "2c29e2918252af4ee1c8a329672dad5de2fedd5c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_0d631cdd",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/Host.scala",
         "patchSetId": 8
