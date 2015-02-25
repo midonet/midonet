@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_7780a146",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/SubnetTranslator.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-02-25T02:04:04Z",
+      "side": 1,
+      "message": "Why don\u0027t we call it hasDhcpPortIP and return boolean instead?",
+      "range": {
+        "startLine": 106,
+        "startChar": 16,
+        "endLine": 106,
+        "endChar": 29
+      },
+      "revId": "ca318a73c1c337d0b94dc369d1d44be011f631a8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_d796b593",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/SubnetTranslator.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-02-25T02:04:04Z",
+      "side": 1,
+      "message": "If we make the above change, then it can simply be:\n\n\nnetwork.getPortIdsList.asScala.exits({portId \u003d\u003e\n    val port \u003d storage.get(classOf[NeutronPort], portId).await()\n    isDhcpPort(port)  // Need to implement PortManager\n})",
+      "range": {
+        "startLine": 109,
+        "startChar": 8,
+        "endLine": 122,
+        "endChar": 12
+      },
+      "revId": "ca318a73c1c337d0b94dc369d1d44be011f631a8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
