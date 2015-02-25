@@ -47,7 +47,7 @@ import org.midonet.midolman.monitoring.MeterRegistry
 import org.midonet.midolman.simulation.PacketContext
 import org.midonet.netlink.exceptions.NetlinkException
 import org.midonet.netlink.exceptions.NetlinkException.ErrorCode
-import org.midonet.odp.{Datapath, Flow}
+import org.midonet.odp.{Datapath, FlowMetadata}
 import org.midonet.sdn.flows.FlowTagger.FlowTag
 import org.midonet.sdn.flows._
 import org.midonet.util.collection.{EventHistory, ArrayObjectPool, ObjectPool}
@@ -94,7 +94,7 @@ object FlowController extends Referenceable {
                              (implicit actorSystem: ActorSystem)
         extends Observer[ByteBuffer] {
 
-        val flow = new Flow()
+        val flowMetadata = new FlowMetadata()
 
         var opId: Byte = _
         var managedFlow: ManagedFlow = _
@@ -120,12 +120,13 @@ object FlowController extends Referenceable {
             failure = null
             managedFlow.unref()
             managedFlow = null
+            flowMetadata.clear()
             pool.offer(this)
         }
 
         override def onNext(t: ByteBuffer): Unit =
             try {
-                flow.deserialize(t)
+                flowMetadata.deserialize(t)
             } catch { case e: Throwable =>
                 failure = e
             }
@@ -340,7 +341,7 @@ class FlowController extends Actor with ActorLogWithoutPath
     private def flowRetrievalSucceeded(req: FlowOperation): Unit = {
         log.debug(s"Retrieved flow ${req.flow} from datapath for ${req.managedFlow}")
         context.system.eventStream.publish(FlowUpdateCompleted)
-        flowManager.retrievedFlow(req.flow, req.managedFlow)
+        flowManager.retrievedFlow(req.flowMetadata, req.managedFlow)
         req.clear()
     }
 
@@ -372,11 +373,10 @@ class FlowController extends Actor with ActorLogWithoutPath
         // Note: we use the request's FlowMatch because any userspace keys
         // that we added to it are no present in the kernel's response and we
         // need them for our bookkeeping, in particular for the MetricsRegistry.
-        val flow = req.flow
+        val flowMetadata = req.flowMetadata
         val flowMatch = req.managedFlow.flowMatch
         log.debug(s"DP confirmed removal of ${req.managedFlow}")
-        if (flow.getStats ne null)
-            meters.updateFlow(flowMatch, flow.getStats)
+        meters.updateFlow(flowMatch, flowMetadata.getStats)
         meters.forgetFlow(flowMatch)
         req.clear()
     }
