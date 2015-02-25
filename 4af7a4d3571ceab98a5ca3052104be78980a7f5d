@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_6daf3095",
+        "filename": "midolman/src/main/scala/org/midonet/cluster/services/StorageService.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-25T17:32:22Z",
+      "side": 1,
+      "message": "Isn\u0027t this already provided by the ZoomProvider when instantiating the Storage (which is passed as a parameter)?",
+      "range": {
+        "startLine": 77,
+        "startChar": 3,
+        "endLine": 92,
+        "endChar": 5
+      },
+      "revId": "4af7a4d3571ceab98a5ca3052104be78980a7f5d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
