@@ -27,7 +27,7 @@ import org.midonet.cluster.models.Topology.Route.NextHop
 import org.midonet.cluster.models.Topology.Rule.{Action, JumpRuleData, NatTarget}
 import org.midonet.cluster.models.Topology.TunnelZone.HostToIp
 import org.midonet.cluster.models.Topology._
-import org.midonet.cluster.util.IPAddressUtil
+import org.midonet.cluster.util.{UUIDUtil, IPAddressUtil}
 import org.midonet.cluster.util.IPAddressUtil._
 import org.midonet.cluster.util.IPSubnetUtil._
 import org.midonet.cluster.util.UUIDUtil._
@@ -92,20 +92,12 @@ trait TopologyBuilder {
                                   interfaceName: Option[String] = None,
                                   adminStateUp: Boolean = false,
                                   portGroupIds: Set[UUID] = Set.empty,
-                                  vtepMgmtIp: IPAddr = IPv4Addr.random,
-                                  vtepMgmtPort: Int = random.nextInt(),
-                                  vtepVni: Int = random.nextInt(),
-                                  vtepTunnelIp: IPAddr = IPv4Addr.random,
-                                  vtepTunnelZoneId: UUID = UUID.randomUUID)
+                                  vtepMgmtIp: IPv4Addr = IPv4Addr.random)
     : Port = {
         val builder = createPortBuilder(
             id, inboundFilterId, outboundFilterId, tunnelKey, peerId, vifId,
             hostId, interfaceName, adminStateUp, portGroupIds)
-            .setVtepMgmtIp(vtepMgmtIp.asProto)
-            .setVtepMgmtPort(vtepMgmtPort)
-            .setVtepVni(vtepVni)
-            .setVtepTunnelIp(vtepTunnelIp.asProto)
-            .setVtepTunnelZoneId(vtepTunnelZoneId.asProto)
+            .setVtepId(UUIDUtil.toProto(0, vtepMgmtIp.toInt))
         if (bridgeId.isDefined) builder.setNetworkId(bridgeId.get.asProto)
         builder.build
     }
