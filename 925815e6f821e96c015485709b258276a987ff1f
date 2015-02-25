@@ -46,6 +46,30 @@
       "revId": "925815e6f821e96c015485709b258276a987ff1f",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_57b765d8",
+        "filename": "cluster/src/main/proto/topology.proto",
+        "patchSetId": 3
+      },
+      "lineNbr": 291,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-02-25T06:03:11Z",
+      "side": 1,
+      "message": "I thought we wouldn\u0027t touch other protos that already exist and have translators, etc. I just wanted to start applying the right conventions for new proto, but If you think it\u0027s better to make it plural for the consistency reason, please let me know.",
+      "parentUuid": "7a1969be_f75011d6",
+      "range": {
+        "startLine": 291,
+        "startChar": 13,
+        "endLine": 291,
+        "endChar": 27
+      },
+      "revId": "925815e6f821e96c015485709b258276a987ff1f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
