@@ -22,6 +22,30 @@
       "revId": "4af7a4d3571ceab98a5ca3052104be78980a7f5d",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_eda5e047",
+        "filename": "midolman/src/main/scala/org/midonet/cluster/services/StorageService.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-25T17:36:09Z",
+      "side": 1,
+      "message": "@ernest Galo\u0027s patch should address this. Currently, we cannot use ZoomProvider because the zoom initialization is conditioned by zoom being enabled in the agent\u0027s configuration.\n\nWhat we would need is a service rather than a Guice provider to initialize zoom.",
+      "parentUuid": "7a1969be_6daf3095",
+      "range": {
+        "startLine": 77,
+        "startChar": 3,
+        "endLine": 92,
+        "endChar": 5
+      },
+      "revId": "4af7a4d3571ceab98a5ca3052104be78980a7f5d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
