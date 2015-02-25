@@ -284,11 +284,11 @@ message TunnelZone {
     }
     optional Type type = 3;
 
-    message HostToIp {
+    message TunnelZoneHost {
         optional UUID host_id = 1;
-        optional IPAddress ip = 2;
+        optional IPAddress ip_address = 2;
     }
-    repeated HostToIp hosts = 4; // Hosts in this zone
+    repeated TunnelZoneHost hosts = 4; // Hosts in this zone
 }
 
 message Vtep {
