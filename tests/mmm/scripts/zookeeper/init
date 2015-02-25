@@ -20,7 +20,7 @@ for n in 1 2 3; do
     if test ! -d /etc/zookeeper.$n; then
         mkdir -p /etc/zookeeper.$n
     fi
-    cp -a /etc/zookeeper/* /etc/zookeeper.$n
+    cp -LR --preserve=all /etc/zookeeper/* /etc/zookeeper.$n
 
     if test x"$ZOOKEEPER_STANDALONE" = xyes; then
         :
