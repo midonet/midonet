@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_8ddeec3d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/guice/StorageModule.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-25T16:27:15Z",
+      "side": 1,
+      "message": "During the review of the ZOOM ownership patch there was a discussion on whether Storage should extends StorageWithOwnership or the other way around.\n\nI would have preferred Storage extending StorageWithOwnership because of the injection issues: we only have to inject Storage. However, the alternative prevailed because StorageWithOwnership is supposed to add functionality to Storage.\n\nTherefore, here it\u0027s needed to expose StorageWithOwnership too because the Storage does not have the ownership methods.",
+      "parentUuid": "7a1969be_ad35a8dc",
+      "range": {
+        "startLine": 45,
+        "startChar": 8,
+        "endLine": 45,
+        "endChar": 45
+      },
+      "revId": "2c29e2918252af4ee1c8a329672dad5de2fedd5c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_4d06b4cf",
         "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
         "patchSetId": 8
@@ -36,6 +60,30 @@
       "writtenOn": "2015-02-25T15:56:25Z",
       "side": 1,
       "message": "Maybe it is better to decrease the latch also in case of error and set a shared variable to indicate the error situation, instead of relaying on the timeout?",
+      "range": {
+        "startLine": 237,
+        "startChar": 25,
+        "endLine": 237,
+        "endChar": 65
+      },
+      "revId": "2c29e2918252af4ee1c8a329672dad5de2fedd5c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_ade2c8fe",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 237,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-25T16:27:15Z",
+      "side": 1,
+      "message": "Actually, I didn\u0027t even check this part of the code, it was translated verbatim from HostService.java. Since we have to implement the same using zoom, would be okay to address these issues in a different patch?",
+      "parentUuid": "7a1969be_4d06b4cf",
       "range": {
         "startLine": 237,
         "startChar": 25,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_0df2fcd1",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 247,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-25T16:27:15Z",
+      "side": 1,
+      "message": "Thanks, fixed.",
+      "parentUuid": "7a1969be_cd4bc429",
+      "range": {
+        "startLine": 240,
+        "startChar": 8,
+        "endLine": 247,
+        "endChar": 9
+      },
+      "revId": "2c29e2918252af4ee1c8a329672dad5de2fedd5c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_2d51b80e",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VTPMRedirector.scala",
         "patchSetId": 8
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_6db8d0e5",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VTPMRedirector.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-25T16:27:15Z",
+      "side": 1,
+      "message": "I think we tried to do it, but we ran into some issues. I will try to address again.",
+      "parentUuid": "7a1969be_2d51b80e",
+      "range": {
+        "startLine": 52,
+        "startChar": 4,
+        "endLine": 53,
+        "endChar": 45
+      },
+      "revId": "2c29e2918252af4ee1c8a329672dad5de2fedd5c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_0d631cdd",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/Host.scala",
         "patchSetId": 8
@@ -105,6 +201,30 @@
       "writtenOn": "2015-02-25T15:56:25Z",
       "side": 1,
       "message": "extra spaces",
+      "range": {
+        "startLine": 87,
+        "startChar": 0,
+        "endLine": 87,
+        "endChar": 4
+      },
+      "revId": "2c29e2918252af4ee1c8a329672dad5de2fedd5c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_cdce2483",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/Host.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-25T16:27:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_0d631cdd",
       "range": {
         "startLine": 87,
         "startChar": 0,
