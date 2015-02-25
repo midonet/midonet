@@ -553,7 +553,6 @@ public class NetworkZkManager extends BaseZkManager {
         try {
             return Iterables.find(getPorts(), predicate);
         } catch (NoSuchElementException ex) {
-            log.debug("RYURYU:  not found");
             return null;
         }
     }
