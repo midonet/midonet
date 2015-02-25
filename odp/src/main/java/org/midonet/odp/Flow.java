@@ -22,7 +22,6 @@ import java.util.Objects;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import org.midonet.netlink.AttributeHandler;
 import org.midonet.netlink.NetlinkMessage;
 import org.midonet.netlink.Reader;
 import org.midonet.odp.OpenVSwitch.Flow.Attr;
@@ -36,34 +35,27 @@ import org.midonet.packets.TCP;
 /**
  * An abstraction over the OpenVSwitch kernel datapath flow object.
  */
-public class Flow implements AttributeHandler {
+public class Flow extends FlowMetadata {
 
     private FlowMatch match;
     private FlowMask mask = new FlowMask();
-    private List<FlowAction> actions = new ArrayList<>();
-    private FlowStats stats;
-    private Byte tcpFlags;
-
-    // this field is both used by the ovs kernel and by midolman packet pipeline
-    // to track time statistics. Because it may be incoherent for the same flow
-    // between ovs and midolman , it is ignored in equals() and hashCode().
-    private Long lastUsedTime;
+    private List<FlowAction> actions;
 
     public Flow() { }
 
     public Flow(FlowMatch match) {
-        this.match = match;
-        mask.calculateFor(match);
+        this(match, new ArrayList<FlowAction>(0), new FlowStats());
     }
 
     public Flow(FlowMatch match, List<FlowAction> actions) {
-        this(match);
-        this.actions = actions;
+        this(match, actions, new FlowStats());
     }
 
     public Flow(FlowMatch match, List<FlowAction> actions, FlowStats stats) {
-        this(match, actions);
-        this.stats = stats;
+        super(stats);
+        this.match = match;
+        this.actions = actions;
+        mask.calculateFor(match);
     }
 
     @Nullable
@@ -84,25 +76,8 @@ public class Flow implements AttributeHandler {
         return actions;
     }
 
-    public FlowStats getStats() {
-        return stats;
-    }
-
-    public Byte getTcpFlags() {
-        return tcpFlags;
-    }
-
-    public Long getLastUsedTime() {
-        return lastUsedTime;
-    }
-
-    public Flow setLastUsedTime(Long lastUsedTime) {
-        this.lastUsedTime = lastUsedTime;
-        return this;
-    }
-
     public void deserialize(ByteBuffer buf) {
-        int actualDpIndex = buf.getInt(); // read datapath index;
+        buf.getInt(); // read datapath index;
         NetlinkMessage.scanAttributes(buf, this);
     }
 
@@ -124,55 +99,39 @@ public class Flow implements AttributeHandler {
 
     public void use(ByteBuffer buf, short id) {
         switch(NetlinkMessage.unnest(id)) {
+            case Attr.Actions:
+                actions = FlowActions.reader.deserializeFrom(buf);
+                break;
 
-          case Attr.Stats:
-            stats = FlowStats.buildFrom(buf);
-            break;
+            case Attr.Key:
+                ArrayList<FlowKey> keys = new ArrayList<>();
+                FlowKeys.buildFrom(buf, keys);
+                match = new FlowMatch(keys);
+                break;
 
-          case Attr.TCPFlags:
-            tcpFlags = buf.get();
-            break;
+            case Attr.Mask:
+                mask = FlowMask.reader.deserializeFrom(buf);
+                break;
 
-          case Attr.Used:
-            lastUsedTime = buf.getLong();
-            break;
-
-          case Attr.Actions:
-            actions = FlowActions.reader.deserializeFrom(buf);
-            break;
-
-          case Attr.Key:
-            ArrayList<FlowKey> keys = new ArrayList<>();
-            FlowKeys.buildFrom(buf, keys);
-            match = new FlowMatch(keys);
-            break;
-
-          case Attr.Mask:
-            mask = FlowMask.reader.deserializeFrom(buf);
-            break;
+            default:
+                super.use(buf, id);
         }
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        @SuppressWarnings("unchecked")
+        if (!super.equals(o)) return false;
         Flow that = (Flow) o;
-
-        return Objects.equals(that.actions, this.actions)
-            && Objects.equals(that.match, this.match)
-            && Objects.equals(that.stats, this.stats)
-            && Objects.equals(that.tcpFlags, this.tcpFlags);
+        return Objects.equals(that.match, this.match)
+            && Objects.equals(that.actions, this.actions);
     }
 
     @Override
     public int hashCode() {
-        int result = Objects.hashCode(match);
+        int result = super.hashCode();
+        result = 31 * result + Objects.hashCode(match);
         result = 31 * result + Objects.hashCode(actions);
-        result = 31 * result + Objects.hashCode(stats);
-        result = 31 * result + Objects.hashCode(tcpFlags);
         return result;
     }
 
@@ -181,10 +140,8 @@ public class Flow implements AttributeHandler {
         return "Flow{" +
             "match=" + match +
             ", actions=" + actions +
-            ", stats=" + stats +
-            ", tcpFlags=" + tcpFlags +
-            ", lastUsedTime=" + lastUsedTime +
             ", mask=" + mask +
+            ", metadata=" + super.toString() +
             "}";
     }
 
@@ -207,12 +164,10 @@ public class Flow implements AttributeHandler {
             desc.add("actions: ");
             for (FlowAction act : actions) desc.add("  " + act.toString());
         }
-        if (stats != null)
-            desc.add("stats: " + stats);
-        if (tcpFlags != null)
-            desc.add("tcpFlags: " + TCP.Flag.allOfToString(tcpFlags.intValue()));
-        if (lastUsedTime != null)
-            desc.add("lastUsedTime: " + lastUsedTime);
+        if (getStats() != null)
+            desc.add("stats: " + getStats());
+        desc.add("tcpFlags: " + TCP.Flag.allOfToString(getTcpFlags()));
+        desc.add("lastUsedTime: " + getLastUsedTime());
         return  desc;
     }
 }
