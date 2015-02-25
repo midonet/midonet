@@ -24,8 +24,8 @@ import java.util.PriorityQueue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.midonet.odp.Flow;
 import org.midonet.odp.FlowMatch;
+import org.midonet.odp.FlowMetadata;
 
 // not thread-safe
 //TODO(ross) check the values mentioned in the doc below
@@ -208,15 +208,15 @@ public class FlowManager {
         return dpFlowTable.get(flowToExpire.flowMatch()) == flowToExpire;
     }
 
-    public void retrievedFlow(Flow flowFromKernel,
+    public void retrievedFlow(FlowMetadata flowMetadata,
                               ManagedFlow managedFlow) {
-        if (flowFromKernel == null || !isAlive(managedFlow)) {
+        if (flowMetadata == null || !isAlive(managedFlow)) {
             return;
         }
 
-        if (flowFromKernel.getLastUsedTime() > managedFlow.getLastUsedTimeMillis()) {
-            managedFlow.setLastUsedTimeMillis(flowFromKernel.getLastUsedTime());
-            log.trace("update lastUsedTime {}", flowFromKernel.getLastUsedTime());
+        if (flowMetadata.getLastUsedTime() > managedFlow.getLastUsedTimeMillis()) {
+            managedFlow.setLastUsedTimeMillis(flowMetadata.getLastUsedTime());
+            log.trace("update lastUsedTime {}", flowMetadata.getLastUsedTime());
         }
 
         long expirationDate = managedFlow.getLastUsedTimeMillis() + managedFlow.idleExpirationMillis();

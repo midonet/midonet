@@ -67,8 +67,8 @@ public class FlowStats {
         @SuppressWarnings("unchecked")
         FlowStats that = (FlowStats) o;
 
-        return (this.bytes == that.bytes)
-            && (this.packets == that.packets);
+        return this.bytes == that.bytes
+            && this.packets == that.packets;
     }
 
     @Override
@@ -84,9 +84,13 @@ public class FlowStats {
             '}';
     }
 
-    public static FlowStats buildFrom(ByteBuffer buf) {
-        long packets = buf.getLong();
-        long bytes = buf.getLong();
-        return new FlowStats(packets, bytes);
+    public void deserialize(ByteBuffer buf) {
+        packets = buf.getLong();
+        bytes = buf.getLong();
+     }
+
+    public void clear() {
+        packets = 0;
+        bytes = 0;
     }
 }
