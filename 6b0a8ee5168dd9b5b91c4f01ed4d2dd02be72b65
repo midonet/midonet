@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_d821c1fc",
+        "filename": "midolman/src/main/java/org/midonet/midolman/rules/NatRule.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-26T14:54:29Z",
+      "side": 1,
+      "message": "unused import",
+      "range": {
+        "startLine": 21,
+        "startChar": 0,
+        "endLine": 21,
+        "endChar": 6
+      },
+      "revId": "6b0a8ee5168dd9b5b91c4f01ed4d2dd02be72b65",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_b81cc5c2",
+        "filename": "midolman/src/main/java/org/midonet/midolman/rules/NatRule.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-26T14:54:29Z",
+      "side": 1,
+      "message": "unused import",
+      "range": {
+        "startLine": 24,
+        "startChar": 0,
+        "endLine": 24,
+        "endChar": 6
+      },
+      "revId": "6b0a8ee5168dd9b5b91c4f01ed4d2dd02be72b65",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_d8f3819c",
+        "filename": "midolman/src/main/java/org/midonet/midolman/rules/Rule.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-26T14:54:29Z",
+      "side": 1,
+      "message": "Nit: not needed",
+      "range": {
+        "startLine": 90,
+        "startChar": 24,
+        "endLine": 90,
+        "endChar": 29
+      },
+      "revId": "6b0a8ee5168dd9b5b91c4f01ed4d2dd02be72b65",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_d84a61c4",
+        "filename": "midolman/src/main/java/org/midonet/midolman/rules/Rule.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 263,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-26T14:54:29Z",
+      "side": 1,
+      "message": "Related to the previous comment: ZoomOneOf already supports a factory. But you specify the factory the same way: using ZoomClass on the class where the factory should apply.\nI tested my suggestion last time and it works as is.",
+      "range": {
+        "startLine": 255,
+        "startChar": 15,
+        "endLine": 263,
+        "endChar": 49
+      },
+      "revId": "6b0a8ee5168dd9b5b91c4f01ed4d2dd02be72b65",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
