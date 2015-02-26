@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_b5ffaea9",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/DeduplicationActor.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 340,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-02-26T10:20:04Z",
+      "side": 1,
+      "message": "we also need to call flow callbacks here. i\u0027d move both this and the call to runFlowRemovedCallbacks() to PacketContext::clear and call that instead, making sure all the cleanup we do in postponeOn we do there too.",
+      "revId": "1cef61b795da33bcd385731741ffc54eb5ba95fa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_352bbe31",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/PacketWorkflow.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 175,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-02-26T10:20:04Z",
+      "side": 1,
+      "message": "This should never happen here. Check the handleFromTunnel method above.",
+      "revId": "1cef61b795da33bcd385731741ffc54eb5ba95fa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_152e8243",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/PacketWorkflow.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 337,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-02-26T10:20:04Z",
+      "side": 1,
+      "message": "This should be done during flow translation, only if we\u0027re delivering the packet to another host. Check the FlowTranslator::outputActionsToPeer.",
+      "revId": "1cef61b795da33bcd385731741ffc54eb5ba95fa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
