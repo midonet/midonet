@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_355c5e25",
+        "filename": "midolman/src/main/java/org/midonet/cluster/LocalDataClientImpl.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 3390,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-02-26T08:59:40Z",
+      "side": 1,
+      "message": "have we checked or can we check with Ryu that this plays nicely with the neutron plugin\u0027s management chains in ports (security groups)?\n\nAlso, I\u0027d ping Galo so the team that\u0027s translating these models to the new architecture keeps it in mind.",
+      "revId": "0aa8ccbf1c2e7e7ffe53c47ac15009052bfcb447",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
