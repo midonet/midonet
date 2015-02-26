@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_78224d02",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/Host.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-26T14:55:30Z",
+      "side": 1,
+      "message": "Should we also print the tunnel zone IPs?",
+      "range": {
+        "startLine": 93,
+        "startChar": 8,
+        "endLine": 94,
+        "endChar": 40
+      },
+      "revId": "a4bc8c8faeddede98c5a3dbe3adee5679a381668",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
