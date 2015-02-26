@@ -24,8 +24,8 @@ enum IPVersion {
 }
 
 message UUID {
-    required int64 msb = 1;
-    required int64 lsb = 2;
+    required uint64 msb = 1;
+    required uint64 lsb = 2;
 }
 
 message IPAddress {
@@ -36,7 +36,7 @@ message IPAddress {
 message IPSubnet {
     required IPVersion version = 1;
     optional string address = 2;
-    optional int32 prefix_length = 3;
+    optional uint32 prefix_length = 3;
 }
 
 message Int32Range {

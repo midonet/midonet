@@ -45,7 +45,7 @@ message Network {
     optional bool admin_state_up = 4;
 
     // MidoNet-specific fields
-    optional int64 tunnel_key = 5;
+    optional uint64 tunnel_key = 5;
     optional UUID inbound_filter_id = 6;
     optional UUID outbound_filter_id = 7;
 
@@ -101,7 +101,7 @@ message Port {
     optional UUID router_id = 3;
     optional UUID inbound_filter_id = 4;
     optional UUID outbound_filter_id = 5;
-    optional int64 tunnel_key = 6;
+    optional uint64 tunnel_key = 6;
     optional UUID peer_id = 7;
     optional UUID vif_id = 8;
     optional UUID host_id = 9;
@@ -261,8 +261,8 @@ message Rule {
     message NatTarget {
         optional IPAddress nw_start = 1;
         optional IPAddress nw_end = 2;
-        optional int32 tp_start = 3;
-        optional int32 tp_end = 4;
+        optional uint32 tp_start = 3;
+        optional uint32 tp_end = 4;
     }
     message NatRuleData {
         repeated NatTarget nat_targets = 1;
