@@ -24,8 +24,8 @@ enum IPVersion {
 }
 
 message UUID {
-    required int64 msb = 1;
-    required int64 lsb = 2;
+    required uint64 msb = 1;
+    required uint64 lsb = 2;
 }
 
 message IPAddress {
