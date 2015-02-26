@@ -66,8 +66,14 @@ public interface ZookeeperConfig {
     boolean isCuratorEnabled();
 
     /**
-     * If true, it builds the cluster storage.
+     * If true, it builds and uses the cluster storage.
      */
     @ConfigBool(key = "cluster_storage_enabled", defaultValue = false)
     boolean isClusterStorageEnabled();
+
+    /**
+     * If true, if uses the legacy storage.
+     */
+    @ConfigBool(key = "legacy_storage_enabled", defaultValue = true)
+    boolean isLegacyStorageEnabled();
 }

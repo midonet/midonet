@@ -475,7 +475,7 @@ class VirtualTopologyRedirectorTest extends MidolmanSpec with TopologyBuilder {
             When("Sending a port request to the VTA and waiting for reply")
             VirtualTopologyActor ! PortRequest(portId, update = false)
 
-            And("The observer subscribers to the port observable")
+            And("The observer subscribes to the port observable")
             vt.observables.get(portId).asInstanceOf[Observable[SimulationPort]]
                 .subscribe(obs)
 

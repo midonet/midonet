@@ -352,7 +352,7 @@ class VirtualTopologyActor extends VirtualTopologyRedirector {
              if !idToSubscribers(id).contains(client) &&
                  client.getClass.getName == "akka.pattern.PromiseActorRef") {
             log.debug("Send unanswered client {} device error for {} " +
-                      ": e", client, id, e)
+                      ": {}", client, id, e)
             client ! Status.Failure(e)
         }
         idToUnansweredClients(id).clear()
