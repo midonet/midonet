@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_920d6841",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/ZoomConvert.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-26T12:52:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_ed5040d6",
+      "range": {
+        "startLine": 46,
+        "startChar": 43,
+        "endLine": 46,
+        "endChar": 57
+      },
+      "revId": "68bec673eebf8b6804eeb3b283dd30ec3a11ec26",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_2d6258ad",
         "filename": "cluster/src/main/scala/org/midonet/cluster/util/RangeUtil.scala",
         "patchSetId": 3
@@ -36,6 +60,30 @@
       "writtenOn": "2015-02-25T17:30:30Z",
       "side": 1,
       "message": "Remove this and next line.",
+      "range": {
+        "startLine": 35,
+        "startChar": 12,
+        "endLine": 35,
+        "endChar": 24
+      },
+      "revId": "68bec673eebf8b6804eeb3b283dd30ec3a11ec26",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_7208ac2d",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/util/RangeUtil.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-26T12:52:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_2d6258ad",
       "range": {
         "startLine": 35,
         "startChar": 12,
@@ -65,6 +113,24 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_d207e01a",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/util/RangeUtil.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-26T12:52:15Z",
+      "side": 1,
+      "message": "I did not add that because it\u0027s not needed for the moment.",
+      "parentUuid": "7a1969be_6d5c50ee",
+      "revId": "68bec673eebf8b6804eeb3b283dd30ec3a11ec26",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_ed716045",
         "filename": "cluster/src/main/scala/org/midonet/cluster/util/UUIDUtil.scala",
         "patchSetId": 3
@@ -82,6 +148,24 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_550bda24",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/util/UUIDUtil.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-26T12:52:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_ed716045",
+      "revId": "68bec673eebf8b6804eeb3b283dd30ec3a11ec26",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_ad77683a",
         "filename": "cluster/src/main/scala/org/midonet/cluster/util/UUIDUtil.scala",
         "patchSetId": 3
@@ -93,6 +177,30 @@
       "writtenOn": "2015-02-25T17:30:30Z",
       "side": 1,
       "message": "Is this method needed?",
+      "range": {
+        "startLine": 49,
+        "startChar": 0,
+        "endLine": 51,
+        "endChar": 0
+      },
+      "revId": "68bec673eebf8b6804eeb3b283dd30ec3a11ec26",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_350e1e35",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/util/UUIDUtil.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-26T12:52:15Z",
+      "side": 1,
+      "message": "removed",
+      "parentUuid": "7a1969be_ad77683a",
       "range": {
         "startLine": 49,
         "startChar": 0,
@@ -128,6 +236,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_750ff62e",
+        "filename": "midolman/src/main/java/org/midonet/midolman/rules/Condition.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-26T12:52:15Z",
+      "side": 1,
+      "message": "True, I had not realized that actually. I\u0027ll do that in another patch.",
+      "parentUuid": "7a1969be_6d9d7059",
+      "range": {
+        "startLine": 51,
+        "startChar": 23,
+        "endLine": 51,
+        "endChar": 34
+      },
+      "revId": "68bec673eebf8b6804eeb3b283dd30ec3a11ec26",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_2df2586f",
         "filename": "midolman/src/main/java/org/midonet/midolman/rules/Rule.java",
         "patchSetId": 3
@@ -139,6 +271,30 @@
       "writtenOn": "2015-02-25T17:30:30Z",
       "side": 1,
       "message": "Rather than adding this warning here, why not overriding the beforeToProto method and throwing a convert exception? In that way, we ensure that conversions to proto are not supported.",
+      "range": {
+        "startLine": 51,
+        "startChar": 0,
+        "endLine": 55,
+        "endChar": 77
+      },
+      "revId": "68bec673eebf8b6804eeb3b283dd30ec3a11ec26",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_d51eaa62",
+        "filename": "midolman/src/main/java/org/midonet/midolman/rules/Rule.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-26T12:52:15Z",
+      "side": 1,
+      "message": "That\u0027s a good idea! I\u0027d like to keep the comment though. I added a test to make sure toProto throws an exception.",
+      "parentUuid": "7a1969be_2df2586f",
       "range": {
         "startLine": 51,
         "startChar": 0,
@@ -174,6 +330,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_753d36bb",
+        "filename": "midolman/src/main/java/org/midonet/midolman/rules/Rule.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 242,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-26T12:52:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_4dc87422",
+      "range": {
+        "startLine": 242,
+        "startChar": 15,
+        "endLine": 242,
+        "endChar": 25
+      },
+      "revId": "68bec673eebf8b6804eeb3b283dd30ec3a11ec26",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_6dec5090",
         "filename": "midolman/src/main/java/org/midonet/midolman/rules/Rule.java",
         "patchSetId": 3
@@ -185,6 +365,30 @@
       "writtenOn": "2015-02-25T17:30:30Z",
       "side": 1,
       "message": "Possible alternative (up to your choice):\n- return here: NatRule.class\n- add the following annotation to the NatRule class:\n\n  @ZoomClass(clazz \u003d Topology.Rule.class, factory \u003d NatRule.NatRuleFactory.class)\n\n- create the factory\n\n    public static class NatRuleFactory implements ZoomConvert.Factory\u003cNatRule, Topology.Rule\u003e {\n        public Class\u003c? extends NatRule\u003e getType(Topology.Rule proto) {\n            if (proto.getMatchForwardFlow())\n                return ForwardNatRule.class;\n            else if (proto.getMatchReturnFlow())\n                return ReverseNatRule.class;\n            else\n                throw new ZoomConvert.ConvertException(\"Rule: \" +\n                    proto.getId() + \" is neither a forward nor a \" +\n                    \"reverse  NAT rule\");\n        }\n    }",
+      "range": {
+        "startLine": 248,
+        "startChar": 20,
+        "endLine": 255,
+        "endChar": 49
+      },
+      "revId": "68bec673eebf8b6804eeb3b283dd30ec3a11ec26",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_756416e5",
+        "filename": "midolman/src/main/java/org/midonet/midolman/rules/Rule.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 255,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-26T12:52:15Z",
+      "side": 1,
+      "message": "I\u0027ll keep it as is since putting part of the factory in the NatRule implies a modification to the ZoomOneOf class to support a factory.",
+      "parentUuid": "7a1969be_6dec5090",
       "range": {
         "startLine": 248,
         "startChar": 20,
@@ -220,6 +424,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_d5634ada",
+        "filename": "midolman/src/main/java/org/midonet/midolman/state/zkManagers/BaseConfig.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-26T12:52:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_4db7d4d8",
+      "range": {
+        "startLine": 22,
+        "startChar": 0,
+        "endLine": 22,
+        "endChar": 42
+      },
+      "revId": "68bec673eebf8b6804eeb3b283dd30ec3a11ec26",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_2dba58c0",
         "filename": "midolman/src/main/java/org/midonet/midolman/state/zkManagers/BaseConfig.java",
         "patchSetId": 3
@@ -231,6 +459,30 @@
       "writtenOn": "2015-02-25T17:30:30Z",
       "side": 1,
       "message": "Unused import",
+      "range": {
+        "startLine": 24,
+        "startChar": 0,
+        "endLine": 24,
+        "endChar": 41
+      },
+      "revId": "68bec673eebf8b6804eeb3b283dd30ec3a11ec26",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_b55e8e10",
+        "filename": "midolman/src/main/java/org/midonet/midolman/state/zkManagers/BaseConfig.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-26T12:52:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_2dba58c0",
       "range": {
         "startLine": 24,
         "startChar": 0,
@@ -266,6 +518,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_7508962d",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/TopologyBuilder.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 224,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-26T12:52:15Z",
+      "side": 1,
+      "message": "See comment below",
+      "parentUuid": "7a1969be_0ddcbc11",
+      "range": {
+        "startLine": 224,
+        "startChar": 54,
+        "endLine": 224,
+        "endChar": 76
+      },
+      "revId": "68bec673eebf8b6804eeb3b283dd30ec3a11ec26",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_edd680f0",
         "filename": "midolman/src/test/scala/org/midonet/midolman/topology/TopologyBuilder.scala",
         "patchSetId": 3
@@ -277,6 +553,30 @@
       "writtenOn": "2015-02-25T17:30:30Z",
       "side": 1,
       "message": "Set.empty",
+      "range": {
+        "startLine": 226,
+        "startChar": 55,
+        "endLine": 226,
+        "endChar": 77
+      },
+      "revId": "68bec673eebf8b6804eeb3b283dd30ec3a11ec26",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_d507ca1a",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/TopologyBuilder.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 226,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-26T12:52:15Z",
+      "side": 1,
+      "message": "See comment below",
+      "parentUuid": "7a1969be_edd680f0",
       "range": {
         "startLine": 226,
         "startChar": 55,
@@ -312,6 +612,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_d5598a5b",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/TopologyBuilder.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 259,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-26T12:52:15Z",
+      "side": 1,
+      "message": "I created a 2nd method with optional fields. This allows to use the current method to test proto buf to pojo conversion and the 2nd method will be more useful when testing the simulation.",
+      "parentUuid": "7a1969be_adcc8862",
+      "range": {
+        "startLine": 222,
+        "startChar": 31,
+        "endLine": 259,
+        "endChar": 54
+      },
+      "revId": "68bec673eebf8b6804eeb3b283dd30ec3a11ec26",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_ed44c0b8",
         "filename": "midolman/src/test/scala/org/midonet/midolman/topology/devices/RuleConversionTest.scala",
         "patchSetId": 3
@@ -323,6 +647,30 @@
       "writtenOn": "2015-02-25T17:30:30Z",
       "side": 1,
       "message": "This and the next actual parameters could simply be:\n\n  Some(...)",
+      "range": {
+        "startLine": 43,
+        "startChar": 51,
+        "endLine": 43,
+        "endChar": 57
+      },
+      "revId": "68bec673eebf8b6804eeb3b283dd30ec3a11ec26",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_35aa9ed4",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/devices/RuleConversionTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-26T12:52:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_ed44c0b8",
       "range": {
         "startLine": 43,
         "startChar": 51,
@@ -358,6 +706,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_18019905",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/devices/RuleConversionTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-26T12:52:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_2d7d38e8",
+      "range": {
+        "startLine": 89,
+        "startChar": 12,
+        "endLine": 89,
+        "endChar": 48
+      },
+      "revId": "68bec673eebf8b6804eeb3b283dd30ec3a11ec26",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_ad2128fe",
         "filename": "midolman/src/test/scala/org/midonet/midolman/topology/devices/RuleConversionTest.scala",
         "patchSetId": 3
@@ -369,6 +741,30 @@
       "writtenOn": "2015-02-25T17:30:30Z",
       "side": 1,
       "message": "Missing \"r\"",
+      "range": {
+        "startLine": 96,
+        "startChar": 50,
+        "endLine": 96,
+        "endChar": 53
+      },
+      "revId": "68bec673eebf8b6804eeb3b283dd30ec3a11ec26",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_b5b5ee32",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/devices/RuleConversionTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-26T12:52:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_ad2128fe",
       "range": {
         "startLine": 96,
         "startChar": 50,
@@ -404,6 +800,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_f5864664",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/devices/RuleConversionTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-26T12:52:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_ed1b20c8",
+      "range": {
+        "startLine": 98,
+        "startChar": 12,
+        "endLine": 98,
+        "endChar": 43
+      },
+      "revId": "68bec673eebf8b6804eeb3b283dd30ec3a11ec26",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_ad8488b1",
         "filename": "midolman/src/test/scala/org/midonet/midolman/topology/devices/RuleConversionTest.scala",
         "patchSetId": 3
@@ -415,6 +835,30 @@
       "writtenOn": "2015-02-25T17:30:30Z",
       "side": 1,
       "message": "Can be rewritten as:\n\n        targets should contain theSameElementsAs protoTargets.map(target \u003d\u003e\n            new NatTarget(IPAddressUtil.toIPv4Addr(target.getNwStart),\n                IPAddressUtil.toIPv4Addr(target.getNwEnd),\n                target.getTpStart, target.getTpEnd))",
+      "range": {
+        "startLine": 196,
+        "startChar": 8,
+        "endLine": 202,
+        "endChar": 10
+      },
+      "revId": "68bec673eebf8b6804eeb3b283dd30ec3a11ec26",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_3581fe4a",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/devices/RuleConversionTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 202,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-26T12:52:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_ad8488b1",
       "range": {
         "startLine": 196,
         "startChar": 8,
@@ -450,6 +894,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_15d5e21b",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/devices/RuleConversionTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 213,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-26T12:52:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_6da3b04f",
+      "range": {
+        "startLine": 211,
+        "startChar": 8,
+        "endLine": 213,
+        "endChar": 9
+      },
+      "revId": "68bec673eebf8b6804eeb3b283dd30ec3a11ec26",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_cd8904cc",
         "filename": "midolman/src/test/scala/org/midonet/midolman/topology/devices/RuleConversionTest.scala",
         "patchSetId": 3
@@ -461,6 +929,30 @@
       "writtenOn": "2015-02-25T17:30:30Z",
       "side": 1,
       "message": "Same here",
+      "range": {
+        "startLine": 217,
+        "startChar": 8,
+        "endLine": 219,
+        "endChar": 9
+      },
+      "revId": "68bec673eebf8b6804eeb3b283dd30ec3a11ec26",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_f5d76621",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/devices/RuleConversionTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 219,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-02-26T12:52:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_cd8904cc",
       "range": {
         "startLine": 217,
         "startChar": 8,
