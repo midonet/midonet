@@ -108,6 +108,24 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_1884f95c",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/Aggregator.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-26T15:12:55Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_d5dcea14",
+      "revId": "4b03540f3ecc82168f29efbab49f5e144c6ba34f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_cd958441",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/Aggregator.scala",
         "patchSetId": 7
@@ -214,6 +232,30 @@
       "side": 1,
       "message": "But the sources map should be thread safe, you\u0027re just doing a .remove here so even if other threads access the map concurrently there shouldn\u0027t be any breakage, no? The only problem I can see is that 2 threads .connect() on the terminator, but afaik that doesn\u0027t cause any problems in a ConnectableObservable",
       "parentUuid": "7a1969be_b5ee8eb2",
+      "range": {
+        "startLine": 94,
+        "startChar": 32,
+        "endLine": 94,
+        "endChar": 39
+      },
+      "revId": "4b03540f3ecc82168f29efbab49f5e144c6ba34f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_587e716c",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/Aggregator.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-26T15:12:55Z",
+      "side": 1,
+      "message": "Mmm... you are right. I\u0027ve removed the \u0027synchronized\u0027. The only tricky part is making sure the \u0027add\u0027 is rolled back if the \u0027disposed\u0027 flag is set between the \u0027disposed\u0027 check and the actual insertion in the concurrenthashmap. There could also be minor issues with observable behavior (e.g. it could be possible that an onNext occurs after onComplete), but they should have no consequences in the rest of the code (a bit ugly, though...)",
+      "parentUuid": "7a1969be_d81ee162",
       "range": {
         "startLine": 94,
         "startChar": 32,
