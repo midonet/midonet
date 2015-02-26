@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_3888d5e6",
+        "filename": "midolman/src/deb/bin/wdog",
+        "patchSetId": 1
+      },
+      "lineNbr": 131,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-02-26T14:55:32Z",
+      "side": 1,
+      "message": "should we overwrite instead?",
+      "revId": "007de15f3732d1ab2e2a14f5e095660583824c31",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_986e292e",
+        "filename": "midolman/src/deb/bin/wdog",
+        "patchSetId": 1
+      },
+      "lineNbr": 160,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-02-26T14:55:32Z",
+      "side": 1,
+      "message": "jstack as well?",
+      "revId": "007de15f3732d1ab2e2a14f5e095660583824c31",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
