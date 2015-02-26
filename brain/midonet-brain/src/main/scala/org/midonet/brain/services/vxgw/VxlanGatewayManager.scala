@@ -26,7 +26,8 @@ import scala.util.{Failure, Success, Try}
 import org.slf4j.LoggerFactory
 import rx.schedulers.Schedulers
 import rx.subjects.PublishSubject
-import rx.{Observable, Observer, Subscription}
+import rx.subscriptions.CompositeSubscription
+import rx.{Observable, Observer}
 
 import org.midonet.brain.services.vxgw
 import org.midonet.brain.southbound.vtep.VtepConstants.bridgeIdToLogicalSwitchName
@@ -37,10 +38,9 @@ import org.midonet.cluster.data.Bridge.UNTAGGED_VLAN_ID
 import org.midonet.cluster.data.ports.VxLanPort
 import org.midonet.midolman.serialization.SerializationException
 import org.midonet.midolman.state.Directory.DefaultTypedWatcher
-import org.midonet.midolman.state.ReplicatedMap.Watcher
 import org.midonet.midolman.state._
 import org.midonet.packets.{IPv4Addr, MAC}
-import org.midonet.util.functors.makeRunnable
+import org.midonet.util.functors._
 
 object VxlanGateway {
     protected[vxgw] val executor = newSingleThreadExecutor(
@@ -142,6 +142,8 @@ class VxlanGatewayManager(networkId: UUID,
 
     private var vxgwBusObserver: BusObserver = _
 
+    private val subscriptions = new CompositeSubscription()
+
     /** The name of the Logical Switch that is created on all Hardware VTEPs to
       * configure the bindings to this Neutron Network in order to implement a
       * VxLAN Gateway. */
@@ -164,49 +166,49 @@ class VxlanGatewayManager(networkId: UUID,
         }
     }
 
-    /* Models a simple watcher on a single update of a MacPortMap entry, which
-     * trigger advertisements to the VTEPs if the change was triggered from
-     * MidoNet itself (but not if it comes from Hardware VTEPs)
-     *
-     * TODO: model this as an Observable to unify approaches with the Vtep
-     *       controller. */
-    private class MacPortWatcher() extends Watcher[MAC, UUID]() {
+    private val macPortWatcher = new Observer[RMNotification[MAC, UUID]] {
         private val log = LoggerFactory.getLogger(vxgwMacSyncingLog(networkId))
-        def processChange(mac: MAC, oldPort: UUID, newPort: UUID): Unit = {
+        override def onCompleted(): Unit = {
+            log.warn("Unexpected completion on MAC-Port change stream")
+        }
+        override def onError(e: Throwable): Unit = {
+            log.warn("Unexpected error on MAC-Port change stream", e)
+        }
+        override def onNext(n: RMNotification[MAC, UUID]): Unit = {
             // port is the last place where the mac was seen
-            if (log.isDebugEnabled) {
-                log.debug(s"MAC $mac moves from $oldPort to $newPort")
-            }
-            val port = if (newPort == null) oldPort else newPort
-            if (vxgw != null && isPortInMidonet(port)) {
-                publishMac(mac, newPort, oldPort, onlyMido = true)
+            if (log.isDebugEnabled) log.debug(s"MAC {} moves from {} to {}",
+                                              n.key, n.oldVal, n.newVal)
+            val p: UUID = if (n.newVal == null) n.oldVal else n.newVal
+            if (vxgw != null && isPortInMidonet(p)) {
+                publishMac(n.key, n.newVal, n.oldVal, onlyMido = true)
             }
         }
     }
 
-    /* A simple watcher on the ARP table, changes trigger advertisements to the
-     * VTEPs if the change was triggered from within MidoNet.
-     *
-     * TODO: model this using observables for consistency. */
-    private class ArpTableWatcher() extends Watcher[IPv4Addr, MAC] {
-        override def processChange(ip: IPv4Addr, oldMac: MAC, newMac: MAC)
-        : Unit = {
-            log.debug(s"IP $ip moves from $oldMac to $newMac")
-            if (oldMac != null) { // The old mac needs to be removed
-                macPortMap.get(oldMac) match {
+    private val arpWatcher = new Observer[RMNotification[IPv4Addr, MAC]] {
+        override def onCompleted(): Unit = {
+            log.warn("Unexpected completion on ARP entry change stream")
+        }
+        override def onError(e: Throwable): Unit = {
+            log.warn("Unexpected error on ARP entry change stream", e)
+        }
+        override def onNext(n: RMNotification[IPv4Addr, MAC]): Unit = {
+            log.debug(s"IP {} moves from {} to {}", n.key, n.oldVal, n.newVal)
+            if (n.oldVal != null) { // The old mac needs to be removed
+                macPortMap.get(n.oldVal) match {
                     case portId if isPortInMidonet(portId) =>
                         // If the IP was on a MidoNet port, we remove it,
                         // otherwise it's managed by some VTEP.
                         vxgw.asObserver.onNext(
-                            MacLocation(oldMac, ip, lsName, null)
+                            MacLocation(n.oldVal, n.key, lsName, null)
                         )
                     case _ =>
                 }
             }
-            if (newMac != null) {
-                macPortMap.get(newMac) match {
+            if (n.newVal != null) {
+                macPortMap.get(n.newVal) match {
                     case portId if isPortInMidonet(portId) =>
-                        advertiseMacAndIpAt(newMac, ip, portId)
+                        advertiseMacAndIpAt(n.newVal, n.key, portId)
                     case _ =>
                 }
             }
@@ -215,9 +217,6 @@ class VxlanGatewayManager(networkId: UUID,
 
     /** Whether the Gateway Manager is actively managing the VxGW */
     private var active = false
-
-    /** Our subscription to the VxGW update bus */
-    private var busSubscription: Subscription = _
 
     /** Start syncing MACs from the neutron network with the bound VTEPs. */
     def start(): Unit = updateBridge()
@@ -324,14 +323,20 @@ class VxlanGatewayManager(networkId: UUID,
             vxgwBusObserver = new BusObserver(dataClient, networkId,
                                               macPortMap, zkConnWatcher,
                                               peerEndpoints)
-            busSubscription = vxgw.asObservable
-                            .observeOn(Schedulers.from(VxlanGateway.executor))
-                            .subscribe(vxgwBusObserver)
 
-            macPortMap addWatcher new MacPortWatcher()
+            subscriptions.add(
+                vxgw.asObservable
+                    .observeOn(Schedulers.from(VxlanGateway.executor))
+                    .subscribe(vxgwBusObserver)
+            )
+
             macPortMap.setConnectionWatcher(zkConnWatcher)
-            macPortMap.start()
-
+            subscriptions.add(
+                Observable.create(new RMObservableOnSubscribe(macPortMap))
+                          .doOnUnsubscribe(makeAction0(if (macPortMap == null)
+                                                           macPortMap.stop()))
+                          .subscribe(macPortWatcher)
+            )
             initialization = true
         }
 
@@ -339,12 +344,14 @@ class VxlanGatewayManager(networkId: UUID,
             arpTable = dataClient.bridgeGetArpTable(networkId)
             // if we throw before this, the caller will schedule a retry
             log.info(s"Starting to watch ARP table in $networkId")
-            arpTable addWatcher new ArpTableWatcher()
             arpTable.setConnectionWatcher(zkConnWatcher)
-            arpTable.start()
-
+            subscriptions.add(
+                Observable.create(new RMObservableOnSubscribe(arpTable))
+                          .doOnUnsubscribe(makeAction0(if (arpTable == null)
+                                                       arpTable.stop()))
+                          .subscribe(arpWatcher)
+            )
             log.info("Network state now monitored")
-
             initialization = true
         }
 
@@ -358,15 +365,7 @@ class VxlanGatewayManager(networkId: UUID,
             active = false
             vxgw.terminate()
         }
-        if (busSubscription != null) {
-            busSubscription.unsubscribe()
-        }
-        if (macPortMap != null) {
-            macPortMap.stop()
-        }
-        if (arpTable != null) {
-            arpTable.stop()
-        }
+        subscriptions.unsubscribe()
         onClose()
     }
 
