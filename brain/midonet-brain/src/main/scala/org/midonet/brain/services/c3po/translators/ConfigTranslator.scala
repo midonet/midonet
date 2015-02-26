@@ -24,7 +24,8 @@ import org.midonet.util.concurrent.toFutureOps
 
 /** Provides a translator for Neutron Config. */
 class ConfigTranslator(storage: ReadOnlyStorage)
-    extends NeutronTranslator[NeutronConfig] {
+    extends NeutronTranslator[NeutronConfig]
+    with TunnelZoneManager {
 
     override protected def translateCreate(c: NeutronConfig): MidoOpList = {
 
@@ -32,15 +33,7 @@ class ConfigTranslator(storage: ReadOnlyStorage)
             return List()
 
         // Create the singleton Tunnel Zone
-        val tzType = c.getTunnelProtocol match {
-            case NeutronConfig.TunnelProtocol.GRE => TunnelZone.Type.GRE
-            case NeutronConfig.TunnelProtocol.VXLAN => TunnelZone.Type.VXLAN
-        }
-
-        List(Create(TunnelZone.newBuilder()
-                        .setId(c.getId)
-                        .setName("DEFAULT")
-                        .setType(tzType).build()))
+        List(Create(neutronDefaultTunnelZone(c)))
     }
 
     override protected def translateUpdate(c: NeutronConfig): MidoOpList = {
