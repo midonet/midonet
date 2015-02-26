@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_5522baa4",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/TraceState.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-02-26T08:53:04Z",
+      "side": 1,
+      "message": "question: why do trace keys contain flow actions?",
+      "revId": "91dce0d6dee8a4a9a6fa8114e98705b836ff003b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
