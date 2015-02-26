@@ -123,8 +123,10 @@ class C3POMinion @Inject()(nodeContext: ClusterNode.Context,
              classOf[NeutronNetwork] -> new NetworkTranslator(storage),
              classOf[NeutronRouter] -> new RouterTranslator(storage),
              classOf[NeutronSubnet] -> new SubnetTranslator(storage),
+             classOf[NeutronTunnelZone] -> new TunnelZoneTranslator(storage),
              classOf[NeutronPort] -> new PortTranslator(storage),
              classOf[SecurityGroup] -> new SecurityGroupTranslator(storage),
+             classOf[TunnelZoneHost] -> new TunnelZoneHostTranslator(storage),
              classOf[VIP] -> new VipTranslator,
              classOf[PortBinding] -> new PortBindingTranslator(storage)
         ).asInstanceOf[List[(Class[Message], NeutronTranslator[Message])]]

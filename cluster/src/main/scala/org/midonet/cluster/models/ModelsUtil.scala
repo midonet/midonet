@@ -31,6 +31,7 @@ import org.midonet.cluster.models.Neutron.NeutronTunnelZone
 import org.midonet.cluster.models.Neutron.PortBinding
 import org.midonet.cluster.models.Neutron.SecurityGroup
 import org.midonet.cluster.models.Neutron.SecurityGroupRule
+import org.midonet.cluster.models.Neutron.TunnelZoneHost
 import org.midonet.cluster.models.Neutron.VIP
 import org.midonet.cluster.models.Topology.Chain
 import org.midonet.cluster.models.Topology.Dhcp
@@ -113,6 +114,10 @@ object ModelsUtil {
      def nTunnelZoneFromTxt(protoTxt: String) =
         protoFromTxt(protoTxt, NeutronTunnelZone.newBuilder)
         .asInstanceOf[NeutronTunnelZone]
+
+     def nTunnelZoneHostFromTxt(protoTxt: String) =
+        protoFromTxt(protoTxt, TunnelZoneHost.newBuilder)
+        .asInstanceOf[TunnelZoneHost]
 
      def mNetworkFromTxt(protoTxt: String) =
         protoFromTxt(protoTxt, Network.newBuilder).asInstanceOf[Network]
