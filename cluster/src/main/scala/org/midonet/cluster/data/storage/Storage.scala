@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -162,7 +162,7 @@ trait ReadOnlyStorage {
      * retrieved from storage. The inner futures complete when the data of each
      * object has been retrived from storage.
      */
-    def getAll[T](clazz: Class[T]): Future[Seq[Future[T]]]
+    def getAll[T](clazz: Class[T]): Future[Seq[T]]
 
     /**
      * Asynchronous method that indicated if the specified object exists in the

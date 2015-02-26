@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -135,7 +135,7 @@ trait ZoomStorageTester extends StorageTester
         zoom.getAll(clazz, ids)
     }
 
-    override def getAll[T](clazz: Class[T]): Future[Seq[Future[T]]] = {
+    override def getAll[T](clazz: Class[T]): Future[Seq[T]] = {
         zoom.getAll(clazz)
     }
 

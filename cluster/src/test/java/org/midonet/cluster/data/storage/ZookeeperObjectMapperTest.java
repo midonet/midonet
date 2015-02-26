@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,14 +15,11 @@
  */
 package org.midonet.cluster.data.storage;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
-import scala.collection.Iterator;
-import scala.collection.Seq;
 import scala.concurrent.Future;
 import scala.concurrent.duration.Duration;
 import scala.concurrent.duration.FiniteDuration;
@@ -34,7 +31,6 @@ import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.curator.test.TestingServer;
-import org.apache.zookeeper.KeeperException;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -46,7 +42,7 @@ import org.midonet.cluster.util.ClassAwaitableObserver;
 import org.midonet.cluster.util.UUIDUtil;
 import org.midonet.util.reactivex.AwaitableObserver;
 
-import static org.apache.zookeeper.KeeperException.*;
+import static org.apache.zookeeper.KeeperException.NoNodeException;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.empty;
 import static org.junit.Assert.assertEquals;
@@ -221,20 +217,6 @@ public class ZookeeperObjectMapperTest {
         } else {
             return tryValue.get();
         }
-    }
-
-    protected static <T> List<T> syncAll(Seq<Future<T>> fs) throws Exception {
-        List<T> _fs = new ArrayList<>(fs.size());
-        Iterator<Future<T>> it = fs.iterator();
-        while(it.hasNext()) {
-            _fs.add(sync(it.next()));
-        }
-        return _fs;
-    }
-
-    protected static <T> List<T> syncAll(Future<Seq<Future<T>>> f)
-            throws Exception {
-        return syncAll(sync(f));
     }
 
     @BeforeClass
@@ -894,19 +876,18 @@ public class ZookeeperObjectMapperTest {
 
     @Test
     public void testGetAllWithEmptyResult() throws Exception {
-        assertTrue(syncAll(zom.getAll(PojoChain.class)).isEmpty());
+        assertTrue(sync(zom.getAll(PojoChain.class)).isEmpty());
     }
 
     @Test
     public void testGetAllWithMultipleObjects() throws Exception {
-        syncAll(zom.getAll(PojoChain.class));
+        assertTrue(sync(zom.getAll(PojoChain.class)).isEmpty());
         PojoChain chain1 = new PojoChain("chain1");
         PojoChain chain2 = new PojoChain("chain2");
         zom.create(chain1);
-        syncAll(zom.getAll(PojoChain.class));
+        assertEquals(1, sync(zom.getAll(PojoChain.class)).size());
         zom.create(chain2);
-        List<PojoChain> chains = syncAll(zom.getAll(PojoChain.class));
-        assertEquals(2, chains.size());
+        assertEquals(2, sync(zom.getAll(PojoChain.class)).size());
     }
 
     @Test

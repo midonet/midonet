@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,9 +23,11 @@ import java.util.{ConcurrentModificationException, List => JList}
 
 import scala.async.Async.async
 import scala.collection.JavaConverters._
+import scala.collection.JavaConversions._
 import scala.collection.concurrent.TrieMap
 import scala.collection.mutable
 import scala.concurrent.{ExecutionContext, Future, Promise}
+import scala.util.{Failure, Success}
 
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.ArrayListMultimap
@@ -531,16 +533,19 @@ class ZookeeperObjectMapper(
     /**
      * Gets all instances of the specified class from Zookeeper.
      */
-    override def getAll[T](clazz: Class[T]): Future[Seq[Future[T]]] = {
+    override def getAll[T](clazz: Class[T]): Future[Seq[T]] = {
         assertBuilt()
         assert(isRegistered(clazz))
 
-        val p = Promise[Seq[Future[T]]]()
+        val all = Promise[Seq[T]]
         val cb = new BackgroundCallback {
             override def processResult(client: CuratorFramework,
                                        evt: CuratorEvent): Unit = {
                 assert(CuratorEventType.CHILDREN == evt.getType)
-                p.success(getAll(clazz, evt.getChildren.asScala))
+                Future.sequence(getAll(clazz, evt.getChildren)).onComplete {
+                    case Success(l) => all trySuccess l
+                    case Failure(t) => all tryFailure t
+                }
             }
         }
 
@@ -552,7 +557,7 @@ class ZookeeperObjectMapper(
                 throw new InternalObjectMapperException(
                     s"Node ${getPath(clazz)} does not exist in Zookeeper.", ex)
         }
-        p.future
+        all.future
     }
 
     @throws[NotFoundException]

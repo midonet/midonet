@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -161,12 +161,11 @@ class InMemoryStorage extends StorageWithOwnership {
         /* Lock free read, synchronous completion */
         def getAll(ids: Seq[_ <: ObjId]): Seq[Future[T]] = ids.map(get)
 
-        /* Lock free read, completion on the IO thread */
-        def getAll: Future[Seq[Future[T]]] = async {
-            assertIoThread()
-            instances.values.map(_.get).to[Seq]
+        /* Lock free read, completion on the implicit exec. ctx.: IO thread */
+        def getAll: Future[Seq[T]] = {
+            Future.sequence(instances.values.map(_.get).to[Seq])
         }
-        /* Lock free read, completion on the IO thread */
+        /* Lock free read, completion on the implicit exec. ctx.: IO thread */
         def getOwners(id: ObjId): Future[Set[String]] = {
             instances.get(getIdString(clazz, id)) match {
                 case Some(node) => node.getOwners
@@ -460,7 +459,7 @@ class InMemoryStorage extends StorageWithOwnership {
         classes.get(clazz).asInstanceOf[ClassNode[T]].getAll(ids)
     }
 
-    override def getAll[T](clazz: Class[T]): Future[Seq[Future[T]]] = {
+    override def getAll[T](clazz: Class[T]): Future[Seq[T]] = {
         assertBuilt()
         assert(isRegistered(clazz))
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@ package org.midonet.cluster.data.storage
 
 import java.util
 import java.util.UUID
-import java.util.concurrent.{TimeUnit, CountDownLatch, ThreadFactory, Executors}
 
 import scala.collection.JavaConverters._
 import scala.concurrent.duration._
@@ -27,18 +26,14 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{BeforeAndAfter, FeatureSpec, Matchers}
 
-import rx.Observer
-import rx.schedulers.Schedulers
-import rx.subjects.PublishSubject
-
 import org.midonet.cluster.data.storage.FieldBinding.DeleteAction
 import org.midonet.cluster.data.storage.FieldBinding.DeleteAction._
 import org.midonet.cluster.data.storage.ZookeeperObjectMapperTest._
 import org.midonet.cluster.data.storage.ZookeeperObjectMapperTests._
 import org.midonet.cluster.models.Commons
 import org.midonet.cluster.models.Topology.{Chain, Network, Router}
-import org.midonet.cluster.util.{ParentDeletedException, ClassAwaitableObserver, UUIDUtil}
 import org.midonet.cluster.util.UUIDUtil._
+import org.midonet.cluster.util.{ClassAwaitableObserver, ParentDeletedException, UUIDUtil}
 import org.midonet.util.eventloop.{CallingThreadReactor, Reactor}
 import org.midonet.util.reactivex.AwaitableObserver
 
@@ -48,7 +43,6 @@ class InMemoryStorageTest extends FeatureSpec with BeforeAndAfter
 
     import org.midonet.cluster.data.storage.InMemoryStorageTest._
 
-    private val reactor: Reactor = new CallingThreadReactor()
     private var storage: InMemoryStorage = _
     private var assertThread: () => Unit = _
 
@@ -736,19 +730,19 @@ class InMemoryStorageTest extends FeatureSpec with BeforeAndAfter
         }
 
         scenario("Test get all with empty result") {
-            syncAll(storage.getAll(classOf[PojoChain])).isEmpty shouldBe true
+            sync(storage.getAll(classOf[PojoChain])).isEmpty shouldBe true
         }
 
         scenario("Test get all with multiple objects") {
             val chain1 = createPojoChain()
             val chain2 = createPojoChain()
             storage.create(chain1)
-            syncAll(storage.getAll(classOf[PojoChain])).asScala
-                .map(c => c.id) should contain theSameElementsAs Vector(chain1.id)
+            sync(storage.getAll(classOf[PojoChain]))
+                .map(_.id) should contain theSameElementsAs Vector(chain1.id)
             storage.create(chain2)
-            syncAll(storage.getAll(classOf[PojoChain])).asScala
-                .map(c => c.id) should contain theSameElementsAs
-                    Vector(chain1.id, chain2.id)
+            sync(storage.getAll(classOf[PojoChain]))
+                .map(_.id) should contain theSameElementsAs Vector(chain1.id,
+                                                                   chain2.id)
         }
 
         scenario("Test subscriber gets initial value") {
