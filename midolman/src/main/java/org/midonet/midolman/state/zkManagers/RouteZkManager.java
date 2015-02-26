@@ -300,7 +300,10 @@ public class RouteZkManager extends AbstractZkManager<UUID, Route> {
 
         for (String routeId : routeIds) {
             Route route = get(UUID.fromString(routeId));
-            pathSet.add(getExistingPath(route));
+            String rt = getExistingPath(route);
+            if (rt != null) {
+                pathSet.add(rt);
+            }
         }
         return pathSet;
     }

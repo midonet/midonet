@@ -272,6 +272,12 @@ public class L3ZkManager extends BaseZkManager {
     public void prepareUpdateSubnet(List<Op> ops, Subnet subnet)
         throws SerializationException, StateAccessException {
 
+        // Update only if the gateway is changed.
+        Subnet oldSubnet = networkZkManager.getSubnet(subnet.id);
+        if (Objects.equal(oldSubnet.gatewayIp, subnet.gatewayIp)) {
+            return;
+        }
+
         // Find the router interface with this subnet ID
         Port port = findRouterInterfacePort(subnet.id);
 
