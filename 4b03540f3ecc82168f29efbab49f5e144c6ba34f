@@ -90,6 +90,24 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_d5dcea14",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/Aggregator.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-26T11:11:03Z",
+      "side": 1,
+      "message": "Good point. It will be probably easier to read",
+      "parentUuid": "7a1969be_359e1e57",
+      "revId": "4b03540f3ecc82168f29efbab49f5e144c6ba34f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_cd958441",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/Aggregator.scala",
         "patchSetId": 7
@@ -148,6 +166,30 @@
       "writtenOn": "2015-02-26T10:44:05Z",
       "side": 1,
       "message": "this doesn\u0027t need to be synchronized, no?",
+      "range": {
+        "startLine": 94,
+        "startChar": 32,
+        "endLine": 94,
+        "endChar": 39
+      },
+      "revId": "4b03540f3ecc82168f29efbab49f5e144c6ba34f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_b5ee8eb2",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/Aggregator.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-26T11:11:03Z",
+      "side": 1,
+      "message": "Yes, I think it has to be... There is a small window for race condition with \u0027add\u0027, and also with \u0027dispose\u0027 (in the case the \u0027dispose\u0027 coincides in time with an automatic drop due to observable completion). It could be avoided with some extra checking, but it would make the code less readable and I don\u0027t think the potential performance impact requires it.",
+      "parentUuid": "7a1969be_95a432a7",
       "range": {
         "startLine": 94,
         "startChar": 32,
