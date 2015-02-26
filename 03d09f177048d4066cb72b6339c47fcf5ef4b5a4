@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_3881f54a",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/Aggregator.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-26T15:13:31Z",
+      "side": 1,
+      "message": "Answered in the comment to the previous version of the patch (and synchronized removed)",
+      "parentUuid": "7a1969be_753b7638",
+      "range": {
+        "startLine": 71,
+        "startChar": 7,
+        "endLine": 71,
+        "endChar": 29
+      },
+      "revId": "03d09f177048d4066cb72b6339c47fcf5ef4b5a4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_9540b2a6",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/ServerState.scala",
         "patchSetId": 8
@@ -36,6 +60,30 @@
       "writtenOn": "2015-02-26T11:14:01Z",
       "side": 1,
       "message": "maybe static import, to make this less dense",
+      "range": {
+        "startLine": 119,
+        "startChar": 41,
+        "endLine": 119,
+        "endChar": 50
+      },
+      "revId": "03d09f177048d4066cb72b6339c47fcf5ef4b5a4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_f8d75d21",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/ServerState.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-26T15:13:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_9540b2a6",
       "range": {
         "startLine": 119,
         "startChar": 41,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_98e8e9e3",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/SessionInventory.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 487,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-26T15:13:31Z",
+      "side": 1,
+      "message": "It\u0027s probably good to have a getAll (for symmetry with the \u0027subscribeAll\u0027, which returns full updates), but a getAllIds would definitely make sense in this case.",
+      "parentUuid": "7a1969be_d5f34a9c",
+      "range": {
+        "startLine": 487,
+        "startChar": 18,
+        "endLine": 487,
+        "endChar": 24
+      },
+      "revId": "03d09f177048d4066cb72b6339c47fcf5ef4b5a4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_b5d7aeec",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/SessionInventory.scala",
         "patchSetId": 8
@@ -82,6 +154,30 @@
       "writtenOn": "2015-02-26T11:14:01Z",
       "side": 1,
       "message": "woah, we do need to make the getAll return a Future[Seq[T]], instead of the Future[Seq[Future[T]]]..\n\nOK to do it in a different patch, but I\u0027ll do it in a separate one quickly in case we can get it in before this gets merged.",
+      "range": {
+        "startLine": 490,
+        "startChar": 33,
+        "endLine": 490,
+        "endChar": 62
+      },
+      "revId": "03d09f177048d4066cb72b6339c47fcf5ef4b5a4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_b89b2571",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/SessionInventory.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 490,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-26T15:13:31Z",
+      "side": 1,
+      "message": "Thanks!!!!\nChanged using the new interface :-)",
+      "parentUuid": "7a1969be_b5d7aeec",
       "range": {
         "startLine": 490,
         "startChar": 33,
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_78ca4d6f",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/SessionInventory.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 503,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-26T15:13:31Z",
+      "side": 1,
+      "message": "Done (and changed to sameContext - no need for the thread pool if we don\u0027t have to wait for the futures)",
+      "parentUuid": "7a1969be_152de2fe",
+      "range": {
+        "startLine": 503,
+        "startChar": 14,
+        "endLine": 503,
+        "endChar": 60
+      },
+      "revId": "03d09f177048d4066cb72b6339c47fcf5ef4b5a4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_f52f66f4",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/SessionInventory.scala",
         "patchSetId": 8
@@ -128,6 +248,30 @@
       "writtenOn": "2015-02-26T11:14:01Z",
       "side": 1,
       "message": "wrap? what about shortening to s\"Can\u0027t subscribe to entity ..\", e) so it (probably) fits in 1 line?",
+      "range": {
+        "startLine": 521,
+        "startChar": 20,
+        "endLine": 523,
+        "endChar": 28
+      },
+      "revId": "03d09f177048d4066cb72b6339c47fcf5ef4b5a4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_589b1167",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/SessionInventory.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 523,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-26T15:13:31Z",
+      "side": 1,
+      "message": "changed a bit, so that the indentation looks less ugly",
+      "parentUuid": "7a1969be_f52f66f4",
       "range": {
         "startLine": 521,
         "startChar": 20,
@@ -163,6 +307,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_783b6d38",
+        "filename": "cluster/src/main/proto/topology_api.proto",
+        "patchSetId": 8
+      },
+      "lineNbr": 165,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-26T15:13:31Z",
+      "side": 1,
+      "message": "I\u0027m not sure, as we are returning the original id for tracking, it feels more like a \u0027redirect\u0027 to me...",
+      "parentUuid": "7a1969be_d5c50a3d",
+      "range": {
+        "startLine": 165,
+        "startChar": 4,
+        "endLine": 165,
+        "endChar": 12
+      },
+      "revId": "03d09f177048d4066cb72b6339c47fcf5ef4b5a4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_15dfa20e",
         "filename": "cluster/src/main/proto/topology_api.proto",
         "patchSetId": 8
@@ -186,6 +354,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_78f40d87",
+        "filename": "cluster/src/main/proto/topology_api.proto",
+        "patchSetId": 8
+      },
+      "lineNbr": 205,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-26T15:13:31Z",
+      "side": 1,
+      "message": "not sure... First \u0027type\u0027 conflicts with the \u0027response type\u0027 (and I would prefer leaving the \u0027type\u0027 word for the generic response type); second: the response may contain different types of ids, so it may be good to indicate to what we are referring to... what do you think?",
+      "parentUuid": "7a1969be_15dfa20e",
+      "range": {
+        "startLine": 205,
+        "startChar": 18,
+        "endLine": 205,
+        "endChar": 26
+      },
+      "revId": "03d09f177048d4066cb72b6339c47fcf5ef4b5a4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_15b842c7",
         "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/client/ClientSession.scala",
         "patchSetId": 8
@@ -197,6 +389,24 @@
       "writtenOn": "2015-02-26T11:14:01Z",
       "side": 1,
       "message": "Consider replacing with \"Sending command: {}\", req for perf.",
+      "revId": "03d09f177048d4066cb72b6339c47fcf5ef4b5a4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_98274912",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/client/ClientSession.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 382,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-26T15:13:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_15b842c7",
       "revId": "03d09f177048d4066cb72b6339c47fcf5ef4b5a4",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
