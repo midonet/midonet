@@ -76,8 +76,8 @@ class C3POMinionTest extends FlatSpec with BeforeAndAfter
     private val CREATE_TASK_TABLE =
         "CREATE TABLE midonet_tasks (" +
         "    id int(11) NOT NULL," +
-        "    type_id int(11) NOT NULL," +
-        "    data_type_id int(11) DEFAULT NULL," +
+        "    type varchar(36) NOT NULL," +
+        "    data_type varchar(36) DEFAULT NULL," +
         "    data longtext," +
         "    resource_id varchar(36) DEFAULT NULL," +
         "    transaction_id varchar(40) NOT NULL," +
@@ -160,10 +160,15 @@ class C3POMinionTest extends FlatSpec with BeforeAndAfter
     private def insertMidoNetTaskSql(
             id: Int, taskType: TaskType, dataType: NeutronResourceType[_],
             json: String, resourceId: UUID, txnId: String) : String = {
+        val taskTypeStr = if (taskType != null) s"'${taskType.id}'"
+                          else "NULL"
+        val dataTypeStr = if (dataType != null) s"'${dataType.id}'"
+                          else "NULL"
         val rsrcIdStr = if (resourceId != null) s"'$resourceId'"
                         else "NULL"
+
         "INSERT INTO midonet_tasks values(" +
-        s"$id, ${taskType.id}, ${dataType.id},'$json', $rsrcIdStr, '$txnId', " +
+        s"$id, $taskTypeStr, $dataTypeStr, '$json', $rsrcIdStr, '$txnId', " +
         "datetime('now'))"
     }
 
