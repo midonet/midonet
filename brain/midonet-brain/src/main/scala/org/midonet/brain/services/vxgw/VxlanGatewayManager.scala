@@ -31,9 +31,7 @@ import rx.{Observable, Observer, Subscription}
 import org.midonet.brain.services.vxgw
 import org.midonet.brain.southbound.vtep.VtepConstants.bridgeIdToLogicalSwitchName
 import org.midonet.brain.southbound.vtep.VtepNotConnectedException
-import org.midonet.cluster.DataClient
 import org.midonet.cluster.data.Bridge
-import org.midonet.cluster.data.Bridge.UNTAGGED_VLAN_ID
 import org.midonet.cluster.data.ports.VxLanPort
 import org.midonet.midolman.serialization.SerializationException
 import org.midonet.midolman.state.Directory.DefaultTypedWatcher
@@ -112,7 +110,7 @@ final class VxlanGateway(val networkId: UUID) {
   * among MidoNet and all hardware VTEPs that participate in the VxLAN Gateway.
   *
   * @param networkId the id of the Neutron Network with VTEP bindings to manage
-  * @param dataClient to access the MidoNet backend storage
+  * @param topology to access the MidoNet backend storage
   * @param vtepPeerPool the pool of VTEPs, we'll extract them from here whenever
   *                     the network needs to interact with a VTEP (e.g., to
   *                     make it join the Logical Switch)
@@ -124,7 +122,7 @@ final class VxlanGateway(val networkId: UUID) {
   *                in it (blocking, heavy IO, etc.)
   */
 class VxlanGatewayManager(networkId: UUID,
-                          dataClient: DataClient,
+                          topology: TopologyApi,
                           vtepPeerPool: VtepPool,
                           tzState: TunnelZoneStatePublisher,
                           zkConnWatcher: ZookeeperConnectionWatcher,
@@ -305,7 +303,7 @@ class VxlanGatewayManager(networkId: UUID,
         if (macPortMap == null) {
 
             vxPortIds foreach { id =>
-                val port = vxlanPort(id)    // it might throw
+                val port = topology.vxlanPort(id)    // it might throw
                 vxlanPorts.put(id, port)
                 if (vxgw.vni == -1) {
                     vxgw.vni = port.getVni
@@ -317,11 +315,10 @@ class VxlanGatewayManager(networkId: UUID,
                 }
             }
 
-            macPortMap = dataClient.bridgeGetMacTable(networkId,
-                                                      UNTAGGED_VLAN_ID, false)
+            macPortMap = topology macTable networkId
 
             log.info(s"Starting to watch MAC-Port table in $networkId")
-            vxgwBusObserver = new BusObserver(dataClient, networkId,
+            vxgwBusObserver = new BusObserver(topology, networkId,
                                               macPortMap, zkConnWatcher,
                                               peerEndpoints)
             busSubscription = vxgw.asObservable
@@ -336,7 +333,7 @@ class VxlanGatewayManager(networkId: UUID,
         }
 
         if (arpTable == null) {
-            arpTable = dataClient.bridgeGetArpTable(networkId)
+            arpTable = topology arpTable networkId
             // if we throw before this, the caller will schedule a retry
             log.info(s"Starting to watch ARP table in $networkId")
             arpTable addWatcher new ArpTableWatcher()
@@ -401,9 +398,7 @@ class VxlanGatewayManager(networkId: UUID,
       * return the new state without actually making it available. */
     private def loadNewBridgeState() = Try {
 
-        val bridge: Bridge = dataClient.bridgeGetAndWatch(networkId,
-                                                          bridgeWatcher)
-
+        val bridge: Bridge = topology.bridge(networkId, bridgeWatcher)
         val newPortIds: Seq[UUID] = if (bridge == null) Seq()
                                     else bridge.getVxLanPortIds
 
@@ -434,9 +429,6 @@ class VxlanGatewayManager(networkId: UUID,
 
     }
 
-    /** Retrieve the vxlan port from the backend storage */
-    private def vxlanPort(id: UUID) = dataClient.portsGet(id).asInstanceOf[VxLanPort]
-
     /** A new VTEP appears on the network, which indicates bindings to a new
       * VTEP.  Load the VtepPeer and make it join the Logical Switch of this
       * network. */
@@ -446,7 +438,7 @@ class VxlanGatewayManager(networkId: UUID,
         // during the first initialization of the service.
         var vxPort = vxlanPorts.get(vxPortId)
         if (vxPort == null) {
-            vxPort = vxlanPort(vxPortId)
+            vxPort = topology.vxlanPort(vxPortId)
         }
 
         if (vxPort.getVni != vxgw.vni) {
@@ -506,7 +498,7 @@ class VxlanGatewayManager(networkId: UUID,
                                 val p = vxlanPorts.get(newPort)
                                 if (p == null) null else p.getTunnelIp
                             case _ =>  // in MidoNet
-                                dataClient.vxlanTunnelEndpointFor(newPort)
+                                topology vxlanTunnelEndpointFor newPort
                         }
 
         if (tunnelDst == null && newPort != null) {
@@ -581,7 +573,7 @@ class VxlanGatewayManager(networkId: UUID,
             // is not horrible, its an O(1) lookup in a local cache
             macPortMap.get(mac) match {
                 case currPortId if currPortId eq expectPortId =>
-                    val tunIp = dataClient.vxlanTunnelEndpointFor(currPortId)
+                    val tunIp = topology.vxlanTunnelEndpointFor(currPortId)
                     vxgw.asObserver.onNext(MacLocation(mac, ip, lsName, tunIp))
                 case _ =>
             }
