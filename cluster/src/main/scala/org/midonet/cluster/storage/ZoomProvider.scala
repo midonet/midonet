@@ -33,7 +33,8 @@ class ZoomProvider @Inject()(val curator: CuratorFramework, cfg: ZookeeperConfig
     override def get: Storage = {
         val storage = new ZookeeperObjectMapper(cfg.getZkRootPath + "/zoom",
                                                 curator)
-        List(classOf[C3POState],
+        List(classOf[AgentMembership],
+             classOf[C3POState],
              classOf[Chain],
              classOf[Dhcp],
              classOf[FloatingIp],

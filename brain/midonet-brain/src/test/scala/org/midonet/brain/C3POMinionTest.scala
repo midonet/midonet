@@ -39,7 +39,7 @@ import org.slf4j.LoggerFactory
 import org.midonet.brain.ClusterNode.Context
 import org.midonet.brain.services.c3po.{C3POConfig, C3POMinion}
 import org.midonet.cluster.config.ZookeeperConfig
-import org.midonet.cluster.data.neutron.NeutronResourceType.{Config => ConfigType, Network => NetworkType, NoData, Port => PortType, Router => RouterType, SecurityGroup => SecurityGroupType, Subnet => SubnetType}
+import org.midonet.cluster.data.neutron.NeutronResourceType.{AgentMembership => AgentMembershipType, Config => ConfigType, Network => NetworkType, NoData, Port => PortType, Router => RouterType, SecurityGroup => SecurityGroupType, Subnet => SubnetType}
 import org.midonet.cluster.data.neutron.TaskType._
 import org.midonet.cluster.data.neutron.{NeutronResourceType, TaskType}
 import org.midonet.cluster.data.storage.{ObjectReferencedException, Storage}
@@ -357,6 +357,14 @@ class C3POMinionTest extends FlatSpec with BeforeAndAfter
         val c = nodeFactory.objectNode
         c.put("id", id.toString)
         c.put("tunnel_protocol", tunnelProtocol.toString)
+        c
+    }
+
+    private def agentMembershipJson(id: UUID,
+                                    ipAddress: String): JsonNode = {
+        val c = nodeFactory.objectNode
+        c.put("id", id.toString)
+        c.put("ip_address", ipAddress)
         c
     }
 
@@ -747,8 +755,7 @@ class C3POMinionTest extends FlatSpec with BeforeAndAfter
         dhcpList.size should be(0)
     }
 
-    it should "handle Config Create" in {
-
+    it should "handle Config / AgentMembership Create" in {
         val cId = UUID.randomUUID()
         val cJson = configJson(cId, TunnelProtocol.VXLAN)
         executeSqlStmts(insertMidoNetTaskSql(2, Create, ConfigType,
@@ -756,10 +763,44 @@ class C3POMinionTest extends FlatSpec with BeforeAndAfter
 
         // Verify the created default tunnel zone
         val tz = eventually(storage.get(classOf[TunnelZone], cId).await())
-        tz.getId shouldBe(toProto(cId))
-        tz.getType shouldBe(TunnelZone.Type.VXLAN)
-        tz.getName shouldBe("DEFAULT")
-    }
+        tz.getId shouldBe toProto(cId)
+        tz.getType shouldBe TunnelZone.Type.VXLAN
+        tz.getName shouldBe "DEFAULT"
+        tz.getNeutronDefault shouldBe true
+
+        // Set up the host.
+        val hostId = UUID.randomUUID()
+        val host = Host.newBuilder.setId(hostId).build()
+        storage.create(host)
+
+        val ipAddress = "192.168.0.1"
+        val amJson = agentMembershipJson(hostId, ipAddress)
+        executeSqlStmts(insertMidoNetTaskSql(3, Create, AgentMembershipType,
+                                             amJson.toString, hostId, "tx2"))
+
+        eventually {
+            val tz1 = storage.get(classOf[TunnelZone], cId).await()
+            tz1.getHostsCount shouldBe 1
+            tz1.getHosts(0).getHostId shouldBe toProto(hostId)
+            tz1.getHosts(0).getIp shouldBe IPAddressUtil.toProto(ipAddress)
+        }
+
+        // Tests that the host's reference to the tunnel zone is updated.
+        val hostWithTz = storage.get(classOf[Host], hostId).await()
+        hostWithTz.getTunnelZoneIdsCount shouldBe 1
+        hostWithTz.getTunnelZoneIds(0) shouldBe toProto(cId)
+
+        executeSqlStmts(insertMidoNetTaskSql(4, Delete, AgentMembershipType,
+                                             "", hostId, "tx3"))
+        eventually {
+            val tz2 = storage.get(classOf[TunnelZone], cId).await()
+            tz2.getHostsList.size shouldBe 0
+        }
+
+        // Tests that the host's reference to the tunnel zone is cleared.
+        val hostNoTz = storage.get(classOf[Host], hostId).await()
+        hostNoTz.getTunnelZoneIdsCount shouldBe 0
+   }
 
     case class ChainPair(inChain: Chain, outChain: Chain)
     private def getChains(inChainId: Commons.UUID,
