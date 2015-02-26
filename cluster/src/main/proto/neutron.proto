@@ -240,3 +240,12 @@ message TunnelZoneHost {
     optional UUID host_id = 3;
     optional IPAddress ip_address = 4;
 }
+
+message NeutronConfig {
+    optional UUID id = 1;
+    enum TunnelProtocol {
+        GRE = 1;
+        VXLAN = 2;
+    }
+    optional TunnelProtocol tunnel_protocol=2;
+}
