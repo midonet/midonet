@@ -84,7 +84,7 @@ abstract class VtepConfig(val mgmtIp: IPv4Addr, val mgmtPort: Int) {
 class VtepConfigException(msg: String) extends RuntimeException(msg)
 
 /** Offers a pool of interfaces to hardware VTEPs. */
-class VtepPool(nodeId: UUID, midoDb: DataClient,
+class VtepPool(nodeId: UUID, topology: TopologyApi,
                zkConnWatcher: ZookeeperConnectionWatcher,
                tzState: TunnelZoneStatePublisher,
                vtepDataClientFactory: VtepDataClientFactory) {
@@ -121,7 +121,8 @@ class VtepPool(nodeId: UUID, midoDb: DataClient,
     def create(mgmtIp: IPv4Addr, mgmtPort: Int): Vtep = {
         val vtepFromOvsdb = new VtepFromOldOvsdbClient(nodeId, mgmtIp, mgmtPort,
                                                        vtepDataClientFactory)
-        new VtepController(vtepFromOvsdb, midoDb, zkConnWatcher, tzState)
+
+        new VtepController(vtepFromOvsdb, topology, zkConnWatcher, tzState)
     }
 
 }
