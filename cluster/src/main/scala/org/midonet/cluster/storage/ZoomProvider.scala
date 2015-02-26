@@ -55,6 +55,7 @@ class ZoomProvider @Inject()(val curator: CuratorFramework, cfg: ZookeeperConfig
              classOf[Router],
              classOf[Rule],
              classOf[TunnelZone],
+             classOf[AgentMembership],
              classOf[SecurityGroup],
              classOf[VIP],
              classOf[Vtep],
