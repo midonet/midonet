@@ -67,6 +67,23 @@
       "revId": "91dce0d6dee8a4a9a6fa8114e98705b836ff003b",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_f53be699",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/TraceState.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-02-26T09:55:34Z",
+      "side": 1,
+      "message": "I\u0027m worried about this, being of varied size :/  Why do we need multiple requests per trace key again?",
+      "revId": "91dce0d6dee8a4a9a6fa8114e98705b836ff003b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
