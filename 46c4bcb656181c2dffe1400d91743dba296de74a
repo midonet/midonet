@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_f27dbce8",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/TunnelZoneTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-02-26T02:10:51Z",
+      "side": 1,
+      "message": "A good catch, Ernest! This should be an update. This kind of thing happens when I write tests by copy-pasting :P\n\nAs for having to copy host-IP mappings, on the Neutron side the data are modelled in a more relational DB way. Host in TZ will be a top-level entity called TunnelZoneHost, and have an IP and a reference to the TZ. The neutron TZ itself won\u0027t hold information for mappings. Please refer to neutron.proto for the exact detail.",
+      "parentUuid": "7a1969be_cd7744d3",
+      "range": {
+        "startLine": 40,
+        "startChar": 11,
+        "endLine": 40,
+        "endChar": 69
+      },
+      "revId": "46c4bcb656181c2dffe1400d91743dba296de74a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_ed7cc0b7",
         "filename": "cluster/src/main/proto/topology.proto",
         "patchSetId": 2
@@ -36,6 +60,30 @@
       "writtenOn": "2015-02-25T17:47:02Z",
       "side": 1,
       "message": "Doesn\u0027t the \u0027HostToIp hosts\u0027 above act already as a \u0027backreference\u0027? Isn\u0027t this redundant?",
+      "range": {
+        "startLine": 293,
+        "startChar": 3,
+        "endLine": 294,
+        "endChar": 33
+      },
+      "revId": "46c4bcb656181c2dffe1400d91743dba296de74a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_d27880f4",
+        "filename": "cluster/src/main/proto/topology.proto",
+        "patchSetId": 2
+      },
+      "lineNbr": 294,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-02-26T02:10:51Z",
+      "side": 1,
+      "message": "This is due to the current limitation of ZOOM and its field binding implementation. ZOOM cannot handle bindings from / to a nested message (in this case HostToIp). If we want to clear a tunnel_zone_ids (back) reference to a TZ upon deleting it, we need a forward reference as a TZ field.\n\nIt\u0027s nonetheless duplicated information, and arguably it\u0027s an option to get rid of this back-ref field and to handle relationship management by hand because we have already \"hosts\" field and because ZOOM cannot perform a proper \"hosts\" CLEAR action because of the said reason. I think, however, it\u0027s better the more the framework take care of",
+      "parentUuid": "7a1969be_ed7cc0b7",
       "range": {
         "startLine": 293,
         "startChar": 3,
