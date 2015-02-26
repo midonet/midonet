@@ -16,6 +16,24 @@
       "revId": "18c7db1de9202c44d8ff50911927cae656acd132",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_58595135",
+        "filename": "cluster/src/test/scala/org/midonet/cluster/util/ObservablePathChildrenCacheTest.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-02-26T13:12:50Z",
+      "side": 1,
+      "message": "I guess so!",
+      "parentUuid": "7a1969be_f5cbe61b",
+      "revId": "18c7db1de9202c44d8ff50911927cae656acd132",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
