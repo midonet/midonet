@@ -44,6 +44,7 @@ class VtepControllerTest extends FlatSpec with Matchers
 
     override var dataClient: DataClient = _
     override var hostManager: HostZkManager = _
+    var topology: Topology = _
 
     var injector: Injector = _
 
@@ -72,7 +73,7 @@ class VtepControllerTest extends FlatSpec with Matchers
         setupZkTestDirectory(directory)
 
         dataClient = injector.getInstance(classOf[DataClient])
-        assertNotNull(dataClient)
+        topology = Topology(dataClient)
 
         hostManager = injector.getInstance(classOf[HostZkManager])
         assertNotNull(hostManager)
@@ -113,7 +114,7 @@ class VtepControllerTest extends FlatSpec with Matchers
 
         // The VTEP PEER under test
         Given("a VTEP peer")
-        val peer = new VtepController(vtepOvsdb, dataClient, zkConnWatcher,
+        val peer = new VtepController(vtepOvsdb, topology, zkConnWatcher,
                                       tzState)
 
         When("the VTEP is told to join the Logical Switch with a seed")
