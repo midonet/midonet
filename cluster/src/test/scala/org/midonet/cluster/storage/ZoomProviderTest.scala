@@ -72,6 +72,7 @@ class ZoomProviderTest extends FeatureSpec
             val zoomProvider = new ZoomProvider(curator, getConf)
             val storage = zoomProvider.get
             val classes = Set(
+                classOf[NeutronConfig],
                 classOf[NeutronHealthMonitor],
                 classOf[NeutronLoadBalancerPool],
                 classOf[NeutronLoadBalancerPoolHealthMonitor],
