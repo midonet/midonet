@@ -79,6 +79,9 @@ class TunnelZone extends ZoomObject with Device {
     @ZoomField(name = "hosts", converter = classOf[HostIpConverter])
     var hosts: Map[UUID, IPAddr] = _
 
+    override def toString =
+        s"TunnelZone [id=$id name=$name type=$zoneType hosts=$hosts]"
+
     /**
      * Extracts the hosts field of the tunnel zone as a ZoneMembers object.
      * This method is only to be used during the transition between the old and

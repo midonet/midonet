@@ -54,7 +54,7 @@ trait TopologyBuilder {
             hostId, interfaceName, adminStateUp, portGroupIds)
         if (bridgeId.isDefined) builder.setNetworkId(bridgeId.get.asProto)
         if (vlanId.isDefined) builder.setVlanId(vlanId.get)
-        builder.build
+        builder.build()
     }
 
     protected def createRouterPort(id: UUID = UUID.randomUUID,
@@ -78,7 +78,7 @@ trait TopologyBuilder {
             .setPortAddress(portAddress.asProto)
             .setPortMac(portMac.toString)
         if (routerId.isDefined) builder.setRouterId(routerId.get.asProto)
-        builder.build
+        builder.build()
     }
 
     protected def createVxLanPort(id: UUID = UUID.randomUUID,
@@ -107,30 +107,30 @@ trait TopologyBuilder {
             .setVtepTunnelIp(vtepTunnelIp.asProto)
             .setVtepTunnelZoneId(vtepTunnelZoneId.asProto)
         if (bridgeId.isDefined) builder.setNetworkId(bridgeId.get.asProto)
-        builder.build
+        builder.build()
     }
 
     protected def createTunnelZone(id: UUID = UUID.randomUUID,
                                    tzType: TunnelZone.Type,
-                                   name: String = "tunnel-zone",
+                                   name: Option[String] = None,
                                    hosts: Map[UUID, IPAddr] = Map.empty)
     : TunnelZone = {
-        TunnelZone.newBuilder
+        val builder = TunnelZone.newBuilder
             .setId(id.asProto)
             .setType(tzType)
-            .setName(name)
             .addAllHosts(hosts.map(e => HostToIp.newBuilder
-            .setHostId(e._1.asProto).setIp(e._2.asProto).build()).asJava)
-            .build()
+                .setHostId(e._1.asProto).setIp(e._2.asProto).build()).asJava)
+        if (name.isDefined) builder.setName(name.get)
+        builder.build()
     }
 
     protected def createHost(id: UUID = UUID.randomUUID,
-                             portInterfaceMapping: Map[UUID, String] = Map.empty,
+                             portBindings: Map[UUID, String] = Map.empty,
                              tunnelZoneIds: Set[UUID] = Set.empty): Host = {
         Host.newBuilder
             .setId(id.asProto)
             .addAllPortInterfaceMapping(
-                portInterfaceMapping.map(e => PortToInterface.newBuilder
+                portBindings.map(e => PortToInterface.newBuilder
                     .setPortId(e._1.asProto).setInterfaceName(e._2).build())
                     .asJava)
             .addAllTunnelZoneIds(tunnelZoneIds.map(_.asProto).asJava)
