@@ -80,7 +80,7 @@ class VTPMRedirectorTest extends TestKit(ActorSystem("VTPMRedirectorTest"))
         : ProtoTunnelZone = {
 
         val newTz = createTunnelZone(UUID.randomUUID(), ProtoTunnelZone.Type.VTEP,
-                                     "tunnel", Map(hostId -> hostIp))
+                                     Some("tunnel"), Map(hostId -> hostIp))
         store.create(newTz)
         newTz
     }
@@ -103,7 +103,7 @@ class VTPMRedirectorTest extends TestKit(ActorSystem("VTPMRedirectorTest"))
         val hosts = fromHostToIpList(tunnel.getHostsList.toList)
         hosts.add((hostId, hostIp))
         val updatedTunnel = createTunnelZone(tunnel.getId, tunnel.getType,
-                                             "tunnel", hosts.toMap)
+                                             Some("tunnel"), hosts.toMap)
         store.update(updatedTunnel)
         updatedTunnel
     }
@@ -122,7 +122,7 @@ class VTPMRedirectorTest extends TestKit(ActorSystem("VTPMRedirectorTest"))
             .filterNot(_.getHostId == hostId.asProto)
         val hosts = fromHostToIpList(filteredHosts.toList)
         val updatedTunnel = createTunnelZone(tunnelZone.getId, tunnelZone.getType,
-                                             "tunnel", hosts.toMap)
+                                             Some("tunnel"), hosts.toMap)
         store.update(updatedTunnel)
     }
 
