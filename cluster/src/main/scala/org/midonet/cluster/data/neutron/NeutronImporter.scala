@@ -63,6 +63,7 @@ case class NeutronResourceType[M <: Message](id: String, clazz: Class[M])
 /** Declares the different types of supported Neutron types. */
 object NeutronResourceType extends Enumeration {
     val NoData = NeutronResourceType("NULL", classOf[Null])
+    val Config = NeutronResourceType("CONFIG", classOf[NeutronConfig])
     val Network = NeutronResourceType("NETWORK", classOf[NeutronNetwork])
     val Subnet = NeutronResourceType("SUBNET", classOf[NeutronSubnet])
     val Router = NeutronResourceType("ROUTER", classOf[NeutronRouter])
@@ -75,9 +76,10 @@ object NeutronResourceType extends Enumeration {
         "SECURITYGROUPRULE", classOf[Neutron.SecurityGroupRule])
     val PortBinding = NeutronResourceType("PORTBINDING", classOf[PortBinding])
 
-    private val vals = Map(NoData.id -> NoData, Network.id -> Network,
-                           Subnet.id -> Subnet, Router.id -> Router,
-                           Port.id -> Port, FloatingIp.id -> FloatingIp,
+    private val vals = Map(NoData.id -> NoData, Config.id -> Config,
+                           Network.id -> Network, Subnet.id -> Subnet,
+                           Router.id -> Router, Port.id -> Port,
+                           FloatingIp.id -> FloatingIp,
                            SecurityGroup.id -> SecurityGroup,
                            SecurityGroupRule.id -> SecurityGroupRule,
                            PortBinding.id -> PortBinding)

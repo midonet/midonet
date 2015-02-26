@@ -39,18 +39,19 @@ import org.slf4j.LoggerFactory
 import org.midonet.brain.ClusterNode.Context
 import org.midonet.brain.services.c3po.{C3POConfig, C3POMinion}
 import org.midonet.cluster.config.ZookeeperConfig
-import org.midonet.cluster.data.neutron.NeutronResourceType.{Network => NetworkType, NoData, Port => PortType, Router => RouterType, SecurityGroup => SecurityGroupType, Subnet => SubnetType}
+import org.midonet.cluster.data.neutron.NeutronResourceType.{Config => ConfigType, Network => NetworkType, NoData, Port => PortType, Router => RouterType, SecurityGroup => SecurityGroupType, Subnet => SubnetType}
 import org.midonet.cluster.data.neutron.TaskType._
 import org.midonet.cluster.data.neutron.{NeutronResourceType, TaskType}
 import org.midonet.cluster.data.storage.{ObjectReferencedException, Storage}
 import org.midonet.cluster.models.Commons.{EtherType, Protocol, RuleDirection}
+import org.midonet.cluster.models.Neutron.NeutronConfig.TunnelProtocol
 import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner
 import org.midonet.cluster.models.Neutron.SecurityGroup
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.models.{C3PO, Commons}
 import org.midonet.cluster.storage.ZoomProvider
 import org.midonet.cluster.util.UUIDUtil._
-import org.midonet.cluster.util.{IPSubnetUtil, IPAddressUtil, UUIDUtil}
+import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil, UUIDUtil}
 import org.midonet.config.ConfigProvider
 import org.midonet.packets.{IPSubnet, IPv4Subnet, UDP}
 import org.midonet.util.MidonetEventually
@@ -349,6 +350,14 @@ class C3POMinionTest extends FlatSpec with BeforeAndAfter
         n.put("admin_state_up", adminStateUp)
         n.put("external", external)
         n
+    }
+
+    private def configJson(id: UUID,
+                           tunnelProtocol: TunnelProtocol): JsonNode = {
+        val c = nodeFactory.objectNode
+        c.put("id", id.toString)
+        c.put("tunnel_protocol", tunnelProtocol.toString)
+        c
     }
 
     case class HostRoute(destination: String, nexthop: String)
@@ -736,6 +745,22 @@ class C3POMinionTest extends FlatSpec with BeforeAndAfter
         // Verify deletion
         val dhcpList = storage.getAll(classOf[Dhcp]).await()
         dhcpList.size should be(0)
+    }
+
+    it should "handle Config Create" in {
+
+        val cId = UUID.randomUUID()
+        val cJson = configJson(cId, TunnelProtocol.VXLAN)
+        executeSqlStmts(insertMidoNetTaskSql(2, Create, ConfigType,
+                                             cJson.toString, cId, "tx1"))
+        Thread.sleep(1000)
+
+        // Verify the created default tunnel zone
+        val tz = storage.get(classOf[TunnelZone], cId).await()
+        tz should not be null
+        tz.getId shouldBe(toProto(cId))
+        tz.getType shouldBe(TunnelZone.Type.VXLAN)
+        tz.getName shouldBe("DEFAULT")
     }
 
     case class ChainPair(inChain: Chain, outChain: Chain)
