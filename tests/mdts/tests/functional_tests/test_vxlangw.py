@@ -154,12 +154,10 @@ def test_ping_host_on_vtep_from_one_mm():
     f2 = async_assert_that(sender, receives(pcap_filter, within_sec(5)))
     wait_on_futures([f1, f2])
 
-@nottest
+
 @bindings(bindings2)
 def test_ping_host_on_vtep_from_all_mm():
     '''Tests if a VM can ping an IP address behind a VTEP from all hosts.'''
-
-    raw_input("Press ENTER to continue and cleanup...")
 
     pcap_filter = 'src host %s and icmp' % vm_on_vtep1
 
