@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_f5eda626",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/PacketContext.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 288,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-02-26T09:41:56Z",
+      "side": 1,
+      "message": ".toString? Why? This seems strange. Is it temporary?",
+      "revId": "a12b2c129529f04d13c65ad407414a2aaa694c9b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
