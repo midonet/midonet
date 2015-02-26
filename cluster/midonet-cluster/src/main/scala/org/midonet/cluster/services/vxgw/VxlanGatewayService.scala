@@ -62,6 +62,7 @@ class VxlanGatewayService @Inject()(nodeCtx: ClusterNode.Context,
 
     private val log = LoggerFactory.getLogger(vxgwLog)
     private val LEADER_LATCH_PATH = "/midonet/vxgw/leader-latch"
+    private val topology = Topology(dataClient)
 
     // Executor on which we schedule tasks to release the ZK event thread.
     private val executor = newSingleThreadExecutor(
@@ -92,7 +93,7 @@ class VxlanGatewayService @Inject()(nodeCtx: ClusterNode.Context,
                                                        new Random())
 
     // VTEP controllers
-    private val vteps = new VtepPool(nodeCtx.nodeId, dataClient, zkConnWatcher,
+    private val vteps = new VtepPool(nodeCtx.nodeId, topology, zkConnWatcher,
                                      tzState, vtepDataClientFactory)
 
     // An observer that bootstraps a new VxLAN Gateway service whenever a
@@ -184,7 +185,7 @@ class VxlanGatewayService @Inject()(nodeCtx: ClusterNode.Context,
     /** Create and run a new VxlanGatewayManager for the given network id */
     private def initVxlanGatewayManager(id: UUID) {
         log.info(s"Network $id is now part of a VxLAN Gateway")
-        val nw = new VxlanGatewayManager(id, dataClient, vteps,
+        val nw = new VxlanGatewayManager(id, topology, vteps,
                                          tzState, zkConnWatcher,
                                          () => managers.remove(id))
         if (managers.putIfAbsent(id, nw) == null) {

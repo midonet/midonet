@@ -55,6 +55,7 @@ class VxlanGatewayManagerTest extends FlatSpec with Matchers
 
     override var hostManager: HostZkManager = _
     override var dataClient: DataClient = _
+    var topology = Topology(dataClient)
 
     val VTEP_PORT = 6632
 
@@ -85,7 +86,7 @@ class VxlanGatewayManagerTest extends FlatSpec with Matchers
         setupZkTestDirectory(directory)
 
         dataClient = injector.getInstance(classOf[DataClient])
-        assertNotNull(dataClient)
+        topology = Topology(dataClient)
 
         hostState = new HostStatePublisher(dataClient, zkConnWatcher)
         tzState = new TunnelZoneStatePublisher(dataClient, zkConnWatcher,
@@ -100,13 +101,13 @@ class VxlanGatewayManagerTest extends FlatSpec with Matchers
 
         // WATCH OUT: this factory assumes that VxlanGatewayTest.TwoVtepsOn
         // generates the tunnel ip as the next to management ip.
-        vtepPool = new VtepPool(nodeId, dataClient, zkConnWatcher, tzState,
+        vtepPool = new VtepPool(nodeId, topology, zkConnWatcher, tzState,
                                 null) {
             override def create(ip: IPv4Addr, port: Int): Vtep = {
                 val mockConfig = new MockVtepConfig(ip, port, ip.next,
                                                     Seq.empty)
                 vtepConfigs += mockConfig
-                new VtepController(mockConfig, dataClient, zkConnWatcher,
+                new VtepController(mockConfig, topology, zkConnWatcher,
                                    tzState)
             }
         }
@@ -122,7 +123,7 @@ class VxlanGatewayManagerTest extends FlatSpec with Matchers
         Given("A bridge bound to a vtep")
         val host = new HostOnVtepTunnelZone(1)
         val ctx = new BridgeWithTwoPortsOnOneHost(mac1, mac2, host.id)
-        val mgr = new VxlanGatewayManager(ctx.nwId, dataClient, null,
+        val mgr = new VxlanGatewayManager(ctx.nwId, topology, null,
                                           tzState, zkConnWatcher,
                                           () => mgrClosedLatch.countDown() )
         mgr.lsName shouldBe bridgeIdToLogicalSwitchName(ctx.nwId)
@@ -157,7 +158,7 @@ class VxlanGatewayManagerTest extends FlatSpec with Matchers
         dataClient.vtepAddBinding(vteps.ip1, "eth1", 66, ctx.nwId)
 
         And("a vxlan gateway manager starts")
-        val mgr = new VxlanGatewayManager(ctx.nwId, dataClient, vtepPool,
+        val mgr = new VxlanGatewayManager(ctx.nwId, topology, vtepPool,
                                           tzState, zkConnWatcher,
                                           () => { mgrClosedLatch.countDown() })
         mgr.start()
@@ -338,7 +339,7 @@ class VxlanGatewayManagerTest extends FlatSpec with Matchers
         dataClient.vtepAddBinding(vteps.ip1, "eth1", 66, ctx.nwId)
 
         And("a vxlan gateway manager starts")
-        val mgr = new VxlanGatewayManager(ctx.nwId, dataClient, vtepPool,
+        val mgr = new VxlanGatewayManager(ctx.nwId, topology, vtepPool,
                                           tzState, zkConnWatcher,
                                           () => { mgrClosedLatch.countDown() })
         mgr.start()
