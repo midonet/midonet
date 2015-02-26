@@ -27,6 +27,7 @@ import org.midonet.cluster.models.Neutron.NeutronRoute
 import org.midonet.cluster.models.Neutron.NeutronRouter
 import org.midonet.cluster.models.Neutron.NeutronRouterInterface
 import org.midonet.cluster.models.Neutron.NeutronSubnet
+import org.midonet.cluster.models.Neutron.NeutronTunnelZone
 import org.midonet.cluster.models.Neutron.PortBinding
 import org.midonet.cluster.models.Neutron.SecurityGroup
 import org.midonet.cluster.models.Neutron.SecurityGroupRule
@@ -108,6 +109,10 @@ object ModelsUtil {
      def nPortBindingFromTxt(protoTxt: String) =
         protoFromTxt(protoTxt, PortBinding.newBuilder)
         .asInstanceOf[PortBinding]
+
+     def nTunnelZoneFromTxt(protoTxt: String) =
+        protoFromTxt(protoTxt, NeutronTunnelZone.newBuilder)
+        .asInstanceOf[NeutronTunnelZone]
 
      def mNetworkFromTxt(protoTxt: String) =
         protoFromTxt(protoTxt, Network.newBuilder).asInstanceOf[Network]
