@@ -16,7 +16,9 @@
 
 package org.midonet.cluster.models
 
+import org.midonet.cluster.models.Neutron.AgentMembership
 import org.midonet.cluster.models.Neutron.FloatingIp
+import org.midonet.cluster.models.Neutron.NeutronConfig
 import org.midonet.cluster.models.Neutron.NeutronHealthMonitor
 import org.midonet.cluster.models.Neutron.NeutronLoadBalancerPool
 import org.midonet.cluster.models.Neutron.NeutronLoadBalancerPoolHealthMonitor
@@ -51,6 +53,14 @@ import org.midonet.cluster.util.ProtobufUtil.protoFromTxt
  * Utility functions to generate Midonet / Neutron model objects from text.
  */
 object ModelsUtil {
+     def nAgentMembershipFromTxt(protoTxt: String) =
+        protoFromTxt(protoTxt, AgentMembership.newBuilder)
+        .asInstanceOf[AgentMembership]
+
+     def nConfigFromTxt(protoTxt: String) =
+        protoFromTxt(protoTxt, NeutronConfig.newBuilder)
+        .asInstanceOf[NeutronConfig]
+
      def nNetworkFromTxt(protoTxt: String) =
         protoFromTxt(protoTxt, NeutronNetwork.newBuilder)
         .asInstanceOf[NeutronNetwork]
