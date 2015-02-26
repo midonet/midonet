@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_f5cbe61b",
+        "filename": "cluster/src/test/scala/org/midonet/cluster/util/ObservablePathChildrenCacheTest.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-02-26T11:57:30Z",
+      "side": 1,
+      "message": "Oh, was the MidonetEventually patch merged? I don\u0027t think it does anything: most of the problems are races that will never be fixed no matter how much you wait. If there would be convergence, it would happen in millis.",
+      "revId": "18c7db1de9202c44d8ff50911927cae656acd132",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
