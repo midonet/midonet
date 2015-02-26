@@ -34,7 +34,7 @@ import org.midonet.util.functors.makeRunnable
 /** This Observer is able to listen on an Observable that emits MacLocation
   * instances and update a single Neutron network's state accordingly.
   *
-  * @param dataClient the dataclient to access the backend storage
+  * @param topology the api to access the backend storage
   * @param macPortMap the mac-port table that should be updated to reflect the
   *                   changes seen on the bus.
   * @param zkConnWatcher used to handle connection errors to zk while making
@@ -46,7 +46,7 @@ import org.midonet.util.functors.makeRunnable
   *                      keep it updated according to the VTEPs actually bound
   *                      to the network.
   */
-class BusObserver(dataClient: DataClient, networkId: UUID,
+class BusObserver(topology: TopologyApi, networkId: UUID,
                   macPortMap: MacPortMap,
                   zkConnWatcher: ZookeeperConnectionWatcher,
                   peerEndpoints: JMap[IPv4Addr, UUID])
@@ -85,8 +85,8 @@ class BusObserver(dataClient: DataClient, networkId: UUID,
         val mac = ml.mac.IEEE802
         try {
             macPortMap.removeIfOwnerAndValue(mac, vxPort)
-            dataClient.bridgeGetIp4ByMac(networkId, mac) foreach { ip =>
-                dataClient.bridgeDeleteLearnedIp4Mac(networkId, ip, mac)
+            topology.ipsOf(networkId, mac) foreach {
+                topology.unlearn(networkId, _, mac)
             }
         } catch {
             case e: StateAccessException =>
@@ -144,7 +144,7 @@ class BusObserver(dataClient: DataClient, networkId: UUID,
     private def learnIpOnMac(mac: MAC, ip: IPv4Addr, expectPort: UUID): Unit = {
         try {
             if (expectPort != null && expectPort.equals(macPortMap.get(mac))) {
-                dataClient.bridgeAddLearnedIp4Mac(networkId, ip, mac)
+                topology.learn(networkId, ip, mac)
             }
         } catch {
             case e: StateAccessException =>
