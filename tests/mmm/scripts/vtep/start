@@ -59,5 +59,6 @@ for i in $(seq 0 $((${#VTEP_MANAGEMENT_ADRESSES[*]} - 1))); do
     sudo docker exec $container_id /opt/vtep/vtep.sh config vtep0 ${VTEP_MANAGEMENT_ADRESSES[i]%/*} ${VTEP_MANAGEMENT_ADRESSES[i]%/*}
 
     sudo docker exec $container_id /opt/vtep/vtep.sh add_port vtep0 port0 ${PEERS_BEHIND_VTEP[i]} ${VLAN_OF_PEERS[i]}
+    sudo docker exec $container_id /opt/vtep/vtep.sh reload vtep0
 
 done
