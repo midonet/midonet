@@ -2,6 +2,40 @@
   "comments": [
     {
       "key": {
+        "uuid": "7a1969be_15d2025c",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/DeduplicationActor.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 132,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-02-26T09:47:30Z",
+      "side": 1,
+      "message": "I don\u0027t think we should tag flows with the TraceKey. There doesn\u0027t seem to be a case where removing the TraceKey causes flows to be invalidated.\n\n(And once the flow disappears, we can immediately invalidate the TraceKey, so the expiration timeout can be very small)",
+      "revId": "91dce0d6dee8a4a9a6fa8114e98705b836ff003b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_b5e32e32",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/DeduplicationActor.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 350,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-02-26T09:47:30Z",
+      "side": 1,
+      "message": "Then should this be here? If we want the state to persist after multiple NotYetExceptions, then this can\u0027t be here. The most appropriate place would be the packetcontext\u0027s clear method.",
+      "revId": "91dce0d6dee8a4a9a6fa8114e98705b836ff003b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_5522baa4",
         "filename": "midolman/src/main/scala/org/midonet/midolman/state/TraceState.scala",
         "patchSetId": 1
