@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_78c6cd4a",
+        "filename": "cluster/src/test/scala/org/midonet/cluster/data/storage/InMemoryStorageTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-26T14:35:48Z",
+      "side": 1,
+      "message": "Maybe this import is unused now?",
+      "range": {
+        "startLine": 37,
+        "startChar": 0,
+        "endLine": 37,
+        "endChar": 65
+      },
+      "revId": "d48c4f00fbc0f5349e37711f746349e3f0cb30b1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
