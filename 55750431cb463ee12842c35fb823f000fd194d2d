@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_b5168eef",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-26T23:34:37Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_fc4e43c0",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 22
+      },
+      "revId": "55750431cb463ee12842c35fb823f000fd194d2d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_fcada389",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PortMapper.scala",
         "patchSetId": 11
@@ -36,6 +60,30 @@
       "writtenOn": "2015-02-23T10:24:13Z",
       "side": 1,
       "message": "add assertThread?",
+      "range": {
+        "startLine": 50,
+        "startChar": 4,
+        "endLine": 56,
+        "endChar": 14
+      },
+      "revId": "55750431cb463ee12842c35fb823f000fd194d2d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_3b73afb2",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PortMapper.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-02-26T23:34:37Z",
+      "side": 1,
+      "message": "I added .observerOn(vt.scheduler) at the observable. However, assertThread here is not necessary because the combinator\u0027s code is synchronized by the combineLatest method.",
+      "parentUuid": "7a1969be_fcada389",
       "range": {
         "startLine": 50,
         "startChar": 4,
