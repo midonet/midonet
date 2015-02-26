@@ -1,0 +1,205 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_753b7638",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/Aggregator.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-02-26T11:14:01Z",
+      "side": 1,
+      "message": "I\u0027m not convinced on the need for this synchronized, what\u0027s the case you\u0027re trying to protect against?",
+      "range": {
+        "startLine": 71,
+        "startChar": 7,
+        "endLine": 71,
+        "endChar": 29
+      },
+      "revId": "03d09f177048d4066cb72b6339c47fcf5ef4b5a4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_9540b2a6",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/ServerState.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-02-26T11:14:01Z",
+      "side": 1,
+      "message": "maybe static import, to make this less dense",
+      "range": {
+        "startLine": 119,
+        "startChar": 41,
+        "endLine": 119,
+        "endChar": 50
+      },
+      "revId": "03d09f177048d4066cb72b6339c47fcf5ef4b5a4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_d5f34a9c",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/SessionInventory.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 487,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-02-26T11:14:01Z",
+      "side": 1,
+      "message": "It might make sense to turn getAll into getAllIds, what do you think? (not necessarily in this patch)",
+      "range": {
+        "startLine": 487,
+        "startChar": 18,
+        "endLine": 487,
+        "endChar": 24
+      },
+      "revId": "03d09f177048d4066cb72b6339c47fcf5ef4b5a4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_b5d7aeec",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/SessionInventory.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 490,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-02-26T11:14:01Z",
+      "side": 1,
+      "message": "woah, we do need to make the getAll return a Future[Seq[T]], instead of the Future[Seq[Future[T]]]..\n\nOK to do it in a different patch, but I\u0027ll do it in a separate one quickly in case we can get it in before this gets merged.",
+      "range": {
+        "startLine": 490,
+        "startChar": 33,
+        "endLine": 490,
+        "endChar": 62
+      },
+      "revId": "03d09f177048d4066cb72b6339c47fcf5ef4b5a4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_152de2fe",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/SessionInventory.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 503,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-02-26T11:14:01Z",
+      "side": 1,
+      "message": "This will create a new execution context on every call, of every method. We should make the ec a val.",
+      "range": {
+        "startLine": 503,
+        "startChar": 14,
+        "endLine": 503,
+        "endChar": 60
+      },
+      "revId": "03d09f177048d4066cb72b6339c47fcf5ef4b5a4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_f52f66f4",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/SessionInventory.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 523,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-02-26T11:14:01Z",
+      "side": 1,
+      "message": "wrap? what about shortening to s\"Can\u0027t subscribe to entity ..\", e) so it (probably) fits in 1 line?",
+      "range": {
+        "startLine": 521,
+        "startChar": 20,
+        "endLine": 523,
+        "endChar": 28
+      },
+      "revId": "03d09f177048d4066cb72b6339c47fcf5ef4b5a4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_d5c50a3d",
+        "filename": "cluster/src/main/proto/topology_api.proto",
+        "patchSetId": 8
+      },
+      "lineNbr": 165,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-02-26T11:14:01Z",
+      "side": 1,
+      "message": "REDUNDANT?",
+      "range": {
+        "startLine": 165,
+        "startChar": 4,
+        "endLine": 165,
+        "endChar": 12
+      },
+      "revId": "03d09f177048d4066cb72b6339c47fcf5ef4b5a4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_15dfa20e",
+        "filename": "cluster/src/main/proto/topology_api.proto",
+        "patchSetId": 8
+      },
+      "lineNbr": 205,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-02-26T11:14:01Z",
+      "side": 1,
+      "message": "we should make these consistent with the ones used in the other messages (I see id and type in those above)",
+      "range": {
+        "startLine": 205,
+        "startChar": 18,
+        "endLine": 205,
+        "endChar": 26
+      },
+      "revId": "03d09f177048d4066cb72b6339c47fcf5ef4b5a4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_15b842c7",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/client/ClientSession.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 382,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-02-26T11:14:01Z",
+      "side": 1,
+      "message": "Consider replacing with \"Sending command: {}\", req for perf.",
+      "revId": "03d09f177048d4066cb72b6339c47fcf5ef4b5a4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
