@@ -126,7 +126,8 @@ class C3POMinion @Inject()(nodeContext: ClusterNode.Context,
              classOf[NeutronPort] -> new PortTranslator(storage),
              classOf[SecurityGroup] -> new SecurityGroupTranslator(storage),
              classOf[VIP] -> new VipTranslator,
-             classOf[PortBinding] -> new PortBindingTranslator(storage)
+             classOf[PortBinding] -> new PortBindingTranslator(storage),
+             classOf[NeutronConfig] -> new ConfigTranslator(storage)
         ).asInstanceOf[List[(Class[Message], NeutronTranslator[Message])]]
          .foreach(pair => dataMgr.registerTranslator(pair._1, pair._2))
 

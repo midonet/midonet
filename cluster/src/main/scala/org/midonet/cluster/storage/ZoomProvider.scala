@@ -40,6 +40,7 @@ class ZoomProvider @Inject()(val curator: CuratorFramework, cfg: ZookeeperConfig
              classOf[Host],
              classOf[IpAddrGroup],
              classOf[Network],
+             classOf[NeutronConfig],
              classOf[NeutronHealthMonitor],
              classOf[NeutronLoadBalancerPool],
              classOf[NeutronLoadBalancerPoolHealthMonitor],
