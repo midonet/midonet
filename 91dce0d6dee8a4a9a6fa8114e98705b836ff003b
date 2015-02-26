@@ -50,6 +50,23 @@
       "revId": "91dce0d6dee8a4a9a6fa8114e98705b836ff003b",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_75c0967c",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/TraceState.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-02-26T09:52:21Z",
+      "side": 1,
+      "message": "I\u0027d be very careful about this. Does the ttl count to differentiate flows, or should they be the same? What about ip fragment type? Seen and used fields? I\u0027d prefer to not use the flow match and instead explicitly write here the fields we use to identify the trace. This is will also help me later when i move this offheap.",
+      "revId": "91dce0d6dee8a4a9a6fa8114e98705b836ff003b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
