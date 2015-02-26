@@ -68,10 +68,10 @@ trait VxlanGatewayTest {
         }
     }
 
-    class MockVtepPool(nodeId: UUID, dataClient: DataClient,
+    class MockVtepPool(nodeId: UUID, topology: Topology,
                        zkConnWatcher: ZookeeperConnectionWatcher,
                        tzState: TunnelZoneStatePublisher)
-        extends VtepPool(nodeId, dataClient, zkConnWatcher, tzState, null) {
+        extends VtepPool(nodeId, topology, zkConnWatcher, tzState, null) {
 
         val vteps = ListBuffer[MockVtepConfig]()
 
@@ -79,7 +79,7 @@ trait VxlanGatewayTest {
             val mockConfig = new MockVtepConfig(ip, port, ip.next,
                                                 Seq.empty)
             vteps += mockConfig
-            new VtepController(mockConfig, dataClient, zkConnWatcher,
+            new VtepController(mockConfig, topology, zkConnWatcher,
                                tzState)
         }
     }

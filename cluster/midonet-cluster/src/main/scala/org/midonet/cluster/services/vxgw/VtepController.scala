@@ -23,17 +23,16 @@ import java.util.concurrent.ConcurrentHashMap
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
 import scala.collection.mutable
-import scala.util.{Failure, Success, Try}
+import scala.util.{Success, Failure, Try}
 
 import org.slf4j.LoggerFactory.getLogger
 import rx.{Observer, Subscription}
 
-import org.midonet.cluster.DataClient
 import org.midonet.cluster.data.VTEP
 import org.midonet.cluster.data.vtep.model.MacLocation
 import org.midonet.cluster.services.vxgw
 import org.midonet.cluster.services.vxgw.TunnelZoneState.FloodingProxyEvent
-import org.midonet.cluster.southbound.vtep.VtepConstants.logicalSwitchNameToBridgeId
+import org.midonet.cluster.southbound.vtep.VtepConstants
 import org.midonet.midolman.state.{StateAccessException, ZookeeperConnectionWatcher}
 import org.midonet.packets.IPv4Addr
 import org.midonet.util.functors._
@@ -44,7 +43,8 @@ import org.midonet.util.functors._
   * Callers should consider that this class is NOT thread safe, specially wrt.
   * joins and abandons.
   */
-class VtepController(vtepOvsdb: VtepConfig, midoDb: DataClient,
+class VtepController(vtepOvsdb: VtepConfig,
+                     topology: TopologyApi,
                      zkConnWatcher: ZookeeperConnectionWatcher,
                      tzStatePublisher: TunnelZoneStatePublisher) extends Vtep {
 
@@ -96,7 +96,7 @@ class VtepController(vtepOvsdb: VtepConfig, midoDb: DataClient,
     private def loadVtepConfiguration(): Unit = {
         try {
             log.info(s"Loading VTEP $mgmtIp config from NSDB")
-            vtepConf = midoDb.vtepGet(mgmtIp)
+            vtepConf = topology.vtep(mgmtIp)
             watchFloodingProxy(vtepConf.getTunnelZoneId,
                                new FloodingProxyWatcher)
         } catch {
@@ -241,15 +241,15 @@ class VtepController(vtepOvsdb: VtepConfig, midoDb: DataClient,
       *       consolidation only happens at startup. We can change this fairly
       *       easily with a watcher and reinvoking this method. */
     private def consolidate(vxgw: VxlanGateway): Try[UUID] = {
-        val nwId = logicalSwitchNameToBridgeId(vxgw.name)
+        val nwId = VtepConstants.logicalSwitchNameToBridgeId(vxgw.name)
         log.info(s"Consolidate state into OVSDB for $vxgw")
         vtepOvsdb.ensureLogicalSwitch(vxgw.name, vxgw.vni) map { ls =>
             log.info(s"Logical switch ${vxgw.name} exists: $ls")
-            val bindings = midoDb.bridgeGetVtepBindings(nwId, mgmtIp).asScala
-                    .filter { bdg => // chose the relevant network only
-                        bdg.getNetworkId.equals(nwId)
-                    }
-                    .map { bdg => (bdg.getPortName, bdg.getVlanId)}
+            val bindings = topology.vtepBindings(nwId, mgmtIp).filter { bdg =>
+                bdg.getNetworkId.equals(nwId)
+            } map { bdg =>
+                (bdg.getPortName, bdg.getVlanId)
+            }
             log.info("Syncing port/vlan bindings: " + bindings)
             vtepOvsdb.ensureBindings(vxgw.name, bindings)
             ls.uuid

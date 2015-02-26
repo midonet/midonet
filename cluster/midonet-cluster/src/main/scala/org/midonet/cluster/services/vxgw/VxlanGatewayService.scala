@@ -68,8 +68,7 @@ class VxlanGatewayService @Inject()(nodeCtx: ClusterNode.Context,
     // TODO: take these out to a service metrics container
     private val networkCount = metrics.counter(s"${conf.vxgw.Prefix}.networks")
     private val vxgwCount = metrics.counter(s"${conf.vxgw.Prefix}.vxgws")
-    def numNetworks: Long = networkCount.getCount
-    def numVxGWs: Long = vxgwCount.getCount
+    private val topology = Topology(dataClient)
 
     // Executor on which we schedule tasks to release the ZK event thread.
     private val executor = newSingleThreadExecutor(
@@ -101,7 +100,7 @@ class VxlanGatewayService @Inject()(nodeCtx: ClusterNode.Context,
                                                        new Random())
 
     // VTEP controllers
-    private val vteps = new VtepPool(nodeCtx.nodeId, dataClient, zkConnWatcher,
+    private val vteps = new VtepPool(nodeCtx.nodeId, topology, zkConnWatcher,
                                      tzState, vtepDataClientFactory)
 
     // An observer that bootstraps a new VxLAN Gateway service whenever a
@@ -211,7 +210,7 @@ class VxlanGatewayService @Inject()(nodeCtx: ClusterNode.Context,
 
     /** Create and run a new VxlanGatewayManager for the given network id */
     private def initVxlanGatewayManager(id: UUID) {
-        val nw = new VxlanGatewayManager(id, dataClient, vteps,
+        val nw = new VxlanGatewayManager(id, topology, vteps,
                                          tzState, zkConnWatcher,
                                          () => {
                                              managers.remove(id)
@@ -238,6 +237,9 @@ class VxlanGatewayService @Inject()(nodeCtx: ClusterNode.Context,
             becomePassive()
         }
     }
+
+    def numNetworks: Long = networkCount.getCount
+    def numVxGWs: Long = vxgwCount.getCount
 
     override def isEnabled = conf.vxgw.isEnabled
 

@@ -18,14 +18,10 @@ package org.midonet.cluster.services.vxgw
 
 import java.util.{Map => JMap, UUID}
 
-import scala.collection.JavaConversions._
-
 import com.google.common.base.Preconditions
 import org.slf4j.LoggerFactory
 import rx.Observer
 
-import org.midonet.cluster.DataClient
-import org.midonet.cluster.data.Bridge.UNTAGGED_VLAN_ID
 import org.midonet.cluster.data.vtep.model.MacLocation
 import org.midonet.cluster.southbound.vtep.VtepConstants
 import org.midonet.midolman.state._
@@ -35,7 +31,7 @@ import org.midonet.util.functors.makeRunnable
 /** This Observer is able to listen on an Observable that emits MacLocation
   * instances and update a single Neutron network's state accordingly.
   *
-  * @param dataClient the dataclient to access the backend storage
+  * @param topology the api to access the backend storage
   * @param macPortMap the mac-port table that should be updated to reflect the
   *                   changes seen on the bus.
   * @param zkConnWatcher used to handle connection errors to zk while making
@@ -47,7 +43,7 @@ import org.midonet.util.functors.makeRunnable
   *                      keep it updated according to the VTEPs actually bound
   *                      to the network.
   */
-class BusObserver(dataClient: DataClient, networkId: UUID,
+class BusObserver(topology: TopologyApi, networkId: UUID,
                   macPortMap: MacPortMap,
                   zkConnWatcher: ZookeeperConnectionWatcher,
                   peerEndpoints: JMap[IPv4Addr, UUID])
@@ -89,11 +85,9 @@ class BusObserver(dataClient: DataClient, networkId: UUID,
     protected[vxgw] def applyMacRemoval(ml: MacLocation, vxPort: UUID): Unit = {
         val mac = ml.mac.IEEE802
         try {
-            log.debug(s"Removing ${ml.mac} from port $vxPort")
-            dataClient.bridgeDeleteMacPort(networkId, UNTAGGED_VLAN_ID,
-                                           mac, vxPort)
-            dataClient.bridgeGetIp4ByMac(networkId, mac) foreach { ip =>
-                dataClient.bridgeDeleteLearnedIp4Mac(networkId, ip, mac)
+            topology.unlearn(networkId, mac, vxPort)
+            topology.ipsOf(networkId, mac) foreach {
+                topology.unlearn(networkId, _, mac)
             }
         } catch {
             case e: StateAccessException =>
@@ -127,11 +121,9 @@ class BusObserver(dataClient: DataClient, networkId: UUID,
         try {
             if (!isNew && isChanged) {
                 // remove, synchronously to avoid races with the put below
-                dataClient.bridgeDeleteMacPort(networkId, UNTAGGED_VLAN_ID,
-                                               mac, currPortId)
+                topology.unlearn(networkId, mac, currPortId)
             }
             if (isNew || isChanged) {
-                // dataClient.bridgeAddMacPort(networkId, UNTAGGED_VLAN_ID, mac, newVxPortId)
                 macPortMap.put(mac, newVxPortId)                   // async
             }
         } catch {
@@ -155,7 +147,7 @@ class BusObserver(dataClient: DataClient, networkId: UUID,
     private def learnIpOnMac(mac: MAC, ip: IPv4Addr, expectPort: UUID): Unit = {
         try {
             if (expectPort != null && expectPort == macPortMap.get(mac)) {
-                dataClient.bridgeAddLearnedIp4Mac(networkId, ip, mac)
+                topology.learn(networkId, ip, mac)
             }
         } catch {
             case e: StateAccessException =>
