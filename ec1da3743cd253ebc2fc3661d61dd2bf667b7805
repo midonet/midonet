@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_26bef265",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/ConfigTranslator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-02-27T05:04:38Z",
+      "side": 1,
+      "message": "This should actually be an IllegalArgumentException or something like that. When you throw an exception from translateCreate/Update/Delete, it gets caught in NeutronTranslator.translate and wrapped in a TranslationException with the operation that failed, so doing the same thing here is redundant.",
+      "range": {
+        "startLine": 48,
+        "startChar": 0,
+        "endLine": 49,
+        "endChar": 79
+      },
+      "revId": "ec1da3743cd253ebc2fc3661d61dd2bf667b7805",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
