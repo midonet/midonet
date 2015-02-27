@@ -25,6 +25,53 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_46d68ec6",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/ConfigTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-02-27T04:40:00Z",
+      "side": 1,
+      "message": "What Tomohiko said. If possible, we should omit the default case. That way it becomes a compile error if we add a new value to the enum and forget to handle it here.",
+      "parentUuid": "7a1969be_06cc9634",
+      "range": {
+        "startLine": 37,
+        "startChar": 16,
+        "endLine": 39,
+        "endChar": 80
+      },
+      "revId": "333f9ca6aa72af6ab2783bf48859f0537059c571",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_a6dca2e5",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/ConfigTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-02-27T04:40:00Z",
+      "side": 1,
+      "message": "Not a big deal, since this function is simple enough as is, but I\u0027m a big fan of returning early to avoid unnecessary nesting.",
+      "range": {
+        "startLine": 46,
+        "startChar": 0,
+        "endLine": 48,
+        "endChar": 9
+      },
+      "revId": "333f9ca6aa72af6ab2783bf48859f0537059c571",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_c64a7eab",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/ConfigTranslator.scala",
         "patchSetId": 2
@@ -53,6 +100,52 @@
       "writtenOn": "2015-02-27T04:26:22Z",
       "side": 1,
       "message": "Ditto.",
+      "revId": "333f9ca6aa72af6ab2783bf48859f0537059c571",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_86d7e6be",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/C3POMinionTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 759,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-02-27T04:40:00Z",
+      "side": 1,
+      "message": "Can you get rid of the sleep and wrap the get in eventually()? I.e.:\n\n  val tz \u003d eventually(storage.get(classOf[TunnelZone], cId).await())",
+      "range": {
+        "startLine": 756,
+        "startChar": 0,
+        "endLine": 759,
+        "endChar": 62
+      },
+      "revId": "333f9ca6aa72af6ab2783bf48859f0537059c571",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_e6e69ab3",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/C3POMinionTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 760,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-02-27T04:40:00Z",
+      "side": 1,
+      "message": "This isn\u0027t really necessary. The future returned from storage.get() should throw an exception if the object doesn\u0027t exist, so a null means something is very wrong. And even if it were null, the next line would throw a NullPointerException, from which we could easily deduce that tz was null. An explicit check for null doesn\u0027t really add any value.",
+      "range": {
+        "startLine": 760,
+        "startChar": 8,
+        "endLine": 760,
+        "endChar": 29
+      },
       "revId": "333f9ca6aa72af6ab2783bf48859f0537059c571",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
