@@ -23,7 +23,8 @@ public enum DeviceOwner {
     DHCP("network:dhcp"),
     FLOATINGIP("network:floatingip"),
     ROUTER_GW("network:router_gateway"),
-    ROUTER_INTF("network:router_interface");
+    ROUTER_INTF("network:router_interface"),
+    NOVA("compute:nova");
 
     private final String value;
 

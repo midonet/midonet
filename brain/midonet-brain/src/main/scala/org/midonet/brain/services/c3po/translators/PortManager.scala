@@ -28,7 +28,8 @@ import org.midonet.packets.MAC
  */
 trait PortManager {
 
-    protected def isVifPort(nPort: NeutronPort) = !nPort.hasDeviceOwner
+    protected def isVifPort(nPort: NeutronPort) =
+        !nPort.hasDeviceOwner || nPort.getDeviceOwner == DeviceOwner.NOVA
     protected def isDhcpPort(nPort: NeutronPort) =
         nPort.hasDeviceOwner && nPort.getDeviceOwner == DeviceOwner.DHCP
     protected def isFloatingIpPort(nPort: NeutronPort) =
