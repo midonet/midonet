@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_26f0b266",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/ConfigTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-02-27T04:41:30Z",
+      "side": 1,
+      "message": "I think you\u0027re right.  Before, I had VTEP in there which I didn\u0027t want to handle.  I\u0027ll take it out.",
+      "parentUuid": "7a1969be_06cc9634",
+      "range": {
+        "startLine": 37,
+        "startChar": 16,
+        "endLine": 39,
+        "endChar": 80
+      },
+      "revId": "333f9ca6aa72af6ab2783bf48859f0537059c571",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_a6dca2e5",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/ConfigTranslator.scala",
         "patchSetId": 2
@@ -89,6 +113,24 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_06f3f673",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/ConfigTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-02-27T04:41:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_c64a7eab",
+      "revId": "333f9ca6aa72af6ab2783bf48859f0537059c571",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_26c9d226",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/ConfigTranslator.scala",
         "patchSetId": 2
@@ -100,6 +142,24 @@
       "writtenOn": "2015-02-27T04:26:22Z",
       "side": 1,
       "message": "Ditto.",
+      "revId": "333f9ca6aa72af6ab2783bf48859f0537059c571",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_66eaaa76",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/ConfigTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-02-27T04:41:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_26c9d226",
       "revId": "333f9ca6aa72af6ab2783bf48859f0537059c571",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -129,6 +189,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_46edee8a",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/C3POMinionTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 759,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-02-27T04:41:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_86d7e6be",
+      "range": {
+        "startLine": 756,
+        "startChar": 0,
+        "endLine": 759,
+        "endChar": 62
+      },
+      "revId": "333f9ca6aa72af6ab2783bf48859f0537059c571",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_e6e69ab3",
         "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/C3POMinionTest.scala",
         "patchSetId": 2
@@ -140,6 +224,30 @@
       "writtenOn": "2015-02-27T04:40:00Z",
       "side": 1,
       "message": "This isn\u0027t really necessary. The future returned from storage.get() should throw an exception if the object doesn\u0027t exist, so a null means something is very wrong. And even if it were null, the next line would throw a NullPointerException, from which we could easily deduce that tz was null. An explicit check for null doesn\u0027t really add any value.",
+      "range": {
+        "startLine": 760,
+        "startChar": 8,
+        "endLine": 760,
+        "endChar": 29
+      },
+      "revId": "333f9ca6aa72af6ab2783bf48859f0537059c571",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_a6030241",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/C3POMinionTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 760,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-02-27T04:41:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_e6e69ab3",
       "range": {
         "startLine": 760,
         "startChar": 8,
