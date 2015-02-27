@@ -234,7 +234,12 @@ message NeutronTunnelZone {
     optional Type type = 3;
 }
 
-message TunnelZoneHost {
+message AgentMembership {
+    optional UUID id = 1;  // The same as Host ID
+    optional IPAddress ip_address = 2;
+}
+
+message TunnelZoneHost {   // To be deleted in a later patch
     optional UUID id = 1;
     optional UUID tunnel_zone_id = 2;
     optional UUID host_id = 3;
