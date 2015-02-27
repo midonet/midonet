@@ -26,7 +26,7 @@ import org.scalatest.{BeforeAndAfter, FlatSpec, Matchers}
 import org.midonet.brain.services.c3po.{midonet, neutron}
 import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.models.ModelsUtil._
-import org.midonet.cluster.models.Neutron.{AgentMembership, NeutronConfig, NeutronTunnelZone}
+import org.midonet.cluster.models.Neutron.{AgentMembership, NeutronConfig}
 import org.midonet.cluster.models.Topology.TunnelZone
 import org.midonet.cluster.util.IPAddressUtil.toProto
 import org.midonet.cluster.util.UUIDUtil.randomUuidProto
