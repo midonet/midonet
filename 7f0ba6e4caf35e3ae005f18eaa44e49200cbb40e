@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_2176dca4",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/C3POMinionTest.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 780,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-02-27T07:18:20Z",
+      "side": 1,
+      "message": "No parentheses for shouldBe.",
+      "range": {
+        "startLine": 780,
+        "startChar": 38,
+        "endLine": 780,
+        "endChar": 41
+      },
+      "revId": "7f0ba6e4caf35e3ae005f18eaa44e49200cbb40e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_01792093",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/C3POMinionTest.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 780,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-02-27T07:18:20Z",
+      "side": 1,
+      "message": "getHostsCount does this.",
+      "range": {
+        "startLine": 780,
+        "startChar": 12,
+        "endLine": 780,
+        "endChar": 29
+      },
+      "revId": "7f0ba6e4caf35e3ae005f18eaa44e49200cbb40e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_e1ba0422",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/C3POMinionTest.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 782,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-02-27T07:18:20Z",
+      "side": 1,
+      "message": "No need for sleep. You can do this:\n\n  eventually {\n    val tz1 \u003d storage.get(classOf[TunnelZone], cId)).await()\n    tz1.getHostsCount shouldBe 1\n    tz1.getHosts(0).getHostId shouldBe toProto(hostId)\n    tz1.getHosts(0).getIp shouldBe IPAddressUtil.toProto(ipAddress)\n  }\n\nThis will repeat until it completes without an error or time runs out.\n\nAlso, you can return a value from an eventually block if you need it later in the function.",
+      "range": {
+        "startLine": 777,
+        "startChar": 8,
+        "endLine": 782,
+        "endChar": 72
+      },
+      "revId": "7f0ba6e4caf35e3ae005f18eaa44e49200cbb40e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_01876062",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/C3POMinionTest.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 788,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-02-27T07:18:20Z",
+      "side": 1,
+      "message": "Same here.",
+      "range": {
+        "startLine": 786,
+        "startChar": 0,
+        "endLine": 788,
+        "endChar": 41
+      },
+      "revId": "7f0ba6e4caf35e3ae005f18eaa44e49200cbb40e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
