@@ -274,8 +274,8 @@ public class MmCtl {
         ps.setString(3, UUID.randomUUID().toString()); // transaction id
         ps.setDate(4, new java.sql.Date(new Date().getTime()));
         ps.setString(5, hostId.toString()); //tenant id
-        ps.setString(6, taskType.val);
-        ps.setString(7, DATA_TYPE.PORT_BINDING.val);
+        ps.setString(6, DATA_TYPE.PORT_BINDING.val);
+        ps.setString(7, taskType.val);
         ps.executeUpdate();
     }
 
