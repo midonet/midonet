@@ -223,27 +223,9 @@ message PortBinding {  // This model itself will not be persisted in Storage.
     optional UUID port_id = 4;
 }
 
-message NeutronTunnelZone {
-    optional UUID id = 1;
-    optional string name = 2;
-    enum Type {
-        GRE = 1;
-        VXLAN = 2;
-        VTEP = 3;
-    }
-    optional Type type = 3;
-}
-
 message AgentMembership {
     optional UUID id = 1;  // The same as Host ID
     optional IPAddress ip_address = 2;
-}
-
-message TunnelZoneHost {   // To be deleted in a later patch
-    optional UUID id = 1;
-    optional UUID tunnel_zone_id = 2;
-    optional UUID host_id = 3;
-    optional IPAddress ip_address = 4;
 }
 
 message NeutronConfig {
