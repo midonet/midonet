@@ -72,22 +72,22 @@ public class MmCtl {
     private static final Logger log = LoggerFactory.getLogger(MmCtl.class);
 
     private enum TASK_TYPE {
-        CREATE_TASK_TYPE(1),
-        DELETE_TASK_TYPE(2);
+        CREATE("CREATE"),
+        DELETE("DELETE");
 
-        private final int id;
+        private final String val;
 
-        private TASK_TYPE(int id) {
-            this.id = id;
+        private TASK_TYPE(String val) {
+            this.val = val;
         }
     }
 
     private enum DATA_TYPE {
-        HOST_BINDING_DATA_TYPE(12);
+        PORT_BINDING("PORTBINDING");
 
-        private final int id;
+        private final String val;
 
-        private DATA_TYPE(int id) { this.id = id; }
+        private DATA_TYPE(String val) { this.val = val; }
     }
 
     private final String INSERT_TASK =
@@ -268,14 +268,14 @@ public class MmCtl {
                             String deviceName, UUID hostId)
             throws SQLException {
         PreparedStatement ps = connect.prepareStatement(INSERT_TASK);
-        ps.setInt(1, taskType.id);
-        ps.setInt(2, DATA_TYPE.HOST_BINDING_DATA_TYPE.id);
-        ps.setString(3, getPortBindingData(bindingId, portId, deviceName,
+        ps.setString(1, getPortBindingData(bindingId, portId, deviceName,
                                            hostId));
-        ps.setString(4, bindingId.toString()); //resource id
-        ps.setString(5, UUID.randomUUID().toString()); // transaction id
-        ps.setDate(6, new java.sql.Date(new Date().getTime()));
-        ps.setString(7, hostId.toString()); //tenant id
+        ps.setString(2, bindingId.toString()); //resource id
+        ps.setString(3, UUID.randomUUID().toString()); // transaction id
+        ps.setDate(4, new java.sql.Date(new Date().getTime()));
+        ps.setString(5, hostId.toString()); //tenant id
+        ps.setString(6, taskType.val);
+        ps.setString(7, DATA_TYPE.PORT_BINDING.val);
         ps.executeUpdate();
     }
 
@@ -302,7 +302,7 @@ public class MmCtl {
         Connection connect = connectToDatabase();
         try {
             UUID bindingId = UUID.randomUUID();
-            insertTask(connect, bindingId, TASK_TYPE.CREATE_TASK_TYPE, portId,
+            insertTask(connect, bindingId, TASK_TYPE.CREATE, portId,
                        deviceName, hostId);
             insertPortBinding(connect, bindingId, portId, deviceName, hostId);
         } catch (SQLException e) {
@@ -331,7 +331,7 @@ public class MmCtl {
         Connection connect = connectToDatabase();
         try {
             UUID bindingId = getBindingId(connect, portId);
-            insertTask(connect, bindingId, TASK_TYPE.DELETE_TASK_TYPE, portId,
+            insertTask(connect, bindingId, TASK_TYPE.DELETE, portId,
                        null, hostId);
             deletePortBinding(connect, bindingId);
         } catch (SQLException e) {
