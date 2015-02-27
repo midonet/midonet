@@ -76,6 +76,7 @@ message NeutronPort {
         FLOATINGIP = 1;
         ROUTER_GATEWAY = 2;
         ROUTER_INTERFACE = 3;
+        NOVA=4;
     }
     optional DeviceOwner device_owner = 8;
     optional string device_id = 9;
