@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_3b5d6fea",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/Aggregator.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-27T15:24:23Z",
+      "side": 1,
+      "message": "compiler issues... scala complains about the java types",
+      "parentUuid": "7a1969be_5b594b35",
+      "range": {
+        "startLine": 77,
+        "startChar": 23,
+        "endLine": 77,
+        "endChar": 54
+      },
+      "revId": "6f9623ce0b0312148e32cc94e0378aaf5ee92588",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_fbed9726",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/Aggregator.scala",
         "patchSetId": 9
@@ -36,6 +60,24 @@
       "writtenOn": "2015-02-26T16:10:05Z",
       "side": 1,
       "message": "clear",
+      "revId": "6f9623ce0b0312148e32cc94e0378aaf5ee92588",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_fb62b7ab",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/Aggregator.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-02-27T15:24:23Z",
+      "side": 1,
+      "message": "done, and forced the terminator.connect on \u0027add\u0027 (in case of a race condition between add rollback and the clear here)",
+      "parentUuid": "7a1969be_fbed9726",
       "revId": "6f9623ce0b0312148e32cc94e0378aaf5ee92588",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
