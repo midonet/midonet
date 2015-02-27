@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_46404e56",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/AgentMembershipTranslator.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-02-27T05:58:28Z",
+      "side": 1,
+      "message": "Over 80 chars but don\u0027t change if the cluster team allows that.\n\nI threw UnsupportedOperationError here instead (as per suggestion from Brandon) instead of TranslationException.  We should keep them consistent.",
+      "revId": "d2af842b1e9f112fa26b4db3485ab64cf3e24df1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_06365603",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/AgentMembershipTranslator.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-02-27T05:58:28Z",
+      "side": 1,
+      "message": "nit: tonnel-\u003etunnel, exists-\u003eexist, finde-\u003efind",
+      "revId": "d2af842b1e9f112fa26b4db3485ab64cf3e24df1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
