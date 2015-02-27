@@ -345,11 +345,15 @@ class FlowStateStorageImpl(val client: CassandraClient) extends FlowStateStorage
         val p: Promise[ResultSet] = promise[ResultSet]()
         Futures.addCallback(f, new FutureCallback[ResultSet](){
             override def onSuccess(result: ResultSet): Unit = {
-                p.success(result)
+                if(!p.trySuccess(result)) {
+                    log.warn("failed to complete future with success {}", result)
+                }
             }
 
             override def onFailure(t: Throwable): Unit = {
-                p.failure(t)
+                if (!p.tryFailure(t)) {
+                    log.warn("failed to complete future with failure {}", t)
+                }
             }
         })
         val exp = as.scheduler.scheduleOnce(ASYNC_REQUEST_TIMEOUT) {
