@@ -75,12 +75,8 @@ object NeutronResourceType extends Enumeration {
     val SecurityGroupRule = NeutronResourceType(
         "SECURITYGROUPRULE", classOf[Neutron.SecurityGroupRule])
     val PortBinding = NeutronResourceType("PORTBINDING", classOf[PortBinding])
-    val AgentMembership = NeutronResourceType(
-        "AGENTMEMBERSHIP", classOf[AgentMembership])
 
-    private val vals = Map(NoData.id -> NoData,
-                           AgentMembership.id -> AgentMembership,
-                           Config.id -> Config,
+    private val vals = Map(NoData.id -> NoData, Config.id -> Config,
                            Network.id -> Network, Subnet.id -> Subnet,
                            Router.id -> Router, Port.id -> Port,
                            FloatingIp.id -> FloatingIp,
