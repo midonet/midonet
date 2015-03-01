@@ -28,6 +28,7 @@ import org.midonet.cluster.Client
 import org.midonet.cluster.DataClient
 import org.midonet.cluster.state.StateStorage
 import org.midonet.midolman.datapath.{FlowProcessor, DatapathChannel}
+import org.midonet.midolman.flows.FlowInvalidator
 import org.midonet.midolman.io.UpcallDatapathConnectionManager
 import org.midonet.midolman.services.HostIdProviderService
 import org.midonet.midolman.util.mock.{MockFlowProcessor, MockDatapathChannel, MockUpcallDatapathConnectionManager}
@@ -61,6 +62,9 @@ trait MidolmanServices {
         injector.getInstance(classOf[FlowProcessor])
                 .asInstanceOf[MockFlowProcessor]
     }
+
+    def flowInvalidator =
+        injector.getInstance(classOf[FlowInvalidator])
 
     def dpConn()(implicit ec: ExecutionContext, as: ActorSystem):
         OvsDatapathConnection = {

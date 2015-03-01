@@ -25,16 +25,14 @@ import org.scalatest.junit.JUnitRunner
 
 import rx.Observable
 
-import org.midonet.cluster.data.storage.{UpdateOp, CreateOp, NotFoundException, Storage}
-import org.midonet.cluster.models.Topology.{Port => TopologyPort, Network => TopologyBridge}
+import org.midonet.cluster.models.Topology.{Port => TopologyPort}
+import org.midonet.cluster.data.storage.{NotFoundException, UpdateOp, CreateOp, Storage}
+import org.midonet.cluster.models.Topology.{Network => TopologyBridge}
 import org.midonet.cluster.services.MidonetBackend
-import org.midonet.midolman.FlowController
-import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.simulation.{Bridge => SimulationBridge}
 import org.midonet.midolman.simulation.Bridge.UntaggedVlanId
 import org.midonet.midolman.util.MidolmanSpec
-import org.midonet.midolman.util.mock.MessageAccumulator
 import org.midonet.packets.{MAC, IPv4Addr}
 import org.midonet.sdn.flows.FlowTagger.{tagForArpRequests, tagForBridgePort, tagForBroadcast, tagForDevice, tagForFloodedFlowsByDstMac, tagForVlanPort}
 import org.midonet.util.MidonetEventually
@@ -54,11 +52,6 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
     private final val timeout = 5 seconds
     private final val macTtl = 1 second
     private final val macExpiration = 3 seconds
-
-    registerActors(FlowController -> (() => new FlowController
-                                                with MessageAccumulator))
-
-    def fc = FlowController.as[FlowController with MessageAccumulator]
 
     protected override def beforeTest(): Unit = {
         vt = injector.getInstance(classOf[VirtualTopology])
@@ -1323,10 +1316,10 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             Then("The observer should receive the update")
             obs.await(timeout, 1) shouldBe true
 
-            And("The flow controller should receive a broadcast invalidation")
-            fc.messages should contain theSameElementsInOrderAs List(
-                InvalidateFlowsByTag(tagForDevice(portId)),
-                InvalidateFlowsByTag(tagForBroadcast(bridgeId)))
+            And("Brodcast flows should be invalidated")
+            flowInvalidator should invalidate (
+                tagForDevice(portId),
+                tagForBroadcast(bridgeId))
 
             When("Deleting the exterior port for the bridge")
             store.delete(classOf[TopologyPort], portId)
@@ -1334,12 +1327,12 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             Then("The observer should receive the update")
             obs.await(timeout) shouldBe true
 
-            And("The flow controller should receive a broadcase invalidation")
-            fc.messages should contain theSameElementsInOrderAs List(
-                InvalidateFlowsByTag(tagForDevice(portId)),
-                InvalidateFlowsByTag(tagForBroadcast(bridgeId)),
-                InvalidateFlowsByTag(tagForDevice(portId)),
-                InvalidateFlowsByTag(tagForBroadcast(bridgeId)))
+            And("Brodcast flows should be invalidated")
+            flowInvalidator should invalidate (
+                tagForDevice(portId),
+                tagForBroadcast(bridgeId),
+                tagForDevice(portId),
+                tagForBroadcast(bridgeId))
         }
 
         scenario("For added and updated MAC-port mappings") {
@@ -1367,13 +1360,12 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             Then("The observer should receive the update")
             obs.await(timeout, 1) shouldBe true
 
-            And("The flow controller should receive MAC-port mapping invalidation")
-            fc.messages should contain theSameElementsInOrderAs List(
-                InvalidateFlowsByTag(tagForDevice(portId)),
-                InvalidateFlowsByTag(tagForDevice(peerPortId)),
-                InvalidateFlowsByTag(tagForArpRequests(bridgeId)),
-                InvalidateFlowsByTag(tagForFloodedFlowsByDstMac(
-                    bridgeId, UntaggedVlanId, peerPortMac1)))
+            And("The MAC-port mapping should be invalidated")
+            flowInvalidator should invalidate (
+                tagForDevice(portId),
+                tagForDevice(peerPortId),
+                tagForArpRequests(bridgeId),
+                tagForFloodedFlowsByDstMac(bridgeId, UntaggedVlanId, peerPortMac1))
 
             When("The router port MAC is updated")
             store.update(peerPort.setPeerId(portId).setPortMac(peerPortMac2))
@@ -1381,18 +1373,16 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             Then("The observer should receive the update")
             obs.await(timeout) shouldBe true
 
-            And("The flow controller should receive MAC-port mapping invalidation")
-            fc.messages should contain theSameElementsInOrderAs List(
-                InvalidateFlowsByTag(tagForDevice(portId)),
-                InvalidateFlowsByTag(tagForDevice(peerPortId)),
-                InvalidateFlowsByTag(tagForArpRequests(bridgeId)),
-                InvalidateFlowsByTag(tagForFloodedFlowsByDstMac(
-                    bridgeId, UntaggedVlanId, peerPortMac1)),
-                InvalidateFlowsByTag(tagForDevice(peerPortId)),
-                InvalidateFlowsByTag(tagForBridgePort(bridgeId, portId)),
-                InvalidateFlowsByTag(tagForArpRequests(bridgeId)),
-                InvalidateFlowsByTag(tagForFloodedFlowsByDstMac(
-                    bridgeId, UntaggedVlanId, peerPortMac2)))
+            And("The MAC-port mapping should be invalidated")
+            flowInvalidator should invalidate (
+                tagForDevice(portId),
+                tagForDevice(peerPortId),
+                tagForArpRequests(bridgeId),
+                tagForFloodedFlowsByDstMac(bridgeId, UntaggedVlanId, peerPortMac1),
+                tagForDevice(peerPortId),
+                tagForBridgePort(bridgeId, portId),
+                tagForArpRequests(bridgeId),
+                tagForFloodedFlowsByDstMac(bridgeId, UntaggedVlanId, peerPortMac2))
         }
 
         scenario("For MAC added to port") {
@@ -1431,12 +1421,12 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             device.vlanMacTableMap.keySet should contain allOf(
                 UntaggedVlanId, vlanId)
 
-            And("The flow controller should receive the device invalidation")
-            fc.messages should contain theSameElementsInOrderAs List(
-                InvalidateFlowsByTag(tagForDevice(portId1)),
-                InvalidateFlowsByTag(tagForDevice(portId2)),
-                InvalidateFlowsByTag(tagForDevice(peerPortId1)),
-                InvalidateFlowsByTag(tagForDevice(peerPortId2)))
+            And("Flows should be invalidated")
+            flowInvalidator should invalidate (
+                tagForDevice(portId1),
+                tagForDevice(portId2),
+                tagForDevice(peerPortId1),
+                tagForDevice(peerPortId2))
 
             Given("The MAC-port replicated map for the bridge")
             val map = vt.state.bridgeMacTable(bridgeId, vlanId, ephemeral = true)
@@ -1446,63 +1436,53 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             val otherMac1 = MAC.random
             map.put(otherMac1, portId1)
 
-            Then("The flow controller should receive the MAC update invalidation")
-            fc.messages should contain theSameElementsInOrderAs List(
-                InvalidateFlowsByTag(tagForDevice(portId1)),
-                InvalidateFlowsByTag(tagForDevice(portId2)),
-                InvalidateFlowsByTag(tagForDevice(peerPortId1)),
-                InvalidateFlowsByTag(tagForDevice(peerPortId2)),
-                InvalidateFlowsByTag(tagForFloodedFlowsByDstMac(
-                    bridgeId, vlanId, otherMac1)))
+            Then("Flows should be invalidated")
+            flowInvalidator should invalidate (
+                tagForDevice(portId1),
+                tagForDevice(portId2),
+                tagForDevice(peerPortId1),
+                tagForDevice(peerPortId2),
+                tagForFloodedFlowsByDstMac(bridgeId, vlanId, otherMac1))
 
             When("A second MAC is added to the MAC learning table")
             val otherMac2 = MAC.random
             map.put(otherMac2, portId1)
 
-            Then("The flow controller should receive the MAC update invalidation")
-            fc.messages should contain theSameElementsInOrderAs List(
-                InvalidateFlowsByTag(tagForDevice(portId1)),
-                InvalidateFlowsByTag(tagForDevice(portId2)),
-                InvalidateFlowsByTag(tagForDevice(peerPortId1)),
-                InvalidateFlowsByTag(tagForDevice(peerPortId2)),
-                InvalidateFlowsByTag(tagForFloodedFlowsByDstMac(
-                    bridgeId, vlanId, otherMac1)),
-                InvalidateFlowsByTag(tagForFloodedFlowsByDstMac(
-                    bridgeId, vlanId, otherMac2)))
+            Then("Flows should be invalidated")
+            flowInvalidator should invalidate (
+                tagForDevice(portId1),
+                tagForDevice(portId2),
+                tagForDevice(peerPortId1),
+                tagForDevice(peerPortId2),
+                tagForFloodedFlowsByDstMac(bridgeId, vlanId, otherMac1),
+                tagForFloodedFlowsByDstMac(bridgeId, vlanId, otherMac2))
 
             When("A MAC changes from one port to another")
             map.put(otherMac1, portId2)
 
-            Then("The flow controller should receive the MAC update invalidation")
-            fc.messages should contain theSameElementsInOrderAs List(
-                InvalidateFlowsByTag(tagForDevice(portId1)),
-                InvalidateFlowsByTag(tagForDevice(portId2)),
-                InvalidateFlowsByTag(tagForDevice(peerPortId1)),
-                InvalidateFlowsByTag(tagForDevice(peerPortId2)),
-                InvalidateFlowsByTag(tagForFloodedFlowsByDstMac(
-                    bridgeId, vlanId, otherMac1)),
-                InvalidateFlowsByTag(tagForFloodedFlowsByDstMac(
-                    bridgeId, vlanId, otherMac2)),
-                InvalidateFlowsByTag(tagForVlanPort(
-                    bridgeId, otherMac1, vlanId, portId1)))
+            Then("Flows should be invalidated")
+            flowInvalidator should invalidate (
+                tagForDevice(portId1),
+                tagForDevice(portId2),
+                tagForDevice(peerPortId1),
+                tagForDevice(peerPortId2),
+                tagForFloodedFlowsByDstMac(bridgeId, vlanId, otherMac1),
+                tagForFloodedFlowsByDstMac(bridgeId, vlanId, otherMac2),
+                tagForVlanPort(bridgeId, otherMac1, vlanId, portId1))
 
             When("A MAC is deleted")
             map.removeIfOwner(otherMac2)
 
-            Then("The flow controller should receive the MAC update invalidation")
-            fc.messages should contain theSameElementsInOrderAs List(
-                InvalidateFlowsByTag(tagForDevice(portId1)),
-                InvalidateFlowsByTag(tagForDevice(portId2)),
-                InvalidateFlowsByTag(tagForDevice(peerPortId1)),
-                InvalidateFlowsByTag(tagForDevice(peerPortId2)),
-                InvalidateFlowsByTag(tagForFloodedFlowsByDstMac(
-                    bridgeId, vlanId, otherMac1)),
-                InvalidateFlowsByTag(tagForFloodedFlowsByDstMac(
-                    bridgeId, vlanId, otherMac2)),
-                InvalidateFlowsByTag(tagForVlanPort(
-                    bridgeId, otherMac1, vlanId, portId1)),
-                InvalidateFlowsByTag(tagForVlanPort(
-                    bridgeId, otherMac2, vlanId, portId1)))
+            Then("Flows should be invalidated")
+            flowInvalidator should invalidate (
+                tagForDevice(portId1),
+                tagForDevice(portId2),
+                tagForDevice(peerPortId1),
+                tagForDevice(peerPortId2),
+                tagForFloodedFlowsByDstMac(bridgeId, vlanId, otherMac1),
+                tagForFloodedFlowsByDstMac(bridgeId, vlanId, otherMac2),
+                tagForVlanPort(bridgeId, otherMac1, vlanId, portId1),
+                tagForVlanPort(bridgeId, otherMac2, vlanId, portId1))
         }
 
         scenario("MAC entries should expire") {
@@ -1533,10 +1513,10 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             device.vlanMacTableMap.keySet should contain allOf(
                 UntaggedVlanId, vlanId)
 
-            And("The flow controller should receive the device invalidation")
-            fc.messages should contain theSameElementsInOrderAs List(
-                InvalidateFlowsByTag(tagForDevice(portId)),
-                InvalidateFlowsByTag(tagForDevice(peerPortId)))
+            And("Flows are invalidated")
+            flowInvalidator should invalidate (
+                tagForDevice(portId),
+                tagForDevice(peerPortId))
 
             When("A MAC reference is incremented via the flow count")
             val otherMac = MAC.random
@@ -1545,12 +1525,11 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             Then("The MAC should appear in the MAC learning table")
             device.vlanMacTableMap(vlanId).get(otherMac) shouldBe portId
 
-            And("The flow controller should receive the MAC update invalidation")
-            fc.messages should contain theSameElementsInOrderAs List(
-                InvalidateFlowsByTag(tagForDevice(portId)),
-                InvalidateFlowsByTag(tagForDevice(peerPortId)),
-                InvalidateFlowsByTag(tagForFloodedFlowsByDstMac(
-                    bridgeId, vlanId, otherMac)))
+            And("Flows should be invalidated")
+            flowInvalidator should invalidate (
+                tagForDevice(portId),
+                tagForDevice(peerPortId),
+                tagForFloodedFlowsByDstMac(bridgeId, vlanId, otherMac))
 
             When("A MAC reference is decremented via the flow count")
             device.flowCount.decrement(otherMac, vlanId, portId)
@@ -1563,14 +1542,12 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
                 device.vlanMacTableMap(vlanId).get(otherMac) shouldBe null
             }
 
-            And("The flow controller should receive the MAC update invalidation")
-            fc.messages should contain theSameElementsInOrderAs List(
-                InvalidateFlowsByTag(tagForDevice(portId)),
-                InvalidateFlowsByTag(tagForDevice(peerPortId)),
-                InvalidateFlowsByTag(tagForFloodedFlowsByDstMac(
-                    bridgeId, vlanId, otherMac)),
-                InvalidateFlowsByTag(tagForVlanPort(
-                    bridgeId, otherMac, vlanId, portId)))
+            And("Flows should be invalidated")
+            flowInvalidator should invalidate (
+                tagForDevice(portId),
+                tagForDevice(peerPortId),
+                tagForFloodedFlowsByDstMac(bridgeId, vlanId, otherMac),
+                tagForVlanPort(bridgeId, otherMac, vlanId, portId))
         }
     }
 }
