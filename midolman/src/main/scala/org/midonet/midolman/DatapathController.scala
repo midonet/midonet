@@ -27,11 +27,11 @@ import akka.actor._
 import akka.pattern.{after, pipe}
 import com.google.inject.Inject
 import com.typesafe.scalalogging.Logger
+import org.midonet.midolman.flows.FlowInvalidator
 import org.slf4j.LoggerFactory
 
 import org.midonet.Subscription
 import org.midonet.cluster.data.TunnelZone.{HostConfig => TZHostConfig, Type => TunnelType}
-import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.DatapathPortEntangler
 import org.midonet.midolman.host.interfaces.InterfaceDescription
@@ -212,6 +212,9 @@ class DatapathController extends Actor
     @Inject
     var _storageFactory: FlowStateStorageFactory = null
 
+    @Inject
+    var flowInvalidator: FlowInvalidator = _
+
     protected def storageFactory = _storageFactory
 
     var storage: FlowStateStorage = _
@@ -372,7 +375,7 @@ class DatapathController extends Actor
         for (zone <- dropped) {
             VirtualToPhysicalMapper ! TunnelZoneUnsubscribe(zone)
             for (tag <- dpState.removePeersForZone(zone)) {
-                FlowController ! FlowController.InvalidateFlowsByTag(tag)
+                flowInvalidator.scheduleInvalidationFor(tag)
             }
         }
 
@@ -437,9 +440,8 @@ class DatapathController extends Actor
             case HostConfigOperation.Deleted => processDelPeer()
         }
 
-        def processTags(tags: TraversableOnce[FlowTag]): Unit = tags.foreach {
-            FlowController ! FlowController.InvalidateFlowsByTag(_)
-        }
+        def processTags(tags: TraversableOnce[FlowTag]): Unit =
+            tags foreach flowInvalidator.scheduleInvalidationFor
 
         def processDelPeer(): Unit =
             processTags(dpState.removePeer(peerUUID, zone))
@@ -462,10 +464,8 @@ class DatapathController extends Actor
         //   - The case for invalidating on deactivation is obvious.
         //   - On activation we invalidate flows for this dp port number in case
         //     it has been reused by the dp: we want to start with a clean state
-        FlowController ! FlowController.InvalidateFlowsByTag(
-            FlowTagger.tagForTunnelKey(tunnelKey))
-        FlowController ! InvalidateFlowsByTag(
-            FlowTagger.tagForDpPort(port.getPortNo))
+        flowInvalidator.scheduleInvalidationFor(FlowTagger.tagForTunnelKey(tunnelKey))
+        flowInvalidator.scheduleInvalidationFor(FlowTagger.tagForDpPort(port.getPortNo))
         Future.successful[Any](null)
     }
 

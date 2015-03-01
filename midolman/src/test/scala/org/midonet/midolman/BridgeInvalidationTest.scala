@@ -25,7 +25,6 @@ import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.data.ports.{BridgePort, RouterPort}
 import org.midonet.cluster.data.{Bridge => ClusterBridge, Router => ClusterRouter}
-import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman.PacketWorkflow.TemporaryDrop
 import org.midonet.midolman.simulation.Bridge
 import org.midonet.midolman.simulation.Coordinator.ToPortAction
@@ -199,15 +198,13 @@ class BridgeInvalidationTest extends MidolmanSpec
             macTable.add(MAC.fromString(rightMac), rightPort.getId)
 
             Then("A flow invalidation for the flooded case should be produced")
-            FlowController.getAndClear() should be (
-                List(InvalidateFlowsByTag(rightMacFloodInvalidation)))
+            flowInvalidator should invalidate(rightMacFloodInvalidation)
 
             When("A MAC address migrates across two ports")
             macTable.add(MAC.fromString(rightMac), otherPort.getId)
 
             Then("A flow invalidation for the unicast case should be produced")
-            FlowController.getAndClear() should be (
-                List(InvalidateFlowsByTag(rightPortUnicastInvalidation)))
+            flowInvalidator should invalidate(rightMacFloodInvalidation)
 
             And("new packets should be directed to the newly associated port")
             val (pktContext, action) = simulateDevice(bridge, leftToRightFrame, leftPort.getId)
@@ -227,8 +224,7 @@ class BridgeInvalidationTest extends MidolmanSpec
             macTable.add(MAC.fromString(rightMac), leftPort.getId)
 
             Then("A flow invalidation for the flooded case should be produced")
-            FlowController.getAndClear() should be (
-                List(InvalidateFlowsByTag(rightMacFloodInvalidation)))
+            flowInvalidator should invalidate(rightMacFloodInvalidation)
 
             And("If a packet with the same dst mac comes from that port")
             val (_, action) = simulateDevice(bridge, leftToRightFrame, leftPort.getId)
@@ -257,8 +253,7 @@ class BridgeInvalidationTest extends MidolmanSpec
             And("A flow invalidation is produced")
             eventually {
                 bridgeManager ! CheckExpiredMacPorts()
-                FlowController.getAndClear() should be (
-                    List(InvalidateFlowsByTag(leftPortUnicastInvalidation)))
+                flowInvalidator should invalidate(leftPortUnicastInvalidation)
             }
         }
     }
@@ -277,10 +272,8 @@ class BridgeInvalidationTest extends MidolmanSpec
             clusterDataClient.portsLink(routerPort.getId, leftPort.getId)
 
             Then("Invalidations for flooded and unicast flows should happen")
-            val invals = FlowController.getAndClear()
-            invals should contain (InvalidateFlowsByTag(routerMacFloodInvalidation))
-            invals should contain (InvalidateFlowsByTag(
-                                    FlowTagger.tagForArpRequests(bridge.id)))
+            flowInvalidator should invalidate(
+                routerMacFloodInvalidation, FlowTagger.tagForArpRequests(bridge.id))
         }
 
         scenario("a interior port is unlinked") {
@@ -307,7 +300,7 @@ class BridgeInvalidationTest extends MidolmanSpec
             clusterDataClient.portsUnlink(interiorPort.getId)
 
             Then("A flow invalidation should be produced")
-            FlowController.getAndClear() should contain (InvalidateFlowsByTag(interiorPortTag))
+            flowInvalidator should invalidate(interiorPortTag)
         }
     }
 }

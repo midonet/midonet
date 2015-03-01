@@ -24,11 +24,8 @@ import org.scalatest.junit.JUnitRunner
 import rx.Observable
 import rx.subjects.BehaviorSubject
 
-import org.midonet.midolman.FlowController
-import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman.topology.VirtualTopology.VirtualDevice
 import org.midonet.midolman.util.MidolmanSpec
-import org.midonet.midolman.util.mock.MessageAccumulator
 import org.midonet.sdn.flows.FlowTagger.DeviceTag
 import org.midonet.util.functors._
 import org.midonet.util.reactivex._
@@ -80,11 +77,6 @@ class VirtualDeviceMapperTest extends MidolmanSpec {
 
     implicit var vt: VirtualTopology = _
 
-    registerActors(FlowController -> (() => new FlowController
-                                                with MessageAccumulator))
-
-    def fc = FlowController.as[FlowController with MessageAccumulator]
-
     override def beforeTest(): Unit = {
         vt = injector.getInstance(classOf[VirtualTopology])
     }
@@ -100,13 +92,13 @@ class VirtualDeviceMapperTest extends MidolmanSpec {
             stream.in.onNext(TestableDevice(id, 0))
 
             Then("The flow controller should not received any message")
-            fc.messages should be (empty)
+            flowInvalidator.get() should be (empty)
 
             When("The stream sends a second device update")
             stream.in.onNext(TestableDevice(id, 1))
 
             Then("The flow controller should not received any message")
-            fc.messages should be (empty)
+            flowInvalidator.get() should be (empty)
         }
 
         scenario("The flow tags are invalidated for a device update") {
@@ -122,15 +114,14 @@ class VirtualDeviceMapperTest extends MidolmanSpec {
             stream.in.onNext(TestableDevice(id, 0))
 
             Then("The flow controller received one invalidation message")
-            fc.messages should contain only InvalidateFlowsByTag(DeviceTag(id))
+            flowInvalidator.get() should contain only DeviceTag(id)
 
             When("The stream sends a second device update")
             stream.in.onNext(TestableDevice(id, 1))
 
             Then("The flow controller received two invalidation messages")
-            fc.messages should contain theSameElementsInOrderAs Vector(
-                InvalidateFlowsByTag(DeviceTag(id)),
-                InvalidateFlowsByTag(DeviceTag(id)))
+            flowInvalidator.get() should contain theSameElementsInOrderAs Vector(
+                DeviceTag(id), DeviceTag(id))
         }
 
         scenario("The flow tags are invalidated on device error") {
@@ -146,15 +137,14 @@ class VirtualDeviceMapperTest extends MidolmanSpec {
             stream.in.onNext(TestableDevice(id, 0))
 
             Then("The flow controller received one invalidation message")
-            fc.messages should contain only InvalidateFlowsByTag(DeviceTag(id))
+            flowInvalidator.get() should contain only DeviceTag(id)
 
             When("The stream sends an error update")
             stream.in.onError(new NullPointerException())
 
             Then("The flow controller received two invalidation messages")
-            fc.messages should contain theSameElementsInOrderAs Vector(
-                InvalidateFlowsByTag(DeviceTag(id)),
-                InvalidateFlowsByTag(DeviceTag(id)))
+            flowInvalidator.get() should contain theSameElementsInOrderAs Vector(
+                DeviceTag(id), DeviceTag(id))
         }
 
         scenario("The flow tags are invalidated on device deletion") {
@@ -170,15 +160,14 @@ class VirtualDeviceMapperTest extends MidolmanSpec {
             stream.in.onNext(TestableDevice(id, 0))
 
             Then("The flow controller received one invalidation message")
-            fc.messages should contain only InvalidateFlowsByTag(DeviceTag(id))
+            flowInvalidator.get() should contain only DeviceTag(id)
 
             When("The stream sends a completed update")
             stream.in.onError(new NullPointerException())
 
             Then("The flow controller received two invalidation messages")
-            fc.messages should contain theSameElementsInOrderAs Vector(
-                InvalidateFlowsByTag(DeviceTag(id)),
-                InvalidateFlowsByTag(DeviceTag(id)))
+            flowInvalidator.get() should contain theSameElementsInOrderAs Vector(
+                DeviceTag(id), DeviceTag(id))
         }
     }
 }

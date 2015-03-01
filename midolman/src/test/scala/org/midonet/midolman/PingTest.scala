@@ -22,6 +22,7 @@ import scala.collection.JavaConversions._
 import scala.collection.mutable
 
 import org.junit.runner.RunWith
+import org.midonet.midolman.flows.FlowInvalidator
 import org.scalatest.junit.JUnitRunner
 import org.slf4j.LoggerFactory
 
@@ -262,6 +263,7 @@ class PingTest extends MidolmanSpec {
     def testDDA: DeduplicationActor = new DeduplicationActor(
         injector.getInstance(classOf[MidolmanConfig]),
         new CookieGenerator(1, 1), mockDpChannel, clusterDataClient,
+        new FlowInvalidator(null),
         new ShardedFlowStateTable[ConnTrackKey, ConnTrackValue](),
         new ShardedFlowStateTable[NatKey, NatBinding](),
         new MockStateStorage(), HappyGoLuckyLeaser,
