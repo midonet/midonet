@@ -20,13 +20,20 @@ import java.util
 import java.util.UUID
 
 import scala.collection.JavaConversions._
+import scala.collection.mutable
+
+import org.slf4j.helpers.NOPLogger
+import com.typesafe.scalalogging.Logger
+
+import org.scalactic.Prettifier
+import org.scalatest.matchers._
 
 import org.midonet.midolman.PacketWorkflow.{AddVirtualWildcardFlow, SendPacket, _}
+import org.midonet.midolman.flows.{FlowInvalidation, FlowInvalidator}
 import org.midonet.odp.flows.{FlowAction, FlowActionSetKey, FlowKeyEthernet, FlowKeyIPv4}
 import org.midonet.packets.{Ethernet, IPv4}
 import org.midonet.sdn.flows.FlowTagger.FlowTag
 import org.midonet.sdn.flows.VirtualActions.{FlowActionOutputToVrnBridge, FlowActionOutputToVrnPort}
-import org.scalatest.matchers.{BePropertyMatchResult, BePropertyMatcher}
 
 trait CustomMatchers {
 
@@ -111,5 +118,37 @@ trait CustomMatchers {
                 }
                 case _ => false
             } == 2
+    }
+
+    def invalidate(tags: FlowTag*) = new Matcher[FlowInvalidator] {
+        def apply(invalidator: FlowInvalidator): MatchResult = {
+            val invalidatedTags = invalidator.get()
+            MatchResult(
+                tags forall invalidatedTags.contains,
+                s"$invalidatedTags did not target all of $tags",
+                "invalidates the expected tags",
+                Vector(invalidator, tags))
+        }
+
+        override def toString(): String = "invalidates (" + Prettifier.default(tags) + ")"
+    }
+
+    implicit class FlowInvalidatorOps(val flowInvalidator: FlowInvalidator) {
+        def clear(): List[FlowTag] = {
+            val invalidatedTags = mutable.ListBuffer[FlowTag]()
+            flowInvalidator.process(new FlowInvalidation {
+                override val log: Logger = Logger(NOPLogger.NOP_LOGGER)
+                override def invalidateFlowsFor(tag: FlowTag) = {
+                    invalidatedTags += tag
+                }
+            })
+            invalidatedTags.toList
+        }
+
+        def get(): List[FlowTag] = {
+            val invalidatedTags = clear()
+            invalidatedTags foreach flowInvalidator.scheduleInvalidationFor
+            invalidatedTags
+        }
     }
 }

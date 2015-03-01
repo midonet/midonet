@@ -28,14 +28,14 @@ import rx.schedulers.Schedulers
 import org.midonet.cluster.DataClient
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.state.StateStorage
-import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman.config.MidolmanConfig
+import org.midonet.midolman.simulation.Bridge
+import org.midonet.midolman.flows.FlowInvalidator
 import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.midolman.services.MidolmanActorsService
-import org.midonet.midolman.simulation.Bridge
 import org.midonet.midolman.state.ZkConnectionAwareWatcher
 import org.midonet.midolman.topology.devices._
-import org.midonet.midolman.{FlowController, NotYetException}
+import org.midonet.midolman.NotYetException
 import org.midonet.sdn.flows.FlowTagger.FlowTag
 import org.midonet.util.reactivex._
 
@@ -160,6 +160,7 @@ class VirtualTopology @Inject() (val backend: MidonetBackend,
                                  val state: StateStorage,
                                  val dataClient: DataClient,
                                  val connectionWatcher: ZkConnectionAwareWatcher,
+                                 val flowInvalidator: FlowInvalidator,
                                  val actorsService: MidolmanActorsService)
         extends MidolmanLogging {
 
@@ -217,7 +218,6 @@ class VirtualTopology @Inject() (val backend: MidonetBackend,
         observable.asInstanceOf[Observable[D]]
     }
 
-    private[topology] def invalidate(tag: FlowTag): Unit = {
-        FlowController.getRef()(actorsService.system) ! InvalidateFlowsByTag(tag)
-    }
+    private[topology] def invalidate(tag: FlowTag): Unit =
+        flowInvalidator.scheduleInvalidationFor(tag)
 }

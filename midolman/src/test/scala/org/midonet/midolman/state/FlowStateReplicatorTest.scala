@@ -25,33 +25,27 @@ import scala.collection.mutable
 import com.google.protobuf.{CodedOutputStream, MessageLite}
 import com.typesafe.scalalogging.Logger
 import org.junit.runner.RunWith
-import org.scalatest._
-import org.scalatest.junit.JUnitRunner
-import org.slf4j.LoggerFactory
-
 import org.midonet.midolman.UnderlayResolver
 import org.midonet.midolman.simulation.PortGroup
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackKey, ConnTrackValue}
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
 import org.midonet.midolman.topology.devices.{BridgePort, Port}
 import org.midonet.midolman.topology.rcu.ResolvedHost
+import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.MockDatapathChannel
 import org.midonet.odp.flows.{FlowAction, FlowActionOutput, FlowActions}
 import org.midonet.odp.{FlowMatches, Packet}
 import org.midonet.packets._
 import org.midonet.rpc.FlowStateProto
 import org.midonet.sdn.flows.FlowTagger.{FlowStateTag, FlowTag}
-import org.midonet.sdn.state.{FlowStateTable, FlowStateTransaction, IdleExpiration}
+import org.midonet.sdn.state.FlowStateTransaction
 import org.midonet.util.FixedArrayOutputStream
-import org.midonet.util.collection.Reducer
 import org.midonet.util.functors.Callback0
+import org.scalatest.junit.JUnitRunner
+import org.slf4j.LoggerFactory
 
 @RunWith(classOf[JUnitRunner])
-class FlowStateReplicatorTest extends FeatureSpec
-                              with BeforeAndAfter
-                              with Matchers
-                              with OneInstancePerTest
-                              with GivenWhenThen {
+class FlowStateReplicatorTest extends MidolmanSpec {
     implicit def stringToIp(str: String): IPv4Addr = IPv4Addr.fromString(str)
 
     type ConnTrackTx = FlowStateTransaction[ConnTrackKey, ConnTrackValue]
@@ -126,7 +120,7 @@ class FlowStateReplicatorTest extends FeatureSpec
 
     val conntrackDevice = UUID.randomUUID()
 
-    before {
+    override def beforeTest(): Unit = {
         ports += ingressPortNoGroup.id -> ingressPortNoGroup
         ports += egressPortNoGroup.id -> egressPortNoGroup
 
@@ -163,7 +157,7 @@ class FlowStateReplicatorTest extends FeatureSpec
 
     feature("State packets serialization") {
         scenario("A (de)serialized packet should be the same as before") {
-            import FlowStatePackets._
+            import org.midonet.midolman.state.FlowStatePackets._
 
             Given("Flow state packet shell")
             val buffer = new Array[Byte](
@@ -296,7 +290,7 @@ class FlowStateReplicatorTest extends FeatureSpec
 
             callbacks should have size 2
             (0 to 1) map { connTrackKeys.drop(_).head } foreach { key =>
-                sender.conntrackTable.unrefedKeys should not contain (key)
+                sender.conntrackTable.unrefedKeys should not contain key
             }
 
             (0 to 1) foreach { callbacks.get(_).call() }
@@ -324,7 +318,7 @@ class FlowStateReplicatorTest extends FeatureSpec
 
             callbacks should have size 2
             (0 to 1) map { natMappings.drop(_).head._1 } foreach { key =>
-                sender.natTable.unrefedKeys should not contain (key)
+                sender.natTable.unrefedKeys should not contain key
             }
 
             (0 to 1) foreach { callbacks.get(_).call() }
@@ -385,8 +379,7 @@ class FlowStateReplicatorTest extends FeatureSpec
             sendAndAcceptTransactions()
 
             Then("Flows tagged with it should be invalidated")
-            recipient.invalidatedKeys should have length (1)
-            recipient.invalidatedKeys should contain (connTrackKeys.head)
+            flowInvalidator should invalidate (connTrackKeys.head)
         }
 
         scenario("For nat keys") {
@@ -398,94 +391,53 @@ class FlowStateReplicatorTest extends FeatureSpec
             sendAndAcceptTransactions()
 
             Then("Flows tagged with it should be invalidated")
-            recipient.invalidatedKeys should have length (1)
-            recipient.invalidatedKeys should contain (k)
+            flowInvalidator should invalidate (k)
         }
     }
-}
 
-class TestableFlowStateReplicator(
-        val ports: mutable.Map[UUID, Port],
-        val portGroups: mutable.Map[UUID, PortGroup],
-        val underlay: UnderlayResolver) extends {
-    val conntrackTable = new MockFlowStateTable[ConnTrackKey, ConnTrackValue]()
-    val natTable = new MockFlowStateTable[NatKey, NatBinding]()
-    val invalidatedKeys = mutable.MutableList[FlowStateTag]()
-    val invalidateFlowsFor: (FlowStateTag) => Unit = invalidatedKeys.+=
-} with BaseFlowStateReplicator(conntrackTable, natTable, new MockStateStorage,
-                               underlay, invalidateFlowsFor,
-                               0) {
+    class TestableFlowStateReplicator(
+            val ports: mutable.Map[UUID, Port],
+            val portGroups: mutable.Map[UUID, PortGroup],
+            val underlay: UnderlayResolver) extends {
+        val conntrackTable = new MockFlowStateTable[ConnTrackKey, ConnTrackValue]()
+        val natTable = new MockFlowStateTable[NatKey, NatBinding]()
+    } with BaseFlowStateReplicator(conntrackTable, natTable, new MockStateStorage,
+                                   underlay, flowInvalidator,
+                                   0) {
 
-    override val log = Logger(LoggerFactory.getLogger(this.getClass))
+        override val log = Logger(LoggerFactory.getLogger(this.getClass))
 
-    override def getPort(id: UUID): Port = ports(id)
+        override def getPort(id: UUID): Port = ports(id)
 
-    override def getPortGroup(id: UUID) = portGroups(id)
+        override def getPortGroup(id: UUID) = portGroups(id)
 
-    override def resolvePeers(ingressPort: UUID,
-                              egressPorts: JList[UUID],
-                              peers: JSet[UUID],
-                              ports: JSet[UUID],
-                              tags: JSet[FlowTag]) {
-        super.resolvePeers(ingressPort, egressPorts, peers, ports, tags)
-    }
-}
-
-class MockUnderlayResolver(hostId: UUID, hostIp: IPv4Addr,
-                           peers: Map[UUID, IPv4Addr]) extends UnderlayResolver {
-
-    import UnderlayResolver.Route
-
-    val output = FlowActions.output(23)
-
-    override def host = ResolvedHost(hostId, true, Map.empty, Map.empty)
-
-    override def peerTunnelInfo(peer: UUID): Option[Route] = {
-        if (peers.contains(peer))
-            Some(Route(hostIp.toInt, peers(peer).toInt, output))
-        else
-            None
-    }
-
-    override def vtepTunnellingOutputAction: FlowActionOutput = null
-    override def isVtepTunnellingPort(portNumber: Integer): Boolean = false
-    override def isOverlayTunnellingPort(portNumber: Integer): Boolean = false
-}
-
-class MockFlowStateTable[K <: IdleExpiration, V]()(implicit ev: Null <:< V)
-        extends FlowStateTable[K,V] {
-
-    var entries: Map[K, V] = Map.empty
-    var unrefedKeys: Set[K] = Set.empty
-
-    override def expireIdleEntries() {}
-
-    override def expireIdleEntries[U](
-        seed: U, func: Reducer[K, V, U]): U = {
-        var s = seed
-        for ((k, v) <- entries) {
-            s = func(s, k, v)
+        override def resolvePeers(ingressPort: UUID,
+                                  egressPorts: JList[UUID],
+                                  peers: JSet[UUID],
+                                  ports: JSet[UUID],
+                                  tags: JSet[FlowTag]) {
+            super.resolvePeers(ingressPort, egressPorts, peers, ports, tags)
         }
-        entries = Map.empty
-        s
     }
 
-    override def getRefCount(key: K) = if (unrefedKeys.contains(key)) 0 else 1
+    class MockUnderlayResolver(hostId: UUID, hostIp: IPv4Addr,
+                               peers: Map[UUID, IPv4Addr]) extends UnderlayResolver {
 
-    override def unref(key: K) {
-        unrefedKeys += key
+        import org.midonet.midolman.UnderlayResolver.Route
+
+        val output = FlowActions.output(23)
+
+        override def host = ResolvedHost(hostId, true, Map.empty, Map.empty)
+
+        override def peerTunnelInfo(peer: UUID): Option[Route] = {
+            if (peers.contains(peer))
+                Some(Route(hostIp.toInt, peers(peer).toInt, output))
+            else
+                None
+        }
+
+        override def vtepTunnellingOutputAction: FlowActionOutput = null
+        override def isVtepTunnellingPort(portNumber: Integer): Boolean = false
+        override def isOverlayTunnellingPort(portNumber: Integer): Boolean = false
     }
-
-    override def fold[U](seed: U, func: Reducer[K, V, U]): U = seed
-
-    override def ref(key: K): V = get(key)
-
-    override def get(key: K): V = entries.get(key).orNull
-
-    override def putAndRef(key: K, value: V): V = {
-        entries += key -> value
-        value
-    }
-
-    override def touch(key: K, value: V): Unit = putAndRef(key, value)
 }
