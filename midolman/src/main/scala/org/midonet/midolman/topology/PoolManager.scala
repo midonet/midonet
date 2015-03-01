@@ -22,7 +22,7 @@ import scala.collection.breakOut
 
 import org.midonet.cluster.Client
 import org.midonet.cluster.client.PoolBuilder
-import org.midonet.midolman.FlowController.InvalidateFlowsByTag
+import org.midonet.midolman.topology.VirtualTopologyActor.InvalidateFlowsByTag
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.cluster.data.l4lb.{Pool, PoolMember}
 import org.midonet.midolman.simulation

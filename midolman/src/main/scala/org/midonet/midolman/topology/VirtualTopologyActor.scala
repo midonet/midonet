@@ -26,18 +26,18 @@ import scala.reflect._
 import akka.actor._
 import com.google.inject.Inject
 import com.typesafe.scalalogging.Logger
+import org.midonet.midolman.flows.FlowInvalidator
+import org.midonet.sdn.flows.FlowTagger.FlowTag
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.Client
 import org.midonet.cluster.data.l4lb.{Pool => PoolConfig}
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.l4lb.PoolHealthMonitorMapManager
-import org.midonet.midolman.FlowController
 import org.midonet.midolman.NotYetException
 import org.midonet.midolman.Referenceable
 import org.midonet.midolman.simulation._
 import org.midonet.midolman.l4lb.PoolHealthMonitorMapManager.PoolHealthMonitorMap
-import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman.topology.devices.{RouterPort, BridgePort, Port}
 import org.midonet.util.concurrent._
 
@@ -51,6 +51,8 @@ object VirtualTopologyActor extends Referenceable {
     val log = Logger(LoggerFactory.getLogger("org.midonet.devices.devices-service"))
 
     override val Name: String = "VirtualTopologyActor"
+
+    case class InvalidateFlowsByTag(tag: FlowTag)
 
     sealed trait DeviceRequest {
         val id: UUID
@@ -282,6 +284,9 @@ class VirtualTopologyActor extends VirtualTopologyRedirector {
     @Inject
     val config: MidolmanConfig = null
 
+    @Inject
+    var flowInvalidator: FlowInvalidator = _
+
     /** Manages the device, by adding the request sender to the set of
       * unanswered clients and subscribers, if needed.
       * @param createManager If true, it creates a legacy device manager for
@@ -413,9 +418,9 @@ class VirtualTopologyActor extends VirtualTopologyRedirector {
             log.info("Received PoolHealthMonitorMappings")
             deviceUpdated(PoolConfig.POOL_HEALTH_MONITOR_MAP_KEY,
                           PoolHealthMonitorMap(mappings))
-        case invalidation: InvalidateFlowsByTag =>
-            log.debug("Invalidating flows for tag {}", invalidation.tag)
-            FlowController ! invalidation
+        case InvalidateFlowsByTag(tag) =>
+            log.debug("Invalidating flows for tag {}", tag)
+            flowInvalidator.scheduleInvalidationFor(tag)
         case unexpected: AnyRef =>
             log.error("Received unexpected message: {}", unexpected)
         case _ =>

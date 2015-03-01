@@ -22,6 +22,7 @@ import java.util.concurrent.TimeUnit
 
 import scala.collection.JavaConverters._
 
+import org.midonet.midolman.flows.FlowInvalidator
 import org.openjdk.jmh.annotations.{Setup => JmhSetup, _}
 import org.openjdk.jmh.infra.Blackhole
 
@@ -104,7 +105,9 @@ class ConnTrackBenchmark extends MidolmanBenchmark {
         macTable.add(rightMac, rightPort.getId)
         replicator = new FlowStateReplicator(conntrackTable, natTable,
                                              new MockStateStorage,
-                                             underlayResolver, _ => { }, 0)
+                                             underlayResolver,
+                                             injector.getInstance(classOf[FlowInvalidator]),
+                                             0)
     }
 
     @Benchmark

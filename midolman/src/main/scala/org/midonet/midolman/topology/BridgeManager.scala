@@ -28,8 +28,7 @@ import com.typesafe.scalalogging.Logger
 
 import org.midonet.cluster.Client
 import org.midonet.cluster.client._
-import org.midonet.midolman.FlowController
-import org.midonet.midolman.FlowController.InvalidateFlowsByTag
+import org.midonet.midolman.topology.VirtualTopologyActor.InvalidateFlowsByTag
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.simulation.Bridge
 import org.midonet.midolman.topology.BridgeManager.MacPortMapping
@@ -157,8 +156,7 @@ import org.midonet.midolman.topology.BridgeManager._
     }
 
     override def preStart() {
-        clusterClient.getBridge(id, new BridgeBuilderImpl(id,
-            FlowController, self))
+        clusterClient.getBridge(id, new BridgeBuilderImpl(id, self))
         // Schedule the recurring cleanup of expired mac-port associations.
         implicit val executor = context.dispatcher
         context.system.scheduler.schedule(
@@ -192,7 +190,7 @@ import org.midonet.midolman.topology.BridgeManager._
             // Notify that the update finished
             prefetchTopology()
 
-        case invalidation: InvalidateFlowsByTag => FlowController ! invalidation
+        case invalidation: InvalidateFlowsByTag => VirtualTopologyActor ! invalidation
     }
 
     private class MacFlowCountImpl extends MacFlowCount {

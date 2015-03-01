@@ -20,6 +20,7 @@ import java.util.UUID
 import akka.actor._
 
 import com.typesafe.scalalogging.Logger
+import org.midonet.midolman.flows.FlowInvalidation
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.DataClient
@@ -130,7 +131,7 @@ class PacketWorkflow(protected val dpState: DatapathState,
     val resultLogger = Logger(LoggerFactory.getLogger("org.midonet.packets.results"))
 
     override def start(context: PacketContext): SimulationResult = {
-        context.prepareForSimulation(FlowController.lastInvalidationEvent)
+        context.prepareForSimulation(FlowInvalidation.lastInvalidationEvent)
         context.log.debug(s"Initiating processing, attempt: ${context.runs}")
         if (context.ingressed)
             handlePacketIngress(context)
@@ -139,7 +140,7 @@ class PacketWorkflow(protected val dpState: DatapathState,
     }
 
     override def drop(context: PacketContext): Unit = {
-        context.prepareForDrop(FlowController.lastInvalidationEvent)
+        context.prepareForDrop(FlowInvalidation.lastInvalidationEvent)
         context.idleExpirationMillis = 0
         context.hardExpirationMillis = ERROR_CONDITION_HARD_EXPIRATION
         addTranslatedFlow(context)

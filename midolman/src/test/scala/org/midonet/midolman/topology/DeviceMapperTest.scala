@@ -19,6 +19,7 @@ import java.util.UUID
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
 
 import org.junit.runner.RunWith
+import org.midonet.midolman.flows.FlowInvalidator
 import org.scalatest.junit.JUnitRunner
 
 import rx.Observable

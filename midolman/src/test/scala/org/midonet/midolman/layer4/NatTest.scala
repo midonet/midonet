@@ -38,7 +38,6 @@ import org.midonet.cluster.data.ports.{BridgePort, RouterPort}
 import org.midonet.midolman.{CookieGenerator, DatapathController}
 import org.midonet.midolman.{DatapathState, DeduplicationActor}
 import org.midonet.midolman.FlowController
-import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.layer3.Route.NextHop
@@ -51,10 +50,9 @@ import org.midonet.midolman.state.{MockStateStorage, NatState}
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackKey, ConnTrackValue}
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
 import org.midonet.midolman.topology.VirtualTopologyActor
-import org.midonet.midolman.topology.devices.{BridgePort => TopBrPort}
 import org.midonet.midolman.topology.rcu.ResolvedHost
 import org.midonet.midolman.util.MidolmanSpec
-import org.midonet.odp.{DpPort, FlowMatch, FlowMatches, Packet}
+import org.midonet.odp.{DpPort, FlowMatches, Packet}
 import org.midonet.odp.flows._
 import org.midonet.packets._
 import org.midonet.packets.util.AddressConversions._
@@ -106,7 +104,6 @@ class NatTest extends MidolmanSpec {
     private val uplinkPortAddr = IPv4Addr("180.0.1.2")
     private val uplinkPortMac: MAC = "02:0a:08:06:04:02"
     private var uplinkPort: RouterPort = null
-    private var uplinkPortNum: Short = 0
 
     private val dnatAddress = IPv4Addr("180.0.1.100")
     private val snatAddressStart = IPv4Addr("180.0.1.200")
@@ -119,7 +116,7 @@ class NatTest extends MidolmanSpec {
     private var rtrInChain: Chain = null
 
     private var ddaRef: TestActorRef[DeduplicationActor] = null
-    private var packetOutQueue: ju.Queue[(Packet, ju.List[FlowAction])] =
+    private val packetOutQueue: ju.Queue[(Packet, ju.List[FlowAction])] =
         new ju.LinkedList[(Packet, ju.List[FlowAction])]
 
     private class Mapping(val key: NatKey,
@@ -326,9 +323,7 @@ class NatTest extends MidolmanSpec {
 
         fetchTopology(router, bridge, rtrPort, rtrInChain,
                       rtrOutChain, uplinkPort)
-        vmPorts.foreach((p: BridgePort) => {
-                            val x: TopBrPort = fetchDevice(p)
-                        })
+        fetchTopology(vmPorts:_*)
 
         val ddaProps = Props { testDDA }
 
@@ -429,8 +424,7 @@ class NatTest extends MidolmanSpec {
             applyPacketActions(packet3.getEthernet, actions3))
         mapping.flowCount should be (2)
 
-        FlowController ! InvalidateFlowsByTag(
-            FlowTagger.tagForDevice(router.getId))
+        flowInvalidator.scheduleInvalidationFor(FlowTagger.tagForDevice(router.getId))
         ddaRef ! DeduplicationActor.HandlePackets(new Array(0))
         mapping.flowCount should be (0)
         clock.time = FlowState.DEFAULT_EXPIRATION.toNanos + 1
@@ -439,7 +433,7 @@ class NatTest extends MidolmanSpec {
     }
 
     scenario("source nat") {
-        testSnat();
+        testSnat()
     }
 
     def testSnat() {
@@ -491,8 +485,7 @@ class NatTest extends MidolmanSpec {
             applyPacketActions(packet3.getEthernet, actions3))
         mapping.flowCount should be (2)
 
-        FlowController ! InvalidateFlowsByTag(
-            FlowTagger.tagForDevice(router.getId))
+        flowInvalidator.scheduleInvalidationFor(FlowTagger.tagForDevice(router.getId))
         ddaRef ! DeduplicationActor.HandlePackets(new Array(0))
         mapping.flowCount should be (0)
         clock.time = FlowState.DEFAULT_EXPIRATION.toNanos + 1
@@ -705,11 +698,11 @@ class NatTest extends MidolmanSpec {
 
     def getOutPorts(actions: ju.List[FlowAction]): ju.List[Int] = {
         val ports = new ju.ArrayList[Int]()
-        actions.asScala.foreach (x => x match {
-                                     case o: FlowActionOutput =>
-                                         ports.add(o.getPortNumber())
-                                     case _ => {}
-                                 })
+        actions.asScala.foreach {
+            case o: FlowActionOutput =>
+                ports.add(o.getPortNumber())
+            case _ =>
+        }
         ports
     }
 
@@ -740,7 +733,7 @@ class NatTest extends MidolmanSpec {
             packet.getEthernet,
             eth)
 
-        var ipPak = eth.getPayload.asInstanceOf[IPv4]
+        val ipPak = eth.getPayload.asInstanceOf[IPv4]
         ipPak.getProtocol should be (ICMP.PROTOCOL_NUMBER)
         ipPak.getSourceAddress should be (srcIp.addr)
         ipPak.getDestinationAddress should be (mapping.fwdOutToIp.addr)
@@ -791,9 +784,6 @@ class NatTest extends MidolmanSpec {
      * Assuming that expectIcmpData was sent, this method will expect an
      * ICMP UNREACHABLE HOST back on the given port, containing in its data
      * the expectIcmpData
-     *
-     * @param port
-     * @param expectIcmpData
      */
     private def expectICMPError(port: UUID, expectIcmpData: IPv4): Unit = {
         // we should have a packet coming out of the expected port
@@ -1009,6 +999,7 @@ class NatTest extends MidolmanSpec {
     def testDDA: DeduplicationActor = new DeduplicationActor(
         injector.getInstance(classOf[MidolmanConfig]),
         new CookieGenerator(1, 1), mockDpChannel, clusterDataClient,
+        flowInvalidator,
         new ShardedFlowStateTable[ConnTrackKey, ConnTrackValue](clock).addShard(),
         new ShardedFlowStateTable[NatKey, NatBinding](clock).addShard(),
         new MockStateStorage(), HappyGoLuckyLeaser,

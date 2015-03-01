@@ -580,11 +580,11 @@ class AdminStateTest extends MidolmanSpec {
 
     private[this] def assertFlowTagsInvalidated(devices: Entity.Base[UUID,_,_]*) {
         val tags = devices map (d =>
-            FlowController.InvalidateFlowsByTag(
+            VirtualTopologyActor.InvalidateFlowsByTag(
                 FlowTagger.tagForDevice(d.getId)))
 
         val invalidations = VirtualTopologyActor.messages
-                .filter(_.isInstanceOf[FlowController.InvalidateFlowsByTag])
+                .filter(_.isInstanceOf[VirtualTopologyActor.InvalidateFlowsByTag])
 
         for (tag <- tags) {
             invalidations should contain (tag)
