@@ -22,9 +22,9 @@ import scala.collection.JavaConversions._
 import scala.util.Random
 
 import org.junit.runner.RunWith
+import org.midonet.midolman.flows.FlowInvalidation
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman.simulation.PacketContext
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.odp.flows.{FlowActions, FlowKeys}
@@ -112,31 +112,28 @@ class FlowControllerTest extends MidolmanSpec {
             val tag = flow.getAnyTag
 
             When("The flow is invalidated by a tag")
-            FlowController ! FlowController.InvalidateFlowsByTag(tag)
+            flowInvalidator.scheduleInvalidationFor(tag)
 
             testFlowRemoved(flow, mwcFlow, state)
 
             And("The tag should appear in the invalidation history")
             val pktCtx = new PacketContext(0, null, new FlowMatch)
             pktCtx.addFlowTag(tag)
-            FlowController.isTagSetStillValid(pktCtx) should be (false)
+            FlowInvalidation.isTagSetStillValid(pktCtx) should be (false)
         }
 
         scenario("Invalidate a non-existing tag") {
             Given("A tag for a non-existing flow")
             val tag = TestableFlow.getTag(4)
 
-            Then("The tag should not appear in the tag to flows map")
-            flowController.tagToFlows.get(tag) should be (None)
-
             When("The flow is invalidated by a tag")
-            FlowController ! FlowController.InvalidateFlowsByTag(tag)
+            flowInvalidator.scheduleInvalidationFor(tag)
 
             Then("The tag should appear in the invalidation history")
             val pktCtx = new PacketContext(0, null, new FlowMatch)
             pktCtx.lastInvalidation = -1
             pktCtx.addFlowTag(tag)
-            FlowController.isTagSetStillValid(pktCtx) should be (false)
+            FlowInvalidation.isTagSetStillValid(pktCtx) should be (false)
         }
 
         scenario("Check idle expired flows are removed from the flow " +
@@ -222,14 +219,6 @@ class FlowControllerTest extends MidolmanSpec {
             flowController.metrics.currentDpFlowsMetric.getValue should be (
                 flowController.flowManager.getNumDpFlows)
 
-            And("The flow controller should contain the flow tag mapping tags")
-            for (tag <- flow.tagsSet) {
-                flowController.tagToFlows.get(tag) match {
-                    case None =>
-                    case Some(set) => set should contain (mwcFlow)
-                }
-            }
-
             And("The flow removal callback method should not have been called")
             flow.isFlowRemoved should be (false)
         }
@@ -263,15 +252,7 @@ class FlowControllerTest extends MidolmanSpec {
         flowController.metrics.currentDpFlowsMetric.getValue should be (
             flowController.flowManager.getNumDpFlows)
 
-        And("The flow controller contains the correct tag mappings")
-        var mwcFlow: ManagedFlow = null
-        for (tag <- flow.tagsSet) {
-            flowController.tagToFlows.get(tag) should not be None
-            mwcFlow = flowController.tagToFlows.get(tag).get.head
-            mwcFlow should not be null
-        }
-
-        mwcFlow
+        flowController.flowManager.dpFlowTable.get(flow.flowMatch)
     }
 
     private def testFlowRemoved(flow: TestableFlow,
@@ -284,14 +265,6 @@ class FlowControllerTest extends MidolmanSpec {
         And("The flow manager should indicate the same number of flows")
         flowController.metrics.currentDpFlowsMetric.getValue should be (
             flowController.flowManager.getNumDpFlows)
-
-        And("The flow controller should not contain the flow tag mapping tags")
-        for (tag <- flow.tagsSet) {
-            flowController.tagToFlows.get(tag) match {
-                case None =>
-                case Some(set) => set should not contain mwcFlow
-            }
-        }
 
         And("The flow removal callback method was called")
         flow.isFlowRemoved should be (true)
@@ -307,12 +280,6 @@ class FlowControllerTest extends MidolmanSpec {
         And("The flow manager should indicate the same number of flows")
         flowController.metrics.currentDpFlowsMetric.getValue should be (
             flowController.flowManager.getNumDpFlows())
-
-        And("The flow controller contains the correct tag mappings")
-        for (tag <- flow.tagsSet) {
-            flowController.tagToFlows.get(tag) should not be None
-            flowController.tagToFlows.get(tag).get should contain (mwcFlow)
-        }
 
         And("The flow removal callback method was not called")
         flow.isFlowRemoved should be (false)
@@ -358,7 +325,7 @@ class FlowControllerTest extends MidolmanSpec {
         def add(): Unit = {
             val pktCtx = new PacketContext(0, null, flowMatch)
             pktCtx.callbackExecutor = CallbackExecutor.Immediate
-            pktCtx.lastInvalidation = FlowController.lastInvalidationEvent
+            pktCtx.lastInvalidation = FlowInvalidation.lastInvalidationEvent
             tags foreach pktCtx.addFlowTag
             callbacks foreach pktCtx.addFlowRemovedCallback
             flowType match {
@@ -371,9 +338,8 @@ class FlowControllerTest extends MidolmanSpec {
             FlowController ! pktCtx
         }
 
-        def remove(): Unit = {
-            FlowController ! InvalidateFlowsByTag(tags.head)
-        }
+        def remove(): Unit =
+            flowInvalidator.scheduleInvalidationFor(tags.head)
     }
 
     sealed class MetricsSnapshot {

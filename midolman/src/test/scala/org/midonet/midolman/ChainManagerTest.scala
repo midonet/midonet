@@ -23,12 +23,11 @@ import org.junit.runner.RunWith
 import org.scalatest._
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman.rules.{LiteralRule, Condition, JumpRule, Rule}
 import org.midonet.midolman.rules.RuleResult.Action
 import org.midonet.midolman.simulation.{Chain, CustomMatchers}
 import org.midonet.midolman.topology.VirtualTopologyActor
-import org.midonet.midolman.topology.VirtualTopologyActor.ChainRequest
+import org.midonet.midolman.topology.VirtualTopologyActor.{InvalidateFlowsByTag, ChainRequest}
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.MessageAccumulator
 import org.midonet.sdn.flows.FlowTagger

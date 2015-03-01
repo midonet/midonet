@@ -22,12 +22,8 @@ import java.util.concurrent.TimeUnit
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
 
-import org.midonet.midolman.FlowController.InvalidateFlowsByTag
-import org.midonet.midolman.FlowController.WildcardFlowAdded
-import org.midonet.midolman.FlowController.WildcardFlowRemoved
 import org.midonet.odp.flows.FlowAction
 import org.midonet.packets._
-
 
 /** Contains helper methods to be used by a test case */
 object TestHelpers {
@@ -37,11 +33,6 @@ object TestHelpers {
 
     def totalMatch(acts: Seq[FlowAction], targ: Seq[FlowAction]) =
         acts.size == targ.size && partialMatch(acts, targ)
-
-    def matchFlowTag(tagToMatch: AnyRef): PartialFunction[Any, Boolean] = {
-        case InvalidateFlowsByTag(tag) => tag.equals(tagToMatch)
-        case _ => false
-    }
 
     def createUdpPacket(
             srcMac: String, srcIp: String, dstMac: String, dstIp: String) =
