@@ -21,6 +21,7 @@ import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
 import mockit.Mocked
 
 import org.junit.runner.RunWith
+import org.midonet.midolman.flows.FlowInvalidator
 import org.scalatest.junit.JUnitRunner
 
 import rx.Observable
@@ -82,7 +83,7 @@ class DeviceMapperTest extends MidolmanSpec {
     implicit var vt: VirtualTopology = _
 
     override def beforeTest(): Unit = {
-        vt = new VirtualTopology(storage, clusterDataClient, actorsService)
+        vt = new VirtualTopology(storage, clusterDataClient, flowInvalidator)
     }
 
     feature("Test device observable subscription") {
