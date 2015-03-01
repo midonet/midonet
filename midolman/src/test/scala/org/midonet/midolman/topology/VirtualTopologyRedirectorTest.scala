@@ -29,16 +29,18 @@ import org.scalatest.junit.JUnitRunner
 
 import rx.Observable
 
-import org.midonet.cluster.data.storage.{CreateOp, NotFoundException}
+import org.midonet.cluster.data.storage.CreateOp
 import org.midonet.cluster.models.Topology.Rule.Action
+import org.midonet.cluster.util.UUIDUtil._
+import org.midonet.midolman.simulation.IPAddrGroup
+import org.midonet.midolman.topology.VirtualTopologyActor.IPAddrGroupRequest
+import org.midonet.midolman.rules.{RuleResult, LiteralRule}
+import org.midonet.cluster.data.storage.NotFoundException
 import org.midonet.cluster.models.Topology.{Port => TopologyPort}
 import org.midonet.cluster.services.MidonetBackend
-import org.midonet.cluster.util.UUIDUtil._
-import org.midonet.midolman.FlowController.InvalidateFlowsByTag
-import org.midonet.midolman.rules.{LiteralRule, RuleResult}
-import org.midonet.midolman.simulation.{Chain => SimChain, IPAddrGroup}
-import org.midonet.midolman.topology.VirtualTopologyActor.{ChainRequest, IPAddrGroupRequest, PortRequest, Unsubscribe}
-import org.midonet.midolman.topology.devices.{BridgePort, Port => SimulationPort}
+import org.midonet.midolman.topology.VirtualTopologyActor.{ChainRequest, Unsubscribe, PortRequest}
+import org.midonet.midolman.topology.devices.{Port => SimulationPort, BridgePort}
+import org.midonet.midolman.simulation.{Chain => SimChain}
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.{AwaitableActor, MessageAccumulator}
 import org.midonet.midolman.{FlowController, NotYetException}
@@ -57,14 +59,12 @@ class VirtualTopologyRedirectorTest extends MidolmanSpec with TopologyBuilder
     private var backend: MidonetBackend = _
     private var vt: VirtualTopology = _
     private var vta: TestableVTA = _
-    private var fc: TestableFC = _
     private implicit var senderRef: TestActorRef[SenderActor] = _
     private implicit var sender: SenderActor = _
     private val bridgeId = UUID.randomUUID
     private val timeout = 5 seconds
 
     registerActors(VirtualTopologyActor -> (() => new TestableVTA))
-    registerActors(FlowController -> (() => new TestableFC))
 
     protected override def fillConfig(config: HierarchicalConfiguration)
     : HierarchicalConfiguration = {
@@ -77,7 +77,6 @@ class VirtualTopologyRedirectorTest extends MidolmanSpec with TopologyBuilder
         backend = injector.getInstance(classOf[MidonetBackend])
         vt = injector.getInstance(classOf[VirtualTopology])
         vta = VirtualTopologyActor.as[TestableVTA]
-        fc = FlowController.as[TestableFC]
         senderRef = TestActorRef(Props(new AwaitableActor
                                            with MessageAccumulator))(actorSystem)
         sender = senderRef.underlyingActor
@@ -479,10 +478,8 @@ class VirtualTopologyRedirectorTest extends MidolmanSpec with TopologyBuilder
             obs.await(timeout, 1) shouldBe true
 
             Then("The flow should receive an invalidate message")
-            fc.messages.size shouldBe 1
-            expectLast({ case invalidation: InvalidateFlowsByTag =>
-                invalidation.tag shouldBe FlowTagger.tagForDevice(portId)
-            })(fc)
+            flowInvalidator should invalidate(FlowTagger.tagForDevice(portId))
+            flowInvalidator.clear()
 
             And("The port is updated")
             val port2 = createBridgePort(id = portId, bridgeId = Some(bridgeId),
@@ -493,10 +490,7 @@ class VirtualTopologyRedirectorTest extends MidolmanSpec with TopologyBuilder
             obs.await(timeout) shouldBe true
 
             Then("The flow should receive an invalidate message")
-            fc.messages.size shouldBe 2
-            expectLast({ case invalidation: InvalidateFlowsByTag =>
-                invalidation.tag shouldBe FlowTagger.tagForDevice(portId)
-            })(fc)
+            flowInvalidator should invalidate(FlowTagger.tagForDevice(portId))
         }
     }
 

@@ -21,8 +21,7 @@ import java.util.UUID
 
 import org.midonet.cluster.Client
 import org.midonet.cluster.client.ArpCache
-import org.midonet.midolman.FlowController
-import org.midonet.midolman.FlowController.InvalidateFlowsByTag
+import org.midonet.midolman.topology.VirtualTopologyActor.InvalidateFlowsByTag
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.layer3.{RoutingTableIfc, InvalidationTrie, Route}
 import org.midonet.midolman.simulation.{ArpTable, ArpTableImpl, Router}
@@ -127,7 +126,7 @@ class RouterManager(id: UUID, val client: Client, val config: MidolmanConfig)
     }
 
     private def invalidateFlowsByIp(ip: IPv4Addr) {
-        FlowController ! FlowController.InvalidateFlowsByTag(
+        VirtualTopologyActor ! InvalidateFlowsByTag(
             FlowTagger.tagForDestinationIp(id, ip))
     }
 
@@ -155,7 +154,7 @@ class RouterManager(id: UUID, val client: Client, val config: MidolmanConfig)
 
         case InvalidateFlows(addedRoutes, deletedRoutes) =>
             for (route <- deletedRoutes) {
-                FlowController ! FlowController.InvalidateFlowsByTag(
+                VirtualTopologyActor ! InvalidateFlowsByTag(
                     FlowTagger.tagForRoute(route))
             }
             for (route <- addedRoutes) {
@@ -166,9 +165,8 @@ class RouterManager(id: UUID, val client: Client, val config: MidolmanConfig)
                           ipToInvalidate)
 
                 val it = ipToInvalidate.iterator()
-                it.foreach(ip => FlowController !
-                    FlowController.InvalidateFlowsByTag(
-                        FlowTagger.tagForDestinationIp(id, ip)))
+                it.foreach(ip => VirtualTopologyActor !
+                    InvalidateFlowsByTag(FlowTagger.tagForDestinationIp(id, ip)))
                 }
 
         case AddTag(dstIp) =>
