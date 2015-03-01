@@ -23,7 +23,6 @@ import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.data.{Router => ClusterRouter}
 import org.midonet.cluster.data.ports.RouterPort
-import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman.PacketWorkflow.Drop
 import org.midonet.midolman.layer3.Route._
 import org.midonet.midolman.simulation.{Router => SimRouter}
@@ -149,11 +148,9 @@ class RouterFlowInvalidationTest extends MidolmanSpec {
             NextHop.PORT, outPort.getId, new IPv4Addr(NO_GATEWAY).toString,
             2)
 
-        FlowController.getAndClear() should contain theSameElementsAs List(
-            InvalidateFlowsByTag(FlowTagger.tagForDestinationIp(
-                router.getId, IPv4Addr.fromString(ipVm1))),
-            InvalidateFlowsByTag(FlowTagger.tagForDestinationIp(
-                router.getId, IPv4Addr.fromString(ipVm2))))
+        flowInvalidator should invalidate(
+            FlowTagger.tagForDestinationIp(router.getId, IPv4Addr.fromString(ipVm1)),
+            FlowTagger.tagForDestinationIp(router.getId, IPv4Addr.fromString(ipVm2)))
     }
 
     scenario("Clean up invalidation trie") {
@@ -236,8 +233,7 @@ class RouterFlowInvalidationTest extends MidolmanSpec {
         feedArpTable(simRouter, IPv4Addr.fromString(ipToReach),
                      MAC.fromString(secondMac))
 
-        FlowController.getAndClear() should contain (InvalidateFlowsByTag(
-            FlowTagger.tagForDestinationIp(router.getId, IPv4Addr.fromString(ipToReach))))
-
+        flowInvalidator should invalidate(
+            FlowTagger.tagForDestinationIp(router.getId, IPv4Addr.fromString(ipToReach)))
     }
 }

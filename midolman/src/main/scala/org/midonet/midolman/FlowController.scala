@@ -21,8 +21,6 @@ import java.nio.ByteBuffer
 import java.util.concurrent.TimeUnit
 import java.util.ArrayList
 
-import scala.collection.mutable
-import scala.collection.mutable.{HashMap, MultiMap}
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
@@ -30,6 +28,7 @@ import akka.actor.{Actor, ActorSystem}
 import akka.event.LoggingReceive
 
 import com.google.inject.Inject
+import org.midonet.midolman.flows.{FlowLifecycle, FlowInvalidation, FlowInvalidator}
 
 import rx.Observer
 
@@ -48,10 +47,8 @@ import org.midonet.midolman.simulation.PacketContext
 import org.midonet.netlink.exceptions.NetlinkException
 import org.midonet.netlink.exceptions.NetlinkException.ErrorCode
 import org.midonet.odp.{Datapath, FlowMetadata}
-import org.midonet.sdn.flows.FlowTagger.FlowTag
 import org.midonet.sdn.flows._
-import org.midonet.util.collection.{EventHistory, ArrayObjectPool, ObjectPool}
-import org.midonet.util.collection.EventHistory._
+import org.midonet.util.collection.{ArrayObjectPool, ObjectPool}
 import org.midonet.util.concurrent.WakerUpper.Parkable
 
 object FlowController extends Referenceable {
@@ -61,8 +58,6 @@ object FlowController extends Referenceable {
 
     case class WildcardFlowRemoved(f: ManagedFlow)
 
-    case class InvalidateFlowsByTag(tag: FlowTag)
-
     case object FlowUpdateCompleted
 
     case object CheckFlowExpiration_
@@ -70,19 +65,6 @@ object FlowController extends Referenceable {
     case object CheckCompletedRequests
 
     val MIN_WILDCARD_FLOW_CAPACITY = 4096
-
-    private val invalidationHistory = new EventHistory[FlowTag](1024)
-
-
-    def isTagSetStillValid(pktCtx: PacketContext) =
-        invalidationHistory.existsSince(pktCtx.lastInvalidation,
-                                        pktCtx.flowTags) match {
-            case EventSearchWindowMissed => pktCtx.flowTags.isEmpty
-            case EventSeen => false
-            case EventNotSeen => true
-        }
-
-    def lastInvalidationEvent = invalidationHistory.latest
 
     object FlowOperation {
         val GET: Byte = 0
@@ -144,7 +126,7 @@ object FlowController extends Referenceable {
 }
 
 class FlowController extends Actor with ActorLogWithoutPath
-        with DatapathReadySubscriberActor {
+        with DatapathReadySubscriberActor with FlowLifecycle with FlowInvalidation {
     import DatapathController.DatapathReady
     import FlowController._
 
@@ -173,9 +155,8 @@ class FlowController extends Actor with ActorLogWithoutPath
     var flowManager: FlowManager = null
     var flowManagerHelper: FlowManagerHelper = null
 
-    val tagToFlows: MultiMap[FlowTag, ManagedFlow] =
-        new HashMap[FlowTag, mutable.Set[ManagedFlow]]
-            with MultiMap[FlowTag, ManagedFlow]
+    @Inject
+    var flowInvalidator: FlowInvalidator = _
 
     var flowExpirationCheckInterval: FiniteDuration = null
 
@@ -227,7 +208,7 @@ class FlowController extends Actor with ActorLogWithoutPath
             managedFlow.reset(pktCtx)
             managedFlow.ref()
 
-            if (FlowController.isTagSetStillValid(pktCtx)) {
+            if (FlowInvalidation.isTagSetStillValid(pktCtx)) {
                 if (handleFlowAddedForNewWildcard(managedFlow, pktCtx)) {
                     context.system.eventStream.publish(WildcardFlowAdded(managedFlow))
                     log.debug(s"Added flow $managedFlow")
@@ -242,56 +223,35 @@ class FlowController extends Actor with ActorLogWithoutPath
                 managedFlow.unref()   // the FlowController's ref
             }
 
-        case InvalidateFlowsByTag(tag) =>
-            tagToFlows.remove(tag) match {
-                case None =>
-                    log.debug(s"There are no flows to invalidate for tag $tag")
-                case Some(flowSet) =>
-                    log.debug(s"There are ${flowSet.size} flows to invalidate for tag $tag")
-                    for (wildFlow <- flowSet)
-                        removeWildcardFlow(wildFlow)
-            }
-            invalidationHistory.put(tag)
-
         case CheckFlowExpiration_ =>
             flowManager.checkFlowsExpiration()
 
         case CheckCompletedRequests =>
             processCompletedFlowOperations()
+            flowInvalidator.process(this)
     }
 
-    private def removeWildcardFlow(wildFlow: ManagedFlow) {
-        def tagsCleanup(tags: ArrayList[FlowTag]): Unit = {
-            var i = 0
-            while (i < tags.size()) {
-                tagToFlows.removeBinding(tags.get(i), wildFlow)
-                i += 1
-            }
-        }
-
-        if (flowManager.remove(wildFlow)) {
-            tagsCleanup(wildFlow.tags)
-            wildFlow.cbExecutor.schedule(wildFlow.callbacks)
-            context.system.eventStream.publish(WildcardFlowRemoved(wildFlow))
-            wildFlow.unref() // FlowController's ref
+    override def removeFlow(flow: ManagedFlow) {
+        if (flowManager.remove(flow)) {
+            super.removeFlow(flow)
+            flow.cbExecutor.schedule(flow.callbacks)
+            context.system.eventStream.publish(WildcardFlowRemoved(flow))
+            flow.unref() // FlowController's ref
         }
     }
 
-    private def handleFlowAddedForNewWildcard(wildFlow: ManagedFlow,
+    private def handleFlowAddedForNewWildcard(flow: ManagedFlow,
                                               pktCtx: PacketContext): Boolean = {
 
-        if (!flowManager.add(wildFlow)) {
-            log.debug("FlowManager failed to install wildcard flow {}", wildFlow)
+        if (!flowManager.add(flow)) {
+            log.debug("FlowManager failed to install wildcard flow {}", flow)
             pktCtx.callbackExecutor.schedule(pktCtx.flowRemovedCallbacks)
             return false
         }
 
-        val it = pktCtx.flowTags.iterator()
-        while (it.hasNext) {
-            tagToFlows.addBinding(it.next(), wildFlow)
-        }
+        registerFlow(flow)
 
-        meters.trackFlow(pktCtx.origMatch, wildFlow.tags)
+        meters.trackFlow(pktCtx.origMatch, flow.tags)
 
         metrics.dpFlowsMetric.mark()
         true
@@ -418,7 +378,7 @@ class FlowController extends Actor with ActorLogWithoutPath
         }
 
         def removeWildcardFlow(flow: ManagedFlow): Unit = {
-            FlowController.this.removeWildcardFlow(flow)
+            FlowController.this.removeFlow(flow)
         }
     }
 

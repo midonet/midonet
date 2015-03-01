@@ -24,13 +24,13 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
 import akka.actor._
+import org.midonet.midolman.flows.FlowInvalidator
 
 import org.slf4j.MDC
 
 import org.jctools.queues.MpscArrayQueue
 
 import org.midonet.cluster.DataClient
-import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman.HostRequestProxy.FlowStateBatch
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.DatapathChannel
@@ -70,6 +70,7 @@ class DeduplicationActor(
             val cookieGen: CookieGenerator,
             val dpChannel: DatapathChannel,
             val clusterDataClient: DataClient,
+            val flowInvalidator: FlowInvalidator,
             val connTrackStateTable: FlowStateTable[ConnTrackKey, ConnTrackValue],
             val natStateTable: FlowStateTable[NatKey, NatBinding],
             val storage: FlowStateStorage,
@@ -108,14 +109,14 @@ class DeduplicationActor(
     private val invalidateExpiredConnTrackKeys =
         new Reducer[ConnTrackKey, ConnTrackValue, Unit]() {
             override def apply(u: Unit, k: ConnTrackKey, v: ConnTrackValue) {
-                FlowController ! InvalidateFlowsByTag(k)
+                flowInvalidator.scheduleInvalidationFor(k)
             }
         }
 
     private val invalidateExpiredNatKeys =
         new Reducer[NatKey, NatBinding, Unit]() {
             override def apply(u: Unit, k: NatKey, v: NatBinding): Unit = {
-                FlowController ! InvalidateFlowsByTag(k)
+                flowInvalidator.scheduleInvalidationFor(k)
                 NatState.releaseBinding(k, v, natLeaser)
             }
         }
@@ -127,7 +128,7 @@ class DeduplicationActor(
                                                  natStateTable,
                                                  storage,
                                                  dpState,
-                                                 FlowController ! InvalidateFlowsByTag(_),
+                                                 flowInvalidator,
                                                  config.getControlPacketsTos.toByte)
             workflow = new PacketWorkflow(dpState, dp, clusterDataClient,
                                           dpChannel, replicator, config)

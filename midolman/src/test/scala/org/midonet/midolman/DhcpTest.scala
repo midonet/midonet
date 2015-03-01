@@ -37,8 +37,6 @@ import org.midonet.midolman.simulation.DhcpValueParser
 import org.midonet.midolman.simulation.PacketEmitter.GeneratedPacket
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.util.MidolmanSpec
-import org.midonet.odp.{Packet, FlowMatch}
-import org.midonet.odp.flows.FlowKeys
 import org.midonet.packets._
 import org.midonet.packets.util.PacketBuilder._
 

@@ -24,7 +24,7 @@ import akka.actor.{ActorRef, Actor}
 
 import org.midonet.cluster.Client
 import org.midonet.cluster.client.ChainBuilder
-import org.midonet.midolman.FlowController.InvalidateFlowsByTag
+import org.midonet.midolman.topology.VirtualTopologyActor.InvalidateFlowsByTag
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.rules.{JumpRule, Rule}
 import org.midonet.midolman.simulation.{IPAddrGroup, Chain}
