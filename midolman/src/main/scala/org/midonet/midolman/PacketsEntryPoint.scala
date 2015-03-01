@@ -27,6 +27,7 @@ import org.midonet.cluster.DataClient
 import org.midonet.midolman.HostRequestProxy.FlowStateBatch
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.DatapathChannel
+import org.midonet.midolman.flows.FlowInvalidator
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackKey, ConnTrackValue}
@@ -93,6 +94,9 @@ class PacketsEntryPoint extends Actor with ActorLogWithoutPath
     var clock: NanoClock = null
 
     @Inject
+    var flowInvalidator: FlowInvalidator = null
+
+    @Inject
     var natBlockAllocator: NatBlockAllocator = _
 
     var connTrackStateTable: ShardedFlowStateTable[ConnTrackKey, ConnTrackValue] = _
@@ -133,7 +137,7 @@ class PacketsEntryPoint extends Actor with ActorLogWithoutPath
         val cookieGen = new CookieGenerator(index, NUM_WORKERS)
         Props(
             classOf[DeduplicationActor],
-            config, cookieGen, dpChannel, clusterDataClient,
+            config, cookieGen, dpChannel, clusterDataClient, flowInvalidator,
             connTrackStateTable.addShard(log = shardLogger(connTrackStateTable)),
             natStateTable.addShard(log = shardLogger(natStateTable)),
             storageFactory.create(),

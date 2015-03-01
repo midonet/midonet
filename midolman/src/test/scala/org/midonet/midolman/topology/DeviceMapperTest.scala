@@ -24,6 +24,7 @@ import rx.Observable
 import rx.subjects.BehaviorSubject
 import rx.subscriptions.Subscriptions
 
+import org.midonet.midolman.flows.FlowInvalidator
 import org.midonet.midolman.topology.VirtualTopology.Device
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.util.functors._

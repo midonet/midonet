@@ -152,7 +152,7 @@ class DatapathControllerActorTest extends MidolmanSpec {
         dpc.dpState.peerTunnelInfo(host2.getId) should be (Some(route1))
 
         val tag1 = FlowTagger tagForTunnelRoute (srcIp.toInt, dstIp1.toInt)
-        FlowController.getAndClear().head should be (FlowController.InvalidateFlowsByTag(tag1))
+        flowInvalidator should invalidate(tag1)
 
         // update the gre ip of the second host
         val dstIp2 = IPv4Addr("192.168.210.1")
@@ -169,8 +169,6 @@ class DatapathControllerActorTest extends MidolmanSpec {
         dpc.dpState.peerTunnelInfo(host2.getId) should be (Some(route2))
 
         val tag2 = FlowTagger tagForTunnelRoute (srcIp.toInt, dstIp2.toInt)
-        FlowController.getAndClear() should contain theSameElementsAs List(
-            FlowController.InvalidateFlowsByTag(tag1),
-            FlowController.InvalidateFlowsByTag(tag2))
+        flowInvalidator should invalidate(tag1, tag2)
     }
 }

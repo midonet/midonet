@@ -23,10 +23,9 @@ import org.junit.runner.RunWith
 import org.midonet.odp.FlowMatch
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman.simulation.{Pool, PacketContext, LoadBalancer}
 import org.midonet.midolman.topology.VirtualTopologyActor
-import org.midonet.midolman.topology.VirtualTopologyActor.{PoolRequest, LoadBalancerRequest}
+import org.midonet.midolman.topology.VirtualTopologyActor.{InvalidateFlowsByTag, PoolRequest, LoadBalancerRequest}
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.packets.{IPv4Addr, TCP}
 import org.midonet.sdn.flows.FlowTagger

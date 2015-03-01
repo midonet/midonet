@@ -27,8 +27,8 @@ import akka.pattern.pipe
 import org.midonet.cluster.client.BGPListBuilder
 import org.midonet.cluster.data.{AdRoute, BGP, Route}
 import org.midonet.cluster.{Client, DataClient}
-import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman.config.MidolmanConfig
+import org.midonet.midolman.flows.FlowInvalidator
 import org.midonet.midolman.io.{UpcallDatapathConnectionManager, VirtualMachine}
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.routingprotocols.RoutingManagerActor.BgpStatus
@@ -114,6 +114,7 @@ object RoutingHandler {
  */
 class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
                      val datapath: Datapath,
+                     val flowInvalidator: FlowInvalidator,
                      val dpState: DatapathState,
                      val upcallConnManager: UpcallDatapathConnectionManager,
                      val client: Client, val dataClient: DataClient,
@@ -889,7 +890,7 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
 
     private def invalidateFlows(bgp: BGP): Unit = {
         val tag = FlowTagger.tagForDpPort(bgp.getQuaggaPortNumber)
-        FlowController ! InvalidateFlowsByTag(tag)
+        flowInvalidator.scheduleInvalidationFor(tag)
     }
 }
 

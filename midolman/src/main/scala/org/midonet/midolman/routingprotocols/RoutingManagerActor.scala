@@ -28,6 +28,7 @@ import org.midonet.cluster.{Client, DataClient}
 import org.midonet.midolman.DatapathController.DatapathReady
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.cluster.MidolmanActorsModule.ZEBRA_SERVER_LOOP
+import org.midonet.midolman.flows.FlowInvalidator
 import org.midonet.midolman.io.UpcallDatapathConnectionManager
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.routingprotocols.RoutingHandler.PortActive
@@ -72,6 +73,8 @@ class RoutingManagerActor extends ReactiveActor[LocalPortActive]
     @Inject
     @ZEBRA_SERVER_LOOP
     var zebraLoop: SelectLoop = null
+    @Inject
+    var flowInvalidator: FlowInvalidator = null
 
     private var bgpPortIdx = 0
 
@@ -153,8 +156,8 @@ class RoutingManagerActor extends ReactiveActor[LocalPortActive]
                     port.id,
                     context.actorOf(
                         Props(new RoutingHandler(port, bgpPortIdx, datapath,
-                                    dpState, upcallConnManager, client,
-                                    dataClient, config, zkConnWatcher, zebraLoop)).
+                                    flowInvalidator, dpState, upcallConnManager,
+                                    client, dataClient, config, zkConnWatcher, zebraLoop)).
                               withDispatcher("actors.pinned-dispatcher"),
                         name = port.id.toString)
                 )

@@ -26,8 +26,6 @@ import scala.compat.Platform
 import scala.concurrent.duration._
 import scala.util.control.NonFatal
 
-import akka.actor.ActorSystem
-
 import com.typesafe.scalalogging.Logger
 
 import rx.Observable
@@ -265,7 +263,6 @@ object BridgeMapper {
  * A class that implements the [[DeviceMapper]] for a [[SimulationBridge]].
  */
 final class BridgeMapper(bridgeId: UUID, implicit val vt: VirtualTopology)
-                        (implicit actorSystem: ActorSystem)
     extends DeviceMapper[SimulationBridge](bridgeId, vt) {
 
     import BridgeMapper._
