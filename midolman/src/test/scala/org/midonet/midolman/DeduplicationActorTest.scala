@@ -24,6 +24,7 @@ import akka.actor.Props
 import akka.testkit.TestActorRef
 import com.codahale.metrics.{MetricFilter, MetricRegistry}
 import org.junit.runner.RunWith
+import org.midonet.midolman.flows.FlowInvalidator
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.DataClient
@@ -338,6 +339,7 @@ class DeduplicationActorTest extends MidolmanSpec {
                       override val simulationExpireMillis: Long)
             extends DeduplicationActor(injector.getInstance(classOf[MidolmanConfig]),
                                        cookieGen, dpChannel, clusterDataClient,
+                                       new FlowInvalidator(null),
                                        new ShardedFlowStateTable[ConnTrackKey, ConnTrackValue](),
                                        new ShardedFlowStateTable[NatKey, NatBinding](),
                                        new MockStateStorage(),

@@ -24,11 +24,11 @@ import scala.collection.JavaConversions._
 import scala.collection.mutable
 
 import akka.actor.ActorRef
+import org.midonet.midolman.topology.VirtualTopologyActor.InvalidateFlowsByTag
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.client.{BridgeBuilder, IpMacMap, MacLearningTable, VlanPortMap}
 import org.midonet.cluster.data.Bridge
-import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman.topology.{BridgeConfig, BridgeManager}
 import org.midonet.packets.{IPAddr, IPv4Addr, MAC}
 import org.midonet.sdn.flows.FlowTagger
@@ -41,8 +41,7 @@ import org.midonet.sdn.flows.FlowTagger
  *  break the actors model
  */
 
-class BridgeBuilderImpl(val id: UUID, val flowController: ActorRef,
-                        val bridgeMgr: ActorRef) extends BridgeBuilder {
+class BridgeBuilderImpl(val id: UUID, val bridgeMgr: ActorRef) extends BridgeBuilder {
     final val log =
         LoggerFactory.getLogger(classOf[BridgeBuilderImpl])
 
@@ -127,8 +126,7 @@ class BridgeBuilderImpl(val id: UUID, val flowController: ActorRef,
         log.debug("Diffing the maps.")
         // calculate diff between the 2 maps
         if (null != oldMacToLogicalPortId) {
-            val deletedPortMap =
-                oldMacToLogicalPortId -- (macToLogicalPortId.keys)
+            val deletedPortMap = oldMacToLogicalPortId -- macToLogicalPortId.keys
             // invalidate all the Unicast flows to the logical port
             for ((mac, portId) <- deletedPortMap) {
                 bridgeMgr ! InvalidateFlowsByTag(
@@ -182,14 +180,14 @@ class BridgeBuilderImpl(val id: UUID, val flowController: ActorRef,
         if (newPort == null && oldPort != null) {
             log.debug("MAC {}, VLAN ID {} removed from port {}",
                 Array(mac, oldPort, vlanId.asInstanceOf[Object]))
-            flowController ! InvalidateFlowsByTag(
+            bridgeMgr ! InvalidateFlowsByTag(
                     FlowTagger.tagForVlanPort(id, mac, vlanId, oldPort))
         }
         if (newPort != null && oldPort != null
             && !newPort.equals(oldPort)) {
             log.debug("MAC {}, VLAN ID {} moved from port {} to {}",
                       mac, vlanId.asInstanceOf[Object], oldPort, newPort)
-            flowController ! InvalidateFlowsByTag(
+            bridgeMgr ! InvalidateFlowsByTag(
                     FlowTagger.tagForVlanPort(id, mac, vlanId, oldPort))
         }
         if (newPort != null && oldPort == null){
@@ -203,7 +201,7 @@ class BridgeBuilderImpl(val id: UUID, val flowController: ActorRef,
             // 2. If we just forgot the MAC port association, no need of
             //    invalidating, broadcast and ARP requests were correctly
             //    delivered.
-            flowController ! InvalidateFlowsByTag(
+            bridgeMgr ! InvalidateFlowsByTag(
                     FlowTagger.tagForFloodedFlowsByDstMac(id, vlanId, mac))
         }
     }
