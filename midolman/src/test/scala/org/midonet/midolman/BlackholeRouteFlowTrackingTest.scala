@@ -22,7 +22,6 @@ import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.data.ports.RouterPort
 import org.midonet.cluster.data.{Router => ClusterRouter}
-import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman.PacketWorkflow.TemporaryDrop
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.layer3.Route.NextHop
@@ -149,10 +148,10 @@ class BlackholeRouteFlowTrackingTest extends MidolmanSpec
 
             eventually { fetchDevice[Router](clusterRouter) should not be simRouter }
 
-            Then("an invalidation by destination IP is sent to the FlowController")
+            Then("an invalidation by destination IP is scheduled")
             val tag = FlowTagger.tagForDestinationIp(clusterRouter.getId,
                                                      IPv4Addr(rightOtherIp))
-            FlowController.getAndClear() shouldEqual List(InvalidateFlowsByTag(tag))
+            flowInvalidator should invalidate(tag)
         }
     }
 }

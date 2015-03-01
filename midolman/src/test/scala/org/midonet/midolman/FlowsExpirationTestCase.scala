@@ -24,6 +24,7 @@ import scala.concurrent.duration.Duration
 import org.apache.commons.configuration.HierarchicalConfiguration
 import org.junit.experimental.categories.Category
 import org.junit.runner.RunWith
+import org.midonet.midolman.flows.FlowInvalidation
 import org.midonet.midolman.simulation.PacketContext
 import org.scalatest.junit.JUnitRunner
 
@@ -106,7 +107,7 @@ class FlowsExpirationTestCase extends MidolmanTestCase
 
         val pktInMsg = fishForRequestOfType[PacketIn](packetInProbe)
         val wflow = wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded]).f
-        flowProbe().testActor ! InvalidateFlowsByTag(FlowTagger.tagForDevice(pktInMsg.inputPort))
+        flowInvalidator.scheduleInvalidationFor(FlowTagger.tagForDevice(pktInMsg.inputPort))
         wflowRemovedProbe.expectMsgClass(classOf[WildcardFlowRemoved])
 
         val flow = new Flow(FlowMatches.fromEthernetPacket(ethPkt))
@@ -119,7 +120,7 @@ class FlowsExpirationTestCase extends MidolmanTestCase
         val timeAdded: Long = System.currentTimeMillis()
         val pktCtx = new PacketContext(0, null, newMatch)
         pktCtx.callbackExecutor = CallbackExecutor.Immediate
-        pktCtx.lastInvalidation = FlowController.lastInvalidationEvent
+        pktCtx.lastInvalidation = FlowInvalidation.lastInvalidationEvent
         pktCtx.idleExpirationMillis = 0
         pktCtx.hardExpirationMillis = getDilatedTime(timeOutFlow).toInt
         flowProbe().testActor ! pktCtx
@@ -155,7 +156,7 @@ class FlowsExpirationTestCase extends MidolmanTestCase
 
         val pktInMsg = fishForRequestOfType[PacketIn](packetInProbe)
         val wflow = wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded]).f
-        flowProbe().testActor ! InvalidateFlowsByTag(FlowTagger.tagForDevice(pktInMsg.inputPort))
+        flowInvalidator.scheduleInvalidationFor(FlowTagger.tagForDevice(pktInMsg.inputPort))
         wflowRemovedProbe.expectMsgClass(classOf[WildcardFlowRemoved])
 
         val flow = new Flow(FlowMatches.fromEthernetPacket(ethPkt))
@@ -172,7 +173,7 @@ class FlowsExpirationTestCase extends MidolmanTestCase
         val timeAdded: Long = System.currentTimeMillis()
         val pktCtx = new PacketContext(0, null, newMatch)
         pktCtx.callbackExecutor = CallbackExecutor.Immediate
-        pktCtx.lastInvalidation = FlowController.lastInvalidationEvent
+        pktCtx.lastInvalidation = FlowInvalidation.lastInvalidationEvent
         pktCtx.idleExpirationMillis = 0
         pktCtx.hardExpirationMillis = getDilatedTime(timeOutFlow).toInt
         flowProbe().testActor ! pktCtx
@@ -205,7 +206,7 @@ class FlowsExpirationTestCase extends MidolmanTestCase
         val pktInMsg = fishForRequestOfType[PacketIn](packetInProbe)
 
         val addedFlow = wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded]).f
-        flowProbe().testActor ! InvalidateFlowsByTag(FlowTagger.tagForDevice(pktInMsg.inputPort))
+        flowInvalidator.scheduleInvalidationFor(FlowTagger.tagForDevice(pktInMsg.inputPort))
         wflowRemovedProbe.expectMsgClass(classOf[WildcardFlowRemoved])
 
         val flow = new Flow(FlowMatches.fromEthernetPacket(ethPkt))
@@ -214,7 +215,7 @@ class FlowsExpirationTestCase extends MidolmanTestCase
         val timeAdded: Long = System.currentTimeMillis()
         val pktCtx = new PacketContext(0, null, flow.getMatch)
         pktCtx.callbackExecutor = CallbackExecutor.Immediate
-        pktCtx.lastInvalidation = FlowController.lastInvalidationEvent
+        pktCtx.lastInvalidation = FlowInvalidation.lastInvalidationEvent
         pktCtx.idleExpirationMillis = getDilatedTime(timeOutFlow).toInt
         pktCtx.hardExpirationMillis = 0
         flowProbe().testActor ! pktCtx
@@ -247,7 +248,7 @@ class FlowsExpirationTestCase extends MidolmanTestCase
         val pktInMsg = fishForRequestOfType[PacketIn](packetInProbe)
 
         val addedFlow = wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded]).f
-        flowProbe().testActor ! InvalidateFlowsByTag(FlowTagger.tagForDevice(pktInMsg.inputPort))
+        flowInvalidator.scheduleInvalidationFor(FlowTagger.tagForDevice(pktInMsg.inputPort))
         wflowRemovedProbe.expectMsgClass(classOf[WildcardFlowRemoved])
 
         val flow = new Flow(FlowMatches.fromEthernetPacket(ethPkt))
@@ -256,7 +257,7 @@ class FlowsExpirationTestCase extends MidolmanTestCase
         val timeAdded: Long = System.currentTimeMillis()
         val pktCtx = new PacketContext(0, null, flow.getMatch)
         pktCtx.callbackExecutor = CallbackExecutor.Immediate
-        pktCtx.lastInvalidation = FlowController.lastInvalidationEvent
+        pktCtx.lastInvalidation = FlowInvalidation.lastInvalidationEvent
         pktCtx.idleExpirationMillis = 0
         pktCtx.hardExpirationMillis = getDilatedTime(timeOutFlow).toInt
         flowProbe().testActor ! pktCtx
@@ -285,7 +286,7 @@ class FlowsExpirationTestCase extends MidolmanTestCase
         val pktInMsg = fishForRequestOfType[PacketIn](packetInProbe)
 
         val addedFlow = wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded]).f
-        flowProbe().testActor ! InvalidateFlowsByTag(FlowTagger.tagForDevice(pktInMsg.inputPort))
+        flowInvalidator.scheduleInvalidationFor(FlowTagger.tagForDevice(pktInMsg.inputPort))
         wflowRemovedProbe.expectMsgClass(classOf[WildcardFlowRemoved])
 
         val flow = new Flow(FlowMatches.fromEthernetPacket(ethPkt))
@@ -294,7 +295,7 @@ class FlowsExpirationTestCase extends MidolmanTestCase
         val timeAdded = System.currentTimeMillis()
         val pktCtx = new PacketContext(0, null, flow.getMatch)
         pktCtx.callbackExecutor = CallbackExecutor.Immediate
-        pktCtx.lastInvalidation = FlowController.lastInvalidationEvent
+        pktCtx.lastInvalidation = FlowInvalidation.lastInvalidationEvent
         pktCtx.idleExpirationMillis = getDilatedTime(timeOutFlow).toInt
         pktCtx.hardExpirationMillis = 0
         flowProbe().testActor ! pktCtx
