@@ -44,6 +44,14 @@ function clean() {
     rm -rf build
 }
 
+function build_protobuf_modules() {
+    mkdir -p src/midonetclient/topology/_protobuf
+    protoc -I=../cluster/src/main/proto/ --python_out=src/midonetclient/topology/_protobuf ../cluster/src/main/proto/commons.proto
+    protoc -I=../cluster/src/main/proto/ --python_out=src/midonetclient/topology/_protobuf ../cluster/src/main/proto/topology_api.proto
+    protoc -I=../cluster/src/main/proto/ --python_out=src/midonetclient/topology/_protobuf ../cluster/src/main/proto/topology.proto
+    touch src/midonetclient/topology/_protobuf/__init__.py
+}
+
 function build_man_pages() {
     ronn --roff doc/*.ronn 2> /dev/null
     gzip -f doc/*.1
@@ -93,6 +101,7 @@ case "$1" in
           exit 1
       fi
       clean
+      build_protobuf_modules
       build_man_pages
       package_deb
       ;;
@@ -108,6 +117,7 @@ case "$1" in
           exit 1
       fi
       clean
+      build_protobuf_modules
       build_man_pages
       package_rpm
       ;;
