@@ -1,0 +1,222 @@
+midonet-cli(1) -- MidoNet command line interface
+================================================
+
+## SYNOPSIS
+
+`midonet-cli` `--eval` <command>
+`midonet-cli`<br>
+midonet> list bridge<br>
+midonet> create bridge name demo<br>
+midonet> bridge bridge0 add port<br>
+midonet> delete bridge bridge0 port port0<br>
+midonet> exit
+
+## DESCRIPTION
+
+**midonet-cli** is a command line interface to browse and manipulate MidoNet's
+virtual topology. The default mode of operation is an interactive command
+prompt, but it can be used to run a command non-interactively, i.e. from a shell
+script.
+
+`midonet-cli` is a client to MidoNet's REST API server, therefore it requires
+credentials to authenticate before the REST API. These credentials and other
+settings such as the REST API's URL can be set via a config file, environment
+variables or command line options, in increasing order of precedence.
+
+MidoNet's virtual topology is organized in a tree-like hierarchy that can be
+browsed and modified. Details about each type of object are documented in their
+respective manpages (listed in [SEE ALSO][] below), the objects accessible at
+the root of the tree are listed in [TOP LEVEL OBJECTS][]. Likewise, [COMMANDS][]
+briefly lists all the available commands that work on those objects.
+
+## TOP LEVEL OBJECTS
+
+At the root of MidoNet's virtual topology, live the following object
+collections:
+
+  * `router` (see midonet-cli-router(1))
+  * `bridge` (see midonet-cli-bridge(1))
+  * `chain` (see midonet-cli-chain(1))
+  * `host` (see midonet-cli-host(1))
+  * `port-group` (see midonet-cli-port-group(1))
+  * `tunnel-zone` (see midonet-cli-tunnel-zone(1))
+  * `host-versions` (see midonet-cli-host-version(1))
+  * `system-state` (see midonet-cli-system-state(1))
+  * `write-version` (see midonet-cli-write-version(1))
+
+## COMMANDS
+
+  * `describe` [<OBJECT>] [<TYPE>]:
+  Shows the names of members of an object or object type.
+
+  * `list` [<OBJECT>] <TYPE>:
+  Lists all the objects in a collection.
+
+  * `show` <OBJECT> [<FIELD>]:
+  Prints the contents of an object or of one of its members.
+
+  * `create`|`add` [<OBJECT>] <TYPE> {<FIELD> <VALUE>}:
+  Creates a new object under a parent object, or at the root, and assigns values
+  to some of its members.
+
+  * `install` <TYPE> <FILE>:
+  Creates a new object of the specified object type from a given file.
+
+  * `set` <OBJECT> {<FIELD> <VALUE>}:
+  Updates values for members of an existing object.
+
+  * `delete` <OBJECT>:
+  Deletes an existing object.
+
+  * `sett` <TENANT>:
+  Sets the currently active tenant ID.
+
+  * `cleart`:
+  Clears the currently active tenant ID.
+
+  * `debug` `on`|`off`:
+  Toggles debug mode.
+
+## OBJECT ALIASES
+
+`midonet-cli` tries hard to let the user work without having to memorize
+or copy & paste object UUIDs.
+
+In interactive mode, `midonet-cli` will automatically generate object aliases
+for every object that it learns about. The CLI will learn about objects when
+the user lists them, shows them or creates them.
+
+For example, listing the routers in a virtual topology will create an alias for
+each of them, they can be used later interchangeably anywhere a UUID would be
+needed:
+
+  * Listing the routers in the system:
+    midonet> router list<br>
+    router router0 name demo<br>
+    router router1 name MidonetProviderRouter
+
+  * Showing the UUID of one of the routers:
+    midonet> router router1 show id<br>
+    74b32ca0-cc7f-4d17-8547-efa5f1fada54
+
+  * Listing the ports in a router:
+    midonet> router router1 list port<br>
+    port port0 device router1 mac 02:d6:2b:08:85:6f address 192.0.2.1 \ <br>
+    net 192.0.2.0/24 <br>
+    port port1 device router1 mac 02:78:16:e6:00:8a address 203.0.113.1 \ <br>
+    net 203.0.113.0/24 peer bridge0:port0
+
+  * The same command, using the UUID instead of the router alias:
+    midonet> router 74b32ca0-cc7f-4d17-8547-efa5f1fada54 list port<br>
+    port port0 device router1 mac 02:d6:2b:08:85:6f address 192.0.2.1 \ <br>
+    net 192.0.2.0/24<br>
+    port port1 device router1 mac 02:78:16:e6:00:8a address 203.0.113.1 \ <br>
+    net 203.0.113.0/24 peer bridge0:port0
+
+Aliases for children are scoped to their parent object. In this case, a port's
+alias is scoped within its parent router, thus there could be a <router0:port0>
+and a <router1:port0> in the same system.
+
+Because aliases are created on demand as the CLI discovers the objects, each
+CLI session starts with an empty alias database. This has two implications:
+
+  * The same object may receive different aliases in different sessions, if the
+    CLI discovers it in different order.
+  * There are no aliases in clean session, the command to list a router's ports
+    by alias above would not have worked if the routers hadn't been listed
+    before. This doesn't happen with UUIDs.
+
+## CONFIGURATION FILE
+
+`midonet-cli` will load configuration options from `~/.midonetrc`, if found.
+The file should be in ini format, `midonet-cli` options will be looked up in
+the `[cli]` section:
+
+  * `api_url`:
+    MidoNet API server URL.
+
+  * `username`:
+    Username for connection to the REST API.
+
+  * `password`:
+    Password.
+
+  * `project_id`:
+    The MidoNet project ID.
+
+  * `tenant`:
+    The virtual topology tenant to start the session with, it may later be
+    changed at will in the middle of an interactive session.  To not load
+    any tenant, set it to an empty string.
+
+## OPTIONS
+
+The options below modify `midonet-cli`'s behaviour, overriding those found in
+the configuration file or environment variables.
+
+Authentication options:
+
+  * `--midonet-url` <URL>:
+    MidoNet API server URL.
+
+  * `-u` <USERNAME>, `--user` <USERNAME>:
+    The username to use when connecting to the REST API.
+
+  * `-p`, `--password`:
+    Prompt for the user's password interactively.
+
+  * `-i` <PROJECT_ID>, `--project-id` <PROJECT_ID>:
+    The MidoNet project ID.
+
+  * `--tenant` <TENANT>:
+    The virtual topology tenant to start the session with, it may later be
+    changed at will in the middle of an interactive session.
+
+  * `-A`, `--no-auth`:
+    Don't require authentication parameters, useful if the REST API is set up
+    in mock-auth mode.
+
+Miscellaneous options:
+
+  * `-e` <COMMAND>, `--eval` <COMMAND>:
+    Execute <COMMAND> in non-interactive mode and exit.
+
+  * `-d`, `--debug`:
+    Enable debug mode.
+
+  * `-h`, `--help`:
+    Print a brief help message.
+
+## ENVIRONMENT
+
+  * `MIDO_API_URL`:
+    The URL for the MidoNet's REST API (see [FILES][] above).
+
+  * `MIDO_USER`:
+    REST API user name (see [FILES][] above).
+
+  * `MIDO_PROJECT_ID`:
+    The OpenStack project ID (see [FILES][] above).
+
+  * `MIDO_TENANT`:
+    Tenant name (see [FILES][] above).
+
+## EXAMPLES
+
+This is an example configuration file:
+
+  `[cli]`<br>
+  `api_url`=<http://localhost:8080/midonet-api><br>
+  `username`=admin<br>
+  `password`=admin_pass<br>
+  `project_id`=midonet_provider<br>
+  `tenant`=demo
+
+## COPYRIGHT
+
+midonet-cli is Copyright (C) 2013 Midokura PTE LTD.
+
+## SEE ALSO
+
+midonet-cli-router(1), midonet-cli-bridge(1), midonet-cli-chain(1),
+midonet-cli-host(1), midonet-cli-port-group(1), midonet-cli-tunnel-zone(1)

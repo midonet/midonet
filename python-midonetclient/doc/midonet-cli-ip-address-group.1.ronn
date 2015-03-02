@@ -1,0 +1,40 @@
+midonet-cli-ip-address-group(1) -- IP address groups in midonet-cli
+=========================================================
+
+## SYNOPSIS
+
+    midonet> ip-address-group list
+    midonet> ip-address-group create name ipa_group
+    midonet> ip-address-group ip-address-group0 delete
+    midonet> ip-address-group ip-address-group0 list ip
+    midonet> ip-address-group ip-address-group0 add ip address 192.168.1.100
+    midonet> ip-address-group ip-address-group0 delete ip address 192.168.1.100
+
+## DESCRIPTION
+
+IP address groups allow the grouping of IP addresses to ease the creation of
+chain rules.
+
+## ATTRIBUTES
+
+An IP address group has these attributes:
+
+  * `name` <STRING>
+
+It contains a collection of IP address elements:
+
+  * `ip` (see [IP ADDRESS MEMBERS][] below)
+
+## IP ADDRESS MEMBERS
+
+Attribute:
+
+  * `address` <IP_ADDRESS>
+
+## COPYRIGHT
+
+midonet-cli is Copyright (C) 2014 Midokura PTE LTD.
+
+## SEE ALSO
+
+midonet-cli(1), midonet-cli-chain(1)

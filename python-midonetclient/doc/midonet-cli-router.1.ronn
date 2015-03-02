@@ -1,0 +1,87 @@
+midonet-cli-router(1) -- Router objects in midonet-cli
+======================================================
+
+## SYNOPSIS
+
+    midonet> router list
+    midonet> router create name demo
+    midonet> router router0 add port address 192.0.2.1 net 192.0.2.0/24
+    midonet> router router0 list port<br>
+    midonet> router router0 port port0 add bgp peer 192.0.2.2 \
+             local-AS 1 peer-AS 2
+    midonet> router router0 port port0 bgp bgp0 add route 203.0.113.0/24
+    midonet> router router0 set infilter chain chain0
+    midonet> router router0 clear infilter
+
+## DESCRIPTION
+
+Routers are MidoNet's L3 forwarding elements.
+
+## ATTRIBUTES
+
+A router has these attributes:
+
+  * `name` <STRING>
+  * `state` `up`|`down`
+  * `infilter` <CHAIN>
+  * `outfilter` <CHAIN>
+
+It contains these subcollections of elements:
+
+  * `port` (see [ROUTER PORTS][] below)
+  * `route` (see [ROUTES][] below)
+
+## ROUTES
+
+Attributes:
+
+  * `type` `normal`|`blackhole`|`reject`
+  * `src` <CIDR>
+  * `dst` <CIDR>
+  * `gw` <IP_ADDR>
+  * `port` <PORT>
+  * `weight` <INTEGER>
+
+## ROUTER PORTS
+
+Attributes:
+
+  * `type` `interior`|`exterior`
+  * `state` `up`|`down`
+  * `device` <ROUTER>
+  * `infilter` <CHAIN>
+  * `outfilter` <CHAIN>
+  * `mac` <MAC_ADDRESS>
+  * `address` <IP_ADDRESS>
+  * `net` <CIDR>
+  * `peer` <PORT>
+
+Children object collections:
+
+  * `bgp` (see [BGP][] below).
+
+## BGP
+
+Attributes:
+
+  * `local-AS` <INTEGER>
+  * `peer-AS` <INTEGER>
+  * `peer` <IP_ADDRESS>
+
+Children object collections:
+
+  * `route` (see [AD ROUTES][] below).
+
+## AD ROUTES
+
+Attributes:
+
+  * `net` <CIDR>
+
+## COPYRIGHT
+
+midonet-cli is Copyright (C) 2013 Midokura PTE LTD.
+
+## SEE ALSO
+
+midonet-cli(1), midonet-cli-chain(1), midonet-cli-host(1)

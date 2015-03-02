@@ -1,0 +1,75 @@
+midonet-cli-bridge(1) -- Bridge objects in midonet-cli
+======================================================
+
+## SYNOPSIS
+
+    midonet> bridge list
+    midonet> bridge create name demo
+    midonet> bridge bridge0 add port
+    midonet> bridge bridge0 list port
+    midonet> bridge bridge0 add dhcp gw 203.0.113.1 subnet 203.0.113.0/24
+    midonet> bridge bridge0 dhcp subnet 203.0.113.0/24 add host name HostName \
+             mac 01:02:03:04:05:06<br>
+    midonet> bridge bridge0 set infilter chain chain0
+    midonet> bridge bridge0 clear infilter
+
+
+## DESCRIPTION
+
+Bridges are MidoNet's L2 forwarding elements.
+
+## ATTRIBUTES
+
+A bridge has these attributes:
+
+  * `name` <STRING>
+  * `state` `up`|`down`
+  * `infilter` <CHAIN>
+  * `outfilter` <CHAIN>
+
+It contains these subcollections of elements:
+
+  * `port` (see [BRIDGE PORTS][] below)
+  * `dhcp` (see [DHCP SUBNETS][] below)
+
+## DHCP SUBNETS
+
+Attributes:
+
+  * `gw` <IP_ADDRESS>
+  * `subnet` <CIDR>
+  * `interface-mtu` <INTEGER>
+  * `opt121-routes` <CIDR[,CIDR...]>
+
+It contains these subcollections of elements:
+
+  * `host` (see [DHCP HOSTS][] below)
+
+## DHCP HOSTS
+
+Attributes:
+
+  * `name` <STRING>
+  * `address` <IP_ADDRESS>
+  * `mac` <MAC_ADDRESS>
+
+## BRIDGE PORTS
+
+Attributes:
+
+  * `device` <BRIDGE>
+  * `state` `up`|`down`
+  * `infilter` <CHAIN>
+  * `outfilter` <CHAIN>
+  * `vlan` <VLAN_ID>
+  * `peer` <PORT>
+  * `management-ip` <IP_ADDRESS> (only for a VXLAN port)
+  * `vni` <INTEGER> (only for a VXLAN port)
+
+## COPYRIGHT
+
+midonet-cli is Copyright (C) 2013 Midokura PTE LTD.
+
+## SEE ALSO
+
+midonet-cli(1), midonet-cli-chain(1), midonet-cli-host(1)

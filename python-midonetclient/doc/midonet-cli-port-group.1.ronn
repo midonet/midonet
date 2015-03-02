@@ -1,0 +1,38 @@
+midonet-cli-port-group(1) -- Port groups in midonet-cli
+=========================================================
+
+## SYNOPSIS
+
+    midonet> port-group list
+    midonet> port-group pgroup0 list member
+    midonet> port-group pgroup0 add member port router0:port0
+    midonet> port-group pgroup0 delete member port router0:port0
+
+## DESCRIPTION
+
+Port groups allow the grouping of virtual ports to ease the creation of chain
+rules.
+
+## ATTRIBUTES
+
+A port group has these attributes:
+
+  * `name` <STRING>
+
+It contains these subcollections of elements:
+
+  * `member` (see [TUNNEL ZONE MEMBERS][] below)
+
+## TUNNEL ZONE MEMBERS
+
+Attributes:
+
+  * `port` <PORT>
+
+## COPYRIGHT
+
+midonet-cli is Copyright (C) 2013 Midokura PTE LTD.
+
+## SEE ALSO
+
+midonet-cli(1), midonet-cli-chain(1)
