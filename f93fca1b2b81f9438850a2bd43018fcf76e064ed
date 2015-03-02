@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_d2c075e2",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BridgeMapper.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 356,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-02T17:47:29Z",
+      "side": 1,
+      "message": "doOnError unsubscribe from the MAC updates and timer",
+      "revId": "f93fca1b2b81f9438850a2bd43018fcf76e064ed",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
