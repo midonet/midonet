@@ -124,15 +124,15 @@ def _test_resiliency_from_transient_loop(ping, midoVmIface, exHostIface):
         LOG.debug("MN didn't recover from a bad state caused by a "
                   "transient loop within the timeframe of pinging 5 times.")
 
-        # Give MM a chance for 100 secs[*1 + *2 + *3] to recover,
+        # Give MM a chance for 161 secs to recover
         # in which all the associated states are going to expire.
-        # *1 idle flow expiration
-        #    (hardcoded; 60 secs)
+        # *1 hard timeout expiration
+        #    (default 120 secs)
         # *2 mac-port learning expiration
         #    (bridge.mac_port_mapping_expire_millis; 30 secs by default)
-        # *3 FlowController checks for flow expiration every 10 seconds
-        #    (comment from Guillermo)
-        time.sleep(100)
+        # *3 FlowController periodically checks for flow expiration
+        #    (default 10 seconds)
+        time.sleep(161)
 
         # Now assert that ping works
         #
@@ -186,11 +186,15 @@ def test_icmp_to_mn():
 
 # approx. 50 sec for the peer Linux bridge to failover:
 # 20s to detect, 15s in listening, another 15s in learning
-FAILOVER_WAIT_SEC = 50 + 5
+# but actually we need to wait 2 minutes for the flow to expire
+# FAILOVER_WAIT_SEC = 50 + 5
+FAILOVER_WAIT_SEC = 175
 
 # approx. 30 sec for the peer Linux bridge to failback:
 # 15s in listening, 15s in learning
-FAILBACK_WAIT_SEC = 30 + 5
+# but actually we need to wait 2 minutes for the flow to expire
+#FAILBACK_WAIT_SEC = 30 + 5
+FAILBACK_WAIT_SEC = 155
 
 @nottest
 def _test_failover(ping, failover, restore):
