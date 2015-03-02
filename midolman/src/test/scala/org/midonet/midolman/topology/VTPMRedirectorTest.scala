@@ -109,7 +109,7 @@ class VTPMRedirectorTest extends TestKit(ActorSystem("VTPMRedirectorTest"))
     }
 
     private def addTunnelToHost(host: ProtoHost, tzId: UUID): ProtoHost = {
-        val hosts = host.getPortInterfaceMappingList.map(portToInterface =>
+        val hosts = host.getPortBindingsList.map(portToInterface =>
             (portToInterface.getPortId.asJava, portToInterface.getInterfaceName)
         ).toMap
         val updatedHost = createHost(host.getId, hosts, Set(tzId))

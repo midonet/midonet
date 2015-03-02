@@ -22,7 +22,7 @@ import scala.util.Random
 
 import org.midonet.cluster.models.Commons
 import org.midonet.cluster.models.Commons.{IPAddress, IPVersion}
-import org.midonet.cluster.models.Topology.Host.PortToInterface
+import org.midonet.cluster.models.Topology.Host.PortBinding
 import org.midonet.cluster.models.Topology.Route.NextHop
 import org.midonet.cluster.models.Topology.Rule.{Action, JumpRuleData, NatTarget}
 import org.midonet.cluster.models.Topology.TunnelZone.HostToIp
@@ -129,8 +129,8 @@ trait TopologyBuilder {
                              tunnelZoneIds: Set[UUID] = Set.empty): Host = {
         Host.newBuilder
             .setId(id.asProto)
-            .addAllPortInterfaceMapping(
-                portBindings.map(e => PortToInterface.newBuilder
+            .addAllPortBindings(
+                portBindings.map(e => PortBinding.newBuilder
                     .setPortId(e._1.asProto).setInterfaceName(e._2).build())
                     .asJava)
             .addAllTunnelZoneIds(tunnelZoneIds.map(_.asProto).asJava)

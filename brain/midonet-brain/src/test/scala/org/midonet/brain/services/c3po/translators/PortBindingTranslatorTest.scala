@@ -59,11 +59,11 @@ class PortBindingTranslatorTest extends FlatSpec with BeforeAndAfter
         """)
     private val host2With2Bindings = mHostFromTxt(s"""
             id { $host2With2BindingsId }
-            port_interface_mapping {
+            port_bindings {
                 port_id { $portXOnHost2Id }
                 interface_name: "$host2InterfaceA"
             }
-            port_interface_mapping {
+            port_bindings {
                 port_id { $portYOnHost2Id }
                 interface_name: "$host2InterfaceB"
             }
@@ -138,7 +138,7 @@ class PortBindingTranslatorTest extends FlatSpec with BeforeAndAfter
 
         val host1WithPort1Bound = mHostFromTxt(s"""
             id { $host1NoBindingsId }
-            port_interface_mapping {
+            port_bindings {
                 port_id { $newPortId }
                 interface_name: "$newIface"
             }
@@ -157,15 +157,15 @@ class PortBindingTranslatorTest extends FlatSpec with BeforeAndAfter
 
         val host2WithNewInterfacePort = mHostFromTxt(s"""
             id { $host2With2BindingsId }
-            port_interface_mapping {
+            port_bindings {
                 port_id { $portXOnHost2Id }
                 interface_name: "$host2InterfaceA"
             }
-            port_interface_mapping {
+            port_bindings {
                 port_id { $portYOnHost2Id }
                 interface_name: "$host2InterfaceB"
             }
-            port_interface_mapping {
+            port_bindings {
                 port_id { $newPortId }
                 interface_name: "$newIface"
             }
@@ -212,7 +212,7 @@ class PortBindingTranslatorTest extends FlatSpec with BeforeAndAfter
 
         val host2With1Binding = mHostFromTxt(s"""
             id { $host2With2BindingsId }
-            port_interface_mapping {
+            port_bindings {
                 port_id { $portXOnHost2Id }
                 interface_name: "$host2InterfaceA"
             }

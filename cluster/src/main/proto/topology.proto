@@ -316,11 +316,11 @@ message Host {
     optional string name = 2;
     repeated IPAddress addresses = 3;
 
-    message PortToInterface {
+    message PortBinding {
         optional UUID port_id = 1;
         optional string interface_name = 2;
     }
-    repeated PortToInterface port_interface_mapping = 4;
+    repeated PortBinding port_bindings = 4;
     repeated UUID tunnel_zone_ids = 5;
     optional int32 flooding_proxy_weight = 6;
 }
