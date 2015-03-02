@@ -44,7 +44,7 @@ trait FlowInvalidation extends FlowLifecycle {
     private val tagToFlows = new HashMap[FlowTag, Set[ManagedFlow]]()
     val log: Logger
 
-    override def registerFlow(flow: ManagedFlow): Unit = {
+    abstract override def registerFlow(flow: ManagedFlow): Unit = {
         super.registerFlow(flow)
         val numTags = flow.tags.size()
         var i = 0
@@ -54,7 +54,7 @@ trait FlowInvalidation extends FlowLifecycle {
         }
     }
 
-    override def removeFlow(flow: ManagedFlow): Unit = {
+    abstract override def removeFlow(flow: ManagedFlow): Unit = {
         super.removeFlow(flow)
         val numTags = flow.tags.size()
         var i = 0
