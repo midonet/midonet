@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_9c545622",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/AgentMembershipTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-03-02T08:23:38Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_3c8562d0",
+      "range": {
+        "startLine": 76,
+        "startChar": 44,
+        "endLine": 76,
+        "endChar": 71
+      },
+      "revId": "acad16362e94f3536cb15a6a2c27d7adac5f784f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_bcab121c",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/TunnelZoneManager.scala",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2015-03-02T07:51:10Z",
       "side": 1,
       "message": "\"return\" is not needed here.",
+      "range": {
+        "startLine": 54,
+        "startChar": 8,
+        "endLine": 54,
+        "endChar": 14
+      },
+      "revId": "acad16362e94f3536cb15a6a2c27d7adac5f784f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_bc59525c",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/TunnelZoneManager.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-03-02T08:23:38Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_bcab121c",
       "range": {
         "startLine": 54,
         "startChar": 8,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_fc32aa0e",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/C3POMinionTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 789,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-03-02T08:23:38Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_fc646a23",
+      "range": {
+        "startLine": 785,
+        "startChar": 0,
+        "endLine": 789,
+        "endChar": 58
+      },
+      "revId": "acad16362e94f3536cb15a6a2c27d7adac5f784f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_dc67ee23",
         "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/C3POMinionTest.scala",
         "patchSetId": 1
@@ -82,6 +154,30 @@
       "writtenOn": "2015-03-02T07:51:10Z",
       "side": 1,
       "message": "This too.",
+      "range": {
+        "startLine": 798,
+        "startChar": 0,
+        "endLine": 800,
+        "endChar": 49
+      },
+      "revId": "acad16362e94f3536cb15a6a2c27d7adac5f784f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_dc352ef8",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/C3POMinionTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 800,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-03-02T08:23:38Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_dc67ee23",
       "range": {
         "startLine": 798,
         "startChar": 0,
