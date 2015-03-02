@@ -258,7 +258,7 @@ object MidolmanStat extends App {
         metrics.run(opts.delay.get.get, opts.count.get.get)
     } catch {
         case e: Throwable =>
-            System.err.println("[mm-stat] " + e.getMessage)
+            System.err.println("[mm-stat] " + e.getCause)
             System.exit(1)
     }
 }
