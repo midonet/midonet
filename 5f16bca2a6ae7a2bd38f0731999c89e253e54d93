@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_2fcc02bc",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/SessionInventory.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-03-02T11:06:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_fc610a3a",
+      "range": {
+        "startLine": 65,
+        "startChar": 34,
+        "endLine": 65,
+        "endChar": 45
+      },
+      "revId": "5f16bca2a6ae7a2bd38f0731999c89e253e54d93",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_5c693e24",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/SessionInventory.scala",
         "patchSetId": 15
@@ -36,6 +60,30 @@
       "writtenOn": "2015-03-02T09:11:40Z",
       "side": 1,
       "message": "Just a suggestion / nit. I\u0027d indent this so that .setType(...) would be aligned with \".newBuilder()\" above.",
+      "range": {
+        "startLine": 84,
+        "startChar": 12,
+        "endLine": 87,
+        "endChar": 25
+      },
+      "revId": "5f16bca2a6ae7a2bd38f0731999c89e253e54d93",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_0fcf86b1",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/SessionInventory.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-03-02T11:06:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_5c693e24",
       "range": {
         "startLine": 84,
         "startChar": 12,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_6fc55a8d",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/SessionInventory.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-03-02T11:06:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_bc7832f3",
+      "range": {
+        "startLine": 88,
+        "startChar": 8,
+        "endLine": 89,
+        "endChar": 55
+      },
+      "revId": "5f16bca2a6ae7a2bd38f0731999c89e253e54d93",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_dc99ae20",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/SessionInventory.scala",
         "patchSetId": 15
@@ -82,6 +154,30 @@
       "writtenOn": "2015-03-02T09:11:40Z",
       "side": 1,
       "message": "Ditto.",
+      "range": {
+        "startLine": 101,
+        "startChar": 16,
+        "endLine": 102,
+        "endChar": 63
+      },
+      "revId": "5f16bca2a6ae7a2bd38f0731999c89e253e54d93",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_4fc05e7c",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/SessionInventory.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-03-02T11:06:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_dc99ae20",
       "range": {
         "startLine": 101,
         "startChar": 16,
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_8fba5608",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/SessionInventory.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-03-02T11:06:11Z",
+      "side": 1,
+      "message": "Not sure what do you mean by \u0027above\u0027",
+      "parentUuid": "7a1969be_1ca4e655",
+      "range": {
+        "startLine": 112,
+        "startChar": 24,
+        "endLine": 112,
+        "endChar": 54
+      },
+      "revId": "5f16bca2a6ae7a2bd38f0731999c89e253e54d93",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_fc190a89",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/SessionInventory.scala",
         "patchSetId": 15
@@ -128,6 +248,30 @@
       "writtenOn": "2015-03-02T09:11:40Z",
       "side": 1,
       "message": "I guess it\u0027s no longer needed thanks to Alex\u0027s change?",
+      "range": {
+        "startLine": 463,
+        "startChar": 30,
+        "endLine": 463,
+        "endChar": 46
+      },
+      "revId": "5f16bca2a6ae7a2bd38f0731999c89e253e54d93",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_0f466623",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/SessionInventory.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 463,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-03-02T11:06:11Z",
+      "side": 1,
+      "message": "Not sure to which change you are referring to... Is there an implicit conversion from UUID to Commons.UUID?",
+      "parentUuid": "7a1969be_fc190a89",
       "range": {
         "startLine": 463,
         "startChar": 30,
