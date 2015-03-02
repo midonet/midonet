@@ -17,7 +17,6 @@ package org.midonet.sdn.flows
 
 import java.util.ArrayList
 
-
 import org.midonet.midolman.CallbackExecutor
 import org.midonet.midolman.simulation.PacketContext
 import org.midonet.odp.FlowMatch
@@ -27,67 +26,42 @@ import org.midonet.util.functors.Callback0
 
 /**
  * A ManagedWildcardFlow that is stored in a pool.
- * Once the instance is no longer used, the pool entry can be reused.
+ * Once the instance is no longer used, the  pool entry can be reused.
  *
  * Users should refrain from changing attributes after resetting.
  */
 final class ManagedFlow(override val pool: ObjectPool[ManagedFlow])
         extends PooledObject {
 
-    var creationTimeMillis: Long = 0L
-    var lastUsedTimeMillis: Long = 0L
     val callbacks = new ArrayList[Callback0]()
     val tags = new ArrayList[FlowTag]
-
     val flowMatch = new FlowMatch()
-    var hardExpirationMillis = 0
+    var expirationType = 0
+    var absoluteExpirationNanos = 0L
     var cbExecutor: CallbackExecutor = _
 
-    def reset(pktCtx: PacketContext) = {
-        this.flowMatch.reset(pktCtx.origMatch)
-        this.hardExpirationMillis = pktCtx.expiration
-        this.cbExecutor = pktCtx.callbackExecutor
-        this.tags.addAll(pktCtx.flowTags)
-        this.callbacks.addAll(pktCtx.flowRemovedCallbacks)
-        this
+    def reset(pktCtx: PacketContext, now: Long): Unit = {
+        flowMatch.reset(pktCtx.origMatch)
+        expirationType = pktCtx.expiration.typeId
+        absoluteExpirationNanos = now + pktCtx.expiration.value
+        cbExecutor = pktCtx.callbackExecutor
+        tags.addAll(pktCtx.flowTags)
+        callbacks.addAll(pktCtx.flowRemovedCallbacks)
     }
 
     def clear(): Unit = {
-        this.flowMatch.clear()
-        this.callbacks.clear()
-        this.tags.clear()
+        flowMatch.clear()
+        callbacks.clear()
+        tags.clear()
     }
-
-    def getLastUsedTimeMillis = lastUsedTimeMillis
-    def getCreationTimeMillis = creationTimeMillis
-
-    def setLastUsedTimeMillis(lastUsedTimeMillis: Long): this.type = {
-        this.lastUsedTimeMillis = lastUsedTimeMillis
-        this
-    }
-
-    def setCreationTimeMillis(creationTimeMillis: Long): this.type = {
-        this.creationTimeMillis = creationTimeMillis
-        this
-    }
-
-    override def hashCode(): Int =
-       flowMatch.hashCode()
 
     override def toString: String = {
         "ManagedFlow{"+
             "objref=" + System.identityHashCode(this) +
             ", flowMatch=" + flowMatch +
             ", flowMatch hash=" + flowMatch.hashCode() +
-            ", creationTimeMillis=" + creationTimeMillis +
-            ", lastUsedTimeMillis=" + lastUsedTimeMillis +
-            ", hardExpirationMillis=" + hardExpirationMillis +
+            ", expiration=" + absoluteExpirationNanos +
             ", refs=" + currentRefCount +
             '}'
-    }
-
-    override def equals(other: Any): Boolean = other match {
-        case that: ManagedFlow => that.flowMatch.equals(flowMatch)
-        case _ => false
     }
 }

@@ -234,7 +234,7 @@ def test_distributed_l4_expiration():
     check_forward_flow(port_num)
     check_return_flow(left_uplink_port(), left_uplink_iface(), port_num)
 
-    time.sleep(90)
+    time.sleep(90) # Less than the 2 minute hard expiration for return flows
 
     check_return_flow(left_uplink_port(), left_uplink_iface(),
                       port_num, dropped = True)
