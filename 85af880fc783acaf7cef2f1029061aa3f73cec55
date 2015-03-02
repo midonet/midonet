@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_7c26bacf",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/HostMapperTest.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 126,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-02T08:23:42Z",
+      "side": 1,
+      "message": "This can\u0027t work because the awaitable observer is waiting for two events and you have not removed the host from the tunnel zone yet. This should be removed.",
+      "range": {
+        "startLine": 126,
+        "startChar": 12,
+        "endLine": 126,
+        "endChar": 51
+      },
+      "revId": "85af880fc783acaf7cef2f1029061aa3f73cec55",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
