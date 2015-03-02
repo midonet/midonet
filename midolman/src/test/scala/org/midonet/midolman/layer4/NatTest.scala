@@ -66,7 +66,7 @@ class NatTest extends MidolmanSpec {
     private final val log = LoggerFactory.getLogger(classOf[NatTest])
 
     registerActors(VirtualTopologyActor -> (() => new VirtualTopologyActor),
-                   FlowController -> (() => new FlowController))
+                   FlowController -> (() => injector.getInstance(classOf[FlowController])))
 
     val portMap: BiMap[Integer,UUID] = HashBiMap.create()
     val vmNetworkIp = new IPv4Subnet("10.0.0.0", 24)
