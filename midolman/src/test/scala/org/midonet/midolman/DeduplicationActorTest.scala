@@ -184,7 +184,7 @@ class DeduplicationActorTest extends MidolmanSpec {
             dda.suspended(pkts(0).getMatch) should be (null)
         }
 
-        scenario("emits suspendes packets after a simulation") {
+        scenario("emits suspended packets after a simulation") {
             Given("three different packets with the same match")
             val pkts = List(makePacket(1), makeUniquePacket(1), makeUniquePacket(1))
 
