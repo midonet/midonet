@@ -16,16 +16,15 @@
 # under the License.
 
 import ddt
-from ddt import data
 import unittest
 
 from midonetclient import util
 
 
-@ddt
+@ddt.ddt
 class TestUtil(unittest.TestCase):
 
-    @data(
+    @ddt.data(
         ("foo", "foo"),
         ("foo_bar", "foo_bar"),
         ("Foo", "foo"),
@@ -36,7 +35,7 @@ class TestUtil(unittest.TestCase):
         input, expected = data
         self.assertEqual(expected, util.camel_to_snake(input))
 
-    @data(
+    @ddt.data(
         ("foo", "foo"),
         ("fooBar", "fooBar"),
         ("Foo", "Foo"),
@@ -47,7 +46,7 @@ class TestUtil(unittest.TestCase):
         input, expected = data
         self.assertEqual(expected, util.snake_to_camel(input))
 
-    @data(
+    @ddt.data(
         (None, None),
         ({}, {}),
         ([], []),
@@ -67,7 +66,7 @@ class TestUtil(unittest.TestCase):
         output = util.convert_dict_keys(input, to_upper)
         self.assertTrue(cmp(expected, output) == 0)
 
-    @data(
+    @ddt.data(
         ({"foo_bar": 0}, {"fooBar": 0}),
         ([{"foo_bar": 0}, {"foo_baz": 1}], [{"fooBar": 0}, {"fooBaz": 1}])
     )

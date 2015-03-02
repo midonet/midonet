@@ -1,0 +1,39 @@
+// Test protobuf definitions. Compilable from midonet/pythonmidonet-client
+// doing protoc -I=src --python_out=src/tests/ src/tests/test.proto
+package prototest;
+
+message Exhaustive {
+    extensions 111 to 211;
+
+    message Nested {
+        required string nest = 1;
+    }
+
+    enum Enum {
+        First = 0;
+        Second = 1;
+        Third = 3;
+        Fourth = 4;
+    }
+
+    required bool b = 1;
+    required bytes by = 2;
+    required double d = 3;
+    required Enum e = 4;
+    required int32 i32 = 5;
+    required int64 i64 = 6;
+    required fixed32 f32 = 7;
+    required fixed64 f64 = 8;
+    required float f = 9;
+    required Nested nested = 10;
+    required string s = 11;
+    required uint32 u32 = 12;
+    required uint64 u64 = 13;
+    repeated string tags = 14;
+    repeated Nested nests = 15;
+}
+
+extend Exhaustive {
+    optional uint64 number = 111;
+    optional string name = 112;
+}
