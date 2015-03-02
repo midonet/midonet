@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_1c9ea656",
+        "filename": "cluster/src/main/proto/neutron.proto",
+        "patchSetId": 1
+      },
+      "lineNbr": 242,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-03-02T03:41:09Z",
+      "side": 1,
+      "message": "Just a mental note:  NeutronTunnelZone is also going to be deleted in the same patch.",
+      "revId": "acad16362e94f3536cb15a6a2c27d7adac5f784f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
