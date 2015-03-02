@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_125ccd24",
+        "filename": "midolman/src/deb/bin/wdog",
+        "patchSetId": 3
+      },
+      "lineNbr": 136,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-03-02T15:12:49Z",
+      "side": 1,
+      "message": "will do.",
+      "parentUuid": "7a1969be_6f96fa4d",
+      "range": {
+        "startLine": 136,
+        "startChar": 17,
+        "endLine": 136,
+        "endChar": 21
+      },
+      "revId": "76ad6cfddfc4e06f05284c3cb97bb05f04bed10e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_cfa56eb6",
         "filename": "midolman/src/deb/bin/wdog",
         "patchSetId": 3
@@ -36,6 +60,30 @@
       "writtenOn": "2015-03-02T12:33:47Z",
       "side": 1,
       "message": "if here should be an elif to keep it consistent.",
+      "range": {
+        "startLine": 221,
+        "startChar": 0,
+        "endLine": 221,
+        "endChar": 8
+      },
+      "revId": "76ad6cfddfc4e06f05284c3cb97bb05f04bed10e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_7242613f",
+        "filename": "midolman/src/deb/bin/wdog",
+        "patchSetId": 3
+      },
+      "lineNbr": 221,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-03-02T15:12:49Z",
+      "side": 1,
+      "message": "will do.",
+      "parentUuid": "7a1969be_cfa56eb6",
       "range": {
         "startLine": 221,
         "startChar": 0,
@@ -65,6 +113,24 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_523da5ba",
+        "filename": "midolman/src/main/java/org/midonet/midolman/WatchedProcess.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-03-02T15:12:49Z",
+      "side": 1,
+      "message": "i think it\u0027s best  to remove it. I\u0027ll do that.",
+      "parentUuid": "7a1969be_efb78ad6",
+      "revId": "76ad6cfddfc4e06f05284c3cb97bb05f04bed10e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_cfba8ebf",
         "filename": "midolman/src/main/java/org/midonet/midolman/WatchedProcess.java",
         "patchSetId": 3
@@ -76,6 +142,30 @@
       "writtenOn": "2015-03-02T12:33:47Z",
       "side": 1,
       "message": "should be scheduleAtFixedRate",
+      "range": {
+        "startLine": 123,
+        "startChar": 14,
+        "endLine": 123,
+        "endChar": 22
+      },
+      "revId": "76ad6cfddfc4e06f05284c3cb97bb05f04bed10e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_b24cd971",
+        "filename": "midolman/src/main/java/org/midonet/midolman/WatchedProcess.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 123,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-03-02T15:12:49Z",
+      "side": 1,
+      "message": "will change.",
+      "parentUuid": "7a1969be_cfba8ebf",
       "range": {
         "startLine": 123,
         "startChar": 14,
