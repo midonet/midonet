@@ -16,6 +16,24 @@
       "revId": "0aa8ccbf1c2e7e7ffe53c47ac15009052bfcb447",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_8f4a56aa",
+        "filename": "midolman/src/main/java/org/midonet/cluster/LocalDataClientImpl.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 3390,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-03-02T13:56:41Z",
+      "side": 1,
+      "message": "My understanding of the neutron stuff, is that neutron will be the canonical source, and our data models will be read only. It means all the api level stuff will need to be reimplemented when we move to neutron.",
+      "parentUuid": "7a1969be_355c5e25",
+      "revId": "0aa8ccbf1c2e7e7ffe53c47ac15009052bfcb447",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
