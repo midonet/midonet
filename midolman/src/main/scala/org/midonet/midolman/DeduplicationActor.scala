@@ -68,7 +68,7 @@ object DeduplicationActor {
     case class EmitGeneratedPacket(egressPort: UUID, eth: Ethernet,
                                    parentCookie: Option[Int] = None)
 
-    case class RestartWorkflow(pktCtx: PacketContext)
+    case class RestartWorkflow(pktCtx: PacketContext, error: Throwable)
 
     // This class holds a cache of actions we use to apply the result of a
     // simulation to pending packets while that result isn't written into
@@ -242,12 +242,15 @@ class DeduplicationActor(
         case CallbackExecutor.CheckCallbacks =>
             cbExecutor.run()
 
-        case RestartWorkflow(pktCtx) =>
+        case RestartWorkflow(pktCtx, error) =>
             if (pktCtx.idle) {
                 metrics.packetsOnHold.dec()
                 pktCtx.log.debug("Restarting workflow")
                 MDC.put("cookie", pktCtx.cookieStr)
-                runWorkflow(pktCtx)
+                if (error eq null)
+                    runWorkflow(pktCtx)
+                else
+                    handleErrorOn(pktCtx, error)
                 MDC.remove("cookie")
             }
             // Else the packet may have already been expired and dropped
@@ -299,9 +302,9 @@ class DeduplicationActor(
         }
         f.onComplete {
             case Success(_) =>
-                self ! RestartWorkflow(pktCtx)
+                self ! RestartWorkflow(pktCtx, null)
             case Failure(ex) =>
-                handleErrorOn(pktCtx, ex)
+                self ! RestartWorkflow(pktCtx, ex)
         }(ExecutionContext.callingThread)
         metrics.packetPostponed()
         giveUpWorkflows(waitingRoom enter pktCtx)
