@@ -124,15 +124,15 @@ def _test_resiliency_from_transient_loop(ping, midoVmIface, exHostIface):
         LOG.debug("MN didn't recover from a bad state caused by a "
                   "transient loop within the timeframe of pinging 5 times.")
 
-        # Give MM a chance for 100 secs[*1 + *2 + *3] to recover,
+        # Give MM a chance for 150 secs to recover
         # in which all the associated states are going to expire.
-        # *1 idle flow expiration
-        #    (hardcoded; 60 secs)
+        # *1 hard timeout expiration
+        #    (default 120 secs)
         # *2 mac-port learning expiration
         #    (bridge.mac_port_mapping_expire_millis; 30 secs by default)
-        # *3 FlowController checks for flow expiration every 10 seconds
-        #    (comment from Guillermo)
-        time.sleep(100)
+        # *3 FlowController periodically checks for flow expiration
+        #    (default 10 seconds)
+        time.sleep(150)
 
         # Now assert that ping works
         #
