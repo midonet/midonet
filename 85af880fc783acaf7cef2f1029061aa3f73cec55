@@ -22,6 +22,30 @@
       "revId": "85af880fc783acaf7cef2f1029061aa3f73cec55",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_120e8d34",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/HostMapperTest.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 126,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-02T17:08:57Z",
+      "side": 1,
+      "message": "I think the first argument in the AwaitableObsrever constructor was changed back to 1 after a rebase. If we do:\n\n   val hostObs \u003d new AwaitableObserver[SimHost](1, assertThread())\n\nthen should be okay, isn\u0027t it?",
+      "parentUuid": "7a1969be_7c26bacf",
+      "range": {
+        "startLine": 126,
+        "startChar": 12,
+        "endLine": 126,
+        "endChar": 51
+      },
+      "revId": "85af880fc783acaf7cef2f1029061aa3f73cec55",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
