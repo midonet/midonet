@@ -9,6 +9,7 @@ debian/python-midonetclient/
 doc/*.1
 doc/*.html
 build/*
+src/midonetclient/topology/_protobuf/*
 
 dist/*
 src/*.egg-info
