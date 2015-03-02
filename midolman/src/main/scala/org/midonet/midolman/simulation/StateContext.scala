@@ -33,5 +33,5 @@ trait StateContext extends FlowState
         this.natLeaser = natLeaser
     }
 
-    def containsForwardStateKeys = conntrackTx.size() > 0 || natTx.size() > 0
+    def containsFlowState = conntrackTx.size() > 0 || natTx.size() > 0
 }
