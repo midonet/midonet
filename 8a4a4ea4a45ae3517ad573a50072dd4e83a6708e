@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_6f7d5a1c",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/Aggregator.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-03-02T13:52:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_cfd72e22",
+      "revId": "8a4a4ea4a45ae3517ad573a50072dd4e83a6708e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_0f2b0631",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/Aggregator.scala",
         "patchSetId": 17
@@ -30,6 +48,30 @@
       "writtenOn": "2015-03-02T11:41:00Z",
       "side": 1,
       "message": "if (disposed.compareAndSet(false, true)) ?",
+      "range": {
+        "startLine": 108,
+        "startChar": 22,
+        "endLine": 108,
+        "endChar": 31
+      },
+      "revId": "8a4a4ea4a45ae3517ad573a50072dd4e83a6708e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_4f785e2b",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/Aggregator.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-03-02T13:52:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_0f2b0631",
       "range": {
         "startLine": 108,
         "startChar": 22,
@@ -65,6 +107,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_2f9b6268",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/ServerState.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-03-02T13:52:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_6fe8bae2",
+      "range": {
+        "startLine": 82,
+        "startChar": 40,
+        "endLine": 82,
+        "endChar": 68
+      },
+      "revId": "8a4a4ea4a45ae3517ad573a50072dd4e83a6708e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_2fdfe23c",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/ServerState.scala",
         "patchSetId": 17
@@ -76,6 +142,30 @@
       "writtenOn": "2015-03-02T11:41:00Z",
       "side": 1,
       "message": "not needed",
+      "range": {
+        "startLine": 103,
+        "startChar": 61,
+        "endLine": 103,
+        "endChar": 62
+      },
+      "revId": "8a4a4ea4a45ae3517ad573a50072dd4e83a6708e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_6fa43aa6",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/ServerState.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-03-02T13:52:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_2fdfe23c",
       "range": {
         "startLine": 103,
         "startChar": 61,
@@ -111,6 +201,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_4f9fbe50",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/ServerState.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 114,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-03-02T13:52:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_0fe2e602",
+      "range": {
+        "startLine": 114,
+        "startChar": 61,
+        "endLine": 114,
+        "endChar": 62
+      },
+      "revId": "8a4a4ea4a45ae3517ad573a50072dd4e83a6708e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_2fb6c2fa",
         "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/services/topology/server/AggregatorTest.scala",
         "patchSetId": 17
@@ -122,6 +236,30 @@
       "writtenOn": "2015-03-02T11:41:00Z",
       "side": 1,
       "message": "redundant no?",
+      "range": {
+        "startLine": 85,
+        "startChar": 0,
+        "endLine": 85,
+        "endChar": 45
+      },
+      "revId": "8a4a4ea4a45ae3517ad573a50072dd4e83a6708e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_afae3283",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/services/topology/server/AggregatorTest.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-03-02T13:52:33Z",
+      "side": 1,
+      "message": "Yes. Removed",
+      "parentUuid": "7a1969be_2fb6c2fa",
       "range": {
         "startLine": 85,
         "startChar": 0,
