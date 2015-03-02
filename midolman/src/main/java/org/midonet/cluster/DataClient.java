@@ -903,13 +903,25 @@ public interface DataClient {
     void traceRequestDelete(UUID id)
             throws StateAccessException, SerializationException;
 
-    UUID traceRequestCreate(@Nonnull TraceRequest vip)
-            throws StateAccessException, SerializationException;
+    UUID traceRequestCreate(@Nonnull TraceRequest request)
+            throws StateAccessException, SerializationException,
+            RuleIndexOutOfBoundsException;
+
+    UUID traceRequestCreate(@Nonnull TraceRequest request, boolean enabled)
+            throws StateAccessException, SerializationException,
+            RuleIndexOutOfBoundsException;
 
     List<TraceRequest> traceRequestGetAll()
             throws StateAccessException, SerializationException;
 
     List<TraceRequest> traceRequestFindByTenant(String tenantId)
+            throws StateAccessException, SerializationException;
+
+    void traceRequestEnable(UUID id)
+            throws StateAccessException, SerializationException,
+            RuleIndexOutOfBoundsException;
+
+    void traceRequestDisable(UUID id)
             throws StateAccessException, SerializationException;
 
     /**

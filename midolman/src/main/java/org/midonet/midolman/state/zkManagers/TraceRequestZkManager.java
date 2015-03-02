@@ -26,7 +26,10 @@ import org.apache.zookeeper.Op;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static org.midonet.cluster.data.Rule.RuleIndexOutOfBoundsException;
 import org.midonet.cluster.data.TraceRequest;
+import org.midonet.midolman.rules.Rule;
+import org.midonet.midolman.rules.RuleList;
 import org.midonet.midolman.rules.Condition;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
@@ -50,17 +53,20 @@ public class TraceRequestZkManager
         public TraceRequest.DeviceType deviceType;
         public UUID deviceId;
         public Condition condition;
+        public UUID enabledRule;
 
         public TraceRequestConfig() {
             super();
         }
 
         public TraceRequestConfig(TraceRequest.DeviceType deviceType,
-                                  UUID deviceId, Condition condition) {
+                                  UUID deviceId, Condition condition,
+                                  UUID enabledRule) {
             super();
             this.deviceType = deviceType;
             this.deviceId = deviceId;
             this.condition = condition;
+            this.enabledRule = enabledRule;
         }
 
         @Override
@@ -75,25 +81,32 @@ public class TraceRequestZkManager
             TraceRequestConfig that = (TraceRequestConfig)other;
             return deviceType == that.deviceType
                 && Objects.equals(deviceId, that.deviceId)
-                && Objects.equals(condition, that.condition);
+                && Objects.equals(condition, that.condition)
+                && Objects.equals(enabledRule, that.enabledRule);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(deviceType, deviceId, condition);
+            return Objects.hash(deviceType, deviceId, condition, enabledRule);
         }
 
         @Override
         public String toString() {
             return "TraceRequestConfig{deviceType=" + deviceType
                 + ", deviceId=" + deviceId
-                + ", condition=" + condition + "}";
+                + ", condition=" + condition
+                + ", enabledRule=" + enabledRule + "}";
         }
     }
+
+    private RuleZkManager ruleZkManager;
+    private ChainZkManager chainZkManager;
 
     public TraceRequestZkManager(ZkManager zk, PathBuilder paths,
                                  Serializer serializer) {
         super(zk, paths, serializer);
+        ruleZkManager = new RuleZkManager(zk, paths, serializer);
+        chainZkManager = new ChainZkManager(zk, paths, serializer);
     }
 
     @Override
@@ -106,15 +119,50 @@ public class TraceRequestZkManager
         return paths.getTraceRequestPath(id);
     }
 
+    public static String traceRequestChainName(UUID id) {
+        return "TRACE_REQUEST_CHAIN_" + id.toString();
+    }
+
     public List<Op> prepareCreate(UUID id, TraceRequestConfig config)
             throws SerializationException {
         return asList(simpleCreateOp(id, config));
     }
 
-    public List<Op> prepareDelete(UUID id) {
+    public List<Op> prepareDisable(UUID id)
+            throws StateAccessException, SerializationException {
+        List<Op> ops = new ArrayList<Op>();
+        TraceRequestConfig config = get(id);
+        if (config == null
+            || config.enabledRule == null) {
+            return ops;
+        }
+        UUID ruleId = config.enabledRule;
+        Rule rule = ruleZkManager.get(ruleId);
+        if (rule != null) {
+            RuleList ruleList = ruleZkManager.getRuleList(rule.chainId);
+            ChainZkManager.ChainConfig chain = chainZkManager.get(rule.chainId);
+            if (ruleList.getRuleList().size() == 1
+                && ruleList.getRuleList().get(0).equals(ruleId)
+                && chain.name.equals(traceRequestChainName(id))) {
+                ops.addAll(chainZkManager.prepareDelete(rule.chainId));
+            } else {
+                ops.addAll(ruleZkManager.prepareDelete(ruleId));
+            }
+        }
+        config.enabledRule = null;
+        ops.addAll(prepareUpdate(id, config));
+
+        return ops;
+    }
+
+    public List<Op> prepareDelete(UUID id)
+            throws StateAccessException, SerializationException {
         String path = paths.getTraceRequestPath(id);
         log.debug("Preparing to delete {}", path);
-        return asList(Op.delete(path, -1));
+        List<Op> ops = new ArrayList<Op>();
+        ops.addAll(prepareDisable(id));
+        ops.add(Op.delete(path, -1));
+        return ops;
     }
 
     public void deleteForDevice(UUID deviceId)
@@ -134,5 +182,10 @@ public class TraceRequestZkManager
             }
         }
         zk.multi(ops);
+    }
+
+    public List<Op> prepareUpdate(UUID id, TraceRequestConfig config)
+            throws SerializationException {
+        return asList(simpleUpdateOp(id, config));
     }
 }
