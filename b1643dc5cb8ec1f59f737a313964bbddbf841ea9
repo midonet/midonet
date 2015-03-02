@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_8feed6b2",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/AgentMembershipTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-03-02T13:28:11Z",
+      "side": 1,
+      "message": "Wouldn\u0027t this be done by zoom referential integrity code by itself?",
+      "range": {
+        "startLine": 74,
+        "startChar": 1,
+        "endLine": 82,
+        "endChar": 76
+      },
+      "revId": "b1643dc5cb8ec1f59f737a313964bbddbf841ea9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_ef2caa04",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/TunnelZoneManager.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-03-02T13:28:11Z",
+      "side": 1,
+      "message": "This way of finding the default tz seems quite brittle, why not impose some explicit value that allows us to spot it more reliably? For example, a flag, or even the DEFAULT name used by convention?",
+      "range": {
+        "startLine": 45,
+        "startChar": 8,
+        "endLine": 45,
+        "endChar": 35
+      },
+      "revId": "b1643dc5cb8ec1f59f737a313964bbddbf841ea9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
