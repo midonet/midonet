@@ -64,7 +64,7 @@ class MockFlowProcessor(val flowsTable: JMap[FlowMatch, Flow] = null)
             buf.putInt(datapathId)
             NetlinkMessage.writeAttrSeq(buf, Attr.Key, flow.getMatch().getKeys,
                                         FlowKeys.writer)
-            NetlinkMessage.writeLongAttr(buf, Attr.Used, flow.getLastUsedTime)
+            NetlinkMessage.writeLongAttr(buf, Attr.Used, flow.getLastUsedMillis)
             buf.flip()
 
             obs.onNext(buf)
