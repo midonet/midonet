@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_af1e3261",
+        "filename": "midolman/src/main/java/org/midonet/midolman/rules/ForwardNatRule.java",
+        "patchSetId": 6
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-02T08:57:14Z",
+      "side": 1,
+      "message": "I\u0027m not an expert here: do these have to be included in the zoom config?",
+      "range": {
+        "startLine": 36,
+        "startChar": 4,
+        "endLine": 37,
+        "endChar": 34
+      },
+      "revId": "8407f56302e973a2ee7a84616a3a1fd3dfc9d310",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
