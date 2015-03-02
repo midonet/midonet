@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_6f6efa30",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/DeduplicationActor.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 132,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-03-02T13:54:15Z",
+      "side": 1,
+      "message": "will remove invalidation.",
+      "parentUuid": "7a1969be_15d2025c",
+      "revId": "91dce0d6dee8a4a9a6fa8114e98705b836ff003b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_b5e32e32",
         "filename": "midolman/src/main/scala/org/midonet/midolman/DeduplicationActor.scala",
         "patchSetId": 1
@@ -30,6 +48,24 @@
       "writtenOn": "2015-02-26T09:47:30Z",
       "side": 1,
       "message": "Then should this be here? If we want the state to persist after multiple NotYetExceptions, then this can\u0027t be here. The most appropriate place would be the packetcontext\u0027s clear method.",
+      "revId": "91dce0d6dee8a4a9a6fa8114e98705b836ff003b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_ef614a3a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/DeduplicationActor.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 350,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-03-02T13:54:15Z",
+      "side": 1,
+      "message": "will move.",
+      "parentUuid": "7a1969be_b5e32e32",
       "revId": "91dce0d6dee8a4a9a6fa8114e98705b836ff003b",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -53,6 +89,24 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_8f4536b5",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/TraceState.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-03-02T13:54:15Z",
+      "side": 1,
+      "message": "to match on the egress host, you need the flow to match, and the actions may modify the field (via nat, etc).",
+      "parentUuid": "7a1969be_5522baa4",
+      "revId": "91dce0d6dee8a4a9a6fa8114e98705b836ff003b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_75c0967c",
         "filename": "midolman/src/main/scala/org/midonet/midolman/state/TraceState.scala",
         "patchSetId": 1
@@ -70,6 +124,24 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_4f221e02",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/TraceState.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-03-02T13:54:15Z",
+      "side": 1,
+      "message": "I\u0027ll pull out the fields to use them explicitly.",
+      "parentUuid": "7a1969be_75c0967c",
+      "revId": "91dce0d6dee8a4a9a6fa8114e98705b836ff003b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_f53be699",
         "filename": "midolman/src/main/scala/org/midonet/midolman/state/TraceState.scala",
         "patchSetId": 1
@@ -81,6 +153,24 @@
       "writtenOn": "2015-02-26T09:55:34Z",
       "side": 1,
       "message": "I\u0027m worried about this, being of varied size :/  Why do we need multiple requests per trace key again?",
+      "revId": "91dce0d6dee8a4a9a6fa8114e98705b836ff003b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_cf7d6ee9",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/TraceState.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-03-02T13:54:15Z",
+      "side": 1,
+      "message": "A packet could match multiple trace requests. e.g. one trace request to track all requests to port 80, another to trace all requests from ip 1.2.3.4\n\nI\u0027ll change this to an ArrayList with initial size of 1. I would expect there to be only 1 trace request in the most common case.",
+      "parentUuid": "7a1969be_f53be699",
       "revId": "91dce0d6dee8a4a9a6fa8114e98705b836ff003b",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
