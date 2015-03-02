@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_3200e966",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/DeduplicationActor.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 224,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-03-02T16:59:10Z",
+      "side": 1,
+      "message": "Another way to fix this would be to remove this executioncontext so the default would be picked up, but this way at least we get some of the logging the processing of restart workflow gives us.",
+      "revId": "03a4cbc690de511aff20eb396836f8d59b392340",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
