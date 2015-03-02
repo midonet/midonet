@@ -16,9 +16,7 @@
 package org.midonet.mmdpctl.commands.results;
 
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.io.PrintStream;
-import java.io.PrintWriter;
 import java.util.*;
 
 import org.midonet.odp.Datapath;
@@ -43,8 +41,8 @@ public class DumpDatapathResult implements Result {
 
         Collections.sort(toPrint, new Comparator<Flow>() {
             @Override public int compare(Flow o1, Flow o2) {
-                long t1 = o1.getLastUsedTime();
-                long t2 = o2.getLastUsedTime();
+                long t1 = o1.getLastUsedMillis();
+                long t2 = o2.getLastUsedMillis();
                 return Long.compare(t1, t2); // oldest first (lowest long)
             }
         });

@@ -45,7 +45,6 @@ class VirtualTopologyRedirectorTest extends MidolmanSpec with TopologyBuilder {
 
     private class TestableVTA extends VirtualTopologyActor
                               with MessageAccumulator
-    private class TestableFC extends FlowController with MessageAccumulator
     private type SenderActor = AwaitableActor with MessageAccumulator
 
     private var store: Storage = _

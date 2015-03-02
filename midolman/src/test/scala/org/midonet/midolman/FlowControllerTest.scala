@@ -22,13 +22,13 @@ import scala.collection.JavaConversions._
 import scala.util.Random
 
 import org.junit.runner.RunWith
-import org.midonet.midolman.flows.FlowInvalidation
+import org.midonet.midolman.flows.{FlowExpiration, FlowInvalidation}
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.midolman.simulation.PacketContext
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.odp.flows.{FlowActions, FlowKeys}
-import org.midonet.odp.{Flow, FlowMatch}
+import org.midonet.odp.FlowMatch
 import org.midonet.sdn.flows.FlowTagger.{FlowTag, TunnelKeyTag}
 import org.midonet.sdn.flows._
 import org.midonet.util.functors.Callback0
@@ -36,29 +36,12 @@ import org.midonet.util.functors.Callback0
 @RunWith(classOf[JUnitRunner])
 class FlowControllerTest extends MidolmanSpec {
 
-    registerActors(FlowController -> (() => new FlowController))
+    registerActors(FlowController -> (() => injector.getInstance(classOf[FlowController])))
 
     val flowTimeout: Int = 1000
     val tagCount: Int = 10
 
     def flowController = FlowController.as[FlowController]
-
-    feature("The flow controller initializes correctly") {
-        scenario("The flow controller instance not null and metrics " +
-                 "initialized") {
-            When("When the flow controller initializes")
-            flowController should not be null
-
-            Then("The wildcard flows metrics should be zero")
-            flowController.metrics.currentDpFlowsMetric.getValue should be(0)
-
-            And("The flow manager should not be null")
-            flowController.flowManager should not be null
-
-            And("The flow manager helper should not be null")
-            flowController.flowManagerHelper should not be null
-        }
-    }
 
     feature("The flow controller processes wildcard flows") {
         scenario("Addition and removal of a flow") {
@@ -136,27 +119,6 @@ class FlowControllerTest extends MidolmanSpec {
             FlowInvalidation.isTagSetStillValid(pktCtx) should be (false)
         }
 
-        scenario("Check hard expired flows are removed from the flow " +
-                 "controller") {
-            Given("A wildcard flow")
-            val flow = new TestableFlow(6, flowTimeout)
-
-            val state = new MetricsSnapshot()
-
-            When("The flow is added to the flow controller")
-            flow.add()
-
-            val mwcFlow = testFlowAdded(flow, state)
-
-            When("The flow has expired")
-            expireFlowHard(mwcFlow)
-
-            And("The flow controller checks the flow expiration")
-            FlowController ! FlowController.CheckFlowExpiration_
-
-            testFlowRemoved(flow, mwcFlow, state)
-        }
-
         scenario("Check non-expired flows are not removed from the flow " +
                  "controller") {
             Given("A wildcard flow")
@@ -175,31 +137,6 @@ class FlowControllerTest extends MidolmanSpec {
             testFlowExists(flow, mwcFlow, state)
         }
 
-        scenario("Check a datapath flow is removed via the flow manager helper") {
-            Given("A wildcard flow")
-            val flow = new TestableFlow(8)
-
-            val state = new MetricsSnapshot()
-
-            When("The flow is added to the flow controller")
-            flow.add()
-
-            val mwcFlow = testFlowAdded(flow, state)
-
-            val managedFlow = flowController.flowManager.dpFlowTable.remove(flow.flowMatch)
-            flowController.flowManagerHelper.removeFlow(managedFlow)
-
-            Then("The datapath flow metric should be set at the original value")
-            flowController.metrics.currentDpFlowsMetric.getValue should be (
-                state.dpFlowsCount)
-
-            And("The flow manager should indicate the same number of flows")
-            flowController.metrics.currentDpFlowsMetric.getValue should be (
-                flowController.flowManager.getNumDpFlows)
-
-            And("The flow removal callback method should not have been called")
-            flow.isFlowRemoved should be (false)
-        }
 
         scenario("Check a wildcard flow is removed via the flow manager helper") {
             Given("A wildcard flow")
@@ -212,7 +149,7 @@ class FlowControllerTest extends MidolmanSpec {
 
             val mwcFlow = testFlowAdded(flow, state)
 
-            flowController.flowManagerHelper.removeWildcardFlow(mwcFlow)
+            flowController.flowRemoved(mwcFlow)
 
             testFlowRemoved(flow, mwcFlow, state)
         }
@@ -221,28 +158,20 @@ class FlowControllerTest extends MidolmanSpec {
     private def testFlowAdded(flow: TestableFlow,
                               state: MetricsSnapshot): ManagedFlow = {
         Then("The datapath flow metric should be incremented by one")
-        flowController.metrics.dpFlowsMetric.getCount should be (
+        flowController.dpFlowsMetric.getCount should be (
             state.dpFlowsCount + 1)
-        flowController.metrics.currentDpFlowsMetric.getValue should be (
+        flowController.currentDpFlowsMetric.getValue should be (
             state.dpFlowsCount + 1)
 
-        And("The flow manager should indicate the same number of flows")
-        flowController.metrics.currentDpFlowsMetric.getValue should be (
-            flowController.flowManager.getNumDpFlows)
-
-        flowController.flowManager.dpFlowTable.get(flow.flowMatch)
+        flowController.getFlow(flow.flowMatch)
     }
 
     private def testFlowRemoved(flow: TestableFlow,
                                 mwcFlow: ManagedFlow,
                                 state: MetricsSnapshot) {
         Then("The datapath flow metric should be set at the original value")
-        flowController.metrics.currentDpFlowsMetric.getValue should be (
+        flowController.currentDpFlowsMetric.getValue should be (
             state.dpFlowsCount)
-
-        And("The flow manager should indicate the same number of flows")
-        flowController.metrics.currentDpFlowsMetric.getValue should be (
-            flowController.flowManager.getNumDpFlows)
 
         And("The flow removal callback method was called")
         flow.isFlowRemoved should be (true)
@@ -252,19 +181,11 @@ class FlowControllerTest extends MidolmanSpec {
                                mwcFlow: ManagedFlow,
                                state: MetricsSnapshot) {
         Then("The datapath flow metric should be incremented by one")
-        flowController.metrics.currentDpFlowsMetric.getValue should be (
+        flowController.currentDpFlowsMetric.getValue should be (
             state.dpFlowsCount + 1)
-
-        And("The flow manager should indicate the same number of flows")
-        flowController.metrics.currentDpFlowsMetric.getValue should be (
-            flowController.flowManager.getNumDpFlows())
 
         And("The flow removal callback method was not called")
         flow.isFlowRemoved should be (false)
-    }
-
-    private def expireFlowHard(mwcFlow: ManagedFlow) {
-        mwcFlow.setCreationTimeMillis(System.currentTimeMillis() - flowTimeout)
     }
 
     sealed class TestableFlow(key: Int, expirationMillis: Int = -1) {
@@ -296,7 +217,7 @@ class FlowControllerTest extends MidolmanSpec {
             pktCtx.lastInvalidation = FlowInvalidation.lastInvalidationEvent
             tags foreach pktCtx.addFlowTag
             callbacks foreach pktCtx.addFlowRemovedCallback
-            pktCtx.expiration = expirationMillis
+            pktCtx.expiration = FlowExpiration.FLOW_EXPIRATION
             pktCtx.flowActions.add(FlowActions.output(4))
             FlowController ! pktCtx
         }
@@ -306,7 +227,7 @@ class FlowControllerTest extends MidolmanSpec {
     }
 
     sealed class MetricsSnapshot {
-        val dpFlowsCount = flowController.metrics.currentDpFlowsMetric.getValue
+        val dpFlowsCount = flowController.currentDpFlowsMetric.getValue
     }
 
     object TestableFlow {

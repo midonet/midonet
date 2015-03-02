@@ -282,7 +282,7 @@ public class MockOvsDatapathConnection extends OvsDatapathConnection {
 
     @Override
     protected void _doFlowsCreate(@Nonnull Datapath datapath, @Nonnull Flow flow, Callback<Flow> callback, long timeout) {
-        flow.setLastUsedTime(System.currentTimeMillis());
+        flow.setLastUsedMillis(System.currentTimeMillis());
         flowsTable.put(flow.getMatch(), flow);
         if (callback != null)
             callback.onSuccess(flow);
@@ -336,7 +336,7 @@ public class MockOvsDatapathConnection extends OvsDatapathConnection {
     }
 
     public void setFlowLastUsedTimeToNow(FlowMatch match){
-        flowsTable.get(match).setLastUsedTime(System.currentTimeMillis());
+        flowsTable.get(match).setLastUsedMillis(System.currentTimeMillis());
     }
 
     @Override
