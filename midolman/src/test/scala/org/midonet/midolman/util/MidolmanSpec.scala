@@ -134,6 +134,7 @@ trait MidolmanSpec extends FeatureSpecLike
                             .toInstance(actorsService)
                     expose(classOf[MidolmanActorsService])
                     bind(classOf[NanoClock]).toInstance(clock)
+                    expose(classOf[NanoClock])
                 }
             },
             new ResourceProtectionModule(),
