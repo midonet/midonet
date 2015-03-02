@@ -20,31 +20,32 @@ import java.util.{Objects, UUID}
 
 import org.midonet.cluster.data.{ZoomClass, ZoomField, ZoomObject}
 import org.midonet.cluster.models.Topology
-import org.midonet.cluster.models.Topology.Host.PortToInterface
+import org.midonet.cluster.models.Topology.Host.PortBinding
 import org.midonet.cluster.util.MapConverter
 import org.midonet.cluster.util.UUIDUtil.{Converter => UUIDConverter, _}
 import org.midonet.midolman.topology.VirtualTopology.Device
+import org.midonet.midolman.topology.devices.Host.PortBindingConverter
 import org.midonet.packets.IPAddr
 
-/**
- * This class implements the MapConverter trait to do the conversion between
- * tuples of type (UUID, String) and PortToInterface protos.
- */
-class PortInterfaceConverter extends MapConverter[UUID, String, PortToInterface] {
+object Host {
+    /**
+     * This class implements the MapConverter trait to do the conversion between
+     * tuples of type (UUID, String) and PortBinding messages.
+     */
+    class PortBindingConverter extends MapConverter[UUID, String, PortBinding] {
 
-    override def toKey(proto: PortToInterface): UUID = {
-        proto.getPortId.asJava
-    }
-
-    def toValue(proto: PortToInterface): String = {
-        proto.getInterfaceName
-    }
-
-    def toProto(key: UUID, value: String): PortToInterface = {
-        PortToInterface.newBuilder
-            .setPortId(key.asProto)
-            .setInterfaceName(value)
-            .build()
+        override def toKey(proto: PortBinding): UUID = {
+            proto.getPortId.asJava
+        }
+        override def toValue(proto: PortBinding): String = {
+            proto.getInterfaceName
+        }
+        override def toProto(key: UUID, value: String): PortBinding = {
+            PortBinding.newBuilder
+                .setPortId(key.asProto)
+                .setInterfaceName(value)
+                .build()
+        }
     }
 }
 
@@ -62,8 +63,8 @@ class Host extends ZoomObject with Device {
 
     @ZoomField(name = "id", converter = classOf[UUIDConverter])
     var id: UUID = _
-    @ZoomField(name = "port_interface_mapping",
-               converter = classOf[PortInterfaceConverter])
+    @ZoomField(name = "port_bindings",
+               converter = classOf[PortBindingConverter])
     var bindings = Map.empty[UUID, String]
     @ZoomField(name = "tunnel_zone_ids", converter = classOf[UUIDConverter])
     var tunnelZoneIds = Set.empty[UUID]
