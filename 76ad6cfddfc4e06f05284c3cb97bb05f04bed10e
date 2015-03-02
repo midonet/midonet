@@ -1,0 +1,90 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_6f96fa4d",
+        "filename": "midolman/src/deb/bin/wdog",
+        "patchSetId": 3
+      },
+      "lineNbr": 136,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-03-02T12:33:47Z",
+      "side": 1,
+      "message": "it would be good to print something before trying the core dump also, since dumping could fail. Also, print the return code from the subprocess call.",
+      "range": {
+        "startLine": 136,
+        "startChar": 17,
+        "endLine": 136,
+        "endChar": 21
+      },
+      "revId": "76ad6cfddfc4e06f05284c3cb97bb05f04bed10e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_cfa56eb6",
+        "filename": "midolman/src/deb/bin/wdog",
+        "patchSetId": 3
+      },
+      "lineNbr": 221,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-03-02T12:33:47Z",
+      "side": 1,
+      "message": "if here should be an elif to keep it consistent.",
+      "range": {
+        "startLine": 221,
+        "startChar": 0,
+        "endLine": 221,
+        "endChar": 8
+      },
+      "revId": "76ad6cfddfc4e06f05284c3cb97bb05f04bed10e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_efb78ad6",
+        "filename": "midolman/src/main/java/org/midonet/midolman/WatchedProcess.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-03-02T12:33:47Z",
+      "side": 1,
+      "message": "I\u0027d either remove this completely, or store isTraceEnabled locally in the class, and guard this with it, to avoid going into the logging subsystem if we don\u0027t need to.",
+      "revId": "76ad6cfddfc4e06f05284c3cb97bb05f04bed10e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_cfba8ebf",
+        "filename": "midolman/src/main/java/org/midonet/midolman/WatchedProcess.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 123,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-03-02T12:33:47Z",
+      "side": 1,
+      "message": "should be scheduleAtFixedRate",
+      "range": {
+        "startLine": 123,
+        "startChar": 14,
+        "endLine": 123,
+        "endChar": 22
+      },
+      "revId": "76ad6cfddfc4e06f05284c3cb97bb05f04bed10e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
