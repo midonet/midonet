@@ -32,7 +32,7 @@ public class FlowMetadata implements AttributeHandler {
     // this field is both used by the ovs kernel and by midolman packet pipeline
     // to track time statistics. Because it may be incoherent for the same flow
     // between ovs and midolman , it is ignored in equals() and hashCode().
-    private long lastUsedTime;
+    private long lastUsedMillis;
 
     public FlowMetadata() {
         stats = new FlowStats();
@@ -50,12 +50,12 @@ public class FlowMetadata implements AttributeHandler {
         return tcpFlags;
     }
 
-    public long getLastUsedTime() {
-        return lastUsedTime;
+    public long getLastUsedMillis() {
+        return lastUsedMillis;
     }
 
-    public void setLastUsedTime(Long lastUsedTime) {
-        this.lastUsedTime = lastUsedTime;
+    public void setLastUsedMillis(long lastUsedMillis) {
+        this.lastUsedMillis = lastUsedMillis;
     }
 
     public void deserialize(ByteBuffer buf) {
@@ -66,7 +66,7 @@ public class FlowMetadata implements AttributeHandler {
     public void clear() {
         stats.clear();
         tcpFlags = 0;
-        lastUsedTime = 0;
+        lastUsedMillis = 0;
     }
 
     @Override
@@ -81,7 +81,7 @@ public class FlowMetadata implements AttributeHandler {
                 break;
 
           case OpenVSwitch.Flow.Attr.Used:
-                lastUsedTime = buffer.getLong();
+                lastUsedMillis = buffer.getLong();
                 break;
         }
     }
@@ -119,7 +119,7 @@ public class FlowMetadata implements AttributeHandler {
         return "FlowMetadata{" +
             ", stats=" + stats +
             ", tcpFlags=" + tcpFlags +
-            ", lastUsedTime=" + lastUsedTime +
+            ", lastUsedMillis=" + lastUsedMillis +
             "}";
     }
 }
