@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_32374950",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/ZoomConvert.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-02T18:10:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_0f3ae635",
+      "revId": "8407f56302e973a2ee7a84616a3a1fd3dfc9d310",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_2f37e24f",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/ZoomConvert.scala",
         "patchSetId": 6
@@ -36,6 +54,24 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_d22fd5f4",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/ZoomConvert.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 763,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-02T18:10:15Z",
+      "side": 1,
+      "message": "The test will be added in the side patch that adds conversion to java bytes.",
+      "parentUuid": "7a1969be_2f37e24f",
+      "revId": "8407f56302e973a2ee7a84616a3a1fd3dfc9d310",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_af1e3261",
         "filename": "midolman/src/main/java/org/midonet/midolman/rules/ForwardNatRule.java",
         "patchSetId": 6
@@ -47,6 +83,30 @@
       "writtenOn": "2015-03-02T08:57:14Z",
       "side": 1,
       "message": "I\u0027m not an expert here: do these have to be included in the zoom config?",
+      "range": {
+        "startLine": 36,
+        "startChar": 4,
+        "endLine": 37,
+        "endChar": 34
+      },
+      "revId": "8407f56302e973a2ee7a84616a3a1fd3dfc9d310",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_92543d22",
+        "filename": "midolman/src/main/java/org/midonet/midolman/rules/ForwardNatRule.java",
+        "patchSetId": 6
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-02T18:10:15Z",
+      "side": 1,
+      "message": "By looking at DataClientImpl.java line 2967, there\u0027s this:\n            rule \u003d Converter.fromRuleConfig(ruleZkManager.get(id));\n\nwhere Converter.fromRuleConfig takes a rule of the present class. This means that it\u0027s this class that is serialized into ZK. I\u0027ll add the fields in the rule proto.",
+      "parentUuid": "7a1969be_af1e3261",
       "range": {
         "startLine": 36,
         "startChar": 4,
@@ -82,6 +142,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_329bc968",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/NatTargetUtil.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-02T18:10:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_ef9caac2",
+      "range": {
+        "startLine": 39,
+        "startChar": 12,
+        "endLine": 39,
+        "endChar": 24
+      },
+      "revId": "8407f56302e973a2ee7a84616a3a1fd3dfc9d310",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_6fb0ba43",
         "filename": "midolman/src/test/scala/org/midonet/midolman/topology/TopologyBuilder.scala",
         "patchSetId": 6
@@ -93,6 +177,30 @@
       "writtenOn": "2015-03-02T09:36:54Z",
       "side": 1,
       "message": "This limits the start value to 65533... shouldn\u0027t it be called without specifying the parameter (so the range would be 0-65535?\nOf course, that would mean a special check for a start value of 65535, to avoid calling nextInt(0) in the next line (which would result in an Illegal Argument Exception).",
+      "range": {
+        "startLine": 555,
+        "startChar": 20,
+        "endLine": 555,
+        "endChar": 41
+      },
+      "revId": "8407f56302e973a2ee7a84616a3a1fd3dfc9d310",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_d2087593",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/TopologyBuilder.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 555,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-02T18:10:15Z",
+      "side": 1,
+      "message": "I changed the name of the method to randomPortRange to clarify its purpose. The start should go until 65534 so 65535 should be passed to nextInt. For the next call to nextInt, 65536 is now passed.",
+      "parentUuid": "7a1969be_6fb0ba43",
       "range": {
         "startLine": 555,
         "startChar": 20,
