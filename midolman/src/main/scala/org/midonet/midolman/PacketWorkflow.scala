@@ -20,12 +20,12 @@ import java.util.UUID
 import akka.actor._
 
 import com.typesafe.scalalogging.Logger
-import org.midonet.midolman.flows.FlowInvalidation
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.DataClient
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.DatapathChannel
+import org.midonet.midolman.flows.{FlowExpiration, FlowInvalidation}
 import org.midonet.midolman.routingprotocols.RoutingWorkflow
 import org.midonet.midolman.simulation.{Coordinator, DhcpImpl, PacketContext}
 import org.midonet.midolman.state.FlowStateReplicator
@@ -49,10 +49,6 @@ object PacketWorkflow {
                         dpMatch: FlowMatch,
                         reason: Packet.Reason,
                         cookie: Int)
-
-    val TEMPORARY_DROP_EXPIRATION = 5 * 1000
-    val EXPIRATION_MILLIS = 60 * 1000
-    val ERROR_CONDITION_EXPIRATION = 10 * 1000
 
     trait SimulationResult
     case object NoOp extends SimulationResult
@@ -102,7 +98,7 @@ trait UnderlayTrafficHandler { this: PacketWorkflow =>
         context.addFlowTag(FlowTagger.tagForTunnelRoute(
                            origMatch.getTunnelSrc, origMatch.getTunnelDst))
         context.addFlowAndPacketAction(forwardTo.toOutputAction)
-        context.expiration = 300 * 1000
+        context.expiration = FlowExpiration.TUNNEL_FLOW_EXPIRATION
     }
 
     private def handleFromUnderlay(context: PacketContext): SimulationResult = {
@@ -141,7 +137,7 @@ class PacketWorkflow(protected val dpState: DatapathState,
 
     override def drop(context: PacketContext): Unit = {
         context.prepareForDrop(FlowInvalidation.lastInvalidationEvent)
-        context.expiration = ERROR_CONDITION_EXPIRATION
+        context.expiration = FlowExpiration.ERROR_CONDITION_EXPIRATION
         addTranslatedFlow(context)
     }
 
@@ -237,7 +233,11 @@ class PacketWorkflow(protected val dpState: DatapathState,
                                 result: SimulationResult): SimulationResult = {
         result match {
             case AddVirtualWildcardFlow =>
-                context.expiration = EXPIRATION_MILLIS
+                context.expiration =
+                    if (context.containsFlowState)
+                        FlowExpiration.STATEFUL_FLOW_EXPIRATION
+                    else
+                        FlowExpiration.FLOW_EXPIRATION
                 addVirtualWildcardFlow(context)
             case SendPacket =>
                 context.runFlowRemovedCallbacks()
@@ -250,10 +250,10 @@ class PacketWorkflow(protected val dpState: DatapathState,
                 NoOp
             case TemporaryDrop =>
                 context.clearFlowTags()
-                context.expiration = TEMPORARY_DROP_EXPIRATION
+                context.expiration = FlowExpiration.ERROR_CONDITION_EXPIRATION
                 addTranslatedFlow(context)
             case Drop =>
-                context.expiration = EXPIRATION_MILLIS
+                context.expiration = FlowExpiration.FLOW_EXPIRATION
                 addTranslatedFlow(context)
         }
     }
