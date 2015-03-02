@@ -16,6 +16,24 @@
       "revId": "acad16362e94f3536cb15a6a2c27d7adac5f784f",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_bcae7283",
+        "filename": "cluster/src/main/proto/neutron.proto",
+        "patchSetId": 1
+      },
+      "lineNbr": 242,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-03-02T03:44:16Z",
+      "side": 1,
+      "message": "Thanks for the note. NeutronTunnelZone will be deleted in this patch:\nhttps://review.gerrithub.io/#/c/217472/",
+      "parentUuid": "7a1969be_1c9ea656",
+      "revId": "acad16362e94f3536cb15a6a2c27d7adac5f784f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
