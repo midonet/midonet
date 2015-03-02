@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_afe632b2",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/DeduplicationActor.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 340,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-03-02T14:06:31Z",
+      "side": 1,
+      "message": "We don\u0027t want to do a full clear here though, since we want to preserve the traceStateTx. It should be in common code though. i\u0027ll work around it somehow.",
+      "parentUuid": "7a1969be_b5ffaea9",
+      "revId": "1cef61b795da33bcd385731741ffc54eb5ba95fa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_352bbe31",
         "filename": "midolman/src/main/scala/org/midonet/midolman/PacketWorkflow.scala",
         "patchSetId": 1
@@ -36,6 +54,24 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_2fea4275",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/PacketWorkflow.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 175,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-03-02T14:06:31Z",
+      "side": 1,
+      "message": "i don\u0027t understand. handleFromTunnel calls handleFromUnderlay which calls addTranslatedFlow which calls handleFlow",
+      "parentUuid": "7a1969be_352bbe31",
+      "revId": "1cef61b795da33bcd385731741ffc54eb5ba95fa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_152e8243",
         "filename": "midolman/src/main/scala/org/midonet/midolman/PacketWorkflow.scala",
         "patchSetId": 1
@@ -47,6 +83,24 @@
       "writtenOn": "2015-02-26T10:20:04Z",
       "side": 1,
       "message": "This should be done during flow translation, only if we\u0027re delivering the packet to another host. Check the FlowTranslator::outputActionsToPeer.",
+      "revId": "1cef61b795da33bcd385731741ffc54eb5ba95fa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_0fedc68b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/PacketWorkflow.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 337,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-03-02T14:06:31Z",
+      "side": 1,
+      "message": "I didn\u0027t put it in outputActionsToPeer, because I don\u0027t want the flow to have the modified tunnel key, only the initial packet. This is also why I make the copy. Otherwise, I\u0027d be modifying the TunnelFlowKey before the tunnel is actually created.",
+      "parentUuid": "7a1969be_152e8243",
       "revId": "1cef61b795da33bcd385731741ffc54eb5ba95fa",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
