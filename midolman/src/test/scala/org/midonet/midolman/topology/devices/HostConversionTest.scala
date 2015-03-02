@@ -26,6 +26,7 @@ import org.scalatest.{FeatureSpec, Matchers}
 
 import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.models.Topology
+import org.midonet.cluster.models.Topology.Host.PortBinding
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.sdn.flows.FlowTagger
 import org.midonet.sdn.flows.FlowTagger.FlowTag
@@ -55,10 +56,10 @@ class HostConversionTest extends FeatureSpec with Matchers {
 
     private def assertEquals(proto: Topology.Host, zoomObj: Host) = {
         proto.getId.asJava should be(zoomObj.id)
-        proto.getPortInterfaceMappingCount should be(zoomObj.bindings.size)
-        for (portMapping <- proto.getPortInterfaceMappingList) {
-            val protoInterface = portMapping.getInterfaceName
-            val zoomInterface = zoomObj.bindings.get(portMapping.getPortId)
+        proto.getPortBindingsCount should be(zoomObj.bindings.size)
+        for (binding <- proto.getPortBindingsList) {
+            val protoInterface = binding.getInterfaceName
+            val zoomInterface = zoomObj.bindings.get(binding.getPortId)
             zoomInterface should be(Some(protoInterface))
         }
         proto.getTunnelZoneIdsCount shouldBe zoomObj.tunnelZoneIds.toParArray.length
@@ -71,8 +72,8 @@ class HostConversionTest extends FeatureSpec with Matchers {
         zoomObj.tunnelZones shouldBe Map.empty
     }
 
-    private def portInterfaceMapping(interface: String): Topology.Host.PortToInterface = {
-        Topology.Host.PortToInterface.newBuilder
+    private def newPortBinding(interface: String): PortBinding = {
+        PortBinding.newBuilder
             .setPortId(UUID.randomUUID().asProto)
             .setInterfaceName(interface)
             .build()
@@ -91,8 +92,8 @@ class HostConversionTest extends FeatureSpec with Matchers {
     private def newProto = {
         Topology.Host.newBuilder
             .setId(UUID.randomUUID().asProto)
-            .addPortInterfaceMapping(portInterfaceMapping("foo"))
-            .addPortInterfaceMapping(portInterfaceMapping("bar"))
+            .addPortBindings(newPortBinding("foo"))
+            .addPortBindings(newPortBinding("bar"))
             .addTunnelZoneIds(UUID.randomUUID().asProto)
             .addTunnelZoneIds(UUID.randomUUID().asProto)
             .build()

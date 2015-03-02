@@ -199,8 +199,8 @@ class HostMapperTest extends MidolmanSpec
     private def assertEquals(simHost: SimHost, protoHost: Host,
                              tunnelZones: Set[TunnelZone]) = {
         protoHost.getId.asJava shouldBe simHost.id
-        protoHost.getPortInterfaceMappingCount shouldBe simHost.bindings.size
-        protoHost.getPortInterfaceMappingList.foreach(portInterface => {
+        protoHost.getPortBindingsCount shouldBe simHost.bindings.size
+        protoHost.getPortBindingsList.foreach(portInterface => {
             val portId = portInterface.getPortId
             val interface = portInterface.getInterfaceName
             simHost.bindings.get(portId) shouldBe Some(interface)

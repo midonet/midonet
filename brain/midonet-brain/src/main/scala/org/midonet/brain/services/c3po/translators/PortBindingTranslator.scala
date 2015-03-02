@@ -46,17 +46,17 @@ class PortBindingTranslator(storage: ReadOnlyStorage)
         val portFtr = storage.get(classOf[Port], binding.getPortId)
 
         val updatedHost = hostFtr.await().toBuilder
-        if (updatedHost.getPortInterfaceMappingList.asScala.exists(mapping =>
-            mapping.getInterfaceName == binding.getInterfaceName ||
-            mapping.getPortId == binding.getPortId)) {
+        if (updatedHost.getPortBindingsList.asScala.exists(bdg =>
+            bdg.getInterfaceName == binding.getInterfaceName ||
+            bdg.getPortId == binding.getPortId)) {
             throw new TranslationException(neutron.Create(binding),
             msg = s"Interface ${binding.getInterfaceName} or port " +
                   s"ID = ${UUIDUtil.fromProto(binding.getPortId)} " +
                   "is already bound")
         }
 
-        val pimBldr = updatedHost.addPortInterfaceMappingBuilder()
-        pimBldr.setInterfaceName(binding.getInterfaceName)
+        val builder = updatedHost.addPortBindingsBuilder()
+        builder.setInterfaceName(binding.getInterfaceName)
                .setPortId(binding.getPortId)
 
         val updatedPort = portFtr.await().toBuilder
@@ -87,16 +87,16 @@ class PortBindingTranslator(storage: ReadOnlyStorage)
         val portFtr = storage.get(classOf[Port], binding.getPortId)
 
         val updatedHost = hostFtr.await().toBuilder
-        val mappingToDelete = updatedHost.getPortInterfaceMappingList.asScala
-            .indexWhere({mapping =>
-                mapping.getPortId == binding.getPortId &&
-                mapping.getInterfaceName == binding.getInterfaceName})
-        if (mappingToDelete < 0)
+        val bindingToDelete = updatedHost.getPortBindingsList.asScala
+            .indexWhere(bdg =>
+                bdg.getPortId == binding.getPortId &&
+                bdg.getInterfaceName == binding.getInterfaceName)
+        if (bindingToDelete < 0)
             throw new TranslationException(
                     neutron.Delete(classOf[PortBinding], binding.getId),
                     msg = "Trying to delete a non-existing port binding")
 
-        updatedHost.removePortInterfaceMapping(mappingToDelete)
+        updatedHost.removePortBindings(bindingToDelete)
 
         val updatedPort = portFtr.await().toBuilder
         updatedPort.clearHostId()
