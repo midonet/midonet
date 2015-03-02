@@ -48,6 +48,54 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_efeaea0d",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/SessionInventory.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 511,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-03-02T11:05:49Z",
+      "side": 1,
+      "message": "Done, but reverted due to ambiguous overload errors from scala compiler... it looks it cannot distinguish between the methods with and without an exception as a last parameter...",
+      "parentUuid": "7a1969be_cf2a8e7d",
+      "range": {
+        "startLine": 511,
+        "startChar": 70,
+        "endLine": 511,
+        "endChar": 72
+      },
+      "revId": "4b8d8bf1ee36442a2b65b8b54512f9c5cdea4c7f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_4fd97e82",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/SessionInventory.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 511,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-03-02T11:05:49Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_8f19b67b",
+      "range": {
+        "startLine": 511,
+        "startChar": 30,
+        "endLine": 511,
+        "endChar": 31
+      },
+      "revId": "4b8d8bf1ee36442a2b65b8b54512f9c5cdea4c7f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_4f0fbe2e",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/SessionInventory.scala",
         "patchSetId": 16
@@ -59,6 +107,30 @@
       "writtenOn": "2015-03-02T09:01:29Z",
       "side": 1,
       "message": "A nit: I think it\u0027s more efficient here to use {} for ofType because in warnings are disabled no string is constructed.",
+      "range": {
+        "startLine": 542,
+        "startChar": 69,
+        "endLine": 543,
+        "endChar": 36
+      },
+      "revId": "4b8d8bf1ee36442a2b65b8b54512f9c5cdea4c7f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_cfed6e27",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/SessionInventory.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 543,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-03-02T11:05:49Z",
+      "side": 1,
+      "message": "Done, but reverted, as the scala compiler complains about:\nambiguous reference to overloaded definition,\nboth method debug in trait Logger of type (x$1: String, x$2: Object*)Unit\nand  method debug in trait Logger of type (x$1: String, x$2: Any, x$3: Any)Unit\n:(",
+      "parentUuid": "7a1969be_4f0fbe2e",
       "range": {
         "startLine": 542,
         "startChar": 69,
