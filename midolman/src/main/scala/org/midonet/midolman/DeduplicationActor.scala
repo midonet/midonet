@@ -21,7 +21,7 @@ import java.util.{HashMap => JHashMap, UUID}
 import scala.collection.mutable
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
-import scala.util.{Failure, Success}
+import scala.util.{Try, Failure, Success}
 
 import akka.actor._
 
@@ -52,7 +52,7 @@ import org.midonet.util.concurrent._
 object DeduplicationActor {
     case class HandlePackets(packet: Array[Packet])
     case class DiscardPacket(cookie: Int)
-    case class RestartWorkflow(pktCtx: PacketContext)
+    case class RestartWorkflow(pktCtx: PacketContext, error: Throwable)
 }
 
 class CookieGenerator(val start: Int, val increment: Int) {
@@ -161,12 +161,15 @@ class DeduplicationActor(
             cbExecutor.run()
             genPacketEmitter.process(runGeneratedPacket)
 
-        case RestartWorkflow(pktCtx) =>
+        case RestartWorkflow(pktCtx, error) =>
             if (pktCtx.idle) {
                 metrics.packetsOnHold.dec()
                 pktCtx.log.debug("Restarting workflow")
                 MDC.put("cookie", pktCtx.cookieStr)
-                runWorkflow(pktCtx)
+                if (error ne null)
+                    runWorkflow(pktCtx)
+                else
+                    handleErrorOn(pktCtx, error)
                 MDC.remove("cookie")
             }
             // Else the packet may have already been expired and dropped
@@ -215,9 +218,9 @@ class DeduplicationActor(
         }
         f.onComplete {
             case Success(_) =>
-                self ! RestartWorkflow(pktCtx)
+                self ! RestartWorkflow(pktCtx, null)
             case Failure(ex) =>
-                handleErrorOn(pktCtx, ex)
+                self ! RestartWorkflow(pktCtx, ex)
         }(ExecutionContext.callingThread)
         metrics.packetPostponed()
         giveUpWorkflows(waitingRoom enter pktCtx)
