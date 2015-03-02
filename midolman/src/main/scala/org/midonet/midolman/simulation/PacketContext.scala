@@ -20,6 +20,7 @@ import java.util.{Arrays, ArrayList, HashSet, Set => JSet, UUID}
 import scala.collection.JavaConversions._
 
 import com.typesafe.scalalogging.Logger
+import org.midonet.midolman.flows.FlowExpiration
 import org.slf4j.LoggerFactory
 
 import org.midonet.midolman.CallbackExecutor
@@ -40,8 +41,6 @@ object PacketContext {
         Logger(LoggerFactory.getLogger("org.midonet.packets.debug.packet-processor"))
     val traceLog =
         Logger(LoggerFactory.getLogger("org.midonet.packets.trace.packet-processor"))
-
-    val DEFAULT_EXPIRATION_MILLIS = 5 * 1000
 }
 
 /**
@@ -56,7 +55,7 @@ trait FlowContext extends Clearable { this: PacketContext =>
     // This Set stores the tags by which the flow may be indexed.
     // The index can be used to remove flows associated with the given tag.
     val flowTags = new HashSet[FlowTag]()
-    var expiration = PacketContext.DEFAULT_EXPIRATION_MILLIS
+    var expiration: FlowExpiration.Expiration = FlowExpiration.FLOW_EXPIRATION
 
     def isDrop: Boolean = flowActions.isEmpty
 
@@ -64,7 +63,7 @@ trait FlowContext extends Clearable { this: PacketContext =>
         virtualFlowActions.clear()
         flowActions.clear()
         flowTags.clear()
-        expiration = PacketContext.DEFAULT_EXPIRATION_MILLIS
+        expiration = FlowExpiration.FLOW_EXPIRATION
         super.clear()
     }
 

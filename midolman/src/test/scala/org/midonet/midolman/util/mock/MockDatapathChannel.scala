@@ -47,7 +47,7 @@ class MockDatapathChannel(val flowsTable: JMap[FlowMatch, Flow] = null) extends 
     }
 
     override def createFlow(flow: Flow): Unit = {
-        flow.setLastUsedTime(System.currentTimeMillis)
+        flow.setLastUsedMillis(System.currentTimeMillis)
 
         if (flowCreateCb ne null) {
             flowCreateCb(flow)

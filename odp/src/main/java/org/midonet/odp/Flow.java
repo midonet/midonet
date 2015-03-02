@@ -167,7 +167,7 @@ public class Flow extends FlowMetadata {
         if (getStats() != null)
             desc.add("stats: " + getStats());
         desc.add("tcpFlags: " + TCP.Flag.allOfToString(getTcpFlags()));
-        desc.add("lastUsedTime: " + getLastUsedTime());
+        desc.add("lastUsedTime: " + getLastUsedMillis());
         return  desc;
     }
 }

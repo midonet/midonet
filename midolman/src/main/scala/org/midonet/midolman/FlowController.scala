@@ -19,13 +19,22 @@ package org.midonet.midolman
 import java.nio.ByteBuffer
 
 import java.util.concurrent.TimeUnit
-import java.util.ArrayList
+import java.util.{HashMap, ArrayList}
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
 import akka.actor.{Actor, ActorSystem}
 import akka.event.LoggingReceive
+
+import com.google.inject.Inject
+import org.midonet.midolman.flows.{FlowExpiration, FlowLifecycle, FlowInvalidation, FlowInvalidator}
+import org.midonet.util.concurrent.NanoClock
+
+import rx.Observer
+
+import org.jctools.queues.SpscArrayQueue
+
 import com.codahale.metrics.MetricRegistry.name
 import com.codahale.metrics.{Gauge, MetricRegistry}
 import com.google.inject.Inject
@@ -42,7 +51,7 @@ import org.midonet.midolman.monitoring.MeterRegistry
 import org.midonet.midolman.simulation.PacketContext
 import org.midonet.netlink.exceptions.NetlinkException
 import org.midonet.netlink.exceptions.NetlinkException.ErrorCode
-import org.midonet.odp.{Datapath, FlowMetadata}
+import org.midonet.odp.{FlowMatch, Datapath, FlowMetadata}
 import org.midonet.sdn.flows._
 import org.midonet.util.collection.{ArrayObjectPool, ObjectPool}
 import org.midonet.util.concurrent.WakerUpper.Parkable
@@ -125,8 +134,14 @@ object FlowController extends Referenceable {
     }
 }
 
-class FlowController extends Actor with ActorLogWithoutPath
-        with DatapathReadySubscriberActor with FlowLifecycle with FlowInvalidation {
+class FlowController @Inject() (midolmanConfig: MidolmanConfig,
+                                flowProcessor: FlowProcessor,
+                                flowInvalidator: FlowInvalidator,
+                                metricsRegistry: MetricRegistry,
+                                clock: NanoClock)
+        extends Actor with ActorLogWithoutPath
+        with DatapathReadySubscriberActor with FlowLifecycle
+        with FlowInvalidation with FlowExpiration with Parkable {
     import DatapathController.DatapathReady
     import FlowController._
 
@@ -134,57 +149,44 @@ class FlowController extends Actor with ActorLogWithoutPath
 
     implicit val system = this.context.system
 
+    val maxFlows = (midolmanConfig.datapath.maxFlowCount * 1.1).toInt
+
     var datapath: Datapath = null
     var datapathId: Int = _
 
-    @Inject
-    var midolmanConfig: MidolmanConfig = null
+    var meters = new MeterRegistry(midolmanConfig.datapath.maxFlowCount)
 
-    @Inject
-    var flowProcessor: FlowProcessor = null
+    private val flowExpirationCheckInterval = Duration(10000, TimeUnit.MILLISECONDS)
 
-    var pooledFlowOperations: ArrayObjectPool[FlowOperation] = _
-    var completedFlowOperations: SpscArrayQueue[FlowOperation] = _
-    val flowRemoveCommandsToRetry = new ArrayList[FlowOperation]()
+    private val managedFlowPool = new ArrayObjectPool[ManagedFlow](
+        maxFlows, new ManagedFlow(_))
+    private val completedFlowOperations = new SpscArrayQueue[FlowOperation](
+        flowProcessor.capacity)
+    private val pooledFlowOperations = new ArrayObjectPool[FlowOperation](
+        flowProcessor.capacity, new FlowOperation(_, completedFlowOperations))
+    private val flowRemoveCommandsToRetry = new ArrayList[FlowOperation](
+        flowProcessor.capacity)
 
-    @Inject
-    var metricsRegistry: MetricRegistry = null
+    private val dpFlows = new HashMap[FlowMatch, ManagedFlow](maxFlows)
 
-    var meters: MeterRegistry = null
+    def getFlow(flowMatch: FlowMatch): ManagedFlow =
+        dpFlows.get(flowMatch)
 
-    var flowManager: FlowManager = null
-    var flowManagerHelper: FlowManagerHelper = null
+    val currentDpFlowsMetric = metricsRegistry.register(name(
+            classOf[FlowTablesGauge], "currentDatapathFlows"),
+            new Gauge[Long] {
+                 override def getValue = dpFlows.size()
+            })
 
-    @Inject
-    var flowInvalidator: FlowInvalidator = _
-
-    var flowExpirationCheckInterval: FiniteDuration = null
-
-    private var managedFlowPool: ObjectPool[ManagedFlow] = null
-
-    var metrics: FlowTablesMetrics = null
+    val dpFlowsMetric = metricsRegistry.meter(name(
+            classOf[FlowTablesMeter], "datapathFlowsCreated",
+            "datapathFlows"))
 
     private[this] implicit def executor: ExecutionContext = context.dispatcher
 
     override def preStart() {
         super.preStart()
-        meters = new MeterRegistry(midolmanConfig.datapath.maxFlowCount)
         Metering.registerAsMXBean(meters)
-        val maxDpFlows = (midolmanConfig.datapath.maxFlowCount * 1.1).toInt
-        flowExpirationCheckInterval = Duration(10000, // FIXME - being removed
-            TimeUnit.MILLISECONDS)
-
-        flowManagerHelper = new FlowManagerInfoImpl()
-        flowManager = new FlowManager(flowManagerHelper, maxDpFlows)
-
-        managedFlowPool = new ArrayObjectPool(maxDpFlows, new ManagedFlow(_))
-
-        metrics = new FlowTablesMetrics(flowManager)
-
-        completedFlowOperations = new SpscArrayQueue(flowProcessor.capacity)
-        pooledFlowOperations = new ArrayObjectPool(
-            flowProcessor.capacity,
-            new FlowOperation(_, completedFlowOperations))
     }
 
     def receive = LoggingReceive {
@@ -200,60 +202,57 @@ class FlowController extends Actor with ActorLogWithoutPath
         }
 
         case pktCtx: PacketContext  =>
-            var managedFlow = managedFlowPool.take
-            if (managedFlow eq null)
-                managedFlow = new ManagedFlow(managedFlowPool)
+            var flow = managedFlowPool.take
+            if (flow eq null)
+                flow = new ManagedFlow(managedFlowPool)
 
-            managedFlow.reset(pktCtx)
-            managedFlow.ref()
+            flow.reset(pktCtx, clock.tick)
+            flow.ref()
 
             if (FlowInvalidation.isTagSetStillValid(pktCtx)) {
-                if (handleFlowAddedForNewWildcard(managedFlow, pktCtx)) {
-                    context.system.eventStream.publish(WildcardFlowAdded(managedFlow))
-                    log.debug(s"Added flow $managedFlow")
+                if (!dpFlows.containsKey(flow.flowMatch)) {
+                    registerFlow(flow)
+                    context.system.eventStream.publish(WildcardFlowAdded(flow))
+                    log.debug(s"Added flow $flow")
                 } else {
-                    managedFlow.unref()
+                    log.debug(s"Tried to add duplicate flow $flow")
+                    pktCtx.callbackExecutor.schedule(pktCtx.flowRemovedCallbacks)
+                    flow.unref()
                 }
             } else {
                 log.debug(s"Skipping obsolete flow with match ${pktCtx.origMatch} " +
                           s"and tags ${pktCtx.flowTags}")
-                flowManagerHelper removeFlow managedFlow
                 pktCtx.callbackExecutor.schedule(pktCtx.flowRemovedCallbacks)
-                managedFlow.unref()   // the FlowController's ref
+                removeFlowFromDatapath(flow)
+                flow.unref()
             }
 
         case CheckFlowExpiration_ =>
-            flowManager.checkFlowsExpiration()
+            checkFlowsExpiration(clock.tick)
 
         case CheckCompletedRequests =>
             processCompletedFlowOperations()
             flowInvalidator.process(this)
     }
 
-    override def removeFlow(flow: ManagedFlow) {
-        if (flowManager.remove(flow)) {
-            super.removeFlow(flow)
-            flow.cbExecutor.schedule(flow.callbacks)
-            context.system.eventStream.publish(WildcardFlowRemoved(flow))
-            flow.unref() // FlowController's ref
-        }
+    override def registerFlow(flow: ManagedFlow): Unit = {
+        super.registerFlow(flow)
+        dpFlows.put(flow.flowMatch, flow)
+        meters.trackFlow(flow.flowMatch, flow.tags)
+        dpFlowsMetric.mark()
     }
 
-    private def handleFlowAddedForNewWildcard(flow: ManagedFlow,
-                                              pktCtx: PacketContext): Boolean = {
-
-        if (!flowManager.add(flow)) {
-            log.debug("FlowManager failed to install wildcard flow {}", flow)
-            pktCtx.callbackExecutor.schedule(pktCtx.flowRemovedCallbacks)
-            return false
+    override def removeFlow(flow: ManagedFlow): Unit = {
+        val removedFlow = dpFlows.remove(flow.flowMatch)
+        if (removedFlow eq flow) {
+            super.removeFlow(flow)
+            flow.cbExecutor.schedule(flow.callbacks)
+            removeFlowFromDatapath(flow)
+            context.system.eventStream.publish(WildcardFlowRemoved(flow))
+            flow.unref()
+        } else if (removedFlow ne null) {
+            dpFlows.put(removedFlow.flowMatch, removedFlow)
         }
-
-        registerFlow(flow)
-
-        meters.trackFlow(pktCtx.origMatch, flow.tags)
-
-        metrics.dpFlowsMetric.mark()
-        true
     }
 
     private def processCompletedFlowOperations(): Unit = {
@@ -315,50 +314,32 @@ class FlowController extends Actor with ActorLogWithoutPath
         req.clear()
     }
 
-    sealed class FlowManagerInfoImpl extends FlowManagerHelper with Parkable {
+    override def shouldWakeUp() = completedFlowOperations.size > 0
 
-        override def shouldWakeUp() = completedFlowOperations.size > 0
-
-        private def takeFlowOperation(flow: ManagedFlow): FlowOperation = {
-            var flowOp: FlowOperation = null
-            while ({ flowOp = pooledFlowOperations.take; flowOp } eq null) {
-                processCompletedFlowOperations()
-                if (pooledFlowOperations.available == 0)
-                    park()
-            }
-            flowOp.reset(flow, retries = 10)
-            flowOp
+    private def takeFlowOperation(flow: ManagedFlow): FlowOperation = {
+        var flowOp: FlowOperation = null
+        while ({ flowOp = pooledFlowOperations.take; flowOp } eq null) {
+            processCompletedFlowOperations()
+            if (pooledFlowOperations.available == 0)
+                park()
         }
-
-        def removeFlow(flow: ManagedFlow): Unit = {
-            val flowOp = takeFlowOperation(flow)
-            val fmatch = flow.flowMatch
-            // Spin while we try to eject the flow. At this point, the only
-            // reason it can fail is if the simulation tags are not valid and
-            // we can't delete the flow because the corresponding flow create
-            // hasn't been written out. Note that this is going away when we
-            // partition the FlowController.
-            while (!flowProcessor.tryEject(fmatch.getSequence, datapathId,
-                                           fmatch, flowOp)) {
-                processCompletedFlowOperations()
-                Thread.`yield`()
-            }
-        }
-
-        def removeWildcardFlow(flow: ManagedFlow): Unit = {
-            FlowController.this.removeFlow(flow)
-        }
+        flowOp.reset(flow, retries = 10)
+        flowOp
     }
 
-    class FlowTablesMetrics(val flowManager: FlowManager) {
-        val currentDpFlowsMetric = metricsRegistry.register(name(
-                classOf[FlowTablesGauge], "currentDatapathFlows"),
-            new Gauge[Long]{
-                 override def getValue = flowManager.getNumDpFlows
-             })
-
-        val dpFlowsMetric = metricsRegistry.meter(name(
-                classOf[FlowTablesMeter], "datapathFlowsCreated",
-                "datapathFlows"))
+    private def removeFlowFromDatapath(flow: ManagedFlow): Unit = {
+        log.debug(s"Removing flow $flow from datapath")
+        val flowOp = takeFlowOperation(flow)
+        val fmatch = flow.flowMatch
+        // Spin while we try to eject the flow. At this point, the only
+        // reason it can fail is if the simulation tags are not valid and
+        // we can't delete the flow because the corresponding flow create
+        // hasn't been written out. Note that this is going away when we
+        // partition the FlowController.
+        while (!flowProcessor.tryEject(fmatch.getSequence, datapathId,
+                                       fmatch, flowOp)) {
+            processCompletedFlowOperations()
+            Thread.`yield`()
+        }
     }
 }

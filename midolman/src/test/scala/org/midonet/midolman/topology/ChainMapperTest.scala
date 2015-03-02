@@ -54,8 +54,6 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
     private implicit var store: Storage = _
     private val timeout = 2 second
 
-    registerActors(FlowController -> (() => new FlowController))
-
     protected override def beforeTest() = {
         vt = injector.getInstance(classOf[VirtualTopology])
         store = injector.getInstance(classOf[MidonetBackend]).store

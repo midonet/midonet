@@ -78,7 +78,7 @@ class DeduplicationActor(
             val natLeaser: NatLeaser,
             val metrics: PacketPipelineMetrics,
             val packetOut: Int => Unit)
-            extends Actor with ActorLogWithoutPath with Stash {
+            extends Actor with ActorLogWithoutPath with Stash with Backchannel {
 
     import DatapathController.DatapathReady
     import DeduplicationActor._
@@ -136,6 +136,9 @@ class DeduplicationActor(
             workflow = new PacketWorkflow(dpState, dp, clusterDataClient,
                                           dpChannel, replicator, config)
             context.become(receive)
+            context.system.scheduler.schedule(initialDelay = 20 millis,
+                                              interval = 30 seconds,
+                                              self, CheckBackchannels)
             unstashAll()
         case _ => stash()
     }
@@ -145,24 +148,15 @@ class DeduplicationActor(
             replicator.importFromStorage(m)
 
         case HandlePackets(packets) =>
-
-            connTrackStateTable.expireIdleEntries((), invalidateExpiredConnTrackKeys)
-            natStateTable.expireIdleEntries((), invalidateExpiredNatKeys)
-            natLeaser.obliterateUnusedBlocks()
-            traceStateTable.expireIdleEntries()
-
             var i = 0
             while (i < packets.length && packets(i) != null) {
                 handlePacket(packets(i))
                 i += 1
             }
-
-            cbExecutor.run()
-            genPacketEmitter.process(runGeneratedPacket)
+            process()
 
         case CheckBackchannels =>
-            cbExecutor.run()
-            genPacketEmitter.process(runGeneratedPacket)
+            process()
 
         case RestartWorkflow(pktCtx, error) =>
             if (pktCtx.idle) {
@@ -177,6 +171,19 @@ class DeduplicationActor(
                 MDC.remove(TraceState.TraceLoggingContextKey)
             }
             // Else the packet may have already been expired and dropped
+    }
+
+    override def shouldProcess(): Boolean =
+        cbExecutor.shouldWakeUp() ||
+        genPacketEmitter.pendingPackets > 0
+
+    override def process(): Unit = {
+        cbExecutor.run()
+        genPacketEmitter.process(runGeneratedPacket)
+        connTrackStateTable.expireIdleEntries((), invalidateExpiredConnTrackKeys)
+        natStateTable.expireIdleEntries((), invalidateExpiredNatKeys)
+        natLeaser.obliterateUnusedBlocks()
+        traceStateTable.expireIdleEntries()
     }
 
     // We return collection.Set so we can return an empty immutable set

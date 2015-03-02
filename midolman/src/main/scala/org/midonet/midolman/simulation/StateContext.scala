@@ -38,6 +38,6 @@ trait StateContext extends FlowState
         this.traceTx = traceTx
     }
 
-    def containsForwardStateKeys =
+    def containsFlowState =
         conntrackTx.size() > 0 || natTx.size() > 0 || traceTx.size() > 0
 }
