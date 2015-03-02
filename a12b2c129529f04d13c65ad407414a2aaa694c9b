@@ -16,6 +16,24 @@
       "revId": "a12b2c129529f04d13c65ad407414a2aaa694c9b",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_7269c1bd",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/PacketContext.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 288,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-03-02T15:30:45Z",
+      "side": 1,
+      "message": "It\u0027s the context to put in the log. Since it gets more elaborate in later changes, and is moved to TraceState, i\u0027ll update it there.",
+      "parentUuid": "7a1969be_f5eda626",
+      "revId": "a12b2c129529f04d13c65ad407414a2aaa694c9b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
