@@ -237,6 +237,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_08b81cc7",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/SessionInventory.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-03-03T07:16:03Z",
+      "side": 1,
+      "message": "At line 95 of patch 15 (line 94 of patch 19) you\u0027re doing pattern match but not here. Is there particular reason that we need to deal with the default case there but not here?",
+      "parentUuid": "7a1969be_8fba5608",
+      "range": {
+        "startLine": 112,
+        "startChar": 24,
+        "endLine": 112,
+        "endChar": 54
+      },
+      "revId": "5f16bca2a6ae7a2bd38f0731999c89e253e54d93",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_fc190a89",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/SessionInventory.scala",
         "patchSetId": 15
@@ -272,6 +296,30 @@
       "side": 1,
       "message": "Not sure to which change you are referring to... Is there an implicit conversion from UUID to Commons.UUID?",
       "parentUuid": "7a1969be_fc190a89",
+      "range": {
+        "startLine": 463,
+        "startChar": 30,
+        "endLine": 463,
+        "endChar": 46
+      },
+      "revId": "5f16bca2a6ae7a2bd38f0731999c89e253e54d93",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_a8a9087d",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/SessionInventory.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 463,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-03-03T07:16:03Z",
+      "side": 1,
+      "message": "I think that Alex\u0027s submitted a change that you can pass Commons.UUID and java.util.UUID transparently. Whichever UUID you pass to ZOOM, you get the same object back.",
+      "parentUuid": "7a1969be_0f466623",
       "range": {
         "startLine": 463,
         "startChar": 30,
