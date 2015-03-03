@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_088adc1a",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/util/IPSubnetUtil.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-03-03T06:55:14Z",
+      "side": 1,
+      "message": "Can you rename this to \"toIPAddress\"? By convention, XXX.toProto is conversion from a XXX String to a corresponding XXX protobuf. Therefore I think it\u0027s confusing to call this \"toProto\".",
+      "range": {
+        "startLine": 47,
+        "startChar": 8,
+        "endLine": 47,
+        "endChar": 15
+      },
+      "revId": "57fa6e6365c49c989c08f28b1c3572ea5a8715ab",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_e88ca037",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/util/IPSubnetUtil.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-03-03T06:55:14Z",
+      "side": 1,
+      "message": "Ditto.",
+      "range": {
+        "startLine": 52,
+        "startChar": 8,
+        "endLine": 52,
+        "endChar": 15
+      },
+      "revId": "57fa6e6365c49c989c08f28b1c3572ea5a8715ab",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_4884d40b",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/util/UUIDUtil.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-03-03T06:55:14Z",
+      "side": 1,
+      "message": "\"where each XORs\"?",
+      "range": {
+        "startLine": 68,
+        "startChar": 35,
+        "endLine": 68,
+        "endChar": 49
+      },
+      "revId": "57fa6e6365c49c989c08f28b1c3572ea5a8715ab",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
