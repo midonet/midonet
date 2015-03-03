@@ -17,13 +17,17 @@ package org.midonet.cluster.data.neutron;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
-import org.apache.curator.test.TestingServer;
 import org.junit.Before;
 import org.junit.Test;
 
+import org.midonet.cluster.data.Rule;
+import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.DirectoryVerifier;
 import org.midonet.midolman.state.PathBuilder;
+import org.midonet.midolman.state.StateAccessException;
+import org.midonet.packets.IPv4Subnet;
 
 public final class NeutronZkDataTest extends NeutronPluginTest {
 
@@ -39,7 +43,42 @@ public final class NeutronZkDataTest extends NeutronPluginTest {
         dirVerifier = new DirectoryVerifier(getDirectory());
     }
 
-    private void verifyFloatingIp() {
+    private void verifyMetadataRoute(UUID routerId, String srcCidr,
+                                     int expectedMatchCnt) {
+
+        String routesPath = pathBuilder.getRoutesPath();
+        IPv4Subnet srcSubnet = IPv4Subnet.fromCidr(srcCidr);
+
+        Map<String, Object> matches = new HashMap<>();
+        matches.put("srcNetworkAddr", srcSubnet.toNetworkAddress().toString());
+        matches.put("srcNetworkLength", srcSubnet.getPrefixLen());
+        matches.put("dstNetworkAddr",
+                    MetaDataService.IPv4_SUBNET.toNetworkAddress().toString());
+        matches.put("dstNetworkLength", 32);
+        matches.put("routerId", routerId);
+
+        dirVerifier.assertChildrenFieldsMatch(routesPath, matches,
+                                              expectedMatchCnt);
+    }
+
+    private void verifyFipDnatRule(int expectedMatchCnt) {
+
+        String rulesPath = pathBuilder.getRulesPath();
+
+        String floatingIpAddr = floatingIp.floatingIpAddress;
+        String fixedIpAddr = floatingIp.fixedIpAddress;
+
+        Map<String, Object> matches = new HashMap<>();
+        matches.put("type", "ForwardNat");
+        matches.put("condition.nwDstIp.address", floatingIpAddr);
+        matches.put("natTargets[0].nwStart", fixedIpAddr);
+        matches.put("natTargets[0].nwEnd", fixedIpAddr);
+
+        dirVerifier.assertChildrenFieldsMatch(rulesPath, matches,
+                                              expectedMatchCnt);
+    }
+
+    private void verifyFipSnatRule(int expectedMatchCnt) {
 
         String rulesPath = pathBuilder.getRulesPath();
 
@@ -52,21 +91,53 @@ public final class NeutronZkDataTest extends NeutronPluginTest {
         matches.put("natTargets[0].nwStart", floatingIpAddr);
         matches.put("natTargets[0].nwEnd", floatingIpAddr);
 
-        dirVerifier.assertChildrenFieldsMatch(rulesPath, matches, 1);
+        dirVerifier.assertChildrenFieldsMatch(rulesPath, matches,
+                                              expectedMatchCnt);
+    }
 
-        matches = new HashMap<>();
-        matches.put("type", "ForwardNat");
-        matches.put("condition.nwDstIp.address", floatingIpAddr);
-        matches.put("natTargets[0].nwStart", fixedIpAddr);
-        matches.put("natTargets[0].nwEnd", fixedIpAddr);
+    private void verifyFloatingIpRules() {
 
-        dirVerifier.assertChildrenFieldsMatch(rulesPath, matches, 1);
+        verifyFipSnatRule(1);
+        verifyFipDnatRule(1);
+
+    }
+
+    public void verifyNoFloatingIpRules() {
+
+        verifyFipSnatRule(0);
+        verifyFipDnatRule(0);
     }
 
     @Test
-    public void testBasicScenario() {
+    public void testFloatingIp()
+        throws SerializationException, StateAccessException,
+               Rule.RuleIndexOutOfBoundsException {
 
-        verifyFloatingIp();
+        verifyFloatingIpRules();
 
+        plugin.deleteNetwork(extNetwork.id);
+
+        verifyNoFloatingIpRules();
+    }
+
+    @Test
+    public void testMetadataRouteWhenDhcpPortCreatedAfterRouter()
+        throws Rule.RuleIndexOutOfBoundsException, SerializationException,
+               StateAccessException {
+
+        // First test the normal case
+        verifyMetadataRoute(router.id, subnet.cidr, 1);
+
+        // Delete the DHCP port
+        plugin.deletePort(dhcpPort.id);
+
+        // Verify no metadata route
+        verifyMetadataRoute(router.id, subnet.cidr, 0);
+
+        // Add a new DHCP port
+        plugin.createPort(dhcpPort);
+
+        // Verify that the metadata is re-added
+        verifyMetadataRoute(router.id, subnet.cidr, 1);
     }
 }

@@ -529,6 +529,20 @@ public class NetworkZkManager extends BaseZkManager {
         return ports;
     }
 
+    public List<Port> getPorts(UUID netId)
+        throws StateAccessException, SerializationException {
+
+        List<Port> ports = getPorts();
+        List<Port> netPorts = new ArrayList<>();
+        for (Port port : ports) {
+            if (port.networkId.equals(netId)) {
+                netPorts.add(port);
+            }
+        }
+
+        return netPorts;
+    }
+
     public void prepareUpdateVifPort(List<Op> ops, Port port)
         throws StateAccessException, SerializationException {
 
