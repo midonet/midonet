@@ -1,0 +1,140 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_689270a0",
+        "filename": "python-midonetclient/package.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-03-03T01:43:26Z",
+      "side": 1,
+      "message": "nit white space",
+      "revId": "8ac01704217f1dfdb7c167165338a84e84cd3134",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_c891e49a",
+        "filename": "python-midonetclient/src/midonetclient/protobuf/__init__.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-03-03T01:43:26Z",
+      "side": 1,
+      "message": "Copyright header missing",
+      "revId": "8ac01704217f1dfdb7c167165338a84e84cd3134",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_a88c6880",
+        "filename": "python-midonetclient/src/midonetclient/protobuf/utils.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-03-03T01:43:26Z",
+      "side": 1,
+      "message": "Copyright header missing",
+      "revId": "8ac01704217f1dfdb7c167165338a84e84cd3134",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_88decc6b",
+        "filename": "python-midonetclient/src/midonetclient/protobuf/utils.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-03-03T01:43:26Z",
+      "side": 1,
+      "message": "This doesn\u0027t look like it would work for the sub-resources that are nested (i\u0027m assuming that\u0027s possible in Protobuf).  Couldn\u0027t we achieve that with recursion?  Or is it the design that the caller is supposed to call proto_to_dict for nested objects separately (in which case, we should mention that in the comment)?\n\nBTW, there seems to be a project that does this:\n\nhttps://github.com/benhodgson/protobuf-to-dict\n\nMaybe there\u0027s something there that we can re-use or point us to something we missed.",
+      "revId": "8ac01704217f1dfdb7c167165338a84e84cd3134",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_2846b823",
+        "filename": "python-midonetclient/src/midonetclient/topology/__init__.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-03-03T01:43:26Z",
+      "side": 1,
+      "message": "Copyright header missing",
+      "revId": "8ac01704217f1dfdb7c167165338a84e84cd3134",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_884c0c44",
+        "filename": "python-midonetclient/src/midonetclient/topology/__init__.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 153,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-03-03T01:43:26Z",
+      "side": 1,
+      "message": "Having this full qualified class path feels fragile to me since if they move a file, this would break. Is this what the cluster returns in the response?",
+      "revId": "8ac01704217f1dfdb7c167165338a84e84cd3134",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_6847101e",
+        "filename": "python-midonetclient/src/midonetclient/topology/__init__.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 154,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-03-03T01:43:26Z",
+      "side": 1,
+      "message": "Why not just return 4 and 6 instead of \u00274\u0027 and \u00276\u0027?",
+      "revId": "8ac01704217f1dfdb7c167165338a84e84cd3134",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_c85604d2",
+        "filename": "python-midonetclient/src/midonetclient/topology/hosts.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-03-03T01:43:26Z",
+      "side": 1,
+      "message": "copyright header",
+      "revId": "8ac01704217f1dfdb7c167165338a84e84cd3134",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
