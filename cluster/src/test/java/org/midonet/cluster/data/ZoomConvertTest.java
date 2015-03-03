@@ -15,20 +15,24 @@
  */
 package org.midonet.cluster.data;
 
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Random;
+import java.util.Set;
 
 import org.junit.Test;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import static org.midonet.cluster.models.TestModels.TestMessage;
 import static org.midonet.cluster.models.TestModels.TestFlatMessage;
 import static org.midonet.cluster.models.TestModels.TestFlatMessage.Enum.FIRST_VALUE;
 import static org.midonet.cluster.models.TestModels.TestFlatMessage.Enum.SECOND_VALUE;
 import static org.midonet.cluster.models.TestModels.TestFlatMessage.Enum.THIRD_VALUE;
 
 /**
- * This tests the conversion between POJOs and Protobufs, when using
+ * These tests test the conversion between POJOs and Protobufs, when using
  * inheritance. The tested classes are the following, where the classes with (*)
  * are abstract classes (hence cannot be instantiated directly and require
  * a ZoomClass annotation specifying a factory class)
@@ -58,6 +62,10 @@ import static org.midonet.cluster.models.TestModels.TestFlatMessage.Enum.THIRD_V
  * class provides a factory in the ZoomClass annotation, allowing the converter
  * to differentiate the corresponding POJO type for different Protobufs
  * messages.
+ *
+ * An additional test ensures that conversion between a proto and a pojo with
+ * fields of type byte and Set work properly. The pojo class used is named
+ * TestMessagePojo.
  */
 public class ZoomConvertTest {
 
@@ -372,6 +380,43 @@ public class ZoomConvertTest {
         Top top = ZoomConvert.fromProto(proto, Top.class);
 
         assertTrue(obj.equals(top));
+    }
+
+    @Test
+    public void testTestMessagetoTestMessagePojo() {
+        TestMessagePojo obj = new TestMessagePojo();
+        TestMessage proto = ZoomConvert.toProto(obj, TestMessage.class);
+        assertTrue(obj.compare(proto));
+
+        TestMessagePojo pojo = ZoomConvert.fromProto(proto, TestMessagePojo.class);
+        assertTrue(obj.equals(pojo));
+    }
+
+    @ZoomClass(clazz = TestMessage.class)
+    public static class TestMessagePojo extends ZoomObject {
+        @ZoomField(name = "int32_field")
+        private Byte byteField = 13;
+
+        @ZoomField(name = "int32_list")
+        private Set<Byte> byteSet =  new HashSet<>(Arrays.asList((byte) 12,
+                                                                 (byte) 32));
+
+        public boolean compare(TestMessage message) {
+            boolean setsEqual = message.getInt32ListCount() == byteSet.size();
+            for (Integer nb : message.getInt32ListList())
+                setsEqual &= byteSet.contains(nb.byteValue());
+
+            return message.hasInt32Field() &&
+                   ((byte) message.getInt32Field() == byteField) &&
+                    setsEqual;
+        }
+
+        public boolean equals(Object obj) {
+            if (null == obj || !(obj instanceof TestMessagePojo)) return false;
+            TestMessagePojo o = (TestMessagePojo) obj;
+            return byteField == o.byteField &&
+                   byteSet.equals(o.byteSet);
+        }
     }
 
     public static abstract class AbstractBase extends ZoomObject {
