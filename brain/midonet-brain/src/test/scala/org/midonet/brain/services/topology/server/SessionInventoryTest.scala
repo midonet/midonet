@@ -28,8 +28,7 @@ import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.data.storage.{InMemoryStorage, Storage}
 import org.midonet.cluster.models.Topology.Network
-import org.midonet.cluster.rpc.Commands.Response
-import org.midonet.cluster.rpc.Commands.Response.{Ack, NAck}
+import org.midonet.cluster.rpc.Commands.{ResponseType, Response}
 import org.midonet.cluster.util.UUIDUtil
 import org.midonet.util.eventloop.CallingThreadReactor
 import org.midonet.util.reactivex.AwaitableObserver
@@ -45,13 +44,9 @@ class SessionInventoryTest extends FeatureSpec
 
     val WAIT_TIME = Duration.create(5000, TimeUnit.MILLISECONDS)
 
-    def ack(id: UUID): Response = Response.newBuilder()
-        .setAck(Ack.newBuilder().setReqId(UUIDUtil.toProto(id)).build())
-        .build()
+    def ack(id: UUID): Response = ServerState.makeAck(UUIDUtil.toProto(id))
 
-    def nack(id: UUID): Response = Response.newBuilder()
-        .setNack(NAck.newBuilder().setReqId(UUIDUtil.toProto(id)).build())
-        .build()
+    def nack(id: UUID): Response = ServerState.makeNAck(UUIDUtil.toProto(id))
 
     def bridge(id: UUID, name: String) = Network.newBuilder()
         .setId(UUIDUtil.toProto(id))
@@ -59,19 +54,31 @@ class SessionInventoryTest extends FeatureSpec
         .build()
 
     def isAck(rsp: Response, id: UUID) =
-        rsp.hasAck && UUIDUtil.fromProto(rsp.getAck.getReqId) == id
+        rsp.getType == ResponseType.ACK &&
+            UUIDUtil.fromProto(rsp.getReqId) == id
 
     def isNAck(rsp: Response, id: UUID) =
-        rsp.hasNack && UUIDUtil.fromProto(rsp.getNack.getReqId) == id
+        rsp.getType == ResponseType.NACK &&
+            UUIDUtil.fromProto(rsp.getReqId) == id
+
+    def isError(rsp: Response, id: UUID) =
+        rsp.getType == ResponseType.ERROR &&
+            UUIDUtil.fromProto(rsp.getReqId) == id
 
     def isBridge(rsp: Response, id: UUID, name: String) =
+        rsp.getType == ResponseType.UPDATE &&
         rsp.hasUpdate && rsp.getUpdate.hasNetwork &&
         UUIDUtil.fromProto(rsp.getUpdate.getNetwork.getId) == id &&
         rsp.getUpdate.getNetwork.getName == name
 
     def isDeletion(rsp: Response, id: UUID) =
-        rsp.hasDeletion && rsp.getDeletion.getId.hasUuid &&
-        UUIDUtil.fromProto(rsp.getDeletion.getId.getUuid) == id
+        rsp.getType == ResponseType.DELETION &&
+        UUIDUtil.fromProto(rsp.getObjId) == id
+
+    def isSnapshot(rsp: Response, ids: Set[UUID]) =
+        rsp.getType == ResponseType.SNAPSHOT &&
+        rsp.hasSnapshot &&
+            (rsp.getSnapshot.getObjIdsList.toSet.map(UUIDUtil.fromProto) == ids)
 
     before
     {
@@ -87,7 +94,7 @@ class SessionInventoryTest extends FeatureSpec
         {
             val sId = UUID.randomUUID()
             val session = inv.claim(sId)
-            session should not be (null)
+            session shouldNot be (null)
         }
 
         scenario("claim an existing session id")
@@ -95,8 +102,8 @@ class SessionInventoryTest extends FeatureSpec
             val sId = UUID.randomUUID()
             val previous = inv.claim(sId)
             val session = inv.claim(sId)
-            session should not be (null)
-            session should be (previous)
+            session shouldNot be (null)
+            session shouldBe previous
         }
 
         scenario("claim a different session id")
@@ -105,8 +112,8 @@ class SessionInventoryTest extends FeatureSpec
             val sId2 = UUID.randomUUID()
             val previous = inv.claim(sId1)
             val next = inv.claim(sId2)
-            next should not be (null)
-            next should not be (previous)
+            next shouldNot be (null)
+            next shouldNot be (previous)
         }
     }
 
@@ -118,7 +125,7 @@ class SessionInventoryTest extends FeatureSpec
             val session = inv.claim(sId)
             val collector = new AwaitableObserver[Response](0)
             val subs = session.observable().subscribe(collector)
-            subs should not be (null)
+            subs shouldNot be (null)
             subs.unsubscribe()
         }
 
@@ -129,7 +136,7 @@ class SessionInventoryTest extends FeatureSpec
             val collector1 = new AwaitableObserver[Response](0)
             val collector2 = new AwaitableObserver[Response](0)
             val subs1 = session.observable().subscribe(collector1)
-            subs1 should not be (null)
+            subs1 shouldNot be (null)
             an [HermitOversubscribedException] should be
                 thrownBy({session.observable().subscribe(collector2)})
             subs1.unsubscribe()
@@ -143,11 +150,11 @@ class SessionInventoryTest extends FeatureSpec
             val collector2 = new AwaitableObserver[Response](0)
 
             val subs1 = session.observable().subscribe(collector1)
-            subs1 should not be (null)
+            subs1 shouldNot be (null)
             subs1.unsubscribe()
 
             val subs2 = session.observable().subscribe(collector2)
-            subs2 should not be (null)
+            subs2 shouldNot be (null)
             subs2.unsubscribe()
         }
 
@@ -171,7 +178,7 @@ class SessionInventoryTest extends FeatureSpec
             val session = inv.claim(sId)
 
             val subs1 = session.observable().subscribe(collector1)
-            subs1 should not be (null)
+            subs1 shouldNot be (null)
             subs1.unsubscribe()
 
             Thread.sleep(2000)
@@ -202,15 +209,15 @@ class SessionInventoryTest extends FeatureSpec
 
             val req = UUID.randomUUID()
             val oId = UUID.randomUUID()
-            session.get(Uuid(oId), classOf[Network], nack(req))
+            session.get(oId, classOf[Network], req)
 
             // wait for futures to be completed
             collector.await(WAIT_TIME)
             subs.unsubscribe()
 
             val events = collectionAsScalaIterable(collector.getOnNextEvents).toArray
-            events.size should be (1)
-            isNAck(events(0), req) should be (true)
+            events.size shouldBe 1
+            isNAck(events(0), req) shouldBe true
         }
 
         scenario("get existent")
@@ -225,18 +232,18 @@ class SessionInventoryTest extends FeatureSpec
 
             store.create(bridge(oId, "bridge1"))
 
-            session.get(Uuid(oId), classOf[Network], nack(req))
+            session.get(oId, classOf[Network], req)
 
-            // wait for fures to be completed
+            // wait for futures to be completed
             collector.await(WAIT_TIME)
             subs.unsubscribe()
 
             val events = collectionAsScalaIterable(collector.getOnNextEvents).toArray
-            events.size should be (1)
-            isBridge(events(0), oId, "bridge1") should be (true)
+            events.size shouldBe 1
+            isBridge(events(0), oId, "bridge1") shouldBe true
         }
 
-        scenario("watch non-existent")
+        scenario("getAll non-existent")
         {
             val sId = UUID.randomUUID()
             val session = inv.claim(sId)
@@ -244,23 +251,68 @@ class SessionInventoryTest extends FeatureSpec
             val subs = session.observable().subscribe(collector)
 
             val req = UUID.randomUUID()
+            session.getAll(classOf[Network], req)
+
+            // wait for futures to be completed
+            collector.await(WAIT_TIME)
+            subs.unsubscribe()
+
+            val events = collectionAsScalaIterable(collector.getOnNextEvents).toArray
+            events.size shouldBe 1
+            isSnapshot(events(0), Set()) shouldBe true
+        }
+
+        scenario("getAll existent")
+        {
+            val sId = UUID.randomUUID()
+            val session = inv.claim(sId)
+            val collector = new AwaitableObserver[Response](1)
+            val subs = session.observable().subscribe(collector)
+
+            val req = UUID.randomUUID()
+            val oId1 = UUID.randomUUID()
+            val oId2 = UUID.randomUUID()
+
+            store.create(bridge(oId1, "bridge1"))
+            store.create(bridge(oId2, "bridge2"))
+
+            session.getAll(classOf[Network], req)
+
+            // wait for fures to be completed
+            collector.await(WAIT_TIME)
+            subs.unsubscribe()
+
+            val events = collectionAsScalaIterable(collector.getOnNextEvents).toArray
+            events.size shouldBe 1
+            isSnapshot(events(0), Set(oId1, oId2)) shouldBe true
+        }
+
+        scenario("watch non-existent")
+        {
+            val sId = UUID.randomUUID()
+            val session = inv.claim(sId)
+            val collector = new AwaitableObserver[Response](2)
+            val subs = session.observable().subscribe(collector)
+
+            val req = UUID.randomUUID()
             val oId = UUID.randomUUID()
-            session.watch(Uuid(oId), classOf[Network], nack(req))
+            session.watch(oId, classOf[Network], req)
 
             // wait for futures to complete
             collector.await(WAIT_TIME)
             subs.unsubscribe()
 
             val events = collectionAsScalaIterable(collector.getOnNextEvents).toArray
-            events.size should be (1)
-            isNAck(events(0), req) should be (true)
+            events.size shouldBe 2
+            events.exists(rsp => isAck(rsp, req)) shouldBe true
+            events.exists(rsp => isError(rsp, req)) shouldBe true
         }
 
-        scenario("watch existent")
+        scenario("watch pre-created entities")
         {
             val sId = UUID.randomUUID()
             val session = inv.claim(sId)
-            val collector = new AwaitableObserver[Response](3)
+            val collector = new AwaitableObserver[Response](4)
             val subs = session.observable().subscribe(collector)
 
             val req = UUID.randomUUID()
@@ -270,7 +322,7 @@ class SessionInventoryTest extends FeatureSpec
             store.create(bridge(oId, "bridge"))
 
             // subscribe to changes
-            session.watch(Uuid(oId), classOf[Network], nack(req))
+            session.watch(oId, classOf[Network], req)
 
             // update bridge
             store.update(bridge(oId, "bridge-update"))
@@ -282,12 +334,13 @@ class SessionInventoryTest extends FeatureSpec
             collector.await(WAIT_TIME)
             subs.unsubscribe()
 
-            collector.getOnCompletedEvents.size() should be (0)
+            collector.getOnCompletedEvents.size() shouldBe 0
             val events = collectionAsScalaIterable(collector.getOnNextEvents).toArray
-            events.size should be (3)
-            isBridge(events(0), oId, "bridge") should be (true)
-            isBridge(events(1), oId, "bridge-update") should be (true)
-            isDeletion(events(2), oId) should be (true)
+            events.size shouldBe 4
+            events.exists(rsp => isAck(rsp, req)) shouldBe true
+            events.exists(rsp => isBridge(rsp, oId, "bridge")) shouldBe true
+            events.exists(rsp => isBridge(rsp, oId, "bridge-update")) shouldBe true
+            events.exists(rsp => isDeletion(rsp, oId)) shouldBe true
 
         }
 
@@ -302,23 +355,23 @@ class SessionInventoryTest extends FeatureSpec
             val oId = UUID.randomUUID()
 
             // Note: it should return ack even if not registered
-            session.unwatch(Uuid(oId), classOf[Network], ack(req), nack(req))
+            session.unwatch(oId, classOf[Network], req)
 
             // wait for futures to complete
             collector.await(WAIT_TIME)
             subs.unsubscribe()
 
-            collector.getOnCompletedEvents.size() should be (0)
+            collector.getOnCompletedEvents.size() shouldBe 0
             val events = collectionAsScalaIterable(collector.getOnNextEvents).toArray
-            events.size should be (1)
-            isAck(events(0), req) should be (true)
+            events.size shouldBe 1
+            isAck(events(0), req) shouldBe true
         }
 
         scenario("unwatch registered")
         {
             val sId = UUID.randomUUID()
             val session = inv.claim(sId)
-            val collector = new AwaitableObserver[Response](3)
+            val collector = new AwaitableObserver[Response](4)
             val subs = session.observable().subscribe(collector)
 
             val req1 = UUID.randomUUID()
@@ -326,9 +379,9 @@ class SessionInventoryTest extends FeatureSpec
             val oId = UUID.randomUUID()
 
             store.create(bridge(oId, "bridge"))
-            session.watch(Uuid(oId), classOf[Network], nack(req1))
+            session.watch(oId, classOf[Network], req1)
             store.update(bridge(oId, "bridge-1"))
-            session.unwatch(Uuid(oId), classOf[Network], ack(req2), nack(req2))
+            session.unwatch(oId, classOf[Network], req2)
             store.update(bridge(oId, "bridge-2"))
             store.delete(classOf[Network], UUIDUtil.toProto(oId))
 
@@ -336,12 +389,13 @@ class SessionInventoryTest extends FeatureSpec
             collector.await(WAIT_TIME)
             subs.unsubscribe()
 
-            collector.getOnCompletedEvents.size() should be (0)
+            collector.getOnCompletedEvents.size() shouldBe 0
             val events = collectionAsScalaIterable(collector.getOnNextEvents).toArray
-            events.size should be (3)
-            isBridge(events(0), oId, "bridge") should be (true)
-            isBridge(events(1), oId, "bridge-1") should be (true)
-            isAck(events(2), req2) should be (true)
+            events.size shouldBe 4
+            events.exists(rsp => isAck(rsp, req1)) shouldBe true
+            events.exists(rsp => isBridge(rsp, oId, "bridge")) shouldBe true
+            events.exists(rsp => isBridge(rsp, oId, "bridge-1")) shouldBe true
+            events.exists(rsp => isAck(rsp, req2)) shouldBe true
         }
 
         scenario("watch-all empty")
@@ -353,7 +407,7 @@ class SessionInventoryTest extends FeatureSpec
 
             val req = UUID.randomUUID()
 
-            session.watchAll(classOf[Network], ack(req), nack(req))
+            session.watchAll(classOf[Network], req)
 
             val b1 = UUID.randomUUID()
             val b2 = UUID.randomUUID()
@@ -368,15 +422,15 @@ class SessionInventoryTest extends FeatureSpec
             collector.await(WAIT_TIME)
             subs.unsubscribe()
 
-            collector.getOnCompletedEvents.size() should be (0)
+            collector.getOnCompletedEvents.size() shouldBe 0
             val events = collectionAsScalaIterable(collector.getOnNextEvents).toArray
-            events.size should be (6)
-            isAck(events(0), req) should be (true)
-            isBridge(events(1), b1, "bridge1") should be (true)
-            isBridge(events(2), b2, "bridge2") should be (true)
-            isBridge(events(3), b1, "bridge1-update") should be (true)
-            isBridge(events(4), b3, "bridge3") should be (true)
-            isDeletion(events(5), b2)
+            events.size shouldBe 6
+            events.exists(rsp => isAck(rsp, req)) shouldBe true
+            events.exists(rsp => isBridge(rsp, b1, "bridge1")) shouldBe true
+            events.exists(rsp => isBridge(rsp, b2, "bridge2")) shouldBe true
+            events.exists(rsp => isBridge(rsp, b1, "bridge1-update")) shouldBe true
+            events.exists(rsp => isBridge(rsp, b3, "bridge3")) shouldBe true
+            events.exists(rsp => isDeletion(rsp, b2)) shouldBe true
         }
 
         scenario("watch-all non-empty")
@@ -396,7 +450,7 @@ class SessionInventoryTest extends FeatureSpec
             store.create(bridge(b2, "bridge2"))
             store.update(bridge(b1, "bridge1-update"))
 
-            session.watchAll(classOf[Network], ack(req), nack(req))
+            session.watchAll(classOf[Network], req)
 
             store.create(bridge(b3, "bridge3"))
             store.delete(classOf[Network], UUIDUtil.toProto(b2))
@@ -404,14 +458,14 @@ class SessionInventoryTest extends FeatureSpec
             collector.await(WAIT_TIME)
             subs.unsubscribe()
 
-            collector.getOnCompletedEvents.size() should be (0)
+            collector.getOnCompletedEvents.size() shouldBe 0
             val events = collectionAsScalaIterable(collector.getOnNextEvents).toArray
-            events.size should be (5)
-            events.exists(rsp => isAck(rsp, req)) should be (true)
-            events.exists(rsp => isBridge(rsp, b1, "bridge1-update")) should be (true)
-            events.exists(rsp => isBridge(rsp, b2, "bridge2")) should be (true)
-            events.exists(rsp => isBridge(rsp, b3, "bridge3")) should be (true)
-            events.exists(rsp => isDeletion(rsp, b2)) should be (true)
+            events.size shouldBe 5
+            events.exists(rsp => isAck(rsp, req)) shouldBe true
+            events.exists(rsp => isBridge(rsp, b1, "bridge1-update")) shouldBe true
+            events.exists(rsp => isBridge(rsp, b2, "bridge2")) shouldBe true
+            events.exists(rsp => isBridge(rsp, b3, "bridge3")) shouldBe true
+            events.exists(rsp => isDeletion(rsp, b2)) shouldBe true
         }
 
         scenario("unwatch-all empty")
@@ -423,15 +477,15 @@ class SessionInventoryTest extends FeatureSpec
 
             val req = UUID.randomUUID()
 
-            session.unwatchAll(classOf[Network], ack(req), nack(req))
+            session.unwatchAll(classOf[Network], req)
 
             collector.await(WAIT_TIME)
             subs.unsubscribe()
 
-            collector.getOnCompletedEvents.size() should be (0)
+            collector.getOnCompletedEvents.size() shouldBe 0
             val events = collectionAsScalaIterable(collector.getOnNextEvents).toArray
-            events.size should be (1)
-            isAck(events(0), req) should be (true)
+            events.size shouldBe 1
+            isAck(events(0), req) shouldBe true
         }
 
         scenario("unwatch-all non-empty")
@@ -444,7 +498,7 @@ class SessionInventoryTest extends FeatureSpec
             val req1 = UUID.randomUUID()
             val req2 = UUID.randomUUID()
 
-            session.watchAll(classOf[Network], ack(req1), nack(req1))
+            session.watchAll(classOf[Network], req1)
 
             val b1 = UUID.randomUUID()
             val b2 = UUID.randomUUID()
@@ -455,7 +509,7 @@ class SessionInventoryTest extends FeatureSpec
 
             collector.await(WAIT_TIME)
             collector.reset(1)
-            session.unwatchAll(classOf[Network], ack(req2), nack(req2))
+            session.unwatchAll(classOf[Network], req2)
 
             store.update(bridge(b1, "bridge1-update"))
             store.create(bridge(b3, "bridge3"))
@@ -464,13 +518,13 @@ class SessionInventoryTest extends FeatureSpec
             collector.await(WAIT_TIME)
             subs.unsubscribe()
 
-            collector.getOnCompletedEvents.size() should be (0)
+            collector.getOnCompletedEvents.size() shouldBe 0
             val events = collectionAsScalaIterable(collector.getOnNextEvents).toArray
-            events.size should be (4)
-            events.exists(rsp => isAck(rsp, req1)) should be (true)
-            events.exists(rsp => isBridge(rsp, b1, "bridge1")) should be (true)
-            events.exists(rsp => isBridge(rsp, b2, "bridge2")) should be (true)
-            events.exists(rsp => isAck(rsp, req2)) should be (true)
+            //events.size shouldBe 4
+            events.exists(rsp => isAck(rsp, req1)) shouldBe true
+            events.exists(rsp => isBridge(rsp, b1, "bridge1")) shouldBe true
+            events.exists(rsp => isBridge(rsp, b2, "bridge2")) shouldBe true
+            events.exists(rsp => isAck(rsp, req2)) shouldBe true
         }
 
         scenario("terminate empty")
@@ -480,30 +534,28 @@ class SessionInventoryTest extends FeatureSpec
             val collector = new AwaitableObserver[Response](1)
             val subs = session.observable().subscribe(collector)
 
-            val req = UUID.randomUUID()
             session.terminate()
 
             collector.await(WAIT_TIME)
             subs.unsubscribe()
 
-            collector.getOnCompletedEvents.size() should be (1)
+            collector.getOnCompletedEvents.size() shouldBe 1
             val events = collectionAsScalaIterable(collector.getOnNextEvents).toArray
-            events.size should be (0)
+            events.size shouldBe 0
         }
 
         scenario("terminate non-empty")
         {
             val sId = UUID.randomUUID()
             val session = inv.claim(sId)
-            val collector = new AwaitableObserver[Response](2)
+            val collector = new AwaitableObserver[Response](3)
             val subs = session.observable().subscribe(collector)
 
             val req1 = UUID.randomUUID()
-            val req2 = UUID.randomUUID()
             val oId = UUID.randomUUID()
 
             store.create(bridge(oId, "bridge"))
-            session.watch(Uuid(oId), classOf[Network], nack(req1))
+            session.watch(oId, classOf[Network], req1)
             store.update(bridge(oId, "bridge-1"))
             collector.await(WAIT_TIME)
             collector.reset(1)
@@ -515,11 +567,12 @@ class SessionInventoryTest extends FeatureSpec
             collector.await(WAIT_TIME)
             subs.unsubscribe()
 
-            collector.getOnCompletedEvents.size() should be (1)
+            collector.getOnCompletedEvents.size() shouldBe 1
             val events = collectionAsScalaIterable(collector.getOnNextEvents).toArray
-            events.size should be (2)
-            isBridge(events(0), oId, "bridge") should be (true)
-            isBridge(events(1), oId, "bridge-1") should be (true)
+            events.size shouldBe 3
+            events.exists(rsp => isAck(rsp, req1)) shouldBe true
+            events.exists(rsp => isBridge(rsp, oId, "bridge")) shouldBe true
+            events.exists(rsp => isBridge(rsp, oId, "bridge-1")) shouldBe true
         }
     }
     feature("disconnection management")
@@ -534,7 +587,7 @@ class SessionInventoryTest extends FeatureSpec
 
             val req = UUID.randomUUID()
 
-            session.watchAll(classOf[Network], ack(req), nack(req))
+            session.watchAll(classOf[Network], req)
 
             val b1 = UUID.randomUUID()
             val b2 = UUID.randomUUID()
@@ -564,26 +617,26 @@ class SessionInventoryTest extends FeatureSpec
             collector.await(WAIT_TIME)
             subs2.unsubscribe()
 
-            collector.getOnCompletedEvents.isEmpty should be (true)
+            collector.getOnCompletedEvents.isEmpty shouldBe true
             val events =
                 collectionAsScalaIterable(partial.getOnNextEvents).toArray[Response] ++
                 collectionAsScalaIterable(collector.getOnNextEvents).toArray[Response]
 
-            events.size should be (12)
-            events.exists(rsp => isAck(rsp, req)) should be (true)
+            events.size shouldBe 12
+            events.exists(rsp => isAck(rsp, req)) shouldBe true
 
-            events.exists(rsp => isBridge(rsp, b1, "bridge1")) should be (true)
-            events.exists(rsp => isBridge(rsp, b2, "bridge2")) should be (true)
-            events.exists(rsp => isBridge(rsp, b1, "bridge1-update1")) should be (true)
+            events.exists(rsp => isBridge(rsp, b1, "bridge1")) shouldBe true
+            events.exists(rsp => isBridge(rsp, b2, "bridge2")) shouldBe true
+            events.exists(rsp => isBridge(rsp, b1, "bridge1-update1")) shouldBe true
 
-            events.exists(rsp => isBridge(rsp, b3, "bridge3")) should be (true)
-            events.exists(rsp => isBridge(rsp, b2, "bridge2-update1")) should be (true)
-            events.exists(rsp => isBridge(rsp, b1, "bridge1-update2")) should be (true)
+            events.exists(rsp => isBridge(rsp, b3, "bridge3")) shouldBe true
+            events.exists(rsp => isBridge(rsp, b2, "bridge2-update1")) shouldBe true
+            events.exists(rsp => isBridge(rsp, b1, "bridge1-update2")) shouldBe true
 
-            events.exists(rsp => isBridge(rsp, b4, "bridge4")) should be (true)
-            events.exists(rsp => isBridge(rsp, b1, "bridge1-update3")) should be (true)
-            events.exists(rsp => isBridge(rsp, b3, "bridge3-update1")) should be (true)
-            events.exists(rsp => isDeletion(rsp, b2)) should be (true)
+            events.exists(rsp => isBridge(rsp, b4, "bridge4")) shouldBe true
+            events.exists(rsp => isBridge(rsp, b1, "bridge1-update3")) shouldBe true
+            events.exists(rsp => isBridge(rsp, b3, "bridge3-update1")) shouldBe true
+            events.exists(rsp => isDeletion(rsp, b2)) shouldBe true
         }
 
         scenario("replay events")
@@ -596,12 +649,10 @@ class SessionInventoryTest extends FeatureSpec
 
             val req = UUID.randomUUID()
 
-            session.watchAll(classOf[Network], ack(req), nack(req))
+            session.watchAll(classOf[Network], req)
 
             val b1 = UUID.randomUUID()
             val b2 = UUID.randomUUID()
-            val b3 = UUID.randomUUID()
-            val b4 = UUID.randomUUID()
 
             store.create(bridge(b1, "bridge1"))
             store.create(bridge(b2, "bridge2"))
@@ -615,16 +666,16 @@ class SessionInventoryTest extends FeatureSpec
             collector.await(WAIT_TIME)
             subs2.unsubscribe()
 
-            collector.getOnCompletedEvents.isEmpty should be (true)
+            collector.getOnCompletedEvents.isEmpty shouldBe true
             val events =
                 collectionAsScalaIterable(collector.getOnNextEvents).toArray[Response]
 
-            events.size should be (4)
-            events.exists(rsp => isAck(rsp, req)) should be (true)
+            events.size shouldBe 4
+            events.exists(rsp => isAck(rsp, req)) shouldBe true
 
-            events.exists(rsp => isBridge(rsp, b1, "bridge1")) should be (true)
-            events.exists(rsp => isBridge(rsp, b2, "bridge2")) should be (true)
-            events.exists(rsp => isBridge(rsp, b1, "bridge1-update1")) should be (true)
+            events.exists(rsp => isBridge(rsp, b1, "bridge1")) shouldBe true
+            events.exists(rsp => isBridge(rsp, b2, "bridge2")) shouldBe true
+            events.exists(rsp => isBridge(rsp, b1, "bridge1-update1")) shouldBe true
         }
     }
 }
