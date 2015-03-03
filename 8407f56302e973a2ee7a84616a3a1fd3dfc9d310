@@ -119,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_e82f80f4",
+        "filename": "midolman/src/main/java/org/midonet/midolman/rules/ForwardNatRule.java",
+        "patchSetId": 6
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-03T08:38:36Z",
+      "side": 1,
+      "message": "It is this class that is being serialized to ZK but floatingIp, floatingIpAddr and targets are always deduced from targetsSet in the constructor. I thus decided to not add the extra fields in the proto.",
+      "parentUuid": "7a1969be_92543d22",
+      "range": {
+        "startLine": 36,
+        "startChar": 4,
+        "endLine": 37,
+        "endChar": 34
+      },
+      "revId": "8407f56302e973a2ee7a84616a3a1fd3dfc9d310",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_ef9caac2",
         "filename": "midolman/src/main/scala/org/midonet/midolman/NatTargetUtil.scala",
         "patchSetId": 6
