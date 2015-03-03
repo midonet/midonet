@@ -20,7 +20,7 @@ import java.util.{Objects, UUID}
 
 import org.midonet.cluster.data.{ZoomClass, ZoomField, ZoomObject}
 import org.midonet.cluster.models.Topology
-import org.midonet.cluster.models.Topology.Host.PortToInterface
+import org.midonet.cluster.models.Topology.Host.PortBinding
 import org.midonet.cluster.util.MapConverter
 import org.midonet.cluster.util.UUIDUtil.{Converter => UUIDConverter, _}
 import org.midonet.midolman.topology.VirtualTopology.Device
@@ -30,21 +30,18 @@ import org.midonet.packets.IPAddr
 object Host {
     /**
      * This class implements the MapConverter trait to do the conversion between
-     * tuples of type (UUID, String) and PortToInterface messages.
+     * tuples of type (UUID, String) and PortBinding messages.
      */
-    class PortBindingConverter
-        extends MapConverter[UUID, String, PortToInterface] {
+    class PortBindingConverter extends MapConverter[UUID, String, PortBinding] {
 
-        override def toKey(proto: PortToInterface): UUID = {
+        override def toKey(proto: PortBinding): UUID = {
             proto.getPortId.asJava
         }
-
-        override def toValue(proto: PortToInterface): String = {
+        override def toValue(proto: PortBinding): String = {
             proto.getInterfaceName
         }
-
-        override def toProto(key: UUID, value: String): PortToInterface = {
-            PortToInterface.newBuilder
+        override def toProto(key: UUID, value: String): PortBinding = {
+            PortBinding.newBuilder
                 .setPortId(key.asProto)
                 .setInterfaceName(value)
                 .build()
@@ -76,7 +73,7 @@ class Host extends ZoomObject with Device {
 
     @ZoomField(name = "id", converter = classOf[UUIDConverter])
     var id: UUID = _
-    @ZoomField(name = "port_interface_mapping",
+    @ZoomField(name = "port_bindings",
                converter = classOf[PortBindingConverter])
     var portBindings = Map.empty[UUID, String]
     @ZoomField(name = "tunnel_zone_ids", converter = classOf[UUIDConverter])
