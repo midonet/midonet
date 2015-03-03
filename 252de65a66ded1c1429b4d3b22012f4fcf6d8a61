@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_fe2d7a47",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/ZoomConvert.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 481,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-03-03T13:54:36Z",
+      "side": 1,
+      "message": "JByte ?",
+      "range": {
+        "startLine": 481,
+        "startChar": 54,
+        "endLine": 481,
+        "endChar": 68
+      },
+      "revId": "252de65a66ded1c1429b4d3b22012f4fcf6d8a61",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_1e2b3631",
+        "filename": "cluster/src/test/java/org/midonet/cluster/data/ZoomConvertTest.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 397,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-03-03T13:54:36Z",
+      "side": 1,
+      "message": "byte_field?",
+      "range": {
+        "startLine": 397,
+        "startChar": 27,
+        "endLine": 397,
+        "endChar": 32
+      },
+      "revId": "252de65a66ded1c1429b4d3b22012f4fcf6d8a61",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_7e218a4c",
+        "filename": "cluster/src/test/java/org/midonet/cluster/data/ZoomConvertTest.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 400,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-03-03T13:54:36Z",
+      "side": 1,
+      "message": "byte_set?",
+      "range": {
+        "startLine": 400,
+        "startChar": 27,
+        "endLine": 400,
+        "endChar": 37
+      },
+      "revId": "252de65a66ded1c1429b4d3b22012f4fcf6d8a61",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
