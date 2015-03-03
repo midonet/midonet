@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_c8a0c4a1",
+        "filename": "cluster/src/main/proto/topology.proto",
+        "patchSetId": 4
+      },
+      "lineNbr": 287,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-03-03T04:38:07Z",
+      "side": 1,
+      "message": "There may be some objection to having a field with Neutron specific semantics. I see this similar to the tenant_id field, MidoNet has no notion of \"tenant\". Here neutron_default is just a maker, and the Neutron default Tunnel Zone still works just like any other Tunnel Zone. The alternative may be to assign a custom name to the Tunnel Zone, but I believe that this way the data / model are more self-explanatory.",
+      "revId": "781467e2484069d056a849c4b4deaecfeaf7978c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
