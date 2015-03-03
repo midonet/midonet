@@ -93,6 +93,30 @@
       "revId": "b1643dc5cb8ec1f59f737a313964bbddbf841ea9",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_a872a846",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/TunnelZoneManager.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-03-03T06:35:09Z",
+      "side": 1,
+      "message": "Discussed with Ryu, and we realized that we could look up the singleton Neutron Config instead to know the default Tunnel Zone ID. It is guaranteed that there exists at most 1 NeutronConfig in ZooKeeper.",
+      "parentUuid": "7a1969be_88736c7f",
+      "range": {
+        "startLine": 45,
+        "startChar": 8,
+        "endLine": 45,
+        "endChar": 35
+      },
+      "revId": "b1643dc5cb8ec1f59f737a313964bbddbf841ea9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
