@@ -95,7 +95,7 @@ class MidolmanActorsService extends AbstractService {
                     } catch {
                         case t: Throwable =>
                             // rethrow and propagate up to the injector
-                            throw new Exception("$s._2 creation failed", t)
+                            throw new Exception(s"$s._2 creation failed", t)
                     }
             }
 
