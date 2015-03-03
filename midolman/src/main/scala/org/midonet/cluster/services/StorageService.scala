@@ -22,7 +22,7 @@ import org.apache.curator.framework.CuratorFramework
 
 import org.midonet.cluster.config.ZookeeperConfig
 import org.midonet.cluster.data.storage.FieldBinding.DeleteAction._
-import org.midonet.cluster.data.storage.Storage
+import org.midonet.cluster.data.storage.{OwnershipType, Storage}
 import org.midonet.cluster.models.Topology._
 import org.midonet.midolman.state.{Directory, StateAccessException}
 import org.midonet.midolman.version.DataWriteVersion

@@ -18,22 +18,19 @@ package org.midonet.midolman.topology
 
 import java.util.UUID
 import java.util.concurrent.atomic.AtomicBoolean
-
 import javax.annotation.Nullable
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 
 import com.google.common.annotations.VisibleForTesting
-import org.apache.zookeeper.{WatchedEvent, Watcher}
 
 import rx.Observable
-import rx.subjects.{BehaviorSubject, PublishSubject}
+import rx.subjects.PublishSubject
 
 import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.models.Topology.{Host => TopologyHost}
 import org.midonet.cluster.util.UUIDUtil._
-import org.midonet.midolman.state.StateAccessException
 import org.midonet.midolman.topology.HostMapper.TunnelZoneState
 import org.midonet.midolman.topology.devices.{Host => SimulationHost, TunnelZone}
 import org.midonet.packets.IPAddr
@@ -83,11 +80,7 @@ final class HostMapper(hostId: UUID, vt: VirtualTopology)
 
     private var currentHost: TopologyHost = null
     private var alive: Option[Boolean] = None
-    private val aliveSubject = BehaviorSubject.create[Boolean]()
-    private val aliveObservable = aliveSubject.observeOn(vt.scheduler)
-    private val aliveWatcher = new Watcher {
-        override def process(event: WatchedEvent) = watchAlive()
-    }
+
     private val tunnelZonesSubject =
         PublishSubject.create[Observable[TunnelZone]]()
     private val tunnelZones = mutable.Map[UUID, TunnelZoneState]()
@@ -191,54 +184,39 @@ final class HostMapper(hostId: UUID, vt: VirtualTopology)
         log.debug("Host {} deleted", hostId)
         assertThread()
         tunnelZonesSubject.onCompleted()
-        aliveSubject.onCompleted()
         tunnelZones.values.foreach(_.complete())
         tunnelZones.clear()
     }
 
-    /**
-     * Gets the alive state of the current host, emits this information on the
-     * alive subject, and installs a watcher that triggers an update of the
-     * alive state when it changes.
-     */
-    private def watchAlive(): Unit = vt.executor.submit(makeRunnable {
-        try {
-            aliveSubject.onNext(vt.dataClient.hostsIsAlive(hostId, aliveWatcher))
-        } catch {
-            case e: StateAccessException =>
-                log.warn("Connection error retrieving alive state for host {}",
-                         hostId, e)
-                vt.connectionWatcher.handleError(hostId.toString,
-                                                 connectionRetryHandler, e)
-            case e: Throwable =>
-                log.error("Fatal error retrieving alive state for host {}",
-                          hostId, e)
-        }
-    })
-
+    // Ownership changes modify the version of the host and will thus
+    // trigger a host update, hence the 'distinctUntilChanged'.
     private lazy val hostObservable =
         vt.store.observable(classOf[TopologyHost], hostId)
             .subscribeOn(vt.scheduler)
             .observeOn(vt.scheduler)
+            .distinctUntilChanged
             .doOnCompleted(makeAction0(completeHost()))
+
 
     // WARNING! The device observable merges the tunnel-zones, host and alive
     // observable. Publish subjects such as the tunnel-zones observable must be
     // added to the merge before observables that may trigger their update, such
     // as the host observable, which ensures they are subscribed to before
     // emitting any updates.
-    private lazy val deviceObservable =
+    protected override def observable: Observable[SimulationHost] =
         Observable.merge[Any](Observable.merge(tunnelZonesSubject),
-                              aliveObservable, hostObservable)
+                              vt.store.ownersObservable(classOf[TopologyHost],
+                                                        hostId)
+                                  .subscribeOn(vt.scheduler)
+                                  .observeOn(vt.scheduler)
+                                  .map[Boolean](makeFunc1({
+                                      // This does not work, why?
+                                      assertThread()
+                                      _.nonEmpty
+                                   }))
+                                  .distinctUntilChanged
+                                  .onErrorResumeNext(Observable.empty),
+                              hostObservable)
             .filter(makeFunc1(isHostReady))
             .map[SimulationHost](makeFunc1(mapDevice))
-
-    private lazy val connectionRetryHandler = makeRunnable(watchAlive())
-
-    protected override def observable: Observable[SimulationHost] = {
-        if (initialized.compareAndSet(false, true)) {
-            watchAlive()
-        }
-        deviceObservable
-    }
 }
