@@ -25,6 +25,29 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_1eb976e9",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/ZoomConvert.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 689,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-03T14:27:23Z",
+      "side": 1,
+      "message": "Here you can save some extra conversions (to array, to scala set, and to java set) by replacing with:\n\n  new JHashSet(value.map(converter.from(_, elClass)))",
+      "range": {
+        "startLine": 689,
+        "startChar": 15,
+        "endLine": 689,
+        "endChar": 77
+      },
+      "revId": "252de65a66ded1c1429b4d3b22012f4fcf6d8a61",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_1e2b3631",
         "filename": "cluster/src/test/java/org/midonet/cluster/data/ZoomConvertTest.java",
         "patchSetId": 2
@@ -64,6 +87,52 @@
         "startChar": 27,
         "endLine": 400,
         "endChar": 37
+      },
+      "revId": "252de65a66ded1c1429b4d3b22012f4fcf6d8a61",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_bef2e2cf",
+        "filename": "cluster/src/test/java/org/midonet/cluster/data/ZoomConvertTest.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 417,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-03T14:27:23Z",
+      "side": 1,
+      "message": "This is a java Byte, not scala, hence is not a primitive.",
+      "range": {
+        "startLine": 417,
+        "startChar": 19,
+        "endLine": 417,
+        "endChar": 43
+      },
+      "revId": "252de65a66ded1c1429b4d3b22012f4fcf6d8a61",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_1ee21603",
+        "filename": "cluster/src/test/java/org/midonet/cluster/data/ZoomConvertTest.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 421,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-03T14:27:23Z",
+      "side": 1,
+      "message": "I think the test for the conversion of ZoomObject fields should go to ZoomObjectTest. ZoomCovertTest tests the conversion of inheritance.\n\nThe ZoomObjectTest has a TestableZoomObject where you can additional fields. You can also reuse the existing test method, and simply assert the equality for the new field types.",
+      "range": {
+        "startLine": 385,
+        "startChar": 0,
+        "endLine": 421,
+        "endChar": 0
       },
       "revId": "252de65a66ded1c1429b4d3b22012f4fcf6d8a61",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
