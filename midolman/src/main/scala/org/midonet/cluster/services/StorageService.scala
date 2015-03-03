@@ -22,7 +22,7 @@ import org.apache.curator.framework.CuratorFramework
 
 import org.midonet.cluster.config.ZookeeperConfig
 import org.midonet.cluster.data.storage.FieldBinding.DeleteAction._
-import org.midonet.cluster.data.storage.Storage
+import org.midonet.cluster.data.storage.{StorageWithOwnership, OwnershipType}
 import org.midonet.cluster.models.Topology._
 import org.midonet.midolman.state.{Directory, StateAccessException}
 import org.midonet.midolman.version.DataWriteVersion
@@ -32,7 +32,7 @@ class StorageService @Inject() (directory: Directory,
                                 config: ZookeeperConfig,
                                 systemDataProvider: SystemDataProvider,
                                 curator: CuratorFramework,
-                                store: Storage) extends AbstractService {
+                                store: StorageWithOwnership) extends AbstractService {
 
     protected override def doStart(): Unit = {
         try {
@@ -79,7 +79,7 @@ class StorageService @Inject() (directory: Directory,
         store.registerClass(classOf[Port])
         store.registerClass(classOf[Network])
         store.registerClass(classOf[Router])
-        store.registerClass(classOf[Host])
+        store.registerClass(classOf[Host], OwnershipType.Exclusive)
         store.registerClass(classOf[TunnelZone])
 
         store.declareBinding(classOf[Network], "port_ids", ERROR,
