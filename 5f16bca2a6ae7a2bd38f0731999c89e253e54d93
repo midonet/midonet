@@ -261,6 +261,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_08c93c26",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/SessionInventory.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-03-03T09:17:20Z",
+      "side": 1,
+      "message": "Oh, I see what you mean. No, there is no particular reason for the difference. In fact, I should remove the match from above: if we are receiving and update or deletion, it means that we subscribed to that type, and therefore the type must be correct (unless there was something utterly broken in the code). I\u0027ll remove the match from the deletion code.",
+      "parentUuid": "7a1969be_08b81cc7",
+      "range": {
+        "startLine": 112,
+        "startChar": 24,
+        "endLine": 112,
+        "endChar": 54
+      },
+      "revId": "5f16bca2a6ae7a2bd38f0731999c89e253e54d93",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_fc190a89",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/SessionInventory.scala",
         "patchSetId": 15
@@ -320,6 +344,30 @@
       "side": 1,
       "message": "I think that Alex\u0027s submitted a change that you can pass Commons.UUID and java.util.UUID transparently. Whichever UUID you pass to ZOOM, you get the same object back.",
       "parentUuid": "7a1969be_0f466623",
+      "range": {
+        "startLine": 463,
+        "startChar": 30,
+        "endLine": 463,
+        "endChar": 46
+      },
+      "revId": "5f16bca2a6ae7a2bd38f0731999c89e253e54d93",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_e8f2e06d",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/SessionInventory.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 463,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-03-03T09:17:20Z",
+      "side": 1,
+      "message": "I\u0027ve just checked with Alex and you are right, the conversion to proto is no longer needed. I\u0027ll change that",
+      "parentUuid": "7a1969be_a8a9087d",
       "range": {
         "startLine": 463,
         "startChar": 30,
