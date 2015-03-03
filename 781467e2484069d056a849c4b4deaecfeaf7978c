@@ -16,6 +16,24 @@
       "revId": "781467e2484069d056a849c4b4deaecfeaf7978c",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_c8772439",
+        "filename": "cluster/src/main/proto/topology.proto",
+        "patchSetId": 4
+      },
+      "lineNbr": 287,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-03-03T06:35:49Z",
+      "side": 1,
+      "message": "I reverted this change and changed to look up a singleton Neutron Config object.",
+      "parentUuid": "7a1969be_c8a0c4a1",
+      "revId": "781467e2484069d056a849c4b4deaecfeaf7978c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
