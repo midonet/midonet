@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,23 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.config;
+package org.midonet.midolman.management
 
-/**
- * This interface is used by host configuration that requires unique local
- * identifiers.
- */
-public interface HostIdConfig {
+import org.rogach.scallop._
 
-    /**
-     * Gets a unique identifier for this host.
-     * @return The identifier.
-     */
-    String getHostId();
-
-    /**
-     * Gets the path of the host properties file.
-     * @return The file path.
-     */
-    String getHostPropertiesFilePath();
+object DripMain extends App {
+    def opts = new ScallopConf(List.empty) {
+        val foo = opt[Int]("foo", short = 'f', default = Option(1234))
+    }
+    if (opts.foo.get.get == 9999) 1 else 0
 }

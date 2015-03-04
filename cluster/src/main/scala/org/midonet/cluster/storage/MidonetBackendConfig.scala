@@ -16,31 +16,22 @@
 
 package org.midonet.cluster.storage
 
-import org.midonet.config.{ConfigBool, ConfigGroup, ConfigInt, ConfigString}
+import java.util.concurrent.TimeUnit
+
+import com.typesafe.config.Config
 
 /**
  * This file defines configuration parameters required to bootstrap a connection
  * to the MidoNet backend services, such as ZooKeeper, etc.
  */
-@ConfigGroup("midonet-backend")
-trait MidonetBackendConfig {
-
-    @ConfigString(key = "zookeeper_root_path", defaultValue = "/midonet")
-    def zookeeperRootPath: String
-
-    @ConfigString(key = "zookeeper_hosts", defaultValue = "")
-    def zookeeperHosts: String
-
-    @ConfigInt(key = "zookeeper_base_retry_ms", defaultValue = 1000)
-    def zookeeperRetryMs: Int
-
-    @ConfigInt(key = "zookeeper_max_retries", defaultValue = 10)
-    def zookeeperMaxRetries: Int
-
-    /* This property is transitional while we support the dual storage stack.
-     * if set, it will tell the Cluster components to use the new storage
-     * stack.  It is not documented for production use.  When the new
-     * storage layer is deployed, this property should disappear. */
-    @ConfigBool(key = "enabled", defaultValue = false)
-    def isEnabled: Boolean
+class MidonetBackendConfig(val conf: Config) {
+    def hosts = conf.getString("zookeeper.zookeeper_hosts")
+    def sessionTimeout = conf.getDuration("zookeeper.session_timeout", TimeUnit.MILLISECONDS).toInt
+    def graceTime = conf.getDuration("zookeeper.session_gracetime", TimeUnit.MILLISECONDS).toInt
+    def rootKey = conf.getString("zookeeper.root_key")
+    def curatorEnabled = conf.getBoolean("zookeeper.curator_enabled")
+    def clusterStorageEnabled = conf.getBoolean("zookeeper.cluster_storage_enabled")
+    def maxRetries = conf.getInt("zookeeper.max_retries")
+    def retryMs = conf.getDuration("zookeeper.base_retry", TimeUnit.MILLISECONDS)
+    def useNewStack = conf.getBoolean("zookeeper.use_new_stack")
 }
