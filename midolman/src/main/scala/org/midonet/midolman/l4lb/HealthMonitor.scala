@@ -182,8 +182,7 @@ object HealthMonitor extends Referenceable {
  * then updates, creates, or destroys haproxy instances accordingly.
  */
 class HealthMonitor extends Actor with ActorLogWithoutPath {
-    @Inject private val configuration: HostConfig = null
-    @Inject private val midolmanConfig: MidolmanConfig = null
+    @Inject private val config: MidolmanConfig = null
     @Inject var client: DataClient = null
 
     private var fileLocation: String = null
@@ -195,19 +194,18 @@ class HealthMonitor extends Actor with ActorLogWithoutPath {
 
     override def preStart(): Unit = {
 
-        fileLocation =  midolmanConfig.getHaproxyFileLoc
-        namespaceSuffix = midolmanConfig.getNamespaceSuffix
+        fileLocation =  config.getHaproxyFileLoc
+        namespaceSuffix = config.getNamespaceSuffix
 
-        if (midolmanConfig.getNamespaceCleanup) {
+        if (config.getNamespaceCleanup) {
             cleanupNamespaces()
         }
-        if (!midolmanConfig.getHealthMonitorEnable) {
+        if (!config.getHealthMonitorEnable) {
             context.stop(self)
             return
         }
         log.info("Starting Health Monitor")
-        val hostPropertiesFile = configuration.getHostPropertiesFilePath
-        hostId = HostIdGenerator.getIdFromPropertiesFile(hostPropertiesFile)
+        hostId = HostIdGenerator.getIdFromPropertiesFile()
 
         watcher = context.actorOf(HealthMonitorConfigWatcher.props(
                 fileLocation, namespaceSuffix, self))

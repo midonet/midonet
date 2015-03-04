@@ -169,9 +169,7 @@ public class MmCtl {
     }
 
     private UUID getHostId() throws IOException {
-        String localPropertiesFilePath =
-                hostConfig.getHostPropertiesFilePath();
-        return HostIdGenerator.getIdFromPropertiesFile(localPropertiesFilePath);
+        return HostIdGenerator.getIdFromPropertiesFile();
     }
 
     private MmCtlResult bindPort(UUID portId, String deviceName) {

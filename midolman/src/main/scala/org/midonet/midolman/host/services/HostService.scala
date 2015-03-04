@@ -145,7 +145,7 @@ class HostService @Inject()(hostConfig: HostConfig,
         } catch {
             case e: UnknownHostException => metadata.setName("UNKNOWN")
         }
-        hostId = HostIdGenerator.getHostId(hostConfig)
+        hostId = HostIdGenerator.getHostId()
         var retries: Int = hostConfig.getRetriesForUniqueHostId
         while (!create(hostId, metadata) && {retries -= 1; retries} >= 0) {
             log.warn("Host ID already in use. Waiting for it to be released.")
