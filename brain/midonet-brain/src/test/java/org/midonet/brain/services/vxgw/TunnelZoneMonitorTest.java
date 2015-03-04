@@ -21,11 +21,8 @@ import java.util.UUID;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-
-import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.junit.Before;
 import org.junit.Test;
-
 import rx.Observable;
 import rx.Subscription;
 
@@ -82,10 +79,8 @@ public class TunnelZoneMonitorTest
 
     @Before
     public void before() throws Exception {
-        HierarchicalConfiguration config = new HierarchicalConfiguration();
-        BrainTestUtils.fillTestConfig(config);
         Injector injector = Guice.createInjector(
-            BrainTestUtils.modules(config));
+            BrainTestUtils.modules());
 
         Directory directory = injector.getInstance(Directory.class);
         BrainTestUtils.setupZkTestDirectory(directory);

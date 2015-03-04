@@ -46,7 +46,7 @@ public class ResourceProtectionModule extends PrivateModule {
     StatisticalCounter provideStatisticalCounter(MidolmanConfig conf) {
         // We add an extra slot so that channels can return tokens
         // they obtained due to the multiplier effect but didn't use.
-        return new StatisticalCounter(conf.getSimulationThreads() + 1);
+        return new StatisticalCounter(conf.simulationThreads() + 1);
     }
 
     @Provides
@@ -57,7 +57,7 @@ public class ResourceProtectionModule extends PrivateModule {
         // should be atomic or not, depending on whether multiple threads will
         // be accessing it (true in the one_to_one" configuration setting).
         final boolean atomic;
-        String val = conf.getInputChannelThreading();
+        String val = conf.inputChannelThreading();
         switch (val) {
             case "one_to_many":
                 atomic = false;
@@ -78,7 +78,7 @@ public class ResourceProtectionModule extends PrivateModule {
                     @Override
                     public Bucket apply(TokenBucket tb) {
                         return new Bucket(tb, MULTIPLIER, counter,
-                                          conf.getSimulationThreads(), atomic);
+                                          conf.simulationThreads(), atomic);
                     }
                 });
     }

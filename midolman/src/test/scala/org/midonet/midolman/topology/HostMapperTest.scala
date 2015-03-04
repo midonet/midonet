@@ -17,11 +17,10 @@
 package org.midonet.midolman.topology
 
 import java.util.UUID
-
 import scala.collection.JavaConversions._
 import scala.concurrent.duration.DurationInt
 
-import org.apache.commons.configuration.HierarchicalConfiguration
+import com.typesafe.config.{Config, ConfigValueFactory}
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import rx.Observable
@@ -43,6 +42,11 @@ class HostMapperTest extends MidolmanSpec
     private var vt: VirtualTopology = _
     private var store: StorageWithOwnership = _
     private final val timeout = 5 seconds
+
+    protected override def fillConfig(config: Config) = {
+        super.fillConfig(config).withValue("zookeeper.use_new_stack",
+                                           ConfigValueFactory.fromAnyRef(true))
+    }
 
     protected override def beforeTest() = {
         vt = injector.getInstance(classOf[VirtualTopology])

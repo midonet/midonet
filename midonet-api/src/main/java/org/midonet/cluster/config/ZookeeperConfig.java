@@ -15,7 +15,6 @@
  */
 package org.midonet.cluster.config;
 
-import org.midonet.config.ConfigBool;
 import org.midonet.config.ConfigGroup;
 import org.midonet.config.ConfigInt;
 import org.midonet.config.ConfigString;
@@ -23,6 +22,7 @@ import org.midonet.config.ConfigString;
 /**
  * Zookeeper cluster configuration parameters.
  */
+@Deprecated
 @ConfigGroup(ZookeeperConfig.GROUP_NAME)
 public interface ZookeeperConfig {
 
@@ -58,5 +58,4 @@ public interface ZookeeperConfig {
      */
     @ConfigString(key = "midolman_root_key", defaultValue = "/midonet")
     String getZkRootPath();
-
 }

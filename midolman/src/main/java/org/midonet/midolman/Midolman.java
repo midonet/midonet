@@ -29,11 +29,14 @@ import java.util.concurrent.TimeUnit;
 import com.google.common.util.concurrent.Service;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigRenderOptions;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.GnuParser;
 import org.apache.commons.cli.Options;
+import org.midonet.conf.MidoNodeConfigurator;
+import org.midonet.midolman.config.MidolmanConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,11 +50,11 @@ import org.midonet.midolman.cluster.LegacyClusterModule;
 import org.midonet.midolman.cluster.MidolmanActorsModule;
 import org.midonet.midolman.cluster.MidolmanModule;
 import org.midonet.midolman.cluster.ResourceProtectionModule;
-import org.midonet.midolman.cluster.config.ConfigProviderModule;
 import org.midonet.midolman.cluster.datapath.DatapathModule;
 import org.midonet.midolman.cluster.serialization.SerializationModule;
 import org.midonet.midolman.cluster.state.FlowStateStorageModule;
 import org.midonet.midolman.cluster.zookeeper.ZookeeperConnectionModule;
+import org.midonet.midolman.guice.config.MidolmanConfigModule;
 import org.midonet.midolman.host.guice.HostModule;
 import org.midonet.midolman.services.MidolmanActorsService;
 import org.midonet.midolman.services.MidolmanService;
@@ -137,14 +140,20 @@ public class Midolman {
             Midolman.exitsMissingConfigFile(configFilePath);
         }
 
+        MidoNodeConfigurator configurator =
+            MidoNodeConfigurator.forAgents(configFilePath);
+        if (configurator.deployBundledConfig())
+            log.info("Deployed new configuration schema into NSDB");
+
+
         injector = Guice.createInjector(
+            MidonetBackendModule.apply(),
             new ZookeeperConnectionModule(ZookeeperConnectionWatcher.class),
             new SerializationModule(),
             new HostModule(),
-            new ConfigProviderModule(configFilePath),
+            new MidolmanConfigModule(configurator),
             new StateStorageModule(),
             new DatapathModule(),
-            new MidonetBackendModule(),
             new LegacyClusterModule(),
             new MidolmanActorsModule(),
             new ResourceProtectionModule(),
@@ -163,6 +172,13 @@ public class Midolman {
         injector.getInstance(MidolmanService.class)
             .startAsync()
             .awaitRunning();
+
+        ConfigRenderOptions renderOpts = ConfigRenderOptions.defaults().
+                    setComments(true).
+                    setOriginComments(true).
+                    setFormatted(true);
+        Config conf = injector.getInstance(MidolmanConfig.class).conf();
+        log.info("Loaded configuration: {}", conf.root().render(renderOpts));
 
         // fire the initialize message to an actor
         injector.getInstance(MidolmanActorsService.class).initProcessing();
