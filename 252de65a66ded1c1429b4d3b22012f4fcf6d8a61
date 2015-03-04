@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_20ad2c9d",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/ZoomConvert.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 481,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-04T10:16:36Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_fe2d7a47",
+      "range": {
+        "startLine": 481,
+        "startChar": 54,
+        "endLine": 481,
+        "endChar": 68
+      },
+      "revId": "252de65a66ded1c1429b4d3b22012f4fcf6d8a61",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_1eb976e9",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/ZoomConvert.scala",
         "patchSetId": 2
@@ -36,6 +60,30 @@
       "writtenOn": "2015-03-03T14:27:23Z",
       "side": 1,
       "message": "Here you can save some extra conversions (to array, to scala set, and to java set) by replacing with:\n\n  new JHashSet(value.map(converter.from(_, elClass)))",
+      "range": {
+        "startLine": 689,
+        "startChar": 15,
+        "endLine": 689,
+        "endChar": 77
+      },
+      "revId": "252de65a66ded1c1429b4d3b22012f4fcf6d8a61",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_e0895427",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/ZoomConvert.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 689,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-04T10:16:36Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_1eb976e9",
       "range": {
         "startLine": 689,
         "startChar": 15,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_c64ef095",
+        "filename": "cluster/src/test/java/org/midonet/cluster/data/ZoomConvertTest.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 397,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-04T10:16:36Z",
+      "side": 1,
+      "message": "The goal was to test int32 to java byte conversion.",
+      "parentUuid": "7a1969be_1e2b3631",
+      "range": {
+        "startLine": 397,
+        "startChar": 27,
+        "endLine": 397,
+        "endChar": 32
+      },
+      "revId": "252de65a66ded1c1429b4d3b22012f4fcf6d8a61",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_7e218a4c",
         "filename": "cluster/src/test/java/org/midonet/cluster/data/ZoomConvertTest.java",
         "patchSetId": 2
@@ -82,6 +154,30 @@
       "writtenOn": "2015-03-03T13:54:36Z",
       "side": 1,
       "message": "byte_set?",
+      "range": {
+        "startLine": 400,
+        "startChar": 27,
+        "endLine": 400,
+        "endChar": 37
+      },
+      "revId": "252de65a66ded1c1429b4d3b22012f4fcf6d8a61",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_2646e47c",
+        "filename": "cluster/src/test/java/org/midonet/cluster/data/ZoomConvertTest.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 400,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-04T10:16:36Z",
+      "side": 1,
+      "message": "The same thing here, repeated int32 -\u003e Set[JByte]",
+      "parentUuid": "7a1969be_7e218a4c",
       "range": {
         "startLine": 400,
         "startChar": 27,
@@ -128,6 +224,30 @@
       "writtenOn": "2015-03-03T14:27:23Z",
       "side": 1,
       "message": "I think the test for the conversion of ZoomObject fields should go to ZoomObjectTest. ZoomCovertTest tests the conversion of inheritance.\n\nThe ZoomObjectTest has a TestableZoomObject where you can additional fields. You can also reuse the existing test method, and simply assert the equality for the new field types.",
+      "range": {
+        "startLine": 385,
+        "startChar": 0,
+        "endLine": 421,
+        "endChar": 0
+      },
+      "revId": "252de65a66ded1c1429b4d3b22012f4fcf6d8a61",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_6969cfbd",
+        "filename": "cluster/src/test/java/org/midonet/cluster/data/ZoomConvertTest.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 421,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-04T10:16:36Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_1ee21603",
       "range": {
         "startLine": 385,
         "startChar": 0,
