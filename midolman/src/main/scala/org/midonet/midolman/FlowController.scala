@@ -28,15 +28,11 @@ import scala.concurrent.duration._
 
 import akka.actor.{Actor, ActorSystem}
 import akka.event.LoggingReceive
-
 import com.google.inject.Inject
-
-import rx.Observer
-
-import org.jctools.queues.SpscArrayQueue
-
 import com.codahale.metrics.MetricRegistry.name
 import com.codahale.metrics.{Gauge, MetricRegistry}
+import org.jctools.queues.SpscArrayQueue
+import rx.Observer
 
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.flows.FlowEjector
@@ -207,12 +203,12 @@ class FlowController extends Actor with ActorLogWithoutPath
 
     override def preStart() {
         super.preStart()
-        meters = new MeterRegistry(midolmanConfig.getDatapathMaxFlowCount)
+        meters = new MeterRegistry(midolmanConfig.datapath.maxFlowCount)
         Metering.registerAsMXBean(meters)
-        val maxDpFlows = (midolmanConfig.getDatapathMaxFlowCount * 1.1).toInt
-        val idleFlowToleranceInterval = midolmanConfig.getIdleFlowToleranceInterval
-        flowExpirationCheckInterval = Duration(midolmanConfig.getFlowExpirationInterval,
-            TimeUnit.MILLISECONDS)
+        val maxDpFlows = (midolmanConfig.datapath.maxFlowCount * 1.1).toInt
+        val idleFlowToleranceInterval = 1000 // FIXME - being removed.
+        flowExpirationCheckInterval = Duration(10000, // FIXME - being removed
+                                               TimeUnit.MILLISECONDS)
 
         flowManagerHelper = new FlowManagerInfoImpl()
         flowManager = new FlowManager(flowManagerHelper, maxDpFlows, idleFlowToleranceInterval)
@@ -306,6 +302,7 @@ class FlowController extends Actor with ActorLogWithoutPath
         if (flowManager.remove(wildFlow)) {
             tagsCleanup(wildFlow.tags)
             wildFlow.cbExecutor.schedule(wildFlow.callbacks)
+            log.info("FLOW REMOVED")
             context.system.eventStream.publish(WildcardFlowRemoved(wildFlow))
             wildFlow.unref() // FlowController's ref
         }

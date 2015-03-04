@@ -19,10 +19,9 @@ import java.util.UUID
 
 import scala.concurrent.duration._
 
-import org.apache.commons.configuration.HierarchicalConfiguration
+import com.typesafe.config.{ConfigFactory, Config}
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
-
 import rx.Observable
 
 import org.midonet.cluster.data.storage.{UpdateOp, CreateOp, NotFoundException, Storage}
@@ -67,14 +66,14 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
         threadId = Thread.currentThread.getId
     }
 
-    protected override def fillConfig(config: HierarchicalConfiguration)
-    : HierarchicalConfiguration = {
-        super.fillConfig(config)
-        config.setProperty("zookeeper.cluster_storage_enabled", true)
-        config.setProperty("midolman.enable_bridge_arp", true)
-        config.setProperty("bridge.mac_port_mapping_expire_millis",
-                           macTtl.toMillis)
-        config
+    protected override def fillConfig(config: Config) = {
+        super.fillConfig(ConfigFactory.parseString(
+            s"""
+              |zookeeper.cluster_storage_enabled : true
+              |zookeeper.use_new_stack : true
+              |midolman.enable_bridge_arp : true
+              |bridge.mac_port_mapping_expire : "${macTtl.toMillis}ms"
+            """.stripMargin).withFallback(config))
     }
 
     private def createObserver(count: Int = 1)

@@ -17,6 +17,11 @@
 apply plugin: 'scala'
 apply plugin: 'application'
 
+repositories {
+    maven { url "http://nexus.opendaylight.org/content/repositories/opendaylight.release/" }
+    maven { url "http://nexus.opendaylight.org/content/repositories/public/"  }
+}
+
 jar {
     manifest {
         attributes 'Implementation-Title': 'Midonet Brain Tools',
@@ -38,6 +43,7 @@ sourceSets {
 dependencies {
     compile project(':cluster'),
             project(':midonet-util'),
+            project(':brain:midonet-brain'),
             project(':midolman'), // temporary for MidonetBackendModule
             libraries.commons_conf,
             libraries.guava,

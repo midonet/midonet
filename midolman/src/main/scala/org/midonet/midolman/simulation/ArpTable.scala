@@ -69,10 +69,10 @@ class ArpTableImpl(val arpCache: ArpCache, cfg: MidolmanConfig,
 
     private val log = Logger(org.slf4j.LoggerFactory.getLogger(
         "org.midonet.devices.arp-table.arp-table-" + arpCache.getRouterId))
-    private val ARP_RETRY_MILLIS = cfg.getArpRetryIntervalSeconds * 1000
-    private val ARP_TIMEOUT_MILLIS = cfg.getArpTimeoutSeconds * 1000
-    private val ARP_STALE_MILLIS = cfg.getArpStaleSeconds * 1000
-    private val ARP_EXPIRATION_MILLIS = cfg.getArpExpirationSeconds * 1000
+    private val ARP_RETRY_MILLIS = cfg.arptable.retryInterval * 1000
+    private val ARP_TIMEOUT_MILLIS = cfg.arptable.timeout * 1000
+    private val ARP_STALE_MILLIS = cfg.arptable.stale * 1000
+    private val ARP_EXPIRATION_MILLIS = cfg.arptable.expiration * 1000
     private val arpWaiters = new mutable.HashMap[IPv4Addr,
                                             mutable.Set[Promise[MAC]]] with
             SynchronizedMultiMap[IPv4Addr, Promise[MAC]]

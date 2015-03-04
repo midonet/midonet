@@ -16,13 +16,10 @@
 package org.midonet.midolman.cluster;
 
 import com.codahale.metrics.MetricRegistry;
-import com.google.inject.Inject;
 import com.google.inject.PrivateModule;
-import com.google.inject.Provider;
 import com.google.inject.Scopes;
 
 import org.midonet.cluster.Client;
-import org.midonet.config.ConfigProvider;
 import org.midonet.midolman.config.MidolmanConfig;
 import org.midonet.midolman.services.DashboardService;
 import org.midonet.midolman.services.DatapathConnectionService;
@@ -43,18 +40,13 @@ public class MidolmanModule extends PrivateModule {
     protected void configure() {
         binder().requireExplicitBindings();
 
-        requireBinding(ConfigProvider.class);
+        requireBinding(MidolmanConfig.class);
         requireBinding(Client.class);
         requireBinding(DatapathConnectionService.class);
         requireBinding(MidolmanActorsService.class);
 
         bind(MidolmanService.class).asEagerSingleton();
         expose(MidolmanService.class);
-
-        bind(MidolmanConfig.class)
-            .toProvider(MidolmanConfigProvider.class)
-            .asEagerSingleton();
-        expose(MidolmanConfig.class);
 
         bind(VirtualTopology.class)
             .asEagerSingleton();
@@ -78,20 +70,5 @@ public class MidolmanModule extends PrivateModule {
         bind(NatBlockAllocator.class).to(ZkNatBlockAllocator.class)
             .in(Scopes.SINGLETON);
         expose(NatBlockAllocator.class);
-    }
-
-    /**
-     * A {@link Provider} of {@link MidolmanConfig} instances which uses an
-     * existing {@link ConfigProvider} as the configuration backend.
-     */
-    public static class MidolmanConfigProvider
-        implements Provider<MidolmanConfig> {
-        @Inject
-        ConfigProvider configProvider;
-
-        @Override
-        public MidolmanConfig get() {
-            return configProvider.getConfig(MidolmanConfig.class);
-        }
     }
 }
