@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_748c0680",
+        "filename": "midolman/src/main/scala/org/midonet/cluster/state/ZookeeperStateStorage.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-04T13:50:50Z",
+      "side": 1,
+      "message": "I left it like this because we haven\u0027t decided on a namespace yet when I created this class. I spoke to Galo on this and he suggested adding a package level object in cluster to handle log namespaces (similar to what has been done for vxgw).\n\nHowever, I think we should add this in a different patch such that we don\u0027t create unnecessary dependencies/conflicts. I will address this right away.",
+      "parentUuid": "7a1969be_69554f4f",
+      "range": {
+        "startLine": 51,
+        "startChar": 29,
+        "endLine": 51,
+        "endChar": 31
+      },
+      "revId": "95a892088fd3602b31b18528cbc8fc31a1337c17",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_a99467e2",
         "filename": "midolman/src/test/scala/org/midonet/midolman/topology/VirtualTopologyTest.scala",
         "patchSetId": 11
@@ -36,6 +60,30 @@
       "writtenOn": "2015-03-04T12:43:10Z",
       "side": 1,
       "message": "pass assertThread in all creations of an AwaitableObserver?",
+      "range": {
+        "startLine": 118,
+        "startChar": 27,
+        "endLine": 118,
+        "endChar": 64
+      },
+      "revId": "95a892088fd3602b31b18528cbc8fc31a1337c17",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_54de2a6e",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/VirtualTopologyTest.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-04T13:50:50Z",
+      "side": 1,
+      "message": "I agree this test needs a cleanup:\n- removing unnecessary awaits\n- add assertThread to the AwaitableObserver.\n\nI would say to address these issues in different patches.",
+      "parentUuid": "7a1969be_a99467e2",
       "range": {
         "startLine": 118,
         "startChar": 27,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_74e36633",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/VirtualTopologyTest.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 166,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-04T13:50:50Z",
+      "side": 1,
+      "message": "See above.",
+      "parentUuid": "7a1969be_09a49b55",
+      "range": {
+        "startLine": 166,
+        "startChar": 12,
+        "endLine": 166,
+        "endChar": 64
+      },
+      "revId": "95a892088fd3602b31b18528cbc8fc31a1337c17",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_698a6fc0",
         "filename": "midolman/src/test/scala/org/midonet/midolman/topology/VirtualTopologyTest.scala",
         "patchSetId": 11
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_d4d17a58",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/VirtualTopologyTest.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 200,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-04T13:50:50Z",
+      "side": 1,
+      "message": "See above.",
+      "parentUuid": "7a1969be_698a6fc0",
+      "range": {
+        "startLine": 200,
+        "startChar": 12,
+        "endLine": 200,
+        "endChar": 67
+      },
+      "revId": "95a892088fd3602b31b18528cbc8fc31a1337c17",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_4985f3ab",
         "filename": "midolman/src/test/scala/org/midonet/midolman/topology/VirtualTopologyTest.scala",
         "patchSetId": 11
@@ -105,6 +201,30 @@
       "writtenOn": "2015-03-04T12:43:10Z",
       "side": 1,
       "message": "Not necessary.",
+      "range": {
+        "startLine": 319,
+        "startChar": 12,
+        "endLine": 319,
+        "endChar": 64
+      },
+      "revId": "95a892088fd3602b31b18528cbc8fc31a1337c17",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_b4d4be47",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/VirtualTopologyTest.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 319,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-04T13:50:50Z",
+      "side": 1,
+      "message": "See above.",
+      "parentUuid": "7a1969be_4985f3ab",
       "range": {
         "startLine": 319,
         "startChar": 12,
