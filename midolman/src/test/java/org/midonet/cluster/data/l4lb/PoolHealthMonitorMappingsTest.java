@@ -16,30 +16,29 @@
 
 package org.midonet.cluster.data.l4lb;
 
-import java.util.Arrays;
 import java.util.UUID;
 
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 
-import org.apache.commons.configuration.HierarchicalConfiguration;
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigValueFactory;
 import org.apache.zookeeper.KeeperException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 import org.midonet.cluster.DataClient;
-import org.midonet.cluster.config.ZookeeperConfig;
 import org.midonet.cluster.data.Converter;
 import org.midonet.cluster.data.neutron.NeutronClusterModule;
+import org.midonet.cluster.storage.MidonetBackendTestModule;
+import org.midonet.conf.MidoTestConfigurator;
 import org.midonet.midolman.Setup;
-import org.midonet.midolman.config.MidolmanConfig;
 import org.midonet.midolman.cluster.LegacyClusterModule;
-import org.midonet.midolman.cluster.config.ConfigProviderModule;
-import org.midonet.midolman.cluster.config.TypedConfigModule;
 import org.midonet.midolman.cluster.serialization.SerializationModule;
 import org.midonet.midolman.cluster.zookeeper.MockZookeeperConnectionModule;
+import org.midonet.midolman.guice.config.MidolmanConfigModule;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.InvalidStateOperationException;
@@ -148,12 +147,11 @@ public class PoolHealthMonitorMappingsTest {
         return dataClient.vipCreate(getStockVip(poolId));
     }
 
-    HierarchicalConfiguration fillConfig(HierarchicalConfiguration config) {
-        config.addNodes(ZookeeperConfig.GROUP_NAME,
-                Arrays.asList(new HierarchicalConfiguration.Node
-                        ("midolman_root_key", zkRoot)));
-        return config;
+    Config fillConfig(Config config) {
+        return config.withValue("zookeeper.root_key",
+                ConfigValueFactory.fromAnyRef(zkRoot));
     }
+
 
     Directory zkDir() {
         return injector.getInstance(Directory.class);
@@ -164,13 +162,12 @@ public class PoolHealthMonitorMappingsTest {
             throws InvalidStateOperationException, MappingStatusException,
             SerializationException, StateAccessException,
             InterruptedException, KeeperException {
-        HierarchicalConfiguration config = fillConfig(
-                new HierarchicalConfiguration());
+        Config conf = fillConfig(MidoTestConfigurator.forAgents());
         injector = Guice.createInjector(
                 new SerializationModule(),
-                new ConfigProviderModule(config),
+                new MidolmanConfigModule(conf),
+                new MidonetBackendTestModule(conf),
                 new MockZookeeperConnectionModule(),
-                new TypedConfigModule<>(MidolmanConfig.class),
                 new LegacyClusterModule(),
                 new NeutronClusterModule()
         );

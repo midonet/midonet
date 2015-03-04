@@ -32,6 +32,11 @@ public class RestApiTestJerseyServletModule extends RestApiJerseyServletModule {
     }
 
     @Override
+    protected boolean clusterEmbedEnabled() {
+        return false;
+    }
+
+    @Override
     protected void installRestApiModule() {
         install(new RestApiModule() {
             protected void bindVtepDataClientFactory() {

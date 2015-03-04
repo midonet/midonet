@@ -24,7 +24,6 @@ import java.util.Map;
 import java.util.Set;
 
 import com.google.inject.Inject;
-
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.KeeperException.BadVersionException;
@@ -38,7 +37,7 @@ import org.apache.zookeeper.ZooDefs.Ids;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.midonet.cluster.config.ZookeeperConfig;
+import org.midonet.midolman.config.MidolmanConfig;
 import org.midonet.util.functors.CollectionFunctors;
 import org.midonet.util.functors.Functor;
 import org.midonet.util.functors.TreeNode;
@@ -59,17 +58,6 @@ public class ZkManager {
     private final String basePath;
 
     public static final int ZK_SEQ_NUM_LEN = 10;
-
-    /**
-     * Constructor.
-     *
-     * @param zk
-     *            Directory object.
-     */
-    @Inject
-    public ZkManager(Directory zk, ZookeeperConfig config) {
-        this(zk, (config == null) ? null : config.getZkRootPath());
-    }
 
     public ZkManager(Directory zk, String basePath) {
         this.zk = zk;

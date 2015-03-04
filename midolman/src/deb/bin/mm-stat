@@ -46,7 +46,13 @@ if [ -z "$JAVA_HOME" ]; then
         done
     fi
 fi
-JAVA="$JAVA_HOME/bin/java"
+
+export DRIP_INIT_CLASS=org.midonet.midolman.management.DripMain
+export DRIP_INIT="" # Needs to be non-null
+
+if [ -z "$JAVA" ]; then
+    JAVA="$JAVA_HOME/bin/java"
+fi
 
 # If MIDO_HOME has not been set, set it.
 if [ -z "$MIDO_HOME" ]; then
@@ -61,4 +67,4 @@ fi
 MAIN_CLASS='org.midonet.midolman.management.MidolmanStat'
 CLASSPATH=$MIDO_HOME/*:$MIDO_HOME/dep/*
 
-$JAVA -cp $CLASSPATH $MAIN_CLASS $*
+exec $JAVA -cp $CLASSPATH $MAIN_CLASS $*

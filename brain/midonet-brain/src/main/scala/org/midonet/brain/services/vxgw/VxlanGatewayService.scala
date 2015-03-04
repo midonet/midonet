@@ -32,10 +32,9 @@ import rx.schedulers.Schedulers
 import rx.{Observer, Subscription}
 
 import org.midonet.brain.southbound.vtep.VtepDataClientFactory
-import org.midonet.brain.{ClusterMinion, ClusterNode, MinionConfig}
+import org.midonet.brain.{ClusterMinion, ClusterNode}
 import org.midonet.cluster.EntityIdSetEvent.Type._
 import org.midonet.cluster.{DataClient, EntityIdSetEvent}
-import org.midonet.config.{ConfigBool, ConfigGroup, ConfigString}
 import org.midonet.midolman.state.Directory.DefaultTypedWatcher
 import org.midonet.midolman.state.{StateAccessException, ZookeeperConnectionWatcher}
 import org.midonet.util.concurrent.NamedThreadFactory
@@ -244,13 +243,3 @@ class VxlanGatewayService @Inject()(nodeCtx: ClusterNode.Context,
 
 }
 
-/** Configuration for the VxGWService Minion. */
-@ConfigGroup("vxgw")
-trait VxGWServiceConfig extends MinionConfig[VxlanGatewayService] {
-
-    @ConfigBool(key = "enabled", defaultValue = false)
-    def isEnabled: Boolean
-
-    @ConfigString(key = "with")
-    def minionClass: String
-}

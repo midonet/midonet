@@ -19,32 +19,27 @@ import java.io.IOException;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
-import org.midonet.midolman.MtuIncreaser;
 import scala.concurrent.duration.Duration;
 
-import akka.actor.ActorInitializationException;
-import akka.actor.ActorKilledException;
 import akka.actor.OneForOneStrategy;
 import akka.actor.SupervisorStrategy;
 import akka.actor.SupervisorStrategy.Directive;
 import akka.japi.Function;
-
 import com.google.inject.BindingAnnotation;
 import com.google.inject.Exposed;
 import com.google.inject.PrivateModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.midonet.midolman.DatapathController;
 import org.midonet.midolman.FlowController;
+import org.midonet.midolman.MtuIncreaser;
 import org.midonet.midolman.NetlinkCallbackDispatcher;
 import org.midonet.midolman.PacketsEntryPoint;
 import org.midonet.midolman.SupervisorActor;
 import org.midonet.midolman.config.MidolmanConfig;
-import org.midonet.midolman.host.config.HostConfig;
 import org.midonet.midolman.io.DatapathConnectionPool;
 import org.midonet.midolman.io.UpcallDatapathConnectionManager;
 import org.midonet.midolman.l4lb.HealthMonitor;
@@ -59,8 +54,6 @@ import org.midonet.util.concurrent.NanoClock$;
 import org.midonet.util.eventloop.SelectLoop;
 import org.midonet.util.eventloop.SimpleSelectLoop;
 
-import static akka.actor.SupervisorStrategy.escalate;
-import static akka.actor.SupervisorStrategy.resume;
 import static akka.actor.SupervisorStrategy.stop;
 import static java.lang.annotation.ElementType.FIELD;
 import static java.lang.annotation.ElementType.METHOD;
@@ -75,8 +68,6 @@ public class MidolmanActorsModule extends PrivateModule {
     public static final String CRASH_STRATEGY_NAME = "crash";
     public static final String RESUME_STRATEGY_NAME = "resume";
 
-    @BindingAnnotation @Target({FIELD, METHOD}) @Retention(RUNTIME)
-    public @interface RESUME_STRATEGY {}
     @BindingAnnotation @Target({FIELD, METHOD}) @Retention(RUNTIME)
     public @interface CRASH_STRATEGY {}
 
@@ -93,7 +84,6 @@ public class MidolmanActorsModule extends PrivateModule {
         requireBinding(MidolmanConfig.class);
         requireBinding(DatapathConnectionPool.class);
         requireBinding(HostIdProviderService.class);
-        requireBinding(HostConfig.class);
         requireBinding(UpcallDatapathConnectionManager.class);
         requireBinding(FlowStateStorageFactory.class);
 
@@ -130,18 +120,8 @@ public class MidolmanActorsModule extends PrivateModule {
     }
 
     @Provides @Exposed
-    public SupervisorStrategy getSupervisorActorStrategy(MidolmanConfig config) {
-        String strategy = config.getMidolmanTopLevelActorSupervisor();
-        switch (strategy) {
-            case CRASH_STRATEGY_NAME:
-                return getCrashStrategy();
-            case RESUME_STRATEGY_NAME:
-                return getResumeStrategy();
-            default:
-                log.warn("Unknown supervisor strategy [{}], " +
-                         "falling back to resume strategy", strategy);
-                return getResumeStrategy();
-        }
+    public SupervisorStrategy getSupervisorActorStrategy() {
+        return getCrashStrategy();
     }
 
     @Provides @Exposed @Singleton @ZEBRA_SERVER_LOOP
@@ -151,25 +131,6 @@ public class MidolmanActorsModule extends PrivateModule {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-    }
-
-    @Provides @Exposed @RESUME_STRATEGY
-    public SupervisorStrategy getResumeStrategy() {
-        return new OneForOneStrategy(-1, Duration.Inf(),
-                new Function<Throwable, Directive>() {
-                    @Override
-                    public Directive apply(Throwable t) {
-                        if (t instanceof ActorKilledException) {
-                            log.warn("Actor crashed, escalating", t);
-                            return escalate();
-                        } else if (t instanceof ActorInitializationException) {
-                            log.warn("Actor crashed, stopping", t);
-                            return stop();
-                        } else
-                            log.warn("Actor crashed, resuming", t);
-                            return resume();
-                    }
-                });
     }
 
     @Provides @Exposed @CRASH_STRATEGY
