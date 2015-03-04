@@ -276,6 +276,7 @@ message Rule {
     }
 }
 
+// Next available ID is: 6
 message TunnelZone {
     optional UUID id = 1;
     optional string name = 2;
@@ -292,8 +293,11 @@ message TunnelZone {
     }
     repeated HostToIp hosts = 4; // Hosts in this zone
 
-    // Backreferences
-    repeated UUID host_ids = 101;
+    // Tunnel zone member host IDs.
+    // Note: ZOOM cannot yet handle referential integrity from / to a nested
+    // message field, therefore the information is duplicated here and in the
+    // "hosts" field above.
+    repeated UUID host_ids = 5;
 }
 
 message Vtep {
@@ -314,6 +318,7 @@ message VtepBinding {
     optional UUID vtep_id = 5;      // A forward ref to VtEP.
 }
 
+// Next available ID: 6
 message Host {
     optional UUID id = 1;
     optional string name = 2;
@@ -324,6 +329,8 @@ message Host {
         optional string interface_name = 2;
     }
     repeated PortBinding port_bindings = 4;
-    repeated UUID tunnel_zone_ids = 5;
-    optional int32 flooding_proxy_weight = 6;
+    optional int32 flooding_proxy_weight = 5;
+
+    // Backreference. Expected to be set from the Tunnel Zone side.
+    repeated UUID tunnel_zone_ids = 101;
 }
