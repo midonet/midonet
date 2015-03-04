@@ -254,19 +254,8 @@ class OnSubscribeToPathChildren(zk: CuratorFramework, path: String)
 
     /* A child node was modified, emit the new state on its stream */
     private def changedChild(e: PathChildrenCacheEvent): Unit = {
-        if (connectionLost) {
-            return
-        }
-        val path = e.getData.getPath
-        val subject = childStreams.getOrElse(path, {
-            val s = BehaviorSubject.create[ChildData]()
-            childStreams.put(path, s)
-            s
-        })
-        if (connectionLost) {
-            childStreams.remove(path)   // might have been added while closing
-        } else {
-            subject.onNext(e.getData)
+        childStreams.get(e.getData.getPath).foreach { s =>
+            if (!connectionLost) s onNext e.getData
         }
     }
 
@@ -279,16 +268,17 @@ class OnSubscribeToPathChildren(zk: CuratorFramework, path: String)
         if (connectionLost) {
             return
         }
-        val childStream = BehaviorSubject.create[ChildData](childData)
+        var newStream: Subject[ChildData, ChildData] = null
         withWriteLock(childrenLock) {
             if (!childStreams.contains(childData.getPath)) {
-                childStreams.put(childData.getPath, childStream)
+                newStream = BehaviorSubject.create(childData)
+                childStreams.put(childData.getPath, newStream)
             }
         }
         if (connectionLost) {
             childStreams.remove(childData.getPath)
-        } else {
-            stream onNext childStream
+        } else if (newStream != null) {
+            stream onNext newStream
         }
     }
 
