@@ -43,6 +43,7 @@ project.ext {
         akka: ["com.typesafe.akka:akka-slf4j_2.11:${versions.akka}",
                "com.typesafe.akka:akka-actor_2.11:${versions.akka}"],
         akkatest: "com.typesafe.akka:akka-testkit_2.11:${versions.akka}",
+        typesafeconf: "com.typesafe:config:1.2.1",
 
         cassandra: "com.datastax.cassandra:cassandra-driver-core:2.0.1",
         cassandraunit: dependencies.create("org.cassandraunit:cassandra-unit:2.0.2.1") {
@@ -104,9 +105,11 @@ project.ext {
             exclude group: 'io.netty', module: 'netty'
             exclude group: 'log4j', module: 'log4j'
             exclude group: 'org.slf4j', module: 'slf4j-log4j12'},
-        curator_framework: "org.apache.curator:curator-framework:2.6.0",
-        curator_recipes: "org.apache.curator:curator-recipes:2.6.0",
-        curator_test: "org.apache.curator:curator-test:2.6.0",
+        curator_framework: dependencies.create("org.apache.curator:curator-framework:2.7.1") {
+            exclude group: 'log4j', module: 'log4j'},
+        curator_recipes: dependencies.create("org.apache.curator:curator-recipes:2.7.1") {
+            exclude group: 'log4j', module: 'log4j'},
+        curator_test: "org.apache.curator:curator-test:2.7.1",
 
         persistence: "javax.persistence:persistence-api:1.0",
         jsr250: "javax.annotation:jsr250-api:1.0",
@@ -237,6 +240,10 @@ configure(subprojects.findAll {!it.name.contains('ovsdb')}) {
     apply plugin: 'cobertura'
     apply plugin: 'com.github.johnrengelman.shadow'
     apply from: "${rootProject.projectDir}/git.gradle"
+
+    configurations.all {
+        exclude group: 'log4j', module: 'log4j'
+    }
 
     sourceCompatibility = versions.java
 
