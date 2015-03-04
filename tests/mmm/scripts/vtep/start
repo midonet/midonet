@@ -55,7 +55,18 @@ for i in $(seq 0 $((${#VTEP_MANAGEMENT_ADRESSES[*]} - 1))); do
 
 
     # configure vtep emulater inside the container
-    sleep 3 # need some nap before ovs becomes ready
+
+    # wait for ovs daemon to become ready
+    retries=10
+    while ! sudo docker exec $container_id test -S /var/run/openvswitch/db.sock ; do
+        sleep 3
+        (( retries-- ))
+        if [ $retries -eq 0 ]; then
+            echo "OpenVSwitch failed to start on container $container_id"
+            exit 1
+        fi
+    done
+
     sudo docker exec $container_id /opt/vtep/vtep.sh config vtep0 ${VTEP_MANAGEMENT_ADRESSES[i]%/*} ${VTEP_MANAGEMENT_ADRESSES[i]%/*}
 
     sudo docker exec $container_id /opt/vtep/vtep.sh add_port vtep0 port0 ${PEERS_BEHIND_VTEP[i]} ${VLAN_OF_PEERS[i]}
