@@ -48,9 +48,9 @@ dependencies {
 
     compile libraries.scala, libraries.akka, libraries.hamcrest, libraries.jna,
             libraries.commons_lang, libraries.commons_lang3,
-            libraries.commons_conf, libraries.commons_cli, libraries.commons_io,
+            libraries.commons_cli, libraries.commons_io,
             libraries.guava, libraries.guice, libraries.metrics, libraries.rx,
-            libraries.jetty,
+            libraries.jetty, libraries.logback,
             libraries.zookeeper, libraries.jetty_server,
             libraries.jetty_websocket, libraries.jetty_deploy, libraries.jminix,
             libraries.jsonpath, libraries.curator_recipes,
@@ -139,6 +139,9 @@ task preparePkg(type: Copy, dependsOn: installApp) {
         into "usr/bin"
     }
     from("src/deb/bin/mm-stat") {
+        into "usr/bin"
+    }
+    from("src/deb/bin/mm-conf") {
         into "usr/bin"
     }
     from("src/deb/init/midolman-prepare") {

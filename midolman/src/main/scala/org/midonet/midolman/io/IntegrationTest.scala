@@ -17,7 +17,7 @@ package org.midonet.midolman.io
 
 import java.util.concurrent.atomic.AtomicInteger
 
-import org.midonet.config.ConfigProvider
+import org.midonet.conf.MidoTestConfigurator
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.odp.OvsConnectionOps
 import org.midonet.odp.test.OvsIntegrationTestBase
@@ -25,7 +25,7 @@ import org.midonet.util.Bucket;
 
 object ConnectionFactory {
 
-    val conf = ConfigProvider.defaultConfig(classOf[MidolmanConfig])
+    val conf = new MidolmanConfig(MidoTestConfigurator.forAgents)
 
     def fromManager(getter: () => ManagedDatapathConnection) = {
         val manager = getter()

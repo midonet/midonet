@@ -53,6 +53,7 @@ import org.midonet.config.providers.HierarchicalConfigurationProvider;
  *
  * </pre></blockquote>
  */
+@Deprecated
 @SuppressWarnings("JavaDoc")
 public abstract class ConfigProvider {
 
@@ -75,32 +76,6 @@ public abstract class ConfigProvider {
 
     public static ConfigProvider providerForIniConfig(HierarchicalConfiguration config) {
         return new HierarchicalConfigurationProvider(config);
-    }
-
-    public static ConfigProvider fromIniFile(String path) {
-        return providerForIniConfig(fromConfigFile(path));
-    }
-
-    public static <C> C configFromIniFile(String path, Class<C> confType) {
-        return providerForIniConfig(fromConfigFile(path)).getConfig(confType);
-    }
-
-    public static HierarchicalConfiguration fromConfigFile(String path) {
-        try {
-            HierarchicalINIConfiguration config =
-                new HierarchicalINIConfiguration();
-            config.setDelimiterParsingDisabled(true);
-            config.setFileName(path);
-            config.load();
-            return config;
-        } catch (ConfigurationException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public static <Config> Config defaultConfig(Class<Config> confType) {
-        HierarchicalConfiguration emptyConf = new HierarchicalConfiguration();
-        return providerForIniConfig(emptyConf).getConfig(confType);
     }
 
     public static <Config> Config getConfig(

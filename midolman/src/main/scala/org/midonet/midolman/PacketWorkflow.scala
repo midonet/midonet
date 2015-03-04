@@ -18,7 +18,6 @@ package org.midonet.midolman
 import java.util.UUID
 
 import akka.actor._
-
 import com.typesafe.scalalogging.Logger
 import org.slf4j.LoggerFactory
 
@@ -298,7 +297,7 @@ class PacketWorkflow(protected val dpState: DatapathState,
         val dhcp = context.packet.getEthernet.getPayload.getPayload.getPayload.asInstanceOf[DHCP]
         dhcp.getOpCode == DHCP.OPCODE_REQUEST &&
             processDhcp(context, port, dhcp,
-                config.getDhcpMtu.toShort.min(DatapathController.minMtu))
+                config.dhcpMtu.toShort.min(DatapathController.minMtu))
     }
 
     private def processDhcp(context: PacketContext, inPort: Port,

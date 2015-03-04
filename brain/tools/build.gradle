@@ -38,6 +38,7 @@ sourceSets {
 dependencies {
     compile project(':cluster'),
             project(':midonet-util'),
+            project(':brain:midonet-brain'),
             project(':midolman'), // temporary for MidonetBackendModule
             libraries.commons_conf,
             libraries.guava,
