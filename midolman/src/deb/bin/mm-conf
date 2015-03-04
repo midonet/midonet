@@ -14,6 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+#TODO: dedup and factor out these common stuff among mm-* commands.
+
 # The first existing directory is used for JAVA_HOME if needed.
 JVM_SEARCH_DIRS="/usr/lib/jvm/java-7-openjdk-amd64 /usr/lib/jvm/java-7-openjdk \
                  /usr/lib/jvm/java-7-sun"
@@ -62,17 +64,7 @@ if [ ! -d "$MIDO_HOME" ]; then
    exit 1
 fi
 
+MAIN_CLASS='org.midonet.midolman.management.MidolmanConf'
+CLASSPATH=$MIDO_HOME/*:$MIDO_HOME/dep/*
 
-if [ -z "$MIDO_JAR" ]; then
-   MIDO_JAR=`ls $MIDO_HOME/midolman-*.jar`
-fi
-
-if [ ! -e "$MIDO_JAR" ]; then
-   echo "ERROR: $MIDO_JAR does not exist"
-   exit 1
-fi
-
-JAVA_LIBRARY_PATH=-Djava.library.path=/lib:/usr/lib
-MIDO_DEP_CLASS_PATH=`echo $MIDO_HOME/dep/* | sed 's/ /:/g'`
-
-exec $JAVA $JAVA_LIBRARY_PATH -cp $MIDO_JAR:$MIDO_DEP_CLASS_PATH org.midonet.midolman.management.MidolmanMeter $*
+exec $JAVA -cp $CLASSPATH $MAIN_CLASS $*
