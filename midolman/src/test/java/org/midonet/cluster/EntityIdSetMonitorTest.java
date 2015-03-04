@@ -21,19 +21,16 @@ import java.util.UUID;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-
-import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.zookeeper.CreateMode;
 import org.junit.Before;
 import org.junit.Test;
-
+import org.midonet.cluster.storage.MidonetBackendTestModule;
 import rx.Observable;
 
-import org.midonet.midolman.config.MidolmanConfig;
-import org.midonet.midolman.cluster.config.ConfigProviderModule;
-import org.midonet.midolman.cluster.config.TypedConfigModule;
+import org.midonet.conf.MidoTestConfigurator;
 import org.midonet.midolman.cluster.serialization.SerializationModule;
 import org.midonet.midolman.cluster.zookeeper.MockZookeeperConnectionModule;
+import org.midonet.midolman.guice.config.MidolmanConfigModule;
 import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.ZookeeperConnectionWatcher;
@@ -55,9 +52,9 @@ public class EntityIdSetMonitorTest {
     public void setup() throws Exception {
         injector = Guice.createInjector(
             new SerializationModule(),
-            new ConfigProviderModule(new HierarchicalConfiguration()),
+            MidonetBackendTestModule.apply(),
+            new MidolmanConfigModule(MidoTestConfigurator.forAgents()),
             new MockZookeeperConnectionModule(),
-            new TypedConfigModule<>(MidolmanConfig.class),
             new TestModule());
 
         PathBuilder paths = injector.getInstance(PathBuilder.class);

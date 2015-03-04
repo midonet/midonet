@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.midolman.cluster.config;
+package org.midonet.cluster.config;
 
 import java.util.Map;
 import java.util.TreeMap;
@@ -30,15 +30,12 @@ import org.midonet.config.ConfigProvider;
  * This Guice module will expose a {@link ConfigProvider} instance that everyone
  * can use as the source of their configuration.
  */
+@Deprecated
 public class ConfigProviderModule extends PrivateModule {
     static final Logger log = LoggerFactory.getLogger(
             ConfigProviderModule.class);
 
     private final ConfigProvider provider;
-
-    public ConfigProviderModule(String path) {
-        this.provider = ConfigProvider.fromIniFile(path);
-    }
 
     public ConfigProviderModule(HierarchicalConfiguration configuration) {
         this.provider = ConfigProvider.providerForIniConfig(configuration);
@@ -48,6 +45,10 @@ public class ConfigProviderModule extends PrivateModule {
     protected void configure() {
         bind(ConfigProvider.class).toInstance(provider);
         expose(ConfigProvider.class);
+
+        ZookeeperConfig zkCfg = provider.getConfig(ZookeeperConfig.class);
+        bind(ZookeeperConfig.class).toInstance(zkCfg);
+        expose(ZookeeperConfig.class);
 
         log.info("config start -----------------------");
         Map<String, Object> allConf = new TreeMap(provider.getAll());

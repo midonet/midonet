@@ -29,11 +29,11 @@ import java.util.concurrent.TimeUnit;
 import com.google.common.util.concurrent.Service;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.GnuParser;
 import org.apache.commons.cli.Options;
+import org.midonet.conf.MidoNodeConfigurator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,11 +47,11 @@ import org.midonet.midolman.cluster.LegacyClusterModule;
 import org.midonet.midolman.cluster.MidolmanActorsModule;
 import org.midonet.midolman.cluster.MidolmanModule;
 import org.midonet.midolman.cluster.ResourceProtectionModule;
-import org.midonet.midolman.cluster.config.ConfigProviderModule;
 import org.midonet.midolman.cluster.datapath.DatapathModule;
 import org.midonet.midolman.cluster.serialization.SerializationModule;
 import org.midonet.midolman.cluster.state.FlowStateStorageModule;
 import org.midonet.midolman.cluster.zookeeper.ZookeeperConnectionModule;
+import org.midonet.midolman.guice.config.MidolmanConfigModule;
 import org.midonet.midolman.host.guice.HostModule;
 import org.midonet.midolman.services.MidolmanActorsService;
 import org.midonet.midolman.services.MidolmanService;
@@ -137,14 +137,18 @@ public class Midolman {
             Midolman.exitsMissingConfigFile(configFilePath);
         }
 
+        MidoNodeConfigurator configurator =
+            MidoNodeConfigurator.forAgents(configFilePath);
+        configurator.deployBundledConfig();
+
         injector = Guice.createInjector(
+            MidonetBackendModule.apply(),
             new ZookeeperConnectionModule(ZookeeperConnectionWatcher.class),
             new SerializationModule(),
             new HostModule(),
-            new ConfigProviderModule(configFilePath),
+            new MidolmanConfigModule(configurator),
             new StateStorageModule(),
             new DatapathModule(),
-            new MidonetBackendModule(),
             new LegacyClusterModule(),
             new MidolmanActorsModule(),
             new ResourceProtectionModule(),

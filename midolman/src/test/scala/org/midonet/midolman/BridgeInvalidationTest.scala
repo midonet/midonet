@@ -19,7 +19,7 @@ import java.util.UUID
 
 import scala.collection.JavaConverters._
 
-import org.apache.commons.configuration.HierarchicalConfiguration
+import com.typesafe.config.{ConfigValueFactory, Config}
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
@@ -90,10 +90,10 @@ class BridgeInvalidationTest extends MidolmanSpec
         FlowController.getAndClear()
     }
 
-    override protected def fillConfig(config: HierarchicalConfiguration) = {
-        super.fillConfig(config)
-        config.setProperty("bridge.mac_port_mapping_expire_millis", macPortExpiration)
-        config
+    override protected def fillConfig(config: Config) = {
+        super.fillConfig(config).withValue(
+            "bridge.mac_port_mapping_expire",
+            ConfigValueFactory.fromAnyRef(s"${macPortExpiration}ms"))
     }
 
     registerActors(VirtualTopologyActor -> (() => new VirtualTopologyActor()

@@ -15,20 +15,19 @@
  */
 package org.midonet.midolman.io
 
+import org.midonet.conf.MidoTestConfigurator
+
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent._
 import scala.concurrent.duration._
-import scala.util.{Failure, Success}
 
 import akka.actor.{Actor, ActorRef, ActorSystem, Props}
 
-import org.midonet.config.ConfigProvider;
 import org.midonet.midolman.NetlinkCallbackDispatcher
 import org.midonet.midolman.PacketsEntryPoint
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.odp._
 import org.midonet.odp.ports._
-import org.midonet.odp.protos.OvsDatapathConnection
 import org.midonet.util._
 
 object UpcallChannelsTest {
@@ -51,7 +50,7 @@ object UpcallChannelsTest {
     }
 
     def tbPolicy(conf: MidolmanConfig) = {
-        val counter = new StatisticalCounter(conf.getSimulationThreads)
+        val counter = new StatisticalCounter(conf.simulationThreads)
         new TokenBucketPolicy(conf, new TokenBucketSystemRate(counter), 1,
                               _ => Bucket.BOTTOMLESS)
     }
@@ -62,7 +61,7 @@ object UpcallChannelsTest {
         val act = sys actorOf Props[Deaf]
         val nlDispatcher = sys actorOf Props[NetlinkCallbackDispatcher]
 
-        val conf = ConfigProvider.configFromIniFile(args(0), classOf[MidolmanConfig])
+        val conf = new MidolmanConfig(MidoTestConfigurator.forAgents)
 
         val mngr1 =
             new OneToOneDpConnManager(conf, tbPolicy(conf)) with TestMixin {
