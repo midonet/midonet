@@ -53,11 +53,11 @@ class ObservablePathChildrenCacheTest extends Suite
         val childObserver = new TestObserver[ChildData]()
         val children = ListBuffer[TestObserver[ChildData]]()
 
-        override def onNext(o: Observable[ChildData]) {
+        override def onNext(o: Observable[ChildData]): Unit = {
             super.onNext(o)
             o.subscribe(childObserver)
             val to = new TestObserver[ChildData] {
-                override def onNext(d: ChildData) {
+                override def onNext(d: ChildData): Unit = synchronized {
                     super.onNext(d)
                     if (latch != null) latch.countDown()
                 }
@@ -314,97 +314,63 @@ class ObservablePathChildrenCacheTest extends Suite
         zkLogger.setLevel(Level.toLevel("INFO"))
 
         val nInitial = 50  // children precreated
-        val nTotal = 1000   // total child count to reach during subscriptions
+        val nTotal = 1000  // total child count to reach during subscriptions
         val nSubs = 20     // number of subscribers
 
-        makePaths(nInitial)
+        makePaths(nInitial) // Create nInitial children
 
         val opcc = ObservablePathChildrenCache.create(curator, ZK_ROOT)
 
         // Let the OPCC catch up to the initial state
-        eventually {
-           opcc.allChildren should have size nInitial
-        }
+        eventually { opcc.allChildren should have size nInitial }
 
         // This thread will add elements until reaching nTotal children
         val step = 5
-        val updater = makeRunnable {
-            log.info("I'm creating additional paths..")
-            try {
-                nInitial until (nTotal, step) foreach { i =>
-                    makePaths(i, i + step)
-                    Thread sleep 10
-                }
-            } catch {
-                case _: Throwable => fail("Cannot create paths")
-            }
-            log.info("All children created")
-        }
+        val latch = new CountDownLatch(10)
 
-        val es: ExecutorService = new ForkJoinPool(nSubs + 1)
+        // This thread will create additional paths up to nTotal
+        new Thread(makeRunnable {
+            latch.await()
+            log.info("Creating additional paths..")
+            nInitial until (nTotal, step) foreach { i =>
+                makePaths(i, i + step)
+                Thread sleep 10
+            }
+            log.info("All paths created")
+        }).start()
 
         // As we are updating, we will create a bunch of subscribers that will
-        // subscribe to the observable and accumulate elements received in
-        // children
-        val subscribers = new ListBuffer[Future[List[String]]]()
+        // subscribe to the observable and accumulate elements received
+        log.info("Subscribers start appearing..")
+        val subscribers = new ListBuffer[ChildDataAccumulator]
         0 until nSubs foreach { i =>
-            val subscriber = new Callable[List[String]]() {
-                    override def call() = {
-                        val acc = new ChildDataAccumulator()
-                        opcc.subscribe(acc)
-                        // Wait until the ObservablePathChildrenCache is closed
-                        // which onErrors the observables
-                        while (acc.getOnErrorEvents.isEmpty) {
-                            Thread.`yield`()
-                        }
-                        acc.extractData()
-                    }
-                }
-
-            subscribers add es.submit(subscriber)
-
-            Thread.sleep(10)
-
-            if (i == nSubs/10) { // Launch the updater while subscribers come
-                es.submit(updater)
-            }
-
+            val subscriber = new ChildDataAccumulator()
+            subscribers add subscriber
+            opcc subscribe subscriber
+            Thread sleep 100
+            latch.countDown()
         }
+        log.info("Subscribers created")
 
-        eventually {
-            opcc.allChildren should have size nTotal
-        }
+        // Wait until the ObservablePathChildrenCache has seen all children
+        eventually { opcc.allChildren should have size nTotal }
 
-        // Extract all elements present in the cache
-        val children = opcc.allChildren
-                           .map(childData => new String(childData.getData))
-
+        // Collect the contents of each child
+        val children = opcc.allChildren.map{child => new String(child.getData)}
         children should have size nTotal
 
-        opcc.close() // we can close to onError the children
+        // This will signal the subscribers that the Observable is done
+        opcc.close()
 
+        // All subscribers should see an error due to the close
+        eventually { subscribers.foreach { _.getOnErrorEvents.size shouldBe 1 }}
+
+        // Each subscriber should've seen ALL children ever created
         subscribers.foreach { s =>
-            val received = s.get(2, TimeUnit.SECONDS)
-            s.isDone shouldBe true
-            children.diff(received.toSeq) shouldBe empty
+            s.extractData() should contain theSameElementsAs children.seq
         }
 
-        log.debug("All streams are correct")
-
-        es.shutdown()
-        try {
-            // Wait a while for existing tasks to terminate
-            if (!es.awaitTermination(5, TimeUnit.SECONDS)) {
-                es.shutdownNow()
-                if (!es.awaitTermination(5, TimeUnit.SECONDS)) {
-                    log.warn("Pool didn't terminate")
-                }
-            }
-        } catch {
-            case e: InterruptedException =>
-                es.shutdownNow()
-                Thread.currentThread().interrupt()
-        }
+        log.info("Test complete")
     }
 
 }
@@ -434,8 +400,7 @@ class ObservablePathChildrenCacheConnectionTest extends Suite
         assert(ts1.e.await(cnxnTimeoutMs * 5, TimeUnit.MILLISECONDS))
         ts1.getOnErrorEvents should have size 1
         assert(
-            ts1.getOnErrorEvents.get(0)
-                .isInstanceOf[PathCacheDisconnectedException]
+            ts1.getOnErrorEvents.get(0).isInstanceOf[PathCacheDisconnectedException]
         )
         zk.restart()
 
