@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_09877b10",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PortMapper.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 63,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-04T11:19:09Z",
+      "side": 1,
+      "message": "combineLatest() is thread safe. There is no need to synchronize the notifications from the two input observables on the VT thread.",
+      "parentUuid": "7a1969be_a95627d0",
+      "range": {
+        "startLine": 63,
+        "startChar": 16,
+        "endLine": 63,
+        "endChar": 52
+      },
+      "revId": "4398a17bd8694fcb819a6e2414ad6ecfbe4a1e47",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_69738f80",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/Port.scala",
         "patchSetId": 13
@@ -36,6 +60,30 @@
       "writtenOn": "2015-03-04T10:41:52Z",
       "side": 1,
       "message": "I know that this is equal to _txTag but it would be better to return _txTag I think.",
+      "range": {
+        "startLine": 81,
+        "startChar": 16,
+        "endLine": 81,
+        "endChar": 26
+      },
+      "revId": "4398a17bd8694fcb819a6e2414ad6ecfbe4a1e47",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_a9f2a7cf",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/Port.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-04T11:19:09Z",
+      "side": 1,
+      "message": "Maybe yes, but since these changes come from this patch: https://review.gerrithub.io/#/c/215924/ I would raise the issue to Guillermo, see if it needs fixing.",
+      "parentUuid": "7a1969be_69738f80",
       "range": {
         "startLine": 81,
         "startChar": 16,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_69cf0f80",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/Port.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-04T11:19:09Z",
+      "side": 1,
+      "message": "See above.",
+      "parentUuid": "7a1969be_496e9397",
+      "range": {
+        "startLine": 82,
+        "startChar": 16,
+        "endLine": 82,
+        "endChar": 26
+      },
+      "revId": "4398a17bd8694fcb819a6e2414ad6ecfbe4a1e47",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_c909e3de",
         "filename": "midolman/src/test/scala/org/midonet/midolman/topology/PortMapperTest.scala",
         "patchSetId": 13
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_09b01bf3",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/PortMapperTest.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-04T11:19:09Z",
+      "side": 1,
+      "message": "Done and fixed test issues.",
+      "parentUuid": "7a1969be_c909e3de",
+      "range": {
+        "startLine": 87,
+        "startChar": 22,
+        "endLine": 87,
+        "endChar": 52
+      },
+      "revId": "4398a17bd8694fcb819a6e2414ad6ecfbe4a1e47",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_09149bf3",
         "filename": "midolman/src/test/scala/org/midonet/midolman/topology/VirtualTopologyTest.scala",
         "patchSetId": 13
@@ -105,6 +201,30 @@
       "writtenOn": "2015-03-04T10:41:52Z",
       "side": 1,
       "message": "Why not passing assertThread here and for all AwaitableObserver created?",
+      "range": {
+        "startLine": 118,
+        "startChar": 27,
+        "endLine": 118,
+        "endChar": 63
+      },
+      "revId": "4398a17bd8694fcb819a6e2414ad6ecfbe4a1e47",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_c9a563b6",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/VirtualTopologyTest.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-04T11:19:09Z",
+      "side": 1,
+      "message": "This code predates the introduction of the VT thread and assertThread method. I believe that we should do it, but I would address it a different patch, when the VT code base becomes more or less stable.",
+      "parentUuid": "7a1969be_09149bf3",
       "range": {
         "startLine": 118,
         "startChar": 27,
