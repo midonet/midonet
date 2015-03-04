@@ -20,7 +20,6 @@ import java.io.PrintWriter
 import java.sql.{Connection, DriverManager}
 import java.util.UUID
 import java.util.concurrent.TimeUnit
-
 import javax.sql.DataSource
 
 import scala.collection.JavaConverters._
@@ -29,8 +28,7 @@ import scala.util.{Random, Try}
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.JsonNodeFactory
-
-import org.apache.commons.configuration.HierarchicalConfiguration
+import com.typesafe.config.ConfigFactory
 import org.apache.curator.framework.{CuratorFramework, CuratorFrameworkFactory}
 import org.apache.curator.retry.ExponentialBackoffRetry
 import org.apache.curator.test.TestingServer
@@ -40,8 +38,7 @@ import org.scalatest.{BeforeAndAfter, BeforeAndAfterAll, FlatSpec, Matchers}
 import org.slf4j.LoggerFactory
 
 import org.midonet.brain.ClusterNode.Context
-import org.midonet.brain.services.c3po.{C3POConfig, C3POMinion}
-import org.midonet.cluster.config.ZookeeperConfig
+import org.midonet.brain.services.c3po.C3POMinion
 import org.midonet.cluster.data.neutron.NeutronResourceType.{AgentMembership => AgentMembershipType, Config => ConfigType, Network => NetworkType, NoData, Port => PortType, Router => RouterType, SecurityGroup => SecurityGroupType, Subnet => SubnetType}
 import org.midonet.cluster.data.neutron.TaskType._
 import org.midonet.cluster.data.neutron.{NeutronResourceType, TaskType}
@@ -56,7 +53,7 @@ import org.midonet.cluster.services.MidonetBackendService
 import org.midonet.cluster.storage.MidonetBackendConfig
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil}
-import org.midonet.config.ConfigProvider
+import org.midonet.conf.MidoTestConfigurator
 import org.midonet.packets.{IPSubnet, IPv4Subnet, UDP}
 import org.midonet.util.MidonetEventually
 import org.midonet.util.concurrent.toFutureOps
@@ -73,7 +70,7 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
     private val ZK_HOST = s"127.0.0.1:$ZK_PORT"
 
     private val DB_CONNECT_STR =
-        s"jdbc:sqlite:file:taskdb?mode=memory&cache=shared"
+        "jdbc:sqlite:file:taskdb?mode=memory&cache=shared"
 
     private val DROP_TASK_TABLE = "DROP TABLE IF EXISTS midonet_tasks"
     private val EMPTY_TASK_TABLE = "DELETE FROM midonet_tasks"
@@ -104,25 +101,21 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
         "SELECT last_processed_id FROM midonet_data_state WHERE id = 1"
     private val LAST_PROCESSED_ID_COL = 1
 
-    private val c3poCfg = new C3POConfig {
-        override def periodMs: Long = 100
+    val C3PO_CFG_OBJECT = ConfigFactory.parseString(
+        s"""
+          |neutron_importer.period : 100ms
+          |neutron_importer.delay : 0
+          |neutron_importer.enabled : true
+          |neutron_importer.with : ${classOf[C3PO].getName}
+          |neutron_importer.threads : 1
+          |neutron_importer.connection_string : "$DB_CONNECT_STR"
+          |neutron_importer.user : ""
+          |neutron_importer.password : ""
+          |zookeeper.root_key : "/test"
+          |zookeeper.use_new_stack : true
+        """.stripMargin)
 
-        override def delayMs: Long = 0
-
-        override def isEnabled: Boolean = true
-
-        override def minionClass: String = classOf[C3PO].getName
-
-        override def numThreads: Int = 1
-
-        override def connectionString: String = DB_CONNECT_STR
-
-        override def user: String = ???
-
-        override def password: String = ???
-
-        override def jdbcDriver: String = ???
-    }
+    private val c3poCfg = new C3POConfig(C3PO_CFG_OBJECT)
 
     // Data sources
     private val zk: TestingServer = new TestingServer(ZK_PORT)
@@ -240,13 +233,6 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
     // TEST SETUP
     // ---------------------
 
-    private def getConf = {
-        val conf = new HierarchicalConfiguration
-        conf.setProperty("zookeeper.midolman_root_key", "/test")
-        ConfigProvider.providerForIniConfig(conf)
-        .getConfig(classOf[ZookeeperConfig])
-    }
-
     override protected def beforeAll() {
         try {
             printf("Entered BeforeAll()")
@@ -258,14 +244,7 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
 
             zk.start()
 
-            val cfg = new MidonetBackendConfig {
-                override def zookeeperRootPath: String = "/test"
-                override def isEnabled: Boolean = true
-                // below, not even used for this test
-                override def zookeeperMaxRetries: Int = ???
-                override def zookeeperRetryMs: Int = ???
-                override def zookeeperHosts: String = ???
-            }
+            val cfg = new MidonetBackendConfig(MidoTestConfigurator.forBrains(C3PO_CFG_OBJECT))
 
             backend = new MidonetBackendService(cfg, curator)
             backend.startAsync().awaitRunning()

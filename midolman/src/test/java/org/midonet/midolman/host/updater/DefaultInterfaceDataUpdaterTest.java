@@ -23,6 +23,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigValueFactory;
 import scala.collection.JavaConversions;
 
 import akka.actor.Actor;
@@ -32,23 +34,22 @@ import akka.testkit.TestKit;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 
-import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.zookeeper.CreateMode;
 import org.hamcrest.beans.HasPropertyWithValue;
 import org.junit.Before;
 import org.junit.Test;
 
-import org.midonet.cluster.config.ZookeeperConfig;
 import org.midonet.cluster.storage.MidonetBackendTestModule;
 import org.midonet.cluster.storage.StateStorageModule;
+import org.midonet.conf.MidoTestConfigurator;
 import org.midonet.midolman.cluster.InterfaceScannerModule;
 import org.midonet.midolman.cluster.LegacyClusterModule;
 import org.midonet.midolman.cluster.ResourceProtectionModule;
-import org.midonet.midolman.cluster.config.ConfigProviderModule;
 import org.midonet.midolman.cluster.datapath.MockDatapathModule;
 import org.midonet.midolman.cluster.serialization.SerializationModule;
 import org.midonet.midolman.cluster.state.MockFlowStateStorageModule;
 import org.midonet.midolman.cluster.zookeeper.MockZookeeperConnectionModule;
+import org.midonet.midolman.guice.config.MidolmanConfigModule;
 import org.midonet.midolman.host.guice.HostModule;
 import org.midonet.midolman.host.interfaces.InterfaceDescription;
 import org.midonet.midolman.host.state.HostDirectory;
@@ -85,27 +86,23 @@ public class DefaultInterfaceDataUpdaterTest {
     @Before
     public void setUp() throws Exception {
 
+        final Config configuration = MidoTestConfigurator.forAgents().
+                withValue("zookeeper.root_key", ConfigValueFactory.fromAnyRef(""));
         final Directory cleanDirectory = new MockDirectory();
         pathManager = new ZkPathManager("");
         cleanDirectory.add("/hosts", null, CreateMode.PERSISTENT);
         cleanDirectory.add(pathManager.getWriteVersionPath(),
                 DataWriteVersion.CURRENT.getBytes(), CreateMode.PERSISTENT);
 
-        final HierarchicalConfiguration configuration =
-                new HierarchicalConfiguration();
-        configuration.addNodes(ZookeeperConfig.GROUP_NAME,
-                Arrays.asList(new HierarchicalConfiguration.Node
-                        ("midolman_root_key", "")
-        ));
 
         Injector injector = Guice.createInjector(
             new SerializationModule(),
-            new ConfigProviderModule(configuration),
+            new MidolmanConfigModule(configuration),
             new MockFlowStateStorageModule(),
             new MockDatapathModule(),
             new MockZookeeperConnectionModule(),
             new HostModule(),
-            new MidonetBackendTestModule(),
+            new MidonetBackendTestModule(configuration),
             new LegacyClusterModule(),
             new StateStorageModule(),
             new MockMidolmanModule(),

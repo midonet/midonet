@@ -49,7 +49,7 @@ dependencies {
             libraries.jersey_json, libraries.jersey_guice,
             libraries.jersey_core, libraries.jersey_bundle,
             libraries.commons_lang, libraries.commons_lang3,
-            libraries.commons_conf,
+            libraries.commons_conf, libraries.typesafeconf,
             libraries.metrics,
             libraries.curator_framework,
             libraries.curator_recipes,

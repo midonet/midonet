@@ -55,7 +55,6 @@ dependencies {
             "equinoxSDK381:org.eclipse.osgi:3.8.1.v20120830-144521",
             "org.opendaylight.ovsdb:ovsdb:0.5.0",
             libraries.metrics,
-            libraries.commons_conf,
             libraries.commons_dbcp2,
             libraries.curator_recipes,
             libraries.curator_framework,
@@ -67,6 +66,7 @@ dependencies {
             libraries.protobuf,
             libraries.rx,
             libraries.scala,
+            libraries.typesafeconf,
             libraries.zookeeper
 
     testCompile libraries.curator_test,
