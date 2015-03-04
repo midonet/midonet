@@ -22,13 +22,9 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{OneInstancePerTest, ShouldMatchers, BeforeAndAfter, FeatureSpec}
 
-import org.apache.commons.configuration.HierarchicalConfiguration
-
-import org.midonet.config.ConfigProvider
-import org.midonet.midolman.config.{DatapathConfig, MidolmanConfig}
+import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.odp.ports.{NetDevPort, VxLanTunnelPort, GreTunnelPort}
 import org.midonet.util._
-import java.util
 
 @RunWith(classOf[JUnitRunner])
 class TokenBucketPolicyTest extends FeatureSpec
@@ -39,17 +35,16 @@ class TokenBucketPolicyTest extends FeatureSpec
     val multiplier = 2
 
     before {
-        val configuration = new HierarchicalConfiguration
-        configuration.addNodes(DatapathConfig.GROUP_NAME, util.Arrays.asList(
-            new HierarchicalConfiguration.Node("global_incoming_burst_capacity", 1),
-            new HierarchicalConfiguration.Node("vm_incoming_burst_capacity", 1),
-            new HierarchicalConfiguration.Node("tunnel_incoming_burst_capacity", 8),
-            new HierarchicalConfiguration.Node("vtep_incoming_burst_capacity", 1)))
-
-        val provider = ConfigProvider.providerForIniConfig(configuration)
+        val confStr =
+            """
+              |datapath.global_incoming_burst_capacity = 1
+              |datapath.vm_incoming_burst_capacity = 1
+              |datapath.tunnel_incoming_burst_capacity = 8
+              |datapath.vtep_incoming_burst_capacity = 1
+            """.stripMargin
 
         policy = new TokenBucketPolicy(
-            provider.getConfig(classOf[MidolmanConfig]),
+            MidolmanConfig.forTests(confStr),
             new TokenBucketTestRate, multiplier,
             new Bucket(_, 1, null, 0, false))
     }
@@ -110,20 +105,19 @@ class TokenBucketPolicyTest extends FeatureSpec
 
     feature("Full system simulation") {
         scenario("Token bucket simulation") {
-            val configuration = new HierarchicalConfiguration
-            configuration.addNodes(DatapathConfig.GROUP_NAME, util.Arrays.asList(
-                new HierarchicalConfiguration.Node("global_incoming_burst_capacity", 256),
-                new HierarchicalConfiguration.Node("vm_incoming_burst_capacity", 8),
-                new HierarchicalConfiguration.Node("tunnel_incoming_burst_capacity", 16),
-                new HierarchicalConfiguration.Node("vtep_incoming_burst_capacity", 1)))
-
-            val provider = ConfigProvider.providerForIniConfig(configuration)
+            val confStr =
+                """
+                  |datapath.global_incoming_burst_capacity = 256
+                  |datapath.vm_incoming_burst_capacity = 8
+                  |datapath.tunnel_incoming_burst_capacity = 16
+                  |datapath.vtep_incoming_burst_capacity = 1
+                """.stripMargin
 
             val multiplier = 8
             val counter = new StatisticalCounter(3)
             val rate = new TokenBucketSystemRate(counter, multiplier)
             val policy = new TokenBucketPolicy(
-                provider.getConfig(classOf[MidolmanConfig]),
+                MidolmanConfig.forTests(confStr),
                 rate, multiplier, new Bucket(_, multiplier, counter, 2, false))
 
             val tb1 = policy link (new NetDevPort("vm1"), VirtualMachine)

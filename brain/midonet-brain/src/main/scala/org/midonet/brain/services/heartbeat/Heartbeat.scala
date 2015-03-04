@@ -24,15 +24,14 @@ import com.codahale.metrics.{Counter, Metric, MetricRegistry, MetricSet}
 import com.google.inject.Inject
 import org.slf4j.LoggerFactory
 
-import org.midonet.brain.{ClusterNode, ScheduledClusterMinion, ScheduledMinionConfig}
-import org.midonet.config._
+import org.midonet.brain.{BrainConfig, ClusterNode, ScheduledClusterMinion}
 import org.midonet.util.functors.makeRunnable
 
 /** A sample Minion that executes a periodic heartbeat on a period determined by
   * configuration. */
 class Heartbeat @Inject()(nodeContext: ClusterNode.Context,
-                          config: HeartbeatConfig, metrics: MetricRegistry)
-    extends ScheduledClusterMinion(nodeContext, config) {
+                          config: BrainConfig, metrics: MetricRegistry)
+    extends ScheduledClusterMinion(nodeContext, config.hearbeat) {
 
     private val log = LoggerFactory.getLogger(this.getClass)
     private val counter = new Counter()
@@ -55,22 +54,3 @@ class Heartbeat @Inject()(nodeContext: ClusterNode.Context,
     }
 }
 
-/** Configuration for the Heartbeat Minion. */
-@ConfigGroup("heartbeat")
-trait HeartbeatConfig extends ScheduledMinionConfig[Heartbeat] {
-    @ConfigBool(key = "enabled", defaultValue = false)
-    override def isEnabled: Boolean
-
-    @ConfigString(key = "with",
-                  defaultValue="org.midonet.brain.services.heartbeat.Heartbeat")
-    override def minionClass: String
-
-    @ConfigInt(key = "num_threads", defaultValue = 1)
-    override def numThreads: Int
-
-    @ConfigLong(key = "delay_ms", defaultValue = 0)
-    override def delayMs: Long
-
-    @ConfigLong(key = "period_ms", defaultValue = 1000)
-    override def periodMs: Long
-}

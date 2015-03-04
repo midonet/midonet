@@ -20,7 +20,6 @@ import java.util.concurrent.TimeUnit.SECONDS
 import java.util.{Random, UUID}
 
 import com.google.inject.{Guice, Injector}
-import org.apache.commons.configuration.HierarchicalConfiguration
 import org.junit.Assert.assertNotNull
 import org.junit.runner.RunWith
 import org.scalatest.concurrent.Eventually._
@@ -67,9 +66,7 @@ class VtepControllerTest extends FlatSpec with Matchers
         MacLocation(VtepMAC.fromMac(MAC.random()), randomIp, lsName, tunIp)
 
     before {
-        val config = new HierarchicalConfiguration()
-        fillTestConfig(new HierarchicalConfiguration)
-        injector = Guice.createInjector(modules(config))
+        injector = Guice.createInjector(modules())
         val directory = injector.getInstance(classOf[Directory])
         setupZkTestDirectory(directory)
 
