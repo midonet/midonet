@@ -1,0 +1,90 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_e905bf7a",
+        "filename": "cluster/src/test/java/org/midonet/cluster/data/ZoomObjectTest.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-04T11:52:59Z",
+      "side": 1,
+      "message": "i.e. assertEquals?",
+      "range": {
+        "startLine": 71,
+        "startChar": 8,
+        "endLine": 71,
+        "endChar": 18
+      },
+      "revId": "1f55e0dc723e1dd0ad65a12ec63867b2bec9929c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_e92c9f04",
+        "filename": "cluster/src/test/java/org/midonet/cluster/data/ZoomObjectTest.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 184,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-04T11:52:59Z",
+      "side": 1,
+      "message": "Extra line",
+      "revId": "1f55e0dc723e1dd0ad65a12ec63867b2bec9929c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_2937d74f",
+        "filename": "cluster/src/test/java/org/midonet/cluster/data/ZoomObjectTest.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 201,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-04T11:52:59Z",
+      "side": 1,
+      "message": "Needed?",
+      "range": {
+        "startLine": 196,
+        "startChar": 4,
+        "endLine": 201,
+        "endChar": 5
+      },
+      "revId": "1f55e0dc723e1dd0ad65a12ec63867b2bec9929c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_0903fb73",
+        "filename": "cluster/src/test/java/org/midonet/cluster/data/ZoomObjectTest.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 347,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-04T11:52:59Z",
+      "side": 1,
+      "message": "Maybe:\n\n  byteSet.equals(new HashSet(message.getIn32ListList()))",
+      "range": {
+        "startLine": 345,
+        "startChar": 12,
+        "endLine": 347,
+        "endChar": 62
+      },
+      "revId": "1f55e0dc723e1dd0ad65a12ec63867b2bec9929c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
