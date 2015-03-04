@@ -81,8 +81,7 @@ object ClusterNode extends App {
     private val cfgProvider = ConfigProvider.providerForIniConfig(cfg)
 
     // Load cluster node configuration
-    private val nodeCfg = cfgProvider.getConfig(classOf[ClusterNodeConfig])
-    private val nodeId = HostIdGenerator.getHostId(nodeCfg)
+    private val nodeId = HostIdGenerator.getHostId()
 
     // Load configurations for Cluster Node supported Minions
     private val heartbeatCfg = cfgProvider.getConfig(classOf[HeartbeatConfig])
@@ -92,7 +91,7 @@ object ClusterNode extends App {
         cfgProvider.getConfig(classOf[TopologyApiServiceConfig])
 
     // Prepare the Cluster node context for injection
-    private val nodeContext = new Context(HostIdGenerator.getHostId(nodeCfg))
+    private val nodeContext = new Context(HostIdGenerator.getHostId())
 
     private val minionDefs: List[MinionDef[ClusterMinion]] =
         List (new MinionDef("heartbeat", heartbeatCfg),
@@ -202,15 +201,5 @@ object ClusterNode extends App {
             }
     }
 
-}
-
-@ConfigGroup("cluster-node")
-trait ClusterNodeConfig extends HostIdConfig {
-    @ConfigString(key = "node_uuid", defaultValue = "")
-    override def getHostId: String
-
-    @ConfigString(key = "properties_file",
-                  defaultValue = "/tmp/midonet_cluster_node.properties")
-    override def getHostPropertiesFilePath: String
 }
 

@@ -57,7 +57,7 @@ public class MidoBrainModule extends PrivateModule {
                     EmbeddedClusterNodeConfig cfg = configProvider.getConfig(
                         EmbeddedClusterNodeConfig.class);
                     try {
-                        UUID clusterNodeId = HostIdGenerator.getHostId(cfg);
+                        UUID clusterNodeId = HostIdGenerator.getHostId();
                         boolean embeddingEnabled = cfg.isEmbeddingEnabled();
                         return new ClusterNode.Context(
                             clusterNodeId,

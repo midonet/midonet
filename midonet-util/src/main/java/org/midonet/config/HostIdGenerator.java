@@ -40,6 +40,9 @@ public final class HostIdGenerator {
         LoggerFactory.getLogger(HostIdGenerator.class);
     static private String uuidPropertyName = "host_uuid";
 
+    static private String DEPRECATED_HOST_ID_FILE = "/etc/midolman/host_uuid.properties";
+    static public String HOST_ID_FILE = "/etc/midonet_host_id.properties";
+
     /**
      * Custom exception PropertiesFileNotWritableException
      */
@@ -55,7 +58,6 @@ public final class HostIdGenerator {
     /**
      * Assumptions:
      * <ul>
-     * <li>Id in the config file takes priority over an id in the properties file.</li>
      * <li>Id is only generated if there isn't one in either file.</li>
      * <li>The Id can only be used if the properties file is writable.
      * <li>Under most normal circumstances, two nodes will not have the same Id
@@ -66,108 +68,57 @@ public final class HostIdGenerator {
      * to reclaim its Id until the old ZK connection times out.</li>
      * </ul>
      *
-     * @param config the host agent config instance to use for parameters
-     *
      * @return ID generated or read
      *
      * @throws PropertiesFileNotWritableException
      *                                     If the properties file cannot
      *                                     be written
      */
-    public static UUID getHostId(HostIdConfig config)
-        throws PropertiesFileNotWritableException {
+    public static UUID getHostId() throws PropertiesFileNotWritableException {
+        return getHostId(HOST_ID_FILE);
+    }
 
-        UUID id = getIdFromConfigFile(config);
+    /**
+     * For testing purposes, package accessible.
+     */
+    static UUID getHostId(String path)
+            throws PropertiesFileNotWritableException {
+
+        UUID id = getIdFromPropertiesFile(path);
+        if (id == null)
+            id = getIdFromPropertiesFile(DEPRECATED_HOST_ID_FILE);
+
         if (null != id) {
-            log.info("Found ID in the configuration file: {}", id);
-            return id;
-        }
-
-        log.debug("No previous ID found in the local config");
-
-        id = getIdFromPropertiesFile(config.getHostPropertiesFilePath());
-        if (null != id) {
-            log.debug("Found ID in the local properties file: {}", id);
+            log.debug("Found host id in the local properties file: {}", id);
             return id;
         }
 
         id = UUID.randomUUID();
-        log.debug("Generated new id {}", id);
-        writeId(id, config.getHostPropertiesFilePath());
+        log.debug("Generated new Host id {}", id);
+        writeId(id, path);
 
         return id;
     }
 
-    /**
-     * Reads a host identifier from the configuration file, the properties file.
-     * If no identifier is found, the method generates a new identifier.
-     *
-     * The configuration file takes precedence over the properties file.
-     *
-     * @param config The host agent configuration instance to use for
-     *               parameters.
-     *
-     * @return The read or generated identifier.
-     */
-    public static UUID readHostId(HostIdConfig config) {
-        UUID id = getIdFromConfigFile(config);
-        if (null != id) {
-            log.info("Found ID in the configuration file: {}", id);
-            return id;
+    private static UUID getIdFromPropertiesFile(String path) {
+        Properties properties = new Properties();
+        try {
+            properties.load(new FileInputStream(path));
+            return tryParse(properties.getProperty(uuidPropertyName));
+        } catch (IOException e) {
+            return null;
         }
-
-        log.debug("No previous ID found in the local config");
-
-        id = getIdFromPropertiesFile(config.getHostPropertiesFilePath());
-        if (null != id) {
-            log.debug("Found ID in the local properties file: {}", id);
-            return id;
-        }
-
-        id = UUID.randomUUID();
-        log.debug("Generated new id {}", id);
-
-        return id;
-    }
-
-    /**
-     * Writes a host identifier to the properties file.
-     * @param id The host identifier.
-     * @param config The host agent configuration instance to use for
-     *               parameters.
-     */
-    public static void writeHostId(UUID id, HostIdConfig config)
-        throws PropertiesFileNotWritableException {
-        writeId(id, config.getHostPropertiesFilePath());
-    }
-
-    /**
-     * Get the ID from the config file
-     *
-     * @param config
-     * @return
-     */
-    private static UUID getIdFromConfigFile(HostIdConfig config) {
-        return tryParse(config.getHostId());
     }
 
     /**
      * Get the ID from the local properties file.  It throws an IOException
      * if the ID is not found in the file
-     *
-     * @param localPropertiesFilePath
-     * @return
      */
-    public static UUID getIdFromPropertiesFile(String localPropertiesFilePath) {
-        if (null == localPropertiesFilePath)
-            return null;
-        Properties properties = new Properties();
-        try {
-            properties.load(new FileInputStream(localPropertiesFilePath));
-            return tryParse(properties.getProperty(uuidPropertyName));
-        } catch (IOException e) {
-            return null;
-        }
+    public static UUID getIdFromPropertiesFile() {
+        UUID id = getIdFromPropertiesFile(HOST_ID_FILE);
+        if (id == null)
+            id = getIdFromPropertiesFile(DEPRECATED_HOST_ID_FILE);
+        return id;
     }
 
     /**
@@ -176,20 +127,17 @@ public final class HostIdGenerator {
      * @throws PropertiesFileNotWritableException
      *          If the properties file cannot be written
      */
-    private static void writeId(UUID id, String localPropertiesFilePath)
+    private static void writeId(UUID id, String path)
         throws PropertiesFileNotWritableException {
-        if (null == localPropertiesFilePath)
-            return;
         Properties properties = new Properties();
         properties.setProperty(uuidPropertyName, id.toString());
-        File localPropertiesFile = new File(localPropertiesFilePath);
+        File localPropertiesFile = new File(path);
         try {
             if (!localPropertiesFile.exists())
                 localPropertiesFile.createNewFile();
             // If the file exists we assume that no id has been written since
             // we checked before
-            properties.store(new FileOutputStream(localPropertiesFilePath),
-                             null);
+            properties.store(new FileOutputStream(path), null);
         } catch (IOException e) {
             throw new PropertiesFileNotWritableException(
                 "Properties file: " + localPropertiesFile.getAbsolutePath());

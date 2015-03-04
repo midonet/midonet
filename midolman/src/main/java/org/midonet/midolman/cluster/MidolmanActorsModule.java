@@ -76,8 +76,6 @@ public class MidolmanActorsModule extends PrivateModule {
     public static final String RESUME_STRATEGY_NAME = "resume";
 
     @BindingAnnotation @Target({FIELD, METHOD}) @Retention(RUNTIME)
-    public @interface RESUME_STRATEGY {}
-    @BindingAnnotation @Target({FIELD, METHOD}) @Retention(RUNTIME)
     public @interface CRASH_STRATEGY {}
 
     @BindingAnnotation @Target({FIELD, METHOD}) @Retention(RUNTIME)
@@ -130,18 +128,8 @@ public class MidolmanActorsModule extends PrivateModule {
     }
 
     @Provides @Exposed
-    public SupervisorStrategy getSupervisorActorStrategy(MidolmanConfig config) {
-        String strategy = config.getMidolmanTopLevelActorSupervisor();
-        switch (strategy) {
-            case CRASH_STRATEGY_NAME:
-                return getCrashStrategy();
-            case RESUME_STRATEGY_NAME:
-                return getResumeStrategy();
-            default:
-                log.warn("Unknown supervisor strategy [{}], " +
-                         "falling back to resume strategy", strategy);
-                return getResumeStrategy();
-        }
+    public SupervisorStrategy getSupervisorActorStrategy() {
+        return getCrashStrategy();
     }
 
     @Provides @Exposed @Singleton @ZEBRA_SERVER_LOOP
@@ -151,25 +139,6 @@ public class MidolmanActorsModule extends PrivateModule {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-    }
-
-    @Provides @Exposed @RESUME_STRATEGY
-    public SupervisorStrategy getResumeStrategy() {
-        return new OneForOneStrategy(-1, Duration.Inf(),
-                new Function<Throwable, Directive>() {
-                    @Override
-                    public Directive apply(Throwable t) {
-                        if (t instanceof ActorKilledException) {
-                            log.warn("Actor crashed, escalating", t);
-                            return escalate();
-                        } else if (t instanceof ActorInitializationException) {
-                            log.warn("Actor crashed, stopping", t);
-                            return stop();
-                        } else
-                            log.warn("Actor crashed, resuming", t);
-                            return resume();
-                    }
-                });
     }
 
     @Provides @Exposed @CRASH_STRATEGY

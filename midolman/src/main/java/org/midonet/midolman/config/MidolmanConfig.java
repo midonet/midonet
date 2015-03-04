@@ -36,9 +36,6 @@ public interface MidolmanConfig
     public final static String GROUP_NAME = "midolman";
     public final static short DEFAULT_MTU = 1500;
 
-    @ConfigInt(key = "disconnected_ttl_seconds", defaultValue = 30)
-    int getMidolmanDisconnectedTtlSeconds();
-
     @ConfigBool(key = "enable_bgp", defaultValue = true)
     public boolean getMidolmanBGPEnabled();
 
@@ -57,20 +54,11 @@ public interface MidolmanConfig
     @ConfigInt(key = "bgp_connect_retry", defaultValue = 120)
     public int getMidolmanBGPConnectRetry();
 
-    @ConfigString(key = "bgpd_binary", defaultValue = "/usr/sbin")
-    public String pathToBGPD();
-
     @ConfigString(key = "bgpd_config", defaultValue = "/etc/quagga")
     public String pathToBGPDConfig();
 
     @ConfigInt(key = "dhcp_mtu", defaultValue = DEFAULT_MTU)
     public int getDhcpMtu();
-
-    @ConfigString(key = "cache_type", defaultValue = "cassandra")
-    public String getMidolmanCacheType();
-
-    @ConfigString(key = "top_level_actor_supervisor", defaultValue = "resume")
-    public String getMidolmanTopLevelActorSupervisor();
 
     @ConfigInt(key = "check_flow_expiration_interval", defaultValue = 10000)
     public int getFlowExpirationInterval();
