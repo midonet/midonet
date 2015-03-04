@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_14595236",
+        "filename": "midolman/src/main/scala/org/midonet/cluster/services/StorageService.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-04T14:39:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_29119705",
+      "range": {
+        "startLine": 25,
+        "startChar": 41,
+        "endLine": 25,
+        "endChar": 54
+      },
+      "revId": "b6c567bca44ec651b18ddd318ca6936dbe8b0dc4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_a90467c0",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
         "patchSetId": 2
@@ -36,6 +60,30 @@
       "writtenOn": "2015-03-04T11:26:41Z",
       "side": 1,
       "message": "Unrelated to this patch: should we rename this to bridgeDeleted?\n\nI received the same comment on one of my patches, such the name better indicates the cause of calling this method.",
+      "range": {
+        "startLine": 181,
+        "startChar": 16,
+        "endLine": 181,
+        "endChar": 28
+      },
+      "revId": "b6c567bca44ec651b18ddd318ca6936dbe8b0dc4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_343d6ebc",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 181,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-04T14:39:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_a90467c0",
       "range": {
         "startLine": 181,
         "startChar": 16,
@@ -65,6 +113,24 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_b4783e90",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 190,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-04T14:39:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_092bfb30",
+      "revId": "b6c567bca44ec651b18ddd318ca6936dbe8b0dc4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_e9d49f21",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
         "patchSetId": 2
@@ -76,6 +142,30 @@
       "writtenOn": "2015-03-04T11:26:41Z",
       "side": 1,
       "message": "Should\u0027t make this a lazy val? In this way, we only create one observable instance per mapper, rather than a new instance every time we call def observable.",
+      "range": {
+        "startLine": 211,
+        "startChar": 4,
+        "endLine": 211,
+        "endChar": 26
+      },
+      "revId": "b6c567bca44ec651b18ddd318ca6936dbe8b0dc4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_946382db",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 211,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-04T14:39:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_e9d49f21",
       "range": {
         "startLine": 211,
         "startChar": 4,
@@ -111,6 +201,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_34928e9f",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/HostMapperTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-04T14:39:42Z",
+      "side": 1,
+      "message": "removed",
+      "parentUuid": "7a1969be_099e5b56",
+      "range": {
+        "startLine": 45,
+        "startChar": 12,
+        "endLine": 45,
+        "endChar": 20
+      },
+      "revId": "b6c567bca44ec651b18ddd318ca6936dbe8b0dc4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_69d26f01",
         "filename": "midolman/src/test/scala/org/midonet/midolman/topology/HostMapperTest.scala",
         "patchSetId": 2
@@ -122,6 +236,30 @@
       "writtenOn": "2015-03-04T11:40:26Z",
       "side": 1,
       "message": "Minor comment: This check and the ones below actually test the storage stores the owners. These being a test for storage rather than the mapper, is it necessary here?",
+      "range": {
+        "startLine": 186,
+        "startChar": 0,
+        "endLine": 189,
+        "endChar": 0
+      },
+      "revId": "b6c567bca44ec651b18ddd318ca6936dbe8b0dc4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_94e8a211",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/HostMapperTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 189,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-04T14:39:42Z",
+      "side": 1,
+      "message": "They\u0027re not absolutely necessary that\u0027s true. I thought this would check that the host\u0027s liveness is linked to the the number of owners.\n\nI removed these tests for now.",
+      "parentUuid": "7a1969be_69d26f01",
       "range": {
         "startLine": 186,
         "startChar": 0,
@@ -157,6 +295,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_14ccb2bb",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/HostMapperTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 250,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-04T14:39:42Z",
+      "side": 1,
+      "message": "For the moment, host objects have shared ownership as StorageService does not specify an ownership type when registering the host class. Also I thought it would be safer to code this method like that if we ever add tests to this class. I\u0027ll change this because I\u0027ll make host ownership exclusive (see comment below).",
+      "parentUuid": "7a1969be_499fb350",
+      "range": {
+        "startLine": 245,
+        "startChar": 12,
+        "endLine": 250,
+        "endChar": 55
+      },
+      "revId": "b6c567bca44ec651b18ddd318ca6936dbe8b0dc4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_a9ae2783",
         "filename": "midolman/src/test/scala/org/midonet/midolman/topology/HostMapperTest.scala",
         "patchSetId": 2
@@ -180,6 +342,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_f4ce36b3",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/HostMapperTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 257,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-04T14:39:42Z",
+      "side": 1,
+      "message": "I thought of doing this and this is actually related to the comments above. OK I\u0027ll do that then and make this method simpler.",
+      "parentUuid": "7a1969be_a9ae2783",
+      "range": {
+        "startLine": 252,
+        "startChar": 12,
+        "endLine": 257,
+        "endChar": 13
+      },
+      "revId": "b6c567bca44ec651b18ddd318ca6936dbe8b0dc4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_89c08b2b",
         "filename": "midolman/src/test/scala/org/midonet/midolman/topology/HostMapperTest.scala",
         "patchSetId": 2
@@ -191,6 +377,30 @@
       "writtenOn": "2015-03-04T11:40:26Z",
       "side": 1,
       "message": "Btw, I just realized when rewriting some of my tests that all this awaits are redundant, since the storage create/delete/update methods are all synchronous. The changes are guaranteed to be committed when the method returns, isn\u0027t it?",
+      "range": {
+        "startLine": 265,
+        "startChar": 8,
+        "endLine": 265,
+        "endChar": 71
+      },
+      "revId": "b6c567bca44ec651b18ddd318ca6936dbe8b0dc4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_f4b8f6e6",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/HostMapperTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 265,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-04T14:39:42Z",
+      "side": 1,
+      "message": "right, I\u0027ll remove the ready calls.",
+      "parentUuid": "7a1969be_89c08b2b",
       "range": {
         "startLine": 265,
         "startChar": 8,
