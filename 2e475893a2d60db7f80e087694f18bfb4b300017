@@ -1,0 +1,211 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_540d8a3d",
+        "filename": "midolman/src/main/scala/org/midonet/cluster/state/ZookeeperStateStorage.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 133,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-04T17:30:51Z",
+      "side": 1,
+      "message": "Shouldn\u0027t this be more serious than warn? I\u0027m guessing that when we try to obtain the bridge it should exist.",
+      "range": {
+        "startLine": 133,
+        "startChar": 16,
+        "endLine": 133,
+        "endChar": 20
+      },
+      "revId": "2e475893a2d60db7f80e087694f18bfb4b300017",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_9430a202",
+        "filename": "midolman/src/main/scala/org/midonet/cluster/state/ZookeeperStateStorage.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 133,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-04T17:30:51Z",
+      "side": 1,
+      "message": "creating path for bridge?",
+      "range": {
+        "startLine": 133,
+        "startChar": 65,
+        "endLine": 133,
+        "endChar": 73
+      },
+      "revId": "2e475893a2d60db7f80e087694f18bfb4b300017",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_7402460c",
+        "filename": "midolman/src/main/scala/org/midonet/cluster/state/ZookeeperStateStorage.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 145,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-04T17:30:51Z",
+      "side": 1,
+      "message": "same comment as above.",
+      "range": {
+        "startLine": 145,
+        "startChar": 16,
+        "endLine": 145,
+        "endChar": 20
+      },
+      "revId": "2e475893a2d60db7f80e087694f18bfb4b300017",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_9407021c",
+        "filename": "midolman/src/main/scala/org/midonet/cluster/state/ZookeeperStateStorage.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 145,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-04T17:30:51Z",
+      "side": 1,
+      "message": "creating the path for the Bridge VLAN?",
+      "range": {
+        "startLine": 145,
+        "startChar": 65,
+        "endLine": 145,
+        "endChar": 73
+      },
+      "revId": "2e475893a2d60db7f80e087694f18bfb4b300017",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_0f593b36",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BridgeMapper.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 176,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-04T17:30:51Z",
+      "side": 1,
+      "message": "Do you mean that callbacks will be executed in the same order as the additions/removals on the map?",
+      "range": {
+        "startLine": 175,
+        "startChar": 65,
+        "endLine": 176,
+        "endChar": 57
+      },
+      "revId": "2e475893a2d60db7f80e087694f18bfb4b300017",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_4f42133f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BridgeMapper.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 296,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-04T17:30:51Z",
+      "side": 1,
+      "message": "every",
+      "range": {
+        "startLine": 296,
+        "startChar": 57,
+        "endLine": 296,
+        "endChar": 62
+      },
+      "revId": "2e475893a2d60db7f80e087694f18bfb4b300017",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_6f470f4c",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BridgeMapper.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 303,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-04T17:30:51Z",
+      "side": 1,
+      "message": "Subscribing to mac updates for bridge {}, bridgeId...? (I know that the bridgeId is redundant but it may make the log more readable).",
+      "range": {
+        "startLine": 303,
+        "startChar": 48,
+        "endLine": 303,
+        "endChar": 59
+      },
+      "revId": "2e475893a2d60db7f80e087694f18bfb4b300017",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_af78e78f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BridgeMapper.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 313,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-04T17:30:51Z",
+      "side": 1,
+      "message": "Shouldn\u0027t this also be vt.config.getMacPortMappingExpireMillis?",
+      "range": {
+        "startLine": 313,
+        "startChar": 12,
+        "endLine": 313,
+        "endChar": 17
+      },
+      "revId": "2e475893a2d60db7f80e087694f18bfb4b300017",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_cf38c3a2",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/Port.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-04T17:30:51Z",
+      "side": 1,
+      "message": "why not setting this to _txTag and _rxTag respectively?",
+      "range": {
+        "startLine": 84,
+        "startChar": 4,
+        "endLine": 85,
+        "endChar": 26
+      },
+      "revId": "2e475893a2d60db7f80e087694f18bfb4b300017",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
