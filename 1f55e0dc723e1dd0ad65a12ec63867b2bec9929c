@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_89a6cb51",
+        "filename": "cluster/src/test/java/org/midonet/cluster/data/ZoomObjectTest.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-04T13:07:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_e905bf7a",
+      "range": {
+        "startLine": 71,
+        "startChar": 8,
+        "endLine": 71,
+        "endChar": 18
+      },
+      "revId": "1f55e0dc723e1dd0ad65a12ec63867b2bec9929c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_e92c9f04",
         "filename": "cluster/src/test/java/org/midonet/cluster/data/ZoomObjectTest.java",
         "patchSetId": 3
@@ -36,6 +60,24 @@
       "writtenOn": "2015-03-04T11:52:59Z",
       "side": 1,
       "message": "Extra line",
+      "revId": "1f55e0dc723e1dd0ad65a12ec63867b2bec9929c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_e9649f23",
+        "filename": "cluster/src/test/java/org/midonet/cluster/data/ZoomObjectTest.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 184,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-04T13:07:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_e92c9f04",
       "revId": "1f55e0dc723e1dd0ad65a12ec63867b2bec9929c",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -65,6 +107,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_c9672324",
+        "filename": "cluster/src/test/java/org/midonet/cluster/data/ZoomObjectTest.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 201,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-04T13:07:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_2937d74f",
+      "range": {
+        "startLine": 196,
+        "startChar": 4,
+        "endLine": 201,
+        "endChar": 5
+      },
+      "revId": "1f55e0dc723e1dd0ad65a12ec63867b2bec9929c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_0903fb73",
         "filename": "cluster/src/test/java/org/midonet/cluster/data/ZoomObjectTest.java",
         "patchSetId": 3
@@ -76,6 +142,30 @@
       "writtenOn": "2015-03-04T11:52:59Z",
       "side": 1,
       "message": "Maybe:\n\n  byteSet.equals(new HashSet(message.getIn32ListList()))",
+      "range": {
+        "startLine": 345,
+        "startChar": 12,
+        "endLine": 347,
+        "endChar": 62
+      },
+      "revId": "1f55e0dc723e1dd0ad65a12ec63867b2bec9929c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_492173b3",
+        "filename": "cluster/src/test/java/org/midonet/cluster/data/ZoomObjectTest.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 347,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-04T13:07:31Z",
+      "side": 1,
+      "message": "That does not work because the list is a list of Integers and we need a set of bytes. I could use other libraries but the code ends up being longer so I decided to leave this as is.",
+      "parentUuid": "7a1969be_0903fb73",
       "range": {
         "startLine": 345,
         "startChar": 12,
