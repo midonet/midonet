@@ -22,6 +22,30 @@
       "revId": "64b1152fb9fac265b9e8057cabc7f002101aa896",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_266f04ff",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-04T08:35:50Z",
+      "side": 1,
+      "message": "removed.",
+      "parentUuid": "7a1969be_2037ec4f",
+      "range": {
+        "startLine": 88,
+        "startChar": 4,
+        "endLine": 88,
+        "endChar": 47
+      },
+      "revId": "64b1152fb9fac265b9e8057cabc7f002101aa896",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
