@@ -27,9 +27,7 @@ import scala.concurrent.duration._
 import scala.util.control.NonFatal
 
 import akka.actor.ActorSystem
-
 import com.typesafe.scalalogging.Logger
-
 import rx.Observable
 import rx.subjects.PublishSubject
 
@@ -281,7 +279,7 @@ final class BridgeMapper(bridgeId: UUID, implicit val vt: VirtualTopology)
     private val macLearningTables = new TrieMap[Short, BridgeMacLearningTable]
     private val macLearning =
         new MacLearning(macLearningTables, log,
-                        vt.config.getMacPortMappingExpireMillis millis)
+                        vt.config.bridge.macPortMappingExpiry millis)
     private val flowCount = new BridgeMacFlowCount(macLearning)
     private val flowCallbackGenerator =
         new BridgeRemoveFlowCallbackGenerator(macLearning)
@@ -306,7 +304,7 @@ final class BridgeMapper(bridgeId: UUID, implicit val vt: VirtualTopology)
     // Obs.timer->| subscribe(onMacExpirationTimer) |
     //            +---------------------------------+
     private val timerSubscription = Observable.timer(
-            vt.config.getMacPortMappingExpireMillis, // Initial delay
+            vt.config.bridge.macPortMappingExpiry, // Initial delay
             2000L, // Update interval
             MILLISECONDS, // Time unit
             vt.scheduler)
@@ -672,7 +670,7 @@ final class BridgeMapper(bridgeId: UUID, implicit val vt: VirtualTopology)
         }
 
         // If the bridge is ARP-enabled initialize the IPv4-MAC map.
-        if (vt.config.getMidolmanBridgeArpEnabled && (ipv4MacMap eq null)) {
+        if (vt.config.bridgeArpEnabled && (ipv4MacMap eq null)) {
             try {
                 ipv4MacMap = new BridgeIpv4MacMap(vt, bridgeId)
             } catch {
