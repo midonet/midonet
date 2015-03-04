@@ -111,6 +111,29 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_69d26f01",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/HostMapperTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 189,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-04T11:40:26Z",
+      "side": 1,
+      "message": "Minor comment: This check and the ones below actually test the storage stores the owners. These being a test for storage rather than the mapper, is it necessary here?",
+      "range": {
+        "startLine": 186,
+        "startChar": 0,
+        "endLine": 189,
+        "endChar": 0
+      },
+      "revId": "b6c567bca44ec651b18ddd318ca6936dbe8b0dc4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_499fb350",
         "filename": "midolman/src/test/scala/org/midonet/midolman/topology/HostMapperTest.scala",
         "patchSetId": 2
@@ -150,6 +173,29 @@
         "startChar": 12,
         "endLine": 257,
         "endChar": 13
+      },
+      "revId": "b6c567bca44ec651b18ddd318ca6936dbe8b0dc4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_89c08b2b",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/HostMapperTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 265,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-04T11:40:26Z",
+      "side": 1,
+      "message": "Btw, I just realized when rewriting some of my tests that all this awaits are redundant, since the storage create/delete/update methods are all synchronous. The changes are guaranteed to be committed when the method returns, isn\u0027t it?",
+      "range": {
+        "startLine": 265,
+        "startChar": 8,
+        "endLine": 265,
+        "endChar": 71
       },
       "revId": "b6c567bca44ec651b18ddd318ca6936dbe8b0dc4",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
