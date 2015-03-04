@@ -18,23 +18,24 @@ package org.midonet.midolman
 
 import java.util.UUID
 
+import com.typesafe.config.{ConfigFactory, Config}
+
 import scala.collection.JavaConversions._
 
 import com.codahale.metrics.MetricRegistry
 import com.google.inject.{AbstractModule, Guice, Injector, PrivateModule, Scopes}
-import org.apache.commons.configuration.HierarchicalConfiguration
-import org.openjdk.jmh.annotations.{Setup => JmhSetup, TearDown}
+import org.openjdk.jmh.annotations.{TearDown, Setup => JmhSetup}
 
 import org.midonet.cluster.Client
 import org.midonet.cluster.services.{LegacyStorageService, MidonetBackend}
-import org.midonet.config.ConfigProvider
-import org.midonet.midolman.cluster.config.ConfigProviderModule
+import org.midonet.conf.MidoTestConfigurator
 import org.midonet.midolman.cluster.datapath.MockDatapathModule
 import org.midonet.midolman.cluster.serialization.SerializationModule
 import org.midonet.midolman.cluster.state.MockFlowStateStorageModule
 import org.midonet.midolman.cluster.zookeeper.MockZookeeperConnectionModule
-import org.midonet.midolman.cluster.{LegacyClusterModule, MidolmanActorsModule, MidolmanModule, ResourceProtectionModule}
+import org.midonet.midolman.cluster.{LegacyClusterModule, MidolmanActorsModule, ResourceProtectionModule}
 import org.midonet.midolman.config.MidolmanConfig
+import org.midonet.midolman.guice.config.MidolmanConfigModule
 import org.midonet.midolman.host.scanner.InterfaceScanner
 import org.midonet.midolman.services.{DashboardService, DatapathConnectionService, HostIdProviderService, MidolmanActorsService, MidolmanService, SelectLoopService}
 import org.midonet.midolman.simulation.Chain
@@ -51,7 +52,7 @@ trait MidolmanBenchmark extends MockMidolmanActors
 
     @JmhSetup
     def midolmanBenchmarkSetup(): Unit = {
-        val config = fillConfig(new HierarchicalConfiguration)
+        val config = fillConfig()
         injector = Guice.createInjector(getModules(config))
         injector.getInstance(classOf[LegacyStorageService])
                 .startAsync().awaitRunning()
@@ -71,17 +72,19 @@ trait MidolmanBenchmark extends MockMidolmanActors
             .stopAsync().awaitTerminated()
     }
 
-    protected def fillConfig(config: HierarchicalConfiguration)
-    : HierarchicalConfiguration = {
-        config.setProperty("midolman.midolman_root_key", "/test/v3/midolman")
-        config.setProperty("cassandra.servers", "localhost:9171")
-        config
+    protected def fillConfig(config: Config = ConfigFactory.empty) : Config = {
+        val defaults =
+            """
+              |midolman.root_key = "/test/v3/midolman"
+              |cassandra.servers = "localhost:9171"
+            """.stripMargin
+        ConfigFactory.parseString(defaults).withFallback(config)
     }
 
-    protected def getModules(config: HierarchicalConfiguration) = {
+    protected def getModules(config: Config) = {
         List(
             new SerializationModule(),
-            new ConfigProviderModule(config),
+            new MidolmanConfigModule(config),
             new MockDatapathModule(),
             new MockFlowStateStorageModule(),
             new MockZookeeperConnectionModule(),
@@ -116,7 +119,6 @@ trait MidolmanBenchmark extends MockMidolmanActors
             new PrivateModule {
                 override def configure() {
                     binder.requireExplicitBindings()
-                    requireBinding(classOf[ConfigProvider])
                     requireBinding(classOf[Client])
                     requireBinding(classOf[DatapathConnectionService])
                     requireBinding(classOf[MidolmanActorsService])
@@ -125,8 +127,7 @@ trait MidolmanBenchmark extends MockMidolmanActors
                     expose(classOf[MidolmanService])
 
                     bind(classOf[MidolmanConfig])
-                            .toProvider(classOf[MidolmanModule.MidolmanConfigProvider])
-                            .in(Scopes.SINGLETON)
+                            .toInstance(new MidolmanConfig(MidoTestConfigurator.forAgents))
                     expose(classOf[MidolmanConfig])
 
                     bind(classOf[SelectLoopService])

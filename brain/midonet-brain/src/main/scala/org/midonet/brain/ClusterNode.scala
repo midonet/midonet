@@ -26,14 +26,9 @@ import com.google.inject.{AbstractModule, Guice}
 import org.apache.commons.dbcp2.BasicDataSource
 import org.slf4j.LoggerFactory
 
-import org.midonet.brain.services.c3po.C3POConfig
-import org.midonet.brain.services.heartbeat.HeartbeatConfig
-import org.midonet.brain.services.topology.TopologyApiServiceConfig
-import org.midonet.brain.services.vxgw.VxGWServiceConfig
-import org.midonet.cluster.config.ZookeeperConfig
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.storage._
-import org.midonet.config._
+import org.midonet.conf.{HostIdGenerator, MidoNodeConfigurator}
 import org.midonet.midolman.cluster.LegacyClusterModule
 import org.midonet.midolman.cluster.serialization.SerializationModule
 import org.midonet.midolman.cluster.zookeeper.ZookeeperConnectionModule.ZookeeperReactorProvider
@@ -76,37 +71,28 @@ object ClusterNode extends App {
         System.err.println("OH NO! configuration file is not readable")
         System.exit(1)
     }
-    // Load configurations for all supported Minions
-    private val cfg = ConfigProvider fromConfigFile configFile
-    private val cfgProvider = ConfigProvider.providerForIniConfig(cfg)
+
+    val conf = BrainConfig(configFile)
 
     // Load cluster node configuration
-    private val nodeCfg = cfgProvider.getConfig(classOf[ClusterNodeConfig])
-    private val nodeId = HostIdGenerator.getHostId(nodeCfg)
-
-    // Load configurations for Cluster Node supported Minions
-    private val heartbeatCfg = cfgProvider.getConfig(classOf[HeartbeatConfig])
-    private val c3poConfig= cfgProvider.getConfig(classOf[C3POConfig])
-    private val vxgwCfg = cfgProvider.getConfig(classOf[VxGWServiceConfig])
-    private val topologyCfg =
-        cfgProvider.getConfig(classOf[TopologyApiServiceConfig])
+    private val nodeId = HostIdGenerator.getHostId
 
     // Prepare the Cluster node context for injection
-    private val nodeContext = new Context(HostIdGenerator.getHostId(nodeCfg))
+    private val nodeContext = new Context(nodeId)
 
     private val minionDefs: List[MinionDef[ClusterMinion]] =
-        List (new MinionDef("heartbeat", heartbeatCfg),
-              new MinionDef("vxgw", vxgwCfg),
-              new MinionDef("neutron-importer", c3poConfig),
-              new MinionDef("topology", topologyCfg))
+        List (new MinionDef("heartbeat", conf.hearbeat),
+              new MinionDef("vxgw", conf.vxgw),
+              new MinionDef("neutron-importer", conf.c3po),
+              new MinionDef("topology", conf.topologyApi))
 
     // TODO: move this out to a Guice module that provides access to the
     // NeutronDB
     private val dataSrc = new BasicDataSource()
-    dataSrc.setDriverClassName(c3poConfig.jdbcDriver)
-    dataSrc.setUrl(c3poConfig.connectionString)
-    dataSrc.setUsername(c3poConfig.user)
-    dataSrc.setPassword(c3poConfig.password)
+    dataSrc.setDriverClassName(conf.c3po.jdbcDriver)
+    dataSrc.setUrl(conf.c3po.connectionString)
+    dataSrc.setUsername(conf.c3po.user)
+    dataSrc.setPassword(conf.c3po.password)
 
     private val daemon = new Daemon(nodeId, minionDefs)
     private val clusterNodeModule = new AbstractModule {
@@ -117,14 +103,8 @@ object ClusterNode extends App {
             bind(classOf[DataSource]).toInstance(dataSrc)
             bind(classOf[ClusterNode.Context]).toInstance(nodeContext)
 
-            // TODO: required for legacy modules, remove asap
-            bind(classOf[ConfigProvider]).toInstance(cfgProvider)
-
             // Minion configurations
-            bind(classOf[C3POConfig]).toInstance(c3poConfig)
-            bind(classOf[HeartbeatConfig]).toInstance(heartbeatCfg)
-            bind(classOf[VxGWServiceConfig]).toInstance(vxgwCfg)
-            bind(classOf[TopologyApiServiceConfig]).toInstance(topologyCfg)
+            bind(classOf[BrainConfig]).toInstance(conf)
 
             // Minion definitions, used by the Daemon to start when appropriate
             minionDefs foreach { m =>
@@ -146,8 +126,8 @@ object ClusterNode extends App {
             // Zookeeper stuff for DataClient
             // roughly equivalent to ZookeeperConnectionModule,
             // but without conflicts
-            val zkConfig = cfgProvider.getConfig(classOf[ZookeeperConfig])
-            bind(classOf[ZookeeperConfig]).toInstance(zkConfig)
+            val zkConfig = new MidonetBackendConfig(MidoNodeConfigurator.bootstrapConfig())
+            bind(classOf[MidonetBackendConfig]).toInstance(zkConfig)
             bind(classOf[ZkConnection])
                 .toProvider(classOf[ZkConnectionProvider])
                 .asEagerSingleton()
@@ -202,15 +182,5 @@ object ClusterNode extends App {
             }
     }
 
-}
-
-@ConfigGroup("cluster-node")
-trait ClusterNodeConfig extends HostIdConfig {
-    @ConfigString(key = "node_uuid", defaultValue = "")
-    override def getHostId: String
-
-    @ConfigString(key = "properties_file",
-                  defaultValue = "/tmp/midonet_cluster_node.properties")
-    override def getHostPropertiesFilePath: String
 }
 

@@ -27,6 +27,7 @@ import java.lang.annotation.Target;
  * <code>key</code> and <code>defaultValue</code> information to the method.
  */
 @Documented
+@Deprecated
 @Target({ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ConfigInt {

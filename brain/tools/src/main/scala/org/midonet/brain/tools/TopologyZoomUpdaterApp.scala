@@ -19,10 +19,9 @@ package org.midonet.brain.tools
 import com.google.inject.{AbstractModule, Guice, Singleton}
 import org.slf4j.LoggerFactory
 
-import org.midonet.cluster.config.ZookeeperConfig
+import org.midonet.brain.BrainConfig
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.storage.MidonetBackendModule
-import org.midonet.config.ConfigProvider
 
 /**
  * Stand-alone application to populate the storage backend with
@@ -32,18 +31,10 @@ object TopologyZoomUpdaterApp extends App {
     private val log = LoggerFactory.getLogger(this.getClass)
 
     private val cfgFile = args(0)
-    private val cfg = ConfigProvider.fromConfigFile(cfgFile)
-    private val cfgProvider = ConfigProvider.providerForIniConfig(cfg)
-    private val updCfg = cfgProvider.getConfig(classOf[TopologyZoomUpdaterConfig])
 
     private val topologyZkUpdaterModule = new AbstractModule {
         override def configure(): Unit = {
-            // FIXME: required for legacy code
-            bind(classOf[ZookeeperConfig])
-                .toInstance(cfgProvider.getConfig(classOf[ZookeeperConfig]))
-
-            bind(classOf[ConfigProvider]).toInstance(cfgProvider)
-            bind(classOf[TopologyZoomUpdaterConfig]).toInstance(updCfg)
+            bind(classOf[BrainConfig]).toInstance(BrainConfig(cfgFile))
             bind(classOf[TopologyZoomUpdater]).in(classOf[Singleton])
         }
     }
