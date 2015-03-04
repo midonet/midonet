@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_69554f4f",
+        "filename": "midolman/src/main/scala/org/midonet/cluster/state/ZookeeperStateStorage.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-04T12:43:10Z",
+      "side": 1,
+      "message": "name?",
+      "range": {
+        "startLine": 51,
+        "startChar": 29,
+        "endLine": 51,
+        "endChar": 31
+      },
+      "revId": "95a892088fd3602b31b18528cbc8fc31a1337c17",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_a99467e2",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/VirtualTopologyTest.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-04T12:43:10Z",
+      "side": 1,
+      "message": "pass assertThread in all creations of an AwaitableObserver?",
+      "range": {
+        "startLine": 118,
+        "startChar": 27,
+        "endLine": 118,
+        "endChar": 64
+      },
+      "revId": "95a892088fd3602b31b18528cbc8fc31a1337c17",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_09a49b55",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/VirtualTopologyTest.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 166,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-04T12:43:10Z",
+      "side": 1,
+      "message": "Is this necessary? The observer will wait for 2 notifications anyways.",
+      "range": {
+        "startLine": 166,
+        "startChar": 12,
+        "endLine": 166,
+        "endChar": 64
+      },
+      "revId": "95a892088fd3602b31b18528cbc8fc31a1337c17",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_698a6fc0",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/VirtualTopologyTest.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 200,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-04T12:43:10Z",
+      "side": 1,
+      "message": "Not necessary.",
+      "range": {
+        "startLine": 200,
+        "startChar": 12,
+        "endLine": 200,
+        "endChar": 67
+      },
+      "revId": "95a892088fd3602b31b18528cbc8fc31a1337c17",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_4985f3ab",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/VirtualTopologyTest.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 319,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-04T12:43:10Z",
+      "side": 1,
+      "message": "Not necessary.",
+      "range": {
+        "startLine": 319,
+        "startChar": 12,
+        "endLine": 319,
+        "endChar": 64
+      },
+      "revId": "95a892088fd3602b31b18528cbc8fc31a1337c17",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
