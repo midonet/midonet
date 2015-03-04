@@ -22,7 +22,6 @@ import com.google.inject.Injector;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 
-import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 
@@ -34,11 +33,11 @@ import org.midonet.cluster.client.BGPListBuilder;
 import org.midonet.cluster.data.AdRoute;
 import org.midonet.cluster.data.BGP;
 import org.midonet.cluster.data.Converter;
-import org.midonet.midolman.config.MidolmanConfig;
-import org.midonet.midolman.cluster.config.ConfigProviderModule;
-import org.midonet.midolman.cluster.config.TypedConfigModule;
+import org.midonet.cluster.storage.MidonetBackendTestModule;
 import org.midonet.midolman.cluster.serialization.SerializationModule;
 import org.midonet.midolman.cluster.zookeeper.MockZookeeperConnectionModule;
+import org.midonet.conf.MidoTestConfigurator;
+import org.midonet.midolman.guice.config.MidolmanConfigModule;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.PathBuilder;
@@ -161,9 +160,9 @@ public class ClusterBgpManagerTest {
                                KeeperException, InterruptedException {
         Injector injector = Guice.createInjector(
                 new SerializationModule(),
-                new ConfigProviderModule(new HierarchicalConfiguration()),
+                MidonetBackendTestModule.apply(),
+                new MidolmanConfigModule(MidoTestConfigurator.forAgents()),
                 new MockZookeeperConnectionModule(),
-                new TypedConfigModule<>(MidolmanConfig.class),
                 new TestModule());
 
         PathBuilder paths = injector.getInstance(PathBuilder.class);

@@ -79,7 +79,7 @@ class ZookeeperStateStorage @Inject() (backendCfg: MidonetBackendConfig,
     override def setPortLocalAndActive(portId: UUID, hostId: UUID,
                                        active: Boolean): Unit = runOnReactor {
         // Activate the port for legacy ZK storage.
-        if (!backendCfg.isEnabled) {
+        if (!backendCfg.useNewStack) {
             var portConfig: PortConfig = null
             try {
                 portZkManager.setActivePort(portId, hostId, active)

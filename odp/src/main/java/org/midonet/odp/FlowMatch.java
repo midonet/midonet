@@ -151,7 +151,10 @@ public class FlowMatch {
         },
         NetworkProto {
             public String toString(FlowMatch wcmatch) {
-                return toString() + "=" + getNetworkProtocolAsString(wcmatch.networkProto);
+                if (wcmatch.getEtherType() == ARP.ETHERTYPE)
+                    return "ArpOp=" + wcmatch.networkProto;
+                else
+                    return toString() + "=" + getNetworkProtocolAsString(wcmatch.networkProto);
             }
             public int hashCode(FlowMatch wcmatch) {
                 return wcmatch.networkProto;

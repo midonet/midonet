@@ -125,13 +125,13 @@ public class DatapathModule extends PrivateModule {
                 @Override
                 public DatapathChannel get() {
                     int capacity = Util.findNextPositivePowerOfTwo(
-                        config.getGlobalIncomingBurstCapacity() * 2);
+                        config.datapath().globalIncomingBurstCapacity() * 2);
                     RingBuffer<DatapathEvent> ringBuffer = RingBuffer.createMultiProducer(
                         Factory$.MODULE$,
                         capacity);
                     SequenceBarrier barrier = ringBuffer.newBarrier();
                     EventProcessor processors[] = createProcessors(
-                        config.getNumOutputChannels(),
+                        config.outputChannels(),
                         ringBuffer, barrier,
                         injector.getInstance(FlowProcessor.class),
                         injector.getInstance(NetlinkChannelFactory.class));
@@ -181,7 +181,7 @@ public class DatapathModule extends PrivateModule {
                 public FlowProcessor get() {
                     return new FlowProcessor(
                         injector.getInstance(OvsNetlinkFamilies.class),
-                        config.getGlobalIncomingBurstCapacity() * 2,
+                        config.datapath().globalIncomingBurstCapacity() * 2,
                         512, // Flow request size
                         injector.getInstance(NetlinkChannelFactory.class),
                         NanoClock$.MODULE$.DEFAULT());
@@ -218,7 +218,7 @@ public class DatapathModule extends PrivateModule {
 
         @Override
         public UpcallDatapathConnectionManager get() {
-            String val = config.getInputChannelThreading();
+            String val = config.inputChannelThreading();
             switch (val) {
                 case "one_to_many":
                     return new OneToManyDpConnManager(config, tbPolicy);
@@ -240,7 +240,7 @@ public class DatapathModule extends PrivateModule {
         @Override
         public DatapathConnectionPool get() {
             return new OneToOneConnectionPool("netlink.requests",
-                                              config.getNumOutputChannels(),
+                                              config.outputChannels(),
                                               config);
         }
     }

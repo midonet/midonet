@@ -33,8 +33,7 @@ import org.midonet.api.serialization.ObjectMapperProvider;
 import org.midonet.api.serialization.WildCardJacksonJaxbJsonProvider;
 import org.midonet.api.servlet.JerseyGuiceTestServletContextListener;
 import org.midonet.api.version.VersionParser;
-import org.midonet.brain.configuration.EmbeddedClusterNodeConfig;
-import org.midonet.cluster.config.ZookeeperConfig;
+import org.midonet.conf.HostIdGenerator;
 
 public class FuncTest {
     static final ClientConfig config = new DefaultClientConfig();
@@ -51,6 +50,7 @@ public class FuncTest {
     public static ObjectMapper objectMapper;
 
     static {
+        HostIdGenerator.useTemporaryHostId();
         objectMapper = new ObjectMapper();
         objectMapper.configure(
                 DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, true);
@@ -71,6 +71,7 @@ public class FuncTest {
 
         UUID testRunUuid = UUID.randomUUID();
 
+        String zkRoot = ZK_ROOT_MIDOLMAN + "_" + UUID.randomUUID();
         return new WebAppDescriptor.Builder()
                 .contextListenerClass(JerseyGuiceTestServletContextListener.class)
                 .filterClass(GuiceFilter.class)
@@ -89,17 +90,13 @@ public class FuncTest {
                 .contextParam(getConfigKey(AuthConfig.GROUP_NAME,
                                            AuthConfig.AUTH_PROVIDER),
                               "org.midonet.api.auth.MockAuthService")
-                .contextParam(getConfigKey(ZookeeperConfig.GROUP_NAME,
+                .contextParam(getConfigKey("zookeeper",
                                            "zookeeper_hosts"),
                                            FuncTest.ZK_TEST_SERVER)
-                .contextParam(getConfigKey(ZookeeperConfig.GROUP_NAME,
-                                           "curator_enabled"), "true")
-                .contextParam(getConfigKey(ZookeeperConfig.GROUP_NAME,
-                                           "midolman_root_key"),
-                              ZK_ROOT_MIDOLMAN + "_" + UUID.randomUUID())
-                .contextParam(getConfigKey(EmbeddedClusterNodeConfig.GROUP_NAME,
-                                           "properties_file"),
-                              "/tmp/" + testRunUuid + "_host_uuid.properties")
+                .contextParam(getConfigKey("zookeeper", "curator_enabled"), "true")
+                .contextParam(getConfigKey("zookeeper", "midolman_root_key"), zkRoot)
+                .contextParam(getConfigKey("zookeeper", "root_key"), zkRoot)
+                .contextParam(getConfigKey("zookeeper", "use_new_stack"), "false")
                 .contextPath(CONTEXT_PATH).clientConfig(config);
     }
 

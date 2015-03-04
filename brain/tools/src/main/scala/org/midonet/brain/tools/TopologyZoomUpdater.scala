@@ -19,6 +19,8 @@ package org.midonet.brain.tools
 import java.util.UUID
 import java.util.concurrent.{Executors, TimeUnit}
 
+import org.midonet.brain.{TopologyZoomUpdaterConfig, BrainConfig}
+
 import scala.collection.JavaConversions._
 import scala.collection.mutable
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -40,7 +42,6 @@ import org.midonet.cluster.models.Topology.Host.PortBinding
 import org.midonet.cluster.models.Topology.IpAddrGroup.IpAddrPorts
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.util.{IPAddressUtil, UUIDUtil}
-import org.midonet.config.{ConfigBool, ConfigGroup, ConfigInt, ConfigLong}
 import org.midonet.packets.{IPAddr, IPv4Addr}
 import org.midonet.util.concurrent.toFutureOps
 import org.midonet.util.functors.makeRunnable
@@ -88,11 +89,13 @@ object TopologyZoomUpdater {
     def randomId: Commons.UUID = UUIDUtil.randomUuidProto
 }
 class TopologyZoomUpdater @Inject()(val backend: MidonetBackend,
-                                    val cfg: TopologyZoomUpdaterConfig)
+                                    val brainConf: BrainConfig)
     extends AbstractService {
+    private val cfg: TopologyZoomUpdaterConfig = brainConf.topologyUpdater
+
     implicit val storage = backend.ownershipStore
     private val log = LoggerFactory.getLogger(classOf[TopologyZoomUpdater])
-    private val pool = Executors.newScheduledThreadPool(cfg.numThreads)
+    private val pool = Executors.newScheduledThreadPool(cfg.threads)
 
     object Operation extends Enumeration {
         type Operation = Value
@@ -173,13 +176,13 @@ class TopologyZoomUpdater @Inject()(val backend: MidonetBackend,
         log.info("Starting the Topology Zoom Updater")
 
         try {
-            if (cfg.enableUpdates && cfg.periodMs <= 0)
+            if (cfg.enableUpdates && cfg.period <= 0)
                 throw new IllegalArgumentException(
-                    "invalid update interval (periodMs): " + cfg.periodMs)
+                    "invalid update interval (periodMs): " + cfg.period)
 
             buildLayout()
             if (cfg.enableUpdates)
-                pool.scheduleAtFixedRate(runnable, cfg.periodMs, cfg.periodMs,
+                pool.scheduleAtFixedRate(runnable, cfg.period, cfg.period,
                                          TimeUnit.MILLISECONDS)
 
             log.info("Updater started")
@@ -232,13 +235,13 @@ class TopologyZoomUpdater @Inject()(val backend: MidonetBackend,
         fixedRuleId = Rule().create().getId
         fixedRouteId = Route().create().getId
 
-        for (idx <- 0 to cfg.initialTmpRouters - 1)
+        for (idx <- 0 to cfg.initialRouters - 1)
             addRouter()
-        for (idx <- 0 to cfg.initialTmpVteps - 1)
+        for (idx <- 0 to cfg.initialVteps - 1)
             addVtep()
-        for (idx <- 0 to cfg.initialTmpHosts - 1)
+        for (idx <- 0 to cfg.initialHosts - 1)
             addHost()
-        for (idx <- 0 to cfg.initialTmpPortsPerNetwork - 1)
+        for (idx <- 0 to cfg.initialPortsPerNetwork - 1)
             fixedPortGroup.addPort(fixedNetwork.createPort())
     }
 
@@ -259,7 +262,7 @@ class TopologyZoomUpdater @Inject()(val backend: MidonetBackend,
     private def addRouter() = {
         count += 1
         val rt = Router("r" + count).create().linkTo(providerRouter)
-        for (p <- 0 to cfg.initialTmpNetworksPerRouter - 1) {
+        for (p <- 0 to cfg.initialNetworksPerRouter - 1) {
             addNetwork(rt)
         }
     }
@@ -334,7 +337,7 @@ class TopologyZoomUpdater @Inject()(val backend: MidonetBackend,
             case 0 =>
                 log.info("updating tmpRouters")
                 val rt = getRandomEntry(tmpRouters)
-                chooseOperation(tmpRouters.size, cfg.initialTmpRouters) match {
+                chooseOperation(tmpRouters.size, cfg.initialRouters) match {
                     case UPDATE => updateRouter(rt)
                     case REMOVAL => rt.delete()
                     case ADDITION => addRouter()
@@ -344,8 +347,8 @@ class TopologyZoomUpdater @Inject()(val backend: MidonetBackend,
                 val rt = getRandomEntry(tmpRouters)
                 val br = getRandomEntry(tmpNetworks)
                 chooseOperation(tmpNetworks.size,
-                                cfg.initialTmpRouters *
-                                    cfg.initialTmpNetworksPerRouter) match {
+                                cfg.initialRouters *
+                                    cfg.initialNetworksPerRouter) match {
                     case UPDATE => updateNetwork(br)
                     case REMOVAL => br.delete()
                     case ADDITION => addNetwork(rt)
@@ -353,7 +356,7 @@ class TopologyZoomUpdater @Inject()(val backend: MidonetBackend,
             case 2 =>
                 log.info("updating tmpPorts") // this also may update port groups
                 val p = getRandomEntry(tmpPorts)
-                chooseOperation(tmpPorts.size, cfg.initialTmpPortsPerNetwork) match {
+                chooseOperation(tmpPorts.size, cfg.initialPortsPerNetwork) match {
                     case UPDATE => updatePort(p)
                     case REMOVAL => p.delete()
                     case ADDITION => fixedNetwork.createPort()
@@ -361,7 +364,7 @@ class TopologyZoomUpdater @Inject()(val backend: MidonetBackend,
             case 3 =>
                 log.info("updating tmpVteps")
                 val vt = getRandomEntry(tmpVteps)
-                chooseOperation(tmpVteps.size, cfg.initialTmpVteps) match {
+                chooseOperation(tmpVteps.size, cfg.initialVteps) match {
                     case UPDATE => updateVtep(vt)
                     case REMOVAL => rmVtep(vt)
                     case ADDITION => addVtep()
@@ -369,7 +372,7 @@ class TopologyZoomUpdater @Inject()(val backend: MidonetBackend,
             case 4 =>
                 log.info("updating tmpHosts")
                 val h = getRandomEntry(tmpHosts)
-                chooseOperation(tmpHosts.size, cfg.initialTmpHosts) match {
+                chooseOperation(tmpHosts.size, cfg.initialHosts) match {
                     case UPDATE => updateHost(h)
                     case REMOVAL => rmHost(h)
                     case ADDITION => addHost()
@@ -1085,60 +1088,5 @@ class Rule(p: Topology.Rule)(implicit storage: StorageWithOwnership)
         this(Topology.Rule.newBuilder().setId(randomId).build())
     def model = proto.asInstanceOf[Topology.Rule]
     def getId: Commons.UUID = getId(classOf[Commons.UUID])
-}
-
-
-/**
- * Configuration
- */
-object TopologyZoomUpdaterConfig {
-    final val NROUTERS = 4
-    final val NBRIDGES = 4
-    final val NPORTS = 4
-    final val NVTEPS = 4
-    final val NHOSTS = 4
-    final val DEFAULT_NUMTHREADS = 1
-    final val DEFAULT_INTERVAL = 60000
-    final val DEFAULT_ENABLE_UPDATES = false
-}
-
-/** Configuration for the Topology Tester */
-@ConfigGroup("topology_zoom_updater")
-trait TopologyZoomUpdaterConfig {
-    import TopologyZoomUpdaterConfig._
-
-    /** Number of threads to use for the scheduled updates */
-    @ConfigInt(key = "num_threads", defaultValue = DEFAULT_NUMTHREADS)
-    def numThreads: Int
-
-    /**
-     * Perform regular updates to the initial topology
-     */
-    @ConfigBool(key = "enable_updates", defaultValue = DEFAULT_ENABLE_UPDATES)
-    def enableUpdates: Boolean
-
-    /** Interval of time between updates; it must be greater than zero */
-    @ConfigLong(key = "period_ms", defaultValue = DEFAULT_INTERVAL)
-    def periodMs: Long
-
-    /** Initial number of temporary (dynamically created) Routers */
-    @ConfigInt(key = "initial_tmp_routers", defaultValue = NROUTERS)
-    def initialTmpRouters: Int
-
-    /** Initial number of temporary (dynamically created) Networks per router */
-    @ConfigInt(key = "initial_tmp_networks_per_router", defaultValue = NBRIDGES)
-    def initialTmpNetworksPerRouter: Int
-
-    /** Initial number of temporary (dynamically created) Ports per network */
-    @ConfigInt(key = "initial_tmp_ports_per_network", defaultValue = NPORTS)
-    def initialTmpPortsPerNetwork: Int
-
-    /** Initial number of temporary (dynamically created) tmpVteps */
-    @ConfigInt(key = "initial_tmp_vteps", defaultValue = NVTEPS)
-    def initialTmpVteps: Int
-
-    /** Initial number of temporary (dynamically created) tmpHosts */
-    @ConfigInt(key = "initial_tmp_hosts", defaultValue = NHOSTS)
-    def initialTmpHosts: Int
 }
 

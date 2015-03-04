@@ -23,7 +23,6 @@ import java.util.{Random, UUID}
 import scala.collection.mutable.ListBuffer
 
 import com.google.inject.{Guice, Injector}
-import org.apache.commons.configuration.HierarchicalConfiguration
 import org.junit.Assert._
 import org.junit.runner.RunWith
 import org.scalatest._
@@ -79,9 +78,7 @@ class VxlanGatewayManagerTest extends FlatSpec with Matchers
     var nodeId: UUID = _
 
     before {
-        val config = new HierarchicalConfiguration()
-        fillTestConfig(new HierarchicalConfiguration)
-        injector = Guice.createInjector(modules(config))
+        injector = Guice.createInjector(modules())
         val directory = injector.getInstance(classOf[Directory])
         setupZkTestDirectory(directory)
 

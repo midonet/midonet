@@ -18,7 +18,7 @@ package org.midonet.midolman
 
 import java.util.LinkedList
 
-import org.apache.commons.configuration.HierarchicalConfiguration
+import com.typesafe.config.{ConfigFactory, Config}
 
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
@@ -46,9 +46,9 @@ class BridgeFloodOptimizationsTest extends MidolmanSpec {
     val mac3 = MAC.fromString("0a:fe:88:90:ee:ee")
     val ip3 = IPv4Addr.fromString("10.10.10.13")
 
-    override protected def fillConfig(config: HierarchicalConfiguration) = {
-        config.setProperty("midolman.enable_bridge_arp", true)
-        super.fillConfig(config)
+    override protected def fillConfig(config: Config) = {
+        super.fillConfig(ConfigFactory.parseString(
+            "midolman.enable_bridge_arp = true").withFallback(config))
     }
 
     override def beforeTest(): Unit = {
