@@ -1,0 +1,159 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_29119705",
+        "filename": "midolman/src/main/scala/org/midonet/cluster/services/StorageService.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-04T11:26:41Z",
+      "side": 1,
+      "message": "Is this needed here?",
+      "range": {
+        "startLine": 25,
+        "startChar": 41,
+        "endLine": 25,
+        "endChar": 54
+      },
+      "revId": "b6c567bca44ec651b18ddd318ca6936dbe8b0dc4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_a90467c0",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 181,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-04T11:26:41Z",
+      "side": 1,
+      "message": "Unrelated to this patch: should we rename this to bridgeDeleted?\n\nI received the same comment on one of my patches, such the name better indicates the cause of calling this method.",
+      "range": {
+        "startLine": 181,
+        "startChar": 16,
+        "endLine": 181,
+        "endChar": 28
+      },
+      "revId": "b6c567bca44ec651b18ddd318ca6936dbe8b0dc4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_092bfb30",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 190,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-04T11:26:41Z",
+      "side": 1,
+      "message": "Why not make this a method (def), and pass the makeFunc1 as argument to the map(...). In that way the mapper wouldn\u0027t keep another reference to this object.",
+      "revId": "b6c567bca44ec651b18ddd318ca6936dbe8b0dc4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_e9d49f21",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 211,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-04T11:26:41Z",
+      "side": 1,
+      "message": "Should\u0027t make this a lazy val? In this way, we only create one observable instance per mapper, rather than a new instance every time we call def observable.",
+      "range": {
+        "startLine": 211,
+        "startChar": 4,
+        "endLine": 211,
+        "endChar": 26
+      },
+      "revId": "b6c567bca44ec651b18ddd318ca6936dbe8b0dc4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_099e5b56",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/HostMapperTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-04T11:26:41Z",
+      "side": 1,
+      "message": "Not related to this patch, but does this need to be implicit?",
+      "range": {
+        "startLine": 45,
+        "startChar": 12,
+        "endLine": 45,
+        "endChar": 20
+      },
+      "revId": "b6c567bca44ec651b18ddd318ca6936dbe8b0dc4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_499fb350",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/HostMapperTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 250,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-04T11:26:41Z",
+      "side": 1,
+      "message": "For the purposes of this test, doing here store.updateOwner should be enough. Or do we expect a different owner of the host?",
+      "range": {
+        "startLine": 245,
+        "startChar": 12,
+        "endLine": 250,
+        "endChar": 55
+      },
+      "revId": "b6c567bca44ec651b18ddd318ca6936dbe8b0dc4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_a9ae2783",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/HostMapperTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 257,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-04T11:26:41Z",
+      "side": 1,
+      "message": "Same here, store.deleteOwner should suffice. Plus, although currently not set, I note that in zoom Host should have exclusive ownership; hence we shouldn\u0027t even have more than one owner at a time.\n\nMaybe we should register Host with exclusive ownership in the storage service?",
+      "range": {
+        "startLine": 252,
+        "startChar": 12,
+        "endLine": 257,
+        "endChar": 13
+      },
+      "revId": "b6c567bca44ec651b18ddd318ca6936dbe8b0dc4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
