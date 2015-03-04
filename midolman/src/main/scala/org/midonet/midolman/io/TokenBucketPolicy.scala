@@ -37,7 +37,7 @@ class TokenBucketPolicy(config: MidolmanConfig,
                         factory: TokenBucket => Bucket) {
     private val log: Logger = LoggerFactory.getLogger("org.midonet.io.htb")
 
-    private val root = TokenBucket.create(adjust(config.getGlobalIncomingBurstCapacity),
+    private val root = TokenBucket.create(adjust(config.datapath.globalIncomingBurstCapacity),
                                           "midolman-root",
                                           tbRate)
     root addTokens root.getCapacity
@@ -60,12 +60,12 @@ class TokenBucketPolicy(config: MidolmanConfig,
             }
 
             val tb = factory(t match {
-                case OverlayTunnel if config.getTunnelIncomingBurstCapacity > 0 =>
-                    root.link(adjust(config.getTunnelIncomingBurstCapacity), port.getName)
-                case VtepTunnel if config.getVtepIncomingBurstCapacity > 0 =>
-                    root.link(adjust(config.getVtepIncomingBurstCapacity), port.getName)
-                case VirtualMachine if config.getVmIncomingBurstCapacity > 0 =>
-                    vmBuckets.link(adjust(config.getVmIncomingBurstCapacity), port.getName)
+                case OverlayTunnel if config.datapath.tunnelIncomingBurstCapacity > 0 =>
+                    root.link(adjust(config.datapath.tunnelIncomingBurstCapacity), port.getName)
+                case VtepTunnel if config.datapath.vtepIncomingBurstCapacity > 0 =>
+                    root.link(adjust(config.datapath.vtepIncomingBurstCapacity), port.getName)
+                case VirtualMachine if config.datapath.vmIncomingBurstCapacity > 0 =>
+                    vmBuckets.link(adjust(config.datapath.vmIncomingBurstCapacity), port.getName)
                 case _ =>
                     return null
             })
@@ -93,7 +93,7 @@ class TokenBucketPolicy(config: MidolmanConfig,
                 case Some(tb) =>
                     val tokens = tb.underlyingTokenBucket().unlink()
                     val newMax = calculateMinimumSystemTokens
-                    if (newMax >= adjust(config.getGlobalIncomingBurstCapacity))
+                    if (newMax >= adjust(config.datapath.globalIncomingBurstCapacity))
                         root.setCapacity(newMax)
                     else
                         root.addTokens(tokens)

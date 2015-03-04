@@ -26,19 +26,15 @@ import scala.concurrent.duration._
 
 import akka.actor.{Actor, ActorSystem}
 import akka.event.LoggingReceive
-
-import com.google.inject.Inject
-import org.midonet.midolman.flows.{FlowLifecycle, FlowInvalidation, FlowInvalidator}
-
-import rx.Observer
-
-import org.jctools.queues.SpscArrayQueue
-
 import com.codahale.metrics.MetricRegistry.name
 import com.codahale.metrics.{Gauge, MetricRegistry}
+import com.google.inject.Inject
+import org.jctools.queues.SpscArrayQueue
+import rx.Observer
 
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.FlowProcessor
+import org.midonet.midolman.flows.{FlowLifecycle, FlowInvalidation, FlowInvalidator}
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.monitoring.metrics.{FlowTablesGauge, FlowTablesMeter}
 import org.midonet.midolman.management.Metering
@@ -172,10 +168,10 @@ class FlowController extends Actor with ActorLogWithoutPath
 
     override def preStart() {
         super.preStart()
-        meters = new MeterRegistry(midolmanConfig.getDatapathMaxFlowCount)
+        meters = new MeterRegistry(midolmanConfig.datapath.maxFlowCount)
         Metering.registerAsMXBean(meters)
-        val maxDpFlows = (midolmanConfig.getDatapathMaxFlowCount * 1.1).toInt
-        flowExpirationCheckInterval = Duration(midolmanConfig.getFlowExpirationInterval,
+        val maxDpFlows = (midolmanConfig.datapath.maxFlowCount * 1.1).toInt
+        flowExpirationCheckInterval = Duration(10000, // FIXME - being removed
             TimeUnit.MILLISECONDS)
 
         flowManagerHelper = new FlowManagerInfoImpl()

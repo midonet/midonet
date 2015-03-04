@@ -44,8 +44,8 @@ import org.midonet.cluster.ClusterRouterManager;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.LocalClientImpl;
 import org.midonet.cluster.LocalDataClientImpl;
-import org.midonet.cluster.config.ZookeeperConfig;
 import org.midonet.cluster.services.LegacyStorageService;
+import org.midonet.cluster.storage.MidonetBackendConfig;
 import org.midonet.midolman.host.state.HostZkManager;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.BaseZkManager;
@@ -89,6 +89,7 @@ public class LegacyClusterModule extends PrivateModule {
     protected void configure() {
         binder().requireExplicitBindings();
 
+        requireBinding(MidonetBackendConfig.class);
         requireBinding(Directory.class);
         requireBinding(Key.get(Reactor.class,
                                Names.named(DIRECTORY_REACTOR_TAG)));
@@ -154,13 +155,12 @@ public class LegacyClusterModule extends PrivateModule {
     }
 
     private static class PathBuilderProvider implements Provider<PathBuilder> {
-
         @Inject
-        ZookeeperConfig config;
+        MidonetBackendConfig config;
 
         @Override
         public PathBuilder get() {
-            return new PathBuilder(config.getZkRootPath());
+            return new PathBuilder(config.rootKey());
         }
     }
 
@@ -208,11 +208,11 @@ public class LegacyClusterModule extends PrivateModule {
         Directory directory;
 
         @Inject
-        ZookeeperConfig config;
+        MidonetBackendConfig config;
 
         @Override
         public ZkManager get() {
-            return new ZkManager(directory, config);
+            return new ZkManager(directory, config.rootKey());
         }
     }
 
@@ -258,7 +258,7 @@ public class LegacyClusterModule extends PrivateModule {
         Directory directory;
 
         @Inject
-        ZookeeperConfig config;
+        MidonetBackendConfig config;
 
         @Inject
         @Named(DIRECTORY_REACTOR_TAG)
@@ -273,7 +273,7 @@ public class LegacyClusterModule extends PrivateModule {
         @Override
         public PortConfigCache get() {
             return new PortConfigCache(reactor, directory,
-                    config.getZkRootPath(), connWatcher, serializer);
+                    config.rootKey(), connWatcher, serializer);
         }
     }
 
