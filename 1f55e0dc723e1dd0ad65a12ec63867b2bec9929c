@@ -175,6 +175,30 @@
       "revId": "1f55e0dc723e1dd0ad65a12ec63867b2bec9929c",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_544c6a42",
+        "filename": "cluster/src/test/java/org/midonet/cluster/data/ZoomObjectTest.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 347,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-04T13:52:48Z",
+      "side": 1,
+      "message": "Ah, yes true. It\u0027s fine then.",
+      "parentUuid": "7a1969be_492173b3",
+      "range": {
+        "startLine": 345,
+        "startChar": 12,
+        "endLine": 347,
+        "endChar": 62
+      },
+      "revId": "1f55e0dc723e1dd0ad65a12ec63867b2bec9929c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
