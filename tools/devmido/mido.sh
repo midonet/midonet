@@ -154,6 +154,7 @@ is_kmod_loaded openvswitch || sudo modprobe openvswitch
 # Java and other basic dependencies
 # =================================
 
+is_package_installed build-essential || install_package build-essential
 is_package_installed curl || install_package curl
 is_package_installed git || install_package git
 is_package_installed libreadline-dev || install_package libreadline-dev
