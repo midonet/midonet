@@ -19,14 +19,12 @@ package org.midonet.midolman
 import scala.concurrent.{ExecutionContext, Future}
 
 import akka.actor._
-
+import com.typesafe.config.{Config, ConfigValueFactory}
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import org.apache.commons.configuration.HierarchicalConfiguration
-
 import org.midonet.cluster.data.TunnelZone
-import org.midonet.config.ConfigProvider
+import org.midonet.conf.MidoTestConfigurator
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.host.interfaces.InterfaceDescription
 import org.midonet.midolman.io.{ChannelType, UpcallDatapathConnectionManager}
@@ -60,9 +58,9 @@ class DatapathControllerActorTest extends MidolmanSpec {
     val dpPortInt = new InternalPort("int")
     val dpPortDev = new NetDevPort("eth0")
 
-    override def fillConfig(config: HierarchicalConfiguration) = {
-        config.setProperty("midolman.dhcp_mtu", TestDhcpMtu)
-        super.fillConfig(config)
+    override def fillConfig(config: Config) = {
+        super.fillConfig(config.withValue("midolman.dhcp_mtu",
+            ConfigValueFactory.fromAnyRef(TestDhcpMtu)))
     }
 
     class TestableDpC extends DatapathController {
@@ -72,11 +70,7 @@ class DatapathControllerActorTest extends MidolmanSpec {
 
         datapath = new Datapath(0, "midonet")
 
-        midolmanConfig = ConfigProvider.providerForIniConfig({
-            val hierachConfig = new HierarchicalConfiguration
-            hierachConfig setProperty("datapath.vxlan_udp_port", 4444)
-            hierachConfig
-        }).getConfig(classOf[MidolmanConfig])
+        config = MidolmanConfig.forTests("datapath.vxlan_udp_port = 4444")
 
         upcallConnManager = new UpcallDatapathConnectionManager {
             var ports = Set.empty[DpPort]
@@ -109,7 +103,7 @@ class DatapathControllerActorTest extends MidolmanSpec {
 
     scenario("The default MTU should be retrieved from the config file") {
         val config = injector.getInstance(classOf[MidolmanConfig])
-        DatapathController.defaultMtu should be (config.getDhcpMtu.toShort)
+        DatapathController.defaultMtu should be (config.dhcpMtu.toShort)
         DatapathController.defaultMtu should be (TestDhcpMtu)
         DatapathController.defaultMtu should not be MidolmanConfig.DEFAULT_MTU
     }

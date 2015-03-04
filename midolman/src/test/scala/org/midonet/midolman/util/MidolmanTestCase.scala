@@ -34,8 +34,8 @@ import akka.pattern.ask
 import akka.testkit._
 import akka.util.Timeout
 import com.google.inject._
+import com.typesafe.config.{ConfigFactory, Config}
 import com.typesafe.scalalogging.Logger
-import org.apache.commons.configuration.HierarchicalConfiguration
 import org.scalatest._
 import org.scalatest.matchers.{BePropertyMatchResult, BePropertyMatcher}
 import org.slf4j.LoggerFactory
@@ -44,19 +44,18 @@ import org.midonet.cluster.data.host.Host
 import org.midonet.cluster.data.{Port => VPort}
 import org.midonet.cluster.services.{LegacyStorageService, MidonetBackend}
 import org.midonet.cluster.storage.{StateStorageModule, MidonetBackendTestModule}
+import org.midonet.conf.MidoTestConfigurator
 import org.midonet.midolman.DatapathController.{DatapathReady, Initialize}
 import org.midonet.midolman.DeduplicationActor.{DiscardPacket, HandlePackets}
 import org.midonet.midolman.FlowController.{FlowUpdateCompleted, WildcardFlowAdded, WildcardFlowRemoved}
 import org.midonet.midolman.PacketWorkflow.PacketIn
 import org.midonet.midolman._
 import org.midonet.midolman.cluster._
-import org.midonet.midolman.cluster.config.ConfigProviderModule
 import org.midonet.midolman.cluster.datapath.MockDatapathModule
 import org.midonet.midolman.cluster.serialization.SerializationModule
 import org.midonet.midolman.cluster.state.MockFlowStateStorageModule
 import org.midonet.midolman.cluster.zookeeper.MockZookeeperConnectionModule
-import org.midonet.midolman.host.config.HostConfig
-import org.midonet.midolman.host.guice.HostConfigProvider
+import org.midonet.midolman.guice.config.MidolmanConfigModule
 import org.midonet.midolman.host.interfaces.InterfaceDescription
 import org.midonet.midolman.host.scanner.InterfaceScanner
 import org.midonet.midolman.services.{HostIdProviderService, MidolmanActorsService, MidolmanService}
@@ -107,11 +106,14 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
     implicit val askTimeout = Timeout(3 seconds)
     val timeout: FiniteDuration = askTimeout.duration
 
-    protected def fillConfig(config: HierarchicalConfiguration)
-            : HierarchicalConfiguration = {
-        config.setProperty("midolman.midolman_root_key", "/test/v3/midolman")
-        config.setProperty("cassandra.servers", "localhost:9171")
-        config
+    protected def fillConfig(config: Config) : Config = {
+        val defaults =
+            """
+              |midolman.root_key = "/test/v3/midolman"
+              |cassandra.servers = "localhost:9171"
+            """.stripMargin
+
+        ConfigFactory.parseString(defaults).withFallback(config)
     }
 
     protected def actors: ActorSystem =
@@ -148,8 +150,7 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
 
     before {
         try {
-            val config = fillConfig(new HierarchicalConfiguration())
-            injector = Guice.createInjector(getModulesAsJavaIterable(config))
+            injector = Guice.createInjector(getModulesAsJavaIterable(fillConfig(ConfigFactory.empty)))
 
             injector.getInstance(classOf[LegacyStorageService])
                     .startAsync()
@@ -213,18 +214,18 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
     val probesByName = mutable.Map[String, TestKit]()
     val actorsByName = mutable.Map[String, TestActorRef[Actor]]()
 
-    protected def getModulesAsJavaIterable(config: HierarchicalConfiguration)
+    protected def getModulesAsJavaIterable(config: Config)
             : java.lang.Iterable[Module] = {
         asJavaIterable(getModules(config))
     }
 
-    protected def getModules(config: HierarchicalConfiguration)
+    protected def getModules(config: Config)
             : List[Module] = {
         List[Module](
             new SerializationModule(),
-            new ConfigProviderModule(config),
             new MidonetBackendTestModule(),
             new StateStorageModule(),
+            new MidolmanConfigModule(MidoTestConfigurator.forAgents(config)),
             new MockDatapathModule(),
             new MockFlowStateStorageModule(),
             new MockZookeeperConnectionModule(),
@@ -246,11 +247,6 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
                     bind(classOf[InterfaceScanner])
                         .to(classOf[MockInterfaceScanner]).asEagerSingleton()
                     expose(classOf[InterfaceScanner])
-
-                    bind(classOf[HostConfig])
-                        .toProvider(classOf[HostConfigProvider])
-                        .asEagerSingleton()
-                    expose(classOf[HostConfig])
                 }
             }
         )

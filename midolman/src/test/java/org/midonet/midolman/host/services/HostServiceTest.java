@@ -16,7 +16,6 @@
 package org.midonet.midolman.host.services;
 
 import java.net.InetAddress;
-import java.util.Arrays;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -29,26 +28,23 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
-
-import org.apache.commons.configuration.HierarchicalConfiguration;
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigValueFactory;
 import org.apache.zookeeper.CreateMode;
 import org.junit.Test;
 
+import org.midonet.conf.MidoTestConfigurator;
+import org.midonet.conf.HostIdGenerator;
 import org.midonet.cluster.data.storage.OwnershipType;
 import org.midonet.cluster.data.storage.StorageWithOwnership;
 import org.midonet.cluster.models.Topology;
 import org.midonet.cluster.services.MidonetBackend;
 import org.midonet.cluster.storage.MidonetBackendConfig;
-import org.midonet.cluster.storage.MidonetBackendConfigProvider;
 import org.midonet.cluster.storage.MidonetTestBackend;
 import org.midonet.cluster.util.UUIDUtil;
-import org.midonet.config.ConfigProvider;
 import org.midonet.midolman.Setup;
-import org.midonet.midolman.cluster.MidolmanModule;
 import org.midonet.midolman.cluster.serialization.SerializationModule;
 import org.midonet.midolman.config.MidolmanConfig;
-import org.midonet.midolman.host.config.HostConfig;
-import org.midonet.midolman.host.guice.HostConfigProvider;
 import org.midonet.midolman.host.scanner.InterfaceScanner;
 import org.midonet.midolman.host.state.HostDirectory;
 import org.midonet.midolman.host.state.HostZkManager;
@@ -74,28 +70,24 @@ public class HostServiceTest {
     private String hostName;
     private String versionPath;
     private String alivePath;
-    private HierarchicalConfiguration configuration;
     private Injector injector;
 
+    String basePath = "/midolman";
+    private Config config = MidoTestConfigurator.forAgents().
+            withValue("zookeeper.root_key", ConfigValueFactory.fromAnyRef(basePath)).
+            withValue("host.retries_gen_id", ConfigValueFactory.fromAnyRef(0));
+
     public class TestModule extends AbstractModule {
-        String basePath = "/midolman";
 
         @Override
         protected void configure() {
-            bind(PathBuilder.class).toInstance(new PathBuilder(basePath));
-            bind(InterfaceDataUpdater.class)
-                .to(DefaultInterfaceDataUpdater.class);
+            bind(PathBuilder.class).toInstance(new PathBuilder(config.getString("zookeeper.root_key")));
+            bind(InterfaceDataUpdater.class).to(DefaultInterfaceDataUpdater.class);
             bind(InterfaceScanner.class).to(MockInterfaceScanner.class);
-            bind(HostConfigProvider.class).asEagerSingleton();
-            bind(ConfigProvider.class)
-                .toInstance(ConfigProvider.providerForIniConfig(configuration));
-            bind(HostConfig.class).toProvider(HostConfigProvider.class);
-            bind(MidonetBackendConfig.class)
-                .toProvider(MidonetBackendConfigProvider.class);
-            bind(MidolmanConfig.class)
-                .toProvider(MidolmanModule.MidolmanConfigProvider.class);
-            bind(MidonetBackend.class)
-                .to(MidonetTestBackend.class).asEagerSingleton();
+            bind(MidolmanConfig.class).toInstance(new MidolmanConfig(config));
+            bind(MidonetBackend.class).to(MidonetTestBackend.class).asEagerSingleton();
+            bind(MidonetBackendConfig.class).toInstance(
+                    new MidonetBackendConfig(config.withFallback(MidoTestConfigurator.bootstrap())));
         }
 
         @Provides @Singleton
@@ -124,17 +116,10 @@ public class HostServiceTest {
     }
 
     public void setup(Boolean backendEnabled) throws Exception {
-        hostId = UUID.randomUUID();
-        configuration = new HierarchicalConfiguration();
-        configuration.addNodes(HostConfig.GROUP_NAME,
-                Arrays.asList(new HierarchicalConfiguration.Node
-                        ("host_uuid", hostId.toString())
-                ));
-        configuration.addNodes(HostConfig.GROUP_NAME,
-                Arrays.asList(new HierarchicalConfiguration.Node
-                        ("retries_gen_id", "0")
-                ));
-        configuration.setProperty("midonet-backend.enabled", backendEnabled);
+        HostIdGenerator.useTemporaryHostId();
+        hostId = HostIdGenerator.getHostId();
+        config = config.withValue("zookeeper.use_new_stack",
+            ConfigValueFactory.fromAnyRef(backendEnabled));
 
         injector = Guice.createInjector(new SerializationModule(),
                                         new TestModule());

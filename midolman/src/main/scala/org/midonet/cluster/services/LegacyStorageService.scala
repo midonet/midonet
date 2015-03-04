@@ -19,19 +19,19 @@ package org.midonet.cluster.services
 import com.google.common.util.concurrent.AbstractService
 import com.google.inject.Inject
 
-import org.midonet.cluster.config.ZookeeperConfig
+import org.midonet.cluster.storage.MidonetBackendConfig
 import org.midonet.midolman.version.DataWriteVersion
 import org.midonet.midolman.{Setup, SystemDataProvider}
 import org.midonet.midolman.state.{StateAccessException, Directory}
 
 class LegacyStorageService @Inject() (directory: Directory,
-                                      zkCfg: ZookeeperConfig,
+                                      zkCfg: MidonetBackendConfig,
                                       systemDataProvider: SystemDataProvider)
     extends AbstractService {
 
     protected override def doStart(): Unit = {
         notifyStarted()
-        val rootKey: String = zkCfg.getZkRootPath
+        val rootKey: String = zkCfg.rootKey
         Setup.ensureZkDirectoryStructureExists(directory, rootKey)
         verifyVersion()
         verifySystemState()

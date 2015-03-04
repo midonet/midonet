@@ -20,7 +20,6 @@ import javax.sql.DataSource
 
 import com.google.inject.Inject
 import com.google.protobuf.Message
-
 import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.recipes.leader.LeaderLatch
 import org.slf4j.LoggerFactory
@@ -29,10 +28,11 @@ import org.midonet.brain.services.c3po.NeutronDeserializer.toMessage
 import org.midonet.brain.services.c3po.translators._
 import org.midonet.brain.{ClusterNode, ScheduledClusterMinion, ScheduledMinionConfig}
 import org.midonet.cluster.data.neutron.{DataStateUpdater, SqlNeutronImporter, importer}
+import org.midonet.brain.{C3POConfig, ClusterNode, ScheduledClusterMinion}
+import org.midonet.cluster.data.neutron.{SqlNeutronImporter, importer}
 import org.midonet.cluster.models.Neutron._
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.util.UUIDUtil
-import org.midonet.config._
 
 /** The service that translates and imports neutron models into the MidoNet
   * backend storage
@@ -41,7 +41,7 @@ import org.midonet.config._
   * @param config the configuration of the C3PO service
   * @param dataSrc API for access to the the Neutron DB
   * @param backend The MidoNet backend service
-  * @param curator API for access to ZK for internal uses of the C3PO service
+  * @param curator API for access to ZK for internal uses of the C3PO serviceD/H
   */
 class C3POMinion @Inject()(nodeContext: ClusterNode.Context,
                            config: C3POConfig,
@@ -141,37 +141,4 @@ class C3POMinion @Inject()(nodeContext: ClusterNode.Context,
         dataMgr
     }
 }
-
-@ConfigGroup("neutron-importer")
-trait C3POConfig extends ScheduledMinionConfig[C3POMinion] {
-
-    @ConfigBool(key = "enabled")
-    override def isEnabled: Boolean
-
-    @ConfigString(key = "with",
-                  defaultValue = "org.midonet.brain.services.c3po.C3POMinion")
-    override def minionClass: String
-
-    @ConfigInt(defaultValue = 1)
-    override def numThreads: Int
-
-    @ConfigLong(key = "delay_ms", defaultValue = 0)
-    override def delayMs: Long
-
-    @ConfigLong(key = "period_ms", defaultValue = 1000)
-    override def periodMs: Long
-
-    @ConfigString(key = "connection_str")
-    def connectionString: String
-
-    @ConfigString(key = "jdbc_driver_class")
-    def jdbcDriver: String
-
-    @ConfigString(key = "user")
-    def user: String
-
-    @ConfigString(key = "password", defaultValue = "")
-    def password: String
-}
-
 

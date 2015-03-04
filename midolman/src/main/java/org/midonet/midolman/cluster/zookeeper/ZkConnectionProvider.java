@@ -18,10 +18,9 @@ package org.midonet.midolman.cluster.zookeeper;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.name.Named;
-
 import org.slf4j.Logger;
 
-import org.midonet.cluster.config.ZookeeperConfig;
+import org.midonet.cluster.storage.MidonetBackendConfig;
 import org.midonet.midolman.state.ZkConnection;
 import org.midonet.midolman.state.ZkConnectionAwareWatcher;
 import org.midonet.util.eventloop.Reactor;
@@ -41,7 +40,7 @@ public class ZkConnectionProvider implements Provider<ZkConnection> {
     public static final String DIRECTORY_REACTOR_TAG = "directoryReactor";
 
     @Inject
-    ZookeeperConfig config;
+    MidonetBackendConfig config;
 
     @Inject(optional = true)
     @Named(DIRECTORY_REACTOR_TAG)
@@ -57,7 +56,7 @@ public class ZkConnectionProvider implements Provider<ZkConnection> {
                 log.info("ZK connection provider will not use a conn. watcher");
             }
             ZkConnection zkConnection = new ZkConnection(
-                config.getZkHosts(), config.getZkSessionTimeout(),
+                config.hosts(), config.sessionTimeout(),
                 watcher, reactorLoop);
 
             if (watcher != null) {
