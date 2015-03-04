@@ -16,6 +16,7 @@
 
 package org.midonet.quagga
 
+import java.nio.file.{Files, Paths, Path}
 import java.util.concurrent.TimeUnit
 
 import akka.actor.ActorRef
@@ -31,14 +32,24 @@ class BgpdProcess(routingHandler: ActorRef, vtyPortNumber: Int,
     private final val log = LoggerFactory.getLogger(this.getClass)
     var bgpdProcess: Process = null
 
+    var BGPD_KNOWN_PATHS = List("/usr/sbin/bgpd", "/usr/lib/quagga/bgpd")
+
+    def findBgpd: String = {
+        val found = BGPD_KNOWN_PATHS filter (p => Files.isExecutable(Paths.get(p)))
+        if (found.isEmpty)
+            throw new Exception(s"Could not find bgpd executable, looked in: $BGPD_KNOWN_PATHS")
+        else
+            found.head
+    }
+
     def start(): Boolean = {
         log.debug("Starting bgpd process. Vty: {}", vtyPortNumber)
 
         val bgpdCmdLine = "ip netns exec " + networkNamespace +
-            " " + config.pathToBGPD + "/bgpd" +
+            " " + findBgpd +
             " --vty_port " + vtyPortNumber +
             //" --vty_addr 127.0.0.1" +
-            " --config_file " + config.pathToBGPDConfig + "/bgpd.conf" +
+            " --config_file " + config.bgpdConfigPath + "/bgpd.conf" +
             " --pid_file /var/run/quagga/bgpd." + vtyPortNumber + ".pid " +
             " --socket " + socketAddress.getPath
 
