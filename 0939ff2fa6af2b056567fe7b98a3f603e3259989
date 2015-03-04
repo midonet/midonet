@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_06464823",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/AgentMembershipTranslator.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-03-04T02:11:55Z",
+      "side": 1,
+      "message": "What do you think about making this idempotent by simply logging and returning in this case?  Unless of course, that would make it inconsistent with other deletion calls in the cluster.  I am mentioning this since we have often found idempotent deletion to be very useful to fix up erroneous states.",
+      "revId": "0939ff2fa6af2b056567fe7b98a3f603e3259989",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_2628a433",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/TunnelZoneManager.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-03-04T02:11:55Z",
+      "side": 1,
+      "message": "Consider throwing IllegalStateException instead",
+      "revId": "0939ff2fa6af2b056567fe7b98a3f603e3259989",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_062be830",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/TunnelZoneManager.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-03-04T02:11:55Z",
+      "side": 1,
+      "message": "ditto",
+      "revId": "0939ff2fa6af2b056567fe7b98a3f603e3259989",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
