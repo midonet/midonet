@@ -143,7 +143,7 @@ function update_package_repo {
 # install_package package [package ...]
 function install_package {
     update_package_repo
-    apt_get install "$@"
+    apt_get install --no-install-recommends "$@"
 }
 
 # Function to tell if a package is installed
