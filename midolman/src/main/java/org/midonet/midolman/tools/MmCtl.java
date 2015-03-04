@@ -27,6 +27,8 @@ import java.sql.SQLException;
 import java.util.Date;
 import java.util.UUID;
 
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -40,24 +42,20 @@ import org.apache.commons.cli.OptionGroup;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
-import org.codehaus.jackson.node.JsonNodeFactory;
-import org.codehaus.jackson.node.ObjectNode;
+import org.midonet.conf.MidoNodeConfigurator;
+import org.midonet.conf.MidoTestConfigurator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.host.Host;
 import org.midonet.cluster.data.host.VirtualPortMapping;
-import org.midonet.config.ConfigProvider;
-import org.midonet.config.HostIdGenerator;
+import org.midonet.conf.HostIdGenerator;
 import org.midonet.midolman.cluster.LegacyClusterModule;
-import org.midonet.midolman.cluster.MidolmanModule;
-import org.midonet.midolman.cluster.config.ConfigProviderModule;
 import org.midonet.midolman.cluster.serialization.SerializationModule;
 import org.midonet.midolman.cluster.zookeeper.ZookeeperConnectionModule;
 import org.midonet.midolman.config.MidolmanConfig;
-import org.midonet.midolman.host.config.HostConfig;
-import org.midonet.midolman.host.guice.HostConfigProvider;
+import org.midonet.midolman.guice.config.MidolmanConfigModule;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZookeeperConnectionWatcher;
@@ -158,20 +156,15 @@ public class MmCtl {
             "/etc/midolman/midolman.conf";
 
     private final DataClient dataClient;
-    private final HostConfig hostConfig;
-    private final MidolmanConfig midolmanConfig;
+    private final MidolmanConfig config;
 
-    public MmCtl(DataClient dataClient, HostConfig hostConfig,
-                 MidolmanConfig midolmanConfig) {
+    public MmCtl(DataClient dataClient, MidolmanConfig config) {
         this.dataClient = dataClient;
-        this.hostConfig = hostConfig;
-        this.midolmanConfig = midolmanConfig;
+        this.config = config;
     }
 
     private UUID getHostId() throws IOException {
-        String localPropertiesFilePath =
-                hostConfig.getHostPropertiesFilePath();
-        return HostIdGenerator.getIdFromPropertiesFile(localPropertiesFilePath);
+        return HostIdGenerator.getIdFromPropertiesFile();
     }
 
     private MmCtlResult bindPort(UUID portId, String deviceName) {
@@ -185,7 +178,7 @@ public class MmCtl {
             return MM_CTL_RET_CODE.HOST_ID_NOT_IN_FILE.getResult(e);
         }
 
-        if (midolmanConfig.getClusterEnabled()) {
+        if (config.neutron().enabled()) {
             createBindEntries(portId, deviceName, hostId);
         } else {
             try {
@@ -223,7 +216,7 @@ public class MmCtl {
         try {
             Connection connection =
                 DriverManager.getConnection(
-                    "jdbc:" + midolmanConfig.getTasksDbConn());
+                        "jdbc:" + config.neutron().tasksDb());
             try {
                 PreparedStatement ps = connection.prepareStatement("BEGIN");
                 ps.executeUpdate();
@@ -235,7 +228,7 @@ public class MmCtl {
         } catch (SQLException e) {
 
             log.error("Could not connect to database: " +
-                      midolmanConfig.getTasksDbConn());
+                      config.neutron().tasksDb());
             throw new RuntimeException(e);
         }
     }
@@ -354,7 +347,7 @@ public class MmCtl {
             return MM_CTL_RET_CODE.HOST_ID_NOT_IN_FILE.getResult(e);
         }
 
-        if (midolmanConfig.getClusterEnabled()) {
+        if (config.neutron().enabled()) {
             removeBindEntries(portId, hostId);
         } else {
             try {
@@ -472,23 +465,22 @@ public class MmCtl {
 
             @Override
             protected void configure() {
-                requireBinding(ConfigProvider.class);
-                bind(MidolmanConfig.class).toProvider(
-                        MidolmanModule.MidolmanConfigProvider.class)
-                        .asEagerSingleton();
-                bind(HostConfig.class)
-                        .toProvider(HostConfigProvider.class)
-                        .asEagerSingleton();
                 install(new ZookeeperConnectionModule(
                     ZookeeperConnectionWatcher.class
                 ));
+                bind(MidolmanConfig.class).toInstance(
+                        new MidolmanConfig(MidoTestConfigurator.forAgents()));
+                install(new ZookeeperConnectionModule(
+                        ZookeeperConnectionWatcher.class));
                 install(new SerializationModule());
                 install(new LegacyClusterModule());
             }
         };
 
+        MidoNodeConfigurator configurator =
+                MidoNodeConfigurator.forAgents(configFilePath);
         return Guice.createInjector(
-                new ConfigProviderModule(configFilePath),
+                new MidolmanConfigModule(configurator),
                 commandModule
         );
     }
@@ -528,7 +520,6 @@ public class MmCtl {
             // Set up Guice dependencies
             Injector injector = getInjector(configFilePath);
             MmCtl mmctl = new MmCtl(injector.getInstance(DataClient.class),
-                    injector.getInstance(HostConfig.class),
                     injector.getInstance(MidolmanConfig.class));
 
             MmCtlResult res = null;
