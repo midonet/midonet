@@ -20,16 +20,22 @@ import java.util.UUID
 import scala.collection.JavaConversions._
 
 import com.google.inject._
-import org.apache.commons.configuration.HierarchicalConfiguration
-import org.scalatest.{BeforeAndAfter, FeatureSpecLike, GivenWhenThen, Matchers, OneInstancePerTest}
-import org.midonet.cluster.services.{MidonetBackend, LegacyStorageService, MidonetBackendService}
+import com.typesafe.config.{ConfigFactory, Config}
+import org.scalatest.BeforeAndAfter
+import org.scalatest.FeatureSpecLike
+import org.scalatest.GivenWhenThen
+import org.scalatest.Matchers
+import org.scalatest.OneInstancePerTest
+
+import org.midonet.cluster.services.{MidonetBackend, LegacyStorageService}
 import org.midonet.cluster.storage.{MidonetBackendTestModule, StateStorageModule}
+import org.midonet.conf.MidoTestConfigurator
 import org.midonet.midolman.cluster._
-import org.midonet.midolman.cluster.config.ConfigProviderModule
 import org.midonet.midolman.cluster.datapath.MockDatapathModule
 import org.midonet.midolman.cluster.serialization.SerializationModule
 import org.midonet.midolman.cluster.state.MockFlowStateStorageModule
 import org.midonet.midolman.cluster.zookeeper.MockZookeeperConnectionModule
+import org.midonet.midolman.guice.config.MidolmanConfigModule
 import org.midonet.midolman.host.scanner.InterfaceScanner
 import org.midonet.midolman.services.{HostIdProviderService, MidolmanActorsService, MidolmanService}
 import org.midonet.midolman.simulation.CustomMatchers
@@ -68,8 +74,7 @@ trait MidolmanSpec extends FeatureSpecLike
 
     before {
         try {
-            val config = fillConfig(new HierarchicalConfiguration)
-            injector = Guice.createInjector(getModules(config))
+            injector = Guice.createInjector(getModules)
 
             injector.getInstance(classOf[LegacyStorageService])
                 .startAsync()
@@ -100,21 +105,24 @@ trait MidolmanSpec extends FeatureSpecLike
             .awaitTerminated()
     }
 
-    protected def fillConfig(config: HierarchicalConfiguration)
-            : HierarchicalConfiguration = {
-        config.setProperty("midolman.midolman_root_key", "/test/v3/midolman")
-        config.setProperty("cassandra.servers", "localhost:9171")
-        config.setProperty("zookeeper.curator_enabled", false)
-        config
+    protected def fillConfig(config: Config = ConfigFactory.empty) : Config = {
+        val defaults =
+            """
+              |cassandra.servers = "localhost:9171"
+              |zookeeper.cluster_storage_enabled = true
+              |zookeeper.curator_enabled = false
+            """.stripMargin
+        config.withFallback(ConfigFactory.parseString(defaults))
     }
 
-    protected def getModules(config: HierarchicalConfiguration) = {
+    protected def getModules = {
+        val conf = MidoTestConfigurator.forAgents(fillConfig())
         List(
             new SerializationModule(),
-            new ConfigProviderModule(config),
+            new MidolmanConfigModule(conf),
             new MockDatapathModule(),
             new MockFlowStateStorageModule(),
-            new MidonetBackendTestModule(),
+            new MidonetBackendTestModule(conf),
             new MockZookeeperConnectionModule(),
             new StateStorageModule(),
             new AbstractModule {

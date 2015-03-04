@@ -16,17 +16,16 @@
 package org.midonet.midolman
 
 import java.util.{LinkedList, UUID}
-import org.apache.commons.configuration.HierarchicalConfiguration
+import com.typesafe.config.{Config, ConfigFactory}
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
 import scala.util.{Failure, Success, Try}
 
 import org.junit.runner.RunWith
-import org.midonet.midolman.PacketWorkflow.NoOp
-import org.midonet.odp.FlowMatch
 import org.scalatest.junit.JUnitRunner
 
+import org.midonet.midolman.PacketWorkflow.NoOp
 import org.midonet.midolman.layer3.Route.NextHop
 import org.midonet.midolman.simulation._
 import org.midonet.midolman.simulation.PacketEmitter.GeneratedPacket
@@ -36,6 +35,7 @@ import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.topology.devices.RouterPort
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.MessageAccumulator
+import org.midonet.odp.FlowMatch
 import org.midonet.packets._
 import org.midonet.packets.util.PacketBuilder
 import org.midonet.util.UnixClock
@@ -58,13 +58,17 @@ class ArpTableTest extends MidolmanSpec {
 
     implicit def strToIpv4(str: String): IPv4Addr = IPv4Addr.fromString(str)
 
-    override protected def fillConfig(config: HierarchicalConfiguration) = {
-        config.setProperty("datapath.max_flow_count", "10")
-        config.setProperty("arptable.arp_retry_interval_seconds", ARP_RETRY_SECS)
-        config.setProperty("arptable.arp_timeout_seconds", ARP_TIMEOUT_SECS)
-        config.setProperty("arptable.arp_stale_seconds", ARP_STALE_SECS)
-        config.setProperty("arptable.arp_expiration_seconds", ARP_EXPIRATION_SECS)
-        super.fillConfig(config)
+    val confStr =
+        s"""
+          |datapath.max_flow_count = 10
+          |arptable.arp_retry_interval = ${ARP_RETRY_SECS}s
+          |arptable.arp_timeout = ${ARP_TIMEOUT_SECS}s
+          |arptable.arp_stale = ${ARP_STALE_SECS}s
+          |arptable.arp_expiration = ${ARP_EXPIRATION_SECS}s
+        """.stripMargin
+
+    override protected def fillConfig(config: Config) = {
+        super.fillConfig(ConfigFactory.parseString(confStr).withFallback(config))
     }
 
     private def buildTopology() {
