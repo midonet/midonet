@@ -18,16 +18,13 @@ package org.midonet.cluster.services
 import com.google.common.util.concurrent.AbstractService
 import com.google.inject.Inject
 import org.apache.curator.framework.CuratorFramework
-import org.slf4j.LoggerFactory
 
-import org.midonet.cluster.config.ZookeeperConfig
 import org.midonet.cluster.data.storage.FieldBinding.DeleteAction._
 import org.midonet.cluster.data.storage.{OwnershipType, StorageWithOwnership, Storage, ZookeeperObjectMapper}
 import org.midonet.cluster.models.C3PO.C3POState
 import org.midonet.cluster.models.Neutron._
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.storage.MidonetBackendConfig
-import org.midonet.config.ConfigProvider
 
 /** The trait that models the new Midonet Backend, managing all relevant
   * connections and APIs to interact with backend storages. */
@@ -105,16 +102,16 @@ class MidonetBackendService @Inject() (cfg: MidonetBackendConfig,
     extends MidonetBackend {
 
     private val zoom =
-        new ZookeeperObjectMapper(cfg.zookeeperRootPath + "/zoom", curator)
+        new ZookeeperObjectMapper(cfg.rootKey + "/zoom", curator)
 
     override def store: Storage = zoom
     override def ownershipStore: StorageWithOwnership = zoom
-    override def isEnabled = cfg.isEnabled
+    override def isEnabled = cfg.useNewStack
 
     protected override def doStart(): Unit = {
         try {
             curator.start()
-            if (cfg.isEnabled) {
+            if (cfg.useNewStack) {
                 setupBindings()
             }
             notifyStarted()

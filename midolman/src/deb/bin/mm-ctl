@@ -44,45 +44,9 @@ if [ -z "$JAVA_HOME" ]; then
         done
     fi
 fi
-JAVA="$JAVA_HOME/bin/java"
-
-calculate_heap_sizes()
-{
-    case "`uname`" in
-        Linux)
-            system_memory_in_mb=`free -m | awk '/Mem:/ {print $2}'`
-            system_cpu_cores=`egrep -c 'processor([[:space:]]+):.*' /proc/cpuinfo`
-            break
-        ;;
-        FreeBSD)
-            system_memory_in_bytes=`sysctl hw.physmem | awk '{print $2}'`
-            system_memory_in_mb=$((system_memory_in_bytes / 1024 / 1024))
-            system_cpu_cores=`sysctl hw.ncpu | awk '{print $2}'`
-            break
-        ;;
-        *)
-            # assume reasonable defaults for e.g. a modern desktop or
-            # cheap server
-            system_memory_in_mb="2048"
-            system_cpu_cores="2"
-        ;;
-    esac
-    max_heap_size_in_mb=$((system_memory_in_mb / 2))
-    MAX_HEAP_SIZE="${max_heap_size_in_mb}M"
-
-    # Young gen: min(max_sensible_per_modern_cpu_core * num_cores, 1/4 * heap size)
-    max_sensible_yg_per_core_in_mb="100"
-    max_sensible_yg_in_mb=$((max_sensible_yg_per_core_in_mb * system_cpu_cores))
-
-    desired_yg_in_mb=$((max_heap_size_in_mb / 4))
-
-    if [ "$desired_yg_in_mb" -gt "$max_sensible_yg_in_mb" ]
-    then
-        HEAP_NEWSIZE="${max_sensible_yg_in_mb}M"
-    else
-        HEAP_NEWSIZE="${desired_yg_in_mb}M"
-    fi
-}
+if [ -z "$JAVA" ]; then
+    JAVA="$JAVA_HOME/bin/java"
+fi
 
 # If MIDO_HOME has not been set, set it.
 if [ -z "$MIDO_HOME" ]; then
