@@ -26,10 +26,9 @@ import scala.concurrent.duration.DurationInt
 
 import akka.actor.ActorSystem
 import akka.testkit.{ImplicitSender, TestKit}
-import org.apache.commons.configuration.HierarchicalConfiguration
+import com.typesafe.config.{ConfigValueFactory, Config}
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
-
 import rx.Observable
 
 import org.midonet.cluster.data.TunnelZone.HostConfig
@@ -63,13 +62,11 @@ class VTPMRedirectorTest extends TestKit(ActorSystem("VTPMRedirectorTest"))
 
     registerActors(VirtualToPhysicalMapper -> (() => new TestableVTPM))
 
-    override protected def fillConfig(config: HierarchicalConfiguration) = {
-        super.fillConfig(config)
-
+    override protected def fillConfig(config: Config) = {
         // Tests to cover the cases when the new cluster is disabled are
         // present in VirtualToPhysicalMapperTest
-        config.setProperty("midonet-backend.enabled", true)
-        config
+        super.fillConfig(config).withValue("zookeeper.use_new_stack",
+                                           ConfigValueFactory.fromAnyRef(true))
     }
 
     override def beforeTest() {

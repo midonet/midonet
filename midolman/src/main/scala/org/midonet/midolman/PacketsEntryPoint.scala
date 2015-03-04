@@ -23,6 +23,8 @@ import akka.event.LoggingReceive
 import com.codahale.metrics.MetricRegistry
 import com.google.inject.Inject
 import com.typesafe.scalalogging.Logger
+import org.slf4j.LoggerFactory
+
 import org.midonet.cluster.DataClient
 import org.midonet.midolman.HostRequestProxy.FlowStateBatch
 import org.midonet.midolman.config.MidolmanConfig
@@ -37,7 +39,6 @@ import org.midonet.midolman.state.TraceState.{TraceKey, TraceContext}
 import org.midonet.sdn.state.ShardedFlowStateTable
 import org.midonet.util.StatisticalCounter
 import org.midonet.util.concurrent.NanoClock
-import org.slf4j.LoggerFactory
 
 object PacketsEntryPoint extends Referenceable {
     override val Name = "PacketsEntryPoint"
@@ -107,7 +108,7 @@ class PacketsEntryPoint extends Actor with ActorLogWithoutPath
 
     override def preStart(): Unit = {
         super.preStart()
-        NUM_WORKERS = config.getSimulationThreads
+        NUM_WORKERS = config.simulationThreads
         metrics = new PacketPipelineMetrics(metricsRegistry)
 
         connTrackStateTable = new ShardedFlowStateTable(clock)

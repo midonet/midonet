@@ -17,6 +17,8 @@ package org.midonet.midolman.topology
 
 import java.util.UUID
 
+import com.typesafe.config.{ConfigValueFactory, Config}
+
 import scala.concurrent.Await.{ready, result}
 import scala.concurrent.Future
 import scala.concurrent.duration._
@@ -24,7 +26,6 @@ import scala.concurrent.duration._
 import akka.actor.Props
 import akka.testkit.TestActorRef
 
-import org.apache.commons.configuration.HierarchicalConfiguration
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
@@ -64,15 +65,14 @@ class VirtualTopologyRedirectorTest extends MidolmanSpec with TopologyBuilder
 
     registerActors(VirtualTopologyActor -> (() => new TestableVTA))
 
-    protected override def fillConfig(config: HierarchicalConfiguration)
-    : HierarchicalConfiguration = {
-        super.fillConfig(config)
-        config.setProperty("midonet-backend.enabled", true)
-        config
+    protected override def fillConfig(config: Config) = {
+        super.fillConfig(config).withValue("zookeeper.use_new_stack",
+                                           ConfigValueFactory.fromAnyRef(true))
     }
 
     override def beforeTest(): Unit = {
         backend = injector.getInstance(classOf[MidonetBackend])
+        backend.isEnabled should be (true)
         vt = injector.getInstance(classOf[VirtualTopology])
         vta = VirtualTopologyActor.as[TestableVTA]
         senderRef = TestActorRef(Props(new AwaitableActor

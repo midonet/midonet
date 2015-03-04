@@ -23,17 +23,13 @@ import scala.concurrent.duration._
 
 import akka.actor._
 import akka.testkit._
-import org.apache.commons.configuration.HierarchicalConfiguration
-
-import datapath.DatapathChannel
-import org.slf4j.helpers.NOPLogger
 import com.typesafe.scalalogging.Logger
-
+import org.slf4j.helpers.NOPLogger
 import org.junit.runner.RunWith
 import org.scalatest._
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.config.ConfigProvider
+import datapath.DatapathChannel
 import org.midonet.midolman.UnderlayResolver.Route
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.simulation.PacketContext
@@ -55,8 +51,7 @@ object PacketWorkflowTest {
     case object FlowCreated
     case object TranslateActions
 
-    val config = ConfigProvider.providerForIniConfig(new HierarchicalConfiguration)
-        .getConfig(classOf[MidolmanConfig])
+    val config = MidolmanConfig.forTests
 
     val NoLogging = Logger(NOPLogger.NOP_LOGGER)
 

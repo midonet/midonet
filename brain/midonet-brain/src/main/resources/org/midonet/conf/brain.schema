@@ -1,0 +1,176 @@
+// Copyright 2014 - 2015 Midokura SARL
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+// MidoNet Agent configuration schema
+
+schemaVersion = 1
+
+zookeeper {
+    session_timeout : 30s
+    session_timeout_description : """
+ZooKeeper session timeout."""
+
+    session_gracetime : ${zookeeper.session_timeout}
+    session_gracetime_description : """
+ZooKeeper session gracetime. A agent that remains disconnected from ZooKeeper
+for longer than this interval will give up reconnecting and reboot itself so
+as to start over with a fresh ZooKeeper connection. Note that agents will
+also reboot themselves if their ZooKeeper session expires."""
+
+    root_key : "/midonet/v1"
+    root_key_description : """
+Use this option to override the ZooKeeper path that MidoNet will use. Useful
+mainly for test environments.
+"""
+
+    curator_enabled : false
+    curator_enabled_description : """ """
+
+    cluster_storage_enabled : false
+    cluster_storage_enabled_description : """ """
+
+    max_retries : 10
+    max_retries_description : """ """
+
+    base_retry : 1s
+    base_retry_description : """ """
+
+    use_new_stack : false
+    use_new_stack_description : """ """
+}
+
+neutron_importer {
+    enabled : false
+    enabled_description : """ """
+
+    with : "org.midonet.brain.services.c3po.C3POMinion"
+    with_description : """ """
+
+    threads : 1
+    threads_description : """ """
+
+    delay : 0ms
+    delay_description : """ """
+
+    period : 1000ms
+    period_description : """ """
+
+    connection_string : " "
+    connection_string_description : """ """
+
+    jdbc_driver : " "
+    jdbc_driver_description : """ """
+
+    user : " "
+    user_description : """ """
+
+    password : " "
+    password_description : """ """
+}
+
+midobrain {
+    vxgw_enabled : false
+    vxgw_enabled_description : """ """
+}
+
+heartbeat {
+    enabled : false
+    enabled_description : """ """
+
+    with : "org.midonet.brain.services.c3po.C3POMinion"
+    with_description : """ """
+
+    threads : 1
+    threads_description : """ """
+
+    delay : 0ms
+    delay_description : """ """
+
+    period : 1000ms
+    period_description : """ """
+}
+
+vxgw {
+    enabled : false
+    enabled_description : """ """
+
+    with : " "
+    with_description : """ """
+}
+
+topology_api {
+    enabled : false
+    enabled_description : """ """
+
+    with : "org.midonet.brain.services.topology.TopologyApiService"
+    with_description : """ """
+
+    socket_enabled : false
+    socket_enabled_description : """ """
+
+    port : 8088
+    port_description : """ """
+
+    ws_enabled : false
+    ws_enabled_description : """ """
+
+    ws_port : 8080
+    ws_port_description : """ """
+
+    ws_path : "/websocket"
+    ws_path_description : """ """
+
+    session_grace_period : 180s
+    session_grace_period_description : """ """
+
+    session_buffer_size : 4096
+    session_buffer_size_description : """ """
+}
+
+topology_zoom_updater {
+    enable_updates = true
+    enable_updates_description = """ """
+
+    num_threads : 1
+    num_threads_description : """ """
+
+    period : 10s
+    period_description : """ """
+
+    initial_routers : 4
+    initial_routers_description : """ """
+
+    initial_networks_per_router : 4
+    initial_networks_per_router_description : """ """
+
+    initial_ports_per_network : 4
+    initial_ports_per_network_description : """ """
+
+    initial_vteps : 4
+    initial_vteps_description : """ """
+
+    initial_hosts : 4
+    initial_hosts_description : """ """
+}
+
+snoopy {
+    host : "localhost"
+    host_description : """ """
+
+    port : 8088
+    port_description : """ """
+
+    ws_path : " "
+    ws_path_description : """ """
+}

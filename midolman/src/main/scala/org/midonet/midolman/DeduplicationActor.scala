@@ -27,7 +27,6 @@ import akka.actor._
 import org.midonet.midolman.flows.FlowInvalidator
 
 import org.slf4j.MDC
-
 import org.jctools.queues.MpscArrayQueue
 
 import org.midonet.cluster.DataClient
@@ -133,7 +132,7 @@ class DeduplicationActor(
                                                  storage,
                                                  dpState,
                                                  flowInvalidator,
-                                                 config.getControlPacketsTos.toByte)
+                                                 config.datapath.controlPacketTos)
             workflow = new PacketWorkflow(dpState, dp, clusterDataClient,
                                           dpChannel, replicator, config)
             context.become(receive)

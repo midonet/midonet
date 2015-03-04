@@ -22,42 +22,42 @@ for n in 1 2 3; do
     fi
     rsync -av --exclude host_uuid.properties /etc/midolman/* /etc/midolman.$n
 
+    if test x"$ZOOKEEPER_STANDALONE" = xyes; then
+        ZK_HOSTS="10.0.0.2:2181"
+        CASS_SERVERS="10.0.0.5"
+        CASS_FACTOR=1
+    else
+        ZK_HOSTS="10.0.0.2:2181,10.0.0.3:2181,10.0.0.4:2181"
+        CASS_SERVERS="10.0.0.5,10.0.0.6,10.0.0.7"
+        CASS_FACTOR=3
+    fi
+
     # generates host uuid
     cat <<EOF > /etc/midolman.$n/host_uuid.properties
 # generated for MMM MM $n
 host_uuid=00000000-0000-0000-0000-00000000000$n
 EOF
 
-    if test x"$ZOOKEEPER_STANDALONE" = xyes; then
-        sed "/^\[zookeeper\]/,/^$/ s/^zookeeper_hosts =.*$/zookeeper_hosts = 10.0.0.2:2181/" \
-            -i /etc/midolman.$n/midolman.conf
-    else
-        sed "/^\[zookeeper\]/,/^$/ s/^zookeeper_hosts =.*$/zookeeper_hosts = 10.0.0.2:2181,10.0.0.3:2181,10.0.0.4:2181/" \
-            -i /etc/midolman.$n/midolman.conf
-    fi
+    cat << EOF > /etc/midolman.$n/midolman.conf
+[zookeeper]
+zookeeper_hosts = $ZK_HOSTS
 
-    if test x"$CASSANDRA_STANDALONE" = xyes; then
-        sed "/^\[cassandra\]/,/^$/ s/^servers =.*$/servers = 10.0.0.5/;s/^replication_factor =.*$/replication_factor = 1/" \
-            -i /etc/midolman.$n/midolman.conf
-    else
-        sed "/^\[cassandra\]/,/^$/ s/^servers =.*$/servers = 10.0.0.5,10.0.0.6,10.0.0.7/;s/^replication_factor =.*$/replication_factor = 3/" \
-            -i /etc/midolman.$n/midolman.conf
-    fi
+[cassandra]
+servers = $CASS_SERVERS
+replication_factor = $CASS_FACTOR
 
-    if grep "Ubuntu" /etc/issue >/dev/null; then
-        sed "/^\[midolman\]/,/^\[/ s%^[# ]*bgpd_binary = /usr/lib/quagga.*$%bgpd_binary = /usr/lib/quagga%" \
-             -i /etc/midolman.$n/midolman.conf
-    fi
-
-    if ! grep -q "\[haproxy_health_monitor\]" /etc/midolman.$n/midolman.conf > /dev/null; then
-        cat <<EOF >> /etc/midolman.$n/midolman.conf
 # Enable haproxy on the node.
 [haproxy_health_monitor]
 namespace_cleanup = true
 health_monitor_enable = true
 haproxy_file_loc = /etc/midolman.$n/l4lb/
+
+[midolman]
+bgp_keepalive = 1s
+bgp_holdtime = 3s
+bgp_connect_retry = 1s
+
 EOF
-    fi
 
     sed -i 's/root level="INFO"/root level="DEBUG"/' /etc/midolman.$n/logback.xml
     # Disable rotation by removing policy setting to fix MN-3009

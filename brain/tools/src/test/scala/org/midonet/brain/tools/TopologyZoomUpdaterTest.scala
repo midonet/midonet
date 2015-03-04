@@ -16,12 +16,16 @@
 
 package org.midonet.brain.tools
 
+import com.typesafe.config.{ConfigFactory, Config}
 import org.junit.runner.RunWith
+import org.scalatest.{BeforeAndAfter, Matchers, FeatureSpec}
+import org.scalatest.junit.JUnitRunner
+
+import org.midonet.brain.{BrainConfig, TopologyZoomUpdaterConfig}
 import org.midonet.cluster.data.storage.{Storage, InMemoryStorage, StorageWithOwnership}
 import org.midonet.cluster.models.Topology
 import org.midonet.cluster.services.MidonetBackend
-import org.scalatest.{BeforeAndAfter, Matchers, FeatureSpec}
-import org.scalatest.junit.JUnitRunner
+import org.midonet.conf.MidoTestConfigurator
 
 @RunWith(classOf[JUnitRunner])
 class TopologyZoomUpdaterTest extends FeatureSpec
@@ -48,22 +52,26 @@ class TopologyZoomUpdaterTest extends FeatureSpec
     var updater: TopologyZoomUpdater = _
     implicit var storage: StorageWithOwnership = _
 
+    val CONFIG_STRING =
+        """
+          |topology_zoom_updater.enable_updates = false
+          |topology_zoom_updater.num_threads = 1
+          |topology_zoom_updater.period = 0
+          |topology_zoom_updater.initial_routers = 1
+          |topology_zoom_updater.initial_networks_per_router = 1
+          |topology_zoom_updater.initial_ports_per_network = 1
+          |topology_zoom_updater.initial_vteps = 1
+          |topology_zoom_updater.initial_hosts = 1
+        """.stripMargin
+
     before {
-        val cfg = new TopologyZoomUpdaterConfig {
-            override def enableUpdates: Boolean = false
-            override def periodMs: Long = 0
-            override def initialTmpRouters: Int = 1
-            override def initialTmpPortsPerNetwork: Int = 1
-            override def initialTmpVteps: Int = 1
-            override def initialTmpNetworksPerRouter: Int = 1
-            override def initialTmpHosts: Int = 1
-            override def numThreads: Int = 1
-        }
+        val config = new BrainConfig(MidoTestConfigurator.
+                forBrains(ConfigFactory.parseString(CONFIG_STRING)))
 
         backend = new InMemoryMidonetBackendService
         backend.startAsync().awaitRunning()
         storage = backend.ownershipStore
-        updater = new TopologyZoomUpdater(backend, cfg)
+        updater = new TopologyZoomUpdater(backend, config)
     }
 
     after {
