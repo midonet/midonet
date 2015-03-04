@@ -19,7 +19,7 @@ import java.util.UUID;
 
 import com.google.inject.Inject;
 
-import org.midonet.cluster.config.ZookeeperConfig;
+import org.midonet.midolman.config.MidolmanConfig;
 import org.midonet.packets.IPv4Addr;
 
 /**
@@ -29,12 +29,11 @@ import org.midonet.packets.IPv4Addr;
 public class PathBuilder extends ZkPathManager {
 
     public static final String TENANTS_PATH = "tenants";
-    public static final String TRACED_CONDITIONS_PATH = "trace-conditions";
     public static final String LICENSES_PATH = "licenses";
 
     @Inject
-    public PathBuilder(ZookeeperConfig config) {
-        this(config.getZkRootPath());
+    public PathBuilder(MidolmanConfig config) {
+        this(config.zookeeper().rootKey());
     }
 
     public PathBuilder(String rootKey) {

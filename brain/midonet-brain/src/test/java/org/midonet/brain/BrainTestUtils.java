@@ -16,23 +16,23 @@
 package org.midonet.brain;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import com.google.inject.Module;
 
-import org.apache.commons.configuration.HierarchicalConfiguration;
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
+import com.typesafe.config.ConfigValueFactory;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 
-import org.midonet.cluster.config.ZookeeperConfig;
+import org.midonet.cluster.storage.MidonetBackendTestModule;
+import org.midonet.conf.MidoTestConfigurator;
 import org.midonet.midolman.Setup;
 import org.midonet.midolman.cluster.LegacyClusterModule;
-import org.midonet.midolman.cluster.config.ConfigProviderModule;
-import org.midonet.midolman.cluster.config.TypedConfigModule;
 import org.midonet.midolman.cluster.serialization.SerializationModule;
 import org.midonet.midolman.cluster.zookeeper.MockZookeeperConnectionModule;
-import org.midonet.midolman.config.MidolmanConfig;
+import org.midonet.midolman.guice.config.MidolmanConfigModule;
 import org.midonet.midolman.state.Directory;
 
 /**
@@ -46,15 +46,9 @@ public class BrainTestUtils {
      * Fills the configuration with some default values for tests. Allows a
      * zkRoot to be defined by the user.
      */
-    public static void fillTestConfig(HierarchicalConfiguration cfg) {
-        cfg.setProperty("midolman.midolman_root_key", zkRoot);
-        cfg.setProperty("cassandra.servers", "localhost:9171");
-        cfg.addNodes(
-            ZookeeperConfig.GROUP_NAME,
-            Arrays.asList(
-                new HierarchicalConfiguration.Node("midolman_root_key", zkRoot)
-            )
-        );
+    private static Config fillTestConfig(Config cfg) {
+        Config ret = cfg.withValue("zookeeper.root_key", ConfigValueFactory.fromAnyRef(zkRoot));
+        return ret.withValue("cassandra.servers", ConfigValueFactory.fromAnyRef("localhost:9171"));
     }
 
     /**
@@ -80,16 +74,21 @@ public class BrainTestUtils {
      * A list of all the mocked modules necessary to run the top level
      * dependencies.
      */
-    public static List<Module> modules(HierarchicalConfiguration config) {
+    public static List<Module> modules(Config config) {
+        Config newConf = fillTestConfig(config).withFallback(MidoTestConfigurator.forAgents());
         List<Module> modules = new ArrayList<>();
         // For VtepUpdaterTest
         modules.add(new SerializationModule());  // For Serializer
-        modules.add(new TypedConfigModule<>(MidolmanConfig.class));
-        modules.add(new ConfigProviderModule(config)); // For ConfigProvider
+        modules.add(new MidonetBackendTestModule(newConf));
+        modules.add(new MidolmanConfigModule(newConf));
         // Directory and Reactor
         modules.add(new MockZookeeperConnectionModule());
         modules.add(new LegacyClusterModule());
         return modules;
+    }
+
+    public static List<Module> modules() {
+        return modules(ConfigFactory.empty());
     }
 
 }

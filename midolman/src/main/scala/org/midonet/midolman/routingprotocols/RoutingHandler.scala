@@ -423,9 +423,9 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
                         addr = BGP_VTY_MIRROR_IP,
                         port = BGP_VTY_PORT,
                         password = "zebra_password",
-                        keepAliveTime = config.getMidolmanBGPKeepAlive,
-                        holdTime = config.getMidolmanBGPHoldtime,
-                        connectRetryTime = config.getMidolmanBGPConnectRetry)
+                        keepAliveTime = config.bgpKeepAlive,
+                        holdTime = config.bgpHoldTime,
+                        connectRetryTime = config.bgpConnectRetry)
 
                     bgpVty.setLogFile("/var/log/quagga/bgpd." + BGP_VTY_PORT + ".log")
                     if (log.underlying.isDebugEnabled)
@@ -526,9 +526,9 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
                     log.debug("({}) AddPeerRoute: stashing", phase)
                     stash()
 
-                case Started if peerRoutes.size > config.getMaxBgpPeerRoutes =>
+                case Started if peerRoutes.size > config.router.maxBgpPeerRoutes =>
                     log.warn(s"($phase) Max number of peer routes reached " +
-                        s"(${config.getMaxBgpPeerRoutes}), please check the " +
+                        s"(${config.router.maxBgpPeerRoutes}), please check the " +
                         "max_bgp_peer_routes config option.")
 
                 case Started =>

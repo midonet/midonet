@@ -24,9 +24,7 @@ import org.slf4j.LoggerFactory;
 
 import org.midonet.midolman.config.MidolmanConfig;
 import org.midonet.netlink.BufferPool;
-import org.midonet.netlink.Callback;
 import org.midonet.netlink.Netlink;
-import org.midonet.netlink.exceptions.NetlinkException;
 import org.midonet.odp.protos.OvsDatapathConnection;
 import org.midonet.util.Bucket;
 import org.midonet.util.eventloop.SelectListener;
@@ -67,9 +65,9 @@ public class SelectorBasedDatapathConnection implements ManagedDatapathConnectio
                                            boolean singleThreaded,
                                            Bucket bucket) {
         this(name, config, singleThreaded, bucket,
-             new BufferPool(config.getSendBufferPoolInitialSize(),
-                            config.getSendBufferPoolMaxSize(),
-                            config.getSendBufferPoolBufSizeKb() * 1024));
+             new BufferPool(config.datapath().sendBufferPoolInitialSize(),
+                            config.datapath().sendBufferPoolMaxSize(),
+                            config.datapath().sendBufferPoolBufSizeKb() * 1024));
     }
 
     public SelectorBasedDatapathConnection(String name, MidolmanConfig config) {
@@ -109,7 +107,7 @@ public class SelectorBasedDatapathConnection implements ManagedDatapathConnectio
         conn = OvsDatapathConnection.create(new Netlink.Address(0), sendPool);
 
         conn.getChannel().configureBlocking(false);
-        conn.setMaxBatchIoOps(config.getMaxMessagesPerBatch());
+        conn.setMaxBatchIoOps(200); // FIXME - deprecated
 
         readLoop.register(
                 conn.getChannel(),

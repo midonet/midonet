@@ -17,20 +17,21 @@
 package org.midonet.cluster;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
+import com.typesafe.config.ConfigValueFactory;
 import scala.Option;
 
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 
-import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.zookeeper.KeeperException;
 import org.junit.Before;
 import org.junit.Test;
@@ -41,14 +42,13 @@ import org.midonet.cluster.client.IpMacMap;
 import org.midonet.cluster.client.MacLearningTable;
 import org.midonet.cluster.client.RouterBuilder;
 import org.midonet.cluster.client.VlanPortMap;
-import org.midonet.cluster.config.ZookeeperConfig;
+import org.midonet.cluster.storage.MidonetBackendTestModule;
+import org.midonet.conf.MidoTestConfigurator;
 import org.midonet.midolman.Setup;
 import org.midonet.midolman.cluster.LegacyClusterModule;
-import org.midonet.midolman.config.MidolmanConfig;
-import org.midonet.midolman.cluster.config.ConfigProviderModule;
-import org.midonet.midolman.cluster.config.TypedConfigModule;
 import org.midonet.midolman.cluster.serialization.SerializationModule;
 import org.midonet.midolman.cluster.zookeeper.MockZookeeperConnectionModule;
+import org.midonet.midolman.guice.config.MidolmanConfigModule;
 import org.midonet.midolman.layer3.Route;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.ArpCacheEntry;
@@ -76,12 +76,9 @@ public class LocalClientImplTest {
     String zkRoot = "/test/v3/midolman";
 
 
-    HierarchicalConfiguration fillConfig(HierarchicalConfiguration config) {
-        config.addNodes(ZookeeperConfig.GROUP_NAME,
-                        Arrays.asList(new HierarchicalConfiguration.Node
-                                      ("midolman_root_key", zkRoot)));
-        return config;
-
+    Config fillConfig() {
+        return ConfigFactory.empty().withValue("zookeeper.root_key",
+                         ConfigValueFactory.fromAnyRef(zkRoot));
     }
 
     BridgeZkManager getBridgeZkManager() {
@@ -109,13 +106,12 @@ public class LocalClientImplTest {
 
     @Before
     public void initialize() {
-        HierarchicalConfiguration config = fillConfig(
-            new HierarchicalConfiguration());
+        Config conf = MidoTestConfigurator.forAgents(fillConfig());
         injector = Guice.createInjector(
             new SerializationModule(),
-            new ConfigProviderModule(config),
+            new MidolmanConfigModule(conf),
             new MockZookeeperConnectionModule(),
-            new TypedConfigModule<>(MidolmanConfig.class),
+            new MidonetBackendTestModule(conf),
             new LegacyClusterModule()
         );
         injector.injectMembers(this);

@@ -20,7 +20,6 @@ import java.util.UUID
 import scala.collection.mutable
 
 import akka.actor._
-
 import com.google.inject.Inject
 
 import org.midonet.cluster.state.{StateStorage, LocalPortActive}
@@ -89,10 +88,7 @@ class RoutingManagerActor extends ReactiveActor[LocalPortActive]
 
     override def preStart() {
         super.preStart()
-        if (config.getMidolmanBGPEnabled) {
-            stateStorage.observableLocalPortActive.subscribe(this)
-            bgpPortIdx = config.getMidolmanBGPPortStartIndex
-        }
+        stateStorage.observableLocalPortActive.subscribe(this)
     }
 
     override def receive = {
