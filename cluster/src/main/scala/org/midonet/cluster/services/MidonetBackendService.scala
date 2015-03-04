@@ -103,16 +103,16 @@ class MidonetBackendService @Inject() (cfg: MidonetBackendConfig,
     extends MidonetBackend {
 
     private val zoom =
-        new ZookeeperObjectMapper(cfg.zookeeperRootPath + "/zoom", curator)
+        new ZookeeperObjectMapper(cfg.rootKey + "/zoom", curator)
 
     override def store: Storage = zoom
     override def ownershipStore: StorageWithOwnership = zoom
-    override def isEnabled = cfg.isEnabled
+    override def isEnabled = cfg.useNewStack
 
     protected override def doStart(): Unit = {
         try {
             curator.start()
-            if (cfg.isEnabled) {
+            if (cfg.useNewStack) {
                 setupBindings()
             }
             notifyStarted()

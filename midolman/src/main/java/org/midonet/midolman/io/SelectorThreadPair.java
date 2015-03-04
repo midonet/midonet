@@ -89,7 +89,7 @@ public class SelectorThreadPair {
             OvsDatapathConnection.create(new Netlink.Address(0), sendPool);
 
         conn.getChannel().configureBlocking(false);
-        conn.setMaxBatchIoOps(config.getMaxMessagesPerBatch());
+        conn.setMaxBatchIoOps(200); // FIXME - deprecated
 
         readLoop.register(
                 conn.getChannel(),

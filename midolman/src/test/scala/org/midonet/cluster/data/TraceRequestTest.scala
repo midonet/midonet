@@ -17,20 +17,20 @@ package org.midonet.cluster.data
 
 import java.util.{List => JList, UUID}
 import javax.inject.Singleton
+
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
 
 import com.google.inject.{AbstractModule, Guice}
 import com.google.inject.util.Modules
-import org.apache.commons.configuration.HierarchicalConfiguration
 import org.apache.zookeeper.{Op, OpResult}
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.DataClient
-import org.midonet.cluster.config.ZookeeperConfig
 import org.midonet.cluster.data.ports.{BridgePort, RouterPort}
 import org.midonet.midolman.Setup
+import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.state.{Directory, MockDirectory}
 import org.midonet.midolman.state.StateAccessException
 import org.midonet.midolman.util.MidolmanSpec
@@ -161,8 +161,7 @@ class TraceRequestTest extends MidolmanSpec {
      */
     scenario("Trace races with device deletion") {
         val injector = Guice.createInjector(
-            Modules.`override`(
-                getModules(fillConfig(new HierarchicalConfiguration()))).`with`(
+            Modules.`override`(getModules).`with`(
                 new AbstractModule() {
                     override def configure(): Unit = {
                         bind(classOf[Directory])
@@ -172,8 +171,8 @@ class TraceRequestTest extends MidolmanSpec {
                 }))
         val directory = injector.getInstance(classOf[Directory])
             .asInstanceOf[RaceyMockDirectory]
-        val config = injector.getInstance(classOf[ZookeeperConfig])
-        Setup.ensureZkDirectoryStructureExists(directory, config.getZkRootPath)
+        val config = injector.getInstance(classOf[MidolmanConfig])
+        Setup.ensureZkDirectoryStructureExists(directory, config.zookeeper.rootKey)
 
         val dataClient = injector.getInstance(classOf[DataClient])
         val bridge = new Bridge().setName("bridge0")
