@@ -96,6 +96,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_a9fd873c",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/VTPMRedirectorTest.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 191,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-04T12:43:23Z",
+      "side": 1,
+      "message": "I don\u0027t see the removal anymore. Nevermind.",
+      "parentUuid": "7a1969be_ce2110a1",
+      "range": {
+        "startLine": 181,
+        "startChar": 12,
+        "endLine": 191,
+        "endChar": 51
+      },
+      "revId": "2886f8ade7a29408d36ed95c69877af7d18dcdde",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_0b5f9a42",
         "filename": "midolman/src/test/scala/org/midonet/midolman/topology/VTPMRedirectorTest.scala",
         "patchSetId": 5
@@ -131,6 +155,30 @@
       "side": 1,
       "message": "Same as above.",
       "parentUuid": "7a1969be_0b5f9a42",
+      "range": {
+        "startLine": 328,
+        "startChar": 11,
+        "endLine": 343,
+        "endChar": 16
+      },
+      "revId": "2886f8ade7a29408d36ed95c69877af7d18dcdde",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_89f88b4a",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/VTPMRedirectorTest.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 343,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-04T12:43:23Z",
+      "side": 1,
+      "message": "Nevermind...",
+      "parentUuid": "7a1969be_0e3b28d2",
       "range": {
         "startLine": 328,
         "startChar": 11,
