@@ -56,11 +56,10 @@ for n in 0 1 2 3; do
     fi
 done
 
-for n in 1 2 3; do
-    sed "s/^\[midolman\]/\[midolman\]\\nbgp_keepalive=1/" \
-        -i /etc/midolman.$n/midolman.conf
-    sed "s/^\[midolman\]/\[midolman\]\\nbgp_holdtime=3/" \
-        -i /etc/midolman.$n/midolman.conf
-    sed "s/^\[midolman\]/\[midolman\]\\nbgp_connect_retry=1/" \
-        -i /etc/midolman.$n/midolman.conf
-done
+cat << EOF | mn-conf set -t default
+midolman {
+    bgp_keepalive : "1s"
+    bgp_holdtime : "3s"
+    bgp_connect_retry : "1s"
+}
+EOF

@@ -22,15 +22,13 @@ import java.util.UUID
 import scala.collection.JavaConversions._
 
 import akka.actor.{Actor, ActorRef}
-
 import com.google.inject.Inject
 import org.slf4j.{Logger, LoggerFactory}
 
 import org.midonet.cluster.DataClient
-import org.midonet.config.HostIdGenerator
+import org.midonet.conf.HostIdGenerator
 import org.midonet.midolman.Referenceable
 import org.midonet.midolman.config.MidolmanConfig
-import org.midonet.midolman.host.config.HostConfig
 import org.midonet.midolman.l4lb.HaproxyHealthMonitor.{ConfigUpdate, RouterAdded, RouterRemoved, SetupFailure, SockReadFailure}
 import org.midonet.midolman.l4lb.HealthMonitor.{ConfigAdded, ConfigDeleted, ConfigUpdated, RouterChanged}
 import org.midonet.midolman.l4lb.HealthMonitorConfigWatcher.BecomeHaproxyNode
@@ -182,8 +180,7 @@ object HealthMonitor extends Referenceable {
  * then updates, creates, or destroys haproxy instances accordingly.
  */
 class HealthMonitor extends Actor with ActorLogWithoutPath {
-    @Inject private val configuration: HostConfig = null
-    @Inject private val midolmanConfig: MidolmanConfig = null
+    @Inject private val config: MidolmanConfig = null
     @Inject var client: DataClient = null
 
     private var fileLocation: String = null
@@ -195,19 +192,18 @@ class HealthMonitor extends Actor with ActorLogWithoutPath {
 
     override def preStart(): Unit = {
 
-        fileLocation =  midolmanConfig.getHaproxyFileLoc
-        namespaceSuffix = midolmanConfig.getNamespaceSuffix
+        fileLocation =  config.healthMonitor.haproxyFileLoc
+        namespaceSuffix = config.healthMonitor.namespaceSuffix
 
-        if (midolmanConfig.getNamespaceCleanup) {
+        if (config.healthMonitor.namespaceCleanup) {
             cleanupNamespaces()
         }
-        if (!midolmanConfig.getHealthMonitorEnable) {
+        if (!config.healthMonitor.enable) {
             context.stop(self)
             return
         }
         log.info("Starting Health Monitor")
-        val hostPropertiesFile = configuration.getHostPropertiesFilePath
-        hostId = HostIdGenerator.getIdFromPropertiesFile(hostPropertiesFile)
+        hostId = HostIdGenerator.getIdFromPropertiesFile()
 
         watcher = context.actorOf(HealthMonitorConfigWatcher.props(
                 fileLocation, namespaceSuffix, self))

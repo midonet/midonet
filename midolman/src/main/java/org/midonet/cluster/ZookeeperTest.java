@@ -25,21 +25,21 @@ import com.google.inject.Injector;
 import com.google.inject.Key;
 import com.google.inject.PrivateModule;
 import com.google.inject.name.Names;
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigValueFactory;
 
-import org.apache.commons.configuration.HierarchicalConfiguration;
-
-import org.midonet.cluster.config.ZookeeperConfig;
 import org.midonet.cluster.services.LegacyStorageService;
 import org.midonet.cluster.services.MidonetBackend;
 import org.midonet.cluster.storage.MidonetBackendModule;
+import org.midonet.conf.MidoNodeConfigurator;
+import org.midonet.conf.MidoTestConfigurator;
 import org.midonet.midolman.cluster.LegacyClusterModule;
-import org.midonet.midolman.cluster.config.ConfigProviderModule;
 import org.midonet.midolman.cluster.serialization.SerializationModule;
 import org.midonet.midolman.cluster.zookeeper.ZookeeperConnectionModule;
+import org.midonet.midolman.guice.config.MidolmanConfigModule;
 import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.SessionUnawareConnectionWatcher;
-import org.midonet.midolman.state.ZookeeperConnectionWatcher;
 import org.midonet.util.eventloop.Reactor;
 
 import static org.midonet.midolman.cluster.zookeeper.ZkConnectionProvider.DIRECTORY_REACTOR_TAG;
@@ -65,14 +65,15 @@ public abstract class ZookeeperTest {
     protected Injector injector;
     private String zkRoot;
 
-    private static HierarchicalConfiguration getConfig(String zkRoot) {
-        HierarchicalConfiguration config = new HierarchicalConfiguration();
-        config.addProperty(ZookeeperConfig.GROUP_NAME + ".midolman_root_key",
-                           zkRoot);
-        config.addProperty("midonet-backend.enabled", true);
-        config.addProperty(ZookeeperConfig.GROUP_NAME + ".zookeeper_hosts",
-                           "127.0.0.1:" + ZK_PORT);
-
+    private static Config getConfig(String zkRoot) {
+        scala.Option<String> None = scala.Option.apply(null);
+        Config config = MidoNodeConfigurator.bootstrapConfig(None);
+        config = config.withValue("zookeeper.root_key",
+            ConfigValueFactory.fromAnyRef(zkRoot));
+        config = config.withValue("zookeeper.use_new_stack",
+            ConfigValueFactory.fromAnyRef(true));
+        config = config.withValue("zookeeper.zookeeper_hosts",
+            ConfigValueFactory.fromAnyRef("127.0.0.1:" + ZK_PORT));
         return config;
     }
 
@@ -93,13 +94,14 @@ public abstract class ZookeeperTest {
     }
 
     private List<PrivateModule> getDepModules() {
+        Config conf = MidoTestConfigurator.forAgents(getConfig(zkRoot));
 
         List<PrivateModule> modules = new ArrayList<>();
         modules.addAll(
             Arrays.asList(
                 new SerializationModule(),
-                new ConfigProviderModule(getConfig(zkRoot)),
-                new MidonetBackendModule(), // the real one, yes
+                new MidolmanConfigModule(conf),
+                new MidonetBackendModule(conf), // the real one, yes
                 new ZookeeperConnectionModule(SessionUnawareConnectionWatcher.class),
                 new LegacyClusterModule())
         );
