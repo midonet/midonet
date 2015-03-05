@@ -20,57 +20,50 @@ import java.io.PrintWriter
 import java.sql.{Connection, DriverManager}
 import java.util.UUID
 import java.util.concurrent.TimeUnit
-
 import javax.sql.DataSource
-
-import scala.collection.JavaConverters._
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.util.{Random, Try}
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.JsonNodeFactory
-
 import org.apache.commons.configuration.HierarchicalConfiguration
 import org.apache.curator.framework.{CuratorFramework, CuratorFrameworkFactory}
 import org.apache.curator.retry.ExponentialBackoffRetry
 import org.apache.curator.test.TestingServer
 import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
-import org.scalatest.{BeforeAndAfter, BeforeAndAfterAll, FlatSpec, Matchers}
-import org.slf4j.LoggerFactory
-
 import org.midonet.brain.ClusterNode.Context
-import org.midonet.brain.services.c3po.translators.{PortManager, RouteManager, RouterTranslator}
 import org.midonet.brain.services.c3po.{C3POConfig, C3POMinion}
 import org.midonet.cluster.config.ZookeeperConfig
-import org.midonet.cluster.data.neutron.NeutronResourceType.{AgentMembership => AgentMembershipType, Config => ConfigType, Network => NetworkType, NoData, Port => PortType, Router => RouterType, SecurityGroup => SecurityGroupType, Subnet => SubnetType}
+import org.midonet.cluster.data.neutron.NeutronResourceType.{AgentMembership => AgentMembershipType, Config => ConfigType, Network => NetworkType, NoData, Port => PortType, SecurityGroup => SecurityGroupType, Subnet => SubnetType}
 import org.midonet.cluster.data.neutron.TaskType._
 import org.midonet.cluster.data.neutron.{NeutronResourceType, TaskType}
 import org.midonet.cluster.data.storage.{ObjectReferencedException, Storage}
-import org.midonet.cluster.models.{Commons, C3PO}
 import org.midonet.cluster.models.Commons.{EtherType, Protocol, RuleDirection}
 import org.midonet.cluster.models.Neutron.NeutronConfig.TunnelProtocol
 import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner
 import org.midonet.cluster.models.Neutron.SecurityGroup
-import org.midonet.cluster.models.Topology.Route.NextHop
 import org.midonet.cluster.models.Topology._
+import org.midonet.cluster.models.{C3PO, Commons}
 import org.midonet.cluster.storage.ZoomProvider
 import org.midonet.cluster.util.UUIDUtil._
-import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil, UUIDUtil}
+import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil}
 import org.midonet.config.ConfigProvider
 import org.midonet.packets.{IPSubnet, IPv4Subnet, UDP}
 import org.midonet.util.MidonetEventually
 import org.midonet.util.concurrent.toFutureOps
+import org.scalatest.junit.JUnitRunner
+import org.scalatest.{BeforeAndAfter, BeforeAndAfterAll, FlatSpec, Matchers}
+import org.slf4j.LoggerFactory
 
-// TODO: Break this up into subclasses for different Neutron resources.
-/** Tests the service that synces the Neutron DB into Midonet's backend. */
-@RunWith(classOf[JUnitRunner])
-class C3POMinionTest extends FlatSpec with BeforeAndAfter
-                                      with BeforeAndAfterAll
-                                      with Matchers
-                                      with MidonetEventually {
+import scala.collection.JavaConverters._
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.util.{Random, Try}
 
-    private val log = LoggerFactory.getLogger(this.getClass)
+/** Tests the service that syncs the Neutron DB into Midonet's backend. */
+class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
+                                          with BeforeAndAfterAll
+                                          with Matchers
+                                          with MidonetEventually {
+
+    protected val log = LoggerFactory.getLogger(this.getClass)
 
     private val ZK_PORT = 50000 + Random.nextInt(15000)
     private val ZK_HOST = s"127.0.0.1:$ZK_PORT"
@@ -94,33 +87,49 @@ class C3POMinionTest extends FlatSpec with BeforeAndAfter
 
     private val c3poCfg = new C3POConfig {
         override def periodMs: Long = 100
+
         override def delayMs: Long = 0
+
         override def isEnabled: Boolean = true
+
         override def minionClass: String = classOf[C3PO].getName
+
         override def numThreads: Int = 1
+
         override def connectionString: String = DB_CONNECT_STR
+
         override def user: String = ???
+
         override def password: String = ???
+
         override def jdbcDriver: String = ???
     }
 
     // Data sources
     private val zk: TestingServer = new TestingServer(ZK_PORT)
 
-    private val nodeFactory = new JsonNodeFactory(true)
+    protected val nodeFactory = new JsonNodeFactory(true)
 
     // Adapt the DriverManager interface to DataSource interface.
     // SQLite doesn't seem to provide JDBC 2.0 API.
     private val dataSrc = new DataSource() {
         override def getConnection() =
-            DriverManager.getConnection (DB_CONNECT_STR)
+            DriverManager.getConnection(DB_CONNECT_STR)
+
         override def getConnection(username: String, password: String) = null
+
         override def getLoginTimeout = -1
+
         override def getLogWriter = null
+
         override def setLoginTimeout(seconds: Int) {}
+
         override def setLogWriter(out: PrintWriter) {}
+
         override def getParentLogger = null
+
         override def isWrapperFor(clazz: Class[_]) = false
+
         override def unwrap[T](x: Class[T]): T = null.asInstanceOf[T]
     }
 
@@ -132,7 +141,7 @@ class C3POMinionTest extends FlatSpec with BeforeAndAfter
     // DATA FIXTURES
     // ---------------------
 
-    private def executeSqlStmts(sqls: String*) {
+    protected def executeSqlStmts(sqls: String*) {
         var c: Connection = null
         try {
             c = eventually(dataSrc.getConnection())
@@ -151,7 +160,7 @@ class C3POMinionTest extends FlatSpec with BeforeAndAfter
         log.info("Created the midonet_tasks table.")
     }
 
-    def emptyTaskTableAndSendFlushTask() = {
+    protected def emptyTaskTableAndSendFlushTask() = {
         executeSqlStmts(EMPTY_TASK_TABLE)
         log.info("Emptied the task table.")
 
@@ -161,15 +170,16 @@ class C3POMinionTest extends FlatSpec with BeforeAndAfter
         log.info("Inserted a flush task.")
     }
 
-    private def insertTaskSql(
-            id: Int, taskType: TaskType, dataType: NeutronResourceType[_],
-            json: String, resourceId: UUID, txnId: String) : String = {
+    protected def insertTaskSql(id: Int, taskType: TaskType,
+                                dataType: NeutronResourceType[_],
+                                json: String, resourceId: UUID,
+                                txnId: String): String = {
         val taskTypeStr = if (taskType != null) s"'${taskType.id}'"
-                          else "NULL"
+        else "NULL"
         val dataTypeStr = if (dataType != null) s"'${dataType.id}'"
-                          else "NULL"
+        else "NULL"
         val rsrcIdStr = if (resourceId != null) s"'$resourceId'"
-                        else "NULL"
+        else "NULL"
 
         "INSERT INTO midonet_tasks values(" +
         s"$id, $taskTypeStr, $dataTypeStr, '$json', $rsrcIdStr, '$txnId', " +
@@ -177,7 +187,7 @@ class C3POMinionTest extends FlatSpec with BeforeAndAfter
     }
 
     private var curator: CuratorFramework = _
-    private var storage: Storage = _
+    protected var storage: Storage = _
     private var c3po: C3POMinion = _
 
     // ---------------------
@@ -188,7 +198,7 @@ class C3POMinionTest extends FlatSpec with BeforeAndAfter
         val conf = new HierarchicalConfiguration
         conf.setProperty("zookeeper.midolman_root_key", "/test")
         ConfigProvider.providerForIniConfig(conf)
-            .getConfig(classOf[ZookeeperConfig])
+        .getConfig(classOf[ZookeeperConfig])
     }
 
     override protected def beforeAll() {
@@ -214,7 +224,7 @@ class C3POMinionTest extends FlatSpec with BeforeAndAfter
                 log.error("Failing setting up environment", e)
                 cleanup()
         }
-   }
+    }
 
     before {
         // Empties the task table and flush the topology before each test run.
@@ -239,20 +249,20 @@ class C3POMinionTest extends FlatSpec with BeforeAndAfter
         Try(curator.close()).getOrElse(log.error("Failed stopping curator"))
         Try(zk.stop()).getOrElse(log.error("Failed stopping zk"))
         Try(if (dummyConnection != null) dummyConnection.close())
-            .getOrElse(log.error("Failed stopping the keep alive DB cnxn"))
+        .getOrElse(log.error("Failed stopping the keep alive DB cnxn"))
     }
 
     case class IPAlloc(ipAddress: String, subnetId: String)
 
-    private def portJson(name: String, id: UUID,
-                         networkId: UUID,
-                         adminStateUp: Boolean = true,
-                         mac_address: String = null,
-                         fixedIps: List[IPAlloc] = null,
-                         deviceId: UUID = null,
-                         deviceOwner: DeviceOwner = null,
-                         tenantId: String = null,
-                         securityGroups: List[UUID] = null): JsonNode = {
+    protected def portJson(name: String, id: UUID,
+                           networkId: UUID,
+                           adminStateUp: Boolean = true,
+                           mac_address: String = null,
+                           fixedIps: List[IPAlloc] = null,
+                           deviceId: UUID = null,
+                           deviceOwner: DeviceOwner = null,
+                           tenantId: String = null,
+                           securityGroups: List[UUID] = null): JsonNode = {
         val p = nodeFactory.objectNode
         p.put("name", name)
         p.put("id", id.toString)
@@ -278,16 +288,10 @@ class C3POMinionTest extends FlatSpec with BeforeAndAfter
         p
     }
 
-    private def ipAllocJson(ipAddr: String, subnetId: UUID): JsonNode = {
-        nodeFactory.objectNode
-                   .put("ip_address", ipAddr)
-                   .put("subnet_id", subnetId.toString)
-    }
-
-    private def sgJson(name: String, id: UUID,
-                       desc: String = null,
-                       tenantId: String = null,
-                       rules: List[JsonNode]): JsonNode = {
+    protected def sgJson(name: String, id: UUID,
+                         desc: String = null,
+                         tenantId: String = null,
+                         rules: List[JsonNode]): JsonNode = {
         val sg = nodeFactory.objectNode
         sg.put("name", name)
         sg.put("id", id.toString)
@@ -298,13 +302,13 @@ class C3POMinionTest extends FlatSpec with BeforeAndAfter
         sg
     }
 
-    private def ruleJson(id: UUID, sgId: UUID,
-                         direction: RuleDirection = RuleDirection.INGRESS,
-                         etherType: EtherType = EtherType.IPV4,
-                         protocol: Protocol = Protocol.TCP,
-                         portRange: Range = null,
-                         remoteSgId: UUID = null,
-                         remoteIpPrefix: IPSubnet[_] = null): JsonNode = {
+    protected def ruleJson(id: UUID, sgId: UUID,
+                           direction: RuleDirection = RuleDirection.INGRESS,
+                           etherType: EtherType = EtherType.IPV4,
+                           protocol: Protocol = Protocol.TCP,
+                           portRange: Range = null,
+                           remoteSgId: UUID = null,
+                           remoteIpPrefix: IPSubnet[_] = null): JsonNode = {
         val r = nodeFactory.objectNode
         r.put("id", id.toString)
         r.put("security_group_id", sgId.toString)
@@ -324,13 +328,13 @@ class C3POMinionTest extends FlatSpec with BeforeAndAfter
         r
     }
 
-    private def routerJson(name: String, id: UUID,
-                           adminStateUp: Boolean = true,
-                           status: String = null,
-                           tenantId: String = null,
-                           gwPortId: UUID = null,
-                           enableSnat: Boolean = false,
-                           extGwNetworkId: UUID = null): JsonNode = {
+    protected def routerJson(name: String, id: UUID,
+                             adminStateUp: Boolean = true,
+                             status: String = null,
+                             tenantId: String = null,
+                             gwPortId: UUID = null,
+                             enableSnat: Boolean = false,
+                             extGwNetworkId: UUID = null): JsonNode = {
         val r = nodeFactory.objectNode
         r.put("name", name)
         r.put("id", id.toString)
@@ -348,10 +352,10 @@ class C3POMinionTest extends FlatSpec with BeforeAndAfter
         r
     }
 
-    private def networkJson(id: UUID, tenantId: String, name: String = null,
-                            shared: Boolean = false,
-                            adminStateUp: Boolean = true,
-                            external: Boolean = false): JsonNode = {
+    protected def networkJson(id: UUID, tenantId: String, name: String = null,
+                              shared: Boolean = false,
+                              adminStateUp: Boolean = true,
+                              external: Boolean = false): JsonNode = {
         val n = nodeFactory.objectNode
         n.put("id", id.toString)
         n.put("tenant_id", tenantId)
@@ -361,25 +365,24 @@ class C3POMinionTest extends FlatSpec with BeforeAndAfter
         n
     }
 
-    private def configJson(id: UUID,
-                           tunnelProtocol: TunnelProtocol): JsonNode = {
+    protected def configJson(id: UUID,
+                             tunnelProtocol: TunnelProtocol): JsonNode = {
         val c = nodeFactory.objectNode
         c.put("id", id.toString)
         c.put("tunnel_protocol", tunnelProtocol.toString)
         c
     }
 
-    private def agentMembershipJson(id: UUID,
-                                    ipAddress: String): JsonNode = {
+    protected def agentMembershipJson(id: UUID, ipAddress: String): JsonNode = {
         val c = nodeFactory.objectNode
         c.put("id", id.toString)
         c.put("ip_address", ipAddress)
         c
     }
 
-    case class HostRoute(destination: String, nexthop: String)
+    protected case class HostRoute(destination: String, nextHop: String)
 
-    private def subnetJson(id: UUID, networkId: UUID, tenantId: String,
+    protected def subnetJson(id: UUID, networkId: UUID, tenantId: String,
                            name: String = null, cidr: String = null,
                            ipVersion: Int = 4, gatewayIp: String = null,
                            enableDhcp: Boolean = true,
@@ -405,13 +408,28 @@ class C3POMinionTest extends FlatSpec with BeforeAndAfter
             for (route <- hostRoutes) {
                 val r = nodeFactory.objectNode
                 r.put("destination", route.destination)
-                r.put("nexthop", route.nexthop)
+                r.put("nexthop", route.nextHop)
                 routes.add(r)
             }
         }
 
         s
     }
+
+    protected case class ChainPair(inChain: Chain, outChain: Chain)
+    protected def getChains(inChainId: Commons.UUID,
+                            outChainId: Commons.UUID): ChainPair = {
+        val fs = storage.getAll(classOf[Chain], List(inChainId, outChainId))
+        val chains = fs.map(_.await())
+        ChainPair(chains(0), chains(1))
+    }
+
+    protected def getChains(ipg: IpAddrGroup): ChainPair =
+        getChains(ipg.getInboundChainId, ipg.getOutboundChainId)
+}
+
+@RunWith(classOf[JUnitRunner])
+class C3POMinionTest extends C3POMinionTestBase {
 
     "C3PO" should "poll DB and update ZK via C3POStorageMgr" in {
         val network1Uuid = UUID.randomUUID()
@@ -638,209 +656,6 @@ class C3POMinionTest extends FlatSpec with BeforeAndAfter
         }
     }
 
-    it should "handle router CRUD" in {
-        val r1Id = UUID.randomUUID()
-        val r1Json = routerJson("router1", r1Id)
-        executeSqlStmts(insertTaskSql(2, Create, RouterType,
-                                      r1Json.toString, r1Id, "tx1"))
-
-        val r1 = eventually(storage.get(classOf[Router], r1Id).await())
-        UUIDUtil.fromProto(r1.getId) shouldBe r1Id
-        r1.getName shouldBe "router1"
-        r1.getAdminStateUp shouldBe true
-        r1.getInboundFilterId should not be null
-        r1.getOutboundFilterId should not be null
-
-        val r1Chains = getChains(r1.getInboundFilterId, r1.getOutboundFilterId)
-        r1Chains.inChain.getRuleIdsCount shouldBe 0
-        r1Chains.outChain.getRuleIdsCount shouldBe 0
-
-        val r2Id = UUID.randomUUID()
-        val r2Json = routerJson("router2", r2Id, adminStateUp = false)
-        val r1JsonV2 = routerJson("router1", r1Id, tenantId = "new-tenant")
-        executeSqlStmts(insertTaskSql(3, Create, RouterType,
-                                      r2Json.toString, r2Id, "tx2"),
-                        insertTaskSql(4, Update, RouterType,
-                                      r1JsonV2.toString, r1Id, "tx2"))
-
-        val r2 = eventually(storage.get(classOf[Router], r2Id).await())
-        r2.getName shouldBe "router2"
-
-        eventually {
-            val r1v2 = storage.get(classOf[Router], r1Id).await()
-            r1v2.getTenantId shouldBe "new-tenant"
-
-            // Chains should be preserved.
-            r1v2.getInboundFilterId shouldBe r1.getInboundFilterId
-            r1v2.getOutboundFilterId shouldBe r1.getOutboundFilterId
-        }
-
-        executeSqlStmts(
-            insertTaskSql(5, Delete, RouterType, null, r1Id, "tx3"),
-            insertTaskSql(6, Delete, RouterType, null, r2Id, "tx3"))
-
-        eventually {
-            storage.getAll(classOf[Router]).await().size shouldBe 0
-        }
-    }
-
-    it should "handle router gateway CRUD" in {
-        val tenant = "tenant1"
-
-        val nwId = UUID.randomUUID()
-        val nwJson = networkJson(nwId, tenant, name = "tenant-network",
-                                 external = true)
-
-        val snId = UUID.randomUUID()
-        val snJson = subnetJson(snId, nwId, tenant,
-                                cidr = "10.0.1.0/24", gatewayIp = "10.0.1.1")
-
-        val gwIpAddr = "10.0.0.1"
-        val prGwPortId = UUID.randomUUID()
-        val gwIpAlloc = IPAlloc(gwIpAddr, snId.toString)
-        val prGwPortJson = portJson("pr-tr-gw-port", prGwPortId, nwId,
-                                    fixedIps = List(gwIpAlloc),
-                                    deviceId = prGwPortId,
-                                    deviceOwner = DeviceOwner.ROUTER_GATEWAY)
-
-        val trId = UUID.randomUUID()
-        val trJson = routerJson("tenant-router", trId, gwPortId = prGwPortId)
-
-        val prId = RouterTranslator.providerRouterId
-
-        executeSqlStmts(insertTaskSql(2, Create, NetworkType,
-                                      nwJson.toString, nwId, "tx1"),
-                        insertTaskSql(3, Create, SubnetType,
-                                      snJson.toString, snId, "tx2"),
-                        insertTaskSql(4, Create, PortType,
-                                      prGwPortJson.toString, prGwPortId, "tx3"),
-                        insertTaskSql(5, Create, RouterType,
-                                      trJson.toString, trId, "tx4"))
-
-        val tr = eventually(storage.get(classOf[Router], trId).await())
-        tr.getPortIdsCount shouldBe 1
-        tr.getRouteIdsCount shouldBe 0
-
-        validateGateway(tr, prGwPortId, gwIpAddr)
-
-        // Rename router and make sure everything is preserved.
-        val trV2Json = routerJson("tenant-router-v2", trId).toString
-        executeSqlStmts(insertTaskSql(6, Update, RouterType,
-                                      trV2Json, trId, "tx5"))
-        val trV2 = eventually {
-            val trRenamed = storage.get(classOf[Router], trId).await()
-            trRenamed.getName shouldBe "tenant-router-v2"
-            trRenamed
-        }
-        tr.getPortIdsCount shouldBe 1
-        validateGateway(trV2, prGwPortId, gwIpAddr)
-
-        // Delete Gateway.
-        executeSqlStmts(insertTaskSql(7, Delete, PortType,
-                                      null, prGwPortId, "tx6"))
-        eventually {
-            storage.exists(classOf[Port], prGwPortId).await() shouldBe false
-        }
-
-        // Should delete tenant gateway port as well.
-        val trGwPortId = RouterTranslator.tenantGwPortId(prGwPortId)
-        storage.exists(classOf[Port], trGwPortId).await() shouldBe false
-
-        val List(prV3, trV3) =
-            storage.getAll(classOf[Router], List(prId, trId)).map(_.await())
-        prV3.getPortIdsCount shouldBe 0
-        trV3.getPortIdsCount shouldBe 0
-
-        // All routes should be deleted.
-        storage.getAll(classOf[Route]).await() shouldBe empty
-
-        // Re-add gateway.
-        executeSqlStmts(insertTaskSql(8, Create, PortType,
-                                      prGwPortJson.toString, prGwPortId, "tx7"),
-                        insertTaskSql(9, Update, RouterType,
-                                      trJson.toString, trId, "tx8"))
-        val trV4 = eventually {
-            val trV4 = storage.get(classOf[Router], trId).await()
-            trV4.getPortIdsCount shouldBe 1
-            trV4
-        }
-
-        validateGateway(trV4, prGwPortId, gwIpAddr)
-
-        // Delete the gateway and then router.
-        executeSqlStmts(insertTaskSql(10, Delete, PortType,
-                                      null, prGwPortId, "tx9"),
-                        insertTaskSql(11, Delete, RouterType,
-                                      null, trId, "tx10"))
-
-        eventually {
-            storage.exists(classOf[Router], trId).await() shouldBe false
-        }
-        storage.getAll(classOf[Route]).await() shouldBe empty
-        val prV5 = storage.get(classOf[Router], prId).await()
-        prV5.getPortIdsCount shouldBe 0
-    }
-    
-    def validateGateway(tr: Router, prGwPortId: UUID,
-                        gwIpAddr: String): Unit = {
-        // Tenant router should have gateway port.
-        val trGwPortId = RouterTranslator.tenantGwPortId(prGwPortId)
-        tr.getPortIdsList.asScala should contain(trGwPortId)
-
-        // Get gateway ports on tenant and provider routers.
-        val portFs = storage.getAll(classOf[Port], List(prGwPortId, trGwPortId))
-
-        // Get routes.
-        val prLocalRtId = RouteManager.localRouteId(prGwPortId)
-        val prGwRtId = RouteManager.gatewayRouteId(prGwPortId)
-        val trLocalRtId = RouteManager.localRouteId(trGwPortId)
-        val trGwRtId = RouteManager.gatewayRouteId(trGwPortId)
-
-        val List(prLocalRt, prGwRt, trLocalRt, trGwRt) =
-            List(prLocalRtId, prGwRtId, trLocalRtId, trGwRtId)
-                .map(storage.get(classOf[Route], _)).map(_.await())
-
-        val List(prGwPort, trGwPort) = portFs.map(_.await())
-
-        // Check ports have correct router and route IDs.
-        prGwPort.getRouterId shouldBe RouterTranslator.providerRouterId
-        prGwPort.getRouteIdsList.asScala should
-            contain only (prGwRtId, prLocalRtId)
-        trGwPort.getRouterId shouldBe tr.getId
-        trGwPort.getRouteIdsList.asScala should
-            contain only (trGwRtId, trLocalRtId)
-
-        // Ports should be linked.
-        prGwPort.getPeerId shouldBe trGwPortId
-        trGwPort.getPeerId shouldBe prGwPort.getId
-
-        prGwPort.getPortAddress shouldBe PortManager.LL_GW_IP_1
-        trGwPort.getPortAddress.getAddress shouldBe gwIpAddr
-
-        validateLocalRoute(prLocalRt, prGwPort)
-        validateLocalRoute(trLocalRt, trGwPort)
-
-        prGwRt.getNextHop shouldBe NextHop.PORT
-        prGwRt.getNextHopPortId shouldBe prGwPort.getId
-        prGwRt.getDstSubnet shouldBe
-            IPSubnetUtil.fromAddr(trGwPort.getPortAddress)
-        prGwRt.getSrcSubnet shouldBe IPSubnetUtil.univSubnet4
-
-        trGwRt.getNextHop shouldBe NextHop.PORT
-        trGwRt.getNextHopPortId shouldBe trGwPort.getId
-        trGwRt.getDstSubnet shouldBe IPSubnetUtil.univSubnet4
-        trGwRt.getSrcSubnet shouldBe IPSubnetUtil.univSubnet4
-    }
-
-    private def validateLocalRoute(rt: Route, nextHopPort: Port): Unit = {
-        rt.getNextHop shouldBe NextHop.LOCAL
-        rt.getNextHopPortId shouldBe nextHopPort.getId
-        rt.getDstSubnet shouldBe
-            IPSubnetUtil.fromAddr(nextHopPort.getPortAddress)
-        rt.getSrcSubnet shouldBe IPSubnetUtil.univSubnet4
-        rt.getWeight shouldBe RouteManager.DEFAULT_WEIGHT
-    }
-
     it should "handle Subnet CRUD" in {
         val nId = UUID.randomUUID()
         val nJson = networkJson(nId, "net tenant")
@@ -968,16 +783,4 @@ class C3POMinionTest extends FlatSpec with BeforeAndAfter
         val hostNoTz = storage.get(classOf[Host], hostId).await()
         hostNoTz.getTunnelZoneIdsCount shouldBe 0
     }
-
-    case class ChainPair(inChain: Chain, outChain: Chain)
-    private def getChains(inChainId: Commons.UUID,
-                          outChainId: Commons.UUID): ChainPair = {
-        val fs = storage.getAll(classOf[Chain], List(inChainId, outChainId))
-        val chains = fs.map(_.await())
-        ChainPair(chains(0), chains(1))
-    }
-
-    private def getChains(ipg: IpAddrGroup): ChainPair =
-        getChains(ipg.getInboundChainId, ipg.getOutboundChainId)
-
 }
