@@ -41,7 +41,7 @@ object PacketContext {
     val traceLog =
         Logger(LoggerFactory.getLogger("org.midonet.packets.trace.packet-processor"))
 
-    val DEFAULT_IDLE_EXPIRATION_MILLIS = 5 * 1000
+    val DEFAULT_EXPIRATION_MILLIS = 5 * 1000
 }
 
 /**
@@ -56,8 +56,7 @@ trait FlowContext extends Clearable { this: PacketContext =>
     // This Set stores the tags by which the flow may be indexed.
     // The index can be used to remove flows associated with the given tag.
     val flowTags = new HashSet[FlowTag]()
-    var hardExpirationMillis = 0
-    var idleExpirationMillis = PacketContext.DEFAULT_IDLE_EXPIRATION_MILLIS
+    var expiration = PacketContext.DEFAULT_EXPIRATION_MILLIS
 
     def isDrop: Boolean = flowActions.isEmpty
 
@@ -65,8 +64,7 @@ trait FlowContext extends Clearable { this: PacketContext =>
         virtualFlowActions.clear()
         flowActions.clear()
         flowTags.clear()
-        hardExpirationMillis = 0
-        idleExpirationMillis = PacketContext.DEFAULT_IDLE_EXPIRATION_MILLIS
+        expiration = PacketContext.DEFAULT_EXPIRATION_MILLIS
         super.clear()
     }
 
