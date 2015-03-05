@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_75eec0b5",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/ZoomConvert.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 123,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-03-05T06:05:07Z",
+      "side": 1,
+      "message": "Copy/paste error. Here\u0027s you\u0027re building the one-of field, not extracting information from it.",
+      "range": {
+        "startLine": 122,
+        "startChar": 8,
+        "endLine": 123,
+        "endChar": 28
+      },
+      "revId": "6e6d13a6e3e73d92eba6bb35c072bd1c76768810",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_15378c4f",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/ZoomConvert.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 144,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-03-05T06:05:07Z",
+      "side": 1,
+      "message": "Did you forget to remove this from the comment, or forget to implement it here?",
+      "range": {
+        "startLine": 144,
+        "startChar": 39,
+        "endLine": 144,
+        "endChar": 53
+      },
+      "revId": "6e6d13a6e3e73d92eba6bb35c072bd1c76768810",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
