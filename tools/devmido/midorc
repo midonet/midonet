@@ -44,3 +44,8 @@ export MIDO_API_URL=$API_URI
 export MIDO_USER=${MIDO_USER:-admin}
 export MIDO_PROJECT_ID=${MIDO_PROJECT_ID:-admin}
 export MIDO_PASSWORD=${MIDO_PASSWORD:-gogomid0}
+
+# Skip logging setup by setting this to False.  This is useful if you are
+# running mido.sh as part of anther script and the logging has already been
+# configured
+CONFIGURE_LOGGING=${CONFIGURE_LOGGING:-True}
