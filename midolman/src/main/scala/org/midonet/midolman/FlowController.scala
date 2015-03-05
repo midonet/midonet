@@ -87,6 +87,10 @@ object FlowController extends Referenceable {
 
         def reset(opId: Byte, managedFlow: ManagedFlow, retries: Byte): Unit = {
             this.opId = opId
+            reset(managedFlow, retries)
+        }
+
+        def reset(managedFlow: ManagedFlow, retries: Byte): Unit = {
             this.managedFlow = managedFlow
             this.retries = retries
             managedFlow.ref()
@@ -171,12 +175,11 @@ class FlowController extends Actor with ActorLogWithoutPath
         meters = new MeterRegistry(midolmanConfig.getDatapathMaxFlowCount)
         Metering.registerAsMXBean(meters)
         val maxDpFlows = (midolmanConfig.getDatapathMaxFlowCount * 1.1).toInt
-        val idleFlowToleranceInterval = midolmanConfig.getIdleFlowToleranceInterval
         flowExpirationCheckInterval = Duration(midolmanConfig.getFlowExpirationInterval,
             TimeUnit.MILLISECONDS)
 
         flowManagerHelper = new FlowManagerInfoImpl()
-        flowManager = new FlowManager(flowManagerHelper, maxDpFlows, idleFlowToleranceInterval)
+        flowManager = new FlowManager(flowManagerHelper, maxDpFlows)
 
         managedFlowPool = new ArrayObjectPool(maxDpFlows, new ManagedFlow(_))
 
@@ -261,15 +264,9 @@ class FlowController extends Actor with ActorLogWithoutPath
         var req: FlowOperation = null
         while ({ req = completedFlowOperations.poll(); req } ne null) {
             if (req.isFailed) {
-                if (req.opId == FlowOperation.DELETE)
-                    flowDeleteFailed(req)
-                else
-                    flowRetrievalFailed(req)
+                flowDeleteFailed(req)
             } else {
-                if (req.opId == FlowOperation.DELETE)
-                    flowDeleteSucceeded(req)
-                else
-                    flowRetrievalSucceeded(req)
+                flowDeleteSucceeded(req)
             }
         }
         retryFailedFlowOperations()
@@ -284,26 +281,6 @@ class FlowController extends Actor with ActorLogWithoutPath
             i += 1
         }
         flowRemoveCommandsToRetry.clear()
-    }
-
-    private def flowRetrievalFailed(req: FlowOperation): Unit = {
-        req.netlinkErrorCode match {
-            case ErrorCode.ENOENT =>
-                meters.forgetFlow(req.managedFlow.flowMatch)
-            case other =>
-                log.error("Got exception when trying to retrieve " +
-                          s"${req.managedFlow}", req.failure)
-        }
-        req.clear()
-    }
-
-    private def flowRetrievalSucceeded(req: FlowOperation): Unit = {
-        log.debug(s"Retrieved stats ${req.flowMetadata} for ${req.managedFlow}")
-        context.system.eventStream.publish(FlowUpdateCompleted)
-        val managedFlow = req.managedFlow
-        val lastUsed = req.flowMetadata.getLastUsedTime
-        req.clear() // Clear now so an eventual delete can already re-use this object
-        flowManager.retrievedFlow(managedFlow, lastUsed)
     }
 
     private def flowDeleteFailed(req: FlowOperation): Unit = {
@@ -346,19 +323,19 @@ class FlowController extends Actor with ActorLogWithoutPath
 
         override def shouldWakeUp() = completedFlowOperations.size > 0
 
-        private def takeFlowOperation(flow: ManagedFlow, op: Byte): FlowOperation = {
+        private def takeFlowOperation(flow: ManagedFlow): FlowOperation = {
             var flowOp: FlowOperation = null
             while ({ flowOp = pooledFlowOperations.take; flowOp } eq null) {
                 processCompletedFlowOperations()
                 if (pooledFlowOperations.available == 0)
                     park()
             }
-            flowOp.reset(op, flow, retries = 10)
+            flowOp.reset(flow, retries = 10)
             flowOp
         }
 
         def removeFlow(flow: ManagedFlow): Unit = {
-            val flowOp = takeFlowOperation(flow, FlowOperation.DELETE)
+            val flowOp = takeFlowOperation(flow)
             val fmatch = flow.flowMatch
             // Spin while we try to eject the flow. At this point, the only
             // reason it can fail is if the simulation tags are not valid and
@@ -370,11 +347,6 @@ class FlowController extends Actor with ActorLogWithoutPath
                 processCompletedFlowOperations()
                 Thread.`yield`()
             }
-        }
-
-        def getFlow(flow: ManagedFlow): Unit = {
-            val flowOp = takeFlowOperation(flow, FlowOperation.GET)
-            flowProcessor.tryGet(datapathId, flow.flowMatch, flowOp)
         }
 
         def removeWildcardFlow(flow: ManagedFlow): Unit = {
