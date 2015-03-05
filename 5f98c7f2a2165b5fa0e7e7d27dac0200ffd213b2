@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_c74b8785",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/TopologyBuilder.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 221,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-05T12:10:06Z",
+      "side": 1,
+      "message": "As I commented on the chain mapper patch, I think these methods here should be simplified. In my opinion the TopologyBuilder should provide a set of simple createDevice methods that take a set of optional arguments, and return a device proto of the given type eliminating as much boilerplate as possible. The only place where we would need to test all fields would be a conversion test, and perhaps creating test devices for those tests should be done there, not here.\n\nIn this particular case, I believe the following set of methods should suffice isn\u0027t it?\n\n  createLiteralRule\n  createJumpRule\n  createForwardNatRule\n  createReverseNatRule\n  createChain\n\nAnd I also think we should add the corresponding matchers in TopologyMatchers",
+      "range": {
+        "startLine": 221,
+        "startChar": 4,
+        "endLine": 221,
+        "endChar": 69
+      },
+      "revId": "5f98c7f2a2165b5fa0e7e7d27dac0200ffd213b2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
