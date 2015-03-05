@@ -136,32 +136,10 @@ class FlowControllerTest extends MidolmanSpec {
             FlowInvalidation.isTagSetStillValid(pktCtx) should be (false)
         }
 
-        scenario("Check idle expired flows are removed from the flow " +
-                 "controller") {
-            Given("A wildcard flow")
-            val flow = new TestableFlow(5, flowTimeout)
-
-            val state = new MetricsSnapshot()
-
-            When("The flow is added to the flow controller")
-            flow.add()
-            dpConn().flowsCreate(null, new Flow(flow.flowMatch))
-
-            val mwcFlow = testFlowAdded(flow, state)
-
-            When("The flow has expired")
-            expireFlowIdle(mwcFlow)
-
-            And("The flow controller checks the flow expiration")
-            FlowController ! FlowController.CheckFlowExpiration_
-
-            testFlowRemoved(flow, mwcFlow, state)
-        }
-
         scenario("Check hard expired flows are removed from the flow " +
                  "controller") {
             Given("A wildcard flow")
-            val flow = new TestableFlow(6, flowTimeout, TestableFlowHardExpiration)
+            val flow = new TestableFlow(6, flowTimeout)
 
             val state = new MetricsSnapshot()
 
@@ -289,17 +267,7 @@ class FlowControllerTest extends MidolmanSpec {
         mwcFlow.setCreationTimeMillis(System.currentTimeMillis() - flowTimeout)
     }
 
-    private def expireFlowIdle(mwcFlow: ManagedFlow) {
-        mwcFlow.setLastUsedTimeMillis(System.currentTimeMillis() - flowTimeout)
-    }
-
-    sealed abstract class TestableFlowType
-    case object TestableFlowIdleExpiration extends TestableFlowType
-    case object TestableFlowHardExpiration extends TestableFlowType
-
-    sealed class TestableFlow(key: Int,
-                              expirationMillis: Int = -1,
-                              flowType: TestableFlowType = TestableFlowIdleExpiration) {
+    sealed class TestableFlow(key: Int, expirationMillis: Int = -1) {
         private var flowRemoved = false
         private val tunnelId = (key.toLong << 32) |
                 (Random.nextInt & 0xFFFFFFFFL)
@@ -328,12 +296,7 @@ class FlowControllerTest extends MidolmanSpec {
             pktCtx.lastInvalidation = FlowInvalidation.lastInvalidationEvent
             tags foreach pktCtx.addFlowTag
             callbacks foreach pktCtx.addFlowRemovedCallback
-            flowType match {
-                case TestableFlowIdleExpiration =>
-                    pktCtx.idleExpirationMillis = expirationMillis
-                case TestableFlowHardExpiration =>
-                    pktCtx.hardExpirationMillis = expirationMillis
-            }
+            pktCtx.expiration = expirationMillis
             pktCtx.flowActions.add(FlowActions.output(4))
             FlowController ! pktCtx
         }
