@@ -15,6 +15,7 @@
  */
 package org.midonet.midolman.config;
 
+import org.midonet.config.ConfigBool;
 import org.midonet.config.ConfigGroup;
 import org.midonet.config.ConfigString;
 
@@ -33,7 +34,14 @@ public interface ClusterConfig {
      * @return mysql connection string
      */
     @ConfigString(key = "tasks_db_connection",
-        defaultValue = "mysql://localhost/neutron?user=root&password=gogomid0")
+        defaultValue = "mysql://localhost/neutron?user=root&password=midonet")
     public String getTasksDbConn();
+
+    /**
+     * Get the enable value signifying whether or not the cluster deployment
+     * should be running.
+     */
+    @ConfigBool(key = "enabled", defaultValue = false)
+    public boolean getClusterEnabled();
 
 }

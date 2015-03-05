@@ -155,3 +155,12 @@ vtep_incoming_burst_capacity = 128
 # Health monitor is disabled by default. Please change the following value to
 # true to activate it.
 health_monitor_enable = false
+
+[cluster]
+# If the cluster is not enabled, then mm-ctl will try to communicate via
+# the API server. Otherwise, it will use the cluster database.
+enabled = false
+
+# This is the connection string used to connect to the cluster's database
+# where the task entries are located.
+tasks_db_connection = mysql://localhost/neutron?user=root&password=midonet

@@ -185,20 +185,22 @@ public class MmCtl {
             return MM_CTL_RET_CODE.HOST_ID_NOT_IN_FILE.getResult(e);
         }
 
-        try {
-            dataClient.hostsAddVrnPortMapping(hostId, portId, deviceName);
-        } catch (StateAccessException e) {
-            return MM_CTL_RET_CODE.STATE_ERROR.getResult(e);
-        } catch (Exception e) {
-            return MM_CTL_RET_CODE.UNKNOWN_ERROR.getResult(e);
+        if (midolmanConfig.getClusterEnabled()) {
+            createBindEntries(portId, deviceName, hostId);
+        } else {
+            try {
+                dataClient.hostsAddVrnPortMapping(hostId, portId, deviceName);
+            } catch (StateAccessException e) {
+                return MM_CTL_RET_CODE.STATE_ERROR.getResult(e);
+            } catch (Exception e) {
+                return MM_CTL_RET_CODE.UNKNOWN_ERROR.getResult(e);
+            }
         }
-
-        createBindEntries(portId, deviceName, hostId);
 
         return MM_CTL_RET_CODE.SUCCESS.getResult();
     }
 
-    private String getPortBindingData(UUID portId, UUID bindingId,
+    private String getPortBindingData(UUID bindingId, UUID portId,
                                       String deviceName, UUID hostId) {
         JsonNodeFactory jnf = JsonNodeFactory.instance;
         ObjectNode json = jnf.objectNode();
@@ -352,15 +354,17 @@ public class MmCtl {
             return MM_CTL_RET_CODE.HOST_ID_NOT_IN_FILE.getResult(e);
         }
 
-        try {
-            dataClient.hostsDelVrnPortMapping(hostId, portId);
-        } catch (StateAccessException e) {
-            return MM_CTL_RET_CODE.STATE_ERROR.getResult(e);
-        } catch (Exception e) {
-            return MM_CTL_RET_CODE.UNKNOWN_ERROR.getResult(e);
+        if (midolmanConfig.getClusterEnabled()) {
+            removeBindEntries(portId, hostId);
+        } else {
+            try {
+                dataClient.hostsDelVrnPortMapping(hostId, portId);
+            } catch (StateAccessException e) {
+                return MM_CTL_RET_CODE.STATE_ERROR.getResult(e);
+            } catch (Exception e) {
+                return MM_CTL_RET_CODE.UNKNOWN_ERROR.getResult(e);
+            }
         }
-
-        removeBindEntries(portId, hostId);
 
         return MM_CTL_RET_CODE.SUCCESS.getResult();
     }
