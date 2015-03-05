@@ -16,13 +16,7 @@
 
 package org.midonet.sdn.flows;
 
-import org.midonet.odp.Flow;
-import org.midonet.odp.FlowMatch;
-import org.midonet.util.functors.Callback1;
-
 public interface FlowManagerHelper {
-
-    public void getFlow(ManagedFlow flow);
 
     public void removeFlow(ManagedFlow flow);
 

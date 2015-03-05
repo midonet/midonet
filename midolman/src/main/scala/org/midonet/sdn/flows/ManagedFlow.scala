@@ -41,13 +41,11 @@ final class ManagedFlow(override val pool: ObjectPool[ManagedFlow])
 
     val flowMatch = new FlowMatch()
     var hardExpirationMillis = 0
-    var idleExpirationMillis = 0
     var cbExecutor: CallbackExecutor = _
 
     def reset(pktCtx: PacketContext) = {
         this.flowMatch.reset(pktCtx.origMatch)
-        this.hardExpirationMillis = pktCtx.hardExpirationMillis
-        this.idleExpirationMillis = pktCtx.idleExpirationMillis
+        this.hardExpirationMillis = pktCtx.expiration
         this.cbExecutor = pktCtx.callbackExecutor
         this.tags.addAll(pktCtx.flowTags)
         this.callbacks.addAll(pktCtx.flowRemovedCallbacks)
@@ -84,7 +82,6 @@ final class ManagedFlow(override val pool: ObjectPool[ManagedFlow])
             ", creationTimeMillis=" + creationTimeMillis +
             ", lastUsedTimeMillis=" + lastUsedTimeMillis +
             ", hardExpirationMillis=" + hardExpirationMillis +
-            ", idleExpirationMillis=" + idleExpirationMillis +
             ", refs=" + currentRefCount +
             '}'
     }
