@@ -206,6 +206,443 @@
       "revId": "2e475893a2d60db7f80e087694f18bfb4b300017",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_47faf7bd",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/BridgeMapperTest.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-05T11:01:45Z",
+      "side": 1,
+      "message": "We should have one assert for when we expect notifications to happen on the current thread and another one for when it\u0027s supposed to happen on the vt thread.",
+      "range": {
+        "startLine": 90,
+        "startChar": 26,
+        "endLine": 91,
+        "endChar": 65
+      },
+      "revId": "2e475893a2d60db7f80e087694f18bfb4b300017",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_27d9bb83",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/BridgeMapperTest.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 169,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-05T11:01:45Z",
+      "side": 1,
+      "message": "name parameters here and below?",
+      "range": {
+        "startLine": 169,
+        "startChar": 45,
+        "endLine": 169,
+        "endChar": 49
+      },
+      "revId": "2e475893a2d60db7f80e087694f18bfb4b300017",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_a7092bdf",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/BridgeMapperTest.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 374,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-05T11:01:45Z",
+      "side": 1,
+      "message": "no?",
+      "range": {
+        "startLine": 374,
+        "startChar": 33,
+        "endLine": 374,
+        "endChar": 36
+      },
+      "revId": "2e475893a2d60db7f80e087694f18bfb4b300017",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_e72a032b",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/BridgeMapperTest.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 636,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-05T11:01:45Z",
+      "side": 1,
+      "message": "If you\u0027re expecting two updates below, this should be 2 right?",
+      "range": {
+        "startLine": 636,
+        "startChar": 31,
+        "endLine": 636,
+        "endChar": 32
+      },
+      "revId": "2e475893a2d60db7f80e087694f18bfb4b300017",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_67ed73ef",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/BridgeMapperTest.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 763,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-05T11:01:45Z",
+      "side": 1,
+      "message": "2?",
+      "range": {
+        "startLine": 763,
+        "startChar": 31,
+        "endLine": 763,
+        "endChar": 32
+      },
+      "revId": "2e475893a2d60db7f80e087694f18bfb4b300017",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_c7bb87e3",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/BridgeMapperTest.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 826,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-05T11:01:45Z",
+      "side": 1,
+      "message": "2?",
+      "range": {
+        "startLine": 826,
+        "startChar": 31,
+        "endLine": 826,
+        "endChar": 32
+      },
+      "revId": "2e475893a2d60db7f80e087694f18bfb4b300017",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_e7b843e7",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/BridgeMapperTest.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 889,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-05T11:01:45Z",
+      "side": 1,
+      "message": "2?",
+      "range": {
+        "startLine": 889,
+        "startChar": 31,
+        "endLine": 889,
+        "endChar": 32
+      },
+      "revId": "2e475893a2d60db7f80e087694f18bfb4b300017",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_87c98f7a",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/BridgeMapperTest.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 1088,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-05T11:01:45Z",
+      "side": 1,
+      "message": "2?",
+      "range": {
+        "startLine": 1088,
+        "startChar": 31,
+        "endLine": 1088,
+        "endChar": 32
+      },
+      "revId": "2e475893a2d60db7f80e087694f18bfb4b300017",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_07ad9f9c",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/BridgeMapperTest.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 1237,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-05T11:01:45Z",
+      "side": 1,
+      "message": "You are creating a peer router in multiple places, could this be put in a method?",
+      "range": {
+        "startLine": 1224,
+        "startChar": 12,
+        "endLine": 1237,
+        "endChar": 71
+      },
+      "revId": "2e475893a2d60db7f80e087694f18bfb4b300017",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_87a06fa0",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/BridgeMapperTest.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 1239,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-05T11:01:45Z",
+      "side": 1,
+      "message": "The multi is blocking right? If so, this is not needed.",
+      "range": {
+        "startLine": 1238,
+        "startChar": 12,
+        "endLine": 1239,
+        "endChar": 64
+      },
+      "revId": "2e475893a2d60db7f80e087694f18bfb4b300017",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_07847f0a",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/BridgeMapperTest.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 1309,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-05T11:01:45Z",
+      "side": 1,
+      "message": "2?",
+      "range": {
+        "startLine": 1309,
+        "startChar": 31,
+        "endLine": 1309,
+        "endChar": 32
+      },
+      "revId": "2e475893a2d60db7f80e087694f18bfb4b300017",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_c790a745",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/BridgeMapperTest.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 1485,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-05T11:01:45Z",
+      "side": 1,
+      "message": "needed?",
+      "range": {
+        "startLine": 1484,
+        "startChar": 13,
+        "endLine": 1485,
+        "endChar": 64
+      },
+      "revId": "2e475893a2d60db7f80e087694f18bfb4b300017",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_079bdf67",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/BridgeMapperTest.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 1551,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-05T11:01:45Z",
+      "side": 1,
+      "message": "needed?",
+      "range": {
+        "startLine": 1549,
+        "startChar": 12,
+        "endLine": 1551,
+        "endChar": 65
+      },
+      "revId": "2e475893a2d60db7f80e087694f18bfb4b300017",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_279ffb51",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/BridgeMapperTest.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 1586,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-05T11:01:45Z",
+      "side": 1,
+      "message": "Shouldn\u0027t we add a way to wait that the k/v was inserted into the map before doing this check? map.get..?",
+      "range": {
+        "startLine": 1586,
+        "startChar": 12,
+        "endLine": 1586,
+        "endChar": 38
+      },
+      "revId": "2e475893a2d60db7f80e087694f18bfb4b300017",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_67a9f37a",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/BridgeMapperTest.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 1599,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-05T11:01:45Z",
+      "side": 1,
+      "message": "same here",
+      "range": {
+        "startLine": 1599,
+        "startChar": 12,
+        "endLine": 1599,
+        "endChar": 38
+      },
+      "revId": "2e475893a2d60db7f80e087694f18bfb4b300017",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_c7b707d7",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/BridgeMapperTest.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 1613,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-05T11:01:45Z",
+      "side": 1,
+      "message": "same",
+      "range": {
+        "startLine": 1613,
+        "startChar": 12,
+        "endLine": 1613,
+        "endChar": 38
+      },
+      "revId": "2e475893a2d60db7f80e087694f18bfb4b300017",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_a7bacbbd",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/BridgeMapperTest.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 1629,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-05T11:01:45Z",
+      "side": 1,
+      "message": "same",
+      "range": {
+        "startLine": 1629,
+        "startChar": 12,
+        "endLine": 1629,
+        "endChar": 38
+      },
+      "revId": "2e475893a2d60db7f80e087694f18bfb4b300017",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_07b2bfe5",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/BridgeMapperTest.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 1661,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-05T11:01:45Z",
+      "side": 1,
+      "message": "needed?",
+      "range": {
+        "startLine": 1660,
+        "startChar": 12,
+        "endLine": 1661,
+        "endChar": 64
+      },
+      "revId": "2e475893a2d60db7f80e087694f18bfb4b300017",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_e7b4c3d2",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/BridgeMapperTest.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 1700,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-05T11:01:45Z",
+      "side": 1,
+      "message": "Maybe add a margin to this to make sure the bridge mapper has time to expire the mac entry.",
+      "range": {
+        "startLine": 1700,
+        "startChar": 25,
+        "endLine": 1700,
+        "endChar": 47
+      },
+      "revId": "2e475893a2d60db7f80e087694f18bfb4b300017",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
