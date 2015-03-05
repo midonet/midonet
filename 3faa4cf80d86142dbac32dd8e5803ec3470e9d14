@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_0a280633",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 215,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-05T13:57:23Z",
+      "side": 1,
+      "message": "I know I commented on this, but I don\u0027t think it\u0027s needed. However, since it\u0027s harmless I think we can remove it in a different patch if you don\u0027t have to submit again.",
+      "range": {
+        "startLine": 215,
+        "startChar": 34,
+        "endLine": 215,
+        "endChar": 60
+      },
+      "revId": "3faa4cf80d86142dbac32dd8e5803ec3470e9d14",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
