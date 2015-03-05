@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_555f4441",
+        "filename": "python-midonetclient/src/tests/test.proto",
+        "patchSetId": 5
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-03-05T08:38:51Z",
+      "side": 1,
+      "message": "white space",
+      "revId": "cc29f8ae854c346546575ba516a9ca5e24be5cd0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_355a8850",
+        "filename": "python-midonetclient/src/tests/test.proto",
+        "patchSetId": 5
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-03-05T08:38:51Z",
+      "side": 1,
+      "message": "ditto",
+      "revId": "cc29f8ae854c346546575ba516a9ca5e24be5cd0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_9559bc5c",
+        "filename": "python-midonetclient/src/tests/test_pb2.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-03-05T08:38:51Z",
+      "side": 1,
+      "message": "Do we need to add this generated file to git?",
+      "revId": "cc29f8ae854c346546575ba516a9ca5e24be5cd0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
