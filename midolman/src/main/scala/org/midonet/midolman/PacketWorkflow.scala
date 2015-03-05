@@ -50,9 +50,9 @@ object PacketWorkflow {
                         reason: Packet.Reason,
                         cookie: Int)
 
-    val TEMPORARY_DROP_MILLIS = 5 * 1000
-    val IDLE_EXPIRATION_MILLIS = 60 * 1000
-    val ERROR_CONDITION_HARD_EXPIRATION = 10 * 1000
+    val TEMPORARY_DROP_EXPIRATION = 5 * 1000
+    val EXPIRATION_MILLIS = 60 * 1000
+    val ERROR_CONDITION_EXPIRATION = 10 * 1000
 
     trait SimulationResult
     case object NoOp extends SimulationResult
@@ -102,7 +102,7 @@ trait UnderlayTrafficHandler { this: PacketWorkflow =>
         context.addFlowTag(FlowTagger.tagForTunnelRoute(
                            origMatch.getTunnelSrc, origMatch.getTunnelDst))
         context.addFlowAndPacketAction(forwardTo.toOutputAction)
-        context.idleExpirationMillis = 300 * 1000
+        context.expiration = 300 * 1000
     }
 
     private def handleFromUnderlay(context: PacketContext): SimulationResult = {
@@ -141,8 +141,7 @@ class PacketWorkflow(protected val dpState: DatapathState,
 
     override def drop(context: PacketContext): Unit = {
         context.prepareForDrop(FlowInvalidation.lastInvalidationEvent)
-        context.idleExpirationMillis = 0
-        context.hardExpirationMillis = ERROR_CONDITION_HARD_EXPIRATION
+        context.expiration = ERROR_CONDITION_EXPIRATION
         addTranslatedFlow(context)
     }
 
@@ -238,6 +237,7 @@ class PacketWorkflow(protected val dpState: DatapathState,
                                 result: SimulationResult): SimulationResult = {
         result match {
             case AddVirtualWildcardFlow =>
+                context.expiration = EXPIRATION_MILLIS
                 addVirtualWildcardFlow(context)
             case SendPacket =>
                 context.runFlowRemovedCallbacks()
@@ -250,12 +250,10 @@ class PacketWorkflow(protected val dpState: DatapathState,
                 NoOp
             case TemporaryDrop =>
                 context.clearFlowTags()
-                context.idleExpirationMillis = 0
-                context.hardExpirationMillis = TEMPORARY_DROP_MILLIS
+                context.expiration = TEMPORARY_DROP_EXPIRATION
                 addTranslatedFlow(context)
             case Drop =>
-                context.idleExpirationMillis = IDLE_EXPIRATION_MILLIS
-                context.hardExpirationMillis = 0
+                context.expiration = EXPIRATION_MILLIS
                 addTranslatedFlow(context)
         }
     }

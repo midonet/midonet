@@ -26,7 +26,6 @@ import org.midonet.midolman.PacketWorkflow
 import org.midonet.midolman.PacketWorkflow._
 import org.midonet.midolman.rules.RuleResult
 import org.midonet.midolman.simulation.Icmp.IPv4Icmp._
-import org.midonet.midolman.state.FlowState
 import org.midonet.midolman.topology.VirtualTopologyActor._
 import org.midonet.midolman.topology.devices.{BridgePort, Port, RouterPort, VxLanPort}
 import org.midonet.odp.flows._
@@ -316,13 +315,6 @@ class Coordinator(context: PacketContext)
             SendPacket
         } else {
             context.trackConnection(deviceId)
-
-            if (context.containsForwardStateKeys) {
-                context.hardExpirationMillis = (FlowState.DEFAULT_EXPIRATION.toMillis / 2).toInt
-            } else {
-                context.idleExpirationMillis = IDLE_EXPIRATION_MILLIS
-            }
-
             AddVirtualWildcardFlow
         }
     }
