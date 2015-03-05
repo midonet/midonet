@@ -62,18 +62,14 @@ public class FlowManager {
     private FlowManagerHelper flowManagerHelper;
     private int maxDpFlows;
     private int dpFlowRemoveBatchSize;
-    private long idleFlowToleranceInterval;
 
-    public FlowManager(FlowManagerHelper flowManagerHelper, int maxDpFlows,
-                       long idleFlowToleranceInterval) {
-        this(flowManagerHelper, maxDpFlows, idleFlowToleranceInterval,
-             DEFAULT_FLOW_REMOVE_BATCH_SIZE);
+    public FlowManager(FlowManagerHelper flowManagerHelper, int maxDpFlows) {
+        this(flowManagerHelper, maxDpFlows, DEFAULT_FLOW_REMOVE_BATCH_SIZE);
     }
 
     public FlowManager(FlowManagerHelper flowManagerHelper, int maxDpFlows,
-                       long idleFlowToleranceInterval, int dpFlowRemoveBatchSize) {
+                       int dpFlowRemoveBatchSize) {
         this.maxDpFlows = maxDpFlows;
-        this.idleFlowToleranceInterval = idleFlowToleranceInterval;
         this.flowManagerHelper = flowManagerHelper;
         if (dpFlowRemoveBatchSize > maxDpFlows)
             dpFlowRemoveBatchSize = 1;
@@ -86,11 +82,7 @@ public class FlowManager {
     final int priorityQueueSize = 10000;
     /* Priority queue to evict flows based on hard time-out */
     private PriorityQueue<ManagedFlow> hardTimeOutQueue =
-        new PriorityQueue<>(priorityQueueSize, new WildcardFlowHardTimeComparator());
-
-    /* Priority queue to evict flows based on idle time-out */
-    private PriorityQueue<ManagedFlow> idleTimeOutQueue =
-        new PriorityQueue<>(priorityQueueSize, new WildcardFlowIdleTimeComparator());
+        new PriorityQueue<>(priorityQueueSize, new WildcardFlowComparator());
 
     public int getNumDpFlows() {
         return dpFlowTable.size();
@@ -111,19 +103,11 @@ public class FlowManager {
         FlowMatch fmatch = wildFlow.flowMatch();
         if (!dpFlowTable.containsKey(fmatch)) {
             dpFlowTable.put(fmatch, wildFlow);
-            // FlowManager's ref
-            wildFlow.ref();
+            wildFlow.ref(); // FlowManager's ref
             wildFlow.setCreationTimeMillis(System.currentTimeMillis());
             wildFlow.setLastUsedTimeMillis(System.currentTimeMillis());
-            if (wildFlow.hardExpirationMillis() > 0) {
-                // timeout queue ref
-                wildFlow.ref();
-                hardTimeOutQueue.add(wildFlow);
-            } else if (wildFlow.idleExpirationMillis() > 0){
-                // timeout queue ref
-                wildFlow.ref();
-                idleTimeOutQueue.add(wildFlow);
-            }
+            wildFlow.ref(); // Timeout queue ref
+            hardTimeOutQueue.add(wildFlow);
             return true;
         }
         return false;
@@ -139,10 +123,7 @@ public class FlowManager {
     }
 
     public boolean evictOneFlow() {
-        ManagedFlow toEvict = hardTimeOutQueue.size() > 0
-                            ? hardTimeOutQueue.poll()
-                            : idleTimeOutQueue.poll();
-
+        ManagedFlow toEvict = hardTimeOutQueue.poll();
         if (toEvict != null) {
             flowManagerHelper.removeWildcardFlow(toEvict);
             // timeout queue ref
@@ -207,58 +188,6 @@ public class FlowManager {
         return dpFlowTable.get(flowToExpire.flowMatch()) == flowToExpire;
     }
 
-    public void retrievedFlow(ManagedFlow managedFlow, long lastUsed) {
-        if (!isAlive(managedFlow)) {
-            return;
-        }
-
-        if (lastUsed > managedFlow.getLastUsedTimeMillis()) {
-            managedFlow.setLastUsedTimeMillis(lastUsed);
-            log.trace("update lastUsedTime {}", lastUsed);
-        }
-
-        long expirationDate = managedFlow.getLastUsedTimeMillis() + managedFlow.idleExpirationMillis();
-        if (expirationDate - System.currentTimeMillis() > idleFlowToleranceInterval) {
-            managedFlow.ref(); // timeout queue ref
-            idleTimeOutQueue.add(managedFlow);
-        } else {
-            // we can expire it
-            flowManagerHelper.removeWildcardFlow(managedFlow);
-            log.debug(
-                "Removing managed flow {} for idle expiration, expired {} ms ago",
-                managedFlow,
-                System.currentTimeMillis() - (managedFlow.getLastUsedTimeMillis()
-                                           + managedFlow.idleExpirationMillis()));
-        }
-    }
-
-    private void checkIdleTimeExpiration() {
-        while (idleTimeOutQueue.peek() != null) {
-            ManagedFlow flowToExpire = idleTimeOutQueue.peek();
-            //log.trace("Idle timeout queue size {}", idleTimeOutQueue.size());
-            // since we remove the element lazily let's check if this element
-            // has already been removed
-            if (!isAlive(flowToExpire)) {
-                idleTimeOutQueue.poll();
-                // timeout queue ref
-                flowToExpire.unref();
-                continue;
-            }
-            long expirationDate = flowToExpire.getLastUsedTimeMillis() +
-                flowToExpire.idleExpirationMillis();
-            // if the flow expired we don't delete it immediately, first we query
-            // the kernel to get the updated lastUsedTime
-            if (System.currentTimeMillis() >= expirationDate) {
-                // remove it from the queue so we won't query it again
-                idleTimeOutQueue.poll();
-                flowManagerHelper.getFlow(flowToExpire);
-                // timeout queue ref
-                flowToExpire.unref();
-            }else
-                break;
-        }
-    }
-
     private void manageDPFlowTableSpace() {
         int excessFlows = getNumDpFlows() - (maxDpFlows - dpFlowRemoveBatchSize);
         if (excessFlows > 0)
@@ -278,11 +207,10 @@ public class FlowManager {
 
     public void checkFlowsExpiration() {
         checkHardTimeOutExpiration();
-        checkIdleTimeExpiration();
         manageDPFlowTableSpace();
     }
 
-    private abstract class WildcardFlowComparator implements Comparator<ManagedFlow> {
+    private class WildcardFlowComparator implements Comparator<ManagedFlow> {
 
         @Override
         public int compare(ManagedFlow wildcardFlow,
@@ -294,20 +222,8 @@ public class FlowManager {
             return (int) (expirationTime1-expirationTime2);
         }
 
-        protected abstract long getExpirationTime(ManagedFlow flow, long now);
-    }
-
-    private class WildcardFlowHardTimeComparator extends WildcardFlowComparator {
-        @Override
         protected long getExpirationTime(ManagedFlow flow, long now) {
             return flow.getCreationTimeMillis() + flow.hardExpirationMillis();
-        }
-    }
-
-    private class WildcardFlowIdleTimeComparator extends WildcardFlowComparator {
-        @Override
-        protected long getExpirationTime(ManagedFlow flow, long now) {
-            return flow.getLastUsedTimeMillis() + flow.idleExpirationMillis();
         }
     }
 }
