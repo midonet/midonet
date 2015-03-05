@@ -96,6 +96,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_0a9be667",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/Port.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-05T14:20:59Z",
+      "side": 1,
+      "message": "Fixed.",
+      "parentUuid": "7a1969be_a9f2a7cf",
+      "range": {
+        "startLine": 81,
+        "startChar": 16,
+        "endLine": 81,
+        "endChar": 26
+      },
+      "revId": "4398a17bd8694fcb819a6e2414ad6ecfbe4a1e47",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_496e9397",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/Port.scala",
         "patchSetId": 13
@@ -131,6 +155,30 @@
       "side": 1,
       "message": "See above.",
       "parentUuid": "7a1969be_496e9397",
+      "range": {
+        "startLine": 82,
+        "startChar": 16,
+        "endLine": 82,
+        "endChar": 26
+      },
+      "revId": "4398a17bd8694fcb819a6e2414ad6ecfbe4a1e47",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_6aa9ba7a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/Port.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-05T14:20:59Z",
+      "side": 1,
+      "message": "Fixed.",
+      "parentUuid": "7a1969be_69cf0f80",
       "range": {
         "startLine": 82,
         "startChar": 16,
