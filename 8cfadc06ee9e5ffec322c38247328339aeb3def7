@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_f548f088",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/PortManager.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-03-05T10:03:51Z",
+      "side": 1,
+      "message": "Oh, that was a typo. I meant \"peer\u0027s peerId.\" Changed to \"Does not set peer\u0027s peerId.\"",
+      "parentUuid": "7a1969be_0681284a",
+      "range": {
+        "startLine": 71,
+        "startChar": 7,
+        "endLine": 71,
+        "endChar": 34
+      },
+      "revId": "8cfadc06ee9e5ffec322c38247328339aeb3def7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_a691349b",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/PortManager.scala",
         "patchSetId": 3
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_15466c7c",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/PortManager.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-03-05T10:03:51Z",
+      "side": 1,
+      "message": "That was because this is called from a context where we\u0027re creating the port.\n\nI did some refactoring so that this can include the Update operation for port. This means that we\u0027ll end up with both a Create and an Update operation for the port, but they\u0027ll get combined to a single Create operation in Zoom, so it\u0027s okay.",
+      "parentUuid": "7a1969be_a691349b",
+      "range": {
+        "startLine": 73,
+        "startChar": 7,
+        "endLine": 73,
+        "endChar": 55
+      },
+      "revId": "8cfadc06ee9e5ffec322c38247328339aeb3def7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_466e8097",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/PortTranslator.scala",
         "patchSetId": 3
@@ -59,6 +107,30 @@
       "writtenOn": "2015-03-04T02:01:40Z",
       "side": 1,
       "message": "Does this even compile?",
+      "range": {
+        "startLine": 362,
+        "startChar": 12,
+        "endLine": 363,
+        "endChar": 70
+      },
+      "revId": "8cfadc06ee9e5ffec322c38247328339aeb3def7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_75540021",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 363,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-03-05T10:03:51Z",
+      "side": 1,
+      "message": "Why not? findGateway(nPort).getOrElse(return List()) either returns or evaluates to a Gateway.",
+      "parentUuid": "7a1969be_466e8097",
       "range": {
         "startLine": 362,
         "startChar": 12,
@@ -105,6 +177,54 @@
       "writtenOn": "2015-03-04T02:01:40Z",
       "side": 1,
       "message": "Doesn\u0027t this need a router ID?",
+      "range": {
+        "startLine": 65,
+        "startChar": 8,
+        "endLine": 65,
+        "endChar": 34
+      },
+      "revId": "8cfadc06ee9e5ffec322c38247328339aeb3def7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_b535d8f8",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/RouteManager.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-03-05T10:03:51Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_a65654d0",
+      "range": {
+        "startLine": 65,
+        "startChar": 8,
+        "endLine": 65,
+        "endChar": 34
+      },
+      "revId": "8cfadc06ee9e5ffec322c38247328339aeb3def7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_153dccde",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/RouteManager.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-03-05T10:03:51Z",
+      "side": 1,
+      "message": "I decided to introduce a convention where routes belonging to a port do not have their router IDs set. Otherwise we have a situation where a route has two owners (next hop gateway port and router), which causes problems with Zoom bindings.",
+      "parentUuid": "7a1969be_4647a01d",
       "range": {
         "startLine": 65,
         "startChar": 8,
