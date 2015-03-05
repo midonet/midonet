@@ -62,30 +62,37 @@ if [[ -n "$LOGFILE" || -n "$SCREEN_LOGDIR" ]]; then
     CURRENT_LOG_TIME=${CURRENT_LOG_TIME:-$(date "+$TIMESTAMP_FORMAT")}
 fi
 
-if [[ -n "$LOGFILE" ]]; then
-    LOGFILE_DIR="${LOGFILE%/*}"           # dirname
-    LOGFILE_NAME="${LOGFILE##*/}"         # basename
-    mkdir -p $LOGFILE_DIR
-    LOGFILE=$LOGFILE.${CURRENT_LOG_TIME}
+# Specified logfile name always links to the most recent log if the
+# execution is standalone
+if [[ "$CONFIGURE_LOGGING" = "True" ]]; then
+    if [[ -n "$LOGFILE" ]]; then
+        LOGFILE_DIR="${LOGFILE%/*}"           # dirname
+        LOGFILE_NAME="${LOGFILE##*/}"         # basename
+        mkdir -p $LOGFILE_DIR
+        LOGFILE=$LOGFILE.${CURRENT_LOG_TIME}
 
-    # Copy stdout to fd 3
-    exec 3>&1
-    # Set fd 1 and 2 to primary logfile
-    exec 1> "${LOGFILE}" 2>&1
+        # Copy stdout to fd 3
+        exec 3>&1
 
-    echo "mido.sh log $LOGFILE"
-    # Specified logfile name always links to the most recent log
-    ln -sf $LOGFILE $LOGFILE_DIR/$LOGFILE_NAME
-else
-    # Set up output redirection without log files
-    # Copy stdout to fd 3
-    exec 3>&1
+        # Set fd 1 and 2 to primary logfile
+        exec 1> "${LOGFILE}" 2>&1
+
+        echo "mido.sh log $LOGFILE"
+
+        ln -sf $LOGFILE $LOGFILE_DIR/$LOGFILE_NAME
+    else
+        # Set up output redirection without log files
+        # Copy stdout to fd 3
+        exec 3>&1
+    fi
+
 fi
 
 # Set up logging of screen windows
 if [[ -n "$SCREEN_LOGDIR" ]]; then
     mkdir -p $SCREEN_LOGDIR
 fi
+
 
 # Dump the system information on exit
 trap exit_trap EXIT
