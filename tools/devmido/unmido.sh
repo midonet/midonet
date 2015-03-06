@@ -33,11 +33,18 @@ source $MIDORC
 
 set -o xtrace
 
+# Hard coded screen name
+SCREEN_NAME=mido
+
 # Clean up the remainder of the screen processes
-SCREEN=$(which screen)
-if [[ -n "$SCREEN" ]]; then
-    SESSION=$(screen -ls | awk -v pat="[0-9].mido" '$0 ~ pat { print $1 }')
-    if [[ -n "$SESSION" ]]; then
-        screen -X -S $SESSION quit
-    fi
-fi
+stop_process midonet-api
+stop_process midolman
+
+# Remove the screen session
+SESSION=$(screen -ls | awk -v "pat=[0-9].mido" '$0 ~ pat { print $1 }')
+screen -X -S $SESSION quit
+
+# The midolman Java calls keep running after killing the processes
+for p in $(ps aux | grep mido | grep -v grep | awk '{print $2}'); do
+    sudo kill -9 "$p"
+done
