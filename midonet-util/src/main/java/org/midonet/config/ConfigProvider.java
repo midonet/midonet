@@ -15,6 +15,8 @@
  */
 package org.midonet.config;
 
+import java.util.Map;
+
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
@@ -64,6 +66,8 @@ public abstract class ConfigProvider {
     public abstract int getValue(String group, String key, int defaultValue);
 
     public abstract long getValue(String group, String key, long defaultValue);
+
+    public abstract Map<String,Object> getAll();
 
     public <Config> Config getConfig(Class<Config> configInterface) {
         return getConfig(configInterface, this);

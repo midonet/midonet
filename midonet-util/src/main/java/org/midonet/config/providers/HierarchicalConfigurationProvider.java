@@ -15,6 +15,10 @@
  */
 package org.midonet.config.providers;
 
+import java.util.Iterator;
+import java.util.Map;
+import java.util.HashMap;
+
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.commons.configuration.SubnodeConfiguration;
 
@@ -70,5 +74,16 @@ public class HierarchicalConfigurationProvider extends ConfigProvider {
             // fail properly if the configuration is missing this group
             return defaultValue;
         }
+    }
+
+    @Override
+    public Map<String,Object> getAll() {
+        Map<String, Object> values = new HashMap<>();
+        Iterator<String> keys = config.getKeys();
+        while (keys.hasNext()) {
+            String key = keys.next();
+            values.put(key, config.getProperty(key));
+        }
+        return values;
     }
 }
