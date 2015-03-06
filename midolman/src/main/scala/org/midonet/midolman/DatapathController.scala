@@ -152,7 +152,7 @@ object DatapathController extends Referenceable {
     // Signals that the tunnel ports have been created
     case object TunnelPortsCreated_
 
-    private var cachedMinMtu: Short = defaultMtu
+    private var cachedMinMtu = (defaultMtu - VxLanTunnelPort.TunnelOverhead).toShort
 
     def minMtu = cachedMinMtu
 }
