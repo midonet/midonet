@@ -22,6 +22,30 @@
       "revId": "280e5a980b3e70712ac1eb30cee39b1709ea7030",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_76a0839f",
+        "filename": "cluster/src/test/scala/org/midonet/cluster/util/ObservablePathChildrenCacheTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 345,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-03-06T11:41:20Z",
+      "side": 1,
+      "message": "Yeah.. nor the TestObserver.. I\u0027ll work on this.",
+      "parentUuid": "7a1969be_1dc0527b",
+      "range": {
+        "startLine": 345,
+        "startChar": 30,
+        "endLine": 345,
+        "endChar": 62
+      },
+      "revId": "280e5a980b3e70712ac1eb30cee39b1709ea7030",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
