@@ -42,6 +42,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_3bf9d680",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/neutron/package.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-03-06T07:21:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_dbafe292",
+      "range": {
+        "startLine": 22,
+        "startChar": 41,
+        "endLine": 22,
+        "endChar": 56
+      },
+      "revId": "c293b4822828e54e8c8cef19506e57603bcd0f1c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_1b917a52",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/PortTranslator.scala",
         "patchSetId": 4
@@ -65,6 +89,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_1bf4da85",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-03-06T07:21:12Z",
+      "side": 1,
+      "message": "It does both. I moved the less translation-specific stuff (specifically, the isXXXXPort() methods, LL_CIDR, and LL_GW_IP_1 out of the trait and into a companion object. These are used elsewhere, and I didn\u0027t think it made sense to have tests, and possibly other code outside the translators, mixing in the manager traits.",
+      "parentUuid": "7a1969be_1b917a52",
+      "range": {
+        "startLine": 24,
+        "startChar": 7,
+        "endLine": 24,
+        "endChar": 64
+      },
+      "revId": "c293b4822828e54e8c8cef19506e57603bcd0f1c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_9b93aa4e",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/PortTranslator.scala",
         "patchSetId": 4
@@ -76,6 +124,30 @@
       "writtenOn": "2015-03-06T03:07:08Z",
       "side": 1,
       "message": "The old code creates a route, sets it in the DHCP\u0027s field and updates the DHCP. Here, it just creates a top-level Route object.\n\nI chatted with Joe. In the old ZK data format, Route was a top-level object, but it seems that it was so only for the back-reference purpose. Now that we can store routes directly in Router, DHCP, etc, we might not need to store them at the top level.",
+      "range": {
+        "startLine": 350,
+        "startChar": 4,
+        "endLine": 357,
+        "endChar": 9
+      },
+      "revId": "c293b4822828e54e8c8cef19506e57603bcd0f1c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_7bf34e9e",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 357,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-03-06T07:21:12Z",
+      "side": 1,
+      "message": "Storing routes in the router may put us at risk of running up against the 1MB size limit of a Zookeeper node. I mentioned this to Galo and he agreed that it was best to keep them as top-level objects. I hope that at some point we get a better data store and can revisit this.\n\nI removed the router update because Zoom bindings take care of that now. Also, as I mentioned in response to the last round of comments, these routes should belong to the port rather than the router. The routing table builder will put everything together as it should be.",
+      "parentUuid": "7a1969be_9b93aa4e",
       "range": {
         "startLine": 350,
         "startChar": 4,
@@ -134,6 +206,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_5bee52b5",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/RouteManager.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-03-06T07:21:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_1b9fba51",
+      "range": {
+        "startLine": 66,
+        "startChar": 35,
+        "endLine": 66,
+        "endChar": 44
+      },
+      "revId": "c293b4822828e54e8c8cef19506e57603bcd0f1c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_9bba8abe",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/RouterTranslator.scala",
         "patchSetId": 4
@@ -145,6 +241,30 @@
       "writtenOn": "2015-03-06T03:07:08Z",
       "side": 1,
       "message": "Don\u0027t we need to create a Router after in / out chains are created?",
+      "range": {
+        "startLine": 46,
+        "startChar": 8,
+        "endLine": 46,
+        "endChar": 24
+      },
+      "revId": "c293b4822828e54e8c8cef19506e57603bcd0f1c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_bb2ca603",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/RouterTranslator.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-03-06T07:21:12Z",
+      "side": 1,
+      "message": "I didn\u0027t put in router-chain bindings, for two reasons.\n\nFirst, there\u0027s that problem we discussed before where a router has bindings to two different chains, which confuses Zoom.\n\nAlso, it\u0027s trivial to do chain management without Zoom bindings. Unlike, say, ports, a router is always created with two chains, and it keeps those same two chains until it\u0027s deleted. All we have to do is add those two delete ops in translate delete.",
+      "parentUuid": "7a1969be_9bba8abe",
       "range": {
         "startLine": 46,
         "startChar": 8,
@@ -180,6 +300,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_7b218efa",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/RouterTranslator.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-03-06T07:21:12Z",
+      "side": 1,
+      "message": "Done. I was thinking, though, that this explanation could be a lot simpler if we just gave both the IP address and ID from the Neutron gateway port to the tenant router port. I think the reason it was done this way originally was because we didn\u0027t have the deterministic UUID generation tool, and thus no way to get the provider router\u0027s port ID when all we had was the NeutronRouter.\n\nNow that that\u0027s no longer an issue, maybe we should switch so that the Neutron gateway port more naturally maps to the Midonet port on the tenant router.",
+      "parentUuid": "7a1969be_fbb1fee1",
+      "range": {
+        "startLine": 91,
+        "startChar": 11,
+        "endLine": 103,
+        "endChar": 18
+      },
+      "revId": "c293b4822828e54e8c8cef19506e57603bcd0f1c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_dbb402d3",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/RouterTranslator.scala",
         "patchSetId": 4
@@ -191,6 +335,30 @@
       "writtenOn": "2015-03-06T03:07:08Z",
       "side": 1,
       "message": "The \"peer\" here is prGwPort, which is Router Gateway port, isn\u0027t it? The it already exists?",
+      "range": {
+        "startLine": 119,
+        "startChar": 34,
+        "endLine": 119,
+        "endChar": 62
+      },
+      "revId": "c293b4822828e54e8c8cef19506e57603bcd0f1c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_fb361e51",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/RouterTranslator.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-03-06T07:21:12Z",
+      "side": 1,
+      "message": "Yeah...I remember being confused by that, too, since that\u0027s the way it was in the Neutron plugin. I think the reason is that we don\u0027t create the local route to the port when Neutron creates the router gateway port.\n\nIt looks as though this function is only ever called with false/false via the Neutron plugin. The true/true is via the Midonet port link API, which links two device ports. Maybe I should just remove those parameters, since we won\u0027t be supporting the Midonet API. If we need to add them back, we can give them better names.",
+      "parentUuid": "7a1969be_dbb402d3",
       "range": {
         "startLine": 119,
         "startChar": 34,
@@ -226,6 +394,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_9b160aa6",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/RouterTranslator.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 197,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-03-06T07:21:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_9be1ead2",
+      "range": {
+        "startLine": 197,
+        "startChar": 28,
+        "endLine": 197,
+        "endChar": 73
+      },
+      "revId": "c293b4822828e54e8c8cef19506e57603bcd0f1c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_5bc0122a",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/RouterTranslator.scala",
         "patchSetId": 4
@@ -237,6 +429,30 @@
       "writtenOn": "2015-03-06T03:07:08Z",
       "side": 1,
       "message": "We decided not to use Zoom\u0027s referential integrity for Chains and Rule, therefore I guess we need to update the in / out Chains with Rule IDs.",
+      "range": {
+        "startLine": 204,
+        "startChar": 8,
+        "endLine": 206,
+        "endChar": 36
+      },
+      "revId": "c293b4822828e54e8c8cef19506e57603bcd0f1c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_fb0d7e91",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/RouterTranslator.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 206,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-03-06T07:21:12Z",
+      "side": 1,
+      "message": "Oh, really? Why?\n\nI get that the fact that rules are ordered makes things tricky, but don\u0027t updates always append rules to the end of chains? If that\u0027s the case, then Zoom bindings should work perfectly.\n\nIf not, I can update the chains in the next patch, when I add the tests for this code.",
+      "parentUuid": "7a1969be_5bc0122a",
       "range": {
         "startLine": 204,
         "startChar": 8,
@@ -272,6 +488,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_db39a242",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/SubnetTranslator.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-03-06T07:21:12Z",
+      "side": 1,
+      "message": "Same deal as with PortManager. I moved the constants to a companion object.",
+      "parentUuid": "7a1969be_7baeae86",
+      "range": {
+        "startLine": 86,
+        "startChar": 36,
+        "endLine": 86,
+        "endChar": 49
+      },
+      "revId": "c293b4822828e54e8c8cef19506e57603bcd0f1c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_7bf22ed3",
         "filename": "cluster/src/main/scala/org/midonet/cluster/util/IPSubnetUtil.scala",
         "patchSetId": 4
@@ -295,6 +535,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_3b40b6a4",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/util/IPSubnetUtil.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-03-06T07:21:12Z",
+      "side": 1,
+      "message": "Renamed to fromAddr",
+      "parentUuid": "7a1969be_7bf22ed3",
+      "range": {
+        "startLine": 47,
+        "startChar": 8,
+        "endLine": 47,
+        "endChar": 15
+      },
+      "revId": "c293b4822828e54e8c8cef19506e57603bcd0f1c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_5bedb2ee",
         "filename": "cluster/src/main/scala/org/midonet/cluster/util/UUIDUtil.scala",
         "patchSetId": 4
@@ -306,6 +570,30 @@
       "writtenOn": "2015-03-06T03:07:08Z",
       "side": 1,
       "message": "Perhaps we can also keep nextUuid() as a utility?",
+      "range": {
+        "startLine": 66,
+        "startChar": 8,
+        "endLine": 66,
+        "endChar": 11
+      },
+      "revId": "c293b4822828e54e8c8cef19506e57603bcd0f1c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_1b3b3a39",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/util/UUIDUtil.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-03-06T07:21:12Z",
+      "side": 1,
+      "message": "Hmm...we could. The reason I removed it is that in practice the way it ended up being used (mostly by me) was error-prone, which is why I replaced it with xorWith. Can you think of a use case that isn\u0027t better served by xorWith?",
+      "parentUuid": "7a1969be_5bedb2ee",
       "range": {
         "startLine": 66,
         "startChar": 8,
