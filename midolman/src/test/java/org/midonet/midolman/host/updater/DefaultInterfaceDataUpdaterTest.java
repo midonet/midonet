@@ -23,12 +23,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-import scala.collection.JavaConversions;
-
-import akka.actor.Actor;
-import akka.testkit.TestActorRef;
-import akka.testkit.TestKit;
-
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 
@@ -43,6 +37,7 @@ import org.midonet.cluster.storage.MidonetBackendTestModule;
 import org.midonet.cluster.storage.StateStorageModule;
 import org.midonet.midolman.cluster.InterfaceScannerModule;
 import org.midonet.midolman.cluster.LegacyClusterModule;
+import org.midonet.midolman.cluster.MidolmanActorsModule;
 import org.midonet.midolman.cluster.ResourceProtectionModule;
 import org.midonet.midolman.cluster.config.ConfigProviderModule;
 import org.midonet.midolman.cluster.datapath.MockDatapathModule;
@@ -54,14 +49,16 @@ import org.midonet.midolman.host.interfaces.InterfaceDescription;
 import org.midonet.midolman.host.state.HostDirectory;
 import org.midonet.midolman.host.state.HostZkManager;
 import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.midolman.services.MidolmanActorsService;
 import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.MockDirectory;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkPathManager;
 import org.midonet.midolman.util.guice.MockMidolmanModule;
-import org.midonet.midolman.util.guice.TestableMidolmanActorsModule;
+import org.midonet.midolman.util.mock.MockMidolmanActorsService;
 import org.midonet.midolman.version.DataWriteVersion;
-import org.midonet.util.concurrent.NanoClock$;
+import org.midonet.util.concurrent.MockClock;
+import org.midonet.util.concurrent.NanoClock;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasItem;
@@ -109,10 +106,14 @@ public class DefaultInterfaceDataUpdaterTest {
             new LegacyClusterModule(),
             new StateStorageModule(),
             new MockMidolmanModule(),
-            new TestableMidolmanActorsModule(
-                JavaConversions.mapAsScalaMap(new HashMap<String, TestKit>()),
-                JavaConversions.mapAsScalaMap(new HashMap<String, TestActorRef<Actor>>()),
-                NanoClock$.MODULE$.DEFAULT()),
+            new MidolmanActorsModule() {
+                protected void configure() {
+                    bind(MidolmanActorsService.class)
+                            .toInstance(new MockMidolmanActorsService());
+                    expose(MidolmanActorsService.class);
+                    bind(NanoClock.class).toInstance(new MockClock());
+                }
+            },
             new ResourceProtectionModule(),
             new InterfaceScannerModule());
 
