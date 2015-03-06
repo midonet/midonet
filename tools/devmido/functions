@@ -189,21 +189,19 @@ function create_screen {
 # screen_process name "command-line"
 # Run a command in a shell in a screen window
 function screen_process {
-    local screen=$1
-    local name=$2
-    local command="$3"
+    local name=$1
+    local command="$2"
 
-    # Screen name is hard-coded
-    SERVICE_DIR=${SERVICE_DIR:-${MIDOSTACK_DIR}/status}
+    SERVICE_DIR=${SERVICE_DIR:-/tmp/status}
 
     # Append the process to the screen rc file
-    screen_rc "$screen" "$name" "$command"
+    screen_rc ${SCREEN_NAME} "$name" "$command"
 
-    screen -S $screen -X screen -t $name
+    screen -S ${SCREEN_NAME} -X screen -t $name
 
     if [[ -n ${SCREEN_LOGDIR} ]]; then
-        screen -S $screen -p $name -X logfile ${SCREEN_LOGDIR}/screen-${name}.log.${CURRENT_LOG_TIME}
-        screen -S $screen -p $name -X log on
+        screen -S ${SCREEN_NAME} -p $name -X logfile ${SCREEN_LOGDIR}/screen-${name}.log.${CURRENT_LOG_TIME}
+        screen -S ${SCREEN_NAME} -p $name -X log on
         ln -sf ${SCREEN_LOGDIR}/screen-${name}.log.${CURRENT_LOG_TIME} ${SCREEN_LOGDIR}/screen-${name}.log
     fi
 
@@ -213,7 +211,43 @@ function screen_process {
     sleep 3
 
     NL=`echo -ne '\015'`
-    screen -S $screen -p $name -X stuff "$command & echo \$! >$SERVICE_DIR/$screen/${name}.pid; fg || echo \"$name failed to start\" | tee \"$SERVICE_DIR/$screen/${name}.failure\"$NL"
+    screen -S ${SCREEN_NAME} -p $name -X stuff "$command & echo \$! >$SERVICE_DIR/$screen/${name}.pid; fg || echo \"$name failed to start\" | tee \"$SERVICE_DIR/$screen/${name}.failure\"$NL"
+}
+
+# _run_process() is designed to be backgrounded by run_process() to simulate a
+# fork.  It includes the dirty work of closing extra filehandles and preparing log
+# files to produce the same logs as screen_it().  The log filename is derived
+# from the service name.
+# _run_process service "command-line"
+function _run_process {
+    local service=$1
+    local command="$2"
+
+    SERVICE_DIR=${SERVICE_DIR:-/tmp/status}
+    if [[ ! -d "${SERVICE_DIR}/${SCREEN_NAME}" ]]; then
+        mkdir -p ${SERVICE_DIR}/${SCREEN_NAME}
+    fi
+    setsid $command & echo $! > ${SERVICE_DIR}/${SCREEN_NAME}/${service}.pid
+
+    # Just silently exit this process
+    exit 0
+}
+
+# Run a single service under screen or directly
+# If the command includes shell metachatacters (;<>*) it must be run using a shell
+# run_process service "command-line"
+function run_process {
+    local service=$1
+    local command="$2"
+
+    if [[ "$USE_SCREEN" = "True" ]]; then
+        screen_process "$service" "cd $TOP_DIR && $command"
+    else
+        # Spawn directly without screen
+        cd $TOP_DIR
+        _run_process "$service" "$command" &
+        cd -
+    fi
 }
 
 # Screen rc file builder

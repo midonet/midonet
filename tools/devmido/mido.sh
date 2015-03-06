@@ -130,27 +130,30 @@ set -o xtrace
 # Configure screen
 # ----------------
 
-is_package_installed screen || install_package screen
-
 # Hard code the screen name so that mido.sh and unmido.sh would be in sync
 # when creating and deleting screen sessions.
 SCREEN_NAME=mido
 
-# Check to see if we are already running mido.sh
-if is_screen_running $SCREEN_NAME ; then
-    echo "You are already running a mido.sh session."
-    echo "To rejoin this session type 'screen -x $SCREEN_NAME'."
-    echo "To destroy this session, type './unmido.sh'."
-    exit 1
-fi
+if [[ "$USE_SCREEN" = "True" ]]; then
+    is_package_installed screen || install_package screen
 
-# Create a new named screen to run processes in
-create_screen $SCREEN_NAME
 
-# Clear screen rc file
-SCREENRC=$DEVMIDO_DIR/$SCREEN_NAME-screenrc
-if [[ -e $SCREENRC ]]; then
-    rm -f $SCREENRC
+    # Check to see if we are already running mido.sh
+    if is_screen_running $SCREEN_NAME ; then
+        echo "You are already running a mido.sh session."
+        echo "To rejoin this session type 'screen -x $SCREEN_NAME'."
+        echo "To destroy this session, type './unmido.sh'."
+        exit 1
+    fi
+
+    # Create a new named screen to run processes in
+    create_screen $SCREEN_NAME
+
+    # Clear screen rc file
+    SCREENRC=$DEVMIDO_DIR/$SCREEN_NAME-screenrc
+    if [[ -e $SCREENRC ]]; then
+        rm -f $SCREENRC
+    fi
 fi
 
 # OpenvSwitch
@@ -288,7 +291,7 @@ sed -e 's/"INFO"/"DEBUG"/'  \
 cp  $TOP_DIR/midolman/src/test/resources/logback-test.xml  \
     $TOP_DIR/midolman/build/classes/main/logback.xml
 
-screen_process $SCREEN_NAME midolman "cd $TOP_DIR && ./gradlew -a :midolman:runWithSudo"
+run_process midolman "$PWD/gradlew -a :midolman:runWithSudo"
 
 if [ "$USE_CLUSTER" = "True" ]; then
     # MidoNet Cluster
@@ -312,7 +315,7 @@ else
 
     cp $TOP_DIR/midonet-api/conf/logback.xml.dev $TOP_DIR/midonet-api/build/classes/main/logback.xml
 
-    screen_process $SCREEN_NAME midonet-api "cd $TOP_DIR && ./gradlew :midonet-api:jettyRun -Pport=$API_PORT"
+    run_process midonet-api "$PWD/gradlew :midonet-api:jettyRun -Pport=$API_PORT"
 
     if ! timeout $API_TIMEOUT sh -c "while ! wget -q -O- $API_URI; do sleep 1; done"; then
         die $LINENO "API server didn't start in $API_TIMEOUT seconds"
