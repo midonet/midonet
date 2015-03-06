@@ -290,23 +290,34 @@ cp  $TOP_DIR/midolman/src/test/resources/logback-test.xml  \
 
 screen_process $SCREEN_NAME midolman "cd $TOP_DIR && ./gradlew -a :midolman:runWithSudo"
 
+if [ "$USE_CLUSTER" = "True" ]; then
+    # MidoNet Cluster
+    # ---------------
+    CLUSTER_LOG=$TOP_DIR/brain/midonet-brain/conf/logback.xml
+    cp $CLUSTER_LOG.dev $TOP_DIR/brain/midonet-brain/build/resources/main/logback.xml
 
-# MidoNet API
-# -----------
+    CLUSTER_CONF=$TOP_DIR/brain/midonet-brain/conf/cluster.conf
 
-# TODO (ryu) make it work with keystone
-API_CFG=$TOP_DIR/midonet-api/src/main/webapp/WEB-INF/web.xml
-cp $API_CFG.dev $API_CFG
+    iniset $CLUSTER_CONF neutron-importer enabled true
+    iniset $CLUSTER_CONF neutron-importer connection_str jdbc:mysql://localhost:3306/neutron
+    iniset $CLUSTER_CONF neutron-importer password $MIDO_PASSWORD
 
-# Create the logback file in the class path
-cp $TOP_DIR/midonet-api/conf/logback.xml.dev $TOP_DIR/midonet-api/build/classes/main/logback.xml
+    screen_process $SCREEN_NAME midonet-cluster "cd $TOP_DIR && ./gradlew :brain:midonet-brain:run"
+else
+    # MidoNet API
+    # -----------
 
-screen_process $SCREEN_NAME midonet-api "cd $TOP_DIR && ./gradlew :midonet-api:jettyRun -Pport=$API_PORT"
+    API_CFG=$TOP_DIR/midonet-api/src/main/webapp/WEB-INF/web.xml
+    cp $API_CFG.dev $API_CFG
 
-if ! timeout $API_TIMEOUT sh -c "while ! wget -q -O- $API_URI; do sleep 1; done"; then
-    die $LINENO "API server didn't start in $API_TIMEOUT seconds"
+    cp $TOP_DIR/midonet-api/conf/logback.xml.dev $TOP_DIR/midonet-api/build/classes/main/logback.xml
+
+    screen_process $SCREEN_NAME midonet-api "cd $TOP_DIR && ./gradlew :midonet-api:jettyRun -Pport=$API_PORT"
+
+    if ! timeout $API_TIMEOUT sh -c "while ! wget -q -O- $API_URI; do sleep 1; done"; then
+        die $LINENO "API server didn't start in $API_TIMEOUT seconds"
+    fi
 fi
-
 
 # MidoNet Client
 # --------------
