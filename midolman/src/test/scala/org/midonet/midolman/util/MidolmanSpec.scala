@@ -36,6 +36,7 @@ import org.midonet.midolman.simulation.CustomMatchers
 import org.midonet.midolman.util.guice.MockMidolmanModule
 import org.midonet.midolman.util.mock.{MockInterfaceScanner, MockMidolmanActors}
 import org.midonet.util.concurrent.{MockClock, NanoClock}
+import org.slf4j.LoggerFactory
 
 /**
  * A base trait to be used for new style Midolman simulation tests with Midolman
@@ -51,6 +52,8 @@ trait MidolmanSpec extends FeatureSpecLike
         with MidolmanServices
         with VirtualTopologyHelper
         with OneInstancePerTest {
+
+    val log = LoggerFactory.getLogger(getClass)
 
     var injector: Injector = null
     var clock = new MockClock
