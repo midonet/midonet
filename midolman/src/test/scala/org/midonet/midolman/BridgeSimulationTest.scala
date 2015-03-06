@@ -41,7 +41,6 @@ import org.midonet.packets._
 import org.midonet.packets.util.PacketBuilder._
 
 
-@Category(Array(classOf[SimulationTests]))
 @RunWith(classOf[JUnitRunner])
 class BridgeSimulationTest extends MidolmanSpec {
 
