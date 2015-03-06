@@ -465,6 +465,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_db87e2d5",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/RouterTranslator.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 206,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-03-06T07:27:49Z",
+      "side": 1,
+      "message": "It was your call that you made when you were working on Security Group, you remember? If I remember correctly, it was because we needed to populate backrefs by hand on Update while we can let ZOOM binding take care of it.\n\nI actually think it\u0027s better to use ZOOM bindings, but then we\u0027ll need to fix SecurityGroup Translator.",
+      "parentUuid": "7a1969be_fb0d7e91",
+      "range": {
+        "startLine": 204,
+        "startChar": 8,
+        "endLine": 206,
+        "endChar": 36
+      },
+      "revId": "c293b4822828e54e8c8cef19506e57603bcd0f1c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_7baeae86",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/SubnetTranslator.scala",
         "patchSetId": 4
