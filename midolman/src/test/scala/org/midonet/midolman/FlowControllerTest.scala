@@ -35,7 +35,6 @@ import org.midonet.util.functors.Callback0
 
 @RunWith(classOf[JUnitRunner])
 class FlowControllerTest extends MidolmanSpec {
-
     registerActors(FlowController -> (() => injector.getInstance(classOf[FlowController])))
 
     val flowTimeout: Int = 1000
