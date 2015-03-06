@@ -15,8 +15,14 @@
  */
 package org.midonet.midolman.guice.config;
 
+import java.util.Map;
+import java.util.TreeMap;
+
 import com.google.inject.PrivateModule;
 import org.apache.commons.configuration.HierarchicalConfiguration;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.midonet.config.ConfigProvider;
 
@@ -25,6 +31,8 @@ import org.midonet.config.ConfigProvider;
  * can use as the source of their configuration.
  */
 public class ConfigProviderModule extends PrivateModule {
+    static final Logger log = LoggerFactory.getLogger(
+            ConfigProviderModule.class);
 
     private final ConfigProvider provider;
 
@@ -40,5 +48,12 @@ public class ConfigProviderModule extends PrivateModule {
     protected void configure() {
         bind(ConfigProvider.class).toInstance(provider);
         expose(ConfigProvider.class);
+
+        log.info("config start -----------------------");
+        Map<String, String> allConf = new TreeMap(provider.getAll());
+        for (Map.Entry<String, String> confValue : allConf.entrySet()) {
+            log.info(" {} = {}", confValue.getKey(), confValue.getValue());
+        }
+        log.info("config end --------------------------");
     }
 }

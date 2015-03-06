@@ -15,6 +15,9 @@
  */
 package org.midonet.config.providers;
 
+import java.util.Enumeration;
+import java.util.Map;
+import java.util.HashMap;
 import javax.servlet.ServletContext;
 
 import org.midonet.config.ConfigProvider;
@@ -72,6 +75,17 @@ public class ServletContextConfigProvider extends ConfigProvider {
         }
 
         return Boolean.parseBoolean(value);
+    }
+
+    @Override
+    public Map<String,String> getAll() {
+        Map<String, String> values = new HashMap<>();
+        Enumeration<String> names = ctxt.getInitParameterNames();
+        while (names.hasMoreElements()) {
+            String name = names.nextElement();
+            values.put(name, ctxt.getInitParameter(name));
+        }
+        return values;
     }
 
     private String safeGetStringValue(String group, String key, String defaultValue ) {
