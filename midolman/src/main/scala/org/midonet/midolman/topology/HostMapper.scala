@@ -17,7 +17,6 @@
 package org.midonet.midolman.topology
 
 import java.util.UUID
-import java.util.concurrent.atomic.AtomicBoolean
 import javax.annotation.Nullable
 
 import scala.collection.JavaConverters._
@@ -34,7 +33,7 @@ import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.topology.HostMapper.TunnelZoneState
 import org.midonet.midolman.topology.devices.{Host => SimulationHost, TunnelZone}
 import org.midonet.packets.IPAddr
-import org.midonet.util.functors._
+import org.midonet.util.functors.{makeAction0, makeAction1, makeFunc1}
 
 object HostMapper {
 
@@ -47,17 +46,11 @@ object HostMapper {
         private val mark = PublishSubject.create[TunnelZone]
 
         /** The tunnel zone-observable, notifications on the VT thread. */
-        val observable = VirtualTopology.observable[TunnelZone](tunnelZoneId)
-                                        .takeUntil(mark)
+        val observable = VirtualTopology
+            .observable[TunnelZone](tunnelZoneId)
+            .doOnNext(makeAction1(currentTunnelZone = _))
+            .takeUntil(mark)
 
-        /** Sets the tunnel zone for this tunnel zone state, and returns the
-          * previous tunnel zone or null. */
-        @Nullable
-        def :=(tunnelZone: TunnelZone): TunnelZone = {
-            val previousTunnelZone = currentTunnelZone
-            currentTunnelZone = tunnelZone
-            previousTunnelZone
-        }
         /** Completes the observable corresponding to this tunnel zone state */
         def complete() = mark.onCompleted()
         /** Gets the current tunnel zone or null, if none is set. */
@@ -140,7 +133,6 @@ final class HostMapper(hostId: UUID, vt: VirtualTopology)
                 alive = Some(a)
             case tunnelZone: TunnelZone if tunnelZones.contains(tunnelZone.id) =>
                 log.debug("Update for tunnel zone {}", tunnelZone.id)
-                tunnelZones(tunnelZone.id) := tunnelZone
             case _ => log.warn("Unexpected update: ignoring")
         }
 
@@ -154,7 +146,7 @@ final class HostMapper(hostId: UUID, vt: VirtualTopology)
      * A map function that creates the host simulation device from the current
      * host, tunnel-zones and alive information.
      */
-    private def mapDevice(update: Any): SimulationHost = {
+    private def deviceUpdated(update: Any): SimulationHost = {
         log.debug("Processing and creating host {} device", hostId)
         assertThread()
 
@@ -186,9 +178,11 @@ final class HostMapper(hostId: UUID, vt: VirtualTopology)
         tunnelZones.clear()
     }
 
-    // This function determines if the host is alive based on the set of host
-    // owners.
-    private def mapAlive(owners: Set[String]): Boolean = {
+    /**
+     * This function determines if the host is alive based on the set of host
+     * owners.
+     */
+    private def aliveUpdated(owners: Set[String]): Boolean = {
         assertThread()
         owners.nonEmpty
     }
@@ -197,11 +191,16 @@ final class HostMapper(hostId: UUID, vt: VirtualTopology)
     // trigger a host update, hence the 'distinctUntilChanged'.
     private lazy val hostObservable =
         vt.store.observable(classOf[TopologyHost], hostId)
-            .subscribeOn(vt.scheduler)
             .observeOn(vt.scheduler)
             .distinctUntilChanged
             .doOnCompleted(makeAction0(hostDeleted()))
 
+    private lazy val aliveObservable =
+        vt.store.ownersObservable(classOf[TopologyHost], hostId)
+            .observeOn(vt.scheduler)
+            .map[Boolean](makeFunc1(aliveUpdated))
+            .distinctUntilChanged
+            .onErrorResumeNext(Observable.empty)
 
     // WARNING! The device observable merges the tunnel-zones, host and alive
     // observable. Publish subjects such as the tunnel-zones observable must be
@@ -210,14 +209,9 @@ final class HostMapper(hostId: UUID, vt: VirtualTopology)
     // emitting any updates.
     protected override lazy val observable: Observable[SimulationHost] =
         Observable.merge[Any](Observable.merge(tunnelZonesSubject),
-                              vt.store.ownersObservable(classOf[TopologyHost],
-                                                        hostId)
-                                  .subscribeOn(vt.scheduler)
-                                  .observeOn(vt.scheduler)
-                                  .map[Boolean](makeFunc1(mapAlive))
-                                  .distinctUntilChanged
-                                  .onErrorResumeNext(Observable.empty),
+                              aliveObservable,
                               hostObservable)
             .filter(makeFunc1(isHostReady))
-            .map[SimulationHost](makeFunc1(mapDevice))
+            .map[SimulationHost](makeFunc1(deviceUpdated))
+            .distinctUntilChanged
 }
