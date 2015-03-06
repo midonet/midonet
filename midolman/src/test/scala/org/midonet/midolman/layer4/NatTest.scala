@@ -63,7 +63,6 @@ import org.midonet.util.collection.Reducer
 
 @RunWith(classOf[JUnitRunner])
 class NatTest extends MidolmanSpec {
-    private final val log = LoggerFactory.getLogger(classOf[NatTest])
 
     registerActors(VirtualTopologyActor -> (() => new VirtualTopologyActor),
                    FlowController -> (() => injector.getInstance(classOf[FlowController])))

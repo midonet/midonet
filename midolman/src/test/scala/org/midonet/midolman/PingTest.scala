@@ -59,8 +59,6 @@ import org.midonet.sdn.state.ShardedFlowStateTable
 
 @RunWith(classOf[JUnitRunner])
 class PingTest extends MidolmanSpec {
-    private final val log = LoggerFactory.getLogger(classOf[PingTest])
-
     registerActors(VirtualTopologyActor -> (() => new VirtualTopologyActor))
 
     // Router port one connecting to host VM1

@@ -23,6 +23,7 @@ import scala.collection.JavaConversions._
 import scala.collection.mutable
 
 import org.junit.runner.RunWith
+import org.midonet.midolman.config.MidolmanConfig
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.data.Bridge
@@ -493,5 +494,13 @@ class DhcpTest extends MidolmanSpec {
         classlessRoutesDhcpOption should not equal None
         dhcpReply.getOptions.contains(
             classlessRoutesDhcpOption.get) should be (true)
+    }
+
+    scenario("Interface MTU") {
+        val returnPkt = injectDhcpDiscover(bridgePort1, bridgePortNumber1, vm1Mac)
+        val dhcpReply = extractDhcpReply(returnPkt)
+        val mtuValue = ByteBuffer.wrap(dhcpReply.getOptions.find(
+            _.getCode == DHCPOption.Code.INTERFACE_MTU.value).get.getData).getShort
+        mtuValue should (be (DatapathController.minMtu) or (be (MidolmanConfig.DEFAULT_MTU)))
     }
 }

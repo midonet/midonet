@@ -47,8 +47,6 @@ class BridgeSimulationTest extends MidolmanSpec {
 
     registerActors(VirtualTopologyActor -> (() => new VirtualTopologyActor))
 
-    val log = LoggerFactory.getLogger(classOf[BridgeSimulationTest])
-
     private var port1OnHost1: BridgePort = _
     private var port2OnHost1: BridgePort = _
     private var port3OnHost1: BridgePort = _
