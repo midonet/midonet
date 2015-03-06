@@ -28,9 +28,9 @@ import org.midonet.midolman.layer3.Route._
 import org.midonet.midolman.simulation.{Router => SimRouter}
 import org.midonet.midolman.topology.RouterManager.RouterInvTrieTagCountModified
 import org.midonet.midolman.topology.VirtualTopologyActor
-import org.midonet.midolman.util.{TestHelpers, MidolmanSpec}
+import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.{EmptyActor, MessageAccumulator}
-import org.midonet.packets.{IPv4Addr, MAC}
+import org.midonet.packets.{Packets, IPv4Addr, MAC}
 import org.midonet.sdn.flows.FlowTagger
 
 @RunWith(classOf[JUnitRunner])
@@ -84,7 +84,7 @@ class RouterFlowInvalidationTest extends MidolmanSpec {
         feedArpTable(simRouter, IPv4Addr.fromString(ipToReach),
                      MAC.fromString(macToReach))
 
-        val eth = TestHelpers.createUdpPacket(macSource, ipSource,
+        val eth = createUdpPacket(macSource, ipSource,
                                               inPort.getHwAddr.toString, ipToReach)
 
         val (simRes, pktCtx) = simulate(packetContextFor(eth, inPort.getId))
@@ -121,21 +121,21 @@ class RouterFlowInvalidationTest extends MidolmanSpec {
         feedArpTable(simRouter, IPv4Addr.fromString(ipVm3),
                      MAC.fromString(macVm3))
 
-        var eth = TestHelpers.createUdpPacket(macSource, ipSource, macInPort, ipVm1)
+        var eth = createUdpPacket(macSource, ipSource, macInPort, ipVm1)
         var simRes = simulate(packetContextFor(eth, inPort.getId))._2
         simRes should not be Drop
 
         tagsProbe.getAndClear() should be (List(
             new RouterInvTrieTagCountModified(IPv4Addr.fromString(ipVm1), 1)))
 
-        eth = TestHelpers.createUdpPacket(macSource, ipSource, macInPort, ipVm2)
+        eth = createUdpPacket(macSource, ipSource, macInPort, ipVm2)
         simRes = simulate(packetContextFor(eth, inPort.getId))._2
         simRes should not be Drop
 
         tagsProbe.getAndClear() should be (List(
             new RouterInvTrieTagCountModified(IPv4Addr.fromString(ipVm2), 1)))
 
-        eth = TestHelpers.createUdpPacket(macSource, ipSource, macInPort, ipVm3)
+        eth = createUdpPacket(macSource, ipSource, macInPort, ipVm3)
         simRes = simulate(packetContextFor(eth, inPort.getId))._2
         simRes should not be Drop
 
@@ -166,7 +166,7 @@ class RouterFlowInvalidationTest extends MidolmanSpec {
         feedArpTable(simRouter, IPv4Addr.fromString(ipVm1),
                      MAC.fromString(macVm1))
 
-        var eth = TestHelpers.createUdpPacket(macSource, ipSource, macInPort, ipVm1)
+        var eth = createUdpPacket(macSource, ipSource, macInPort, ipVm1)
         val (simRes1, pktCtx1) = simulate(packetContextFor(eth, inPort.getId))
         simRes1 should not be Drop
 
@@ -176,7 +176,7 @@ class RouterFlowInvalidationTest extends MidolmanSpec {
         feedArpTable(simRouter, IPv4Addr.fromString(ipVm2),
                      MAC.fromString(macVm2))
 
-        eth = TestHelpers.createUdpPacket(macSource, ipSource, macInPort, ipVm2)
+        eth = createUdpPacket(macSource, ipSource, macInPort, ipVm2)
         val (simRes2, pktCtx2) = simulate(packetContextFor(eth, inPort.getId))
         simRes2 should not be Drop
 
@@ -189,14 +189,14 @@ class RouterFlowInvalidationTest extends MidolmanSpec {
 
         val ipSource2 = "20.20.0.40"
 
-        eth = TestHelpers.createUdpPacket(macSource, ipSource2, macInPort, ipVm1)
+        eth = createUdpPacket(macSource, ipSource2, macInPort, ipVm1)
         val (simRes3, _) = simulate(packetContextFor(eth, inPort.getId))
         simRes3 should not be Drop
 
         tagsProbe.getAndClear() should be (List(
             new RouterInvTrieTagCountModified(IPv4Addr.fromString(ipVm1), 1)))
 
-        eth = TestHelpers.createUdpPacket(macSource, ipSource2, macInPort, ipVm2)
+        eth = createUdpPacket(macSource, ipSource2, macInPort, ipVm2)
         val (simRes4, pktCtx4) = simulate(packetContextFor(eth, inPort.getId))
         simRes4 should not be Drop
 
@@ -224,7 +224,7 @@ class RouterFlowInvalidationTest extends MidolmanSpec {
         feedArpTable(simRouter, IPv4Addr.fromString(ipToReach),
                      MAC.fromString(firstMac))
 
-        val eth = TestHelpers.createUdpPacket(macSource, ipSource, macInPort, ipToReach)
+        val eth = createUdpPacket(macSource, ipSource, macInPort, ipToReach)
         val (simRes, _) = simulate(packetContextFor(eth, inPort.getId))
         simRes should not be Drop
 
@@ -236,4 +236,13 @@ class RouterFlowInvalidationTest extends MidolmanSpec {
         flowInvalidator should invalidate(
             FlowTagger.tagForDestinationIp(router.getId, IPv4Addr.fromString(ipToReach)))
     }
+
+    private def createUdpPacket(srcMac: String, srcIp: String,
+                                dstMac: String, dstIp: String) =
+        Packets.udp(
+            MAC.fromString(srcMac),
+            MAC.fromString(dstMac),
+            IPv4Addr.fromString(srcIp),
+            IPv4Addr.fromString(dstIp),
+            10, 11, "My UDP packet".getBytes)
 }
