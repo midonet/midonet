@@ -49,6 +49,29 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_f67d936f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 241,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-03-06T09:57:18Z",
+      "side": 1,
+      "message": "I wonder if a TimeoutException would be more adequate (but no need to change it in this patch... I understand from previous comments in version 8 that this is going to be re-written using zoom...",
+      "range": {
+        "startLine": 241,
+        "startChar": 22,
+        "endLine": 241,
+        "endChar": 38
+      },
+      "revId": "95a892088fd3602b31b18528cbc8fc31a1337c17",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_a99467e2",
         "filename": "midolman/src/test/scala/org/midonet/midolman/topology/VirtualTopologyTest.scala",
         "patchSetId": 11
