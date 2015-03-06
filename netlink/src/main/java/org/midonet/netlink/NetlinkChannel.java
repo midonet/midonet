@@ -49,6 +49,8 @@ public class NetlinkChannel extends UnixChannel<Netlink.Address> {
      */
     private final static int RCVBUF_SIZE = 2 * 1024 * 1024;
 
+    private Selector selector = null;
+
     protected final NetlinkProtocol protocol;
 
     protected NetlinkChannel(SelectorProvider provider,
@@ -60,7 +62,10 @@ public class NetlinkChannel extends UnixChannel<Netlink.Address> {
     }
 
     public Selector selector() throws IOException {
-        return provider().openSelector();
+        if (selector == null) {
+            selector = provider().openSelector();
+        }
+        return selector;
     }
 
     protected void initSocket() {
