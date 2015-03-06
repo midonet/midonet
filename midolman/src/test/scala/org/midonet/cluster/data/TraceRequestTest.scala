@@ -43,8 +43,6 @@ import org.midonet.midolman.util.MidolmanSpec
 
 @RunWith(classOf[JUnitRunner])
 class TraceRequestTest extends MidolmanSpec {
-    private final val log = LoggerFactory.getLogger(classOf[TraceRequestTest])
-
     val tenantId = "tenant0"
 
     scenario("Creation, listing and deletion of trace requests") {

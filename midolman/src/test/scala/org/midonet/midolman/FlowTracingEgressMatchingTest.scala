@@ -65,8 +65,6 @@ import org.midonet.sdn.state.ShardedFlowStateTable
 
 @RunWith(classOf[JUnitRunner])
 class FlowTracingEgressMatchingTest extends MidolmanSpec {
-    val log = LoggerFactory.getLogger(classOf[FlowTracingEgressMatchingTest])
-
     registerActors(VirtualTopologyActor -> (() => new VirtualTopologyActor),
                    VirtualToPhysicalMapper -> (() => new VirtualToPhysicalMapper))
     var ingressHost: Host = null

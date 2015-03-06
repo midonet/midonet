@@ -51,7 +51,6 @@ import org.slf4j.LoggerFactory
 class FlowStateReplicatorTest extends MidolmanSpec {
     implicit def stringToIp(str: String): IPv4Addr = IPv4Addr.fromString(str)
 
-    val log = LoggerFactory.getLogger(classOf[FlowStateReplicatorTest])
     type ConnTrackTx = FlowStateTransaction[ConnTrackKey, ConnTrackValue]
     type NatTx = FlowStateTransaction[NatKey, NatBinding]
     type TraceTx = FlowStateTransaction[TraceKey, TraceContext]
