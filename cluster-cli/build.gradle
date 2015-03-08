@@ -1,0 +1,83 @@
+
+/*
+ * Copyright 2014 Midokura SARL
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+apply plugin: 'scala'
+apply plugin: 'application'
+apply plugin: 'gradle-one-jar'
+
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.github.rholder:gradle-one-jar:1.0.4'
+    }
+}
+
+jar {
+    manifest {
+        attributes 'Implementation-Title': 'Midonet Cluster CLI',
+        'Implementation-Version': version
+    }
+    dependsOn configurations.runtime
+}
+
+sourceSets {
+    main {
+        scala { srcDirs = ['src/main/scala', 'src/main/java'] }
+        java { srcDirs = [] }
+    }
+    test {
+        scala { srcDirs = ['src/test/scala', 'src/test/java'] }
+        java { srcDirs = [] }
+    }
+}
+
+dependencies {
+    compile project(':cluster'),
+            project(':midolman'), // TODO remove asap
+            project(':midonet-util'),
+            libraries.commons_conf,
+            libraries.zookeeper,
+            libraries.rx,
+            libraries.guice,
+            libraries.protobuf,
+            libraries.guava,
+            libraries.jackson_mapper,
+            libraries.curator_framework,
+            libraries.curator_recipes,
+            libraries.scala,
+            "jline:jline:2.12.1"
+
+    testCompile libraries.scalatest,
+                libraries.curator_test
+}
+
+cobertura {
+    coverageSourceDirs << sourceSets.main.java.srcDirs
+    coverageSourceDirs << sourceSets.main.scala.srcDirs
+}
+
+task singleJar(type: OneJar) {
+    mainClass = "org.midonet.cluster.cli.Boris"
+    archiveName = 'boris.jar'
+}
+
+run {
+    mainClassName = "org.midonet.cluster.cli.Boris"
+    standardInput = System.in
+}
