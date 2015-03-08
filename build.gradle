@@ -212,7 +212,7 @@ allprojects {
                 sourceDirs += dir
             }
 
-            ['test', 'perf'].each { type ->
+            ['test', 'perf', 'tools'].each { type ->
                 dir = file("${projectDir}/src/${type}/${lang}")
                 if (dir.exists()) {
                     testSourceDirs += dir
