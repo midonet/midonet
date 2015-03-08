@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_f99d830b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/ChainMapper.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 218,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-08T15:13:22Z",
+      "side": 1,
+      "message": "onChainDeleted",
+      "range": {
+        "startLine": 218,
+        "startChar": 27,
+        "endLine": 218,
+        "endChar": 43
+      },
+      "revId": "c7a8f6ed4776392bfe2f6b3706197294f9b9eda3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_d9a2474a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/ChainMapper.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 227,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-08T15:13:22Z",
+      "side": 1,
+      "message": "add the final buildChain function",
+      "range": {
+        "startLine": 227,
+        "startChar": 72,
+        "endLine": 227,
+        "endChar": 80
+      },
+      "revId": "c7a8f6ed4776392bfe2f6b3706197294f9b9eda3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
