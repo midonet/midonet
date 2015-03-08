@@ -1,0 +1,137 @@
+Boris: a CLI for the MidoNet low level models
+=============================================
+
+Running Boris
+-------------
+
+The preferred method is to use the self contained jar:
+
+    ./gradlew build -x test
+    java -jar cluster-cli/build/libs/boris.jar
+
+Ignore the output until the boris> prompt appears.  This CLI has
+history, and will soon get autocompletion.
+
+Boris can also run from gradle:
+
+    ./gradlew -q --no-daemon cluster-cli:run
+
+This has the downside that interactive CLI is nearly unusable (it works,
+it's just better not to look at it).  However, it's sufficient to
+process pre-defined scripts:
+
+    ./gradlew -q --no-daemon cluster-cli:run < some_topology.txt
+
+Where some_topology.txt would contain a sequence of commands.
+
+Using Boris
+-----------
+
+Boris parses a very simple grammar and applies the commands against a
+ZOOM-based backend. 
+
+All commands start with an entity Type, which corresponds to the name of
+each low-level Protobuf.  Boris supports exactly the same set of
+entities as the MidoNet Backend used by all MidoNet components.
+
+Verbs can be: list, get, create, update, delete.
+
+Two additional verbs allow operating on repeated elements: add, sub.
+
+All commands except for list expect a list of pairs name property
+separated by space, where name is the name of a property belonging to
+the Type.
+
+For update, delete, and get, the field named "id" shoud be provided in
+order to perform the operation.  Let's follow a basic example:
+
+Create a Network:
+
+    boris> Network create name test3
+    OK: 11c634aa-68fd-4b7f-a0f7-9f6eeb0e6f5f
+    Network [ UUID: 11c634aa-68fd-4b7f-a0f7-9f6eeb0e6f5f name: test3 ]
+
+Note how Boris kindly provided the UUID of the Network just created, and
+dumped it on screen for our convenience.  Note also that all fields that
+are set to their default values ignored.
+
+Update it:
+
+    boris> Network update id 11c634aa-68fd-4b7f-a0f7-9f6eeb0e6f5f name test33
+    OK: 11c634aa-68fd-4b7f-a0f7-9f6eeb0e6f5f
+    Network [ UUID: 11c634aa-68fd-4b7f-a0f7-9f6eeb0e6f5f name: test33 ]
+
+We can also get it:
+
+    boris> Network get id 11c634aa-68fd-4b7f-a0f7-9f6eeb0e6f5f
+    OK: 11c634aa-68fd-4b7f-a0f7-9f6eeb0e6f5f
+    Network [ UUID: 11c634aa-68fd-4b7f-a0f7-9f6eeb0e6f5f name: test33 ]
+
+And list all Networks (we have created some additional ones.
+
+    boris> Network list
+    OK: 4 entities of type org.midonet.cluster.models.Topology$Network
+    Network [ UUID: c23cca06-8afb-465a-9817-b919908252ff name: test ]
+    Network [ UUID: 11c634aa-68fd-4b7f-a0f7-9f6eeb0e6f5f name: test33 ]
+    Network [ UUID: 33c22050-8513-436d-b1c8-d4a74e579843 name: test ]
+    Network [ UUID: 91ace001-31d4-4222-88ed-b132c95bddf8 name: test4 ]
+
+Fields of complex types
+-----------------------
+
+Boris is able to parse all primitives, enums, and the types defined on
+the Commons package (UUIDs, IP addresses, etc.)
+
+It will also parse nested protobufs.   This is only supported for
+repeated and oneof fields, mostly because these are the only ones we
+use.  Let's see an example populating a nested oneof in the Rule entity:
+
+    boris> Rule create action DROP jump_rule_data jump_chain_name mytest
+    OK: db2627d6-354d-42ba-9a0a-d7b2a9a57f41
+    Rule [ UUID: db2627d6-354d-42ba-9a0a-d7b2a9a57f41 action: DROP JumpRuleData [ jump_chain_name: mytest ] ]
+
+Note how here we're populating a property named jump_rule_data that is
+part of a oneoff field.  This is the relevant Protobuf definition for
+the Rule:
+
+    message JumpRuleData {
+        optional UUID jump_to = 1;
+        optional string jump_chain_name = 2;
+    }
+    message NatTarget {
+        ...
+    }
+    message NatRuleData {
+        ...
+    }
+    oneof rule_data {
+        JumpRuleData jump_rule_data = 100;
+        NatRuleData nat_rule_data = 101;
+    }
+
+We're just telling Boris that we're about to provide the value to
+populate into the jump_rule_data field, then start specifying property
+names belonging to the type of jump_rule_data (JumpRuleData) and their value
+as usual.  In our example, we use only jump_chain_name.  Boris is able
+to construct the nested type, and inject it into the Rule object.
+
+At the time of writing, Boris will only parse nested oneof fields that
+are defined at the end of the command.  No further property names for
+the main type should be added afterwards.
+
+If you need to set values for a second nested field, then use update
+commands to do it.
+
+Repeated fields
+---------------
+
+Boris also allows manipulating repeated fields using the add/remove verbs.
+
+        boris> Router create
+        OK: 8d6658e4-cb98-4f0b-840f-77bb67c0d528
+        Router: [ UUID: 8d6658e4-cb98-4f0b-840f-77bb67c0d528 ]
+        boris> Route create
+        OK: 5d13678b-5a05-46de-b4a1-b9f20268be27
+        Route: [ UUID: 5d13678b-5a05-46de-b4a1-b9f20268be27 ]
+        boris> Router add id 8d6658e4-cb98-4f0b-840f-77bb67c0d528 route_ids 5d13678b-5a05-46de-b4a1-b9f20268be27
+        boris> Router sub id 8d6658e4-cb98-4f0b-840f-77bb67c0d528 route_ids 5d13678b-5a05-46de-b4a1-b9f20268be27
