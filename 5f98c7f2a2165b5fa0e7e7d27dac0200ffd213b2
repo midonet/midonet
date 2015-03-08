@@ -22,6 +22,30 @@
       "revId": "5f98c7f2a2165b5fa0e7e7d27dac0200ffd213b2",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_b9f02b68",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/TopologyBuilder.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 221,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-08T15:08:22Z",
+      "side": 1,
+      "message": "I simplified this (hopefully) in the chain mapper patch.",
+      "parentUuid": "7a1969be_c74b8785",
+      "range": {
+        "startLine": 221,
+        "startChar": 4,
+        "endLine": 221,
+        "endChar": 69
+      },
+      "revId": "5f98c7f2a2165b5fa0e7e7d27dac0200ffd213b2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
