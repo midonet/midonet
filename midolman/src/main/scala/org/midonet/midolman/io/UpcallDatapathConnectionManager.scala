@@ -25,7 +25,7 @@ import akka.actor.ActorSystem
 import akka.util.Timeout
 import org.midonet.midolman.PacketsEntryPoint.{GetWorkers, Workers}
 import org.midonet.midolman.config.MidolmanConfig
-import org.midonet.midolman.{DeduplicationActor, NetlinkCallbackDispatcher, PacketsEntryPoint}
+import org.midonet.midolman.{PacketWorkflow, NetlinkCallbackDispatcher, PacketsEntryPoint}
 import org.midonet.netlink.BufferPool
 import org.midonet.netlink.exceptions.NetlinkException
 import org.midonet.netlink.exceptions.NetlinkException.ErrorCode.{EBUSY, EEXIST}
@@ -171,7 +171,7 @@ abstract class UpcallDatapathConnectionManagerBase(
 
             def endBatch(worker: Int) {
                 if (cursors(worker) > 0) {
-                    workers.list(worker) ! DeduplicationActor.HandlePackets(packets(worker))
+                    workers.list(worker) ! PacketWorkflow.HandlePackets(packets(worker))
                     cursors(worker) = 0
                     packets(worker) = new Array[Packet](BATCH_SIZE)
                 }

@@ -13,141 +13,285 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.midonet.midolman
 
-import java.util.{ArrayList, HashSet => JHashSet, List => JList, UUID}
+import java.util.UUID
 
-import scala.concurrent._
-import scala.concurrent.duration._
+import scala.collection.JavaConverters._
+import scala.concurrent.Promise
 
-import akka.actor._
-import akka.testkit._
-import com.typesafe.scalalogging.Logger
+import akka.actor.Props
+import akka.testkit.TestActorRef
+import org.midonet.sdn.state.ShardedFlowStateTable
+
 import org.slf4j.helpers.NOPLogger
+import com.typesafe.scalalogging.Logger
+
 import org.junit.runner.RunWith
-import org.scalatest._
 import org.scalatest.junit.JUnitRunner
 
-import datapath.DatapathChannel
+import org.midonet.cluster.DataClient
+import org.midonet.midolman.PacketWorkflow._
 import org.midonet.midolman.UnderlayResolver.Route
 import org.midonet.midolman.config.MidolmanConfig
+import org.midonet.midolman.datapath.DatapathChannel
 import org.midonet.midolman.simulation.PacketContext
-import org.midonet.midolman.state.ConnTrackState.{ConnTrackValue, ConnTrackKey}
-import org.midonet.midolman.state.NatState.{NatKey, NatBinding}
+import org.midonet.midolman.simulation.PacketEmitter.GeneratedPacket
+import org.midonet.midolman.state.ConnTrackState.{ConnTrackKey, ConnTrackValue}
+import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
 import org.midonet.midolman.state.TraceState.{TraceKey, TraceContext}
-import org.midonet.midolman.state.{HappyGoLuckyLeaser, MockFlowStateTable, FlowStateReplicator}
+import org.midonet.midolman.state.{MockFlowStateTable, FlowStatePackets, HappyGoLuckyLeaser, MockStateStorage}
 import org.midonet.midolman.topology.rcu.ResolvedHost
-import org.midonet.midolman.util.mock.MockDatapathChannel
-import org.midonet.odp._
-import org.midonet.odp.flows._
+import org.midonet.midolman.util.MidolmanSpec
+import org.midonet.midolman.util.mock.MessageAccumulator
+import org.midonet.odp.flows.FlowActions.output
+import org.midonet.odp.flows.FlowKeys.tunnel
+import org.midonet.odp.flows.{FlowAction, FlowActionOutput}
+import org.midonet.odp.{Datapath, DpPort, FlowMatch, FlowMatches, Packet}
 import org.midonet.packets.Ethernet
-import org.midonet.sdn.flows.FlowTagger.FlowTag
-import org.midonet.sdn.state.FlowStateTransaction
-import org.midonet.util.functors.Callback0
+import org.midonet.packets.util.EthBuilder
+import org.midonet.packets.util.PacketBuilder.{udp, _}
 
-object PacketWorkflowTest {
-    case object ExecPacket
-    case object FlowCreated
-    case object TranslateActions
-
-    val config = MidolmanConfig.forTests
+@RunWith(classOf[JUnitRunner])
+class PacketWorkflowTest extends MidolmanSpec {
+    var packetsSeen = List[(Packet, Int)]()
+    var stateMessagesExecuted = 0
+    var ddaRef: TestActorRef[TestableDDA] = _
+    def dda = ddaRef.underlyingActor
+    var packetsOut = 0
 
     val NoLogging = Logger(NOPLogger.NOP_LOGGER)
 
-    val output = FlowActions.output(12)
-
     val conntrackTable = new MockFlowStateTable[ConnTrackKey, ConnTrackValue]()
     val natTable = new MockFlowStateTable[NatKey, NatBinding]()
-    val traceTable = new MockFlowStateTable[TraceKey, TraceContext]()
 
     var statePushed = false
 
-    def forCookie(testKit: ActorRef, pkt: Packet, cookie: Int)
-        (implicit system: ActorSystem): (PacketContext, PacketWorkflow) = {
-        val dpChannel = new MockDatapathChannel() {
-            override def executePacket(packet: Packet,
-                                       actions: JList[FlowAction]): Unit = {
-                testKit ! ExecPacket
-                Future.successful(true)
-            }
-        }
-        val dpState = new DatapathStateManager(null)(null, null)
-        val wcMatch = pkt.getMatch
-        val pktCtx = new PacketContext(cookie, pkt, wcMatch)
-        pktCtx.callbackExecutor = CallbackExecutor.Immediate
-        pktCtx.initialize(new FlowStateTransaction(conntrackTable),
-                          new FlowStateTransaction(natTable),
-                          HappyGoLuckyLeaser,
-                          new FlowStateTransaction(traceTable))
+    val cookie = 42
 
-        val replicator = new FlowStateReplicator(null, null, null, null, new UnderlayResolver {
-            override def host: ResolvedHost = new ResolvedHost(UUID.randomUUID(), true, Map(), Map())
+    override def beforeTest() {
+        createDda()
+    }
+
+    def createDda(simulationExpireMillis: Long = 5000L): Unit = {
+        if (ddaRef != null)
+            actorSystem.stop(ddaRef)
+
+        val ddaProps = Props {
+            new TestableDDA(new CookieGenerator(1, 1),
+            mockDpChannel, clusterDataClient,
+            (x: Int) => { packetsOut += x },
+            simulationExpireMillis)
+        }
+
+        ddaRef = TestActorRef(ddaProps)(actorSystem)
+        dda should not be null
+        ddaRef ! DatapathController.DatapathReady(new Datapath(0, "midonet"), new DatapathState {
+            override def getDpPortForInterface(itfName: String): Option[DpPort] = ???
+            override def dpPortNumberForTunnelKey(tunnelKey: Long): Option[DpPort] = ???
+            override def getVportForDpPortNumber(portNum: Integer): Option[UUID] = ???
+            override def getDpPortNumberForVport(vportId: UUID): Option[Integer] = ???
+            override def getDpPortName(num: Integer): Option[String] = ???
+            override def host = new ResolvedHost(UUID.randomUUID(), true,
+                                                 Map(), Map())
             override def peerTunnelInfo(peer: UUID): Option[Route] = ???
-            override def vtepTunnellingOutputAction: FlowActionOutput = ???
             override def isVtepTunnellingPort(portNumber: Integer): Boolean = ???
             override def isOverlayTunnellingPort(portNumber: Integer): Boolean = ???
-        }, null, 0) {
-            override def pushState(dpChannel: DatapathChannel): Unit = {
-                 statePushed = true
-            }
+            override def vtepTunnellingOutputAction: FlowActionOutput = ???
+            override def getDescForInterface(itfName: String) = ???
+        })
+    }
 
-            override def accumulateNewKeys(
-                          conntrackTx: FlowStateTransaction[ConnTrackKey, ConnTrackValue],
-                          natTx: FlowStateTransaction[NatKey, NatBinding],
-                          traceTx: FlowStateTransaction[TraceKey, TraceContext],
-                          ingressPort: UUID, egressPorts: JList[UUID],
-                          tags: JHashSet[FlowTag],
-                          callbacks: ArrayList[Callback0]): Unit = { }
+    def makeFrame(variation: Short) =
+        { eth addr "01:02:03:04:05:06" -> "10:20:30:40:50:60" } <<
+        { ip4 addr "192.168.0.1" --> "192.168.0.2" } <<
+        { udp ports 10101 ---> variation }
+
+    def makeUniqueFrame(variation: Short) =
+        makeFrame(variation) << payload(UUID.randomUUID().toString)
+
+    implicit def ethBuilder2Packet(ethBuilder: EthBuilder[Ethernet]): Packet = {
+        val frame: Ethernet = ethBuilder
+        new Packet(frame, FlowMatches.fromEthernetPacket(frame))
+              .setReason(Packet.Reason.FlowTableMiss)
+    }
+
+    def makePacket(variation: Short): Packet = makeFrame(variation)
+
+    def makeStatePacket(): Packet = {
+        val eth = FlowStatePackets.makeUdpShell(Array())
+        val fmatch = FlowMatches.fromEthernetPacket(eth)
+        fmatch.addKey(tunnel(FlowStatePackets.TUNNEL_KEY, 1, 2, 0))
+        new Packet(eth, fmatch)
+    }
+
+    def makeUniquePacket(variation: Short): Packet = makeUniqueFrame(variation)
+
+    feature("DeduplicationActor handles packets") {
+        scenario("pends packets that have the same match") {
+            Given("four identical packets")
+            val pkts = List(makePacket(1), makePacket(1), makePacket(1), makePacket(1))
+
+            When("they are fed to the DDA")
+            ddaRef ! PacketWorkflow.HandlePackets(pkts.toArray)
+
+            Then("the DDA should execute exactly one workflow")
+            packetsSeen.length should be (1)
+
+            And("exactly one packet should be pended")
+            dda.suspended(pkts(0).getMatch) should be (Set(pkts.head))
+
+            And("packetOut should have been called with the correct number")
+            packetsOut should be (4)
         }
-        val wf = new PacketWorkflow(dpState, null, null, dpChannel,
-                                    replicator, config) {
-            override def runSimulation(pktCtx: PacketContext) =
-                throw new Exception("no Coordinator")
-            override def translateActions(pktCtx: PacketContext) = {
-                testKit ! TranslateActions
-                pktCtx.addFlowAndPacketAction(output)
-            }
+
+        scenario("state messages are not deduplicated") {
+            Given("four identical state packets")
+            val pkts = (1 to 4) map (_ => makeStatePacket())
+
+            When("they are fed to the DDA")
+            ddaRef ! PacketWorkflow.HandlePackets(pkts.toArray)
+
+            Then("the DDA should execute all packets")
+            packetsSeen.length should be (4)
+            stateMessagesExecuted should be (0)
+
+            And("packetOut should have been called with the correct number")
+            packetsOut should be (4)
+
+            When("the simulations are completed")
+            dda.complete(null)
+
+            Then("all state messages are consumed")
+            stateMessagesExecuted should be (4)
+            mockDpConn().packetsSent should be (empty)
         }
-        (pktCtx, wf)
+
+        scenario("discards packets when ApplyFlow has no actions") {
+            Given("three different packets with the same match")
+            val pkts = List(makePacket(1), makeUniquePacket(1), makeUniquePacket(1))
+
+            When("they are fed to the DDA")
+            ddaRef ! PacketWorkflow.HandlePackets(pkts.toArray)
+
+            Then("some packets should be pended")
+            dda.suspended(pkts(0).getMatch) should have size 2
+
+            And("packetsOut should be called with the correct number")
+            packetsOut should be (3)
+
+            When("the dda is told to apply the flow with empty actions")
+            dda.complete(Nil)
+
+            Then("the packets should be dropped")
+            mockDpChannel.packetsSent should be (empty)
+            dda.suspended(pkts(0).getMatch) should be (null)
+        }
+
+        scenario("emits suspended packets after a simulation") {
+            Given("three different packets with the same match")
+            val pkts = List(makePacket(1), makeUniquePacket(1), makeUniquePacket(1))
+
+            When("they are fed to the DDA")
+            ddaRef ! PacketWorkflow.HandlePackets(pkts.toArray)
+
+            Then("some packets should be pended")
+            dda.suspended(pkts(0).getMatch) should not be null
+
+            And("packetsOut should be called with the correct number")
+            packetsOut should be (3)
+
+            When("the dda is told to apply the flow with an output action")
+            dda.complete(List(output(1)))
+
+            Then("the packets should be sent to the datapath")
+            val actual = mockDpChannel.packetsSent.asScala.toList.sortBy { _.## }
+            val expected = pkts.tail.sortBy { _.## }
+            actual should be (expected)
+
+            And("no suspended packets should remain")
+            dda.suspended(pkts(0).getMatch) should be (null)
+        }
+
+        scenario("simulates sequences of packets from the datapath") {
+            Given("4 packets with 3 different matches")
+            val pkts = List(makePacket(1), makePacket(2), makePacket(3), makePacket(2))
+
+            When("they are fed to the DDA")
+            ddaRef ! PacketWorkflow.HandlePackets(pkts.toArray)
+
+            And("a packetOut should have been called for the pending packets")
+            packetsOut should be (4)
+
+            Then("3 packet workflows should be executed")
+            packetsSeen map (_._2) should be (1 to 3)
+
+            And("one packet should be pended")
+            dda.suspended(pkts(0).getMatch) should not be null
+            dda.suspended(pkts(1).getMatch) should have size 1
+            dda.suspended(pkts(2).getMatch) should not be null
+        }
+
+        scenario("simulates generated packets") {
+            Given("a simulation that generates a packet")
+            val pkt = makePacket(1)
+            ddaRef ! PacketWorkflow.HandlePackets(Array(pkt))
+
+            When("the simulation completes")
+            val id = UUID.randomUUID()
+            val frame: Ethernet = makeFrame(1)
+            dda.completeWithGenerated(List(output(1)), GeneratedPacket(id, frame))
+
+            Then("the generated packet should be simulated")
+            packetsSeen map { _._1.getEthernet } should be (List(pkt.getEthernet, frame))
+
+            And("packetsOut should not be called for the generated packet")
+            packetsOut should be (1)
+        }
+
+        scenario("expires packets") {
+            Given("a pending packet in the DDA")
+            createDda(0)
+            val pkts = List(makePacket(1), makePacket(1))
+            ddaRef ! PacketWorkflow.HandlePackets(pkts.toArray)
+            // simulationExpireMillis is 0, pended packets should be
+            // expired immediately
+            dda.suspended(pkts(0).getMatch) should be (null)
+            packetsOut should be (2)
+
+            When("putting another packet handler in the waiting room")
+            val pkt2 = makePacket(2)
+            ddaRef ! PacketWorkflow.HandlePackets(Array(pkt2))
+            dda.suspended(pkt2.getMatch) should not be null
+
+            And("packetsOut should be called with the correct number")
+            packetsOut should be (3)
+        }
+
+        scenario("state messages are not expired") {
+            Given("state messages in the waiting room")
+            createDda(0)
+            val pkts = (1 to 4) map (_ => makeStatePacket())
+
+            When("they are fed to the DDA")
+            ddaRef ! PacketWorkflow.HandlePackets(pkts.toArray)
+
+            Then("the DDA should execute all packets")
+            packetsSeen.length should be (4)
+            stateMessagesExecuted should be (0)
+
+            And("packetOut should have been called with the correct number")
+            packetsOut should be (4)
+
+            When("the simulations are completed")
+            dda.complete(null)
+
+            Then("all state messages are consumed without having expired")
+            stateMessagesExecuted should be (4)
+            mockDpConn().packetsSent should be (empty)
+        }
     }
-}
-
-@RunWith(classOf[JUnitRunner])
-class PacketWorkflowTest extends TestKit(ActorSystem("PacketWorkflowTest"))
-        with ImplicitSender with FeatureSpecLike with Matchers
-        with GivenWhenThen with BeforeAndAfter with BeforeAndAfterAll {
-
-    import FlowController._
-    import PacketWorkflow._
-    import PacketWorkflowTest._
-
-    val cookie = 42
-    val cookieOpt = Some(cookie)
-
-    /* ensures the testKit is clean before running a test */
-    before { while (msgAvailable) receiveOne(0 seconds) }
-
-    val testKit = self
-    val aliases = List(PacketsEntryPoint.Name, FlowController.Name)
-
-    override def afterAll() { system.shutdown() }
-
-    def makeAlias(name: String)(implicit ctx: ActorContext) {
-        ctx.actorOf(Props(new Forwarder), name)
-    }
-
-    class Forwarder extends Actor {
-        def receive = { case m => testKit forward m }
-    }
-
-    class ForwarderParent extends Actor {
-        override def preStart() { aliases foreach makeAlias }
-        def receive = { case _ => }
-    }
-
-    system.actorOf(Props(new ForwarderParent), "midolman")
-
+/*
     feature("A PacketWorkflow handles results from the simulation layer") {
 
         scenario("A Simulation returns SendPacket") {
@@ -280,10 +424,9 @@ class PacketWorkflowTest extends TestKit(ActorSystem("PacketWorkflowTest"))
             And("state is pushed")
             statePushed should be (true)
         }
-
     }
 
-    def flMatch(userspace: Boolean = false) = {
+      def flMatch(userspace: Boolean = false) = {
         val flm = new FlowMatch()
         if (userspace) {
             flm addKey FlowKeys.icmpEcho(0, 1, 3)
@@ -335,4 +478,68 @@ class PacketWorkflowTest extends TestKit(ActorSystem("PacketWorkflowTest"))
 
     val applyEmptyActions = List[Check](checkEmptyActions, checkExecPacket)
     val applyOutputActions = List[Check](checkOutputActions, checkExecPacket)
+           */
+    class TestableDDA(cookieGen: CookieGenerator,
+                      dpChannel: DatapathChannel,
+                      clusterDataClient: DataClient,
+                      packetOut: Int => Unit,
+                      override val simulationExpireMillis: Long)
+            extends PacketWorkflow(injector.getInstance(classOf[MidolmanConfig]),
+                                   cookieGen, dpChannel, clusterDataClient,
+                                   flowInvalidator,
+                                   conntrackTable,
+                                   natTable,
+                                   new ShardedFlowStateTable[TraceKey, TraceContext](),
+                                   new MockStateStorage(),
+                                   HappyGoLuckyLeaser,
+                                   metrics, packetOut)
+            with MessageAccumulator {
+
+        implicit override val dispatcher = this.context.dispatcher
+        var p = Promise[Any]()
+        var generatedPacket: GeneratedPacket = _
+        var nextActions: List[FlowAction] = _
+
+        def suspended(flowMatch: FlowMatch): collection.Set[Packet] =
+            suspendedPackets.get(flowMatch)
+
+        def completeWithGenerated(actions: List[FlowAction],
+                                  generatedPacket: GeneratedPacket): Unit = {
+            this.generatedPacket = generatedPacket
+            complete(actions)
+        }
+
+        def complete(actions: List[FlowAction]): Unit = {
+            nextActions = actions
+            p success null
+        }
+
+        override def start(pktCtx: PacketContext) = {
+            pktCtx.runs += 1
+            if (pktCtx.runs == 1) {
+                packetsSeen = packetsSeen :+ (pktCtx.packet, pktCtx.cookie)
+                if (pktCtx.isGenerated) {
+                    FlowCreated
+                } else {
+                    throw new NotYetException(p.future)
+                }
+            } else if (pktCtx.runs == 2) {
+                // re-suspend the packet (with a completed future)
+                throw new NotYetException(p.future)
+            } else if (pktCtx.isStateMessage) {
+                stateMessagesExecuted += 1
+                StateMessage
+            } else {
+                if (generatedPacket ne null) {
+                    pktCtx.packetEmitter.schedule(generatedPacket)
+                    generatedPacket = null
+                }
+                if (nextActions ne null) {
+                    nextActions foreach pktCtx.addFlowAndPacketAction
+                    nextActions = null
+                }
+                FlowCreated
+            }
+        }
+    }
 }

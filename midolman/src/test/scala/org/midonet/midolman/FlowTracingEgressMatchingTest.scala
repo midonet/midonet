@@ -18,12 +18,10 @@ package org.midonet.midolman
 import java.{util => ju}
 import java.util.UUID
 import scala.collection.JavaConverters._
+import scala.collection.JavaConversions._
 
-import akka.actor.Props
 import akka.testkit.TestActorRef
 import com.google.common.collect.{BiMap, HashBiMap}
-import com.codahale.metrics.MetricRegistry
-import org.slf4j.LoggerFactory
 
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
@@ -33,40 +31,27 @@ import org.midonet.cluster.data.host.Host
 import org.midonet.cluster.data.ports.{BridgePort, RouterPort}
 import org.midonet.cluster.data.rules.{TraceRule => TraceRuleData}
 import org.midonet.midolman.UnderlayResolver.Route
-import org.midonet.midolman.config.MidolmanConfig
-import org.midonet.midolman.datapath.DatapathChannel
-import org.midonet.midolman.flows.FlowInvalidator
 import org.midonet.midolman.layer3.{Route => L3Route}
 import org.midonet.midolman.layer3.Route.NextHop
-import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
 import org.midonet.midolman.rules.Condition
-import org.midonet.midolman.rules.TraceRule
 import org.midonet.midolman.simulation.{Bridge => SimBridge, PacketContext}
 import org.midonet.midolman.simulation.{Router => SimRouter}
-import org.midonet.midolman.state.{HappyGoLuckyLeaser, MockStateStorage}
-import org.midonet.midolman.state.ConnTrackState.{ConnTrackKey, ConnTrackValue}
 import org.midonet.midolman.state.FlowStatePackets
-import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
 import org.midonet.midolman.state.TraceState
 import org.midonet.midolman.state.TraceState.{TraceContext, TraceKey}
 import org.midonet.midolman.topology._
-import org.midonet.midolman.topology.rcu.ResolvedHost
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.MockDatapathChannel
-import org.midonet.odp.{DpPort, Flow, FlowMatch, FlowMatches, Packet}
+import org.midonet.odp.{Flow, FlowMatches, Packet}
 import org.midonet.odp.flows._
-import org.midonet.odp.ports.InternalPort
 import org.midonet.packets._
 import org.midonet.packets.util.AddressConversions._
-import org.midonet.packets.util.EthBuilder
 import org.midonet.packets.util.PacketBuilder._
-import org.midonet.sdn.state.FlowStateTable
 import org.midonet.sdn.state.ShardedFlowStateTable
 
 @RunWith(classOf[JUnitRunner])
 class FlowTracingEgressMatchingTest extends MidolmanSpec {
-    registerActors(VirtualTopologyActor -> (() => new VirtualTopologyActor),
-                   VirtualToPhysicalMapper -> (() => new VirtualToPhysicalMapper))
+    registerActors(VirtualTopologyActor -> (() => new VirtualTopologyActor))
     var ingressHost: Host = null
     var egressHost: Host = null
     var egressHostIp = IPv4Addr("180.0.1.3")
@@ -81,8 +66,7 @@ class FlowTracingEgressMatchingTest extends MidolmanSpec {
     var bridgeVm1Port: BridgePort = null
     var bridgeVm2Port: BridgePort = null
 
-    val ingressTunnelPort = 10001
-    val egressTunnelPort = 10002
+    val tunnelPort = 10001
 
     // router port details
     private val uplinkGatewayAddr = IPv4Addr("180.0.1.1")
@@ -99,26 +83,24 @@ class FlowTracingEgressMatchingTest extends MidolmanSpec {
     val vm2IpAddr = IPv4Addr("10.0.0.2")
     val vm2Mac = MAC.fromString("22:ff:bb:cc:cc:cd")
 
-    private var traceTable =
+    private val traceTable =
         new ShardedFlowStateTable[TraceKey, TraceContext](clock).addShard()
 
     // infra for ingress dda
-    private val portMapIngress: BiMap[Integer,UUID] = HashBiMap.create()
-    private var mockDpIngress = new MockDatapathChannel
-    private var ddaRefIngress: TestActorRef[DeduplicationActor] = null
-    private var packetOutQueueIngress: ju.Queue[(Packet, ju.List[FlowAction])] =
-        new ju.LinkedList[(Packet, ju.List[FlowAction])]
-    private var flowQueueIngress: ju.Queue[Flow] = new ju.LinkedList[Flow]
-    private var packetCtxTrapIngress: ju.Queue[PacketContext] = new ju.LinkedList
+    private val portMapIngress: BiMap[Int,UUID] = HashBiMap.create()
+    private val mockDpIngress = new MockDatapathChannel
+    private var pktWkflIngress: TestActorRef[PacketWorkflow] = null
+    private val packetOutQueueIngress = new ju.LinkedList[(Packet, ju.List[FlowAction])]
+    private val flowQueueIngress = new ju.LinkedList[Flow]
+    private val packetCtxTrapIngress = new ju.LinkedList[PacketContext]
 
     // infra for egress dda
-    private val portMapEgress: BiMap[Integer,UUID] = HashBiMap.create()
-    private var mockDpEgress = new MockDatapathChannel
-    private var ddaRefEgress: TestActorRef[DeduplicationActor] = null
-    private var packetOutQueueEgress: ju.Queue[(Packet, ju.List[FlowAction])] =
-        new ju.LinkedList[(Packet, ju.List[FlowAction])]
-    private var flowQueueEgress: ju.Queue[Flow] = new ju.LinkedList[Flow]
-    private var packetCtxTrapEgress: ju.Queue[PacketContext] = new ju.LinkedList
+    private val portMapEgress: BiMap[Int,UUID] = HashBiMap.create()
+    private val mockDpEgress = new MockDatapathChannel
+    private var pktWkflEgress: TestActorRef[PacketWorkflow] = null
+    private val packetOutQueueEgress = new ju.LinkedList[(Packet, ju.List[FlowAction])]
+    private val flowQueueEgress = new ju.LinkedList[Flow]
+    private val packetCtxTrapEgress = new ju.LinkedList[PacketContext]
 
     override def beforeTest(): Unit = {
         ingressHost = newHost("ingressHost", hostId)
@@ -178,29 +160,34 @@ class FlowTracingEgressMatchingTest extends MidolmanSpec {
                       bridge, bridgeRtrPort, bridgeVm1Port,
                       bridgeVm2Port, bridgeChain)
 
-        val ddaProps = Props { new TestDDA(traceTable, mockDpIngress,
-                                           packetCtxTrapIngress) }
-        ddaRefIngress = TestActorRef(ddaProps)(actorSystem)
-        ddaRefIngress ! DatapathController.DatapathReady(null,
-                                                         new MockDpState(
-                                                             ingressHost.getId,
-                                                             portMapIngress))
+        val output = FlowActions.output(23)
+        pktWkflIngress = packetWorkflow(
+            dpPortToVport = portMapIngress.toMap[Int, UUID],
+            peers =  Map(egressHost.getId -> Route(uplinkPortAddr, egressHostIp, output)),
+            tunnelPorts = List(tunnelPort),
+            traceTable = traceTable,
+            dpChannel = mockDpIngress,
+            packetCtxTrap = packetCtxTrapIngress
+        )(ingressHost.getId, clusterDataClient)
+
         mockDpIngress.packetsExecuteSubscribe(
             (packet, actions) => packetOutQueueIngress.add((packet,actions)) )
         mockDpIngress.flowCreateSubscribe(flow => flowQueueIngress.add(flow))
 
-        val ddaProps2 = Props { new TestDDA(traceTable, mockDpEgress,
-                                           packetCtxTrapEgress) }
-        ddaRefEgress = TestActorRef(ddaProps2)(actorSystem)
-        ddaRefEgress ! DatapathController.DatapathReady(null, new MockDpState(
-                                                            egressHost.getId,
-                                                            portMapEgress))
+        pktWkflEgress = packetWorkflow(
+            dpPortToVport = portMapEgress.toMap[Int, UUID],
+            peers =  Map(ingressHost.getId -> Route(egressHostIp, uplinkPortAddr, output)),
+            tunnelPorts = List(tunnelPort),
+            traceTable = traceTable,
+            dpChannel = mockDpEgress,
+            packetCtxTrap = packetCtxTrapEgress
+        )(egressHost.getId, clusterDataClient)
         mockDpEgress.packetsExecuteSubscribe(
             (packet, actions) => packetOutQueueEgress.add((packet,actions)) )
         mockDpEgress.flowCreateSubscribe(flow => flowQueueEgress.add(flow))
     }
- 
-   feature("tunnel tagging") {
+
+    feature("tunnel tagging") {
        scenario("Tunnel key is tagged with trace mask, on bridge") {
            newTraceRule(UUID.randomUUID, bridgeChain,
                         newCondition(tpDst = Some(500)), 1)
@@ -226,14 +213,13 @@ class FlowTracingEgressMatchingTest extends MidolmanSpec {
        }
     }
 
-
     private def injectPacketVerifyTraced(inPortNum: Int,
                                          frame: Ethernet): Unit = {
         val packets = List(new Packet(frame,
                                       FlowMatches.fromEthernetPacket(frame)
                                           .addKey(FlowKeys.inPort(inPortNum))
                                           .setInputPortNumber(inPortNum)))
-        ddaRefIngress ! DeduplicationActor.HandlePackets(packets.toArray)
+        pktWkflIngress ! PacketWorkflow.HandlePackets(packets.toArray)
 
         // should be sending a trace state to other host
         packetOutQueueIngress.size should be (2)
@@ -251,8 +237,10 @@ class FlowTracingEgressMatchingTest extends MidolmanSpec {
         TraceState.traceBitPresent(
             getTunnelId(flow.getActions)) should be (false)
 
-        packetCtxTrapIngress.size should be (1)
+        packetCtxTrapIngress.size should be (2)
         val ingressCtx = packetCtxTrapIngress.remove()
+        // should have the same packet context after the workflow restart
+        ingressCtx should be (packetCtxTrapIngress.pop())
 
         val egressFrame = applyPacketActions(packet.getEthernet(),
                                              actions)
@@ -263,18 +251,18 @@ class FlowTracingEgressMatchingTest extends MidolmanSpec {
                 { case f: FlowActionSetKey
                          if f.getFlowKey.isInstanceOf[FlowKeyTunnel] =>
                     f.getFlowKey }).asJava)
-        egressFrameFlowMatch.addKey(FlowKeys.inPort(ingressTunnelPort))
-            .setInputPortNumber(ingressTunnelPort)
+        egressFrameFlowMatch.addKey(FlowKeys.inPort(tunnelPort))
+            .setInputPortNumber(tunnelPort)
 
         val packets2 = List(new Packet(egressFrame, egressFrameFlowMatch))
-        ddaRefEgress ! DeduplicationActor.HandlePackets(packets2.toArray)
+        pktWkflEgress ! PacketWorkflow.HandlePackets(packets2.toArray)
 
-        val (packet2, actions2) = packetOutQueueEgress.remove()
+        val (_, actions2) = packetOutQueueEgress.remove()
 
         getOutputPort(actions2) should be (portMapEgress.inverse
                                                .get(bridgeVm1Port.getId))
         val egressCtx = packetCtxTrapEgress.remove()
-        egressCtx.traceFlowId should be (ingressCtx.traceFlowId)
+        egressCtx.traceFlowId should be (ingressCtx.traceFlowId())
 
         // shouldn't create a flow for trace packets
         flowQueueEgress.size should be (0)
@@ -313,64 +301,5 @@ class FlowTracingEgressMatchingTest extends MidolmanSpec {
             { case a: FlowActionOutput => a.getPortNumber })
         outputPorts.size should be (1)
         outputPorts(0)
-    }
-
-    class TestDDA(traceTable: FlowStateTable[TraceKey,TraceContext],
-                  mockDpChannel: MockDatapathChannel,
-                  packetCtxTrap: ju.Queue[PacketContext])
-            extends DeduplicationActor(
-        injector.getInstance(classOf[MidolmanConfig]),
-        new CookieGenerator(1, 1), mockDpChannel, clusterDataClient,
-        new FlowInvalidator(null),
-        new ShardedFlowStateTable[ConnTrackKey, ConnTrackValue](clock).addShard(),
-        new ShardedFlowStateTable[NatKey, NatBinding](clock).addShard(),
-        traceTable, new MockStateStorage(), HappyGoLuckyLeaser,
-        new PacketPipelineMetrics(new MetricRegistry),
-        x => Unit) {
-        override def packetContext(packet: Packet): PacketContext = {
-            val ctx = super.packetContext(packet)
-            packetCtxTrap.add(ctx)
-            ctx
-        }
-    }
-
-    class MockDpState(hostId: UUID, portMap: BiMap[Integer,UUID])
-            extends DatapathState {
-        override def getDpPortForInterface(itfName: String)
-                : Option[DpPort] = ???
-        override def dpPortNumberForTunnelKey(tunnelKey: Long)
-                : Option[DpPort] = {
-            Some(DpPort.fakeFrom(new InternalPort("dpPort-" + tunnelKey),
-                                 tunnelKey.toInt))
-        }
-        override def getVportForDpPortNumber(portNum: Integer)
-                : Option[UUID] = {
-            Option(portMap.get(portNum))
-        }
-        override def getDpPortNumberForVport(vportId: UUID)
-                : Option[Integer] = {
-            Option(portMap.inverse.get(vportId))
-        }
-        val output = FlowActions.output(23)
-
-        override def getDpPortName(num: Integer): Option[String] = ???
-        override def host = new ResolvedHost(hostId, true, Map(), Map())
-        override def peerTunnelInfo(peer: UUID)
-                : Option[org.midonet.midolman.UnderlayResolver.Route] = {
-            if (peer == ingressHost.getId) {
-                Some(Route(egressHostIp, uplinkPortAddr, output))
-            } else if (peer == egressHost.getId) {
-                Some(Route(uplinkPortAddr, egressHostIp, output))
-            } else {
-                None
-            }
-        }
-
-        override def isVtepTunnellingPort(portNumber: Integer): Boolean = false
-        override def isOverlayTunnellingPort(portNumber: Integer): Boolean = {
-            portNumber == ingressTunnelPort || portNumber == egressTunnelPort
-        }
-        override def vtepTunnellingOutputAction: FlowActionOutput = ???
-        override def getDescForInterface(itfName: String) = ???
     }
 }
