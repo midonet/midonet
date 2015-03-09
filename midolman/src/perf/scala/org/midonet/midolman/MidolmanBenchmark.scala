@@ -47,7 +47,6 @@ trait MidolmanBenchmark extends MockMidolmanActors
                         with VirtualTopologyHelper
                         with VirtualConfigurationBuilders {
     var injector: Injector = null
-    var clock = new MockClock
 
     @JmhSetup
     def midolmanBenchmarkSetup(): Unit = {
