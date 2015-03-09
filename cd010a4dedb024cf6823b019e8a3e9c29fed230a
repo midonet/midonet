@@ -22,6 +22,30 @@
       "revId": "cd010a4dedb024cf6823b019e8a3e9c29fed230a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_ff0d63e9",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceWithChainsMapper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-09T10:20:13Z",
+      "side": 1,
+      "message": "It\u0027s the same I\u0027ve been doing in any state so far: such that we don\u0027t expose the var for writing.",
+      "parentUuid": "7a1969be_1fc31f8a",
+      "range": {
+        "startLine": 54,
+        "startChar": 8,
+        "endLine": 54,
+        "endChar": 39
+      },
+      "revId": "cd010a4dedb024cf6823b019e8a3e9c29fed230a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
