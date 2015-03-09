@@ -122,9 +122,8 @@ class DeduplicationActor(
             }
         }
 
-    override def receive = {
-
-        case DatapathReady(dp, state) if null == dpState =>
+    context.become {
+        case DatapathReady(dp, state) =>
             dpState = state
             replicator = new FlowStateReplicator(connTrackStateTable,
                                                  natStateTable,
@@ -135,7 +134,10 @@ class DeduplicationActor(
             pendingFlowStateBatches foreach (self ! _)
             workflow = new PacketWorkflow(dpState, dp, clusterDataClient,
                                           dpChannel, replicator, config)
+            context.become(receive)
+    }
 
+    override def receive = {
         case m: FlowStateBatch =>
             if (replicator ne null)
                 replicator.importFromStorage(m)
