@@ -24,41 +24,31 @@ import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
 import scala.concurrent.duration._
 
-import akka.actor.Props
 import akka.testkit.TestActorRef
-import com.codahale.metrics.MetricRegistry
-import com.google.common.collect.{BiMap, HashBiMap}
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
-import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.data.{Bridge, Chain, Router}
 import org.midonet.cluster.data.host.Host
 import org.midonet.cluster.data.ports.{BridgePort, RouterPort}
-import org.midonet.midolman.{CookieGenerator, DatapathController}
-import org.midonet.midolman.{DatapathState, DeduplicationActor}
-import org.midonet.midolman.FlowController
-import org.midonet.midolman.config.MidolmanConfig
+import org.midonet.midolman._
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.layer3.Route.NextHop
-import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
 import org.midonet.midolman.rules.{Condition, NatTarget, RuleResult}
 import org.midonet.midolman.simulation.{Bridge => SimBridge}
 import org.midonet.midolman.simulation.{Router => SimRouter}
-import org.midonet.midolman.state.{FlowState, HappyGoLuckyLeaser}
-import org.midonet.midolman.state.{MockStateStorage, NatState}
-import org.midonet.midolman.state.ConnTrackState.{ConnTrackKey, ConnTrackValue}
+import org.midonet.midolman.state.FlowState
+import org.midonet.midolman.state.NatState
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
 import org.midonet.midolman.topology.VirtualTopologyActor
-import org.midonet.midolman.topology.rcu.ResolvedHost
 import org.midonet.midolman.util.MidolmanSpec
-import org.midonet.odp.{DpPort, FlowMatches, Packet}
+import org.midonet.odp.{FlowMatches, Packet}
 import org.midonet.odp.flows._
 import org.midonet.packets._
 import org.midonet.packets.util.AddressConversions._
 import org.midonet.packets.util.PacketBuilder._
 import org.midonet.sdn.flows.FlowTagger
-import org.midonet.sdn.state.{FlowStateTable, ShardedFlowStateTable}
+import org.midonet.sdn.state.FlowStateTable
 import org.midonet.util.collection.Reducer
 
 @RunWith(classOf[JUnitRunner])
@@ -67,7 +57,7 @@ class NatTest extends MidolmanSpec {
     registerActors(VirtualTopologyActor -> (() => new VirtualTopologyActor),
                    FlowController -> (() => injector.getInstance(classOf[FlowController])))
 
-    val portMap: BiMap[Integer,UUID] = HashBiMap.create()
+    var portMap = Map[Int, UUID]()
     val vmNetworkIp = new IPv4Subnet("10.0.0.0", 24)
     val routerIp = new IPv4Subnet("10.0.0.254", 24)
     val routerMac = MAC.fromString("22:aa:aa:ff:ff:ff")
@@ -114,7 +104,7 @@ class NatTest extends MidolmanSpec {
     private var rtrOutChain: Chain = null
     private var rtrInChain: Chain = null
 
-    private var ddaRef: TestActorRef[DeduplicationActor] = null
+    private var pktWkfl: TestActorRef[PacketWorkflow] = null
     private val packetOutQueue: ju.Queue[(Packet, ju.List[FlowAction])] =
         new ju.LinkedList[(Packet, ju.List[FlowAction])]
 
@@ -226,7 +216,7 @@ class NatTest extends MidolmanSpec {
             case (port, name) =>
                 log.debug("Materializing port {}", name)
                 materializePort(port, host.getId, name)
-                portMap.put(portIdCounter, port.getId)
+                portMap += portIdCounter -> port.getId
                 portIdCounter += 1
         }
 
@@ -235,7 +225,7 @@ class NatTest extends MidolmanSpec {
             uplinkNwAddr.getAddress.toString, uplinkNwAddr.getPrefixLen)
         uplinkPort should not be null
         materializePort(uplinkPort, host.getId, "uplinkPort")
-        portMap.put(portIdCounter, uplinkPort.getId)
+        portMap += portIdCounter -> uplinkPort.getId
         portIdCounter += 1
 
         var route = newRoute(router, "0.0.0.0", 0, "0.0.0.0", 0,
@@ -300,8 +290,6 @@ class NatTest extends MidolmanSpec {
 
         clusterDataClient.routersUpdate(router)
 
-
-
         val simRouter: SimRouter = fetchDevice(router)
         val simBridge: SimBridge = fetchDevice(bridge)
 
@@ -324,12 +312,9 @@ class NatTest extends MidolmanSpec {
                       rtrOutChain, uplinkPort)
         fetchTopology(vmPorts:_*)
 
-        val ddaProps = Props { testDDA }
-
-        ddaRef = TestActorRef(ddaProps)(actorSystem)
-        ddaRef ! DatapathController.DatapathReady(null, mockDpState)
-        natTable = ddaRef.underlyingActor
-            .asInstanceOf[DeduplicationActor].natStateTable
+        pktWkfl = packetWorkflow(portMap)
+        natTable = pktWkfl.underlyingActor
+            .asInstanceOf[PacketWorkflow].natStateTable
 
         mockDpChannel.packetsExecuteSubscribe(
             (packet, actions) => packetOutQueue.add((packet,actions)) )
@@ -385,7 +370,7 @@ class NatTest extends MidolmanSpec {
         outPorts.size() should be (1)
 
         val mapping = new Mapping(newMappings.head,
-                                  uplinkPort.getId, portMap.get(outPorts.get(0)),
+                                  uplinkPort.getId, portMap(outPorts(0)),
                                   packet.getEthernet,
                                   applyPacketActions(packet.getEthernet,
                                                         actions))
@@ -402,7 +387,7 @@ class NatTest extends MidolmanSpec {
         val (packet2, actions2) = packetOutQueue.remove()
         val outPorts2 = getOutPorts(actions2)
         outPorts2.size should be (1)
-        portMap.get(outPorts2.get(0)) should be (mapping.fwdInPort)
+        portMap(outPorts2(0)) should be (mapping.fwdInPort)
 
         mapping.matchReturnOutPacket(
             applyPacketActions(packet2.getEthernet, actions2))
@@ -418,13 +403,13 @@ class NatTest extends MidolmanSpec {
         val (packet3, actions3) = packetOutQueue.remove()
         val outPorts3 = getOutPorts(actions3)
         outPorts3.size should be (1)
-        portMap.get(outPorts3.get(0)) should be (mapping.fwdOutPort)
+        portMap(outPorts3(0)) should be (mapping.fwdOutPort)
         mapping.matchForwardOutPacket(
             applyPacketActions(packet3.getEthernet, actions3))
         mapping.flowCount should be (2)
 
         flowInvalidator.scheduleInvalidationFor(FlowTagger.tagForDevice(router.getId))
-        ddaRef ! DeduplicationActor.HandlePackets(new Array(0))
+        pktWkfl ! PacketWorkflow.HandlePackets(new Array(0))
         mapping.flowCount should be (0)
         clock.time = FlowState.DEFAULT_EXPIRATION.toNanos + 1
         natTable.expireIdleEntries()
@@ -447,7 +432,7 @@ class NatTest extends MidolmanSpec {
         val (packet, actions) = packetOutQueue.remove()
         val outPorts = getOutPorts(actions)
         outPorts.size should be (1)
-        portMap.get(outPorts.get(0)) should be (uplinkPort.getId)
+        portMap(outPorts(0)) should be (uplinkPort.getId)
 
         val mapping = new Mapping(newMappings.head,
             vmPorts.head.getId, uplinkPort.getId,
@@ -464,7 +449,7 @@ class NatTest extends MidolmanSpec {
         val (packet2, actions2) = packetOutQueue.remove()
         val outPorts2 = getOutPorts(actions2)
         outPorts2.size should be (1)
-        portMap.get(outPorts2.get(0)) should be (mapping.fwdInPort)
+        portMap(outPorts2(0)) should be (mapping.fwdInPort)
         mapping.matchReturnOutPacket(
             applyPacketActions(packet2.getEthernet, actions2))
         mapping.flowCount should be (1)
@@ -479,13 +464,13 @@ class NatTest extends MidolmanSpec {
         val (packet3, actions3) = packetOutQueue.remove()
         val outPorts3 = getOutPorts(actions3)
         outPorts3.size should be (1)
-        portMap.get(outPorts3.get(0)) should be (mapping.fwdOutPort)
+        portMap(outPorts3(0)) should be (mapping.fwdOutPort)
         mapping.matchForwardOutPacket(
             applyPacketActions(packet3.getEthernet, actions3))
         mapping.flowCount should be (2)
 
         flowInvalidator.scheduleInvalidationFor(FlowTagger.tagForDevice(router.getId))
-        ddaRef ! DeduplicationActor.HandlePackets(new Array(0))
+        pktWkfl ! PacketWorkflow.HandlePackets(new Array(0))
         mapping.flowCount should be (0)
         clock.time = FlowState.DEFAULT_EXPIRATION.toNanos + 1
         natTable.expireIdleEntries()
@@ -618,7 +603,7 @@ class NatTest extends MidolmanSpec {
         verifyDnatICMPErrorAfterPacket(userspace = true)
     }
 
-        def fwdKeys(): Set[NatKey] = {
+    def fwdKeys(): Set[NatKey] = {
         val reducer =  new Reducer[NatKey, NatBinding, Set[NatKey]] {
             def apply(acc: Set[NatKey], key: NatKey,
                       value: NatBinding): Set[NatKey] =
@@ -641,12 +626,12 @@ class NatTest extends MidolmanSpec {
     }
 
     def inject(inPort: UUID, frame: Ethernet): Unit = {
-        val inPortNum = portMap.inverse.get(inPort)
+        val inPortNum = portMap.map(_.swap).toMap.apply(inPort)
         val packets = List(new Packet(frame,
                                       FlowMatches.fromEthernetPacket(frame)
                                           .addKey(FlowKeys.inPort(inPortNum))
                                           .setInputPortNumber(inPortNum)))
-        ddaRef ! DeduplicationActor.HandlePackets(packets.toArray)
+        pktWkfl ! PacketWorkflow.HandlePackets(packets.toArray)
     }
 
     def injectTcp(inPort: UUID, srcMac: MAC, srcIp: IPv4Addr, srcPort: Short,
@@ -728,7 +713,7 @@ class NatTest extends MidolmanSpec {
 
         val eth = applyPacketActions(packet.getEthernet, actions)
         val mapping = new Mapping(newMappings.head,
-            inPort, portMap.get(outPorts.get(0)),
+            inPort, portMap(outPorts(0)),
             packet.getEthernet,
             eth)
 
@@ -765,7 +750,7 @@ class NatTest extends MidolmanSpec {
         val outPorts = getOutPorts(actions)
         outPorts.size should be (1)
 
-        portMap.get(outPorts.get(0)) should be (uplinkPort.getId)
+        portMap(outPorts(0)) should be (uplinkPort.getId)
 
         val eth = applyPacketActions(packet.getEthernet, actions)
         val ipPak = eth.getPayload.asInstanceOf[IPv4]
@@ -790,7 +775,7 @@ class NatTest extends MidolmanSpec {
         val (packet, actions) = packetOutQueue.remove()
         val outPorts = getOutPorts(actions)
         outPorts.size should be (1)
-        portMap.get(outPorts.get(0)) should be (port)
+        portMap(outPorts(0)) should be (port)
 
         // the ip packet should be addressed as expected
         val ethApplied = applyPacketActions(packet.getEthernet, actions)
@@ -862,7 +847,7 @@ class NatTest extends MidolmanSpec {
         val outPorts = getOutPorts(actions)
         outPorts.size should be (1)
 
-        portMap.get(outPorts.get(0)) should be (uplinkPort.getId)
+        portMap(outPorts(0)) should be (uplinkPort.getId)
 
         val eth = applyPacketActions(packet.getEthernet, actions)
         var ipPak = eth.getPayload.asInstanceOf[IPv4]
@@ -939,7 +924,7 @@ class NatTest extends MidolmanSpec {
         newMappings.size should be (1)
         natTable.getRefCount(newMappings.head) should be (
             if (userspace) 0 else 1)
-        portMap.get(outPorts.get(0)) should be (uplinkPort.getId)
+        portMap(outPorts(0)) should be (uplinkPort.getId)
 
         val eth = packet.getEthernet
         val ethApplied = applyPacketActions(eth, actions)
@@ -978,7 +963,7 @@ class NatTest extends MidolmanSpec {
         val eth = packet.getEthernet
         val ethApplied = applyPacketActions(eth, actions)
         val mapping = new Mapping(newMappings.head,
-            uplinkPort.getId, portMap.get(outPorts.get(0)),
+            uplinkPort.getId, portMap(outPorts(0)),
             eth, ethApplied)
 
         log.info("TCP reached destination, {}", packet)
@@ -993,38 +978,5 @@ class NatTest extends MidolmanSpec {
         // who is unaware of the NAT, eth has no actions applied so we can
         // use this one
         expectICMPError(uplinkPort.getId, eth.getPayload.asInstanceOf[IPv4])
-    }
-
-    def testDDA: DeduplicationActor = new DeduplicationActor(
-        injector.getInstance(classOf[MidolmanConfig]),
-        new CookieGenerator(1, 1), mockDpChannel, clusterDataClient,
-        flowInvalidator,
-        new ShardedFlowStateTable[ConnTrackKey, ConnTrackValue](clock).addShard(),
-        new ShardedFlowStateTable[NatKey, NatBinding](clock).addShard(),
-        new MockStateStorage(), HappyGoLuckyLeaser,
-        new PacketPipelineMetrics(injector.getInstance(classOf[MetricRegistry])),
-        x => Unit)
-
-    def mockDpState = new DatapathState {
-        override def getDpPortForInterface(itfName: String)
-                : Option[DpPort] = ???
-        override def dpPortNumberForTunnelKey(tunnelKey: Long)
-                : Option[DpPort] = ???
-        override def getVportForDpPortNumber(portNum: Integer)
-                : Option[UUID] = {
-            Option(portMap.get(portNum))
-        }
-        override def getDpPortNumberForVport(vportId: UUID)
-                : Option[Integer] = {
-            Option(portMap.inverse.get(vportId))
-        }
-        override def getDpPortName(num: Integer): Option[String] = ???
-        override def host = new ResolvedHost(hostId, true, Map(), Map())
-        override def peerTunnelInfo(peer: UUID)
-                : Option[org.midonet.midolman.UnderlayResolver.Route] = None
-        override def isVtepTunnellingPort(portNumber: Integer): Boolean = ???
-        override def isOverlayTunnellingPort(portNumber: Integer): Boolean = ???
-        override def vtepTunnellingOutputAction: FlowActionOutput = ???
-        override def getDescForInterface(itfName: String) = ???
     }
 }

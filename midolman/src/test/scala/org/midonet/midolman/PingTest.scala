@@ -19,43 +19,25 @@ package org.midonet.midolman
 import java.util.{LinkedList, UUID}
 
 import scala.collection.JavaConversions._
-import scala.collection.mutable
 
 import org.junit.runner.RunWith
-import org.midonet.midolman.flows.FlowInvalidator
 import org.scalatest.junit.JUnitRunner
-import org.slf4j.LoggerFactory
 
-import akka.actor.Props
-import akka.testkit.TestActorRef
-import com.codahale.metrics.MetricRegistry
-
-import org.midonet.cluster.DataClient
 import org.midonet.cluster.data.Bridge
 import org.midonet.cluster.data.ports.{BridgePort, RouterPort}
 import org.midonet.midolman.PacketWorkflow.{AddVirtualWildcardFlow, NoOp}
-import org.midonet.midolman.PacketWorkflow.SimulationResult
-import org.midonet.midolman.config.MidolmanConfig
-import org.midonet.midolman.datapath.DatapathChannel
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.layer3.Route._
-import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
-import org.midonet.midolman.simulation.PacketContext
 import org.midonet.midolman.simulation.PacketEmitter.GeneratedPacket
 import org.midonet.midolman.simulation.Router
-import org.midonet.midolman.state.{HappyGoLuckyLeaser, MockStateStorage}
-import org.midonet.midolman.state.ConnTrackState.{ConnTrackKey, ConnTrackValue}
-import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
 import org.midonet.midolman.topology.VirtualTopologyActor
-import org.midonet.midolman.topology.rcu.ResolvedHost
 import org.midonet.midolman.util.MidolmanSpec
-import org.midonet.odp.{DpPort, FlowMatch, FlowMatches, Packet}
-import org.midonet.odp.flows.{FlowActionOutput, FlowKeys}
+import org.midonet.odp.{FlowMatches, Packet}
+import org.midonet.odp.flows.FlowKeys
 import org.midonet.packets._
 import org.midonet.packets.util.PacketBuilder._
 import org.midonet.sdn.flows.VirtualActions.FlowActionOutputToVrnBridge
 import org.midonet.sdn.flows.VirtualActions.FlowActionOutputToVrnPort
-import org.midonet.sdn.state.ShardedFlowStateTable
 
 @RunWith(classOf[JUnitRunner])
 class PingTest extends MidolmanSpec {
@@ -223,11 +205,6 @@ class PingTest extends MidolmanSpec {
         feedArpTable(simRouter, vm1Ip.getAddress(), vm1Mac)
         feedArpTable(simRouter, vm2Ip.getAddress(), vm2Mac)
 
-        val ddaProps = Props { testDDA }
-
-        val ddaRef = TestActorRef(ddaProps)(actorSystem)
-        ddaRef ! DatapathController.DatapathReady(null, mockDpState)
-
         val icmpId: Short = 85.toShort
         val howMany = 20
         val makePacket = (x: Int) => {
@@ -237,9 +214,11 @@ class PingTest extends MidolmanSpec {
             new Packet(frame, FlowMatches.fromEthernetPacket(frame)
                            .addKey(FlowKeys.inPort(rtrPort1DpNum))
                            .setInputPortNumber(rtrPort1DpNum)) }
-        val packets = (1 to howMany) map(makePacket) toArray
+        val packets = (1 to howMany) map makePacket toArray
 
-        ddaRef ! DeduplicationActor.HandlePackets(packets)
+        packetWorkflow(Map(
+            `rtrPort1DpNum` -> rtrPort1.getId,
+            `vm2PortDpNum` -> vm2Port.getId)) ! PacketWorkflow.HandlePackets(packets)
 
         mockDpChannel.packetsSent should have size 20
 
@@ -255,47 +234,5 @@ class PingTest extends MidolmanSpec {
             }
         }).filter(x => x > 0)
         seqs.sorted should be (1 to howMany)
-
-    }
-
-    def testDDA: DeduplicationActor = new DeduplicationActor(
-        injector.getInstance(classOf[MidolmanConfig]),
-        new CookieGenerator(1, 1), mockDpChannel, clusterDataClient,
-        new FlowInvalidator(null),
-        new ShardedFlowStateTable[ConnTrackKey, ConnTrackValue](),
-        new ShardedFlowStateTable[NatKey, NatBinding](),
-        new MockStateStorage(), HappyGoLuckyLeaser,
-        new PacketPipelineMetrics(injector.getInstance(classOf[MetricRegistry])),
-        x => Unit)
-
-    def mockDpState = new DatapathState {
-        override def getDpPortForInterface(itfName: String)
-                : Option[DpPort] = ???
-        override def dpPortNumberForTunnelKey(tunnelKey: Long)
-                : Option[DpPort] = ???
-        override def getVportForDpPortNumber(portNum: Integer)
-                : Option[UUID] = portNum.intValue match {
-            case `rtrPort1DpNum` => Some(rtrPort1.getId)
-            case `vm2PortDpNum` => Some(vm2Port.getId)
-            case _ => None
-        }
-        override def getDpPortNumberForVport(vportId: UUID)
-                : Option[Integer] = {
-            val p1 = rtrPort1.getId
-            val p2 = vm2Port.getId
-            vportId match {
-                case `p1` => Some(rtrPort1DpNum)
-                case `p2` => Some(vm2PortDpNum)
-                case _ => None
-            }
-        }
-        override def getDpPortName(num: Integer): Option[String] = ???
-        override def host = new ResolvedHost(hostId, true, Map(), Map())
-        override def peerTunnelInfo(peer: UUID)
-                : Option[org.midonet.midolman.UnderlayResolver.Route] = None
-        override def isVtepTunnellingPort(portNumber: Integer): Boolean = ???
-        override def isOverlayTunnellingPort(portNumber: Integer): Boolean = ???
-        override def vtepTunnellingOutputAction: FlowActionOutput = ???
-        override def getDescForInterface(itfName: String) = ???
     }
 }

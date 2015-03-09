@@ -136,7 +136,7 @@ class PacketsEntryPoint extends Actor with ActorLogWithoutPath
     protected def propsForWorker(index: Int) = {
         val cookieGen = new CookieGenerator(index, NUM_WORKERS)
         Props(
-            classOf[DeduplicationActor],
+            classOf[PacketWorkflow],
             config, cookieGen, dpChannel, clusterDataClient, flowInvalidator,
             connTrackStateTable.addShard(log = shardLogger(connTrackStateTable)),
             natStateTable.addShard(log = shardLogger(natStateTable)),
