@@ -1,0 +1,89 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_aace072c",
+        "filename": "tools/devmido/functions",
+        "patchSetId": 1
+      },
+      "lineNbr": 195,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-03-09T15:03:48Z",
+      "side": 1,
+      "message": "How about:\n\nSERVICE_DIR\u003d${SERVICE_DIR:-${$DEVMIDO_DIR}/status} ?\n\nBut define it in midorc instead of here",
+      "revId": "5e7d8c570e4355f390a00b9153c1ddaf47b02a35",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_2ada17e8",
+        "filename": "tools/devmido/functions",
+        "patchSetId": 1
+      },
+      "lineNbr": 198,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-03-09T15:03:48Z",
+      "side": 1,
+      "message": "We need to update the comment section to add SCREEN_NAME as one of the globals accessed",
+      "revId": "5e7d8c570e4355f390a00b9153c1ddaf47b02a35",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_aa6a87eb",
+        "filename": "tools/devmido/mido.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 294,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-03-09T15:03:48Z",
+      "side": 1,
+      "message": "Couldn\u0027t we use $TOP_DIR instead of $PWD?  We already have it so might as well use it.",
+      "revId": "5e7d8c570e4355f390a00b9153c1ddaf47b02a35",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_0a6c7b07",
+        "filename": "tools/devmido/mido.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 318,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-03-09T15:03:48Z",
+      "side": 1,
+      "message": "ditto",
+      "revId": "5e7d8c570e4355f390a00b9153c1ddaf47b02a35",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_aa38c7ef",
+        "filename": "tools/devmido/unmido.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-03-09T15:03:48Z",
+      "side": 1,
+      "message": "Not that I don\u0027t think this looks wrong but if possible, I prefer to keep the logic similar to that of unstack.sh.  There, I see that SCREEN sessions are always cleaned up, which sounds good to me.  Do you have any idea on how the child processes get killed with unstack?  I can\u0027t find it in unstack.sh",
+      "revId": "5e7d8c570e4355f390a00b9153c1ddaf47b02a35",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
