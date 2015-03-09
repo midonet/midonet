@@ -73,6 +73,24 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_05b3cc0a",
+        "filename": "tools/devmido/functions",
+        "patchSetId": 1
+      },
+      "lineNbr": 195,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-03-09T16:05:35Z",
+      "side": 1,
+      "message": "But the pid files are for the services, so they won\u0027t grow.  So I prefer $DEVMIDO_DIR/status here to keep these local to devmido (may even want to look for these when running the process mode and looking at /tmp/status feels strange to me)",
+      "parentUuid": "7a1969be_4522e452",
+      "revId": "5e7d8c570e4355f390a00b9153c1ddaf47b02a35",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_2ada17e8",
         "filename": "tools/devmido/functions",
         "patchSetId": 1
@@ -119,6 +137,24 @@
       "side": 1,
       "message": "TOP_DIR has been moved into \u0027functions\u0027. Take a glance. Actually, the $PDW is not needed. But I want to highlight that this process must be run in a concreate path to work",
       "parentUuid": "7a1969be_aa6a87eb",
+      "revId": "5e7d8c570e4355f390a00b9153c1ddaf47b02a35",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_c591b448",
+        "filename": "tools/devmido/mido.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 294,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-03-09T16:05:35Z",
+      "side": 1,
+      "message": "Ok thanks, just looked at it and I don\u0027t like that.  Could you take those out and use $TOP_DIR/gradlew here unless there are some technical issues with that.",
+      "parentUuid": "7a1969be_051f4c5c",
       "revId": "5e7d8c570e4355f390a00b9153c1ddaf47b02a35",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
