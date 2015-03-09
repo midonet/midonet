@@ -25,6 +25,29 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_a51f586b",
+        "filename": "midolman/src/main/java/org/midonet/midolman/rules/Rule.java",
+        "patchSetId": 10
+      },
+      "lineNbr": 126,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-09T17:21:25Z",
+      "side": 1,
+      "message": "getId().asJava and the same for all getId() calls in this method.",
+      "range": {
+        "startLine": 126,
+        "startChar": 49,
+        "endLine": 126,
+        "endChar": 56
+      },
+      "revId": "cc03727daf2d937d70e73fdf9a70e466f9645656",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_252408c4",
         "filename": "midolman/src/main/java/org/midonet/midolman/rules/Rule.java",
         "patchSetId": 10
