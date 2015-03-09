@@ -22,22 +22,23 @@ import scala.concurrent.Promise
 
 import akka.actor.Props
 import akka.testkit.TestActorRef
-import com.codahale.metrics.{MetricFilter, MetricRegistry}
+
+import org.slf4j.helpers.NOPLogger
+import com.typesafe.scalalogging.Logger
+
 import org.junit.runner.RunWith
-import org.midonet.midolman.flows.FlowInvalidator
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.DataClient
-import org.midonet.midolman.PacketWorkflow.{FlowCreated, StateMessage}
+import org.midonet.midolman.PacketWorkflow._
 import org.midonet.midolman.UnderlayResolver.Route
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.DatapathChannel
-import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
 import org.midonet.midolman.simulation.PacketContext
 import org.midonet.midolman.simulation.PacketEmitter.GeneratedPacket
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackKey, ConnTrackValue}
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
-import org.midonet.midolman.state.{FlowStatePackets, HappyGoLuckyLeaser, MockStateStorage}
+import org.midonet.midolman.state.{MockFlowStateTable, FlowStatePackets, HappyGoLuckyLeaser, MockStateStorage}
 import org.midonet.midolman.topology.rcu.ResolvedHost
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.MessageAccumulator
@@ -48,21 +49,25 @@ import org.midonet.odp.{Datapath, DpPort, FlowMatch, FlowMatches, Packet}
 import org.midonet.packets.Ethernet
 import org.midonet.packets.util.EthBuilder
 import org.midonet.packets.util.PacketBuilder.{udp, _}
-import org.midonet.sdn.state.ShardedFlowStateTable
 
 @RunWith(classOf[JUnitRunner])
 class DeduplicationActorTest extends MidolmanSpec {
-    var datapath: Datapath = null
     var packetsSeen = List[(Packet, Int)]()
     var stateMessagesExecuted = 0
     var ddaRef: TestActorRef[TestableDDA] = _
     def dda = ddaRef.underlyingActor
     var packetsOut = 0
 
-    lazy val metricsReg = injector.getInstance(classOf[MetricRegistry])
+    val NoLogging = Logger(NOPLogger.NOP_LOGGER)
+
+    val conntrackTable = new MockFlowStateTable[ConnTrackKey, ConnTrackValue]()
+    val natTable = new MockFlowStateTable[NatKey, NatBinding]()
+
+    var statePushed = false
+
+    val cookie = 42
 
     override def beforeTest() {
-        datapath = mockDpConn().futures.datapathsCreate("midonet").get()
         createDda()
     }
 
@@ -70,19 +75,16 @@ class DeduplicationActorTest extends MidolmanSpec {
         if (ddaRef != null)
             actorSystem.stop(ddaRef)
 
-        metricsReg.removeMatching(MetricFilter.ALL)
-
         val ddaProps = Props {
             new TestableDDA(new CookieGenerator(1, 1),
             mockDpChannel, clusterDataClient,
-            new PacketPipelineMetrics(metricsReg),
             (x: Int) => { packetsOut += x },
             simulationExpireMillis)
         }
 
         ddaRef = TestActorRef(ddaProps)(actorSystem)
         dda should not be null
-        ddaRef ! DatapathController.DatapathReady(datapath, new DatapathState {
+        ddaRef ! DatapathController.DatapathReady(new Datapath(0, "midonet"), new DatapathState {
             override def getDpPortForInterface(itfName: String): Option[DpPort] = ???
             override def dpPortNumberForTunnelKey(tunnelKey: Long): Option[DpPort] = ???
             override def getVportForDpPortNumber(portNum: Integer): Option[UUID] = ???
@@ -96,7 +98,6 @@ class DeduplicationActorTest extends MidolmanSpec {
             override def vtepTunnellingOutputAction: FlowActionOutput = ???
             override def getDescForInterface(itfName: String) = ???
         })
-        dda.hookPacketHandler()
     }
 
     def makeFrame(variation: Short) =
@@ -130,7 +131,7 @@ class DeduplicationActorTest extends MidolmanSpec {
             val pkts = List(makePacket(1), makePacket(1), makePacket(1), makePacket(1))
 
             When("they are fed to the DDA")
-            ddaRef ! DeduplicationActor.HandlePackets(pkts.toArray)
+            ddaRef ! PacketWorkflow.HandlePackets(pkts.toArray)
 
             Then("the DDA should execute exactly one workflow")
             packetsSeen.length should be (1)
@@ -147,7 +148,7 @@ class DeduplicationActorTest extends MidolmanSpec {
             val pkts = (1 to 4) map (_ => makeStatePacket())
 
             When("they are fed to the DDA")
-            ddaRef ! DeduplicationActor.HandlePackets(pkts.toArray)
+            ddaRef ! PacketWorkflow.HandlePackets(pkts.toArray)
 
             Then("the DDA should execute all packets")
             packetsSeen.length should be (4)
@@ -169,7 +170,7 @@ class DeduplicationActorTest extends MidolmanSpec {
             val pkts = List(makePacket(1), makeUniquePacket(1), makeUniquePacket(1))
 
             When("they are fed to the DDA")
-            ddaRef ! DeduplicationActor.HandlePackets(pkts.toArray)
+            ddaRef ! PacketWorkflow.HandlePackets(pkts.toArray)
 
             Then("some packets should be pended")
             dda.suspended(pkts(0).getMatch) should have size 2
@@ -190,7 +191,7 @@ class DeduplicationActorTest extends MidolmanSpec {
             val pkts = List(makePacket(1), makeUniquePacket(1), makeUniquePacket(1))
 
             When("they are fed to the DDA")
-            ddaRef ! DeduplicationActor.HandlePackets(pkts.toArray)
+            ddaRef ! PacketWorkflow.HandlePackets(pkts.toArray)
 
             Then("some packets should be pended")
             dda.suspended(pkts(0).getMatch) should not be null
@@ -215,7 +216,7 @@ class DeduplicationActorTest extends MidolmanSpec {
             val pkts = List(makePacket(1), makePacket(2), makePacket(3), makePacket(2))
 
             When("they are fed to the DDA")
-            ddaRef ! DeduplicationActor.HandlePackets(pkts.toArray)
+            ddaRef ! PacketWorkflow.HandlePackets(pkts.toArray)
 
             And("a packetOut should have been called for the pending packets")
             packetsOut should be (4)
@@ -232,7 +233,7 @@ class DeduplicationActorTest extends MidolmanSpec {
         scenario("simulates generated packets") {
             Given("a simulation that generates a packet")
             val pkt = makePacket(1)
-            ddaRef ! DeduplicationActor.HandlePackets(Array(pkt))
+            ddaRef ! PacketWorkflow.HandlePackets(Array(pkt))
 
             When("the simulation completes")
             val id = UUID.randomUUID()
@@ -250,7 +251,7 @@ class DeduplicationActorTest extends MidolmanSpec {
             Given("a pending packet in the DDA")
             createDda(0)
             val pkts = List(makePacket(1), makePacket(1))
-            ddaRef ! DeduplicationActor.HandlePackets(pkts.toArray)
+            ddaRef ! PacketWorkflow.HandlePackets(pkts.toArray)
             // simulationExpireMillis is 0, pended packets should be
             // expired immediately
             dda.suspended(pkts(0).getMatch) should be (null)
@@ -258,7 +259,7 @@ class DeduplicationActorTest extends MidolmanSpec {
 
             When("putting another packet handler in the waiting room")
             val pkt2 = makePacket(2)
-            ddaRef ! DeduplicationActor.HandlePackets(Array(pkt2))
+            ddaRef ! PacketWorkflow.HandlePackets(Array(pkt2))
             dda.suspended(pkt2.getMatch) should not be null
 
             And("packetsOut should be called with the correct number")
@@ -271,7 +272,7 @@ class DeduplicationActorTest extends MidolmanSpec {
             val pkts = (1 to 4) map (_ => makeStatePacket())
 
             When("they are fed to the DDA")
-            ddaRef ! DeduplicationActor.HandlePackets(pkts.toArray)
+            ddaRef ! PacketWorkflow.HandlePackets(pkts.toArray)
 
             Then("the DDA should execute all packets")
             packetsSeen.length should be (4)
@@ -288,11 +289,227 @@ class DeduplicationActorTest extends MidolmanSpec {
             mockDpConn().packetsSent should be (empty)
         }
     }
+/*
+    feature("A PacketWorkflow handles results from the simulation layer") {
 
-    class MockPacketHandler() extends PacketHandler {
+        scenario("A Simulation returns SendPacket") {
+            Given("a PkWf object")
+            val (pktCtx, pkfw) = PacketWorkflowTest.forCookie(self, packet(), cookie)
+
+            When("the simulation layer returns SendPacket")
+            pktCtx.virtualFlowActions.add(output)
+            pkfw.processSimulationResult(pktCtx, SendPacket)
+
+            Then("action translation is performed")
+            And("the current packet gets executed")
+            runChecks(pktCtx, pkfw, checkTranslate, checkExecPacket)
+
+            And("state is not pushed")
+            statePushed should be (false)
+        }
+
+        scenario("A Simulation returns NoOp") {
+            Given("a PkWf object")
+            val (pktCtx, pkfw) = PacketWorkflowTest.forCookie(self, packet(), cookie)
+
+            When("the simulation layer returns NoOp")
+            pkfw.processSimulationResult(pktCtx, NoOp)
+
+            Then("the resulting actions are empty")
+            runChecks(pktCtx, pkfw, checkEmptyActions _)
+
+            And("state is not pushed")
+            statePushed should be (false)
+        }
+
+        scenario("A Simulation returns Drop for userspace only match") {
+            Given("a PkWf object with a userspace only match")
+            val (pktCtx, pkfw) = PacketWorkflowTest.forCookie(self, packet(true), cookie)
+
+            When("the simulation layer returns Drop")
+            pkfw.processSimulationResult(pktCtx, Drop)
+
+            And("the packets gets executed (with 0 action)")
+            runChecks(pktCtx, pkfw, applyEmptyActions)
+
+            And("state is not pushed")
+            statePushed should be (false)
+        }
+
+        scenario("A Simulation returns Drop") {
+            Given("a PkWf object with a match which is not userspace only")
+            val (pktCtx, pkfw) = PacketWorkflowTest.forCookie(self, packet(false), cookie)
+
+            When("the simulation layer returns Drop")
+            pkfw.processSimulationResult(pktCtx, Drop)
+
+            Then("a FlowCreate request is made and processed by the Dp")
+            And("a new WildcardFlow is sent to the Flow Controller")
+            And("the current packet gets executed (with 0 actions)")
+            runChecks(pktCtx, pkfw, applyEmptyActions)
+
+            And("state is not pushed")
+            statePushed should be (false)
+        }
+
+        scenario("A Simulation returns TemporaryDrop for userspace only match") {
+            Given("a PkWf object with a userspace only match")
+            val (pktCtx, pkfw) = PacketWorkflowTest.forCookie(self, packet(true), cookie)
+
+            When("the simulation layer returns Drop")
+            pkfw.processSimulationResult(pktCtx, TemporaryDrop)
+
+            Then("the FlowController gets an AddWildcardFlow request")
+            And("the Deduplication actor gets an empty ApplyFlow request")
+            And("the packets gets executed (with 0 action)")
+            runChecks(pktCtx, pkfw, applyEmptyActions)
+
+            And("state is not pushed")
+            statePushed should be (false)
+        }
+
+        scenario("A Simulation returns TemporaryDrop") {
+            Given("a PkWf object with a match which is not userspace only")
+            val (pktCtx, pkfw) = PacketWorkflowTest.forCookie(self, packet(false), cookie)
+
+            When("the simulation layer returns Drop")
+            pkfw.processSimulationResult(pktCtx, TemporaryDrop)
+
+            Then("a FlowCreate request is made and processed by the Dp")
+            And("a new WildcardFlow is sent to the Flow Controller")
+            And("the current packet gets executed (with 0 actions)")
+            runChecks(pktCtx, pkfw, applyEmptyActions)
+
+            And("state is not pushed")
+            statePushed should be (false)
+        }
+
+        scenario("A Simulation returns AddVirtualWildcardFlow " +
+                 "for userspace only match") {
+            Given("a PkWf object")
+            val (pktCtx, pkfw) = PacketWorkflowTest.forCookie(self, packet(true), cookie)
+
+            When("a user space field is seen")
+            pktCtx.wcmatch.getIcmpIdentifier
+
+            And("the simulation layer returns AddVirtualWildcardFlow")
+            val result = AddVirtualWildcardFlow
+            pkfw.processSimulationResult(pktCtx, result)
+
+            Then("action translation is performed")
+            And("the FlowController does not get an AddWildcardFlow request")
+            And("the current packet gets executed")
+            runChecks(pktCtx, pkfw, checkTranslate _)
+
+            And("state is pushed")
+            statePushed should be (true)
+        }
+
+        scenario("A Simulation returns AddVirtualWildcardFlow") {
+            Given("a PkWf object")
+            val (pktCtx, pkfw) = PacketWorkflowTest.forCookie(self, packet(false), cookie)
+
+            When("the simulation layer returns AddVirtualWildcardFlow")
+            val result = AddVirtualWildcardFlow
+            pkfw.processSimulationResult(pktCtx, result)
+
+            Then("action translation is performed")
+            And("the FlowController gets an AddWildcardFlow request")
+            And("the DeduplicationActor gets an ApplyFlow request")
+            And("the current packet gets executed")
+            runChecks(pktCtx, pkfw, checkTranslate _ :: applyOutputActions)
+
+            And("state is pushed")
+            statePushed should be (true)
+        }
+    }
+
+      def flMatch(userspace: Boolean = false) = {
+        val flm = new FlowMatch()
+        if (userspace) {
+            flm addKey FlowKeys.icmpEcho(0, 1, 3)
+        }
+        flm
+    }
+
+    def packet(userspace: Boolean = false) =
+        new Packet(Ethernet.random, flMatch(userspace))
+
+    def wcMatch(userspace: Boolean = false) = {
+        val wcMatch = flMatch(userspace)
+        if (userspace)
+          wcMatch.getIcmpIdentifier
+        wcMatch
+    }
+
+    /* helpers for checking received msgs */
+
+    type Check = (Seq[Any], JList[FlowAction]) => Unit
+
+    def runChecks(pktCtx: PacketContext, pw: PacketWorkflow, checks: List[Check]) {
+        runChecks(pktCtx, pw, checks:_*)
+    }
+
+    def runChecks(pktCtx: PacketContext, pw: PacketWorkflow, checks: Check*) {
+        def drainMessages(): List[AnyRef] = {
+            receiveOne(500 millis) match {
+                case null => Nil
+                case msg => msg :: drainMessages()
+            }
+        }
+        val msgs = drainMessages()
+        checks foreach { _(msgs, pktCtx.flowActions) }
+        msgAvailable should be (false)
+    }
+
+    def checkTranslate(msgs: Seq[Any], as: JList[FlowAction]): Unit =
+        msgs should contain(TranslateActions)
+
+    def checkExecPacket(msgs: Seq[Any], as: JList[FlowAction]): Unit =
+        msgs should contain(ExecPacket)
+
+    def checkEmptyActions(msgs: Seq[Any], as: JList[FlowAction]): Unit =
+        as should be (empty)
+
+    def checkOutputActions(msgs: Seq[Any], as: JList[FlowAction]): Unit =
+        as should contain (output)
+
+    val applyEmptyActions = List[Check](checkEmptyActions, checkExecPacket)
+    val applyOutputActions = List[Check](checkOutputActions, checkExecPacket)
+           */
+    class TestableDDA(cookieGen: CookieGenerator,
+                      dpChannel: DatapathChannel,
+                      clusterDataClient: DataClient,
+                      packetOut: Int => Unit,
+                      override val simulationExpireMillis: Long)
+            extends PacketWorkflow(injector.getInstance(classOf[MidolmanConfig]),
+                                   cookieGen, dpChannel, clusterDataClient,
+                                   flowInvalidator,
+                                   conntrackTable,
+                                   natTable,
+                                   new MockStateStorage(),
+                                   HappyGoLuckyLeaser,
+                                   metrics, packetOut)
+            with MessageAccumulator {
+
+        implicit override val dispatcher = this.context.dispatcher
         var p = Promise[Any]()
         var generatedPacket: GeneratedPacket = _
         var nextActions: List[FlowAction] = _
+
+        def suspended(flowMatch: FlowMatch): collection.Set[Packet] =
+            suspendedPackets.get(flowMatch)
+
+        def completeWithGenerated(actions: List[FlowAction],
+                                  generatedPacket: GeneratedPacket): Unit = {
+            this.generatedPacket = generatedPacket
+            complete(actions)
+        }
+
+        def complete(actions: List[FlowAction]): Unit = {
+            nextActions = actions
+            p success null
+        }
 
         override def start(pktCtx: PacketContext) = {
             pktCtx.runs += 1
@@ -321,48 +538,5 @@ class DeduplicationActorTest extends MidolmanSpec {
                 FlowCreated
             }
         }
-
-        override def drop(pktCtx: PacketContext) {
-        }
-
-        def complete(actions: List[FlowAction]): Unit = {
-            nextActions = actions
-            p success null
-        }
-    }
-
-    class TestableDDA(cookieGen: CookieGenerator,
-                      dpChannel: DatapathChannel,
-                      clusterDataClient: DataClient,
-                      metrics: PacketPipelineMetrics,
-                      packetOut: Int => Unit,
-                      override val simulationExpireMillis: Long)
-            extends DeduplicationActor(injector.getInstance(classOf[MidolmanConfig]),
-                                       cookieGen, dpChannel, clusterDataClient,
-                                       new FlowInvalidator(null),
-                                       new ShardedFlowStateTable[ConnTrackKey, ConnTrackValue](),
-                                       new ShardedFlowStateTable[NatKey, NatBinding](),
-                                       new MockStateStorage(),
-                                       HappyGoLuckyLeaser,
-                                       metrics, packetOut)
-            with MessageAccumulator {
-
-        implicit override val dispatcher = this.context.dispatcher
-
-        def suspended(flowMatch: FlowMatch): collection.Set[Packet] =
-            suspendedPackets.get(flowMatch)
-
-        def complete(actions: List[FlowAction]): Unit = {
-            workflow.asInstanceOf[MockPacketHandler].complete(actions)
-        }
-
-        def completeWithGenerated(actions: List[FlowAction],
-                                  generatedPacket: GeneratedPacket): Unit = {
-            workflow.asInstanceOf[MockPacketHandler].generatedPacket = generatedPacket
-            complete(actions)
-        }
-
-        def hookPacketHandler(): Unit =
-            workflow = new MockPacketHandler()
     }
 }

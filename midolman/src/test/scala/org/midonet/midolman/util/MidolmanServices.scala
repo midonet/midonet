@@ -21,21 +21,30 @@ import java.util.UUID
 import scala.concurrent.ExecutionContext
 
 import akka.actor.ActorSystem
+import com.codahale.metrics.{MetricFilter, MetricRegistry}
 
 import com.google.inject.Injector
 
 import org.midonet.cluster.Client
 import org.midonet.cluster.DataClient
 import org.midonet.cluster.state.StateStorage
+import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.{FlowProcessor, DatapathChannel}
 import org.midonet.midolman.flows.FlowInvalidator
 import org.midonet.midolman.io.UpcallDatapathConnectionManager
+import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
 import org.midonet.midolman.services.HostIdProviderService
 import org.midonet.midolman.util.mock.{MockFlowProcessor, MockDatapathChannel, MockUpcallDatapathConnectionManager}
 import org.midonet.odp.protos.{OvsDatapathConnection, MockOvsDatapathConnection}
+import org.midonet.util.concurrent.MockClock
 
 trait MidolmanServices {
     var injector: Injector
+
+    var clock = new MockClock
+
+    def config =
+        injector.getInstance(classOf[MidolmanConfig])
 
     def clusterClient =
         injector.getInstance(classOf[Client])
@@ -45,6 +54,12 @@ trait MidolmanServices {
 
     def stateStorage =
         injector.getInstance(classOf[StateStorage])
+
+    def metrics = {
+        val metricsReg = injector.getInstance(classOf[MetricRegistry])
+        metricsReg.removeMatching(MetricFilter.ALL)
+        new PacketPipelineMetrics(metricsReg)
+    }
 
     implicit def hostId: UUID =
         injector.getInstance(classOf[HostIdProviderService]).getHostId
