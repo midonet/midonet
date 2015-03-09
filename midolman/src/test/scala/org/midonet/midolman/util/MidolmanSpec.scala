@@ -56,7 +56,6 @@ trait MidolmanSpec extends FeatureSpecLike
     val log = LoggerFactory.getLogger(getClass)
 
     var injector: Injector = null
-    var clock = new MockClock
 
     /**
      * Override this function to perform a custom set-up needed for the test.
