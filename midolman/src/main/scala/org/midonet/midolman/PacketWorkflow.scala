@@ -13,42 +13,53 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.midonet.midolman
 
-import java.util.UUID
+import java.util.{HashMap => JHashMap, UUID}
+
+import scala.collection.mutable
+import scala.concurrent.duration._
+import scala.concurrent.{ExecutionContext, Future}
+import scala.util.{Failure, Success}
 
 import akka.actor._
-
 import com.typesafe.scalalogging.Logger
-import org.slf4j.LoggerFactory
+import org.midonet.midolman.routingprotocols.RoutingWorkflow
+
+import org.slf4j.{LoggerFactory, MDC}
+
+import org.jctools.queues.MpscArrayQueue
 
 import org.midonet.cluster.DataClient
+import org.midonet.midolman.HostRequestProxy.FlowStateBatch
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.DatapathChannel
-import org.midonet.midolman.flows.{FlowExpiration, FlowInvalidation}
-import org.midonet.midolman.routingprotocols.RoutingWorkflow
-import org.midonet.midolman.simulation.{Coordinator, DhcpImpl, PacketContext}
-import org.midonet.midolman.state.FlowStateReplicator
+import org.midonet.midolman.flows.{FlowExpiration, FlowInvalidation, FlowInvalidator}
+import org.midonet.midolman.logging.ActorLogWithoutPath
+import org.midonet.midolman.management.PacketTracing
+import org.midonet.midolman.topology.{VxLanPortMapper, VirtualTopologyActor}
 import org.midonet.midolman.topology.devices.Port
-import org.midonet.midolman.topology.{VirtualTopologyActor, VxLanPortMapper}
-import org.midonet.odp.FlowMatch.Field
+import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
+import org.midonet.midolman.simulation.PacketEmitter.GeneratedPacket
+import org.midonet.midolman.simulation._
+import org.midonet.midolman.state.ConnTrackState.{ConnTrackKey, ConnTrackValue}
+import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
+import org.midonet.midolman.state._
+import org.midonet.midolman.state.{FlowStatePackets, FlowStateReplicator, FlowStateStorage, NatLeaser}
 import org.midonet.odp._
+import org.midonet.odp.FlowMatch.Field
 import org.midonet.packets._
-import org.midonet.sdn.flows.FlowTagger.tagForDpPort
 import org.midonet.sdn.flows.FlowTagger
-
-trait PacketHandler {
-    def start(context: PacketContext): PacketWorkflow.SimulationResult
-    def drop(context: PacketContext): Unit
-}
+import org.midonet.sdn.flows.FlowTagger._
+import org.midonet.sdn.state.{FlowStateTable, FlowStateTransaction}
+import org.midonet.util.collection.Reducer
+import org.midonet.util.concurrent._
 
 object PacketWorkflow {
-    case class PacketIn(wMatch: FlowMatch,
-                        inputPort: UUID,
-                        eth: Ethernet,
-                        dpMatch: FlowMatch,
-                        reason: Packet.Reason,
-                        cookie: Int)
+    case class HandlePackets(packet: Array[Packet])
+    case class DiscardPacket(cookie: Int)
+    case class RestartWorkflow(pktCtx: PacketContext, error: Throwable)
 
     trait SimulationResult
     case object NoOp extends SimulationResult
@@ -60,6 +71,16 @@ object PacketWorkflow {
     case object UserspaceFlow extends SimulationResult
     case object FlowCreated extends SimulationResult
     case object GeneratedPacket extends SimulationResult
+}
+
+class CookieGenerator(val start: Int, val increment: Int) {
+    private var nextCookie = start
+
+    def next: Int = {
+        val ret = nextCookie
+        nextCookie += increment
+        ret
+    }
 }
 
 trait UnderlayTrafficHandler { this: PacketWorkflow =>
@@ -113,32 +134,313 @@ trait UnderlayTrafficHandler { this: PacketWorkflow =>
     }
 }
 
-class PacketWorkflow(protected val dpState: DatapathState,
-                     datapath: Datapath,
-                     dataClient: DataClient,
-                     dpChannel: DatapathChannel,
-                     replicator: FlowStateReplicator,
-                     config: MidolmanConfig)
-                    (implicit val system: ActorSystem)
-        extends PacketHandler with FlowTranslator
-        with RoutingWorkflow with UnderlayTrafficHandler {
+class PacketWorkflow(
+            val config: MidolmanConfig,
+            val cookieGen: CookieGenerator,
+            val dpChannel: DatapathChannel,
+            val clusterDataClient: DataClient,
+            val flowInvalidator: FlowInvalidator,
+            val connTrackStateTable: FlowStateTable[ConnTrackKey, ConnTrackValue],
+            val natStateTable: FlowStateTable[NatKey, NatBinding],
+            val storage: FlowStateStorage,
+            val natLeaser: NatLeaser,
+            val metrics: PacketPipelineMetrics,
+            val packetOut: Int => Unit)
+        extends Actor with ActorLogWithoutPath with Stash with Backchannel
+        with UnderlayTrafficHandler with FlowTranslator with RoutingWorkflow {
+
+    import DatapathController.DatapathReady
     import PacketWorkflow._
 
+    override def logSource = "org.midonet.packet-worker"
     val resultLogger = Logger(LoggerFactory.getLogger("org.midonet.packets.results"))
 
-    override def start(context: PacketContext): SimulationResult = {
+    var dpState: DatapathState = null
+
+    implicit val dispatcher = this.context.system.dispatcher
+    implicit val system = this.context.system
+
+    protected val suspendedPackets = new JHashMap[FlowMatch, mutable.HashSet[Packet]]
+
+    protected val simulationExpireMillis = 5000L
+
+    private val waitingRoom = new WaitingRoom[PacketContext](
+                                        (simulationExpireMillis millis).toNanos)
+
+    private val cbExecutor = new CallbackExecutor(2048, self)
+    private val genPacketEmitter = new PacketEmitter(new MpscArrayQueue(512), self)
+
+    protected val connTrackTx = new FlowStateTransaction(connTrackStateTable)
+    protected val natTx = new FlowStateTransaction(natStateTable)
+    protected var replicator: FlowStateReplicator = _
+
+    private val invalidateExpiredConnTrackKeys =
+        new Reducer[ConnTrackKey, ConnTrackValue, Unit]() {
+            override def apply(u: Unit, k: ConnTrackKey, v: ConnTrackValue) {
+                flowInvalidator.scheduleInvalidationFor(k)
+            }
+        }
+
+    private val invalidateExpiredNatKeys =
+        new Reducer[NatKey, NatBinding, Unit]() {
+            override def apply(u: Unit, k: NatKey, v: NatBinding): Unit = {
+                flowInvalidator.scheduleInvalidationFor(k)
+                NatState.releaseBinding(k, v, natLeaser)
+            }
+        }
+
+    context.become {
+        case DatapathReady(dp, state) =>
+            dpState = state
+            replicator = new FlowStateReplicator(connTrackStateTable,
+                                                 natStateTable,
+                                                 storage,
+                                                 dpState,
+                                                 flowInvalidator,
+                                                 config.getControlPacketsTos.toByte)
+            context.become(receive)
+            system.scheduler.schedule(20 millis, 30 seconds, self, CheckBackchannels)
+            unstashAll()
+        case _ => stash()
+    }
+
+    override def receive = {
+        case m: FlowStateBatch =>
+            replicator.importFromStorage(m)
+
+        case HandlePackets(packets) =>
+            var i = 0
+            while (i < packets.length && packets(i) != null) {
+                handlePacket(packets(i))
+                i += 1
+            }
+            process()
+
+        case CheckBackchannels =>
+            process()
+
+        case RestartWorkflow(pktCtx, error) =>
+            if (pktCtx.idle) {
+                metrics.packetsOnHold.dec()
+                pktCtx.log.debug("Restarting workflow")
+                MDC.put("cookie", pktCtx.cookieStr)
+                if (error eq null)
+                    runWorkflow(pktCtx)
+                else
+                    handleErrorOn(pktCtx, error)
+                MDC.remove("cookie")
+            }
+            // Else the packet may have already been expired and dropped
+    }
+
+    override def shouldProcess(): Boolean =
+        cbExecutor.shouldWakeUp() ||
+        genPacketEmitter.pendingPackets > 0
+
+    override def process(): Unit = {
+        cbExecutor.run()
+        genPacketEmitter.process(runGeneratedPacket)
+        connTrackStateTable.expireIdleEntries((), invalidateExpiredConnTrackKeys)
+        natStateTable.expireIdleEntries((), invalidateExpiredNatKeys)
+        natLeaser.obliterateUnusedBlocks()
+    }
+
+    // We return collection.Set so we can return an empty immutable set
+    // and a non-empty mutable set.
+    private def removeSuspendedPackets(flowMatch: FlowMatch): collection.Set[Packet] = {
+        val pending = suspendedPackets.remove(flowMatch)
+        if (pending ne null) {
+            log.debug(s"Removing ${pending.size} suspended packet(s)")
+            pending
+        } else {
+            Set.empty
+        }
+    }
+
+    protected def packetContext(packet: Packet): PacketContext =
+        initialize(packet, packet.getMatch, null)
+
+    protected def generatedPacketContext(egressPort: UUID, eth: Ethernet) = {
+        val fmatch = FlowMatches.fromEthernetPacket(eth)
+        val packet = new Packet(eth, fmatch)
+        initialize(packet, fmatch, egressPort)
+    }
+
+    private def initialize(packet: Packet, fmatch: FlowMatch, egressPort: UUID) = {
+        val cookie = cookieGen.next
+        log.debug(s"Creating new PacketContext for cookie $cookie")
+        val context = new PacketContext(cookie, packet, fmatch, egressPort)
+        context.reset(cbExecutor, genPacketEmitter)
+        context.initialize(connTrackTx, natTx, natLeaser)
+        context.log = PacketTracing.loggerFor(fmatch)
+        context
+    }
+
+    /**
+     * Deal with an incomplete workflow that could not complete because it found
+     * a NotYet on the way.
+     */
+    private def postponeOn(pktCtx: PacketContext, f: Future[_]) {
+        pktCtx.postpone()
+        val flowMatch = pktCtx.packet.getMatch
+        if (!suspendedPackets.containsKey(flowMatch)) {
+            suspendedPackets.put(flowMatch, mutable.HashSet())
+        }
+        f.onComplete {
+            case Success(_) =>
+                self ! RestartWorkflow(pktCtx, null)
+            case Failure(ex) =>
+                self ! RestartWorkflow(pktCtx, ex)
+        }(ExecutionContext.callingThread)
+        metrics.packetPostponed()
+        giveUpWorkflows(waitingRoom enter pktCtx)
+    }
+
+    private def giveUpWorkflows(pktCtxs: IndexedSeq[PacketContext]) {
+        var i = 0
+        while (i < pktCtxs.size) {
+            val pktCtx = pktCtxs(i)
+            if (!pktCtx.isStateMessage) { // Packet now exists outside of WaitingRoom
+                if (pktCtx.idle)
+                    drop(pktCtx)
+                else
+                    log.warn(s"Pending ${pktCtx.cookieStr} was scheduled for " +
+                             "cleanup but was not idle")
+            }
+            i += 1
+        }
+    }
+
+    private def drop(pktCtx: PacketContext): Unit =
+        try {
+            pktCtx.prepareForDrop(FlowInvalidation.lastInvalidationEvent)
+            pktCtx.expiration = FlowExpiration.ERROR_CONDITION_EXPIRATION
+            addTranslatedFlow(pktCtx)
+        } catch {
+            case e: Exception =>
+                pktCtx.log.error("Failed to drop flow", e)
+        } finally {
+            val dropped = removeSuspendedPackets(pktCtx.packet.getMatch).size
+            metrics.packetsDropped.mark(dropped + 1)
+        }
+
+    private def complete(pktCtx: PacketContext, simRes: SimulationResult): Unit = {
+        pktCtx.log.debug("Packet processed")
+        if (pktCtx.runs > 1)
+            waitingRoom leave pktCtx
+        if (pktCtx.ingressed) {
+            applyFlow(pktCtx, simRes)
+            val latency = NanoClock.DEFAULT.tick - pktCtx.packet.startTimeNanos
+            metrics.packetsProcessed.mark()
+            simRes match {
+                case StateMessage =>
+                case _ => metrics.packetSimulated(latency.toInt)
+            }
+        }
+    }
+
+    private def applyFlow(pktCtx: PacketContext, simRes: SimulationResult): Unit = {
+        val flowMatch = pktCtx.packet.getMatch
+        val suspendedPackets = removeSuspendedPackets(flowMatch)
+        val numSuspendedPackets = suspendedPackets.size
+        if (simRes eq UserspaceFlow) {
+            suspendedPackets foreach processPacket
+        } else if (numSuspendedPackets > 0) {
+            log.debug(s"Sending ${suspendedPackets.size} pended packets")
+            suspendedPackets foreach (dpChannel.executePacket(_, pktCtx.flowActions))
+            metrics.packetsProcessed.mark(numSuspendedPackets)
+            metrics.pendedPackets.dec(numSuspendedPackets)
+        }
+
+        if (!pktCtx.isStateMessage && pktCtx.flowActions.isEmpty) {
+            system.eventStream.publish(DiscardPacket(pktCtx.cookie))
+        }
+    }
+
+    /**
+     * Handles an error in a workflow execution.
+     */
+    private def handleErrorOn(pktCtx: PacketContext, ex: Throwable): Unit = {
+        ex match {
+            case ArpTimeoutException(router, ip) =>
+                pktCtx.log.debug(s"ARP timeout at router $router for address $ip")
+            case _: DhcpException =>
+            case e: DeviceQueryTimeoutException =>
+                pktCtx.log.warn("Timeout while fetching " +
+                                s"${e.deviceType} with id ${e.deviceId}")
+            case e =>
+                pktCtx.log.warn("Exception while processing packet", e)
+        }
+        drop(pktCtx)
+    }
+
+    protected def startWorkflow(context: PacketContext): Unit =
+        try {
+            MDC.put("cookie", context.cookieStr)
+            context.log.debug(s"New cookie for new match ${context.origMatch}")
+            runWorkflow(context)
+        } catch {
+            case ex: Exception =>
+                log.error("Unable to execute workflow", ex)
+        } finally {
+            if (context.ingressed)
+                packetOut(1)
+            MDC.remove("cookie")
+        }
+
+    protected def runWorkflow(pktCtx: PacketContext): Unit =
+        try {
+            try {
+                complete(pktCtx, start(pktCtx))
+            } finally {
+                flushTransactions()
+            }
+        } catch {
+            case TraceRequiredException =>
+                pktCtx.setTracingEnabled()
+                pktCtx.log.debug(s"Enabling trace for $pktCtx, and rerunning simulation")
+                runWorkflow(pktCtx)
+            case NotYetException(f, msg) =>
+                pktCtx.log.debug(s"Postponing simulation because: $msg")
+                postponeOn(pktCtx, f)
+            case ex: Throwable => handleErrorOn(pktCtx, ex)
+        }
+
+    private def handlePacket(packet: Packet): Unit = {
+        val flowMatch = packet.getMatch
+        if (FlowStatePackets.isStateMessage(flowMatch)) {
+            processPacket(packet)
+        } else suspendedPackets.get(flowMatch) match {
+            case null =>
+                processPacket(packet)
+            case packets =>
+                log.debug("A matching packet is already being handled")
+                packets.add(packet)
+                packetOut(1)
+                giveUpWorkflows(waitingRoom.doExpirations())
+        }
+    }
+
+    private val runGeneratedPacket = (p: GeneratedPacket) => {
+        log.debug(s"Executing generated packet $p")
+        startWorkflow(generatedPacketContext(p.egressPort, p.eth))
+    }
+
+    private def processPacket(packet: Packet): Unit =
+        startWorkflow(packetContext(packet))
+
+    private def flushTransactions(): Unit = {
+        connTrackTx.flush()
+        natTx.flush()
+    }
+
+    def start(context: PacketContext): SimulationResult = {
         context.prepareForSimulation(FlowInvalidation.lastInvalidationEvent)
         context.log.debug(s"Initiating processing, attempt: ${context.runs}")
         if (context.ingressed)
             handlePacketIngress(context)
         else
             handlePacketEgress(context)
-    }
-
-    override def drop(context: PacketContext): Unit = {
-        context.prepareForDrop(FlowInvalidation.lastInvalidationEvent)
-        context.expiration = FlowExpiration.ERROR_CONDITION_EXPIRATION
-        addTranslatedFlow(context)
     }
 
     def logResultNewFlow(msg: String, context: PacketContext): Unit = {
@@ -165,7 +467,7 @@ class PacketWorkflow(protected val dpState: DatapathState,
         if (context.isGenerated) {
             context.log.warn(s"Tried to add a flow for a generated packet")
             context.runFlowRemovedCallbacks()
-            GeneratedPacket
+            PacketWorkflow.GeneratedPacket
         } else {
             logResultNewFlow("will create flow", context)
             context.origMatch.propagateSeenFieldsFrom(context.wcmatch)
@@ -242,7 +544,7 @@ class PacketWorkflow(protected val dpState: DatapathState,
             case SendPacket =>
                 context.runFlowRemovedCallbacks()
                 sendPacket(context)
-                GeneratedPacket
+                PacketWorkflow.GeneratedPacket
             case NoOp =>
                 context.runFlowRemovedCallbacks()
                 resultLogger.debug(s"no-op for match ${context.origMatch} " +
@@ -258,20 +560,12 @@ class PacketWorkflow(protected val dpState: DatapathState,
         }
     }
 
-    protected def simulatePacketIn(context: PacketContext): SimulationResult = {
-        val packet = context.packet
-        system.eventStream.publish(
-            PacketIn(context.origMatch.clone(), context.inputPort,
-                     packet.getEthernet,
-                     packet.getMatch, packet.getReason,
-                     context.cookie))
-
+    protected def simulatePacketIn(context: PacketContext): SimulationResult =
         if (handleDHCP(context)) {
             NoOp
         } else {
             runSimulation(context)
         }
-    }
 
     def addVirtualWildcardFlow(context: PacketContext): SimulationResult = {
         translateActions(context)
@@ -304,7 +598,7 @@ class PacketWorkflow(protected val dpState: DatapathState,
                             dhcp: DHCP, mtu: Short): Boolean = {
         val srcMac = context.origMatch.getEthSrc
         val optMtu = Option(mtu)
-        DhcpImpl(dataClient, inPort, dhcp, srcMac, optMtu, context.log) match {
+        DhcpImpl(clusterDataClient, inPort, dhcp, srcMac, optMtu, context.log) match {
             case Some(dhcpReply) =>
                 context.log.debug(
                     "sending DHCP reply {} to port {}", dhcpReply, inPort.id)

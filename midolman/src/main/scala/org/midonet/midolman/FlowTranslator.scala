@@ -41,7 +41,7 @@ trait FlowTranslator {
     import FlowTranslator._
     import VirtualActions._
 
-    protected val dpState: DatapathState
+    protected def dpState: DatapathState
 
     implicit protected val requestReplyTimeout = new Timeout(5, TimeUnit.SECONDS)
     implicit protected def system: ActorSystem
