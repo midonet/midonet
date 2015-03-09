@@ -19,6 +19,8 @@ import java.util.UUID
 
 import scala.collection.JavaConverters._
 
+import com.google.protobuf.MessageOrBuilder
+
 import org.midonet.cluster.data._
 import org.midonet.cluster.models.Topology
 import org.midonet.cluster.util.IPAddressUtil.{Converter => IPAddressConverter}
@@ -70,11 +72,11 @@ sealed trait Port extends ZoomObject with VirtualDevice with Cloneable {
 
     def isActive: Boolean = _active
 
-    override def afterFromProto(): Unit = {
+    override def afterFromProto(message: MessageOrBuilder): Unit = {
         _deviceTag = FlowTagger.tagForDevice(id)
         _txTag = FlowTagger.tagForPortTx(id)
         _rxTag = FlowTagger.tagForPortRx(id)
-        super.afterFromProto()
+        super.afterFromProto(message)
     }
 
     override def deviceTag = _deviceTag
@@ -139,9 +141,9 @@ class RouterPort extends Port {
 
     override def deviceId = routerId
 
-    override def afterFromProto(): Unit = {
+    override def afterFromProto(message: MessageOrBuilder): Unit = {
         _portAddr = new IPv4Subnet(portIp, portSubnet.getPrefixLen)
-        super.afterFromProto()
+        super.afterFromProto(message)
     }
 
     def portAddr = _portAddr
@@ -193,7 +195,7 @@ object PortFactory {
         if (config.portGroupIDs != null) {
             port.portGroups = config.portGroupIDs.asScala.toSet
         }
-        port.afterFromProto()
+        port.afterFromProto(null)
         port
     }
 }
