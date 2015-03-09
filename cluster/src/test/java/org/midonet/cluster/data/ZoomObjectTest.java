@@ -16,8 +16,11 @@
 package org.midonet.cluster.data;
 
 import java.lang.reflect.Array;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
+import java.util.Set;
 
 import com.google.protobuf.ByteString;
 import com.google.protobuf.MessageOrBuilder;
@@ -29,7 +32,7 @@ import org.midonet.cluster.util.UUIDUtil;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertTrue;
 import static org.midonet.cluster.models.TestModels.FakeDevice;
 import static org.midonet.cluster.models.TestModels.TestMessage;
 
@@ -55,6 +58,17 @@ public class ZoomObjectTest {
         assertEquals(pojo.baseAfter, pojo.baseField);
         assertEquals(pojo.before, pojo.int32Field);
         assertEquals(pojo.baseBefore, pojo.baseField);
+    }
+
+    @Test
+    public void testConversionForByteFields() {
+        TestableZoomObject2 pojo = new TestableZoomObject2();
+        TestMessage proto = pojo.toProto(TestMessage.class);
+
+        assertTrue(pojo.compare(proto));
+
+        TestableZoomObject2 convertedPojo = ZoomConvert.fromProto(proto, TestableZoomObject2.class);
+        assertEquals(pojo, convertedPojo);
     }
 
     static TestMessage buildMessage() {
@@ -306,6 +320,34 @@ public class ZoomObjectTest {
         public void beforeToProto() {
             super.beforeToProto();
             before = int32Field;
+        }
+    }
+
+    // This class is used to test conversion of proto int32 and repeated int32
+    // fields to java Byte and Set<Byte> fields respectively.
+    @ZoomClass(clazz = TestModels.TestMessage.class)
+    static class TestableZoomObject2 extends ZoomObject {
+        @ZoomField(name = "int32_field")
+        private Byte byteField = 7;
+        @ZoomField(name = "int32_list")
+        private Set<Byte> byteSet =
+            new HashSet<>(Arrays.asList((byte) 8, (byte) 42));
+
+        public boolean compare(TestMessage message) {
+            boolean setsEqual = message.getInt32ListCount() == byteSet.size();
+            for (Integer nb : message.getInt32ListList())
+                setsEqual &= byteSet.contains(nb.byteValue());
+
+            return message.hasInt32Field() &&
+                   ((byte) message.getInt32Field() == byteField) &&
+                   setsEqual;
+        }
+
+        public boolean equals(Object obj) {
+            if (null == obj || !(obj instanceof TestableZoomObject2)) return false;
+            TestableZoomObject2 o = (TestableZoomObject2) obj;
+            return byteField == o.byteField &&
+                   byteSet.equals(o.byteSet);
         }
     }
 }
