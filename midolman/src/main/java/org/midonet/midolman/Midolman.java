@@ -154,6 +154,9 @@ public class Midolman {
 
         log.info("{} was initialized", MidolmanActorsService.class);
 
+        log.info("Running manual GC to tenure preallocated objects");
+        System.gc();
+
         log.info("main finish");
         serviceEvent.start();
     }
