@@ -79,8 +79,7 @@ class VirtualDeviceMapperTest extends MidolmanSpec {
 
     implicit var vt: VirtualTopology = _
 
-    registerActors(FlowController -> (() => new FlowController
-                                                with MessageAccumulator))
+    registerActors(FlowController -> (() => newTestableFC))
 
     def fc = FlowController.as[FlowController with MessageAccumulator]
 

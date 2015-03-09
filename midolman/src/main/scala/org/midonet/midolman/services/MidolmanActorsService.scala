@@ -57,7 +57,7 @@ class MidolmanActorsService extends AbstractService {
     implicit def system: ActorSystem = _system
     implicit def ex: ExecutionContext = _system.dispatcher
     implicit protected val childActorTimeout = 200.milliseconds
-    implicit protected val tout = new Timeout(5 seconds)
+    implicit protected val tout = new Timeout(60 seconds)
 
     protected def actorSpecs = List(
         (propsFor(classOf[VirtualTopologyActor]), VirtualTopologyActor.Name),

@@ -137,7 +137,6 @@ public class Midolman {
             new FlowStateStorageModule(),
             new InterfaceScannerModule()
         );
-
         // start the services
         injector.getInstance(LegacyStorageService.class)
             .startAsync()
@@ -153,6 +152,9 @@ public class Midolman {
         injector.getInstance(MidolmanActorsService.class).initProcessing();
 
         log.info("{} was initialized", MidolmanActorsService.class);
+
+        log.info("Running manual GC to tenure preallocated objects");
+        System.gc();
 
         log.info("main finish");
         serviceEvent.start();
