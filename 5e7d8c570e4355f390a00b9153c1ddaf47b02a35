@@ -161,6 +161,24 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_05e62ce8",
+        "filename": "tools/devmido/mido.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 294,
+      "author": {
+        "id": 1002749
+      },
+      "writtenOn": "2015-03-09T16:18:50Z",
+      "side": 1,
+      "message": "\"cd $TOP_DIR\" can not be in the command using setsid, otherwise it fails, so I need to do the distinction inside the `run_process` method.",
+      "parentUuid": "7a1969be_c591b448",
+      "revId": "5e7d8c570e4355f390a00b9153c1ddaf47b02a35",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_0a6c7b07",
         "filename": "tools/devmido/mido.sh",
         "patchSetId": 1
