@@ -15,11 +15,13 @@
  */
 package org.midonet.midolman.services
 
+import java.util.concurrent.TimeUnit
+
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Await, Future}
 import scala.reflect.ClassTag
 
-import akka.actor.{Actor, ActorRef, ActorSystem, Props}
+import akka.actor.{Actor, ActorRef, ActorSystem, Identify, Props}
 import akka.pattern.{gracefulStop, ask}
 import akka.util.Timeout
 import com.google.common.util.concurrent.AbstractService
@@ -57,7 +59,7 @@ class MidolmanActorsService extends AbstractService {
     implicit def system: ActorSystem = _system
     implicit def ex: ExecutionContext = _system.dispatcher
     implicit protected val childActorTimeout = 200.milliseconds
-    implicit protected val tout = new Timeout(5 seconds)
+    implicit protected val tout = new Timeout(60 seconds)
 
     protected def actorSpecs = List(
         (propsFor(classOf[VirtualTopologyActor]), VirtualTopologyActor.Name),
@@ -161,6 +163,10 @@ class MidolmanActorsService extends AbstractService {
     protected def createActorSystem(): ActorSystem =
         ActorSystem.create("midolman", ConfigFactory.load()
                 .getConfig("midolman"))
+
+    def awaitFlowControllerRunning(duration: Int, timeUnit: TimeUnit): Unit = {
+        Await.result(FlowController ? Identify(null), (duration, timeUnit))
+    }
 
     def initProcessing() {
         log.debug("Sending Initialization message to datapath controller.")
