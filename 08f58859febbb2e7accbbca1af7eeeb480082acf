@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_dfaea797",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/FlowController.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 399,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-03-09T11:31:36Z",
+      "side": 1,
+      "message": "define as a named constant somewhere.",
+      "range": {
+        "startLine": 399,
+        "startChar": 50,
+        "endLine": 399,
+        "endChar": 52
+      },
+      "revId": "08f58859febbb2e7accbbca1af7eeeb480082acf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_bfb80bc9",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/datapath/FlowProcessor.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-03-09T11:31:36Z",
+      "side": 1,
+      "message": "I don\u0027t quite understand why you\u0027ve done this. Are you trying to avoid writing it as a volatile? A comment block to explain motivation would be useful.",
+      "range": {
+        "startLine": 37,
+        "startChar": 16,
+        "endLine": 37,
+        "endChar": 31
+      },
+      "revId": "08f58859febbb2e7accbbca1af7eeeb480082acf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_3fcc1b6a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/datapath/FlowProcessor.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-03-09T11:31:36Z",
+      "side": 1,
+      "message": "since sequence is part of the flowMatch in any case, why do you pass it as a separate parameter?",
+      "range": {
+        "startLine": 95,
+        "startChar": 17,
+        "endLine": 95,
+        "endChar": 25
+      },
+      "revId": "08f58859febbb2e7accbbca1af7eeeb480082acf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_5ffe37af",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/datapath/FlowProcessor.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-03-09T11:31:36Z",
+      "side": 1,
+      "message": "typo",
+      "range": {
+        "startLine": 98,
+        "startChar": 12,
+        "endLine": 98,
+        "endChar": 24
+      },
+      "revId": "08f58859febbb2e7accbbca1af7eeeb480082acf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
