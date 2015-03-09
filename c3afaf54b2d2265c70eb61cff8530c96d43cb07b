@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_ea70ffdd",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/ChainMapper.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-03-09T14:56:21Z",
+      "side": 1,
+      "message": "s/sealed/final?",
+      "revId": "c3afaf54b2d2265c70eb61cff8530c96d43cb07b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
