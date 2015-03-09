@@ -20,6 +20,7 @@ import java.io.FileNotFoundException;
 import java.io.PrintStream;
 import java.nio.file.Paths;
 import java.util.Properties;
+import java.util.concurrent.TimeUnit;
 
 import com.google.common.util.concurrent.Service;
 import com.google.inject.Guice;
@@ -153,6 +154,11 @@ public class Midolman {
         injector.getInstance(MidolmanActorsService.class).initProcessing();
 
         log.info("{} was initialized", MidolmanActorsService.class);
+
+        log.info("Running manual GC to tenure preallocated objects");
+        injector.getInstance(MidolmanActorsService.class)
+            .awaitFlowControllerRunning(30, TimeUnit.SECONDS);
+        System.gc();
 
         log.info("main finish");
         serviceEvent.start();
