@@ -127,7 +127,7 @@ class FlowTracingTest extends MidolmanSpec {
             val postQueue = Queue[Boolean]()
             val ddaRef = createDDA(packetsOut += _, preQueue, postQueue)
 
-            ddaRef ! DeduplicationActor.HandlePackets(List(makePacket(1)).toArray)
+            ddaRef ! PacketWorkflow.HandlePackets(List(makePacket(1)).toArray)
 
             packetsOut should be (1)
             preQueue should be (Queue(false))
@@ -141,7 +141,7 @@ class FlowTracingTest extends MidolmanSpec {
             val postQueue = Queue[Boolean]()
             val ddaRef = createDDA(packetsOut += _, preQueue, postQueue)
 
-            ddaRef ! DeduplicationActor.HandlePackets(
+            ddaRef ! PacketWorkflow.HandlePackets(
                 List(makePacket(1), makePacket(500), makePacket(1000)).toArray)
 
             packetsOut should be (3)
@@ -158,7 +158,7 @@ class FlowTracingTest extends MidolmanSpec {
                       preQueue: Queue[Boolean],
                       postQueue: Queue[Boolean],
                       override val simulationExpireMillis: Long)
-            extends DeduplicationActor(injector.getInstance(classOf[MidolmanConfig]),
+            extends PacketWorkflow(injector.getInstance(classOf[MidolmanConfig]),
                                        cookieGen, dpChannel, clusterDataClient,
                                        new FlowInvalidator(null),
                                        new ShardedFlowStateTable[ConnTrackKey, ConnTrackValue](),
