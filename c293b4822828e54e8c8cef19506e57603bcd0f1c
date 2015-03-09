@@ -277,6 +277,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_1cae8de6",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/RouterTranslator.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-03-09T06:55:45Z",
+      "side": 1,
+      "message": "I see that makes sense. Thanks.\n\nI think we\u0027d better document this kind of assumptions together somewhere in one place, plus some documentation here.",
+      "parentUuid": "7a1969be_bb2ca603",
+      "range": {
+        "startLine": 46,
+        "startChar": 8,
+        "endLine": 46,
+        "endChar": 24
+      },
+      "revId": "c293b4822828e54e8c8cef19506e57603bcd0f1c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_fbb1fee1",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/RouterTranslator.scala",
         "patchSetId": 4
@@ -324,6 +348,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_3cdf096b",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/RouterTranslator.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-03-09T06:55:45Z",
+      "side": 1,
+      "message": "Thank you very much for the revamped comments, it really helped clarify my understanding.\n\n\n\u003e  I think the reason it was done this way originally was because we\n\u003e didn\u0027t have the deterministic UUID generation tool, and thus no way\n\u003e to get the provider router\u0027s port ID when all we had was the\n\u003e NeutronRouter. Now that that\u0027s no longer an issue, maybe we\n\u003e should switch so that the Neutron gateway port more naturally\n\u003e maps to the Midonet port on the tenant router.\n\n\nMakes sense. We should check this hypothesis with the Integration team, and if that\u0027s correct, we should fix the situation as you proposed.",
+      "parentUuid": "7a1969be_7b218efa",
+      "range": {
+        "startLine": 91,
+        "startChar": 11,
+        "endLine": 103,
+        "endChar": 18
+      },
+      "revId": "c293b4822828e54e8c8cef19506e57603bcd0f1c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_dbb402d3",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/RouterTranslator.scala",
         "patchSetId": 4
@@ -359,6 +407,30 @@
       "side": 1,
       "message": "Yeah...I remember being confused by that, too, since that\u0027s the way it was in the Neutron plugin. I think the reason is that we don\u0027t create the local route to the port when Neutron creates the router gateway port.\n\nIt looks as though this function is only ever called with false/false via the Neutron plugin. The true/true is via the Midonet port link API, which links two device ports. Maybe I should just remove those parameters, since we won\u0027t be supporting the Midonet API. If we need to add them back, we can give them better names.",
       "parentUuid": "7a1969be_dbb402d3",
+      "range": {
+        "startLine": 119,
+        "startChar": 34,
+        "endLine": 119,
+        "endChar": 62
+      },
+      "revId": "c293b4822828e54e8c8cef19506e57603bcd0f1c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_1cdccd72",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/RouterTranslator.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-03-09T06:55:45Z",
+      "side": 1,
+      "message": "Yes, if the function is only used here for now, it makes sense to remove the portExists/peerExists params.",
+      "parentUuid": "7a1969be_fb361e51",
       "range": {
         "startLine": 119,
         "startChar": 34,
@@ -501,6 +573,30 @@
       "side": 1,
       "message": "Oh...right.\n\nI think UpdateValidator takes care of that. I\u0027ll look into it. Let\u0027s leave this as is for now to avoid making the patch even bigger, and I\u0027ll fix it in the patch that adds tests.",
       "parentUuid": "7a1969be_db87e2d5",
+      "range": {
+        "startLine": 204,
+        "startChar": 8,
+        "endLine": 206,
+        "endChar": 36
+      },
+      "revId": "c293b4822828e54e8c8cef19506e57603bcd0f1c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_7cb7c13a",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/RouterTranslator.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 206,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-03-09T06:55:45Z",
+      "side": 1,
+      "message": "Yes, UpdateValidator seems to do the trick.",
+      "parentUuid": "7a1969be_db5ec275",
       "range": {
         "startLine": 204,
         "startChar": 8,
