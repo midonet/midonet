@@ -1,0 +1,107 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_dc299538",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/RouterTranslator.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 150,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-03-09T06:31:51Z",
+      "side": 1,
+      "message": "If SNAT is enabled, haven\u0027t the SNAT rules been already created?",
+      "revId": "e6d1bc8e1e4fad4add168733198fa2874bbb3d20",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_9c339daa",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/RouterTranslator.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 172,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-03-09T06:31:51Z",
+      "side": 1,
+      "message": "This check is duplicated for the Update case, perhaps we remove it here and add a new call in gatewayPortCreateOps()?",
+      "range": {
+        "startLine": 172,
+        "startChar": 8,
+        "endLine": 172,
+        "endChar": 29
+      },
+      "revId": "e6d1bc8e1e4fad4add168733198fa2874bbb3d20",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_3c226952",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/RouterTranslator.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 187,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-03-09T06:31:51Z",
+      "side": 1,
+      "message": "Don\u0027t you want to pass the target address? Did you mean to call natRuleData?",
+      "range": {
+        "startLine": 187,
+        "startChar": 28,
+        "endLine": 187,
+        "endChar": 73
+      },
+      "revId": "e6d1bc8e1e4fad4add168733198fa2874bbb3d20",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_9c0c3def",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/RouterTranslator.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 197,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-03-09T06:31:51Z",
+      "side": 1,
+      "message": "Ditto.",
+      "revId": "e6d1bc8e1e4fad4add168733198fa2874bbb3d20",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_1c1fad09",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/C3POMinionTest.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 783,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-03-09T06:31:51Z",
+      "side": 1,
+      "message": "Extra whitespace.",
+      "range": {
+        "startLine": 783,
+        "startChar": 0,
+        "endLine": 783,
+        "endChar": 4
+      },
+      "revId": "e6d1bc8e1e4fad4add168733198fa2874bbb3d20",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
