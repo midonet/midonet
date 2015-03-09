@@ -47,7 +47,7 @@ import org.midonet.util.concurrent._
  * virtual network devices.
  */
 object VirtualTopologyActor extends Referenceable {
-    val deviceRequestTimeout = 5 seconds
+    val deviceRequestTimeout = 30 seconds
     val log = Logger(LoggerFactory.getLogger("org.midonet.devices.devices-service"))
 
     override val Name: String = "VirtualTopologyActor"
