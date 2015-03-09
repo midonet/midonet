@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1969be_9c655db7",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/ZoomConvert.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 682,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-03-09T05:41:40Z",
+      "side": 1,
+      "message": "The code that gets the type argument is used six times. You could factor it out into a separate function, like getElementClass(clazz: Class[_], rawType: Class[_]) or something. Maybe change the message to s\"${this.getClass} cannot convert between $clazz and java.util.List\" or \"protocol buffers list.\"",
+      "range": {
+        "startLine": 677,
+        "startChar": 0,
+        "endLine": 682,
+        "endChar": 75
+      },
+      "revId": "f5b0daeb42a4f6a2318e585573fe708db1c053ea",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_fc5611cd",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/ZoomConvert.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 691,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-03-09T05:41:40Z",
+      "side": 1,
+      "message": "You\u0027re converting from protocol buffers. Same problem in the other two collection converter classes.",
+      "range": {
+        "startLine": 691,
+        "startChar": 54,
+        "endLine": 691,
+        "endChar": 56
+      },
+      "revId": "f5b0daeb42a4f6a2318e585573fe708db1c053ea",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
