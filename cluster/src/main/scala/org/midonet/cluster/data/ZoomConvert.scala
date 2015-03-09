@@ -612,6 +612,15 @@ object ZoomConvert {
         }
     }
 
+    private def getElementClass(clazz: Type, rawType: Type): Type = clazz match {
+        case generic: ParameterizedType
+            if generic.getRawType.equals(rawType) =>
+            generic.getActualTypeArguments()(0)
+
+        case _ => throw new ConvertException(
+            s"Cannot convert between $clazz and protocol buffer list")
+    }
+
     /**
      * Converter class for lists.
      * @param converter The converter for the list component type.
@@ -619,23 +628,17 @@ object ZoomConvert {
     protected[data] class ListConverter(converter: Converter[_,_])
             extends Converter[JList[_], JList[_]] {
 
-        override def toProto(value: JList[_], clazz: Type): JList[_] = clazz match {
-            case generic: ParameterizedType
-                if generic.getRawType.equals(classOf[JList[_]]) =>
-                val elClass = generic.getActualTypeArguments()(0)
-                bufferAsJavaList(value.map(el => converter.to(el, elClass)))
-            case _ => throw new ConvertException(
-                s"List converter cannot convert $clazz to Protocol Buffers")
+        override def toProto(value: JList[_], clazz: Type): JList[_] = {
+            bufferAsJavaList(value.map(el =>
+                converter.to(el, getElementClass(clazz, classOf[JList[_]])))
+            )
         }
 
-        override def fromProto(value: JList[_], clazz: Type): JList[_] = clazz match {
-            case generic: ParameterizedType
-                if generic.getRawType.equals(classOf[JList[_]]) =>
-                val elClass = generic.getActualTypeArguments()(0)
-                bufferAsJavaList(
-                    value.map(el => converter.from(el, elClass)))
-            case _ => throw new ConvertException(
-                s"List converter cannot convert $clazz to Protocol Buffers")
+        override def fromProto(value: JList[_], clazz: Type): JList[_] = {
+            bufferAsJavaList(value.map(
+                el => converter.from(el, getElementClass(clazz,
+                                                         classOf[JList[_]]))
+            ))
         }
 
     }
@@ -647,22 +650,16 @@ object ZoomConvert {
     protected[data] class SetConverter(converter: Converter[_,_])
             extends Converter[Set[_], JList[_]] {
 
-        override def toProto(value: Set[_], clazz: Type): JList[_] = clazz match {
-            case generic: ParameterizedType
-                if generic.getRawType.equals(classOf[Set[_]]) =>
-                val elClass = generic.getActualTypeArguments()(0)
-                value.map(el => converter.to(el, elClass)).toSeq
-            case _ => throw new ConvertException(
-                s"Set converter cannot convert $clazz to Protocol Buffers")
+        override def toProto(value: Set[_], clazz: Type): JList[_] = {
+            value.map(el =>
+                converter.to(el, getElementClass(clazz, classOf[Set[_]]))
+            ).toSeq
         }
 
-        override def fromProto(value: JList[_], clazz: Type): Set[_] = clazz match {
-            case generic: ParameterizedType
-                if generic.getRawType.equals(classOf[Set[_]]) =>
-                val elClass = generic.getActualTypeArguments()(0)
-                Set(value.map(el => converter.from(el, elClass)).toArray: _*)
-            case _ => throw new ConvertException(
-                s"Set converter cannot convert $clazz to Protocol Buffers")
+        override def fromProto(value: JList[_], clazz: Type): Set[_] = {
+            Set(value.map(el =>
+                converter.from(el, getElementClass(clazz, classOf[Set[_]]))
+            ).toArray: _*)
         }
     }
 
@@ -673,22 +670,16 @@ object ZoomConvert {
     protected[data] class JavaSetConverter(converter: Converter[_,_])
         extends Converter[JSet[_], JList[_]] {
 
-        override def toProto(value: JSet[_], clazz: Type): JList[_] = clazz match {
-            case generic: ParameterizedType
-                if generic.getRawType.equals(classOf[JSet[_]]) =>
-                val elClass = generic.getActualTypeArguments()(0)
-                value.map(el => converter.to(el, elClass)).toSeq
-            case _ => throw new ConvertException(
-                s"Set converter cannot convert $clazz to Protocol Buffers")
+        override def toProto(value: JSet[_], clazz: Type): JList[_] = {
+            value.map(el =>
+                converter.to(el, getElementClass(clazz, classOf[JSet[_]]))
+            ).toSeq
         }
 
-        override def fromProto(value: JList[_], clazz: Type): JSet[_] = clazz match {
-            case generic: ParameterizedType
-                if generic.getRawType.equals(classOf[JSet[_]]) =>
-                val elClass = generic.getActualTypeArguments()(0)
-                new JHashSet(value.map(converter.from(_, elClass)))
-            case _ => throw new ConvertException(
-                s"Set converter cannot convert $clazz to Protocol Buffers")
+        override def fromProto(value: JList[_], clazz: Type): JSet[_] = {
+            new JHashSet(value.map(
+                converter.from(_, getElementClass(clazz, classOf[JSet[_]]))
+            ))
         }
     }
 
