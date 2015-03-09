@@ -159,7 +159,11 @@ object FlowController extends Referenceable {
     }
 }
 
-class FlowController extends Actor with ActorLogWithoutPath
+class FlowController @Inject()(midolmanConfig: MidolmanConfig,
+                               datapathConnPool: DatapathConnectionPool,
+                               ejector: FlowEjector,
+                               metricsRegistry: MetricRegistry)
+        extends Actor with ActorLogWithoutPath
         with DatapathReadySubscriberActor {
     import DatapathController.DatapathReady
     import FlowController._
@@ -170,60 +174,41 @@ class FlowController extends Actor with ActorLogWithoutPath
 
     var datapath: Datapath = null
 
-    @Inject
-    var midolmanConfig: MidolmanConfig = null
-
-    @Inject
-    var datapathConnPool: DatapathConnectionPool = null
-
     def datapathConnection(flowMatch: FlowMatch) = datapathConnPool.get(flowMatch.hashCode)
 
-    @Inject
-    var ejector: FlowEjector = null
-
-    var pooledFlowRemoveCommands: ArrayObjectPool[FlowRemoveCommand] = _
-    var completedFlowRemoveCommands: SpscArrayQueue[FlowRemoveCommand] = _
+    val pooledFlowRemoveCommands: ArrayObjectPool[FlowRemoveCommand] =
+        new ArrayObjectPool(ejector.maxPendingRequests,
+                            new FlowRemoveCommand(_, completedFlowRemoveCommands))
+    val completedFlowRemoveCommands: SpscArrayQueue[FlowRemoveCommand] =
+        new SpscArrayQueue(ejector.maxPendingRequests)
     val flowRemoveCommandsToRetry = new ArrayList[FlowRemoveCommand]()
 
-    @Inject
-    var metricsRegistry: MetricRegistry = null
+    val meters = new MeterRegistry(midolmanConfig.getDatapathMaxFlowCount)
 
-    var meters: MeterRegistry = null
+    val maxDpFlows = (midolmanConfig.getDatapathMaxFlowCount * 1.1).toInt
 
-    var flowManager: FlowManager = null
-    var flowManagerHelper: FlowManagerHelper = null
+    val flowManagerHelper: FlowManagerHelper = new FlowManagerInfoImpl()
+    val flowManager: FlowManager = new FlowManager(flowManagerHelper,
+            maxDpFlows,
+            midolmanConfig.getIdleFlowToleranceInterval)
 
     val tagToFlows: MultiMap[FlowTag, ManagedFlow] =
         new HashMap[FlowTag, mutable.Set[ManagedFlow]]
             with MultiMap[FlowTag, ManagedFlow]
 
-    var flowExpirationCheckInterval: FiniteDuration = null
+    val flowExpirationCheckInterval = Duration(
+        midolmanConfig.getFlowExpirationInterval, TimeUnit.MILLISECONDS)
 
-    private var managedFlowPool: ObjectPool[ManagedFlow] = null
+    private val managedFlowPool: ObjectPool[ManagedFlow] =
+        new ArrayObjectPool(maxDpFlows, new ManagedFlow(_))
 
-    var metrics: FlowTablesMetrics = null
+    val metrics: FlowTablesMetrics = new FlowTablesMetrics(flowManager)
 
     private[this] implicit def executor: ExecutionContext = context.dispatcher
 
     override def preStart() {
         super.preStart()
-        meters = new MeterRegistry(midolmanConfig.getDatapathMaxFlowCount)
         Metering.registerAsMXBean(meters)
-        val maxDpFlows = (midolmanConfig.getDatapathMaxFlowCount * 1.1).toInt
-        val idleFlowToleranceInterval = midolmanConfig.getIdleFlowToleranceInterval
-        flowExpirationCheckInterval = Duration(midolmanConfig.getFlowExpirationInterval,
-            TimeUnit.MILLISECONDS)
-
-        flowManagerHelper = new FlowManagerInfoImpl()
-        flowManager = new FlowManager(flowManagerHelper, maxDpFlows, idleFlowToleranceInterval)
-
-        managedFlowPool = new ArrayObjectPool(maxDpFlows, new ManagedFlow(_))
-
-        metrics = new FlowTablesMetrics(flowManager)
-
-        completedFlowRemoveCommands = new SpscArrayQueue(ejector.maxPendingRequests)
-        pooledFlowRemoveCommands = new ArrayObjectPool(ejector.maxPendingRequests,
-                                                       new FlowRemoveCommand(_, completedFlowRemoveCommands))
     }
 
     def receive = LoggingReceive {

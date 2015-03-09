@@ -23,13 +23,19 @@ import scala.concurrent.ExecutionContext
 import akka.actor.ActorSystem
 
 import com.google.inject.Injector
+import com.codahale.metrics.MetricRegistry
 
 import org.midonet.cluster.state.StateStorage
 import org.midonet.cluster.{Client, DataClient}
+import org.midonet.midolman.FlowController
+import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.DatapathChannel
 import org.midonet.midolman.flows.FlowEjector
+import org.midonet.midolman.io.DatapathConnectionPool
 import org.midonet.midolman.io.UpcallDatapathConnectionManager
+
 import org.midonet.midolman.services.HostIdProviderService
+import org.midonet.midolman.util.mock.MessageAccumulator
 import org.midonet.midolman.util.mock.{MockDatapathChannel, MockFlowEjector, MockUpcallDatapathConnectionManager}
 import org.midonet.odp.protos.{MockOvsDatapathConnection, OvsDatapathConnection}
 
@@ -62,6 +68,12 @@ trait MidolmanServices {
                 .asInstanceOf[MockFlowEjector]
     }
 
+    def newTestableFC: FlowController =
+        new TestableFC(injector.getInstance(classOf[MidolmanConfig]),
+                       injector.getInstance(classOf[DatapathConnectionPool]),
+                       injector.getInstance(classOf[FlowEjector]),
+                       injector.getInstance(classOf[MetricRegistry]))
+
     def dpConn()(implicit ec: ExecutionContext, as: ActorSystem):
         OvsDatapathConnection = {
         val mockConnManager =
@@ -70,4 +82,12 @@ trait MidolmanServices {
         mockConnManager.initialize()
         mockConnManager.conn.getConnection
     }
+
+    class TestableFC(midolmanConfig: MidolmanConfig,
+                     datapathConnPool: DatapathConnectionPool,
+                     ejector: FlowEjector,
+                     metricsRegistry: MetricRegistry)
+            extends FlowController(midolmanConfig, datapathConnPool,
+                                   ejector, metricsRegistry)
+            with MessageAccumulator
 }

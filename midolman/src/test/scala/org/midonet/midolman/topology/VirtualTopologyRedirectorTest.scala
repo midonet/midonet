@@ -47,7 +47,6 @@ class VirtualTopologyRedirectorTest extends MidolmanSpec with TopologyBuilder {
 
     private class TestableVTA extends VirtualTopologyActor
                               with MessageAccumulator
-    private class TestableFC extends FlowController with MessageAccumulator
     private type SenderActor = AwaitableActor with MessageAccumulator
 
     private var backend: MidonetBackend = _
@@ -60,7 +59,7 @@ class VirtualTopologyRedirectorTest extends MidolmanSpec with TopologyBuilder {
     private val timeout = 5 seconds
 
     registerActors(VirtualTopologyActor -> (() => new TestableVTA))
-    registerActors(FlowController -> (() => new TestableFC))
+    registerActors(FlowController -> (() => newTestableFC))
 
     protected override def fillConfig(config: HierarchicalConfiguration)
     : HierarchicalConfiguration = {
