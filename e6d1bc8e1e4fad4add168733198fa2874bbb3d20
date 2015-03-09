@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_bcbc99dd",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/RouterTranslator.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 150,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-03-09T07:02:43Z",
+      "side": 1,
+      "message": "Not necessarily. An update can enable SNAT when it wasn\u0027t enabled before.",
+      "parentUuid": "7a1969be_dc299538",
+      "revId": "e6d1bc8e1e4fad4add168733198fa2874bbb3d20",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_9c339daa",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/RouterTranslator.scala",
         "patchSetId": 6
@@ -42,6 +60,30 @@
     },
     {
       "key": {
+        "uuid": "7a1969be_dcb7d5f3",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/RouterTranslator.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 172,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-03-09T07:02:43Z",
+      "side": 1,
+      "message": "I could do that, but then I have to do something like this:\n\n  val snatOps \u003d if (!snatEnabled(nr)) List()\n                else snatRuleCreateOps(...)",
+      "parentUuid": "7a1969be_9c339daa",
+      "range": {
+        "startLine": 172,
+        "startChar": 8,
+        "endLine": 172,
+        "endChar": 29
+      },
+      "revId": "e6d1bc8e1e4fad4add168733198fa2874bbb3d20",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_3c226952",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/RouterTranslator.scala",
         "patchSetId": 6
@@ -53,6 +95,30 @@
       "writtenOn": "2015-03-09T06:31:51Z",
       "side": 1,
       "message": "Don\u0027t you want to pass the target address? Did you mean to call natRuleData?",
+      "range": {
+        "startLine": 187,
+        "startChar": 28,
+        "endLine": 187,
+        "endChar": 73
+      },
+      "revId": "e6d1bc8e1e4fad4add168733198fa2874bbb3d20",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_3cd0a91e",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/RouterTranslator.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 187,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-03-09T07:02:43Z",
+      "side": 1,
+      "message": "Oh, I misunderstood your last comment. I thought you wanted me to make this line like the one below. But yeah, this is wrong. It\u0027s only reverse NAT rules than don\u0027t have targets.",
+      "parentUuid": "7a1969be_3c226952",
       "range": {
         "startLine": 187,
         "startChar": 28,
@@ -93,6 +159,30 @@
       "writtenOn": "2015-03-09T06:31:51Z",
       "side": 1,
       "message": "Extra whitespace.",
+      "range": {
+        "startLine": 783,
+        "startChar": 0,
+        "endLine": 783,
+        "endChar": 4
+      },
+      "revId": "e6d1bc8e1e4fad4add168733198fa2874bbb3d20",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1969be_1ccded85",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/C3POMinionTest.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 783,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-03-09T07:02:43Z",
+      "side": 1,
+      "message": "It\u0027s not extra whitespace. It\u0027s bonus whitespace.",
+      "parentUuid": "7a1969be_1c1fad09",
       "range": {
         "startLine": 783,
         "startChar": 0,
