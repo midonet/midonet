@@ -16,18 +16,15 @@
 
 package org.midonet.midolman.state
 
-import java.util.{ArrayList, Collections, List, Objects, UUID}
+import java.util.{ArrayList, List, Objects, UUID}
 
 import org.slf4j.{LoggerFactory,MDC}
-import scala.collection.JavaConverters._
 
 import org.midonet.midolman.logging.FlowTracingContext
 import org.midonet.midolman.simulation.PacketContext
 import org.midonet.midolman.state.FlowState.FlowStateKey
 import org.midonet.odp.FlowMatch
-
 import org.midonet.packets.{MAC, IPAddr}
-
 import org.midonet.sdn.state.FlowStateTransaction
 
 object TraceState {
@@ -41,7 +38,7 @@ object TraceState {
 
     object TraceKey {
         def fromFlowMatch(flowMatch: FlowMatch): TraceKey = {
-            flowMatch.doNotTrackSeenFields
+            flowMatch.doNotTrackSeenFields()
             val key = TraceKey(flowMatch.getEthSrc, flowMatch.getEthDst,
                                flowMatch.getEtherType,
                                flowMatch.getNetworkSrcIP,
@@ -49,7 +46,7 @@ object TraceState {
                                flowMatch.getNetworkProto,
                                flowMatch.getSrcPort,
                                flowMatch.getDstPort)
-            flowMatch.doTrackSeenFields
+            flowMatch.doTrackSeenFields()
             key
         }
     }
@@ -65,7 +62,7 @@ object TraceState {
         var flowTraceId: UUID = null
         val requests: List[UUID] = new ArrayList[UUID](1)
 
-        def enabled(): Boolean = flowTraceId != null
+        def enabled: Boolean = flowTraceId != null
         def enable(flowTraceId: UUID = UUID.randomUUID): TraceContext = {
             this.flowTraceId = flowTraceId
             this
@@ -75,7 +72,7 @@ object TraceState {
             requests.clear()
         }
         def reset(other: TraceContext): Unit = {
-            clear
+            clear()
             flowTraceId = other.flowTraceId
             requests.addAll(other.requests)
         }
@@ -85,10 +82,9 @@ object TraceState {
 
         override def hashCode(): Int = Objects.hashCode(flowTraceId, requests)
         override def equals(other: Any): Boolean = other match {
-            case that: TraceContext => {
+            case that: TraceContext =>
                 Objects.equals(flowTraceId, that.flowTraceId) &&
                 Objects.equals(requests, that.requests)
-            }
             case _ => false
         }
 
@@ -108,16 +104,16 @@ trait TraceState extends FlowState { this: PacketContext =>
     def prepareForSimulationWithTracing(): Unit = {
         // clear non-trace info
         clearEnabled = false
-        clear
+        clear()
         clearEnabled = true
     }
 
     abstract override def clear(): Unit = {
-        super.clear
+        super.clear()
 
         if (clearEnabled) {
-            traceContext.clear
-            traceTx.flush
+            traceContext.clear()
+            traceTx.flush()
         }
     }
 
@@ -166,15 +162,15 @@ trait TraceState extends FlowState { this: PacketContext =>
         key | TraceTunnelKeyMask
     }
 
-    def hasTraceTunnelBit(): Boolean = {
+    def hasTraceTunnelBit: Boolean = {
         TraceState.traceBitPresent(origMatch.getTunnelKey) &&
                 origMatch.getTunnelKey != FlowStatePackets.TUNNEL_KEY
     }
 
     def stripTraceBit(m: FlowMatch): Unit = {
-        m.doNotTrackSeenFields
-        m.setTunnelKey((m.getTunnelKey & ~TraceTunnelKeyMask))
-        m.doTrackSeenFields
+        m.doNotTrackSeenFields()
+        m.setTunnelKey(m.getTunnelKey & ~TraceTunnelKeyMask)
+        m.doTrackSeenFields()
     }
 
     def enableTracingOnEgress(): Unit = {

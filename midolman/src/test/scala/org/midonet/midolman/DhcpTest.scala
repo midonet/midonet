@@ -143,7 +143,7 @@ class DhcpTest extends MidolmanSpec {
                       bridgeIntPort1, bridgeIntPort2, bridgePort1, bridgePort2)
 
         workflow = packetWorkflow(Map(bridgePortNumber1 -> bridgePort1.getId,
-                                      bridgePortNumber2 -> bridgePort2.getId))
+                                      bridgePortNumber2 -> bridgePort2.getId)).underlyingActor
     }
 
     def extraDhcpOptToDhcpOption(opt: ExtraDhcpOpt): Option[DHCPOption] = for {
