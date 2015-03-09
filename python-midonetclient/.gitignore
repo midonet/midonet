@@ -1,5 +1,6 @@
 *.pyc
 .idea
+.eggs
 debian/files
 debian/changelog
 debian/*.debhelper
@@ -9,6 +10,9 @@ debian/python-midonetclient/
 doc/*.1
 doc/*.html
 build/*
+src/midonetclient/topology/_protobuf/*
+*_pb2.py
+*_pb2.pyc
 
 dist/*
 src/*.egg-info
