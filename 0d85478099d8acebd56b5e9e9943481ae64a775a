@@ -143,6 +143,30 @@
     },
     {
       "key": {
+        "uuid": "3a1371a2_8478e62c",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BridgeMapper.scala",
+        "patchSetId": 25
+      },
+      "lineNbr": 363,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-10T13:48:47Z",
+      "side": 1,
+      "message": "Actually, replaced with:\n\n  localPorts.forall(_._2.isReady) \u0026\u0026 peerPorts.forall(_._2.isReady)",
+      "parentUuid": "7a1969be_ab9c4910",
+      "range": {
+        "startLine": 362,
+        "startChar": 12,
+        "endLine": 363,
+        "endChar": 42
+      },
+      "revId": "0d85478099d8acebd56b5e9e9943481ae64a775a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5a166590_0504f213",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BridgeMapper.scala",
         "patchSetId": 25
