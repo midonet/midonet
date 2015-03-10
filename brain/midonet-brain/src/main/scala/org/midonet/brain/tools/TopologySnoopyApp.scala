@@ -16,12 +16,14 @@
 
 package org.midonet.brain.tools
 
-import scala.concurrent.duration.Duration
+import java.util.concurrent.CountDownLatch
 
+import com.google.common.util.concurrent.Service.{State, Listener}
 import com.google.inject.{AbstractModule, Guice}
 import org.slf4j.LoggerFactory
 
 import org.midonet.config.ConfigProvider
+import org.midonet.util.concurrent.CallingThreadExecutionContext
 
 /**
  * Stand-alone application to start the Topology Snoopy (Topology api client)
@@ -46,26 +48,27 @@ object TopologySnoopyApp extends App {
         topologySnoopyModule
     )
 
-    private val service = injector.getInstance(classOf[TopologySnoopy])
+    private val app = injector.getInstance(classOf[TopologySnoopy])
+    private val appEnded = new CountDownLatch(1)
+    app.addListener(new Listener {
+       override def terminated(from: State): Unit = appEnded.countDown()
+    }, CallingThreadExecutionContext)
 
     sys.addShutdownHook {
-        if (service.isRunning)
-            service.stopAsync().awaitTerminated()
+        if (app.isRunning)
+            app.stopAsync().awaitTerminated()
     }
 
     try {
-        service.startAsync().awaitRunning()
-        try {
-            service.awaitTermination(Duration.Inf)
-        } catch {
-            case e: InterruptedException => Thread.currentThread().interrupt()
-        } finally {
-            log.info("Interrupted. Shutting down Topology Snoopy")
-        }
-        if (service.isRunning)
-            service.stopAsync().awaitTerminated()
+        app.startAsync().awaitRunning()
+        appEnded.await()
+        log.info("Topology Snoopy terminating")
     } catch {
+        case e: InterruptedException =>
+            log.info("Topology Snoopy terminating")
+            Thread.currentThread().interrupt()
         case e: Exception =>
             log.error("Failed to start Topology Snoopy", e)
     }
+    System.exit(0)
 }
