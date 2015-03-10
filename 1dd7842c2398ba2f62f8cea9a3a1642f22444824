@@ -16,6 +16,24 @@
       "revId": "1dd7842c2398ba2f62f8cea9a3a1642f22444824",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a166590_c5b5ba32",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/FlowControllerTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-03-10T09:17:36Z",
+      "side": 1,
+      "message": "the other tests used a flow controller *with MessageAccumulator* which can\u0027t be used with a instance retrieved from the injector. As I understand it, \"with\" can only be used when making a subclass or on construction (very ungoogleable terminology).",
+      "parentUuid": "7a1969be_d007b4c8",
+      "revId": "1dd7842c2398ba2f62f8cea9a3a1642f22444824",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
