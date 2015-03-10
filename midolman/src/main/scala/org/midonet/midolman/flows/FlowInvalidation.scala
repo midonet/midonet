@@ -22,7 +22,6 @@ import com.typesafe.scalalogging.Logger
 
 import org.midonet.midolman.simulation.PacketContext
 import org.midonet.sdn.flows.FlowTagger.FlowTag
-import org.midonet.sdn.flows.ManagedFlow
 import org.midonet.util.collection.EventHistory
 import org.midonet.util.collection.EventHistory.{EventNotSeen, EventSeen, EventSearchWindowMissed}
 
