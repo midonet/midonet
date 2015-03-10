@@ -17,12 +17,13 @@
 package org.midonet.brain.services.topology
 
 
-import com.google.inject.{AbstractModule, Guice}
+import com.google.inject.{AbstractModule, Guice, Singleton}
+import org.midonet.cluster.config.ZookeeperConfig
+import org.midonet.cluster.services.MidonetBackend
 import org.slf4j.LoggerFactory
 
 import org.midonet.brain.{ClusterNode, ClusterNodeConfig}
-import org.midonet.cluster.config.ZookeeperConfig
-import org.midonet.cluster.storage.{MidonetBackendConfig, MidonetBackendModule}
+import org.midonet.cluster.storage.MidonetBackendModule
 import org.midonet.config.{ConfigProvider, HostIdGenerator}
 
 /** Stand-alone application to start the TopologyApiService */
@@ -38,14 +39,14 @@ object TopologyApiServiceApp extends App {
 
     private val topologyApiServiceModule = new AbstractModule {
         override def configure(): Unit = {
-            // TODO: required for legacy modules, remove asap
-            val zkConfig = cfgProvider.getConfig(classOf[ZookeeperConfig])
-            bind(classOf[ZookeeperConfig]).toInstance(zkConfig)
+            // FIXME: Required for legacy code
+            bind(classOf[ZookeeperConfig])
+                .toInstance(cfgProvider.getConfig(classOf[ZookeeperConfig]))
 
             bind(classOf[ConfigProvider]).toInstance(cfgProvider)
             bind(classOf[TopologyApiServiceConfig]).toInstance(apiCfg)
             bind(classOf[ClusterNode.Context]).toInstance(nodeContext)
-            bind(classOf[TopologyApiService]).asEagerSingleton()
+            bind(classOf[TopologyApiService]).in(classOf[Singleton])
         }
     }
 
@@ -57,15 +58,17 @@ object TopologyApiServiceApp extends App {
     sys.addShutdownHook {
         log.info("Terminating Topology API server")
         injector.getInstance(classOf[TopologyApiService])
-                .stopAsync()
-                .awaitTerminated()
+            .stopAsync().awaitTerminated()
+        injector.getInstance(classOf[MidonetBackend])
+            .stopAsync().awaitTerminated()
     }
 
     try {
         log.info("Starting a Topology API server")
+        injector.getInstance(classOf[MidonetBackend])
+            .startAsync().awaitRunning()
         injector.getInstance(classOf[TopologyApiService])
-                .startAsync()
-                .awaitRunning()
+            .startAsync().awaitRunning()
         log.info("Topology API server is up")
 
         try {

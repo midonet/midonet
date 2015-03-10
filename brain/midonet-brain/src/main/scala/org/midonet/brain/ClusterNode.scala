@@ -24,6 +24,7 @@ import com.codahale.metrics.{JmxReporter, MetricRegistry}
 import com.google.inject.name.Names
 import com.google.inject.{AbstractModule, Guice}
 import org.apache.commons.dbcp2.BasicDataSource
+import org.midonet.cluster.services.MidonetBackend
 import org.slf4j.LoggerFactory
 
 import org.midonet.brain.services.c3po.C3POConfig
@@ -179,11 +180,16 @@ object ClusterNode extends App {
             jmxReporter.stop()
             daemon.stopAsync().awaitTerminated()
         }
+        if (injector.getInstance(classOf[MidonetBackend]).isRunning)
+            injector.getInstance(classOf[MidonetBackend])
+                .stopAsync().awaitTerminated()
     }
 
     log info "MidoNet Cluster daemon starts.."
     try {
         jmxReporter.start()
+        injector.getInstance(classOf[MidonetBackend])
+            .startAsync().awaitRunning()
         daemon.startAsync().awaitRunning()
         log info "MidoNet Cluster is up"
     } catch {

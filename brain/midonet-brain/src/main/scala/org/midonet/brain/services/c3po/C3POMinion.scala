@@ -29,7 +29,7 @@ import org.midonet.brain.services.c3po.translators._
 import org.midonet.brain.{ClusterNode, ScheduledClusterMinion, ScheduledMinionConfig}
 import org.midonet.cluster.data.neutron.{SqlNeutronImporter, importer}
 import org.midonet.cluster.models.Neutron._
-import org.midonet.cluster.services.MidonetBackendService
+import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.util.UUIDUtil
 import org.midonet.config._
 
@@ -45,7 +45,7 @@ import org.midonet.config._
 class C3POMinion @Inject()(nodeContext: ClusterNode.Context,
                            config: C3POConfig,
                            dataSrc: DataSource,
-                           backend: MidonetBackendService,
+                           backend: MidonetBackend,
                            curator: CuratorFramework)
     extends ScheduledClusterMinion(nodeContext, config) {
 

@@ -22,9 +22,8 @@ import org.slf4j.LoggerFactory
 
 import org.midonet.brain.{ClusterNode, MinionConfig, ClusterMinion}
 import org.midonet.brain.services.topology.server._
-import org.midonet.cluster.data.storage.Storage
 import org.midonet.cluster.rpc.Commands
-import org.midonet.cluster.services.MidonetBackendService
+import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.topology.common.{ApiServerHandler, ConnectionManager}
 import org.midonet.cluster.services.topology.server.RequestHandler
 import org.midonet.config._
@@ -34,7 +33,7 @@ import org.midonet.util.netty.{ProtoBufWebSocketServerAdapter, ServerFrontEnd, P
  * Topology api service minion
  */
 class TopologyApiService @Inject()(val nodeContext: ClusterNode.Context,
-                                   val backend: MidonetBackendService,
+                                   val backend: MidonetBackend,
                                    val cfg: TopologyApiServiceConfig)
     extends ClusterMinion(nodeContext) {
     private val log = LoggerFactory.getLogger(classOf[TopologyApiService])
