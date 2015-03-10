@@ -22,7 +22,7 @@ import scala.collection.JavaConversions._
 import scala.util.Random
 
 import org.junit.runner.RunWith
-import org.midonet.midolman.flows.{FlowExpiration, FlowInvalidation}
+import org.midonet.midolman.flows.{ManagedFlow, FlowExpiration, FlowInvalidation}
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.midolman.simulation.PacketContext
