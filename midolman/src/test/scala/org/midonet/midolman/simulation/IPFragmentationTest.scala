@@ -16,11 +16,12 @@
 
 package org.midonet.midolman.simulation
 
-import java.util.UUID
+import java.util.{LinkedList, UUID}
 import scala.concurrent.duration._
 
 import akka.util.Timeout
 import org.junit.runner.RunWith
+import org.midonet.midolman.simulation.PacketEmitter.GeneratedPacket
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.data.{Bridge => ClusterBridge, Router => ClusterRouter, Entity, Port}
@@ -77,6 +78,8 @@ class IPFragmentationTest extends MidolmanSpec {
     var dstMac: MAC = _
     var srcSubnet: IPv4Subnet = _
     var dstSubnet: IPv4Subnet = _
+
+    val packetEmitter = new LinkedList[GeneratedPacket]
 
     def setup(useRouter: Boolean = false) {
         this.useRouter = useRouter
@@ -164,7 +167,7 @@ class IPFragmentationTest extends MidolmanSpec {
             assertDropFlowCreated(simRes, temporary = false)
 
             And("No ICMP_FRAG_NEEDED message should be received.")
-            PacketsEntryPoint.messages should be (empty)
+            packetEmitter should be (empty)
         }
 
         scenario("Header fragment dropped by router prompts ICMP_FRAG_NEEDED") {
@@ -194,10 +197,8 @@ class IPFragmentationTest extends MidolmanSpec {
             assertDropFlowCreated(simRes, temporary = false)
 
             And("No ICMP_FRAG_NEEDED message should be received.")
-            PacketsEntryPoint.messages should be (empty)
+            packetEmitter should be (empty)
         }
-
-
     }
 
     private[this] def setupAcceptOrDropChain(acceptPolicy: FragmentPolicy,
@@ -212,7 +213,8 @@ class IPFragmentationTest extends MidolmanSpec {
                            etherType: Short = IPv4.ETHERTYPE)
     : (SimulationResult, PacketContext) = {
         val pkt = makePacket(fragType, etherType)
-        sendPacket(srcPort, pkt)
+        val pktCtx = packetContextFor(pkt, srcPort.getId, packetEmitter)
+        simulate(pktCtx)
     }
 
     private[this] def makePacket(fragType: IPFragmentType, etherType: Short) = {
