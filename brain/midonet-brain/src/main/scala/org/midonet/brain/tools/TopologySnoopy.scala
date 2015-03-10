@@ -22,7 +22,7 @@ import scala.concurrent.duration._
 import com.google.common.util.concurrent.AbstractService
 import com.google.inject.Inject
 import org.slf4j.LoggerFactory
-import rx.{Observer, Subscription}
+import rx.Subscriber
 
 import org.midonet.cluster.models.{Commons, Topology}
 import org.midonet.cluster.rpc.Commands.{ResponseType, Response}
@@ -39,9 +39,9 @@ class TopologySnoopy @Inject()(val cfg: TopologySnoopyConfig)
     extends AbstractService {
     private val log = LoggerFactory.getLogger(classOf[TopologySnoopy])
 
+    private final val client = this
     private val session = new ClientSession(cfg.getHost, cfg.getPort,
                                             cfg.getWsPath)
-    private var subscription: Subscription = null
 
     private val types: Array[Topology.Type] = Topology.Type.values()
 
@@ -50,12 +50,16 @@ class TopologySnoopy @Inject()(val cfg: TopologySnoopyConfig)
         log.info("Starting Topology Snoopy")
         try {
             types foreach session.watchAll
-            subscription = session.connect().subscribe(new Observer[Response] {
+            session.connect().subscribe(new Subscriber[Response] {
                 override def onCompleted(): Unit = {
                     log.info("No more updates available")
+                    this.unsubscribe()
+                    client.stopAsync()
                 }
                 override def onError(e: Throwable): Unit = {
                     log.warn("Update flow interrupted", e)
+                    this.unsubscribe()
+                    client.stopAsync()
                 }
                 override def onNext(msg: Response): Unit = {
                     log.info(prettyString(msg))
@@ -77,13 +81,13 @@ class TopologySnoopy @Inject()(val cfg: TopologySnoopyConfig)
         session.terminate()
         try {
             session.awaitTermination(10.second)
-            log.info("Topology Snoopy terminated")
+            log.info("Topology Snoopy stopped")
             notifyStopped()
         } catch {
             case e: TimeoutException => try {
                 session.terminateNow()
                 session.awaitTermination(10.second)
-                log.info("Topology Snoopy terminated")
+                log.info("Topology Snoopy stopped")
             } catch {
                 case e: Throwable =>
                     log.warn("Topology Snoopy termination failed", e)
