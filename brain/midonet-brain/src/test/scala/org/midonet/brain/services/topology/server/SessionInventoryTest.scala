@@ -19,6 +19,8 @@ package org.midonet.brain.services.topology.server
 import java.util.concurrent.TimeUnit
 import java.util.UUID
 
+import com.google.protobuf.Message
+
 import scala.collection.JavaConversions._
 import scala.concurrent.duration.Duration
 
@@ -27,10 +29,9 @@ import org.scalatest._
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.data.storage.{InMemoryStorage, Storage}
-import org.midonet.cluster.models.Topology.Network
+import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.rpc.Commands.{ResponseType, Response}
 import org.midonet.cluster.util.UUIDUtil
-import org.midonet.util.eventloop.CallingThreadReactor
 import org.midonet.util.reactivex.AwaitableObserver
 import org.midonet.util.reactivex.HermitObservable.HermitOversubscribedException
 
@@ -86,6 +87,34 @@ class SessionInventoryTest extends FeatureSpec
         store.registerClass(classOf[Network])
         store.build()
         inv = new SessionInventory(store)
+    }
+
+    feature("responses can handle payload for all defined types") {
+        scenario("generate updates") {
+            val testObjects: Set[Message] = Set(
+                Chain.getDefaultInstance,
+                Host.getDefaultInstance,
+                IpAddrGroup.getDefaultInstance,
+                Network.getDefaultInstance,
+                Port.getDefaultInstance,
+                PortGroup.getDefaultInstance,
+                Route.getDefaultInstance,
+                Router.getDefaultInstance,
+                Rule.getDefaultInstance,
+                TunnelZone.getDefaultInstance,
+                Vtep.getDefaultInstance,
+                VtepBinding.getDefaultInstance,
+                Dhcp.getDefaultInstance
+            )
+            testObjects.size shouldBe Type.values().size
+
+            var testTypes: Set[Type] = Set()
+            for (obj <- testObjects) {
+                val resp = SessionInventory.updateBuilder(obj)
+                testTypes = testTypes + resp.getObjType
+            }
+            testTypes.size shouldBe Type.values().size
+        }
     }
 
     feature("session inventory")
