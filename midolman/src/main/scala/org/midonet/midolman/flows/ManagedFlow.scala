@@ -15,17 +15,16 @@
  */
 package org.midonet.midolman.flows
 
-import java.util.ArrayList
+import java.util.{HashSet, ArrayList}
 
-import org.midonet.midolman.CallbackExecutor
-import org.midonet.midolman.simulation.PacketContext
+import org.midonet.midolman.flows.FlowExpiration.Expiration
 import org.midonet.odp.FlowMatch
 import org.midonet.sdn.flows.FlowTagger.FlowTag
 import org.midonet.util.collection.{ObjectPool, PooledObject}
 import org.midonet.util.functors.Callback0
 
 /**
- * A ManagedWildcardFlow that is stored in a pool.
+ * A ManagedFlow that is stored in a pool.
  * Once the instance is no longer used, the  pool entry can be reused.
  *
  * Users should refrain from changing attributes after resetting.
@@ -38,15 +37,17 @@ final class ManagedFlow(override val pool: ObjectPool[ManagedFlow])
     val flowMatch = new FlowMatch()
     var expirationType = 0
     var absoluteExpirationNanos = 0L
-    var cbExecutor: CallbackExecutor = _
+    var sequence: Long = _
 
-    def reset(pktCtx: PacketContext, now: Long): Unit = {
-        flowMatch.reset(pktCtx.origMatch)
-        expirationType = pktCtx.expiration.typeId
-        absoluteExpirationNanos = now + pktCtx.expiration.value
-        cbExecutor = pktCtx.callbackExecutor
-        tags.addAll(pktCtx.flowTags)
-        callbacks.addAll(pktCtx.flowRemovedCallbacks)
+    def reset(flowMatch: FlowMatch, flowTags: HashSet[FlowTag],
+              flowRemovedCallbacks: ArrayList[Callback0], sequence: Long,
+              expiration: Expiration, now: Long): Unit = {
+        this.flowMatch.reset(flowMatch)
+        expirationType = expiration.typeId
+        absoluteExpirationNanos = now + expiration.value
+        tags.addAll(flowTags)
+        callbacks.addAll(flowRemovedCallbacks)
+        this.sequence = sequence
     }
 
     def clear(): Unit = {
@@ -56,10 +57,11 @@ final class ManagedFlow(override val pool: ObjectPool[ManagedFlow])
     }
 
     override def toString: String = {
-        "ManagedFlow{"+
+        "ManagedFlow{" +
             "objref=" + System.identityHashCode(this) +
             ", flowMatch=" + flowMatch +
             ", flowMatch hash=" + flowMatch.hashCode() +
+            ", sequence=" + sequence +
             ", refs=" + currentRefCount +
             '}'
     }
