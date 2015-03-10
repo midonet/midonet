@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "5a166590_a5c35e89",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/FlowController.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 399,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-03-10T09:38:56Z",
+      "side": 1,
+      "message": "Will fix.",
+      "parentUuid": "7a1969be_dfaea797",
+      "range": {
+        "startLine": 399,
+        "startChar": 50,
+        "endLine": 399,
+        "endChar": 52
+      },
+      "revId": "08f58859febbb2e7accbbca1af7eeeb480082acf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_bfb80bc9",
         "filename": "midolman/src/main/scala/org/midonet/midolman/datapath/FlowProcessor.scala",
         "patchSetId": 14
@@ -36,6 +60,30 @@
       "writtenOn": "2015-03-09T11:31:36Z",
       "side": 1,
       "message": "I don\u0027t quite understand why you\u0027ve done this. Are you trying to avoid writing it as a volatile? A comment block to explain motivation would be useful.",
+      "range": {
+        "startLine": 37,
+        "startChar": 16,
+        "endLine": 37,
+        "endChar": 31
+      },
+      "revId": "08f58859febbb2e7accbbca1af7eeeb480082acf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a166590_25d00e53",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/datapath/FlowProcessor.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-03-10T09:38:56Z",
+      "side": 1,
+      "message": "Yeah, I want to avoid volatile writes from thread processing the ring buffer. I just need to do a volatile read from thread calling tryEject, not even because of any reorderings, but just because I don\u0027t want it caching the value in a register if a thread ever loops around tryEject. Will write the comment.",
+      "parentUuid": "7a1969be_bfb80bc9",
       "range": {
         "startLine": 37,
         "startChar": 16,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "5a166590_25e92e1b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/datapath/FlowProcessor.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-03-10T09:38:56Z",
+      "side": 1,
+      "message": "Yes, but I plan to move the sequence value into the ManagedFlow; that it is in the FlowMatch is kind of a temporary hack :/",
+      "parentUuid": "7a1969be_3fcc1b6a",
+      "range": {
+        "startLine": 95,
+        "startChar": 17,
+        "endLine": 95,
+        "endChar": 25
+      },
+      "revId": "08f58859febbb2e7accbbca1af7eeeb480082acf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_5ffe37af",
         "filename": "midolman/src/main/scala/org/midonet/midolman/datapath/FlowProcessor.scala",
         "patchSetId": 14
@@ -82,6 +154,30 @@
       "writtenOn": "2015-03-09T11:31:36Z",
       "side": 1,
       "message": "typo",
+      "range": {
+        "startLine": 98,
+        "startChar": 12,
+        "endLine": 98,
+        "endChar": 24
+      },
+      "revId": "08f58859febbb2e7accbbca1af7eeeb480082acf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a166590_05eeb222",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/datapath/FlowProcessor.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-03-10T09:38:56Z",
+      "side": 1,
+      "message": "Oops!",
+      "parentUuid": "7a1969be_5ffe37af",
       "range": {
         "startLine": 98,
         "startChar": 12,
