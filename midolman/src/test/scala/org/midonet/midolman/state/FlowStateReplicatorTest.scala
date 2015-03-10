@@ -168,7 +168,7 @@ class FlowStateReplicatorTest extends MidolmanSpec {
                 new Packet(udpShell, FlowMatches.fromEthernetPacket(udpShell))
             }
 
-            When("Flow satte packet payload is the empty protobuf messsage")
+            When("Flow state packet payload is the empty protobuf messsage")
             val msgBuilder = FlowStateProto.StateMessage.newBuilder()
                 .clear()
                 .setSender(UUID.randomUUID())
