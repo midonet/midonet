@@ -21,8 +21,6 @@ import scala.concurrent.duration._
 
 import com.typesafe.scalalogging.Logger
 
-import org.midonet.sdn.flows.ManagedFlow
-
 object FlowExpiration {
     sealed abstract class Expiration {
         def value: Long

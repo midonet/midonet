@@ -24,9 +24,9 @@ import org.scalatest.junit.JUnitRunner
 import org.slf4j.helpers.NOPLogger
 import com.typesafe.scalalogging.Logger
 
-import org.midonet.midolman.flows.{FlowInvalidation, FlowLifecycle}
+import org.midonet.midolman.flows.{ManagedFlow, FlowInvalidation, FlowLifecycle}
 import org.midonet.midolman.util.MidolmanSpec
-import org.midonet.sdn.flows.{FlowTagger, ManagedFlow}
+import org.midonet.sdn.flows.FlowTagger
 
 @RunWith(classOf[JUnitRunner])
 class FlowInvalidationTest extends MidolmanSpec {
