@@ -76,7 +76,7 @@ class DeduplicationActor(
             val natLeaser: NatLeaser,
             val metrics: PacketPipelineMetrics,
             val packetOut: Int => Unit)
-            extends Actor with ActorLogWithoutPath {
+            extends Actor with ActorLogWithoutPath with Stash {
 
     import DatapathController.DatapathReady
     import DeduplicationActor._
@@ -105,8 +105,6 @@ class DeduplicationActor(
 
     protected var workflow: PacketHandler = _
 
-    private var pendingFlowStateBatches = List[FlowStateBatch]()
-
     private val invalidateExpiredConnTrackKeys =
         new Reducer[ConnTrackKey, ConnTrackValue, Unit]() {
             override def apply(u: Unit, k: ConnTrackKey, v: ConnTrackValue) {
@@ -131,18 +129,16 @@ class DeduplicationActor(
                                                  dpState,
                                                  FlowController ! InvalidateFlowsByTag(_),
                                                  config.getControlPacketsTos.toByte)
-            pendingFlowStateBatches foreach (self ! _)
             workflow = new PacketWorkflow(dpState, dp, clusterDataClient,
                                           dpChannel, replicator, config)
             context.become(receive)
+            unstashAll()
+        case _ => stash()
     }
 
     override def receive = {
         case m: FlowStateBatch =>
-            if (replicator ne null)
-                replicator.importFromStorage(m)
-            else
-                pendingFlowStateBatches ::= m
+            replicator.importFromStorage(m)
 
         case HandlePackets(packets) =>
 
