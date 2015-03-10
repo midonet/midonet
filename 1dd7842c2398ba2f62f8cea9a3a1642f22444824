@@ -34,6 +34,24 @@
       "revId": "1dd7842c2398ba2f62f8cea9a3a1642f22444824",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a166590_05d87252",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/FlowControllerTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-03-10T10:29:34Z",
+      "side": 1,
+      "message": "ah, I\u0027m not sure the messageaccumulater part is needed. but i think i take care of those in another patch, so we can leave this as it is.",
+      "parentUuid": "5a166590_c5b5ba32",
+      "revId": "1dd7842c2398ba2f62f8cea9a3a1642f22444824",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
