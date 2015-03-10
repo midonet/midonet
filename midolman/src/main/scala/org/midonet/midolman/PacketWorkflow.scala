@@ -58,7 +58,6 @@ import org.midonet.util.concurrent._
 
 object PacketWorkflow {
     case class HandlePackets(packet: Array[Packet])
-    case class DiscardPacket(cookie: Int)
     case class RestartWorkflow(pktCtx: PacketContext, error: Throwable)
 
     trait SimulationResult
@@ -86,16 +85,12 @@ class CookieGenerator(val start: Int, val increment: Int) {
 trait UnderlayTrafficHandler { this: PacketWorkflow =>
     import PacketWorkflow._
 
-    def handleFromTunnel(context: PacketContext, inPortNo: Int): SimulationResult = {
+    def handleFromTunnel(context: PacketContext, inPortNo: Int): SimulationResult =
         if (dpState isOverlayTunnellingPort inPortNo) {
-            if (context.isStateMessage)
-                handleStateMessage(context)
-            else
-                handleFromUnderlay(context)
+            handleFromUnderlay(context)
         } else {
             handleFromVtep(context)
         }
-    }
 
     private def handleFromVtep(context: PacketContext): SimulationResult = {
         val srcTunIp = IPv4Addr(context.wcmatch.getTunnelSrc)
@@ -300,13 +295,11 @@ class PacketWorkflow(
         var i = 0
         while (i < pktCtxs.size) {
             val pktCtx = pktCtxs(i)
-            if (!pktCtx.isStateMessage) { // Packet now exists outside of WaitingRoom
-                if (pktCtx.idle)
-                    drop(pktCtx)
-                else
-                    log.warn(s"Pending ${pktCtx.cookieStr} was scheduled for " +
-                             "cleanup but was not idle")
-            }
+            if (pktCtx.idle)
+                drop(pktCtx)
+            else
+                log.warn(s"Pending ${pktCtx.cookieStr} was scheduled for " +
+                         "cleanup but was not idle")
             i += 1
         }
     }
@@ -350,10 +343,6 @@ class PacketWorkflow(
             suspendedPackets foreach (dpChannel.executePacket(_, pktCtx.flowActions))
             metrics.packetsProcessed.mark(numSuspendedPackets)
             metrics.pendedPackets.dec(numSuspendedPackets)
-        }
-
-        if (!pktCtx.isStateMessage && pktCtx.flowActions.isEmpty) {
-            system.eventStream.publish(DiscardPacket(pktCtx.cookie))
         }
     }
 
@@ -409,7 +398,8 @@ class PacketWorkflow(
     private def handlePacket(packet: Packet): Unit = {
         val flowMatch = packet.getMatch
         if (FlowStatePackets.isStateMessage(flowMatch)) {
-            processPacket(packet)
+            handleStateMessage(packetContext(packet))
+            packetOut(1)
         } else suspendedPackets.get(flowMatch) match {
             case null =>
                 processPacket(packet)
@@ -540,7 +530,7 @@ class PacketWorkflow(
                         FlowExpiration.STATEFUL_FLOW_EXPIRATION
                     else
                         FlowExpiration.FLOW_EXPIRATION
-                addVirtualWildcardFlow(context)
+                addFlow(context)
             case SendPacket =>
                 context.runFlowRemovedCallbacks()
                 sendPacket(context)
@@ -567,15 +557,14 @@ class PacketWorkflow(
             runSimulation(context)
         }
 
-    def addVirtualWildcardFlow(context: PacketContext): SimulationResult = {
+    def addFlow(context: PacketContext): SimulationResult = {
         translateActions(context)
         addTranslatedFlow(context)
     }
 
-    protected def handleStateMessage(context: PacketContext): SimulationResult = {
+    protected def handleStateMessage(context: PacketContext): Unit = {
         context.log.debug("Accepting a state push message")
         replicator.accept(context.ethernet)
-        StateMessage
     }
 
     private def handleDHCP(context: PacketContext): Boolean = {
