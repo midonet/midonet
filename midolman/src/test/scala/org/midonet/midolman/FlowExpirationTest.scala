@@ -23,9 +23,8 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.slf4j.helpers.NOPLogger
 
-import org.midonet.midolman.flows.{FlowExpiration, FlowLifecycle}
+import org.midonet.midolman.flows.{ManagedFlow, FlowExpiration, FlowLifecycle}
 import org.midonet.midolman.util.MidolmanSpec
-import org.midonet.sdn.flows.ManagedFlow
 
 @RunWith(classOf[JUnitRunner])
 class FlowExpirationTest extends MidolmanSpec {
