@@ -53,10 +53,10 @@ import org.midonet.packets.util.PacketBuilder.{udp, _}
 @RunWith(classOf[JUnitRunner])
 class DeduplicationActorTest extends MidolmanSpec {
     var packetsSeen = List[(Packet, Int)]()
-    var stateMessagesExecuted = 0
     var ddaRef: TestActorRef[TestableDDA] = _
     def dda = ddaRef.underlyingActor
     var packetsOut = 0
+    var stateMessagesSeen = 0
 
     val NoLogging = Logger(NOPLogger.NOP_LOGGER)
 
@@ -150,18 +150,12 @@ class DeduplicationActorTest extends MidolmanSpec {
             When("they are fed to the DDA")
             ddaRef ! PacketWorkflow.HandlePackets(pkts.toArray)
 
-            Then("the DDA should execute all packets")
-            packetsSeen.length should be (4)
-            stateMessagesExecuted should be (0)
-
+            Then("the DDA should accept the state")
+            stateMessagesSeen should be (4)
             And("packetOut should have been called with the correct number")
             packetsOut should be (4)
 
-            When("the simulations are completed")
-            dda.complete(null)
-
-            Then("all state messages are consumed")
-            stateMessagesExecuted should be (4)
+            And("all state messages are consumed")
             mockDpConn().packetsSent should be (empty)
         }
 
@@ -264,29 +258,6 @@ class DeduplicationActorTest extends MidolmanSpec {
 
             And("packetsOut should be called with the correct number")
             packetsOut should be (3)
-        }
-
-        scenario("state messages are not expired") {
-            Given("state messages in the waiting room")
-            createDda(0)
-            val pkts = (1 to 4) map (_ => makeStatePacket())
-
-            When("they are fed to the DDA")
-            ddaRef ! PacketWorkflow.HandlePackets(pkts.toArray)
-
-            Then("the DDA should execute all packets")
-            packetsSeen.length should be (4)
-            stateMessagesExecuted should be (0)
-
-            And("packetOut should have been called with the correct number")
-            packetsOut should be (4)
-
-            When("the simulations are completed")
-            dda.complete(null)
-
-            Then("all state messages are consumed without having expired")
-            stateMessagesExecuted should be (4)
-            mockDpConn().packetsSent should be (empty)
         }
     }
 /*
@@ -511,6 +482,9 @@ class DeduplicationActorTest extends MidolmanSpec {
             p success null
         }
 
+        protected override def handleStateMessage(context: PacketContext): Unit =
+            stateMessagesSeen += 1
+
         override def start(pktCtx: PacketContext) = {
             pktCtx.runs += 1
             if (pktCtx.runs == 1) {
@@ -523,9 +497,6 @@ class DeduplicationActorTest extends MidolmanSpec {
             } else if (pktCtx.runs == 2) {
                 // re-suspend the packet (with a completed future)
                 throw new NotYetException(p.future)
-            } else if (pktCtx.isStateMessage) {
-                stateMessagesExecuted += 1
-                StateMessage
             } else {
                 if (generatedPacket ne null) {
                     pktCtx.packetEmitter.schedule(generatedPacket)
