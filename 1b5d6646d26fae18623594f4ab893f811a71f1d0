@@ -94,6 +94,102 @@
     },
     {
       "key": {
+        "uuid": "3a1371a2_84d746bf",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/ZoomConvert.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 615,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-10T15:18:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_4a603301",
+      "range": {
+        "startLine": 615,
+        "startChar": 45,
+        "endLine": 615,
+        "endChar": 52
+      },
+      "revId": "1b5d6646d26fae18623594f4ab893f811a71f1d0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_44ed4e8b",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/ZoomConvert.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 615,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-10T15:18:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_aa1f276b",
+      "range": {
+        "startLine": 615,
+        "startChar": 4,
+        "endLine": 615,
+        "endChar": 11
+      },
+      "revId": "1b5d6646d26fae18623594f4ab893f811a71f1d0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_04f35674",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/ZoomConvert.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 615,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-10T15:18:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_8a56ab28",
+      "range": {
+        "startLine": 615,
+        "startChar": 54,
+        "endLine": 615,
+        "endChar": 58
+      },
+      "revId": "1b5d6646d26fae18623594f4ab893f811a71f1d0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_84fe2637",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/ZoomConvert.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 615,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-10T15:18:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_ca338312",
+      "range": {
+        "startLine": 615,
+        "startChar": 26,
+        "endLine": 615,
+        "endChar": 31
+      },
+      "revId": "1b5d6646d26fae18623594f4ab893f811a71f1d0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_8a2d0bab",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/ZoomConvert.scala",
         "patchSetId": 1
@@ -105,6 +201,30 @@
       "writtenOn": "2015-03-09T15:07:44Z",
       "side": 1,
       "message": "Repeated type?",
+      "range": {
+        "startLine": 621,
+        "startChar": 64,
+        "endLine": 621,
+        "endChar": 68
+      },
+      "revId": "1b5d6646d26fae18623594f4ab893f811a71f1d0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_848586af",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/ZoomConvert.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 621,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-10T15:18:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_8a2d0bab",
       "range": {
         "startLine": 621,
         "startChar": 64,
@@ -140,6 +260,30 @@
     },
     {
       "key": {
+        "uuid": "3a1371a2_e480ba8d",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/ZoomConvert.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 632,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-10T15:18:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_0a111b5d",
+      "range": {
+        "startLine": 632,
+        "startChar": 42,
+        "endLine": 632,
+        "endChar": 44
+      },
+      "revId": "1b5d6646d26fae18623594f4ab893f811a71f1d0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_ca1a637c",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/ZoomConvert.scala",
         "patchSetId": 1
@@ -151,6 +295,30 @@
       "writtenOn": "2015-03-09T15:07:44Z",
       "side": 1,
       "message": "Here and for all the following changes, we shouldn\u0027t call this method for every element.",
+      "range": {
+        "startLine": 633,
+        "startChar": 33,
+        "endLine": 633,
+        "endChar": 74
+      },
+      "revId": "1b5d6646d26fae18623594f4ab893f811a71f1d0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_44726ee6",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/ZoomConvert.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 633,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-10T15:18:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_ca1a637c",
       "range": {
         "startLine": 633,
         "startChar": 33,
