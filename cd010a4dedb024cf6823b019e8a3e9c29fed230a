@@ -72,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "3a1371a2_e476fa05",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceWithChainsMapper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-10T14:50:42Z",
+      "side": 1,
+      "message": "This class is intended as a chain prefetcher, where a super class could specify a list of chains to prefetch via this method.",
+      "parentUuid": "7a1969be_2bda19e8",
+      "range": {
+        "startLine": 79,
+        "startChar": 24,
+        "endLine": 79,
+        "endChar": 36
+      },
+      "revId": "cd010a4dedb024cf6823b019e8a3e9c29fed230a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_8b4cedc9",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceWithChainsMapper.scala",
         "patchSetId": 2
@@ -83,6 +107,30 @@
       "writtenOn": "2015-03-10T06:32:27Z",
       "side": 1,
       "message": "I would use chains.forAll(_._2.isReady)",
+      "range": {
+        "startLine": 117,
+        "startChar": 20,
+        "endLine": 117,
+        "endChar": 52
+      },
+      "revId": "cd010a4dedb024cf6823b019e8a3e9c29fed230a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_c473fe13",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceWithChainsMapper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 117,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-10T14:50:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_8b4cedc9",
       "range": {
         "startLine": 117,
         "startChar": 20,
