@@ -18,18 +18,16 @@ package org.midonet.midolman.datapath
 
 import java.nio.ByteBuffer
 import java.util.ArrayList
-import scala.concurrent.duration._
 
 import com.lmax.disruptor.RingBuffer
 import org.jctools.queues.SpscArrayQueue
 
 import org.junit.runner.RunWith
-import org.scalatest.concurrent.PatienceConfiguration.Timeout
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.concurrent.Eventually._
 
 import org.midonet.midolman.datapath.DisruptorDatapathChannel.DatapathEvent
-import org.midonet.midolman.FlowController.FlowOperation
+import org.midonet.midolman.flows.{FlowOperation, ManagedFlow}
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.netlink.{MockNetlinkChannelFactory, NetlinkMessage}
 import org.midonet.odp._
@@ -37,7 +35,6 @@ import org.midonet.odp.family.{DatapathFamily, FlowFamily, PacketFamily, PortFam
 import org.midonet.odp.flows.{FlowKey, FlowKeys, FlowAction, FlowActions}
 import org.midonet.packets.util.PacketBuilder._
 import org.midonet.packets.{Ethernet, IPv4Addr, MAC}
-import org.midonet.sdn.flows.ManagedFlow
 import org.midonet.util.collection.ArrayObjectPool
 import org.midonet.util.concurrent.{EventPollerHandlerAdapter, BackchannelEventProcessor, AggregateEventPollerHandler}
 

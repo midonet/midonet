@@ -54,8 +54,15 @@ trait PooledObject {
     }
 }
 
-sealed class ArrayObjectPool[T >: Null : Manifest](val capacity: Int,
-                                                   val factory: ObjectPool[T] => T)
+final class NoOpPool[T >: Null](factory: ObjectPool[T] => T) extends ObjectPool[T] {
+    override def take: T = factory(this)
+    override def available: Int = Int.MaxValue
+    override def offer(element: T): Unit = { }
+    override def capacity: Int = Int.MaxValue
+}
+
+final class ArrayObjectPool[T >: Null : Manifest](val capacity: Int,
+                                                  val factory: ObjectPool[T] => T)
     extends ObjectPool[T] {
 
     var available = capacity
