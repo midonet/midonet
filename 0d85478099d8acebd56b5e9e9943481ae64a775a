@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "3a1371a2_445d4ee9",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BridgeMapper.scala",
+        "patchSetId": 25
+      },
+      "lineNbr": 242,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-10T13:10:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_0be75dad",
+      "range": {
+        "startLine": 242,
+        "startChar": 34,
+        "endLine": 242,
+        "endChar": 67
+      },
+      "revId": "0d85478099d8acebd56b5e9e9943481ae64a775a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_3c8b89c4",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BridgeMapper.scala",
         "patchSetId": 25
@@ -36,6 +60,30 @@
       "writtenOn": "2015-03-10T08:54:59Z",
       "side": 1,
       "message": "s/evert/every/",
+      "range": {
+        "startLine": 286,
+        "startChar": 50,
+        "endLine": 286,
+        "endChar": 55
+      },
+      "revId": "0d85478099d8acebd56b5e9e9943481ae64a775a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_846e2695",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BridgeMapper.scala",
+        "patchSetId": 25
+      },
+      "lineNbr": 286,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-10T13:10:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_3c8b89c4",
       "range": {
         "startLine": 286,
         "startChar": 50,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "3a1371a2_e46b9a83",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BridgeMapper.scala",
+        "patchSetId": 25
+      },
+      "lineNbr": 363,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-10T13:10:59Z",
+      "side": 1,
+      "message": "I commented in the method scaladoc, that the bridge is ready when the number of port states that are not in ready state is zero. Would this make it clearer?",
+      "parentUuid": "7a1969be_ab9c4910",
+      "range": {
+        "startLine": 362,
+        "startChar": 12,
+        "endLine": 363,
+        "endChar": 42
+      },
+      "revId": "0d85478099d8acebd56b5e9e9943481ae64a775a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5a166590_0504f213",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BridgeMapper.scala",
         "patchSetId": 25
@@ -82,6 +154,30 @@
       "writtenOn": "2015-03-10T08:54:59Z",
       "side": 1,
       "message": "A bit misleading as it doesn\u0027t return any object in the strict sense.",
+      "range": {
+        "startLine": 408,
+        "startChar": 23,
+        "endLine": 408,
+        "endChar": 52
+      },
+      "revId": "0d85478099d8acebd56b5e9e9943481ae64a775a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_c4681e8a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BridgeMapper.scala",
+        "patchSetId": 25
+      },
+      "lineNbr": 408,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-10T13:10:59Z",
+      "side": 1,
+      "message": "Scaladoc changed to:\n\n    /**\n     * Processes updates from the topology bridge observable. This examines any\n     * the addition/removal of the bridge ports, and adds/removes the\n     * corresponding port observables.\n     *\n     *                  +-----------------------+\n     * store[Bridge]---\u003e| onNext(bridgeUpdated) |---\u003e Observable[TopologyBridge]\n     *                  +-----------------------+\n     *                              |\n     *          Add: portsSubject onNext portObservable\n     *          Remove: portObservable complete()\n     */",
+      "parentUuid": "5a166590_0504f213",
       "range": {
         "startLine": 408,
         "startChar": 23,
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "3a1371a2_2405b2c2",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BridgeMapper.scala",
+        "patchSetId": 25
+      },
+      "lineNbr": 409,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-10T13:10:59Z",
+      "side": 1,
+      "message": "See above.",
+      "parentUuid": "5a166590_6509662c",
+      "range": {
+        "startLine": 408,
+        "startChar": 75,
+        "endLine": 409,
+        "endChar": 14
+      },
+      "revId": "0d85478099d8acebd56b5e9e9943481ae64a775a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5a166590_25ff6e03",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BridgeMapper.scala",
         "patchSetId": 25
@@ -128,6 +248,30 @@
       "writtenOn": "2015-03-10T08:54:59Z",
       "side": 1,
       "message": "can\u0027t we just use toSet?",
+      "range": {
+        "startLine": 427,
+        "startChar": 63,
+        "endLine": 427,
+        "endChar": 70
+      },
+      "revId": "0d85478099d8acebd56b5e9e9943481ae64a775a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_040a36d2",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BridgeMapper.scala",
+        "patchSetId": 25
+      },
+      "lineNbr": 427,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-10T13:10:59Z",
+      "side": 1,
+      "message": "Yes, it was already fixed.",
+      "parentUuid": "5a166590_25ff6e03",
       "range": {
         "startLine": 427,
         "startChar": 63,
@@ -163,6 +307,30 @@
     },
     {
       "key": {
+        "uuid": "3a1371a2_a4f882c5",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BridgeMapper.scala",
+        "patchSetId": 25
+      },
+      "lineNbr": 466,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-10T13:10:59Z",
+      "side": 1,
+      "message": "In principle this shouldn\u0027t happen. With the code as is, it means that we perform an extra update of the simulation device for this notification, but this should be harmless.\n\nAlternatively, we could filter the updates for ports that are not part of this bridge, but that would just add an extra overhead for normal operation. Do you think the second approach is more desirable?",
+      "parentUuid": "5a166590_a5123e56",
+      "range": {
+        "startLine": 466,
+        "startChar": 12,
+        "endLine": 466,
+        "endChar": 69
+      },
+      "revId": "0d85478099d8acebd56b5e9e9943481ae64a775a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5a166590_25748e9b",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BridgeMapper.scala",
         "patchSetId": 25
@@ -174,6 +342,30 @@
       "writtenOn": "2015-03-10T08:54:59Z",
       "side": 1,
       "message": "\"Check if a peer port has changed\".",
+      "range": {
+        "startLine": 542,
+        "startChar": 11,
+        "endLine": 542,
+        "endChar": 60
+      },
+      "revId": "0d85478099d8acebd56b5e9e9943481ae64a775a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_84f586cd",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BridgeMapper.scala",
+        "patchSetId": 25
+      },
+      "lineNbr": 542,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-10T13:10:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5a166590_25748e9b",
       "range": {
         "startLine": 542,
         "startChar": 11,
@@ -209,6 +401,30 @@
     },
     {
       "key": {
+        "uuid": "3a1371a2_242c924a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BridgeMapper.scala",
+        "patchSetId": 25
+      },
+      "lineNbr": 562,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-10T13:10:59Z",
+      "side": 1,
+      "message": "Yes, removed.",
+      "parentUuid": "5a166590_45738ab1",
+      "range": {
+        "startLine": 558,
+        "startChar": 12,
+        "endLine": 562,
+        "endChar": 13
+      },
+      "revId": "0d85478099d8acebd56b5e9e9943481ae64a775a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5a166590_856462e6",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BridgeMapper.scala",
         "patchSetId": 25
@@ -232,6 +448,30 @@
     },
     {
       "key": {
+        "uuid": "3a1371a2_043196a2",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BridgeMapper.scala",
+        "patchSetId": 25
+      },
+      "lineNbr": 623,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-10T13:10:59Z",
+      "side": 1,
+      "message": "I would assume no, but I guess Guillermo may give a more informed answer here. I took this code as is from the legacy bridge manager.",
+      "parentUuid": "5a166590_856462e6",
+      "range": {
+        "startLine": 623,
+        "startChar": 24,
+        "endLine": 623,
+        "endChar": 76
+      },
+      "revId": "0d85478099d8acebd56b5e9e9943481ae64a775a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_fc58d18b",
         "filename": "midolman/src/test/java/org/midonet/cluster/LocalClientImplTest.java",
         "patchSetId": 25
@@ -243,6 +483,30 @@
       "writtenOn": "2015-03-10T08:54:59Z",
       "side": 1,
       "message": "Can you rename this and the function arg to something clearly different?",
+      "range": {
+        "startLine": 406,
+        "startChar": 29,
+        "endLine": 406,
+        "endChar": 43
+      },
+      "revId": "0d85478099d8acebd56b5e9e9943481ae64a775a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_64268a6a",
+        "filename": "midolman/src/test/java/org/midonet/cluster/LocalClientImplTest.java",
+        "patchSetId": 25
+      },
+      "lineNbr": 406,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-10T13:10:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_fc58d18b",
       "range": {
         "startLine": 406,
         "startChar": 29,
