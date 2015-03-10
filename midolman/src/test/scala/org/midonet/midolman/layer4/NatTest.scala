@@ -54,8 +54,7 @@ import org.midonet.util.collection.Reducer
 @RunWith(classOf[JUnitRunner])
 class NatTest extends MidolmanSpec {
 
-    registerActors(VirtualTopologyActor -> (() => new VirtualTopologyActor),
-                   FlowController -> (() => injector.getInstance(classOf[FlowController])))
+    registerActors(VirtualTopologyActor -> (() => new VirtualTopologyActor))
 
     var portMap = Map[Int, UUID]()
     val vmNetworkIp = new IPv4Subnet("10.0.0.0", 24)
@@ -409,7 +408,7 @@ class NatTest extends MidolmanSpec {
         mapping.flowCount should be (2)
 
         flowInvalidator.scheduleInvalidationFor(FlowTagger.tagForDevice(router.getId))
-        pktWkfl ! PacketWorkflow.HandlePackets(new Array(0))
+        pktWkfl.underlyingActor.process()
         mapping.flowCount should be (0)
         clock.time = FlowState.DEFAULT_EXPIRATION.toNanos + 1
         natTable.expireIdleEntries()
@@ -470,7 +469,7 @@ class NatTest extends MidolmanSpec {
         mapping.flowCount should be (2)
 
         flowInvalidator.scheduleInvalidationFor(FlowTagger.tagForDevice(router.getId))
-        pktWkfl ! PacketWorkflow.HandlePackets(new Array(0))
+        pktWkfl.underlyingActor.process()
         mapping.flowCount should be (0)
         clock.time = FlowState.DEFAULT_EXPIRATION.toNanos + 1
         natTable.expireIdleEntries()

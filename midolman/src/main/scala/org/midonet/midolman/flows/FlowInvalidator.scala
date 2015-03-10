@@ -16,12 +16,9 @@
 
 package org.midonet.midolman.flows
 
-import com.google.inject.Inject
+import org.jctools.queues.SpscArrayQueue
 
-import rx.internal.util.unsafe.SpscArrayQueue
-
-import org.midonet.midolman.FlowController
-import org.midonet.midolman.FlowController.CheckCompletedRequests
+import org.midonet.midolman.{CheckBackchannels, PacketsEntryPoint}
 import org.midonet.midolman.services.MidolmanActorsService
 import org.midonet.sdn.flows.FlowTagger.FlowTag
 import org.midonet.util.concurrent.WakerUpper.Parkable
@@ -32,25 +29,63 @@ object FlowInvalidator {
 
 // TODO: having to pass the actorsService here, ugly as it
 //       may be, is an artifact of our bootstrap process
-final class FlowInvalidator @Inject() (actorsService: MidolmanActorsService) extends Parkable {
+final class FlowInvalidator(actorsService: MidolmanActorsService,
+                            numQueues: Int) extends Parkable {
     import FlowInvalidator._
 
-    private val queue = new SpscArrayQueue[FlowTag](MAX_PENDING_INVALIDATIONS)
+    private val queues = new Array[SpscArrayQueue[FlowTag]](numQueues)
+    @volatile private var waitingFor = 0
 
-    def scheduleInvalidationFor(tag: FlowTag): Unit = {
-        while (!queue.offer(tag)) {
-            park(retries = 0)
+    {
+        var i = 0
+        while (i < numQueues) {
+            queues(i) = new SpscArrayQueue[FlowTag](MAX_PENDING_INVALIDATIONS)
+            i += 1
         }
-        FlowController.getRef()(actorsService.system) ! CheckCompletedRequests
     }
 
-    def process(invalidation: FlowInvalidation): Unit = {
+    /**
+     * Broadcasts this tag to all invalidation queues. Not thread-safe.
+     */
+    def scheduleInvalidationFor(tag: FlowTag): Unit = {
+        var i = 0
+        while (i < numQueues) {
+            while (!queues(i).offer(tag)) {
+                waitingFor = i
+                park(retries = 0)
+            }
+            i += 1
+        }
+        PacketsEntryPoint.getRef()(actorsService.system) ! CheckBackchannels
+    }
+
+    /**
+     * Processes the invalidated tags for the queue identified by the `id`
+     * parameter. Thread-safe for callers specifying different ids.
+     */
+    def process(id: Int, invalidation: FlowInvalidation): Unit = {
+        val q = queues(id)
         var tag: FlowTag = null
-        while ({ tag = queue.poll(); tag } ne null) {
+        while ({ tag = q.poll(); tag } ne null) {
             invalidation.invalidateFlowsFor(tag)
         }
     }
 
+    /**
+     * Processes the invalidated tags for all queues. Not thread-safe. Also not
+     * thread-safe for concurrent callers of `process`.
+     */
+    def processAll(invalidation: FlowInvalidation): Unit = {
+        var i = 0
+        while (i < numQueues) {
+            process(i, invalidation)
+            i += 1
+        }
+    }
+
+    def needsToInvalidateTags(id: Int): Boolean =
+        queues(waitingFor).size() < MAX_PENDING_INVALIDATIONS
+
     override def shouldWakeUp(): Boolean =
-        queue.size() < MAX_PENDING_INVALIDATIONS
+        needsToInvalidateTags(waitingFor)
 }

@@ -21,20 +21,15 @@ import scala.collection.mutable.Queue
 
 import akka.actor.Props
 import akka.testkit.TestActorRef
-import com.codahale.metrics.MetricRegistry
 
 import org.junit.runner.RunWith
-import org.midonet.midolman.flows.FlowInvalidator
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cluster.DataClient
 import org.midonet.cluster.data.{Bridge => ClusterBridge, Chain}
 import org.midonet.cluster.data.ports.BridgePort
 import org.midonet.cluster.data.rules.TraceRule
 import org.midonet.midolman.UnderlayResolver.Route
 import org.midonet.midolman.config.MidolmanConfig
-import org.midonet.midolman.datapath.DatapathChannel
-import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
 import org.midonet.midolman.rules.Condition
 import org.midonet.midolman.simulation.PacketContext
 import org.midonet.midolman.state.{HappyGoLuckyLeaser, MockStateStorage}
@@ -57,7 +52,7 @@ class FlowTracingTest extends MidolmanSpec {
                    VirtualToPhysicalMapper -> (() => new VirtualToPhysicalMapper))
 
     var ddaRef: TestActorRef[TestableDDA] = _
-    var datapath: Datapath = null
+    val datapath = new Datapath(0, "midonet")
 
     var bridge: ClusterBridge = _
     var port: BridgePort = _
@@ -79,11 +74,7 @@ class FlowTracingTest extends MidolmanSpec {
                           postQueue: Queue[Boolean]) = {
         fetchTopology(bridge, port, chain)
 
-        val ddaProps = Props {
-            new TestableDDA(new CookieGenerator(1, 1), mockDpChannel, clusterDataClient,
-                new PacketPipelineMetrics(injector.getInstance(classOf[MetricRegistry])),
-                packetOut, preQueue, postQueue, 5000L)
-        }
+        val ddaProps = Props { new TestableDDA(packetOut, preQueue, postQueue) }
 
         ddaRef = TestActorRef(ddaProps)(actorSystem)
         ddaRef ! DatapathController.DatapathReady(datapath, new DatapathState {
@@ -150,22 +141,18 @@ class FlowTracingTest extends MidolmanSpec {
         }
     }
 
-    class TestableDDA(cookieGen: CookieGenerator,
-                      dpChannel: DatapathChannel,
-                      clusterDataClient: DataClient,
-                      metrics: PacketPipelineMetrics,
-                      packetOut: Int => Unit,
+    class TestableDDA(packetOut: Int => Unit,
                       preQueue: Queue[Boolean],
-                      postQueue: Queue[Boolean],
-                      override val simulationExpireMillis: Long)
-            extends PacketWorkflow(injector.getInstance(classOf[MidolmanConfig]),
-                                       cookieGen, dpChannel, clusterDataClient,
-                                       new FlowInvalidator(null),
-                                       new ShardedFlowStateTable[ConnTrackKey, ConnTrackValue](),
-                                       new ShardedFlowStateTable[NatKey, NatBinding](),
-                                       new MockStateStorage(),
-                                       HappyGoLuckyLeaser,
-                                       metrics, packetOut) {
+                      postQueue: Queue[Boolean])
+            extends PacketWorkflow(0, injector.getInstance(classOf[MidolmanConfig]),
+                                   new CookieGenerator(1, 1), clock, mockDpChannel,
+                                   clusterDataClient,
+                                   flowInvalidator, flowProcessor,
+                                   new ShardedFlowStateTable[ConnTrackKey, ConnTrackValue](),
+                                   new ShardedFlowStateTable[NatKey, NatBinding](),
+                                   new MockStateStorage(),
+                                   HappyGoLuckyLeaser,
+                                   metrics, packetOut) {
 
         override def startWorkflow(context: PacketContext): Unit = {
             preQueue += context.tracingEnabled
