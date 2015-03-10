@@ -25,6 +25,7 @@ import akka.actor.ActorSystem
 import akka.util.Timeout
 import org.midonet.midolman.PacketsEntryPoint.{GetWorkers, Workers}
 import org.midonet.midolman.config.MidolmanConfig
+import org.midonet.midolman.state.FlowStatePackets
 import org.midonet.midolman.{PacketWorkflow, NetlinkCallbackDispatcher, PacketsEntryPoint}
 import org.midonet.netlink.BufferPool
 import org.midonet.netlink.exceptions.NetlinkException
@@ -190,7 +191,19 @@ abstract class UpcallDatapathConnectionManagerBase(
 
                 data.startTimeNanos = NanoClock.DEFAULT.tick
 
-                val worker = Math.abs(data.getMatch.connectionHash) % NUM_WORKERS
+                if (FlowStatePackets.isStateMessage(data.getMatch)) {
+                    var i = 0
+                    while (i < NUM_WORKERS) {
+                        addToWorkerBatch(i, data)
+                        i += 1
+                    }
+                } else {
+                    val worker = Math.abs(data.getMatch.connectionHash) % NUM_WORKERS
+                    addToWorkerBatch(worker, data)
+                }
+            }
+
+            private def addToWorkerBatch(worker: Int, data: Packet): Unit = {
                 packets(worker)(cursors(worker)) = data
                 cursors(worker) += 1
                 if (cursors(worker) == BATCH_SIZE)
