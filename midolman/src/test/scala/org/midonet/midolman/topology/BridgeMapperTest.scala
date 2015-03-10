@@ -46,7 +46,6 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
 
     private var store: Storage = _
     private var vt: VirtualTopology = _
-    private var config: MidolmanConfig = _
     private var threadId: Long = _
 
     private final val timeout = 5 seconds
@@ -56,7 +55,6 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
     protected override def beforeTest(): Unit = {
         vt = injector.getInstance(classOf[VirtualTopology])
         store = injector.getInstance(classOf[MidonetBackend]).store
-        config = injector.getInstance(classOf[MidolmanConfig])
         threadId = Thread.currentThread.getId
     }
 

@@ -38,7 +38,7 @@ import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.rules.{Rule => SimRule, _}
 import org.midonet.midolman.simulation.{Chain => SimChain}
 import org.midonet.midolman.util.MidolmanSpec
-import org.midonet.midolman.{FlowController, NotYetException}
+import org.midonet.midolman.NotYetException
 import org.midonet.util.reactivex.AwaitableObserver
 
 @RunWith(classOf[JUnitRunner])
