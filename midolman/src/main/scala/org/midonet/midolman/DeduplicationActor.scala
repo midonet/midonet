@@ -149,7 +149,7 @@ class DeduplicationActor(
             val metrics: PacketPipelineMetrics,
             val packetOut: Int => Unit,
             val config: MidolmanConfig)
-            extends Actor with ActorLogWithoutPath {
+            extends Actor with ActorLogWithoutPath with Stash {
 
     import org.midonet.midolman.DatapathController.DatapathReady
     import org.midonet.midolman.DeduplicationActor._
@@ -184,8 +184,6 @@ class DeduplicationActor(
         self
     )
 
-    private var pendingFlowStateBatches = List[FlowStateBatch]()
-
     private val invalidateExpiredConnTrackKeys =
         new Reducer[ConnTrackKey, ConnTrackValue, Unit]() {
             override def apply(u: Unit, k: ConnTrackKey, v: ConnTrackValue) {
@@ -210,19 +208,17 @@ class DeduplicationActor(
                                                  dpState,
                                                  FlowController ! InvalidateFlowsByTag(_),
                                                  datapath)
-            pendingFlowStateBatches foreach (self ! _)
             workflow = new PacketWorkflow(dpState, datapath, clusterDataClient,
                                           dpConnPool, cbExecutor, actionsCache,
                                           replicator, config)
             context.become(receive)
+            unstashAll()
+        case _ => stash()
     }
 
     override def receive = {
         case m: FlowStateBatch =>
-            if (replicator ne null)
-                replicator.importFromStorage(m)
-            else
-                pendingFlowStateBatches ::= m
+            replicator.importFromStorage(m)
 
         case HandlePackets(packets) =>
             actionsCache.clearProcessedFlowMatches()
