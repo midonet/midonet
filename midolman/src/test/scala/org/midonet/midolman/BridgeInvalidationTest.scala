@@ -86,7 +86,7 @@ class BridgeInvalidationTest extends MidolmanSpec
         fetchTopology(leftPort, rightPort, otherPort, interiorPort,
                         routerPort, clusterRouter, clusterBridge)
 
-        FlowController.getAndClear()
+        flowInvalidator.clear()
     }
 
     override protected def fillConfig(config: HierarchicalConfiguration) = {
@@ -237,10 +237,10 @@ class BridgeInvalidationTest extends MidolmanSpec
             When("a packet is sent across the bridge between two VMs")
             val bridge: Bridge = fetchDevice(clusterBridge)
             val (pktContext, action) = simulateDevice(bridge, leftToRightFrame, leftPort.getId)
-            FlowController.getAndClear()
+            flowInvalidator.clear()
 
             And("The corresponding flow expires")
-            pktContext.runFlowRemovedCallbacks()
+            pktContext.flowRemovedCallbacks.runAndClear()
 
             Then("The MAC port mapping expires too")
             Thread.sleep(macPortExpiration)
@@ -285,7 +285,7 @@ class BridgeInvalidationTest extends MidolmanSpec
                 newBridge should not be bridge
             }
             bridge = fetchDevice(clusterBridge)
-            FlowController.getAndClear()
+            flowInvalidator.clear()
 
             val interiorPortTag =
                 FlowTagger.tagForBridgePort(bridge.id, interiorPort.getId)
@@ -294,7 +294,7 @@ class BridgeInvalidationTest extends MidolmanSpec
             val (pktContext, action) = simulateDevice(bridge, leftToRouterFrame, leftPort.getId)
             action should be (ToPortAction(interiorPort.getId))
             pktContext.flowTags should contain (interiorPortTag)
-            FlowController.getAndClear()
+            flowInvalidator.clear()
 
             And("The interior port is then unlinked")
             clusterDataClient.portsUnlink(interiorPort.getId)
