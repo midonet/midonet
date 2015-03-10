@@ -36,17 +36,18 @@ class MockDatapathChannel(val flowsTable: JMap[FlowMatch, Flow] = null) extends 
         flowCreateCb = cb
 
     override def executePacket(packet: Packet,
-                               actions: JList[FlowAction]): Unit = {
+                               actions: JList[FlowAction]): Long = {
         if (actions.isEmpty)
-            return
+            return 0
 
         packetsSent.add(packet)
         if (packetExecCb ne null) {
             packetExecCb(packet, actions)
         }
+        0
     }
 
-    override def createFlow(flow: Flow): Unit = {
+    override def createFlow(flow: Flow): Long = {
         flow.setLastUsedMillis(System.currentTimeMillis)
 
         if (flowCreateCb ne null) {
@@ -55,6 +56,7 @@ class MockDatapathChannel(val flowsTable: JMap[FlowMatch, Flow] = null) extends 
         if (flowsTable ne null) {
             flowsTable.put(flow.getMatch, flow)
         }
+        0
     }
 
     override def stop(): Unit = { }

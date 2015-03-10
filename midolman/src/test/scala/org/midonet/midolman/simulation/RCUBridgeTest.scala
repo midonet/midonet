@@ -130,7 +130,7 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with Matchers {
         val context = new PacketContext(0,
                                         new Packet(Ethernet.random(), ingressMatch),
                                         ingressMatch, UUID.randomUUID())
-        context.prepareForSimulation(0)
+        context.prepareForSimulation()
         context.inPortId = brPort.id
         val result = bridge.process(context)
 
@@ -159,7 +159,7 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with Matchers {
                                         new Packet(frame, ingressMatch),
                                         ingressMatch, rtr2port)
         context.inputPort = rtr2port
-        context.prepareForSimulation(0)
+        context.prepareForSimulation()
         context.inPortId = rtr2port
         val result = bridge.process(context)
 
@@ -182,7 +182,7 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with Matchers {
         val context = new PacketContext(0,
                                         new Packet(Ethernet.random(), ingressMatch),
                                         ingressMatch, UUID.randomUUID())
-        context.prepareForSimulation(0)
+        context.prepareForSimulation()
         val result = bridge.process(context)
 
         ingressMatch should be (origMatch)
@@ -213,7 +213,7 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with Matchers {
         val context = new PacketContext(0,
                                         new Packet(frame, ingressMatch),
                                         ingressMatch, UUID.randomUUID())
-        context.prepareForSimulation(0)
+        context.prepareForSimulation()
         val result = bridge.process(context)
 
         ingressMatch should be (origMatch)
@@ -232,7 +232,7 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with Matchers {
         val origMatch = ingressMatch.clone
         val context = new PacketContext(0, null,
                                         ingressMatch, UUID.randomUUID())
-        context.prepareForSimulation(0)
+        context.prepareForSimulation()
         val result = bridge.process(context)
 
         ingressMatch should be (origMatch)
