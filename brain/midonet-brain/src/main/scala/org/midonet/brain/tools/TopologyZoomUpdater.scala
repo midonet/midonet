@@ -26,7 +26,7 @@ import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.models.Commons
 import org.midonet.cluster.models.Topology.{Network, Port, Router, Vtep}
-import org.midonet.cluster.services.MidonetBackendService
+import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.util.{IPAddressUtil, UUIDUtil}
 import org.midonet.config.{ConfigGroup, ConfigInt, ConfigLong}
 import org.midonet.util.functors.makeRunnable
@@ -38,7 +38,7 @@ import org.midonet.util.functors.makeRunnable
  * in the objects and the connections between them may not be
  * consistent with an actual network architecture.
  */
-class TopologyZoomUpdater @Inject()(val backend: MidonetBackendService,
+class TopologyZoomUpdater @Inject()(val backend: MidonetBackend,
                                     val cfg: TopologyZoomUpdaterConfig)
     extends AbstractService {
     private val log = LoggerFactory.getLogger(classOf[TopologyZoomUpdater])
