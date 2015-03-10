@@ -133,10 +133,22 @@ trait CustomMatchers {
         override def toString(): String = "invalidates (" + Prettifier.default(tags) + ")"
     }
 
+    def haveInvalidated (tags: FlowTag*) = new Matcher[FlowInvalidation{var tags: List[FlowTag]}] {
+        def apply(invalidation: FlowInvalidation{var tags: List[FlowTag]}): MatchResult = {
+            MatchResult(
+                tags forall invalidation.tags.contains,
+                s"${invalidation.tags} does not contain all of $tags",
+                "invalidates the expected tags",
+                Vector(invalidation, tags))
+        }
+
+        override def toString(): String = "have invalidated (" + Prettifier.default(tags) + ")"
+    }
+
     implicit class FlowInvalidatorOps(val flowInvalidator: FlowInvalidator) {
         def clear(): List[FlowTag] = {
             val invalidatedTags = mutable.ListBuffer[FlowTag]()
-            flowInvalidator.process(new FlowInvalidation {
+            flowInvalidator.processAll(new FlowInvalidation {
                 override val log: Logger = Logger(NOPLogger.NOP_LOGGER)
                 override def invalidateFlowsFor(tag: FlowTag) = {
                     invalidatedTags += tag

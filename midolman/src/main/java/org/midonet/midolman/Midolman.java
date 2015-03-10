@@ -170,8 +170,6 @@ public class Midolman {
         log.info("{} was initialized", MidolmanActorsService.class);
 
         log.info("Running manual GC to tenure preallocated objects");
-        injector.getInstance(MidolmanActorsService.class)
-            .awaitFlowControllerRunning(30, TimeUnit.SECONDS);
         System.gc();
 
         log.info("main finish");

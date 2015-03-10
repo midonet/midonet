@@ -379,7 +379,7 @@ class FlowStateReplicatorTest extends MidolmanSpec {
             sendAndAcceptTransactions()
 
             Then("Flows tagged with it should be invalidated")
-            flowInvalidator should invalidate (connTrackKeys.head)
+            mockFlowInvalidation should haveInvalidated (connTrackKeys.head)
         }
 
         scenario("For nat keys") {
@@ -391,7 +391,7 @@ class FlowStateReplicatorTest extends MidolmanSpec {
             sendAndAcceptTransactions()
 
             Then("Flows tagged with it should be invalidated")
-            flowInvalidator should invalidate (k)
+            mockFlowInvalidation should haveInvalidated (k)
         }
     }
 
@@ -402,7 +402,7 @@ class FlowStateReplicatorTest extends MidolmanSpec {
         val conntrackTable = new MockFlowStateTable[ConnTrackKey, ConnTrackValue]()
         val natTable = new MockFlowStateTable[NatKey, NatBinding]()
     } with BaseFlowStateReplicator(conntrackTable, natTable, new MockStateStorage,
-                                   underlay, flowInvalidator,
+                                   underlay, mockFlowInvalidation,
                                    0) {
 
         override val log = Logger(LoggerFactory.getLogger(this.getClass))

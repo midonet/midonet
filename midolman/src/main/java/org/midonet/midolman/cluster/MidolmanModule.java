@@ -72,7 +72,18 @@ public class MidolmanModule extends PrivateModule {
         bind(DashboardService.class).asEagerSingleton();
         expose(DashboardService.class);
 
-        bind(FlowInvalidator.class).asEagerSingleton();
+        bind(FlowInvalidator.class).toProvider(new Provider<FlowInvalidator>() {
+            @Inject
+            private MidolmanConfig config;
+
+            @Inject
+            private MidolmanActorsService service;
+
+            @Override
+            public FlowInvalidator get() {
+                return new FlowInvalidator(service, config.getSimulationThreads());
+            }
+        }).asEagerSingleton();
         expose(FlowInvalidator.class);
 
         bindAllocator();
