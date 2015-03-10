@@ -16,22 +16,18 @@
 
 package org.midonet.midolman
 
-import java.nio.ByteBuffer
-
 import java.util.concurrent.TimeUnit
 import java.util.{HashMap, ArrayList}
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
-import akka.actor.{Actor, ActorSystem}
+import akka.actor.Actor
 import akka.event.LoggingReceive
 
 import com.google.inject.Inject
-import org.midonet.midolman.flows.{FlowExpiration, FlowLifecycle, FlowInvalidation, FlowInvalidator}
+import org.midonet.midolman.flows._
 import org.midonet.util.concurrent.NanoClock
-
-import rx.Observer
 
 import org.jctools.queues.SpscArrayQueue
 
@@ -45,89 +41,19 @@ import org.midonet.midolman.monitoring.metrics.{FlowTablesGauge, FlowTablesMeter
 import org.midonet.midolman.management.Metering
 import org.midonet.midolman.monitoring.MeterRegistry
 import org.midonet.midolman.simulation.PacketContext
-import org.midonet.netlink.exceptions.NetlinkException
 import org.midonet.netlink.exceptions.NetlinkException.ErrorCode
-import org.midonet.odp.{FlowMatch, Datapath, FlowMetadata}
-import org.midonet.sdn.flows._
-import org.midonet.util.collection.{ArrayObjectPool, ObjectPool}
+import org.midonet.odp.{FlowMatch, Datapath}
+import org.midonet.util.collection.{NoOpPool, ArrayObjectPool}
 import org.midonet.util.concurrent.WakerUpper.Parkable
 
 object FlowController extends Referenceable {
     override val Name = "FlowController"
-
-    case class WildcardFlowAdded(f: ManagedFlow)
-
-    case class WildcardFlowRemoved(f: ManagedFlow)
-
-    case object FlowUpdateCompleted
 
     case object CheckFlowExpiration_
 
     case object CheckCompletedRequests
 
     val MIN_WILDCARD_FLOW_CAPACITY = 4096
-
-    object FlowOperation {
-        val GET: Byte = 0
-        val DELETE: Byte = 1
-    }
-
-    final class FlowOperation(pool: ObjectPool[FlowOperation],
-                              completedRequests: SpscArrayQueue[FlowOperation])
-                             (implicit actorSystem: ActorSystem)
-        extends Observer[ByteBuffer] {
-
-        val flowMetadata = new FlowMetadata()
-
-        var opId: Byte = _
-        var managedFlow: ManagedFlow = _
-        var retries: Byte = _
-        var failure: Throwable = _
-
-        def isFailed = failure ne null
-
-        def reset(opId: Byte, managedFlow: ManagedFlow, retries: Byte): Unit = {
-            this.opId = opId
-            reset(managedFlow, retries)
-        }
-
-        def reset(managedFlow: ManagedFlow, retries: Byte): Unit = {
-            this.managedFlow = managedFlow
-            this.retries = retries
-            managedFlow.ref()
-        }
-
-        def netlinkErrorCode =
-            failure match {
-                case ex: NetlinkException => ex.getErrorCodeEnum
-                case _ => NetlinkException.GENERIC_IO_ERROR
-            }
-
-        def clear(): Unit = {
-            failure = null
-            managedFlow.unref()
-            managedFlow = null
-            flowMetadata.clear()
-            pool.offer(this)
-        }
-
-        override def onNext(t: ByteBuffer): Unit =
-            try {
-                flowMetadata.deserialize(t)
-            } catch { case e: Throwable =>
-                failure = e
-            }
-
-        override def onCompleted(): Unit = {
-            completedRequests.offer(this)
-            FlowController ! FlowController.CheckCompletedRequests
-        }
-
-        override def onError(e: Throwable): Unit = {
-            failure = e
-            onCompleted()
-        }
-    }
 }
 
 class FlowController @Inject() (midolmanConfig: MidolmanConfig,
@@ -157,6 +83,8 @@ class FlowController @Inject() (midolmanConfig: MidolmanConfig,
 
     private val managedFlowPool = new ArrayObjectPool[ManagedFlow](
         maxFlows, new ManagedFlow(_))
+    private val oversubscriptionManagedFlowPool = new NoOpPool[ManagedFlow](
+        new ManagedFlow(_))
     private val completedFlowOperations = new SpscArrayQueue[FlowOperation](
         flowProcessor.capacity)
     private val pooledFlowOperations = new ArrayObjectPool[FlowOperation](
@@ -201,7 +129,7 @@ class FlowController @Inject() (midolmanConfig: MidolmanConfig,
         case pktCtx: PacketContext  =>
             var flow = managedFlowPool.take
             if (flow eq null)
-                flow = new ManagedFlow(managedFlowPool)
+                flow = oversubscriptionManagedFlowPool.take
 
             flow.reset(pktCtx, clock.tick)
             flow.ref()
@@ -209,7 +137,6 @@ class FlowController @Inject() (midolmanConfig: MidolmanConfig,
             if (FlowInvalidation.isTagSetStillValid(pktCtx)) {
                 if (!dpFlows.containsKey(flow.flowMatch)) {
                     registerFlow(flow)
-                    context.system.eventStream.publish(WildcardFlowAdded(flow))
                     log.debug(s"Added flow $flow")
                 } else {
                     log.debug(s"Tried to add duplicate flow $flow")
@@ -244,7 +171,6 @@ class FlowController @Inject() (midolmanConfig: MidolmanConfig,
             super.removeFlow(flow)
             flow.cbExecutor.schedule(flow.callbacks)
             removeFlowFromDatapath(flow)
-            context.system.eventStream.publish(WildcardFlowRemoved(flow))
             flow.unref()
         } else if (removedFlow ne null) {
             dpFlows.put(removedFlow.flowMatch, removedFlow)

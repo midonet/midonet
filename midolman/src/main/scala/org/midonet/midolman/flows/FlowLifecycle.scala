@@ -16,8 +16,6 @@
 
 package org.midonet.midolman.flows
 
-import org.midonet.sdn.flows.ManagedFlow
-
 trait FlowLifecycle {
     def registerFlow(flow: ManagedFlow): Unit = { }
     def removeFlow(flow: ManagedFlow): Unit = { }
