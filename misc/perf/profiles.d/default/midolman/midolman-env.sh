@@ -89,7 +89,9 @@ JMX_PORT="7200"
 
 # enable assertions.  disabling this in production will give a modest
 # performance benefit (around 5%).
-JVM_OPTS="$JVM_OPTS -ea"
+# JVM_OPTS="$JVM_OPTS -ea"
+
+JVM_OPTS="$JVM_OPTS -XX:+AggressiveOpts"
 
 # enable thread priorities, primarily so we can give periodic tasks
 # a lower priority to avoid interfering with client workload
@@ -115,6 +117,10 @@ JVM_OPTS="$JVM_OPTS -XX:SurvivorRatio=8"
 JVM_OPTS="$JVM_OPTS -XX:MaxTenuringThreshold=6"
 JVM_OPTS="$JVM_OPTS -XX:CMSInitiatingOccupancyFraction=75"
 JVM_OPTS="$JVM_OPTS -XX:+UseCMSInitiatingOccupancyOnly"
+JVM_OPTS="$JVM_OPTS -XX:+UseTLAB"
+JVM_OPTS="$JVM_OPTS -XX:+ResizeTLAB"
+JVM_OPTS="$JVM_OPTS -XX:TLABSize=2m"
+JVM_OPTS="$JVM_OPTS -XX:PretenureSizeThreshold=2m"
 
 # GC logging options -- uncomment to enable
 # JVM_OPTS="$JVM_OPTS -XX:+PrintGCDetails"
