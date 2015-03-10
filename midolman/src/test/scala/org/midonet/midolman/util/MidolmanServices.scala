@@ -24,13 +24,17 @@ import akka.actor.ActorSystem
 import com.codahale.metrics.{MetricFilter, MetricRegistry}
 
 import com.google.inject.Injector
+import org.midonet.sdn.flows.FlowTagger.FlowTag
+
+import org.slf4j.helpers.NOPLogger
+import com.typesafe.scalalogging.Logger
 
 import org.midonet.cluster.Client
 import org.midonet.cluster.DataClient
 import org.midonet.cluster.state.StateStorage
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.{FlowProcessor, DatapathChannel}
-import org.midonet.midolman.flows.FlowInvalidator
+import org.midonet.midolman.flows.{FlowInvalidation, FlowInvalidator}
 import org.midonet.midolman.io.UpcallDatapathConnectionManager
 import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
 import org.midonet.midolman.services.HostIdProviderService
@@ -58,7 +62,7 @@ trait MidolmanServices {
     def metrics = {
         val metricsReg = injector.getInstance(classOf[MetricRegistry])
         metricsReg.removeMatching(MetricFilter.ALL)
-        new PacketPipelineMetrics(metricsReg)
+        new PacketPipelineMetrics(metricsReg, 1)
     }
 
     implicit def hostId: UUID =
@@ -73,13 +77,26 @@ trait MidolmanServices {
                 .asInstanceOf[MockDatapathChannel]
     }
 
-    def mockFlowEjector = {
+    def flowProcessor = {
         injector.getInstance(classOf[FlowProcessor])
                 .asInstanceOf[MockFlowProcessor]
     }
 
     def flowInvalidator =
         injector.getInstance(classOf[FlowInvalidator])
+
+    val mockFlowInvalidation = new FlowInvalidation() {
+        val log = Logger(NOPLogger.NOP_LOGGER)
+        var tags = List[FlowTag]()
+
+        def getAndClear() = {
+            val ret = tags
+            tags = List[FlowTag]()
+            ret
+        }
+
+        override def invalidateFlowsFor(tag: FlowTag) = tags = tags :+ tag
+    }
 
     def dpConn()(implicit ec: ExecutionContext, as: ActorSystem):
         OvsDatapathConnection = {
