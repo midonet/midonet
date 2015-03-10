@@ -380,14 +380,12 @@ class DeduplicationActorTest extends MidolmanSpec {
                       clusterDataClient: DataClient,
                       packetOut: Int => Unit,
                       override val simulationExpireMillis: Long)
-            extends PacketWorkflow(injector.getInstance(classOf[MidolmanConfig]),
-                                   cookieGen, dpChannel, clusterDataClient,
-                                   flowInvalidator,
-                                   conntrackTable,
-                                   natTable,
-                                   new MockStateStorage(),
-                                   HappyGoLuckyLeaser,
-                                   metrics, packetOut)
+            extends PacketWorkflow(0,
+                                   injector.getInstance(classOf[MidolmanConfig]),
+                                   cookieGen, clock, dpChannel, clusterDataClient,
+                                   flowInvalidator, flowProcessor,
+                                   conntrackTable, natTable, new MockStateStorage(),
+                                   HappyGoLuckyLeaser, metrics, packetOut)
             with MessageAccumulator {
 
         implicit override val dispatcher = this.context.dispatcher
