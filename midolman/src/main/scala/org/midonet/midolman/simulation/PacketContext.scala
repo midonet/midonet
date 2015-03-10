@@ -20,10 +20,9 @@ import java.util.{Arrays, ArrayList, HashSet, Set => JSet, UUID}
 import scala.collection.JavaConversions._
 
 import com.typesafe.scalalogging.Logger
-import org.midonet.midolman.flows.FlowExpiration
 import org.slf4j.LoggerFactory
 
-import org.midonet.midolman.CallbackExecutor
+import org.midonet.midolman._
 import org.midonet.midolman.simulation.PacketEmitter.GeneratedPacket
 import org.midonet.midolman.state.FlowStatePackets
 import org.midonet.odp.{FlowMatch, Packet}
@@ -55,7 +54,6 @@ trait FlowContext extends Clearable { this: PacketContext =>
     // This Set stores the tags by which the flow may be indexed.
     // The index can be used to remove flows associated with the given tag.
     val flowTags = new HashSet[FlowTag]()
-    var expiration: FlowExpiration.Expiration = FlowExpiration.FLOW_EXPIRATION
 
     def isDrop: Boolean = flowActions.isEmpty
 
@@ -63,7 +61,6 @@ trait FlowContext extends Clearable { this: PacketContext =>
         virtualFlowActions.clear()
         flowActions.clear()
         flowTags.clear()
-        expiration = FlowExpiration.FLOW_EXPIRATION
         super.clear()
     }
 
@@ -207,8 +204,6 @@ class PacketContext(val cookie: Int,
 
     var portGroups: JSet[UUID] = null
 
-    var lastInvalidation: Long = _
-
     var idle: Boolean = true
     var runs: Int = 0
 
@@ -220,22 +215,12 @@ class PacketContext(val cookie: Int,
 
     var inputPort: UUID = _
 
-    var callbackExecutor: CallbackExecutor = _
     var packetEmitter: PacketEmitter = _
 
     // Stores the callback to call when this flow is removed.
     val flowRemovedCallbacks = new ArrayList[Callback0]()
     def addFlowRemovedCallback(cb: Callback0): Unit = {
         flowRemovedCallbacks.add(cb)
-    }
-
-    def runFlowRemovedCallbacks(): Unit = {
-        var i = 0
-        while (i < flowRemovedCallbacks.size()) {
-            flowRemovedCallbacks.get(i).call()
-            i += 1
-        }
-        flowRemovedCallbacks.clear()
     }
 
     def ethernet = packet.getEthernet
@@ -246,29 +231,25 @@ class PacketContext(val cookie: Int,
 
     def cookieStr = s"[cookie:$cookie]"
 
-    def reset(callbackExecutor: CallbackExecutor,
-              packetEmitter: PacketEmitter): Unit = {
-        this.callbackExecutor = callbackExecutor
+    def reset(packetEmitter: PacketEmitter): Unit = {
         this.packetEmitter = packetEmitter
     }
 
-    def prepareForSimulation(lastInvalidationSeen: Long) {
+    def prepareForSimulation(): Unit = {
         idle = false
         runs += 1
-        lastInvalidation = lastInvalidationSeen
     }
 
-    def prepareForDrop(lastInvalidationSeen: Long) {
+    def prepareForDrop(): Unit = {
         idle = false
-        lastInvalidation = lastInvalidationSeen
         clear()
-        runFlowRemovedCallbacks()
+        flowRemovedCallbacks.runAndClear()
     }
 
     def postpone() {
         idle = true
         clear()
-        runFlowRemovedCallbacks()
+        flowRemovedCallbacks.runAndClear()
         wcmatch.reset(origMatch)
         inputPort = null
     }

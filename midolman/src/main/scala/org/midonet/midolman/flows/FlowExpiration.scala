@@ -17,6 +17,7 @@
 package org.midonet.midolman.flows
 
 import java.util.ArrayDeque
+
 import scala.concurrent.duration._
 
 import com.typesafe.scalalogging.Logger

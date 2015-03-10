@@ -18,17 +18,34 @@ package org.midonet.midolman.monitoring.metrics
 
 import com.codahale.metrics.{Gauge, MetricRegistry}
 import com.codahale.metrics.MetricRegistry.name
+import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics.CompositeLongGauge
 
-class PacketPipelineMetrics(val registry: MetricRegistry) {
+object PacketPipelineMetrics {
+    class CompositeLongGauge(capacity: Int) extends Gauge[Long] {
+        private val gauges = new Array[Gauge[Long]](capacity)
+
+        def register(gauge: Gauge[Long], index: Int): Unit =
+            gauges(index) = gauge
+
+        override def getValue: Long = {
+            var value = 0L
+            var i = 0
+            while (i < gauges.length) {
+                value += gauges(i).getValue
+                i += 1
+            }
+            value
+        }
+    }
+}
+class PacketPipelineMetrics(val registry: MetricRegistry,
+                            numPipelineProcessors: Int) {
 
     val pendedPackets = registry.counter(name(
         classOf[PacketPipelineGauge], "currentPendedPackets"))
 
     val packetsOnHold = registry.counter(name(
         classOf[PacketPipelineMeter], "packetsOnHold"))
-
-    val wildcardTableHits = registry.meter(name(
-        classOf[PacketPipelineMeter], "wildcardTableHits", "packets"))
 
     val packetsSimulated = registry.meter(name(
         classOf[PacketPipelineMeter], "packetsSimulated", "packets"))
@@ -46,25 +63,20 @@ class PacketPipelineMetrics(val registry: MetricRegistry) {
         classOf[PacketPipelineGauge], "liveSimulations"),
         new Gauge[Long]{ override def getValue = 0 })
 
-    val wildcardTableHitLatency = registry.histogram(name(
-        classOf[PacketPipelineHistogram], "wildcardTableHitLatency"))
-
     val simulationLatency = registry.histogram(name(
         classOf[PacketPipelineHistogram], "simulationLatency"))
-
-    val wildcardTableHitAccumulatedTime = registry.counter(name(
-        classOf[PacketPipelineAccumulatedTime],
-        "wildcardTableHitAccumulatedTime"))
 
     val simulationAccumulatedTime = registry.counter(name(
         classOf[PacketPipelineAccumulatedTime],
         "simulationAccumulatedTime"))
 
-    def wildcardTableHit(latency: Int) {
-        wildcardTableHits.mark()
-        wildcardTableHitLatency.update(latency)
-        wildcardTableHitAccumulatedTime.inc(latency)
-    }
+    val currentDpFlowsMetric = registry.register(name(
+            classOf[FlowTablesGauge], "currentDatapathFlows"),
+            new CompositeLongGauge(numPipelineProcessors))
+
+    val dpFlowsMetric = registry.meter(name(
+            classOf[FlowTablesMeter], "datapathFlowsCreated",
+            "datapathFlows"))
 
     def packetSimulated(latency: Int) {
         packetsSimulated.mark()

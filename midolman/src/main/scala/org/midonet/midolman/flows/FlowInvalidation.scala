@@ -20,24 +20,7 @@ import java.util._
 
 import com.typesafe.scalalogging.Logger
 
-import org.midonet.midolman.simulation.PacketContext
 import org.midonet.sdn.flows.FlowTagger.FlowTag
-import org.midonet.util.collection.EventHistory
-import org.midonet.util.collection.EventHistory.{EventNotSeen, EventSeen, EventSearchWindowMissed}
-
-object FlowInvalidation {
-    private val invalidationHistory = new EventHistory[FlowTag](1024)
-
-    def isTagSetStillValid(pktCtx: PacketContext) =
-        invalidationHistory.existsSince(pktCtx.lastInvalidation,
-                                        pktCtx.flowTags) match {
-            case EventSearchWindowMissed => pktCtx.flowTags.isEmpty
-            case EventSeen => false
-            case EventNotSeen => true
-        }
-
-    def lastInvalidationEvent = invalidationHistory.latest
-}
 
 trait FlowInvalidation extends FlowLifecycle {
     private val tagToFlows = new HashMap[FlowTag, Set[ManagedFlow]]()
@@ -66,7 +49,6 @@ trait FlowInvalidation extends FlowLifecycle {
     }
 
     def invalidateFlowsFor(tag: FlowTag): Unit = {
-        FlowInvalidation.invalidationHistory.put(tag)
         val flows = tagToFlows.remove(tag)
         log.debug(s"Invalidating ${if (flows ne null) flows.size() else 0} flows for tag $tag")
         if (flows ne null) {

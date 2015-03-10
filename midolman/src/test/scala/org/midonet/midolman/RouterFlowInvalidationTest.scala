@@ -93,7 +93,7 @@ class RouterFlowInvalidationTest extends MidolmanSpec {
         tagsProbe.getAndClear() should be (List(
             new RouterInvTrieTagCountModified(IPv4Addr.fromString(ipToReach), 1)))
 
-        pktCtx.runFlowRemovedCallbacks()
+        pktCtx.flowRemovedCallbacks.runAndClear()
         tagsProbe.getAndClear() should be (List(
             new RouterInvTrieTagCountModified(IPv4Addr.fromString(ipToReach), 0)))
     }
@@ -142,8 +142,6 @@ class RouterFlowInvalidationTest extends MidolmanSpec {
         tagsProbe.getAndClear() should be (List(
             new RouterInvTrieTagCountModified(IPv4Addr.fromString(ipVm3), 1)))
 
-        FlowController.getAndClear()
-
         newRoute(router, ipSource, 32, "11.11.1.0", networkToReachLength+8,
             NextHop.PORT, outPort.getId, new IPv4Addr(NO_GATEWAY).toString,
             2)
@@ -183,7 +181,7 @@ class RouterFlowInvalidationTest extends MidolmanSpec {
         tagsProbe.getAndClear() should be (List(
             new RouterInvTrieTagCountModified(IPv4Addr.fromString(ipVm2), 1)))
 
-        pktCtx1.runFlowRemovedCallbacks()
+        pktCtx1.flowRemovedCallbacks.runAndClear()
         tagsProbe.getAndClear() should be (List(
             new RouterInvTrieTagCountModified(IPv4Addr.fromString(ipVm1), 0)))
 
@@ -203,11 +201,11 @@ class RouterFlowInvalidationTest extends MidolmanSpec {
         tagsProbe.getAndClear() should be (List(
             new RouterInvTrieTagCountModified(IPv4Addr.fromString(ipVm2), 2)))
 
-        pktCtx2.runFlowRemovedCallbacks()
+        pktCtx2.flowRemovedCallbacks.runAndClear()
         tagsProbe.getAndClear() should be (List(
             new RouterInvTrieTagCountModified(IPv4Addr.fromString(ipVm2), 1)))
 
-        pktCtx4.runFlowRemovedCallbacks()
+        pktCtx4.flowRemovedCallbacks.runAndClear()
         tagsProbe.getAndClear() should be (List(
             new RouterInvTrieTagCountModified(IPv4Addr.fromString(ipVm2), 0)))
     }
@@ -227,8 +225,6 @@ class RouterFlowInvalidationTest extends MidolmanSpec {
         val eth = createUdpPacket(macSource, ipSource, macInPort, ipToReach)
         val (simRes, _) = simulate(packetContextFor(eth, inPort.getId))
         simRes should not be Drop
-
-        FlowController.getAndClear()
 
         feedArpTable(simRouter, IPv4Addr.fromString(ipToReach),
                      MAC.fromString(secondMac))
