@@ -169,6 +169,9 @@ task rhel6Prepare(type: Copy, dependsOn: installApp) {
     from("src/rhel6/init.d/midolman") {
         into "etc/init.d"
     }
+    from("src/rhel6/init/midolman.conf") {
+        into "etc/init"
+    }
     into "${pkgDestDir}"
 }
 
