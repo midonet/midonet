@@ -17,12 +17,14 @@
 package org.midonet.midolman.flows
 
 import com.google.inject.Inject
+
+import rx.internal.util.unsafe.SpscArrayQueue
+
 import org.midonet.midolman.FlowController
 import org.midonet.midolman.FlowController.CheckCompletedRequests
 import org.midonet.midolman.services.MidolmanActorsService
 import org.midonet.sdn.flows.FlowTagger.FlowTag
 import org.midonet.util.concurrent.WakerUpper.Parkable
-import rx.internal.util.unsafe.SpscArrayQueue
 
 object FlowInvalidator {
     private val MAX_PENDING_INVALIDATIONS = 1024
