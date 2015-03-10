@@ -24,7 +24,7 @@ import java.util.concurrent.{Callable, ConcurrentHashMap, ExecutorService, Futur
 
 import scala.collection.JavaConversions._
 import scala.concurrent.duration.Duration
-import scala.concurrent.{Await, ExecutionContext, Promise, TimeoutException}
+import scala.concurrent.{Await, Promise, TimeoutException}
 import scala.util.{Failure, Success}
 
 import com.google.protobuf.Message
@@ -42,8 +42,7 @@ import org.midonet.cluster.rpc.Commands.{Response, ResponseType}
 import org.midonet.cluster.services.topology.common.TopologyMappings.typeOf
 import org.midonet.cluster.util.UUIDUtil.{fromProto, toProto}
 import org.midonet.util.concurrent.SpscRwdRingBuffer.SequencedItem
-import org.midonet.util.concurrent.{BlockingSpscRwdRingBuffer, NamedThreadFactory}
-import org.midonet.util.executors.SameThreadExecutor
+import org.midonet.util.concurrent.{CallingThreadExecutionContext, BlockingSpscRwdRingBuffer, NamedThreadFactory}
 import org.midonet.util.functors.{makeAction0, makeFunc1}
 import org.midonet.util.reactivex.HermitObservable.HermitOversubscribedException
 
@@ -371,8 +370,7 @@ class SessionInventory(private val store: Storage,
         private val expirationComplete = Promise[Boolean]()
         setExpiration(gracePeriod)
 
-        private val sameContext =
-            ExecutionContext.fromExecutor(SameThreadExecutor)
+        private val sameContext = CallingThreadExecutionContext
 
         class SessionTimeout(ms: Long) {
             val status = new AtomicInteger(0)
