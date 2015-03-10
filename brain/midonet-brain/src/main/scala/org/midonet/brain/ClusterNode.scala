@@ -31,6 +31,7 @@ import org.midonet.brain.services.heartbeat.HeartbeatConfig
 import org.midonet.brain.services.topology.TopologyApiServiceConfig
 import org.midonet.brain.services.vxgw.VxGWServiceConfig
 import org.midonet.cluster.config.ZookeeperConfig
+import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.storage._
 import org.midonet.config._
 import org.midonet.midolman.cluster.LegacyClusterModule
@@ -179,11 +180,16 @@ object ClusterNode extends App {
             jmxReporter.stop()
             daemon.stopAsync().awaitTerminated()
         }
+        if (injector.getInstance(classOf[MidonetBackend]).isRunning)
+            injector.getInstance(classOf[MidonetBackend])
+                .stopAsync().awaitTerminated()
     }
 
     log info "MidoNet Cluster daemon starts.."
     try {
         jmxReporter.start()
+        injector.getInstance(classOf[MidonetBackend])
+            .startAsync().awaitRunning()
         daemon.startAsync().awaitRunning()
         log info "MidoNet Cluster is up"
     } catch {
