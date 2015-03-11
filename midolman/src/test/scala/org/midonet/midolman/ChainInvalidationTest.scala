@@ -132,7 +132,7 @@ class ChainInvalidationTest extends MidolmanSpec {
 
     private def buildTopology() {
         val host = newHost("myself",
-            injector.getInstance(classOf[HostIdProviderService]).getHostId)
+            injector.getInstance(classOf[HostIdProviderService]).hostId)
         host should not be null
 
         clusterRouter = newRouter("router")

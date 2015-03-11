@@ -59,8 +59,7 @@ import org.midonet.midolman.state.ZkManager;
 import org.midonet.midolman.util.mock.MockInterfaceScanner;
 import org.midonet.midolman.version.DataWriteVersion;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertEquals;
 
 public class HostServiceTest {
     private ZkManager zkManager;
@@ -154,7 +153,7 @@ public class HostServiceTest {
     public void createsNewZkHostInBackendStore() throws Throwable {
         setup(true);
         HostService hostService = startService();
-        assertBackendHostState();
+        assertBackendHostState(hostService.ownerId().toString());
         stopService(hostService);
     }
 
@@ -174,7 +173,7 @@ public class HostServiceTest {
         HostService hostService = startService();
         stopService(hostService);
         hostService = startService();
-        assertBackendHostState();
+        assertBackendHostState(hostService.ownerId().toString());
         stopService(hostService);
     }
 
@@ -238,7 +237,7 @@ public class HostServiceTest {
 
         Topology.Host host = await(store.get(Topology.Host.class, hostId));
 
-        assertThat(host.getTunnelZoneIds(0), is(newHost.getTunnelZoneIds(0)));
+        assertEquals(host.getTunnelZoneIds(0), newHost.getTunnelZoneIds(0));
     }
 
     @Test
@@ -246,26 +245,26 @@ public class HostServiceTest {
         setup(true);
         startAndStopService();
 
-        assertThat((Boolean) await(store.exists(Topology.Host.class, hostId)),
-                   is(true));
-        assertThat(await(store.getOwners(Topology.Host.class, hostId))
-                       .isEmpty(), is(true));
+        assertEquals(await(store.exists(Topology.Host.class, hostId)),
+                     true);
+        assertEquals(await(store.getOwners(Topology.Host.class, hostId))
+                         .isEmpty(), true);
     }
 
     private void assertLegacyHostState() throws Exception {
-        assertThat(hostZkManager.exists(hostId), is(true));
-        assertThat(hostZkManager.isAlive(hostId), is(true));
-        assertThat(hostZkManager.get(hostId).getName(), is(hostName));
-        assertThat(zkManager.exists(versionPath), is(true));
+        assertEquals(hostZkManager.exists(hostId), true);
+        assertEquals(hostZkManager.isAlive(hostId), true);
+        assertEquals(hostZkManager.get(hostId).getName(), hostName);
+        assertEquals(zkManager.exists(versionPath), true);
     }
 
-    private void assertBackendHostState() throws Exception {
-        assertThat((Boolean)await(store.exists(Topology.Host.class, hostId)),
-                   is(true));
-        assertThat(await(store.get(Topology.Host.class, hostId)).getName(),
-                   is(hostName));
-        assertThat(await(store.getOwners(Topology.Host.class, hostId))
-                       .contains(hostId.toString()), is(true));
+    private void assertBackendHostState(String ownerId) throws Exception {
+        assertEquals(await(store.exists(Topology.Host.class, hostId)),
+                     true);
+        assertEquals(await(store.get(Topology.Host.class, hostId)).getName(),
+                     hostName);
+        assertEquals(await(store.getOwners(Topology.Host.class, hostId))
+                         .contains(ownerId), true);
     }
 
     private HostService startService() throws Throwable {

@@ -271,7 +271,7 @@ class DatapathController extends Actor
 
         case Initialize =>
             initializer = sender()
-            subscribeToHost(hostService.getHostId)
+            subscribeToHost(hostService.hostId)
 
         case h: ResolvedHost =>
             val oldHost = host
