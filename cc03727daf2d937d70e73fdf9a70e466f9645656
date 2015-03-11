@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "3a1371a2_78574903",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/util/RangeUtil.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-11T14:43:46Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3a1371a2_ed19bd23",
+      "range": {
+        "startLine": 24,
+        "startChar": 7,
+        "endLine": 24,
+        "endChar": 16
+      },
+      "revId": "cc03727daf2d937d70e73fdf9a70e466f9645656",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a1371a2_4d2bb130",
         "filename": "cluster/src/main/scala/org/midonet/cluster/util/RangeUtil.scala",
         "patchSetId": 10
@@ -36,6 +60,30 @@
       "writtenOn": "2015-03-11T10:29:19Z",
       "side": 1,
       "message": "Why didn\u0027t you use here the toProto method from below?",
+      "range": {
+        "startLine": 29,
+        "startChar": 12,
+        "endLine": 32,
+        "endChar": 24
+      },
+      "revId": "cc03727daf2d937d70e73fdf9a70e466f9645656",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_d830fdea",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/util/RangeUtil.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-11T14:43:46Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3a1371a2_4d2bb130",
       "range": {
         "startLine": 29,
         "startChar": 12,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "3a1371a2_d8475d4a",
+        "filename": "midolman/src/main/java/org/midonet/midolman/rules/ForwardNatRule.java",
+        "patchSetId": 10
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-11T14:43:46Z",
+      "side": 1,
+      "message": "You\u0027re right. I tried this first and forgot to call super.afterFromProto and so of course it was not working. Fixed that.",
+      "parentUuid": "3a1371a2_4de29104",
+      "range": {
+        "startLine": 82,
+        "startChar": 0,
+        "endLine": 95,
+        "endChar": 5
+      },
+      "revId": "cc03727daf2d937d70e73fdf9a70e466f9645656",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a1371a2_8de3e904",
         "filename": "midolman/src/main/java/org/midonet/midolman/rules/NatRule.java",
         "patchSetId": 10
@@ -82,6 +154,30 @@
       "writtenOn": "2015-03-11T10:29:19Z",
       "side": 1,
       "message": "Line too long.",
+      "range": {
+        "startLine": 79,
+        "startChar": 3,
+        "endLine": 79,
+        "endChar": 95
+      },
+      "revId": "cc03727daf2d937d70e73fdf9a70e466f9645656",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_58736db1",
+        "filename": "midolman/src/main/java/org/midonet/midolman/rules/NatRule.java",
+        "patchSetId": 10
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-11T14:43:46Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3a1371a2_8de3e904",
       "range": {
         "startLine": 79,
         "startChar": 3,
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "3a1371a2_1879f593",
+        "filename": "midolman/src/main/java/org/midonet/midolman/rules/NatRule.java",
+        "patchSetId": 10
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-11T14:43:46Z",
+      "side": 1,
+      "message": "It\u0027s a boolean so if not set, it will be false.\n\nThere\u0027s a test in RuleConversionTest called \"A nat rule that\u0027s neither a fwd nor a reverse rule\" that tests this.",
+      "parentUuid": "3a1371a2_8d08092f",
+      "range": {
+        "startLine": 81,
+        "startChar": 16,
+        "endLine": 81,
+        "endChar": 43
+      },
+      "revId": "cc03727daf2d937d70e73fdf9a70e466f9645656",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a1371a2_ed053d15",
         "filename": "midolman/src/main/java/org/midonet/midolman/rules/NatRule.java",
         "patchSetId": 10
@@ -140,6 +260,30 @@
     },
     {
       "key": {
+        "uuid": "3a1371a2_786e29cb",
+        "filename": "midolman/src/main/java/org/midonet/midolman/rules/NatRule.java",
+        "patchSetId": 10
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-11T14:43:46Z",
+      "side": 1,
+      "message": "same comment.",
+      "parentUuid": "3a1371a2_ed053d15",
+      "range": {
+        "startLine": 83,
+        "startChar": 21,
+        "endLine": 83,
+        "endChar": 47
+      },
+      "revId": "cc03727daf2d937d70e73fdf9a70e466f9645656",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a1371a2_0dd89952",
         "filename": "midolman/src/main/java/org/midonet/midolman/rules/Rule.java",
         "patchSetId": 10
@@ -151,6 +295,30 @@
       "writtenOn": "2015-03-11T10:29:19Z",
       "side": 1,
       "message": "Wouldn\u0027t have been possible to override the afterFromProto in the ForwardNatRule class, adding there any initialization code as needed?",
+      "range": {
+        "startLine": 83,
+        "startChar": 0,
+        "endLine": 84,
+        "endChar": 34
+      },
+      "revId": "cc03727daf2d937d70e73fdf9a70e466f9645656",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_9864c5e6",
+        "filename": "midolman/src/main/java/org/midonet/midolman/rules/Rule.java",
+        "patchSetId": 10
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-11T14:43:46Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3a1371a2_0dd89952",
       "range": {
         "startLine": 83,
         "startChar": 0,
@@ -209,6 +377,54 @@
     },
     {
       "key": {
+        "uuid": "3a1371a2_18a0d5f3",
+        "filename": "midolman/src/main/java/org/midonet/midolman/rules/Rule.java",
+        "patchSetId": 10
+      },
+      "lineNbr": 126,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-11T14:43:46Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_852dfcaa",
+      "range": {
+        "startLine": 126,
+        "startChar": 25,
+        "endLine": 126,
+        "endChar": 33
+      },
+      "revId": "cc03727daf2d937d70e73fdf9a70e466f9645656",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_389b11cb",
+        "filename": "midolman/src/main/java/org/midonet/midolman/rules/Rule.java",
+        "patchSetId": 10
+      },
+      "lineNbr": 126,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-11T14:43:46Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_a51f586b",
+      "range": {
+        "startLine": 126,
+        "startChar": 49,
+        "endLine": 126,
+        "endChar": 56
+      },
+      "revId": "cc03727daf2d937d70e73fdf9a70e466f9645656",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_252408c4",
         "filename": "midolman/src/main/java/org/midonet/midolman/rules/Rule.java",
         "patchSetId": 10
@@ -220,6 +436,30 @@
       "writtenOn": "2015-03-09T17:20:20Z",
       "side": 1,
       "message": "remove",
+      "range": {
+        "startLine": 127,
+        "startChar": 38,
+        "endLine": 128,
+        "endChar": 44
+      },
+      "revId": "cc03727daf2d937d70e73fdf9a70e466f9645656",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_78a58903",
+        "filename": "midolman/src/main/java/org/midonet/midolman/rules/Rule.java",
+        "patchSetId": 10
+      },
+      "lineNbr": 128,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-11T14:43:46Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_252408c4",
       "range": {
         "startLine": 127,
         "startChar": 38,
@@ -255,6 +495,30 @@
     },
     {
       "key": {
+        "uuid": "3a1371a2_58aa4dd5",
+        "filename": "midolman/src/main/java/org/midonet/midolman/state/zkManagers/BaseConfig.java",
+        "patchSetId": 10
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-11T14:43:46Z",
+      "side": 1,
+      "message": "I kept Ignored by ZoomConvert.",
+      "parentUuid": "3a1371a2_edf09dcb",
+      "range": {
+        "startLine": 26,
+        "startChar": 4,
+        "endLine": 26,
+        "endChar": 39
+      },
+      "revId": "cc03727daf2d937d70e73fdf9a70e466f9645656",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a1371a2_6d35cd45",
         "filename": "midolman/src/test/scala/org/midonet/midolman/topology/TopologyBuilder.scala",
         "patchSetId": 10
@@ -266,6 +530,30 @@
       "writtenOn": "2015-03-11T11:06:31Z",
       "side": 1,
       "message": "Is this needed? Proto fills the fields with defaults automatically. Wouldn\u0027t it be better to define them in the .proto file and, if necessary, only override the UUID / MAC ones here.",
+      "range": {
+        "startLine": 210,
+        "startChar": 18,
+        "endLine": 210,
+        "endChar": 46
+      },
+      "revId": "cc03727daf2d937d70e73fdf9a70e466f9645656",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_9892059e",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/TopologyBuilder.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 210,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-11T14:43:46Z",
+      "side": 1,
+      "message": "The Chain mapper calls this from the tests directly. If I can I\u0027ll move this to the corresponding test (in the chain mapper patch).",
+      "parentUuid": "3a1371a2_6d35cd45",
       "range": {
         "startLine": 210,
         "startChar": 18,
@@ -301,6 +589,30 @@
     },
     {
       "key": {
+        "uuid": "3a1371a2_f88fb973",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/TopologyBuilder.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 289,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-11T14:43:46Z",
+      "side": 1,
+      "message": "See my comment to Galo.",
+      "parentUuid": "3a1371a2_0dbff9d1",
+      "range": {
+        "startLine": 210,
+        "startChar": 0,
+        "endLine": 289,
+        "endChar": 5
+      },
+      "revId": "cc03727daf2d937d70e73fdf9a70e466f9645656",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a1371a2_ad94e544",
         "filename": "midolman/src/test/scala/org/midonet/midolman/topology/TopologyBuilder.scala",
         "patchSetId": 10
@@ -312,6 +624,30 @@
       "writtenOn": "2015-03-11T10:29:19Z",
       "side": 1,
       "message": "Minor comment: Can the chain be optional for a rule?",
+      "range": {
+        "startLine": 406,
+        "startChar": 44,
+        "endLine": 406,
+        "endChar": 65
+      },
+      "revId": "cc03727daf2d937d70e73fdf9a70e466f9645656",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_98ab25d6",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/TopologyBuilder.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 406,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-11T14:43:46Z",
+      "side": 1,
+      "message": "When I create a rule I do not specify the chain. It\u0027s only when I create the chain that I specify the ruleId. With the bindings the chainId will be inserted by zoom.",
+      "parentUuid": "3a1371a2_ad94e544",
       "range": {
         "startLine": 406,
         "startChar": 44,
@@ -347,6 +683,30 @@
     },
     {
       "key": {
+        "uuid": "3a1371a2_3882f152",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/TopologyBuilder.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 452,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-11T14:43:46Z",
+      "side": 1,
+      "message": "IntelliJ refuses to compile if I remove this. It says that toProto is ambiguous. I\u0027m guessing that with some implicit conversions it could apply toProto from more than one imported class.",
+      "parentUuid": "3a1371a2_cdc4c161",
+      "range": {
+        "startLine": 452,
+        "startChar": 38,
+        "endLine": 452,
+        "endChar": 60
+      },
+      "revId": "cc03727daf2d937d70e73fdf9a70e466f9645656",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a1371a2_2da115aa",
         "filename": "midolman/src/test/scala/org/midonet/midolman/topology/TopologyBuilder.scala",
         "patchSetId": 10
@@ -370,6 +730,30 @@
     },
     {
       "key": {
+        "uuid": "3a1371a2_f8b8592c",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/TopologyBuilder.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 468,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-11T14:43:46Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3a1371a2_2da115aa",
+      "range": {
+        "startLine": 468,
+        "startChar": 32,
+        "endLine": 468,
+        "endChar": 56
+      },
+      "revId": "cc03727daf2d937d70e73fdf9a70e466f9645656",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a1371a2_6d82ed01",
         "filename": "midolman/src/test/scala/org/midonet/midolman/topology/devices/RuleConversionTest.scala",
         "patchSetId": 10
@@ -381,6 +765,30 @@
       "writtenOn": "2015-03-11T10:29:19Z",
       "side": 1,
       "message": "How about extending the TopologyMatchers providing support for rule comparisons?",
+      "range": {
+        "startLine": 183,
+        "startChar": 16,
+        "endLine": 183,
+        "endChar": 28
+      },
+      "revId": "cc03727daf2d937d70e73fdf9a70e466f9645656",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_d88c7d82",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/devices/RuleConversionTest.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 183,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-11T14:43:46Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3a1371a2_6d82ed01",
       "range": {
         "startLine": 183,
         "startChar": 16,
