@@ -22,6 +22,30 @@
       "revId": "5fe12b40b62740843b3629cf575da74ed1c4cae5",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_18361504",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-11T17:09:34Z",
+      "side": 1,
+      "message": "This is to be used to write the list of host interfaces to zoom.",
+      "parentUuid": "3a1371a2_58a40d57",
+      "range": {
+        "startLine": 83,
+        "startChar": 0,
+        "endLine": 83,
+        "endChar": 24
+      },
+      "revId": "5fe12b40b62740843b3629cf575da74ed1c4cae5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
