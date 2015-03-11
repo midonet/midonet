@@ -21,31 +21,76 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import org.midonet.packets.MAC;
+import org.midonet.cluster.data.ZoomClass;
+import org.midonet.cluster.data.ZoomEnum;
+import org.midonet.cluster.data.ZoomEnumValue;
+import org.midonet.cluster.data.ZoomField;
+import org.midonet.cluster.data.ZoomObject;
+import org.midonet.cluster.util.EnumConverter;
+import org.midonet.cluster.util.IPAddressUtil;
+import org.midonet.cluster.util.MACUtil;
 import org.midonet.odp.DpPort;
+import org.midonet.packets.MAC;
 
+import static org.midonet.cluster.models.Topology.Host.Interface;
 
 /**
- * @author Mihai Claudiu Toader <mtoader@midokura.com>
- *         Date: 2/8/12
+ * Represents a host network interface.
  */
-public class InterfaceDescription {
+@ZoomClass(clazz = Interface.class)
+public class InterfaceDescription extends ZoomObject {
 
-    public enum Type { PHYS, VIRT, TUNN, UNKNOWN }
-    public enum Endpoint { DATAPATH, PHYSICAL, VM, GRE, CAPWAP, LOCALHOST,
-        TUNTAP, UNKNOWN }
+    @ZoomEnum(clazz = Interface.Type.class)
+    public enum Type {
+        @ZoomEnumValue(value = "PHYSICAL_TYPE")
+        PHYS,
+        @ZoomEnumValue(value = "VIRTUAL_TYPE")
+        VIRT,
+        @ZoomEnumValue(value = "TUNNEL_TYPE")
+        TUNN,
+        @ZoomEnumValue(value = "UNKNOWN_TYPE")
+        UNKNOWN
+    }
+    @ZoomEnum(clazz = Interface.Endpoint.class)
+    public enum Endpoint {
+        @ZoomEnumValue(value = "DATAPATH_EP")
+        DATAPATH,
+        @ZoomEnumValue(value = "PHYSICAL_EP")
+        PHYSICAL,
+        @ZoomEnumValue(value = "VM_EP")
+        VM,
+        @ZoomEnumValue(value = "GRE_EP")
+        GRE,
+        @ZoomEnumValue(value = "CAPWAP_EP")
+        CAPWAP,
+        @ZoomEnumValue(value = "LOCALHOST_EP")
+        LOCALHOST,
+        @ZoomEnumValue(value = "TUNTAP_EP")
+        TUNTAP,
+        @ZoomEnumValue(value = "UNKNOWN_EP")
+        UNKNOWN
+    }
 
     ///////////////////////////////////////////////////////////////////////////
     // Attributes
     ///////////////////////////////////////////////////////////////////////////
+    @ZoomField(name = "name")
     protected String name;
+    @ZoomField(name = "type")
     protected Type type;
+    @ZoomField(name = "mac", converter = MACUtil.Converter.class)
     protected MAC mac;
+    @ZoomField(name = "addresses", converter = IPAddressUtil.Converter.class)
     protected List<InetAddress> inetAddresses;
+    @ZoomField(name = "up")
     protected boolean isUp;
+    @ZoomField(name = "has_link")
     protected boolean hasLink;
+    @ZoomField(name = "mtu")
     protected int mtu;
+    @ZoomField(name = "endpoint")
     protected Endpoint endpoint;
+    @ZoomField(name = "port_type", converter = DpPortTypeConverter.class)
     protected DpPort.Type portType;
     //protected ... other
     protected Map<String, String> properties;
@@ -53,6 +98,8 @@ public class InterfaceDescription {
     ///////////////////////////////////////////////////////////////////////////
     // Public methods
     ///////////////////////////////////////////////////////////////////////////
+    public InterfaceDescription() { }
+
     public InterfaceDescription(String name) {
         this.name = name;
         this.type = Type.UNKNOWN;
@@ -183,5 +230,21 @@ public class InterfaceDescription {
                 "," + endpoint +
                 "," + portType +
                 ')';
+    }
+
+    /** A converter for the datapath port type. We cannot use ZOOM annotations
+     * because the DpPort.Type enumeration is found in the ODP module, which
+     * does not import cluster. */
+    public static class DpPortTypeConverter
+        extends EnumConverter<DpPort.Type, Interface.DpPortType> {
+
+        public DpPortTypeConverter() {
+            add(DpPort.Type.NetDev, Interface.DpPortType.NET_DEV_DP_TYPE);
+            add(DpPort.Type.Internal, Interface.DpPortType.INTERNAL_DP_TYPE);
+            add(DpPort.Type.Gre, Interface.DpPortType.GRE_DP_TYPE);
+            add(DpPort.Type.VXLan, Interface.DpPortType.VXLAN_DP_TYPE);
+            add(DpPort.Type.Gre64, Interface.DpPortType.GRE64_DP_TYPE);
+            add(DpPort.Type.Lisp, Interface.DpPortType.LISP_DP_TYPE);
+        }
     }
 }

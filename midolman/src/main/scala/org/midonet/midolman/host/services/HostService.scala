@@ -17,7 +17,7 @@
 package org.midonet.midolman.host.services
 
 import java.net.{UnknownHostException, InetAddress}
-import java.util
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.{Set => JSet, UUID}
 import java.util.concurrent.{TimeUnit, CountDownLatch}
 
@@ -25,18 +25,23 @@ import scala.collection.JavaConverters._
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.Await
 import scala.concurrent.duration._
+import scala.util.control.NonFatal
 
 import com.google.common.util.concurrent.AbstractService
 import com.google.inject.Inject
 
+import rx.{Subscription, Observer}
+
+import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.data.storage._
 import org.midonet.cluster.models.Topology.Host
+import org.midonet.cluster.models.Topology.Host.Interface
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.storage.MidonetBackendConfig
 import org.midonet.cluster.util.UUIDUtil._
-import org.midonet.cluster.util.IPAddressUtil._
 import org.midonet.conf.HostIdGenerator
 import org.midonet.conf.HostIdGenerator.PropertiesFileNotWritableException
+import org.midonet.midolman.Midolman
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.host.interfaces.InterfaceDescription
 import org.midonet.midolman.host.scanner.InterfaceScanner
@@ -69,19 +74,32 @@ class HostService @Inject()(config: MidolmanConfig,
 
     private final val timeout = 5 seconds
     private var hostId: UUID = null
+    private val ownerId = UUID.randomUUID
+    private var hostName: String = "UNKNOWN"
     private val epoch: Long = System.currentTimeMillis
+
+    private val hostReady = new AtomicBoolean(false)
+    private val interfacesLatch = new CountDownLatch(1)
+    @volatile private var interfaces: Set[InterfaceDescription] = null
+    @volatile private var ownerSubscription: Subscription = null
+
+    override def logSource = s"org.midonet.host.host-$hostId"
+
+    override def getHostId: UUID =  hostId
 
     override def doStart(): Unit = {
         log.info("Starting MidoNet Agent host service")
         try {
-            identifyHostId()
-            scanner.register(new Callback[util.Set[InterfaceDescription]] {
-                override def onSuccess(data: util.Set[InterfaceDescription])
+            scanner.register(new Callback[JSet[InterfaceDescription]] {
+                override def onSuccess(data: JSet[InterfaceDescription])
                 : Unit = {
-                    // Update the host interfaces only if the legacy storage is
-                    // enabled
-                    // TODO: Update host interfaces in ZOOM
-                    if (!backendConfig.useNewStack) {
+                    interfaces = data.asScala.toSet
+                    interfacesLatch.countDown()
+                    // Do not update the interfaces if the host is not ready
+                    if (!hostReady.get()) return
+                    if (backendConfig.useNewStack) {
+                        updateInBackend()
+                    } else {
                         interfaceDataUpdater
                             .updateInterfacesData(hostId, null, data)
                     }
@@ -89,6 +107,7 @@ class HostService @Inject()(config: MidolmanConfig,
                 override def onError(e: NetlinkException): Unit = { }
             })
             scanner.start()
+            identifyHost()
             notifyStarted()
             log.info("MidoNet Agent host service started")
         }
@@ -131,121 +150,204 @@ class HostService @Inject()(config: MidolmanConfig,
     @throws(classOf[InterruptedException])
     @throws(classOf[SerializationException])
     @throws(classOf[HostIdAlreadyInUseException])
-    private def identifyHostId(): Unit = {
+    private def identifyHost(): Unit = {
         log.debug("Identifying host")
-        val metadata = new HostMetadata
-        metadata.setEpoch(epoch)
-        val listAddresses = new ListBuffer[InetAddress]
-        for (info <- getInterfaces) {
-            listAddresses ++= info.getInetAddresses.asScala
+        if (!interfacesLatch.await(1, TimeUnit.SECONDS)) {
+            throw new RuntimeException("Timeout while waiting for interfaces")
         }
-        metadata.setAddresses(listAddresses.toArray)
+        hostId = HostIdGenerator.getHostId
         try {
-            metadata.setName(InetAddress.getLocalHost.getHostName)
+           hostName = InetAddress.getLocalHost.getHostName
         } catch {
-            case e: UnknownHostException => metadata.setName("UNKNOWN")
+            case e: UnknownHostException =>
         }
-        hostId = HostIdGenerator.getHostId()
+        createHost()
+    }
+
+    @throws(classOf[StateAccessException])
+    @throws(classOf[PropertiesFileNotWritableException])
+    @throws(classOf[InterruptedException])
+    @throws(classOf[SerializationException])
+    @throws(classOf[HostIdAlreadyInUseException])
+    private def createHost(): Unit = {
         var retries: Int = config.host.retriesForUniqueId
-        while (!create(hostId, metadata) && {retries -= 1; retries} >= 0) {
-            log.warn("Host ID already in use. Waiting for it to be released.")
+        while (!create() && { retries -= 1; retries } >= 0) {
+            log.warn("Host identifier already in use: waiting for it to be " +
+                     "released.")
             Thread.sleep(config.host.waitTimeForUniqueId)
         }
         if (retries < 0) {
             log.error("Couldn't take ownership of the in-use host ID")
             throw new HostService.HostIdAlreadyInUseException(
-                "Host ID " + hostId + "appears to already be taken")
+                s"Host identifier $hostId appears to already be taken")
+        } else {
+            monitorOwnership()
+        }
+    }
+
+    private def createHostOrExit(): Unit = {
+        try {
+            Thread.sleep(config.host.waitTimeForUniqueId)
+            createHost()
+        } catch {
+            case NonFatal(e) =>
+                System.exit(Midolman.MIDOLMAN_ERROR_CODE_LOST_HOST_OWNERSHIP)
         }
     }
 
     @throws(classOf[StateAccessException])
     @throws(classOf[SerializationException])
-    private def create(id: UUID, metadata: HostMetadata): Boolean = {
-        createLegacy(id, metadata) && createCluster(id, metadata)
+    private def create(): Boolean = {
+        hostReady.set(createInLegacy() && createInBackend())
+        hostReady.get
     }
 
+    /** Creates the host in the legacy storage. */
     @throws(classOf[StateAccessException])
     @throws(classOf[SerializationException])
-    private def createLegacy(id: UUID, metadata: HostMetadata): Boolean = {
+    private def createInLegacy(): Boolean = {
         if (backendConfig.useNewStack)
             return true
-        if (hostZkManager.exists(id)) {
-            if (!metadata.isSameHost(hostZkManager.get(id))) {
-                if (hostZkManager.isAlive(id)) {
+        log.debug("Creating/updating host in legacy storage")
+        val metadata = new HostMetadata
+        metadata.setEpoch(epoch)
+        metadata.setAddresses(getInterfaceAddresses.toArray)
+        if (hostZkManager.exists(hostId)) {
+            if (!metadata.isSameHost(hostZkManager.get(hostId))) {
+                if (hostZkManager.isAlive(hostId)) {
                     return false
                 }
             }
-            hostZkManager.updateMetadata(id, metadata)
+            hostZkManager.updateMetadata(hostId, metadata)
         }
         else {
-            hostZkManager.createHost(id, metadata)
+            hostZkManager.createHost(hostId, metadata)
         }
-        hostZkManager.makeAlive(id)
-        hostZkManager.setHostVersion(id)
+        hostZkManager.makeAlive(hostId)
+        hostZkManager.setHostVersion(hostId)
         true
     }
 
-    private def createCluster(id: UUID, metadata: HostMetadata): Boolean = {
+    /** Creates the host in the backend storage. */
+    private def createInBackend(): Boolean = {
         if (!backendConfig.useNewStack)
             return true
+        log.debug("Creating/updating host in backend storage with owner " +
+                  "identifier {}", ownerId)
         try {
             // If the host entry exists
-            if (Await.result(store.exists(classOf[Host], id), timeout)) {
+            if (Await.result(store.exists(classOf[Host], hostId), timeout)) {
                 // Read the current host.
                 val currentHost =
-                    Await.result(store.get(classOf[Host], id), timeout)
+                    Await.result(store.get(classOf[Host], hostId), timeout)
                 val host = currentHost.toBuilder
-                    .setName(metadata.getName)
-                    .clearAddresses()
-                    .addAllAddresses(metadata.getAddresses.map(_.asProto)
-                                         .toList.asJava)
+                    .setName(hostName)
+                    .clearInterfaces()
+                    .addAllInterfaces(getInterfaces.asJava)
                     .build()
                 // Take ownership and update host in storage.
-                store.multi(Seq(
-                    UpdateOwnerOp(classOf[Host], hostId, hostId.toString,
-                                  throwIfExists = true),
-                    UpdateWithOwnerOp(host, hostId.toString,
-                                      validator = null)
-                ))
+                store.update(host, ownerId.toString, validator = null)
             } else {
                 // Create a new host.
                 val host = Host.newBuilder
-                    .setId(id.asProto)
-                    .setName(metadata.getName)
-                    .addAllAddresses(metadata.getAddresses.map(_.asProto)
-                                         .toList.asJava)
+                    .setId(hostId.asProto)
+                    .setName(hostName)
+                    .addAllInterfaces(getInterfaces.asJava)
                     .build()
                 // Create the host object.
-                store.create(host, hostId)
+                store.create(host, ownerId)
             }
             true
         } catch {
             case e @ (_: NotFoundException |
                       _: ObjectExistsException |
                       _: ReferenceConflictException |
-                      _: OwnershipConflictException) => false
+                      _: OwnershipConflictException) =>
+                log.debug("Failed to create/update host in backend storage " +
+                          "with owner identifier {}", ownerId, e)
+                false
         }
     }
 
-    override def getHostId: UUID =  hostId
+    /** Updates the host in the backend storage. */
+    private def updateInBackend(): Unit = {
+        try {
+            // Read the current host.
+            val currentHost =
+                Await.result(store.get(classOf[Host], hostId), timeout)
+            val host = currentHost.toBuilder
+                .setName(hostName)
+                .clearInterfaces()
+                .addAllInterfaces(getInterfaces.asJava)
+                .build()
+            // Take ownership and update host in storage.
+            store.update(host, ownerId.toString, validator = null)
+        } catch {
+            case e @ (_: NotFoundException |
+                      _: ObjectExistsException |
+                      _: ReferenceConflictException |
+                      _: OwnershipConflictException) =>
+                log.debug("Failed to update host in backend storage with " +
+                          "owner identifier {}", ownerId, e)
+        }
+    }
 
-    @SuppressWarnings(Array("unchecked"))
-    private def getInterfaces: Set[InterfaceDescription] = {
-        val latch: CountDownLatch = new CountDownLatch(1)
-        val interfaces = Array.ofDim[JSet[InterfaceDescription]](1)
-        val s = scanner.register(new Callback[JSet[InterfaceDescription]] {
-            override def onSuccess(data: JSet[InterfaceDescription]): Unit = {
-                interfaces(0) = data
-                latch.countDown()
-            }
-            override def onError(e: NetlinkException): Unit = { }
-        })
+    /**
+     * Monitors the ownership for the current host, and attempts to retake
+     * ownership when the ownership changes.
+     */
+    private def monitorOwnership(): Unit = {
+        // Only available for backend storage.
+        if (!backendConfig.useNewStack) return
 
-        if (!latch.await(1, TimeUnit.SECONDS)) {
-            throw new RuntimeException("Timeout while waiting for interfaces")
+        if (null != ownerSubscription) {
+            ownerSubscription.unsubscribe()
+            ownerSubscription = null
         }
 
-        s.unsubscribe()
-        interfaces(0).asScala.toSet
+        log.debug("Monitoring host ownership")
+        ownerSubscription = store.ownersObservable(classOf[Host], hostId).subscribe(
+            new Observer[Set[String]] {
+                override def onCompleted(): Unit = {
+                    log.warn("Lost ownership of host: attempting to retake " +
+                             "ownership in {} ms",
+                             Long.box(config.host.waitTimeForUniqueId))
+                    createHostOrExit()
+                }
+                override def onError(e: Throwable): Unit = {
+                    log.warn("Lost ownership of host: attempting to retake " +
+                             "ownership in {} ms",
+                             Long.box(config.host.waitTimeForUniqueId), e)
+                    createHostOrExit()
+                }
+                override def onNext(o: Set[String]): Unit = o.headOption match {
+                    case Some(id) if id != ownerId.toString =>
+                        log.warn("Lost host ownership to owner {}: attempting " +
+                                 "to retake ownership in {} ms")
+                        identifyHost()
+                    case None =>
+                        log.warn("Lost ownership of host: attempting to retake " +
+                                 "ownership in {} ms",
+                                 Long.box(config.host.waitTimeForUniqueId))
+                        createHostOrExit()
+                    case _ => log.debug("Host ownership updated")
+                }
+            })
+    }
+
+    /** Returns the current set of interfaces for this host as a set of protocol
+      * buffers messages. */
+    private def getInterfaces: Set[Interface] = {
+        interfaces.map(ZoomConvert.toProto(_, classOf[Interface]))
+    }
+
+    /** Returns the current set of IP addresses for this host. */
+    private def getInterfaceAddresses: Seq[InetAddress] = {
+        val interfaces = this.interfaces
+        val addresses = new ListBuffer[InetAddress]
+        for (interface <- interfaces) {
+            addresses ++= interface.getInetAddresses.asScala
+        }
+        addresses
     }
 }

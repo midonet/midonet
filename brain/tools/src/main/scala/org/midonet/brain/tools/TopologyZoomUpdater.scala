@@ -38,7 +38,7 @@ import org.midonet.brain.tools.TopologyEntity._
 import org.midonet.brain.tools.TopologyZoomUpdater._
 import org.midonet.cluster.data.storage.StorageWithOwnership
 import org.midonet.cluster.models.{Commons, Topology}
-import org.midonet.cluster.models.Topology.Host.PortBinding
+import org.midonet.cluster.models.Topology.Host.{Interface, PortBinding}
 import org.midonet.cluster.models.Topology.IpAddrGroup.IpAddrPorts
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.util.{IPAddressUtil, UUIDUtil}
@@ -894,7 +894,9 @@ class Host(p: Topology.Host)(implicit storage: StorageWithOwnership)
     def this(name: String)(implicit storage: StorageWithOwnership) =
         this(Topology.Host.newBuilder()
                  .setId(randomId)
-                 .addAddresses(IPAddressUtil.toProto(randomIp))
+                 .addInterfaces(Interface.newBuilder
+                                    .addAddresses(IPAddressUtil.toProto(randomIp))
+                                    .build())
                  .setName(name).build())
     def model = proto.asInstanceOf[Topology.Host]
     def getId: Commons.UUID = getId(classOf[Commons.UUID])
@@ -908,7 +910,7 @@ class Host(p: Topology.Host)(implicit storage: StorageWithOwnership)
     }
 
     def address: String =
-        IPAddressUtil.toIPAddr(model.getAddressesList.get(0)).toString
+        IPAddressUtil.toIPAddr(model.getInterfaces(0).getAddresses(0)).toString
 
     def addTunnelZone(tz: TunnelZone): Host = {
         setRepeatedField("tunnel_zone_ids",
