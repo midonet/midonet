@@ -2,6 +2,121 @@
   "comments": [
     {
       "key": {
+        "uuid": "3a1371a2_ed19bd23",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/util/RangeUtil.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-11T10:29:19Z",
+      "side": 1,
+      "message": "No fromProto method (at least)",
+      "range": {
+        "startLine": 24,
+        "startChar": 7,
+        "endLine": 24,
+        "endChar": 16
+      },
+      "revId": "cc03727daf2d937d70e73fdf9a70e466f9645656",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_4d2bb130",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/util/RangeUtil.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-11T10:29:19Z",
+      "side": 1,
+      "message": "Why didn\u0027t you use here the toProto method from below?",
+      "range": {
+        "startLine": 29,
+        "startChar": 12,
+        "endLine": 32,
+        "endChar": 24
+      },
+      "revId": "cc03727daf2d937d70e73fdf9a70e466f9645656",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_4de29104",
+        "filename": "midolman/src/main/java/org/midonet/midolman/rules/ForwardNatRule.java",
+        "patchSetId": 10
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-11T10:29:19Z",
+      "side": 1,
+      "message": "I think the only purpose of this method is to initialize local fields after conversion from proto. Why didn\u0027t you override the afterFromProto method for that purpose?",
+      "range": {
+        "startLine": 82,
+        "startChar": 0,
+        "endLine": 95,
+        "endChar": 5
+      },
+      "revId": "cc03727daf2d937d70e73fdf9a70e466f9645656",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_8de3e904",
+        "filename": "midolman/src/main/java/org/midonet/midolman/rules/NatRule.java",
+        "patchSetId": 10
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-11T10:29:19Z",
+      "side": 1,
+      "message": "Line too long.",
+      "range": {
+        "startLine": 79,
+        "startChar": 3,
+        "endLine": 79,
+        "endChar": 95
+      },
+      "revId": "cc03727daf2d937d70e73fdf9a70e466f9645656",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_0dd89952",
+        "filename": "midolman/src/main/java/org/midonet/midolman/rules/Rule.java",
+        "patchSetId": 10
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-11T10:29:19Z",
+      "side": 1,
+      "message": "Wouldn\u0027t have been possible to override the afterFromProto in the ForwardNatRule class, adding there any initialization code as needed?",
+      "range": {
+        "startLine": 83,
+        "startChar": 0,
+        "endLine": 84,
+        "endChar": 34
+      },
+      "revId": "cc03727daf2d937d70e73fdf9a70e466f9645656",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_852dfcaa",
         "filename": "midolman/src/main/java/org/midonet/midolman/rules/Rule.java",
         "patchSetId": 10
@@ -64,6 +179,144 @@
         "startChar": 38,
         "endLine": 128,
         "endChar": 44
+      },
+      "revId": "cc03727daf2d937d70e73fdf9a70e466f9645656",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_edf09dcb",
+        "filename": "midolman/src/main/java/org/midonet/midolman/state/zkManagers/BaseConfig.java",
+        "patchSetId": 10
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-11T10:29:19Z",
+      "side": 1,
+      "message": "Unnecessary comment, the annotation is self-explanatory, as for zoom conversion all non-annotated fields are ignored.",
+      "range": {
+        "startLine": 26,
+        "startChar": 4,
+        "endLine": 26,
+        "endChar": 39
+      },
+      "revId": "cc03727daf2d937d70e73fdf9a70e466f9645656",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_0dbff9d1",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/TopologyBuilder.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 289,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-11T10:29:19Z",
+      "side": 1,
+      "message": "I think this method should belong to the unit test using it.",
+      "range": {
+        "startLine": 210,
+        "startChar": 0,
+        "endLine": 289,
+        "endChar": 5
+      },
+      "revId": "cc03727daf2d937d70e73fdf9a70e466f9645656",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_ad94e544",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/TopologyBuilder.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 406,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-11T10:29:19Z",
+      "side": 1,
+      "message": "Minor comment: Can the chain be optional for a rule?",
+      "range": {
+        "startLine": 406,
+        "startChar": 44,
+        "endLine": 406,
+        "endChar": 65
+      },
+      "revId": "cc03727daf2d937d70e73fdf9a70e466f9645656",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_cdc4c161",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/TopologyBuilder.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 452,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-11T10:29:19Z",
+      "side": 1,
+      "message": "Is this needed when importing IPAddressUtil._?",
+      "range": {
+        "startLine": 452,
+        "startChar": 38,
+        "endLine": 452,
+        "endChar": 60
+      },
+      "revId": "cc03727daf2d937d70e73fdf9a70e466f9645656",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_2da115aa",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/TopologyBuilder.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 468,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-11T10:29:19Z",
+      "side": 1,
+      "message": "Defaults to Set.empty",
+      "range": {
+        "startLine": 468,
+        "startChar": 32,
+        "endLine": 468,
+        "endChar": 56
+      },
+      "revId": "cc03727daf2d937d70e73fdf9a70e466f9645656",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_6d82ed01",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/devices/RuleConversionTest.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 183,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-11T10:29:19Z",
+      "side": 1,
+      "message": "How about extending the TopologyMatchers providing support for rule comparisons?",
+      "range": {
+        "startLine": 183,
+        "startChar": 16,
+        "endLine": 183,
+        "endChar": 28
       },
       "revId": "cc03727daf2d937d70e73fdf9a70e466f9645656",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
