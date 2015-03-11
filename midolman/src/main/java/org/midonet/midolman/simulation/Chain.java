@@ -31,7 +31,9 @@ import org.midonet.midolman.rules.RuleResult;
 import org.midonet.midolman.rules.RuleResult.Action;
 import org.midonet.sdn.flows.FlowTagger;
 
-public class Chain {
+import static org.midonet.midolman.topology.VirtualTopology.VirtualDevice;
+
+public class Chain implements VirtualDevice {
     public final UUID id;
     private final List<Rule> rules;
     private final Map<UUID, Chain> jumpTargets;
@@ -61,6 +63,10 @@ public class Chain {
                 Objects.equals(this.rules, that.rules) &&
                 Objects.equals(this.jumpTargets, that.jumpTargets) &&
                 Objects.equals(this.name, that.name);
+    }
+
+    public FlowTagger.FlowTag deviceTag() {
+        return flowInvTag;
     }
 
     public Chain getJumpTarget(UUID to) {
