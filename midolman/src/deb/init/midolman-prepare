@@ -34,6 +34,7 @@ if [ ! -d $QUAGGA_DIR ] ; then
 fi
 
 cleanup_bgp_space() {
+    set +e
     prefix=$1
     ns="${prefix}_ns"
     br="${prefix}_br"
@@ -46,6 +47,7 @@ cleanup_bgp_space() {
     ip netns exec $ns ip link delete "${prefix}_m"
     ip netns exec $ns ip link delete "${prefix}_vtym"
     ip netns delete $ns
+    set -e
 }
 
 cleanup_bgps() {
