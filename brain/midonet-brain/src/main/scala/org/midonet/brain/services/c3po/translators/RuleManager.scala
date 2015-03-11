@@ -31,7 +31,7 @@ trait RuleManager {
     protected def reverseFlowRule(chainId: UUID): Rule =
         Rule.newBuilder().setId(UUIDUtil.randomUuidProto)
             .setChainId(chainId)
-            .setType(Rule.Type.NAT_RULE)
+            .setType(Rule.Type.LITERAL_RULE)
             .setAction(ACCEPT)
             .setMatchReturnFlow(true)
             .build()

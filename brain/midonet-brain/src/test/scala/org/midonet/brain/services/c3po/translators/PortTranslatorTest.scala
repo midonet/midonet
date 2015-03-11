@@ -331,13 +331,13 @@ class VifPortCreateTranslationTest extends VifPortTranslationTest {
             """)
 
         val revFlowRuleOutbound = mRuleFromTxt(s"""
-            type: NAT_RULE
+            type: LITERAL_RULE
             action: ACCEPT
             match_return_flow: true
             chain_id { $outboundChainId }
             """)
         val revFlowRuleInbound = mRuleFromTxt(s"""
-            type: NAT_RULE
+            type: LITERAL_RULE
             action: ACCEPT
             match_return_flow: true
             chain_id { $inboundChainId }
@@ -579,13 +579,13 @@ class VifPortUpdateDeleteTranslationTest extends VifPortTranslationTest {
                       .asInstanceOf[List[Operation[Message]]]
 
         val revFlowRuleOutbound = mRuleFromTxt(s"""
-            type: NAT_RULE
+            type: LITERAL_RULE
             action: ACCEPT
             match_return_flow: true
             chain_id { $outboundChainId }
             """)
         val revFlowRuleInbound = mRuleFromTxt(s"""
-            type: NAT_RULE
+            type: LITERAL_RULE
             action: ACCEPT
             match_return_flow: true
             chain_id { $inboundChainId }
