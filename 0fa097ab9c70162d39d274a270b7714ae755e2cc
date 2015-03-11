@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3a1371a2_adf865c5",
+        "filename": "midolman/src/test/java/org/midonet/midolman/host/services/HostServiceTest.java",
+        "patchSetId": 13
+      },
+      "lineNbr": 161,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-11T09:57:15Z",
+      "side": 1,
+      "message": "parameter name? (same comments for all calls to setup below)",
+      "range": {
+        "startLine": 161,
+        "startChar": 14,
+        "endLine": 161,
+        "endChar": 19
+      },
+      "revId": "0fa097ab9c70162d39d274a270b7714ae755e2cc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
