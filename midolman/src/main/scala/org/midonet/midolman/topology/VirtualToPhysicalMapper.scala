@@ -301,7 +301,7 @@ trait DataClientLink {
     val hostIdProvider : HostIdProviderService = null
 
     def notifyLocalPortActive(vportID: UUID, active: Boolean) {
-        stateStorage.setPortLocalAndActive(vportID, hostIdProvider.getHostId,
+        stateStorage.setPortLocalAndActive(vportID, hostIdProvider.hostId,
                                            active)
     }
 }
