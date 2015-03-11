@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "3a1371a2_cd9b2171",
+        "filename": "brain/tools/src/main/scala/org/midonet/brain/tools/TopologyZoomUpdater.scala",
+        "patchSetId": 26
+      },
+      "lineNbr": 289,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-03-11T11:14:45Z",
+      "side": 1,
+      "message": "No particular reason. Changed.",
+      "parentUuid": "3a1371a2_ad3985da",
+      "revId": "36b46a2f3679771e21b2e657b6fffb1d5325c449",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a1371a2_cd3041eb",
         "filename": "brain/tools/src/main/scala/org/midonet/brain/tools/TopologyZoomUpdater.scala",
         "patchSetId": 26
@@ -30,6 +48,30 @@
       "writtenOn": "2015-03-11T09:20:35Z",
       "side": 1,
       "message": "Is it necessary?",
+      "range": {
+        "startLine": 420,
+        "startChar": 31,
+        "endLine": 420,
+        "endChar": 49
+      },
+      "revId": "36b46a2f3679771e21b2e657b6fffb1d5325c449",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_ada22598",
+        "filename": "brain/tools/src/main/scala/org/midonet/brain/tools/TopologyZoomUpdater.scala",
+        "patchSetId": 26
+      },
+      "lineNbr": 420,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-03-11T11:14:45Z",
+      "side": 1,
+      "message": "Nop, it is not (good catch!). Removed",
+      "parentUuid": "3a1371a2_cd3041eb",
       "range": {
         "startLine": 420,
         "startChar": 31,
@@ -65,6 +107,30 @@
     },
     {
       "key": {
+        "uuid": "3a1371a2_6de78de5",
+        "filename": "brain/tools/src/main/scala/org/midonet/brain/tools/TopologyZoomUpdater.scala",
+        "patchSetId": 26
+      },
+      "lineNbr": 445,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-03-11T11:14:45Z",
+      "side": 1,
+      "message": "I haven\u0027t found the functionality you mention in FutureOps... Is there an automatic conversion from Future to Option (including awaiting for the result)?",
+      "parentUuid": "3a1371a2_6d578d03",
+      "range": {
+        "startLine": 445,
+        "startChar": 20,
+        "endLine": 445,
+        "endChar": 33
+      },
+      "revId": "36b46a2f3679771e21b2e657b6fffb1d5325c449",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a1371a2_ed4a5d54",
         "filename": "brain/tools/src/main/scala/org/midonet/brain/tools/TopologyZoomUpdater.scala",
         "patchSetId": 26
@@ -76,6 +142,24 @@
       "writtenOn": "2015-03-11T09:20:35Z",
       "side": 1,
       "message": "Shouldn\u0027t we check if the host ID is the same as h.id()?",
+      "revId": "36b46a2f3679771e21b2e657b6fffb1d5325c449",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_2d04757d",
+        "filename": "brain/tools/src/main/scala/org/midonet/brain/tools/TopologyZoomUpdater.scala",
+        "patchSetId": 26
+      },
+      "lineNbr": 498,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-03-11T11:14:45Z",
+      "side": 1,
+      "message": "Nop. The zoom updater only allows a a port to be bound to a single host, so, if we are re-binding the port, we should detach the port from the previous host, which is probably different from h. (If there was some inconsistency, the Host.removePort method has no effect if the port is not present in the host\u0027s list of ports.)",
+      "parentUuid": "3a1371a2_ed4a5d54",
       "revId": "36b46a2f3679771e21b2e657b6fffb1d5325c449",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -105,6 +189,30 @@
     },
     {
       "key": {
+        "uuid": "3a1371a2_6dfe6d6d",
+        "filename": "brain/tools/src/main/scala/org/midonet/brain/tools/TopologyZoomUpdater.scala",
+        "patchSetId": 26
+      },
+      "lineNbr": 504,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-03-11T11:14:45Z",
+      "side": 1,
+      "message": "It would be redundant. If we are re-binding the port to another host, the clearField would be overriden by the following setField; if the next host is null, we are removing the port itself, so it doesn\u0027t really matter.",
+      "parentUuid": "3a1371a2_8d3da9be",
+      "range": {
+        "startLine": 504,
+        "startChar": 12,
+        "endLine": 504,
+        "endChar": 35
+      },
+      "revId": "36b46a2f3679771e21b2e657b6fffb1d5325c449",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a1371a2_ad406536",
         "filename": "brain/tools/src/main/scala/org/midonet/brain/tools/TopologyZoomUpdater.scala",
         "patchSetId": 26
@@ -122,6 +230,24 @@
     },
     {
       "key": {
+        "uuid": "3a1371a2_adf7c58b",
+        "filename": "brain/tools/src/main/scala/org/midonet/brain/tools/TopologyZoomUpdater.scala",
+        "patchSetId": 26
+      },
+      "lineNbr": 516,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-03-11T11:14:45Z",
+      "side": 1,
+      "message": "Mmm... not sure. Can\u0027t we have a vxlan port with no active bindings?",
+      "parentUuid": "3a1371a2_ad406536",
+      "revId": "36b46a2f3679771e21b2e657b6fffb1d5325c449",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a1371a2_4d5c5126",
         "filename": "brain/tools/src/main/scala/org/midonet/brain/tools/TopologyZoomUpdater.scala",
         "patchSetId": 26
@@ -133,6 +259,30 @@
       "writtenOn": "2015-03-11T09:20:35Z",
       "side": 1,
       "message": "You can omit this, I believe.",
+      "range": {
+        "startLine": 521,
+        "startChar": 16,
+        "endLine": 521,
+        "endChar": 29
+      },
+      "revId": "36b46a2f3679771e21b2e657b6fffb1d5325c449",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_8df48988",
+        "filename": "brain/tools/src/main/scala/org/midonet/brain/tools/TopologyZoomUpdater.scala",
+        "patchSetId": 26
+      },
+      "lineNbr": 521,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-03-11T11:14:45Z",
+      "side": 1,
+      "message": "Yes. Done.",
+      "parentUuid": "3a1371a2_4d5c5126",
       "range": {
         "startLine": 521,
         "startChar": 16,
