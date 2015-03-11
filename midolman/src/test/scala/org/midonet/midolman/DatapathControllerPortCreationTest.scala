@@ -86,7 +86,7 @@ class DatapathControllerPortCreationTest extends MidolmanSpec {
         val zone = greTunnelZone("twilight-zone")
 
         host = newHost("myself",
-            injector.getInstance(classOf[HostIdProviderService]).getHostId,
+            injector.getInstance(classOf[HostIdProviderService]).hostId,
             Set(zone.getId))
         host should not be null
 
