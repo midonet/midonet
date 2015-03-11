@@ -1,0 +1,147 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3a1371a2_ad3985da",
+        "filename": "brain/tools/src/main/scala/org/midonet/brain/tools/TopologyZoomUpdater.scala",
+        "patchSetId": 26
+      },
+      "lineNbr": 289,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-03-11T09:20:35Z",
+      "side": 1,
+      "message": "Looking at this, why not use mutable.Set?",
+      "revId": "36b46a2f3679771e21b2e657b6fffb1d5325c449",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_cd3041eb",
+        "filename": "brain/tools/src/main/scala/org/midonet/brain/tools/TopologyZoomUpdater.scala",
+        "patchSetId": 26
+      },
+      "lineNbr": 420,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-03-11T09:20:35Z",
+      "side": 1,
+      "message": "Is it necessary?",
+      "range": {
+        "startLine": 420,
+        "startChar": 31,
+        "endLine": 420,
+        "endChar": 49
+      },
+      "revId": "36b46a2f3679771e21b2e657b6fffb1d5325c449",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_6d578d03",
+        "filename": "brain/tools/src/main/scala/org/midonet/brain/tools/TopologyZoomUpdater.scala",
+        "patchSetId": 26
+      },
+      "lineNbr": 445,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-03-11T09:20:35Z",
+      "side": 1,
+      "message": "Perhaps you can use org.midonet.util.concurrent.toFutureOps implicit conversion?",
+      "range": {
+        "startLine": 445,
+        "startChar": 20,
+        "endLine": 445,
+        "endChar": 33
+      },
+      "revId": "36b46a2f3679771e21b2e657b6fffb1d5325c449",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_ed4a5d54",
+        "filename": "brain/tools/src/main/scala/org/midonet/brain/tools/TopologyZoomUpdater.scala",
+        "patchSetId": 26
+      },
+      "lineNbr": 498,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-03-11T09:20:35Z",
+      "side": 1,
+      "message": "Shouldn\u0027t we check if the host ID is the same as h.id()?",
+      "revId": "36b46a2f3679771e21b2e657b6fffb1d5325c449",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_8d3da9be",
+        "filename": "brain/tools/src/main/scala/org/midonet/brain/tools/TopologyZoomUpdater.scala",
+        "patchSetId": 26
+      },
+      "lineNbr": 504,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-03-11T09:20:35Z",
+      "side": 1,
+      "message": "Should be called inside \"if (model.hasHostId)\" ?",
+      "range": {
+        "startLine": 504,
+        "startChar": 12,
+        "endLine": 504,
+        "endChar": 35
+      },
+      "revId": "36b46a2f3679771e21b2e657b6fffb1d5325c449",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_ad406536",
+        "filename": "brain/tools/src/main/scala/org/midonet/brain/tools/TopologyZoomUpdater.scala",
+        "patchSetId": 26
+      },
+      "lineNbr": 516,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-03-11T09:20:35Z",
+      "side": 1,
+      "message": "Should log an error?",
+      "revId": "36b46a2f3679771e21b2e657b6fffb1d5325c449",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_4d5c5126",
+        "filename": "brain/tools/src/main/scala/org/midonet/brain/tools/TopologyZoomUpdater.scala",
+        "patchSetId": 26
+      },
+      "lineNbr": 521,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-03-11T09:20:35Z",
+      "side": 1,
+      "message": "You can omit this, I believe.",
+      "range": {
+        "startLine": 521,
+        "startChar": 16,
+        "endLine": 521,
+        "endChar": 29
+      },
+      "revId": "36b46a2f3679771e21b2e657b6fffb1d5325c449",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
