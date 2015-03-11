@@ -94,6 +94,52 @@
     },
     {
       "key": {
+        "uuid": "3a1371a2_8d08092f",
+        "filename": "midolman/src/main/java/org/midonet/midolman/rules/NatRule.java",
+        "patchSetId": 10
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-11T12:40:14Z",
+      "side": 1,
+      "message": "Wouldn\u0027t this fail if the condition field is not set?",
+      "range": {
+        "startLine": 81,
+        "startChar": 16,
+        "endLine": 81,
+        "endChar": 43
+      },
+      "revId": "cc03727daf2d937d70e73fdf9a70e466f9645656",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_ed053d15",
+        "filename": "midolman/src/main/java/org/midonet/midolman/rules/NatRule.java",
+        "patchSetId": 10
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-11T12:40:14Z",
+      "side": 1,
+      "message": "Same here.",
+      "range": {
+        "startLine": 83,
+        "startChar": 21,
+        "endLine": 83,
+        "endChar": 47
+      },
+      "revId": "cc03727daf2d937d70e73fdf9a70e466f9645656",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a1371a2_0dd89952",
         "filename": "midolman/src/main/java/org/midonet/midolman/rules/Rule.java",
         "patchSetId": 10
