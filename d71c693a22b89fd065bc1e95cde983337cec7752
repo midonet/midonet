@@ -68,6 +68,30 @@
       "revId": "d71c693a22b89fd065bc1e95cde983337cec7752",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_133c3693",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/devices/PortConversionTest.scala",
+        "patchSetId": 26
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-03-11T17:53:28Z",
+      "side": 1,
+      "message": "@Ignore",
+      "parentUuid": "3a1371a2_f3bd1a04",
+      "range": {
+        "startLine": 101,
+        "startChar": 4,
+        "endLine": 105,
+        "endChar": 26
+      },
+      "revId": "d71c693a22b89fd065bc1e95cde983337cec7752",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
