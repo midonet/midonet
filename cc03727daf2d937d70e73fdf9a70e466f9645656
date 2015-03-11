@@ -209,6 +209,29 @@
     },
     {
       "key": {
+        "uuid": "3a1371a2_6d35cd45",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/TopologyBuilder.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 210,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-03-11T11:06:31Z",
+      "side": 1,
+      "message": "Is this needed? Proto fills the fields with defaults automatically. Wouldn\u0027t it be better to define them in the .proto file and, if necessary, only override the UUID / MAC ones here.",
+      "range": {
+        "startLine": 210,
+        "startChar": 18,
+        "endLine": 210,
+        "endChar": 46
+      },
+      "revId": "cc03727daf2d937d70e73fdf9a70e466f9645656",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a1371a2_0dbff9d1",
         "filename": "midolman/src/test/scala/org/midonet/midolman/topology/TopologyBuilder.scala",
         "patchSetId": 10
