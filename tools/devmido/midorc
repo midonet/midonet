@@ -49,3 +49,9 @@ export MIDO_PASSWORD=${MIDO_PASSWORD:-gogomid0}
 # running mido.sh as part of anther script and the logging has already been
 # configured
 CONFIGURE_LOGGING=${CONFIGURE_LOGGING:-True}
+
+# Whether use screen to run services or not
+USE_SCREEN=${USE_SCREEN:-True}
+
+# Directory where all the service files will live
+SERVICE_DIR=${SERVICE_DIR:-$DEVMIDO_DIR/status}
