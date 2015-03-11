@@ -22,6 +22,30 @@
       "revId": "a88095ba71717f1ce050ea5bc9a574533c2564ca",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_2d2bd5ec",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/tools/TopologyZoomUpdaterApp.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-03-11T11:04:29Z",
+      "side": 1,
+      "message": "This is [usually] a \u0027lazy\u0027 Singleton: it gets instantiated the first time someone asks for it; on the contrary, the \u0027asEagerSingleton\u0027 gets instantiated when the injector is created. The \u0027[usually]\u0027 means that, according to the documentation, there is a mechanism to turn all lazy singleton instantiations into eager ones (which they argue are better for production environments).",
+      "parentUuid": "3a1371a2_4db9f1e8",
+      "range": {
+        "startLine": 47,
+        "startChar": 47,
+        "endLine": 47,
+        "endChar": 68
+      },
+      "revId": "a88095ba71717f1ce050ea5bc9a574533c2564ca",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
