@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "3a1371a2_adc9855c",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceWithChainsMapper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-03-11T10:43:56Z",
+      "side": 1,
+      "message": "yes please, encapsulation ftw (exposing a var caused a bug a couple of weeks ago!)",
+      "parentUuid": "7a1969be_ff0d63e9",
+      "range": {
+        "startLine": 54,
+        "startChar": 8,
+        "endLine": 54,
+        "endChar": 39
+      },
+      "revId": "cd010a4dedb024cf6823b019e8a3e9c29fed230a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_2bda19e8",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceWithChainsMapper.scala",
         "patchSetId": 2
