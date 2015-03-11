@@ -32,7 +32,9 @@ echo ======
 echo zkdump
 echo ======
 
-zkdump -z $ZK_NODES -d -p
+if [ -x /usr/bin/zkdump ]; then
+    zkdump -z $ZK_NODES -d -p
+fi
 
 DPCTL_TIMEOUT_IN_SEC=10
 index=1
