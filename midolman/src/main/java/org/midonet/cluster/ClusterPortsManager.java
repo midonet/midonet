@@ -66,6 +66,16 @@ public class ClusterPortsManager extends ClusterManager<PortBuilder> {
     }
 
     @Override
+    protected void onNewBuilder(final UUID id) {
+        PortBuilder builder = getBuilder(id);
+        if (builder != null) {
+            builder.setActive(isActive(id, builder));
+            log.debug("Build port {}", id);
+            builder.build();
+        }
+    }
+
+    @Override
     protected void getConfig(final UUID id) {
         PortConfig config = portConfigCache.get(id);
         if (config == null)
@@ -115,7 +125,6 @@ public class ClusterPortsManager extends ClusterManager<PortBuilder> {
         }
 
         PortBuilder builder = getBuilder(id);
-        port.setActive(isActive(id, builder));
         if (builder != null) {
             builder.setPort(port);
             log.debug("Build port {}, id {}", port, id);

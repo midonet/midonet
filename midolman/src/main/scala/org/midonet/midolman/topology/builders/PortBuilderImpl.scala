@@ -24,13 +24,16 @@ import org.midonet.midolman.topology.PortManager
 class PortBuilderImpl(val portActor: ActorRef) extends PortBuilder {
 
     private var port: Port = null
+    private var active = false
 
     override def setPort(p: Port) {
-        port = p
+        port = p.copy(active)
     }
 
     override def setActive(active: Boolean) {
-        port = port.copy(active)
+        this.active = active
+        if (port != null)
+            port = port.copy(active)
     }
 
     def build() {

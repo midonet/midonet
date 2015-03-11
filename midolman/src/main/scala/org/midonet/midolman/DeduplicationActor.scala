@@ -68,7 +68,7 @@ object DeduplicationActor {
     case class EmitGeneratedPacket(egressPort: UUID, eth: Ethernet,
                                    parentCookie: Option[Int] = None)
 
-    case class RestartWorkflow(pktCtx: PacketContext)
+    case class RestartWorkflow(pktCtx: PacketContext, error: Throwable)
 
     // This class holds a cache of actions we use to apply the result of a
     // simulation to pending packets while that result isn't written into
@@ -149,7 +149,7 @@ class DeduplicationActor(
             val metrics: PacketPipelineMetrics,
             val packetOut: Int => Unit,
             val config: MidolmanConfig)
-            extends Actor with ActorLogWithoutPath {
+            extends Actor with ActorLogWithoutPath with Stash {
 
     import org.midonet.midolman.DatapathController.DatapathReady
     import org.midonet.midolman.DeduplicationActor._
@@ -184,8 +184,6 @@ class DeduplicationActor(
         self
     )
 
-    private var pendingFlowStateBatches = List[FlowStateBatch]()
-
     private val invalidateExpiredConnTrackKeys =
         new Reducer[ConnTrackKey, ConnTrackValue, Unit]() {
             override def apply(u: Unit, k: ConnTrackKey, v: ConnTrackValue) {
@@ -200,9 +198,8 @@ class DeduplicationActor(
             }
         }
 
-    override def receive = {
-
-        case DatapathReady(dp, state) if null == datapath =>
+    context.become {
+        case DatapathReady(dp, state) =>
             datapath = dp
             dpState = state
             replicator = new FlowStateReplicator(connTrackStateTable,
@@ -211,16 +208,17 @@ class DeduplicationActor(
                                                  dpState,
                                                  FlowController ! InvalidateFlowsByTag(_),
                                                  datapath)
-            pendingFlowStateBatches foreach (self ! _)
             workflow = new PacketWorkflow(dpState, datapath, clusterDataClient,
                                           dpConnPool, cbExecutor, actionsCache,
                                           replicator, config)
+            context.become(receive)
+            unstashAll()
+        case _ => stash()
+    }
 
+    override def receive = {
         case m: FlowStateBatch =>
-            if (replicator ne null)
-                replicator.importFromStorage(m)
-            else
-                pendingFlowStateBatches ::= m
+            replicator.importFromStorage(m)
 
         case HandlePackets(packets) =>
             actionsCache.clearProcessedFlowMatches()
@@ -240,12 +238,15 @@ class DeduplicationActor(
         case CallbackExecutor.CheckCallbacks =>
             cbExecutor.run()
 
-        case RestartWorkflow(pktCtx) =>
+        case RestartWorkflow(pktCtx, error) =>
             if (pktCtx.idle) {
                 metrics.packetsOnHold.dec()
                 pktCtx.log.debug("Restarting workflow")
                 MDC.put("cookie", pktCtx.cookieStr)
-                runWorkflow(pktCtx)
+                if (error eq null)
+                    runWorkflow(pktCtx)
+                else
+                    handleErrorOn(pktCtx, error)
                 MDC.remove("cookie")
             }
             // Else the packet may have already been expired and dropped
@@ -297,9 +298,9 @@ class DeduplicationActor(
         }
         f.onComplete {
             case Success(_) =>
-                self ! RestartWorkflow(pktCtx)
+                self ! RestartWorkflow(pktCtx, null)
             case Failure(ex) =>
-                handleErrorOn(pktCtx, ex)
+                self ! RestartWorkflow(pktCtx, ex)
         }(ExecutionContext.callingThread)
         metrics.packetPostponed()
         giveUpWorkflows(waitingRoom enter pktCtx)
