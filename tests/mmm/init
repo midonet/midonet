@@ -28,11 +28,6 @@ sudo apt-get install curl screen tmux python-dev libncurses5-dev openjdk-7-jdk -
 # https://bugs.launchpad.net/ubuntu/+source/iproute/+bug/1238981
 sudo apt-get install iproute -y
 
-# add midokura apt source
-sudo bash -c "echo deb http://repo.midonet.org/midonet/current unstable main >   /etc/apt/sources.list.d/midokura.list"
-sudo bash -c "echo deb http://repo.midonet.org/misc stable main >> /etc/apt/sources.list.d/midokura.list"
-curl -k http://repo.midonet.org/packages.midokura.key | sudo apt-key add -
-
 # add cloud archive for icehouse
 sudo apt-get install python-software-properties -y
 
@@ -122,8 +117,17 @@ sudo update-alternatives --set java /usr/lib/jvm/java-7-openjdk-amd64/jre/bin/ja
 
 sudo apt-get install -y --force-yes dnsmasq-base
 
+set +e
+
+# add midokura apt source
+sudo bash -c "echo deb http://repo.midonet.org/midonet/current unstable main >   /etc/apt/sources.list.d/midokura.list"
+sudo bash -c "echo deb http://repo.midonet.org/misc stable main >> /etc/apt/sources.list.d/midokura.list"
+curl -k http://repo.midonet.org/packages.midokura.key | sudo apt-key add -
+
 # Install tools
 sudo apt-get install -y --force-yes zkdump
+
+set -e
 
 # Install dependencies for MDTS
 bash -xe ../mdts/install_deps.sh
