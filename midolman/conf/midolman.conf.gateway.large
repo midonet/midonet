@@ -63,7 +63,7 @@ top_level_actor_supervisor = crash
 #bgpd_config = /etc/quagga  # default value
 
 # number of threads dedicated to packet processing
-simulation_threads = 4
+simulation_threads = 2
 
 # number of datapath output channels
 output_channels = 2
@@ -94,7 +94,7 @@ wait_time_between_scans = 5000       # 5 * 1000 millis
 #vxlan_udp_port = 4789
 
 # Maximum number of flows a given datapath will be able to contain.
-max_flow_count = 1000000
+max_flow_count = 2500000
 # Midolman uses a pool of reusable buffers to send requests to the
 # datapath. The options below tune the pool's size and that of its
 # buffers. One pool is created for each output channel, the settings

@@ -69,10 +69,10 @@ top_level_actor_supervisor = crash
 #bgpd_config = /etc/quagga  # default value
 
 # number of threads dedicated to packet processing
-simulation_threads = 1
+simulation_threads = 2
 
 # number of datapath output channels
-output_channels = 1
+output_channels = 2
 
 # threading model for datapath input channels. There is one channel per port.
 # Allowed values are:
