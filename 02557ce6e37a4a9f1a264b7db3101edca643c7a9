@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3a1371a2_ea76c305",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/C3POMinionTest.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 707,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-03-11T01:02:10Z",
+      "side": 1,
+      "message": "May not matter for this test, but here we should pass the ID of the tenant router, which I think hasn\u0027t been created. So, in essence, should we keep it unspecified?",
+      "range": {
+        "startLine": 707,
+        "startChar": 36,
+        "endLine": 707,
+        "endChar": 57
+      },
+      "revId": "02557ce6e37a4a9f1a264b7db3101edca643c7a9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
