@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3a1371a2_58a40d57",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-03-11T17:04:36Z",
+      "side": 1,
+      "message": "Is this branch of the if intended to be empty?",
+      "range": {
+        "startLine": 83,
+        "startChar": 0,
+        "endLine": 83,
+        "endChar": 24
+      },
+      "revId": "5fe12b40b62740843b3629cf575da74ed1c4cae5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
