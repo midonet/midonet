@@ -67,7 +67,8 @@ public class Midolman {
     static final Logger log = LoggerFactory.getLogger(Midolman.class);
     static private final ServiceEvent serviceEvent = new ServiceEvent();
 
-    static final int MIDOLMAN_ERROR_CODE_MISSING_CONFIG_FILE = 1;
+    public static final int MIDOLMAN_ERROR_CODE_MISSING_CONFIG_FILE = 1;
+    public static final int MIDOLMAN_ERROR_CODE_LOST_HOST_OWNERSHIP = 2;
 
     private Injector injector;
 
