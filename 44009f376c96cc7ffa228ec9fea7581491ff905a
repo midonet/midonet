@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "3a1371a2_addce575",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/ClusterNode.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-03-11T09:45:22Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3a1371a2_ea052315",
+      "revId": "44009f376c96cc7ffa228ec9fea7581491ff905a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a1371a2_ca02e70a",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/TopologyApiServiceApp.scala",
         "patchSetId": 3
@@ -42,6 +60,30 @@
     },
     {
       "key": {
+        "uuid": "3a1371a2_cde32132",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/TopologyApiServiceApp.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-03-11T09:45:22Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3a1371a2_ca02e70a",
+      "range": {
+        "startLine": 21,
+        "startChar": 0,
+        "endLine": 22,
+        "endChar": 50
+      },
+      "revId": "44009f376c96cc7ffa228ec9fea7581491ff905a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a1371a2_2dff5503",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/tools/TopologyZoomUpdaterApp.scala",
         "patchSetId": 3
@@ -53,6 +95,30 @@
       "writtenOn": "2015-03-11T07:11:29Z",
       "side": 1,
       "message": "Out-of-order.",
+      "range": {
+        "startLine": 20,
+        "startChar": 0,
+        "endLine": 21,
+        "endChar": 50
+      },
+      "revId": "44009f376c96cc7ffa228ec9fea7581491ff905a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_2dd0f552",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/tools/TopologyZoomUpdaterApp.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-03-11T09:45:22Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3a1371a2_2dff5503",
       "range": {
         "startLine": 20,
         "startChar": 0,
