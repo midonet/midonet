@@ -1,0 +1,95 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3a1371a2_5eed158b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-03-12T11:02:59Z",
+      "side": 1,
+      "message": "Should the start happen after registering the callback?",
+      "revId": "54263db20f0d6de811eef519167df30a890b1afe",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_beafe92a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-03-12T11:02:59Z",
+      "side": 1,
+      "message": "Do we even need to start the scanner if !backendConfig.enabled?",
+      "revId": "54263db20f0d6de811eef519167df30a890b1afe",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_1e9a7d14",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 145,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-03-12T11:02:59Z",
+      "side": 1,
+      "message": "no wrap?",
+      "range": {
+        "startLine": 145,
+        "startChar": 8,
+        "endLine": 145,
+        "endChar": 9
+      },
+      "revId": "54263db20f0d6de811eef519167df30a890b1afe",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_be8889c7",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 171,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-03-12T11:02:59Z",
+      "side": 1,
+      "message": "nit: Reduce nesting with \n\nif (backendConfig.isEnabled) \n  return true\n\nif (hostZk..",
+      "revId": "54263db20f0d6de811eef519167df30a890b1afe",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_fe9201f5",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 190,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-03-12T11:02:59Z",
+      "side": 1,
+      "message": "Ditto re. nesting, would be more readable.",
+      "revId": "54263db20f0d6de811eef519167df30a890b1afe",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
