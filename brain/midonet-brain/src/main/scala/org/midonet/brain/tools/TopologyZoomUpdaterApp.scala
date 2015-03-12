@@ -16,10 +16,11 @@
 
 package org.midonet.brain.tools
 
-import com.google.inject.{AbstractModule, Guice}
-import org.midonet.cluster.config.ZookeeperConfig
+import com.google.inject.{AbstractModule, Guice, Singleton}
 import org.slf4j.LoggerFactory
 
+import org.midonet.cluster.services.MidonetBackend
+import org.midonet.cluster.config.ZookeeperConfig
 import org.midonet.cluster.storage.MidonetBackendModule
 import org.midonet.config.ConfigProvider
 
@@ -37,12 +38,13 @@ object TopologyZoomUpdaterApp extends App {
 
     private val topologyZkUpdaterModule = new AbstractModule {
         override def configure(): Unit = {
-            val zkConfig = cfgProvider.getConfig(classOf[ZookeeperConfig])
-            bind(classOf[ZookeeperConfig]).toInstance(zkConfig)
+            // FIXME: required for legacy code
+            bind(classOf[ZookeeperConfig])
+                .toInstance(cfgProvider.getConfig(classOf[ZookeeperConfig]))
 
             bind(classOf[ConfigProvider]).toInstance(cfgProvider)
             bind(classOf[TopologyZoomUpdaterConfig]).toInstance(updCfg)
-            bind(classOf[TopologyZoomUpdater]).asEagerSingleton()
+            bind(classOf[TopologyZoomUpdater]).in(classOf[Singleton])
         }
     }
 
@@ -54,15 +56,17 @@ object TopologyZoomUpdaterApp extends App {
     sys.addShutdownHook {
         log.info("Terminating instance of Topology Updater")
         injector.getInstance(classOf[TopologyZoomUpdater])
-                .stopAsync()
-                .awaitTerminated()
+            .stopAsync().awaitTerminated()
+        injector.getInstance(classOf[MidonetBackend])
+            .stopAsync().awaitTerminated()
     }
 
     try {
         log.info("Starting instance of Topology Updater")
+        injector.getInstance(classOf[MidonetBackend])
+            .startAsync().awaitRunning()
         injector.getInstance(classOf[TopologyZoomUpdater])
-                .startAsync()
-                .awaitRunning()
+            .startAsync().awaitRunning()
         log.info("Started instance of Topology Updater")
 
         try {
