@@ -49,7 +49,7 @@ object ObservableTestUtils {
                 e.countDown()
             }
 
-            override def onNext(t: T): Unit = {
+            override def onNext(t: T): Unit = synchronized {
                 super.onNext(t)
                 n.countDown()
             }
