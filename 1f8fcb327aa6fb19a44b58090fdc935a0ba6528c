@@ -22,6 +22,30 @@
       "revId": "1f8fcb327aa6fb19a44b58090fdc935a0ba6528c",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_fe4841ce",
+        "filename": "midolman/src/main/java/org/midonet/midolman/rules/Rule.java",
+        "patchSetId": 11
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-12T09:06:18Z",
+      "side": 1,
+      "message": "yes",
+      "parentUuid": "3a1371a2_b36c4238",
+      "range": {
+        "startLine": 119,
+        "startChar": 47,
+        "endLine": 119,
+        "endChar": 48
+      },
+      "revId": "1f8fcb327aa6fb19a44b58090fdc935a0ba6528c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
