@@ -16,6 +16,24 @@
       "revId": "5feec2b43336b4a763c4f642b206dd4c14eafc5a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_f9021bb3",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/services/topology/server/SessionInventoryTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-03-12T14:19:16Z",
+      "side": 1,
+      "message": "I can do it while jenkins keeps on failing...",
+      "parentUuid": "3a1371a2_3e4ad983",
+      "revId": "5feec2b43336b4a763c4f642b206dd4c14eafc5a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
