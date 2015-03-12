@@ -305,7 +305,7 @@ if [ "$USE_CLUSTER" = "True" ]; then
     iniset $CLUSTER_CONF neutron-importer connection_str jdbc:mysql://localhost:3306/neutron
     iniset $CLUSTER_CONF neutron-importer password $MIDO_PASSWORD
 
-    screen_process $SCREEN_NAME midonet-cluster "cd $TOP_DIR && ./gradlew :brain:midonet-brain:run"
+    run_process midonet-cluster "cd $TOP_DIR && ./gradlew :brain:midonet-brain:run"
 else
     # MidoNet API
     # -----------
