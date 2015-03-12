@@ -22,15 +22,13 @@ import java.util.UUID
 import scala.collection.JavaConversions._
 
 import akka.actor.{Actor, ActorRef}
-
 import com.google.inject.Inject
 import org.slf4j.{Logger, LoggerFactory}
 
 import org.midonet.cluster.DataClient
-import org.midonet.config.HostIdGenerator
+import org.midonet.conf.HostIdGenerator
 import org.midonet.midolman.Referenceable
 import org.midonet.midolman.config.MidolmanConfig
-import org.midonet.midolman.host.config.HostConfig
 import org.midonet.midolman.l4lb.HaproxyHealthMonitor.{ConfigUpdate, RouterAdded, RouterRemoved, SetupFailure, SockReadFailure}
 import org.midonet.midolman.l4lb.HealthMonitor.{ConfigAdded, ConfigDeleted, ConfigUpdated, RouterChanged}
 import org.midonet.midolman.l4lb.HealthMonitorConfigWatcher.BecomeHaproxyNode
@@ -194,13 +192,13 @@ class HealthMonitor extends Actor with ActorLogWithoutPath {
 
     override def preStart(): Unit = {
 
-        fileLocation =  config.getHaproxyFileLoc
-        namespaceSuffix = config.getNamespaceSuffix
+        fileLocation =  config.healthMonitor.haproxyFileLoc
+        namespaceSuffix = config.healthMonitor.namespaceSuffix
 
-        if (config.getNamespaceCleanup) {
+        if (config.healthMonitor.namespaceCleanup) {
             cleanupNamespaces()
         }
-        if (!config.getHealthMonitorEnable) {
+        if (!config.healthMonitor.enable) {
             context.stop(self)
             return
         }

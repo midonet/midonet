@@ -25,8 +25,7 @@ import scala.collection.JavaConversions._
 import com.typesafe.config._
 import org.apache.curator.retry.RetryOneTime
 import org.apache.curator.framework.CuratorFrameworkFactory
-import org.midonet.conf.MidoNodeConfigurator
-import org.midonet.config.HostIdGenerator
+import org.midonet.conf.{HostIdGenerator, MidoNodeConfigurator}
 import org.rogach.scallop._
 
 object ConfCommand {

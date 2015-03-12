@@ -43,6 +43,7 @@ dependencies {
             libraries.commons_cli,
             libraries.commons_lang3,
             libraries.commons_dbcp2,
+            libraries.commons_conf,
             libraries.curator_recipes,
             libraries.guava,
             libraries.guice,

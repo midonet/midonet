@@ -25,7 +25,7 @@ import scala.concurrent.duration.DurationInt
 
 import akka.actor.ActorSystem
 import akka.testkit.TestKit
-import org.apache.commons.configuration.HierarchicalConfiguration
+import com.typesafe.config.{ConfigValueFactory, Config}
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
@@ -57,10 +57,9 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
         store = injector.getInstance(classOf[MidonetBackend]).store
     }
 
-    override protected def fillConfig(config: HierarchicalConfiguration) = {
-        super.fillConfig(config)
-        config.setProperty("midolman.cluster_storage_enabled", true)
-        config
+    override protected def fillConfig(config: Config) = {
+        super.fillConfig(config).withValue("midolman.cluster_storage_enabled",
+            ConfigValueFactory.fromAnyRef(true))
     }
 
     private def assertThread(): Unit = {

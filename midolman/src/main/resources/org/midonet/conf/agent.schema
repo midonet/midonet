@@ -1,0 +1,230 @@
+// Copyright 2014 - 2015 Midokura SARL
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+// MidoNet Agent configuration schema
+
+schemaVersion = 2
+
+zookeeper {
+    session_timeout : 30s
+    session_timeout_description : """
+ZooKeeper session timeout."""
+
+    session_gracetime : ${zookeeper.session_timeout}
+    session_gracetime_description : """
+ZooKeeper session gracetime. A agent that remains disconnected from ZooKeeper
+for longer than this interval will give up reconnecting and reboot itself so
+as to start over with a fresh ZooKeeper connection. Note that agents will
+also reboot themselves if their ZooKeeper session expires."""
+
+    root_key : "/midonet/v1"
+    root_key_description : """
+Use this option to override the ZooKeeper path that MidoNet will use. Useful
+mainly for test environments.
+"""
+
+    curator_enabled : false
+    curator_enabled_description : """ """
+
+    cluster_storage_enabled : false
+    cluster_storage_enabled_description : """ """
+}
+
+cassandra {
+    servers : "127.0.0.1"
+    servers_description : """
+The minimum recommended cassandra setup is a 3-node cluster with a
+replication factor of 3. Midolman uses Quorum as consistency policy, which
+would translate to 2 in the suggested setup. """
+
+    replication_factor : 1
+    replication_factor_description : """
+DO CHANGE THIS, recommended value is 3"""
+
+    cluster : "midonet"
+    cluster_description : """ """
+}
+
+bridge {
+    mac_port_mapping_expire : 15s
+    mac_port_mapping_expire_description : """ """
+}
+
+arptable {
+    arp_retry_interval = 10s
+    arp_retry_interval_description : """ """
+
+    arp_timeout = 60s
+    arp_timeout_description : """ """
+
+    arp_stale = 1800s
+    arp_stale_description : """ """
+
+    arp_expiration = 3600s
+    arp_expiration_description : """ """
+}
+
+router {
+    max_bgp_peer_routes : 200
+    max_bgp_peer_routes_description : """ """
+}
+
+midolman {
+    dhcp_mtu_description : """ """
+    dhcp_mtu : 1500
+
+    check_flow_expiration_interval : 10s
+    check_flow_expiration_interval_description : """ """
+
+# after requesting an update to the kernel if a flow with idle expiration set
+# has less then idle_flow_tolerance_interval to live, we expire it
+    idle_flow_tolerance_interval : 10s
+    idle_flow_tolerance_interval_description : """ """
+
+    bgpd_config : "/etc/quagga"
+    bgpd_config_description : """ """
+
+    bgp_keepalive : 60
+    bgp_keepalive_description : """ """
+
+    bgp_holdtime : 180
+    bgp_holdtime_description : """ """
+
+    bgp_connect_retry : 120
+    bgp_connect_retry_description : """ """
+
+# number of threads dedicated to packet processing
+    simulation_threads : 1
+    simulation_threads_description : """ """
+
+# number of datapath output channels
+    output_channels : 1
+    output_channels_description : """ """
+
+# threading model for datapath input channels. There is one channel per port.
+# Allowed values are:
+#   + one_to_many: use one thread to service all ports
+#   + one_to_one: use one thread to service each port
+    input_channel_threading : "one_to_many"
+    input_channel_threading_description : """ """
+
+# location of the exterior vxlan vport uuid to vni key map (as a json object)
+    uuid_vni_json_mapping_file : "/etc/midolman/uuidtovni.json"
+    uuid_vni_json_mapping_file_description : """ """
+
+    enable_bridge_arp = false
+    enable_bridge_arp_description = """ """
+}
+
+datapath {
+    vxlan_vtep_udp_port : 4789
+    vxlan_vtep_udp_port_description : """
+This option specifies the value of the udp port used for vxlan tunnelling
+to peer vteps. By default it is set to the standardized vxlan udp port value
+which is 4789."""
+
+    vxlan_overlay_udp_port : 6677
+    vxlan_overlay_udp_port_description : """
+This option specifies the value of the udp port used for vxlan tunnelling
+of overlay traffic from midolman hosts to other midolman hosts. The value
+needs to be the same across the cluster. It also needs to be different from
+the vxlan_vtep_udp_port value."""
+
+
+    max_flow_count : 20000
+    max_flow_count_description : """
+Maximum number of flows a given datapath will be able to contain."""
+
+    max_wildcard_flow_count : ${datapath.max_flow_count}
+    max_wildcard_flow_count_description : """
+Maximum number of wildcard flows a given datapath will be able to contain."""
+
+    send_buffer_pool_max_size : 4096
+    send_buffer_pool_max_size_description : """
+Midolman uses a pool of reusable buffers to send requests to the
+datapath. The options below tune the pool's size and that of its
+buffers. One pool is created for each output channel, the settings
+defined here will apply to each of those pools.
+max_size: maximum number of buffers to hold in the pool. When the
+          pool is empty (all buffers are in use) and has reached
+          its maximum size, temporary buffers will be allocated.
+"""
+
+    send_buffer_pool_initial_size : 2048
+    send_buffer_pool_initial_size_description : """
+Initial number of buffers to allocate in the datapath send buffer pool."""
+
+
+    send_buffer_pool_buf_size_kb = 4
+    send_buffer_pool_buf_size_kb_description : """
+Size of each buffer in the datapath send buffer pool, in kb. Maximum total
+pool size would thus be: max_size * buf_size_kb. Beware that the buffer size
+puts a limit on the packet size that Midolman can send. In a network
+jumbo frames, adjust the size so that one buffer will accomodate a whole
+frame plus enough room for the flow's actions.
+             
+Recommended values are 4 for underlays with a standard 1500 MTU and 10
+in underlays that use jumbo frames."""
+
+    htb_description = """
+Midolman limits the amount of packets in flight in the system at any
+given time. This prevents its internal queues from growing infinitely.
+Additionally, midolman ensures that its processing capacity is shared
+fairly among ports connected to the datapath. This, for example,
+would prevent a single VM from setting up new flows at a rate that
+would starve other VMs in the system.
+
+This behaviour is achieved by routing packets that miss the datapath
+flow table and rise to userspace through a Hierarchical Token Bucket.
+This HTB is set up in such a way such that tunnel ports will get 50%
+of the resources, and the remaining 50% is shared fairly among all
+other ports (typically, VMs).
+
+The rate at which the buckets are refilled is automatic and dynamic.
+However the size of the buckets at each stage of the HTB can be tuned
+through the settings below, increasing a bucket size will increase the
+burstiness at which traffic can be queued before new tokens become
+available.
+
+Bucket size is measured in packets.
+
+global_incoming_burst_capacity: size of the HTB root bucket
+tunnel_incoming_burst_capacity: bucket size for tunnel ports (GRE, VxLAN)
+vm_incoming_burst_capacity: bucket size for VM ports
+vtep_incoming_burst_capacity: bucket size for VTEP (VxLAN) ports.
+"""
+
+    global_incoming_burst_capacity : 128
+    global_incoming_burst_capacity_description : ${datapath.htb_description}
+
+    tunnel_incoming_burst_capacity : 64
+    tunnel_incoming_burst_capacity_description : ${datapath.htb_description}
+
+    vm_incoming_burst_capacity : 16
+    vm_incoming_burst_capacity_description : ${datapath.htb_description}
+
+    vtep_incoming_burst_capacity : 64
+    vtep_incoming_burst_capacity_description : ${datapath.htb_description}
+
+    control_packet_tos : 184
+    control_packet_tos_description : """ """
+}
+
+haproxy_health_monitor {
+    health_monitor_enable : false
+    health_monitor_enable_description : """
+Health monitor is disabled by default. Please change the following value to
+true to activate it.
+"""
+}

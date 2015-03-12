@@ -27,13 +27,11 @@ import java.util.UUID;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.inject.Inject;
-
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.Watcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 
 import org.midonet.cluster.WatchableZkManager;
 import org.midonet.cluster.data.Converter;
@@ -94,6 +92,7 @@ public class HostZkManager
     public void createHost(UUID hostId, HostDirectory.Metadata metadata)
             throws StateAccessException, SerializationException {
         zk.multi(prepareCreate(hostId, metadata));
+        log.debug("Host {} was created successfully", hostId);
     }
 
     public List<Op> prepareCreate(UUID hostId, HostDirectory.Metadata metadata)
@@ -126,6 +125,7 @@ public class HostZkManager
 
     public void makeAlive(UUID hostId) throws StateAccessException {
         String path = paths.getHostPath(hostId) + "/alive";
+        log.debug("Making host {} alive at {}", hostId, path);
         zk.ensureEphemeral(path, new byte[0]);
     }
 

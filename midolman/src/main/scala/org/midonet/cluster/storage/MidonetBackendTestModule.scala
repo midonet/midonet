@@ -16,10 +16,11 @@
 package org.midonet.cluster.storage
 
 import com.google.inject.Inject
+import com.typesafe.config.Config
 
 import org.midonet.cluster.data.storage.{StorageWithOwnership, InMemoryStorage, Storage}
 import org.midonet.cluster.services.MidonetBackend
-import org.midonet.config.ConfigProvider
+import org.midonet.conf.MidoTestConfigurator
 
 /* In the main source tree to allow usage by other module's tests, without
  * creating a jar. */
@@ -30,14 +31,14 @@ object MidonetBackendTest  {
 class MidonetTestBackend extends MidonetBackend {
 
     @Inject
-    var cfg: ConfigProvider = _
+    var cfg: MidonetBackendConfig = _
 
     private val inMemoryZoom = new InMemoryStorage()
 
     override def store: Storage = inMemoryZoom
     override def ownershipStore: StorageWithOwnership = inMemoryZoom
-    override def isEnabled =
-        cfg.getConfig(classOf[MidonetBackendConfig]).isEnabled
+    override def isEnabled = cfg.useNewStack
+
 
     override def doStart(): Unit = {
         setupBindings()
@@ -47,8 +48,12 @@ class MidonetTestBackend extends MidonetBackend {
     override def doStop(): Unit = notifyStopped()
 }
 
+object MidonetBackendTestModule {
+    def apply() = new MidonetBackendTestModule
+}
+
 /** Provides all dependencies for the new backend, using a FAKE zookeeper. */
-class MidonetBackendTestModule extends MidonetBackendModule {
+class MidonetBackendTestModule(cfg: Config = MidoTestConfigurator.bootstrap) extends MidonetBackendModule(cfg) {
 
     override protected def bindStorage(): Unit = {
         bind(classOf[MidonetBackend])

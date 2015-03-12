@@ -49,7 +49,7 @@ class BgpdProcess(routingHandler: ActorRef, vtyPortNumber: Int,
             " " + findBgpd +
             " --vty_port " + vtyPortNumber +
             //" --vty_addr 127.0.0.1" +
-            " --config_file " + config.pathToBGPDConfig + "/bgpd.conf" +
+            " --config_file " + config.bgpdConfigPath + "/bgpd.conf" +
             " --pid_file /var/run/quagga/bgpd." + vtyPortNumber + ".pid " +
             " --socket " + socketAddress.getPath
 

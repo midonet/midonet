@@ -19,32 +19,27 @@ import java.io.IOException;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
-import org.midonet.midolman.MtuIncreaser;
 import scala.concurrent.duration.Duration;
 
-import akka.actor.ActorInitializationException;
-import akka.actor.ActorKilledException;
 import akka.actor.OneForOneStrategy;
 import akka.actor.SupervisorStrategy;
 import akka.actor.SupervisorStrategy.Directive;
 import akka.japi.Function;
-
 import com.google.inject.BindingAnnotation;
 import com.google.inject.Exposed;
 import com.google.inject.PrivateModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.midonet.midolman.DatapathController;
 import org.midonet.midolman.FlowController;
+import org.midonet.midolman.MtuIncreaser;
 import org.midonet.midolman.NetlinkCallbackDispatcher;
 import org.midonet.midolman.PacketsEntryPoint;
 import org.midonet.midolman.SupervisorActor;
 import org.midonet.midolman.config.MidolmanConfig;
-import org.midonet.midolman.host.config.HostConfig;
 import org.midonet.midolman.io.DatapathConnectionPool;
 import org.midonet.midolman.io.UpcallDatapathConnectionManager;
 import org.midonet.midolman.l4lb.HealthMonitor;
@@ -59,8 +54,6 @@ import org.midonet.util.concurrent.NanoClock$;
 import org.midonet.util.eventloop.SelectLoop;
 import org.midonet.util.eventloop.SimpleSelectLoop;
 
-import static akka.actor.SupervisorStrategy.escalate;
-import static akka.actor.SupervisorStrategy.resume;
 import static akka.actor.SupervisorStrategy.stop;
 import static java.lang.annotation.ElementType.FIELD;
 import static java.lang.annotation.ElementType.METHOD;
@@ -91,7 +84,6 @@ public class MidolmanActorsModule extends PrivateModule {
         requireBinding(MidolmanConfig.class);
         requireBinding(DatapathConnectionPool.class);
         requireBinding(HostIdProviderService.class);
-        requireBinding(HostConfig.class);
         requireBinding(UpcallDatapathConnectionManager.class);
         requireBinding(FlowStateStorageFactory.class);
 

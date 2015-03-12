@@ -82,8 +82,8 @@ public class DatapathModule extends PrivateModule {
                 @Override
                 public DatapathChannel get() {
                     return new DisruptorDatapathChannel(
-                        config.getGlobalIncomingBurstCapacity() * 2,
-                        config.getNumOutputChannels(),
+                        config.datapath().globalIncomingBurstCapacity() * 2,
+                        config.outputChannels(),
                         injector.getInstance(FlowEjector.class),
                         injector.getInstance(NetlinkChannelFactory.class),
                         injector.getInstance(OvsNetlinkFamilies.class),
@@ -128,7 +128,7 @@ public class DatapathModule extends PrivateModule {
                 @Override
                 public FlowEjector get() {
                     return new FlowEjector(
-                        config.getGlobalIncomingBurstCapacity() * 2);
+                            config.datapath().globalIncomingBurstCapacity() * 2);
                 }
             })
             .in(Singleton.class);
@@ -162,7 +162,7 @@ public class DatapathModule extends PrivateModule {
 
         @Override
         public UpcallDatapathConnectionManager get() {
-            String val = config.getInputChannelThreading();
+            String val = config.inputChannelThreading();
             switch (val) {
                 case "one_to_many":
                     return new OneToManyDpConnManager(config, tbPolicy);
@@ -184,7 +184,7 @@ public class DatapathModule extends PrivateModule {
         @Override
         public DatapathConnectionPool get() {
             return new OneToOneConnectionPool("netlink.requests",
-                                              config.getNumOutputChannels(),
+                                              config.outputChannels(),
                                               config);
         }
     }

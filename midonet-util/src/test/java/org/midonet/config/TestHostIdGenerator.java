@@ -19,7 +19,6 @@ package org.midonet.config;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.util.Arrays;
 import java.util.Properties;
 import java.util.UUID;
 
@@ -27,10 +26,10 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.midonet.conf.HostIdGenerator;
 
 public class TestHostIdGenerator {
 
-    static final String localPropertiesFile = "host_uuid.properties";
     static final String uuidPropertyName = "host_uuid";
     static final String hostId = "e3f9adc0-5175-11e1-b86c-0800200c9a67";
     File propFile;
@@ -43,12 +42,11 @@ public class TestHostIdGenerator {
 
     @Before
     public void setUp() throws Exception {
-
-        propFile = new File(localPropertiesFile);
+        propFile = new File(HostIdGenerator.useTemporaryHostId());
 
         Properties properties = new Properties();
         properties.setProperty(uuidPropertyName, hostId);
-        properties.store(new FileOutputStream(localPropertiesFile), null);
+        properties.store(new FileOutputStream(propFile.getAbsolutePath()), null);
     }
 
     @Test
@@ -67,7 +65,7 @@ public class TestHostIdGenerator {
         boolean exists = propFile.exists();
         Assert.assertTrue(exists);
         Properties properties = new Properties();
-        properties.load(new FileInputStream(localPropertiesFile));
+        properties.load(new FileInputStream(propFile.getAbsolutePath()));
         UUID idFromProperty = UUID.fromString(
             properties.getProperty(uuidPropertyName));
         Assert.assertTrue(id.equals(idFromProperty));
