@@ -1,0 +1,124 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3a1371a2_fe57a124",
+        "filename": "midolman/src/main/java/org/midonet/midolman/layer3/Route.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 253,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-03-12T11:42:30Z",
+      "side": 1,
+      "message": "Can we reuse IPAddressUtil and IPSubnetUtil? Or even make them Converters?",
+      "revId": "3a1fc4270653a902d8c284a0d9d646755c374040",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_7e3bb1eb",
+        "filename": "midolman/src/main/scala/org/midonet/cluster/state/StateStorage.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-03-12T11:42:30Z",
+      "side": 1,
+      "message": "Not really a directory?",
+      "range": {
+        "startLine": 65,
+        "startChar": 16,
+        "endLine": 65,
+        "endChar": 25
+      },
+      "revId": "3a1fc4270653a902d8c284a0d9d646755c374040",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_be2409c7",
+        "filename": "midolman/src/main/scala/org/midonet/cluster/state/StateStorage.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-03-12T11:42:30Z",
+      "side": 1,
+      "message": "+1",
+      "range": {
+        "startLine": 97,
+        "startChar": 8,
+        "endLine": 97,
+        "endChar": 33
+      },
+      "revId": "3a1fc4270653a902d8c284a0d9d646755c374040",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_9e082d2f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/ArpTable.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-03-12T11:42:30Z",
+      "side": 1,
+      "message": "Oh thanks, I needed to do this also for the vxgw refactor :)",
+      "revId": "3a1fc4270653a902d8c284a0d9d646755c374040",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_fe05e114",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/ArpTable.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-03-12T11:42:30Z",
+      "side": 1,
+      "message": "@volatile?",
+      "revId": "3a1fc4270653a902d8c284a0d9d646755c374040",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_de02a50a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Router.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-03-12T11:42:30Z",
+      "side": 1,
+      "message": "Wondering if we should keep the generic on _ \u003c: IPAddr",
+      "range": {
+        "startLine": 62,
+        "startChar": 10,
+        "endLine": 62,
+        "endChar": 22
+      },
+      "revId": "3a1fc4270653a902d8c284a0d9d646755c374040",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
