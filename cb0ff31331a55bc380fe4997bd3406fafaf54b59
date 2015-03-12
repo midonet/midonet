@@ -22,6 +22,30 @@
       "revId": "cb0ff31331a55bc380fe4997bd3406fafaf54b59",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_ab916a54",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/util/ObservableTestUtils.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-03-12T16:29:36Z",
+      "side": 1,
+      "message": "Not really, we could replace those with booleans maybe.. Or even remove them and just have a latch(1)",
+      "parentUuid": "3a1371a2_1930d755",
+      "range": {
+        "startLine": 28,
+        "startChar": 33,
+        "endLine": 28,
+        "endChar": 62
+      },
+      "revId": "cb0ff31331a55bc380fe4997bd3406fafaf54b59",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
