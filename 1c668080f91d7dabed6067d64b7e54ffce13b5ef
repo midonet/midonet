@@ -1,0 +1,61 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3a1371a2_be7b6928",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/services/c3po/translators/RouterTranslatorIT.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-03-12T06:14:12Z",
+      "side": 1,
+      "message": "A blank space below?",
+      "revId": "1c668080f91d7dabed6067d64b7e54ffce13b5ef",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_9e782d2d",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/services/c3po/translators/RouterTranslatorIT.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-03-12T06:14:12Z",
+      "side": 1,
+      "message": "Out of order.",
+      "revId": "1c668080f91d7dabed6067d64b7e54ffce13b5ef",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_7e829101",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/services/c3po/translators/RouterTranslatorIT.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-03-12T06:14:12Z",
+      "side": 1,
+      "message": "A random rant, but I personally don\u0027t like \"IT\", perhaps \"RouterTranslatorMinionTest\"?",
+      "range": {
+        "startLine": 35,
+        "startChar": 6,
+        "endLine": 35,
+        "endChar": 24
+      },
+      "revId": "1c668080f91d7dabed6067d64b7e54ffce13b5ef",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
