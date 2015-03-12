@@ -24,9 +24,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
 import akka.actor._
-
 import org.slf4j.MDC
-
 import org.jctools.queues.MpscArrayQueue
 
 import org.midonet.cluster.DataClient
@@ -128,7 +126,7 @@ class DeduplicationActor(
                                                  storage,
                                                  dpState,
                                                  FlowController ! InvalidateFlowsByTag(_),
-                                                 config.getControlPacketsTos.toByte)
+                                                 config.datapath.controlPacketTos)
             workflow = new PacketWorkflow(dpState, dp, clusterDataClient,
                                           dpChannel, replicator, config)
             context.become(receive)

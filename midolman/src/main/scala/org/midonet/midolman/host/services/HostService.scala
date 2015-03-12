@@ -35,9 +35,9 @@ import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.storage.MidonetBackendConfig
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.cluster.util.IPAddressUtil._
-import org.midonet.config.HostIdGenerator
-import org.midonet.config.HostIdGenerator.PropertiesFileNotWritableException
-import org.midonet.midolman.host.config.HostConfig
+import org.midonet.conf.HostIdGenerator
+import org.midonet.conf.HostIdGenerator.PropertiesFileNotWritableException
+import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.host.interfaces.InterfaceDescription
 import org.midonet.midolman.host.scanner.InterfaceScanner
 import org.midonet.midolman.host.services.HostService.HostIdAlreadyInUseException
@@ -56,7 +56,7 @@ object HostService {
         extends Exception(message)
 }
 
-class HostService @Inject()(hostConfig: HostConfig,
+class HostService @Inject()(config: MidolmanConfig,
                             backendConfig: MidonetBackendConfig,
                             backend: MidonetBackend,
                             scanner: InterfaceScanner,
@@ -81,7 +81,7 @@ class HostService @Inject()(hostConfig: HostConfig,
                     // Update the host interfaces only if the legacy storage is
                     // enabled
                     // TODO: Update host interfaces in ZOOM
-                    if (!backendConfig.isEnabled) {
+                    if (!backendConfig.useNewStack) {
                         interfaceDataUpdater
                             .updateInterfacesData(hostId, null, data)
                     }
@@ -104,7 +104,7 @@ class HostService @Inject()(hostConfig: HostConfig,
         scanner.shutdown()
 
         // If the cluster storage is enabled, delete the ownership.
-        if (backendConfig.isEnabled) {
+        if (backendConfig.useNewStack) {
             try {
                 store.deleteOwner(classOf[Host], hostId, hostId.toString)
             } catch {
@@ -146,10 +146,10 @@ class HostService @Inject()(hostConfig: HostConfig,
             case e: UnknownHostException => metadata.setName("UNKNOWN")
         }
         hostId = HostIdGenerator.getHostId()
-        var retries: Int = hostConfig.getRetriesForUniqueHostId
+        var retries: Int = config.host.retriesForUniqueId
         while (!create(hostId, metadata) && {retries -= 1; retries} >= 0) {
             log.warn("Host ID already in use. Waiting for it to be released.")
-            Thread.sleep(hostConfig.getWaitTimeForUniqueHostId)
+            Thread.sleep(config.host.waitTimeForUniqueId)
         }
         if (retries < 0) {
             log.error("Couldn't take ownership of the in-use host ID")
@@ -167,7 +167,7 @@ class HostService @Inject()(hostConfig: HostConfig,
     @throws(classOf[StateAccessException])
     @throws(classOf[SerializationException])
     private def createLegacy(id: UUID, metadata: HostMetadata): Boolean = {
-        if (backendConfig.isEnabled)
+        if (backendConfig.useNewStack)
             return true
         if (hostZkManager.exists(id)) {
             if (!metadata.isSameHost(hostZkManager.get(id))) {
@@ -186,7 +186,7 @@ class HostService @Inject()(hostConfig: HostConfig,
     }
 
     private def createCluster(id: UUID, metadata: HostMetadata): Boolean = {
-        if (!backendConfig.isEnabled)
+        if (!backendConfig.useNewStack)
             return true
         try {
             // If the host entry exists

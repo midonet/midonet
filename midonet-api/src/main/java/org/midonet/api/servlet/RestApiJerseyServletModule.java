@@ -17,6 +17,7 @@ package org.midonet.api.servlet;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 import javax.servlet.ServletContext;
 
@@ -26,7 +27,13 @@ import com.sun.jersey.api.core.ResourceConfig;
 import com.sun.jersey.guice.JerseyServletModule;
 import com.sun.jersey.guice.spi.container.servlet.GuiceContainer;
 
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
+import com.typesafe.config.ConfigValueFactory;
 import org.apache.commons.lang3.StringUtils;
+import org.midonet.brain.ClusterNode;
+import org.midonet.cluster.config.ZookeeperConfig;
+import org.midonet.conf.HostIdGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,9 +50,7 @@ import org.midonet.api.neutron.NeutronRestApiModule;
 import org.midonet.api.rest_api.RestApiModule;
 import org.midonet.api.serialization.SerializationModule;
 import org.midonet.api.validation.ValidationModule;
-import org.midonet.brain.MidoBrainModule;
 import org.midonet.cluster.data.neutron.NeutronClusterApiModule;
-import org.midonet.cluster.services.LegacyStorageService;
 import org.midonet.cluster.storage.MidonetBackendModule;
 import org.midonet.config.ConfigProvider;
 import org.midonet.config.providers.ServletContextConfigProvider;
@@ -87,6 +92,26 @@ public class RestApiJerseyServletModule extends JerseyServletModule {
         this.servletContext = servletContext;
     }
 
+    public static Config zkConfToConfig(ZookeeperConfig zkconf) {
+        return ConfigFactory.empty()
+            .withValue("zookeeper.zookeeper_hosts",
+                ConfigValueFactory.fromAnyRef(zkconf.getZkHosts()))
+            .withValue("zookeeper.session_gracetime",
+                ConfigValueFactory.fromAnyRef(zkconf.getZkGraceTime()))
+            .withValue("zookeeper.root_key",
+                ConfigValueFactory.fromAnyRef(zkconf.getZkRootPath()))
+            .withValue("zookeeper.midolman_root_key",
+                ConfigValueFactory.fromAnyRef(zkconf.getZkRootPath()))
+            .withValue("zookeeper.session_timeout",
+                ConfigValueFactory.fromAnyRef(zkconf.getZkSessionTimeout()))
+            .withValue("zookeeper.use_new_stack",
+                ConfigValueFactory.fromAnyRef(false));
+    }
+
+    protected boolean clusterEmbedEnabled() {
+        return true;
+    }
+
     @Override
     protected void configureServlets() {
 
@@ -95,12 +120,24 @@ public class RestApiJerseyServletModule extends JerseyServletModule {
         final ConfigProvider cfgProvider =
             new ServletContextConfigProvider(servletContext);
 
+        ZookeeperConfig zkCfg = cfgProvider.getConfig(ZookeeperConfig.class);
+        bind(ZookeeperConfig.class).toInstance(zkCfg);
+
+        try {
+            UUID clusterNodeId = HostIdGenerator.getHostId();
+            bind(ClusterNode.Context.class).toInstance(
+                    new ClusterNode.Context(clusterNodeId, clusterEmbedEnabled()));
+        } catch (Exception e) {
+            log.error("Could not register cluster node host id", e);
+            throw new RuntimeException(e);
+        }
+
         bind(ConfigProvider.class).toInstance(cfgProvider);
         install(new SerializationModule());
         install(new AuthModule());
         install(new ErrorModule());
 
-        install(new MidonetBackendModule());
+        install(new MidonetBackendModule(zkConfToConfig(zkCfg)));
 
         installRestApiModule(); // allow mocking
 
@@ -116,7 +153,6 @@ public class RestApiJerseyServletModule extends JerseyServletModule {
         install(new NeutronRestApiModule());
 
         install(new NetworkModule());
-        install(new MidoBrainModule());
 
         // Register filters - the order matters here.  Make sure that CORS
         // filter is registered first because Auth would reject OPTION

@@ -202,7 +202,7 @@ class DatapathController extends Actor
     val interfaceScanner: InterfaceScanner = null
 
     @Inject
-    var midolmanConfig: MidolmanConfig = null
+    var config: MidolmanConfig = null
 
     var datapath: Datapath = null
 
@@ -248,7 +248,7 @@ class DatapathController extends Actor
     var portWatcherEnabled = true
 
     override def preStart(): Unit = {
-        defaultMtu = midolmanConfig.getDhcpMtu.toShort
+        defaultMtu = config.dhcpMtu
         cachedMinMtu = defaultMtu
         super.preStart()
         storage = storageFactory.create()
@@ -290,13 +290,13 @@ class DatapathController extends Actor
             } flatMap { gre =>
                 dpState setTunnelOverlayGre gre
                 makeTunnelPort(OverlayTunnel) { () =>
-                    val overlayUdpPort = midolmanConfig.getVxLanOverlayUdpPort
+                    val overlayUdpPort = config.datapath.vxlanOverlayUdpPort
                     VxLanTunnelPort make("tnvxlan-overlay", overlayUdpPort)
                 }
             } flatMap { vxlan =>
                 dpState setTunnelOverlayVxLan vxlan
                 makeTunnelPort(VtepTunnel) { () =>
-                    val vtepUdpPort = midolmanConfig.getVxLanVtepUdpPort
+                    val vtepUdpPort = config.datapath.vxlanVtepUdpPort
                     VxLanTunnelPort make("tnvxlan-vtep", vtepUdpPort)
                }
             } map { vtep =>
@@ -533,7 +533,7 @@ class DatapathController extends Actor
                     case ErrorCode.ENODEV =>
                         log.info("Datapath is missing. Creating.")
                         datapathConnection.datapathsCreate(
-                            midolmanConfig.getDatapath, dpCreateCallback)
+                            config.datapathName, dpCreateCallback)
                     case ErrorCode.ETIMEOUT =>
                         log.error("Timeout while getting the datapath")
                         system.scheduler.scheduleOnce(100 millis, retryTask)
@@ -543,7 +543,7 @@ class DatapathController extends Actor
             }
         }
 
-        datapathConnection.datapathsGet(midolmanConfig.getDatapath, dpGetCallback)
+        datapathConnection.datapathsGet(config.datapathName, dpGetCallback)
     }
 
     /*

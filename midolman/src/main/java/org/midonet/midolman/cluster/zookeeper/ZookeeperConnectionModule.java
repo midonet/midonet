@@ -15,14 +15,12 @@
  */
 package org.midonet.midolman.cluster.zookeeper;
 
-import com.google.inject.Inject;
 import com.google.inject.Key;
 import com.google.inject.PrivateModule;
 import com.google.inject.Provider;
 import com.google.inject.name.Names;
 
-import org.midonet.cluster.config.ZookeeperConfig;
-import org.midonet.config.ConfigProvider;
+import org.midonet.cluster.storage.MidonetBackendConfig;
 import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.ZkConnection;
 import org.midonet.midolman.state.ZkConnectionAwareWatcher;
@@ -45,9 +43,9 @@ public class ZookeeperConnectionModule extends PrivateModule {
     protected void configure() {
 
         binder().requireExplicitBindings();
-        requireBinding(ConfigProvider.class);
 
-        bindZkConfig();
+        requireBinding(MidonetBackendConfig.class);
+
         bindZookeeperConnection();
         bindDirectory();
         bindReactor();
@@ -57,13 +55,6 @@ public class ZookeeperConnectionModule extends PrivateModule {
         expose(Directory.class);
 
         bindZkConnectionWatcher();
-    }
-
-    protected final void bindZkConfig() {
-        bind(ZookeeperConfig.class)
-            .toProvider(ZookeeperConfigProvider.class)
-            .asEagerSingleton();
-        expose(ZookeeperConfig.class);
     }
 
     protected void bindZkConnectionWatcher() {
@@ -91,22 +82,6 @@ public class ZookeeperConnectionModule extends PrivateModule {
             Names.named(ZkConnectionProvider.DIRECTORY_REACTOR_TAG))
             .toProvider(ZookeeperReactorProvider.class)
             .asEagerSingleton();
-    }
-
-    /**
-     * A {@link Provider} of {@link ZookeeperConfig} instances which uses an
-     * existing {@link ConfigProvider} as the configuration backend.
-     */
-    public static class ZookeeperConfigProvider implements
-                                                Provider<ZookeeperConfig> {
-
-        @Inject
-        ConfigProvider configProvider;
-
-        @Override
-        public ZookeeperConfig get() {
-            return configProvider.getConfig(ZookeeperConfig.class);
-        }
     }
 
     public static class ZookeeperReactorProvider

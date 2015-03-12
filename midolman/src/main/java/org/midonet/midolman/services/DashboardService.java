@@ -21,13 +21,14 @@ import com.google.inject.Inject;
 import com.google.inject.Injector;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.xml.XmlConfiguration;
-import org.midonet.midolman.config.MidolmanConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
+
+import org.midonet.midolman.config.MidolmanConfig;
 
 public class DashboardService extends AbstractService {
     private static final Logger log =
@@ -41,10 +42,12 @@ public class DashboardService extends AbstractService {
 
     private Server server = null;
 
+    private boolean DASHBOARD_ENABLED = false;
+
     @Override
     protected void doStart() {
 
-        if (!config.getDashboardEnabled()) {
+        if (!DASHBOARD_ENABLED) {
             notifyStarted();
             return;
         }
@@ -53,7 +56,7 @@ public class DashboardService extends AbstractService {
 
         try {
             InputStream inputStream = new FileInputStream(
-                    new File(config.pathToJettyXml()));
+                    new File("/etc/midolman/jetty/etc/jetty.xml")); // FIXME - deprecated
             XmlConfiguration configuration =
                     new XmlConfiguration(inputStream);
             server = (Server) configuration.configure();
