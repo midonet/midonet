@@ -133,9 +133,9 @@ import org.midonet.midolman.topology.BridgeManager._
     private var vlanBridgePeerPortId: Option[UUID] = None
     private var exteriorVxlanPortIds = Seq.empty[UUID]
 
-    private val macPortExpiration: Int = config.getMacPortMappingExpireMillis
+    private val macPortExpiration: Int = config.bridge.macPortMappingExpiry
     private val learningMgr = new MacLearningManager(
-        log, config.getMacPortMappingExpireMillis millis)
+        log, config.bridge.macPortMappingExpiry millis)
 
     private var exteriorPorts: List[UUID] = List.empty
 
@@ -144,7 +144,7 @@ import org.midonet.midolman.topology.BridgeManager._
     def topologyReady() {
         val bridge = new Bridge(id, cfg.adminStateUp, cfg.tunnelKey,
             learningMgr.vlanMacTableMap,
-            if (config.getMidolmanBridgeArpEnabled) ip4MacMap else null,
+            if (config.bridgeArpEnabled) ip4MacMap else null,
             flowCounts, Option(cfg.inboundFilter), Option(cfg.outboundFilter),
             vlanBridgePeerPortId, exteriorVxlanPortIds, flowRemovedCallback,
             macToLogicalPortId, rtrIpToMac, vlanToPort, exteriorPorts)

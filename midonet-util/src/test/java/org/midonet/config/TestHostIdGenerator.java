@@ -19,7 +19,6 @@ package org.midonet.config;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.util.Arrays;
 import java.util.Properties;
 import java.util.UUID;
 
@@ -27,6 +26,7 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.midonet.conf.HostIdGenerator;
 
 public class TestHostIdGenerator {
 

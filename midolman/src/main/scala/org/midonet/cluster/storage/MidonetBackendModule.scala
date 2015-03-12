@@ -17,19 +17,24 @@
 package org.midonet.cluster.storage
 
 import com.google.inject.{Inject, PrivateModule, Provider}
+import com.typesafe.config.Config
 import org.apache.curator.framework.{CuratorFramework, CuratorFrameworkFactory}
 import org.apache.curator.retry.ExponentialBackoffRetry
 
 import org.midonet.cluster.ZookeeperLockFactory
-import org.midonet.cluster.config.ZookeeperConfig
 import org.midonet.cluster.services.{MidonetBackend, MidonetBackendService}
-import org.midonet.config.ConfigProvider
+import org.midonet.conf.MidoNodeConfigurator
+
+object MidonetBackendModule {
+    def apply() = new MidonetBackendModule()
+}
 
 /** This Guice module is dedicated to declare general-purpose dependencies that
   * are exposed to MidoNet components that need to access the various storage
   * backends that exist within a deployment.  It should not include any
   * dependencies linked to any specific service or component. */
-class MidonetBackendModule extends PrivateModule {
+class MidonetBackendModule(val conf: Config = MidoNodeConfigurator.bootstrapConfig()) extends PrivateModule {
+    println(conf.root().render())
 
     override def configure(): Unit = {
         bindCurator()
@@ -37,7 +42,7 @@ class MidonetBackendModule extends PrivateModule {
         bindLockFactory()
 
         bind(classOf[MidonetBackendConfig])
-            .toProvider(classOf[MidonetBackendConfigProvider])
+            .toInstance(new MidonetBackendConfig(conf))
         expose(classOf[MidonetBackendConfig])
     }
 
@@ -62,17 +67,10 @@ class MidonetBackendModule extends PrivateModule {
 
 }
 
-class MidonetBackendConfigProvider extends Provider[MidonetBackendConfig] {
-    @Inject
-    var cfgProvider: ConfigProvider = _
-    override def get(): MidonetBackendConfig =
-        cfgProvider.getConfig(classOf[MidonetBackendConfig])
-}
-
-class CuratorFrameworkProvider @Inject()(cfg: ZookeeperConfig)
+class CuratorFrameworkProvider @Inject()(cfg: MidonetBackendConfig)
     extends Provider[CuratorFramework] {
     override def get(): CuratorFramework = CuratorFrameworkFactory.newClient (
-        cfg.getZkHosts, new ExponentialBackoffRetry(1000, 10)
+        cfg.hosts, new ExponentialBackoffRetry(1000, 10)
     )
 }
 

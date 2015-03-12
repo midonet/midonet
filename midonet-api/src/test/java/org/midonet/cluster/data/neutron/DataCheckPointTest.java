@@ -29,7 +29,7 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
-
+import com.typesafe.config.Config;
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.curator.framework.recipes.locks.InterProcessSemaphoreMutex;
 import org.apache.curator.test.TestingServer;
@@ -40,15 +40,17 @@ import org.junit.Test;
 
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.ZookeeperLockFactory;
-import org.midonet.cluster.config.ZookeeperConfig;
+import org.midonet.cluster.config.ConfigProviderModule;
 import org.midonet.cluster.data.Chain;
 import org.midonet.cluster.data.IpAddrGroup;
 import org.midonet.cluster.data.Rule;
 import org.midonet.cluster.data.rules.ForwardNatRule;
 import org.midonet.cluster.data.rules.JumpRule;
+import org.midonet.cluster.storage.MidonetBackendConfig;
+import org.midonet.conf.LegacyConf;
+import org.midonet.conf.MidoTestConfigurator;
 import org.midonet.midolman.Setup;
 import org.midonet.midolman.cluster.LegacyClusterModule;
-import org.midonet.midolman.cluster.config.ConfigProviderModule;
 import org.midonet.midolman.cluster.serialization.SerializationModule;
 import org.midonet.midolman.cluster.zookeeper.MockZookeeperConnectionModule;
 import org.midonet.midolman.rules.Condition;
@@ -83,9 +85,9 @@ public class DataCheckPointTest {
     String zkRoot = "/test";
 
     HierarchicalConfiguration fillConfig(HierarchicalConfiguration config) {
-        config.addNodes(ZookeeperConfig.GROUP_NAME,
+        config.addNodes("zookeeper",
                         Arrays.asList(new HierarchicalConfiguration.Node(
-                            "midolman_root_key", zkRoot)));
+                            "root_key", zkRoot)));
         return config;
     }
 
@@ -94,9 +96,19 @@ public class DataCheckPointTest {
     }
 
     public class TestDataClientModule extends LegacyClusterModule {
+        Config config = null;
+
+        public TestDataClientModule(HierarchicalConfiguration config) {
+            this.config = new LegacyConf(config).get().
+                    withFallback(MidoTestConfigurator.bootstrap());
+        }
+
         @Override
         protected void configure() {
             super.configure();
+            MidonetBackendConfig mbc = new MidonetBackendConfig(config);
+            bind(MidonetBackendConfig.class).toInstance(mbc);
+            expose(MidonetBackendConfig.class);
             ZookeeperLockFactory lockFactory = mock(ZookeeperLockFactory.class);
             InterProcessSemaphoreMutex lock = mock(
                 InterProcessSemaphoreMutex.class);
@@ -472,10 +484,10 @@ public class DataCheckPointTest {
         HierarchicalConfiguration
             config = fillConfig(new HierarchicalConfiguration());
         injector = Guice.createInjector(
+            new TestDataClientModule(config),
             new SerializationModule(),
             new ConfigProviderModule(config),
             new CheckpointMockZookeeperConnectionModule(),
-            new TestDataClientModule(),
             new NeutronClusterModule(),
             new AbstractModule() {
                 @Override

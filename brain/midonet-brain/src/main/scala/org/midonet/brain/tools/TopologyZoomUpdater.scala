@@ -24,11 +24,11 @@ import com.google.common.util.concurrent.AbstractService
 import com.google.inject.Inject
 import org.slf4j.LoggerFactory
 
+import org.midonet.brain.BrainConfig
 import org.midonet.cluster.models.Commons
 import org.midonet.cluster.models.Topology.{Network, Port, Router, Vtep}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.util.{IPAddressUtil, UUIDUtil}
-import org.midonet.config.{ConfigGroup, ConfigInt, ConfigLong}
 import org.midonet.util.functors.makeRunnable
 
 /**
@@ -39,10 +39,12 @@ import org.midonet.util.functors.makeRunnable
  * consistent with an actual network architecture.
  */
 class TopologyZoomUpdater @Inject()(val backend: MidonetBackend,
-                                    val cfg: TopologyZoomUpdaterConfig)
+                                    val brainConf: BrainConfig)
     extends AbstractService {
+
+    val conf = brainConf.topologyUpdater
     private val log = LoggerFactory.getLogger(classOf[TopologyZoomUpdater])
-    private val pool = Executors.newScheduledThreadPool(cfg.numThreads)
+    private val pool = Executors.newScheduledThreadPool(conf.threads)
 
     private val storage = backend.store
 
@@ -80,8 +82,8 @@ class TopologyZoomUpdater @Inject()(val backend: MidonetBackend,
 
         try {
             buildLayout()
-            if (cfg.periodMs > 0)
-                pool.scheduleAtFixedRate(runnable, cfg.periodMs, cfg.periodMs,
+            if (conf.period > 0)
+                pool.scheduleAtFixedRate(runnable, conf.period, conf.period,
                                          TimeUnit.MILLISECONDS)
             log.info("Updater started")
             notifyStarted()
@@ -178,10 +180,10 @@ class TopologyZoomUpdater @Inject()(val backend: MidonetBackend,
     private def buildLayout() = {
         log.debug("building initial layout")
         pRouter = createRouter("pRouter")
-        for (idx <- 0 to cfg.initialRouters - 1) {
+        for (idx <- 0 to conf.initialRouters - 1) {
             addRouter()
         }
-        for (idx <- 0 to cfg.initialVteps - 1) {
+        for (idx <- 0 to conf.initialVteps - 1) {
             addVtep()
         }
     }
@@ -216,7 +218,7 @@ class TopologyZoomUpdater @Inject()(val backend: MidonetBackend,
         val br = createNetwork("b_" + rt.getName + "_" + seq)
         val (p1, p2) = linkPorts(createPort(br), createPort(rt))
         networks = networks + (br.getId -> (rt.getId, p1, p2, br))
-        for (p <- 0 to cfg.initialPortsPerNetwork - 1) {
+        for (p <- 0 to conf.initialPortsPerNetwork - 1) {
             addPort(br)
         }
     }
@@ -244,7 +246,7 @@ class TopologyZoomUpdater @Inject()(val backend: MidonetBackend,
         val rt = createRouter("r" + seq)
         val (p1, p2) = linkPorts(createPort(rt), createPort(pRouter))
         routers = routers + (rt.getId -> (p1, p2, rt))
-        for (p <- 0 to cfg.initialNetworksPerRouter) {
+        for (p <- 0 to conf.initialNetworksPerRouter) {
             addNetwork(rt)
         }
     }
@@ -303,7 +305,7 @@ class TopologyZoomUpdater @Inject()(val backend: MidonetBackend,
             case 0 =>
                 log.debug("updating routers")
                 val rt = getRandomEntry(routers)._3
-                chooseOperation(routers.size, cfg.initialRouters) match {
+                chooseOperation(routers.size, conf.initialRouters) match {
                     case UPDATE => updateRouter(rt)
                     case REMOVAL => rmRouter(rt)
                     case ADDITION => addRouter()
@@ -313,8 +315,8 @@ class TopologyZoomUpdater @Inject()(val backend: MidonetBackend,
                 val rt = getRandomEntry(routers)._3
                 val br = getRandomEntry(networks)._4
                 chooseOperation(networks.size,
-                                cfg.initialRouters *
-                                    cfg.initialNetworksPerRouter) match {
+                                conf.initialRouters *
+                                    conf.initialNetworksPerRouter) match {
                     case UPDATE => updateNetwork(br)
                     case REMOVAL => rmNetwork(br)
                     case ADDITION => addNetwork(rt)
@@ -324,9 +326,9 @@ class TopologyZoomUpdater @Inject()(val backend: MidonetBackend,
                 val br = getRandomEntry(networks)._4
                 val p = getRandomEntry(ports)._2
                 chooseOperation(networks.size,
-                                cfg.initialRouters *
-                                    cfg.initialNetworksPerRouter *
-                                    cfg.initialPortsPerNetwork) match {
+                                conf.initialRouters *
+                                    conf.initialNetworksPerRouter *
+                                    conf.initialPortsPerNetwork) match {
                     case UPDATE => updatePort(p)
                     case REMOVAL => rmPort(p)
                     case ADDITION => addPort(br)
@@ -334,7 +336,7 @@ class TopologyZoomUpdater @Inject()(val backend: MidonetBackend,
             case 3 =>
                 log.debug("updating vteps")
                 val vt = getRandomEntry(vteps)
-                chooseOperation(vteps.size, cfg.initialVteps) match {
+                chooseOperation(vteps.size, conf.initialVteps) match {
                     case UPDATE => updateVtep(vt)
                     case REMOVAL => rmVtep(vt)
                     case ADDITION => addVtep()
@@ -342,44 +344,3 @@ class TopologyZoomUpdater @Inject()(val backend: MidonetBackend,
         }
     }
 }
-
-object TopologyZoomUpdaterConfig {
-    final val NROUTERS = 4
-    final val NBRIDGES = 4
-    final val NPORTS = 4
-    final val NVTEPS = 4
-    final val DEFAULT_NUMTHREADS = 1
-    final val DEFAULT_INTERVAL = 10000
-}
-
-/** Configuration for the Topology Tester */
-@ConfigGroup("topology_zoom_updater")
-trait TopologyZoomUpdaterConfig {
-    import org.midonet.brain.tools.TopologyZoomUpdaterConfig._
-
-    /** Number of threads to use for the scheduled updates */
-    @ConfigInt(key = "num_threads", defaultValue = DEFAULT_NUMTHREADS)
-    def numThreads: Int
-
-    /** Interval of time between updates; if set to 0, the database is
-      * populated statically and no updates are performed. */
-    @ConfigLong(key = "period_ms", defaultValue = DEFAULT_INTERVAL)
-    def periodMs: Long
-
-    /** Initial number of routers, apart from the provider router */
-    @ConfigInt(key = "initial_routers", defaultValue = NROUTERS)
-    def initialRouters: Int
-
-    /** Initial number of networks per router */
-    @ConfigInt(key = "initial_networks_per_router", defaultValue = NBRIDGES)
-    def initialNetworksPerRouter: Int
-
-    /** Initial number of ports per network */
-    @ConfigInt(key = "initial_ports_per_network", defaultValue = NPORTS)
-    def initialPortsPerNetwork: Int
-
-    /** Initial number of vteps */
-    @ConfigInt(key = "initial_vteps", defaultValue = NVTEPS)
-    def initialVteps: Int
-}
-

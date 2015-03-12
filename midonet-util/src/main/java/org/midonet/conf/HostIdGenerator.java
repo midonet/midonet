@@ -13,12 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.config;
+package org.midonet.conf;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Properties;
 import java.util.UUID;
 
@@ -42,6 +44,33 @@ public final class HostIdGenerator {
 
     static private String DEPRECATED_HOST_ID_FILE = "/etc/midolman/host_uuid.properties";
     static public String HOST_ID_FILE = "/etc/midonet_host_id.properties";
+
+    private static String getHostIdFilePath() {
+        String path = null;
+        try {
+            path = System.getProperty("midonet.host_id_filepath");
+        } catch (Exception e) {
+        }
+
+        return path != null ? path : HOST_ID_FILE;
+    }
+
+    public static void useTemporaryHostId() {
+        try {
+            final Path path = Files.createTempFile("midonet-unit-tests", "uuid");
+            System.setProperty("midonet.host_id_filepath", path.toString());
+            Runtime.getRuntime().addShutdownHook(new Thread() {
+                @Override
+                public void run() {
+                    try {
+                        Files.delete(path);
+                    } catch (Throwable t) {}
+                }
+            });
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     /**
      * Custom exception PropertiesFileNotWritableException
@@ -75,7 +104,7 @@ public final class HostIdGenerator {
      *                                     be written
      */
     public static UUID getHostId() throws PropertiesFileNotWritableException {
-        return getHostId(HOST_ID_FILE);
+        return getHostId(getHostIdFilePath());
     }
 
     /**
@@ -138,6 +167,7 @@ public final class HostIdGenerator {
             // If the file exists we assume that no id has been written since
             // we checked before
             properties.store(new FileOutputStream(path), null);
+            log.debug("Wrote host id {} to {}", id, path);
         } catch (IOException e) {
             throw new PropertiesFileNotWritableException(
                 "Properties file: " + localPropertiesFile.getAbsolutePath());

@@ -16,35 +16,24 @@
 
 package org.midonet.brain.services.topology
 
-
 import com.google.inject.{AbstractModule, Guice, Singleton}
+import org.midonet.conf.HostIdGenerator
 import org.slf4j.LoggerFactory
 
-import org.midonet.brain.{ClusterNode, ClusterNodeConfig}
-import org.midonet.cluster.config.ZookeeperConfig
+import org.midonet.brain.{BrainConfig, ClusterNode}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.storage.MidonetBackendModule
-import org.midonet.config.{ConfigProvider, HostIdGenerator}
 
 /** Stand-alone application to start the TopologyApiService */
 object TopologyApiServiceApp extends App {
     private val log = LoggerFactory.getLogger(this.getClass)
 
     private val cfgFile = args(0)
-    private val cfg = ConfigProvider.fromConfigFile(cfgFile)
-    private val cfgProvider = ConfigProvider.providerForIniConfig(cfg)
-    private val nodeCfg = cfgProvider.getConfig(classOf[ClusterNodeConfig])
-    private val apiCfg = cfgProvider.getConfig(classOf[TopologyApiServiceConfig])
-    private val nodeContext = new ClusterNode.Context(HostIdGenerator.getHostId(nodeCfg))
+    private val nodeContext = new ClusterNode.Context(HostIdGenerator.getHostId)
 
     private val topologyApiServiceModule = new AbstractModule {
         override def configure(): Unit = {
-            // FIXME: Required for legacy code
-            bind(classOf[ZookeeperConfig])
-                .toInstance(cfgProvider.getConfig(classOf[ZookeeperConfig]))
-
-            bind(classOf[ConfigProvider]).toInstance(cfgProvider)
-            bind(classOf[TopologyApiServiceConfig]).toInstance(apiCfg)
+            bind(classOf[BrainConfig]).toInstance(BrainConfig(cfgFile))
             bind(classOf[ClusterNode.Context]).toInstance(nodeContext)
             bind(classOf[TopologyApiService]).in(classOf[Singleton])
         }

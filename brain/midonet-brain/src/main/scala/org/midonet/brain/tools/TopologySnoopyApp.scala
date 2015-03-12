@@ -21,7 +21,7 @@ import scala.concurrent.duration.Duration
 import com.google.inject.{AbstractModule, Guice}
 import org.slf4j.LoggerFactory
 
-import org.midonet.config.ConfigProvider
+import org.midonet.brain.BrainConfig
 
 /**
  * Stand-alone application to start the Topology Snoopy (Topology api client)
@@ -30,14 +30,10 @@ object TopologySnoopyApp extends App {
     private val log = LoggerFactory.getLogger(this.getClass)
 
     private val cfgFile = args(0)
-    private val cfg = ConfigProvider.fromConfigFile(cfgFile)
-    private val cfgProvider = ConfigProvider.providerForIniConfig(cfg)
-
-    private val cliCfg = cfgProvider.getConfig(classOf[TopologySnoopyConfig])
 
     private val topologySnoopyModule = new AbstractModule {
         override def configure(): Unit = {
-            bind(classOf[TopologySnoopyConfig]).toInstance(cliCfg)
+            bind(classOf[BrainConfig]).toInstance(BrainConfig(cfgFile))
             bind(classOf[TopologySnoopy]).asEagerSingleton()
         }
     }

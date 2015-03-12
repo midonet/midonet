@@ -17,6 +17,8 @@
 package org.midonet.brain.tools
 
 
+import org.midonet.brain.BrainConfig
+
 import scala.concurrent.TimeoutException
 import scala.concurrent.duration._
 import com.google.common.util.concurrent.AbstractService
@@ -28,19 +30,18 @@ import org.midonet.cluster.models.{Commons, Topology}
 import org.midonet.cluster.rpc.Commands.{ResponseType, Response}
 import org.midonet.cluster.services.topology.client.ClientSession
 import org.midonet.cluster.util.UUIDUtil
-import org.midonet.config.{ConfigInt, ConfigString, ConfigGroup}
 
 /**
  * A topology API client that establishes a client session to the
  * Topology Service and subscribes to all available topology objects,
  * dumping the updates and deletions to a log.
  */
-class TopologySnoopy @Inject()(val cfg: TopologySnoopyConfig)
+class TopologySnoopy @Inject()(val cfg: BrainConfig)
     extends AbstractService {
     private val log = LoggerFactory.getLogger(classOf[TopologySnoopy])
 
-    private val session = new ClientSession(cfg.getHost, cfg.getPort,
-                                            cfg.getWsPath)
+    private val session = new ClientSession(cfg.snoopy.host, cfg.snoopy.port,
+                                            cfg.snoopy.wsPath)
     private var subscription: Subscription = null
 
     private val types: Array[Topology.Type] = Topology.Type.values()
@@ -142,26 +143,3 @@ class TopologySnoopy @Inject()(val cfg: TopologySnoopyConfig)
 
 }
 
-object TopologySnoopyConfig {
-    final val DEFAULT_HOST = "localhost"
-    final val DEFAULT_PORT = 8088
-    final val DEFAULT_WS_PATH = ""
-}
-
-/** Configuration for the topology API minion */
-@ConfigGroup("snoopy")
-trait TopologySnoopyConfig {
-    import TopologySnoopyConfig._
-
-    /** Host ip */
-    @ConfigString(key = "host", defaultValue = DEFAULT_HOST)
-    def getHost: String
-
-    /** Port for plain socket connections */
-    @ConfigInt(key = "port", defaultValue = DEFAULT_PORT)
-    def getPort: Int
-
-    /** Websocket url path, if any */
-    @ConfigString(key = "ws_path", defaultValue = DEFAULT_WS_PATH)
-    def getWsPath: String
-}
