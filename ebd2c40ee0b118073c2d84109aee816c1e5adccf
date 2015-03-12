@@ -1,0 +1,303 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3a1371a2_fe54c1cb",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/util/IPSubnetUtil.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-03-12T08:26:53Z",
+      "side": 1,
+      "message": "Not used.",
+      "range": {
+        "startLine": 9,
+        "startChar": 44,
+        "endLine": 9,
+        "endChar": 60
+      },
+      "revId": "ebd2c40ee0b118073c2d84109aee816c1e5adccf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_de68e589",
+        "filename": "midolman/src/main/java/org/midonet/midolman/layer3/Route.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 254,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-03-12T08:26:53Z",
+      "side": 1,
+      "message": "When did scalac start compiling companion object members as static members of the associated class?",
+      "range": {
+        "startLine": 254,
+        "startChar": 28,
+        "endLine": 254,
+        "endChar": 42
+      },
+      "revId": "ebd2c40ee0b118073c2d84109aee816c1e5adccf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_5e14f5f4",
+        "filename": "midolman/src/main/scala/org/midonet/cluster/state/StateStorage.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-03-12T08:26:53Z",
+      "side": 1,
+      "message": "Does this add any value? It makes the code slightly less transparent (What\u0027s a ReplicatedRouteSet? Oh. ReplicatedSet[Route]), which is not a big deal, and worth it for long, complex types, but it only saves two characters.",
+      "range": {
+        "startLine": 40,
+        "startChar": 4,
+        "endLine": 40,
+        "endChar": 50
+      },
+      "revId": "ebd2c40ee0b118073c2d84109aee816c1e5adccf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_9e914d55",
+        "filename": "midolman/src/main/scala/org/midonet/cluster/state/ZookeeperStateStorage.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 178,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-03-12T08:26:53Z",
+      "side": 1,
+      "message": "Could you declare Unit methods either as \"method(...) { ... }\" (no equals sign) or as \"method(...): Unit \u003d { ... }\"? When you declare a function like this, the return type depends on the value returned from the body of the function, and thus isn\u0027t easily identifiable.",
+      "range": {
+        "startLine": 178,
+        "startChar": 44,
+        "endLine": 178,
+        "endChar": 46
+      },
+      "revId": "ebd2c40ee0b118073c2d84109aee816c1e5adccf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_bef889c5",
+        "filename": "midolman/src/main/scala/org/midonet/cluster/state/ZookeeperStateStorage.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 178,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-03-12T08:26:53Z",
+      "side": 1,
+      "message": "This was in the bridge mapper patch, too, wasn\u0027t it? Any particular reason you didn\u0027t start this patch on top of the bridge mapper patch?",
+      "range": {
+        "startLine": 178,
+        "startChar": 16,
+        "endLine": 178,
+        "endChar": 28
+      },
+      "revId": "ebd2c40ee0b118073c2d84109aee816c1e5adccf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_1ed8bd52",
+        "filename": "midolman/src/main/scala/org/midonet/cluster/state/ZookeeperStateStorage.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 183,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-03-12T08:26:53Z",
+      "side": 1,
+      "message": "If you move these inside the if block, you don\u0027t need to do this work when the bridge already exists. Or you can eliminate the if block like this:\n\n  val bridgePath \u003d ...\n  if (zkManager.exists(bridgePath)) return\n\n  ...\n\nOr, with the change I suggest to createPath:\n\n  val bridgePath \u003d ...\n  if (!createPath(bridgePath, errorIfExists \u003d false)) return",
+      "range": {
+        "startLine": 181,
+        "startChar": 0,
+        "endLine": 183,
+        "endChar": 70
+      },
+      "revId": "ebd2c40ee0b118073c2d84109aee816c1e5adccf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_5e2b5530",
+        "filename": "midolman/src/main/scala/org/midonet/cluster/state/ZookeeperStateStorage.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 250,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-03-12T08:26:53Z",
+      "side": 1,
+      "message": "What if we do this?\n\n    /** Creates a path with no data in the legacy storage */\n    @throws[StateAccessException]\n    private def createPath(path: String, errorIfExists: Boolean \u003d true)\n    : Boolean \u003d {\n        try {\n            log.debug(\"State storage create path {}\", path)\n            zkManager.addPersistent(path, new Array[Byte](0))\n            true\n        } catch {\n            case e: StatePathExistsException if !errorIfExists \u003d\u003e false\n            case e: StateAccessException \u003d\u003e\n                log.error(\"Failed to create path {} in legacy storage\", path, e)\n                false\n        }\n    }\n\nThen we can skip the exists calls in the ensure*() methods and eliminate a round trip to ZK. This would also simplify the code in the ensure*() methods by eliminating some if blocks.",
+      "range": {
+        "startLine": 240,
+        "startChar": 0,
+        "endLine": 250,
+        "endChar": 5
+      },
+      "revId": "ebd2c40ee0b118073c2d84109aee816c1e5adccf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_5e87d50f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/ArpTable.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-03-12T08:26:53Z",
+      "side": 1,
+      "message": "This should be foreach, to avoid creating a new collection that just gets thrown away, and also to make it clear that it\u0027s being done for the side effects.",
+      "range": {
+        "startLine": 96,
+        "startChar": 28,
+        "endLine": 96,
+        "endChar": 31
+      },
+      "revId": "ebd2c40ee0b118073c2d84109aee816c1e5adccf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_3e8f7925",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/LoadBalancer.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-03-12T08:26:53Z",
+      "side": 1,
+      "message": "Would it make sense for VirtualDevice to have an id property, and to move this implementation of deviceTag up to VirtualDevice?\n\nIf that doesn\u0027t work because there are exceptions to this rule, could we insert a UuidVirtualDevice class into the hierarchy, for all the devices that work this way?",
+      "range": {
+        "startLine": 38,
+        "startChar": 4,
+        "endLine": 38,
+        "endChar": 56
+      },
+      "revId": "ebd2c40ee0b118073c2d84109aee816c1e5adccf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_1e943d36",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Router.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-03-12T08:26:53Z",
+      "side": 1,
+      "message": "Should RouterBase extend VirtualDevice, since it has a deviceTag?",
+      "range": {
+        "startLine": 75,
+        "startChar": 13,
+        "endLine": 75,
+        "endChar": 26
+      },
+      "revId": "ebd2c40ee0b118073c2d84109aee816c1e5adccf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_7eb0d1dd",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterManager.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-03-12T08:26:53Z",
+      "side": 1,
+      "message": "I know you didn\u0027t write this, but what is this for? Why not just add this method to RoutingTableIfc? Or maybe RoutingTableIfc extend RoutingTable, if you want a read-only interface?",
+      "range": {
+        "startLine": 38,
+        "startChar": 0,
+        "endLine": 48,
+        "endChar": 1
+      },
+      "revId": "ebd2c40ee0b118073c2d84109aee816c1e5adccf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_3eddb915",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterMapper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-03-12T08:26:53Z",
+      "side": 1,
+      "message": "Why \"updates\" and not \"update\"?",
+      "range": {
+        "startLine": 88,
+        "startChar": 12,
+        "endLine": 88,
+        "endChar": 32
+      },
+      "revId": "ebd2c40ee0b118073c2d84109aee816c1e5adccf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_7ee731e5",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterMapper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-03-12T08:26:53Z",
+      "side": 1,
+      "message": "I think this makes it a bit more clear what\u0027s going on.\n\n  val hasLocalRt \u003d port.isInterior || port.isExterior \u0026\u0026 port.isActive\n  val route \u003d if (hasLocalRt) createLocalRoute(port) else null",
+      "range": {
+        "startLine": 97,
+        "startChar": 0,
+        "endLine": 101,
+        "endChar": 23
+      },
+      "revId": "ebd2c40ee0b118073c2d84109aee816c1e5adccf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
