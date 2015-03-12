@@ -1,0 +1,481 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3a1371a2_ebe36231",
+        "filename": "brain/vtep/src/main/java/org/midonet/vtep/OvsdbVtepBackend.java",
+        "patchSetId": 38
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-03-12T16:10:17Z",
+      "side": 1,
+      "message": "Shouldn\u0027t these constants live in the Table classes instead? It\u0027s weird having to pass them in.",
+      "range": {
+        "startLine": 118,
+        "startChar": 39,
+        "endLine": 118,
+        "endChar": 56
+      },
+      "revId": "8ab55a8c07149b6a3e5f79b43c005644bc9f1674",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_0be7de41",
+        "filename": "brain/vtep/src/main/java/org/midonet/vtep/OvsdbVtepBackend.java",
+        "patchSetId": 38
+      },
+      "lineNbr": 197,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-03-12T16:10:17Z",
+      "side": 1,
+      "message": "Why not using VtepRetrievalException, adding a constructor with the id? That\u0027d save a LOT of lines in this class.",
+      "range": {
+        "startLine": 196,
+        "startChar": 17,
+        "endLine": 197,
+        "endChar": 47
+      },
+      "revId": "8ab55a8c07149b6a3e5f79b43c005644bc9f1674",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_6bf812e6",
+        "filename": "brain/vtep/src/main/java/org/midonet/vtep/OvsdbVtepBackend.java",
+        "patchSetId": 38
+      },
+      "lineNbr": 232,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-03-12T16:10:17Z",
+      "side": 1,
+      "message": "no need to wrap",
+      "range": {
+        "startLine": 232,
+        "startChar": 17,
+        "endLine": 232,
+        "endChar": 23
+      },
+      "revId": "8ab55a8c07149b6a3e5f79b43c005644bc9f1674",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_2bee1a23",
+        "filename": "brain/vtep/src/main/java/org/midonet/vtep/OvsdbVtepBackend.java",
+        "patchSetId": 38
+      },
+      "lineNbr": 256,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-03-12T16:10:17Z",
+      "side": 1,
+      "message": "remove wrapping",
+      "range": {
+        "startLine": 256,
+        "startChar": 20,
+        "endLine": 256,
+        "endChar": 21
+      },
+      "revId": "8ab55a8c07149b6a3e5f79b43c005644bc9f1674",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_4be9d619",
+        "filename": "brain/vtep/src/main/java/org/midonet/vtep/OvsdbVtepBackend.java",
+        "patchSetId": 38
+      },
+      "lineNbr": 277,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-03-12T16:10:17Z",
+      "side": 1,
+      "message": "unnecessary wrapping",
+      "range": {
+        "startLine": 276,
+        "startChar": 12,
+        "endLine": 277,
+        "endChar": 40
+      },
+      "revId": "8ab55a8c07149b6a3e5f79b43c005644bc9f1674",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_eb8c0282",
+        "filename": "brain/vtep/src/main/java/org/midonet/vtep/OvsdbVtepBackend.java",
+        "patchSetId": 38
+      },
+      "lineNbr": 298,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-03-12T16:10:17Z",
+      "side": 1,
+      "message": "We should throw more specific exceptions.",
+      "range": {
+        "startLine": 298,
+        "startChar": 15,
+        "endLine": 298,
+        "endChar": 24
+      },
+      "revId": "8ab55a8c07149b6a3e5f79b43c005644bc9f1674",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_992167b7",
+        "filename": "brain/vtep/src/main/java/org/midonet/vtep/OvsdbVtepBackend.java",
+        "patchSetId": 38
+      },
+      "lineNbr": 309,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-03-12T16:10:17Z",
+      "side": 1,
+      "message": "It would be much cleaner to have all these methods just throw their exception, and let the caller deal with the wrapping, specially considering that the caller is also within the same package. This would cut the size and nesting of this class very significantly.\n\nAlso, I think these methods are worth made protected.",
+      "range": {
+        "startLine": 307,
+        "startChar": 0,
+        "endLine": 309,
+        "endChar": 9
+      },
+      "revId": "8ab55a8c07149b6a3e5f79b43c005644bc9f1674",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_b90b832a",
+        "filename": "brain/vtep/src/main/java/org/midonet/vtep/OvsdbVtepBackend.java",
+        "patchSetId": 38
+      },
+      "lineNbr": 360,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-03-12T16:10:17Z",
+      "side": 1,
+      "message": "static import enables wrapping. Also, you can factor out this to make it readable by making a getOnSubscribe method.",
+      "range": {
+        "startLine": 360,
+        "startChar": 16,
+        "endLine": 360,
+        "endChar": 26
+      },
+      "revId": "8ab55a8c07149b6a3e5f79b43c005644bc9f1674",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_5917ef51",
+        "filename": "brain/vtep/src/main/java/org/midonet/vtep/OvsdbVtepBackend.java",
+        "patchSetId": 38
+      },
+      "lineNbr": 378,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-03-12T16:10:17Z",
+      "side": 1,
+      "message": "Factor this out to its own method, for readability?",
+      "range": {
+        "startLine": 378,
+        "startChar": 0,
+        "endLine": 378,
+        "endChar": 36
+      },
+      "revId": "8ab55a8c07149b6a3e5f79b43c005644bc9f1674",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_2b2bba83",
+        "filename": "brain/vtep/src/main/java/org/midonet/vtep/OvsdbVtepBackend.java",
+        "patchSetId": 38
+      },
+      "lineNbr": 398,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-03-12T16:10:17Z",
+      "side": 1,
+      "message": "The only code that the if actually discriminates is where .apply is executed. We should move the if inside the loop, doing this, which is much more concise.\n\nsubscriber.onNext( table.isUcast()\n  ? UcstMacEntryUpdate.apply(null, (..)mac)\n  : Mcast..\n)\n\nAlso, why not adding an apply with one parameter to avoid the need for the null?",
+      "revId": "8ab55a8c07149b6a3e5f79b43c005644bc9f1674",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_4b4d5672",
+        "filename": "brain/vtep/src/main/java/org/midonet/vtep/OvsdbVtepBackend.java",
+        "patchSetId": 38
+      },
+      "lineNbr": 405,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-03-12T16:10:17Z",
+      "side": 1,
+      "message": "Same, this would be much cleaner with a single parameter method.",
+      "range": {
+        "startLine": 405,
+        "startChar": 71,
+        "endLine": 405,
+        "endChar": 77
+      },
+      "revId": "8ab55a8c07149b6a3e5f79b43c005644bc9f1674",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_6bcf72b1",
+        "filename": "brain/vtep/src/main/java/org/midonet/vtep/OvsdbVtepData.java",
+        "patchSetId": 38
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-03-12T16:10:17Z",
+      "side": 1,
+      "message": "logs?",
+      "range": {
+        "startLine": 83,
+        "startChar": 18,
+        "endLine": 83,
+        "endChar": 23
+      },
+      "revId": "8ab55a8c07149b6a3e5f79b43c005644bc9f1674",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_4b3716b1",
+        "filename": "brain/vtep/src/main/java/org/midonet/vtep/OvsdbVtepData.java",
+        "patchSetId": 38
+      },
+      "lineNbr": 314,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-03-12T16:10:17Z",
+      "side": 1,
+      "message": "not needed",
+      "range": {
+        "startLine": 314,
+        "startChar": 10,
+        "endLine": 314,
+        "endChar": 16
+      },
+      "revId": "8ab55a8c07149b6a3e5f79b43c005644bc9f1674",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_0b551ec6",
+        "filename": "brain/vtep/src/main/java/org/midonet/vtep/OvsdbVtepData.java",
+        "patchSetId": 38
+      },
+      "lineNbr": 559,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-03-12T16:10:17Z",
+      "side": 1,
+      "message": "I think it\u0027 be cleaner to remove exception handling here (because they are not really handled) and just move them to the public apply methods with log.warn(\"failed to apply \" + macLocation, e)",
+      "range": {
+        "startLine": 557,
+        "startChar": 8,
+        "endLine": 559,
+        "endChar": 9
+      },
+      "revId": "8ab55a8c07149b6a3e5f79b43c005644bc9f1674",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_6b5db2e9",
+        "filename": "brain/vtep/src/main/java/org/midonet/vtep/OvsdbVtepData.java",
+        "patchSetId": 38
+      },
+      "lineNbr": 573,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-03-12T16:10:17Z",
+      "side": 1,
+      "message": "Factor out to avoid duplication with method below?",
+      "range": {
+        "startLine": 567,
+        "startChar": 12,
+        "endLine": 573,
+        "endChar": 15
+      },
+      "revId": "8ab55a8c07149b6a3e5f79b43c005644bc9f1674",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_ab6e8a94",
+        "filename": "brain/vtep/src/main/java/org/midonet/vtep/OvsdbVtepData.java",
+        "patchSetId": 38
+      },
+      "lineNbr": 659,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-03-12T16:10:17Z",
+      "side": 1,
+      "message": "ditto.",
+      "range": {
+        "startLine": 655,
+        "startChar": 8,
+        "endLine": 659,
+        "endChar": 9
+      },
+      "revId": "8ab55a8c07149b6a3e5f79b43c005644bc9f1674",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_ab1cca14",
+        "filename": "brain/vtep/src/main/java/org/midonet/vtep/OvsdbVtepData.java",
+        "patchSetId": 38
+      },
+      "lineNbr": 666,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-03-12T16:10:17Z",
+      "side": 1,
+      "message": "This logic doesn\u0027t seem correct. Mcast Mac Remotes need a transactional update that updates 3 tables (physical locator, physical locator set, mcast mac remote). If I\u0027m reading this correctly, the code is first arranging a physical locator, then the set, then making the update in the mac entry in 3 separate operations. Which is 3 possible failure points. These 3 ops should happen in a single transaction.",
+      "range": {
+        "startLine": 666,
+        "startChar": 21,
+        "endLine": 666,
+        "endChar": 42
+      },
+      "revId": "8ab55a8c07149b6a3e5f79b43c005644bc9f1674",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_eb688289",
+        "filename": "brain/vtep/src/main/java/org/midonet/vtep/OvsdbVtepData.java",
+        "patchSetId": 38
+      },
+      "lineNbr": 682,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-03-12T16:10:17Z",
+      "side": 1,
+      "message": "Maybe. At worst, 2 lines against 4.\n\nlocatorId \u003d ml.mac().isMcast() ? acquirePhysicalLocatorSet(loc.getUuid) : loc.uuid()",
+      "range": {
+        "startLine": 678,
+        "startChar": 16,
+        "endLine": 682,
+        "endChar": 17
+      },
+      "revId": "8ab55a8c07149b6a3e5f79b43c005644bc9f1674",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_0b6cfe9b",
+        "filename": "brain/vtep/src/main/java/org/midonet/vtep/OvsdbVtepData.java",
+        "patchSetId": 38
+      },
+      "lineNbr": 693,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-03-12T16:10:17Z",
+      "side": 1,
+      "message": "ditto",
+      "range": {
+        "startLine": 690,
+        "startChar": 8,
+        "endLine": 693,
+        "endChar": 9
+      },
+      "revId": "8ab55a8c07149b6a3e5f79b43c005644bc9f1674",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_2b0a9ad2",
+        "filename": "brain/vtep/src/main/java/org/midonet/vtep/OvsdbVtepData.java",
+        "patchSetId": 38
+      },
+      "lineNbr": 747,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-03-12T16:10:17Z",
+      "side": 1,
+      "message": "ditto",
+      "range": {
+        "startLine": 743,
+        "startChar": 8,
+        "endLine": 747,
+        "endChar": 9
+      },
+      "revId": "8ab55a8c07149b6a3e5f79b43c005644bc9f1674",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_19361704",
+        "filename": "brain/vtep/src/main/java/org/midonet/vtep/schema/MacsTable.java",
+        "patchSetId": 38
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-03-12T16:10:17Z",
+      "side": 1,
+      "message": "Not true anymore?\n\nI\u0027d also suggest to have child classes for each of the tables that this is valid for, just for clarity since we d have a separate mac table.",
+      "range": {
+        "startLine": 21,
+        "startChar": 25,
+        "endLine": 21,
+        "endChar": 55
+      },
+      "revId": "8ab55a8c07149b6a3e5f79b43c005644bc9f1674",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
