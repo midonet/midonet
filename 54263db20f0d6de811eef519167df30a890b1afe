@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "3a1371a2_d91c7fc4",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-12T15:13:53Z",
+      "side": 1,
+      "message": "Maybe yes. I only copy-pasted this without paying attention :(",
+      "parentUuid": "3a1371a2_5eed158b",
+      "revId": "54263db20f0d6de811eef519167df30a890b1afe",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a1371a2_beafe92a",
         "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
         "patchSetId": 17
@@ -30,6 +48,24 @@
       "writtenOn": "2015-03-12T11:02:59Z",
       "side": 1,
       "message": "Do we even need to start the scanner if !backendConfig.enabled?",
+      "revId": "54263db20f0d6de811eef519167df30a890b1afe",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_59888fe7",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-12T15:13:53Z",
+      "side": 1,
+      "message": "Eventually, we should add support to store the interfaces in zoom, however I was thinking that maybe it is better to add that in a different patch, once we define the protobuf models. In that case, the zoom update will be included on the else branch inside the Callback.\n\nDo you think that it is better do disable the scanner for now instead?",
+      "parentUuid": "3a1371a2_beafe92a",
       "revId": "54263db20f0d6de811eef519167df30a890b1afe",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -59,6 +95,30 @@
     },
     {
       "key": {
+        "uuid": "3a1371a2_99696728",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 145,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-12T15:13:53Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3a1371a2_1e9a7d14",
+      "range": {
+        "startLine": 145,
+        "startChar": 8,
+        "endLine": 145,
+        "endChar": 9
+      },
+      "revId": "54263db20f0d6de811eef519167df30a890b1afe",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a1371a2_be8889c7",
         "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
         "patchSetId": 17
@@ -76,6 +136,24 @@
     },
     {
       "key": {
+        "uuid": "3a1371a2_d973df13",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 171,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-12T15:13:53Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3a1371a2_be8889c7",
+      "revId": "54263db20f0d6de811eef519167df30a890b1afe",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a1371a2_fe9201f5",
         "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
         "patchSetId": 17
@@ -87,6 +165,24 @@
       "writtenOn": "2015-03-12T11:02:59Z",
       "side": 1,
       "message": "Ditto re. nesting, would be more readable.",
+      "revId": "54263db20f0d6de811eef519167df30a890b1afe",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_99504760",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 190,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-12T15:13:53Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3a1371a2_fe9201f5",
       "revId": "54263db20f0d6de811eef519167df30a890b1afe",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
