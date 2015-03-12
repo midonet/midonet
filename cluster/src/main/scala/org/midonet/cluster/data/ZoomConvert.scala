@@ -645,7 +645,7 @@ object ZoomConvert {
      * @param converter The converter for the list component type.
      */
     protected[data] class SetConverter(converter: Converter[_,_])
-            extends Converter[Set[_], JList[_]] {
+        extends Converter[Set[_], JList[_]] {
 
         override def toProto(value: Set[_], clazz: Type): JList[_] = {
             val elType = getElementType(clazz, classOf[Set[_]])

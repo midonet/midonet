@@ -28,6 +28,7 @@ public class ReverseNatRule extends NatRule {
     }
 
     // default constructor for the JSON serialization.
+    // This constructor is also used by ZoomConvert.
     public ReverseNatRule() {
         super();
     }

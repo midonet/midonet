@@ -267,6 +267,7 @@ private object StorageTester {
         val ruleBuilder = Rule.newBuilder.setId(randomUuidProto)
         if (action != null) ruleBuilder.setAction(action)
         if (chainId != null) ruleBuilder.setChainId(chainId)
+
         ruleBuilder.build()
     }
 }
