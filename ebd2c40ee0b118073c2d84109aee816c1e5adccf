@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "3a1371a2_199a9714",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/util/IPSubnetUtil.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-12T15:59:53Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3a1371a2_fe54c1cb",
+      "range": {
+        "startLine": 9,
+        "startChar": 44,
+        "endLine": 9,
+        "endChar": 60
+      },
+      "revId": "ebd2c40ee0b118073c2d84109aee816c1e5adccf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a1371a2_de68e589",
         "filename": "midolman/src/main/java/org/midonet/midolman/layer3/Route.java",
         "patchSetId": 2
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "3a1371a2_2b3c5a93",
+        "filename": "midolman/src/main/java/org/midonet/midolman/layer3/Route.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 254,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-12T15:59:53Z",
+      "side": 1,
+      "message": "It wasn\u0027t like this?",
+      "parentUuid": "3a1371a2_de68e589",
+      "range": {
+        "startLine": 254,
+        "startChar": 28,
+        "endLine": 254,
+        "endChar": 42
+      },
+      "revId": "ebd2c40ee0b118073c2d84109aee816c1e5adccf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a1371a2_5e14f5f4",
         "filename": "midolman/src/main/scala/org/midonet/cluster/state/StateStorage.scala",
         "patchSetId": 2
@@ -59,6 +107,30 @@
       "writtenOn": "2015-03-12T08:26:53Z",
       "side": 1,
       "message": "Does this add any value? It makes the code slightly less transparent (What\u0027s a ReplicatedRouteSet? Oh. ReplicatedSet[Route]), which is not a big deal, and worth it for long, complex types, but it only saves two characters.",
+      "range": {
+        "startLine": 40,
+        "startChar": 4,
+        "endLine": 40,
+        "endChar": 50
+      },
+      "revId": "ebd2c40ee0b118073c2d84109aee816c1e5adccf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_d9f8ff4b",
+        "filename": "midolman/src/main/scala/org/midonet/cluster/state/StateStorage.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-12T15:59:53Z",
+      "side": 1,
+      "message": "Ok, convinced me. Removed.",
+      "parentUuid": "3a1371a2_5e14f5f4",
       "range": {
         "startLine": 40,
         "startChar": 4,
@@ -117,6 +189,54 @@
     },
     {
       "key": {
+        "uuid": "3a1371a2_9985e7af",
+        "filename": "midolman/src/main/scala/org/midonet/cluster/state/ZookeeperStateStorage.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 178,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-12T15:59:53Z",
+      "side": 1,
+      "message": "For me it\u0027s easier to maintain, especially since the other patch is still under review and may constantly require changes.",
+      "parentUuid": "3a1371a2_bef889c5",
+      "range": {
+        "startLine": 178,
+        "startChar": 16,
+        "endLine": 178,
+        "endChar": 28
+      },
+      "revId": "ebd2c40ee0b118073c2d84109aee816c1e5adccf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_b988a3c7",
+        "filename": "midolman/src/main/scala/org/midonet/cluster/state/ZookeeperStateStorage.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 178,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-12T15:59:53Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3a1371a2_9e914d55",
+      "range": {
+        "startLine": 178,
+        "startChar": 44,
+        "endLine": 178,
+        "endChar": 46
+      },
+      "revId": "ebd2c40ee0b118073c2d84109aee816c1e5adccf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a1371a2_1ed8bd52",
         "filename": "midolman/src/main/scala/org/midonet/cluster/state/ZookeeperStateStorage.scala",
         "patchSetId": 2
@@ -128,6 +248,30 @@
       "writtenOn": "2015-03-12T08:26:53Z",
       "side": 1,
       "message": "If you move these inside the if block, you don\u0027t need to do this work when the bridge already exists. Or you can eliminate the if block like this:\n\n  val bridgePath \u003d ...\n  if (zkManager.exists(bridgePath)) return\n\n  ...\n\nOr, with the change I suggest to createPath:\n\n  val bridgePath \u003d ...\n  if (!createPath(bridgePath, errorIfExists \u003d false)) return",
+      "range": {
+        "startLine": 181,
+        "startChar": 0,
+        "endLine": 183,
+        "endChar": 70
+      },
+      "revId": "ebd2c40ee0b118073c2d84109aee816c1e5adccf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_ab47aa1c",
+        "filename": "midolman/src/main/scala/org/midonet/cluster/state/ZookeeperStateStorage.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 183,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-12T15:59:53Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3a1371a2_1ed8bd52",
       "range": {
         "startLine": 181,
         "startChar": 0,
@@ -163,6 +307,30 @@
     },
     {
       "key": {
+        "uuid": "3a1371a2_cb4ae626",
+        "filename": "midolman/src/main/scala/org/midonet/cluster/state/ZookeeperStateStorage.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 250,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-12T15:59:53Z",
+      "side": 1,
+      "message": "I already applied this change to the BridgeMapper patch. Actually I don\u0027t think that errorIfExists is needed, since these method should only ensure that the nodes exists.",
+      "parentUuid": "3a1371a2_5e2b5530",
+      "range": {
+        "startLine": 240,
+        "startChar": 0,
+        "endLine": 250,
+        "endChar": 5
+      },
+      "revId": "ebd2c40ee0b118073c2d84109aee816c1e5adccf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a1371a2_5e87d50f",
         "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/ArpTable.scala",
         "patchSetId": 2
@@ -174,6 +342,30 @@
       "writtenOn": "2015-03-12T08:26:53Z",
       "side": 1,
       "message": "This should be foreach, to avoid creating a new collection that just gets thrown away, and also to make it clear that it\u0027s being done for the side effects.",
+      "range": {
+        "startLine": 96,
+        "startChar": 28,
+        "endLine": 96,
+        "endChar": 31
+      },
+      "revId": "ebd2c40ee0b118073c2d84109aee816c1e5adccf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_b9af032b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/ArpTable.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-12T15:59:53Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3a1371a2_5e87d50f",
       "range": {
         "startLine": 96,
         "startChar": 28,
@@ -209,6 +401,30 @@
     },
     {
       "key": {
+        "uuid": "3a1371a2_b92423c7",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/LoadBalancer.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-12T15:59:53Z",
+      "side": 1,
+      "message": "I think that most if not all devices have similar device tags. However, the problem is with ones that are converted using ZoomConvert, since those cannot override the id as it is initialized lazily only after the conversion. Here, overriding the def as a val also has the advantage that it doesn\u0027t generate a new object every time when calling deviceTag.",
+      "parentUuid": "3a1371a2_3e8f7925",
+      "range": {
+        "startLine": 38,
+        "startChar": 4,
+        "endLine": 38,
+        "endChar": 56
+      },
+      "revId": "ebd2c40ee0b118073c2d84109aee816c1e5adccf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a1371a2_1e943d36",
         "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Router.scala",
         "patchSetId": 2
@@ -220,6 +436,30 @@
       "writtenOn": "2015-03-12T08:26:53Z",
       "side": 1,
       "message": "Should RouterBase extend VirtualDevice, since it has a deviceTag?",
+      "range": {
+        "startLine": 75,
+        "startChar": 13,
+        "endLine": 75,
+        "endChar": 26
+      },
+      "revId": "ebd2c40ee0b118073c2d84109aee816c1e5adccf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_6b5c9226",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Router.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-12T15:59:53Z",
+      "side": 1,
+      "message": "Oh yes, I missed this.",
+      "parentUuid": "3a1371a2_1e943d36",
       "range": {
         "startLine": 75,
         "startChar": 13,
@@ -255,6 +495,30 @@
     },
     {
       "key": {
+        "uuid": "3a1371a2_0b907e94",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterManager.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-12T15:59:53Z",
+      "side": 1,
+      "message": "Oh, this looks just like another layer of indirection from an interface with lookup(flowMatch) to an interface with lookup(ip, ip). I suppose that in this particular case its purpose is to hide to the caller of lookup(flowMatch) what is the IP version used by the underlying table (RoutingTableIfc)",
+      "parentUuid": "3a1371a2_7eb0d1dd",
+      "range": {
+        "startLine": 38,
+        "startChar": 0,
+        "endLine": 48,
+        "endChar": 1
+      },
+      "revId": "ebd2c40ee0b118073c2d84109aee816c1e5adccf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a1371a2_3eddb915",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterMapper.scala",
         "patchSetId": 2
@@ -278,6 +542,30 @@
     },
     {
       "key": {
+        "uuid": "3a1371a2_8bf3ce09",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterMapper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-12T15:59:53Z",
+      "side": 1,
+      "message": "Initially was updates, but it eventually changed to update. I forgot to rename here. Fixed.",
+      "parentUuid": "3a1371a2_3eddb915",
+      "range": {
+        "startLine": 88,
+        "startChar": 12,
+        "endLine": 88,
+        "endChar": 32
+      },
+      "revId": "ebd2c40ee0b118073c2d84109aee816c1e5adccf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a1371a2_7ee731e5",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterMapper.scala",
         "patchSetId": 2
@@ -289,6 +577,30 @@
       "writtenOn": "2015-03-12T08:26:53Z",
       "side": 1,
       "message": "I think this makes it a bit more clear what\u0027s going on.\n\n  val hasLocalRt \u003d port.isInterior || port.isExterior \u0026\u0026 port.isActive\n  val route \u003d if (hasLocalRt) createLocalRoute(port) else null",
+      "range": {
+        "startLine": 97,
+        "startChar": 0,
+        "endLine": 101,
+        "endChar": 23
+      },
+      "revId": "ebd2c40ee0b118073c2d84109aee816c1e5adccf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_ebba4209",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterMapper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-12T15:59:53Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3a1371a2_7ee731e5",
       "range": {
         "startLine": 97,
         "startChar": 0,
