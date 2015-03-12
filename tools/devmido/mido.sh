@@ -281,7 +281,9 @@ if [ ! -f $AGENT_CONF_DIR/logback-dpctl.xml ]; then
     sudo cp $TOP_DIR/midolman/conf/logback-dpctl.xml $AGENT_CONF_DIR/
 fi
 if [ ! -f $AGENT_CONF_DIR/midolman.conf ]; then
-    sudo cp $TOP_DIR/midolman/conf/midolman.conf $AGENT_CONF_DIR/
+    MIDO_CONF=$TOP_DIR/midolman/conf/midolman.conf
+    iniset $MIDO_CONF cluster enabled true
+    sudo cp $MIDO_CONF $AGENT_CONF_DIR/
 fi
 
 # put config to the classpath and set loglevel to DEBUG for Midolman
