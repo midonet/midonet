@@ -114,7 +114,6 @@ class VirtualTopologyRedirectorTest extends MidolmanSpec with TopologyBuilder {
             val portId = UUID.randomUUID
             val port = createBridgePort(id = portId, bridgeId = Some(bridgeId))
             backend.store.create(port)
-            ready(backend.store.get(classOf[TopologyPort], portId), timeout)
 
             When("Requesting the port")
             val e = intercept[NotYetException] {
@@ -136,7 +135,6 @@ class VirtualTopologyRedirectorTest extends MidolmanSpec with TopologyBuilder {
             val portId = UUID.randomUUID
             val port = createBridgePort(id = portId, bridgeId = Some(bridgeId))
             backend.store.create(port)
-            ready(backend.store.get(classOf[TopologyPort], portId), timeout)
 
             And("Requesting the port to update the VT cache")
             ready(intercept[NotYetException] {
@@ -157,7 +155,6 @@ class VirtualTopologyRedirectorTest extends MidolmanSpec with TopologyBuilder {
             val port1 = createBridgePort(id = portId, bridgeId = Some(bridgeId),
                                          tunnelKey = 1)
             backend.store.create(port1)
-            ready(backend.store.get(classOf[TopologyPort], portId), timeout)
 
             And("An awaitable observer to the virtual topology")
             val obs = new AwaitableObserver[SimulationPort](2)
@@ -183,7 +180,6 @@ class VirtualTopologyRedirectorTest extends MidolmanSpec with TopologyBuilder {
             val port2 = createBridgePort(id = portId, bridgeId = Some(bridgeId),
                                          tunnelKey = 2)
             backend.store.update(port2)
-            ready(backend.store.get(classOf[TopologyPort], portId), timeout)
 
             And("Waiting for the port to update the topology")
             obs.await(timeout) shouldBe true
@@ -202,7 +198,6 @@ class VirtualTopologyRedirectorTest extends MidolmanSpec with TopologyBuilder {
             val portId = UUID.randomUUID
             val port = createBridgePort(id = portId, bridgeId = Some(bridgeId))
             backend.store.create(port)
-            ready(backend.store.get(classOf[TopologyPort], portId), timeout)
 
             And("Requesting the port to update the VT cache")
             ready(intercept[NotYetException] {
@@ -210,8 +205,14 @@ class VirtualTopologyRedirectorTest extends MidolmanSpec with TopologyBuilder {
             }.waitFor, timeout)
 
             When("Deleting the port")
+            val obs = new AwaitableObserver[SimulationPort](2)
+            vt.observables.get(portId)
+               .asInstanceOf[Observable[SimulationPort]]
+               .subscribe(obs)
+
             backend.store.delete(classOf[TopologyPort], portId)
-            ready(backend.store.exists(classOf[TopologyPort], portId), timeout)
+            // Waiting for the notification of the deletion.
+            obs.await(timeout)
 
             And("Requesting the port a second time")
             val e1 = intercept[NotYetException] {
@@ -258,7 +259,6 @@ class VirtualTopologyRedirectorTest extends MidolmanSpec with TopologyBuilder {
             val portId = UUID.randomUUID
             val port = createBridgePort(id = portId, bridgeId = Some(bridgeId))
             backend.store.create(port)
-            ready(backend.store.get(classOf[TopologyPort], portId), timeout)
 
             When("Sending a port request to the VTA and waiting for reply")
             VirtualTopologyActor ! PortRequest(portId, update = false)
@@ -275,7 +275,6 @@ class VirtualTopologyRedirectorTest extends MidolmanSpec with TopologyBuilder {
             val portId = UUID.randomUUID
             val port = createBridgePort(id = portId, bridgeId = Some(bridgeId))
             backend.store.create(port)
-            ready(backend.store.get(classOf[TopologyPort], portId), timeout)
 
             And("Requesting the port to update the VT cache")
             ready(intercept[NotYetException] {
@@ -298,7 +297,6 @@ class VirtualTopologyRedirectorTest extends MidolmanSpec with TopologyBuilder {
             val port1 = createBridgePort(id = portId, bridgeId = Some(bridgeId),
                                          tunnelKey = 1)
             backend.store.create(port1)
-            ready(backend.store.get(classOf[TopologyPort], portId), timeout)
 
             And("An awaitable observer to the virtual topology")
             val obs = new AwaitableObserver[SimulationPort](2)
@@ -321,7 +319,6 @@ class VirtualTopologyRedirectorTest extends MidolmanSpec with TopologyBuilder {
             val port2 = createBridgePort(id = portId, bridgeId = Some(bridgeId),
                                          tunnelKey = 2)
             backend.store.update(port2)
-            ready(backend.store.get(classOf[TopologyPort], portId), timeout)
 
             And("Waiting for the port to update the topology")
             obs.await(timeout) shouldBe true
@@ -342,7 +339,6 @@ class VirtualTopologyRedirectorTest extends MidolmanSpec with TopologyBuilder {
             val port1 = createBridgePort(id = portId, bridgeId = Some(bridgeId),
                                          tunnelKey = 1)
             backend.store.create(port1)
-            ready(backend.store.get(classOf[TopologyPort], portId), timeout)
 
             And("An awaitable observer to the virtual topology")
             val obs = new AwaitableObserver[SimulationPort](2)
@@ -365,7 +361,6 @@ class VirtualTopologyRedirectorTest extends MidolmanSpec with TopologyBuilder {
             val port2 = createBridgePort(id = portId, bridgeId = Some(bridgeId),
                                          tunnelKey = 2)
             backend.store.update(port2)
-            ready(backend.store.get(classOf[TopologyPort], portId), timeout)
 
             And("Waiting for the port to update the topology")
             obs.await(timeout) shouldBe true
@@ -384,7 +379,6 @@ class VirtualTopologyRedirectorTest extends MidolmanSpec with TopologyBuilder {
             val port1 = createBridgePort(id = portId, bridgeId = Some(bridgeId),
                                          tunnelKey = 1)
             backend.store.create(port1)
-            ready(backend.store.get(classOf[TopologyPort], portId), timeout)
 
             And("An awaitable observer to the virtual topology")
             val obs = new AwaitableObserver[SimulationPort](2)
@@ -410,7 +404,6 @@ class VirtualTopologyRedirectorTest extends MidolmanSpec with TopologyBuilder {
             val port2 = createBridgePort(id = portId, bridgeId = Some(bridgeId),
                                          tunnelKey = 2)
             backend.store.update(port2)
-            ready(backend.store.get(classOf[TopologyPort], portId), timeout)
 
             And("Waiting for the port to update the topology")
             obs.await(timeout) shouldBe true
@@ -429,7 +422,6 @@ class VirtualTopologyRedirectorTest extends MidolmanSpec with TopologyBuilder {
             val port = createBridgePort(id = portId, bridgeId = Some(bridgeId),
                                         tunnelKey = 1)
             backend.store.create(port)
-            ready(backend.store.get(classOf[TopologyPort], portId), timeout)
 
             And("An awaitable observer to the virtual topology")
             val obs = new AwaitableObserver[SimulationPort](2)
@@ -468,7 +460,6 @@ class VirtualTopologyRedirectorTest extends MidolmanSpec with TopologyBuilder {
             val port1 = createBridgePort(id = portId, bridgeId = Some(bridgeId),
                                          tunnelKey = 1)
             backend.store.create(port1)
-            ready(backend.store.get(classOf[TopologyPort], portId), timeout)
 
             And("An awaitable observer to the virtual topology")
             val obs = new AwaitableObserver[SimulationPort](1)
@@ -493,7 +484,6 @@ class VirtualTopologyRedirectorTest extends MidolmanSpec with TopologyBuilder {
             val port2 = createBridgePort(id = portId, bridgeId = Some(bridgeId),
                                          tunnelKey = 2)
             backend.store.update(port2)
-            ready(backend.store.get(classOf[TopologyPort], portId), timeout)
 
             And("Waiting for the port to update the topology")
             obs.await(timeout) shouldBe true
