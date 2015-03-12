@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "3a1371a2_be6c0938",
+        "filename": "midolman/src/main/scala/org/midonet/cluster/state/ZookeeperStateStorage.scala",
+        "patchSetId": 25
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-12T13:04:38Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_6be09196",
+      "range": {
+        "startLine": 40,
+        "startChar": 6,
+        "endLine": 40,
+        "endChar": 27
+      },
+      "revId": "0d85478099d8acebd56b5e9e9943481ae64a775a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_cbf0a569",
         "filename": "midolman/src/main/scala/org/midonet/cluster/state/ZookeeperStateStorage.scala",
         "patchSetId": 25
@@ -36,6 +60,30 @@
       "writtenOn": "2015-03-11T08:26:25Z",
       "side": 1,
       "message": "Might as well move these inside the if block.",
+      "range": {
+        "startLine": 127,
+        "startChar": 0,
+        "endLine": 129,
+        "endChar": 70
+      },
+      "revId": "0d85478099d8acebd56b5e9e9943481ae64a775a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_9e694d28",
+        "filename": "midolman/src/main/scala/org/midonet/cluster/state/ZookeeperStateStorage.scala",
+        "patchSetId": 25
+      },
+      "lineNbr": 129,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-12T13:04:38Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_cbf0a569",
       "range": {
         "startLine": 127,
         "startChar": 0,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "3a1371a2_9e502d60",
+        "filename": "midolman/src/main/scala/org/midonet/cluster/state/ZookeeperStateStorage.scala",
+        "patchSetId": 25
+      },
+      "lineNbr": 152,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-12T13:04:38Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_abf56958",
+      "range": {
+        "startLine": 150,
+        "startChar": 0,
+        "endLine": 152,
+        "endChar": 13
+      },
+      "revId": "0d85478099d8acebd56b5e9e9943481ae64a775a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5a166590_a567dee9",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BridgeMapper.scala",
         "patchSetId": 25
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "3a1371a2_3ec77914",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BridgeMapper.scala",
+        "patchSetId": 25
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-12T13:04:38Z",
+      "side": 1,
+      "message": "All notifications from the VirtualTopology observable are guaranteed to arrive on the same thread, because:\n- the subscription to the underlying behavior subject is performed on the VT thread, such that any initial notification is received there\n- all subsequent notifications are received on the VT thread because all mappers use observeOn\n\nIf there will be some notifications emitted not on the VT thread, these will be caught by the assertThread() in the portUpdated method inside the mapper.",
+      "parentUuid": "5a166590_a567dee9",
+      "range": {
+        "startLine": 67,
+        "startChar": 20,
+        "endLine": 67,
+        "endChar": 31
+      },
+      "revId": "0d85478099d8acebd56b5e9e9943481ae64a775a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5a166590_e561d6d4",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BridgeMapper.scala",
         "patchSetId": 25
@@ -105,6 +201,30 @@
       "writtenOn": "2015-03-11T08:26:25Z",
       "side": 1,
       "message": "Maybe this should instead be case NonFatal(e)?",
+      "range": {
+        "startLine": 132,
+        "startChar": 12,
+        "endLine": 132,
+        "endChar": 29
+      },
+      "revId": "0d85478099d8acebd56b5e9e9943481ae64a775a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_1ecc3d35",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BridgeMapper.scala",
+        "patchSetId": 25
+      },
+      "lineNbr": 132,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-12T13:04:38Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5a166590_e561d6d4",
       "range": {
         "startLine": 132,
         "startChar": 12,
