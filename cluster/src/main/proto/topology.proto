@@ -259,8 +259,8 @@ message Rule {
     message NatTarget {
         optional IPAddress nw_start = 1;
         optional IPAddress nw_end = 2;
-        optional int32 tp_start = 3;
-        optional int32 tp_end = 4;
+        optional uint32 tp_start = 3;
+        optional uint32 tp_end = 4;
     }
     message NatRuleData {
         repeated NatTarget nat_targets = 1;
