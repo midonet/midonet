@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3a1371a2_3e4ad983",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/services/topology/server/SessionInventoryTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-03-12T11:29:08Z",
+      "side": 1,
+      "message": "We can make this use protobuf reflection :D",
+      "revId": "5feec2b43336b4a763c4f642b206dd4c14eafc5a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
