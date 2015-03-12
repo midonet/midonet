@@ -18,7 +18,11 @@ package org.midonet.midolman;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintStream;
+import java.lang.management.ManagementFactory;
+import java.lang.management.RuntimeMXBean;
 import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
@@ -93,6 +97,16 @@ public class Midolman {
         log.info("commit.user: {}", properties.get("git.commit.user.name"));
         log.info("build.time: {}", properties.get("git.build.time"));
         log.info("build.user: {}", properties.get("git.build.user.name"));
+        log.info("-------------------------------------");
+
+        // log cmdline and JVM info
+        log.info("cmdline args: {}", Arrays.toString(args));
+        RuntimeMXBean runtimeMxBean = ManagementFactory.getRuntimeMXBean();
+        List<String> arguments = runtimeMxBean.getInputArguments();
+        log.info("JVM options: ");
+        for(String a: arguments){
+            log.info("  {}", a);
+        }
         log.info("-------------------------------------");
 
         log.info("Adding shutdownHook");
