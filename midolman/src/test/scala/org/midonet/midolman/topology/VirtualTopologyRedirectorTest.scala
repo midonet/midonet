@@ -23,31 +23,32 @@ import scala.concurrent.duration._
 
 import akka.actor.Props
 import akka.testkit.TestActorRef
-
 import org.apache.commons.configuration.HierarchicalConfiguration
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 import rx.Observable
 
-import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.data.storage.{CreateOp, NotFoundException}
 import org.midonet.cluster.models.Topology.Rule.Action
 import org.midonet.cluster.models.Topology.{Port => TopologyPort}
+import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
-import org.midonet.midolman.rules.{RuleResult, LiteralRule}
-import org.midonet.midolman.{FlowController, NotYetException}
-import org.midonet.midolman.topology.VirtualTopologyActor.{ChainRequest, Unsubscribe, PortRequest}
-import org.midonet.midolman.topology.devices.{Port => SimulationPort, BridgePort}
-import org.midonet.midolman.simulation.{Chain => SimChain}
+import org.midonet.midolman.rules.{LiteralRule, RuleResult}
+import org.midonet.midolman.simulation.{Chain => SimChain, LoadBalancer => SimLB}
+import org.midonet.midolman.topology.VirtualTopologyActor.{ChainRequest, LoadBalancerRequest, PortRequest, Unsubscribe}
+import org.midonet.midolman.topology.devices.{BridgePort, Port => SimulationPort}
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.{AwaitableActor, MessageAccumulator}
+import org.midonet.midolman.{FlowController, NotYetException}
 import org.midonet.sdn.flows.FlowTagger
 import org.midonet.util.reactivex.AwaitableObserver
 
 @RunWith(classOf[JUnitRunner])
-class VirtualTopologyRedirectorTest extends MidolmanSpec with TopologyBuilder {
+class VirtualTopologyRedirectorTest extends MidolmanSpec
+                                    with TopologyBuilder
+                                    with TopologyMatchers {
 
     private class TestableVTA extends VirtualTopologyActor
                               with MessageAccumulator
@@ -534,6 +535,21 @@ class VirtualTopologyRedirectorTest extends MidolmanSpec with TopologyBuilder {
                     val rule = simChain.getRules.get(0)
                     rule.getClass shouldBe classOf[LiteralRule]
                     rule.action shouldBe RuleResult.Action.ACCEPT
+            })
+        }
+
+        scenario("Test that load-balancers are supported") {
+            val vip = createVip()
+            backend.store.create(vip)
+            val loadBalancer = createLB(vips = Set(vip.getId.asJava))
+            backend.store.create(loadBalancer)
+            VirtualTopologyActor ! LoadBalancerRequest(loadBalancer.getId.asJava,
+                                                       update = false)
+            sender.await(timeout)
+
+            expectLast({
+                case simLB: SimLB =>
+                    simLB shouldBeDeviceOf loadBalancer
             })
         }
     }

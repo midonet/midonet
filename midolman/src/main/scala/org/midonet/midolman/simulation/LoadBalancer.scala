@@ -20,6 +20,7 @@ import java.util.UUID
 import akka.actor.ActorSystem
 
 import org.midonet.midolman.rules.RuleResult
+import org.midonet.midolman.topology.VirtualTopology.VirtualDevice
 import org.midonet.midolman.topology.VirtualTopologyActor.tryAsk
 import org.midonet.sdn.flows.FlowTagger
 
@@ -30,14 +31,15 @@ object LoadBalancer {
 }
 
 class LoadBalancer(val id: UUID, val adminStateUp: Boolean, val routerId: UUID,
-                   val vips: Array[VIP]) {
+                   val vips: Array[VIP]) extends VirtualDevice {
 
-    import LoadBalancer._
+    import org.midonet.midolman.simulation.LoadBalancer._
 
-    val deviceTag = FlowTagger.tagForDevice(id)
+    override val deviceTag = FlowTagger.tagForDevice(id)
 
     val hasStickyVips: Boolean = vips.exists(_.isStickySourceIP)
     val hasNonStickyVips: Boolean = vips.exists(!_.isStickySourceIP)
+
 
     def processInbound(context: PacketContext)(implicit actorSystem: ActorSystem)
     : RuleResult = {
@@ -135,4 +137,8 @@ class LoadBalancer(val id: UUID, val adminStateUp: Boolean, val routerId: UUID,
         }
         null
     }
+
+    override def toString() =
+        s"Load-balancer [id=$id adminStateUp=$adminStateUp routerId=$routerId " +
+        s"vip ids=${vips.map(_.id).toList}]"
 }

@@ -18,16 +18,13 @@ package org.midonet.cluster.services
 import com.google.common.util.concurrent.AbstractService
 import com.google.inject.Inject
 import org.apache.curator.framework.CuratorFramework
-import org.slf4j.LoggerFactory
 
-import org.midonet.cluster.config.ZookeeperConfig
 import org.midonet.cluster.data.storage.FieldBinding.DeleteAction._
 import org.midonet.cluster.data.storage.{OwnershipType, StorageWithOwnership, Storage, ZookeeperObjectMapper}
 import org.midonet.cluster.models.C3PO.C3POState
 import org.midonet.cluster.models.Neutron._
-import org.midonet.cluster.models.Topology._
+import org.midonet.cluster.models.Topology.{VIP, _}
 import org.midonet.cluster.storage.MidonetBackendConfig
-import org.midonet.config.ConfigProvider
 
 /** The trait that models the new Midonet Backend, managing all relevant
   * connections and APIs to interact with backend storages. */
@@ -64,6 +61,7 @@ abstract class MidonetBackend extends AbstractService {
              classOf[Rule],
              classOf[TunnelZone],
              classOf[SecurityGroup],
+             classOf[LoadBalancer],
              classOf[VIP],
              classOf[Vtep],
              classOf[VtepBinding]
@@ -90,6 +88,9 @@ abstract class MidonetBackend extends AbstractService {
                              classOf[TunnelZone], "host_ids", CLEAR)
 
         // TODO(nicolas): Add bindings between a chain and its rules
+        // TODO(nicolas): Declare bindings between a load-balancer and
+        //                its vips, as well as between a router and its
+        //                load-balancer.
         store.build()
     }
 
