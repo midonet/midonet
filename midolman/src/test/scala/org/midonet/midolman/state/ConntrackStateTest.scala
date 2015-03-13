@@ -99,14 +99,13 @@ class ConntrackStateTest extends MidolmanSpec {
             ctx.trackConnection(egressDevice)
             ctx should be (taggedWith (ingressKey, egressKey))
 
-            connTrackTx.size() should be (2)
+            connTrackTx.size() should be (1)
             val values = transactionValues(connTrackTx)
 
-            values should contain theSameElementsAs Map(ingressKey -> true,
-                                                        egressKey -> false)
-            connTrackStateTable.getRefCount(ingressKey) should be (0)
+            values should contain theSameElementsAs Map(egressKey -> false)
+            connTrackStateTable.getRefCount(egressKey) should be (0)
             connTrackTx.commit()
-            connTrackStateTable.getRefCount(ingressKey) should be (1)
+            connTrackStateTable.getRefCount(ingressKey) should be (0)
             connTrackStateTable.getRefCount(egressKey) should be (1)
         }
 
@@ -116,7 +115,6 @@ class ConntrackStateTest extends MidolmanSpec {
             val ingressKey = ConnTrackKey(ctx.wcmatch, ingressDevice)
             val egressKey = ConnTrackState.EgressConnTrackKey(ctx.wcmatch, egressDevice)
 
-            connTrackStateTable.putAndRef(ingressKey, true)
             connTrackStateTable.putAndRef(egressKey, false)
 
             ctx.isForwardFlow should be (true)
@@ -125,14 +123,13 @@ class ConntrackStateTest extends MidolmanSpec {
             ctx.trackConnection(egressDevice)
             ctx should be (taggedWith (ingressKey, egressKey))
 
-            connTrackTx.size() should be (2)
+            connTrackTx.size() should be (1)
             val values = transactionValues(connTrackTx)
 
-            values should contain theSameElementsAs Map(ingressKey -> true,
-                                                        egressKey -> false)
-            connTrackStateTable.getRefCount(ingressKey) should be (1)
+            values should contain theSameElementsAs Map(egressKey -> false)
+            connTrackStateTable.getRefCount(egressKey) should be (1)
             connTrackTx.commit()
-            connTrackStateTable.getRefCount(ingressKey) should be (2)
+            connTrackStateTable.getRefCount(ingressKey) should be (0)
             connTrackStateTable.getRefCount(egressKey) should be (2)
         }
 
