@@ -21,7 +21,7 @@ import scala.concurrent.Await.{ready, result}
 import scala.concurrent.Future
 import scala.concurrent.duration._
 
-import akka.actor.{Status, Props}
+import akka.actor.Props
 import akka.testkit.TestActorRef
 
 import org.apache.commons.configuration.HierarchicalConfiguration
@@ -30,7 +30,7 @@ import org.scalatest.junit.JUnitRunner
 
 import rx.Observable
 
-import org.midonet.cluster.data.storage.{NotFoundException, Storage}
+import org.midonet.cluster.data.storage.NotFoundException
 import org.midonet.cluster.models.Topology.{Port => TopologyPort}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag

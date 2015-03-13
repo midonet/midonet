@@ -17,6 +17,8 @@ package org.midonet.midolman.topology
 
 import java.util.UUID
 
+import scala.reflect.ClassTag
+
 import org.midonet.midolman.topology.VirtualTopology.VirtualDevice
 
 /**
@@ -26,8 +28,8 @@ import org.midonet.midolman.topology.VirtualTopology.VirtualDevice
  */
 abstract class VirtualDeviceMapper[D <: VirtualDevice](id: UUID,
                                                        vt: VirtualTopology)
-                                                      (implicit m: Manifest[D])
-        extends DeviceMapper[D](id, vt)(m) {
+                                                      (implicit tag: ClassTag[D])
+        extends DeviceMapper[D](id, vt)(tag) {
 
     override final protected def onDeviceChanged(device: D) = {
         vt.invalidate(device.deviceTag)
