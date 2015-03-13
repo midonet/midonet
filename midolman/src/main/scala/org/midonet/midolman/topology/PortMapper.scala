@@ -21,8 +21,9 @@ import rx.Observable
 
 import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.models.Topology.{Port => TopologyPort}
+import org.midonet.midolman.simulation.Chain
 import org.midonet.midolman.topology.devices.{Port => SimulationPort}
-import org.midonet.util.functors.{makeFunc1, makeFunc2}
+import org.midonet.util.functors.{makeAction0, makeFunc1, makeFunc2}
 
 /**
  * A device mapper that exposes an [[rx.Observable]] with notifications for
@@ -30,22 +31,28 @@ import org.midonet.util.functors.{makeFunc1, makeFunc2}
  * topology port object, and the topology port ownership indicating the active
  * state of the port.
  *
- * +------------------+                            +----------------+
- * |    Port obs.     |--------------------------->| take(distinct) |
- * +------------------+                            +----------------+
- *                                                         | port
- *                                                 +----------------+
- *                                                 |   combinator   |-> Device
- *                                                 +----------------+
- *                                                         | active
- * +------------------+  +----------------------+  +----------------+
- * | Port owners obs. |->| map(owners.nonEmpty) |->| take(distinct) |
- * +------------------+  +----------------------+  +----------------+
+ *                       +-----------------+  +----------------+
+ *  store.owners[Port]-->| map(_.nonEmpty) |->| take(distinct) |
+ *                       +-----------------+  +----------------+
+ *                                                    | Port active
+ *                       +-----------------+  +----------------+
+ *         store[Port]-->|  take(distinct) |->|   combinator   |--+
+ *                       +-----------------+  +----------------+  |
+ *                                +-------------------------------+
+ *                                | SimulationPort
+ *                       +-------------------+
+ *     requestChains <---| map(portUpdated)  |------+
+ *           |           +-------------------+      |             SimulationPort
+ *           |           +-------------------+  +-------+  +---------+
+ *   chainsObservable -->| map(chainUpdated) |->| merge |->| isReady |-->
+ *                       +-------------------+  +-------+  +---------+
  */
 final class PortMapper(id: UUID, vt: VirtualTopology)
-        extends VirtualDeviceMapper[SimulationPort](id, vt) {
+        extends DeviceWithChainsMapper[SimulationPort](id, vt) {
 
     override def logSource = s"org.midonet.devices.port.port-$id"
+
+    private var currentPort: SimulationPort = null
 
     private lazy val combinator =
         makeFunc2[TopologyPort, Boolean, SimulationPort](
@@ -55,8 +62,8 @@ final class PortMapper(id: UUID, vt: VirtualTopology)
                 simPort
             })
 
-    protected override val observable =
-        Observable.combineLatest[TopologyPort, Boolean, SimulationPort](
+    private lazy val portObservable = Observable
+        .combineLatest[TopologyPort, Boolean, SimulationPort](
             vt.store.observable(classOf[TopologyPort], id)
                 .distinctUntilChanged,
             vt.store.ownersObservable(classOf[TopologyPort], id)
@@ -64,5 +71,43 @@ final class PortMapper(id: UUID, vt: VirtualTopology)
                 .distinctUntilChanged
                 .onErrorResumeNext(Observable.empty),
             combinator)
-            .observeOn(vt.scheduler)
+        .observeOn(vt.scheduler)
+        .doOnCompleted(makeAction0(portDeleted()))
+
+    protected override val observable = Observable
+        .merge(chainsObservable.map[SimulationPort](makeFunc1(chainUpdated)),
+               portObservable.map[SimulationPort](makeFunc1(portUpdated)))
+        .filter(makeFunc1(isPortReady))
+
+
+    /** Handles updates to the simulation port. */
+    private def portUpdated(port: SimulationPort): SimulationPort = {
+        assertThread()
+        log.debug("Port updated {}", port)
+
+        // Request the chains for this port.
+        requestChains(port.inboundFilter, port.outboundFilter)
+
+        currentPort = port
+        port
+    }
+
+    /** Handles the deletion of the simulation port. */
+    private def portDeleted(): Unit = {
+        log.debug("Port deleted")
+        deviceDeleted()
+    }
+
+    /** Handles updates to the chains. */
+    private def chainUpdated(chain: Chain): SimulationPort = {
+        assertThread()
+        log.debug("Port chain updated {}", chain)
+        currentPort
+    }
+
+    /** Indicates whether the current port is ready, by receiving all of the
+      * following: port, port active state, and port filter chains. */
+    private def isPortReady(port: SimulationPort): Boolean = {
+        (currentPort ne null) && areChainsReady
+    }
 }

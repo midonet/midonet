@@ -86,7 +86,7 @@ final class ChainMapper(chainId: UUID, vt: VirtualTopology)
         if (!jumpChainRefCount.contains(jumpChainId)) {
             log.debug("Subscribing to jump chain: {}", jumpChainId)
             jumpChainRefCount(jumpChainId) = 1
-            updateChains(jumpChainRefCount.keySet.toSet)
+            requestChains(jumpChainRefCount.keySet.toSet)
         } else {
             jumpChainRefCount(jumpChainId) += 1
         }
@@ -98,7 +98,7 @@ final class ChainMapper(chainId: UUID, vt: VirtualTopology)
         if (jumpChainRefCount(jumpChainId) == 0) {
             log.debug("Unsubscribing from chain {}", jumpChainId)
             jumpChainRefCount.remove(jumpChainId)
-            updateChains(jumpChainRefCount.keySet.toSet)
+            requestChains(jumpChainRefCount.keySet.toSet)
         }
     }
 

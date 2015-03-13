@@ -61,7 +61,7 @@ trait VirtualConfigurationBuilders {
     def newHost(name: String): Host = newHost(name, UUID.randomUUID())
 
     def newInboundChainOnBridge(name: String, bridge: ClusterBridge): Chain = {
-        val chain = createChain(name, None)
+        val chain = newChain(name, None)
         bridge.setInboundFilter(chain.getId)
         clusterDataClient().bridgesUpdate(bridge)
         Thread.sleep(50)
@@ -69,7 +69,7 @@ trait VirtualConfigurationBuilders {
     }
 
     def newOutboundChainOnBridge(name: String, bridge: ClusterBridge): Chain = {
-        val chain = createChain(name, None)
+        val chain = newChain(name, None)
         bridge.setOutboundFilter(chain.getId)
         clusterDataClient().bridgesUpdate(bridge)
         Thread.sleep(50)
@@ -77,7 +77,7 @@ trait VirtualConfigurationBuilders {
     }
 
     def newInboundChainOnRouter(name: String, router: ClusterRouter): Chain = {
-        val chain = createChain(name, None)
+        val chain = newChain(name, None)
         router.setInboundFilter(chain.getId)
         clusterDataClient().routersUpdate(router)
         Thread.sleep(50)
@@ -85,14 +85,14 @@ trait VirtualConfigurationBuilders {
     }
 
     def newOutboundChainOnRouter(name: String, router: ClusterRouter): Chain = {
-        val chain = createChain(name, None)
+        val chain = newChain(name, None)
         router.setOutboundFilter(chain.getId)
         clusterDataClient().routersUpdate(router)
         Thread.sleep(50)
         chain
     }
 
-    def createChain(name: String, id: Option[UUID] = None): Chain = {
+    def newChain(name: String, id: Option[UUID] = None): Chain = {
         val chain = new Chain().setName(name)
         if (id.isDefined)
             chain.setId(id.get)
@@ -106,7 +106,7 @@ trait VirtualConfigurationBuilders {
     def newOutboundChainOnPort[PD <: Port.Data, P <: Port[PD, P]]
                               (name: String, port: Port[PD, P],
                                id: UUID): Chain = {
-        val chain = createChain(name, Some(id))
+        val chain = newChain(name, Some(id))
         port.setOutboundFilter(id)
         clusterDataClient().portsUpdate(port)
         Thread.sleep(50)

@@ -139,7 +139,7 @@ class ChainInvalidationTest extends MidolmanSpec {
         clusterRouter should not be null
 
         routerIn = newInboundChainOnRouter("routerIn", clusterRouter)
-        routerInJump = createChain("jumpChain", None)
+        routerInJump = newChain("jumpChain", None)
 
         newJumpRuleOnChain(routerIn, 1, new Condition(), routerInJump.getId)
 
