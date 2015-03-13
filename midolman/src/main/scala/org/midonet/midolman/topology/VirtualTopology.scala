@@ -30,6 +30,7 @@ import org.midonet.cluster.services.MidonetBackend
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.midolman.services.MidolmanActorsService
+import org.midonet.midolman.simulation.IPAddrGroup
 import org.midonet.midolman.state.ZkConnectionAwareWatcher
 import org.midonet.midolman.topology.devices._
 import org.midonet.midolman.{FlowController, NotYetException}
@@ -184,7 +185,8 @@ class VirtualTopology @Inject() (val backend: MidonetBackend,
         classTag[BridgePort] -> (new PortMapper(_, this)),
         classTag[VxLanPort] -> (new PortMapper(_, this)),
         classTag[TunnelZone] -> (new TunnelZoneMapper(_, this)),
-        classTag[Host] -> (new HostMapper(_, this))
+        classTag[Host] -> (new HostMapper(_, this)),
+        classTag[IPAddrGroup] -> (new IPAddrGroupMapper(_, this))
     )
 
     register(this)

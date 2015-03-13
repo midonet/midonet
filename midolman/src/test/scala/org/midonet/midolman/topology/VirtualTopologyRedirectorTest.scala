@@ -21,7 +21,7 @@ import scala.concurrent.Await.{ready, result}
 import scala.concurrent.Future
 import scala.concurrent.duration._
 
-import akka.actor.{Status, Props}
+import akka.actor.Props
 import akka.testkit.TestActorRef
 
 import org.apache.commons.configuration.HierarchicalConfiguration
@@ -30,20 +30,23 @@ import org.scalatest.junit.JUnitRunner
 
 import rx.Observable
 
-import org.midonet.cluster.data.storage.{NotFoundException, Storage}
+import org.midonet.cluster.data.storage.NotFoundException
 import org.midonet.cluster.models.Topology.{Port => TopologyPort}
 import org.midonet.cluster.services.MidonetBackend
+import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
-import org.midonet.midolman.{FlowController, NotYetException}
-import org.midonet.midolman.topology.VirtualTopologyActor.{Unsubscribe, PortRequest}
-import org.midonet.midolman.topology.devices.{Port => SimulationPort, BridgePort}
+import org.midonet.midolman.simulation.IPAddrGroup
+import org.midonet.midolman.topology.VirtualTopologyActor.{IPAddrGroupRequest, PortRequest, Unsubscribe}
+import org.midonet.midolman.topology.devices.{BridgePort, Port => SimulationPort}
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.{AwaitableActor, MessageAccumulator}
+import org.midonet.midolman.{FlowController, NotYetException}
 import org.midonet.sdn.flows.FlowTagger
 import org.midonet.util.reactivex.AwaitableObserver
 
 @RunWith(classOf[JUnitRunner])
-class VirtualTopologyRedirectorTest extends MidolmanSpec with TopologyBuilder {
+class VirtualTopologyRedirectorTest extends MidolmanSpec with TopologyBuilder
+                                                         with TopologyMatchers {
 
     private class TestableVTA extends VirtualTopologyActor
                               with MessageAccumulator
@@ -505,6 +508,21 @@ class VirtualTopologyRedirectorTest extends MidolmanSpec with TopologyBuilder {
             Then("The VTA should receive the message")
             vta.messages.size shouldBe 1
             vta.messages.last shouldBe msg
+        }
+    }
+
+    feature("Test supported devices") {
+        scenario("Test that IPAddrGroups are supported") {
+            val protoIpAddrGroup = createIPAddrGroup()
+            backend.store.create(protoIpAddrGroup)
+            VirtualTopologyActor ! IPAddrGroupRequest(protoIpAddrGroup.getId.asJava,
+                                                      update = false)
+            sender.await(timeout)
+
+            expectLast({
+                case ipAddrGroup: IPAddrGroup =>
+                    ipAddrGroup shouldBeDeviceOf protoIpAddrGroup
+            })
         }
     }
 }

@@ -18,20 +18,18 @@ package org.midonet.midolman.topology
 import scala.collection.JavaConverters._
 
 import com.google.protobuf.MessageOrBuilder
-
 import org.scalatest.Matchers
 
-import org.midonet.cluster.models.Topology.{Port => TopologyPort, Network => TopologyBridge, Rule => TopologyRule}
-import org.midonet.cluster.util.{RangeUtil, IPSubnetUtil}
+import org.midonet.cluster.models.Topology.{IpAddrGroup => TopologyIPAddrGroup, Network => TopologyBridge}
+import org.midonet.cluster.models.Topology.{Port => TopologyPort, Rule => TopologyRule}
 import org.midonet.cluster.util.IPAddressUtil._
 import org.midonet.cluster.util.IPSubnetUtil._
 import org.midonet.cluster.util.UUIDUtil._
-import org.midonet.midolman.rules.{Condition, Rule, JumpRule, NatRule, ForwardNatRule, NatTarget}
-import org.midonet.midolman.simulation.Bridge
-import org.midonet.midolman.topology.devices.VxLanPort
-import org.midonet.midolman.topology.TopologyMatchers.{BridgeMatcher, BridgePortMatcher, RouterPortMatcher}
+import org.midonet.cluster.util.{IPSubnetUtil, RangeUtil}
+import org.midonet.midolman.rules.{Condition, ForwardNatRule, JumpRule, NatRule, NatTarget, Rule}
+import org.midonet.midolman.simulation.{Bridge, IPAddrGroup}
 import org.midonet.midolman.topology.TopologyMatchers._
-import org.midonet.midolman.topology.devices.{ RouterPort, Port, BridgePort}
+import org.midonet.midolman.topology.devices.{BridgePort, Port, RouterPort, VxLanPort}
 import org.midonet.packets.MAC
 
 object TopologyMatchers {
@@ -204,6 +202,19 @@ object TopologyMatchers {
             r.getFragmentPolicy.name shouldBe cond.fragmentPolicy.name
         }
     }
+
+    class IPAddrGroupMatcher(ipAddrGroup: IPAddrGroup)
+        extends Matchers
+        with DeviceMatcher[TopologyIPAddrGroup] {
+
+        override def shouldBeDeviceOf(i: TopologyIPAddrGroup): Unit = {
+            i.getId.asJava shouldBe ipAddrGroup.id
+            ipAddrGroup.addrs should contain theSameElementsAs
+                i.getIpAddrPortsList.asScala.map(ipAddrPort =>
+                    toIPAddr(ipAddrPort.getIpAddress)
+                )
+        }
+    }
 }
 
 trait TopologyMatchers {
@@ -239,4 +250,7 @@ trait TopologyMatchers {
 
     implicit def asMatcher(cond: Condition): ConditionMatcher =
         new ConditionMatcher(cond)
+
+    implicit def asMatcher(ipAddrGroup: IPAddrGroup): IPAddrGroupMatcher =
+        new IPAddrGroupMatcher(ipAddrGroup)
 }
