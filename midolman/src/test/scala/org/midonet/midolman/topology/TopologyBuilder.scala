@@ -20,7 +20,9 @@ import java.util.UUID
 import scala.collection.JavaConverters._
 import scala.util.Random
 
-import org.midonet.cluster.models.Commons.IPAddress
+import org.midonet.cluster.models.Commons
+import org.midonet.cluster.models.Commons.{IPAddress, IPVersion}
+import org.midonet.cluster.models.Topology.VIP
 import org.midonet.cluster.models.Topology.Host.PortBinding
 import org.midonet.cluster.models.Topology.IpAddrGroup.IpAddrPorts
 import org.midonet.cluster.models.Topology.Route.NextHop
@@ -30,7 +32,7 @@ import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.util.IPAddressUtil._
 import org.midonet.cluster.util.IPSubnetUtil._
 import org.midonet.cluster.util.UUIDUtil._
-import org.midonet.cluster.util.{IPSubnetUtil, RangeUtil, UUIDUtil}
+import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil, RangeUtil, UUIDUtil}
 import org.midonet.midolman.rules.FragmentPolicy
 import org.midonet.packets._
 import org.midonet.util.Range
@@ -406,6 +408,50 @@ trait TopologyBuilder {
             builder.setName(name.get)
 
         builder.build()
+    }
+
+    protected def createVip(adminStateUp: Option[Boolean] = None,
+                            poolId: Option[UUID] = None,
+                            address: Option[String] = None,
+                            protocolPort: Option[Int] = None,
+                            isStickySourceIp: Option[Boolean] = None) = {
+
+        val builder = VIP.newBuilder
+            .setId(UUID.randomUUID().asProto)
+        if (adminStateUp.isDefined)
+            builder.setAdminStateUp(adminStateUp.get)
+        if (poolId.isDefined)
+            builder.setPoolId(poolId.get.asProto)
+        if (address.isDefined)
+            builder.setAddress(IPAddressUtil.toProto(address.get))
+        if (protocolPort.isDefined)
+            builder.setProtocolPort(protocolPort.get)
+        if (isStickySourceIp.isDefined) {
+            builder.setStickySourceIp(isStickySourceIp.get)
+        }
+
+        builder.build()
+    }
+
+    protected def createLB(adminStateUp: Option[Boolean] = None,
+                           routerId: Option[UUID] = None,
+                           vips: Set[UUID] = Set.empty) = {
+        val builder = LoadBalancer.newBuilder
+            .setId(UUID.randomUUID().asProto)
+        if (adminStateUp.isDefined)
+            builder.setAdminStateUp(adminStateUp.get)
+        if (routerId.isDefined)
+            builder.setRouterId(routerId.get.asProto)
+        builder.addAllVipIds(vips.map(_.asProto).asJava)
+            .build()
+    }
+
+    protected def createIPSubnetBuilder(version: IPVersion, prefix: String,
+                                        prefixLength: Int): Commons.IPSubnet.Builder = {
+        Commons.IPSubnet.newBuilder
+            .setVersion(version)
+            .setAddress(prefix)
+            .setPrefixLength(prefixLength)
     }
 
     protected def addIPAddrPort(builder: IpAddrGroup.Builder, ip: String,

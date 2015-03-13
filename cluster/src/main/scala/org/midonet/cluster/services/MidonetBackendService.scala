@@ -54,6 +54,7 @@ abstract class MidonetBackend extends AbstractService {
              classOf[NeutronPort],
              classOf[NeutronRouter],
              classOf[NeutronSubnet],
+             classOf[NeutronVIP],
              classOf[Port],
              classOf[PortBinding],
              classOf[PortGroup],
@@ -62,7 +63,8 @@ abstract class MidonetBackend extends AbstractService {
              classOf[Rule],
              classOf[TunnelZone],
              classOf[SecurityGroup],
-             classOf[NeutronVIP],
+             classOf[LoadBalancer],
+             classOf[VIP],
              classOf[Vtep],
              classOf[VtepBinding]
         ).foreach(store.registerClass)
@@ -94,7 +96,7 @@ abstract class MidonetBackend extends AbstractService {
 
 /** Class responsible for providing services to access to the new Storage
   * services
-  * 
+  *
   * TODO: remove ZookeeperConfig in favour of MidonetBackendConfig
   */
 class MidonetBackendService @Inject() (cfg: MidonetBackendConfig,

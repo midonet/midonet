@@ -34,6 +34,8 @@ object TopologyMappings {
         Topology.Type.PORT_GROUP -> classOf[Topology.PortGroup],
         Topology.Type.ROUTE -> classOf[Topology.Route],
         Topology.Type.ROUTER -> classOf[Topology.Router],
+        Topology.Type.LOAD_BALANCER -> classOf[Topology.LoadBalancer],
+        Topology.Type.Vip -> classOf[Topology.VIP],
         Topology.Type.RULE -> classOf[Topology.Rule],
         Topology.Type.TUNNEL_ZONE -> classOf[Topology.TunnelZone],
         Topology.Type.VTEP -> classOf[Topology.Vtep],
