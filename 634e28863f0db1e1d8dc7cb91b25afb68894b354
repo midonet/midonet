@@ -1,0 +1,140 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3a1371a2_21ee3923",
+        "filename": "netlink/src/main/java/org/midonet/netlink/rtnetlink/Addr.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 285,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-03-13T10:15:51Z",
+      "side": 1,
+      "message": "identantion",
+      "revId": "634e28863f0db1e1d8dc7cb91b25afb68894b354",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_4137f5b0",
+        "filename": "netlink/src/main/scala/org.midonet.netlink/NetlinkConnection.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 146,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-03-13T10:15:51Z",
+      "side": 1,
+      "message": "Isn\u0027t this what the netlinkrequestbroker already does? I\u0027m not sure I understand the purpose of this class :/",
+      "revId": "634e28863f0db1e1d8dc7cb91b25afb68894b354",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_01e7bd41",
+        "filename": "netlink/src/main/scala/org.midonet.netlink/NetlinkMessageWrapper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-03-13T10:15:51Z",
+      "side": 1,
+      "message": "this class must be an AnyVal, so that we can wrap the ByteBuffer without actually allocating an instance.",
+      "revId": "634e28863f0db1e1d8dc7cb91b25afb68894b354",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_21d59943",
+        "filename": "netlink/src/main/scala/org.midonet.netlink/NetlinkRequestBroker.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 192,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-03-13T10:15:51Z",
+      "side": 1,
+      "message": "notice the use of GENL_HEADER_SIZE. the header size now probably needs to be a ctor parameter",
+      "revId": "634e28863f0db1e1d8dc7cb91b25afb68894b354",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_41d09553",
+        "filename": "netlink/src/main/scala/org.midonet.netlink/genl/GenlnetlinkMessageWrapper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-03-13T10:15:51Z",
+      "side": 1,
+      "message": "This is no longer a value type. Can we move back to NetlinkMessageWrapper and pass the header size to apply and the commands and version to withContext?",
+      "revId": "634e28863f0db1e1d8dc7cb91b25afb68894b354",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_81ca8d9f",
+        "filename": "netlink/src/main/scala/org.midonet.netlink/rtnetlink/RtnetlinkMessageWrapper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-03-13T10:15:51Z",
+      "side": 1,
+      "message": "Same comment here as in the other wrapper.",
+      "revId": "634e28863f0db1e1d8dc7cb91b25afb68894b354",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_01be9dff",
+        "filename": "netlink/src/main/scala/org.midonet.netlink/rtnetlink/RtnetlinkProtocol.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-03-13T10:15:51Z",
+      "side": 1,
+      "message": "s/sealed/final?",
+      "revId": "634e28863f0db1e1d8dc7cb91b25afb68894b354",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_e1ba6109",
+        "filename": "netlink/src/main/scala/org.midonet.netlink/rtnetlink/RtnetlinkProtocol.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-03-13T10:15:51Z",
+      "side": 1,
+      "message": "i don\u0027t think the .toShort is needed",
+      "revId": "634e28863f0db1e1d8dc7cb91b25afb68894b354",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
