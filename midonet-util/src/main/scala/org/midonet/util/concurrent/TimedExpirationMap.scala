@@ -129,12 +129,12 @@ final class TimedExpirationMap[K <: AnyRef, V >: Null](log: Logger,
     def putAndRef(key: K, value: V): V =
         refCountMap.get(key) match {
             case m@Metadata(oldValue, count, _) =>
-                if (ref(key) == null) {
-                    /* Retry, a deletion raced with us and won */
-                    putAndRef(key, value)
-                } else {
+                if (ref(key) != null) {
                     m.value = value
                     oldValue
+                } else {
+                    /* Retry, a deletion raced with us and won */
+                    putAndRef(key, value)
                 }
             case _ if insert(key, value) eq null => null
             case _ => putAndRef(key, value)
