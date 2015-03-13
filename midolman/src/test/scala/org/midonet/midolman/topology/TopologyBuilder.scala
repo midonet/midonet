@@ -23,6 +23,7 @@ import scala.util.Random
 import org.midonet.cluster.models.Commons
 import org.midonet.cluster.models.Commons.{IPAddress, IPVersion}
 import org.midonet.cluster.models.Topology.Host.PortBinding
+import org.midonet.cluster.models.Topology.IpAddrGroup.IpAddrPorts
 import org.midonet.cluster.models.Topology.Route.NextHop
 import org.midonet.cluster.models.Topology.Rule.{Action, JumpRuleData, NatRuleData, NatTarget}
 import org.midonet.cluster.models.Topology.TunnelZone.HostToIp
@@ -415,6 +416,33 @@ trait TopologyBuilder {
             .setVersion(version)
             .setAddress(prefix)
             .setPrefixLength(prefixLength)
+    }
+
+    protected def addIPAddrPort(builder: IpAddrGroup.Builder, ip: String,
+                                ports: Set[UUID]): IpAddrGroup.Builder = {
+        val ipAddrPort = IpAddrPorts.newBuilder
+            .setIpAddress(IPAddressUtil.toProto(ip))
+            .addAllPortId(ports.map(_.asProto).asJava)
+            .build()
+        builder.addIpAddrPorts(ipAddrPort)
+    }
+
+    protected def createIPAddrGroupBuilder(name: Option[String] = None,
+                                           inChainId: Option[UUID] = None,
+                                           outChainId: Option[UUID] = None,
+                                           ruleIds: Set[UUID] = Set.empty)
+    : IpAddrGroup.Builder = {
+
+        val builder = IpAddrGroup.newBuilder
+            .setId(UUID.randomUUID().asProto)
+            .addAllRuleIds(ruleIds.map(_.asProto).asJava)
+        if (name.isDefined)
+            builder.setName(name.get)
+        if (inChainId.isDefined)
+            builder.setInboundChainId(inChainId.get.asProto)
+        if (outChainId.isDefined)
+            builder.setOutboundChainId(outChainId.get.asProto)
+        builder
     }
 
     private def createPortBuilder(id: UUID,

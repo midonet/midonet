@@ -16,10 +16,11 @@
 package org.midonet.midolman.simulation
 
 import java.util.UUID
-import org.midonet.packets.IPAddr
-import scala.collection.JavaConversions
 
-class IPAddrGroup(val id: UUID, val addrs: Set[IPAddr]) {
+import org.midonet.packets.IPAddr
+import org.midonet.midolman.topology.VirtualTopology.Device
+
+class IPAddrGroup(val id: UUID, val addrs: Set[IPAddr]) extends Device {
     def contains(addr: IPAddr) = addrs.contains(addr)
     override def toString =
         "IPAddrGroup[id=%s, addrs=[%s]]".format(id, addrs.mkString(", "))
