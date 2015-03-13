@@ -188,10 +188,12 @@ message Response {
             PortGroup port_group = 7;
             Route route = 8;
             Router router = 9;
-            Rule rule = 10;
-            TunnelZone tunnel_zone = 11;
-            Vtep vtep = 12;
-            VtepBinding vtep_binding = 13;
+            LoadBalancer load_balancer = 10;
+            VIP vip = 11;
+            Rule rule = 12;
+            TunnelZone tunnel_zone = 13;
+            Vtep vtep = 14;
+            VtepBinding vtep_binding = 15;
         }
     }
     message Snapshot {
