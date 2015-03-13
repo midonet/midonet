@@ -66,17 +66,21 @@ object DeviceWithChainsMapper {
 abstract class DeviceWithChainsMapper[D <: VirtualDevice](deviceId: UUID,
                                                           vt: VirtualTopology)
                                                          (implicit tag: ClassTag[D])
-    extends DeviceMapper[D](deviceId, vt)(tag) {
+    extends VirtualDeviceMapper[D](deviceId, vt)(tag) {
 
     private val chainsSubject = PublishSubject.create[Observable[Chain]]
     private val chains = new mutable.HashMap[UUID, ChainState]
 
     /**
-     * Updates the set of chains for the current device. This method must only
-     * be called from the VT thread.
+     * Requests the set of chains for the current device. The argument must
+     * specify all the chains used by the current device, where all chain
+     * identifies must be different from null. If a chain was requested
+     * previously, then the chain is ignored. If a previously requested chain is
+     * not found in the given set, then the method unsubscribes from that chain.
+     * This method must only be called from the VT thread.
      */
     @NotThreadSafe
-    protected final def updateChains(chainIds: Set[UUID]): Unit = {
+    protected final def requestChains(chainIds: Set[UUID]): Unit = {
         assertThread()
 
         log.debug("Updating chains: {}", chainIds)
@@ -92,6 +96,15 @@ abstract class DeviceWithChainsMapper[D <: VirtualDevice](deviceId: UUID,
             chains += chainId -> chainState
             chainsSubject onNext chainState.observable
         }
+    }
+
+    /**
+     * The same as the overload taking a [[Set]] argument, except that this
+     * method takes a variable list of chain identifiers. Nulls are allowed.
+     */
+    @NotThreadSafe
+    protected final def requestChains(chainIds: UUID*): Unit = {
+        requestChains(chainIds.filter(_ ne null).toSet)
     }
 
     /**
@@ -114,7 +127,7 @@ abstract class DeviceWithChainsMapper[D <: VirtualDevice](deviceId: UUID,
     @NotThreadSafe
     protected final def areChainsReady: Boolean = {
         assertThread()
-        val ready = chains.count(!_._2.isReady) == 0
+        val ready = chains.forall(_._2.isReady)
         log.debug("Chains ready: {}", Boolean.box(ready))
         ready
     }

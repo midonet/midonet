@@ -93,6 +93,12 @@ sealed trait Port extends ZoomObject with VirtualDevice with Cloneable {
         port._active = active
         port
     }
+
+    override def toString =
+        s"id=$id active=$isActive adminStateUp=$id inboundFilter=$inboundFilter " +
+        s"outboundFilter=$outboundFilter tunnelKey=$tunnelKey " +
+        s"portGroups=$portGroups peerId=$peerId hostId=$hostId " +
+        s"interfaceName=$interfaceName vlanId=$vlanId"
 }
 
 /** Logical port connected to a peer VTEP gateway. This subtype holds the 24
@@ -128,13 +134,7 @@ class VxLanPort extends Port {
     override def isActive = true
 
     override def toString =
-        s"VxLanPort [id=$id adminStateUp=$adminStateUp peerId=$peerId " +
-        s"hostId=$hostId interfaceName=$interfaceName vlanId=$vlanId " +
-        s"tunnelKey=$tunnelKey inboundFilter=$inboundFilter " +
-        s"outboundFilter=$outboundFilter portGroups=$portGroups " +
-        s"networkId=$networkId vtepMgmtIp=$vtepMgmtIp " +
-        s"vtepMgmtPort=$vtepMgmtPort vtepTunnelIp=$vtepTunnelIp " +
-        s"vtepTunnelZoneId=$vtepTunnelZoneId vtepVni=$vtepVni]"
+        s"VxLanPort [${super.toString} networkId=$networkId vtepId=$vtepId]"
 }
 
 class BridgePort extends Port {
@@ -145,10 +145,7 @@ class BridgePort extends Port {
     override def deviceId = networkId
 
     override def toString =
-        s"BridgePort [id=$id adminStateUp=$adminStateUp networkId=$networkId " +
-        s"peerId=$peerId hostId=$hostId interfaceName=$interfaceName " +
-        s"vlanId=$vlanId tunnelKey=$tunnelKey inboundFilter=$inboundFilter " +
-        s"outboundFilter=$outboundFilter portGroups=$portGroups]"
+        s"BridgePort [${super.toString} networkId=$networkId]"
 }
 
 class RouterPort extends Port {
@@ -175,11 +172,8 @@ class RouterPort extends Port {
     def nwSubnet = _portAddr
 
     override def toString =
-        s"RouterPort [id=$id adminStateUp=$adminStateUp routerPort=$routerId " +
-        s"peerId=$peerId hostId=$hostId interfaceName=$interfaceName " +
-        s"portSubnet=$portSubnet portIp=$portIp portMac=$portMac vlanId=$vlanId " +
-        s"tunnelKey=$tunnelKey inboundFilter=$inboundFilter " +
-        s"outboundFilter=$outboundFilter portGroups=$portGroups]"
+        s"RouterPort [${super.toString} routerId=$routerId " +
+        s"portSubnet=$portSubnet portIp=$portIp portMac=$portMac]"
 }
 
 sealed class PortFactory extends ZoomConvert.Factory[Port, Topology.Port] {
