@@ -86,7 +86,7 @@ final class ChainMapper(chainId: UUID, vt: VirtualTopology)
         if (!jumpChainRefCount.contains(jumpChainId)) {
             log.debug("Subscribing to jump chain: {}", jumpChainId)
             jumpChainRefCount(jumpChainId) = 1
-            updateChains(jumpChainRefCount.keySet.toSet)
+            requestChains(jumpChainRefCount.keySet.toSet)
         } else {
             jumpChainRefCount(jumpChainId) += 1
         }
@@ -98,7 +98,7 @@ final class ChainMapper(chainId: UUID, vt: VirtualTopology)
         if (jumpChainRefCount(jumpChainId) == 0) {
             log.debug("Unsubscribing from chain {}", jumpChainId)
             jumpChainRefCount.remove(jumpChainId)
-            updateChains(jumpChainRefCount.keySet.toSet)
+            requestChains(jumpChainRefCount.keySet.toSet)
         }
     }
 
@@ -177,7 +177,7 @@ final class ChainMapper(chainId: UUID, vt: VirtualTopology)
         ruleStream.onCompleted()
         rules.values.foreach(_.complete())
         rules.clear()
-        super.deviceDeleted()
+        completeChains()
         jumpChainRefCount.clear()
     }
 
@@ -217,7 +217,7 @@ final class ChainMapper(chainId: UUID, vt: VirtualTopology)
                                                   chainId)
                                   .observeOn(vt.scheduler)
                                   .map[TopologyChain](makeFunc1(chainUpdated))
-                                  .doOnCompleted(makeAction0(chainDeleted)))
+                                  .doOnCompleted(makeAction0(chainDeleted())))
             .filter(makeFunc1(chainReady))
             .map[SimChain](makeFunc1(buildChain))
 }

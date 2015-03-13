@@ -23,6 +23,7 @@ import scala.concurrent.duration._
 
 import akka.actor.Props
 import akka.testkit.TestActorRef
+
 import org.apache.commons.configuration.HierarchicalConfiguration
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
@@ -520,7 +521,7 @@ class VirtualTopologyRedirectorTest extends MidolmanSpec with TopologyBuilder
                                                        action = Some(Action.ACCEPT))
                 .build()
             val chain = createChain(chainId, Some("test-chain"),
-                                    List(literalRule.getId))
+                                    Set(literalRule.getId))
             backend.store.multi(List(CreateOp(literalRule), CreateOp(chain)))
 
             VirtualTopologyActor ! ChainRequest(chain.getId.asJava,

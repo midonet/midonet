@@ -20,8 +20,7 @@ import java.util.UUID
 import scala.collection.JavaConverters._
 import scala.util.Random
 
-import org.midonet.cluster.models.Commons
-import org.midonet.cluster.models.Commons.{IPAddress, IPVersion}
+import org.midonet.cluster.models.Commons.IPAddress
 import org.midonet.cluster.models.Topology.Host.PortBinding
 import org.midonet.cluster.models.Topology.IpAddrGroup.IpAddrPorts
 import org.midonet.cluster.models.Topology.Route.NextHop
@@ -30,9 +29,8 @@ import org.midonet.cluster.models.Topology.TunnelZone.HostToIp
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.util.IPAddressUtil._
 import org.midonet.cluster.util.IPSubnetUtil._
-import org.midonet.cluster.util.MACUtil._
 import org.midonet.cluster.util.UUIDUtil._
-import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil, RangeUtil, UUIDUtil}
+import org.midonet.cluster.util.{IPSubnetUtil, RangeUtil, UUIDUtil}
 import org.midonet.midolman.rules.FragmentPolicy
 import org.midonet.packets._
 import org.midonet.util.Range
@@ -205,7 +203,6 @@ trait TopologyBuilder {
         builder.build()
     }
 
-
     protected def setCondition(builder: Rule.Builder,
                                conjunctionInv: Option[Boolean] = None,
                                matchForwardFlow: Option[Boolean] = None,
@@ -321,9 +318,9 @@ trait TopologyBuilder {
         builder
     }
 
-    private def createRuleBuilder(id: UUID, chainId: Option[UUID],
-                                  action: Option[Rule.Action])
-    : Rule.Builder = {
+    private def createRuleBuilder(id: UUID,
+                                  chainId: Option[UUID],
+                                  action: Option[Rule.Action]): Rule.Builder = {
         val builder = Rule.newBuilder.setId(id.asProto)
         if (chainId.isDefined)
             builder.setChainId(chainId.get.asProto)
@@ -348,7 +345,8 @@ trait TopologyBuilder {
             .setType(Rule.Type.TRACE_RULE)
     }
 
-    protected def createJumpRuleBuilder(id: UUID, chainId: Option[UUID] = None,
+    protected def createJumpRuleBuilder(id: UUID,
+                                        chainId: Option[UUID] = None,
                                         jumpChainId: Option[UUID] = None)
     : Rule.Builder = {
         val builder = createRuleBuilder(id, chainId, Option(Action.JUMP))
@@ -361,10 +359,8 @@ trait TopologyBuilder {
         builder
     }
 
-    protected def createNatTarget(startAddr: IPAddress =
-                                      IPAddressUtil.toProto(IPv4Addr.random),
-                                  endAddr: IPAddress =
-                                      IPAddressUtil.toProto(IPv4Addr.random),
+    protected def createNatTarget(startAddr: IPAddress = IPv4Addr.random.asProto,
+                                  endAddr: IPAddress = IPv4Addr.random.asProto,
                                   portStart: Int = random.nextInt(),
                                   portEnd: Int = random.nextInt()): NatTarget = {
         NatTarget.newBuilder
@@ -375,10 +371,11 @@ trait TopologyBuilder {
             .build()
     }
 
-    protected def createNatRuleBuilder(id: UUID, chainId: Option[UUID] = None,
+    protected def createNatRuleBuilder(id: UUID,
+                                       chainId: Option[UUID] = None,
                                        dnat: Option[Boolean] = None,
                                        matchFwdFlow: Option[Boolean] = None,
-                                       targets:  Set[NatTarget])
+                                       targets: Set[NatTarget] = Set.empty)
     : Rule.Builder = {
         val builder = createRuleBuilder(id, chainId, Option(Action.CONTINUE))
             .setType(Rule.Type.NAT_RULE)
@@ -398,24 +395,17 @@ trait TopologyBuilder {
         builder
     }
 
-    protected def createChain(id: UUID, name: Option[String],
-                              ruleIds: Seq[Commons.UUID]): Chain = {
+    protected def createChain(id: UUID,
+                              name: Option[String] = None,
+                              ruleIds: Set[UUID] = Set.empty): Chain = {
         val builder = Chain.newBuilder
             .setId(id.asProto)
-            .addAllRuleIds(ruleIds.asJava)
+            .addAllRuleIds(ruleIds.map(_.asProto).asJava)
 
         if (name.isDefined)
             builder.setName(name.get)
 
         builder.build()
-    }
-
-    protected def createIPSubnetBuilder(version: IPVersion, prefix: String,
-                                        prefixLength: Int): Commons.IPSubnet.Builder = {
-        Commons.IPSubnet.newBuilder
-            .setVersion(version)
-            .setAddress(prefix)
-            .setPrefixLength(prefixLength)
     }
 
     protected def addIPAddrPort(builder: IpAddrGroup.Builder, ip: String,
