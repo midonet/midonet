@@ -16,6 +16,24 @@
       "revId": "d4c3c3dafd7d71894e1be118c0f396fbd3233e3d",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_617311b2",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BridgeMapper.scala",
+        "patchSetId": 27
+      },
+      "lineNbr": 467,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-13T09:28:17Z",
+      "side": 1,
+      "message": "Yes, it makes sense. I will add a filter to filter unwanted port updates.",
+      "parentUuid": "3a1371a2_ce5dd44a",
+      "revId": "d4c3c3dafd7d71894e1be118c0f396fbd3233e3d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
