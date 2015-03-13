@@ -96,6 +96,30 @@
     },
     {
       "key": {
+        "uuid": "3a1371a2_8e447c75",
+        "filename": "midolman/src/main/java/org/midonet/midolman/layer3/Route.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 254,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-03-13T03:14:00Z",
+      "side": 1,
+      "message": "It used to be that the companion object was compiled as a separate class. It had to be accessed like this: IPv4Addr$.MODULE$.apply(value)",
+      "parentUuid": "3a1371a2_2b3c5a93",
+      "range": {
+        "startLine": 254,
+        "startChar": 28,
+        "endLine": 254,
+        "endChar": 42
+      },
+      "revId": "ebd2c40ee0b118073c2d84109aee816c1e5adccf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a1371a2_5e14f5f4",
         "filename": "midolman/src/main/scala/org/midonet/cluster/state/StateStorage.scala",
         "patchSetId": 2
