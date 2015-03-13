@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3a1371a2_ce5dd44a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BridgeMapper.scala",
+        "patchSetId": 27
+      },
+      "lineNbr": 467,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-03-13T08:24:13Z",
+      "side": 1,
+      "message": "The log says ignoring, but it still triggers a simulation. The simulation may end up being a noise. I know this situation may not really happen, but may be just safer to avoid an unnecessary simulation.",
+      "revId": "d4c3c3dafd7d71894e1be118c0f396fbd3233e3d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
