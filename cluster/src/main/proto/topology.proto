@@ -30,11 +30,12 @@ enum Type {
     PORT_GROUP = 6;
     ROUTE = 7;
     ROUTER = 8;
-    RULE = 9;
-    TUNNEL_ZONE = 10;
-    VTEP = 11;
-    VTEP_BINDING = 12;
-    DHCP=13;
+    LOAD_BALANCER = 9;
+    RULE = 10;
+    TUNNEL_ZONE = 11;
+    VTEP = 12;
+    VTEP_BINDING = 13;
+    DHCP=14;
 }
 
 message Network {
@@ -95,6 +96,15 @@ message Router {
 
     // Backreferences
     repeated UUID port_ids = 101;
+}
+
+message LoadBalancer {
+    optional UUID id = 1;
+    optional bool admin_state_up = 2;
+    repeated UUID vip_ids = 3;
+
+    // Backreference
+    optional UUID router_id = 4;
 }
 
 message Port {
