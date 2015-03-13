@@ -22,12 +22,13 @@ import com.google.protobuf.MessageOrBuilder
 import org.scalatest.Matchers
 
 import org.midonet.cluster.models.Topology.{Port => TopologyPort, Network => TopologyBridge, Rule => TopologyRule}
+import org.midonet.cluster.models.Topology.{LoadBalancer => TopologyLB, VIP => TopologyVIP}
 import org.midonet.cluster.util.{RangeUtil, IPSubnetUtil}
 import org.midonet.cluster.util.IPAddressUtil._
 import org.midonet.cluster.util.IPSubnetUtil._
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.rules.{Condition, Rule, JumpRule, NatRule, ForwardNatRule, NatTarget}
-import org.midonet.midolman.simulation.Bridge
+import org.midonet.midolman.simulation.{VIP, LoadBalancer, Bridge}
 import org.midonet.midolman.topology.devices.VxLanPort
 import org.midonet.midolman.topology.TopologyMatchers.{BridgeMatcher, BridgePortMatcher, RouterPortMatcher}
 import org.midonet.midolman.topology.TopologyMatchers._
@@ -204,6 +205,29 @@ object TopologyMatchers {
             r.getFragmentPolicy.name shouldBe cond.fragmentPolicy.name
         }
     }
+
+    class LoadBalancerMatcher(lb: LoadBalancer) extends Matchers
+                                                        with DeviceMatcher[TopologyLB] {
+        override def shouldBeDeviceOf(l: TopologyLB): Unit = {
+            lb.id shouldBe l.getId.asJava
+            lb.adminStateUp shouldBe l.getAdminStateUp
+            lb.routerId shouldBe l.getRouterId.asJava
+            lb.vips.toList.map(_.id) should contain theSameElementsAs
+            l.getVipIdsList.asScala.map(_.asJava)
+        }
+    }
+
+    class VIPMatcher(vip: VIP) extends Matchers
+                                       with DeviceMatcher[TopologyVIP] {
+        override def shouldBeDeviceOf(v: TopologyVIP): Unit = {
+            vip.id shouldBe v.getId.asJava
+            vip.adminStateUp shouldBe v.getAdminStateUp
+            vip.address shouldBe toIPv4Addr(v.getAddress)
+            vip.protocolPort shouldBe v.getProtocolPort
+            vip.isStickySourceIP shouldBe v.getStickySourceIp
+            vip.poolId shouldBe v.getPoolId.asJava
+        }
+    }
 }
 
 trait TopologyMatchers {
@@ -239,4 +263,10 @@ trait TopologyMatchers {
 
     implicit def asMatcher(cond: Condition): ConditionMatcher =
         new ConditionMatcher(cond)
+
+    implicit def asMatcher(loadBalancer: LoadBalancer): LoadBalancerMatcher =
+        new LoadBalancerMatcher(loadBalancer)
+
+    implicit def asMatcher(vip: VIP): VIPMatcher =
+        new VIPMatcher(vip)
 }

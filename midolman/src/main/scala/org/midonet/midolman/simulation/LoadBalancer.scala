@@ -20,6 +20,7 @@ import java.util.UUID
 import akka.actor.ActorSystem
 
 import org.midonet.midolman.rules.RuleResult
+import org.midonet.midolman.topology.VirtualTopology.VirtualDevice
 import org.midonet.midolman.topology.VirtualTopologyActor.tryAsk
 import org.midonet.sdn.flows.FlowTagger
 
@@ -30,7 +31,7 @@ object LoadBalancer {
 }
 
 class LoadBalancer(val id: UUID, val adminStateUp: Boolean, val routerId: UUID,
-                   val vips: Array[VIP]) {
+                   val vips: Array[VIP]) extends VirtualDevice {
 
     import LoadBalancer._
 
