@@ -16,13 +16,66 @@
 
 package org.midonet.midolman.simulation
 
-import java.util.UUID
+import java.util.{Objects, UUID}
 
-import org.midonet.packets.{TCP, IPv4Addr}
+import com.google.protobuf.MessageOrBuilder
 
-class VIP (val id: UUID, val adminStateUp: Boolean, val poolId: UUID,
-           val address: IPv4Addr, val protocolPort: Int,
-           val isStickySourceIP: Boolean) {
+import org.midonet.cluster.data.{ZoomClass, ZoomConvert, ZoomField, ZoomObject}
+import org.midonet.cluster.models.Neutron
+import org.midonet.cluster.models.Neutron.VIP.SessionPersistence.Type
+import org.midonet.cluster.util.IPAddressUtil.{Converter => IPAddressConverter}
+import org.midonet.cluster.util.UUIDUtil.{Converter => UUIDConverter}
+import org.midonet.packets.{IPv4Addr, TCP}
+
+@ZoomClass(clazz = classOf[Neutron.VIP])
+class VIP extends ZoomObject {
+    @ZoomField(name = "id", converter = classOf[UUIDConverter])
+    var id: UUID = _
+    @ZoomField(name = "admin_state_up")
+    var adminStateUp: Boolean = false
+    @ZoomField(name = "pool_id", converter = classOf[UUIDConverter])
+    var poolId: UUID = _
+    @ZoomField(name = "address", converter = classOf[IPAddressConverter])
+    var address: IPv4Addr = _
+    @ZoomField(name = "protocol_port")
+    var protocolPort: Int = _
+
+    var isStickySourceIP: Boolean = false
+
+    def this(id: UUID, adminStateUp: Boolean, poolId: UUID, address: IPv4Addr,
+             protocolPort: Int, isStickySourceIP: Boolean) = {
+        this()
+        this.id = id
+        this.adminStateUp = adminStateUp
+        this.poolId = poolId
+        this.address = address
+        this.protocolPort = protocolPort
+        this.isStickySourceIP = isStickySourceIP
+    }
+
+    override def afterFromProto(proto: MessageOrBuilder): Unit = {
+        val vip = proto.asInstanceOf[Neutron.VIP]
+        if (vip.hasSessionPersistence && vip.getSessionPersistence.hasType) {
+            isStickySourceIP =
+                (vip.getSessionPersistence.getType == Type.SOURCE_IP)
+        }
+    }
+
+    override def beforeToProto: Unit =
+        throw new ZoomConvert.ConvertException("Conversion not supported")
+
+    override def equals(obj: Any): Boolean = obj match {
+        case vip: VIP =>
+            vip.id == id && vip.adminStateUp == adminStateUp &&
+            vip.poolId == poolId && vip.address == address &&
+            vip.protocolPort == protocolPort &&
+            vip.isStickySourceIP == isStickySourceIP
+        case _ => false
+    }
+
+    override def hashCode: Int =
+        Objects.hashCode(id, adminStateUp, poolId, address, protocolPort,
+                         isStickySourceIP)
 
     def matches(pktContext: PacketContext) = {
         val pktMatch = pktContext.wcmatch

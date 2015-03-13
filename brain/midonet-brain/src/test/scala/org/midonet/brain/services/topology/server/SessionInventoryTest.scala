@@ -100,6 +100,7 @@ class SessionInventoryTest extends FeatureSpec
                 PortGroup.getDefaultInstance,
                 Route.getDefaultInstance,
                 Router.getDefaultInstance,
+                LoadBalancer.getDefaultInstance,
                 Rule.getDefaultInstance,
                 TunnelZone.getDefaultInstance,
                 Vtep.getDefaultInstance,

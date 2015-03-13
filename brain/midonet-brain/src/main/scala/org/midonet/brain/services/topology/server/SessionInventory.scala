@@ -68,6 +68,7 @@ object SessionInventory {
             case h: PortGroup => Update.newBuilder().setPortGroup(h).build()
             case h: Route => Update.newBuilder().setRoute(h).build()
             case h: Router => Update.newBuilder().setRouter(h).build()
+            case h: LoadBalancer => Update.newBuilder().setLoadBalancer(h).build()
             case h: Rule => Update.newBuilder().setRule(h).build()
             case h: TunnelZone => Update.newBuilder().setTunnelZone(h).build()
             case h: Vtep => Update.newBuilder().setVtep(h).build()
