@@ -171,7 +171,7 @@ abstract class BaseFlowStateReplicator(conntrackTable: FlowStateTable[ConnTrackK
     }
 
     def importFromStorage(batch: FlowStateBatch) {
-        importConnTrack(batch.strongConnTrack.iterator(), ConnTrackState.FORWARD_FLOW)
+        importConnTrack(batch.strongConnTrack.iterator(), ConnTrackState.RETURN_FLOW)
         importConnTrack(batch.weakConnTrack.iterator(), ConnTrackState.RETURN_FLOW)
         importNat(batch.strongNat.entrySet().iterator())
         importNat(batch.weakNat.entrySet().iterator())

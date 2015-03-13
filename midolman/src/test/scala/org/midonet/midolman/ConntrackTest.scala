@@ -120,14 +120,14 @@ class ConntrackTest extends MidolmanSpec {
             for ((fwdPkt, retPkt) <- conntrackedPacketPairs) {
                 val (pktCtx, fwdAct) = simulateDevice(bridge, fwdPkt, leftPort.getId)
                 pktCtx.trackConnection(bridge.id)
+                conntrackTx.size() should be (1)
                 conntrackTx.commit()
                 conntrackTx.flush()
-                pktCtx.isConnectionTracked should be (true)
                 pktCtx.isForwardFlow should be (true)
                 fwdAct should be (ToPortAction(rightPort.getId))
 
                 val (retContext, retAct) = simulateDevice(bridge, retPkt, rightPort.getId)
-                retContext.isConnectionTracked should be (true)
+                conntrackTx.size() should be (0)
                 retContext.isForwardFlow should be (false)
                 retAct should be (ToPortAction(leftPort.getId))
             }
@@ -141,12 +141,10 @@ class ConntrackTest extends MidolmanSpec {
 
             for ((fwdPkt, retPkt) <- conntrackedPacketPairs) {
                 val (fwdContext, fwdAct) = simulateDevice(bridge, fwdPkt, leftPort.getId)
-                fwdContext.isConnectionTracked should be (true)
                 fwdContext.isForwardFlow should be (true)
                 fwdAct should be (ToPortAction(rightPort.getId))
 
                 val (retContext, retAct) = simulateDevice(bridge, retPkt, rightPort.getId)
-                retContext.isConnectionTracked should be (true)
                 retContext.isForwardFlow should be (true)
                 retAct should be (Drop)
             }
