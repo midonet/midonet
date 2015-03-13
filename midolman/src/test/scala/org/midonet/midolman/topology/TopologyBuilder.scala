@@ -29,7 +29,6 @@ import org.midonet.cluster.models.Topology.TunnelZone.HostToIp
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.util.IPAddressUtil._
 import org.midonet.cluster.util.IPSubnetUtil._
-import org.midonet.cluster.util.MACUtil._
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil, RangeUtil, UUIDUtil}
 import org.midonet.midolman.rules.{Condition, FragmentPolicy}
@@ -489,6 +488,41 @@ trait TopologyBuilder {
             builder.setName(name.get)
 
         builder
+    }
+
+    protected def createVip(adminStateUp: Option[Boolean] = None,
+                            poolId: Option[UUID] = None,
+                            address: Option[String] = None,
+                            protocolPort: Option[Int] = None,
+                            isStickySourceIp: Option[Boolean] = None) = {
+
+        val builder = VIP.newBuilder
+            .setId(UUID.randomUUID().asProto)
+        if (adminStateUp.isDefined)
+            builder.setAdminStateUp(adminStateUp.get)
+        if (poolId.isDefined)
+            builder.setPoolId(poolId.get.asProto)
+        if (address.isDefined)
+            builder.setAddress(IPAddressUtil.toProto(address.get))
+        if (protocolPort.isDefined)
+            builder.setProtocolPort(protocolPort.get)
+        if (isStickySourceIp.isDefined)
+            builder.setStickySourceIp(isStickySourceIp.get)
+
+        builder.build()
+    }
+
+    protected def createLB(adminStateUp: Option[Boolean] = None,
+                           routerId: Option[UUID] = None,
+                           vips: Set[UUID] = Set.empty) = {
+        val builder = LoadBalancer.newBuilder
+            .setId(UUID.randomUUID().asProto)
+        if (adminStateUp.isDefined)
+            builder.setAdminStateUp(adminStateUp.get)
+        if (routerId.isDefined)
+            builder.setRouterId(routerId.get.asProto)
+        builder.addAllVipIds(vips.map(_.asProto).asJava)
+            .build()
     }
 
     protected def createIPSubnetBuilder(version: IPVersion, prefix: String,
