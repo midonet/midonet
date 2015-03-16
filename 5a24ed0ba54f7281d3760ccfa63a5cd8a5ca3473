@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3a1371a2_b6d1c6cf",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/ConnTrackState.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-03-16T09:38:03Z",
+      "side": 1,
+      "message": "val ReturnFlow: ConnTrackValue \u003d java.lang.Boolean.FALSE",
+      "revId": "5a24ed0ba54f7281d3760ccfa63a5cd8a5ca3473",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
