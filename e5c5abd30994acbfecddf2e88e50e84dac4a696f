@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3a1371a2_d6228200",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/flows/FlowInvalidator.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-03-16T09:28:42Z",
+      "side": 1,
+      "message": "private val MaxPendingInvalidations \u003d 1024",
+      "revId": "e5c5abd30994acbfecddf2e88e50e84dac4a696f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_36779604",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/state/MockFlowStateTable.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-03-16T09:28:42Z",
+      "side": 1,
+      "message": "override def expireIdleEntries[U](seed: U, func: Reducer[K, V, U]): U \u003d {",
+      "revId": "e5c5abd30994acbfecddf2e88e50e84dac4a696f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_16741afc",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/state/MockFlowStateTable.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-03-16T09:28:42Z",
+      "side": 1,
+      "message": "override def unref(key: K): Unit \u003d {\n        unrefedKeys +\u003d key\n    }",
+      "revId": "e5c5abd30994acbfecddf2e88e50e84dac4a696f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
