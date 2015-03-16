@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "3a1371a2_96edaa8e",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/datapath/FlowProcessor.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-03-16T09:50:59Z",
+      "side": 1,
+      "message": "What do you mean?",
+      "parentUuid": "3a1371a2_36c4b63f",
+      "revId": "bc2aaa1d174da0419b1e022d8b6956d57ebaa3eb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a1371a2_d6c60249",
         "filename": "midolman/src/main/scala/org/midonet/midolman/datapath/FlowProcessor.scala",
         "patchSetId": 15
@@ -30,6 +48,24 @@
       "writtenOn": "2015-03-16T09:03:38Z",
       "side": 1,
       "message": "Nit: Why not simply broker.nextSequence() !\u003d NetlinkRequestBroker.FULL?",
+      "revId": "bc2aaa1d174da0419b1e022d8b6956d57ebaa3eb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_f6017e3a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/datapath/FlowProcessor.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-03-16T09:50:59Z",
+      "side": 1,
+      "message": "Where would I store the returned sequence number?",
+      "parentUuid": "3a1371a2_d6c60249",
       "revId": "bc2aaa1d174da0419b1e022d8b6956d57ebaa3eb",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -53,6 +89,24 @@
     },
     {
       "key": {
+        "uuid": "3a1371a2_d6fe0238",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/util/mock/MockFlowProcessor.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-03-16T09:50:59Z",
+      "side": 1,
+      "message": "It\u0027s just some value for the family id.",
+      "parentUuid": "3a1371a2_56e212d6",
+      "revId": "bc2aaa1d174da0419b1e022d8b6956d57ebaa3eb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a1371a2_f6d05ef9",
         "filename": "netlink/src/main/scala/org.midonet.netlink/NetlinkRequestBroker.scala",
         "patchSetId": 15
@@ -70,6 +124,24 @@
     },
     {
       "key": {
+        "uuid": "3a1371a2_36fcb63e",
+        "filename": "netlink/src/main/scala/org.midonet.netlink/NetlinkRequestBroker.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 114,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-03-16T09:50:59Z",
+      "side": 1,
+      "message": "I\u0027ll fix this. If I don\u0027t have to rebase these patches, I\u0027ll change it in a later one. Otherwise I\u0027ll change it in this one!",
+      "parentUuid": "3a1371a2_f6d05ef9",
+      "revId": "bc2aaa1d174da0419b1e022d8b6956d57ebaa3eb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a1371a2_762bceeb",
         "filename": "odp/src/main/scala/org/midonet/odp/OvsNetlinkFamilies.scala",
         "patchSetId": 15
@@ -81,6 +153,24 @@
       "writtenOn": "2015-03-16T09:03:38Z",
       "side": 1,
       "message": "What does this 2048 represent?",
+      "revId": "bc2aaa1d174da0419b1e022d8b6956d57ebaa3eb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_16f9ba4d",
+        "filename": "odp/src/main/scala/org/midonet/odp/OvsNetlinkFamilies.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-03-16T09:50:59Z",
+      "side": 1,
+      "message": "Buffer size",
+      "parentUuid": "3a1371a2_762bceeb",
       "revId": "bc2aaa1d174da0419b1e022d8b6956d57ebaa3eb",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
