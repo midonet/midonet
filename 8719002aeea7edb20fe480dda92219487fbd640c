@@ -25,6 +25,29 @@
     },
     {
       "key": {
+        "uuid": "3a1371a2_794d8172",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BridgeMapper.scala",
+        "patchSetId": 28
+      },
+      "lineNbr": 450,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-16T10:44:59Z",
+      "side": 1,
+      "message": "remove",
+      "range": {
+        "startLine": 450,
+        "startChar": 37,
+        "endLine": 450,
+        "endChar": 43
+      },
+      "revId": "8719002aeea7edb20fe480dda92219487fbd640c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a1371a2_b69f0603",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BridgeMapper.scala",
         "patchSetId": 28
