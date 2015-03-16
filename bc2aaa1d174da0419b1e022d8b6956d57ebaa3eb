@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "3a1371a2_36815690",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/datapath/FlowProcessor.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-03-16T10:19:16Z",
+      "side": 1,
+      "message": "I\u0027m just wondering why you\u0027re using unsafe rather than simply accessing to the property. My guess is it\u0027s because of the speed.",
+      "parentUuid": "3a1371a2_96edaa8e",
+      "revId": "bc2aaa1d174da0419b1e022d8b6956d57ebaa3eb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a1371a2_d6c60249",
         "filename": "midolman/src/main/scala/org/midonet/midolman/datapath/FlowProcessor.scala",
         "patchSetId": 15
@@ -66,6 +84,24 @@
       "side": 1,
       "message": "Where would I store the returned sequence number?",
       "parentUuid": "3a1371a2_d6c60249",
+      "revId": "bc2aaa1d174da0419b1e022d8b6956d57ebaa3eb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_7663ce1a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/datapath/FlowProcessor.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-03-16T10:19:16Z",
+      "side": 1,
+      "message": "Oh, sorry I missed brokerSeq variable above.",
+      "parentUuid": "3a1371a2_f6017e3a",
       "revId": "bc2aaa1d174da0419b1e022d8b6956d57ebaa3eb",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
