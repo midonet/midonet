@@ -203,6 +203,52 @@
       "revId": "3a1fc4270653a902d8c284a0d9d646755c374040",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_615cb126",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterMapper.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 400,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-03-16T02:54:04Z",
+      "side": 1,
+      "message": "This name is misleading. Or it misled me, anyway. How about portRoutesSubject or portRtsSubject",
+      "range": {
+        "startLine": 400,
+        "startChar": 21,
+        "endLine": 400,
+        "endChar": 33
+      },
+      "revId": "3a1fc4270653a902d8c284a0d9d646755c374040",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_2152b913",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RoutingTableBroker.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-03-16T02:54:04Z",
+      "side": 1,
+      "message": "I understand what this does, but why is it called cacheWip?",
+      "range": {
+        "startLine": 79,
+        "startChar": 16,
+        "endLine": 79,
+        "endChar": 24
+      },
+      "revId": "3a1fc4270653a902d8c284a0d9d646755c374040",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
