@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "3a1371a2_df3615e7",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/ChainMapper.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-03-16T17:45:22Z",
+      "side": 1,
+      "message": "why is this necessary? isn\u0027t it applied to a UUID?",
+      "range": {
+        "startLine": 110,
+        "startChar": 51,
+        "endLine": 110,
+        "endChar": 60
+      },
+      "revId": "dc215819f956a4ba1f84d329d7e87213b839b40d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a1371a2_fcaf9f29",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/ChainMapper.scala",
         "patchSetId": 15
