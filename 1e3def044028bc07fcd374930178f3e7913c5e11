@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "3a1371a2_fccddf87",
+        "filename": "brain/tools/src/main/scala/org/midonet/brain/tools/TopologyZoomUpdater.scala",
+        "patchSetId": 28
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-03-16T16:12:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3a1371a2_e116e1f0",
+      "range": {
+        "startLine": 88,
+        "startChar": 4,
+        "endLine": 95,
+        "endChar": 5
+      },
+      "revId": "1e3def044028bc07fcd374930178f3e7913c5e11",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a1371a2_41d37538",
         "filename": "brain/tools/src/main/scala/org/midonet/brain/tools/TopologyZoomUpdater.scala",
         "patchSetId": 28
@@ -36,6 +60,30 @@
       "writtenOn": "2015-03-13T14:33:25Z",
       "side": 1,
       "message": "Another minor comment/nice trick I learned from Brandon: replace with NonFatal(e)",
+      "range": {
+        "startLine": 113,
+        "startChar": 17,
+        "endLine": 113,
+        "endChar": 29
+      },
+      "revId": "1e3def044028bc07fcd374930178f3e7913c5e11",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_dc910354",
+        "filename": "brain/tools/src/main/scala/org/midonet/brain/tools/TopologyZoomUpdater.scala",
+        "patchSetId": 28
+      },
+      "lineNbr": 113,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-03-16T16:12:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3a1371a2_41d37538",
       "range": {
         "startLine": 113,
         "startChar": 17,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "3a1371a2_3c9f7761",
+        "filename": "brain/tools/src/main/scala/org/midonet/brain/tools/TopologyZoomUpdater.scala",
+        "patchSetId": 28
+      },
+      "lineNbr": 429,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-03-16T16:12:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3a1371a2_c10be529",
+      "range": {
+        "startLine": 428,
+        "startChar": 12,
+        "endLine": 429,
+        "endChar": 72
+      },
+      "revId": "1e3def044028bc07fcd374930178f3e7913c5e11",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a1371a2_44ff0302",
         "filename": "brain/tools/src/main/scala/org/midonet/brain/tools/TopologyZoomUpdater.scala",
         "patchSetId": 28
@@ -82,6 +154,30 @@
       "writtenOn": "2015-03-13T14:33:25Z",
       "side": 1,
       "message": "The same could be done here with proto.setField(java.util.List)",
+      "range": {
+        "startLine": 436,
+        "startChar": 8,
+        "endLine": 440,
+        "endChar": 31
+      },
+      "revId": "1e3def044028bc07fcd374930178f3e7913c5e11",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_dc78e32d",
+        "filename": "brain/tools/src/main/scala/org/midonet/brain/tools/TopologyZoomUpdater.scala",
+        "patchSetId": 28
+      },
+      "lineNbr": 440,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-03-16T16:12:25Z",
+      "side": 1,
+      "message": "Here it is not so safe, because parameter iterable is not necessarily a list (in fact, it is usually a scala set, so it has to be converted, anyway).",
+      "parentUuid": "3a1371a2_44ff0302",
       "range": {
         "startLine": 436,
         "startChar": 8,
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "3a1371a2_7c8f2f24",
+        "filename": "brain/tools/src/main/scala/org/midonet/brain/tools/TopologyZoomUpdater.scala",
+        "patchSetId": 28
+      },
+      "lineNbr": 448,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-03-16T16:12:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3a1371a2_24048714",
+      "range": {
+        "startLine": 448,
+        "startChar": 35,
+        "endLine": 448,
+        "endChar": 36
+      },
+      "revId": "1e3def044028bc07fcd374930178f3e7913c5e11",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a1371a2_640e7f36",
         "filename": "brain/tools/src/main/scala/org/midonet/brain/tools/TopologyZoomUpdater.scala",
         "patchSetId": 28
@@ -140,6 +260,30 @@
     },
     {
       "key": {
+        "uuid": "3a1371a2_dcc62349",
+        "filename": "brain/tools/src/main/scala/org/midonet/brain/tools/TopologyZoomUpdater.scala",
+        "patchSetId": 28
+      },
+      "lineNbr": 471,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-03-16T16:12:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3a1371a2_640e7f36",
+      "range": {
+        "startLine": 471,
+        "startChar": 49,
+        "endLine": 471,
+        "endChar": 50
+      },
+      "revId": "1e3def044028bc07fcd374930178f3e7913c5e11",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a1371a2_242be783",
         "filename": "brain/tools/src/main/scala/org/midonet/brain/tools/TopologyZoomUpdater.scala",
         "patchSetId": 28
@@ -151,6 +295,30 @@
       "writtenOn": "2015-03-13T14:33:25Z",
       "side": 1,
       "message": "Is this used?",
+      "range": {
+        "startLine": 812,
+        "startChar": 8,
+        "endLine": 812,
+        "endChar": 68
+      },
+      "revId": "1e3def044028bc07fcd374930178f3e7913c5e11",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_1cc1db2e",
+        "filename": "brain/tools/src/main/scala/org/midonet/brain/tools/TopologyZoomUpdater.scala",
+        "patchSetId": 28
+      },
+      "lineNbr": 812,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-03-16T16:12:25Z",
+      "side": 1,
+      "message": "Not used. Removed.",
+      "parentUuid": "3a1371a2_242be783",
       "range": {
         "startLine": 812,
         "startChar": 8,
