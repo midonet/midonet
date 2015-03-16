@@ -298,6 +298,69 @@
       "revId": "c2715c91c078e7383c69a291a184055d7da32e0c",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_9603ea72",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/RouterMapperTest.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-03-16T09:01:28Z",
+      "side": 1,
+      "message": "router",
+      "range": {
+        "startLine": 90,
+        "startChar": 18,
+        "endLine": 90,
+        "endChar": 24
+      },
+      "revId": "c2715c91c078e7383c69a291a184055d7da32e0c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_f6f7be8a",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/RouterMapperTest.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 152,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-03-16T09:01:28Z",
+      "side": 1,
+      "message": "new router?",
+      "range": {
+        "startLine": 152,
+        "startChar": 35,
+        "endLine": 152,
+        "endChar": 50
+      },
+      "revId": "c2715c91c078e7383c69a291a184055d7da32e0c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_d6f44289",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/RouterMapperTest.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 172,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-03-16T09:01:28Z",
+      "side": 1,
+      "message": "Seems like there should be some tests related to route/port create/update/delete.",
+      "revId": "c2715c91c078e7383c69a291a184055d7da32e0c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
