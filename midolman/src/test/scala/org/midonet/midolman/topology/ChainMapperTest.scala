@@ -18,7 +18,8 @@ package org.midonet.midolman.topology
 
 import java.util.UUID
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
+import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.Await
 import scala.concurrent.duration.DurationInt
@@ -29,13 +30,14 @@ import org.apache.commons.configuration.HierarchicalConfiguration
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
+import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.data.storage.{NotFoundException, Storage}
 import org.midonet.cluster.models.Commons
-import org.midonet.cluster.models.Topology.Rule.{JumpRuleData, Type}
-import org.midonet.cluster.models.Topology.{Chain => ProtoChain, Rule => ProtoRule}
+import org.midonet.cluster.models.Topology.Rule.JumpRuleData
+import org.midonet.cluster.models.Topology.{Chain => ProtoChain, IpAddrGroup => ProtoIPAddrGroup, Rule => ProtoRule}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.util.UUIDUtil._
-import org.midonet.midolman.rules.{Rule => SimRule, _}
+import org.midonet.midolman.rules.{Rule => SimRule}
 import org.midonet.midolman.simulation.{Chain => SimChain}
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.{FlowController, NotYetException}
@@ -44,7 +46,8 @@ import org.midonet.util.reactivex.AwaitableObserver
 @RunWith(classOf[JUnitRunner])
 class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
                       with MidolmanSpec
-                      with TopologyBuilder {
+                      with TopologyBuilder
+                      with TopologyMatchers {
 
     private var vt: VirtualTopology = _
     private implicit var store: Storage = _
@@ -84,7 +87,7 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
             Then("We receive only one update with the chain with the rule")
             obs.await(timeout, 1) shouldBe true
             obs.getOnNextEvents should have size 1
-            val simChain = obs.getOnNextEvents.last
+            val simChain = obs.getOnNextEvents.asScala.last
             assertEquals(chain, simChain, List(rule1), null)
 
             And("When we add a 2nd rule to the chain")
@@ -95,7 +98,7 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
             Then("We receive the chain with the two rules")
             obs.await(timeout, 1) shouldBe true
             obs.getOnNextEvents should have size 2
-            var updatedSimChain = obs.getOnNextEvents.last
+            var updatedSimChain = obs.getOnNextEvents.asScala.last
             assertEquals(updatedChain, updatedSimChain, List(rule1, rule2), null)
 
             And("When we remove a rule")
@@ -104,7 +107,7 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
             Then("We receive the chain with only 1 rule")
             obs.await(timeout, 1) shouldBe true
             obs.getOnNextEvents should have size 3
-            updatedSimChain = obs.getOnNextEvents.last
+            updatedSimChain = obs.getOnNextEvents.asScala.last
             assertEquals(updatedChain, updatedSimChain, List(rule1), null)
 
             And("When we delete the last rule")
@@ -113,7 +116,7 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
             Then("We receive the chain with an empty list of rules")
             obs.await(timeout, 1) shouldBe true
             obs.getOnNextEvents should have size 4
-            updatedSimChain = obs.getOnNextEvents.last
+            updatedSimChain = obs.getOnNextEvents.asScala.last
             assertEquals(updatedChain, updatedSimChain, List.empty, null)
 
             And("When we unsubscribe from the chain and update it")
@@ -181,7 +184,7 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
 
             Then("We receive the chain")
             obs.await(timeout, 1) shouldBe true
-            val simChain = obs.getOnNextEvents.last
+            val simChain = obs.getOnNextEvents.asScala.last
             assertEquals(chain, simChain, List.empty, null)
 
             And("When we delete the chain")
@@ -208,7 +211,7 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
 
             Then("We receive the chain with the jump rule and associated chain")
             obs.await(timeout, 1) shouldBe true
-            val simChain = obs.getOnNextEvents.last
+            val simChain = obs.getOnNextEvents.asScala.last
             assertEquals(chain, simChain, List(jumpRule), jumpChain)
 
             And("When we make the jump rule point to another chain")
@@ -220,7 +223,7 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
 
             Then("We receive the chain with the new jump rule and associated chain")
             obs.await(timeout, 1) shouldBe true
-            var updatedSimChain = obs.getOnNextEvents.last
+            var updatedSimChain = obs.getOnNextEvents.asScala.last
             assertEquals(chain, updatedSimChain, List(updatedJumpRule),
                          newJumpChain)
 
@@ -231,7 +234,7 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
 
             Then("We receive the chain with the updated jump chain")
             obs.await(timeout, 1) shouldBe true
-            updatedSimChain = obs.getOnNextEvents.last
+            updatedSimChain = obs.getOnNextEvents.asScala.last
             assertEquals(chain, updatedSimChain, List(updatedJumpRule),
                          updatedJumpChain)
 
@@ -240,7 +243,7 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
 
             Then("We receive the chain without any rules")
             obs.await(timeout, 1) shouldBe true
-            updatedSimChain = obs.getOnNextEvents.last
+            updatedSimChain = obs.getOnNextEvents.asScala.last
             assertEquals(updatedChain, updatedSimChain, List.empty,
                          jumpChain = null)
 
@@ -277,7 +280,7 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
 
             Then("We receive the chain with the jump rule and associated chain")
             obs.await(timeout, 1) shouldBe true
-            var simChain = obs.getOnNextEvents.last
+            var simChain = obs.getOnNextEvents.asScala.last
             assertEquals(chain, simChain, List(jumpRule1), jumpChain)
 
             And("When we add a 2nd jump pointing to the same chain")
@@ -286,7 +289,7 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
 
             Then("We receive the chain with the two jump rules")
             obs.await(timeout, 1) shouldBe true
-            simChain = obs.getOnNextEvents.last
+            simChain = obs.getOnNextEvents.asScala.last
             assertEquals(updatedChain, simChain, List(jumpRule1, jumpRule2),
                          jumpChain)
 
@@ -295,7 +298,7 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
 
             Then("We receive the updated chain")
             obs.await(timeout, 1) shouldBe true
-            simChain = obs.getOnNextEvents.last
+            simChain = obs.getOnNextEvents.asScala.last
             assertEquals(updatedChain, simChain, List(jumpRule2), jumpChain)
 
             And("When we update the jump chain")
@@ -306,7 +309,7 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
 
             Then("We receive the updated chain")
             obs.await(timeout, 1) shouldBe true
-            simChain = obs.getOnNextEvents.last
+            simChain = obs.getOnNextEvents.asScala.last
             assertEquals(updatedChain, simChain, List(jumpRule2),
                          updatedJumpChain)
 
@@ -315,7 +318,7 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
 
             Then("We receive the chain with no rules")
             obs.await(timeout, 1) shouldBe true
-            simChain = obs.getOnNextEvents.last
+            simChain = obs.getOnNextEvents.asScala.last
             assertEquals(updatedChain, simChain, List.empty, jumpChain = null)
 
             And("When we update the jump chain")
@@ -326,44 +329,180 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
             Then("We receive no updates")
             obs.await(timeout, 0) shouldBe false
         }
+
+        scenario("A chain with a rule that references an IPAddrGroup") {
+            Given("A chain with one rule")
+            val chainId = UUID.randomUUID()
+            val ipAddrGroupSrc = buildAndStoreIPAddrGroup("192.168.0.1",
+                                                          "ipAddrGroupSrc")
+            val ipAddrGroupDst = buildAndStoreIPAddrGroup("192.168.0.2",
+                                                          "ipAddrGroupDst")
+            val rule = buildAndStoreLiteralRule(chainId, ProtoRule.Action.ACCEPT,
+                                                Some(ipAddrGroupSrc.getId.asJava),
+                                                Some(ipAddrGroupDst.getId.asJava))
+            val chain = buildAndStoreChain(chainId, "test-chain",
+                                           List(rule.getId))
+
+            When("We subscribe to the chain")
+            val obs = new AwaitableObserver[SimChain](1, assertThread())
+            VirtualTopology.observable[SimChain](chainId).subscribe(obs)
+
+            Then("We receive the chain with the rule and associated IPAddrGroups")
+            obs.await(timeout, 1) shouldBe true
+            obs.getOnNextEvents should have size 1
+            val simChain = obs.getOnNextEvents.asScala.last
+            assertEquals(chain, simChain, List(rule), jumpChain = null,
+                         Map(ipAddrGroupSrc.getId.asJava -> ipAddrGroupSrc,
+                             ipAddrGroupDst.getId.asJava -> ipAddrGroupDst))
+
+            When("We update IPAddrGroupSrc")
+            val updatedIPAddrGrpSrc = ipAddrGroupSrc.toBuilder
+                .setName("ipAddrGroupSrc2")
+                .build()
+            store.update(updatedIPAddrGrpSrc)
+
+            Then("We receive the chain with the updated IPAddrGroupSrc")
+            obs.await(timeout, 1) shouldBe true
+            obs.getOnNextEvents should have size 2
+            var updatedSimChain = obs.getOnNextEvents.asScala.last
+            assertEquals(chain, updatedSimChain, List(rule), jumpChain = null,
+                         Map(ipAddrGroupSrc.getId.asJava -> updatedIPAddrGrpSrc,
+                             ipAddrGroupDst.getId.asJava -> ipAddrGroupDst))
+
+            When("We remove the rule from the chain")
+            val updatedChain = removeRuleFromChain(rule.getId.asJava, chain)
+
+            Then("We receive the chain with no rules")
+            obs.await(timeout, 1) shouldBe true
+            obs.getOnNextEvents should have size 3
+            updatedSimChain = obs.getOnNextEvents.asScala.last
+            assertEquals(updatedChain, updatedSimChain, rules = List.empty,
+                         jumpChain = null, ipAddrGroups = Map.empty)
+
+            When("We update the IPAddrGroup referenced by the rule")
+            store.update(ipAddrGroupSrc.toBuilder
+                             .setName("toto")
+                             .build())
+
+            Then("We receive no updates")
+            obs.await(timeout, 1) shouldBe false
+            obs.getOnNextEvents should have size 3
+
+            When("We update the rule")
+            store.update(rule.toBuilder
+                             .setAction(ProtoRule.Action.CONTINUE)
+                             .build())
+
+            Then("We receive no updates")
+            obs.await(timeout) shouldBe false
+            obs.getOnNextEvents should have size 3
+        }
+
+        scenario("A chain with two rules pointing to the same IPAddrGroup") {
+            Given("A chain with two rules")
+            val chainId = UUID.randomUUID()
+            val ipAddrGroupSrc = buildAndStoreIPAddrGroup("192.168.0.1",
+                                                          "ipAddrGroupSrc")
+            val ipAddrGroupSrcId = ipAddrGroupSrc.getId.asJava
+            val rule1 = buildAndStoreLiteralRule(chainId, ProtoRule.Action.ACCEPT,
+                                                 Some(ipAddrGroupSrc.getId.asJava))
+            val rule2 = buildAndStoreLiteralRule(chainId, ProtoRule.Action.ACCEPT,
+                                                 Some(ipAddrGroupSrc.getId.asJava))
+            val chain = buildAndStoreChain(chainId, "test-chain",
+                                           List(rule1.getId, rule2.getId))
+
+            When("We subscribe to the chain")
+            val obs = new AwaitableObserver[SimChain](1, assertThread())
+            VirtualTopology.observable[SimChain](chainId).subscribe(obs)
+
+            Then("We receive the chain with the rules and associated IPAddrGroup")
+            obs.await(timeout, 1) shouldBe true
+            obs.getOnNextEvents should have size 1
+            val simChain = obs.getOnNextEvents.asScala.last
+            assertEquals(chain, simChain, List(rule1, rule2),
+                         jumpChain = null,
+                         Map(ipAddrGroupSrcId -> ipAddrGroupSrc))
+
+            When("We remove rule1 from the chain")
+            var updatedChain = removeRuleFromChain(rule1.getId, chain)
+
+            Then("We receive the updated chain")
+            obs.await(timeout, 1) shouldBe true
+            obs.getOnNextEvents should have size 2
+            var updatedSimChain = obs.getOnNextEvents.asScala.last
+            assertEquals(chain, updatedSimChain, List(rule2), jumpChain = null,
+                         Map(ipAddrGroupSrcId -> ipAddrGroupSrc))
+
+            When("We update IPAddrGroupSrc")
+            val updatedIPAddrGrpSrc = ipAddrGroupSrc.toBuilder
+                .setName("ipAddrGroupSrc2")
+                .build()
+            store.update(updatedIPAddrGrpSrc)
+
+            Then("We receive the chain with the updated IPAddrGroupSrc")
+            obs.await(timeout, 1) shouldBe true
+            obs.getOnNextEvents should have size 3
+            updatedSimChain = obs.getOnNextEvents.asScala.last
+            assertEquals(chain, updatedSimChain, List(rule2), jumpChain = null,
+                         Map(ipAddrGroupSrcId -> updatedIPAddrGrpSrc))
+
+            When("We remove rule2 from the chain")
+            updatedChain = removeRuleFromChain(rule2.getId, updatedChain)
+
+            Then("We receive the updated chain")
+            obs.await(timeout, 1) shouldBe true
+            obs.getOnNextEvents should have size 4
+            updatedSimChain = obs.getOnNextEvents.asScala.last
+            assertEquals(updatedChain, updatedSimChain, rules = List.empty,
+                         jumpChain = null, ipAddrGroups = Map.empty)
+
+            When("We update IPAddrGroupSrc")
+            store.update(ipAddrGroupSrc.toBuilder
+                             .setName("ipAddrGroupSrc3")
+                             .build())
+
+            Then("We receive no updates")
+            obs.await(timeout) shouldBe false
+            obs.getOnNextEvents should have size 4
+        }
     }
 
-    private def assertChainHasRule(rule: ProtoRule, simRules: List[SimRule]) = {
-        if (rule.getType == ProtoRule.Type.JUMP_RULE) {
-            val jmpRule = simRules.filter(_.isInstanceOf[JumpRule]).head
-                .asInstanceOf[JumpRule]
-            jmpRule.jumpToChainID shouldBe rule.getJumpRuleData.getJumpTo.asJava
-
-        } else if (rule.getType == ProtoRule.Type.LITERAL_RULE) {
-            val literalRules = simRules.filter(_.isInstanceOf[LiteralRule])
-                .asInstanceOf[List[LiteralRule]]
-            literalRules.filter(
-                _.action.name == rule.getAction.name) should not be empty
-        } else
-            throw new IllegalArgumentException(s"Type of rule $rule not supported")
-    }
-
-    // This method assumes that a chain never has two rules with the same action
     private def assertEquals(chain: ProtoChain, simChain: SimChain,
-                             rules: List[ProtoRule], jumpChain: ProtoChain)
+                             rules: List[ProtoRule], jumpChain: ProtoChain,
+                             ipAddrGroups: Map[UUID, ProtoIPAddrGroup] = Map.empty)
     : Unit = {
         chain.getId.asJava shouldBe simChain.id
         chain.getName shouldBe simChain.name
 
-        var hasJumpRule = false
+        // Checking rules
+        simChain.getRules should contain theSameElementsAs
+            rules.map(ZoomConvert.fromProto(_, classOf[SimRule]))
 
-        simChain.getRules.size shouldBe chain.getRuleIdsCount
-        rules.foreach(rule => {
-            assertChainHasRule(rule, simChain.getRules.toList)
-            if (rule.getType == Type.JUMP_RULE) {
-                assertEquals(jumpChain,
-                             simChain.getJumpTarget(rule.getJumpRuleData.getJumpTo),
-                             List.empty, jumpChain = null)
-                hasJumpRule = true
+        val jumpRules = rules.filter(_.getType == ProtoRule.Type.JUMP_RULE)
+        jumpRules.foreach(jmpRule =>
+            assertEquals(jumpChain,
+                         simChain.getJumpTarget(jmpRule.getJumpRuleData.getJumpTo),
+                         List.empty, jumpChain = null)
+        )
+        if (jumpRules.isEmpty)
+            simChain.isJumpTargetsEmpty shouldBe true
+
+        // Checking ipAddrGroups
+        val ipAddrGroupIds = new mutable.HashSet[UUID]()
+        simChain.getRules.asScala.foreach(rule => {
+            val cond = rule.getCondition
+            if (cond.ipAddrGroupIdSrc ne null) {
+                ipAddrGroupIds += cond.ipAddrGroupIdSrc
+                cond.ipAddrGroupSrc shouldBeDeviceOf
+                    ipAddrGroups(cond.ipAddrGroupIdSrc)
+            }
+            if (cond.ipAddrGroupIdDst ne null) {
+                ipAddrGroupIds += cond.ipAddrGroupIdDst
+                cond.ipAddrGroupDst shouldBeDeviceOf
+                    ipAddrGroups(cond.ipAddrGroupIdDst)
             }
         })
-        if (!hasJumpRule)
-            simChain.isJumpTargetsEmpty shouldBe true
+        ipAddrGroupIds should have size ipAddrGroups.size
     }
 
     private def updateJumpRule(oldJmpRule: ProtoRule, chainId: Commons.UUID,
@@ -379,12 +518,25 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
         updatedJumpRule
     }
 
+    private def buildAndStoreIPAddrGroup(ip: String, name: String)
+    : ProtoIPAddrGroup = {
+        val builder = createIPAddrGroupBuilder(name = Some(name))
+        val ipAddrGroup = addIPAddrPort(builder, ip, Set(UUID.randomUUID()))
+            .build()
+        store.create(ipAddrGroup)
+        ipAddrGroup
+    }
+
     private def buildAndStoreLiteralRule(chainId: UUID,
-                                         action: ProtoRule.Action)
+                                         action: ProtoRule.Action,
+                                         ipAddrGroupIdSrc: Option[UUID] = None,
+                                         ipAddrGroupIdDst: Option[UUID] = None)
     : ProtoRule = {
-        val rule = createLiteralRuleBuilder(UUID.randomUUID(),
-                                            chainId = Some(chainId),
-                                            action = Some(action))
+        val builder = createLiteralRuleBuilder(UUID.randomUUID(),
+                                               chainId = Some(chainId),
+                                               action = Some(action))
+        val rule = setCondition(builder, ipAddrGroupIdSrc = ipAddrGroupIdSrc,
+                                ipAddrGroupIdDst = ipAddrGroupIdDst)
             .build()
         store.create(rule)
         rule
@@ -410,13 +562,8 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
 
     private def removeRuleFromChain(ruleId: UUID, chain: ProtoChain)
     : ProtoChain = {
-        val ruleList = new ListBuffer[Commons.UUID]()
-        ruleList.addAll(chain.getRuleIdsList)
-        ruleList.remove(ruleList.indexOf(ruleId.asProto))
-        val updatedChain = chain.toBuilder
-            .clearRuleIds()
-            .addAllRuleIds(ruleList)
-            .build()
+        val index = chain.getRuleIdsList.indexOf(ruleId.asProto)
+        val updatedChain = chain.toBuilder.removeRuleIds(index).build()
         store.update(updatedChain)
         updatedChain
     }
