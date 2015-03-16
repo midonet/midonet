@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "3a1371a2_16553a1d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterMapper.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-16T16:48:16Z",
+      "side": 1,
+      "message": "Done. The purpose of this class evolved over time, I forgot to update the scaladoc.",
+      "parentUuid": "3a1371a2_f61fbe07",
+      "range": {
+        "startLine": 66,
+        "startChar": 73,
+        "endLine": 67,
+        "endChar": 34
+      },
+      "revId": "c2715c91c078e7383c69a291a184055d7da32e0c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a1371a2_361af617",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterMapper.scala",
         "patchSetId": 6
@@ -36,6 +60,30 @@
       "writtenOn": "2015-03-16T08:46:16Z",
       "side": 1,
       "message": "Maybe this should be localRouteObservable, since that\u0027s what it emits.",
+      "range": {
+        "startLine": 82,
+        "startChar": 20,
+        "endLine": 82,
+        "endChar": 34
+      },
+      "revId": "c2715c91c078e7383c69a291a184055d7da32e0c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_1c9c3b69",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterMapper.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-16T16:48:16Z",
+      "side": 1,
+      "message": "I revamped much of this class. However, the name of the field was tied to the fact that it processes updates for the port. I agree that in a sense, both this and the next one (routesObservable) emit the route updates - they are merged in a single stream of updates.",
+      "parentUuid": "3a1371a2_361af617",
       "range": {
         "startLine": 82,
         "startChar": 20,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "3a1371a2_d9abd5d4",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterMapper.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-16T16:48:16Z",
+      "side": 1,
+      "message": "Yes, I think you are right. I haven",
+      "parentUuid": "3a1371a2_76374eb1",
+      "range": {
+        "startLine": 84,
+        "startChar": 30,
+        "endLine": 84,
+        "endChar": 52
+      },
+      "revId": "c2715c91c078e7383c69a291a184055d7da32e0c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a1371a2_1617faee",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterMapper.scala",
         "patchSetId": 6
@@ -82,6 +154,30 @@
       "writtenOn": "2015-03-16T08:46:16Z",
       "side": 1,
       "message": "routeUpdatesObservable?",
+      "range": {
+        "startLine": 87,
+        "startChar": 12,
+        "endLine": 87,
+        "endChar": 22
+      },
+      "revId": "c2715c91c078e7383c69a291a184055d7da32e0c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_9c9e6b55",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterMapper.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-16T16:48:16Z",
+      "side": 1,
+      "message": "I named this observable, because I was thinking consolidating the common boilerplate code between all ***State classes with a base class like:\n\n  abstract class DeviceState[T] {\n    def observable: Observable[T]\n    def complete(): Unit\n  }\n\nI\u0027m note sure if this is doable yet.",
+      "parentUuid": "3a1371a2_1617faee",
       "range": {
         "startLine": 87,
         "startChar": 12,
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "3a1371a2_bcb087de",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterMapper.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 142,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-16T16:48:16Z",
+      "side": 1,
+      "message": "As commented previously, I modified much of this class, where the PortState now emits updates for all port routes. Updates may also be emitted when the port changes its publishing state (e.g. an exterior port changing from active to inactive).\n\nHowever, I removed the routeRemovalSubject, since now route updates are consolidated within the PortState.\n\nI kept RouteUpdates(Set.empty, Set.empty) as a static val because it reduces the number of checks (both for null, and if an update has routes)",
+      "parentUuid": "3a1371a2_d6e3a203",
+      "range": {
+        "startLine": 142,
+        "startChar": 16,
+        "endLine": 142,
+        "endChar": 44
+      },
+      "revId": "c2715c91c078e7383c69a291a184055d7da32e0c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a1371a2_36f156ce",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterMapper.scala",
         "patchSetId": 6
@@ -128,6 +248,30 @@
       "writtenOn": "2015-03-16T08:46:16Z",
       "side": 1,
       "message": "Again, using flatMap or flatMapIterable allows you to skip this hack.",
+      "range": {
+        "startLine": 164,
+        "startChar": 0,
+        "endLine": 165,
+        "endChar": 42
+      },
+      "revId": "c2715c91c078e7383c69a291a184055d7da32e0c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_bcfec769",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterMapper.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 165,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-16T16:48:16Z",
+      "side": 1,
+      "message": "I don\u0027t really see how I can apply flatMap in this case: I only want to convert the Route in a RouteUpdate, by adding the new Route and removing the previous one. Can you elaborate?",
+      "parentUuid": "3a1371a2_36f156ce",
       "range": {
         "startLine": 164,
         "startChar": 0,
@@ -163,6 +307,30 @@
     },
     {
       "key": {
+        "uuid": "3a1371a2_dccd835f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterMapper.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 166,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-16T16:48:16Z",
+      "side": 1,
+      "message": "Not needed, true.",
+      "parentUuid": "3a1371a2_76baaee2",
+      "range": {
+        "startLine": 166,
+        "startChar": 12,
+        "endLine": 166,
+        "endChar": 35
+      },
+      "revId": "c2715c91c078e7383c69a291a184055d7da32e0c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a1371a2_d647221c",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterMapper.scala",
         "patchSetId": 6
@@ -174,6 +342,30 @@
       "writtenOn": "2015-03-16T08:46:16Z",
       "side": 1,
       "message": "I have code in the RouterTranslator that creates this route (in the topology) when linking two ports. Not sure whether I should take that out from there, or you should remove this. In any case, the only difference I see is that the route I create has the default weight (100), while this one has a weight of zero. I don\u0027t know whether it matters.",
+      "range": {
+        "startLine": 336,
+        "startChar": 16,
+        "endLine": 336,
+        "endChar": 32
+      },
+      "revId": "c2715c91c078e7383c69a291a184055d7da32e0c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_fcf79f8a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterMapper.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 336,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-16T16:48:16Z",
+      "side": 1,
+      "message": "I removed this method: no longer need. Now all port routes, including the local one is expected from the translator.",
+      "parentUuid": "3a1371a2_d647221c",
       "range": {
         "startLine": 336,
         "startChar": 16,
@@ -209,6 +401,30 @@
     },
     {
       "key": {
+        "uuid": "3a1371a2_7c79effb",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterMapper.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 351,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-16T16:48:16Z",
+      "side": 1,
+      "message": "I believe that the only purpose of this route is as entry in the destination IP tag trie. This is used to invalidate flows based on the destination IP of a route.\n\nThe class that uses it, InvalidationTrie, only uses the destination from the Route.\n\nThe method is equivalent to the following one from RouterManager:\n\n    def createSingleHostRoute(dstIP: IPAddr): Route \u003d {\n        val route: Route \u003d new Route()\n        route.setDstNetworkAddr(dstIP.toString)\n        route.dstNetworkLength \u003d 32\n        route\n    }",
+      "parentUuid": "3a1371a2_96b5aacf",
+      "range": {
+        "startLine": 351,
+        "startChar": 48,
+        "endLine": 351,
+        "endChar": 58
+      },
+      "revId": "c2715c91c078e7383c69a291a184055d7da32e0c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a1371a2_96b00af6",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterMapper.scala",
         "patchSetId": 6
@@ -220,6 +436,30 @@
       "writtenOn": "2015-03-16T08:46:16Z",
       "side": 1,
       "message": "I wonder if this generates a new class definition each time it\u0027s called. Maybe it would be better to define a RemoveTagCallback class that implements Callback0 and takes dstAddress as an argument to its constructor, and then have getFlowRemovalCallback return new RemoveTagCallback(dstAddress).",
+      "range": {
+        "startLine": 392,
+        "startChar": 12,
+        "endLine": 392,
+        "endChar": 25
+      },
+      "revId": "c2715c91c078e7383c69a291a184055d7da32e0c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_bc8367cb",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterMapper.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 392,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-16T16:48:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3a1371a2_96b00af6",
       "range": {
         "startLine": 392,
         "startChar": 12,
@@ -255,6 +495,30 @@
     },
     {
       "key": {
+        "uuid": "3a1371a2_fc531f6a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterMapper.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 398,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-16T16:48:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3a1371a2_d691e253",
+      "range": {
+        "startLine": 398,
+        "startChar": 21,
+        "endLine": 398,
+        "endChar": 33
+      },
+      "revId": "c2715c91c078e7383c69a291a184055d7da32e0c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a1371a2_768f4e24",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterMapper.scala",
         "patchSetId": 6
@@ -266,6 +530,30 @@
       "writtenOn": "2015-03-16T08:46:16Z",
       "side": 1,
       "message": "I know you didn\u0027t write InvalidationTrie, but if you understand it, could you add some JavaDoc comments explaining what it and its methods do?",
+      "range": {
+        "startLine": 585,
+        "startChar": 39,
+        "endLine": 585,
+        "endChar": 64
+      },
+      "revId": "c2715c91c078e7383c69a291a184055d7da32e0c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_dc50e360",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterMapper.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 585,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-16T16:48:16Z",
+      "side": 1,
+      "message": "I added an explanation: check if it is clear enough.",
+      "parentUuid": "3a1371a2_768f4e24",
       "range": {
         "startLine": 585,
         "startChar": 39,
@@ -301,6 +589,30 @@
     },
     {
       "key": {
+        "uuid": "3a1371a2_7cee0f8d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterMapper.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 665,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-16T16:48:16Z",
+      "side": 1,
+      "message": "It is only used for unit testing. I think that previously was implemented as an akka message.",
+      "parentUuid": "3a1371a2_16c1ba2e",
+      "range": {
+        "startLine": 664,
+        "startChar": 0,
+        "endLine": 665,
+        "endChar": 81
+      },
+      "revId": "c2715c91c078e7383c69a291a184055d7da32e0c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a1371a2_9603ea72",
         "filename": "midolman/src/test/scala/org/midonet/midolman/topology/RouterMapperTest.scala",
         "patchSetId": 6
@@ -312,6 +624,30 @@
       "writtenOn": "2015-03-16T09:01:28Z",
       "side": 1,
       "message": "router",
+      "range": {
+        "startLine": 90,
+        "startChar": 18,
+        "endLine": 90,
+        "endChar": 24
+      },
+      "revId": "c2715c91c078e7383c69a291a184055d7da32e0c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_5cf35373",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/RouterMapperTest.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-16T16:48:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3a1371a2_9603ea72",
       "range": {
         "startLine": 90,
         "startChar": 18,
@@ -347,6 +683,30 @@
     },
     {
       "key": {
+        "uuid": "3a1371a2_9cedcb8e",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/RouterMapperTest.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 152,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-16T16:48:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3a1371a2_f6f7be8a",
+      "range": {
+        "startLine": 152,
+        "startChar": 35,
+        "endLine": 152,
+        "endChar": 50
+      },
+      "revId": "c2715c91c078e7383c69a291a184055d7da32e0c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a1371a2_d6f44289",
         "filename": "midolman/src/test/scala/org/midonet/midolman/topology/RouterMapperTest.scala",
         "patchSetId": 6
@@ -358,6 +718,24 @@
       "writtenOn": "2015-03-16T09:01:28Z",
       "side": 1,
       "message": "Seems like there should be some tests related to route/port create/update/delete.",
+      "revId": "c2715c91c078e7383c69a291a184055d7da32e0c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_bce8877d",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/RouterMapperTest.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 172,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-16T16:48:16Z",
+      "side": 1,
+      "message": "Ah.. yes, the unit tests are WIP. I am adding more as testing the mapper.",
+      "parentUuid": "3a1371a2_d6f44289",
       "revId": "c2715c91c078e7383c69a291a184055d7da32e0c",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
