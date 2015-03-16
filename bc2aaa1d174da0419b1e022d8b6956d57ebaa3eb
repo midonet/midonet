@@ -55,6 +55,24 @@
     },
     {
       "key": {
+        "uuid": "3a1371a2_792621bc",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/datapath/FlowProcessor.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-03-16T10:34:01Z",
+      "side": 1,
+      "message": "Well, here it\u0027s because I need the read to be volatile. There a comment on the sequenceAddress declaration explaining why it\u0027s there:\n\n/**\n     * Used for unsafe access to the lastSequence field, so we can do a volatile\n     * read on the writer thread while avoiding doing a volatile write to it\n     * from the producer thread.\n     */",
+      "parentUuid": "3a1371a2_36815690",
+      "revId": "bc2aaa1d174da0419b1e022d8b6956d57ebaa3eb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a1371a2_d6c60249",
         "filename": "midolman/src/main/scala/org/midonet/midolman/datapath/FlowProcessor.scala",
         "patchSetId": 15
