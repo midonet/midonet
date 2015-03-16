@@ -838,8 +838,8 @@ class DhcpPortCreateTranslationTest extends DhcpPortTranslationTest {
             """))
 
         // Order of DHCP updates is undefined.
-        midoOps(1) shouldBe a [midonet.Update[Dhcp]]
-        midoOps(2) shouldBe a [midonet.Update[Dhcp]]
+        midoOps(1) shouldBe a [midonet.Update[_]]
+        midoOps(2) shouldBe a [midonet.Update[_]]
         midoOps should contain(midonet.Update(mIpv4DhcpWithDhcpConfigured))
 
         midoOps(3) shouldBe midonet.Create(midoPortBaseUp)

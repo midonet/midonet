@@ -22,7 +22,7 @@ import rx.Observable
 import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.models.Topology.{Port => TopologyPort}
 import org.midonet.midolman.topology.devices.{Port => SimulationPort}
-import org.midonet.util.functors._
+import org.midonet.util.functors.{makeFunc1, makeFunc2}
 
 /**
  * A device mapper that exposes an [[rx.Observable]] with notifications for

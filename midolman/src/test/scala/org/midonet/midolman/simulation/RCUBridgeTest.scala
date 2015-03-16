@@ -16,11 +16,9 @@
 
 package org.midonet.midolman.simulation
 
-import java.util
-
 import akka.actor.ActorSystem
 import akka.event.Logging
-import collection.mutable.{Map, Queue}
+import scala.collection.mutable
 import java.lang.{Short => JShort}
 import java.util.UUID
 
@@ -54,7 +52,7 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with Matchers {
 
     val brPort = new BridgePort()
 
-    private val macPortMap = new MockMacLearningTable(Map(
+    private val macPortMap = new MockMacLearningTable(mutable.Map(
                                         learnedMac -> learnedPort))
     private val ip4MacMap = new MockIpMacMap(Map(knownIp4 -> learnedMac))
     private val flowCount: MacFlowCount = new MockMacFlowCount
@@ -63,7 +61,7 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with Matchers {
     val inFilterId: UUID = null
     val outFilterId: UUID = null
     val flowRemovedCallbackGen = new RemoveFlowCallbackGenerator {
-        def getCallback(mac: MAC, vlanId: JShort, port: UUID) = new Callback0 {
+        def getCallback(mac: MAC, vlanId: Short, port: UUID) = new Callback0 {
             def call() {}
         }
     }
@@ -79,14 +77,14 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with Matchers {
                                         rtr2mac -> rtr2port)
         val rtrIpToMac = Map(rtr1ipaddr -> rtr1mac, rtr2ipaddr -> rtr2mac)
 
-        val macLearningTables = Map[JShort, MacLearningTable]()
+        val macLearningTables = mutable.Map[Short, MacLearningTable]()
         macLearningTables.put(data.Bridge.UNTAGGED_VLAN_ID, macPortMap)
 
         brPort.id = UUID.randomUUID()
 
-        bridge = new Bridge(bridgeID, true, 0, macLearningTables, ip4MacMap,
+        bridge = new Bridge(bridgeID, true, 0, macLearningTables.toMap, ip4MacMap,
                             flowCount, Option(inFilterId), Option(outFilterId),
-                            vlanBridgePortId, new util.ArrayList(),
+                            vlanBridgePortId, Seq.empty[UUID],
                             flowRemovedCallbackGen, rtrMacToLogicalPortId,
                             rtrIpToMac, vlanToPort, List(brPort.id))
 
@@ -243,14 +241,14 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with Matchers {
 }
 
 private class MockMacFlowCount extends MacFlowCount {
-    override def increment(mac: MAC, vlanId: JShort, port: UUID) {}
-    override def decrement(mac: MAC,vlanId: JShort, port: UUID) {}
+    override def increment(mac: MAC, vlanId: Short, port: UUID) {}
+    override def decrement(mac: MAC,vlanId: Short, port: UUID) {}
 }
 
-private class MockMacLearningTable(val table: Map[MAC, UUID])
+private class MockMacLearningTable(val table: mutable.Map[MAC, UUID])
          extends MacLearningTable {
-    val additions = Queue[(MAC, UUID)]()
-    val removals = Queue[(MAC, UUID)]()
+    val additions = mutable.Queue[(MAC, UUID)]()
+    val removals = mutable.Queue[(MAC, UUID)]()
 
     override def get(mac: MAC) = {
         table.get(mac) match {
@@ -261,7 +259,7 @@ private class MockMacLearningTable(val table: Map[MAC, UUID])
 
     override def add(mac: MAC, port: UUID) {
         additions += ((mac, port))
-	table.put(mac, port)
+        table.put(mac, port)
     }
 
     override def remove(mac: MAC, port: UUID) {

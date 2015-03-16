@@ -42,12 +42,12 @@ import org.midonet.util.functors.Callback0
 /* The MacFlowCount is called from the Coordinators' actors and dispatches
  * to the BridgeManager's actor to get/modify the flow counts.  */
 trait MacFlowCount {
-    def increment(mac: MAC, vlanId: JShort, port: UUID): Unit
-    def decrement(mac: MAC, vlanId: JShort, port: UUID): Unit
+    def increment(mac: MAC, vlanId: Short, port: UUID): Unit
+    def decrement(mac: MAC, vlanId: Short, port: UUID): Unit
 }
 
 trait RemoveFlowCallbackGenerator {
-    def getCallback(mac: MAC,vlanId: JShort, port: UUID): Callback0
+    def getCallback(mac: MAC,vlanId: Short, port: UUID): Callback0
 }
 
 case class BridgeConfig(adminStateUp: Boolean = true,
@@ -59,12 +59,12 @@ object BridgeManager {
     val Name = "BridgeManager"
 
     case class TriggerUpdate(cfg: BridgeConfig,
-                             vlanMacTableMap: ROMap[JShort, MacLearningTable],
+                             vlanMacTableMap: Map[Short, MacLearningTable],
                              ip4MacMap: IpMacMap[IPv4Addr],
                              macToLogicalPortId: ROMap[MAC, UUID],
                              ipToMac: ROMap[IPAddr, MAC],
                              vlanBridgePeerPortId: Option[UUID],
-                             exteriorVxlanPortIds: util.List[UUID],
+                             exteriorVxlanPortIds: Seq[UUID],
                              vlanPortMap: VlanPortMap,
                              exteriorPorts: List[UUID])
 
@@ -86,7 +86,7 @@ class MacLearningManager(log: Logger, ttlMillis: Duration) {
 
     val map = new TimedExpirationMap[BridgeManager.MacPortMapping, AnyRef](log, _ => ttlMillis)
 
-    @volatile var vlanMacTableMap: ROMap[JShort, MacLearningTable] = null
+    @volatile var vlanMacTableMap: Map[Short, MacLearningTable] = null
 
     val reducer = new Reducer[BridgeManager.MacPortMapping, Any, Unit] {
         override def apply(acc: Unit, key: MacPortMapping, value: Any): Unit =
@@ -131,7 +131,7 @@ import org.midonet.midolman.topology.BridgeManager._
     private var ip4MacMap: IpMacMap[IPv4Addr] = null
 
     private var vlanBridgePeerPortId: Option[UUID] = None
-    private var exteriorVxlanPortIds: util.List[UUID] = new util.ArrayList()
+    private var exteriorVxlanPortIds = Seq.empty[UUID]
 
     private val macPortExpiration: Int = config.getMacPortMappingExpireMillis
     private val learningMgr = new MacLearningManager(
@@ -196,18 +196,18 @@ import org.midonet.midolman.topology.BridgeManager._
     }
 
     private class MacFlowCountImpl extends MacFlowCount {
-        override def increment(mac: MAC, vlanId: JShort, port: UUID) {
+        override def increment(mac: MAC, vlanId: Short, port: UUID) {
             learningMgr.incRefCount(MacPortMapping(mac, vlanId, port))
         }
 
-        override def decrement(mac: MAC, vlanId: JShort, port: UUID) {
+        override def decrement(mac: MAC, vlanId: Short, port: UUID) {
             learningMgr.decRefCount(MacPortMapping(mac, vlanId, port),
                                     Platform.currentTime)
         }
     }
 
     class RemoveFlowCallbackGeneratorImpl() extends RemoveFlowCallbackGenerator{
-        def getCallback(mac: MAC, vlanId: JShort, port: UUID): Callback0 = {
+        def getCallback(mac: MAC, vlanId: Short, port: UUID): Callback0 = {
             new Callback0() {
                 override def call() {
                     learningMgr.decRefCount(MacPortMapping(mac, vlanId, port),
