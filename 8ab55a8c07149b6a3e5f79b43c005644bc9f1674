@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "3a1371a2_3f03e9b9",
+        "filename": "brain/vtep/src/main/java/org/midonet/vtep/OvsdbVtepBackend.java",
+        "patchSetId": 38
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-03-16T19:47:53Z",
+      "side": 1,
+      "message": "Makes sense. Done.",
+      "parentUuid": "3a1371a2_ebe36231",
+      "range": {
+        "startLine": 118,
+        "startChar": 39,
+        "endLine": 118,
+        "endChar": 56
+      },
+      "revId": "8ab55a8c07149b6a3e5f79b43c005644bc9f1674",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a1371a2_0be7de41",
         "filename": "brain/vtep/src/main/java/org/midonet/vtep/OvsdbVtepBackend.java",
         "patchSetId": 38
@@ -36,6 +60,30 @@
       "writtenOn": "2015-03-12T16:10:17Z",
       "side": 1,
       "message": "Why not using VtepRetrievalException, adding a constructor with the id? That\u0027d save a LOT of lines in this class.",
+      "range": {
+        "startLine": 196,
+        "startChar": 17,
+        "endLine": 197,
+        "endChar": 47
+      },
+      "revId": "8ab55a8c07149b6a3e5f79b43c005644bc9f1674",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_bf26b966",
+        "filename": "brain/vtep/src/main/java/org/midonet/vtep/OvsdbVtepBackend.java",
+        "patchSetId": 38
+      },
+      "lineNbr": 197,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-03-16T19:47:53Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3a1371a2_0be7de41",
       "range": {
         "startLine": 196,
         "startChar": 17,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "3a1371a2_9f2bfd2f",
+        "filename": "brain/vtep/src/main/java/org/midonet/vtep/OvsdbVtepBackend.java",
+        "patchSetId": 38
+      },
+      "lineNbr": 232,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-03-16T19:47:53Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3a1371a2_6bf812e6",
+      "range": {
+        "startLine": 232,
+        "startChar": 17,
+        "endLine": 232,
+        "endChar": 23
+      },
+      "revId": "8ab55a8c07149b6a3e5f79b43c005644bc9f1674",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a1371a2_2bee1a23",
         "filename": "brain/vtep/src/main/java/org/midonet/vtep/OvsdbVtepBackend.java",
         "patchSetId": 38
@@ -82,6 +154,30 @@
       "writtenOn": "2015-03-12T16:10:17Z",
       "side": 1,
       "message": "remove wrapping",
+      "range": {
+        "startLine": 256,
+        "startChar": 20,
+        "endLine": 256,
+        "endChar": 21
+      },
+      "revId": "8ab55a8c07149b6a3e5f79b43c005644bc9f1674",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_ff1f9107",
+        "filename": "brain/vtep/src/main/java/org/midonet/vtep/OvsdbVtepBackend.java",
+        "patchSetId": 38
+      },
+      "lineNbr": 256,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-03-16T19:47:53Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3a1371a2_2bee1a23",
       "range": {
         "startLine": 256,
         "startChar": 20,
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "3a1371a2_df1c5516",
+        "filename": "brain/vtep/src/main/java/org/midonet/vtep/OvsdbVtepBackend.java",
+        "patchSetId": 38
+      },
+      "lineNbr": 277,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-03-16T19:47:53Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3a1371a2_4be9d619",
+      "range": {
+        "startLine": 276,
+        "startChar": 12,
+        "endLine": 277,
+        "endChar": 40
+      },
+      "revId": "8ab55a8c07149b6a3e5f79b43c005644bc9f1674",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a1371a2_eb8c0282",
         "filename": "brain/vtep/src/main/java/org/midonet/vtep/OvsdbVtepBackend.java",
         "patchSetId": 38
@@ -128,6 +248,30 @@
       "writtenOn": "2015-03-12T16:10:17Z",
       "side": 1,
       "message": "We should throw more specific exceptions.",
+      "range": {
+        "startLine": 298,
+        "startChar": 15,
+        "endLine": 298,
+        "endChar": 24
+      },
+      "revId": "8ab55a8c07149b6a3e5f79b43c005644bc9f1674",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_dfe3b503",
+        "filename": "brain/vtep/src/main/java/org/midonet/vtep/OvsdbVtepBackend.java",
+        "patchSetId": 38
+      },
+      "lineNbr": 298,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-03-16T19:47:53Z",
+      "side": 1,
+      "message": "In fact we always return VtepExceptions, but java considers that the internal scala await may return any type of exception... I\u0027ll play a bit with it to see if I can restrict the exception spec",
+      "parentUuid": "3a1371a2_eb8c0282",
       "range": {
         "startLine": 298,
         "startChar": 15,
@@ -467,6 +611,30 @@
       "writtenOn": "2015-03-12T16:10:17Z",
       "side": 1,
       "message": "Not true anymore?\n\nI\u0027d also suggest to have child classes for each of the tables that this is valid for, just for clarity since we d have a separate mac table.",
+      "range": {
+        "startLine": 21,
+        "startChar": 25,
+        "endLine": 21,
+        "endChar": 55
+      },
+      "revId": "8ab55a8c07149b6a3e5f79b43c005644bc9f1674",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_ffc9515b",
+        "filename": "brain/vtep/src/main/java/org/midonet/vtep/schema/MacsTable.java",
+        "patchSetId": 38
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-03-16T19:47:53Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3a1371a2_19361704",
       "range": {
         "startLine": 21,
         "startChar": 25,
