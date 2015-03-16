@@ -22,6 +22,30 @@
       "revId": "dc215819f956a4ba1f84d329d7e87213b839b40d",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_df92959e",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/ChainMapper.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 153,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-16T17:44:40Z",
+      "side": 1,
+      "message": "I\u0027ll remove this in the patch that adds IPAddrGroup support.",
+      "parentUuid": "3a1371a2_fcaf9f29",
+      "range": {
+        "startLine": 153,
+        "startChar": 31,
+        "endLine": 153,
+        "endChar": 32
+      },
+      "revId": "dc215819f956a4ba1f84d329d7e87213b839b40d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
