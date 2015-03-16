@@ -34,6 +34,24 @@
       "revId": "5feec2b43336b4a763c4f642b206dd4c14eafc5a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_5c3193a1",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/services/topology/server/SessionInventoryTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-03-16T15:41:53Z",
+      "side": 1,
+      "message": "Mmm... I haven\u0027t found a way to change the list of topology object classes into something shorter... any suggestions?",
+      "parentUuid": "3a1371a2_f9021bb3",
+      "revId": "5feec2b43336b4a763c4f642b206dd4c14eafc5a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
