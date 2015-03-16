@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3a1371a2_364e76c2",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BridgeMapper.scala",
+        "patchSetId": 28
+      },
+      "lineNbr": 180,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-03-16T10:12:30Z",
+      "side": 1,
+      "message": "Could this be merged with the macLearning map?",
+      "range": {
+        "startLine": 180,
+        "startChar": 16,
+        "endLine": 180,
+        "endChar": 34
+      },
+      "revId": "8719002aeea7edb20fe480dda92219487fbd640c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_b69f0603",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BridgeMapper.scala",
+        "patchSetId": 28
+      },
+      "lineNbr": 562,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-03-16T10:12:30Z",
+      "side": 1,
+      "message": "portState.setPeer(null) missing?",
+      "range": {
+        "startLine": 562,
+        "startChar": 12,
+        "endLine": 562,
+        "endChar": 46
+      },
+      "revId": "8719002aeea7edb20fe480dda92219487fbd640c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
