@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3a1371a2_d90f552d",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/IPAddrGroupMapperTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-16T10:31:11Z",
+      "side": 1,
+      "message": "remove",
+      "range": {
+        "startLine": 115,
+        "startChar": 0,
+        "endLine": 115,
+        "endChar": 8
+      },
+      "revId": "1d0d32896e0260dd455359280870f5c78a740614",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_391dc967",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/IPAddrGroupMapperTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 131,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-16T10:31:11Z",
+      "side": 1,
+      "message": "remove",
+      "range": {
+        "startLine": 131,
+        "startChar": 0,
+        "endLine": 131,
+        "endChar": 12
+      },
+      "revId": "1d0d32896e0260dd455359280870f5c78a740614",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
