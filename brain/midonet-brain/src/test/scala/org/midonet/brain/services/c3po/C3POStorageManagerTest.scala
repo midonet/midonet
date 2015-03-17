@@ -33,10 +33,10 @@ import org.scalatest.{BeforeAndAfterEach, FlatSpec}
 import org.midonet.brain.services.c3po.midonet.Create
 import org.midonet.brain.services.c3po.translators.{NetworkTranslator, NeutronTranslator, TranslationException}
 import org.midonet.cluster.data.storage.{CreateOp, DeleteOp, PersistenceOp, Storage, StorageException, UpdateOp}
-import org.midonet.cluster.models.C3PO.C3POState
 import org.midonet.cluster.models.Commons
 import org.midonet.cluster.models.Neutron.{NeutronNetwork, NeutronPort, NeutronRoute}
 import org.midonet.cluster.models.Topology.{Network, Port}
+import org.midonet.cluster.services.c3po.C3POState
 import org.midonet.cluster.util.UUIDUtil.randomUuidProto
 
 object C3POStorageManagerTest {
@@ -91,8 +91,8 @@ class C3POStorageManagerTest extends FlatSpec with BeforeAndAfterEach {
     override def beforeEach() = {
         storage = mock(classOf[Storage])
         storageManager = new C3POStorageManager(storage)
-        val statePromise = Promise.successful(c3poState(2))
-        when(storage.get(classOf[C3POState], C3PO_STATE_ID))
+        val statePromise = Promise.successful(C3POState.at(2))
+        when(storage.get(classOf[C3POState], C3POState.ID))
             .thenReturn(statePromise.future)
         storageManager.init()
 
@@ -126,11 +126,11 @@ class C3POStorageManagerTest extends FlatSpec with BeforeAndAfterEach {
     "Storage in initialization." in {
         val storage = mock(classOf[Storage])
         val manager = new C3POStorageManager(storage)
-        when(storage.exists(classOf[C3POState], C3PO_STATE_ID))
+        when(storage.exists(classOf[C3POState], C3POState.ID))
             .thenReturn(Promise.successful(false).future)
         manager.init()
 
-        verify(storage).create(c3poState(0))
+        verify(storage).create(C3POState.at(0))
     }
 
     "NeutronNetwork CREATE" should "call ZOOM.multi with CreateOp on " +
@@ -194,7 +194,7 @@ class C3POStorageManagerTest extends FlatSpec with BeforeAndAfterEach {
         storageManager.flushTopology()
 
         verify(storage).flush()
-        verify(storage, times(2)).create(c3poState(0))
+        verify(storage, times(2)).create(C3POState.noTasksProcessed())
     }
 
     // TODO: Actually, it should execute each transaction as a single multi
@@ -219,11 +219,11 @@ class C3POStorageManagerTest extends FlatSpec with BeforeAndAfterEach {
         verify(storage).multi(List(
                 CreateOp(neutronNetwork),
                 CreateOp(midoNetwork),
-                UpdateOp(c3poState(2))))
+                UpdateOp(C3POState.at(2))))
         verify(storage).multi(List(
                 CreateOp(neutronNetworkPort),
                 CreateOp(midoPort),
-                UpdateOp(c3poState(3))))
+                UpdateOp(C3POState.at(3))))
         verify(mockExtraTranslator, never()).translate(anyObject())
     }
 
