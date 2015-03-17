@@ -15,46 +15,34 @@
  */
 package org.midonet.midolman.datapath
 
-import java.nio.ByteBuffer
-import java.util.{List => JList}
-
 import com.lmax.disruptor._
-import com.typesafe.scalalogging.Logger
 
-import org.midonet.midolman.datapath.DisruptorDatapathChannel.DatapathEvent
-import org.midonet.netlink._
+import org.midonet.midolman.datapath.DisruptorDatapathChannel.PacketContextHolder
+import org.midonet.midolman.simulation.PacketContext
 import org.midonet.odp._
-import org.midonet.odp.flows.FlowAction
-import org.slf4j.LoggerFactory
 
 trait DatapathChannel {
-    def executePacket(packet: Packet, actions: JList[FlowAction]): Long
-    def createFlow(flow: Flow): Long
+    def handoff(context: PacketContext): Long
 
     def start(datapath: Datapath): Unit
     def stop(): Unit
 }
 
 object DisruptorDatapathChannel {
-    val PACKET_EXECUTION: Byte = 0
-    val FLOW_CREATE: Byte = 1
+    sealed class PacketContextHolder(var packetExecRef: PacketContext,
+                                     var flowCreateRef: PacketContext,
+                                     var datapathId: Int,
+                                     var supportsMegaflow: Boolean)
 
-    sealed class DatapathEvent(var bb: ByteBuffer, var op: Byte)
-
-    object Factory extends EventFactory[DatapathEvent] {
-        override def newInstance(): DatapathEvent =
-            new DatapathEvent(BytesUtil.instance.allocateDirect(8*1024), -1)
+    object Factory extends EventFactory[PacketContextHolder] {
+        override def newInstance() = new PacketContextHolder(null, null, 0, false)
     }
 }
 
-class DisruptorDatapathChannel(ovsFamilies: OvsNetlinkFamilies,
-                               ringBuffer: RingBuffer[DatapathEvent],
+class DisruptorDatapathChannel(ringBuffer: RingBuffer[PacketContextHolder],
                                processors: Array[_ <: EventProcessor]) extends DatapathChannel {
-    import DisruptorDatapathChannel._
-
     private var datapathId: Int = _
     private var supportsMegaflow: Boolean = _
-    private val protocol = new OvsProtocol(0, ovsFamilies)
 
     def start(datapath: Datapath): Unit = {
         datapathId = datapath.getIndex
@@ -78,31 +66,13 @@ class DisruptorDatapathChannel(ovsFamilies: OvsNetlinkFamilies,
     def stop(): Unit =
         processors foreach (_.halt())
 
-    def executePacket(packet: Packet,
-                      actions: JList[FlowAction]): Long = {
-        if (actions.isEmpty) {
-            return RingBuffer.INITIAL_CURSOR_VALUE
-        }
-
+    def handoff(context: PacketContext): Long = {
         val seq = ringBuffer.next()
         val event = ringBuffer.get(seq)
-        event.bb.clear()
-
-        protocol.preparePacketExecute(datapathId, packet, actions, event.bb)
-        event.op = PACKET_EXECUTION
-        ringBuffer.publish(seq)
-        seq
-    }
-
-    def createFlow(flow: Flow): Long = {
-        val seq = ringBuffer.next()
-        flow.getMatch.setSequence(seq)
-
-        val event = ringBuffer.get(seq)
-        event.bb.clear()
-
-        protocol.prepareFlowCreate(datapathId, supportsMegaflow, flow, event.bb)
-        event.op = FLOW_CREATE
+        event.packetExecRef = context
+        event.flowCreateRef = context
+        event.datapathId = datapathId
+        event.supportsMegaflow = supportsMegaflow
         ringBuffer.publish(seq)
         seq
     }
