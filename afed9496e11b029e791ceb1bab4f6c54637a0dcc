@@ -1,0 +1,90 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3a1371a2_a526aa66",
+        "filename": "brain/tools/src/main/scala/org/midonet/brain/tools/TopologyZoomUpdater.scala",
+        "patchSetId": 29
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-03-17T02:09:32Z",
+      "side": 1,
+      "message": "Out-of-order.",
+      "revId": "afed9496e11b029e791ceb1bab4f6c54637a0dcc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_256c7a9c",
+        "filename": "brain/tools/src/main/scala/org/midonet/brain/tools/TopologyZoomUpdater.scala",
+        "patchSetId": 29
+      },
+      "lineNbr": 446,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-03-17T02:09:32Z",
+      "side": 1,
+      "message": "Sorry that my comment wasn\u0027t clear enough. You can import org.midonet.util.concurrent.toFutureOps, which is actually defined in org.midonet.util.concurrent.package. \"toFutureOps\" provides implicit conversion from Future to FutureOps, and on FutureOps you can simply call await() to get the value. So for example, the above part can be simplified as follows:\n\n\nobject TopologyEntity {\n    def getProto[T](k: Class[T], id: AnyRef)\n                   (implicit storage: StorageWithOwnership): Option[T] \u003d \n        storage.get(k, id).map(Some(_)).recover({case _ \u003d\u003e None}).await()\n    def getAllProtos[T](k: Class[T])(implicit storage: StorageWithOwnership)\n        : Iterable[T] \u003d\n        storage.getAll(k).await()\n}\n\n\nIt\u0027s just a suggestion, and you can apply this in a separate patch.",
+      "range": {
+        "startLine": 439,
+        "startChar": 4,
+        "endLine": 446,
+        "endChar": 53
+      },
+      "revId": "afed9496e11b029e791ceb1bab4f6c54637a0dcc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_85b9eeeb",
+        "filename": "brain/tools/src/main/scala/org/midonet/brain/tools/TopologyZoomUpdater.scala",
+        "patchSetId": 29
+      },
+      "lineNbr": 491,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-03-17T02:09:32Z",
+      "side": 1,
+      "message": "Just a random suggestion and you don\u0027t need to do in this patch.\n\nPerhaps one way to reduce duplication is to define the above methods in the base class. If you see necessary, you can check if model has an \u0027admin_state_up\u0027 field. I think we should also reconsider introducing Generics so that \"def model\" can be defined in the base class...",
+      "range": {
+        "startLine": 489,
+        "startChar": 0,
+        "endLine": 491,
+        "endChar": 46
+      },
+      "revId": "afed9496e11b029e791ceb1bab4f6c54637a0dcc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_2503dab9",
+        "filename": "brain/tools/src/main/scala/org/midonet/brain/tools/TopologyZoomUpdater.scala",
+        "patchSetId": 29
+      },
+      "lineNbr": 500,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-03-17T02:09:32Z",
+      "side": 1,
+      "message": "It seems safer to put this back in, otherwise please remove the commented out code.",
+      "range": {
+        "startLine": 500,
+        "startChar": 12,
+        "endLine": 500,
+        "endChar": 35
+      },
+      "revId": "afed9496e11b029e791ceb1bab4f6c54637a0dcc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
