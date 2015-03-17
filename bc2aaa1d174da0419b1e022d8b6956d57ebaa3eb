@@ -73,6 +73,24 @@
     },
     {
       "key": {
+        "uuid": "3a1371a2_85ec4ec9",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/datapath/FlowProcessor.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-03-17T14:38:54Z",
+      "side": 1,
+      "message": "I missed Ivan\u0027s comment on the previous patch. That makes sense.",
+      "parentUuid": "3a1371a2_792621bc",
+      "revId": "bc2aaa1d174da0419b1e022d8b6956d57ebaa3eb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a1371a2_d6c60249",
         "filename": "midolman/src/main/scala/org/midonet/midolman/datapath/FlowProcessor.scala",
         "patchSetId": 15
