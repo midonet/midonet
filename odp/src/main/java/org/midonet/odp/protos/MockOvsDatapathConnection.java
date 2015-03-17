@@ -17,7 +17,6 @@ package org.midonet.odp.protos;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -35,12 +34,7 @@ import org.midonet.netlink.exceptions.NetlinkException;
 import org.midonet.odp.*;
 import org.midonet.odp.flows.*;
 import org.midonet.odp.ports.InternalPort;
-import org.midonet.packets.ElasticData;
-import org.midonet.packets.Ethernet;
-import org.midonet.packets.FlowStateEthernet;
-import org.midonet.packets.MalformedPacketException;
 import org.midonet.util.BatchCollector;
-import org.midonet.util.functors.Callback2;
 
 import static org.midonet.netlink.exceptions.NetlinkException.ErrorCode.*;
 
@@ -52,24 +46,18 @@ public class MockOvsDatapathConnection extends OvsDatapathConnection {
     private final Set<Datapath> datapaths;
     private final Map<Datapath, Set<DpPort>> datapathPorts;
     private final Map<Datapath, AtomicInteger> portsIndexes;
-    public final Map<FlowMatch, Flow> flowsTable;
+    public final Map<FlowMatch, Flow> flowsTable = new ConcurrentHashMap<>();
     public final List<Packet> packetsSent;
-
-    private Callback2<Packet,List<FlowAction>> packetExecCb = null;
-    private FlowListener flowsCb = null;
-    private boolean initialized = false;
 
     AtomicInteger datapathIds = new AtomicInteger(1);
 
-    public MockOvsDatapathConnection(NetlinkChannel channel,
-                                     Map<FlowMatch, Flow> flowsTable) {
+    public MockOvsDatapathConnection(NetlinkChannel channel) {
         super(channel, new BufferPool(128, 512, 0x1000));
         this.datapaths = Collections.newSetFromMap(
                             new ConcurrentHashMap<Datapath,Boolean>());
-        this.datapathPorts = new ConcurrentHashMap<Datapath, Set<DpPort>>();
-        this.portsIndexes = new ConcurrentHashMap<Datapath, AtomicInteger>();
-        this.flowsTable = flowsTable;
-        this.packetsSent = new ArrayList<Packet>();
+        this.datapathPorts = new ConcurrentHashMap<>();
+        this.portsIndexes = new ConcurrentHashMap<>();
+        this.packetsSent = new ArrayList<>();
     }
 
     @Override
@@ -81,18 +69,6 @@ public class MockOvsDatapathConnection extends OvsDatapathConnection {
     @Override
     protected void _doDatapathsSetNotificationHandler(@Nonnull BatchCollector<Packet> notificationHandler) {
         this.notificationHandler = notificationHandler;
-    }
-
-    public void triggerPacketIn(@Nonnull Packet packet) {
-        notificationHandler.submit(packet);
-        notificationHandler.endBatch();
-    }
-
-    public void triggerPacketsIn(@Nonnull List<Packet> packets) {
-        for (Packet p : packets) {
-            notificationHandler.submit(p);
-        }
-        notificationHandler.endBatch();
     }
 
     @Override
@@ -273,7 +249,7 @@ public class MockOvsDatapathConnection extends OvsDatapathConnection {
 
     @Override
     protected void _doFlowsEnumerate(Datapath datapath, @Nonnull Callback<Set<Flow>> callback, long timeoutMillis) {
-        Set<Flow> flows = new HashSet<Flow>();
+        Set<Flow> flows = new HashSet<>();
         for(Flow flow: flowsTable.values()){
             flows.add(flow);
         }
@@ -286,8 +262,6 @@ public class MockOvsDatapathConnection extends OvsDatapathConnection {
         flowsTable.put(flow.getMatch(), flow);
         if (callback != null)
             callback.onSuccess(flow);
-        if (flowsCb != null)
-            flowsCb.flowCreated(flow);
     }
 
     @Override
@@ -298,8 +272,6 @@ public class MockOvsDatapathConnection extends OvsDatapathConnection {
         Flow removed = flowsTable.remove(match);
         if (removed != null) {
             callback.onSuccess(removed);
-            if (flowsCb != null)
-                flowsCb.flowDeleted(removed);
         } else {
             callback.onError(new NetlinkException(NetlinkException.ErrorCode.ENOENT));
         }
@@ -335,54 +307,14 @@ public class MockOvsDatapathConnection extends OvsDatapathConnection {
         callback.onSuccess(true);
     }
 
-    public void setFlowLastUsedTimeToNow(FlowMatch match){
-        flowsTable.get(match).setLastUsedMillis(System.currentTimeMillis());
-    }
-
     @Override
     protected void _doPacketsExecute(@Nonnull Datapath datapath,
                                      @Nonnull Packet packet,
                                      @Nonnull List<FlowAction> actions,
                                      Callback<Boolean> callback,
                                      long timeoutMillis) {
-        Packet sentPacket = packet;
         packetsSent.add(packet);
         if (callback != null)
             callback.onSuccess(true);
-
-        if (packet.getEthernet() instanceof FlowStateEthernet) {
-            FlowStateEthernet flowStateEthernet =
-                    (FlowStateEthernet) packet.getEthernet();
-            try {
-                Ethernet deserializedFlowStateEthenet =
-                        FlowStateEthernet.deserialize(
-                                flowStateEthernet.serialize());
-                sentPacket = new Packet(deserializedFlowStateEthenet,
-                        FlowMatches.fromEthernetPacket(
-                                deserializedFlowStateEthenet));
-            } catch (MalformedPacketException ex) {
-                byte[] originalBytes = flowStateEthernet.getCore().getData();
-                // NOTE(tfukushima): This is a mock and I'm copying data here but we
-                // shouldn't in general and OvsDatapathConnectionImpl doesn't.
-                ElasticData slicedData = new ElasticData(Arrays.copyOf(
-                        originalBytes, flowStateEthernet.getElasticDataLength()));
-                flowStateEthernet.setCore(slicedData);
-            }
-        }
-        if (packetExecCb != null)
-            packetExecCb.call(sentPacket, actions);
-    }
-
-    public void packetsExecuteSubscribe(Callback2<Packet,List<FlowAction>> cb) {
-        this.packetExecCb = cb;
-    }
-
-    public interface FlowListener {
-        void flowCreated(Flow flow);
-        void flowDeleted(Flow flow);
-    }
-
-    public void flowsSubscribe(FlowListener listener) {
-        this.flowsCb = listener;
     }
 }

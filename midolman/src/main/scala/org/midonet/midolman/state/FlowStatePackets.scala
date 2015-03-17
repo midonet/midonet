@@ -69,17 +69,6 @@ object FlowStatePackets {
                     { payload(data) }
     }
 
-    def makeFlowStateUdpShell(data: Array[Byte]): FlowStateEthernet =
-        makeFlowStateUdpShell(data, data.length)
-
-    def makeFlowStateUdpShell(data: Array[Byte],
-                              length: Int): FlowStateEthernet = {
-        val flowStateUdpShell = new FlowStateEthernet
-        val elasticData = new ElasticData(data, length)
-        flowStateUdpShell.setCore(elasticData)
-        flowStateUdpShell
-    }
-
     implicit def ipAddressFromProto(proto: Proto.IpAddress): IPAddr = {
         if (proto.getVersion == Proto.IpAddress.IpVersion.V4) {
             new IPv4Addr(proto.getQuad0)
@@ -109,11 +98,12 @@ object FlowStatePackets {
         case _ => throw new IllegalArgumentException()
     }
 
-    implicit def uuidFromProto(proto: Proto.UUID) = new UUID(proto.getMsb, proto.getLsb)
+    implicit def uuidFromProto(proto: Proto.UUID): UUID =
+        new UUID(proto.getMsb, proto.getLsb)
 
     implicit def uuidToProto(uuid: UUID): Proto.UUID =
-            Proto.UUID.newBuilder().setMsb(uuid.getMostSignificantBits).
-                setLsb(uuid.getLeastSignificantBits).build()
+        Proto.UUID.newBuilder().setMsb(uuid.getMostSignificantBits).
+            setLsb(uuid.getLeastSignificantBits).build()
 
     implicit def natKeyTypeFromProto(t: Proto.NatKey.Type): KeyType = t match {
         case Proto.NatKey.Type.FWD_SNAT => NatState.FWD_SNAT

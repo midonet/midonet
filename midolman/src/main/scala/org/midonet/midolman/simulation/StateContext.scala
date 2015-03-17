@@ -16,14 +16,21 @@
 
 package org.midonet.midolman.simulation
 
+import java.util.{ArrayList, HashSet, UUID}
+
+import com.google.protobuf.MessageLite
 import org.midonet.midolman.state.{NatLeaser, FlowState, ConnTrackState, NatState}
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackValue, ConnTrackKey}
 import org.midonet.midolman.state.NatState.{NatKey, NatBinding}
+import org.midonet.odp.flows.FlowAction
 import org.midonet.sdn.state.FlowStateTransaction
 
 trait StateContext extends FlowState
                    with ConnTrackState
                    with NatState { this: PacketContext =>
+
+    var stateMessage: MessageLite = _
+    val stateActions = new ArrayList[FlowAction]()
 
     def initialize(conntrackTx: FlowStateTransaction[ConnTrackKey, ConnTrackValue],
                    natTx: FlowStateTransaction[NatKey, NatBinding],
@@ -33,5 +40,5 @@ trait StateContext extends FlowState
         this.natLeaser = natLeaser
     }
 
-    def containsFlowState = conntrackTx.size() > 0 || natTx.size() > 0
+    def hasFlowState = conntrackTx.size() > 0 || natTx.size() > 0
 }

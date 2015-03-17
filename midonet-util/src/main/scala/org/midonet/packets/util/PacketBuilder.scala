@@ -37,7 +37,6 @@ object PacketBuilder {
     val ip4_bcast = IPv4Addr("255.255.255.255")
 
     def eth = EthBuilder()
-    def flowStateEth = EthBuilder(packet = new FlowStateEthernet)
     def arp = ArpBuilder()
     def ip4 = IPv4Builder()
     def tcp = TcpBuilder()
@@ -126,13 +125,13 @@ case class ElasticDataBuilder(packet: ElasticData = new ElasticData())
         extends PacketBuilder[ElasticData] with NonAppendable[ElasticData] {
     def apply(str: String, length: Int): ElasticDataBuilder = {
         packet.setData(str.getBytes)
-        packet.setLength(length)
+        packet.limit(length)
         this
     }
 
     def apply(data: Array[Byte], length: Int): ElasticDataBuilder = {
         packet.setData(data)
-        packet.setLength(length)
+        packet.limit(length)
         this
     }
 }

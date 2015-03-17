@@ -219,14 +219,15 @@ public class MAC {
         return bytesAddr;
     }
 
-    private static InvalidMacException illegalMacBytes =
-        new InvalidMacException(
+    private static InvalidMacException illegalMacBytes() {
+        return new InvalidMacException(
             "Byte array representing a MAC address must have length 6 exactly.");
+    }
 
     public static long bytesToLong(byte[] bytesAddr)
             throws InvalidMacException {
         if (bytesAddr == null || bytesAddr.length != 6)
-             throw illegalMacBytes;
+             throw illegalMacBytes();
         long addr = 0;
         for (int i = 0; i < 6; i++) {
             addr = (addr << 8) + (bytesAddr[i] & 0xffL);
@@ -237,7 +238,7 @@ public class MAC {
     public static String bytesToString(byte[] address)
             throws InvalidMacException {
         if (address == null || address.length != 6)
-            throw illegalMacBytes;
+            throw illegalMacBytes();
         return String.format(
             "%02x:%02x:%02x:%02x:%02x:%02x",
             address[0],

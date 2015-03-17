@@ -35,6 +35,7 @@ import org.midonet.netlink.exceptions.NetlinkException;
 import org.midonet.odp.Datapath;
 import org.midonet.odp.DpPort;
 import org.midonet.odp.Flow;
+import org.midonet.odp.FlowMask;
 import org.midonet.odp.FlowMatch;
 import org.midonet.odp.OpenVSwitch;
 import org.midonet.odp.OvsNetlinkFamilies;
@@ -348,7 +349,9 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         }
 
         ByteBuffer buf = getBuffer();
-        protocol.prepareFlowCreate(datapathId, datapath.supportsMegaflow(), flow, buf);
+        FlowMask mask = datapath.supportsMegaflow() ? flow.getMask() : null;
+        protocol.prepareFlowCreate(datapathId, flow.getMatch().getKeys(),
+                                   flow.getActions(), mask, buf);
         sendNetlinkMessage(buf, callback, Flow.deserializer, timeoutMillis);
     }
 
