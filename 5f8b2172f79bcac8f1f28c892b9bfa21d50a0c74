@@ -1,0 +1,113 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3a1371a2_2bb9eb2e",
+        "filename": "midolman/src/main/java/org/midonet/midolman/cluster/datapath/DatapathModule.java",
+        "patchSetId": 16
+      },
+      "lineNbr": 182,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-03-17T15:06:18Z",
+      "side": 1,
+      "message": "Why don\u0027t we have the static and final value and name it DEFAULT_FLOW_REQUEST_SIZE? I think it\u0027s better than putting a number and comment for it here.",
+      "revId": "5f8b2172f79bcac8f1f28c892b9bfa21d50a0c74",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_4b870762",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/datapath/DatapathChannelTest.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-03-17T15:06:18Z",
+      "side": 1,
+      "message": "Why is this in the class rather than in the companion object and why is this only one decoupled from the concrete number?",
+      "range": {
+        "startLine": 51,
+        "startChar": 8,
+        "endLine": 51,
+        "endChar": 16
+      },
+      "revId": "5f8b2172f79bcac8f1f28c892b9bfa21d50a0c74",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_abf31b09",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/datapath/DatapathChannelTest.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-03-17T15:06:18Z",
+      "side": 1,
+      "message": "For instance, these concrete numbers are easily denoted as what they are on IntelliJ but I can\u0027t on the plain text review system. if they\u0027re defined as TestMaxPendingRequests and TestMaxRequestSize it\u0027s easier to figure out.",
+      "range": {
+        "startLine": 55,
+        "startChar": 55,
+        "endLine": 55,
+        "endChar": 66
+      },
+      "revId": "5f8b2172f79bcac8f1f28c892b9bfa21d50a0c74",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_4b6387b1",
+        "filename": "netlink/src/test/scala/org/midonet/netlink/NetlinkRequestBrokerTest.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-03-17T15:06:18Z",
+      "side": 1,
+      "message": "I\u0027m just wondering how this 1024 is led. I know this is the test class but still it\u0027d be great if we could reason about these parameters.",
+      "range": {
+        "startLine": 23,
+        "startChar": 39,
+        "endLine": 23,
+        "endChar": 43
+      },
+      "revId": "5f8b2172f79bcac8f1f28c892b9bfa21d50a0c74",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_2b6c4b9c",
+        "filename": "odp/src/main/scala/org/midonet/odp/OvsNetlinkFamilies.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-03-17T15:06:18Z",
+      "side": 1,
+      "message": "Why aren\u0027t these concrete numbers defined as constants and why are they 2048?",
+      "range": {
+        "startLine": 36,
+        "startChar": 12,
+        "endLine": 36,
+        "endChar": 19
+      },
+      "revId": "5f8b2172f79bcac8f1f28c892b9bfa21d50a0c74",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
