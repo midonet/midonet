@@ -72,7 +72,7 @@ class FlowTest extends FunSpec with Matchers {
                                                       new FlowFamily(0),
                                                       new PacketFamily(0), 0, 0)
                 val protocol = new OvsProtocol(0, families)
-                protocol.prepareFlowCreate(42, false, flow, buf)
+                protocol.prepareFlowCreate(42, keys, actions, null, buf)
                 buf.position(NetlinkMessage.GENL_HEADER_SIZE)
                 (Flow.deserializer deserializeFrom buf) shouldBe flow
             }
