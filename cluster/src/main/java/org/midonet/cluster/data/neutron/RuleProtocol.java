@@ -63,14 +63,14 @@ public enum RuleProtocol {
     }
 
     @JsonCreator
-    public static RuleProtocol forValue(String v) {
+    public static RuleProtocol forValue(Object v) {
         if (v == null) return null;
 
-        Integer num = Ints.tryParse(v);
+        Integer num = Ints.tryParse(v.toString());
         if (num != null) {
             return forNumValue(num.byteValue());
         } else {
-            return forStrValue(v);
+            return forStrValue(v.toString());
         }
     }
 }
