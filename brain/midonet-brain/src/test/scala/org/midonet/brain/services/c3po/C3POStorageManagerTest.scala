@@ -33,10 +33,10 @@ import org.scalatest.{BeforeAndAfterEach, FlatSpec}
 import org.midonet.brain.services.c3po.midonet.Create
 import org.midonet.brain.services.c3po.translators.{NetworkTranslator, NeutronTranslator, TranslationException}
 import org.midonet.cluster.data.storage.{CreateOp, DeleteOp, PersistenceOp, Storage, StorageException, UpdateOp}
-import org.midonet.cluster.models.C3PO.C3POState
 import org.midonet.cluster.models.Commons
 import org.midonet.cluster.models.Neutron.{NeutronNetwork, NeutronPort, NeutronRoute}
 import org.midonet.cluster.models.Topology.{Network, Port}
+import org.midonet.cluster.services.c3po.C3POState
 import org.midonet.cluster.util.UUIDUtil.randomUuidProto
 
 object C3POStorageManagerTest {
