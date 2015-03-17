@@ -20,6 +20,7 @@ import java.util.{Arrays, ArrayList, HashSet, Set => JSet, UUID}
 import scala.collection.JavaConversions._
 
 import com.typesafe.scalalogging.Logger
+import org.midonet.midolman.flows.ManagedFlow
 import org.slf4j.LoggerFactory
 
 import org.midonet.midolman._
@@ -54,6 +55,8 @@ trait FlowContext extends Clearable { this: PacketContext =>
     // This Set stores the tags by which the flow may be indexed.
     // The index can be used to remove flows associated with the given tag.
     val flowTags = new HashSet[FlowTag]()
+
+    var flow: ManagedFlow = _
 
     def isDrop: Boolean = flowActions.isEmpty
 
@@ -249,6 +252,7 @@ class PacketContext(val cookie: Int,
     def postpone() {
         idle = true
         clear()
+        stateActions.clear()
         flowRemovedCallbacks.runAndClear()
         wcmatch.reset(origMatch)
         inputPort = null

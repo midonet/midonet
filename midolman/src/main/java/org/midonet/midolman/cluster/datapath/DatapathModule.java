@@ -90,6 +90,7 @@ public class DatapathModule extends PrivateModule {
     private EventProcessor[] createProcessors(int threads, RingBuffer ringBuffer,
                                               SequenceBarrier barrier,
                                               FlowProcessor flowProcessor,
+                                              OvsNetlinkFamilies families,
                                               NetlinkChannelFactory channelFactory) {
         threads = Math.max(threads, 1);
         EventProcessor[] processors = new EventProcessor[threads];
@@ -97,14 +98,15 @@ public class DatapathModule extends PrivateModule {
             EventPoller.Handler handler = new AggregateEventPollerHandler(
                 JavaConversions.asScalaBuffer(Arrays.asList(
                     flowProcessor,
-                    new EventPollerHandlerAdapter(new PacketExecutor(1, 0, channelFactory)))));
+                    new EventPollerHandlerAdapter(
+                        new PacketExecutor(families, 1, 0, channelFactory)))));
             processors[0] = new BackchannelEventProcessor(
                 ringBuffer, handler, flowProcessor, Seq$.MODULE$.empty());
         } else {
             int numPacketHandlers = threads - 1;
             for (int i = 0; i < numPacketHandlers; ++i) {
-                PacketExecutor pexec = new PacketExecutor(numPacketHandlers, i,
-                                                          channelFactory);
+                PacketExecutor pexec = new PacketExecutor(
+                    families, numPacketHandlers, i, channelFactory);
                 processors[i] = new BatchEventProcessor(ringBuffer, barrier, pexec);
             }
             processors[numPacketHandlers] = new BackchannelEventProcessor(
@@ -126,7 +128,7 @@ public class DatapathModule extends PrivateModule {
                 public DatapathChannel get() {
                     int capacity = Util.findNextPositivePowerOfTwo(
                         config.getGlobalIncomingBurstCapacity() * 2);
-                    RingBuffer<DatapathEvent> ringBuffer = RingBuffer.createMultiProducer(
+                    RingBuffer<PacketContextHolder> ringBuffer = RingBuffer.createMultiProducer(
                         Factory$.MODULE$,
                         capacity);
                     SequenceBarrier barrier = ringBuffer.newBarrier();
@@ -134,10 +136,9 @@ public class DatapathModule extends PrivateModule {
                         config.getNumOutputChannels(),
                         ringBuffer, barrier,
                         injector.getInstance(FlowProcessor.class),
-                        injector.getInstance(NetlinkChannelFactory.class));
-                    return new DisruptorDatapathChannel(
                         injector.getInstance(OvsNetlinkFamilies.class),
-                        ringBuffer, processors);
+                        injector.getInstance(NetlinkChannelFactory.class));
+                    return new DisruptorDatapathChannel(ringBuffer, processors);
                 }
             })
             .in(Singleton.class);

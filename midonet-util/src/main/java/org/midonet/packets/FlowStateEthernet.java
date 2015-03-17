@@ -17,7 +17,6 @@
 package org.midonet.packets;
 
 import java.nio.ByteBuffer;
-import java.util.Arrays;
 
 /**
  * FlowStateEthernet is an ethernet frame contains a flow state UDP packet,
@@ -53,7 +52,7 @@ import java.util.Arrays;
  *  |             Length            |             Checksum          |
  *  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
  */
-public class FlowStateEthernet extends Ethernet {
+public final class FlowStateEthernet extends Ethernet {
     public final static int MTU = 1500;
     // Ethernet(IEE 802.3): http://standards.ieee.org/about/get/802/802.3.html
     // IP: https://tools.ietf.org/html/rfc791
@@ -99,32 +98,53 @@ public class FlowStateEthernet extends Ethernet {
             IPv4Addr.fromString("169.254.15.2");
     public final static int FLOW_STATE_UDP_PORT = 2925;
 
-    private static byte[] cachedFlowStateEthernetHeader;
-    private static IPv4 cachedIpv4;
+    private byte[] cachedFlowStateEthernetHeader;
+    private final ElasticData data;
 
-    private ElasticData core = new ElasticData(new byte[] {});
+    public FlowStateEthernet(byte[] buffer) {
+        super();
+        data = new ElasticData(buffer);
+        cachedFlowStateEthernetHeader = buildHeaders(data);
+    }
 
-    private static void putElasticData(ByteBuffer bb, int start,
-                                       ElasticData elasticData) {
-        elasticData.serialize(bb);
+    @Override
+    public int serialize(ByteBuffer bb) {
+        int start = bb.position();
+        bb.put(cachedFlowStateEthernetHeader);
+        int elasticDataLength = data.limit();
+        putElasticData(bb, start, elasticDataLength);
+        return FLOW_STATE_ETHERNET_OVERHEAD + elasticDataLength;
+    }
+
+    @Override
+    public byte[] serialize() {
+        ((IPv4)payload).setChecksum((short)0);
+        return super.serialize();
+    }
+
+    public void limit(int limit) {
+        data.limit(limit);
+    }
+
+    private void putElasticData(ByteBuffer bb, int start, int elasticDataLength) {
+        data.serialize(bb);
         short ipLength = (short) (
-                IPv4.MIN_HEADER_LEN + UDP.HEADER_LEN + elasticData.getLength());
+                IPv4.MIN_HEADER_LEN + UDP.HEADER_LEN + elasticDataLength);
         bb.putShort(start + FLOW_STATE_IP_LENGTH_OFFSET, ipLength);
         short ipChecksum = IPv4.computeChecksum(
                 bb.array(), start + FLOW_STATE_IP_HEADER_OFFSET,
                 IPv4.MIN_HEADER_LEN, start + FLOW_STATE_IP_CHECKSUM_OFFSET);
+        System.out.println(ipChecksum);
         bb.putShort(start + FLOW_STATE_IP_CHECKSUM_OFFSET, ipChecksum);
-        short udpLength = (short) (UDP.HEADER_LEN + elasticData.getLength());
+        short udpLength = (short) (UDP.HEADER_LEN + elasticDataLength);
         bb.putShort(start+ FLOW_STATE_UDP_LENGTH_OFFSET, udpLength);
     }
 
-    private static void putFlowStateEthernetHeader() {
-        Ethernet flowStateEthernet = new Ethernet();
-        flowStateEthernet.setSourceMACAddress(
-                MAC.fromString(FLOW_STATE_ETHERNET_SOURCE_MAC));
-        flowStateEthernet.setDestinationMACAddress(
-                MAC.fromString(FLOW_STATE_ETHERNET_DESTINATION_MAC));
-        flowStateEthernet.setEtherType(FLOW_STATE_ETHERNET_TYPE);
+    private byte[] buildHeaders(ElasticData data) {
+        setSourceMACAddress(MAC.fromString(FLOW_STATE_ETHERNET_SOURCE_MAC));
+        setDestinationMACAddress(
+            MAC.fromString(FLOW_STATE_ETHERNET_DESTINATION_MAC));
+        setEtherType(FLOW_STATE_ETHERNET_TYPE);
 
         IPv4 ipv4 = new IPv4();
         ipv4.setVersion(FlowStateEthernet.FLOW_STATE_IP_VERSION);
@@ -138,9 +158,8 @@ public class FlowStateEthernet extends Ethernet {
         ipv4.setProtocol(FlowStateEthernet.FLOW_STATE_IP_PROTOCOL);
         ipv4.setSourceAddress(FlowStateEthernet.FLOW_STATE_IP_SRC_ADDRESS);
         ipv4.setDestinationAddress(FlowStateEthernet.FLOW_STATE_IP_DST_ADDRESS);
-        ipv4.setParent(flowStateEthernet);
-        flowStateEthernet.setPayload(ipv4);
-        cachedIpv4 = ipv4;
+        ipv4.setParent(this);
+        setPayload(ipv4);
 
         UDP udp = new UDP();
         udp.setSourcePort((short) FLOW_STATE_UDP_PORT);
@@ -148,79 +167,13 @@ public class FlowStateEthernet extends Ethernet {
         udp.setParent(ipv4);
         ipv4.setPayload(udp);
 
-        Data emptyData = new Data(new byte[] {});
-        emptyData.setParent(udp);
-        udp.setPayload(emptyData);
+        byte[] serialized = serialize();
+        // We don't specify the UDP checksum
+        ByteBuffer.wrap(serialized).putShort(FLOW_STATE_UDP_CHECKSUM_OFFSET,
+                                             (short) 0);
 
-        byte[] serialized = new byte[FLOW_STATE_ETHERNET_OVERHEAD];
-        ByteBuffer buff = ByteBuffer.wrap(serialized);
-        flowStateEthernet.serialize(buff);
-        // UDP checksum is calculated during the serialization, so set it
-        // zero here.
-        buff.putShort(FLOW_STATE_UDP_CHECKSUM_OFFSET, (short) 0);
-        cachedFlowStateEthernetHeader = serialized;
-    }
-
-    static {
-        putFlowStateEthernetHeader();
-    }
-
-    public FlowStateEthernet() {
-        super();
-        this.setSourceMACAddress(
-                MAC.fromString(FLOW_STATE_ETHERNET_SOURCE_MAC));
-        this.setDestinationMACAddress(
-                MAC.fromString(FLOW_STATE_ETHERNET_DESTINATION_MAC));
-        this.setEtherType(FLOW_STATE_ETHERNET_TYPE);
-        // FlowStateEthernet instance points the same cached payload always but
-        // the cached payload refers back to the same FlowStateEthernet
-        // instance. The opposite case doesn't hold.
-        this.setPayload(cachedIpv4);
-    }
-
-    @Override
-    public int serialize(ByteBuffer bb) {
-        int start = bb.position();
-        bb.put(cachedFlowStateEthernetHeader);
-        final ElasticData elasticData = getCore();
-        if (elasticData.getLength() > 0) {
-            putElasticData(bb, start, elasticData);
-        }
-        return FLOW_STATE_ETHERNET_OVERHEAD + getElasticDataLength();
-    }
-
-    @Override
-    public byte[] serialize() {
-        if (payload != null) {
-            payload.setParent(this);
-        }
-        int length = FlowStateEthernet.FLOW_STATE_ETHERNET_OVERHEAD +
-                getElasticDataLength();
-        if (pad && length < 60) {
-            length = 60;
-        }
-        byte[] data = new byte[length];
-        ByteBuffer bb = ByteBuffer.wrap(data);
-        serialize(bb);
-        if (pad) {
-            Arrays.fill(data, bb.position(), data.length, (byte) 0x0);
-        }
-        return data;
-    }
-
-    public int getElasticDataLength() {
-        return core.getLength();
-    }
-
-    public void setElasticDataLength(int length) {
-        core.setLength(length);
-    }
-
-    public ElasticData getCore() {
-        return core;
-    }
-
-    public void setCore(ElasticData data) {
-        core = data;
+        udp.setPayload(data);
+        data.setParent(udp);
+        return serialized;
     }
 }

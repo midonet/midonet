@@ -32,6 +32,8 @@ import org.midonet.midolman.io.UpcallDatapathConnectionManager;
 import org.midonet.midolman.util.mock.MockDatapathChannel;
 import org.midonet.midolman.util.mock.MockFlowProcessor;
 import org.midonet.midolman.util.mock.MockUpcallDatapathConnectionManager;
+import org.midonet.netlink.MockNetlinkChannelFactory;
+import org.midonet.netlink.NetlinkChannelFactory;
 import org.midonet.odp.Flow;
 import org.midonet.odp.FlowMatch;
 
@@ -48,7 +50,7 @@ public class MockDatapathModule extends DatapathModule {
 
                     @Override
                     public UpcallDatapathConnectionManager get() {
-                        return new MockUpcallDatapathConnectionManager(config, flowsTable);
+                        return new MockUpcallDatapathConnectionManager(config);
                     }
                 })
                 .in(Singleton.class);
@@ -63,6 +65,11 @@ public class MockDatapathModule extends DatapathModule {
     @Override
     protected void bindDatapathChannel() {
         bind(DatapathChannel.class).toInstance(new MockDatapathChannel(flowsTable));
+    }
+
+    @Override
+    protected void bindNetlinkConnectionFactory() {
+        bind(NetlinkChannelFactory.class).toInstance(new MockNetlinkChannelFactory());
     }
 
     @Override

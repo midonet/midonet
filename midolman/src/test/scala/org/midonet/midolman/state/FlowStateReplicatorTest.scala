@@ -19,13 +19,22 @@ package org.midonet.midolman.state
 import java.nio.ByteBuffer
 import java.util.{ArrayList, HashSet => JHashSet, List => JList, Set => JSet, UUID}
 
-import scala.collection.JavaConverters._
+import scala.collection.JavaConversions._
 import scala.collection.mutable
 
+import org.midonet.packets.util.PacketBuilder._
+import org.slf4j.LoggerFactory
+import org.slf4j.helpers.NOPLogger
+
 import com.google.protobuf.{CodedOutputStream, MessageLite}
+
 import com.typesafe.scalalogging.Logger
+
 import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
+
 import org.midonet.midolman.UnderlayResolver
+import org.midonet.midolman.datapath.StatePacketExecutor
 import org.midonet.midolman.simulation.PortGroup
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackKey, ConnTrackValue}
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
@@ -37,12 +46,10 @@ import org.midonet.odp.flows.{FlowAction, FlowActionOutput, FlowActions}
 import org.midonet.odp.{FlowMatches, Packet}
 import org.midonet.packets._
 import org.midonet.rpc.FlowStateProto
-import org.midonet.sdn.flows.FlowTagger.{FlowStateTag, FlowTag}
+import org.midonet.sdn.flows.FlowTagger.FlowTag
 import org.midonet.sdn.state.FlowStateTransaction
 import org.midonet.util.FixedArrayOutputStream
 import org.midonet.util.functors.Callback0
-import org.scalatest.junit.JUnitRunner
-import org.slf4j.LoggerFactory
 
 @RunWith(classOf[JUnitRunner])
 class FlowStateReplicatorTest extends MidolmanSpec {
@@ -100,8 +107,10 @@ class FlowStateReplicatorTest extends MidolmanSpec {
     val dpChannel = new MockDatapathChannel()
     var packetsSeen = List[(Packet, List[FlowAction])]()
 
-    var connTrackTx: ConnTrackTx = _
-    var natTx: NatTx = _
+    val ethernet: Ethernet = ({ eth src MAC.random() dst MAC.random() }).packet
+
+    implicit var connTrackTx: ConnTrackTx = _
+    implicit var natTx: NatTx = _
 
     val connTrackKeys =
         List(ConnTrackKey("10.0.0.1", 1234, "10.0.0.2", 22, 1, UUID.randomUUID()),
@@ -113,10 +122,10 @@ class FlowStateReplicatorTest extends MidolmanSpec {
         NatKey(NatState.FWD_SNAT, "192.168.10.2", 10002, "17.16.15.2", 443, 2, UUID.randomUUID()) ->
                NatBinding("4.3.2.1", 12345))
 
-    dpChannel.packetsExecuteSubscribe((p: Packet, actions: JList[FlowAction]) => {
-            val pkt = new Packet(p.getEthernet.clone(), p.getMatch)
-            packetsSeen ::= ((pkt, actions.asScala.toList))
-        })
+
+    val statePacketExecutor = new StatePacketExecutor {
+        val log = Logger(NOPLogger.NOP_LOGGER)
+    }
 
     val conntrackDevice = UUID.randomUUID()
 
@@ -139,20 +148,31 @@ class FlowStateReplicatorTest extends MidolmanSpec {
         packetsSeen = List.empty
     }
 
-    private def sendAndAcceptTransactions(): List[(Packet, List[FlowAction])] = {
-        sender.accumulateNewKeys(connTrackTx, natTx, ingressPort.id,
-                                 List(egressPort1.id).asJava,
-                                 new JHashSet[FlowTag](),
-                                 new ArrayList[Callback0])
-        sender.pushState(dpChannel)
+    private def sendState(ingressPort: UUID, egressPort: UUID,
+                          callbacks: ArrayList[Callback0] = new ArrayList[Callback0])
+    : (Packet, List[FlowAction]) = {
+        val context = packetContextFor(ethernet, ingressPort)
+        context.flowActions.add(FlowActions.output(1))
+        context.outPorts.add(egressPort)
+
+        sender.accumulateNewKeys(context)
         natTx.commit()
         connTrackTx.commit()
         natTx.flush()
         connTrackTx.flush()
-        packetsSeen should not be empty
-        val passedPacketsSeen = packetsSeen
-        acceptPushedState()
-        passedPacketsSeen
+
+        callbacks.addAll(context.flowRemovedCallbacks)
+
+        val packet = if (context.stateMessage ne null) {
+            statePacketExecutor.prepareStatePacket(context.stateMessage)
+        } else null
+        (packet, context.stateActions.toList)
+    }
+
+    private def sendAndAcceptTransactions(): (Packet, List[FlowAction]) = {
+        val (packet, actions) = sendState(ingressPort.id, egressPort1.id)
+        acceptPushedState(packet)
+        (packet, actions)
     }
 
     feature("State packets serialization") {
@@ -164,7 +184,7 @@ class FlowStateReplicatorTest extends MidolmanSpec {
                 FlowStateEthernet.FLOW_STATE_MAX_PAYLOAD_LENGTH)
             val stream = new FixedArrayOutputStream(buffer)
             val packet = {
-                val udpShell = makeFlowStateUdpShell(buffer)
+                val udpShell = new FlowStateEthernet(buffer)
                 new Packet(udpShell, FlowMatches.fromEthernetPacket(udpShell))
             }
 
@@ -184,7 +204,7 @@ class FlowStateReplicatorTest extends MidolmanSpec {
             msg.writeDelimitedTo(stream)
 
             val fse = packet.getEthernet.asInstanceOf[FlowStateEthernet]
-            fse.setElasticDataLength(msgLength)
+            fse.limit(msgLength)
 
             Then("Serialized packet should have the appropriate length")
             val bb = ByteBuffer.allocate(FlowStateEthernet.MTU)
@@ -220,7 +240,7 @@ class FlowStateReplicatorTest extends MidolmanSpec {
                 connTrackKeys.head, ConnTrackState.RETURN_FLOW)
 
             When("A flowstate packet is generated")
-            val (packet, _) = sendAndAcceptTransactions().head
+            val (packet, _) = sendAndAcceptTransactions()
 
             Then("Packet size of the flowstate packet should be less than MTU.")
             recipient.conntrackTable.get(
@@ -252,20 +272,12 @@ class FlowStateReplicatorTest extends MidolmanSpec {
             }
 
             When("The transaction is added to the replicator")
-            sender.accumulateNewKeys(connTrackTx, natTx, ingressPortNoGroup.id,
-                                     List(egressPortNoGroup.id).asJava,
-                                     new JHashSet[FlowTag](),
-                                     new ArrayList[Callback0])
-            sender.pushState(dpChannel)
-            natTx.commit()
-            connTrackTx.commit()
-            natTx.flush()
-            connTrackTx.flush()
+            val (packet, _) = sendState(ingressPortNoGroup.id, egressPortNoGroup.id)
 
             Then("No packets should have been sent")
-            packetsSeen should be (empty)
+            packet should be (null)
 
-            And("The keys are kept in the replicator")
+            Then("The keys are kept in the replicator")
             for ((k, v) <- natMappings) {
                 sender.natTable.get(k) should equal (v)
             }
@@ -281,10 +293,7 @@ class FlowStateReplicatorTest extends MidolmanSpec {
             val callbacks = new ArrayList[Callback0]
 
             When("The transaction is commited and added to the replicator")
-            connTrackTx.commit()
-            sender.accumulateNewKeys(connTrackTx, natTx, ingressPort.id,
-                                     List(egressPort1.id).asJava,
-                                     new JHashSet[FlowTag](), callbacks)
+            sendState(ingressPort.id, egressPort1.id, callbacks)
 
             Then("The unref callbacks should have been correctly added")
 
@@ -310,9 +319,7 @@ class FlowStateReplicatorTest extends MidolmanSpec {
 
             When("The transaction is commited and added to the replicator")
             natTx.commit()
-            sender.accumulateNewKeys(connTrackTx, natTx, ingressPort.id,
-                List(egressPort1.id).asJava,
-                new JHashSet[FlowTag](), callbacks)
+            sendState(ingressPort.id, egressPort1.id, callbacks)
 
             Then("The unref callbacks should have been correctly added")
 
@@ -328,12 +335,8 @@ class FlowStateReplicatorTest extends MidolmanSpec {
         }
     }
 
-    def acceptPushedState() {
-        for ((packet, _) <- packetsSeen) {
-            recipient.accept(packet.getEthernet)
-        }
-        packetsSeen = List.empty
-    }
+    def acceptPushedState(packet: Packet): Unit =
+        recipient.accept(packet.getEthernet)
 
     feature("L4 flow state resolves hosts and ports correctly") {
         scenario("All relevant ingress and egress hosts and ports get detected") {
@@ -342,7 +345,7 @@ class FlowStateReplicatorTest extends MidolmanSpec {
             When("The flow replicator resolves peers for a flow's state")
             val hosts = new JHashSet[UUID]()
             val ports = new JHashSet[UUID]()
-            sender.resolvePeers(ingressPort.id, List(egressPort1.id).asJava, hosts, ports, tags)
+            sender.resolvePeers(ingressPort.id, List(egressPort1.id), hosts, ports, tags)
 
             Then("Hosts in the ingress port's port group should be included")
             hosts should contain (ingressGroupMemberHostId)

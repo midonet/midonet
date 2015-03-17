@@ -138,23 +138,7 @@ public class TestFlowStateEthernet {
         private final byte[] data;
         private final FlowStateEthernet expected;
 
-        final static private int EMPTY_FLOW_STATE_PAYLOAD_SIZE = 0;
         final static private int SAMPLE_FLOW_STATE_PAYLOAD_SIZE = 24;
-
-        // Borrowed from StackOverflow:
-        //   http://stackoverflow.com/questions/9655181/
-        final protected static char[] hexArray =
-                "0123456789ABCDEF".toCharArray();
-
-        public static String bytesToHex(byte[] bytes) {
-            char[] hexChars = new char[bytes.length * 2];
-            for (int j = 0; j < bytes.length; j++) {
-                int v = bytes[j] & 0xFF;
-                hexChars[j * 2] = hexArray[v >>> 4];
-                hexChars[j * 2 + 1] = hexArray[v & 0x0F];
-            }
-            return new String(hexChars);
-        }
 
         public TestFlowStateEthernetValidPacket(byte[] data,
                                                 FlowStateEthernet expected) {
@@ -162,76 +146,25 @@ public class TestFlowStateEthernet {
             this.expected = expected;
         }
 
-        private static FlowStateEthernet makeFlowStateEthernetShell(
-                int payloadSize) {
-            FlowStateEthernet flowStateEthernet = new FlowStateEthernet();
-            flowStateEthernet.setDestinationMACAddress(
-                    new MAC(Arrays.copyOfRange(emptyPacket, 0, 6)));
-            flowStateEthernet.setSourceMACAddress(
-                    new MAC(Arrays.copyOfRange(emptyPacket, 6, 12)));
-            flowStateEthernet.setEtherType(
-                    FlowStateEthernet.FLOW_STATE_ETHERNET_TYPE);
-
-            IPv4 ipv4 = new IPv4();
-            ipv4.setVersion(FlowStateEthernet.FLOW_STATE_IP_VERSION);
-            ipv4.setHeaderLength(FlowStateEthernet.FLOW_STATE_IP_HEADER_LENGTH);
-            ipv4.setDiffServ(FlowStateEthernet.FLOW_STATE_IP_DIFF_SERV);
-            ipv4.setTotalLength(IPv4.MIN_HEADER_LEN + payloadSize);
-            ipv4.setIdentification(FlowStateEthernet.FLOW_STATE_IP_IDENTIFICATION);
-            ipv4.setFlags(FlowStateEthernet.FLOW_STATE_IP_FLAGS);
-            ipv4.setFragmentOffset(FlowStateEthernet.FLOW_STATE_IP_FRAGMENT_OFFSET);
-            ipv4.setTtl(FlowStateEthernet.FLOW_STATE_IP_TTL);
-            ipv4.setProtocol(FlowStateEthernet.FLOW_STATE_IP_PROTOCOL);
-            ipv4.setSourceAddress(FlowStateEthernet.FLOW_STATE_IP_SRC_ADDRESS);
-            ipv4.setDestinationAddress(
-                    FlowStateEthernet.FLOW_STATE_IP_DST_ADDRESS);
-            ipv4.setParent(flowStateEthernet);
-
-            UDP udp = new UDP();
-            udp.setSourcePort(FlowStateEthernet.FLOW_STATE_UDP_PORT);
-            udp.setDestinationPort(FlowStateEthernet.FLOW_STATE_UDP_PORT);
-            udp.setLength(UDP.HEADER_LEN + payloadSize);
-            udp.setParent(ipv4);
-            ipv4.setPayload(udp);
-
-            flowStateEthernet.setPayload(ipv4);
-
-            return flowStateEthernet;
-        }
-
         @SuppressWarnings("unchecked")
         @Parameters
         public static Collection<Object[]> data() {
             FlowStateEthernet emptyFlowStateEthernet =
-                    makeFlowStateEthernetShell(EMPTY_FLOW_STATE_PAYLOAD_SIZE);
-            ElasticData emptyData = new ElasticData();
-            emptyData.setData(new byte[]{});
-            emptyFlowStateEthernet.setCore(emptyData);
-            emptyFlowStateEthernet.setElasticDataLength(
-                    EMPTY_FLOW_STATE_PAYLOAD_SIZE);
+                new FlowStateEthernet(new byte[0]);
 
             FlowStateEthernet sampleFlowStateEthernet =
-                    makeFlowStateEthernetShell(SAMPLE_FLOW_STATE_PAYLOAD_SIZE);
-            ElasticData samplePayload = new ElasticData();
-            samplePayload.setData(fakePayload);
-            sampleFlowStateEthernet.setCore(samplePayload);
-            sampleFlowStateEthernet.setElasticDataLength(
-                    SAMPLE_FLOW_STATE_PAYLOAD_SIZE);
+                new FlowStateEthernet(fakePayload);
 
             FlowStateEthernet paddedFlowStateEthernet =
-                    makeFlowStateEthernetShell(SAMPLE_FLOW_STATE_PAYLOAD_SIZE);
-            ElasticData paddedPayload = new ElasticData();
-            paddedPayload.setData(fakePayloadWithPads);
-            paddedFlowStateEthernet.setCore(paddedPayload);
-            paddedFlowStateEthernet.setElasticDataLength(
-                    SAMPLE_FLOW_STATE_PAYLOAD_SIZE);
+                new FlowStateEthernet(fakePayloadWithPads);
+            paddedFlowStateEthernet.limit(SAMPLE_FLOW_STATE_PAYLOAD_SIZE);
 
             byte[] empty = Arrays.copyOf(emptyPacket, emptyPacket.length);
             ByteBuffer emptyPacketBuff = ByteBuffer.wrap(empty);
             short emptyChecksum = IPv4.computeChecksum(emptyPacket,
-                    FlowStateEthernet.FLOW_STATE_IP_HEADER_OFFSET,
-                    IPv4.MIN_HEADER_LEN,
-                    FlowStateEthernet.FLOW_STATE_IP_CHECKSUM_OFFSET);
+                                                       FlowStateEthernet.FLOW_STATE_IP_HEADER_OFFSET,
+                                                       IPv4.MIN_HEADER_LEN,
+                                                       FlowStateEthernet.FLOW_STATE_IP_CHECKSUM_OFFSET);
 
             emptyPacketBuff.putShort(
                     FlowStateEthernet.FLOW_STATE_IP_CHECKSUM_OFFSET,
@@ -246,8 +179,8 @@ public class TestFlowStateEthernet {
                             FlowStateEthernet.FLOW_STATE_IP_CHECKSUM_OFFSET);
 
             samplePacketBuff.putShort(
-                    FlowStateEthernet.FLOW_STATE_IP_CHECKSUM_OFFSET,
-                    sampleChecksum);
+                FlowStateEthernet.FLOW_STATE_IP_CHECKSUM_OFFSET,
+                sampleChecksum);
 
             return Arrays.asList(new Object[][]{
                     {empty, emptyFlowStateEthernet},
@@ -258,30 +191,16 @@ public class TestFlowStateEthernet {
 
         @Test
         public void TestSerialize() throws Exception {
-            byte[] serialized = this.expected.serialize();
-            Assert.assertArrayEquals(this.data, serialized);
+            byte[] serialized = expected.serialize();
+            ByteBuffer.wrap(serialized).putShort(FlowStateEthernet.FLOW_STATE_UDP_CHECKSUM_OFFSET, (short) 0);
+            Assert.assertArrayEquals(data, serialized);
         }
 
         @Test
         public void TestSerializeWithByteBuffer() throws Exception {
-            int length = FlowStateEthernet.FLOW_STATE_ETHERNET_OVERHEAD +
-                    this.expected.getElasticDataLength();
-            byte[] serialized = new byte[length];
-            ByteBuffer buff = ByteBuffer.wrap(serialized);
-            int packetLength = expected.serialize(buff);
-
-            Assert.assertEquals(length, packetLength);
-            Assert.assertEquals(this.data.length, serialized.length);
-            Assert.assertEquals(bytesToHex(this.data),
-                    bytesToHex(serialized));
-
-            byte[] slicedData = Arrays.copyOf(expected.getCore().getData(),
-                    this.expected.getElasticDataLength());
-            Ethernet classic = Ethernet.deserialize(serialized);
-            Data deserializedPayload =
-                    (Data) classic.getPayload().getPayload().getPayload();
-            byte [] deserializedData = deserializedPayload.getData();
-            Assert.assertArrayEquals(slicedData, deserializedData);
+            ByteBuffer buf = ByteBuffer.allocate(data.length);
+            expected.serialize(buf);
+            Assert.assertArrayEquals(data, buf.array());
         }
     }
 }
