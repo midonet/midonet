@@ -330,7 +330,6 @@ public class FlowMatch {
     private final ArrayList<FlowKey> keys = new ArrayList<>();
     private int hashCode = 0;
     private int connectionHash = 0;
-    private long sequence = -1;
 
     public FlowMatch() { }
 
@@ -478,7 +477,6 @@ public class FlowMatch {
         usedFields = that.usedFields;
         trackSeenFields = that.trackSeenFields;
         seenFields = that.seenFields;
-        sequence = that.sequence;
         keys.clear();
         keys.addAll(that.keys);
         invalidateHashCode();
@@ -499,7 +497,6 @@ public class FlowMatch {
         this.usedFields = 0;
         this.trackSeenFields = 1;
         this.seenFields = 0;
-        this.sequence = -1;
         keys.clear();
         invalidateHashCode();
     }
@@ -763,15 +760,6 @@ public class FlowMatch {
     public List<Short> getVlanIds() {
         fieldSeen(Field.VlanId);
         return vlanIds;
-    }
-
-    public long getSequence() {
-        return sequence;
-    }
-
-    public FlowMatch setSequence(long sequence) {
-        this.sequence = sequence;
-        return this;
     }
 
     @Override

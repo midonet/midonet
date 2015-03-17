@@ -73,7 +73,7 @@ trait FlowController extends FlowLifecycle with FlowInvalidation
         override def getValue = dpFlows.size()
     }, id)
 
-    def tryAddFlow(context: PacketContext, expiration: Expiration): ManagedFlow = {
+    def tryAddFlow(context: PacketContext, expiration: Expiration): Boolean = {
         val flowMatch = context.origMatch
         val callbacks = context.flowRemovedCallbacks
         if (!dpFlows.containsKey(flowMatch)) {
@@ -82,12 +82,13 @@ trait FlowController extends FlowLifecycle with FlowInvalidation
                 flow = oversubscriptionManagedFlowPool.take
             flow.reset(flowMatch, context.flowTags, callbacks, 0L, expiration, clock.tick)
             registerFlow(flow)
+            context.flow = flow
             context.log.debug(s"Added flow $flow")
-            flow
+            true
         } else {
             context.log.debug(s"Tried to add duplicate flow for $flowMatch")
             callbacks.runAndClear()
-            null
+            false
         }
     }
 
@@ -138,7 +139,8 @@ trait FlowController extends FlowLifecycle with FlowInvalidation
         while (i < flowRemoveCommandsToRetry.size()) {
             val cmd = flowRemoveCommandsToRetry.get(i)
             val fmatch = cmd.managedFlow.flowMatch
-            flowProcessor.tryEject(fmatch.getSequence, datapathId, fmatch, cmd)
+            val seq = cmd.managedFlow.sequence
+            flowProcessor.tryEject(seq, datapathId, fmatch, cmd)
             i += 1
         }
         flowRemoveCommandsToRetry.clear()
@@ -195,11 +197,10 @@ trait FlowController extends FlowLifecycle with FlowInvalidation
     private def removeFlowFromDatapath(flow: ManagedFlow): Unit = {
         log.debug(s"Removing flow $flow from datapath")
         val flowOp = takeFlowOperation(flow)
-        val fmatch = flow.flowMatch
         // Spin while we try to eject the flow. This can happen if we invalidated
         // a flow so close to its creation that it has not been created yet.
-        while (!flowProcessor.tryEject(fmatch.getSequence, datapathId,
-                                       fmatch, flowOp)) {
+        while (!flowProcessor.tryEject(flow.sequence, datapathId,
+                                       flow.flowMatch, flowOp)) {
             processCompletedFlowOperations()
             Thread.`yield`()
         }
