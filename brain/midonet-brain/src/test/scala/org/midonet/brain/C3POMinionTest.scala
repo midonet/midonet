@@ -20,7 +20,6 @@ import java.io.PrintWriter
 import java.sql.{Connection, DriverManager}
 import java.util.UUID
 import java.util.concurrent.TimeUnit
-
 import javax.sql.DataSource
 
 import scala.collection.JavaConverters._
@@ -29,7 +28,6 @@ import scala.util.{Random, Try}
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.JsonNodeFactory
-
 import org.apache.commons.configuration.HierarchicalConfiguration
 import org.apache.curator.framework.{CuratorFramework, CuratorFrameworkFactory}
 import org.apache.curator.retry.ExponentialBackoffRetry
@@ -46,12 +44,12 @@ import org.midonet.cluster.data.neutron.NeutronResourceType.{AgentMembership => 
 import org.midonet.cluster.data.neutron.TaskType._
 import org.midonet.cluster.data.neutron.{NeutronResourceType, TaskType}
 import org.midonet.cluster.data.storage.ObjectReferencedException
+import org.midonet.cluster.models.Commons
 import org.midonet.cluster.models.Commons.{EtherType, Protocol, RuleDirection}
 import org.midonet.cluster.models.Neutron.NeutronConfig.TunnelProtocol
 import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner
 import org.midonet.cluster.models.Neutron.SecurityGroup
 import org.midonet.cluster.models.Topology._
-import org.midonet.cluster.models.{C3PO, Commons}
 import org.midonet.cluster.services.MidonetBackendService
 import org.midonet.cluster.storage.MidonetBackendConfig
 import org.midonet.cluster.util.UUIDUtil._
@@ -96,7 +94,7 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
 
         override def isEnabled: Boolean = true
 
-        override def minionClass: String = classOf[C3PO].getName
+        override def minionClass: String = classOf[C3POMinion].getName
 
         override def numThreads: Int = 1
 

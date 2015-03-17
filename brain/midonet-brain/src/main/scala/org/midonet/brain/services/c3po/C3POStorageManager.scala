@@ -23,13 +23,11 @@ import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 
 import com.google.protobuf.Message
-
 import org.slf4j.LoggerFactory
 
-import org.midonet.brain.services.c3po.translators.{TranslationException, NeutronTranslator}
+import org.midonet.brain.services.c3po.translators.{NeutronTranslator, TranslationException}
 import org.midonet.cluster.data.storage._
-import org.midonet.cluster.models.C3PO.C3POState
-import org.midonet.cluster.util.UUIDUtil.toProto
+import org.midonet.cluster.services.c3po.C3POState
 
 object C3POStorageManager {
 
@@ -37,12 +35,6 @@ object C3POStorageManager {
      * future returned from Storage. 10 seconds for now, which we think is
      * sufficient. */
     private val TIMEOUT = Duration.create(10, TimeUnit.SECONDS)
-
-    // ID for the singleton C3POState object. All objects persisted via
-    // the Storage interface need a property named id.
-    private[c3po] val C3PO_STATE_ID = toProto(new JUUID(0L, 1L))
-
-    private[c3po] val NO_C3PO_TASKS_PROCESSED = 0
 
     /** Defines types of operations on a single entity. */
     object OpType extends Enumeration {
@@ -67,14 +59,6 @@ object C3POStorageManager {
         extends RuntimeException("Failed to interpret/execute operation" +
                                  s"${if (msg == null) "" else ": " + msg}",
                                  cause)
-
-    /* A utility method to generate the C3POState object holding the last
-     * processed task ID. */
-    private[c3po] def c3poState(lastProcessed: Int) =
-        C3POState.newBuilder
-                 .setId(C3PO_STATE_ID)
-                 .setLastProcessedTaskId(lastProcessed)
-                 .build
 }
 
 /** C3PO that translates an operation on an external model into corresponding
@@ -98,7 +82,7 @@ final class C3POStorageManager(storage: Storage) {
 
     private def initStorageManagerState(): Unit = {
         try {
-            storage.create(c3poState(NO_C3PO_TASKS_PROCESSED))
+            storage.create(C3POState.noTasksProcessed())
             log.info("Initialized last processed task ID")
         } catch {
             case _: ObjectExistsException => // ok
@@ -125,8 +109,8 @@ final class C3POStorageManager(storage: Storage) {
     @throws[ProcessingException]
     def lastProcessedTaskId: Int = {
         assert(initialized)
-        Await.result(storage.get(classOf[C3POState], C3PO_STATE_ID), TIMEOUT)
-             .getLastProcessedTaskId
+        Await.result(storage.get(classOf[C3POState], C3POState.ID), TIMEOUT)
+             .lastProcessedTaskId
     }
 
     /** Flushes the current storage preparing for a reimport. */
@@ -145,7 +129,7 @@ final class C3POStorageManager(storage: Storage) {
     def interpretAndExecTxn(txn: neutron.Transaction): Unit = {
         assert(initialized)
         try {
-            val newState = c3poState(txn.lastTaskId)
+            val newState = C3POState.at(txn.lastTaskId)
             val midoOps = txn.tasks.flatMap { task =>
                 toPersistenceOps(task.asInstanceOf[neutron.Task[Message]])
             } ++ List(UpdateOp(newState))
