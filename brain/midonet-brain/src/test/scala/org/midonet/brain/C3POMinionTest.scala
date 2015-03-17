@@ -487,10 +487,13 @@ class C3POMinionTest extends C3POMinionTestBase {
             storage.get(classOf[Network], network2Uuid).await())
         network2.getId shouldBe toProto(network2Uuid)
         network2.getName shouldBe "corporate-network"
-        val network1a = storage.get(classOf[Network], network1Uuid).await()
-        network1a.getId shouldBe toProto(network1Uuid)
-        network1a.getName shouldBe "public-network"
-        network1a.getAdminStateUp shouldBe false
+
+        eventually {
+            val network1a = storage.get(classOf[Network], network1Uuid).await()
+            network1a.getId shouldBe toProto(network1Uuid)
+            network1a.getName shouldBe "public-network"
+            network1a.getAdminStateUp shouldBe false
+        }
 
         // Deletes Network 1
         executeSqlStmts(insertTaskSql(
