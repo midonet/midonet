@@ -28,7 +28,7 @@ import com.typesafe.scalalogging.Logger
 import org.scalactic.Prettifier
 import org.scalatest.matchers._
 
-import org.midonet.midolman.PacketWorkflow.{AddVirtualWildcardFlow, SendPacket, _}
+import org.midonet.midolman.PacketWorkflow.{Drop, TemporaryDrop, SimulationResult, AddVirtualWildcardFlow}
 import org.midonet.midolman.flows.{FlowInvalidation, FlowInvalidator}
 import org.midonet.odp.flows.{FlowAction, FlowActionSetKey, FlowKeyEthernet, FlowKeyIPv4}
 import org.midonet.packets.{Ethernet, IPv4}
@@ -62,7 +62,6 @@ trait CustomMatchers {
                         if (expectedTags forall simRes._2.flowTags.contains)
                             simRes._2.virtualFlowActions.toList
                         else Nil
-                    case SendPacket => simRes._2.virtualFlowActions.toList
                     case _ => Nil
                 }).exists({
                     case FlowActionOutputToVrnPort(id) => id == portId
@@ -78,7 +77,6 @@ trait CustomMatchers {
                             if (expectedTags forall simRes._2.flowTags.contains)
                                 simRes._2.virtualFlowActions.toList
                             else Nil
-                        case SendPacket => simRes._2.virtualFlowActions.toList
                         case _ => Nil
                     }).exists({
                         case FlowActionOutputToVrnBridge(id, ports) =>

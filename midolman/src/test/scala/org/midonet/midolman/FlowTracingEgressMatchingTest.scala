@@ -223,7 +223,7 @@ class FlowTracingEgressMatchingTest extends MidolmanSpec {
 
         // should be sending a trace state to other host
         packetOutQueueIngress.size should be (2)
-        val (_, stateActions) = packetOutQueueIngress.remove()
+        val (_, stateActions) = packetOutQueueIngress.removeLast()
         getTunnelId(stateActions) should be (FlowStatePackets.TUNNEL_KEY)
 
         // should have executed flow with tunnel mask set
