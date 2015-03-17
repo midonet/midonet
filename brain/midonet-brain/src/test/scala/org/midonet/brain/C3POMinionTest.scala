@@ -89,6 +89,21 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
         "    PRIMARY KEY (id)" +
         ")"
 
+    private val DROP_STATE_TABLE = "DROP TABLE IF EXISTS midonet_data_state"
+    private val EMPTY_STATE_TABLE = "DELETE FROM midonet_data_state"
+    private val CREATE_STATE_TABLE =
+        "CREATE TABLE midonet_data_state (" +
+        "    id int(11) NOT NULL," +
+        "    last_processed_id int(11) DEFAULT NULL," +
+        "    updated_at datetime NOT NULL," +
+        "    PRIMARY KEY (id)" +
+        ")"
+    private val INIT_STATE_ROW =
+        "INSERT INTO midonet_data_state values(1, NULL, datetime('now'))"
+    private val LAST_PROCESSED_ID =
+        "SELECT last_processed_id FROM midonet_data_state WHERE id = 1"
+    private val LAST_PROCESSED_ID_COL = 1
+
     private val c3poCfg = new C3POConfig {
         override def periodMs: Long = 100
 
@@ -157,6 +172,24 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
         }
     }
 
+    protected def getLastProcessedIdFromTable(): Option[Int] = {
+        var c: Connection = null
+        var lastProcessed: Option[Int] = None
+        try {
+            c = eventually(dataSrc.getConnection())
+            val stmt = c.createStatement()
+            val result = eventually(stmt.executeQuery(LAST_PROCESSED_ID))
+
+            if (result.next())
+                lastProcessed = Some(result.getInt(LAST_PROCESSED_ID_COL))
+            stmt.close()
+        } finally {
+            if (c != null) c.close()
+        }
+        lastProcessed
+    }
+
+
     private def createTaskTable() = {
         // Just in case an old DB file / table exits.
         executeSqlStmts(DROP_TASK_TABLE)
@@ -164,9 +197,18 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
         log.info("Created the midonet_tasks table.")
     }
 
-    protected def emptyTaskTableAndSendFlushTask() = {
+    private def createStateTable() = {
+        executeSqlStmts(DROP_STATE_TABLE)
+        executeSqlStmts(CREATE_STATE_TABLE)
+        executeSqlStmts(INIT_STATE_ROW)
+        log.info("Created and initialized the midonet_data_state table.")
+    }
+
+    protected def emptyTaskAndStateTablesAndSendFlushTask() = {
         executeSqlStmts(EMPTY_TASK_TABLE)
-        log.info("Emptied the task table.")
+        executeSqlStmts(EMPTY_STATE_TABLE)
+        executeSqlStmts(INIT_STATE_ROW)
+        log.info("Emptied the task/state tables.")
 
         // A flush task must have an id of 1 by spec.
         executeSqlStmts(insertTaskSql(id = 1, Flush, NoData, json = "",
@@ -207,10 +249,12 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
 
     override protected def beforeAll() {
         try {
+            printf("Entered BeforeAll()")
             val retryPolicy = new ExponentialBackoffRetry(1000, 10)
             curator = CuratorFrameworkFactory.newClient(ZK_HOST, retryPolicy)
-            // Populate test data
+            // Initialize tasks and state tables.
             createTaskTable()
+            createStateTable()
 
             zk.start()
 
@@ -247,7 +291,7 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
         // C3PO alone, we can instead just call C3PO.flushTopology() on C3PO.
         // Calling Storage.flush() doesn't do the job as it doesn't do necessary
         // initialization.
-        emptyTaskTableAndSendFlushTask()
+        emptyTaskAndStateTablesAndSendFlushTask()
     }
 
     after {
@@ -466,6 +510,7 @@ class C3POMinionTest extends C3POMinionTestBase {
         network1.getId shouldBe toProto(network1Uuid)
         network1.getName shouldBe network1Name
         network1.getAdminStateUp shouldBe true
+        eventually(getLastProcessedIdFromTable) shouldBe Some(2)
 
         // Creates Network 2 and updates Network 1
         val network2Uuid = UUID.randomUUID()
@@ -493,6 +538,7 @@ class C3POMinionTest extends C3POMinionTestBase {
             network1a.getId shouldBe toProto(network1Uuid)
             network1a.getName shouldBe "public-network"
             network1a.getAdminStateUp shouldBe false
+            getLastProcessedIdFromTable shouldBe Some(4)
         }
 
         // Deletes Network 1
@@ -500,10 +546,11 @@ class C3POMinionTest extends C3POMinionTestBase {
                 id = 5, Delete, NetworkType, json = "", network1Uuid, "tx3"))
         eventually {
             storage.exists(classOf[Network], network1Uuid).await() shouldBe false
+            getLastProcessedIdFromTable shouldBe Some(5)
         }
 
         // Empties the Task table and flushes the Topology.
-        emptyTaskTableAndSendFlushTask()
+        emptyTaskAndStateTablesAndSendFlushTask()
 
         eventually {
             storage.exists(classOf[Network], network2Uuid).await() shouldBe false
@@ -522,6 +569,7 @@ class C3POMinionTest extends C3POMinionTestBase {
                  nwExists <- storage.exists(classOf[Network], id)) {
                 nwExists shouldBe true
             }
+            getLastProcessedIdFromTable shouldBe Some(3)
         }
     }
 
