@@ -103,11 +103,12 @@ class FlowControllerTest extends MidolmanSpec {
         var flowRemoved = false
 
         def add(): ManagedFlow = {
-            val pktCtx = new PacketContext(0, null, new FlowMatch())
-            pktCtx addFlowRemovedCallback new Callback0 {
+            val context = new PacketContext(0, null, new FlowMatch())
+            context addFlowRemovedCallback new Callback0 {
                 def call() = flowRemoved = true
             }
-            flowController.tryAddFlow(pktCtx, FlowExpiration.FLOW_EXPIRATION)
+            flowController.tryAddFlow(context, FlowExpiration.FLOW_EXPIRATION)
+            context.flow
         }
 
         def remove(flow: ManagedFlow): Unit =

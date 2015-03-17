@@ -17,10 +17,8 @@
 package org.midonet.midolman
 
 import java.util.UUID.randomUUID
-import java.util.{ArrayList, HashSet, UUID}
+import java.util.UUID
 import java.util.concurrent.TimeUnit
-
-import scala.collection.JavaConverters._
 
 import org.openjdk.jmh.annotations.{Setup => JmhSetup, _}
 import org.openjdk.jmh.infra.Blackhole
@@ -36,25 +34,13 @@ import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.topology.rcu.ResolvedHost
 import org.midonet.midolman.UnderlayResolver.Route
 import org.midonet.odp.flows.FlowActionOutput
-import org.midonet.packets.{Ethernet, IPv4Addr, MAC}
+import org.midonet.packets.{IPv4Addr, MAC}
 import org.midonet.packets.util.PacketBuilder._
 import org.midonet.sdn.state.{ShardedFlowStateTable, FlowStateTransaction}
 
 object ConnTrackBenchmark {
     val leftMac = MAC.random
     val rightMac = MAC.random
-
-    @State(Scope.Thread)
-    class PacketHolder {
-        var packet: Ethernet = _
-
-        @JmhSetup(Level.Invocation)
-        def setup(): Unit = {
-            packet = { { eth addr leftMac -> rightMac } <<
-                       { ip4 addr IPv4Addr.random --> IPv4Addr.random } <<
-                       { udp ports 5003 ---> 53 } << payload("payload") }
-        }
-    }
 }
 
 @BenchmarkMode(Array(Mode.AverageTime))
@@ -86,6 +72,11 @@ class ConnTrackBenchmark extends MidolmanBenchmark {
     implicit val traceTx = new FlowStateTransaction(traceTable)
     var replicator: FlowStateReplicator = _
 
+    val packet = { { eth addr leftMac -> rightMac } <<
+                   { ip4 addr IPv4Addr.random --> IPv4Addr.random } <<
+                   { udp ports 5003 ---> 53 } << payload("payload") }
+    val packetContext = packetContextFor(packet, leftPort.getId)
+
     @JmhSetup
     def setup(): Unit = {
         newHost("myself", hostId)
@@ -114,14 +105,9 @@ class ConnTrackBenchmark extends MidolmanBenchmark {
     }
 
     @Benchmark
-    def benchmarkConntrack(holder: PacketHolder, bh: Blackhole): Unit = {
-        bh.consume(sendPacket(leftPort -> holder.packet))
-        replicator.accumulateNewKeys(conntrackTx, natTx, traceTx,
-                                     leftPort.getId,
-                                     List(rightPort.getId).asJava,
-                                     new HashSet(),
-                                     new ArrayList())
-        conntrackTx.commit()
+    def benchmarkConntrack(bh: Blackhole): Unit = {
+        bh.consume(simulate(packetContext))
+        replicator.accumulateNewKeys(packetContext)
         conntrackTx.flush()
     }
 }
