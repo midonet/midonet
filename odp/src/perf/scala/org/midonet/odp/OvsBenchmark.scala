@@ -16,6 +16,7 @@
 
 package org.midonet.odp
 
+import java.{util => ju}
 import java.util.concurrent.{ThreadLocalRandom, TimeUnit}
 
 import scala.collection.JavaConversions._
@@ -64,14 +65,13 @@ object OvsBenchmark {
     class FlowHolder extends ChannelHolder {
         val rand = ThreadLocalRandom.current()
         val ethKey = new FlowKeyEthernet(new Array[Byte](6), new Array[Byte](6))
-        val flow = new Flow(
-            new FlowMatch(List(
+        val keys: ju.List[FlowKey] = List(
                 new FlowKeyInPort(0),
                 ethKey,
                 new FlowKeyIPv4(rand.nextInt(), rand.nextInt(), TCP.PROTOCOL_NUMBER,
                                 0, -1, 0),
-                new FlowKeyTCP(rand.nextInt() & 0xffff, rand.nextInt() & 0xffff))),
-            List(FlowActions.output(1)))
+                new FlowKeyTCP(rand.nextInt() & 0xffff, rand.nextInt() & 0xffff))
+        val actions: ju.List[FlowAction] = List(FlowActions.output(1))
         val flowBuf = BytesUtil.instance.allocateDirect(2 * 1024)
 
         @Setup(Level.Invocation)
@@ -79,7 +79,7 @@ object OvsBenchmark {
             rand.nextBytes(ethKey.eth_src)
             rand.nextBytes(ethKey.eth_dst)
             flowBuf.clear()
-            protocol.prepareFlowCreate(0, false, flow, flowBuf)
+            protocol.prepareFlowCreate(0, keys, actions, null, flowBuf)
         }
     }
 }

@@ -257,11 +257,6 @@ class Coordinator(context: PacketContext)
         }
     }
 
-    /**
-     * Complete the simulation by emitting the packet from the specified
-     * virtual port.  If the packet was internally generated
-     * this will do a SendPacket, otherwise it will do an AddWildcardFlow.
-     */
     private def emitFromPort(port: Port): SimulationResult = {
         context.calculateActionsFromMatchDiff()
         log.debug("Emitting packet from vport {}", port.id)
@@ -294,11 +289,6 @@ class Coordinator(context: PacketContext)
         }
     }
 
-    /**
-     * Complete the simulation by emitting the packet from the specified
-     * list of virtual ports. If the packet was internally generated
-     * this will do a SendPacket, otherwise it will do an AddWildcardFlow.
-     */
     private def floodBridge(deviceId: UUID, ports: List[UUID]): SimulationResult = {
         context.calculateActionsFromMatchDiff()
         val filteredPorts = ports filter applyExteriorPortFilter
@@ -313,12 +303,9 @@ class Coordinator(context: PacketContext)
     }
 
     private def emit(deviceId: UUID): SimulationResult = {
-        if (context.isGenerated) {
-            SendPacket
-        } else {
-            context.trackConnection(deviceId)
-            AddVirtualWildcardFlow
-        }
+        context.trackConnection(deviceId)
+        context.addTraceKeysForEgress()
+        AddVirtualWildcardFlow
     }
 
     private[this] def processAdminStateDown(port: Port, isIngress: Boolean)
