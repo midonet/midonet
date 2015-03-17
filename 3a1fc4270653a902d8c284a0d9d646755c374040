@@ -229,6 +229,30 @@
     },
     {
       "key": {
+        "uuid": "3a1371a2_7c4a8f84",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterMapper.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 400,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-17T10:11:57Z",
+      "side": 1,
+      "message": "Renamed to portRoutesSubject",
+      "parentUuid": "3a1371a2_615cb126",
+      "range": {
+        "startLine": 400,
+        "startChar": 21,
+        "endLine": 400,
+        "endChar": 33
+      },
+      "revId": "3a1fc4270653a902d8c284a0d9d646755c374040",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a1371a2_2152b913",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RoutingTableBroker.scala",
         "patchSetId": 3
@@ -240,6 +264,30 @@
       "writtenOn": "2015-03-16T02:54:04Z",
       "side": 1,
       "message": "I understand what this does, but why is it called cacheWip?",
+      "range": {
+        "startLine": 79,
+        "startChar": 16,
+        "endLine": 79,
+        "endChar": 24
+      },
+      "revId": "3a1fc4270653a902d8c284a0d9d646755c374040",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_b0ca669f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RoutingTableBroker.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-17T10:11:57Z",
+      "side": 1,
+      "message": "I used the same naming convention as in rx-java, although I was thinking that \"sync\" could be better. What do you think?",
+      "parentUuid": "3a1371a2_2152b913",
       "range": {
         "startLine": 79,
         "startChar": 16,
