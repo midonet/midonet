@@ -311,6 +311,10 @@ class PacketWorkflow(
         if (pktCtx.runs > 1)
             waitingRoom leave pktCtx
         if (pktCtx.ingressed) {
+            val seq = dpChannel.handoff(pktCtx)
+            if (pktCtx.flow ne null) {
+                pktCtx.flow.sequence = seq
+            }
             val latency = NanoClock.DEFAULT.tick - pktCtx.packet.startTimeNanos
             metrics.packetsProcessed.mark()
             simRes match {
@@ -415,7 +419,6 @@ class PacketWorkflow(
             UserspaceFlow
         } else {
             applyState(context)
-            dpChannel.executePacket(context.packet, context.packetActions)
             handleFlow(context, expiration)
         }
 
@@ -429,9 +432,7 @@ class PacketWorkflow(
         } else {
             val flow = tryAddFlow(context,expiration)
             if (flow ne null) {
-                val dpFlow = new Flow(context.origMatch, context.flowActions)
-                context.log.debug(s"Creating flow $dpFlow")
-                flow.sequence = dpChannel.createFlow(dpFlow)
+                context.flow = flow
                 FlowCreated
             } else {
                 DuplicatedFlow
@@ -440,18 +441,13 @@ class PacketWorkflow(
     }
 
     def applyState(context: PacketContext): Unit =
-        if (!context.isDrop) {
+        if (!context.isDrop && context.hasFlowState) {
             context.log.debug("Applying connection state")
-            replicator.accumulateNewKeys(context.conntrackTx,
-                                         context.natTx,
-                                         context.inputPort,
-                                         context.outPorts,
-                                         context.flowTags,
-                                         context.flowRemovedCallbacks)
-            replicator.pushState(dpChannel)
+            replicator.accumulateNewKeys(context)
+            replicator.touchState()
             context.conntrackTx.commit()
             context.natTx.commit()
-    }
+        }
 
     private def handlePacketIngress(context: PacketContext): SimulationResult = {
         if (!context.origMatch.isUsed(Field.InputPortNumber)) {
@@ -492,7 +488,7 @@ class PacketWorkflow(
             case AddVirtualWildcardFlow =>
                 translateActions(context)
                 val expiration =
-                    if (context.containsFlowState)
+                    if (context.hasFlowState)
                         FlowExpiration.STATEFUL_FLOW_EXPIRATION
                     else
                         FlowExpiration.FLOW_EXPIRATION
@@ -558,10 +554,8 @@ class PacketWorkflow(
     }
 
     private def sendPacket(context: PacketContext): Unit = {
-        context.log.debug(s"Sending with actions ${context.virtualFlowActions}")
         resultLogger.debug(s"Match ${context.origMatch} send with actions " +
                            s"${context.virtualFlowActions}; visited tags ${context.flowTags}")
         translateActions(context)
-        dpChannel.executePacket(context.packet, context.packetActions)
     }
 }

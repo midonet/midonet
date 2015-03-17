@@ -136,19 +136,20 @@ sealed class OvsProtocol(pid: Int,
     def prepareFlowEnum(datapathId: Int, buf: ByteBuffer): Unit =
         enum(buf, datapathId, flowFamily.contextGet)
 
-    def prepareFlowCreate(datapathId: Int, supportsFlowMask: Boolean,
-                          flow: Flow, buf: ByteBuffer): Unit = {
+    def prepareFlowCreate(datapathId: Int, keys: JList[FlowKey],
+                          actions: JList[FlowAction], flowMask: FlowMask,
+                          buf: ByteBuffer): Unit = {
         import org.midonet.odp.OpenVSwitch.Flow.Attr
 
         val message = messageFor(buf, datapathId, flowFamily.contextNew)
             .withFlags(NLFlag.REQUEST | NLFlag.New.CREATE)
-        NetlinkMessage.writeAttrSeq(buf, Attr.Key, flow.getMatch.getKeys, FlowKeys.writer)
+        NetlinkMessage.writeAttrSeq(buf, Attr.Key, keys, FlowKeys.writer)
         // the actions list is allowed to be empty (drop flow). Nevertheless the
         // actions nested attribute header needs to be written otherwise the
         // datapath will answer back with EINVAL
-        NetlinkMessage.writeAttrSeq(buf, Attr.Actions, flow.getActions, FlowActions.writer)
-        if (supportsFlowMask) {
-            NetlinkMessage.writeAttrNested(buf, Attr.Mask, flow.getMask)
+        NetlinkMessage.writeAttrSeq(buf, Attr.Actions, actions, FlowActions.writer)
+        if (flowMask ne null) {
+            NetlinkMessage.writeAttrNested(buf, Attr.Mask, flowMask)
         }
         message.finalize(pid)
     }

@@ -24,6 +24,7 @@ import akka.actor.ActorSystem
 import com.codahale.metrics.{MetricFilter, MetricRegistry}
 
 import com.google.inject.Injector
+import org.midonet.netlink.{MockNetlinkChannel, NetlinkChannelFactory}
 import org.midonet.sdn.flows.FlowTagger.FlowTag
 
 import org.slf4j.helpers.NOPLogger
@@ -76,6 +77,12 @@ trait MidolmanServices {
         injector.getInstance(classOf[DatapathChannel])
                 .asInstanceOf[MockDatapathChannel]
     }
+
+    def mockNetlinkChannelFactory =
+        injector.getInstance(classOf[NetlinkChannelFactory])
+
+    def mockNetlinkChannel =
+        mockNetlinkChannelFactory.create().asInstanceOf[MockNetlinkChannel]
 
     def flowProcessor = {
         injector.getInstance(classOf[FlowProcessor])

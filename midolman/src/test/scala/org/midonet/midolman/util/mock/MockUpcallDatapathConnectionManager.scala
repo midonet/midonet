@@ -31,14 +31,13 @@ import org.midonet.odp.protos.OvsDatapathConnection
 import org.midonet.odp._
 import org.midonet.util._
 
-class MockUpcallDatapathConnectionManager(config: MidolmanConfig,
-                                          flowsTable: JMap[FlowMatch, Flow] = new ConcurrentHashMap[FlowMatch, Flow])
+class MockUpcallDatapathConnectionManager(config: MidolmanConfig)
         extends UpcallDatapathConnectionManagerBase(config,
             new TokenBucketPolicy(config, new TokenBucketTestRate, 1,
                                   _ => Bucket.BOTTOMLESS)) {
     protected override val log = LoggerFactory.getLogger(this.getClass)
 
-    val conn = new MockManagedDatapathConnection(flowsTable)
+    val conn = new MockManagedDatapathConnection()
 
     var upcallHandler: BatchCollector[Packet] = null
 

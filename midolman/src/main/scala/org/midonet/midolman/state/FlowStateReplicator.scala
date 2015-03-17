@@ -19,14 +19,12 @@ package org.midonet.midolman.state
 import java.util.{ArrayList, HashSet => JHashSet, Iterator => JIterator, List => JList, Set => JSet, UUID}
 
 import akka.actor.ActorSystem
-import com.google.protobuf.{CodedOutputStream, MessageLite}
 import com.typesafe.scalalogging.Logger
-import org.midonet.midolman.flows.FlowInvalidation
 import org.slf4j.LoggerFactory
 
+import org.midonet.midolman.flows.FlowInvalidation
 import org.midonet.midolman.HostRequestProxy.FlowStateBatch
-import org.midonet.midolman.datapath.DatapathChannel
-import org.midonet.midolman.simulation.PortGroup
+import org.midonet.midolman.simulation.{PacketContext, PortGroup}
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackKey, ConnTrackValue}
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
 import org.midonet.midolman.topology.devices.Port
@@ -35,12 +33,10 @@ import org.midonet.midolman.{NotYetException, UnderlayResolver}
 import org.midonet.odp.flows.FlowAction
 import org.midonet.odp.flows.FlowActions.setKey
 import org.midonet.odp.flows.FlowKeys.tunnel
-import org.midonet.odp.{FlowMatches, Packet}
-import org.midonet.packets.{Ethernet, FlowStateEthernet}
+import org.midonet.packets.Ethernet
 import org.midonet.rpc.{FlowStateProto => Proto}
 import org.midonet.sdn.flows.FlowTagger.FlowTag
-import org.midonet.sdn.state.{FlowStateTable, FlowStateTransaction}
-import org.midonet.util.FixedArrayOutputStream
+import org.midonet.sdn.state.FlowStateTable
 import org.midonet.util.collection.Reducer
 import org.midonet.util.functors.Callback0
 
@@ -110,19 +106,8 @@ abstract class BaseFlowStateReplicator(conntrackTable: FlowStateTable[ConnTrackK
     private[this] val txPeers: JSet[UUID] = new JHashSet[UUID]()
     private[this] val txPorts: JSet[UUID] = new JHashSet[UUID]()
 
-    private[this] val pendingMessages = new ArrayList[(JSet[UUID], MessageLite)]()
     private[this] val hostId = uuidToProto(underlay.host.id)
 
-    /* Used for packet building
-     * FIXME(guillermo) - use MTU
-     */
-    private[this] val buffer =
-        new Array[Byte](FlowStateEthernet.FLOW_STATE_MAX_PAYLOAD_LENGTH)
-    private[this] val stream = new FixedArrayOutputStream(buffer)
-    private[this] val udpShell: FlowStateEthernet =
-        makeFlowStateUdpShell(buffer)
-    private[this] val packet: Packet =
-        new Packet(udpShell, FlowMatches.fromEthernetPacket(udpShell))
     private val _conntrackAdder = new Reducer[ConnTrackKey, ConnTrackValue, ArrayList[Callback0]] {
         override def apply(callbacks: ArrayList[Callback0], k: ConnTrackKey,
                            v: ConnTrackValue): ArrayList[Callback0] = {
@@ -197,62 +182,35 @@ abstract class BaseFlowStateReplicator(conntrackTable: FlowStateTable[ConnTrackK
      * Given the FlowStateTransaction instances resulting from the processing
      * of a flow, this method will prepare messages to push the state accumulated
      * in those transactions to the relevant hosts. It is assumed that the
-     * transaction is going to be committed unless this method returns a NotYet.
+     * transaction is going to be committed unless this method throws a NotYetException.
      *
      * EXPECTED CALLING THREADS: only the packet processing thread that owns
      * this replicator.
-     *
-     * @param natTx The nat table transaction to collect new keys from.
-     * @param conntrackTx The conntrack table transaction to collect new keys
-     *                    from.
-     * @param ingressPort Ingress port id for the packet that originated the new
-     *                    keys.
-     * @param egressPorts The egress ports ids
-     * @param tags A mutable set to collect tags that will invalidate the
-     *             soon-to-be-installed flow. The caller is responsible
-     *             for tagging the flow.
-     * @param callbacks A mutable list of callbacks that will be called when the
-     *                  current flow is deleted.
-     *
-     * @throws NotYetException This agent is missing pieces of topology in its
-     *                         local cache that would be necessary in order to
-     *                         calculate the peers that should receive this keys.
      */
     @throws(classOf[NotYetException])
-    def accumulateNewKeys(conntrackTx: FlowStateTransaction[ConnTrackKey, ConnTrackValue],
-                          natTx: FlowStateTransaction[NatKey, NatBinding],
-                          ingressPort: UUID, egressPorts: JList[UUID],
-                          tags: JHashSet[FlowTag],
-                          callbacks: ArrayList[Callback0]): Unit = {
-        if (natTx.size() == 0 && conntrackTx.size() == 0)
-            return
-
-        resolvePeers(ingressPort, egressPorts, txPeers, txPorts, tags)
-        val hasPeers = !txPeers.isEmpty
-
-        if (hasPeers) {
-            txState.clear()
-            resetCurrentMessage()
-        }
-
+    def accumulateNewKeys(context: PacketContext): Unit = {
+        val ingressPort = context.inputPort
+        val egressPorts = context.outPorts
+        resolvePeers(ingressPort, egressPorts, txPeers, txPorts, context.flowTags)
         txIngressPort = ingressPort
-        conntrackTx.fold(callbacks, _conntrackAdder)
-        natTx.fold(callbacks, _natAdder)
-
-        if (hasPeers)
-            buildMessage(ingressPort)
+        val callbacks = context.flowRemovedCallbacks
+        context.conntrackTx.fold(callbacks, _conntrackAdder)
+        context.natTx.fold(callbacks, _natAdder)
+        buildMessage(context, ingressPort)
     }
 
-    def buildMessage(ingressPort: UUID): Unit =
-        if (txState.hasConntrackKey || txState.getNatEntriesCount > 0) {
+    def buildMessage(context: PacketContext, ingressPort: UUID): Unit =
+        if (!txPeers.isEmpty) {
+            resetCurrentMessage()
             txState.setIngressPort(uuidToProto(ingressPort))
             currentMessage.addNewState(txState.build())
-            pendingMessages.add((txPeers, currentMessage.build()))
+            context.stateMessage = currentMessage.build()
+            hostsToActions(txPeers, context.stateActions)
+            txState.clear()
         }
 
-    private def hostsToActions(hosts: JSet[UUID]): JList[FlowAction] = {
-        val actions = new ArrayList[FlowAction]()
-        var i = 0
+    private def hostsToActions(hosts: JSet[UUID],
+                               actions: ArrayList[FlowAction]): Unit = {
         val hostsIt = hosts.iterator
         while (hostsIt.hasNext) {
             underlay.peerTunnelInfo(hostsIt.next()) match {
@@ -262,45 +220,11 @@ abstract class BaseFlowStateReplicator(conntrackTable: FlowStateTable[ConnTrackK
                     actions.add(route.output)
                 case None =>
             }
-            i += 1
         }
-        actions
     }
 
-    /**
-     * Pushes all of the messages that were previously prepared by natRemover,
-     * conntrackRemover and accumulateNewKeys() to their destinations, using the
-     * given datapath connection.
-     *
-     * Packets will be tunneled to their destinations using the usual TunnelZone
-     * information and with tunnel key FlowStatePackets.TUNNEL_KEY
-     *
-     * EXPECTED CALLING THREADS: only the packet processing thread that owns
-     * this replicator.
-     */
-    def pushState(dpChannel: DatapathChannel) {
-        var i = pendingMessages.size() - 1
-        while (i >= 0) {
-            val (hosts, message) = pendingMessages.remove(i)
-            val messageSizeVariantLength: Int =
-                CodedOutputStream.computeRawVarint32Size(
-                    message.getSerializedSize)
-            val messageLength: Int =
-                message.getSerializedSize + messageSizeVariantLength
-            if (messageLength <= buffer.length) {
-                stream.reset()
-                message.writeDelimitedTo(stream)
-                udpShell.setElasticDataLength(messageLength)
-                dpChannel.executePacket(packet, hostsToActions(hosts))
-            } else {
-                // TODO(guillermo) partition messages
-                log.warn(s"Skipping state message, too large: $message")
-            }
-            i -= 1
-        }
-
+    def touchState(): Unit =
         storage.submit()
-    }
 
     private def acceptNewState(msg: Proto.StateMessage) {
         val newStates = msg.getNewStateList.iterator
