@@ -65,7 +65,6 @@ object PacketWorkflow {
     case object NoOp extends SimulationResult
     case object Drop extends SimulationResult
     case object TemporaryDrop extends SimulationResult
-    case object SendPacket extends SimulationResult
     case object AddVirtualWildcardFlow extends SimulationResult
     case object StateMessage extends SimulationResult
     case object UserspaceFlow extends SimulationResult
@@ -321,6 +320,10 @@ class PacketWorkflow(
         if (pktCtx.runs > 1)
             waitingRoom leave pktCtx
         if (pktCtx.ingressed) {
+            val seq = dpChannel.handoff(pktCtx)
+            if (pktCtx.flow ne null) {
+                pktCtx.flow.sequence = seq
+            }
             val latency = NanoClock.DEFAULT.tick - pktCtx.packet.startTimeNanos
             metrics.packetsProcessed.mark()
             simRes match {
@@ -415,11 +418,6 @@ class PacketWorkflow(
             handlePacketEgress(context)
     }
 
-    def logResultNewFlow(msg: String, context: PacketContext): Unit = {
-        resultLogger.debug(s"$msg: match ${context.origMatch}, actions " +
-                           s"${context.flowActions}, tags ${context.flowTags}")
-    }
-
     def runSimulation(context: PacketContext): SimulationResult =
         new Coordinator(context).simulate()
 
@@ -430,15 +428,7 @@ class PacketWorkflow(
                                s"match ${context.origMatch}")
             context.flowRemovedCallbacks.runAndClear()
             UserspaceFlow
-        } else {
-            applyState(context)
-            dpChannel.executePacket(context.packet, context.packetActions)
-            handleFlow(context, expiration)
-        }
-
-    private def handleFlow(context: PacketContext,
-                           expiration: Expiration): SimulationResult =
-        if (context.hasTraceTunnelBit) {
+        } else if (context.hasTraceTunnelBit) {
             // don't create a flow for traced contexts on the egress host
             context.log.warn("Skipping flow creation for traced flow on egress")
             context.flowRemovedCallbacks.runAndClear()
@@ -450,33 +440,16 @@ class PacketWorkflow(
                 context.flowRemovedCallbacks.runAndClear()
                 UserspaceFlow
             } else {
-                val flow = tryAddFlow(context,expiration)
-                if (flow ne null) {
-                    val dpFlow = new Flow(context.origMatch, context.flowActions)
-                    logResultNewFlow("Will create flow", context)
-                    context.log.debug(s"Creating flow $dpFlow")
-                    flow.sequence = dpChannel.createFlow(dpFlow)
-                    FlowCreated
-                } else {
-                    DuplicatedFlow
-                }
+                tryAddFlow(context, expiration)
+                FlowCreated
             }
         }
 
-    def applyState(context: PacketContext): Unit =
-        if (!context.isDrop) {
-            context.log.debug("Applying connection state")
-            replicator.accumulateNewKeys(context.conntrackTx,
-                                         context.natTx,
-                                         context.traceTx,
-                                         context.inputPort,
-                                         context.outPorts,
-                                         context.flowTags,
-                                         context.flowRemovedCallbacks)
-            replicator.pushState(dpChannel)
-            context.conntrackTx.commit()
-            context.natTx.commit()
-            context.traceTx.commit()
+    private def applyState(context: PacketContext): Unit = {
+        context.log.debug("Applying connection state")
+        replicator.accumulateNewKeys(context)
+        replicator.touchState()
+        context.commitStateTransactions()
     }
 
     private def handlePacketIngress(context: PacketContext): SimulationResult = {
@@ -514,21 +487,12 @@ class PacketWorkflow(
 
     def processSimulationResult(context: PacketContext,
                                 result: SimulationResult): SimulationResult = {
-        context.addTraceKeysForEgress()
-
+        resultLogger.debug(s"Simulated finished with result $result: " +
+                           s"match ${context.origMatch}, flow actions " +
+                           s"${context.flowActions}, tags ${context.flowTags}")
         result match {
             case AddVirtualWildcardFlow =>
-                translateActions(context)
-                val expiration =
-                    if (context.containsFlowState)
-                        FlowExpiration.STATEFUL_FLOW_EXPIRATION
-                    else
-                        FlowExpiration.FLOW_EXPIRATION
-                addTranslatedFlow(context, expiration)
-            case SendPacket =>
-                context.flowRemovedCallbacks.runAndClear()
-                sendPacket(context)
-                PacketWorkflow.GeneratedPacket
+                concludeSimulation(context)
             case NoOp =>
                 context.flowRemovedCallbacks.runAndClear()
                 resultLogger.debug(s"no-op for match ${context.origMatch} " +
@@ -539,6 +503,23 @@ class PacketWorkflow(
                 addTranslatedFlow(context, FlowExpiration.ERROR_CONDITION_EXPIRATION)
             case Drop =>
                 addTranslatedFlow(context, FlowExpiration.FLOW_EXPIRATION)
+        }
+    }
+
+    private def concludeSimulation(context: PacketContext): SimulationResult = {
+        translateActions(context)
+        if (context.ingressed) {
+            val expiration =
+                if (context.containsFlowState) {
+                    applyState(context)
+                    FlowExpiration.STATEFUL_FLOW_EXPIRATION
+                } else {
+                    FlowExpiration.FLOW_EXPIRATION
+                }
+            addTranslatedFlow(context, expiration)
+        } else {
+            context.flowRemovedCallbacks.runAndClear()
+            PacketWorkflow.GeneratedPacket
         }
     }
 
@@ -583,13 +564,5 @@ class PacketWorkflow(
             case None =>
                 false
         }
-    }
-
-    private def sendPacket(context: PacketContext): Unit = {
-        context.log.debug(s"Sending with actions ${context.virtualFlowActions}")
-        resultLogger.debug(s"Match ${context.origMatch} send with actions " +
-                           s"${context.virtualFlowActions}; visited tags ${context.flowTags}")
-        translateActions(context)
-        dpChannel.executePacket(context.packet, context.packetActions)
     }
 }
