@@ -21,9 +21,9 @@ import org.apache.curator.framework.CuratorFramework
 
 import org.midonet.cluster.data.storage.FieldBinding.DeleteAction._
 import org.midonet.cluster.data.storage.{OwnershipType, Storage, StorageWithOwnership, ZookeeperObjectMapper}
-import org.midonet.cluster.models.C3PO.C3POState
 import org.midonet.cluster.models.Neutron._
 import org.midonet.cluster.models.Topology._
+import org.midonet.cluster.services.c3po.C3POState
 import org.midonet.cluster.storage.MidonetBackendConfig
 
 /** The trait that models the new Midonet Backend, managing all relevant
