@@ -22,6 +22,30 @@
       "revId": "a6c4a8bc359e30fece8a523239099543c4e98a65",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_0b522fdd",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/C3POMinionTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 491,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-03-17T15:01:20Z",
+      "side": 1,
+      "message": "It is already using MidonetEventually, so the timeout has already been set to 3 secs.",
+      "parentUuid": "3a1371a2_8b81ff4c",
+      "range": {
+        "startLine": 491,
+        "startChar": 7,
+        "endLine": 491,
+        "endChar": 18
+      },
+      "revId": "a6c4a8bc359e30fece8a523239099543c4e98a65",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
