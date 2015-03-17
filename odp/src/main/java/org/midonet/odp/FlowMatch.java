@@ -25,6 +25,9 @@ import javax.annotation.Nullable;
 
 import com.google.common.primitives.Longs;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import org.midonet.odp.flows.*;
 import org.midonet.packets.*;
 
@@ -356,6 +359,8 @@ public class FlowMatch {
         return this;
     }
 
+    private final static Logger log = LoggerFactory.getLogger(FlowMatch.class);
+
     /**
      * @return the set of Fields that have been read from this instance.
      */
@@ -368,6 +373,7 @@ public class FlowMatch {
      * NOT log it if <pre>doNotTrackSeenFields</pre> has last been called.
      */
     private void fieldSeen(Field field) {
+        log.debug("Marking field as seen: " + field);
         seenFields |= trackSeenFields << field.ordinal();
     }
 
@@ -383,7 +389,9 @@ public class FlowMatch {
      *       method because this one is infrequently called.
      */
     public boolean isSeen(Field field) {
-        return (seenFields & usedFields & (1L << field.ordinal())) != 0;
+        boolean res = (seenFields & usedFields & (1L << field.ordinal())) != 0;
+        log.debug("Is seen? " + field + " = " + res);
+        return res;
     }
 
     public void doTrackSeenFields() {
