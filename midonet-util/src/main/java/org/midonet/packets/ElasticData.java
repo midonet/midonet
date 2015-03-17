@@ -17,39 +17,58 @@
 package org.midonet.packets;
 
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 
 /**
- * ElasticData is a packet payload data structure, which can be shrunken when
- * it is serialized.
+ * ElasticData is a packet payload data structure, whose size can be limited.
  */
 public class ElasticData extends Data {
-    private int currentLength = 0;
+    private int limit = 0;
 
     public ElasticData() {
-        super();
     }
 
     public ElasticData(byte[] data) {
+        this(data, data.length);
+    }
+
+    public ElasticData(byte[] data , int limit) {
         super(data);
-        this.currentLength = data.length;
+        limit(limit);
     }
 
-    public ElasticData(byte[] data , int length) {
-        super(data);
-        this.currentLength = length;
+    public int capacity() {
+        return data.length;
     }
 
-    public int getLength() {
-        return this.currentLength;
+    public int limit() {
+        return limit;
     }
 
-    public void setLength(int length) {
-        this.currentLength = length;
+    public void limit(int limit) {
+        if (limit > data.length)
+            throw new IllegalArgumentException("Can't set a bigger length than the capacity");
+        this.limit = limit;
     }
 
     public int serialize(ByteBuffer bb) {
-        int length = getLength();
-        bb.put(data, 0, length);
-        return length;
+        bb.put(data, 0, limit);
+        return limit;
+    }
+
+    @Override
+    public byte[] serialize() {
+        return Arrays.copyOf(data, limit);
+    }
+
+    @Override
+    public Data setData(byte[] data) {
+        throw new IllegalStateException("Cannot set data on elastic data");
+    }
+
+    @Override
+    public IPacket deserialize(ByteBuffer bb) {
+        limit = bb.remaining();
+        return super.deserialize(bb);
     }
 }
