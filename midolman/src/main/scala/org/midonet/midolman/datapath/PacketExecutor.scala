@@ -16,23 +16,63 @@
 
 package org.midonet.midolman.datapath
 
+import java.util._
+
+import com.google.protobuf.{MessageLite, CodedOutputStream}
+
 import com.typesafe.scalalogging.Logger
+import org.midonet.midolman.simulation.PacketContext
 import org.slf4j.LoggerFactory
 
 import com.lmax.disruptor.{EventHandler, LifecycleAware}
 
 import org.midonet.midolman.datapath.DisruptorDatapathChannel._
 import org.midonet.netlink._
+import org.midonet.odp.flows.FlowAction
+import org.midonet.odp.{FlowMatches, Packet, OvsProtocol, OvsNetlinkFamilies}
+import org.midonet.packets.FlowStateEthernet
+import org.midonet.util.FixedArrayOutputStream
 
-sealed class PacketExecutor(numHandlers: Int, index: Int,
+trait StatePacketExecutor {
+    val log: Logger
+
+    /**
+     * TODO: Use MTU
+     */
+    private val stateBuf = new Array[Byte](FlowStateEthernet.FLOW_STATE_MAX_PAYLOAD_LENGTH)
+    private val stream = new FixedArrayOutputStream(stateBuf)
+    private val udpShell: FlowStateEthernet = new FlowStateEthernet(stateBuf)
+    private val statePacket = new Packet(udpShell, FlowMatches.fromEthernetPacket(udpShell))
+
+    def prepareStatePacket(message: MessageLite): Packet = {
+        val messageSizeVariantLength = CodedOutputStream.computeRawVarint32Size(
+            message.getSerializedSize)
+        val messageLength = message.getSerializedSize + messageSizeVariantLength
+        stream.reset()
+        try {
+            message.writeDelimitedTo(stream)
+            udpShell.limit(messageLength)
+        } catch {
+            case _: IndexOutOfBoundsException =>
+                // TODO(guillermo) partition messages
+                log.warn(s"Skipping state packet, too large: $message")
+            case e: Throwable =>
+                log.warn("Failed to write state packet due to", e)
+        }
+        statePacket
+    }
+}
+
+sealed class PacketExecutor(families: OvsNetlinkFamilies,
+                            numHandlers: Int, index: Int,
                             channelFactory: NetlinkChannelFactory)
-    extends EventHandler[DatapathEvent]
-    with LifecycleAware {
+    extends EventHandler[PacketContextHolder]
+    with LifecycleAware with StatePacketExecutor {
 
-    private val log = Logger(LoggerFactory.getLogger(
-        s"org.midonet.datapath.packet-executor-$index"))
+    val log = Logger(LoggerFactory.getLogger(s"org.midonet.datapath.packet-executor-$index"))
 
-    private val buf = BytesUtil.instance.allocateDirect(8*1024)
+    private val writeBuf = BytesUtil.instance.allocateDirect(4*1024)
+    private val readBuf = BytesUtil.instance.allocateDirect(4*1024)
     private val channel = channelFactory.create(blocking = true)
     private val pid = channel.getLocalAddress.getPid
 
@@ -40,26 +80,57 @@ sealed class PacketExecutor(numHandlers: Int, index: Int,
         log.debug(s"Created channel with pid $pid")
     }
 
+    private val protocol = new OvsProtocol(pid, families)
+
     private val writer = new NetlinkBlockingWriter(channel)
     private val reader = new NetlinkReader(channel)
 
-    override def onEvent(event: DatapathEvent, sequence: Long,
-                         endOfBatch: Boolean): Unit = {
-        if (event.op == PACKET_EXECUTION && sequence % numHandlers == index) {
+    override def onEvent(event: PacketContextHolder, sequence: Long,
+                         endOfBatch: Boolean): Unit =
+        if (sequence % numHandlers == index) {
+            val context = event.packetExecRef
+            event.packetExecRef = null
+            val actions = context.packetActions
+            val packet = context.packet
+            val dpId = event.datapathId
+            if (actions.size > 0 && packet.getReason != Packet.Reason.FlowActionUserspace) {
+                try {
+                    maybeExecuteStatePacket(dpId, context)
+                    executePacket(dpId, packet, actions)
+                    context.log.debug(s"Executed packet")
+                } catch { case t: Throwable =>
+                    context.log.error(s"Failed to execute packet", t)
+                }
+            }
+        }
+
+    private def maybeExecuteStatePacket(datapathId: Int, context: PacketContext): Unit = {
+        val actions = context.stateActions
+        if (actions.size > 0) {
             try {
-                event.bb.putInt(NetlinkMessage.NLMSG_PID_OFFSET, pid)
-                writer.write(event.bb)
-                log.debug(s"Executed packet #$sequence")
-            } catch { case t: Throwable =>
-                log.error(s"Failed to execute packet #$sequence", t)
+                val statePacket = prepareStatePacket(context.stateMessage)
+                executePacket(datapathId, statePacket, actions)
+                context.log.debug(s"Executed flow state message")
+            } finally {
+                context.stateMessage = null
+                context.stateActions.clear()
             }
         }
     }
 
+    private def executePacket(datapathId: Int, packet: Packet,
+                              actions: ArrayList[FlowAction]): Unit =
+        try {
+            protocol.preparePacketExecute(datapathId, packet, actions, writeBuf)
+            writer.write(writeBuf)
+        } finally {
+            writeBuf.clear()
+        }
+
     private def processError(): Unit =
         try {
-           if (reader.read(buf) > 0) {
-               buf.clear()
+           if (reader.read(readBuf) > 0) {
+               readBuf.clear()
                log.warn("Unexpected answer to packet execution")
            }
         } catch { case t: Throwable =>
