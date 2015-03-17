@@ -23,13 +23,11 @@ import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 
 import com.google.protobuf.Message
-
 import org.slf4j.LoggerFactory
 
-import org.midonet.brain.services.c3po.translators.{TranslationException, NeutronTranslator}
+import org.midonet.brain.services.c3po.translators.{NeutronTranslator, TranslationException}
 import org.midonet.cluster.data.storage._
-import org.midonet.cluster.models.C3PO.C3POState
-import org.midonet.cluster.util.UUIDUtil.toProto
+import org.midonet.cluster.services.c3po.C3POState
 
 object C3POStorageManager {
 
@@ -40,8 +38,7 @@ object C3POStorageManager {
 
     // ID for the singleton C3POState object. All objects persisted via
     // the Storage interface need a property named id.
-    private[c3po] val C3PO_STATE_ID = toProto(new JUUID(0L, 1L))
-
+    private[c3po] val C3PO_STATE_ID = new JUUID(0L, 1L)
     private[c3po] val NO_C3PO_TASKS_PROCESSED = 0
 
     /** Defines types of operations on a single entity. */
@@ -71,10 +68,7 @@ object C3POStorageManager {
     /* A utility method to generate the C3POState object holding the last
      * processed task ID. */
     private[c3po] def c3poState(lastProcessed: Int) =
-        C3POState.newBuilder
-                 .setId(C3PO_STATE_ID)
-                 .setLastProcessedTaskId(lastProcessed)
-                 .build
+        new C3POState(C3PO_STATE_ID, lastProcessed)
 }
 
 /** C3PO that translates an operation on an external model into corresponding
@@ -126,7 +120,7 @@ final class C3POStorageManager(storage: Storage) {
     def lastProcessedTaskId: Int = {
         assert(initialized)
         Await.result(storage.get(classOf[C3POState], C3PO_STATE_ID), TIMEOUT)
-             .getLastProcessedTaskId
+             .lastProcessedTaskId
     }
 
     /** Flushes the current storage preparing for a reimport. */
