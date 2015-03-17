@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3a1371a2_8b81ff4c",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/C3POMinionTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 491,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-17T14:45:24Z",
+      "side": 1,
+      "message": "By default the timeout for this is 150 milliseconds. There\u0027s trait called MidonetEventually that sets this to 3 seconds. So my question is: is 150 ms enough? Why not using MidonetEventually?",
+      "range": {
+        "startLine": 491,
+        "startChar": 7,
+        "endLine": 491,
+        "endChar": 18
+      },
+      "revId": "a6c4a8bc359e30fece8a523239099543c4e98a65",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
