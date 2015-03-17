@@ -16,7 +16,9 @@
 
 package org.midonet.brain.services.topology
 
+import java.util.concurrent.CountDownLatch
 
+import com.google.common.util.concurrent.Service.{State, Listener}
 import com.google.inject.{AbstractModule, Guice, Singleton}
 import org.slf4j.LoggerFactory
 
@@ -25,6 +27,7 @@ import org.midonet.cluster.config.ZookeeperConfig
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.storage.MidonetBackendModule
 import org.midonet.config.{ConfigProvider, HostIdGenerator}
+import org.midonet.util.concurrent.CallingThreadExecutionContext
 
 /** Stand-alone application to start the TopologyApiService */
 object TopologyApiServiceApp extends App {
@@ -55,33 +58,36 @@ object TopologyApiServiceApp extends App {
         topologyApiServiceModule
     )
 
+    private val backend = injector.getInstance(classOf[MidonetBackend])
+    private var srv: TopologyApiService = null
+    private val srvEnded = new CountDownLatch(1)
+
     sys.addShutdownHook {
-        log.info("Terminating Topology API server")
-        injector.getInstance(classOf[TopologyApiService])
-            .stopAsync().awaitTerminated()
-        injector.getInstance(classOf[MidonetBackend])
-            .stopAsync().awaitTerminated()
+        if (srv != null && srv.isRunning)
+            srv.stopAsync().awaitTerminated()
+        if (backend.isRunning)
+            backend.stopAsync().awaitTerminated()
     }
 
     try {
         log.info("Starting a Topology API server")
-        injector.getInstance(classOf[MidonetBackend])
-            .startAsync().awaitRunning()
-        injector.getInstance(classOf[TopologyApiService])
-            .startAsync().awaitRunning()
+        backend.startAsync().awaitRunning()
+        srv = injector.getInstance(classOf[TopologyApiService])
+        srv.addListener(new Listener {
+            override def terminated(from: State): Unit = srvEnded.countDown()
+        }, CallingThreadExecutionContext)
+        srv.startAsync().awaitRunning()
         log.info("Topology API server is up")
 
-        try {
-            while (!Thread.currentThread().isInterrupted)
-                Thread.sleep(600000)
-        } catch {
-            case e: InterruptedException => Thread.currentThread().interrupt()
-        } finally {
-            log.info("Interrupted. Shutting down the Topology API server")
-        }
+        srvEnded.await()
 
+        log.info("Topology API server terminating")
     } catch {
+        case e: InterruptedException =>
+            log.info("Topology API server terminating")
+            Thread.currentThread().interrupt()
         case e: Exception =>
             log.error("Failed to start a Topology API server", e)
     }
+    System.exit(0)
 }
