@@ -60,6 +60,30 @@
     },
     {
       "key": {
+        "uuid": "3a1371a2_abfe7b69",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/datapath/DatapathChannelTest.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-03-17T16:12:22Z",
+      "side": 1,
+      "message": "it\u0027s used in multiple places, if i change it i only want to update one place",
+      "parentUuid": "3a1371a2_4b870762",
+      "range": {
+        "startLine": 51,
+        "startChar": 8,
+        "endLine": 51,
+        "endChar": 16
+      },
+      "revId": "5f8b2172f79bcac8f1f28c892b9bfa21d50a0c74",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a1371a2_abf31b09",
         "filename": "midolman/src/test/scala/org/midonet/midolman/datapath/DatapathChannelTest.scala",
         "patchSetId": 16
@@ -71,6 +95,30 @@
       "writtenOn": "2015-03-17T15:06:18Z",
       "side": 1,
       "message": "For instance, these concrete numbers are easily denoted as what they are on IntelliJ but I can\u0027t on the plain text review system. if they\u0027re defined as TestMaxPendingRequests and TestMaxRequestSize it\u0027s easier to figure out.",
+      "range": {
+        "startLine": 55,
+        "startChar": 55,
+        "endLine": 55,
+        "endChar": 66
+      },
+      "revId": "5f8b2172f79bcac8f1f28c892b9bfa21d50a0c74",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_2bdbab1c",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/datapath/DatapathChannelTest.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-03-17T16:12:22Z",
+      "side": 1,
+      "message": "those number don\u0027t really matter",
+      "parentUuid": "3a1371a2_abf31b09",
       "range": {
         "startLine": 55,
         "startChar": 55,
@@ -106,6 +154,30 @@
     },
     {
       "key": {
+        "uuid": "3a1371a2_cbf49789",
+        "filename": "netlink/src/test/scala/org/midonet/netlink/NetlinkRequestBrokerTest.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-03-17T16:12:22Z",
+      "side": 1,
+      "message": "???",
+      "parentUuid": "3a1371a2_4b6387b1",
+      "range": {
+        "startLine": 23,
+        "startChar": 39,
+        "endLine": 23,
+        "endChar": 43
+      },
+      "revId": "5f8b2172f79bcac8f1f28c892b9bfa21d50a0c74",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a1371a2_2b6c4b9c",
         "filename": "odp/src/main/scala/org/midonet/odp/OvsNetlinkFamilies.scala",
         "patchSetId": 16
@@ -117,6 +189,30 @@
       "writtenOn": "2015-03-17T15:06:18Z",
       "side": 1,
       "message": "Why aren\u0027t these concrete numbers defined as constants and why are they 2048?",
+      "range": {
+        "startLine": 36,
+        "startChar": 12,
+        "endLine": 36,
+        "endChar": 19
+      },
+      "revId": "5f8b2172f79bcac8f1f28c892b9bfa21d50a0c74",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_2bf28b9a",
+        "filename": "odp/src/main/scala/org/midonet/odp/OvsNetlinkFamilies.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-03-17T16:12:22Z",
+      "side": 1,
+      "message": "because i don\u0027t need them defined as constants, they\u0027re only used here. it\u0027s a ceiling on both the request and reply size.",
+      "parentUuid": "3a1371a2_2b6c4b9c",
       "range": {
         "startLine": 36,
         "startChar": 12,
