@@ -27,7 +27,7 @@ import com.typesafe.scalalogging.Logger
 import org.midonet.midolman.datapath.DisruptorDatapathChannel._
 import org.midonet.netlink._
 import org.midonet.netlink.exceptions.NetlinkException
-import org.midonet.odp.{FlowMatch, OvsNetlinkFamilies, OvsProtocol}
+import org.midonet.odp.{FlowMask, FlowMatch, OvsNetlinkFamilies, OvsProtocol}
 import org.midonet.Util
 import org.midonet.util.concurrent.{NanoClock, Backchannel}
 
@@ -48,7 +48,7 @@ class FlowProcessor(families: OvsNetlinkFamilies,
                     maxRequestSize: Int,
                     channelFactory: NetlinkChannelFactory,
                     clock: NanoClock)
-    extends EventPoller.Handler[DatapathEvent]
+    extends EventPoller.Handler[PacketContextHolder]
     with Backchannel
     with LifecycleAware {
 
@@ -57,6 +57,7 @@ class FlowProcessor(families: OvsNetlinkFamilies,
     private val log = Logger(LoggerFactory.getLogger(
         "org.midonet.datapath.flow-processor"))
 
+    private val writeBuf = BytesUtil.instance.allocateDirect(8*1024)
     private val channel = channelFactory.create(blocking = true)
     private val pid = channel.getLocalAddress.getPid
 
@@ -71,18 +72,32 @@ class FlowProcessor(families: OvsNetlinkFamilies,
 
     private val protocol = new OvsProtocol(pid, families)
 
+    private val flowMask = new FlowMask()
+
     private var lastSequence = Sequencer.INITIAL_CURSOR_VALUE
 
-    override def onEvent(event: DatapathEvent, sequence: Long,
+    override def onEvent(event: PacketContextHolder, sequence: Long,
                          endOfBatch: Boolean): Boolean = {
-        if (event.op == FLOW_CREATE) {
+        val context = event.flowCreateRef
+        val flowMatch = context.origMatch
+        event.flowCreateRef = null
+        if (context.flow ne null) {
             try {
-                event.bb.putInt(NetlinkMessage.NLMSG_PID_OFFSET, pid)
-                writer.write(event.bb)
-                log.debug(s"Created flow #$sequence")
+                val mask = if (event.supportsMegaflow) {
+                    flowMask.calculateFor(flowMatch)
+                    flowMask
+                } else null
+                protocol.prepareFlowCreate(event.datapathId, flowMatch.getKeys,
+                                           context.flowActions, mask, writeBuf)
+                writer.write(writeBuf)
+                log.debug(s"Created flow #$sequence with $flowMatch and $mask")
             } catch { case t: Throwable =>
                 log.error(s"Failed to create flow #$sequence", t)
+            } finally {
+                writeBuf.clear()
+                flowMask.clear()
             }
+
             lastSequence = sequence
         }
         true

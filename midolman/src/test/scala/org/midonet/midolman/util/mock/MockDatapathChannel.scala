@@ -19,8 +19,9 @@ package org.midonet.midolman.util.mock
 import java.util.{ArrayList, List => JList, Map => JMap}
 
 import org.midonet.midolman.datapath.DatapathChannel
+import org.midonet.midolman.simulation.PacketContext
 import org.midonet.odp.flows.FlowAction
-import org.midonet.odp.{FlowMatch, Packet, Datapath, Flow}
+import org.midonet.odp.{Flow, FlowMatch, Packet, Datapath}
 
 class MockDatapathChannel(val flowsTable: JMap[FlowMatch, Flow] = null) extends DatapathChannel {
 
@@ -35,27 +36,25 @@ class MockDatapathChannel(val flowsTable: JMap[FlowMatch, Flow] = null) extends 
     def flowCreateSubscribe(cb: Flow => Unit): Unit =
         flowCreateCb = cb
 
-    override def executePacket(packet: Packet,
-                               actions: JList[FlowAction]): Long = {
-        if (actions.isEmpty)
-            return 0
-
-        packetsSent.add(packet)
-        if (packetExecCb ne null) {
-            packetExecCb(packet, actions)
+    override def handoff(context: PacketContext): Long = {
+        if (!context.flowActions.isEmpty) {
+            packetsSent.add(context.packet)
+            if (packetExecCb ne null) {
+                packetExecCb(context.packet, context.flowActions)
+            }
         }
-        0
-    }
 
-    override def createFlow(flow: Flow): Long = {
-        flow.setLastUsedMillis(System.currentTimeMillis)
+        if (context.flow ne null) {
+            val flow = new Flow(context.origMatch, context.flowActions)
+            if (flowCreateCb ne null) {
+                flowCreateCb(flow)
+            }
 
-        if (flowCreateCb ne null) {
-            flowCreateCb(flow)
+            if (flowsTable ne null) {
+                flowsTable.put(context.origMatch, flow)
+            }
         }
-        if (flowsTable ne null) {
-            flowsTable.put(flow.getMatch, flow)
-        }
+
         0
     }
 
