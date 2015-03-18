@@ -28,7 +28,8 @@ import org.scalatest.junit.JUnitRunner
 import org.scalatest.{BeforeAndAfter, FlatSpec, GivenWhenThen, Matchers}
 
 import org.midonet.brain.BrainTestUtils._
-import org.midonet.brain.southbound.vtep.{VtepConstants, VtepMAC}
+import org.midonet.brain.southbound.vtep.VtepConstants.bridgeIdToLogicalSwitchName
+import org.midonet.brain.southbound.vtep.VtepMAC
 import org.midonet.brain.util.TestZkTools
 import org.midonet.cluster.DataClient
 import org.midonet.cluster.util.ObservableTestUtils._
@@ -48,7 +49,7 @@ class VtepControllerTest extends FlatSpec with Matchers
     var injector: Injector = _
 
     val nwId = UUID.randomUUID()
-    val lsName = VtepConstants.bridgeIdToLogicalSwitchName(nwId)
+    val lsName = bridgeIdToLogicalSwitchName(nwId)
 
     var someIp = IPv4Addr("22.0.0.0")
 
@@ -79,12 +80,12 @@ class VtepControllerTest extends FlatSpec with Matchers
         hostManager = injector.getInstance(classOf[HostZkManager])
         assertNotNull(hostManager)
 
-        hostState = new HostStatePublisher(dataClient, zkConnWatcher)
-        tzState = new TunnelZoneStatePublisher(dataClient, zkConnWatcher,
-                                               hostState, new Random)
-
         host = new HostOnVtepTunnelZone(10)
         vteps = new TwoVtepsOn(host.tzId)
+
+        hostState = new HostStatePublisher(dataClient, zkConnWatcher)
+        tzState = new TunnelZoneStatePublisher(dataClient, zkConnWatcher,
+                                              hostState, new Random)
     }
 
     after {
@@ -97,7 +98,7 @@ class VtepControllerTest extends FlatSpec with Matchers
     "A VTEP peer" should "be able to participate in a logical switch" in {
 
         // These are some entries currently in the VTEP's Mac_Local table
-        val initialVtepSnapshot =  1 to 5 map {
+        val initialVtepSnapshot = 1 to 5 map {
             _ => randomMacLocation(vteps.tunIp1)
         }
         // These are entries currently on other participants, will be preseeded
@@ -109,34 +110,49 @@ class VtepControllerTest extends FlatSpec with Matchers
         // A tap in the Logical Switch bus
         val tapOnBus = observer[MacLocation](0, 0, 0)
 
-        val ls = new VxlanGateway(nwId)
-        ls.vni = 111
-        ls.asObservable.subscribe(tapOnBus)
+        val vxgw = new VxlanGateway(nwId)
+        vxgw.vni = 111
+        vxgw.asObservable.subscribe(tapOnBus)
 
         // The VTEP PEER under test
         Given("a VTEP peer")
         val peer = new VtepController(vtepOvsdb, dataClient, zkConnWatcher,
                                       tzState)
 
-        When("the VTEP is told to join the Logical Switch with a seed")
+        When("the VTEP is told to join the VxGW with a seed")
+        peer.join(vxgw, preseed)
 
-        peer.join(ls, preseed)
+        Then("the VTEP memberships includes the VxGW")
+        peer.memberships should contain only vxgw
 
-        Then("the VTEP memberships includes the Logical Switch")
-        peer.memberships should contain only ls
+        And("two Logical Switches are created..")
+        vtepOvsdb.logicalSwitches should have size 2
+
+        And("one is the service Logical Switch to prime tunnels")
+        vtepOvsdb.logicalSwitches.head.name shouldBe "midonet-dummy"
+        vtepOvsdb.logicalSwitches.head.tunnelKey shouldBe 9999
+
+        And("the other is Logical Switch for the VxGW")
+        vtepOvsdb.logicalSwitches(1).name == bridgeIdToLogicalSwitchName(nwId)
+        vtepOvsdb.logicalSwitches(1).tunnelKey == 10000 // auto generated
 
         And("the VTEP's listener receives the seed plus the UNKNOWN-DST entry")
-        eventually {
-            vtepOvsdb.updatesToVtep.getOnNextEvents should have size 6
-        }
-        //
-        vtepOvsdb.updatesToVtep.getOnNextEvents should contain theSameElementsInOrderAs
-            preseed :+ MacLocation(VtepMAC.UNKNOWN_DST, null, lsName, host.ip)
 
-        And("it has emitted its own snapshot")
+        // The initial state is first the primed MacLocation to feed the tunnel
+        // zone endpoint of the current host, plus the preseed from MN
+        val serviceMl = MacLocation(new MAC(host.zoneHost.getIp.toInt),
+                                    DummyLogicalSwitch.name,
+                                    host.zoneHost.getIp)
+        val initial = preseed :+
+                      serviceMl :+
+                      MacLocation(VtepMAC.UNKNOWN_DST, null, lsName, host.ip)
+
         eventually {
-            tapOnBus.getOnNextEvents should have size 6
+            vtepOvsdb.updatesToVtep.getOnNextEvents should have size initial.size
         }
+
+        And("the bus has seen its own snapshot (it will ignore it though)")
+        eventually { tapOnBus.getOnNextEvents should have size initial.size - 1}
         tapOnBus.getOnNextEvents should contain theSameElementsInOrderAs
             initialVtepSnapshot :+
             MacLocation(VtepMAC.UNKNOWN_DST, null, lsName, vteps.tunIp1)
@@ -156,18 +172,18 @@ class VtepControllerTest extends FlatSpec with Matchers
                 .subList(6, 11) should contain theSameElementsInOrderAs fromVtep
 
         And("the VTEP filtered out those updates since they came from itself")
-        vtepOvsdb.updatesToVtep.getOnNextEvents should have size 6
+        vtepOvsdb.updatesToVtep.getOnNextEvents should have size initial.size
 
         // ------ Updates flow from peers -> VTEP
 
         When("new MacLocation updates come from other peers")
         val fromOthers = 1 to 5 map { _ => randomMacLocation() }
         vtepOvsdb.updatesToVtep.reset(fromOthers.size, 0, 0)
-        fromOthers foreach ls.asObserver.onNext // emit on the log. switch bus
+        fromOthers foreach vxgw.observer.onNext // emit on the log. switch bus
 
         Then("the peer should send them to the VTEP")
         assert(vtepOvsdb.updatesToVtep.n.await(1, SECONDS))
-        vtepOvsdb.updatesToVtep.getOnNextEvents should have size 11
+        vtepOvsdb.updatesToVtep.getOnNextEvents should have size initial.size + 5
 
         And("the VTEP has not reported the updates back to the bus")
         // +5 for the updates into the bus, but they won't come back
@@ -176,12 +192,12 @@ class VtepControllerTest extends FlatSpec with Matchers
         // ------ Abandon the Logical Switch
 
         When("the peer abandons the logical switch")
-        peer.abandon(ls)
+        peer.abandon(vxgw)
 
         val missed = 1 to 5 map { _ => randomMacLocation(vteps.tunIp1) }
-        missed foreach ls.asObserver.onNext
+        missed foreach vxgw.observer.onNext
 
-        vtepOvsdb.updatesToVtep.getOnNextEvents should have size 11
+        vtepOvsdb.updatesToVtep.getOnNextEvents should have size 12
         tapOnBus.getOnNextEvents should have size 21 // +5 when we emitted them
 
     }
