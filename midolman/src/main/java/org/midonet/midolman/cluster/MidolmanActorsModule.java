@@ -105,7 +105,6 @@ public class MidolmanActorsModule extends PrivateModule {
         bind(VirtualTopologyActor.class);
         bind(VirtualToPhysicalMapper.class);
         bind(DatapathController.class);
-        bind(FlowController.class);
         bind(PacketsEntryPoint.class);
         bind(NetlinkCallbackDispatcher.class);
         //bind(InterfaceScanner.class).to(DefaultInterfaceScanner.class);

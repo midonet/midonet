@@ -16,7 +16,7 @@
 package org.midonet.midolman.management
 
 import java.lang.management._
-import java.util.Collections
+import java.util.HashSet
 import javax.management._
 
 import com.typesafe.scalalogging.Logger
@@ -28,33 +28,28 @@ import org.midonet.odp.flows.FlowStats
 object Metering extends MeteringMXBean {
     val log = Logger(LoggerFactory.getLogger("org.midonet.midolman.management"))
 
-    private val ZERO = new FlowStats
-    private var registry: MeterRegistry = null
+    private var registries = List[MeterRegistry]()
 
     override def listMeters = {
-        val keys = Collections.list(registry.meters.keys)
+        val keys = new HashSet[String]
+        registries foreach { keys addAll _.meters.keySet() }
         keys.toArray(new Array[String](keys.size()))
     }
 
-    override def getMeter(name: String) = {
-        val meter = registry.meters.get(name)
-        if (meter ne null)
-            meter
-        else
-            ZERO
-    }
-
-    /* this flag prevents multiple registrations on the same jvm. this would
-     * happen on unit tests */
-    private var registered = false
+    override def getMeter(name: String) =
+        registries.foldLeft(new FlowStats()) { (acc, r) =>
+            val meter = r.meters.get(name)
+            if (meter ne null)
+                acc.add(meter)
+            acc
+        }
 
     def registerAsMXBean(meters: MeterRegistry) = this.synchronized {
         try {
-            registry = meters
-            if ((meters ne null) && !registered) {
+            registries :+= meters
+            if (registries.size == 1) {
                 ManagementFactory.getPlatformMBeanServer.registerMBean(this,
                     new ObjectName(MeteringMXBean.NAME))
-                registered = true
             }
         } catch {
             case e: Exception =>
