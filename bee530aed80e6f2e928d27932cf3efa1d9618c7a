@@ -1,0 +1,118 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3a1371a2_8031d9a4",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/IPAddrGroupMapper.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-03-18T06:54:19Z",
+      "side": 1,
+      "message": "This simply does conversion from Topology IpAddrGroup to Simulation IP Addr Group. I\u0027d rather call toSimIpAddrGroup.",
+      "range": {
+        "startLine": 32,
+        "startChar": 16,
+        "endLine": 32,
+        "endChar": 30
+      },
+      "revId": "bee530aed80e6f2e928d27932cf3efa1d9618c7a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_e026cd67",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/IPAddrGroupMapperTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-03-18T06:54:19Z",
+      "side": 1,
+      "message": "Isn\u0027t better to tests that the size of on-error events is not 0, first?",
+      "revId": "bee530aed80e6f2e928d27932cf3efa1d9618c7a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_2020e548",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/IPAddrGroupMapperTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-03-18T06:54:19Z",
+      "side": 1,
+      "message": "Please remove the extra whitespace.",
+      "revId": "bee530aed80e6f2e928d27932cf3efa1d9618c7a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_601add18",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/IPAddrGroupMapperTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-03-18T06:54:19Z",
+      "side": 1,
+      "message": "s/complets/completes/",
+      "range": {
+        "startLine": 116,
+        "startChar": 29,
+        "endLine": 116,
+        "endChar": 37
+      },
+      "revId": "bee530aed80e6f2e928d27932cf3efa1d9618c7a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_001de90f",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/IPAddrGroupMapperTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 131,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-03-18T06:54:19Z",
+      "side": 1,
+      "message": "Ditto.",
+      "revId": "bee530aed80e6f2e928d27932cf3efa1d9618c7a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_20e74514",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/TopologyBuilder.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 421,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-03-18T06:54:19Z",
+      "side": 1,
+      "message": "Just a minor suggestion. I think this method would become more natural if this takes a builder and \"adds\" the IP Address / Port pair.",
+      "revId": "bee530aed80e6f2e928d27932cf3efa1d9618c7a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
