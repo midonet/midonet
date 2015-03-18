@@ -330,7 +330,6 @@ public class FlowMatch {
     private final ArrayList<FlowKey> keys = new ArrayList<>();
     private int hashCode = 0;
     private int connectionHash = 0;
-    private long sequence = -1;
 
     public FlowMatch() { }
 
@@ -478,7 +477,6 @@ public class FlowMatch {
         usedFields = that.usedFields;
         trackSeenFields = that.trackSeenFields;
         seenFields = that.seenFields;
-        sequence = that.sequence;
         keys.clear();
         keys.addAll(that.keys);
         invalidateHashCode();
@@ -499,7 +497,6 @@ public class FlowMatch {
         this.usedFields = 0;
         this.trackSeenFields = 1;
         this.seenFields = 0;
-        this.sequence = -1;
         keys.clear();
         invalidateHashCode();
     }
@@ -765,15 +762,6 @@ public class FlowMatch {
         return vlanIds;
     }
 
-    public long getSequence() {
-        return sequence;
-    }
-
-    public FlowMatch setSequence(long sequence) {
-        this.sequence = sequence;
-        return this;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -806,9 +794,13 @@ public class FlowMatch {
      */
     public int connectionHash() {
         if (connectionHash == 0) {
-            int connHash = 0;
-            if (highestLayer(usedFields) >= 4) {
-                connHash = 31 * connHash + Field.NetworkSrc.hashCode(this);
+            int connHash;
+            if (isFromTunnel()) {
+                connHash = Field.TunnelKey.hashCode(this);
+                connHash = 31 * connHash + Field.TunnelSrc.hashCode(this);
+                connHash = 31 * connHash + Field.TunnelDst.hashCode(this);
+            } else if (highestLayer(usedFields) >= 4) {
+                connHash = Field.NetworkSrc.hashCode(this);
                 connHash = 31 * connHash + Field.NetworkDst.hashCode(this);
                 connHash = 31 * connHash + Field.NetworkProto.hashCode(this);
                 connHash = 31 * connHash + Field.SrcPort.hashCode(this);
