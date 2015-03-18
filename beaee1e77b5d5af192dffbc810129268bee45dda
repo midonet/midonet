@@ -1,0 +1,297 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3a1371a2_80a6f9bf",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterMapper.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-03-18T08:16:55Z",
+      "side": 1,
+      "message": "What is the difference between currentRoutes and routes?",
+      "range": {
+        "startLine": 75,
+        "startChar": 20,
+        "endLine": 75,
+        "endChar": 33
+      },
+      "revId": "beaee1e77b5d5af192dffbc810129268bee45dda",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_a0ba15df",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterMapper.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-03-18T08:16:55Z",
+      "side": 1,
+      "message": "This expression occurs four times. Could be separated out into a function.",
+      "range": {
+        "startLine": 96,
+        "startChar": 26,
+        "endLine": 97,
+        "endChar": 72
+      },
+      "revId": "beaee1e77b5d5af192dffbc810129268bee45dda",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_a0d33537",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterMapper.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-03-18T08:16:55Z",
+      "side": 1,
+      "message": "a",
+      "range": {
+        "startLine": 105,
+        "startChar": 32,
+        "endLine": 105,
+        "endChar": 35
+      },
+      "revId": "beaee1e77b5d5af192dffbc810129268bee45dda",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_40eec1ed",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterMapper.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-03-18T08:16:55Z",
+      "side": 1,
+      "message": "I couldn\u0027t understand this comment until I read the code and realized that by \"publishes updates,\" you meant \"is plugged in to something, and therefore has usable routes.\" I would recommend rephrasing to something like that in order to clarify. Like \"If the port was and remains active\" or \"usable\" or something like that.",
+      "range": {
+        "startLine": 108,
+        "startChar": 0,
+        "endLine": 115,
+        "endChar": 26
+      },
+      "revId": "beaee1e77b5d5af192dffbc810129268bee45dda",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_c0b911eb",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterMapper.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 128,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-03-18T08:16:55Z",
+      "side": 1,
+      "message": "Not necessary. Map defines foreach.",
+      "range": {
+        "startLine": 128,
+        "startChar": 44,
+        "endLine": 128,
+        "endChar": 50
+      },
+      "revId": "beaee1e77b5d5af192dffbc810129268bee45dda",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_609f7d60",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterMapper.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 141,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-03-18T08:16:55Z",
+      "side": 1,
+      "message": "Even if newPublish is false?",
+      "range": {
+        "startLine": 141,
+        "startChar": 0,
+        "endLine": 141,
+        "endChar": 58
+      },
+      "revId": "beaee1e77b5d5af192dffbc810129268bee45dda",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_c0b0f1f6",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterMapper.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 149,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-03-18T08:16:55Z",
+      "side": 1,
+      "message": "Why the difference between the way you treat routes that are added on a port update, and existing routes that are coming online because the port was plugged in?",
+      "range": {
+        "startLine": 149,
+        "startChar": 29,
+        "endLine": 149,
+        "endChar": 42
+      },
+      "revId": "beaee1e77b5d5af192dffbc810129268bee45dda",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_20958540",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterMapper.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 153,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-03-18T08:16:55Z",
+      "side": 1,
+      "message": "What about the routes we just added to routes?",
+      "range": {
+        "startLine": 153,
+        "startChar": 29,
+        "endLine": 153,
+        "endChar": 42
+      },
+      "revId": "beaee1e77b5d5af192dffbc810129268bee45dda",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_00920957",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterMapper.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 157,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-03-18T08:16:55Z",
+      "side": 1,
+      "message": "Ditto.",
+      "range": {
+        "startLine": 157,
+        "startChar": 44,
+        "endLine": 157,
+        "endChar": 57
+      },
+      "revId": "beaee1e77b5d5af192dffbc810129268bee45dda",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_409c016a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterMapper.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 191,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-03-18T08:16:55Z",
+      "side": 1,
+      "message": "My point about using flatMap or flatMapIterable is that they do the filtering for you. Suppose you change this to flatMap, then remove the filter. Then see below.",
+      "range": {
+        "startLine": 191,
+        "startChar": 13,
+        "endLine": 191,
+        "endChar": 16
+      },
+      "revId": "beaee1e77b5d5af192dffbc810129268bee45dda",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_a0885523",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterMapper.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 203,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-03-18T08:16:55Z",
+      "side": 1,
+      "message": "This becomes Observable[RouteUpdates]",
+      "range": {
+        "startLine": 203,
+        "startChar": 53,
+        "endLine": 203,
+        "endChar": 65
+      },
+      "revId": "beaee1e77b5d5af192dffbc810129268bee45dda",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_808d5934",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterMapper.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 212,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-03-18T08:16:55Z",
+      "side": 1,
+      "message": "if (route !\u003d currentRoute) return Observable.empty()\nval update \u003d Observable.just(\n    RouteUpdates(routeAsSet(route), routeAsSet(currentRoute)))\ncurrentRoute \u003d route\nupdate\n\nI guess it doesn\u0027t really make that much difference.",
+      "range": {
+        "startLine": 205,
+        "startChar": 0,
+        "endLine": 212,
+        "endChar": 18
+      },
+      "revId": "beaee1e77b5d5af192dffbc810129268bee45dda",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_60adbd88",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterMapper.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 615,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-03-18T08:16:55Z",
+      "side": 1,
+      "message": "Thanks. What I was actually asking, though, was if you could add JavaDocs to InvalidationTrie and its methods, since it doesn\u0027t currently have any and you seem to understand what it does.",
+      "revId": "beaee1e77b5d5af192dffbc810129268bee45dda",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
