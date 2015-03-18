@@ -18,17 +18,17 @@ package org.midonet.midolman.topology
 import scala.collection.JavaConverters._
 
 import com.google.protobuf.MessageOrBuilder
+
 import org.scalatest.Matchers
 
-import org.midonet.cluster.models.Topology.{IpAddrGroup => TopologyIPAddrGroup, Network => TopologyBridge}
-import org.midonet.cluster.models.Topology.{Port => TopologyPort, Rule => TopologyRule}
+import org.midonet.cluster.models.Topology.{IpAddrGroup => TopologyIPAddrGroup, Network => TopologyBridge, Port => TopologyPort, PortGroup => TopologyPortGroup, Rule => TopologyRule}
 import org.midonet.cluster.util.IPAddressUtil._
 import org.midonet.cluster.util.IPSubnetUtil._
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.cluster.util.{IPSubnetUtil, RangeUtil}
 import org.midonet.midolman.rules.{Condition, ForwardNatRule, JumpRule, NatRule, NatTarget, Rule}
-import org.midonet.midolman.simulation.{Bridge, IPAddrGroup}
-import org.midonet.midolman.topology.TopologyMatchers._
+import org.midonet.midolman.simulation.{Bridge, IPAddrGroup, PortGroup}
+import org.midonet.midolman.topology.TopologyMatchers.{BridgeMatcher, BridgePortMatcher, RouterPortMatcher, _}
 import org.midonet.midolman.topology.devices.{BridgePort, Port, RouterPort, VxLanPort}
 import org.midonet.packets.MAC
 
@@ -211,9 +211,21 @@ object TopologyMatchers {
         override def shouldBeDeviceOf(i: TopologyIPAddrGroup): Unit = {
             i.getId.asJava shouldBe ipAddrGroup.id
             ipAddrGroup.addrs should contain theSameElementsAs
-                i.getIpAddrPortsList.asScala.map(ipAddrPort =>
-                    toIPAddr(ipAddrPort.getIpAddress)
-                )
+            i.getIpAddrPortsList.asScala.map(ipAddrPort =>
+                                                 toIPAddr(
+                                                     ipAddrPort.getIpAddress)
+            )
+        }
+    }
+
+    class PortGroupMatcher(portGroup: PortGroup)
+        extends Matchers with DeviceMatcher[TopologyPortGroup] {
+        override def shouldBeDeviceOf(pg: TopologyPortGroup): Unit = {
+            portGroup.id shouldBe pg.getId.asJava
+            portGroup.name shouldBe (if (pg.hasName) pg.getName else null)
+            portGroup.stateful shouldBe pg.getStateful
+            portGroup.members should contain theSameElementsAs
+                pg.getPortIdsList.asScala.map(_.asJava)
         }
     }
 }
@@ -254,4 +266,7 @@ trait TopologyMatchers {
 
     implicit def asMatcher(ipAddrGroup: IPAddrGroup): IPAddrGroupMatcher =
         new IPAddrGroupMatcher(ipAddrGroup)
+
+    implicit def asMatcher(portGroup: PortGroup): PortGroupMatcher =
+        new PortGroupMatcher(portGroup)
 }
