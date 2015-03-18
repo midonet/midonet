@@ -16,7 +16,9 @@
 package org.midonet.midolman.cluster;
 
 import com.codahale.metrics.MetricRegistry;
+import com.google.inject.Inject;
 import com.google.inject.PrivateModule;
+import com.google.inject.Provider;
 import com.google.inject.Scopes;
 
 import org.midonet.cluster.Client;
@@ -60,7 +62,18 @@ public class MidolmanModule extends PrivateModule {
 
         requestStaticInjection(Chain.class);
 
-        bind(FlowInvalidator.class).asEagerSingleton();
+        bind(FlowInvalidator.class).toProvider(new Provider<FlowInvalidator>() {
+            @Inject
+            private MidolmanConfig config;
+
+            @Inject
+            private MidolmanActorsService service;
+
+            @Override
+            public FlowInvalidator get() {
+                return new FlowInvalidator(service, config.simulationThreads());
+            }
+        }).asEagerSingleton();
         expose(FlowInvalidator.class);
 
         bindAllocator();
