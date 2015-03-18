@@ -16,9 +16,8 @@
 
 package org.midonet.midolman
 
-import java.util.{HashMap => JHashMap, UUID}
+import java.util.UUID
 
-import scala.collection.mutable
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
@@ -155,8 +154,6 @@ class PacketWorkflow(
     implicit val dispatcher = this.context.system.dispatcher
     implicit val system = this.context.system
 
-    protected val suspendedPackets = new JHashMap[FlowMatch, mutable.HashSet[Packet]]
-
     protected val simulationExpireMillis = 5000L
 
     private val waitingRoom = new WaitingRoom[PacketContext](
@@ -240,18 +237,6 @@ class PacketWorkflow(
         natLeaser.obliterateUnusedBlocks()
     }
 
-    // We return collection.Set so we can return an empty immutable set
-    // and a non-empty mutable set.
-    private def removeSuspendedPackets(flowMatch: FlowMatch): collection.Set[Packet] = {
-        val pending = suspendedPackets.remove(flowMatch)
-        if (pending ne null) {
-            log.debug(s"Removing ${pending.size} suspended packet(s)")
-            pending
-        } else {
-            Set.empty
-        }
-    }
-
     protected def packetContext(packet: Packet): PacketContext =
         initialize(packet, packet.getMatch, null)
 
@@ -278,9 +263,6 @@ class PacketWorkflow(
     private def postponeOn(pktCtx: PacketContext, f: Future[_]) {
         pktCtx.postpone()
         val flowMatch = pktCtx.packet.getMatch
-        if (!suspendedPackets.containsKey(flowMatch)) {
-            suspendedPackets.put(flowMatch, mutable.HashSet())
-        }
         f.onComplete {
             case Success(_) =>
                 self ! RestartWorkflow(pktCtx, null)
@@ -313,8 +295,7 @@ class PacketWorkflow(
             case e: Exception =>
                 pktCtx.log.error("Failed to drop flow", e)
         } finally {
-            val dropped = removeSuspendedPackets(pktCtx.packet.getMatch).size
-            metrics.packetsDropped.mark(dropped + 1)
+            metrics.packetsDropped.mark()
         }
 
     private def complete(pktCtx: PacketContext, simRes: SimulationResult): Unit = {
@@ -322,27 +303,12 @@ class PacketWorkflow(
         if (pktCtx.runs > 1)
             waitingRoom leave pktCtx
         if (pktCtx.ingressed) {
-            applyFlow(pktCtx, simRes)
             val latency = NanoClock.DEFAULT.tick - pktCtx.packet.startTimeNanos
             metrics.packetsProcessed.mark()
             simRes match {
                 case StateMessage =>
                 case _ => metrics.packetSimulated(latency.toInt)
             }
-        }
-    }
-
-    private def applyFlow(pktCtx: PacketContext, simRes: SimulationResult): Unit = {
-        val flowMatch = pktCtx.packet.getMatch
-        val suspendedPackets = removeSuspendedPackets(flowMatch)
-        val numSuspendedPackets = suspendedPackets.size
-        if (simRes eq UserspaceFlow) {
-            suspendedPackets foreach processPacket
-        } else if (numSuspendedPackets > 0) {
-            log.debug(s"Sending ${suspendedPackets.size} pended packets")
-            suspendedPackets foreach (dpChannel.executePacket(_, pktCtx.flowActions))
-            metrics.packetsProcessed.mark(numSuspendedPackets)
-            metrics.pendedPackets.dec(numSuspendedPackets)
         }
     }
 
@@ -400,14 +366,8 @@ class PacketWorkflow(
         if (FlowStatePackets.isStateMessage(flowMatch)) {
             handleStateMessage(packetContext(packet))
             packetOut(1)
-        } else suspendedPackets.get(flowMatch) match {
-            case null =>
-                processPacket(packet)
-            case packets =>
-                log.debug("A matching packet is already being handled")
-                packets.add(packet)
-                packetOut(1)
-                giveUpWorkflows(waitingRoom.doExpirations())
+        } else {
+            processPacket(packet)
         }
     }
 
