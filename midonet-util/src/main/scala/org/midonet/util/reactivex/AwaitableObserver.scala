@@ -28,7 +28,7 @@ class AwaitableObserver[T](awaitCount: Int = 1, assert: => Unit = {})
 
     @volatile private var counter = new CountDownLatch(awaitCount)
 
-    override def onNext(value: T): Unit = {
+    override def onNext(value: T): Unit = synchronized {
         super.onNext(value)
         assert
         counter.countDown()
