@@ -136,7 +136,6 @@ class AdminStateTest extends MidolmanSpec {
 
         sendPacket (fromBridgeSide) should be (flowMatching (emittedRouterSidePkt))
         sendPacket (fromRouterSide) should be (flowMatching (emittedBridgeSidePkt))
-        PacketsEntryPoint.messages should be (empty)
 
         VirtualTopologyActor.getAndClear()
 

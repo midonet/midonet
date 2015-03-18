@@ -131,8 +131,8 @@ class FlowProcessor(families: OvsNetlinkFamilies,
         }
     }
 
-    override def shouldProcess(): Boolean =
-        broker.hasRequestsToWrite
+    override def shouldProcess(): Boolean = true
+        //broker.hasRequestsToWrite
 
     override def process(): Unit =
         broker.writePublishedRequests()

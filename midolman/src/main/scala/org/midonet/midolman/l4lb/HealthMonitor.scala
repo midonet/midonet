@@ -198,10 +198,6 @@ class HealthMonitor extends Actor with ActorLogWithoutPath {
         if (config.healthMonitor.namespaceCleanup) {
             cleanupNamespaces()
         }
-        if (!config.healthMonitor.enable) {
-            context.stop(self)
-            return
-        }
         log.info("Starting Health Monitor")
         hostId = HostIdGenerator.getIdFromPropertiesFile()
 

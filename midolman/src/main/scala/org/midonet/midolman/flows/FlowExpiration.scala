@@ -17,6 +17,7 @@
 package org.midonet.midolman.flows
 
 import java.util.ArrayDeque
+
 import scala.concurrent.duration._
 
 import com.typesafe.scalalogging.Logger
@@ -83,7 +84,7 @@ trait FlowExpiration extends FlowLifecycle {
             val queue = expirationQueues(i)
             while (({ flow = queue.peekFirst(); flow } ne null) &&
                    now >= flow.absoluteExpirationNanos) {
-                log.debug(s"Removing flow $flow for hard expiration after ${Duration.fromNanos(now - flow.creationTimeNanos).toSeconds} seconds")
+                log.debug(s"Removing flow $flow for hard expiration")
                 removeFlow(queue.pollFirst())
                 flow.unref()
             }
