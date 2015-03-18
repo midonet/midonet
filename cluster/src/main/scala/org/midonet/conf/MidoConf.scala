@@ -121,9 +121,10 @@ object MidoNodeConfigurator {
         } reduce((a, b) => a.withFallback(b)) withFallback(ConfigFactory.systemProperties) withFallback(defaults) resolve()
     }
 
-    private def zkBootstrap(inifile: Option[String] = None): CuratorFramework = {
-        val cfg = bootstrapConfig(inifile)
+    def zkBootstrap(inifile: Option[String] = None): CuratorFramework =
+        zkBootstrap(bootstrapConfig(inifile))
 
+    def zkBootstrap(cfg: Config): CuratorFramework = {
         val serverString = cfg.getString("zookeeper.zookeeper_hosts")
         val rootKey = cfg.getString("zookeeper.root_key")
 
@@ -258,6 +259,13 @@ class MidoNodeConfigurator(zk: CuratorFramework,
     def assignTemplate(node: UUID, template: String): Unit = {
         val value = ConfigValueFactory.fromAnyRef(template)
         _templateMappings.set(node.toString, value)
+    }
+
+    /**
+     * Updates all the template assignments
+     */
+    def updateTemplateAssignments(mappings: Config): Unit = {
+        _templateMappings.clearAndSet(mappings)
     }
 
     /**
