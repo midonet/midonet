@@ -22,6 +22,7 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.servlet.GuiceServletContextListener;
 
+import org.midonet.brain.services.conf.ConfMinion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -64,6 +65,10 @@ public class JerseyGuiceServletContextListener extends
 
         injector.getInstance(RestApiService.class).startAsync().awaitRunning();
         ClusterNode.Context ctx = injector.getInstance(ClusterNode.Context.class);
+
+        log.info("Launching embedded configuration service");
+        injector.getInstance(ConfMinion.class).startAsync().awaitRunning();
+
         if (ctx.embed()) {
             log.info("initializeApplication: starting embedded Cluster node");
             injector.getInstance(VxlanGatewayService.class)
