@@ -18,9 +18,30 @@ package org.midonet.midolman.simulation
 
 import java.util.UUID
 
+import com.google.protobuf.MessageOrBuilder
+
+import org.midonet.cluster.data.ZoomConvert.ScalaZoomField
+import org.midonet.cluster.data.ZoomObject
+import org.midonet.cluster.util.UUIDUtil.{Converter => UUIDConverter}
+import org.midonet.midolman.topology.VirtualTopology.VirtualDevice
 import org.midonet.sdn.flows.FlowTagger
 
-class PortGroup(val id: UUID, val name: String, val stateful: Boolean,
-                val members: Set[UUID]) {
-    val deviceTag = FlowTagger.tagForDevice(id)
+class PortGroup(@ScalaZoomField(name = "id", converter = classOf[UUIDConverter])
+                val id: UUID,
+                @ScalaZoomField(name = "name")
+                val name: String,
+                @ScalaZoomField(name = "stateful")
+                val stateful: Boolean,
+                @ScalaZoomField(name = "port_ids", converter = classOf[UUIDConverter])
+                val members: Set[UUID])
+    extends ZoomObject with VirtualDevice {
+
+    private var _deviceTag = FlowTagger.tagForDevice(id)
+
+    def this() = this(null, null, false, null)
+    override def deviceTag = _deviceTag
+
+    override def afterFromProto(proto: MessageOrBuilder): Unit = {
+        _deviceTag = FlowTagger.tagForDevice(id)
+    }
 }

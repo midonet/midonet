@@ -408,6 +408,20 @@ trait TopologyBuilder {
         builder.build()
     }
 
+    protected def createPortGroup(id: UUID = UUID.randomUUID,
+                                  name: Option[String] = None,
+                                  tenantId: Option[String] = None,
+                                  stateful: Option[Boolean] = None,
+                                  portIds: Set[UUID] = Set.empty): PortGroup = {
+        val builder = PortGroup.newBuilder
+            .setId(id.asProto)
+            .addAllPortIds(portIds.map(_.asProto).asJava)
+        if (name.isDefined) builder.setName(name.get)
+        if (tenantId.isDefined) builder.setTenantId(tenantId.get)
+        if (stateful.isDefined) builder.setStateful(stateful.get)
+        builder.build()
+    }
+
     protected def addIPAddrPort(builder: IpAddrGroup.Builder, ip: String,
                                 ports: Set[UUID]): IpAddrGroup.Builder = {
         val ipAddrPort = IpAddrPorts.newBuilder
@@ -520,10 +534,23 @@ object TopologyBuilder {
             port.toBuilder.clearPortMac().build()
     }
 
+    class RichPortGroup(portGroup: PortGroup) {
+        def setName(name: String): PortGroup =
+            portGroup.toBuilder.setName(name).build()
+        def setTenantId(tenantId: String): PortGroup =
+            portGroup.toBuilder.setTenantId(tenantId).build()
+        def setStateful(stateful: Boolean): PortGroup =
+            portGroup.toBuilder.setStateful(stateful).build()
+        def addPortId(portId: UUID): PortGroup =
+            portGroup.toBuilder.addPortIds(portId.asProto).build()
+    }
+
     private val random = new Random()
 
     def randomIPv4Subnet = new IPv4Subnet(random.nextInt(), random.nextInt(32))
 
     implicit def asRichPort(port: Port): RichPort = new RichPort(port)
 
+    implicit def asRichPortGroup(portGroup: PortGroup): RichPortGroup =
+        new RichPortGroup(portGroup)
 }
