@@ -22,7 +22,6 @@ import com.google.inject.Scopes;
 import org.midonet.cluster.Client;
 import org.midonet.midolman.config.MidolmanConfig;
 import org.midonet.midolman.flows.FlowInvalidator;
-import org.midonet.midolman.services.DashboardService;
 import org.midonet.midolman.services.DatapathConnectionService;
 import org.midonet.midolman.services.MidolmanActorsService;
 import org.midonet.midolman.services.MidolmanService;
@@ -60,9 +59,6 @@ public class MidolmanModule extends PrivateModule {
             .asEagerSingleton();
 
         requestStaticInjection(Chain.class);
-
-        bind(DashboardService.class).asEagerSingleton();
-        expose(DashboardService.class);
 
         bind(FlowInvalidator.class).asEagerSingleton();
         expose(FlowInvalidator.class);

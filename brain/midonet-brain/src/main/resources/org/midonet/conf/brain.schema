@@ -88,7 +88,7 @@ heartbeat {
     enabled : false
     enabled_description : """ """
 
-    with : "org.midonet.brain.services.c3po.C3POMinion"
+    with : "org.midonet.brain.services.heartbeat.Heartbeat"
     with_description : """ """
 
     threads : 1
@@ -173,4 +173,15 @@ snoopy {
 
     ws_path : " "
     ws_path_description : """ """
+}
+
+conf_api {
+    enabled : true
+    enabled_description : """ """
+
+    with : "org.midonet.brain.services.conf.ConfMinion"
+    with_description : """ """
+
+    http_port: 8459
+    http_port_description : """ """
 }
