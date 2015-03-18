@@ -114,7 +114,7 @@ final class NetlinkRequestBroker(writer: NetlinkBlockingWriter,
     /**
      * The highest written sequence. Confined to the writer thread.
      */
-    private var writtenSequence = 0
+    @volatile private var writtenSequence = 0
 
     /**
      * The observers registered by the producer thread, through which the
@@ -134,16 +134,8 @@ final class NetlinkRequestBroker(writer: NetlinkBlockingWriter,
      */
     private val sequences = new Array[Int](capacity)
 
-    /**
-     * This method returns true whether there may be some requests to write.
-     * It is assumed that this method is called by the writer thread or by some
-     * thread that synchronized with it (e.g., the WakerUpper).
-     */
     def hasRequestsToWrite: Boolean =
         unsafe.getIntVolatile(this, sequenceAddress) != writtenSequence
-
-    def publisherSequence = unsafe.getIntVolatile(this, sequenceAddress)
-    def writerSequence = writtenSequence
 
     /**
      * Gets the next sequence available for publishing a request. This method
@@ -152,14 +144,9 @@ final class NetlinkRequestBroker(writer: NetlinkBlockingWriter,
      */
     def nextSequence(): Int = {
         var seq = sequence
-        if (seq == UPCALL_SEQ) {
-            // It will take more than capacity iterations to circle back to
-            // UPCALL_SEQ, so we only need to perform the check here.
-            seq = UPCALL_SEQ + 1
-        }
         val end = seq + capacity
         do {
-            if (sequences(seq & mask) == FREE) {
+            if (sequences(seq & mask) == FREE && seq != UPCALL_SEQ) {
                 return seq
             }
             seq += 1
@@ -195,19 +182,12 @@ final class NetlinkRequestBroker(writer: NetlinkBlockingWriter,
     def writePublishedRequests(): Int = {
         val publishedSeq = unsafe.getIntVolatile(this, sequenceAddress)
         var seq = writtenSequence
-
-        if (publishedSeq == seq)
-            return 0
-
-        if (seq == UPCALL_SEQ)
-            seq = UPCALL_SEQ + 1
-
         var nbytes = 0
-        do {
+        while (seq != publishedSeq) {
             val pos = seq & mask
             // Check if the sequence was published or if it was jumped over
             // because the reply hasn't arrived yet.
-            if (sequences(pos) == seq) {
+            if (sequences(pos) == seq && seq != UPCALL_SEQ) {
                 val buf = buffers(pos)
                 try {
                     buf.putInt(buf.position() + NetlinkMessage.NLMSG_SEQ_OFFSET, seq)
@@ -215,7 +195,7 @@ final class NetlinkRequestBroker(writer: NetlinkBlockingWriter,
                     nbytes += writer.write(buf)
                 } catch { case e: Throwable =>
                     val obs = observers(pos)
-                    freeSequence(pos)
+                    freeSequence(pos, seq)
                     obs.onError(e)
                 } finally {
                     // We have to clear the buffer here instead of on handleReply()
@@ -228,7 +208,7 @@ final class NetlinkRequestBroker(writer: NetlinkBlockingWriter,
                 }
             }
             seq += 1
-        } while (seq != publishedSeq)
+        }
         writtenSequence = seq
         nbytes
     }
