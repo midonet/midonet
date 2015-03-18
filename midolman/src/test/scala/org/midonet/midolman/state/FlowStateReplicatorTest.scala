@@ -36,11 +36,11 @@ import org.midonet.midolman.topology.rcu.ResolvedHost
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.MockDatapathChannel
 import org.midonet.odp.flows.{FlowAction, FlowActionOutput, FlowActions}
-import org.midonet.odp.{FlowMatch, FlowMatches, Packet}
+import org.midonet.odp.{FlowMatches, Packet}
 import org.midonet.packets._
 import org.midonet.packets.util.PacketBuilder._
 import org.midonet.rpc.FlowStateProto
-import org.midonet.sdn.flows.FlowTagger.{FlowStateTag, FlowTag}
+import org.midonet.sdn.flows.FlowTagger.FlowTag
 import org.midonet.sdn.state.FlowStateTransaction
 import org.midonet.util.FixedArrayOutputStream
 import org.midonet.util.functors.Callback0
@@ -452,7 +452,7 @@ class FlowStateReplicatorTest extends MidolmanSpec {
             sendAndAcceptTransactions()
 
             Then("Flows tagged with it should be invalidated")
-            flowInvalidator should invalidate (connTrackKeys.head)
+            mockFlowInvalidation should haveInvalidated (connTrackKeys.head)
         }
 
         scenario("For nat keys") {
@@ -464,7 +464,7 @@ class FlowStateReplicatorTest extends MidolmanSpec {
             sendAndAcceptTransactions()
 
             Then("Flows tagged with it should be invalidated")
-            flowInvalidator should invalidate (k)
+            mockFlowInvalidation should haveInvalidated (k)
         }
     }
 
@@ -477,7 +477,7 @@ class FlowStateReplicatorTest extends MidolmanSpec {
         val traceTable = new MockFlowStateTable[TraceKey, TraceContext]()
     } with BaseFlowStateReplicator(conntrackTable, natTable, traceTable,
                                    new MockStateStorage, underlay,
-                                   flowInvalidator,
+                                   mockFlowInvalidation,
                                    0) {
 
         override val log = Logger(LoggerFactory.getLogger(this.getClass))

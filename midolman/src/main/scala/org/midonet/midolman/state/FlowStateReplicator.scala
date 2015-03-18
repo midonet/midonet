@@ -21,7 +21,7 @@ import java.util.{ArrayList, HashSet => JHashSet, Iterator => JIterator, List =>
 import akka.actor.ActorSystem
 import com.google.protobuf.{CodedOutputStream, MessageLite}
 import com.typesafe.scalalogging.Logger
-import org.midonet.midolman.flows.FlowInvalidator
+import org.midonet.midolman.flows.FlowInvalidation
 import org.slf4j.LoggerFactory
 
 import org.midonet.midolman.HostRequestProxy.FlowStateBatch
@@ -96,7 +96,7 @@ abstract class BaseFlowStateReplicator(conntrackTable: FlowStateTable[ConnTrackK
                                        traceTable: FlowStateTable[TraceKey, TraceContext],
                                        storage: FlowStateStorage,
                                        underlay: UnderlayResolver,
-                                       flowInvalidator: FlowInvalidator,
+                                       flowInvalidation: FlowInvalidation,
                                        tos: Byte) {
     import FlowStatePackets._
 
@@ -342,7 +342,7 @@ abstract class BaseFlowStateReplicator(conntrackTable: FlowStateTable[ConnTrackK
                 val k = connTrackKeyFromProto(state.getConntrackKey)
                 log.debug("got new conntrack key: {}", k)
                 conntrackTable.touch(k, ConnTrackState.RETURN_FLOW)
-                flowInvalidator.scheduleInvalidationFor(k)
+                flowInvalidation.invalidateFlowsFor(k)
             }
 
             val natEntries = state.getNatEntriesList.iterator
@@ -352,7 +352,7 @@ abstract class BaseFlowStateReplicator(conntrackTable: FlowStateTable[ConnTrackK
                 val v = natBindingFromProto(nat.getV)
                 log.debug("Got new nat mapping: {} -> {}", k, v)
                 natTable.touch(k, v)
-                flowInvalidator.scheduleInvalidationFor(k)
+                flowInvalidation.invalidateFlowsFor(k)
             }
 
             val traceEntries = state.getTraceEntryList.iterator
@@ -450,11 +450,11 @@ class FlowStateReplicator(
         traceTable: FlowStateTable[TraceKey, TraceContext],
         storage: FlowStateStorage,
         underlay: UnderlayResolver,
-        flowInvalidator: FlowInvalidator,
+        flowInvalidation: FlowInvalidation,
         tso: Byte)(implicit as: ActorSystem)
         extends BaseFlowStateReplicator(conntrackTable, natTable, traceTable,
                                         storage, underlay,
-                                        flowInvalidator, tso) {
+                                        flowInvalidation, tso) {
     override val log = Logger(LoggerFactory.getLogger("org.midonet.state.replication"))
 
     @throws(classOf[NotYetException])

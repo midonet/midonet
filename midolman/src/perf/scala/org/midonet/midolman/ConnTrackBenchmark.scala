@@ -22,12 +22,10 @@ import java.util.concurrent.TimeUnit
 
 import scala.collection.JavaConverters._
 
-import org.midonet.midolman.flows.FlowInvalidator
 import org.openjdk.jmh.annotations.{Setup => JmhSetup, _}
 import org.openjdk.jmh.infra.Blackhole
 
 import org.midonet.cluster.data.ports.BridgePort
-import org.midonet.midolman.UnderlayResolver.Route
 import org.midonet.midolman.rules.{RuleResult, Condition}
 import org.midonet.midolman.simulation.Bridge
 import org.midonet.midolman.state.{MockStateStorage, FlowStateReplicator}
@@ -36,6 +34,7 @@ import org.midonet.midolman.state.NatState.{NatKey, NatBinding}
 import org.midonet.midolman.state.TraceState.{TraceKey, TraceContext}
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.topology.rcu.ResolvedHost
+import org.midonet.midolman.UnderlayResolver.Route
 import org.midonet.odp.flows.FlowActionOutput
 import org.midonet.packets.{Ethernet, IPv4Addr, MAC}
 import org.midonet.packets.util.PacketBuilder._
@@ -110,7 +109,7 @@ class ConnTrackBenchmark extends MidolmanBenchmark {
                                              traceTable,
                                              new MockStateStorage,
                                              underlayResolver,
-                                             injector.getInstance(classOf[FlowInvalidator]),
+                                             mockFlowInvalidation,
                                              0)
     }
 
