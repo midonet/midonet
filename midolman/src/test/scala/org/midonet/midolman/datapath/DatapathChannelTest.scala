@@ -19,6 +19,7 @@ package org.midonet.midolman.datapath
 import java.nio.ByteBuffer
 import java.util.ArrayList
 
+import akka.testkit.TestProbe
 import com.lmax.disruptor.RingBuffer
 import org.jctools.queues.SpscArrayQueue
 
@@ -49,15 +50,15 @@ class DatapathChannelTest extends MidolmanSpec {
 
     val ovsFamilies = new OvsNetlinkFamilies(new DatapathFamily(1), new PortFamily(2),
                                              new FlowFamily(3), new PacketFamily(4), 5, 6)
-    val flowProcessor = new FlowProcessor(ovsFamilies, 1024, 2048, factory, clock)
+    private val fp = new FlowProcessor(ovsFamilies, 1024, 2048, factory, clock)
     val ringBuffer = RingBuffer.createSingleProducer[DatapathEvent](
         DisruptorDatapathChannel.Factory, capacity)
     val processors = Array(new BackchannelEventProcessor[DatapathEvent](
         ringBuffer,
         new AggregateEventPollerHandler(
-            flowProcessor,
+            fp,
             new EventPollerHandlerAdapter(new PacketExecutor(1, 0, factory))),
-        flowProcessor))
+        fp))
 
     val dpChannel = new DisruptorDatapathChannel(ovsFamilies, ringBuffer, processors)
 
@@ -142,12 +143,13 @@ class DatapathChannelTest extends MidolmanSpec {
             packet.getMatch.getSequence should be (0)
             packet.getMatch.setSequence(1)
 
-            val flowDelete = new FlowOperation(new ArrayObjectPool(0, _ => null),
+            val flowDelete = new FlowOperation(TestProbe().ref,
+                                               new ArrayObjectPool(0, _ => null),
                                                new SpscArrayQueue(16))
             val managedFlow = new ManagedFlow(null)
             managedFlow.flowMatch.reset(packet.getMatch)
             flowDelete.reset(FlowOperation.DELETE, managedFlow, 0)
-            flowProcessor.tryEject(1, datapathId, managedFlow.flowMatch,
+            fp.tryEject(1, datapathId, managedFlow.flowMatch,
                                    flowDelete) should be (false)
 
             nlChannel.packetsWritten.get() should be (1)
@@ -159,7 +161,7 @@ class DatapathChannelTest extends MidolmanSpec {
             }
 
             eventually {
-                flowProcessor.tryEject(1, datapathId, managedFlow.flowMatch,
+                fp.tryEject(1, datapathId, managedFlow.flowMatch,
                                        flowDelete) should be (true)
             }
 
