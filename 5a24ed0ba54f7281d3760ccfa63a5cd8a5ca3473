@@ -16,6 +16,24 @@
       "revId": "5a24ed0ba54f7281d3760ccfa63a5cd8a5ca3473",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_008689b9",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/ConnTrackState.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-03-18T10:10:51Z",
+      "side": 1,
+      "message": "That\u0027s not our code style, we use all caps for constants,",
+      "parentUuid": "3a1371a2_b6d1c6cf",
+      "revId": "5a24ed0ba54f7281d3760ccfa63a5cd8a5ca3473",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
