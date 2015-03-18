@@ -31,9 +31,12 @@ import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigValueFactory;
 import org.apache.commons.lang3.StringUtils;
+import org.midonet.brain.BrainConfig;
 import org.midonet.brain.ClusterNode;
+import org.midonet.brain.services.conf.ConfMinion;
 import org.midonet.cluster.config.ZookeeperConfig;
 import org.midonet.conf.HostIdGenerator;
+import org.midonet.conf.MidoNodeConfigurator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -138,6 +141,7 @@ public class RestApiJerseyServletModule extends JerseyServletModule {
         install(new AuthModule());
         install(new ErrorModule());
 
+        installConfigApi(zkConfToConfig(zkCfg));
         install(new MidonetBackendModule(zkConfToConfig(zkCfg)));
 
         installRestApiModule(); // allow mocking
@@ -174,4 +178,16 @@ public class RestApiJerseyServletModule extends JerseyServletModule {
         install(new RestApiModule());
     }
 
+    protected void installConfigApi(Config zkConf) {
+        try {
+            UUID hostId = HostIdGenerator.getHostId();
+            BrainConfig brainConf = new BrainConfig(
+                MidoNodeConfigurator.forBrains(zkConf).runtimeConfig(hostId));
+            ClusterNode.Context ctx = new ClusterNode.Context(hostId, true);
+            bind(ConfMinion.class).toInstance(new ConfMinion(ctx, brainConf));
+        } catch (Exception e) {
+            log.error("Failed to start config API", e);
+        }
+    }
 }
+
