@@ -20,6 +20,7 @@ import java.util.concurrent.TimeUnit
 import com.typesafe.config.{ConfigFactory, Config}
 
 import org.midonet.brain.services.c3po.C3POMinion
+import org.midonet.brain.services.conf.ConfMinion
 import org.midonet.brain.services.heartbeat.Heartbeat
 import org.midonet.brain.services.topology.TopologyApiService
 import org.midonet.brain.services.vxgw.VxlanGatewayService
@@ -57,6 +58,7 @@ class BrainConfig(_conf: Config) {
     val topologyApi = new TopologyApiConfig(conf)
     val topologyUpdater = new TopologyZoomUpdaterConfig(conf)
     val snoopy = new TopologySnoopyConfig(conf)
+    val confApi = new ConfApiConfig(conf)
 }
 
 class EmbeddedClusterNodeConfig(conf: Config) {
@@ -117,4 +119,11 @@ class TopologySnoopyConfig(val conf: Config) {
     def host = conf.getString("snoopy.host")
     def port = conf.getInt("snoopy.port")
     def wsPath = conf.getString("snoopy.ws_path")
+}
+
+class ConfApiConfig(val conf: Config) extends MinionConfig[ConfMinion] {
+    override def isEnabled = conf.getBoolean("conf_api.enabled")
+    override def minionClass = conf.getString("conf_api.with")
+
+    def httpPort = conf.getInt("conf_api.http_port")
 }
