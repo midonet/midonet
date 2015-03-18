@@ -22,6 +22,7 @@ import com.google.inject.assistedinject.FactoryModuleBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.midonet.brain.services.conf.ConfMinion;
 import org.midonet.brain.services.vxgw.VxlanGatewayService;
 import org.midonet.brain.southbound.vtep.VtepDataClientFactory;
 import org.midonet.config.ConfigProvider;
@@ -46,6 +47,7 @@ public class RestApiModule extends AbstractModule {
 
         bind(RestApiService.class).asEagerSingleton();
         bind(VxlanGatewayService.class).asEagerSingleton();
+        bind(ConfMinion.class).asEagerSingleton();
 
         log.debug("configure: exiting.");
     }
