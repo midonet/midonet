@@ -16,6 +16,24 @@
       "revId": "a51f6ef915bfd81ee2cb793f5b24e3d83a76ffac",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_c05d91eb",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/neutron/TaskStateUpdater.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-03-18T05:32:12Z",
+      "side": 1,
+      "message": "I forgot to add a logging statement, which I did in the latest patch.\n\nIf the update fails, it would throw an Exception, but I believe that the C3PO would still keep running even if the same midonet_data_state update may keep failing.",
+      "parentUuid": "3a1371a2_e041ad0c",
+      "revId": "a51f6ef915bfd81ee2cb793f5b24e3d83a76ffac",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
