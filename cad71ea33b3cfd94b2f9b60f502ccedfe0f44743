@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "3a1371a2_f66e9395",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/IPAddrGroupMapper.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-18T16:45:33Z",
+      "side": 1,
+      "message": "I\u0027d have to specify the types for the map if I do that so it\u0027d be about the same size.",
+      "parentUuid": "3a1371a2_f35a254f",
+      "range": {
+        "startLine": 34,
+        "startChar": 62,
+        "endLine": 35,
+        "endChar": 45
+      },
+      "revId": "cad71ea33b3cfd94b2f9b60f502ccedfe0f44743",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a1371a2_53585956",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopologyRedirector.scala",
         "patchSetId": 4
@@ -36,6 +60,30 @@
       "writtenOn": "2015-03-18T15:27:30Z",
       "side": 1,
       "message": "Log message as user friendly",
+      "range": {
+        "startLine": 142,
+        "startChar": 35,
+        "endLine": 142,
+        "endChar": 46
+      },
+      "revId": "cad71ea33b3cfd94b2f9b60f502ccedfe0f44743",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_36694b8c",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopologyRedirector.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 142,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-18T16:45:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3a1371a2_53585956",
       "range": {
         "startLine": 142,
         "startChar": 35,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "3a1371a2_96059fc4",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/TopologyBuilder.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 424,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-18T16:45:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3a1371a2_3355dd1d",
+      "range": {
+        "startLine": 424,
+        "startChar": 26,
+        "endLine": 424,
+        "endChar": 51
+      },
+      "revId": "cad71ea33b3cfd94b2f9b60f502ccedfe0f44743",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a1371a2_d33ba9e9",
         "filename": "midolman/src/test/scala/org/midonet/midolman/topology/TopologyMatchers.scala",
         "patchSetId": 4
@@ -82,6 +154,30 @@
       "writtenOn": "2015-03-18T15:27:30Z",
       "side": 1,
       "message": "toIPAddr(_.getIpAddress)",
+      "range": {
+        "startLine": 214,
+        "startChar": 49,
+        "endLine": 215,
+        "endChar": 53
+      },
+      "revId": "cad71ea33b3cfd94b2f9b60f502ccedfe0f44743",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_560327b8",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/TopologyMatchers.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 215,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-18T16:45:33Z",
+      "side": 1,
+      "message": "I have to specify the types for map, so with _ it would be about the same size.",
+      "parentUuid": "3a1371a2_d33ba9e9",
       "range": {
         "startLine": 214,
         "startChar": 49,
