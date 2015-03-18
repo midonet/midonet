@@ -74,7 +74,7 @@ final class VxlanGateway(val networkId: UUID) {
     val name = bridgeIdToLogicalSwitchName(networkId)
 
     /** This is the entry point to dump observables */
-    def asObserver: Observer[MacLocation] = new Observer[MacLocation] {
+    val observer = new Observer[MacLocation] {
         override def onCompleted(): Unit = updates.onCompleted()
         override def onError(e: Throwable): Unit = updates.onError(e)
         override def onNext(ml: MacLocation): Unit = {
@@ -100,6 +100,8 @@ final class VxlanGateway(val networkId: UUID) {
             Objects.equals(this.tzId, that.tzId)
         }
     }
+
+    override def toString: String = s"VxGW [ network: $networkId, vni: $vni ]"
 
     override def hashCode: Int = Objects.hashCode(vni, tzId)
 }
@@ -197,9 +199,8 @@ class VxlanGatewayManager(networkId: UUID,
                     case portId if isPortInMidonet(portId) =>
                         // If the IP was on a MidoNet port, we remove it,
                         // otherwise it's managed by some VTEP.
-                        vxgw.asObserver.onNext(
-                            MacLocation(oldMac, ip, lsName, null)
-                        )
+                        vxgw.observer
+                            .onNext(MacLocation(oldMac, ip, lsName, null))
                     case _ =>
                 }
             }
@@ -464,8 +465,8 @@ class VxlanGatewayManager(networkId: UUID,
             return
         }
 
-        log.info(s"Bindings to new VTEP at " +
-                 vxPort.getMgmtIpAddr + ":" + vxPort.getMgmtPort)
+        log.info(s"Bindings to new VTEP at " + vxPort.getMgmtIpAddr + ":" +
+                 vxPort.getMgmtPort)
 
         vxlanPorts.put(vxPort.getId, vxPort)
         peerEndpoints.put(vxPort.getTunnelIp, vxPort.getId)
@@ -477,7 +478,7 @@ class VxlanGatewayManager(networkId: UUID,
                                     midoFloodLocation)     // floods to mido
         } catch {
             case e: VtepNotConnectedException =>
-                makeRunnable( { bootstrapNewVtep(vxPortId) } )
+                makeRunnable { bootstrapNewVtep(vxPortId) }
             case e: Throwable =>
                 log.warn("Failed to bootstrap VTEP at " +
                          s"${vxPort.getMgmtIpAddr}:${vxPort.getMgmtPort}", e)
@@ -548,7 +549,7 @@ class VxlanGatewayManager(networkId: UUID,
                            onlyMido: Boolean): Unit = {
         toMacLocations(mac, newPort, oldPort, onlyMido) match {
             case Success(mls) =>
-                mls foreach vxgw.asObserver.onNext
+                mls foreach vxgw.observer.onNext
             case Failure(e: NoStatePathException) =>
                 log.debug(s"Node not in ZK, probably a race: ${e.getMessage}")
             case Failure(e: StateAccessException) =>
@@ -582,7 +583,7 @@ class VxlanGatewayManager(networkId: UUID,
             macPortMap.get(mac) match {
                 case currPortId if currPortId eq expectPortId =>
                     val tunIp = dataClient.vxlanTunnelEndpointFor(currPortId)
-                    vxgw.asObserver.onNext(MacLocation(mac, ip, lsName, tunIp))
+                    vxgw.observer.onNext(MacLocation(mac, ip, lsName, tunIp))
                 case _ =>
             }
         } catch {

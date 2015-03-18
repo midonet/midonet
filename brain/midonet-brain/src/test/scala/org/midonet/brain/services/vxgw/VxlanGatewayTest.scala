@@ -18,6 +18,7 @@ package org.midonet.brain.services.vxgw
 
 import java.util.UUID
 
+import scala.collection.mutable.ListBuffer
 import scala.util.{Success, Try}
 
 import org.opendaylight.ovsdb.lib.notation.{UUID => OdlUUID}
@@ -45,13 +46,20 @@ trait VxlanGatewayTest {
 
         val updatesFromVtep = PublishSubject.create[MacLocation]()
         val updatesToVtep = observer[MacLocation](0, 0, 0)
+
+        val logicalSwitches = ListBuffer[LogicalSwitch]()
+
         override def macLocalUpdates = updatesFromVtep
         override def macRemoteUpdater = updatesToVtep
         override def vxlanTunnelIp = Option(tunIp)
         override def currentMacLocal(id: OdlUUID) = initialState
-        override def ensureLogicalSwitch(name: String, vni: Int)
-            = Success(new LogicalSwitch(new OdlUUID(UUID.randomUUID().toString),
-                                        "random description", name, vni))
+        override def ensureLogicalSwitch(name: String, vni: Int) = {
+            val ls = new LogicalSwitch(new OdlUUID(UUID.randomUUID().toString),
+                                       "random description", name, vni)
+            logicalSwitches += ls
+            Success(ls)
+        }
+
         override def ensureBindings(lsName: String,
                                     bs: Iterable[(String, Short)]) =  Success(Unit)
         override def removeLogicalSwitch(name: String): Try[Unit] = Success(Unit)

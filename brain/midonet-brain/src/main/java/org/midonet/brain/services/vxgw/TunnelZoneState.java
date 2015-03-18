@@ -18,12 +18,12 @@ package org.midonet.brain.services.vxgw;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.Nonnull;
 
@@ -36,6 +36,7 @@ import org.slf4j.LoggerFactory;
 import rx.Observable;
 import rx.Subscription;
 import rx.functions.Action1;
+import rx.subjects.PublishSubject;
 import rx.subjects.ReplaySubject;
 import rx.subjects.Subject;
 
@@ -48,6 +49,9 @@ import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZookeeperConnectionWatcher;
 import org.midonet.packets.IPv4Addr;
+
+import static org.midonet.brain.services.vxgw.TunnelZoneState.MembershipEvent.OpType.IS_MEMBER;
+import static org.midonet.brain.services.vxgw.TunnelZoneState.MembershipEvent.OpType.IS_NOT_MEMBER;
 
 /**
  * Maintains local state information for an existing tunnel-zone object.
@@ -84,6 +88,34 @@ public class TunnelZoneState {
             this.operation = operation;
             this.tunnelZoneId = tunnelZoneId;
             this.hostConfig = hostConfig;
+        }
+    }
+
+    /**
+     * Represents a membership event on the tunnel zone, a host belongs or
+     * doesn't belong to the tz.
+     */
+    public final static class MembershipEvent {
+
+        public enum OpType { IS_MEMBER, IS_NOT_MEMBER }
+
+        public final UUID hostId;
+        public final TunnelZone.HostConfig hostConfig;
+        public final OpType op;
+
+        public MembershipEvent(UUID id, TunnelZone.HostConfig hostCfg,
+                               OpType op) {
+            this.hostId = id;
+            this.op = op;
+            this.hostConfig = hostCfg;
+        }
+
+        public static MembershipEvent member(TunnelZone.HostConfig hostCfg) {
+            return new MembershipEvent(hostCfg.getId(), hostCfg, IS_MEMBER);
+        }
+
+        public static MembershipEvent notMember(UUID hostId) {
+            return new MembershipEvent(hostId, null, IS_NOT_MEMBER);
         }
     }
 
@@ -148,17 +180,28 @@ public class TunnelZoneState {
     private final Subject<FloodingProxyEvent, FloodingProxyEvent>
         floodingProxyStream = ReplaySubject.createWithSize(1);
 
+    private final Subject<MembershipEvent, MembershipEvent>
+        membershipStream = PublishSubject.create();
+
     private final List<Subscription> subscriptions = new ArrayList<>();
     private final ListMultimap<UUID, Subscription> hostSubscriptions =
         ArrayListMultimap.create();
 
-    private final Map<UUID, HostState> members = new HashMap<>();
+    // Contains HostConfigs for each host that belongs to this tunnel zone.
+    private final Map<UUID, TunnelZone.HostConfig> memberHosts =
+        new ConcurrentHashMap<>();
+
+    // Contains HostConfigs for each host that belongs to this tunnel zone.
+    private final Map<UUID, HostState> memberStates = new ConcurrentHashMap<>();
 
     private final Random random;
 
     private boolean disposed = false;
 
     private HostStateConfig floodingProxy = null;
+
+    // Setup the membership monitor.
+    private final EntityIdSetMonitor<UUID> membershipMonitor;
 
     /**
      * Creates a new VXGW state for the specified tunnel zone identifier. The
@@ -198,9 +241,7 @@ public class TunnelZoneState {
                 }
             }));
 
-        // Setup the membership monitor.
-        EntityIdSetMonitor<UUID> membershipMonitor =
-            midoClient.tunnelZonesGetMembershipsMonitor(id, zkConnWatcher);
+        membershipMonitor = midoClient.tunnelZonesGetMembershipsMonitor(id, zkConnWatcher);
         subscriptions.add(membershipMonitor.getObservable().subscribe(
             new Action1<EntityIdSetEvent<UUID>>() {
                 @Override
@@ -242,14 +283,6 @@ public class TunnelZoneState {
     }
 
     /**
-     * Indicates whether this tunnel zone has a flooding proxy.
-     * @return True if the tunnel zone has a flooding proxy, false otherwise.
-     */
-    public boolean hasFloodingProxy() {
-        return floodingProxy != null;
-    }
-
-    /**
      * Gets the flooding proxy configuration for this tunnel zone.
      * @return The configuration of the host that has been selected as flooding
      *         proxy.
@@ -276,6 +309,21 @@ public class TunnelZoneState {
         return floodingProxyStream.asObservable();
     }
 
+    /**
+     * Notifies whenever something happens to the members of the tunnel zone,
+     * emitting an event with the latest known TunnelZone.HostConfig state.
+     *
+     * Note that a IS_MEMBER event might be emitted for known members, typically
+     * when there is an update.
+     */
+    public Observable<MembershipEvent> getMembershipObservable() {
+        List<MembershipEvent> prime = new ArrayList<>(memberHosts.size());
+        for (Map.Entry<UUID, TunnelZone.HostConfig> e : memberHosts.entrySet()){
+            prime.add(MembershipEvent.member(e.getValue()));
+        }
+        return membershipStream.startWith(prime);
+    }
+
     @Override
     public boolean equals(Object obj) {
         if (this == obj)
@@ -299,7 +347,7 @@ public class TunnelZoneState {
      */
     private void onHostCreated(HostState host) {
         // If this host is not a member, ignore the host.
-        if (!members.containsKey(host.id))
+        if (!memberStates.containsKey(host.id))
             return;
 
         // Subscribe to the host alive property.
@@ -332,7 +380,7 @@ public class TunnelZoneState {
      */
     private void onHostDeleted(HostState host) {
         // If this host is not a member, ignore the host.
-        if (!members.containsKey(host.id))
+        if (!memberStates.containsKey(host.id))
             return;
 
         // Unsubscribe all subscriptions to this host.
@@ -357,7 +405,7 @@ public class TunnelZoneState {
             return;
 
         // Save the host state to the members list.
-        members.put(hostId, host);
+        memberStates.put(hostId, host);
 
         // Subscribe to the host alive property.
         hostSubscriptions.put(
@@ -391,7 +439,7 @@ public class TunnelZoneState {
         log.debug("Tunnel zone {} member deleted: {}", id, hostId);
 
         // Remove the member.
-        HostState host = members.remove(hostId);
+        HostState host = memberStates.remove(hostId);
 
         // Unsubscribe all subscriptions to this host.
         for (Subscription subscription : hostSubscriptions.removeAll(hostId)) {
@@ -408,12 +456,12 @@ public class TunnelZoneState {
      */
     private void onHostIsAliveChanged(HostState host) {
         // If this host is not a member, ignore the host.
-        if (!members.containsKey(host.id))
+        if (!memberStates.containsKey(host.id))
             return;
 
         // Compute the flooding proxy weight for all tunnel zones where this
         // host is a member.
-        log.debug("Host is alive changed: {}", host.id);
+        log.debug("Host liveness changed: {}", host.id);
 
         // Update the flooding proxy.
         computeFloodingProxy(null);
@@ -425,7 +473,7 @@ public class TunnelZoneState {
      */
     private void onHostFloodingProxyWeightChanged(HostState host) {
         // If this host is not a member, ignore the host.
-        if (!members.containsKey(host.id))
+        if (!memberStates.containsKey(host.id))
             return;
 
         // Compute the flooding proxy weight for all tunnel zones where this
@@ -440,12 +488,13 @@ public class TunnelZoneState {
      * Safe method for computing the flooding proxy for the current tunnel
      * zone. The method checks that the specified host is not selected as
      * a flooding proxy.
-     * @param noHost The specified host cannot be selected as a flooding proxy.
-     *               If null, all hosts are eligible for flooding proxy.
+     * @param hostRemoved The specified host cannot be selected as a flooding
+     *                    proxy because it's known to be deleted just now. If
+     *                    null, all hosts are eligible for flooding proxy.
      */
-    private void computeFloodingProxy(final HostState noHost) {
+    private void computeFloodingProxy(final HostState hostRemoved) {
         try {
-            computeFloodingProxyUnsafe(noHost);
+            computeFloodingProxyUnsafe(hostRemoved);
         } catch (StateAccessException e) {
             log.warn("Failed configuring the flooding proxy for tunnel zone "
                      + "{}. Retrying.", id, e);
@@ -455,7 +504,7 @@ public class TunnelZoneState {
                 new Runnable() {
                     @Override
                     public void run() {
-                        computeFloodingProxy(noHost);
+                        computeFloodingProxy(hostRemoved);
                     }
                 }, e);
         }
@@ -464,13 +513,14 @@ public class TunnelZoneState {
     /**
      * Unsafe method for computing the flooding proxy for the current tunnel
      * zone.
-     * @param noHost The specified host cannot be selected as a flooding proxy.
-     *               If null, all hosts are eligible for flooding proxy.
+     * @param hostRemoved The specified host cannot be selected as a flooding
+     *                    proxy because it's known to be deleted just now. If
+     *                    null, all hosts are eligible for flooding proxy.
      */
-    private void computeFloodingProxyUnsafe(HostState noHost)
+    private void computeFloodingProxyUnsafe(HostState hostRemoved)
         throws StateAccessException {
         log.debug("Computing flooding proxy for tunnel zone {} (ignoring host "
-                  + "{})", id, noHost);
+                  + "{})", id, hostRemoved);
 
         int sumWeight = 0;
         List<HostStateConfig> candidateProxies = new ArrayList<>();
@@ -478,17 +528,28 @@ public class TunnelZoneState {
         HostStateConfig currentProxy = floodingProxy;
         HostStateConfig candidateProxy = null;
 
+        if (hostRemoved != null) {
+            // it's deleted, so notify that it's not a member
+            memberHosts.remove(id, null);
+            membershipStream.onNext(MembershipEvent.notMember(id));
+        }
+
         boolean canKeepProxy = false;
 
         // Get the memberships for this tunnel zone.
         for (TunnelZone.HostConfig hostConfig :
             midoClient.tunnelZonesGetMemberships(id)) {
 
+            memberHosts.put(id, hostConfig);
+
+            log.info("HELLO " + MembershipEvent.member(hostConfig));
+            membershipStream.onNext(MembershipEvent.member(hostConfig));
+
             // If the host does not have a tunnel zone address, skip.
             if (null == hostConfig.getIp())
                 continue;
 
-            if (null != noHost && hostConfig.getId().equals(noHost.id))
+            if (null != hostRemoved && hostConfig.getId().equals(hostRemoved.id))
                 continue;
 
             try {
