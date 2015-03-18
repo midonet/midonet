@@ -29,7 +29,6 @@ import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.data.{Bridge => ClusterBridge, TunnelZone}
 import org.midonet.cluster.data.ports.BridgePort
-import org.midonet.midolman.FlowController._
 import org.midonet.midolman.PacketWorkflow.{Drop, SimulationResult}
 import org.midonet.midolman.rules.{Condition, RuleResult}
 import org.midonet.midolman.simulation.Bridge
