@@ -48,6 +48,29 @@
     },
     {
       "key": {
+        "uuid": "3a1371a2_d0aba2d4",
+        "filename": "specs/2015.03/edge_router_translation.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-03-18T10:13:50Z",
+      "side": 1,
+      "message": "Does this means that we need to parse a string field and decompose the two params? This seems a bit brittle, I understand these come in a Neutron model, so why not provide them as separate properties in it?",
+      "range": {
+        "startLine": 52,
+        "startChar": 4,
+        "endLine": 52,
+        "endChar": 26
+      },
+      "revId": "cb9e45611780ae87170e4d174e06d21251b21351",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a1371a2_20f905c9",
         "filename": "specs/2015.03/edge_router_translation.md",
         "patchSetId": 3
