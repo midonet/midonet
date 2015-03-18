@@ -15,17 +15,17 @@
  */
 package org.midonet.midolman.services
 
-import java.util.concurrent.TimeUnit
-
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Await, Future}
 import scala.reflect.ClassTag
 
-import akka.actor.{Actor, ActorRef, ActorSystem, Identify, Props}
+import akka.actor.{Actor, ActorRef, ActorSystem, Props}
 import akka.pattern.{gracefulStop, ask}
 import akka.util.Timeout
+
 import com.google.common.util.concurrent.AbstractService
 import com.google.inject.{Inject, Injector}
+
 import com.typesafe.config.ConfigFactory
 import org.slf4j.LoggerFactory
 
@@ -67,7 +67,6 @@ class MidolmanActorsService extends AbstractService {
             withDispatcher("actors.stash-dispatcher"),
             VirtualToPhysicalMapper.Name),
         (propsFor(classOf[DatapathController]), DatapathController.Name),
-        (propsFor(classOf[FlowController]), FlowController.Name),
         (propsFor(classOf[RoutingManagerActor]), RoutingManagerActor.Name),
         (propsFor(classOf[HealthMonitor]).
             withDispatcher("actors.pinned-dispatcher"),HealthMonitor.Name),
@@ -90,17 +89,17 @@ class MidolmanActorsService extends AbstractService {
                                 propsFor(classOf[SupervisorActor]),
                                 SupervisorActor.Name)
 
-            childrenActors = actorSpecs map {
-                s =>
-                    try {
-                        Await.result(startActor(s), tout.duration)
-                    } catch {
-                        case t: Throwable =>
-                            // rethrow and propagate up to the injector
-                            throw new Exception(s"$s._2 creation failed", t)
-                    }
+            childrenActors = actorSpecs map { s =>
+                try {
+                    Await.result(startActor(s), tout.duration)
+                } catch {
+                    case t: Throwable =>
+                        // rethrow and propagate up to the injector
+                        throw new Exception(s"$s._2 creation failed", t)
+                }
             }
 
+            childrenActors.awaitStart(30 seconds)
             notifyStarted()
             log.info("Actors system started")
         } catch {
@@ -124,7 +123,6 @@ class MidolmanActorsService extends AbstractService {
         }
 
         try {
-
             log.info("Stopping the actor system")
             system.shutdown()
             system.awaitTermination()
@@ -163,10 +161,6 @@ class MidolmanActorsService extends AbstractService {
     protected def createActorSystem(): ActorSystem =
         ActorSystem.create("midolman", ConfigFactory.load()
                 .getConfig("midolman"))
-
-    def awaitFlowControllerRunning(duration: Int, timeUnit: TimeUnit): Unit = {
-        Await.result(FlowController ? Identify(null), (duration, timeUnit))
-    }
 
     def initProcessing() {
         log.debug("Sending Initialization message to datapath controller.")
