@@ -17,36 +17,33 @@
 package org.midonet.brain.tools
 
 import java.util.UUID
-import java.util.concurrent.{TimeUnit, Executors}
+import java.util.concurrent.{Executors, TimeUnit}
 
 import scala.collection.JavaConversions._
 import scala.collection.mutable
-import scala.concurrent.Await
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
 import scala.reflect.ClassTag
 import scala.util.Random
+import scala.util.control.NonFatal
 
 import com.google.common.util.concurrent.AbstractService
 import com.google.inject.Inject
 import com.google.protobuf.Message
 import org.slf4j.LoggerFactory
 
+import org.midonet.brain.tools.TopologyEntity._
+import org.midonet.brain.tools.TopologyZoomUpdater._
 import org.midonet.cluster.data.storage.StorageWithOwnership
-import org.midonet.cluster.models.Commons
-import org.midonet.cluster.models.Topology
+import org.midonet.cluster.models.{Commons, Topology}
 import org.midonet.cluster.models.Topology.Host.PortBinding
 import org.midonet.cluster.models.Topology.IpAddrGroup.IpAddrPorts
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.util.{IPAddressUtil, UUIDUtil}
-import org.midonet.config.{ConfigBool, ConfigLong, ConfigInt, ConfigGroup}
-import org.midonet.packets.{IPv4Addr, IPAddr}
+import org.midonet.config.{ConfigBool, ConfigGroup, ConfigInt, ConfigLong}
+import org.midonet.packets.{IPAddr, IPv4Addr}
+import org.midonet.util.concurrent.toFutureOps
 import org.midonet.util.functors.makeRunnable
-
-import TopologyZoomUpdater._
-import TopologyEntity._
-
-import scala.util.control.NonFatal
 
 /**
  * Topology Zoom Updater service for testing topology components.
@@ -437,13 +434,24 @@ class TopologyEntity(protected var proto: Message)
 }
 object TopologyEntity {
     def getProto[T](k: Class[T], id: AnyRef)
-                   (implicit storage: StorageWithOwnership):
-        Option[T] = Await.result(
-            storage.get(k, id).map(Some(_)).recover({case _ => None}),
-            Duration.Inf)
+                   (implicit storage: StorageWithOwnership): Option[T] =
+        storage.get(k, id).map(Some(_)).recover({case _ => None}).await(Duration.Inf)
     def getAllProtos[T](k: Class[T])(implicit storage: StorageWithOwnership)
-        : Iterable[T] =
-        Await.result(storage.getAll(k), Duration.Inf)
+        : Iterable[T] = storage.getAll(k).await(Duration.Inf)
+}
+
+/**
+ * Topology object with admin state
+ */
+abstract class TopologyEntityWithAdminState(p: Message)
+    (implicit storage: StorageWithOwnership)
+    extends TopologyEntity(p) {
+    private val adminStateField =
+        proto.getDescriptorForType.findFieldByName("admin_state_up")
+    def getAdminStateUp: Boolean =
+        proto.getField(adminStateField).asInstanceOf[Boolean]
+    def setAdminStateUp(v: Boolean): this.type =
+        setField("admin_state_up", v).update()
 }
 
 /**
@@ -451,7 +459,7 @@ object TopologyEntity {
  * Note: the name is not the best one...
  */
 abstract class VSwitch(p: Message)(implicit storage: StorageWithOwnership)
-    extends TopologyEntity(p) {
+    extends TopologyEntityWithAdminState(p) {
     def createPort(): Port
     def removePort(port: Port): this.type
 }
@@ -467,7 +475,7 @@ object Port {
         getAllProtos(classOf[Topology.Port]).map(new Port(_))
 }
 class Port(p: Topology.Port)(implicit storage: StorageWithOwnership)
-    extends TopologyEntity(p) {
+    extends TopologyEntityWithAdminState(p) {
     def this(rt: Router)(implicit storage: StorageWithOwnership) =
         this(Topology.Port.newBuilder()
                  .setId(randomId).setRouterId(rt.getId).build)
@@ -486,18 +494,13 @@ class Port(p: Topology.Port)(implicit storage: StorageWithOwnership)
         super.delete()
     }
 
-    def getAdminStateUp: Boolean = model.getAdminStateUp
-    def setAdminStateUp(v: Boolean): Port =
-        setField("admin_state_up", v).update()
-
     def setHost(h: Host): Port = {
         if (model.hasHostId) {
             Host.get(model.getHostId) foreach {_.removePort(this)}
         }
         if (h == null) {
             getVtepBindings.foreach({_.delete()})
-            // NOTE. only used before deletion: we can skip it
-            //clearField("host_id")
+            clearField("host_id")
             this
         } else {
             h.addPort(this)
@@ -561,11 +564,7 @@ class Port(p: Topology.Port)(implicit storage: StorageWithOwnership)
             setField("peer_id", p.getId)
             update()
         } else {
-            // TODO: the following line seems to interfere with zoom
-            // declared bindings, so commenting it out by now
-            // (anyway, we just set the linked port to null before deletion,
-            // so this is kinda redundant...
-            //clearField("peer_id")
+            clearField("peer_id")
             this
         }
     }
@@ -622,10 +621,6 @@ class Router(p: Topology.Router)(implicit storage: StorageWithOwnership)
         super.delete()
     }
 
-    def getAdminStateUp: Boolean = model.getAdminStateUp
-    def setAdminStateUp(v: Boolean): Router =
-        setField("admin_state_up", v).update()
-
     // create an attached port
     override def createPort(): Port = {
         val port = new Port(this).create()
@@ -678,10 +673,6 @@ class Network(p: Topology.Network)(implicit storage: StorageWithOwnership)
         getPorts.foreach({_.delete()})
         super.delete()
     }
-
-    def getAdminStateUp: Boolean = model.getAdminStateUp
-    def setAdminStateUp(v: Boolean): Network =
-        setField("admin_state_up", v).update()
 
     // create an attached port
     override def createPort(): Port = {
