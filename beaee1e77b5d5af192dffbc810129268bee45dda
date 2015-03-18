@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "3a1371a2_8009d997",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterMapper.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-18T09:55:35Z",
+      "side": 1,
+      "message": "currentRoutes is a cache of the routes advertised by each RouteState from the routes map. Since I am reusing the same RouteState for both port routes and router routes, RouteState publishes RouteUpdates. The PortState keeps the sets of local routes such that it can add/remove them when the port changes state to/from advertising updates. I agree that this is not needed since we can always do:\n\n  routes.map(_._2.route)",
+      "parentUuid": "3a1371a2_80a6f9bf",
+      "range": {
+        "startLine": 75,
+        "startChar": 20,
+        "endLine": 75,
+        "endChar": 33
+      },
+      "revId": "beaee1e77b5d5af192dffbc810129268bee45dda",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a1371a2_a0ba15df",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterMapper.scala",
         "patchSetId": 7
@@ -36,6 +60,30 @@
       "writtenOn": "2015-03-18T08:16:55Z",
       "side": 1,
       "message": "This expression occurs four times. Could be separated out into a function.",
+      "range": {
+        "startLine": 96,
+        "startChar": 26,
+        "endLine": 97,
+        "endChar": 72
+      },
+      "revId": "beaee1e77b5d5af192dffbc810129268bee45dda",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_a004d57e",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterMapper.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-18T09:55:35Z",
+      "side": 1,
+      "message": "Already did.",
+      "parentUuid": "3a1371a2_a0ba15df",
       "range": {
         "startLine": 96,
         "startChar": 26,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "3a1371a2_c003d171",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterMapper.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-18T09:55:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3a1371a2_a0d33537",
+      "range": {
+        "startLine": 105,
+        "startChar": 32,
+        "endLine": 105,
+        "endChar": 35
+      },
+      "revId": "beaee1e77b5d5af192dffbc810129268bee45dda",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a1371a2_40eec1ed",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterMapper.scala",
         "patchSetId": 7
@@ -82,6 +154,30 @@
       "writtenOn": "2015-03-18T08:16:55Z",
       "side": 1,
       "message": "I couldn\u0027t understand this comment until I read the code and realized that by \"publishes updates,\" you meant \"is plugged in to something, and therefore has usable routes.\" I would recommend rephrasing to something like that in order to clarify. Like \"If the port was and remains active\" or \"usable\" or something like that.",
+      "range": {
+        "startLine": 108,
+        "startChar": 0,
+        "endLine": 115,
+        "endChar": 26
+      },
+      "revId": "beaee1e77b5d5af192dffbc810129268bee45dda",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_8030b957",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterMapper.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-18T09:55:35Z",
+      "side": 1,
+      "message": "Changed to: port active/inactive. Although is not entirely accurate maybe it\u0027s easier to understand.",
+      "parentUuid": "3a1371a2_40eec1ed",
       "range": {
         "startLine": 108,
         "startChar": 0,
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "3a1371a2_c01111ae",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterMapper.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 128,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-18T09:55:35Z",
+      "side": 1,
+      "message": "Here I wanted to make a copy of routes, since the for loop removes elements from routes, and my understanding is that it\u0027s not safe to modify collections while iterating over them (at least in Java).",
+      "parentUuid": "3a1371a2_c0b911eb",
+      "range": {
+        "startLine": 128,
+        "startChar": 44,
+        "endLine": 128,
+        "endChar": 50
+      },
+      "revId": "beaee1e77b5d5af192dffbc810129268bee45dda",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a1371a2_609f7d60",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterMapper.scala",
         "patchSetId": 7
@@ -128,6 +248,30 @@
       "writtenOn": "2015-03-18T08:16:55Z",
       "side": 1,
       "message": "Even if newPublish is false?",
+      "range": {
+        "startLine": 141,
+        "startChar": 0,
+        "endLine": 141,
+        "endChar": 58
+      },
+      "revId": "beaee1e77b5d5af192dffbc810129268bee45dda",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_e0836dca",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterMapper.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 141,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-18T09:55:35Z",
+      "side": 1,
+      "message": "newPublish works with oldPublish to indicate whether the port should republish all routes or only the updates. For example, when both are true - meaning that the port was and is active - then this method only publishes the removed routes, any further updates are left to individual RouteState observables.\n\nHowever, we need to merge the observables from all RouteState such that:\n- the PortState updates its local cache of published routes\n- if the port is active, these updates will be propagated to the output observable\n- any errors are propagated to the output observable, regardless of the publishing state\n\nBtw, all route updates received from the RouteState are filtered by the routeUpdated method. There, if the port does not publish updates, then the notification from each RouteState is transformed to an EmptyRouteUpdates.",
+      "parentUuid": "3a1371a2_609f7d60",
       "range": {
         "startLine": 141,
         "startChar": 0,
@@ -163,6 +307,30 @@
     },
     {
       "key": {
+        "uuid": "3a1371a2_a0605536",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterMapper.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 149,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-18T09:55:35Z",
+      "side": 1,
+      "message": "I think there can be various ways to implement this, however route updates arrive asynchronously on the routesObservable, whereas the port state is received from portObservable - in essence they are separate events.\n\nThe idea of the algorithm here is:\n- we accumulate any updates that arrive in a cache called currentRoutes (note that updates means the old route being removed, and the new one being added)\n- while the port is inactive, we filter all updates, and only update the cache\n- when the port becomes active, we add all the routes in the cache, and allow all updates\n- while the port is active, we both update the cache and allow updates; if a route was removed from the port (meaning its observable won\u0027t emit any further updates) we remove explicitly the route (using the removedRoutes set)\n- when the port becomes inactive, we remove all cached routes, and forbid any updates\n\nAny suggestions to improve this algorithm are welcomed.",
+      "parentUuid": "3a1371a2_c0b0f1f6",
+      "range": {
+        "startLine": 149,
+        "startChar": 29,
+        "endLine": 149,
+        "endChar": 42
+      },
+      "revId": "beaee1e77b5d5af192dffbc810129268bee45dda",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a1371a2_20958540",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterMapper.scala",
         "patchSetId": 7
@@ -174,6 +342,30 @@
       "writtenOn": "2015-03-18T08:16:55Z",
       "side": 1,
       "message": "What about the routes we just added to routes?",
+      "range": {
+        "startLine": 153,
+        "startChar": 29,
+        "endLine": 153,
+        "endChar": 42
+      },
+      "revId": "beaee1e77b5d5af192dffbc810129268bee45dda",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_a0c7b511",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterMapper.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 153,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-18T09:55:35Z",
+      "side": 1,
+      "message": "Those RouteState will emit their updates individually via the routesObservable. Here, we only emit what we have in the cache so far - i.e. all the routes that have been accumulated up to this point.\n\nWe don\u0027t/can\u0027t emit the updates for the new routes because:\n- those routes may not be ready yet: they will be received asynchronously via the RouteState observable. Since the currentPort is now active, then they will be emitted as a different update.\n- those routes will be emitted as separate notifications by each RouteState, and merged into the output observable. Since at that time the port is active, they will be published normally.\n\nNote: it is possible that the notification from the RouteState will arrive synchronously when doing:\n\n  routesSubject onNext routeState.observable\n\nabove, since the underlying subject is a BehaviorSubject. If that were to happen, then with the code in this patch set, we shall add the same route twice, because the RouteState will emit its route, will update the cache in the routeUpdated() method, and then here we emit all routes from the cache again. I corrected the code such that a make a copy of the routes cache before merging new route observables.",
+      "parentUuid": "3a1371a2_20958540",
       "range": {
         "startLine": 153,
         "startChar": 29,
@@ -209,6 +401,30 @@
     },
     {
       "key": {
+        "uuid": "3a1371a2_e0d1adce",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterMapper.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 157,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-18T09:55:35Z",
+      "side": 1,
+      "message": "Here this is wrong. It should be:\n\n  currentRoutes.toSet ++ removedRoutes.toSet\n\nCorrected.",
+      "parentUuid": "3a1371a2_00920957",
+      "range": {
+        "startLine": 157,
+        "startChar": 44,
+        "endLine": 157,
+        "endChar": 57
+      },
+      "revId": "beaee1e77b5d5af192dffbc810129268bee45dda",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a1371a2_409c016a",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterMapper.scala",
         "patchSetId": 7
@@ -220,6 +436,30 @@
       "writtenOn": "2015-03-18T08:16:55Z",
       "side": 1,
       "message": "My point about using flatMap or flatMapIterable is that they do the filtering for you. Suppose you change this to flatMap, then remove the filter. Then see below.",
+      "range": {
+        "startLine": 191,
+        "startChar": 13,
+        "endLine": 191,
+        "endChar": 16
+      },
+      "revId": "beaee1e77b5d5af192dffbc810129268bee45dda",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_20dbc5ee",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterMapper.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 191,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-18T09:55:35Z",
+      "side": 1,
+      "message": "Ah, understood now, i.e. transforming the RouteUpdates into an Observable[RouteUpdates] and using flatMap on it. Do you have any opinion on whether this would be less efficient? If not, then it sounds good to me.",
+      "parentUuid": "3a1371a2_409c016a",
       "range": {
         "startLine": 191,
         "startChar": 13,
@@ -255,6 +495,30 @@
     },
     {
       "key": {
+        "uuid": "3a1371a2_00d849ee",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterMapper.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 203,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-18T09:55:35Z",
+      "side": 1,
+      "message": "See my answer above.",
+      "parentUuid": "3a1371a2_a0885523",
+      "range": {
+        "startLine": 203,
+        "startChar": 53,
+        "endLine": 203,
+        "endChar": 65
+      },
+      "revId": "beaee1e77b5d5af192dffbc810129268bee45dda",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a1371a2_808d5934",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterMapper.scala",
         "patchSetId": 7
@@ -278,6 +542,30 @@
     },
     {
       "key": {
+        "uuid": "3a1371a2_60e5bda7",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterMapper.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 212,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-18T09:55:35Z",
+      "side": 1,
+      "message": "See my answer above: if there isn\u0027t much performance penalty, then I will implement it.",
+      "parentUuid": "3a1371a2_808d5934",
+      "range": {
+        "startLine": 205,
+        "startChar": 0,
+        "endLine": 212,
+        "endChar": 18
+      },
+      "revId": "beaee1e77b5d5af192dffbc810129268bee45dda",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a1371a2_60adbd88",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterMapper.scala",
         "patchSetId": 7
@@ -289,6 +577,24 @@
       "writtenOn": "2015-03-18T08:16:55Z",
       "side": 1,
       "message": "Thanks. What I was actually asking, though, was if you could add JavaDocs to InvalidationTrie and its methods, since it doesn\u0027t currently have any and you seem to understand what it does.",
+      "revId": "beaee1e77b5d5af192dffbc810129268bee45dda",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_40e241a0",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterMapper.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 615,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-18T09:55:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3a1371a2_60adbd88",
       "revId": "beaee1e77b5d5af192dffbc810129268bee45dda",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
