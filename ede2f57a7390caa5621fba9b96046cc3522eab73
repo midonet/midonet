@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3a1371a2_76e2a3d6",
+        "filename": "midolman/src/main/java/org/midonet/midolman/layer3/InvalidationTrie.java",
+        "patchSetId": 9
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-18T17:44:10Z",
+      "side": 1,
+      "message": "I don\u0027t understand this. Do you mean that these addresses have the same prefix represented by the trie node?",
+      "range": {
+        "startLine": 37,
+        "startChar": 49,
+        "endLine": 37,
+        "endChar": 64
+      },
+      "revId": "ede2f57a7390caa5621fba9b96046cc3522eab73",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_d6fef76a",
+        "filename": "midolman/src/main/java/org/midonet/midolman/layer3/InvalidationTrie.java",
+        "patchSetId": 9
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-18T17:44:10Z",
+      "side": 1,
+      "message": "Do you mean that these IP addresses have the prefix represented by this trie node?",
+      "range": {
+        "startLine": 68,
+        "startChar": 37,
+        "endLine": 68,
+        "endChar": 56
+      },
+      "revId": "ede2f57a7390caa5621fba9b96046cc3522eab73",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_361dcbbe",
+        "filename": "midolman/src/main/java/org/midonet/midolman/layer3/Route.java",
+        "patchSetId": 9
+      },
+      "lineNbr": 272,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-18T17:44:10Z",
+      "side": 1,
+      "message": "Mask with the prefix of the subnet?",
+      "range": {
+        "startLine": 272,
+        "startChar": 19,
+        "endLine": 272,
+        "endChar": 61
+      },
+      "revId": "ede2f57a7390caa5621fba9b96046cc3522eab73",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
