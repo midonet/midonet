@@ -25,6 +25,29 @@
     },
     {
       "key": {
+        "uuid": "3a1371a2_d641d70c",
+        "filename": "cluster/src/main/proto/topology.proto",
+        "patchSetId": 1
+      },
+      "lineNbr": 326,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-03-18T16:37:24Z",
+      "side": 1,
+      "message": "Isn\u0027t this redundant with having the ip addresses in the interface list?",
+      "range": {
+        "startLine": 326,
+        "startChar": 0,
+        "endLine": 326,
+        "endChar": 37
+      },
+      "revId": "b81239695e728303dcad35090aa54b651239462f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a1371a2_130c2142",
         "filename": "cluster/src/main/proto/topology.proto",
         "patchSetId": 1
@@ -41,6 +64,29 @@
         "startChar": 27,
         "endLine": 351,
         "endChar": 28
+      },
+      "revId": "b81239695e728303dcad35090aa54b651239462f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_56e7a740",
+        "filename": "cluster/src/main/proto/topology.proto",
+        "patchSetId": 1
+      },
+      "lineNbr": 359,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-03-18T16:37:24Z",
+      "side": 1,
+      "message": "This looks like state information... Do we need it? (or better, do we plan to maintain it updated if the state changes?)",
+      "range": {
+        "startLine": 358,
+        "startChar": 8,
+        "endLine": 359,
+        "endChar": 35
       },
       "revId": "b81239695e728303dcad35090aa54b651239462f",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
