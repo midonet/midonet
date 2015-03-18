@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3a1371a2_e041ad0c",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/neutron/TaskStateUpdater.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-03-18T04:18:12Z",
+      "side": 1,
+      "message": "What is the expected behavior of C3PO when, for some reason, the neutron DB is in a bad state and the first row does not exist?  Here, it would simply throw an exception.  In the current implementation, if this fails, it cannot proceed?",
+      "revId": "a51f6ef915bfd81ee2cb793f5b24e3d83a76ffac",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
