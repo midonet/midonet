@@ -382,14 +382,13 @@ class PacketWorkflowTest extends MidolmanSpec {
                       clusterDataClient: DataClient,
                       packetOut: Int => Unit,
                       override val simulationExpireMillis: Long)
-            extends PacketWorkflow(injector.getInstance(classOf[MidolmanConfig]),
-                                   cookieGen, dpChannel, clusterDataClient,
-                                   flowInvalidator,
-                                   conntrackTable,
-                                   natTable,
+            extends PacketWorkflow(0,
+                                   injector.getInstance(classOf[MidolmanConfig]),
+                                   cookieGen, clock, dpChannel,
+                                   clusterDataClient, flowInvalidator, flowProcessor,
+                                   conntrackTable, natTable,
                                    new ShardedFlowStateTable[TraceKey, TraceContext](),
-                                   new MockStateStorage(),
-                                   HappyGoLuckyLeaser,
+                                   new MockStateStorage(), HappyGoLuckyLeaser,
                                    metrics, packetOut)
             with MessageAccumulator {
 

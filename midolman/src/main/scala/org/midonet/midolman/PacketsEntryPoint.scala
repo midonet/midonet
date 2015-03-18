@@ -17,18 +17,23 @@
 package org.midonet.midolman
 
 import scala.collection.immutable
+import scala.concurrent.duration._
 
 import akka.actor._
+import akka.actor.{Actor, ActorRef, Props}
 import akka.event.LoggingReceive
+
 import com.codahale.metrics.MetricRegistry
+
 import com.google.inject.Inject
+
 import com.typesafe.scalalogging.Logger
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.DataClient
 import org.midonet.midolman.HostRequestProxy.FlowStateBatch
 import org.midonet.midolman.config.MidolmanConfig
-import org.midonet.midolman.datapath.DatapathChannel
+import org.midonet.midolman.datapath.{FlowProcessor, DatapathChannel}
 import org.midonet.midolman.flows.FlowInvalidator
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
@@ -68,6 +73,7 @@ class PacketsEntryPoint extends Actor with ActorLogWithoutPath
     var config: MidolmanConfig = null
 
     implicit val as = context.system
+    implicit val ec = context.dispatcher
 
     @Inject
     var dpChannel: DatapathChannel = _
@@ -84,7 +90,6 @@ class PacketsEntryPoint extends Actor with ActorLogWithoutPath
     private var metrics: PacketPipelineMetrics = null
 
     protected var workers = immutable.IndexedSeq[ActorRef]()
-    private var rrIndex = 0
 
     @Inject
     var counter: StatisticalCounter = null
@@ -99,6 +104,9 @@ class PacketsEntryPoint extends Actor with ActorLogWithoutPath
     var flowInvalidator: FlowInvalidator = null
 
     @Inject
+    var flowProcessor: FlowProcessor = null
+
+    @Inject
     var natBlockAllocator: NatBlockAllocator = _
 
     var connTrackStateTable: ShardedFlowStateTable[ConnTrackKey, ConnTrackValue] = _
@@ -109,7 +117,7 @@ class PacketsEntryPoint extends Actor with ActorLogWithoutPath
     override def preStart(): Unit = {
         super.preStart()
         NUM_WORKERS = config.simulationThreads
-        metrics = new PacketPipelineMetrics(metricsRegistry)
+        metrics = new PacketPipelineMetrics(metricsRegistry, NUM_WORKERS)
 
         connTrackStateTable = new ShardedFlowStateTable(clock)
         natStateTable = new ShardedFlowStateTable(clock)
@@ -123,6 +131,7 @@ class PacketsEntryPoint extends Actor with ActorLogWithoutPath
         for (i <- 0 until NUM_WORKERS) {
             workers :+= startWorker(i)
         }
+        workers.awaitStart(30 seconds)
     }
 
     override def postStop(): Unit = {
@@ -141,22 +150,16 @@ class PacketsEntryPoint extends Actor with ActorLogWithoutPath
         val cookieGen = new CookieGenerator(index, NUM_WORKERS)
         Props(
             classOf[PacketWorkflow],
-            config, cookieGen, dpChannel, clusterDataClient, flowInvalidator,
+            index, config, cookieGen, clock, dpChannel, clusterDataClient,
+            flowInvalidator, flowProcessor,
             connTrackStateTable.addShard(log = shardLogger(connTrackStateTable)),
             natStateTable.addShard(log = shardLogger(natStateTable)),
             traceStateTable.addShard(log = shardLogger(traceStateTable)),
-            storageFactory.create(),
-            natLeaser,
-            metrics,
+            storageFactory.create(), natLeaser, metrics,
             counter.addAndGet(index, _: Int))
     }
 
     private def broadcast(m: Any) { workers foreach ( _ ! m ) }
-
-    private def roundRobin(m: Any) {
-        workers(java.lang.Math.abs(rrIndex) % NUM_WORKERS) ! m
-        rrIndex += 1
-    }
 
     override def receive = LoggingReceive {
 
