@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3a1371a2_00ce895a",
+        "filename": "cluster/src/main/proto/topology.proto",
+        "patchSetId": 3
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-18T08:29:20Z",
+      "side": 1,
+      "message": "Add VIP and LoadBalancer",
+      "range": {
+        "startLine": 24,
+        "startChar": 5,
+        "endLine": 24,
+        "endChar": 9
+      },
+      "revId": "a5da09c13201a3b52b07ad08aa7752ac925b550f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
