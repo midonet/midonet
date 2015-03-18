@@ -48,14 +48,13 @@ import org.midonet.packets._
 import org.midonet.packets.util.AddressConversions._
 import org.midonet.packets.util.PacketBuilder._
 import org.midonet.sdn.flows.FlowTagger
-import org.midonet.sdn.state.FlowStateTable
+import org.midonet.sdn.state.ShardedFlowStateTable
 import org.midonet.util.collection.Reducer
 
 @RunWith(classOf[JUnitRunner])
 class NatTest extends MidolmanSpec {
 
-    registerActors(VirtualTopologyActor -> (() => new VirtualTopologyActor),
-                   FlowController -> (() => injector.getInstance(classOf[FlowController])))
+    registerActors(VirtualTopologyActor -> (() => new VirtualTopologyActor))
 
     var portMap = Map[Int, UUID]()
     val vmNetworkIp = new IPv4Subnet("10.0.0.0", 24)
@@ -98,7 +97,7 @@ class NatTest extends MidolmanSpec {
     private val snatAddressStart = IPv4Addr("180.0.1.200")
     private val snatAddressEnd = IPv4Addr("180.0.1.205")
 
-    private var natTable: FlowStateTable[NatKey, NatBinding] = _
+    private val natTable = new ShardedFlowStateTable[NatKey, NatBinding](clock).addShard()
     private var mappings = Set[NatKey]()
 
     private var rtrOutChain: Chain = null
@@ -312,9 +311,7 @@ class NatTest extends MidolmanSpec {
                       rtrOutChain, uplinkPort)
         fetchTopology(vmPorts:_*)
 
-        pktWkfl = packetWorkflow(portMap)
-        natTable = pktWkfl.underlyingActor
-            .asInstanceOf[PacketWorkflow].natStateTable
+        pktWkfl = packetWorkflow(portMap, natTable = natTable)
 
         mockDpChannel.packetsExecuteSubscribe(
             (packet, actions) => packetOutQueue.add((packet,actions)) )
@@ -409,7 +406,7 @@ class NatTest extends MidolmanSpec {
         mapping.flowCount should be (2)
 
         flowInvalidator.scheduleInvalidationFor(FlowTagger.tagForDevice(router.getId))
-        pktWkfl ! PacketWorkflow.HandlePackets(new Array(0))
+        pktWkfl.underlyingActor.process()
         mapping.flowCount should be (0)
         clock.time = FlowState.DEFAULT_EXPIRATION.toNanos + 1
         natTable.expireIdleEntries()
@@ -470,7 +467,7 @@ class NatTest extends MidolmanSpec {
         mapping.flowCount should be (2)
 
         flowInvalidator.scheduleInvalidationFor(FlowTagger.tagForDevice(router.getId))
-        pktWkfl ! PacketWorkflow.HandlePackets(new Array(0))
+        pktWkfl.underlyingActor.process()
         mapping.flowCount should be (0)
         clock.time = FlowState.DEFAULT_EXPIRATION.toNanos + 1
         natTable.expireIdleEntries()
