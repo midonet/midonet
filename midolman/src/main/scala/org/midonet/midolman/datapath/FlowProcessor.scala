@@ -154,11 +154,13 @@ class FlowProcessor(families: OvsNetlinkFamilies,
 
     val replies = new Thread("flow-processor-replies") {
         override def run(): Unit =
-            try {
-                while (channel.isOpen) {
+            while (channel.isOpen) {
+                try {
                     broker.readReply(defaultObserver)
+                } catch { case t: Throwable =>
+                    log.debug("Error while reading replies", t)
                 }
-            } catch { case ignored: Throwable => }
+            }
     }
 
     override def onStart(): Unit = {
