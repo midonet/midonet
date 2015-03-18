@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3a1371a2_13e70114",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/C3POMinionTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 181,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-03-18T13:18:55Z",
+      "side": 1,
+      "message": "Out of curiosity, why is this here? Is it just in case something weird happens and the connection randomly fails, or is there something in particular that we\u0027re waiting for?",
+      "range": {
+        "startLine": 181,
+        "startChar": 25,
+        "endLine": 181,
+        "endChar": 35
+      },
+      "revId": "e027f3f95ec395552f195d310205fd3addfb062e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
