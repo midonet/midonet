@@ -27,12 +27,10 @@ import rx.Subscriber
 
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.midolman.logging.MidolmanLogging
-import org.midonet.midolman.simulation.Bridge
+import org.midonet.midolman.simulation.{PortGroup, Bridge, Chain}
 import org.midonet.midolman.topology.VirtualTopology.Device
-import org.midonet.midolman.simulation.Chain
 import org.midonet.midolman.topology.VirtualTopology.Device
-import org.midonet.midolman.topology.VirtualTopologyActor.{BridgeRequest, ChainRequest}
-import org.midonet.midolman.topology.VirtualTopologyActor.{DeviceRequest, PortRequest, Unsubscribe}
+import org.midonet.midolman.topology.VirtualTopologyActor._
 import org.midonet.midolman.topology.devices.Port
 
 /**
@@ -141,6 +139,9 @@ abstract class VirtualTopologyRedirector extends Actor with MidolmanLogging {
         case r: ChainRequest =>
             log.debug("Request for chain: {}", r.id)
             onRequest[Chain](r)
+        case r: PortGroupRequest =>
+            log.debug("Request for port group: {}", r.id)
+            onRequest[PortGroup](r)
         case u: Unsubscribe =>
             log.debug("Unsubscribe for device {} from {}", u.id, sender())
             onUnsubscribe(u.id, sender())

@@ -21,17 +21,15 @@ import com.google.protobuf.MessageOrBuilder
 
 import org.scalatest.Matchers
 
-import org.midonet.cluster.models.Topology.{Port => TopologyPort, Network => TopologyBridge, Rule => TopologyRule}
-import org.midonet.cluster.util.{RangeUtil, IPSubnetUtil}
+import org.midonet.cluster.models.Topology.{Network => TopologyBridge, Port => TopologyPort, PortGroup => TopologyPortGroup, Rule => TopologyRule}
 import org.midonet.cluster.util.IPAddressUtil._
 import org.midonet.cluster.util.IPSubnetUtil._
 import org.midonet.cluster.util.UUIDUtil._
-import org.midonet.midolman.rules.{Condition, Rule, JumpRule, NatRule, ForwardNatRule, NatTarget}
-import org.midonet.midolman.simulation.Bridge
-import org.midonet.midolman.topology.devices.VxLanPort
-import org.midonet.midolman.topology.TopologyMatchers.{BridgeMatcher, BridgePortMatcher, RouterPortMatcher}
-import org.midonet.midolman.topology.TopologyMatchers._
-import org.midonet.midolman.topology.devices.{ RouterPort, Port, BridgePort}
+import org.midonet.cluster.util.{IPSubnetUtil, RangeUtil}
+import org.midonet.midolman.rules.{Condition, ForwardNatRule, JumpRule, NatRule, NatTarget, Rule}
+import org.midonet.midolman.simulation.{Bridge, PortGroup}
+import org.midonet.midolman.topology.TopologyMatchers.{BridgeMatcher, BridgePortMatcher, RouterPortMatcher, _}
+import org.midonet.midolman.topology.devices.{BridgePort, Port, RouterPort, VxLanPort}
 import org.midonet.packets.MAC
 
 object TopologyMatchers {
@@ -205,6 +203,17 @@ object TopologyMatchers {
             r.getFragmentPolicy.name shouldBe cond.fragmentPolicy.name
         }
     }
+
+    class PortGroupMatcher(portGroup: PortGroup)
+        extends Matchers with DeviceMatcher[TopologyPortGroup] {
+        override def shouldBeDeviceOf(pg: TopologyPortGroup): Unit = {
+            portGroup.id shouldBe pg.getId.asJava
+            portGroup.name shouldBe (if (pg.hasName) pg.getName else null)
+            portGroup.stateful shouldBe pg.getStateful
+            portGroup.members should contain theSameElementsAs
+                pg.getPortIdsList.asScala.map(_.asJava)
+        }
+    }
 }
 
 trait TopologyMatchers {
@@ -240,4 +249,7 @@ trait TopologyMatchers {
 
     implicit def asMatcher(cond: Condition): ConditionMatcher =
         new ConditionMatcher(cond)
+
+    implicit def asMatcher(portGroup: PortGroup): PortGroupMatcher =
+        new PortGroupMatcher(portGroup)
 }

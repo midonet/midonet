@@ -64,7 +64,7 @@ class PortMapperTest extends MidolmanSpec with TopologyBuilder
             Observable.create(mapper).subscribe(obs)
 
             Then("The observer should see a NotFoundException")
-            obs.await(timeout)
+            obs.await(timeout) shouldBe true
             val e = obs.getOnErrorEvents.get(0).asInstanceOf[NotFoundException]
             e.clazz shouldBe classOf[TopologyPort]
             e.id shouldBe id
