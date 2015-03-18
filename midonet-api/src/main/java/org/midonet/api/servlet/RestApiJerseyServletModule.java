@@ -31,9 +31,12 @@ import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigValueFactory;
 import org.apache.commons.lang3.StringUtils;
+import org.midonet.brain.BrainConfig;
 import org.midonet.brain.ClusterNode;
+import org.midonet.brain.services.conf.ConfMinion;
 import org.midonet.cluster.config.ZookeeperConfig;
 import org.midonet.conf.HostIdGenerator;
+import org.midonet.conf.MidoNodeConfigurator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -93,7 +96,7 @@ public class RestApiJerseyServletModule extends JerseyServletModule {
     }
 
     public static Config zkConfToConfig(ZookeeperConfig zkconf) {
-        return ConfigFactory.empty()
+        Config ret = ConfigFactory.empty()
             .withValue("zookeeper.zookeeper_hosts",
                 ConfigValueFactory.fromAnyRef(zkconf.getZkHosts()))
             .withValue("zookeeper.session_gracetime",
@@ -106,6 +109,8 @@ public class RestApiJerseyServletModule extends JerseyServletModule {
                 ConfigValueFactory.fromAnyRef(zkconf.getZkSessionTimeout()))
             .withValue("zookeeper.use_new_stack",
                 ConfigValueFactory.fromAnyRef(false));
+        log.info("Loaded zookeeper config: {}", ret.root().render());
+        return ret;
     }
 
     protected boolean clusterEmbedEnabled() {
@@ -138,6 +143,7 @@ public class RestApiJerseyServletModule extends JerseyServletModule {
         install(new AuthModule());
         install(new ErrorModule());
 
+        installConfigApi(zkConfToConfig(zkCfg));
         install(new MidonetBackendModule(zkConfToConfig(zkCfg)));
 
         installRestApiModule(); // allow mocking
@@ -174,4 +180,16 @@ public class RestApiJerseyServletModule extends JerseyServletModule {
         install(new RestApiModule());
     }
 
+    protected void installConfigApi(Config zkConf) {
+        try {
+            UUID hostId = HostIdGenerator.getHostId();
+            BrainConfig brainConf = new BrainConfig(zkConf.withFallback(
+                MidoNodeConfigurator.forBrains(zkConf).runtimeConfig(hostId)));
+            ClusterNode.Context ctx = new ClusterNode.Context(hostId, true);
+            bind(ConfMinion.class).toInstance(new ConfMinion(ctx, brainConf));
+        } catch (Exception e) {
+            log.error("Failed to start config API", e);
+        }
+    }
 }
+
