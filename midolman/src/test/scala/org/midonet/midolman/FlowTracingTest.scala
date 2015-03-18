@@ -31,7 +31,7 @@ import org.midonet.midolman.state.HappyGoLuckyLeaser
 import org.midonet.midolman.state.TraceState.{TraceKey, TraceContext}
 import org.midonet.midolman.topology._
 import org.midonet.midolman.util.MidolmanSpec
-import org.midonet.odp.{Datapath, FlowMatches, Packet}
+import org.midonet.odp.{FlowMatches, Packet}
 import org.midonet.packets.Ethernet
 import org.midonet.packets.util.EthBuilder
 import org.midonet.packets.util.PacketBuilder._
@@ -40,10 +40,7 @@ import org.midonet.sdn.state.FlowStateTransaction
 
 @RunWith(classOf[JUnitRunner])
 class FlowTracingTest extends MidolmanSpec {
-
     registerActors(VirtualTopologyActor -> (() => new VirtualTopologyActor))
-
-    var datapath: Datapath = null
 
     var bridge: ClusterBridge = _
     var port1: BridgePort = _
