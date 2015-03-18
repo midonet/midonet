@@ -23,6 +23,7 @@ import scala.concurrent.duration._
 
 import akka.actor.Props
 import akka.testkit.TestActorRef
+
 import org.apache.commons.configuration.HierarchicalConfiguration
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
@@ -36,8 +37,8 @@ import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman.rules.{LiteralRule, RuleResult}
-import org.midonet.midolman.simulation.{Chain => SimChain, IPAddrGroup}
-import org.midonet.midolman.topology.VirtualTopologyActor.{ChainRequest, IPAddrGroupRequest, PortRequest, Unsubscribe}
+import org.midonet.midolman.simulation.{Chain, IPAddrGroup, PortGroup}
+import org.midonet.midolman.topology.VirtualTopologyActor.{ChainRequest, IPAddrGroupRequest, PortGroupRequest, PortRequest, Unsubscribe}
 import org.midonet.midolman.topology.devices.{BridgePort, Port => SimulationPort}
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.{AwaitableActor, MessageAccumulator}
@@ -47,7 +48,7 @@ import org.midonet.util.reactivex.AwaitableObserver
 
 @RunWith(classOf[JUnitRunner])
 class VirtualTopologyRedirectorTest extends MidolmanSpec with TopologyBuilder
-                                                         with TopologyMatchers {
+                                    with TopologyMatchers {
 
     private class TestableVTA extends VirtualTopologyActor
                               with MessageAccumulator
@@ -514,7 +515,7 @@ class VirtualTopologyRedirectorTest extends MidolmanSpec with TopologyBuilder
 
     feature("Test supported devices") {
         scenario("Test that chains are supported") {
-            val chainId = UUID.randomUUID()
+            val chainId = UUID.randomUUID
             val literalRule = createLiteralRuleBuilder(id = UUID.randomUUID(),
                                                        chainId = Some(chainId),
                                                        action = Some(Action.ACCEPT))
@@ -523,21 +524,20 @@ class VirtualTopologyRedirectorTest extends MidolmanSpec with TopologyBuilder
                                     List(literalRule.getId))
             backend.store.multi(List(CreateOp(literalRule), CreateOp(chain)))
 
-            VirtualTopologyActor ! ChainRequest(chain.getId.asJava,
-                                                update = false)
+            VirtualTopologyActor ! ChainRequest(chainId, update = false)
             sender.await(timeout)
 
             expectLast({
-                case simChain: SimChain =>
-                    simChain.id shouldBe chain.getId.asJava
-                    simChain.name shouldBe "test-chain"
-                    val rule = simChain.getRules.get(0)
+                case chain: Chain =>
+                    chain.id shouldBe chainId
+                    chain.name shouldBe "test-chain"
+                    val rule = chain.getRules.get(0)
                     rule.getClass shouldBe classOf[LiteralRule]
                     rule.action shouldBe RuleResult.Action.ACCEPT
             })
         }
 
-        scenario("Test that IPAddrGroups are supported") {
+        scenario("Test that IP address groups are supported") {
             val protoIpAddrGroup = createIPAddrGroupBuilder().build()
             backend.store.create(protoIpAddrGroup)
             VirtualTopologyActor ! IPAddrGroupRequest(protoIpAddrGroup.getId.asJava,
@@ -548,6 +548,17 @@ class VirtualTopologyRedirectorTest extends MidolmanSpec with TopologyBuilder
                 case ipAddrGroup: IPAddrGroup =>
                     ipAddrGroup shouldBeDeviceOf protoIpAddrGroup
             })
+        }
+
+        scenario("Test that port groups are supported") {
+            val portGroup = createPortGroup()
+            backend.store.create(portGroup)
+
+            VirtualTopologyActor ! PortGroupRequest(portGroup.getId,
+                                                    update = false)
+            sender await timeout
+
+            expectLast({ case pg: PortGroup => pg shouldBeDeviceOf portGroup })
         }
     }
 }

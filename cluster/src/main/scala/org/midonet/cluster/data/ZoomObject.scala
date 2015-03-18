@@ -17,7 +17,6 @@ package org.midonet.cluster.data
 
 import java.lang.reflect.Field
 
-import com.google.protobuf.GeneratedMessage.Builder
 import com.google.protobuf.MessageOrBuilder
 
 /**
