@@ -297,6 +297,30 @@
       "revId": "3a1fc4270653a902d8c284a0d9d646755c374040",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_e00feddf",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RoutingTableBroker.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-03-18T05:54:04Z",
+      "side": 1,
+      "message": "I just meant I have no idea what \"wip\" means. Is there a standard name for an AtomicInteger used to control concurrency?",
+      "parentUuid": "3a1371a2_b0ca669f",
+      "range": {
+        "startLine": 79,
+        "startChar": 16,
+        "endLine": 79,
+        "endChar": 24
+      },
+      "revId": "3a1fc4270653a902d8c284a0d9d646755c374040",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
