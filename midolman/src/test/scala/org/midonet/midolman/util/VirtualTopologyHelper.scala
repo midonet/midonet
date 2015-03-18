@@ -104,7 +104,7 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
         val context = new PacketContext(-1, new Packet(frame, fmatch), fmatch)
         context.packetEmitter = new PacketEmitter(emitter, actorSystem.deadLetters)
         context.initialize(conntrackTx, natTx, HappyGoLuckyLeaser, traceTx)
-        context.prepareForSimulation(0)
+        context.prepareForSimulation()
         context.inputPort = inPort
         context.inPortId = inPort
         context
@@ -228,11 +228,14 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
                        traceTable: FlowStateTable[TraceKey, TraceContext] = new ShardedFlowStateTable[TraceKey, TraceContext](clock).addShard())
                       (implicit hostId: UUID, client: DataClient) = {
         val pktWkfl = TestActorRef[PacketWorkflow](Props(new PacketWorkflow(
+            0,
             config,
             new CookieGenerator(0, 1),
+            clock,
             dpChannel,
             client,
             flowInvalidator,
+            flowProcessor,
             conntrackTable,
             natTable,
             traceTable,
