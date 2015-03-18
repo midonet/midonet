@@ -19,17 +19,15 @@ import java.nio.ByteBuffer
 import java.util.{List => JList}
 
 import com.lmax.disruptor._
-import com.typesafe.scalalogging.Logger
 
 import org.midonet.midolman.datapath.DisruptorDatapathChannel.DatapathEvent
 import org.midonet.netlink._
 import org.midonet.odp._
 import org.midonet.odp.flows.FlowAction
-import org.slf4j.LoggerFactory
 
 trait DatapathChannel {
-    def executePacket(packet: Packet, actions: JList[FlowAction]): Unit
-    def createFlow(flow: Flow): Unit
+    def executePacket(packet: Packet, actions: JList[FlowAction]): Long
+    def createFlow(flow: Flow): Long
 
     def start(datapath: Datapath): Unit
     def stop(): Unit
@@ -79,9 +77,9 @@ class DisruptorDatapathChannel(ovsFamilies: OvsNetlinkFamilies,
         processors foreach (_.halt())
 
     def executePacket(packet: Packet,
-                      actions: JList[FlowAction]): Unit = {
+                      actions: JList[FlowAction]): Long = {
         if (actions.isEmpty) {
-            return
+            return RingBuffer.INITIAL_CURSOR_VALUE
         }
 
         val seq = ringBuffer.next()
@@ -91,11 +89,11 @@ class DisruptorDatapathChannel(ovsFamilies: OvsNetlinkFamilies,
         protocol.preparePacketExecute(datapathId, packet, actions, event.bb)
         event.op = PACKET_EXECUTION
         ringBuffer.publish(seq)
+        seq
     }
 
-    def createFlow(flow: Flow): Unit = {
+    def createFlow(flow: Flow): Long = {
         val seq = ringBuffer.next()
-        flow.getMatch.setSequence(seq)
 
         val event = ringBuffer.get(seq)
         event.bb.clear()
@@ -103,5 +101,6 @@ class DisruptorDatapathChannel(ovsFamilies: OvsNetlinkFamilies,
         protocol.prepareFlowCreate(datapathId, supportsMegaflow, flow, event.bb)
         event.op = FLOW_CREATE
         ringBuffer.publish(seq)
+        seq
     }
 }

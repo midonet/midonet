@@ -172,6 +172,7 @@ abstract class UpcallDatapathConnectionManagerBase(
 
             def endBatch(worker: Int) {
                 if (cursors(worker) > 0) {
+                    log.debug("sending packets")
                     workers.list(worker) ! PacketWorkflow.HandlePackets(packets(worker))
                     cursors(worker) = 0
                     packets(worker) = new Array[Packet](BATCH_SIZE)
@@ -187,7 +188,7 @@ abstract class UpcallDatapathConnectionManagerBase(
             }
 
             override def submit(data: Packet) {
-                log.trace("accumulating packet: {}", data.getMatch)
+                log.debug("accumulating packet: {}", data.getMatch)
 
                 data.startTimeNanos = NanoClock.DEFAULT.tick
 
