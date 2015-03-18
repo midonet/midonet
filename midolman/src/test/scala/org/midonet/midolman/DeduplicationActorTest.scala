@@ -17,7 +17,6 @@ package org.midonet.midolman
 
 import java.util.UUID
 
-import scala.collection.JavaConverters._
 import scala.concurrent.Promise
 
 import akka.actor.Props
@@ -45,7 +44,7 @@ import org.midonet.midolman.util.mock.MessageAccumulator
 import org.midonet.odp.flows.FlowActions.output
 import org.midonet.odp.flows.FlowKeys.tunnel
 import org.midonet.odp.flows.{FlowAction, FlowActionOutput}
-import org.midonet.odp.{Datapath, DpPort, FlowMatch, FlowMatches, Packet}
+import org.midonet.odp.{Datapath, DpPort, FlowMatches, Packet}
 import org.midonet.packets.Ethernet
 import org.midonet.packets.util.EthBuilder
 import org.midonet.packets.util.PacketBuilder.{udp, _}
@@ -126,23 +125,6 @@ class DeduplicationActorTest extends MidolmanSpec {
     def makeUniquePacket(variation: Short): Packet = makeUniqueFrame(variation)
 
     feature("DeduplicationActor handles packets") {
-        scenario("pends packets that have the same match") {
-            Given("four identical packets")
-            val pkts = List(makePacket(1), makePacket(1), makePacket(1), makePacket(1))
-
-            When("they are fed to the DDA")
-            ddaRef ! PacketWorkflow.HandlePackets(pkts.toArray)
-
-            Then("the DDA should execute exactly one workflow")
-            packetsSeen.length should be (1)
-
-            And("exactly one packet should be pended")
-            dda.suspended(pkts(0).getMatch) should be (Set(pkts.head))
-
-            And("packetOut should have been called with the correct number")
-            packetsOut should be (4)
-        }
-
         scenario("state messages are not deduplicated") {
             Given("four identical state packets")
             val pkts = (1 to 4) map (_ => makeStatePacket())
@@ -159,52 +141,6 @@ class DeduplicationActorTest extends MidolmanSpec {
             mockDpConn().packetsSent should be (empty)
         }
 
-        scenario("discards packets when ApplyFlow has no actions") {
-            Given("three different packets with the same match")
-            val pkts = List(makePacket(1), makeUniquePacket(1), makeUniquePacket(1))
-
-            When("they are fed to the DDA")
-            ddaRef ! PacketWorkflow.HandlePackets(pkts.toArray)
-
-            Then("some packets should be pended")
-            dda.suspended(pkts(0).getMatch) should have size 2
-
-            And("packetsOut should be called with the correct number")
-            packetsOut should be (3)
-
-            When("the dda is told to apply the flow with empty actions")
-            dda.complete(Nil)
-
-            Then("the packets should be dropped")
-            mockDpChannel.packetsSent should be (empty)
-            dda.suspended(pkts(0).getMatch) should be (null)
-        }
-
-        scenario("emits suspended packets after a simulation") {
-            Given("three different packets with the same match")
-            val pkts = List(makePacket(1), makeUniquePacket(1), makeUniquePacket(1))
-
-            When("they are fed to the DDA")
-            ddaRef ! PacketWorkflow.HandlePackets(pkts.toArray)
-
-            Then("some packets should be pended")
-            dda.suspended(pkts(0).getMatch) should not be null
-
-            And("packetsOut should be called with the correct number")
-            packetsOut should be (3)
-
-            When("the dda is told to apply the flow with an output action")
-            dda.complete(List(output(1)))
-
-            Then("the packets should be sent to the datapath")
-            val actual = mockDpChannel.packetsSent.asScala.toList.sortBy { _.## }
-            val expected = pkts.tail.sortBy { _.## }
-            actual should be (expected)
-
-            And("no suspended packets should remain")
-            dda.suspended(pkts(0).getMatch) should be (null)
-        }
-
         scenario("simulates sequences of packets from the datapath") {
             Given("4 packets with 3 different matches")
             val pkts = List(makePacket(1), makePacket(2), makePacket(3), makePacket(2))
@@ -212,16 +148,11 @@ class DeduplicationActorTest extends MidolmanSpec {
             When("they are fed to the DDA")
             ddaRef ! PacketWorkflow.HandlePackets(pkts.toArray)
 
-            And("a packetOut should have been called for the pending packets")
+            Then("a packetOut should have been called for the pending packets")
             packetsOut should be (4)
 
-            Then("3 packet workflows should be executed")
-            packetsSeen map (_._2) should be (1 to 3)
-
-            And("one packet should be pended")
-            dda.suspended(pkts(0).getMatch) should not be null
-            dda.suspended(pkts(1).getMatch) should have size 1
-            dda.suspended(pkts(2).getMatch) should not be null
+            And("4 packet workflows should be executed")
+            packetsSeen map (_._2) should be (1 to 4)
         }
 
         scenario("simulates generated packets") {
@@ -246,15 +177,11 @@ class DeduplicationActorTest extends MidolmanSpec {
             createDda(0)
             val pkts = List(makePacket(1), makePacket(1))
             ddaRef ! PacketWorkflow.HandlePackets(pkts.toArray)
-            // simulationExpireMillis is 0, pended packets should be
-            // expired immediately
-            dda.suspended(pkts(0).getMatch) should be (null)
             packetsOut should be (2)
 
             When("putting another packet handler in the waiting room")
             val pkt2 = makePacket(2)
             ddaRef ! PacketWorkflow.HandlePackets(Array(pkt2))
-            dda.suspended(pkt2.getMatch) should not be null
 
             And("packetsOut should be called with the correct number")
             packetsOut should be (3)
@@ -467,9 +394,6 @@ class DeduplicationActorTest extends MidolmanSpec {
         var p = Promise[Any]()
         var generatedPacket: GeneratedPacket = _
         var nextActions: List[FlowAction] = _
-
-        def suspended(flowMatch: FlowMatch): collection.Set[Packet] =
-            suspendedPackets.get(flowMatch)
 
         def completeWithGenerated(actions: List[FlowAction],
                                   generatedPacket: GeneratedPacket): Unit = {
