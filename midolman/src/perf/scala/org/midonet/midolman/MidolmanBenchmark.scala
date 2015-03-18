@@ -37,7 +37,7 @@ import org.midonet.midolman.cluster.{LegacyClusterModule, MidolmanActorsModule, 
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.guice.config.MidolmanConfigModule
 import org.midonet.midolman.host.scanner.InterfaceScanner
-import org.midonet.midolman.services.{DashboardService, DatapathConnectionService, HostIdProviderService, MidolmanActorsService, MidolmanService, SelectLoopService}
+import org.midonet.midolman.services.{DatapathConnectionService, HostIdProviderService, MidolmanActorsService, MidolmanService, SelectLoopService}
 import org.midonet.midolman.simulation.Chain
 import org.midonet.midolman.util.mock.{MockInterfaceScanner, MockMidolmanActors}
 import org.midonet.midolman.util.{MidolmanServices, VirtualConfigurationBuilders, VirtualTopologyHelper}
@@ -136,13 +136,6 @@ trait MidolmanBenchmark extends MockMidolmanActors
                         override def doStop(): Unit = notifyStopped()
                     })
                     expose(classOf[SelectLoopService])
-
-                    bind(classOf[DashboardService])
-                            .toInstance(new DashboardService {
-                        override def doStart(): Unit = notifyStarted()
-                        override def doStop(): Unit = notifyStopped()
-                    })
-                    expose(classOf[DashboardService])
 
                     bind(classOf[MetricRegistry])
                             .toInstance(new MetricRegistry)
