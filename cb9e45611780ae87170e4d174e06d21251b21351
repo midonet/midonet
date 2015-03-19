@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "3a1371a2_f1085d2f",
+        "filename": "specs/2015.03/edge_router_translation.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-03-19T06:16:26Z",
+      "side": 1,
+      "message": "There should be no change from the way we currently handle router-interface-add, which is that one of the ports is already created.  I\u0027ll mention that.",
+      "parentUuid": "3a1371a2_a005f5c3",
+      "range": {
+        "startLine": 43,
+        "startChar": 3,
+        "endLine": 43,
+        "endChar": 40
+      },
+      "revId": "cb9e45611780ae87170e4d174e06d21251b21351",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a1371a2_4069a18a",
         "filename": "specs/2015.03/edge_router_translation.md",
         "patchSetId": 3
@@ -36,6 +60,30 @@
       "writtenOn": "2015-03-18T05:57:46Z",
       "side": 1,
       "message": "Where does this router port come from? Do we create it automatically when creating an external network subnet to an edge router? Does it need to be created as part of a separate Neutron call?",
+      "range": {
+        "startLine": 44,
+        "startChar": 7,
+        "endLine": 44,
+        "endChar": 18
+      },
+      "revId": "cb9e45611780ae87170e4d174e06d21251b21351",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_cc094a2e",
+        "filename": "specs/2015.03/edge_router_translation.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-03-19T06:16:26Z",
+      "side": 1,
+      "message": "This is the same port created on the router by router-interface-add command (not the bridge port)",
+      "parentUuid": "3a1371a2_4069a18a",
       "range": {
         "startLine": 44,
         "startChar": 7,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "3a1371a2_ac0e8e32",
+        "filename": "specs/2015.03/edge_router_translation.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-03-19T06:16:26Z",
+      "side": 1,
+      "message": "It\u0027s true that the way Neutron stores these is not pretty, but fortunately we don\u0027t parse this out in the translation, so C3PO is oblivious to what these values are.  So it\u0027s easiest to treat them as simply String constants on our side and not care about how Neutron stores them.",
+      "parentUuid": "3a1371a2_d0aba2d4",
+      "range": {
+        "startLine": 52,
+        "startChar": 4,
+        "endLine": 52,
+        "endChar": 26
+      },
+      "revId": "cb9e45611780ae87170e4d174e06d21251b21351",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a1371a2_20f905c9",
         "filename": "specs/2015.03/edge_router_translation.md",
         "patchSetId": 3
@@ -82,6 +154,30 @@
       "writtenOn": "2015-03-18T05:57:46Z",
       "side": 1,
       "message": "Does this involve deleting ports?",
+      "range": {
+        "startLine": 65,
+        "startChar": 3,
+        "endLine": 65,
+        "endChar": 42
+      },
+      "revId": "cb9e45611780ae87170e4d174e06d21251b21351",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_ec0fe62c",
+        "filename": "specs/2015.03/edge_router_translation.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-03-19T06:16:26Z",
+      "side": 1,
+      "message": "Yes, I\u0027ll update",
+      "parentUuid": "3a1371a2_20f905c9",
       "range": {
         "startLine": 65,
         "startChar": 3,
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "3a1371a2_4c1d5a66",
+        "filename": "specs/2015.03/edge_router_translation.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-03-19T06:16:26Z",
+      "side": 1,
+      "message": "Will update",
+      "parentUuid": "3a1371a2_00f689d7",
+      "range": {
+        "startLine": 73,
+        "startChar": 3,
+        "endLine": 73,
+        "endChar": 40
+      },
+      "revId": "cb9e45611780ae87170e4d174e06d21251b21351",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a1371a2_6003fdb8",
         "filename": "specs/2015.03/edge_router_translation.md",
         "patchSetId": 3
@@ -128,6 +248,30 @@
       "writtenOn": "2015-03-18T05:57:46Z",
       "side": 1,
       "message": "Same.",
+      "range": {
+        "startLine": 90,
+        "startChar": 0,
+        "endLine": 90,
+        "endChar": 42
+      },
+      "revId": "cb9e45611780ae87170e4d174e06d21251b21351",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_2c1a9e6e",
+        "filename": "specs/2015.03/edge_router_translation.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-03-19T06:16:26Z",
+      "side": 1,
+      "message": "Will update",
+      "parentUuid": "3a1371a2_6003fdb8",
       "range": {
         "startLine": 90,
         "startChar": 0,
