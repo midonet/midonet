@@ -178,7 +178,7 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
         try {
             c = eventually(dataSrc.getConnection())
             val stmt = c.createStatement()
-            val result = eventually(stmt.executeQuery(LAST_PROCESSED_ID))
+            val result = stmt.executeQuery(LAST_PROCESSED_ID)
 
             if (result.next())
                 lastProcessed = Some(result.getInt(LAST_PROCESSED_ID_COL))
@@ -510,7 +510,7 @@ class C3POMinionTest extends C3POMinionTestBase {
         network1.getId shouldBe toProto(network1Uuid)
         network1.getName shouldBe network1Name
         network1.getAdminStateUp shouldBe true
-        eventually(getLastProcessedIdFromTable) shouldBe Some(2)
+        eventually(getLastProcessedIdFromTable shouldBe Some(2))
 
         // Creates Network 2 and updates Network 1
         val network2Uuid = UUID.randomUUID()
