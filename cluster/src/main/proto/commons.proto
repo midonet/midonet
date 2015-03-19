@@ -61,3 +61,8 @@ enum Protocol {
     ICMP = 1;     // 0x1
     ICMPV6 = 58;  // 0x3a
 }
+
+enum LBStatus {
+    ACTIVE = 1;
+    INACTIVE = 2;
+}
