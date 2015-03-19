@@ -106,6 +106,8 @@ trait UnderlayTrafficHandler { this: PacketWorkflow =>
     }
 
     private def handleFromUnderlay(context: PacketContext): SimulationResult = {
+        context.log.debug(s"Received packet matching ${context.origMatch}" +
+                              " from underlay")
         val tunnelKey = context.wcmatch.getTunnelKey
         dpState.dpPortNumberForTunnelKey(tunnelKey) match {
             case Some(dpPort) =>
@@ -170,6 +172,11 @@ class PacketWorkflow(protected val dpState: DatapathState,
             context.log.warn(s"Tried to add a flow for a generated packet")
             context.runFlowRemovedCallbacks()
             GeneratedPacket
+        } else if (context.origMatch.isFromTunnel && context.tracingEnabled) {
+            // don't create a flow for traced contexts on the egress host
+            context.log.warn("Skipping flow creation for traced flow on egress")
+            context.runFlowRemovedCallbacks()
+            SendPacket
         } else {
             logResultNewFlow("will create flow", context)
             context.origMatch.propagateSeenFieldsFrom(context.wcmatch)
@@ -189,6 +196,7 @@ class PacketWorkflow(protected val dpState: DatapathState,
     def applyState(context: PacketContext): Unit =
         if (!context.isDrop) {
             context.log.debug("Applying connection state")
+            context.addModifiedTraceKeys()
             replicator.accumulateNewKeys(context.conntrackTx,
                                          context.natTx,
                                          context.traceTx,
