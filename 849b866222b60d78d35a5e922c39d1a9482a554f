@@ -2,6 +2,57 @@
   "comments": [
     {
       "key": {
+        "uuid": "3a1371a2_ec21a6b5",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/datapath/FlowProcessor.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 128,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-03-19T14:58:31Z",
+      "side": 1,
+      "message": "can we not throw away the error code in the case of a NetlinkException that is not EEXIST and not mask whatever other Exception we catch here?",
+      "revId": "849b866222b60d78d35a5e922c39d1a9482a554f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_4c2f1aa2",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/datapath/FlowProcessor.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 134,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-03-19T14:58:31Z",
+      "side": 1,
+      "message": "I\u0027m guessing by the thread name that we will only ever have one flow processor?",
+      "revId": "849b866222b60d78d35a5e922c39d1a9482a554f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_0c0c0242",
+        "filename": "netlink/src/main/scala/org.midonet.netlink/NetlinkReader.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-03-19T14:58:31Z",
+      "side": 1,
+      "message": "i found \"isTruncated\" more readable :-).",
+      "revId": "849b866222b60d78d35a5e922c39d1a9482a554f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a1371a2_271d97be",
         "filename": "netlink/src/main/scala/org.midonet.netlink/NetlinkRequestBroker.scala",
         "patchSetId": 17
