@@ -21,6 +21,7 @@ import java.util.{HashMap => JHashMap, Map => JMap, UUID => JUUID}
 
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
+import scala.util.control.NonFatal
 
 import com.google.protobuf.Message
 
@@ -144,21 +145,42 @@ final class C3POStorageManager(storage: Storage) {
     @throws[ProcessingException]
     def interpretAndExecTxn(txn: neutron.Transaction): Unit = {
         assert(initialized)
-        try {
-            val newState = c3poState(txn.lastTaskId)
-            val midoOps = txn.tasks.flatMap { task =>
-                toPersistenceOps(task.asInstanceOf[neutron.Task[Message]])
-            } ++ List(UpdateOp(newState))
 
+        // Changing this to process one task at a time instead of processing
+        // all tasks in a transaction atomically. Although the latter would
+        // technically be more correct, the tasks within multi-task Neutron
+        // transactions are ordered such that there's no problem with executing
+        // them non-atomically.
+        //
+        // For example, adding a gateway port to a router consists of two tasks:
+        // creating the gateway port and then updating the router to use it.
+        // There's no problem with having the gateway port exist without
+        // updating the router; it simply won't be usable. Since after creating
+        // the gateway port we immediately try to process the next task (update
+        // the router) and do not attempt to process any other tasks until this
+        // succeeds, there's no problem.
+        //
+        // Why not execute the tasks atomically anyway? There's a problem when
+        // the translator for the second task asks the topology store for the
+        // object created in the first task. Since the first task isn't
+        // committed yet, the topology store can't find it. We plan to address
+        // this in the future, but it will likely involve significant changes to
+        // Storage interface and implementing classes.
+        for (task <- txn.tasks) try {
+            val newState = c3poState(task.taskId)
+            val midoOps = toPersistenceOps(task) :+ UpdateOp(newState)
             storage.multi(midoOps)
-            log.info(s"Executed a C3PO transaction with ID: ${txn.txnId}.")
+            log.info(s"Executed a C3PO task with ID: ${task.taskId}.")
         } catch {
             case te: TranslationException => throw new ProcessingException(
-                        s"Failed to translate transaction: ${txn.txnId}", te)
+                s"Failed to translate task ${task.taskId} " +
+                s"in transaction ${txn.txnId}.", te)
             case se: StorageException => throw new ProcessingException(
-                        s"Failed to persist transaction: ${txn.txnId}", se)
-            case e: Throwable => throw new ProcessingException(
-                        s"Failed to execute transaction: ${txn.txnId}", e)
+                s"Failed to persist task ${task.taskId} " +
+                s"in transaction ${txn.txnId}.", se)
+            case NonFatal(e) => throw new ProcessingException(
+                s"Failed to execute task ${task.taskId} " +
+                s"in transaction ${txn.txnId}.", e)
         }
     }
 

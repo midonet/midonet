@@ -110,7 +110,7 @@ class RouterTranslatorIT extends C3POMinionTestBase {
                         insertTaskSql(4, Create, PortType,
                                       prGwPortJson.toString, prGwPortId, "tx3"),
                         insertTaskSql(5, Create, RouterType,
-                                      trJson.toString, trId, "tx4"))
+                                      trJson.toString, trId, "tx3"))
 
         val tr = eventually(storage.get(classOf[Router], trId).await())
         tr.getPortIdsCount shouldBe 1
@@ -121,7 +121,7 @@ class RouterTranslatorIT extends C3POMinionTestBase {
         // Rename router and make sure everything is preserved.
         val trV2Json = routerJson("tenant-router-v2", trId).toString
         executeSqlStmts(insertTaskSql(6, Update, RouterType,
-                                      trV2Json, trId, "tx5"))
+                                      trV2Json, trId, "tx4"))
         val trV2 = eventually {
             val trRenamed = storage.get(classOf[Router], trId).await()
             trRenamed.getName shouldBe "tenant-router-v2"
@@ -132,7 +132,7 @@ class RouterTranslatorIT extends C3POMinionTestBase {
 
         // Delete Gateway.
         executeSqlStmts(insertTaskSql(7, Delete, PortType,
-                                      null, prGwPortId, "tx6"))
+                                      null, prGwPortId, "tx5"))
         eventually {
             storage.exists(classOf[Port], prGwPortId).await() shouldBe false
         }
@@ -151,9 +151,9 @@ class RouterTranslatorIT extends C3POMinionTestBase {
 
         // Re-add gateway.
         executeSqlStmts(insertTaskSql(8, Create, PortType,
-                                      prGwPortJson.toString, prGwPortId, "tx7"),
+                                      prGwPortJson.toString, prGwPortId, "tx6"),
                         insertTaskSql(9, Update, RouterType,
-                                      trJson.toString, trId, "tx8"))
+                                      trJson.toString, trId, "tx6"))
         val trV4 = eventually {
             val trV4 = storage.get(classOf[Router], trId).await()
             trV4.getPortIdsCount shouldBe 1
@@ -164,9 +164,9 @@ class RouterTranslatorIT extends C3POMinionTestBase {
 
         // Delete the gateway and then router.
         executeSqlStmts(insertTaskSql(10, Delete, PortType,
-                                      null, prGwPortId, "tx9"),
+                                      null, prGwPortId, "tx7"),
                         insertTaskSql(11, Delete, RouterType,
-                                      null, trId, "tx10"))
+                                      null, trId, "tx7"))
 
         eventually {
             storage.exists(classOf[Router], trId).await() shouldBe false
