@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "3a1371a2_e2c08d7e",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/ChainMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-03-19T16:00:56Z",
+      "side": 1,
+      "message": "Yes, the purpose is not really obvious.\n\nAlso, I\u0027d move the refCount up, before the methods.\n\nDoes refcount need a @volatile?",
+      "parentUuid": "3a1371a2_4c49dacf",
+      "range": {
+        "startLine": 66,
+        "startChar": 4,
+        "endLine": 77,
+        "endChar": 5
+      },
+      "revId": "eb42e81105058a085b5f893f3d9f874f29a14110",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a1371a2_8c2bd2ea",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/ChainMapper.scala",
         "patchSetId": 1
