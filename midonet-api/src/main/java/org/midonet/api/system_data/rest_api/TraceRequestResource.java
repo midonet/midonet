@@ -60,6 +60,7 @@ import org.midonet.api.system_data.TraceRequest;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.cluster.DataClient;
+import static org.midonet.cluster.data.Rule.RuleIndexOutOfBoundsException;
 
 /**
  * Root Resource class for trace requests
@@ -203,7 +204,8 @@ public class TraceRequestResource extends AbstractResource {
     @Consumes({ VendorMediaType.APPLICATION_TRACE_REQUEST_JSON,
                 MediaType.APPLICATION_JSON })
     public Response create(TraceRequest traceRequest)
-            throws StateAccessException, SerializationException {
+            throws StateAccessException, SerializationException,
+            RuleIndexOutOfBoundsException {
         validate(traceRequest, Default.class);
 
         org.midonet.cluster.data.TraceRequest traceRequestData
