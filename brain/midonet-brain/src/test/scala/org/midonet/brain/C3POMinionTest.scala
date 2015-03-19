@@ -178,7 +178,7 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
         try {
             c = eventually(dataSrc.getConnection())
             val stmt = c.createStatement()
-            val result = eventually(stmt.executeQuery(LAST_PROCESSED_ID))
+            val result = stmt.executeQuery(LAST_PROCESSED_ID)
 
             if (result.next())
                 lastProcessed = Some(result.getInt(LAST_PROCESSED_ID_COL))
