@@ -41,7 +41,7 @@ class TopologyMappingsTest extends FeatureSpec with Matchers {
 
     val classes = List(classOf[Topology.Chain],
                        classOf[Topology.Host],
-                       classOf[Topology.IpAddrGroup],
+                       classOf[Topology.IPAddrGroup],
                        classOf[Topology.Network],
                        classOf[Topology.Port],
                        classOf[Topology.PortGroup],

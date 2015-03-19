@@ -18,6 +18,8 @@ package org.midonet.midolman.topology
 
 import java.util.UUID
 
+import org.midonet.packets.IPAddr
+
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.concurrent.Await
@@ -25,7 +27,6 @@ import scala.concurrent.duration.DurationInt
 
 import akka.actor.ActorSystem
 import akka.testkit.TestKit
-import org.apache.commons.configuration.HierarchicalConfiguration
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
@@ -35,7 +36,7 @@ import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.data.storage.{NotFoundException, Storage}
 import org.midonet.cluster.models.Commons
 import org.midonet.cluster.models.Topology.Rule.JumpRuleData
-import org.midonet.cluster.models.Topology.{Chain => ProtoChain, IpAddrGroup => ProtoIPAddrGroup, Rule => ProtoRule}
+import org.midonet.cluster.models.Topology.{Chain => ProtoChain, IPAddrGroup => ProtoIPAddrGroup, Rule => ProtoRule}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.rules.{Rule => SimRule}
@@ -50,6 +51,8 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
                       with TopologyBuilder
                       with TopologyMatchers {
 
+    import TopologyBuilder._
+
     private var vt: VirtualTopology = _
     private implicit var store: Storage = _
     private val timeout = 2 second
@@ -59,12 +62,6 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
     protected override def beforeTest() = {
         vt = injector.getInstance(classOf[VirtualTopology])
         store = injector.getInstance(classOf[MidonetBackend]).store
-    }
-
-    override protected def fillConfig(config: HierarchicalConfiguration) = {
-        super.fillConfig(config)
-        config.setProperty("midolman.cluster_storage_enabled", true)
-        config
     }
 
     private def assertThread(): Unit = {
@@ -536,9 +533,8 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
 
     private def buildAndStoreIPAddrGroup(ip: String, name: String)
     : ProtoIPAddrGroup = {
-        val builder = createIPAddrGroupBuilder(name = Some(name))
-        val ipAddrGroup = addIPAddrPort(builder, ip, Set(UUID.randomUUID()))
-            .build()
+        val ipAddrGroup = createIPAddrGroup(name = Some(name))
+            .addIPAddrPort(IPAddr.fromString(ip), Set(UUID.randomUUID))
         store.create(ipAddrGroup)
         ipAddrGroup
     }

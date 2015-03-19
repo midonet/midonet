@@ -16,6 +16,12 @@
 
 package org.midonet.midolman.state.l4lb;
 
+import static org.midonet.cluster.models.Topology.Pool;
+
 public enum PoolLBMethod {
-    ROUND_ROBIN
+    ROUND_ROBIN;
+
+    public static PoolLBMethod fromProto(Pool.PoolLBMethod proto) {
+        return PoolLBMethod.valueOf(proto.toString());
+    }
 }

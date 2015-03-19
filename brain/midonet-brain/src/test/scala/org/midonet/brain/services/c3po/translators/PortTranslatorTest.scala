@@ -33,7 +33,7 @@ import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.ModelsUtil._
 import org.midonet.cluster.models.Neutron.{NeutronPort, NeutronSubnet}
-import org.midonet.cluster.models.Topology.{Chain, Dhcp, IpAddrGroup, Network, Port, Router, Rule, _}
+import org.midonet.cluster.models.Topology.{Chain, Dhcp, IPAddrGroup, Network, Port, Router, Rule, _}
 import org.midonet.cluster.util.UUIDUtil.randomUuidProto
 import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil, UUIDUtil}
 import org.midonet.packets.{ARP, IPv4, IPv6}
@@ -237,14 +237,14 @@ class VifPortTranslationTest extends PortTranslatorTest {
 
     val ipAddrGroup1InChainId = randomUuidProto
     val ipAddrGroup1OutChainId = randomUuidProto
-    val ipAddrGroup1 = mIpAddrGroupFromTxt(s"""
+    val ipAddrGroup1 = mIPAddrGroupFromTxt(s"""
         id { $sgId1 }
         inbound_chain_id { $ipAddrGroup1InChainId }
         outbound_chain_id { $ipAddrGroup1OutChainId }
         """)
     val ipAddrGroup2InChainId = randomUuidProto
     val ipAddrGroup2OutChainId = randomUuidProto
-    val ipAddrGroup2 = mIpAddrGroupFromTxt(s"""
+    val ipAddrGroup2 = mIPAddrGroupFromTxt(s"""
         id { $sgId2 }
         inbound_chain_id { $ipAddrGroup2InChainId }
         outbound_chain_id { $ipAddrGroup2OutChainId }
@@ -284,9 +284,9 @@ class VifPortCreateTranslationTest extends VifPortTranslationTest {
             .thenReturn(Promise.successful(mIpv4Dhcp).future)
         when(storage.get(classOf[Dhcp], nIpv6Subnet1Id))
             .thenReturn(Promise.successful(mIpv6Dhcp).future)
-        when(storage.get(classOf[IpAddrGroup], sgId1))
+        when(storage.get(classOf[IPAddrGroup], sgId1))
             .thenReturn(Promise.successful(ipAddrGroup1).future)
-        when(storage.get(classOf[IpAddrGroup], sgId2))
+        when(storage.get(classOf[IPAddrGroup], sgId2))
             .thenReturn(Promise.successful(ipAddrGroup2).future)
     }
 
@@ -434,28 +434,28 @@ class VifPortCreateTranslationTest extends VifPortTranslationTest {
         midoOps should containOp[Message] (midonet.Create(dropNonArpOut))
 
         // IP Address Groups.
-        val ipAddrGrp1 = mIpAddrGroupFromTxt(s"""
+        val ipAddrGrp1 = mIPAddrGroupFromTxt(s"""
             id { $sgId1 }
             ip_addr_ports {
                 ip_address { $ipv4Addr1 }
-                port_id { $portId }
+                port_ids { $portId }
             }
             ip_addr_ports {
                 ip_address { $ipv6Addr1 }
-                port_id { $portId }
+                port_ids { $portId }
             }
             inbound_chain_id { $ipAddrGroup1InChainId }
             outbound_chain_id { $ipAddrGroup1OutChainId }
             """)
-        val ipAddrGrp2 = mIpAddrGroupFromTxt(s"""
+        val ipAddrGrp2 = mIPAddrGroupFromTxt(s"""
             id { $sgId2 }
             ip_addr_ports {
                 ip_address { $ipv4Addr1 }
-                port_id { $portId }
+                port_ids { $portId }
             }
             ip_addr_ports {
                 ip_address { $ipv6Addr1 }
-                port_id { $portId }
+                port_ids { $portId }
             }
             inbound_chain_id { $ipAddrGroup2InChainId }
             outbound_chain_id { $ipAddrGroup2OutChainId }
@@ -495,8 +495,8 @@ class VifPortUpdateDeleteTranslationTest extends VifPortTranslationTest {
 //        mockGet(classOf[Network], networkId, mNetworkWithHostsAdded)
         mockGet(classOf[Port], portId, mPortWithChains)
         mockGet(classOf[NeutronPort], portId, vifPortWithFixedIps)
-        mockGet(classOf[IpAddrGroup], sgId1, ipAddrGroup1)
-        mockGet(classOf[IpAddrGroup], sgId2, ipAddrGroup2)
+        mockGet(classOf[IPAddrGroup], sgId1, ipAddrGroup1)
+        mockGet(classOf[IPAddrGroup], sgId2, ipAddrGroup2)
         mockGet(classOf[Chain], inboundChainId, inboundChain)
         mockGet(classOf[Chain], outboundChainId, outboundChain)
     }
@@ -674,20 +674,20 @@ class VifPortUpdateDeleteTranslationTest extends VifPortTranslationTest {
         outChain.getName shouldBe s"OS_PORT_${portJUuid}_OUTBOUND"
         outChain.getRuleIdsList.size shouldBe 4
 
-        val ipAddrGrp1 = mIpAddrGroupFromTxt(s"""
+        val ipAddrGrp1 = mIPAddrGroupFromTxt(s"""
             id { $sgId1 }
             ip_addr_ports {
                 ip_address { $updatedFixedIp }
-                port_id { $portId }
+                port_ids { $portId }
             }
             inbound_chain_id { $ipAddrGroup1InChainId }
             outbound_chain_id { $ipAddrGroup1OutChainId }
             """)
-        val ipAddrGrp2 = mIpAddrGroupFromTxt(s"""
+        val ipAddrGrp2 = mIPAddrGroupFromTxt(s"""
             id { $sgId2 }
             ip_addr_ports {
                 ip_address { $ipv4Addr1 }
-                port_id { $portId }
+                port_ids { $portId }
             }
             inbound_chain_id { $ipAddrGroup2InChainId }
             outbound_chain_id { $ipAddrGroup2OutChainId }
@@ -718,12 +718,12 @@ class VifPortUpdateDeleteTranslationTest extends VifPortTranslationTest {
         midoOps should contain (midonet.Delete(classOf[Chain], inboundChainId))
         midoOps should contain (midonet.Delete(classOf[Chain], outboundChainId))
 
-        val ipAddrGrp1 = mIpAddrGroupFromTxt(s"""
+        val ipAddrGrp1 = mIPAddrGroupFromTxt(s"""
             id { $sgId1 }
             inbound_chain_id { $ipAddrGroup1InChainId }
             outbound_chain_id { $ipAddrGroup1OutChainId }
             """)
-        val ipAddrGrp2 = mIpAddrGroupFromTxt(s"""
+        val ipAddrGrp2 = mIPAddrGroupFromTxt(s"""
             id { $sgId2 }
             inbound_chain_id { $ipAddrGroup2InChainId }
             outbound_chain_id { $ipAddrGroup2OutChainId }
