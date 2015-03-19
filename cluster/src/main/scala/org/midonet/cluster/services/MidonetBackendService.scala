@@ -43,7 +43,7 @@ abstract class MidonetBackend extends AbstractService {
              classOf[Chain],
              classOf[Dhcp],
              classOf[FloatingIp],
-             classOf[IpAddrGroup],
+             classOf[IPAddrGroup],
              classOf[LoadBalancer],
              classOf[Network],
              classOf[NeutronConfig],
@@ -56,6 +56,8 @@ abstract class MidonetBackend extends AbstractService {
              classOf[NeutronRouter],
              classOf[NeutronSubnet],
              classOf[NeutronVIP],
+             classOf[Pool],
+             classOf[PoolMember],
              classOf[Port],
              classOf[PortBinding],
              classOf[PortGroup],
@@ -88,6 +90,9 @@ abstract class MidonetBackend extends AbstractService {
 
         store.declareBinding(classOf[Host], "tunnel_zone_ids", CLEAR,
                              classOf[TunnelZone], "host_ids", CLEAR)
+
+        store.declareBinding(classOf[Pool], "pool_member_ids", ERROR,
+                             classOf[PoolMember], "pool_id", CLEAR)
 
         store.build()
     }

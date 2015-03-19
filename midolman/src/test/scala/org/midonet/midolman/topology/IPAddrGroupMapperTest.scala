@@ -18,6 +18,8 @@ package org.midonet.midolman.topology
 
 import java.util.UUID
 
+import org.midonet.packets.IPAddr
+
 import scala.collection.JavaConverters._
 import scala.concurrent.duration.DurationInt
 
@@ -28,7 +30,7 @@ import rx.Observable
 import rx.observers.TestObserver
 
 import org.midonet.cluster.data.storage.{NotFoundException, Storage}
-import org.midonet.cluster.models.Topology.{IpAddrGroup => TopologyIPAddrGroup}
+import org.midonet.cluster.models.Topology.{IPAddrGroup => TopologyIPAddrGroup}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.simulation.{IPAddrGroup => SimAddrGroup}
@@ -38,6 +40,8 @@ import org.midonet.util.reactivex.{AssertableObserver, AwaitableObserver}
 @RunWith(classOf[JUnitRunner])
 class IPAddrGroupMapperTest extends MidolmanSpec with TopologyBuilder
                              with TopologyMatchers {
+
+    import TopologyBuilder._
 
     private var vt: VirtualTopology = _
     private var store: Storage = _
@@ -159,17 +163,14 @@ class IPAddrGroupMapperTest extends MidolmanSpec with TopologyBuilder
     private def addIpToIPAddrGroup(ipAddrGroup: TopologyIPAddrGroup,
                                    ip: String, ports: Set[UUID])
     : TopologyIPAddrGroup = {
-
         val updatedIpAddrGroup =
-            addIPAddrPort(ipAddrGroup.toBuilder, ip, ports)
-                .build()
-
+            ipAddrGroup.addIPAddrPort(IPAddr.fromString(ip), ports)
         store.update(updatedIpAddrGroup)
         updatedIpAddrGroup
     }
 
     private def buildAndStoreIpAddrGroup(): TopologyIPAddrGroup = {
-        val ipAddrGroup = createIPAddrGroupBuilder().build()
+        val ipAddrGroup = createIPAddrGroup()
         store.create(ipAddrGroup)
         ipAddrGroup
     }

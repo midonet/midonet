@@ -26,7 +26,7 @@ import rx.Subscriber
 
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.midolman.logging.MidolmanLogging
-import org.midonet.midolman.simulation.{Bridge, Chain, IPAddrGroup, LoadBalancer, PortGroup}
+import org.midonet.midolman.simulation._
 import org.midonet.midolman.topology.VirtualTopology.Device
 import org.midonet.midolman.topology.VirtualTopologyActor.{BridgeRequest, ChainRequest, DeviceRequest, IPAddrGroupRequest, LoadBalancerRequest, PortRequest, Unsubscribe, _}
 import org.midonet.midolman.topology.devices.Port
@@ -146,6 +146,9 @@ abstract class VirtualTopologyRedirector extends Actor with MidolmanLogging {
         case r: LoadBalancerRequest =>
             log.debug("Request for load-balancer {}", r.id)
             onRequest[LoadBalancer](r)
+        case r: PoolRequest =>
+            log.debug("Request for pool {}", r.id)
+            onRequest[Pool](r)
         case u: Unsubscribe =>
             log.debug("Unsubscribe for device {} from {}", u.id, sender())
             onUnsubscribe(u.id, sender())
