@@ -146,14 +146,14 @@ class PortTranslator(protected val storage: ReadOnlyStorage)
             inRules: ListBuffer[MidoOp[Rule]],
             outRules: ListBuffer[MidoOp[Rule]],
             chains: ListBuffer[MidoOp[Chain]],
-            updatedIpAddrGrps: ListBuffer[MidoOp[IpAddrGroup]])
+            updatedIpAddrGrps: ListBuffer[MidoOp[IPAddrGroup]])
 
     private def initPortContext =
         PortContext(mutable.Map[UUID, Dhcp.Builder](),
                     ListBuffer[MidoOp[Rule]](),
                     ListBuffer[MidoOp[Rule]](),
                     ListBuffer[MidoOp[Chain]](),
-                    ListBuffer[MidoOp[IpAddrGroup]]())
+                    ListBuffer[MidoOp[IPAddrGroup]]())
 
 
     private def addMidoOps(portContext: PortContext,
@@ -254,7 +254,7 @@ class PortTranslator(protected val storage: ReadOnlyStorage)
         // Add jump rules to corresponding inbound / outbound chains of IP
         // Address Groups (Neutron's Security Groups) that the port belongs to.
         for (sgId <- nPort.getSecurityGroupsList.asScala) {
-            val ipAddrGrp = storage.get(classOf[IpAddrGroup], sgId).await()
+            val ipAddrGrp = storage.get(classOf[IPAddrGroup], sgId).await()
             // Jump rules to inbound / outbound chains of IP Address Groups
             portCtx.inRules += Create(jumpRule(inChainId,
                                                ipAddrGrp.getInboundChainId))
@@ -272,19 +272,19 @@ class PortTranslator(protected val storage: ReadOnlyStorage)
             var added = ips diff oldIps
             for (ipPorts <- updatedIpAddrG.getIpAddrPortsBuilderList.asScala) {
                 if (removed.contains(ipPorts.getIpAddress)) {
-                    val idx = ipPorts.getPortIdList.asScala
-                                                   .indexOf(portId)
-                    if (idx >= 0) ipPorts.removePortId(idx)
+                    val idx = ipPorts.getPortIdsList.asScala
+                                                    .indexOf(portId)
+                    if (idx >= 0) ipPorts.removePortIds(idx)
                 } else  if (added contains ipPorts.getIpAddress) {
                     // Exclude IPs that are already in IP Address Groups.
-                    ipPorts.addPortId(portId)
+                    ipPorts.addPortIds(portId)
                     added -= ipPorts.getIpAddress
                 }
             }
             for (newIp <- added)
                 updatedIpAddrG.addIpAddrPortsBuilder()
                               .setIpAddress(newIp)
-                              .addPortId(portId)
+                              .addPortIds(portId)
             portCtx.updatedIpAddrGrps += Update(updatedIpAddrG.build)
         }
 
@@ -334,14 +334,14 @@ class PortTranslator(protected val storage: ReadOnlyStorage)
 
         // Remove the fixed IPs from IP Address Groups
         for (sgId <- nPortOld.getSecurityGroupsList.asScala) {
-            val ipAddrG = storage.get(classOf[IpAddrGroup], sgId).await()
+            val ipAddrG = storage.get(classOf[IPAddrGroup], sgId).await()
             val updatedIpAddrG = ipAddrG.toBuilder
             val oldIps = nPortOld.getFixedIpsList.asScala.map(_.getIpAddress)
             for (ipPorts <- updatedIpAddrG.getIpAddrPortsBuilderList.asScala) {
                 if (oldIps.contains(ipPorts.getIpAddress)) {
-                    val idx = ipPorts.getPortIdList.asScala
-                                                   .indexWhere(_ == portId)
-                    if (idx >= 0) ipPorts.removePortId(idx)
+                    val idx = ipPorts.getPortIdsList.asScala
+                                                    .indexWhere(_ == portId)
+                    if (idx >= 0) ipPorts.removePortIds(idx)
                 }
             }
             portContext.updatedIpAddrGrps += Update(updatedIpAddrG.build)

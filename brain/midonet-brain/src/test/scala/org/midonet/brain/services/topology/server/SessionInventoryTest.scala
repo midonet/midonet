@@ -95,8 +95,10 @@ class SessionInventoryTest extends FeatureSpec
             val testObjects: Set[Message] = Set(
                 Chain.getDefaultInstance,
                 Host.getDefaultInstance,
-                IpAddrGroup.getDefaultInstance,
+                IPAddrGroup.getDefaultInstance,
                 Network.getDefaultInstance,
+                Pool.getDefaultInstance,
+                PoolMember.getDefaultInstance,
                 Port.getDefaultInstance,
                 PortGroup.getDefaultInstance,
                 Route.getDefaultInstance,
