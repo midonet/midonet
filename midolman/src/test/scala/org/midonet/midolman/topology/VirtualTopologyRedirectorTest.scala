@@ -526,7 +526,7 @@ class VirtualTopologyRedirectorTest extends MidolmanSpec with TopologyBuilder
         }
 
         scenario("Test that IP address groups are supported") {
-            val protoIpAddrGroup = createIPAddrGroupBuilder().build()
+            val protoIpAddrGroup = createIPAddrGroup()
             backend.store.create(protoIpAddrGroup)
             VirtualTopologyActor ! IPAddrGroupRequest(protoIpAddrGroup.getId.asJava,
                                                       update = false)
@@ -550,7 +550,7 @@ class VirtualTopologyRedirectorTest extends MidolmanSpec with TopologyBuilder
         }
 
         scenario("Test that load-balancers are supported") {
-            val vip = createVip()
+            val vip = createVIP()
             backend.store.create(vip)
             val loadBalancer = createLB(vips = Set(vip.getId.asJava))
             backend.store.create(loadBalancer)
