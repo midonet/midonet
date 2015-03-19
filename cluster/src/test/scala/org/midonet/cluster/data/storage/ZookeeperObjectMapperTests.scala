@@ -28,6 +28,8 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{Matchers, Suite}
 
+import rx.Observable
+
 import org.midonet.cluster.data.storage.FieldBinding.DeleteAction._
 import org.midonet.cluster.data.storage.ZookeeperObjectMapperTest._
 import org.midonet.cluster.models.Topology._
@@ -539,6 +541,53 @@ class ZookeeperObjectMapperTests extends Suite
         zom.multi(List(CreateOp(bridge2), CreateOp(port2)))
         await(zom.exists(classOf[PojoBridge], bridge2.id)) should equal (true)
         await(zom.exists(classOf[PojoPort], port2.id)) should equal (true)
+    }
+
+    def testFlushClosesSubscriptions() {
+        val zom2 = new ZookeeperObjectMapper(ZK_ROOT, curator)
+        initAndBuildZoom(zom2)
+
+        val bridge = pojoBridge()
+        val classObs1 = new AwaitableObserver[Observable[PojoBridge]]()
+        val classObs2 = new AwaitableObserver[Observable[PojoBridge]]()
+        zom.observable(classOf[PojoBridge]).subscribe(classObs1)
+        zom2.observable(classOf[PojoBridge]).subscribe(classObs2)
+        zom.multi(List(CreateOp(bridge)))
+
+        classObs1.await(1.second, resetCount = 1)
+        classObs1.getOnNextEvents should have size 1
+        classObs1.getOnErrorEvents should have size 0
+        classObs2.await(1.second, resetCount = 1)
+        classObs2.getOnNextEvents should have size 1
+        classObs2.getOnErrorEvents should have size 0
+
+        val instanceObs1 = new AwaitableObserver[PojoBridge]()
+        val instanceObs2 = new AwaitableObserver[PojoBridge]()
+        zom.observable(classOf[PojoBridge], bridge.id).subscribe(instanceObs1)
+        zom2.observable(classOf[PojoBridge], bridge.id).subscribe(instanceObs2)
+
+        instanceObs1.await(1.second, resetCount = 1)
+        instanceObs1.getOnNextEvents should have size 1
+        instanceObs1.getOnErrorEvents should have size 0
+        instanceObs2.await(1.second, resetCount = 1)
+        instanceObs2.getOnNextEvents should have size 1
+        instanceObs2.getOnErrorEvents should have size 0
+
+        zom.flush()
+
+        classObs1.await(1.second)
+        classObs1.getOnNextEvents should have size 1
+        classObs1.getOnErrorEvents should have size 1
+        classObs2.await(1.second)
+        classObs2.getOnNextEvents should have size 1
+        classObs2.getOnErrorEvents should have size 1
+
+        instanceObs1.await(1.second)
+        instanceObs1.getOnNextEvents should have size 1
+        instanceObs1.getOnErrorEvents should have size 1
+        instanceObs2.await(1.second)
+        instanceObs2.getOnNextEvents should have size 1
+        instanceObs2.getOnErrorEvents should have size 1
     }
 
     def testCreateExclusiveOwner(): Unit = {
