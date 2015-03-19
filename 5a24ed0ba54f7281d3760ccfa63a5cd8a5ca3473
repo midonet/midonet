@@ -34,6 +34,29 @@
       "revId": "5a24ed0ba54f7281d3760ccfa63a5cd8a5ca3473",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_2cef3eb2",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/FlowStateReplicator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 172,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-03-19T10:48:39Z",
+      "side": 1,
+      "message": "ouch.",
+      "range": {
+        "startLine": 172,
+        "startChar": 84,
+        "endLine": 172,
+        "endChar": 85
+      },
+      "revId": "5a24ed0ba54f7281d3760ccfa63a5cd8a5ca3473",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
