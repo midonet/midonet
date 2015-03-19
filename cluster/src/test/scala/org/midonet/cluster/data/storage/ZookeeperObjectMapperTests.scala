@@ -18,6 +18,8 @@ package org.midonet.cluster.data.storage
 import java.util.UUID
 import java.util.concurrent._
 
+import rx.Observable
+
 import scala.collection.JavaConverters._
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext, Future}
@@ -539,6 +541,34 @@ class ZookeeperObjectMapperTests extends Suite
         zom.multi(List(CreateOp(bridge2), CreateOp(port2)))
         await(zom.exists(classOf[PojoBridge], bridge2.id)) should equal (true)
         await(zom.exists(classOf[PojoPort], port2.id)) should equal (true)
+    }
+
+    def testFlushClosesSubscriptions() {
+        val bridge = pojoBridge()
+        val classObs = new AwaitableObserver[Observable[PojoBridge]]()
+        zom.observable(classOf[PojoBridge]).subscribe(classObs)
+        zom.multi(List(CreateOp(bridge)))
+
+        classObs.await(1.second, resetCount = 1)
+        classObs.getOnNextEvents should have size 1
+        classObs.getOnErrorEvents should have size 0
+
+        val instanceObs = new AwaitableObserver[PojoBridge]()
+        zom.observable(classOf[PojoBridge], bridge.id).subscribe(instanceObs)
+
+        instanceObs.await(1.second, resetCount = 1)
+        instanceObs.getOnNextEvents should have size 1
+        instanceObs.getOnErrorEvents should have size 0
+
+        zom.flush()
+
+        classObs.await(1.second)
+        classObs.getOnNextEvents should have size 1
+        classObs.getOnErrorEvents should have size 1
+
+        instanceObs.await(1.second)
+        instanceObs.getOnNextEvents should have size 1
+        instanceObs.getOnErrorEvents should have size 1
     }
 
     def testCreateExclusiveOwner(): Unit = {

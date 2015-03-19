@@ -657,7 +657,9 @@ class ZookeeperObjectMapper(
         updateVersionNumber()
         try {
             simpleNameToClass.clear()
-            // TODO: Need to close all class subscriptions.
+            instanceCaches.values.foreach(_.values.foreach(_.close()))
+            // Instance Caches are re-initialized by registerClassInternal.
+            classCaches.values.foreach(_.close())
             classCaches.clear()
             ownerCaches.values.foreach( _.values.foreach { _.close() })
             ownerCaches.clear()
