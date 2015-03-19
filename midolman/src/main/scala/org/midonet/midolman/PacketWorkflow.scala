@@ -106,6 +106,12 @@ trait UnderlayTrafficHandler { this: PacketWorkflow =>
     }
 
     private def handleFromUnderlay(context: PacketContext): SimulationResult = {
+        if (context.hasTraceTunnelBit) {
+            context.enableTracingOnEgress()
+        }
+        context.log.debug(s"Received packet matching ${context.origMatch}" +
+                              " from underlay")
+
         val tunnelKey = context.wcmatch.getTunnelKey
         dpState.dpPortNumberForTunnelKey(tunnelKey) match {
             case Some(dpPort) =>
@@ -170,6 +176,11 @@ class PacketWorkflow(protected val dpState: DatapathState,
             context.log.warn(s"Tried to add a flow for a generated packet")
             context.runFlowRemovedCallbacks()
             GeneratedPacket
+        } else if (context.hasTraceTunnelBit) {
+            // don't create a flow for traced contexts on the egress host
+            context.log.warn("Skipping flow creation for traced flow on egress")
+            context.runFlowRemovedCallbacks()
+            NoOp
         } else {
             logResultNewFlow("will create flow", context)
             context.origMatch.propagateSeenFieldsFrom(context.wcmatch)
@@ -237,6 +248,8 @@ class PacketWorkflow(protected val dpState: DatapathState,
 
     def processSimulationResult(context: PacketContext,
                                 result: SimulationResult): SimulationResult = {
+        context.addTraceKeysForEgress()
+
         result match {
             case AddVirtualWildcardFlow =>
                 context.expiration = EXPIRATION_MILLIS
