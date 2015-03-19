@@ -46,8 +46,8 @@ class PoolManagerTest extends TestKit(ActorSystem("PoolManagerTest"))
         scenario("Load pool with two PoolMembers") {
             Given("a pool with two PoolMembers")
             val loadBalancer = createLoadBalancer()
-            val pool = createPool(loadBalancer)
-            val poolMembers = (0 until 2).map(_ => createPoolMember(pool))
+            val pool = newPool(loadBalancer)
+            val poolMembers = (0 until 2).map(_ => newPoolMember(pool))
             val poolMemberIds = poolMembers.map(v => v.getId).toSet
             poolMembers.size shouldBe 2
 
@@ -67,8 +67,8 @@ class PoolManagerTest extends TestKit(ActorSystem("PoolManagerTest"))
         scenario("Receive update when a PoolMember is added") {
             Given("a pool with one PoolMember")
             val loadBalancer = createLoadBalancer()
-            val pool = createPool(loadBalancer)
-            val firstPoolMember = createPoolMember(pool)
+            val pool = newPool(loadBalancer)
+            val firstPoolMember = newPoolMember(pool)
 
             When("the VTA receives a subscription request for the pool")
             vta.self ! PoolRequest(pool.getId, update = true)
@@ -80,7 +80,7 @@ class PoolManagerTest extends TestKit(ActorSystem("PoolManagerTest"))
             vta.getAndClear()
 
             And("a new PoolMember is added")
-            val secondPoolMember = createPoolMember(pool)
+            val secondPoolMember = newPoolMember(pool)
 
             Then("the VTA should send an update")
             val p3 = expectMsgType[Pool]
@@ -95,8 +95,8 @@ class PoolManagerTest extends TestKit(ActorSystem("PoolManagerTest"))
         scenario("Receive update when a PoolMember is removed") {
             Given("a pool with one PoolMember")
             val loadBalancer = createLoadBalancer()
-            val pool = createPool(loadBalancer)
-            val firstPoolMember = createPoolMember(pool)
+            val pool = newPool(loadBalancer)
+            val firstPoolMember = newPoolMember(pool)
 
             When("the VTA receives a subscription request for it")
             vta.self ! PoolRequest(pool.getId, update = true)
@@ -122,8 +122,8 @@ class PoolManagerTest extends TestKit(ActorSystem("PoolManagerTest"))
         scenario("Receive update when a PoolMember is changed") {
             Given("a pool with one PoolMember")
             val loadBalancer = createLoadBalancer()
-            val pool = createPool(loadBalancer)
-            val firstPoolMember = createPoolMember(pool)
+            val pool = newPool(loadBalancer)
+            val firstPoolMember = newPoolMember(pool)
             firstPoolMember.getAdminStateUp shouldBe true
 
             When("the VTA receives a subscription request for it")
@@ -153,7 +153,7 @@ class PoolManagerTest extends TestKit(ActorSystem("PoolManagerTest"))
         scenario("Create a pool with adminStateUp = true") {
             Given("A pool created with adminStateUp = true")
             val loadBalancer = createLoadBalancer()
-            val pool = createPool(loadBalancer)
+            val pool = newPool(loadBalancer)
 
             When("the VTA receives a request for it")
             vta.self ! PoolRequest(pool.getId)
@@ -166,7 +166,7 @@ class PoolManagerTest extends TestKit(ActorSystem("PoolManagerTest"))
         scenario("Create a pool with adminStateUp = false") {
             Given("a pool created with adminStateUp = false")
             val loadBalancer = createLoadBalancer()
-            val pool = createPool(loadBalancer, adminStateUp = false)
+            val pool = newPool(loadBalancer, adminStateUp = false)
 
             When("the VTA receives a request for it")
             vta.self ! PoolRequest(pool.getId)
@@ -179,7 +179,7 @@ class PoolManagerTest extends TestKit(ActorSystem("PoolManagerTest"))
         scenario("Update pool's adminStateUp property") {
             Given("a pool created with adminStateUp = false")
             val loadBalancer = createLoadBalancer()
-            val pool = createPool(loadBalancer, adminStateUp = false)
+            val pool = newPool(loadBalancer, adminStateUp = false)
             vta.self ! PoolRequest(pool.getId, update = true)
             val simPool1 = expectMsgType[Pool]
             simPool1.adminStateUp shouldBe false
@@ -211,7 +211,7 @@ class PoolManagerTest extends TestKit(ActorSystem("PoolManagerTest"))
         scenario("Create a pool with lbMethod = 'ROUND_ROBIN'") {
             Given("A pool created with lbMethod = 'ROUND_ROBIN'")
             val loadBalancer = createLoadBalancer()
-            val pool = createPool(loadBalancer, lbMethod = PoolLBMethod.ROUND_ROBIN)
+            val pool = newPool(loadBalancer, lbMethod = PoolLBMethod.ROUND_ROBIN)
 
             When("the VTA receives a request for it")
             vta.self ! PoolRequest(pool.getId)
@@ -224,7 +224,7 @@ class PoolManagerTest extends TestKit(ActorSystem("PoolManagerTest"))
         scenario("Update pool's lbMethod property") {
             Given("a pool created with lbMethod = 'ROUND_ROBIN'")
             val loadBalancer = createLoadBalancer()
-            val pool = createPool(loadBalancer, lbMethod = PoolLBMethod.ROUND_ROBIN)
+            val pool = newPool(loadBalancer, lbMethod = PoolLBMethod.ROUND_ROBIN)
             vta.self ! PoolRequest(pool.getId, update = true)
             val simPool1 = expectMsgType[Pool]
             simPool1.lbMethod shouldBe PoolLBMethod.ROUND_ROBIN

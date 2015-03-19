@@ -16,6 +16,19 @@
 
 package org.midonet.midolman.state.l4lb;
 
+import org.midonet.cluster.data.ZoomEnum;
+import org.midonet.cluster.data.ZoomEnumValue;
+import org.midonet.cluster.models.Commons;
+import org.midonet.cluster.models.Topology;
+
+@ZoomEnum(clazz = Commons.LBStatus.class)
 public enum LBStatus {
-    ACTIVE, INACTIVE
+    @ZoomEnumValue(value = "ACTIVE")
+    ACTIVE,
+    @ZoomEnumValue(value = "INACTIVE")
+    INACTIVE;
+
+    public static LBStatus fromProto(Commons.LBStatus proto) {
+        return LBStatus.valueOf(proto.toString());
+    }
 }
