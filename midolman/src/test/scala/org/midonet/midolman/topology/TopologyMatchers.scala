@@ -18,28 +18,34 @@ package org.midonet.midolman.topology
 import scala.collection.JavaConverters._
 
 import com.google.protobuf.MessageOrBuilder
+
 import org.scalatest.Matchers
 
-import org.midonet.cluster.models.Topology.{IpAddrGroup => TopologyIPAddrGroup, Network => TopologyBridge}
-import org.midonet.cluster.models.Topology.{Port => TopologyPort, Rule => TopologyRule}
+import org.midonet.cluster.models.Commons.LBStatus
+import org.midonet.cluster.models.Topology.{IpAddrGroup => TopologyIPAddrGroup,
+                                            Network => TopologyBridge,
+                                            Port => TopologyPort,
+                                            Rule => TopologyRule,
+                                            Pool => TopologyPool,
+                                            PoolMember => TopologyPoolMember}
 import org.midonet.cluster.util.IPAddressUtil._
 import org.midonet.cluster.util.IPSubnetUtil._
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.cluster.util.{IPSubnetUtil, RangeUtil}
 import org.midonet.midolman.rules.{Condition, ForwardNatRule, JumpRule, NatRule, NatTarget, Rule}
-import org.midonet.midolman.simulation.{Bridge, IPAddrGroup}
+import org.midonet.midolman.simulation.{Pool, PoolMember, Bridge, IPAddrGroup}
+import org.midonet.midolman.state.l4lb
 import org.midonet.midolman.topology.TopologyMatchers._
 import org.midonet.midolman.topology.devices.{BridgePort, Port, RouterPort, VxLanPort}
 import org.midonet.packets.MAC
 
 object TopologyMatchers {
 
-    trait DeviceMatcher[M <: MessageOrBuilder] {
+    trait DeviceMatcher[M <: MessageOrBuilder] extends Matchers {
         def shouldBeDeviceOf(d: M): Unit
     }
 
-    abstract class PortMatcher(val port: Port) extends Matchers
-                                               with DeviceMatcher[TopologyPort] {
+    abstract class PortMatcher(val port: Port) extends DeviceMatcher[TopologyPort] {
         override def shouldBeDeviceOf(p: TopologyPort) = {
             port.id shouldBe p.getId.asJava
             port.inboundFilter shouldBe (if (p.hasInboundFilterId)
@@ -58,8 +64,7 @@ object TopologyMatchers {
         }
     }
 
-    class BridgePortMatcher(port: BridgePort)
-        extends PortMatcher(port) {
+    class BridgePortMatcher(port: BridgePort) extends PortMatcher(port) {
         override def shouldBeDeviceOf(p: TopologyPort): Unit = {
             super.shouldBeDeviceOf(p)
             port.networkId shouldBe (if (p.hasNetworkId)
@@ -67,8 +72,7 @@ object TopologyMatchers {
         }
     }
 
-    class RouterPortMatcher(port: RouterPort)
-        extends PortMatcher(port) {
+    class RouterPortMatcher(port: RouterPort) extends PortMatcher(port) {
         override def shouldBeDeviceOf(p: TopologyPort): Unit = {
             super.shouldBeDeviceOf(p)
             port.routerId shouldBe (if (p.hasRouterId)
@@ -82,16 +86,14 @@ object TopologyMatchers {
         }
     }
 
-    class VxLanPortMatcher(port: VxLanPort)
-        extends PortMatcher(port) {
+    class VxLanPortMatcher(port: VxLanPort) extends PortMatcher(port) {
         override def shouldBeDeviceOf(p: TopologyPort): Unit = {
             super.shouldBeDeviceOf(p)
             port.vtepId shouldBe (if (p.hasVtepId) p.getVtepId.asJava else null)
         }
     }
 
-    class BridgeMatcher(bridge: Bridge) extends Matchers
-                                        with DeviceMatcher[TopologyBridge] {
+    class BridgeMatcher(bridge: Bridge) extends DeviceMatcher[TopologyBridge] {
         override def shouldBeDeviceOf(b: TopologyBridge): Unit = {
             bridge.id shouldBe b.getId.asJava
             bridge.adminStateUp shouldBe b.getAdminStateUp
@@ -105,8 +107,7 @@ object TopologyMatchers {
         }
     }
 
-    class RuleMatcher(rule: Rule) extends Matchers
-                                  with DeviceMatcher[TopologyRule]
+    class RuleMatcher(rule: Rule) extends DeviceMatcher[TopologyRule]
                                   with TopologyMatchers {
         override def shouldBeDeviceOf(r: TopologyRule): Unit = {
             r.getId.asJava shouldBe rule.id
@@ -155,8 +156,7 @@ object TopologyMatchers {
         }
     }
 
-    class ConditionMatcher(cond: Condition) extends Matchers
-                                            with DeviceMatcher[TopologyRule] {
+    class ConditionMatcher(cond: Condition) extends DeviceMatcher[TopologyRule] {
         override def shouldBeDeviceOf(r: TopologyRule): Unit = {
             r.getConjunctionInv shouldBe cond.conjunctionInv
             r.getMatchForwardFlow shouldBe cond.matchForwardFlow
@@ -205,15 +205,34 @@ object TopologyMatchers {
     }
 
     class IPAddrGroupMatcher(ipAddrGroup: IPAddrGroup)
-        extends Matchers
-        with DeviceMatcher[TopologyIPAddrGroup] {
-
+        extends DeviceMatcher[TopologyIPAddrGroup] {
         override def shouldBeDeviceOf(i: TopologyIPAddrGroup): Unit = {
             i.getId.asJava shouldBe ipAddrGroup.id
             ipAddrGroup.addrs should contain theSameElementsAs
                 i.getIpAddrPortsList.asScala.map(ipAddrPort =>
                     toIPAddr(ipAddrPort.getIpAddress)
                 )
+        }
+    }
+
+    class PoolMatcher(pool: Pool) extends DeviceMatcher[TopologyPool] {
+        override def shouldBeDeviceOf(p: TopologyPool): Unit = {
+            pool.id shouldBe p.getId.asJava
+            pool.adminStateUp shouldBe p.getAdminStateUp
+        }
+    }
+
+    class PoolMemberMatcher(poolMember: PoolMember)
+        extends DeviceMatcher[TopologyPoolMember] {
+        override def shouldBeDeviceOf(pm: TopologyPoolMember): Unit = {
+            poolMember.id shouldBe pm.getId.asJava
+            poolMember.adminStateUp shouldBe pm.getAdminStateUp
+            poolMember.status shouldBe (if (pm.hasStatus)
+                l4lb.LBStatus.fromProto(pm.getStatus) else l4lb.LBStatus.INACTIVE)
+            poolMember.address shouldBe (if (pm.hasAddress)
+                pm.getAddress.asIPv4Address else null)
+            poolMember.protocolPort shouldBe pm.getPort
+            poolMember.weight shouldBe pm.getWeight
         }
     }
 }
@@ -254,4 +273,10 @@ trait TopologyMatchers {
 
     implicit def asMatcher(ipAddrGroup: IPAddrGroup): IPAddrGroupMatcher =
         new IPAddrGroupMatcher(ipAddrGroup)
+
+    implicit def asMatcher(pool: Pool): PoolMatcher =
+        new PoolMatcher(pool)
+
+    implicit def asMatcher(poolMember: PoolMember): PoolMemberMatcher =
+        new PoolMemberMatcher(poolMember)
 }

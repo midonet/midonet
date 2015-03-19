@@ -20,6 +20,7 @@ import java.lang.reflect.{Array => JArray, Field, InvocationTargetException, Par
 import java.util
 import java.util.{List => JList, Set => JSet, HashSet => JHashSet}
 
+import scala.annotation.meta.field
 import scala.collection.concurrent.TrieMap
 import scala.collection.JavaConversions._
 import scala.collection.mutable
@@ -40,6 +41,9 @@ import com.google.protobuf.{ByteString, Descriptors, MessageOrBuilder}
  * parameter-less constructor.
  */
 object ZoomConvert {
+
+    type ScalaZoomField = ZoomField @field
+
     private final val BuilderMethod = "newBuilder"
     private final val DescriptorMethod = "getDescriptor"
 
