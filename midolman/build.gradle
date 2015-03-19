@@ -289,4 +289,27 @@ task manpages() {
         }
     }
 }
+
+// run cassandra tests in series. Otherwise they interfere with each other
+task testCassandra(type:Test, dependsOn: testClasses) {
+    include 'org/midonet/midolman/logging/FlowTracingSchemaTest.class',
+            'org/midonet/midolman/state/FlowStateStorageTest.class'
+    outputs.upToDateWhen { false }
+}
+
+test {
+    dependsOn testCassandra
+    exclude 'org/midonet/midolman/logging/FlowTracingSchemaTest.class',
+            'org/midonet/midolman/state/FlowStateStorageTest.class'
+    reports.html.enabled = false
+}
+
+task testReport(type: TestReport, dependsOn: test) {
+    destinationDir = file("$buildDir/reports/tests")
+    // Include the results from the `test` task in all subprojects
+    reportOn test, testCassandra
+}
+
+test.finalizedBy(testReport)
+
 preparePkg.dependsOn manpages
