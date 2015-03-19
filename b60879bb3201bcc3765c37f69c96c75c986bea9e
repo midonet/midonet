@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3a1371a2_d1e8c17e",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/TopologyBuilder.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 426,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-03-19T04:25:15Z",
+      "side": 1,
+      "message": "You don\u0027t need to call build() on the sub-message. If you call build on the top-level message, it\u0027ll recursively call build internally. This part can be rewritten as follows:\n\n\nbuilder.addIpAddrPortsBuilder()\n          .setIpAddress(ip.asProtoIPAddress)\n          .addAllPortId(ports.map(_.asProto).asJava)\nbuilder",
+      "revId": "b60879bb3201bcc3765c37f69c96c75c986bea9e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
