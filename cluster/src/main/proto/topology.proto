@@ -26,17 +26,19 @@ enum Type {
     HOST = 2;
     IP_ADDR_GROUP = 3;
     NETWORK = 4;
-    PORT = 5;
-    PORT_GROUP = 6;
-    ROUTE = 7;
-    ROUTER = 8;
-    LOAD_BALANCER = 9;
-    VIRTUAL_IP = 10;
-    RULE = 11;
-    TUNNEL_ZONE = 12;
-    VTEP = 13;
-    VTEP_BINDING = 14;
-    DHCP=15;
+    POOL = 5;
+    POOL_MEMBER = 6;
+    PORT = 7;
+    PORT_GROUP = 8;
+    ROUTE = 9;
+    ROUTER = 10;
+    LOAD_BALANCER = 11;
+    VIRTUAL_IP = 12;
+    RULE = 13;
+    TUNNEL_ZONE = 14;
+    VTEP = 15;
+    VTEP_BINDING = 16;
+    DHCP=17;
 }
 
 message Network {
@@ -161,15 +163,15 @@ message PortGroup {
     repeated UUID port_ids = 101;
 }
 
-message IpAddrGroup {
+message IPAddrGroup {
     optional UUID id = 1;
     optional string name = 2;
 
-    message IpAddrPorts {
+    message IPAddrPorts {
         optional IPAddress ip_address = 1;
-        repeated UUID port_id = 2;
+        repeated UUID port_ids = 2;
     }
-    repeated IpAddrPorts ip_addr_ports = 3;
+    repeated IPAddrPorts ip_addr_ports = 3;
 
     optional UUID inbound_chain_id = 4;
     optional UUID outbound_chain_id = 5;
@@ -394,4 +396,29 @@ message Host {
 
     // Backreference. Expected to be set from the Tunnel Zone side.
     repeated UUID tunnel_zone_ids = 101;
+}
+
+message Pool {
+    enum PoolProtocol { TCP = 1; }
+    enum PoolLBMethod { ROUND_ROBIN = 1; }
+
+    optional UUID id = 1;
+    optional UUID health_monitor_id = 2;
+    optional UUID load_balancer_id = 3;
+    optional bool admin_state_up = 4;
+
+    optional PoolProtocol protocol = 5;
+    optional PoolLBMethod lb_method = 6;
+
+    repeated UUID pool_member_ids = 101;
+}
+
+message PoolMember {
+    optional UUID id = 1;
+    optional bool admin_state_up = 2;
+    optional UUID pool_id = 3;
+    optional LBStatus status = 4;
+    optional IPAddress address = 5;
+    optional int32 port = 6;
+    optional int32 weight = 7;
 }

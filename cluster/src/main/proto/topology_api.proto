@@ -182,18 +182,20 @@ message Response {
             Chain chain = 1;
             Dhcp dhcp = 2;
             Host host = 3;
-            IpAddrGroup ip_addr_group = 4;
+            IPAddrGroup ip_addr_group = 4;
             Network network = 5;
-            Port port = 6;
-            PortGroup port_group = 7;
-            Route route = 8;
-            Router router = 9;
-            LoadBalancer load_balancer = 10;
-            VIP vip = 11;
-            Rule rule = 12;
-            TunnelZone tunnel_zone = 13;
-            Vtep vtep = 14;
-            VtepBinding vtep_binding = 15;
+            Pool pool = 6;
+            PoolMember pool_member = 7;
+            Port port = 8;
+            PortGroup port_group = 9;
+            Route route = 10;
+            Router router = 11;
+            LoadBalancer load_balancer = 12;
+            VIP vip = 13;
+            Rule rule = 14;
+            TunnelZone tunnel_zone = 15;
+            Vtep vtep = 16;
+            VtepBinding vtep_binding = 17;
         }
     }
     message Snapshot {

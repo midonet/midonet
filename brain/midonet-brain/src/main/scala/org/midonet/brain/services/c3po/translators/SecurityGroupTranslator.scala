@@ -25,7 +25,7 @@ import org.midonet.brain.services.c3po.midonet._
 import org.midonet.cluster.data.storage.{NotFoundException, ReadOnlyStorage}
 import org.midonet.cluster.models.Commons.{Int32Range, RuleDirection, UUID}
 import org.midonet.cluster.models.Neutron.{SecurityGroup, SecurityGroupRule}
-import org.midonet.cluster.models.Topology.{Chain, IpAddrGroup, Rule}
+import org.midonet.cluster.models.Topology.{Chain, IPAddrGroup, Rule}
 import org.midonet.cluster.util.{IPSubnetUtil, UUIDUtil}
 import org.midonet.util.StringUtil.indent
 import org.midonet.util.concurrent.toFutureOps
@@ -35,7 +35,7 @@ class SecurityGroupTranslator(storage: ReadOnlyStorage)
     import org.midonet.brain.services.c3po.translators.SecurityGroupTranslator._
 
     private case class TranslatedSecurityGroup(
-            ipAddrGroup: IpAddrGroup,
+            ipAddrGroup: IPAddrGroup,
             inboundChain: Chain, inboundRules: List[Rule],
             outboundChain: Chain, outboundRules: List[Rule]) {
 
@@ -147,7 +147,7 @@ class SecurityGroupTranslator(storage: ReadOnlyStorage)
         ops ++= sgrs.map(sgr => Delete(classOf[Rule], sgr.getId))
         ops += Delete(classOf[Chain], inChainId(sgId))
         ops += Delete(classOf[Chain], outChainId(sgId))
-        ops += Delete(classOf[IpAddrGroup], sgId)
+        ops += Delete(classOf[IPAddrGroup], sgId)
         ops.toList
     }
 
@@ -233,8 +233,8 @@ class SecurityGroupTranslator(storage: ReadOnlyStorage)
 
     private def createIpAddrGroup(sg: SecurityGroup,
                                   inboundChainId: UUID,
-                                  outboundChainId: UUID): IpAddrGroup = {
-        IpAddrGroup.newBuilder
+                                  outboundChainId: UUID): IPAddrGroup = {
+        IPAddrGroup.newBuilder
             .setId(sg.getId)
             .setName(sg.getName)
             .setInboundChainId(inboundChainId)

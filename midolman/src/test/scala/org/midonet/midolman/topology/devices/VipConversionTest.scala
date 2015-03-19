@@ -36,7 +36,7 @@ class VipConversionTest extends FeatureSpec
 
     feature("Conversion for VIP") {
         scenario("From Protocol Buffer message") {
-            val proto = createVip(adminStateUp = Some(true),
+            val proto = createVIP(adminStateUp = Some(true),
                                   poolId = Some(UUID.randomUUID()),
                                   address = Some("192.168.0.1"),
                                   protocolPort = Some(7777),

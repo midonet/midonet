@@ -43,7 +43,7 @@ class RouterManagerTest extends TestKit(ActorSystem("RouterManagerTest"))
         scenario("Create router with loadbalancer") {
             Given("a router with one loadbalancer")
             val router = newRouter("router1")
-            val loadBalancer = createLoadBalancer()
+            val loadBalancer = newLoadBalancer()
             setLoadBalancerOnRouter(loadBalancer, router)
 
             When("the VTA receives a request for the router")
@@ -67,7 +67,7 @@ class RouterManagerTest extends TestKit(ActorSystem("RouterManagerTest"))
         }
         scenario("The load balancer gets updated when the routerId changes") {
             Given ("a load balancer")
-            val loadBalancer = createLoadBalancer()
+            val loadBalancer = newLoadBalancer()
             vta.self ! LoadBalancerRequest(loadBalancer.getId, update = true)
 
             var lb = expectMsgType[LoadBalancer]

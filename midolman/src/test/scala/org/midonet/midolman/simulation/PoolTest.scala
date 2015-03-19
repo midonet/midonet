@@ -166,13 +166,13 @@ class PoolTest extends MidolmanSpec {
         }
 
         // Create loadbalancer topology
-        loadBalancer = createLoadBalancer()
+        loadBalancer = newLoadBalancer()
         setLoadBalancerOnRouter(loadBalancer, router)
         loadBalancer.setRouterId(router.getId)
-        val pool = createPool(loadBalancer)
+        val pool = newPool(loadBalancer)
         vip = createVip(pool, vipIp.toUnicastString, vipPort)
         poolMembers = (0 until numBackends) map {
-            n => createPoolMember(pool, ipsBackendSide(n).toUnicastString,
+            n => newPoolMember(pool, ipsBackendSide(n).toUnicastString,
                 vipPort)
         }
 

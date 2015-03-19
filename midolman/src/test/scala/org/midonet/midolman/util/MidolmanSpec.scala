@@ -21,12 +21,8 @@ import scala.collection.JavaConversions._
 
 import com.google.inject._
 import com.typesafe.config.{ConfigFactory, Config}
-import org.scalatest.BeforeAndAfter
-import org.scalatest.FeatureSpecLike
-import org.scalatest.GivenWhenThen
-import org.scalatest.Matchers
-import org.scalatest.OneInstancePerTest
 
+import org.scalatest.{BeforeAndAfter, FeatureSpecLike, GivenWhenThen, Matchers, OneInstancePerTest}
 import org.midonet.cluster.services.{MidonetBackend, LegacyStorageService}
 import org.midonet.cluster.storage.{MidonetBackendTestModule, StateStorageModule}
 import org.midonet.conf.MidoTestConfigurator
