@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3a1371a2_4c49dacf",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/ChainMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-19T11:01:22Z",
+      "side": 1,
+      "message": "Minor comment: some scaladoc for this class and its public members could be nice.",
+      "range": {
+        "startLine": 66,
+        "startChar": 4,
+        "endLine": 77,
+        "endChar": 5
+      },
+      "revId": "eb42e81105058a085b5f893f3d9f874f29a14110",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_8c2bd2ea",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/ChainMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-19T11:01:22Z",
+      "side": 1,
+      "message": "Make user friendly.",
+      "range": {
+        "startLine": 124,
+        "startChar": 38,
+        "endLine": 124,
+        "endChar": 49
+      },
+      "revId": "eb42e81105058a085b5f893f3d9f874f29a14110",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_cc830acb",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/ChainMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 131,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-19T11:01:22Z",
+      "side": 1,
+      "message": "Just a minor comment related to performance: why not avoiding finding the element in the hash map, by storing the result in a local val? In know the asymptotic performance in each case is O(1), but yet the amount of code executed is quite different. This could become.\n\n  ipAddrGroups get ipAddrGroupId match {\n    case Some(ipAddrGroup) \u003d\u003e ipAddrGroup.refCount +\u003d 1\n    case None \u003d\u003e\n      val ipAddrGroup \u003d new IPAddrGroupState(ipAddrGroupId, vt)\n      ipAddrGroups +\u003d ipAddrGroupId -\u003e ipAddrGroupState\n      ipAddrGroupStream onNext ipAddrGroups(ipAddrGroupId).observable\n  }\n\nThe same comment applies to other places where you call HashMap.apply repeatedly for the same key.",
+      "range": {
+        "startLine": 123,
+        "startChar": 8,
+        "endLine": 131,
+        "endChar": 9
+      },
+      "revId": "eb42e81105058a085b5f893f3d9f874f29a14110",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_6c301657",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/ChainMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 138,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-19T11:01:22Z",
+      "side": 1,
+      "message": "Same here.",
+      "range": {
+        "startLine": 138,
+        "startChar": 42,
+        "endLine": 138,
+        "endChar": 53
+      },
+      "revId": "eb42e81105058a085b5f893f3d9f874f29a14110",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
