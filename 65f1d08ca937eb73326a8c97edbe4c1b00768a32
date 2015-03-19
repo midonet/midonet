@@ -16,6 +16,23 @@
       "revId": "65f1d08ca937eb73326a8c97edbe4c1b00768a32",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_622bfd82",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/flows/FlowLifecycle.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-03-19T15:30:33Z",
+      "side": 1,
+      "message": "removeFlow",
+      "revId": "65f1d08ca937eb73326a8c97edbe4c1b00768a32",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
