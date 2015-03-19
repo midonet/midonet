@@ -272,19 +272,19 @@ class PortTranslator(protected val storage: ReadOnlyStorage)
             var added = ips diff oldIps
             for (ipPorts <- updatedIpAddrG.getIpAddrPortsBuilderList.asScala) {
                 if (removed.contains(ipPorts.getIpAddress)) {
-                    val idx = ipPorts.getPortIdList.asScala
-                                                   .indexOf(portId)
-                    if (idx >= 0) ipPorts.removePortId(idx)
+                    val idx = ipPorts.getPortIdsList.asScala
+                                                    .indexOf(portId)
+                    if (idx >= 0) ipPorts.removePortIds(idx)
                 } else  if (added contains ipPorts.getIpAddress) {
                     // Exclude IPs that are already in IP Address Groups.
-                    ipPorts.addPortId(portId)
+                    ipPorts.addPortIds(portId)
                     added -= ipPorts.getIpAddress
                 }
             }
             for (newIp <- added)
                 updatedIpAddrG.addIpAddrPortsBuilder()
                               .setIpAddress(newIp)
-                              .addPortId(portId)
+                              .addPortIds(portId)
             portCtx.updatedIpAddrGrps += Update(updatedIpAddrG.build)
         }
 
@@ -339,9 +339,9 @@ class PortTranslator(protected val storage: ReadOnlyStorage)
             val oldIps = nPortOld.getFixedIpsList.asScala.map(_.getIpAddress)
             for (ipPorts <- updatedIpAddrG.getIpAddrPortsBuilderList.asScala) {
                 if (oldIps.contains(ipPorts.getIpAddress)) {
-                    val idx = ipPorts.getPortIdList.asScala
-                                                   .indexWhere(_ == portId)
-                    if (idx >= 0) ipPorts.removePortId(idx)
+                    val idx = ipPorts.getPortIdsList.asScala
+                                                    .indexWhere(_ == portId)
+                    if (idx >= 0) ipPorts.removePortIds(idx)
                 }
             }
             portContext.updatedIpAddrGrps += Update(updatedIpAddrG.build)

@@ -539,7 +539,7 @@ class VirtualTopologyRedirectorTest extends MidolmanSpec with TopologyBuilder
         }
 
         scenario("Test that IPAddrGroups are supported") {
-            val protoIpAddrGroup = createIPAddrGroupBuilder().build()
+            val protoIpAddrGroup = createIPAddrGroup()
             backend.store.create(protoIpAddrGroup)
             VirtualTopologyActor ! IPAddrGroupRequest(protoIpAddrGroup.getId.asJava,
                                                       update = false)

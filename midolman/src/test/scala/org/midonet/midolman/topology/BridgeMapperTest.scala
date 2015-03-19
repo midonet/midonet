@@ -58,7 +58,7 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
     registerActors(FlowController -> (() => new FlowController
                                                 with MessageAccumulator))
 
-    def fc = FlowController.as[FlowController with MessageAccumulator]
+    def fc = FlowController
 
     protected override def beforeTest(): Unit = {
         vt = injector.getInstance(classOf[VirtualTopology])
