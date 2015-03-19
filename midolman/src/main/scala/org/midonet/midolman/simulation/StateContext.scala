@@ -36,6 +36,11 @@ trait StateContext extends FlowState
         this.natTx = natTx
         this.natLeaser = natLeaser
         this.traceTx = traceTx
+
+        if (hasTraceTunnelBit(origMatch)) {
+            enableTracingFromTable()
+            stripTraceBit(origMatch, wcmatch)
+        }
     }
 
     def containsForwardStateKeys =
