@@ -1,0 +1,250 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3a1371a2_024b292c",
+        "filename": "cluster/src/main/java/org/midonet/cluster/config/ZookeeperConfig.java",
+        "patchSetId": 5
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-03-19T17:09:03Z",
+      "side": 1,
+      "message": "Delete the file, it\u0027s empty.",
+      "revId": "b6e1f0f1dc8158eed42c44b0eb6f0ddb8a7e4e05",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_a214d5f5",
+        "filename": "midolman/src/deb/bin/mm-conf",
+        "patchSetId": 5
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-03-19T17:09:03Z",
+      "side": 1,
+      "message": "2015",
+      "range": {
+        "startLine": 3,
+        "startChar": 12,
+        "endLine": 3,
+        "endChar": 16
+      },
+      "revId": "b6e1f0f1dc8158eed42c44b0eb6f0ddb8a7e4e05",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_a22b352f",
+        "filename": "midolman/src/main/java/org/midonet/midolman/config/ArpTableConfig.java",
+        "patchSetId": 5
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-03-19T17:09:03Z",
+      "side": 1,
+      "message": "delete empty file.",
+      "range": {
+        "startLine": 20,
+        "startChar": 11,
+        "endLine": 20,
+        "endChar": 18
+      },
+      "revId": "b6e1f0f1dc8158eed42c44b0eb6f0ddb8a7e4e05",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_822c394c",
+        "filename": "midolman/src/main/java/org/midonet/midolman/config/HealthMonitorConfig.java",
+        "patchSetId": 5
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-03-19T17:09:03Z",
+      "side": 1,
+      "message": "delete empty file.",
+      "range": {
+        "startLine": 20,
+        "startChar": 11,
+        "endLine": 20,
+        "endChar": 18
+      },
+      "revId": "b6e1f0f1dc8158eed42c44b0eb6f0ddb8a7e4e05",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_a2edf58d",
+        "filename": "midolman/src/main/java/org/midonet/midolman/host/guice/HostConfigProvider.java",
+        "patchSetId": 5
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-03-19T17:09:03Z",
+      "side": 1,
+      "message": "empty file",
+      "range": {
+        "startLine": 18,
+        "startChar": 18,
+        "endLine": 18,
+        "endChar": 24
+      },
+      "revId": "b6e1f0f1dc8158eed42c44b0eb6f0ddb8a7e4e05",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_e2e36d03",
+        "filename": "midolman/src/main/resources/org/midonet/conf/agent.schema",
+        "patchSetId": 5
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-03-19T17:09:03Z",
+      "side": 1,
+      "message": "This doesn\u0027t make sense here. By the time you read this value, you\u0027ll already have set up your session. Same goes for root_key, and probably all zookeeper configs.",
+      "revId": "b6e1f0f1dc8158eed42c44b0eb6f0ddb8a7e4e05",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_62c13de4",
+        "filename": "midolman/src/main/scala/org/midonet/cluster/services/StorageService.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-03-19T17:09:03Z",
+      "side": 1,
+      "message": "2015",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "b6e1f0f1dc8158eed42c44b0eb6f0ddb8a7e4e05",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_c26d9106",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/FlowController.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 305,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-03-19T17:09:03Z",
+      "side": 1,
+      "message": "Is this intentionally still here?",
+      "range": {
+        "startLine": 305,
+        "startChar": 34,
+        "endLine": 305,
+        "endChar": 36
+      },
+      "revId": "b6e1f0f1dc8158eed42c44b0eb6f0ddb8a7e4e05",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_42588156",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/management/DripMain.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-03-19T17:09:03Z",
+      "side": 1,
+      "message": "This looks like test code",
+      "revId": "b6e1f0f1dc8158eed42c44b0eb6f0ddb8a7e4e05",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_8231d90d",
+        "filename": "midolman/src/main/scala/org/midonet/quagga/BgpdProcess.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-03-19T17:09:03Z",
+      "side": 1,
+      "message": "Do we know that noone is using bgpd in any other location? I guess it\u0027s ok since we only support ubuntu and redhat.",
+      "revId": "b6e1f0f1dc8158eed42c44b0eb6f0ddb8a7e4e05",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_62365d05",
+        "filename": "midonet-api/src/main/java/org/midonet/cluster/config/ZookeeperConfig.java",
+        "patchSetId": 5
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-03-19T17:09:03Z",
+      "side": 1,
+      "message": "2015",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "b6e1f0f1dc8158eed42c44b0eb6f0ddb8a7e4e05",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_422fe1a1",
+        "filename": "odp/src/main/java/org/midonet/odp/FlowMatch.java",
+        "patchSetId": 5
+      },
+      "lineNbr": 154,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-03-19T17:09:03Z",
+      "side": 1,
+      "message": "Seems unrelated",
+      "revId": "b6e1f0f1dc8158eed42c44b0eb6f0ddb8a7e4e05",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
