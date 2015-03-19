@@ -78,6 +78,10 @@ input_channel_threading = one_to_many
 enable_dashboard=false
 jetty_xml=/etc/midolman/jetty/etc/jetty.xml
 
+# MTU configured in DHCP
+dhcp_mtu = 1500
+
+
 [host]
 # This file holds the host UUID across reboots. It is created when
 # midolman is first executed in the host, by default it will be stored
