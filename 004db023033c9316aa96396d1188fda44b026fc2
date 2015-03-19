@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3a1371a2_a82b1781",
+        "filename": "brain/midonet-brain/src/main/resources/org/midonet/conf/brain.schema",
+        "patchSetId": 3
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-03-19T17:33:15Z",
+      "side": 1,
+      "message": "this should be a fixup in the previous patch.",
+      "range": {
+        "startLine": 57,
+        "startChar": 16,
+        "endLine": 57,
+        "endChar": 23
+      },
+      "revId": "004db023033c9316aa96396d1188fda44b026fc2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_e80eaf33",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/conf/ConfMinion.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-03-19T17:33:15Z",
+      "side": 1,
+      "message": "I\u0027m not sure if this applies in scala like it does in java (I assume it does), but by catching Exception, you also catch InterruptedException, which can be thrown by func() since it calls zookeeper stuff. If this is the case, you\u0027ll end up swallowing the interruption here.",
+      "range": {
+        "startLine": 115,
+        "startChar": 20,
+        "endLine": 115,
+        "endChar": 29
+      },
+      "revId": "004db023033c9316aa96396d1188fda44b026fc2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_c8ff7300",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/conf/ConfMinion.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 126,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-03-19T17:33:15Z",
+      "side": 1,
+      "message": "The convention for REST apis is that when you\u0027re updating a whole resource, and you know the whole URI of the resource, which is the case here, you should use PUT. POST is for creating new resources, when you don\u0027t know the URI.",
+      "range": {
+        "startLine": 126,
+        "startChar": 17,
+        "endLine": 126,
+        "endChar": 23
+      },
+      "revId": "004db023033c9316aa96396d1188fda44b026fc2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_08218b9f",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/services/conf/ConfApiTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-03-19T17:33:15Z",
+      "side": 1,
+      "message": "2015",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "004db023033c9316aa96396d1188fda44b026fc2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
