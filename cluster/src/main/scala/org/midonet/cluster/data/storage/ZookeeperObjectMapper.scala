@@ -657,7 +657,12 @@ class ZookeeperObjectMapper(
         updateVersionNumber()
         try {
             simpleNameToClass.clear()
-            // TODO: Need to close all class subscriptions.
+            instanceCaches.values.foreach(_.values.foreach(_.close()))
+            // Instance Caches are re-initialized by registerClassInternal,
+            // and therefore from here up to reisterClassInternal opens a window
+            // for race where an instance subscription may never be closed.
+            // TODO(tomohiko) fix the race.
+            classCaches.values.foreach(_.close())
             classCaches.clear()
             ownerCaches.values.foreach( _.values.foreach { _.close() })
             ownerCaches.clear()
