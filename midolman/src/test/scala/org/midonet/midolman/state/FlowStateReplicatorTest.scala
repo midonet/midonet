@@ -281,7 +281,7 @@ class FlowStateReplicatorTest extends FeatureSpec
     feature("Unref callbacks are correctly added") {
         scenario("For conntrack keys") {
             Given("A conntrack key and a contrack ref in a transaction")
-            connTrackTx.putAndRef(connTrackKeys.head, ConnTrackState.FORWARD_FLOW)
+            connTrackTx.putAndRef(connTrackKeys.head, ConnTrackState.RETURN_FLOW)
             connTrackTx.ref(connTrackKeys.drop(1).head)
 
             val callbacks = new ArrayList[Callback0]

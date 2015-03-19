@@ -31,7 +31,6 @@ import org.midonet.sdn.state.FlowStateTransaction
 object ConnTrackState {
     type ConnTrackValue = java.lang.Boolean
 
-    val FORWARD_FLOW: ConnTrackValue = java.lang.Boolean.TRUE
     val RETURN_FLOW: ConnTrackValue = java.lang.Boolean.FALSE
 
     object ConnTrackKey {
@@ -96,9 +95,9 @@ trait ConnTrackState extends FlowState { this: PacketContext =>
     import ConnTrackState._
 
     var conntrackTx: FlowStateTransaction[ConnTrackKey, ConnTrackValue] = _
-    // TODO: make these fields private
-    var isConnectionTracked: Boolean = false
-    var flowDirection: ConnTrackValue = _
+
+    private var isConnectionTracked: Boolean = false
+    private var flowDirection: ConnTrackValue = _
     private var connKey: ConnTrackKey = _
 
     override def clear(): Unit = {
@@ -130,16 +129,8 @@ trait ConnTrackState extends FlowState { this: PacketContext =>
     def trackConnection(egressDeviceId: UUID): Unit =
         if (isConnectionTracked && (flowDirection ne RETURN_FLOW)) {
             val returnKey = EgressConnTrackKey(wcmatch, egressDeviceId)
+            conntrackTx.putAndRef(returnKey, RETURN_FLOW)
             addFlowTag(returnKey)
-            if (flowDirection eq null) { // A new forward flow
-                conntrackTx.putAndRef(connKey, FORWARD_FLOW)
-                conntrackTx.putAndRef(returnKey, RETURN_FLOW)
-            } else if (flowDirection eq FORWARD_FLOW) {
-                // We don't ref count on the return flow, which holds a weak
-                // reference
-                conntrackTx.ref(connKey)
-                conntrackTx.ref(returnKey)
-            }
         }
 
     protected def fetchIngressDevice(): UUID = {
