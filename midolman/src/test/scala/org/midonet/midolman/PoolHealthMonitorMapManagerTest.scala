@@ -70,11 +70,11 @@ class PoolHealthMonitorMapManagerTest
     feature("PoolHealthMonitorMapManager handles associations") {
         scenario("PoolHealthMonitorMap with two associations") {
             Given("two pools using the same health monitor")
-            val loadBalancer = createLoadBalancer()
-            val loadBalancer2 = createLoadBalancer()
+            val loadBalancer = newLoadBalancer()
+            val loadBalancer2 = newLoadBalancer()
             val hm = createHealthMonitor()
-            val pool = createPool(loadBalancer, hmId = hm.getId)
-            val pool2 = createPool(loadBalancer2, hmId = hm.getId)
+            val pool = newPool(loadBalancer, hmId = hm.getId)
+            val pool2 = newPool(loadBalancer2, hmId = hm.getId)
             emulatePoolHealthMonitorMappingActivate(pool)
             emulatePoolHealthMonitorMappingActivate(pool2)
             val vip = createRandomVip(pool)
@@ -95,9 +95,9 @@ class PoolHealthMonitorMapManagerTest
 
         scenario("Receive update when an association is added") {
             Given("a pool with a health monitor")
-            val loadBalancer = createLoadBalancer()
+            val loadBalancer = newLoadBalancer()
             val hm = createRandomHealthMonitor()
-            val pool = createPool(loadBalancer, hmId = hm.getId)
+            val pool = newPool(loadBalancer, hmId = hm.getId)
             emulatePoolHealthMonitorMappingActivate(pool)
             val vip = createRandomVip(pool)
 
@@ -111,8 +111,8 @@ class PoolHealthMonitorMapManagerTest
             vipShouldEqual(map.mappings(pool.getId).vipConfigs.get(0), vip)
 
             And("a new association is added")
-            val loadBalancer2 = createLoadBalancer()
-            val pool2 = createPool(loadBalancer2, hmId = hm.getId)
+            val loadBalancer2 = newLoadBalancer()
+            val pool2 = newPool(loadBalancer2, hmId = hm.getId)
             emulatePoolHealthMonitorMappingActivate(pool2)
             expectMsgType[PoolHealthMonitorMap]
             val vip2 = createRandomVip(pool2)
@@ -128,12 +128,12 @@ class PoolHealthMonitorMapManagerTest
 
         scenario("Receive update when an association is removed") {
             Given("a pool with a health monitor")
-            val loadBalancer = createLoadBalancer()
-            val loadBalancer2 = createLoadBalancer()
+            val loadBalancer = newLoadBalancer()
+            val loadBalancer2 = newLoadBalancer()
             val hm = createRandomHealthMonitor()
             val hm2 = createRandomHealthMonitor()
-            val pool = createPool(loadBalancer, hmId = hm.getId)
-            val pool2 = createPool(loadBalancer2, hmId = hm2.getId)
+            val pool = newPool(loadBalancer, hmId = hm.getId)
+            val pool2 = newPool(loadBalancer2, hmId = hm2.getId)
             emulatePoolHealthMonitorMappingActivate(pool)
             emulatePoolHealthMonitorMappingActivate(pool2)
             val vip = createRandomVip(pool)
@@ -168,9 +168,9 @@ class PoolHealthMonitorMapManagerTest
 
         scenario("Receive update when an association config is changed") {
             Given("a pool and a health monitor")
-            val loadBalancer = createLoadBalancer()
+            val loadBalancer = newLoadBalancer()
             val hm = createRandomHealthMonitor()
-            val pool = createPool(loadBalancer, hmId = hm.getId)
+            val pool = newPool(loadBalancer, hmId = hm.getId)
             emulatePoolHealthMonitorMappingActivate(pool)
             val vip = createRandomVip(pool)
 
@@ -196,10 +196,10 @@ class PoolHealthMonitorMapManagerTest
         }
         scenario("Receive update when a pool changes its health monitor") {
             Given("a pool and a health monitor")
-            val loadBalancer = createLoadBalancer()
+            val loadBalancer = newLoadBalancer()
             val hm = createRandomHealthMonitor()
             val hm2 = createRandomHealthMonitor()
-            val pool = createPool(loadBalancer, hmId = hm.getId)
+            val pool = newPool(loadBalancer, hmId = hm.getId)
             emulatePoolHealthMonitorMappingActivate(pool)
             val vip = createRandomVip(pool)
 

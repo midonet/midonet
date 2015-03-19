@@ -18,11 +18,10 @@ package org.midonet.midolman.simulation
 
 import java.util.UUID
 
-import akka.event.LoggingBus
-
 import org.midonet.midolman.state.l4lb.PoolLBMethod
 import org.midonet.midolman.state.NatState
 import org.midonet.midolman.state.NatState.NatKey
+import org.midonet.midolman.topology.VirtualTopology.VirtualDevice
 import org.midonet.packets.{IPAddr, ICMP}
 import org.midonet.sdn.flows.FlowTagger
 import org.midonet.util.collection.WeightedSelector
@@ -31,7 +30,7 @@ object Pool {
     def findPoolMember(ip: IPAddr, port: Int, pmArray: Array[PoolMember])
     : Boolean = {
         var i = 0
-        while (i < pmArray.size) {
+        while (i < pmArray.length) {
             val pm = pmArray(i)
             if (pm.address == ip && pm.protocolPort == port)
                 return true
@@ -43,9 +42,9 @@ object Pool {
 
 class Pool(val id: UUID, val adminStateUp: Boolean, val lbMethod: PoolLBMethod,
            val activePoolMembers: Array[PoolMember],
-           val disabledPoolMembers: Array[PoolMember]) {
+           val disabledPoolMembers: Array[PoolMember]) extends VirtualDevice {
 
-    val deviceTag = FlowTagger.tagForDevice(id)
+    override val deviceTag = FlowTagger.tagForDevice(id)
 
     val isUp = adminStateUp && activePoolMembers.nonEmpty
 
@@ -190,4 +189,9 @@ class Pool(val id: UUID, val adminStateUp: Boolean, val lbMethod: PoolLBMethod,
                             else NatState.FWD_DNAT)
         context.deleteNatBinding(natKey)
     }
+
+    override def toString =
+        s"Pool [id=$id adminStateUp=$adminStateUp lbMethod=$lbMethod " +
+        s"activePoolMembers=${activePoolMembers.toSeq} " +
+        s"disabledPoolMembers=${disabledPoolMembers.toSeq}]"
 }

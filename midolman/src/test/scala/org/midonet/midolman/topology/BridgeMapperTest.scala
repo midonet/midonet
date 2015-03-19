@@ -66,7 +66,7 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
     }
 
     private def createObserver() = {
-        Given("An observer for the bridge mapp er")
+        Given("An observer for the bridge mapper")
         // It is possible to receive the initial notification on the current
         // thread, when the device was notified in the mapper's behavior subject
         // previous to the subscription.
