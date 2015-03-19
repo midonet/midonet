@@ -145,7 +145,7 @@ class ZookeeperObjectMapper(
 
     private val instanceCaches = new mutable.HashMap[
         Class[_], TrieMap[String, InstanceSubscriptionCache[_]]]
-    private val classCaches = new TrieMap[Class[_], ClassSubscriptionCache[_]]
+    private var classCaches = new TrieMap[Class[_], ClassSubscriptionCache[_]]
     private val ownerCaches = new mutable.HashMap[
         Class[_], TrieMap[String, DirectorySubscriptionCache]]
 
@@ -413,7 +413,6 @@ class ZookeeperObjectMapper(
                     event.getType match {
                         case NodeDataChanged =>
                             setVersionNumberAndWatch()
-                            // TODO GC subscriptions.
                         case _ =>  // Do nothing.
                     }
                 }
@@ -424,6 +423,7 @@ class ZookeeperObjectMapper(
 
     private def setVersionNumberAndWatch() {
         version.set(getVersionNumberFromZkAndWatch)
+        cleanUpAndReInitSubscriptionCaches()
     }
 
     private def initVersionNumber() {
@@ -656,18 +656,30 @@ class ZookeeperObjectMapper(
         version.incrementAndGet()
         updateVersionNumber()
         try {
-            simpleNameToClass.clear()
-            // TODO: Need to close all class subscriptions.
-            classCaches.clear()
-            ownerCaches.values.foreach( _.values.foreach { _.close() })
-            ownerCaches.clear()
-            for (info <- classInfo.values)
-                registerClassInternal(info.clazz, info.ownershipType)
+            cleanUpAndReInitSubscriptionCaches()
         } catch {
             case th: Throwable =>
                 throw new StorageException("Failure in flushing Storage.", th)
         }
         log.info(s"Flushed the Storage, bumping the version to $version.")
+    }
+
+    private def cleanUpAndReInitSubscriptionCaches() {
+        simpleNameToClass.clear()
+
+        val oldClassCaches = classCaches
+        classCaches = new TrieMap[Class[_], ClassSubscriptionCache[_]]
+        oldClassCaches.values.foreach(_.close())
+
+        // Instance/ownerCaches are re-initialized by registerClassInternal.
+        val oldOwnerCacheValues = ownerCaches.values.toSet
+        ownerCaches.clear()
+        oldOwnerCacheValues.foreach( _.values.foreach { _.close() })
+
+        val oldInstanceCacheValues = instanceCaches.values.toSet
+        for (info <- classInfo.values)
+            registerClassInternal(info.clazz, info.ownershipType)
+        oldInstanceCacheValues.foreach(_.values.foreach(_.close()))
     }
 
     private[storage] def getPath(clazz: Class[_], version: Long) =
