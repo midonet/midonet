@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -123,7 +123,16 @@ trait FlowTranslator {
             context.addFlowTag(FlowTagger.tagForTunnelRoute(src, dst))
             // Each FlowActionSetKey must be followed by a corresponding
             // FlowActionOutput.
-            context.addFlowAndPacketAction(setKey(FlowKeys.tunnel(key, src, dst, 0)))
+            if (context.tracingEnabled) {
+                context.flowActions.add(
+                    setKey(FlowKeys.tunnel(key, src, dst, 0)))
+                context.packetActions.add(
+                    setKey(FlowKeys.tunnel(context.setTraceTunnelBit(key),
+                                           src, dst, 0)))
+            } else {
+                context.addFlowAndPacketAction(
+                    setKey(FlowKeys.tunnel(key, src, dst, 0)))
+            }
             context.addFlowAndPacketAction(routeInfo.get.output)
         }
     }
