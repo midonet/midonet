@@ -144,7 +144,7 @@ message IpAddrGroup {
 
     message IpAddrPorts {
         optional IPAddress ip_address = 1;
-        repeated UUID port_id = 2;
+        repeated UUID port_ids = 2;
     }
     repeated IpAddrPorts ip_addr_ports = 3;
 
@@ -334,4 +334,30 @@ message Host {
 
     // Backreference. Expected to be set from the Tunnel Zone side.
     repeated UUID tunnel_zone_ids = 101;
+}
+
+message Pool {
+    enum PoolProtocol { TCP = 1; }
+    enum PoolLBMethod { ROUND_ROBIN = 2; }
+
+    optional UUID id = 1;
+    optional UUID health_monitor_id = 2;
+    optional UUID load_balancer_id = 3;
+    optional bool admin_state_up = 4;
+
+    optional PoolProtocol protocol = 5;
+    optional PoolLBMethod lb_method = 6;
+    optional LBStatus status = 7;
+
+    repeated UUID pool_member_ids = 101;
+}
+
+message PoolMember {
+    optional UUID id = 1;
+    optional bool admin_state_up = 2;
+    optional UUID pool_id = 3;
+    optional LBStatus status = 4;
+    optional IPAddress address = 5;
+    optional int32 port = 6;
+    optional int32 weight = 7;
 }
