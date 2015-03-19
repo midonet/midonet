@@ -464,7 +464,7 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
         ChainPair(chains(0), chains(1))
     }
 
-    protected def getChains(ipg: IpAddrGroup): ChainPair =
+    protected def getChains(ipg: IPAddrGroup): ChainPair =
         getChains(ipg.getInboundChainId, ipg.getOutboundChainId)
 }
 
@@ -635,7 +635,7 @@ class C3POMinionTest extends C3POMinionTestBase {
                         insertTaskSql(3, Create, SecurityGroupType,
                                       sg2Json.toString, sg2Id, "tx1"))
 
-        val ipg1 = eventually(storage.get(classOf[IpAddrGroup], sg1Id).await())
+        val ipg1 = eventually(storage.get(classOf[IPAddrGroup], sg1Id).await())
         val ChainPair(inChain1, outChain1) = getChains(ipg1)
 
         inChain1.getRuleIdsCount should be(0)
@@ -667,7 +667,7 @@ class C3POMinionTest extends C3POMinionTestBase {
                         insertTaskSql(5, Delete, SecurityGroupType,
                                       null, sg2Id, "tx2"))
         eventually {
-            val ipg1a = storage.get(classOf[IpAddrGroup], sg1Id).await()
+            val ipg1a = storage.get(classOf[IPAddrGroup], sg1Id).await()
             val ChainPair(inChain1a, outChain1a) = getChains(ipg1a)
 
             inChain1a.getId should be(inChain1.getId)
@@ -695,7 +695,7 @@ class C3POMinionTest extends C3POMinionTestBase {
         eventually {
             val delFutures = List(
                 storage.getAll(classOf[SecurityGroup]),
-                storage.getAll(classOf[IpAddrGroup]),
+                storage.getAll(classOf[IPAddrGroup]),
                 storage.getAll(classOf[Chain]),
                 storage.getAll(classOf[Rule]))
             val delResults = delFutures.map(_.await())

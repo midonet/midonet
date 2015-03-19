@@ -21,12 +21,8 @@ import scala.collection.JavaConversions._
 
 import com.google.inject._
 import com.typesafe.config.{ConfigFactory, Config}
-import org.scalatest.BeforeAndAfter
-import org.scalatest.FeatureSpecLike
-import org.scalatest.GivenWhenThen
-import org.scalatest.Matchers
-import org.scalatest.OneInstancePerTest
 
+import org.scalatest.{BeforeAndAfter, FeatureSpecLike, GivenWhenThen, Matchers, OneInstancePerTest}
 import org.midonet.cluster.services.{MidonetBackend, LegacyStorageService}
 import org.midonet.cluster.storage.{MidonetBackendTestModule, StateStorageModule}
 import org.midonet.conf.MidoTestConfigurator
@@ -109,8 +105,6 @@ trait MidolmanSpec extends FeatureSpecLike
         val defaults =
             """
               |cassandra.servers = "localhost:9171"
-              |zookeeper.cluster_storage_enabled = true
-              |zookeeper.curator_enabled = false
             """.stripMargin
         config.withFallback(ConfigFactory.parseString(defaults))
     }

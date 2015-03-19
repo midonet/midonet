@@ -39,7 +39,7 @@ import org.midonet.brain.tools.TopologyZoomUpdater._
 import org.midonet.cluster.data.storage.StorageWithOwnership
 import org.midonet.cluster.models.{Commons, Topology}
 import org.midonet.cluster.models.Topology.Host.PortBinding
-import org.midonet.cluster.models.Topology.IpAddrGroup.IpAddrPorts
+import org.midonet.cluster.models.Topology.IPAddrGroup.IPAddrPorts
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.util.{IPAddressUtil, UUIDUtil}
 import org.midonet.packets.{IPAddr, IPv4Addr}
@@ -568,7 +568,7 @@ class Port(p: Topology.Port)(implicit storage: StorageWithOwnership)
         this
     }
 
-    // Get the device to which this port is linked 
+    // Get the device to which this port is linked
     def getLinkedDevice: Option[VSwitch] = {
         if (model.hasPeerId) {
             Port.get(model.getPeerId) flatMap {_.getDevice}
@@ -994,24 +994,24 @@ object IpAddrGroup {
         new IpAddrGroup(name)
     def get(id: Commons.UUID)(implicit storage: StorageWithOwnership)
         : Option[IpAddrGroup] =
-        getProto(classOf[Topology.IpAddrGroup], id).map(new IpAddrGroup(_))
+        getProto(classOf[Topology.IPAddrGroup], id).map(new IpAddrGroup(_))
     def getAll(implicit storage: StorageWithOwnership): Iterable[IpAddrGroup] =
-        getAllProtos(classOf[Topology.IpAddrGroup]).map(new IpAddrGroup(_))
+        getAllProtos(classOf[Topology.IPAddrGroup]).map(new IpAddrGroup(_))
 }
-class IpAddrGroup(p: Topology.IpAddrGroup)
+class IpAddrGroup(p: Topology.IPAddrGroup)
                  (implicit storage: StorageWithOwnership)
     extends TopologyEntity(p) {
     def this(name: String)(implicit storage: StorageWithOwnership) =
-        this(Topology.IpAddrGroup.newBuilder()
+        this(Topology.IPAddrGroup.newBuilder()
                  .setId(randomId).setName(name).build())
-    def model = proto.asInstanceOf[Topology.IpAddrGroup]
+    def model = proto.asInstanceOf[Topology.IPAddrGroup]
     def getId: Commons.UUID = getId(classOf[Commons.UUID])
 
     def addAddress(ip: String): IpAddrGroup = {
         setRepeatedField("ip_addr_ports",
             model.getIpAddrPortsList.filterNot(a => {
                 IPAddressUtil.toIPAddr(a.getIpAddress).toString == ip }).toSet +
-            IpAddrPorts.newBuilder()
+            IPAddrPorts.newBuilder()
                 .setIpAddress(IPAddressUtil.toProto(ip)).build())
         update()
     }

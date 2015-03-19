@@ -36,7 +36,7 @@ import org.midonet.cluster.models.Neutron.NeutronVIP
 import org.midonet.cluster.models.Topology.Chain
 import org.midonet.cluster.models.Topology.Dhcp
 import org.midonet.cluster.models.Topology.Host
-import org.midonet.cluster.models.Topology.IpAddrGroup
+import org.midonet.cluster.models.Topology.IPAddrGroup
 import org.midonet.cluster.models.Topology.Network
 import org.midonet.cluster.models.Topology.Port
 import org.midonet.cluster.models.Topology.PortGroup
@@ -134,8 +134,8 @@ object ModelsUtil {
      def mPortGroupFromTxt(protoTxt: String) =
         protoFromTxt(protoTxt, PortGroup.newBuilder).asInstanceOf[PortGroup]
 
-     def mIpAddrGroupFromTxt(protoTxt: String) =
-        protoFromTxt(protoTxt, IpAddrGroup.newBuilder).asInstanceOf[IpAddrGroup]
+     def mIPAddrGroupFromTxt(protoTxt: String) =
+        protoFromTxt(protoTxt, IPAddrGroup.newBuilder).asInstanceOf[IPAddrGroup]
 
      def mChainFromTxt(protoTxt: String) =
         protoFromTxt(protoTxt, Chain.newBuilder).asInstanceOf[Chain]

@@ -80,7 +80,7 @@ object BridgeMapper {
         }
         /** Completes the observable corresponding to this port state */
         def complete() = mark.onCompleted()
-        /** Gets the underlying port option for this port state */
+        /** Gets the underlying port for this port state */
         def port: D = currentPort
         /** Gets the peer port state option */
         def peer: PortState[_ <: Port] = currentPeer
@@ -375,8 +375,8 @@ final class BridgeMapper(bridgeId: UUID, implicit val vt: VirtualTopology)
      * (local and peer), mac updates subjects, and connection subject.
      */
     private def bridgeDeleted(): Unit = {
-        log.debug("Bridge deleted")
         assertThread()
+        log.debug("Bridge deleted")
 
         for (portState <- localPorts.values) {
             portState.complete()
@@ -426,7 +426,7 @@ final class BridgeMapper(bridgeId: UUID, implicit val vt: VirtualTopology)
 
         bridge = br
 
-        val portIds = bridge.getPortIdsList.asScala.map(id => id.asJava).toSet
+        val portIds = bridge.getPortIdsList.asScala.map(_.asJava).toSet
         log.debug("Update for bridge with ports {}", portIds)
 
         // Complete the observables for the ports no longer part of this bridge.

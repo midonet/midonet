@@ -35,6 +35,8 @@ object PoolManager {
     private def toSimulationPoolMember(pm: PoolMember): simulation.PoolMember =
         new simulation.PoolMember(
             pm.getId,
+            pm.getAdminStateUp,
+            pm.getStatus,
             IPv4Addr(pm.getAddress),
             pm.getProtocolPort,
             pm.getWeight)
@@ -88,14 +90,12 @@ class PoolManager(val id: UUID, val clusterClient: Client) extends Actor
     }
 
     override def receive = {
-        case TriggerUpdate(poolMembers) => {
+        case TriggerUpdate(poolMembers) =>
             log.debug("Update triggered for pool members of pool ID {}", id)
             updatePoolMembers(poolMembers)
-        }
-        case pool: Pool => {
+        case pool: Pool =>
             log.debug("Update triggered for config of pool ID {}", id)
             updateConfig(pool)
-        }
     }
 }
 
