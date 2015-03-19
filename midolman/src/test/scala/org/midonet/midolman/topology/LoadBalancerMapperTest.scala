@@ -98,7 +98,7 @@ class LoadBalancerMapperTest extends MidolmanSpec
             simLB shouldBeDeviceOf protoLB
 
             And("when we add a vip to the load-balancer")
-            val vip1 = buildAndStoreVip("192.168.0.1")
+            val vip1 = buildAndStoreVIP("192.168.0.1")
             var updatedProtoLB = addVipToLoadBalancer(protoLB, vip1.getId)
 
             Then("We receive the load-balancer with one vip")
@@ -122,7 +122,7 @@ class LoadBalancerMapperTest extends MidolmanSpec
             assertVips(List(updatedVip1), simLB.vips)
 
             And("When we add a 2nd vip to the load-balancer")
-            val vip2 = buildAndStoreVip("192.168.0.2")
+            val vip2 = buildAndStoreVIP("192.168.0.2")
             updatedProtoLB = addVipToLoadBalancer(updatedProtoLB, vip2.getId)
 
             Then("We receive the load-balancer with 2 vips")
@@ -206,8 +206,8 @@ class LoadBalancerMapperTest extends MidolmanSpec
         updatedLB
     }
 
-    private def buildAndStoreVip(ip: String): TopologyVIP = {
-        val vip = createVip(adminStateUp = Some(true),
+    private def buildAndStoreVIP(ip: String): TopologyVIP = {
+        val vip = createVIP(adminStateUp = Some(true),
                             poolId = Some(UUID.randomUUID()),
                             address = Some(ip),
                             protocolPort = Some(7777),
