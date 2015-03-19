@@ -279,18 +279,5 @@ class PacketContext(val cookie: Int,
     def addGeneratedPacket(uuid: UUID, ethernet: Ethernet): Unit =
         packetEmitter.schedule(GeneratedPacket(uuid, ethernet))
 
-    def tracingContext : String = {
-        tracing.toString
-    }
-
-    def tracingEnabled(traceRequestId: UUID): Boolean = {
-        tracing.contains(traceRequestId)
-    }
-
-    def enableTracing(traceRequestId: UUID): Unit = {
-        tracing.add(traceRequestId)
-        log = PacketContext.traceLog
-    }
-
     override def toString = s"PacketContext[$cookieStr]"
 }
