@@ -438,11 +438,11 @@ class VifPortCreateTranslationTest extends VifPortTranslationTest {
             id { $sgId1 }
             ip_addr_ports {
                 ip_address { $ipv4Addr1 }
-                port_id { $portId }
+                port_ids { $portId }
             }
             ip_addr_ports {
                 ip_address { $ipv6Addr1 }
-                port_id { $portId }
+                port_ids { $portId }
             }
             inbound_chain_id { $ipAddrGroup1InChainId }
             outbound_chain_id { $ipAddrGroup1OutChainId }
@@ -451,11 +451,11 @@ class VifPortCreateTranslationTest extends VifPortTranslationTest {
             id { $sgId2 }
             ip_addr_ports {
                 ip_address { $ipv4Addr1 }
-                port_id { $portId }
+                port_ids { $portId }
             }
             ip_addr_ports {
                 ip_address { $ipv6Addr1 }
-                port_id { $portId }
+                port_ids { $portId }
             }
             inbound_chain_id { $ipAddrGroup2InChainId }
             outbound_chain_id { $ipAddrGroup2OutChainId }
@@ -678,7 +678,7 @@ class VifPortUpdateDeleteTranslationTest extends VifPortTranslationTest {
             id { $sgId1 }
             ip_addr_ports {
                 ip_address { $updatedFixedIp }
-                port_id { $portId }
+                port_ids { $portId }
             }
             inbound_chain_id { $ipAddrGroup1InChainId }
             outbound_chain_id { $ipAddrGroup1OutChainId }
@@ -687,7 +687,7 @@ class VifPortUpdateDeleteTranslationTest extends VifPortTranslationTest {
             id { $sgId2 }
             ip_addr_ports {
                 ip_address { $ipv4Addr1 }
-                port_id { $portId }
+                port_ids { $portId }
             }
             inbound_chain_id { $ipAddrGroup2InChainId }
             outbound_chain_id { $ipAddrGroup2OutChainId }

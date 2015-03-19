@@ -162,7 +162,7 @@ class IPAddrGroupMapperTest extends MidolmanSpec with TopologyBuilder
     }
 
     private def buildAndStoreIpAddrGroup(): TopologyIPAddrGroup = {
-        val ipAddrGroup = createIPAddrGroupBuilder().build()
+        val ipAddrGroup = createIPAddrGroup()
         store.create(ipAddrGroup)
         ipAddrGroup
     }

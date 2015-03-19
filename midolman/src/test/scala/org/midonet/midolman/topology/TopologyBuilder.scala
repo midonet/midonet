@@ -20,9 +20,10 @@ import java.util.UUID
 import scala.collection.JavaConverters._
 import scala.util.Random
 
-import org.midonet.cluster.models.Commons.IPAddress
+import org.midonet.cluster.models.Commons.{IPAddress, LBStatus}
 import org.midonet.cluster.models.Topology.Host.PortBinding
 import org.midonet.cluster.models.Topology.IpAddrGroup.IpAddrPorts
+import org.midonet.cluster.models.Topology.Pool.{PoolLBMethod, PoolProtocol}
 import org.midonet.cluster.models.Topology.Route.NextHop
 import org.midonet.cluster.models.Topology.Rule.{Action, JumpRuleData, NatRuleData, NatTarget}
 import org.midonet.cluster.models.Topology.TunnelZone.HostToIp
@@ -412,19 +413,20 @@ trait TopologyBuilder {
                                 ports: Set[UUID]): IpAddrGroup.Builder = {
         val ipAddrPort = IpAddrPorts.newBuilder
             .setIpAddress(ip.asProtoIPAddress)
-            .addAllPortId(ports.map(_.asProto).asJava)
+            .addAllPortIds(ports.map(_.asProto).asJava)
             .build()
         builder.addIpAddrPorts(ipAddrPort)
     }
 
-    protected def createIPAddrGroupBuilder(name: Option[String] = None,
-                                           inChainId: Option[UUID] = None,
-                                           outChainId: Option[UUID] = None,
-                                           ruleIds: Set[UUID] = Set.empty)
-    : IpAddrGroup.Builder = {
+    protected def createIPAddrGroup(id: UUID = UUID.randomUUID,
+                                    name: Option[String] = None,
+                                    inChainId: Option[UUID] = None,
+                                    outChainId: Option[UUID] = None,
+                                    ruleIds: Set[UUID] = Set.empty)
+    : IpAddrGroup = {
 
         val builder = IpAddrGroup.newBuilder
-            .setId(UUID.randomUUID().asProto)
+            .setId(id.asProto)
             .addAllRuleIds(ruleIds.map(_.asProto).asJava)
         if (name.isDefined)
             builder.setName(name.get)
@@ -432,7 +434,54 @@ trait TopologyBuilder {
             builder.setInboundChainId(inChainId.get.asProto)
         if (outChainId.isDefined)
             builder.setOutboundChainId(outChainId.get.asProto)
-        builder
+        builder.build()
+    }
+
+    protected def createPool(id: UUID = UUID.randomUUID,
+                             healthMonitorId: Option[UUID] = None,
+                             loadBalancerId: Option[UUID] = None,
+                             adminStateUp: Option[Boolean] = None,
+                             protocol: Option[PoolProtocol] = None,
+                             lbMethod: Option[PoolLBMethod] = None,
+                             status: Option[LBStatus] = None,
+                             poolMemberIds: Set[UUID] = Set.empty): Pool = {
+        val builder = Pool.newBuilder
+            .setId(id.asProto)
+            .addAllPoolMemberIds(poolMemberIds.map(_.asProto).asJava)
+        if (healthMonitorId.isDefined)
+            builder.setHealthMonitorId(healthMonitorId.get.asProto)
+        if (loadBalancerId.isDefined)
+            builder.setLoadBalancerId(loadBalancerId.get.asProto)
+        if (adminStateUp.isDefined)
+            builder.setAdminStateUp(adminStateUp.get)
+        if (protocol.isDefined) builder.setProtocol(protocol.get)
+        if (lbMethod.isDefined) builder.setLbMethod(lbMethod.get)
+        if (status.isDefined) builder.setStatus(status.get)
+        builder.build()
+    }
+
+    protected def createPoolMember(id: UUID = UUID.randomUUID,
+                                   adminStateUp: Option[Boolean] = None,
+                                   poolId: Option[UUID] = None,
+                                   status: Option[LBStatus] = None,
+                                   address: Option[IPAddr] = None,
+                                   port: Option[Int] = None,
+                                   weight: Option[Int] = None): PoolMember = {
+        val builder = PoolMember.newBuilder
+            .setId(id.asProto)
+        if (adminStateUp.isDefined)
+            builder.setAdminStateUp(adminStateUp.get)
+        if (poolId.isDefined)
+            builder.setPoolId(poolId.get.asProto)
+        if (status.isDefined)
+            builder.setStatus(status.get)
+        if (address.isDefined)
+            builder.setAddress(address.get.asProto)
+        if (port.isDefined)
+            builder.setPort(port.get)
+        if (weight.isDefined)
+            builder.setWeight(weight.get)
+        builder.build()
     }
 
     private def createPortBuilder(id: UUID,
@@ -520,10 +569,46 @@ object TopologyBuilder {
             port.toBuilder.clearPortMac().build()
     }
 
+    class RichPool(pool: Pool) {
+        def setAdminStateUp(adminStateUp: Boolean): Pool =
+            pool.toBuilder.setAdminStateUp(adminStateUp).build()
+        def setHealthMonitorId(healthMonitorId: UUID): Pool =
+            pool.toBuilder.setHealthMonitorId(healthMonitorId.asProto).build()
+        def setLoadBalancerId(loadBalancerId: UUID): Pool =
+            pool.toBuilder.setLoadBalancerId(loadBalancerId.asProto).build()
+        def setProtocol(protocol: PoolProtocol): Pool =
+            pool.toBuilder.setProtocol(protocol).build()
+        def setLBMethod(lbMethod: PoolLBMethod): Pool =
+            pool.toBuilder.setLbMethod(lbMethod).build()
+        def setStatus(status: LBStatus): Pool =
+            pool.toBuilder.setStatus(status).build()
+        def addPoolMember(poolMemberId: UUID) =
+            pool.toBuilder.addPoolMemberIds(poolMemberId.asProto).build()
+    }
+
+    class RichPoolMember(poolMember: PoolMember) {
+        def setAdminStateUp(adminStateUp: Boolean): PoolMember =
+            poolMember.toBuilder.setAdminStateUp(adminStateUp).build()
+        def setPoolId(poolId: UUID): PoolMember =
+            poolMember.toBuilder.setPoolId(poolId.asProto).build()
+        def setStatus(status: LBStatus): PoolMember =
+            poolMember.toBuilder.setStatus(status).build()
+        def setAddress(address: IPAddr): PoolMember =
+            poolMember.toBuilder.setAddress(address.asProto).build()
+        def setPort(port: Int): PoolMember =
+            poolMember.toBuilder.setPort(port).build()
+        def setWeight(weight: Int): PoolMember =
+            poolMember.toBuilder.setWeight(weight).build()
+    }
+
     private val random = new Random()
 
     def randomIPv4Subnet = new IPv4Subnet(random.nextInt(), random.nextInt(32))
 
     implicit def asRichPort(port: Port): RichPort = new RichPort(port)
 
+    implicit def asRichPool(pool: Pool): RichPool = new RichPool(pool)
+
+    implicit def asRichPoolMember(poolMember: PoolMember): RichPoolMember =
+        new RichPoolMember(poolMember)
 }
