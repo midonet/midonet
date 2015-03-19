@@ -31,7 +31,7 @@ public class CassandraClient {
     private static final Logger log =
             LoggerFactory.getLogger(CassandraClient.class);
 
-    private Session session = null;
+    private volatile Session session = null;
 
     private final String[] servers;
     private final String serversStr;

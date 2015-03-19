@@ -53,6 +53,8 @@ import org.midonet.api.neutron.NeutronRestApiModule;
 import org.midonet.api.rest_api.RestApiModule;
 import org.midonet.api.serialization.SerializationModule;
 import org.midonet.api.validation.ValidationModule;
+import org.midonet.brain.services.flowtracing.FlowTracingMinion;
+import org.midonet.cluster.backend.cassandra.CassandraClient;
 import org.midonet.cluster.data.neutron.NeutronClusterApiModule;
 import org.midonet.cluster.storage.MidonetBackendModule;
 import org.midonet.config.ConfigProvider;
@@ -60,6 +62,8 @@ import org.midonet.config.providers.ServletContextConfigProvider;
 import org.midonet.midolman.cluster.LegacyClusterModule;
 import org.midonet.midolman.cluster.zookeeper.ZookeeperConnectionModule;
 import org.midonet.midolman.state.SessionUnawareConnectionWatcher;
+import org.midonet.util.eventloop.TryCatchReactor;
+
 
 /**
  * Jersey servlet module for MidoNet REST API application.
@@ -151,6 +155,7 @@ public class RestApiJerseyServletModule extends JerseyServletModule {
 
         installConfigApi(zkConfToConfig(zkCfg));
         install(new MidonetBackendModule(zkConfToConfig(zkCfg)));
+        installFlowTracingService(zkConfToConfig(zkCfg));
 
         installRestApiModule(); // allow mocking
 
@@ -195,6 +200,22 @@ public class RestApiJerseyServletModule extends JerseyServletModule {
             bind(ConfMinion.class).toInstance(new ConfMinion(ctx, brainConf));
         } catch (Exception e) {
             log.error("Failed to start config API", e);
+        }
+    }
+
+    protected void installFlowTracingService(Config zkConf) {
+        try {
+            UUID hostId = HostIdGenerator.getHostId();
+            BrainConfig brainConf = new BrainConfig(
+                    zkConf.withFallback(
+                            MidoNodeConfigurator.apply(zkConf)
+                            .runtimeConfig(hostId)));
+            ClusterNode.Context ctx = new ClusterNode.Context(hostId, true);
+            bind(FlowTracingMinion.class).toInstance(
+                    new FlowTracingMinion(ctx, brainConf,
+                                          new TryCatchReactor("cassandra", 1)));
+        } catch (Exception e) {
+            log.error("Failed to start flow tracing service");
         }
     }
 }

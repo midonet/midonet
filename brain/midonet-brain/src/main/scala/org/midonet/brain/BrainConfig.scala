@@ -21,9 +21,12 @@ import com.typesafe.config.{ConfigFactory, Config}
 
 import org.midonet.brain.services.c3po.C3POMinion
 import org.midonet.brain.services.conf.ConfMinion
+import org.midonet.brain.services.flowtracing.FlowTracingMinion
 import org.midonet.brain.services.heartbeat.Heartbeat
 import org.midonet.brain.services.topology.TopologyApiService
 import org.midonet.brain.services.vxgw.VxlanGatewayService
+
+import org.midonet.cluster.storage.CassandraConfig
 import org.midonet.cluster.storage.MidonetBackendConfig
 import org.midonet.conf.{HostIdGenerator, MidoNodeConfigurator, MidoTestConfigurator}
 
@@ -51,6 +54,7 @@ class BrainConfig(_conf: Config) {
     val conf = _conf.resolve()
 
     val backend = new MidonetBackendConfig(conf)
+    val cassandra = new CassandraConfig(conf)
     val embedding = new EmbeddedClusterNodeConfig(conf)
     val c3po = new C3POConfig(conf)
     val hearbeat = new HeartbeatConfig(conf)
@@ -59,6 +63,7 @@ class BrainConfig(_conf: Config) {
     val topologyUpdater = new TopologyZoomUpdaterConfig(conf)
     val snoopy = new TopologySnoopyConfig(conf)
     val confApi = new ConfApiConfig(conf)
+    val flowTracing = new FlowTracingConfig(conf)
 }
 
 class EmbeddedClusterNodeConfig(conf: Config) {
@@ -132,4 +137,12 @@ class ConfApiConfig(val conf: Config) extends MinionConfig[ConfMinion] {
     override def minionClass = conf.getString("brain.conf_api.with")
 
     def httpPort = conf.getInt("brain.conf_api.http_port")
+}
+
+class FlowTracingConfig(val conf: Config)
+        extends MinionConfig[FlowTracingMinion] {
+    override def isEnabled = conf.getBoolean("brain.flow_tracing.enabled")
+    override def minionClass = conf.getString("brain.flow_tracing.with")
+
+    def getPort = conf.getInt("brain.flow_tracing.port")
 }
