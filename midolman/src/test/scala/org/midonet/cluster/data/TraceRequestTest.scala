@@ -27,16 +27,24 @@ import org.apache.zookeeper.{Op, OpResult}
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
+import org.slf4j.LoggerFactory
+
+import scala.collection.JavaConverters._
+
 import org.midonet.cluster.DataClient
 import org.midonet.cluster.config.ZookeeperConfig
 import org.midonet.cluster.data.ports.{BridgePort, RouterPort}
+import org.midonet.cluster.data.rules.{TraceRule => TraceRuleData}
 import org.midonet.midolman.Setup
+import org.midonet.midolman.rules.RuleResult.Action
 import org.midonet.midolman.state.{Directory, MockDirectory}
 import org.midonet.midolman.state.StateAccessException
 import org.midonet.midolman.util.MidolmanSpec
 
 @RunWith(classOf[JUnitRunner])
 class TraceRequestTest extends MidolmanSpec {
+    private final val log = LoggerFactory.getLogger(classOf[TraceRequestTest])
+
     val tenantId = "tenant0"
 
     scenario("Creation, listing and deletion of trace requests") {
@@ -120,7 +128,7 @@ class TraceRequestTest extends MidolmanSpec {
         val port = new BridgePort().setDeviceId(bridge.getId)
         val portId = clusterDataClient.portsCreate(port)
 
-        val router = new Router().setName("router0")
+                val router = new Router().setName("router0")
         clusterDataClient.routersCreate(router)
 
         val port2 = new RouterPort().setDeviceId(router.getId)
@@ -192,6 +200,230 @@ class TraceRequestTest extends MidolmanSpec {
         dataClient.traceRequestGetAll.size should be (0)
         dataClient.bridgesGetAll.size should be (0)
     }
+
+    scenario("enabling adds a rule, disabling deletes") {
+        val bridge = new Bridge().setName("bridge0")
+            .setProperty(Bridge.Property.tenant_id, tenantId)
+        clusterDataClient.bridgesCreate(bridge)
+
+        val port = new BridgePort().setDeviceId(bridge.getId)
+        val portId = clusterDataClient.portsCreate(port)
+
+        val port1 = clusterDataClient.portsGet(portId)
+        port1.getInboundFilter should be (null)
+
+        val trace1 = new TraceRequest()
+            .setDeviceType(TraceRequest.DeviceType.PORT)
+            .setDeviceId(portId)
+            .setCondition(newCondition(tpSrc = Some(5000)))
+        clusterDataClient.traceRequestCreate(trace1)
+
+        val port2 = clusterDataClient.portsGet(portId)
+        port2.getInboundFilter should be (null)
+
+        clusterDataClient.traceRequestEnable(trace1.getId)
+        val port3 = clusterDataClient.portsGet(portId)
+        port3.getInboundFilter should not be (null)
+
+        val chain = clusterDataClient.chainsGet(port3.getInboundFilter)
+        chain.getName() should startWith("TRACE_REQUEST_CHAIN")
+
+        val trace2 = clusterDataClient.traceRequestGet(trace1.getId)
+        trace2.getEnabledRule should not be (null)
+
+        val rules = clusterDataClient.rulesFindByChain(port3.getInboundFilter)
+
+        var chainId : UUID = null
+        clusterDataClient.rulesGet(trace2.getEnabledRule) match {
+            case t: TraceRuleData => {
+                t.getRequestId should be (trace1.getId)
+                t.getCondition.tpSrc.isInside(5000) should be (true)
+                t.getChainId should be (port3.getInboundFilter)
+                chainId = t.getChainId
+            }
+            case _ => fail("Rule is of wrong type")
+        }
+
+        clusterDataClient.traceRequestDisable(trace2.getId);
+        val trace3 = clusterDataClient.traceRequestGet(trace1.getId)
+        trace3.getEnabledRule should be (null)
+
+        clusterDataClient.rulesGet(trace2.getEnabledRule) should be (null)
+        clusterDataClient.chainsGet(chainId) should be (null)
+
+    }
+
+    scenario("enable a trace that doesn't exist") {
+        clusterDataClient.chainsGetAll().size() should be (0)
+        try {
+            clusterDataClient.traceRequestEnable(UUID.randomUUID)
+            fail("Should throw an exception")
+        } catch {
+            case e: IllegalStateException => { /* correct behaviour */ }
+            case _: Throwable => fail("Wrong exception thrown")
+        }
+        clusterDataClient.chainsGetAll().size() should be (0)
+
+        try {
+            clusterDataClient.traceRequestDisable(UUID.randomUUID)
+            fail("Should throw an exception")
+        } catch {
+            case e: IllegalStateException => { /* correct behaviour */ }
+            case _: Throwable => fail("Wrong exception thrown")
+        }
+        clusterDataClient.chainsGetAll().size() should be (0)
+    }
+
+    scenario("enable a trace on a device which has been deleted") {
+        val bridge = new Bridge().setName("bridge0")
+            .setProperty(Bridge.Property.tenant_id, tenantId)
+        clusterDataClient.bridgesCreate(bridge)
+
+        val trace1 = new TraceRequest()
+            .setDeviceType(TraceRequest.DeviceType.BRIDGE)
+            .setDeviceId(bridge.getId)
+            .setCondition(newCondition(tpSrc = Some(5000)))
+        clusterDataClient.traceRequestCreate(trace1)
+
+        clusterDataClient.bridgesDelete(bridge.getId)
+
+        try {
+            clusterDataClient.traceRequestEnable(trace1.getId)
+        } catch {
+            case e: IllegalStateException => { /* correct behaviour */ }
+            case _: Throwable => fail("Wrong exception thrown")
+        }
+    }
+
+    scenario("enable a rule on a device with preexisting infilter") {
+        val bridge = new Bridge().setName("bridge0")
+            .setProperty(Bridge.Property.tenant_id, tenantId)
+        clusterDataClient.bridgesCreate(bridge)
+
+        val chain = newInboundChainOnBridge("bridge-filter", bridge)
+        newLiteralRuleOnChain(chain, 1,
+                              newCondition(tpDst = Some(4002)), Action.ACCEPT)
+
+        clusterDataClient.rulesFindByChain(chain.getId).size() should be (1)
+
+        val trace1 = new TraceRequest()
+            .setDeviceType(TraceRequest.DeviceType.BRIDGE)
+            .setDeviceId(bridge.getId)
+            .setCondition(newCondition(tpSrc = Some(5000)))
+        clusterDataClient.traceRequestCreate(trace1)
+
+        clusterDataClient.rulesFindByChain(chain.getId).size() should be (1)
+        clusterDataClient.traceRequestEnable(trace1.getId)
+
+        var rules = clusterDataClient.rulesFindByChain(chain.getId)
+        rules.size() should be (2)
+        rules.get(0) match {
+            case t: TraceRuleData => {
+                t.getRequestId should be (trace1.getId)
+            }
+            case _ =>  {
+                fail("First rule should be the trace rule")
+            }
+        }
+
+        // add another rule at the start
+        newLiteralRuleOnChain(chain, 1,
+                              newCondition(tpDst = Some(4003)), Action.ACCEPT)
+        rules = clusterDataClient.rulesFindByChain(chain.getId)
+        rules.size() should be (3)
+        rules.get(0) match {
+            case t: TraceRuleData => {
+                fail("Shouldn't be first rule anymore")
+            }
+            case _ => { /* anything else is fine */ }
+        }
+
+        clusterDataClient.traceRequestDisable(trace1.getId)
+        rules = clusterDataClient.rulesFindByChain(chain.getId)
+        rules.size() should be (2)
+        rules.asScala foreach (x => x match {
+                                   case t: TraceRuleData => {
+                                       fail("There should be no trace rule")
+                                   }
+                                   case _ => { /* anything else is fine */ }
+                               })
+    }
+
+    scenario("disable rule which is last on chain, but chain not trace chain") {
+        val bridge = new Bridge().setName("bridge0")
+            .setProperty(Bridge.Property.tenant_id, tenantId)
+        clusterDataClient.bridgesCreate(bridge)
+
+        val chain = newInboundChainOnBridge("bridge-filter", bridge)
+        val rule1 = newLiteralRuleOnChain(chain, 1,
+                                          newCondition(tpDst = Some(4002)),
+                                          Action.ACCEPT)
+
+        clusterDataClient.rulesFindByChain(chain.getId).size() should be (1)
+
+        val trace1 = new TraceRequest()
+            .setDeviceType(TraceRequest.DeviceType.BRIDGE)
+            .setDeviceId(bridge.getId)
+            .setCondition(newCondition(tpSrc = Some(5000)))
+        clusterDataClient.traceRequestCreate(trace1)
+        clusterDataClient.traceRequestEnable(trace1.getId)
+
+        clusterDataClient.rulesFindByChain(chain.getId).size() should be (2)
+        clusterDataClient.rulesDelete(rule1.getId)
+
+        clusterDataClient.rulesFindByChain(chain.getId).size() should be (1)
+
+        clusterDataClient.traceRequestDisable(trace1.getId)
+
+        val chains = clusterDataClient.chainsGetAll()
+        chains.size() should be (1)
+        chains.get(0).getId should be (chain.getId)
+
+        clusterDataClient.rulesFindByChain(chain.getId).size() should be (0)
+    }
+
+    scenario("Enable on creation, disabled on delete") {
+        var bridge = new Bridge().setName("bridge0")
+            .setProperty(Bridge.Property.tenant_id, tenantId)
+        clusterDataClient.bridgesCreate(bridge)
+
+        val trace1 = new TraceRequest()
+            .setDeviceType(TraceRequest.DeviceType.BRIDGE)
+            .setDeviceId(bridge.getId)
+            .setCondition(newCondition(tpSrc = Some(5000)))
+        clusterDataClient.traceRequestCreate(trace1, true)
+        bridge = clusterDataClient.bridgesGet(bridge.getId)
+        bridge.getInboundFilter should not be (null)
+
+        val rules = clusterDataClient.rulesFindByChain(bridge.getInboundFilter)
+        rules.size() should be (1)
+
+        clusterDataClient.traceRequestDelete(trace1.getId)
+        bridge = clusterDataClient.bridgesGet(bridge.getId)
+        bridge.getInboundFilter should be (null)
+
+        clusterDataClient.rulesGet(rules.get(0).getId) should be (null)
+    }
+
+    scenario("Disable on device delete") {
+        var bridge = new Bridge().setName("bridge0")
+            .setProperty(Bridge.Property.tenant_id, tenantId)
+        clusterDataClient.bridgesCreate(bridge)
+
+        val trace1 = new TraceRequest()
+            .setDeviceType(TraceRequest.DeviceType.BRIDGE)
+            .setDeviceId(bridge.getId)
+            .setCondition(newCondition(tpSrc = Some(5000)))
+        clusterDataClient.traceRequestCreate(trace1, true)
+        bridge = clusterDataClient.bridgesGet(bridge.getId)
+        bridge.getInboundFilter should not be (null)
+
+        val rules = clusterDataClient.rulesFindByChain(bridge.getInboundFilter)
+        rules.size() should be (1)
+        clusterDataClient.bridgesDelete(bridge.getId)
+
+        clusterDataClient.rulesGet(rules.get(0).getId) should be (null)
+    }
 }
 
 class RaceyMockDirectory extends MockDirectory {
@@ -211,6 +443,4 @@ class RaceyMockDirectory extends MockDirectory {
         }
         super.multi(ops)
     }
-
 }
-
