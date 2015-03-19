@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3a1371a2_6c0ad6d3",
+        "filename": "specs/2015.03/edge_router_translation.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-03-19T09:45:34Z",
+      "side": 1,
+      "message": "What does this look like to the translators? Is it an update on the edge router, or an update on the network? What properties are updated?",
+      "range": {
+        "startLine": 40,
+        "startChar": 0,
+        "endLine": 40,
+        "endChar": 62
+      },
+      "revId": "99a0500f574c0c5cf6302e7cde3b43b342daa32c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_2cb61e3e",
+        "filename": "specs/2015.03/edge_router_translation.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-03-19T09:45:34Z",
+      "side": 1,
+      "message": "In a response to my comment on the last version, you said the router port \"is the same port created on the router by the router-interface-add command.\" Here you\u0027re saying that it\u0027s assumed that the router port has already been created. So that\u0027s inconsistent.\n\nAlso, it doesn\u0027t say anything about the bridge port. I assume we create it here, but what are its properties?",
+      "range": {
+        "startLine": 43,
+        "startChar": 43,
+        "endLine": 44,
+        "endChar": 73
+      },
+      "revId": "99a0500f574c0c5cf6302e7cde3b43b342daa32c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_4cb9da2d",
+        "filename": "specs/2015.03/edge_router_translation.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-03-19T09:45:34Z",
+      "side": 1,
+      "message": "It says \"added to the MAC MAC table\"",
+      "range": {
+        "startLine": 45,
+        "startChar": 71,
+        "endLine": 45,
+        "endChar": 74
+      },
+      "revId": "99a0500f574c0c5cf6302e7cde3b43b342daa32c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_cc0f8ae0",
+        "filename": "specs/2015.03/edge_router_translation.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-03-19T09:45:34Z",
+      "side": 1,
+      "message": "What does this look like to the translators? Is the network updated, or the router? Or just deleting the router port, as we do with router gateway now?",
+      "range": {
+        "startLine": 52,
+        "startChar": 0,
+        "endLine": 52,
+        "endChar": 66
+      },
+      "revId": "99a0500f574c0c5cf6302e7cde3b43b342daa32c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_ac14cef5",
+        "filename": "specs/2015.03/edge_router_translation.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-03-19T09:45:34Z",
+      "side": 1,
+      "message": "This section has similar issues. Unless I misunderstand the purpose of this spec, it should describe what Neutron tasks the translator will receive, and what it should do with them in terms of specific operations on the Midonet topology, without eliding details like creating ports.",
+      "range": {
+        "startLine": 65,
+        "startChar": 0,
+        "endLine": 65,
+        "endChar": 55
+      },
+      "revId": "99a0500f574c0c5cf6302e7cde3b43b342daa32c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
