@@ -22,6 +22,30 @@
       "revId": "e027f3f95ec395552f195d310205fd3addfb062e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_514e91c2",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/C3POMinionTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 181,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-03-19T02:00:10Z",
+      "side": 1,
+      "message": "Oops, come to think of it, no we don\u0027t really need it. I just blindly copied it from executeSqlStmts(). I\u0027ll write a cleanup patch.",
+      "parentUuid": "3a1371a2_13e70114",
+      "range": {
+        "startLine": 181,
+        "startChar": 25,
+        "endLine": 181,
+        "endChar": 35
+      },
+      "revId": "e027f3f95ec395552f195d310205fd3addfb062e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
