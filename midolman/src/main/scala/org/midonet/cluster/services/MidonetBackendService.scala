@@ -66,7 +66,9 @@ abstract class MidonetBackend extends AbstractService {
              classOf[SecurityGroup],
              classOf[VIP],
              classOf[Vtep],
-             classOf[VtepBinding]
+             classOf[VtepBinding],
+             classOf[Pool],
+             classOf[PoolMember]
         ).foreach(store.registerClass)
 
         ownershipStore.registerClass(classOf[Host], OwnershipType.Exclusive)
@@ -88,6 +90,9 @@ abstract class MidonetBackend extends AbstractService {
 
         store.declareBinding(classOf[Host], "tunnel_zone_ids", CLEAR,
                              classOf[TunnelZone], "host_ids", CLEAR)
+
+        store.declareBinding(classOf[Pool], "pool_member_ids", ERROR,
+                             classOf[PoolMember], "pool_id", CLEAR)
 
         // TODO(nicolas): Add bindings between a chain and its rules
         store.build()
