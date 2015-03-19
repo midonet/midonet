@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3a1371a2_271d97be",
+        "filename": "netlink/src/main/scala/org.midonet.netlink/NetlinkRequestBroker.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-03-19T14:57:50Z",
+      "side": 1,
+      "message": "Be more explicit about thread roles and thread-safety.",
+      "revId": "849b866222b60d78d35a5e922c39d1a9482a554f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
