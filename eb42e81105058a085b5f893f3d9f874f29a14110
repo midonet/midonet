@@ -49,6 +49,54 @@
     },
     {
       "key": {
+        "uuid": "3a1371a2_c258f1fc",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/ChainMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-19T16:37:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3a1371a2_4c49dacf",
+      "range": {
+        "startLine": 66,
+        "startChar": 4,
+        "endLine": 77,
+        "endChar": 5
+      },
+      "revId": "eb42e81105058a085b5f893f3d9f874f29a14110",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_02f969c8",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/ChainMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-19T16:37:03Z",
+      "side": 1,
+      "message": "I added comments for the class as well as for public methods/fields. Refcount is always accessed from the VT thread so no need for @volatile.",
+      "parentUuid": "3a1371a2_e2c08d7e",
+      "range": {
+        "startLine": 66,
+        "startChar": 4,
+        "endLine": 77,
+        "endChar": 5
+      },
+      "revId": "eb42e81105058a085b5f893f3d9f874f29a14110",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a1371a2_8c2bd2ea",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/ChainMapper.scala",
         "patchSetId": 1
@@ -60,6 +108,30 @@
       "writtenOn": "2015-03-19T11:01:22Z",
       "side": 1,
       "message": "Make user friendly.",
+      "range": {
+        "startLine": 124,
+        "startChar": 38,
+        "endLine": 124,
+        "endChar": 49
+      },
+      "revId": "eb42e81105058a085b5f893f3d9f874f29a14110",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_0272097c",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/ChainMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-19T16:37:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3a1371a2_8c2bd2ea",
       "range": {
         "startLine": 124,
         "startChar": 38,
@@ -95,6 +167,30 @@
     },
     {
       "key": {
+        "uuid": "3a1371a2_a2b975eb",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/ChainMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 131,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-19T16:37:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3a1371a2_cc830acb",
+      "range": {
+        "startLine": 123,
+        "startChar": 8,
+        "endLine": 131,
+        "endChar": 9
+      },
+      "revId": "eb42e81105058a085b5f893f3d9f874f29a14110",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a1371a2_6c301657",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/ChainMapper.scala",
         "patchSetId": 1
@@ -106,6 +202,30 @@
       "writtenOn": "2015-03-19T11:01:22Z",
       "side": 1,
       "message": "Same here.",
+      "range": {
+        "startLine": 138,
+        "startChar": 42,
+        "endLine": 138,
+        "endChar": 53
+      },
+      "revId": "eb42e81105058a085b5f893f3d9f874f29a14110",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_e26ecd95",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/ChainMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 138,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-19T16:37:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3a1371a2_6c301657",
       "range": {
         "startLine": 138,
         "startChar": 42,
