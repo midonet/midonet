@@ -28,7 +28,7 @@ import org.slf4j.LoggerFactory
 import org.midonet.brain.services.c3po.NeutronDeserializer.toMessage
 import org.midonet.brain.services.c3po.translators._
 import org.midonet.brain.{ClusterNode, ScheduledClusterMinion, ScheduledMinionConfig}
-import org.midonet.cluster.data.neutron.{SqlNeutronImporter, importer}
+import org.midonet.cluster.data.neutron.{DataStateUpdater, SqlNeutronImporter, importer}
 import org.midonet.cluster.models.Neutron._
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.util.UUIDUtil
@@ -56,6 +56,7 @@ class C3POMinion @Inject()(nodeContext: ClusterNode.Context,
     private val dataMgr = initDataManager()
 
     private val neutronImporter = new SqlNeutronImporter(dataSrc)
+    private val dataStateUpdater = new DataStateUpdater(dataSrc)
 
     private val LEADER_LATCH_PATH = "/leader-latch"
     private val leaderLatch = new LeaderLatch(curator, LEADER_LATCH_PATH,
@@ -87,6 +88,8 @@ class C3POMinion @Inject()(nodeContext: ClusterNode.Context,
                     dataMgr.interpretAndExecTxn(translateTxn(txn))
                 }
             }
+
+            dataStateUpdater.updateLastProcessedId(dataMgr.lastProcessedTaskId)
         } catch {
             case ex: Throwable =>
                 log.error("Unexpected exception in Neutron polling thread.", ex)
