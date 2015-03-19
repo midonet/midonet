@@ -59,6 +59,24 @@
     },
     {
       "key": {
+        "uuid": "3a1371a2_824d5975",
+        "filename": "midolman/src/main/scala/org/midonet/cluster/services/MidonetBackendService.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-19T15:46:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3a1371a2_208905cb",
+      "revId": "a5da09c13201a3b52b07ad08aa7752ac925b550f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a1371a2_80c1d9e6",
         "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/VIP.scala",
         "patchSetId": 3
@@ -70,6 +88,24 @@
       "writtenOn": "2015-03-18T10:13:00Z",
       "side": 1,
       "message": "This would also catch subclasses of VIP. Is that intentional behaviour? Should we check on the class itself?",
+      "revId": "a5da09c13201a3b52b07ad08aa7752ac925b550f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_e2ab6dd4",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/VIP.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-19T15:46:45Z",
+      "side": 1,
+      "message": "But if we ever have a subclass of VIP we would just have to override equals and then it would be fine, isn\u0027t it?",
+      "parentUuid": "3a1371a2_80c1d9e6",
       "revId": "a5da09c13201a3b52b07ad08aa7752ac925b550f",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
