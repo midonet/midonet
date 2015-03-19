@@ -1,0 +1,188 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3a1371a2_ccddca44",
+        "filename": "midolman/src/main/java/org/midonet/cluster/DataClient.java",
+        "patchSetId": 8
+      },
+      "lineNbr": 906,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-19T10:16:22Z",
+      "side": 1,
+      "message": "traceRequest?",
+      "range": {
+        "startLine": 906,
+        "startChar": 50,
+        "endLine": 906,
+        "endChar": 53
+      },
+      "revId": "c1572c5117069f9b008554066d5cef5ea419b3cd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_6ca656c3",
+        "filename": "midolman/src/main/java/org/midonet/cluster/data/Converter.java",
+        "patchSetId": 8
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-19T10:16:22Z",
+      "side": 1,
+      "message": "Unused import.",
+      "range": {
+        "startLine": 62,
+        "startChar": 0,
+        "endLine": 62,
+        "endChar": 58
+      },
+      "revId": "c1572c5117069f9b008554066d5cef5ea419b3cd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_0c952240",
+        "filename": "midolman/src/main/java/org/midonet/midolman/state/zkManagers/TraceRequestZkManager.java",
+        "patchSetId": 8
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-19T10:16:22Z",
+      "side": 1,
+      "message": "Not needed.",
+      "range": {
+        "startLine": 122,
+        "startChar": 37,
+        "endLine": 122,
+        "endChar": 39
+      },
+      "revId": "c1572c5117069f9b008554066d5cef5ea419b3cd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_2c9c5e69",
+        "filename": "midolman/src/main/java/org/midonet/midolman/state/zkManagers/TraceRequestZkManager.java",
+        "patchSetId": 8
+      },
+      "lineNbr": 123,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-19T10:16:22Z",
+      "side": 1,
+      "message": "This one too, right?",
+      "range": {
+        "startLine": 123,
+        "startChar": 8,
+        "endLine": 123,
+        "endChar": 67
+      },
+      "revId": "c1572c5117069f9b008554066d5cef5ea419b3cd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_ac87ae0e",
+        "filename": "midolman/src/test/scala/org/midonet/cluster/data/TraceRequestTest.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-19T10:16:22Z",
+      "side": 1,
+      "message": "Unused import",
+      "range": {
+        "startLine": 23,
+        "startChar": 49,
+        "endLine": 23,
+        "endChar": 57
+      },
+      "revId": "c1572c5117069f9b008554066d5cef5ea419b3cd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_cc82eaff",
+        "filename": "midolman/src/test/scala/org/midonet/cluster/data/TraceRequestTest.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 173,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-19T10:16:22Z",
+      "side": 1,
+      "message": "Nit: not needed.",
+      "range": {
+        "startLine": 173,
+        "startChar": 51,
+        "endLine": 173,
+        "endChar": 52
+      },
+      "revId": "c1572c5117069f9b008554066d5cef5ea419b3cd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_6c8db631",
+        "filename": "midolman/src/test/scala/org/midonet/cluster/data/TraceRequestTest.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 189,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-19T10:16:22Z",
+      "side": 1,
+      "message": "Unused",
+      "range": {
+        "startLine": 189,
+        "startChar": 8,
+        "endLine": 189,
+        "endChar": 37
+      },
+      "revId": "c1572c5117069f9b008554066d5cef5ea419b3cd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_8c88f223",
+        "filename": "midolman/src/test/scala/org/midonet/cluster/data/TraceRequestTest.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 198,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-19T10:16:22Z",
+      "side": 1,
+      "message": "You could use (the same above):\n\n  intercept[StateAccessException] {\n  ...\n  }",
+      "range": {
+        "startLine": 193,
+        "startChar": 8,
+        "endLine": 198,
+        "endChar": 9
+      },
+      "revId": "c1572c5117069f9b008554066d5cef5ea419b3cd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
