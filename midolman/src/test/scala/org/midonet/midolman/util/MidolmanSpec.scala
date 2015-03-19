@@ -22,7 +22,7 @@ import scala.collection.JavaConversions._
 import com.google.inject._
 import org.apache.commons.configuration.HierarchicalConfiguration
 import org.scalatest.{BeforeAndAfter, FeatureSpecLike, GivenWhenThen, Matchers, OneInstancePerTest}
-import org.midonet.cluster.services.{MidonetBackend, LegacyStorageService, MidonetBackendService}
+import org.midonet.cluster.services.{MidonetBackend, LegacyStorageService}
 import org.midonet.cluster.storage.{MidonetBackendTestModule, StateStorageModule}
 import org.midonet.midolman.cluster._
 import org.midonet.midolman.cluster.config.ConfigProviderModule

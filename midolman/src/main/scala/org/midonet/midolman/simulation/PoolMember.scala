@@ -18,7 +18,12 @@ package org.midonet.midolman.simulation
 
 import java.util.UUID
 
+import org.midonet.cluster.data.ZoomConvert.ScalaZoomField
+import org.midonet.cluster.data.ZoomObject
+import org.midonet.cluster.util.UUIDUtil.{Converter => UUIDConverter}
+import org.midonet.cluster.util.IPAddressUtil.{Converter => IPAddressConverter}
 import org.midonet.midolman.rules._
+import org.midonet.midolman.state.l4lb.LBStatus
 import org.midonet.packets.IPv4Addr
 import org.midonet.util.collection.HasWeight
 
@@ -29,8 +34,23 @@ import org.midonet.util.collection.HasWeight
  *        all of its pool's members. A pool member with zero weight is
  *        considered down.
  */
-class PoolMember(val id: UUID, val address: IPv4Addr,
-                 val protocolPort: Int, val weight: Int) extends HasWeight {
+class PoolMember(@ScalaZoomField(name = "id",
+                                 converter = classOf[UUIDConverter])
+                 val id: UUID,
+                 @ScalaZoomField(name = "admin_state_up")
+                 val adminStateUp: Boolean,
+                 @ScalaZoomField(name = "status")
+                 val status: LBStatus,
+                 @ScalaZoomField(name = "address",
+                                 converter = classOf[IPAddressConverter])
+                 val address: IPv4Addr,
+                 @ScalaZoomField(name = "port")
+                 val protocolPort: Int,
+                 @ScalaZoomField(name = "weight")
+                 val weight: Int)
+    extends ZoomObject with HasWeight {
+
+    def this() = this(null, false, LBStatus.INACTIVE, null, 0, 0)
 
     private val natTargets = Array(new NatTarget(address, address,
                                                  protocolPort, protocolPort))
@@ -43,6 +63,9 @@ class PoolMember(val id: UUID, val address: IPv4Addr,
         else
             pktContext.applyDnat(loadBalancer, natTargets)
 
-    override def toString = s"PoolMember[id=$id, address=$address, " +
-                            s"protocolPort=$protocolPort, weight=$weight]"
+    def isUp: Boolean = weight > 0 && adminStateUp && status == LBStatus.ACTIVE
+
+    override def toString =
+        s"PoolMember [id=$id adminStateUp=$adminStateUp status=$status " +
+        s"address=$address protocolPort=$protocolPort weight=$weight]"
 }

@@ -28,7 +28,7 @@ object TopologyMappings {
     val typeToKlass: Map[Topology.Type, Class[_ <: Message]] = Map(
         Topology.Type.CHAIN  -> classOf[Topology.Chain],
         Topology.Type.HOST -> classOf[Topology.Host],
-        Topology.Type.IP_ADDR_GROUP -> classOf[Topology.IpAddrGroup],
+        Topology.Type.IP_ADDR_GROUP -> classOf[Topology.IPAddrGroup],
         Topology.Type.NETWORK -> classOf[Topology.Network],
         Topology.Type.PORT -> classOf[Topology.Port],
         Topology.Type.PORT_GROUP -> classOf[Topology.PortGroup],
