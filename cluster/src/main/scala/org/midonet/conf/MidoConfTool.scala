@@ -25,8 +25,6 @@ import scala.collection.JavaConversions._
 import com.typesafe.config._
 import org.rogach.scallop._
 
-import org.midonet.conf.{HostIdGenerator, MidoNodeConfigurator}
-
 object ConfCommand {
     val SUCCESS = 0
     val FAILURE = 1

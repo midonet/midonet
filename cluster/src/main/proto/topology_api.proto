@@ -182,7 +182,7 @@ message Response {
             Chain chain = 1;
             Dhcp dhcp = 2;
             Host host = 3;
-            IpAddrGroup ip_addr_group = 4;
+            IPAddrGroup ip_addr_group = 4;
             Network network = 5;
             Port port = 6;
             PortGroup port_group = 7;

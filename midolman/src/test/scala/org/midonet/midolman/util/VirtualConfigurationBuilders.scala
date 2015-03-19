@@ -566,11 +566,11 @@ trait VirtualConfigurationBuilders {
         clusterDataClient().healthMonitorDelete(hm.getId)
     }
 
-    def createPool(loadBalancer: LoadBalancer,
-                   id: UUID = UUID.randomUUID,
-                   adminStateUp: Boolean = true,
-                   lbMethod: PoolLBMethod = PoolLBMethod.ROUND_ROBIN,
-                   hmId: UUID = null): Pool = {
+    def newPool(loadBalancer: LoadBalancer,
+                id: UUID = UUID.randomUUID,
+                adminStateUp: Boolean = true,
+                lbMethod: PoolLBMethod = PoolLBMethod.ROUND_ROBIN,
+                hmId: UUID = null): Pool = {
         val pool = new Pool()
         pool.setLoadBalancerId(loadBalancer.getId)
         pool.setHealthMonitorId(hmId)
@@ -598,11 +598,11 @@ trait VirtualConfigurationBuilders {
         clusterDataClient().poolUpdate(pool)
     }
 
-    def createPoolMember(pool: Pool): PoolMember = {
-        createPoolMember(pool, "10.10.10.10", 10)
+    def newPoolMember(pool: Pool): PoolMember = {
+        newPoolMember(pool, "10.10.10.10", 10)
     }
 
-    def createPoolMember(pool: Pool, address: String, port: Int,
+    def newPoolMember(pool: Pool, address: String, port: Int,
                          weight: Int = 1)
     : PoolMember = {
         val poolMember = new PoolMember()
