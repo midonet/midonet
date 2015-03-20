@@ -33,6 +33,24 @@
       "revId": "4c623afa2fded0c185c3733359065d5ba6ec6f77",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_8321feb6",
+        "filename": "midolman/src/main/scala/org/midonet/sdn/flows/ManagedFlow.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 63,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-03-20T13:50:05Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3a1371a2_0254c952",
+      "revId": "4c623afa2fded0c185c3733359065d5ba6ec6f77",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
