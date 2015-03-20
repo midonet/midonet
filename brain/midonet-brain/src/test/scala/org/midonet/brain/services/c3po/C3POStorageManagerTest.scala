@@ -197,8 +197,10 @@ class C3POStorageManagerTest extends FlatSpec with BeforeAndAfterEach {
         verify(storage, times(2)).create(c3poState(0))
     }
 
-    "Neutron transaction" should "produce a single equivalent ZOOM.multi " +
-    "call." in {
+    // TODO: Actually, it should execute each transaction as a single multi
+    // call. See comment in C3POStorageManager.interpretAndExecTxn.
+    "Neutron transaction" should " execute each task as a separate " +
+                                 " multi call." in {
         when(mockNetworkTranslator.translate(neutron.Create(neutronNetwork)))
                                   .thenReturn(List(Create(midoNetwork)))
         when(mockPortTranslator.translate(neutron.Create(neutronNetworkPort)))
@@ -214,9 +216,11 @@ class C3POStorageManagerTest extends FlatSpec with BeforeAndAfterEach {
                 txn("txn1", c3poCreate(2, neutronNetwork),
                             c3poCreate(3, neutronNetworkPort)))
 
-        verify(storage).multi(startsWith(
+        verify(storage).multi(List(
                 CreateOp(neutronNetwork),
                 CreateOp(midoNetwork),
+                UpdateOp(c3poState(2))))
+        verify(storage).multi(List(
                 CreateOp(neutronNetworkPort),
                 CreateOp(midoPort),
                 UpdateOp(c3poState(3))))
