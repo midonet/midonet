@@ -1,0 +1,72 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_294d8973",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/datapath/FlowProcessor.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-03-20T17:16:53Z",
+      "side": 1,
+      "message": "should be in finally block",
+      "revId": "535acdeb2f0ede81308092357676556e5808bbc7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_495c4526",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/datapath/PacketExecutor.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-03-20T17:16:53Z",
+      "side": 1,
+      "message": "packetActions",
+      "revId": "535acdeb2f0ede81308092357676556e5808bbc7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_c95e7512",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/FlowStateReplicator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 209,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-03-20T17:16:53Z",
+      "side": 1,
+      "message": "should be in a finally",
+      "revId": "535acdeb2f0ede81308092357676556e5808bbc7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_49aa85d5",
+        "filename": "midonet-util/src/main/java/org/midonet/packets/FlowStateEthernet.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 137,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-03-20T17:16:53Z",
+      "side": 1,
+      "message": "*gasp*",
+      "revId": "535acdeb2f0ede81308092357676556e5808bbc7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
