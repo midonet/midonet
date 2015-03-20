@@ -1,6 +1,5 @@
 MIDO_HOME=/usr/share/midolman
 MIDO_ETC=/etc/midolman
-MIDO_AKKA_CFG=/etc/midolman/midolman-akka.conf
 MIDO_CFG=/etc/midolman
 MIDO_LOG_DIR=/var/log/midolman/
 MIDO_DEBUG_PORT=8001
