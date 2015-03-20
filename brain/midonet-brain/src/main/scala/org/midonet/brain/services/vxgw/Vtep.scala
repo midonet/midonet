@@ -18,14 +18,13 @@ package org.midonet.brain.services.vxgw
 
 import java.util.UUID
 
-import org.opendaylight.ovsdb.lib.notation.{UUID => OdlUUID}
 import scala.util.Try
 
 import rx.{Observable, Observer}
 
 import org.midonet.brain.southbound.vtep.VtepDataClientFactory
-import org.midonet.brain.southbound.vtep.model.LogicalSwitch
 import org.midonet.cluster.DataClient
+import org.midonet.cluster.data.vtep.model.{MacLocation, LogicalSwitch}
 import org.midonet.midolman.state.ZookeeperConnectionWatcher
 import org.midonet.packets.IPv4Addr
 
@@ -64,7 +63,7 @@ abstract class VtepConfig(val mgmtIp: IPv4Addr, val mgmtPort: Int) {
     /** Provide a snapshot with the current contents of the Mac_Local tables
       * in the VTEP's OVSDB. If a logical switch UUID is given, it'll filter
       * only entries in it. */
-    def currentMacLocal(ls: OdlUUID): Seq[MacLocation]
+    def currentMacLocal(ls: UUID): Seq[MacLocation]
 
     /** This method should return the tunnel IP of the VTEP */
     def vxlanTunnelIp: Option[IPv4Addr]

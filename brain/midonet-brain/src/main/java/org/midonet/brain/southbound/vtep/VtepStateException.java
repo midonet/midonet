@@ -15,6 +15,8 @@
  */
 package org.midonet.brain.southbound.vtep;
 
+import org.midonet.cluster.data.vtep.model.VtepEndPoint;
+
 /**
  * A checked exception for the VTEP vtep state.
  */
