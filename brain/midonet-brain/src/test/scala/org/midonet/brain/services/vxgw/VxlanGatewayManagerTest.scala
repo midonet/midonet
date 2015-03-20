@@ -32,11 +32,11 @@ import org.slf4j.LoggerFactory
 
 import org.midonet.brain.BrainTestUtils._
 import org.midonet.brain.southbound.vtep.VtepConstants.bridgeIdToLogicalSwitchName
-import org.midonet.brain.southbound.vtep.VtepMAC
-import org.midonet.brain.southbound.vtep.VtepMAC.{UNKNOWN_DST, fromMac}
 import org.midonet.brain.util.TestZkTools
 import org.midonet.cluster.DataClient
 import org.midonet.cluster.data.Bridge.UNTAGGED_VLAN_ID
+import org.midonet.cluster.data.vtep.model.{VtepMAC, MacLocation}
+import org.midonet.cluster.data.vtep.model.VtepMAC.{UNKNOWN_DST, fromMac}
 import org.midonet.midolman.host.state.HostZkManager
 import org.midonet.midolman.state._
 import org.midonet.packets.{IPv4Addr, MAC}
@@ -374,7 +374,7 @@ class VxlanGatewayManagerTest extends FlatSpec with Matchers
 
         Then("the MAC sent from the hardware VTEP should reach MidoNet")
         eventually {
-            ctx.macPortMap.get(macOnVtep.IEEE802()) shouldBe vxPort1.getId
+            ctx.macPortMap.get(macOnVtep.IEEE802) shouldBe vxPort1.getId
         }
 
         And("the VxGW manager doesn't report it to the bus")
@@ -443,11 +443,11 @@ class VxlanGatewayManagerTest extends FlatSpec with Matchers
 
         And("the Mac Port map in the Network sees the new value")
         eventually {
-            ctx.macPortMap.get(ml.mac.IEEE802()) shouldBe vxPort2.getId
+            ctx.macPortMap.get(ml.mac.IEEE802) shouldBe vxPort2.getId
         }
 
         And("the IP remains on the same MAC")
-        ctx.arpTable.get(ipOnVtep) shouldBe ml.mac.IEEE802()
+        ctx.arpTable.get(ipOnVtep) shouldBe ml.mac.IEEE802
 
         ctx.delete()
         host.delete()
