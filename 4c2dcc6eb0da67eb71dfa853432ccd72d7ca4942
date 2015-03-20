@@ -1,0 +1,210 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_63dde242",
+        "filename": "brain/midonet-brain/src/main/resources/org/midonet/conf/brain.schema",
+        "patchSetId": 6
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-03-20T11:31:33Z",
+      "side": 1,
+      "message": "Heartbeat",
+      "range": {
+        "startLine": 57,
+        "startChar": 44,
+        "endLine": 57,
+        "endChar": 54
+      },
+      "revId": "4c2dcc6eb0da67eb71dfa853432ccd72d7ca4942",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_43b9c6e8",
+        "filename": "cluster/src/main/java/org/midonet/cluster/config/ZookeeperConfig.java",
+        "patchSetId": 6
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-03-20T11:31:33Z",
+      "side": 1,
+      "message": "Is this file needed at all?",
+      "revId": "4c2dcc6eb0da67eb71dfa853432ccd72d7ca4942",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_a394fa44",
+        "filename": "cluster/src/main/scala/org/midonet/conf/MidoConf.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-03-20T11:31:33Z",
+      "side": 1,
+      "message": "/etc/midonet/midonet.conf?",
+      "range": {
+        "startLine": 101,
+        "startChar": 64,
+        "endLine": 101,
+        "endChar": 76
+      },
+      "revId": "4c2dcc6eb0da67eb71dfa853432ccd72d7ca4942",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_a37b5a28",
+        "filename": "cluster/src/main/scala/org/midonet/conf/MidoConf.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 136,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-03-20T11:31:33Z",
+      "side": 1,
+      "message": "nit: a constant might be suitable",
+      "range": {
+        "startLine": 136,
+        "startChar": 41,
+        "endLine": 136,
+        "endChar": 48
+      },
+      "revId": "4c2dcc6eb0da67eb71dfa853432ccd72d7ca4942",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_c372d648",
+        "filename": "midolman/src/main/java/org/midonet/midolman/config/ArpTableConfig.java",
+        "patchSetId": 6
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-03-20T11:31:33Z",
+      "side": 1,
+      "message": "Delete?",
+      "revId": "4c2dcc6eb0da67eb71dfa853432ccd72d7ca4942",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_238f6a25",
+        "filename": "midolman/src/main/java/org/midonet/midolman/config/HealthMonitorConfig.java",
+        "patchSetId": 6
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-03-20T11:31:33Z",
+      "side": 1,
+      "message": "Delete",
+      "revId": "4c2dcc6eb0da67eb71dfa853432ccd72d7ca4942",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_0394ee35",
+        "filename": "midolman/src/main/java/org/midonet/midolman/host/guice/HostConfigProvider.java",
+        "patchSetId": 6
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-03-20T11:31:33Z",
+      "side": 1,
+      "message": "Delete?",
+      "revId": "4c2dcc6eb0da67eb71dfa853432ccd72d7ca4942",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_6399626e",
+        "filename": "midolman/src/main/java/org/midonet/midolman/host/state/HostZkManager.java",
+        "patchSetId": 6
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-03-20T11:31:33Z",
+      "side": 1,
+      "message": "nit: registered in NSDB?\n\nThinking on how it sounds for the operator",
+      "range": {
+        "startLine": 95,
+        "startChar": 31,
+        "endLine": 95,
+        "endChar": 38
+      },
+      "revId": "4c2dcc6eb0da67eb71dfa853432ccd72d7ca4942",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_439ee657",
+        "filename": "midolman/src/main/java/org/midonet/midolman/host/state/HostZkManager.java",
+        "patchSetId": 6
+      },
+      "lineNbr": 128,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-03-20T11:31:33Z",
+      "side": 1,
+      "message": "Marking .. as?",
+      "range": {
+        "startLine": 128,
+        "startChar": 19,
+        "endLine": 128,
+        "endChar": 25
+      },
+      "revId": "4c2dcc6eb0da67eb71dfa853432ccd72d7ca4942",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_83c61e48",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/config/MidolmanConfig.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-03-20T11:31:33Z",
+      "side": 1,
+      "message": "I\u0027d change this to NeutronConfig. The Neutron DB is not really part of the cluster so it\u0027s confusing (beyond the fact that mm-ctl talks to Neutron DB is odd).",
+      "range": {
+        "startLine": 119,
+        "startChar": 6,
+        "endLine": 119,
+        "endChar": 19
+      },
+      "revId": "4c2dcc6eb0da67eb71dfa853432ccd72d7ca4942",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
