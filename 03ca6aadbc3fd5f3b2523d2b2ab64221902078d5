@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_23312a0c",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/PortGroup.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-20T13:50:22Z",
+      "side": 1,
+      "message": "nice!",
+      "range": {
+        "startLine": 29,
+        "startChar": 16,
+        "endLine": 29,
+        "endChar": 31
+      },
+      "revId": "03ca6aadbc3fd5f3b2523d2b2ab64221902078d5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_0336ae03",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PortGroupMapper.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-20T13:50:22Z",
+      "side": 1,
+      "message": "Why is this needed? Can the store emit twice the same PortGroup\u003e",
+      "range": {
+        "startLine": 37,
+        "startChar": 12,
+        "endLine": 37,
+        "endChar": 33
+      },
+      "revId": "03ca6aadbc3fd5f3b2523d2b2ab64221902078d5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_633b22ec",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PortGroupMapper.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-20T13:50:22Z",
+      "side": 1,
+      "message": "If we expect that there will be many PortGroups, we could make this an object-level val shared among the various PortGroupMappers. We could apply the same trick for other mappers if we feel it\u0027s important.",
+      "range": {
+        "startLine": 39,
+        "startChar": 16,
+        "endLine": 39,
+        "endChar": 81
+      },
+      "revId": "03ca6aadbc3fd5f3b2523d2b2ab64221902078d5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_4340a656",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/PortGroupsMapperTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-20T13:50:22Z",
+      "side": 1,
+      "message": "groups",
+      "range": {
+        "startLine": 78,
+        "startChar": 49,
+        "endLine": 78,
+        "endChar": 54
+      },
+      "revId": "03ca6aadbc3fd5f3b2523d2b2ab64221902078d5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_a324fac6",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/TopologyMatchers.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 225,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-20T13:50:22Z",
+      "side": 1,
+      "message": "Why not just pg.getName? If pg.hasName returns false then pg.getName would return null, isn\u0027t it?",
+      "range": {
+        "startLine": 225,
+        "startChar": 36,
+        "endLine": 225,
+        "endChar": 74
+      },
+      "revId": "03ca6aadbc3fd5f3b2523d2b2ab64221902078d5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
