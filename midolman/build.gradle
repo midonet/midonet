@@ -140,7 +140,7 @@ task preparePkg(type: Copy, dependsOn: installApp) {
     from("src/deb/bin/mm-stat") {
         into "usr/bin"
     }
-    from("src/deb/bin/mm-conf") {
+    from("src/deb/bin/mn-conf") {
         into "usr/bin"
     }
     from("src/deb/init/midolman-prepare") {
@@ -186,10 +186,7 @@ packaging {
     url = project.url
     description = 'Midolman is a virtual network controller'
     dependencies = [ 'bridge-utils', 'haproxy']
-    confFiles = ['/etc/midolman/midolman-akka.conf',
-                 '/etc/midolman/midolman-akka.conf.compute',
-                 '/etc/midolman/midolman-akka.conf.gateway',
-                 '/etc/midolman/midolman-env.sh',
+    confFiles = ['/etc/midolman/midolman-env.sh',
                  '/etc/midolman/midolman-env.sh.compute.large',
                  '/etc/midolman/midolman-env.sh.gateway.large',
                  '/etc/midolman/midolman.conf',
