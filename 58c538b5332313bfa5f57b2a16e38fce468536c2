@@ -1,0 +1,157 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_26ddb815",
+        "filename": "midolman/src/main/java/org/midonet/midolman/Midolman.java",
+        "patchSetId": 7
+      },
+      "lineNbr": 143,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-03-20T15:12:44Z",
+      "side": 1,
+      "message": "We should print the configuration at some point, no?",
+      "revId": "58c538b5332313bfa5f57b2a16e38fce468536c2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_66b050de",
+        "filename": "midolman/src/main/resources/org/midonet/conf/agent.schema",
+        "patchSetId": 7
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-03-20T15:12:44Z",
+      "side": 1,
+      "message": "begone unused parameters!",
+      "revId": "58c538b5332313bfa5f57b2a16e38fce468536c2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_46b554cc",
+        "filename": "midolman/src/main/resources/org/midonet/conf/agent.schema",
+        "patchSetId": 7
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-03-20T15:12:44Z",
+      "side": 1,
+      "message": "we should get rid of this too",
+      "revId": "58c538b5332313bfa5f57b2a16e38fce468536c2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_a6c9a85c",
+        "filename": "midolman/src/main/resources/org/midonet/conf/agent.schema",
+        "patchSetId": 7
+      },
+      "lineNbr": 176,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-03-20T15:12:44Z",
+      "side": 1,
+      "message": "ah-ha!",
+      "revId": "58c538b5332313bfa5f57b2a16e38fce468536c2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_e6c3a036",
+        "filename": "midolman/src/main/scala/org/midonet/cluster/storage/MidonetBackendModule.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-03-20T15:12:44Z",
+      "side": 1,
+      "message": "is this intended?",
+      "revId": "58c538b5332313bfa5f57b2a16e38fce468536c2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_66e7b0e5",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/FlowController.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 305,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-03-20T15:12:44Z",
+      "side": 1,
+      "message": "*gasp*",
+      "revId": "58c538b5332313bfa5f57b2a16e38fce468536c2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_a6d088f8",
+        "filename": "midolman/src/perf/scala/org/midonet/midolman/MidolmanBenchmark.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 130,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-03-20T15:12:44Z",
+      "side": 1,
+      "message": "forTests?",
+      "revId": "58c538b5332313bfa5f57b2a16e38fce468536c2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_86cd8c60",
+        "filename": "midolman/src/test/java/org/midonet/cluster/ClusterBgpManagerTest.java",
+        "patchSetId": 7
+      },
+      "lineNbr": 164,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-03-20T15:12:44Z",
+      "side": 1,
+      "message": "tests?",
+      "revId": "58c538b5332313bfa5f57b2a16e38fce468536c2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_e6da8016",
+        "filename": "midonet-util/src/main/java/org/midonet/conf/HostIdGenerator.java",
+        "patchSetId": 7
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-03-20T15:12:44Z",
+      "side": 1,
+      "message": "Some of this code was moved, right?",
+      "revId": "58c538b5332313bfa5f57b2a16e38fce468536c2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_06099c95",
+        "filename": "midonet-util/src/main/java/org/midonet/config/HostIdGenerator.java",
+        "patchSetId": 7
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-03-20T15:12:44Z",
+      "side": 0,
+      "message": "Ah, yes",
+      "revId": "f099dd6acd774dd90273ffb4fc9b63d48399a63a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
