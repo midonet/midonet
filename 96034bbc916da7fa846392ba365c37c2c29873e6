@@ -1,0 +1,211 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3a1371a2_ab7e71e2",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/ChainMapper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-03-20T07:22:31Z",
+      "side": 1,
+      "message": "I would move this out to an object-level val. There\u0027s no need to allocate a new Function1 for each rule.\n\nI don\u0027t know, though. Maybe compiler\u0027s smart enough to see that this doesn\u0027t close over any local variables, and thus allocates only one static copy, but I\u0027m skeptical.",
+      "range": {
+        "startLine": 56,
+        "startChar": 26,
+        "endLine": 56,
+        "endChar": 79
+      },
+      "revId": "96034bbc916da7fa846392ba365c37c2c29873e6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_8bdbb51a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/ChainMapper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-03-20T07:22:31Z",
+      "side": 1,
+      "message": "IDEA complains about a \"suspicious forward reference\" here. It\u0027s spurious, but could you move the declaration of currentIPAddrGroup up above this declaration so that it doesn\u0027t complain?",
+      "range": {
+        "startLine": 93,
+        "startChar": 34,
+        "endLine": 93,
+        "endChar": 52
+      },
+      "revId": "96034bbc916da7fa846392ba365c37c2c29873e6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_8b49f5d2",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/ChainMapper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-03-20T07:22:31Z",
+      "side": 1,
+      "message": "I could be wrong about this, but I\u0027m fairly confident that in practice no chain will have multiple rules jumping to the same other chain.\n\nWe use jump rules to implement security group membership. If a port is in a security group, then each of its chains (in/out) will have a rule jumping to that security group\u0027s chain. But a port either belongs to a security group or it doesn\u0027t. It can\u0027t belong to a security group twice.",
+      "range": {
+        "startLine": 124,
+        "startChar": 16,
+        "endLine": 124,
+        "endChar": 33
+      },
+      "revId": "96034bbc916da7fa846392ba365c37c2c29873e6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_6b1d99bd",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/ChainMapper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 284,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-03-20T07:22:31Z",
+      "side": 1,
+      "message": "It would probably be slightly better to express this as:\n\n  for (ruleState \u003c- rules.values) {\n      val cond \u003d ruleState.curRule.cond\n      ...\n  }\n\nThis avoids building another collection with map(). It doesn\u0027t really matter since it\u0027s not on the fast path, but the more efficient solution doesn\u0027t require any more code, so why not?",
+      "range": {
+        "startLine": 283,
+        "startChar": 0,
+        "endLine": 284,
+        "endChar": 40
+      },
+      "revId": "96034bbc916da7fa846392ba365c37c2c29873e6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_0b84e5d2",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/ChainMapper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 304,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-03-20T07:22:31Z",
+      "side": 1,
+      "message": "These two functors can be moved out to a companion object as well.",
+      "range": {
+        "startLine": 303,
+        "startChar": 0,
+        "endLine": 304,
+        "endChar": 53
+      },
+      "revId": "96034bbc916da7fa846392ba365c37c2c29873e6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_eb8869e9",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/ChainMapper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 340,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-03-20T07:22:31Z",
+      "side": 1,
+      "message": "These too.",
+      "range": {
+        "startLine": 339,
+        "startChar": 0,
+        "endLine": 340,
+        "endChar": 49
+      },
+      "revId": "96034bbc916da7fa846392ba365c37c2c29873e6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_8be575aa",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/ChainMapperTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 505,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-03-20T07:22:31Z",
+      "side": 1,
+      "message": "Why not check that it has the same elements as ipAddrGroups.keys?",
+      "range": {
+        "startLine": 505,
+        "startChar": 8,
+        "endLine": 505,
+        "endChar": 57
+      },
+      "revId": "96034bbc916da7fa846392ba365c37c2c29873e6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_ebd6a9c4",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/ChainMapperTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 524,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-03-20T07:22:31Z",
+      "side": 1,
+      "message": "I know it\u0027s not part of this patch, but the signature for this function doesn\u0027t make sense. It takes a single IP address and set of ports, but an IP address group actually has a set of (IP address, port ID) pairs. Ideally it should take a set of such pairs, but if it\u0027s only going to take one IP address, it should only take one port ID.",
+      "range": {
+        "startLine": 524,
+        "startChar": 26,
+        "endLine": 524,
+        "endChar": 76
+      },
+      "revId": "96034bbc916da7fa846392ba365c37c2c29873e6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_4bdb7ded",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/ChainMapperTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 571,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-03-20T07:22:31Z",
+      "side": 1,
+      "message": "How about this?\n\n  val idx \u003d chain.getRuleIdsList.indexOf(ruleId.asProto)\n  val updatedChain \u003d chain.toBuilder.removeRuleIds(idx).build()",
+      "range": {
+        "startLine": 565,
+        "startChar": 0,
+        "endLine": 571,
+        "endChar": 20
+      },
+      "revId": "96034bbc916da7fa846392ba365c37c2c29873e6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
