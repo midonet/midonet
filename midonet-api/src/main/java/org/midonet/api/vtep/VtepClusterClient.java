@@ -21,12 +21,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.UUID;
+
 
 import com.google.inject.Inject;
 
 import org.opendaylight.controller.sal.utils.Status;
 import org.opendaylight.controller.sal.utils.StatusCode;
-import org.opendaylight.ovsdb.lib.notation.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,13 +42,13 @@ import org.midonet.brain.southbound.vtep.VtepDataClient;
 import org.midonet.brain.southbound.vtep.VtepDataClientFactory;
 import org.midonet.brain.southbound.vtep.VtepNotConnectedException;
 import org.midonet.brain.southbound.vtep.VtepStateException;
-import org.midonet.brain.southbound.vtep.model.LogicalSwitch;
-import org.midonet.brain.southbound.vtep.model.PhysicalPort;
-import org.midonet.brain.southbound.vtep.model.PhysicalSwitch;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.Bridge;
 import org.midonet.cluster.data.VTEP;
 import org.midonet.cluster.data.ports.VxLanPort;
+import org.midonet.cluster.data.vtep.model.LogicalSwitch;
+import org.midonet.cluster.data.vtep.model.PhysicalPort;
+import org.midonet.cluster.data.vtep.model.PhysicalSwitch;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.StateAccessException;
@@ -75,7 +76,7 @@ public class VtepClusterClient {
     private final VtepDataClientFactory provider;
     private final DataClient dataClient;
 
-    private final java.util.UUID clientId = java.util.UUID.randomUUID();
+    private final UUID clientId = UUID.randomUUID();
 
     @Inject
     public VtepClusterClient(DataClient dataClient,
@@ -183,7 +184,7 @@ public class VtepClusterClient {
         Collection<PhysicalSwitch> switches = vtepClient.listPhysicalSwitches();
 
         for (PhysicalSwitch ps : switches)
-            if (ps.mgmtIps != null && ps.mgmtIps.contains(mgmtIp.toString()))
+            if (ps.mgmtIps() != null && ps.mgmtIps().contains(mgmtIp))
                 return ps;
 
         return null;
@@ -199,7 +200,7 @@ public class VtepClusterClient {
                 listPhysicalPorts(client, ipAddr, vtep.getMgmtPort());
             List<VTEPPort> vtepPorts = new ArrayList<>(pports.size());
             for (PhysicalPort pport : pports)
-                vtepPorts.add(new VTEPPort(pport.name, pport.description));
+                vtepPorts.add(new VTEPPort(pport.name(), pport.description()));
             return vtepPorts;
         } catch (VtepNotConnectedException e) {
             throw new GatewayTimeoutHttpException(
@@ -224,7 +225,7 @@ public class VtepClusterClient {
         }
 
         // TODO: Handle error if this fails or returns null.
-        return vtepClient.listPhysicalPorts(ps.uuid);
+        return vtepClient.listPhysicalPorts(ps.uuid());
     }
 
 
@@ -240,7 +241,7 @@ public class VtepClusterClient {
 
         // Find the requested port.
         for (PhysicalPort port : listPhysicalPorts(vtepClient, mgmtIp, mgmtPort))
-            if (port.name.equals(portName))
+            if (port.name().equals(portName))
                 return port;
 
         // Switch doesn't have the specified port.
@@ -256,7 +257,7 @@ public class VtepClusterClient {
      * @param portName Binding's port name
      * @param vlanId Binding's VLAN ID
      */
-    public final java.util.UUID getBoundBridgeId(
+    public final UUID getBoundBridgeId(
             IPv4Addr ipAddr, String portName, short vlanId)
             throws SerializationException, StateAccessException {
 
@@ -285,7 +286,7 @@ public class VtepClusterClient {
      *                 bindings if bridgeId is null.
      */
     public final List<VtepBinding> listVtepBindings(IPv4Addr ipAddr,
-                                                    java.util.UUID bridgeId)
+                                                    UUID bridgeId)
             throws SerializationException, StateAccessException {
 
         List<org.midonet.cluster.data.VtepBinding> dataBindings =
@@ -311,31 +312,31 @@ public class VtepClusterClient {
      */
     @SuppressWarnings("unused")
     private List<VtepBinding> listVtepBindings(VtepDataClient vtepClient,
-            IPv4Addr mgmtIp, int mgmtPort, java.util.UUID bridgeId)
+            IPv4Addr mgmtIp, int mgmtPort, UUID bridgeId)
             throws SerializationException, StateAccessException,
                    VtepNotConnectedException {
 
         // Build map from OVSDB LogicalSwitch ID to Midonet Bridge ID.
-        Map<UUID, java.util.UUID> lsToBridge = new HashMap<>();
+        Map<UUID, UUID> lsToBridge = new HashMap<>();
         for (LogicalSwitch ls : vtepClient.listLogicalSwitches()) {
-            lsToBridge.put(ls.uuid, logicalSwitchNameToBridgeId(ls.name));
+            lsToBridge.put(ls.uuid(), logicalSwitchNameToBridgeId(ls.name()));
         }
 
         List<VtepBinding> bindings = new ArrayList<>();
         for (PhysicalPort pp :
                 listPhysicalPorts(vtepClient, mgmtIp, mgmtPort)) {
-            for (Map.Entry<Short, UUID> e : pp.vlanBindings.entrySet()) {
+            for (Map.Entry<Integer, UUID> e :
+                pp.vlanBindings().entrySet()) {
 
-                java.util.UUID bindingBridgeId =
-                        lsToBridge.get(e.getValue());
+                UUID bindingBridgeId = lsToBridge.get(e.getValue());
                 // Ignore non-Midonet bindings and bindings to bridges
                 // other than the requested one, if applicable.
                 if (bindingBridgeId != null &&
                         (bridgeId == null ||
                                 bridgeId.equals(bindingBridgeId))) {
                     VtepBinding b = new VtepBinding(
-                            mgmtIp.toString(), pp.name,
-                            e.getKey(), bindingBridgeId);
+                            mgmtIp.toString(), pp.name(),
+                            e.getKey().shortValue(), bindingBridgeId);
                     bindings.add(b);
                 }
             }
@@ -385,11 +386,11 @@ public class VtepClusterClient {
             // data in old vxlanPortId property to vxlanPortIds, this should've
             // been done by the BridgeZkManager. We therefore don't need to
             // inspect vxlanPortId at all.
-            List<java.util.UUID> vxlanPortIds = bridge.getVxLanPortIds();
+            List<UUID> vxlanPortIds = bridge.getVxLanPortIds();
             VxLanPort vxlanPort = null;  // for the vtep of the new binding
-            java.util.UUID tzId = null;
+            UUID tzId = null;
             if (vxlanPortIds != null) {
-                for (java.util.UUID id : vxlanPortIds) {
+                for (UUID id : vxlanPortIds) {
                     VxLanPort port = (VxLanPort) dataClient.portsGet(id);
                     tzId = port.getTunnelZoneId();
                     if (port.getMgmtIpAddr().equals(mgmtIp)) {
@@ -534,7 +535,7 @@ public class VtepClusterClient {
             vni = dataClient.getNewVni(); // first time we bind this network
         } else {
             // other bindings to other VTEPs exist, reuse the VNI
-            java.util.UUID pId = bridge.getVxLanPortIds().get(0);
+            UUID pId = bridge.getVxLanPortIds().get(0);
             VxLanPort vxPort = (VxLanPort)dataClient.portsGet(pId);
             vni = vxPort.getVni();
         }
@@ -568,7 +569,7 @@ public class VtepClusterClient {
      */
     private void tryStoreBinding(IPv4Addr mgmtIp, int mgmtPort,
                                  String physPortName, short vlanId,
-                                 java.util.UUID bridgeId)
+                                 UUID bridgeId)
         throws StateAccessException {
         List<org.midonet.cluster.data.VtepBinding>
             bindings = dataClient.vtepGetBindings(mgmtIp);
@@ -606,7 +607,7 @@ public class VtepClusterClient {
 
         dataClient.vtepDeleteBinding(mgmtIp, portName, vlan);
 
-        java.util.UUID bridgeId = binding.getNetworkId();
+        UUID bridgeId = binding.getNetworkId();
         boolean lastBinding =
             dataClient.bridgeGetVtepBindings(bridgeId, mgmtIp).isEmpty();
 
