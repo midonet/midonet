@@ -328,7 +328,9 @@ fi
 # --------------
 
 sudo pip install -U webob readline httplib2
+sudo pip install -U protobuf
 cd $TOP_DIR/python-midonetclient
+sudo python setup.py build_py
 sudo python setup.py develop
 
 # Make sure to remove system lib path in case it exists
