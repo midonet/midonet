@@ -117,6 +117,30 @@
     },
     {
       "key": {
+        "uuid": "3a1371a2_cb95ade5",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/ChainMapper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 304,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-03-20T07:53:04Z",
+      "side": 1,
+      "message": "Actually, no they can\u0027t, because they reference member variables. Disregard this.",
+      "parentUuid": "3a1371a2_0b84e5d2",
+      "range": {
+        "startLine": 303,
+        "startChar": 0,
+        "endLine": 304,
+        "endChar": 53
+      },
+      "revId": "96034bbc916da7fa846392ba365c37c2c29873e6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a1371a2_eb8869e9",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/ChainMapper.scala",
         "patchSetId": 2
@@ -128,6 +152,30 @@
       "writtenOn": "2015-03-20T07:22:31Z",
       "side": 1,
       "message": "These too.",
+      "range": {
+        "startLine": 339,
+        "startChar": 0,
+        "endLine": 340,
+        "endChar": 49
+      },
+      "revId": "96034bbc916da7fa846392ba365c37c2c29873e6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_ab9af111",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/ChainMapper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 340,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-03-20T07:53:04Z",
+      "side": 1,
+      "message": "Never mind.",
+      "parentUuid": "3a1371a2_eb8869e9",
       "range": {
         "startLine": 339,
         "startChar": 0,
