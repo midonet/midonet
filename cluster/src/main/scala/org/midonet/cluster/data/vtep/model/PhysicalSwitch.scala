@@ -16,7 +16,10 @@
 
 package org.midonet.cluster.data.vtep.model
 
+import java.util
 import java.util.{Objects, UUID}
+
+import scala.collection.JavaConversions.asScalaSet
 
 import org.midonet.packets.IPv4Addr
 
@@ -35,12 +38,12 @@ import org.midonet.packets.IPv4Addr
  * @param tunnelList is set of tunnel ips (may be empty)
  */
 final class PhysicalSwitch(val uuid: UUID, psName: String, desc: String,
-                           pList: Iterable[String],
+                           pList: Set[UUID],
                            mgmtList: Set[IPv4Addr],
                            tunnelList: Set[IPv4Addr]) {
     val name: String = if (psName == null) "" else psName
     val description: String = if (desc == null || desc.isEmpty) null else desc
-    val ports: Iterable[String] = if (pList == null) List() else pList
+    val ports: Set[UUID] = if (pList == null) Set() else pList
     val mgmtIps: Set[IPv4Addr] = if (mgmtList == null) Set() else mgmtList
     val tunnelIps: Set[IPv4Addr] = if (tunnelList == null) Set() else tunnelList
 
@@ -82,7 +85,16 @@ final class PhysicalSwitch(val uuid: UUID, psName: String, desc: String,
 }
 
 object PhysicalSwitch {
-    def apply(id: UUID, name: String, desc: String, p: Iterable[String],
-                 mgmt: Set[IPv4Addr], tunnel: Set[IPv4Addr]) =
+    def apply(id: UUID, name: String, desc: String, p: Set[UUID],
+              mgmt: Set[IPv4Addr], tunnel: Set[IPv4Addr]) =
         new PhysicalSwitch(id, name, desc, p, mgmt, tunnel)
+
+    // Java compatibility stuff
+    def apply(id: UUID, name: String, desc: String, p: util.Set[UUID],
+              mgmt: util.Set[IPv4Addr], tunnel: util.Set[IPv4Addr]) =
+        new PhysicalSwitch(
+            id, name, desc,
+            if (p == null) null else asScalaSet(p).toSet,
+            if (mgmt == null) null else asScalaSet(mgmt).toSet,
+            if (tunnel == null) null else asScalaSet(tunnel).toSet)
 }

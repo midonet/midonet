@@ -29,7 +29,7 @@ class PhysicalSwitchTest extends FeatureSpec with Matchers {
     val psUuid = UUID.randomUUID()
     val psName = "ps-name"
     val psDesc = "ps-desc"
-    val psPorts = Set[String]("p1", "p2")
+    val psPorts = Set[UUID](UUID.randomUUID(), UUID.randomUUID())
     val psMgmt = Set[IPv4Addr](IPv4Addr.fromString("1.2.3.4"))
     val psTunnel = Set[IPv4Addr](IPv4Addr.fromString("5.6.7.8"))
 

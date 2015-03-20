@@ -16,7 +16,10 @@
 
 package org.midonet.cluster.data.vtep.model
 
+import java.util
 import java.util.{Objects, UUID}
+
+import scala.collection.JavaConversions.{asScalaSet, mapAsScalaMap}
 
 /**
  * Represents a physical port in a physical switch. Note that the maps and sets
@@ -71,8 +74,20 @@ object PhysicalPort {
               faultStatus: Set[String]): PhysicalPort =
         new PhysicalPort(id, name, desc, bindings, stats, faultStatus)
 
-    def apply(name: String, desc: String): PhysicalPort =
-        apply(null, name, desc, null, null, null)
+    // Java compatibility stuff
+    def apply(id: UUID, name: String, desc: String,
+              bindings: util.Map[Integer, UUID], stats: util.Map[Integer, UUID],
+              faultStatus: util.Set[String]): PhysicalPort =
+        new PhysicalPort(
+            id, name, desc,
+            if (bindings == null) null else mapAsScalaMap(bindings).toMap,
+            if (stats == null) null else mapAsScalaMap(stats).toMap,
+            if (faultStatus == null) null else asScalaSet(faultStatus).toSet)
+
+    // For testing purposes
+    def apply(id: UUID, name: String, desc: String): PhysicalPort =
+        new PhysicalPort(id, name, desc, null, null, null)
+
 }
 
 
