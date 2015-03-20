@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_63b042de",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/FlowController.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-03-20T11:26:01Z",
+      "side": 1,
+      "message": "done in a subsequent patch",
+      "parentUuid": "3a1371a2_cc9f8a02",
+      "revId": "08f58859febbb2e7accbbca1af7eeeb480082acf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a1371a2_ec8526ae",
         "filename": "midolman/src/main/scala/org/midonet/midolman/FlowController.scala",
         "patchSetId": 14
@@ -30,6 +48,24 @@
       "writtenOn": "2015-03-19T14:58:46Z",
       "side": 1,
       "message": "It\u0027d be good to have the docs directory updated with an overview of our new threading model and how they communicate with each other. (if you haven\u0027t done that).",
+      "revId": "08f58859febbb2e7accbbca1af7eeeb480082acf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_e3c39236",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/FlowController.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 179,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-03-20T11:26:01Z",
+      "side": 1,
+      "message": "yeah, i\u0027ll definitely do that",
+      "parentUuid": "3a1371a2_ec8526ae",
       "revId": "08f58859febbb2e7accbbca1af7eeeb480082acf",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -94,6 +130,30 @@
       "writtenOn": "2015-03-19T14:58:46Z",
       "side": 1,
       "message": "\" Note that this is going away when we\n            // partition the FlowController\"\n\nI wouldn\u0027t mention that, the future is not always like we imagine.",
+      "range": {
+        "startLine": 404,
+        "startChar": 39,
+        "endLine": 405,
+        "endChar": 43
+      },
+      "revId": "08f58859febbb2e7accbbca1af7eeeb480082acf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_23ddaa15",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/FlowController.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 405,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-03-20T11:26:01Z",
+      "side": 1,
+      "message": "this goes away in that patch. will avoid them in the future! :p",
+      "parentUuid": "3a1371a2_8c4ab281",
       "range": {
         "startLine": 404,
         "startChar": 39,
