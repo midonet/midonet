@@ -287,9 +287,6 @@ if [ ! -f $AGENT_CONF_DIR/midolman.conf ]; then
 fi
 
 # put config to the classpath and set loglevel to DEBUG for Midolman
-sed -e 's/"INFO"/"DEBUG"/'  \
-    $TOP_DIR/midolman/conf/midolman-akka.conf > \
-    $TOP_DIR/midolman/build/classes/main/application.conf
 cp  $TOP_DIR/midolman/src/test/resources/logback-test.xml  \
     $TOP_DIR/midolman/build/classes/main/logback.xml
 
