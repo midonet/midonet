@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_03bfced1",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/concurrent/Expectation.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-20T11:10:48Z",
+      "side": 1,
+      "message": "timeout?",
+      "range": {
+        "startLine": 60,
+        "startChar": 14,
+        "endLine": 60,
+        "endChar": 21
+      },
+      "revId": "fbfcf49ba1588496b19afdd21badbaf411304728",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_23a12aaa",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/concurrent/Expectation.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-20T11:10:48Z",
+      "side": 1,
+      "message": "timeout?",
+      "range": {
+        "startLine": 73,
+        "startChar": 15,
+        "endLine": 73,
+        "endChar": 22
+      },
+      "revId": "fbfcf49ba1588496b19afdd21badbaf411304728",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
