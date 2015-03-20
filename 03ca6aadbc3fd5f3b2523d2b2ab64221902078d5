@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_c972f548",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/PortGroup.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-20T18:50:15Z",
+      "side": 1,
+      "message": "Thanks!",
+      "parentUuid": "1a106d94_23312a0c",
+      "range": {
+        "startLine": 29,
+        "startChar": 16,
+        "endLine": 29,
+        "endChar": 31
+      },
+      "revId": "03ca6aadbc3fd5f3b2523d2b2ab64221902078d5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_0336ae03",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PortGroupMapper.scala",
         "patchSetId": 3
@@ -36,6 +60,30 @@
       "writtenOn": "2015-03-20T13:50:22Z",
       "side": 1,
       "message": "Why is this needed? Can the store emit twice the same PortGroup\u003e",
+      "range": {
+        "startLine": 37,
+        "startChar": 12,
+        "endLine": 37,
+        "endChar": 33
+      },
+      "revId": "03ca6aadbc3fd5f3b2523d2b2ab64221902078d5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_a97b3928",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PortGroupMapper.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-20T18:50:15Z",
+      "side": 1,
+      "message": "In principle, you can update the store with the same object. This will generate a zk notification as far as I know. If that would happen in our case, I\u0027m not sure :/ Maybe we should have a discussion about this and decide if it\u0027s needed.",
+      "parentUuid": "1a106d94_0336ae03",
       "range": {
         "startLine": 37,
         "startChar": 12,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_e9753133",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PortGroupMapper.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-20T18:50:15Z",
+      "side": 1,
+      "message": "Totally agree. I think you idea asks for some cleanup after we finish all the mappers:\n- having common objects with often used functions.\n- unifying the log sources",
+      "parentUuid": "1a106d94_633b22ec",
+      "range": {
+        "startLine": 39,
+        "startChar": 16,
+        "endLine": 39,
+        "endChar": 81
+      },
+      "revId": "03ca6aadbc3fd5f3b2523d2b2ab64221902078d5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_4340a656",
         "filename": "midolman/src/test/scala/org/midonet/midolman/topology/PortGroupsMapperTest.scala",
         "patchSetId": 3
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_298f4925",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/PortGroupsMapperTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-20T18:50:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_4340a656",
+      "range": {
+        "startLine": 78,
+        "startChar": 49,
+        "endLine": 78,
+        "endChar": 54
+      },
+      "revId": "03ca6aadbc3fd5f3b2523d2b2ab64221902078d5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_a324fac6",
         "filename": "midolman/src/test/scala/org/midonet/midolman/topology/TopologyMatchers.scala",
         "patchSetId": 3
@@ -105,6 +201,30 @@
       "writtenOn": "2015-03-20T13:50:22Z",
       "side": 1,
       "message": "Why not just pg.getName? If pg.hasName returns false then pg.getName would return null, isn\u0027t it?",
+      "range": {
+        "startLine": 225,
+        "startChar": 36,
+        "endLine": 225,
+        "endChar": 74
+      },
+      "revId": "03ca6aadbc3fd5f3b2523d2b2ab64221902078d5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_a9a21998",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/TopologyMatchers.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 225,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-20T18:50:15Z",
+      "side": 1,
+      "message": "No, I\u0027m not an expert on protobufs, but for non-primitives the value returned is somehow initialized to some default value. For strings, this is \"\". You can see this from the getName method:\n\n    public java.lang.String getName() {\n      java.lang.Object ref \u003d name_;\n      if (ref instanceof java.lang.String) {\n        return (java.lang.String) ref;\n      } else {\n        com.google.protobuf.ByteString bs \u003d \n            (com.google.protobuf.ByteString) ref;\n        java.lang.String s \u003d bs.toStringUtf8();\n        if (bs.isValidUtf8()) {\n          name_ \u003d s;\n        }\n        return s;\n      }\n    }\n\nIf name_ is null, then the method uses that ByteString conversion.",
+      "parentUuid": "1a106d94_a324fac6",
       "range": {
         "startLine": 225,
         "startChar": 36,
