@@ -2,6 +2,23 @@
   "comments": [
     {
       "key": {
+        "uuid": "1a106d94_6357a203",
+        "filename": "midolman/src/main/java/org/midonet/midolman/layer3/InvalidationTrie.java",
+        "patchSetId": 9
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-03-20T10:09:40Z",
+      "side": 1,
+      "message": "Nice! Thanks!",
+      "revId": "ede2f57a7390caa5621fba9b96046cc3522eab73",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a1371a2_76e2a3d6",
         "filename": "midolman/src/main/java/org/midonet/midolman/layer3/InvalidationTrie.java",
         "patchSetId": 9
@@ -18,6 +35,29 @@
         "startChar": 49,
         "endLine": 37,
         "endChar": 64
+      },
+      "revId": "ede2f57a7390caa5621fba9b96046cc3522eab73",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_03522e13",
+        "filename": "midolman/src/main/java/org/midonet/midolman/layer3/InvalidationTrie.java",
+        "patchSetId": 9
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-03-20T10:09:40Z",
+      "side": 1,
+      "message": "of",
+      "range": {
+        "startLine": 37,
+        "startChar": 65,
+        "endLine": 37,
+        "endChar": 67
       },
       "revId": "ede2f57a7390caa5621fba9b96046cc3522eab73",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
@@ -140,6 +180,23 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_e33392f4",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterMapper.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-03-20T10:09:40Z",
+      "side": 1,
+      "message": "I\u0027m putting the comment here, but it basically applies to the whole file: If a member variable name doesn\u0027t make it obvious what it\u0027s for (which it should if at all possible), there should be a comment explaining what it is.\n\nThis has \"routes\" and \"currentRoutes\" with no explanation of the difference, plus \"routesSubject.\" \"PortObservable\" publishes RouteUpdates...es. \"Observable\" publishes...I can\u0027t really tell from looking at the definition. RouteUpdates, I guess?",
+      "revId": "ede2f57a7390caa5621fba9b96046cc3522eab73",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a1371a2_67e2efd6",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterMapper.scala",
         "patchSetId": 9
@@ -186,6 +243,75 @@
     },
     {
       "key": {
+        "uuid": "3a1371a2_0be98580",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterMapper.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 175,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-03-20T10:09:40Z",
+      "side": 1,
+      "message": "You could just change this line to \"currentPort ne null \u0026\u0026\" and then drop the \"else false\" at the end, I think.",
+      "range": {
+        "startLine": 175,
+        "startChar": 12,
+        "endLine": 175,
+        "endChar": 36
+      },
+      "revId": "ede2f57a7390caa5621fba9b96046cc3522eab73",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_0bb7c587",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterMapper.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 203,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-03-20T10:09:40Z",
+      "side": 1,
+      "message": "This could be moved out to a companion object. Or just avoid it completely by using flatMap instead of map.",
+      "range": {
+        "startLine": 203,
+        "startChar": 20,
+        "endLine": 203,
+        "endChar": 41
+      },
+      "revId": "ede2f57a7390caa5621fba9b96046cc3522eab73",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_6bf9194d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterMapper.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 253,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-03-20T10:09:40Z",
+      "side": 1,
+      "message": "What happened to the ARP stuff?",
+      "range": {
+        "startLine": 253,
+        "startChar": 5,
+        "endLine": 253,
+        "endChar": 7
+      },
+      "revId": "ede2f57a7390caa5621fba9b96046cc3522eab73",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a1371a2_c7e763e3",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterMapper.scala",
         "patchSetId": 9
@@ -202,6 +328,29 @@
         "startChar": 26,
         "endLine": 284,
         "endChar": 76
+      },
+      "revId": "ede2f57a7390caa5621fba9b96046cc3522eab73",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_eba4e958",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterMapper.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 357,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-03-20T10:09:40Z",
+      "side": 1,
+      "message": "What? Doesn\u0027t this just filter out all events? If you don\u0027t want them, why not just not merge the observable?",
+      "range": {
+        "startLine": 357,
+        "startChar": 8,
+        "endLine": 357,
+        "endChar": 38
       },
       "revId": "ede2f57a7390caa5621fba9b96046cc3522eab73",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
@@ -316,6 +465,53 @@
         "startLine": 529,
         "startChar": 41,
         "endLine": 529,
+        "endChar": 43
+      },
+      "revId": "ede2f57a7390caa5621fba9b96046cc3522eab73",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_4b025d3f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterMapper.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 529,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-03-20T10:09:40Z",
+      "side": 1,
+      "message": "Actually, move it to \"route\".",
+      "parentUuid": "3a1371a2_0c26c216",
+      "range": {
+        "startLine": 529,
+        "startChar": 41,
+        "endLine": 529,
+        "endChar": 43
+      },
+      "revId": "ede2f57a7390caa5621fba9b96046cc3522eab73",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a1371a2_8bfc5540",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterMapper.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 534,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-03-20T10:09:40Z",
+      "side": 1,
+      "message": "Are arguments to log functions evaluated lazily?",
+      "range": {
+        "startLine": 534,
+        "startChar": 38,
+        "endLine": 534,
         "endChar": 43
       },
       "revId": "ede2f57a7390caa5621fba9b96046cc3522eab73",
