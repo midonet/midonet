@@ -318,6 +318,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_660cd095",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/ChainMapper.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 300,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-20T15:32:20Z",
+      "side": 1,
+      "message": "Actually: \"chain ready\"? Minor comment anyway, we can clean the logs later.",
+      "parentUuid": "1a106d94_4646f424",
+      "range": {
+        "startLine": 300,
+        "startChar": 19,
+        "endLine": 300,
+        "endChar": 27
+      },
+      "revId": "be9d5b1640932e5a2515710c63e49302ef90c39f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_86c0ec7d",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/ChainMapper.scala",
         "patchSetId": 3
