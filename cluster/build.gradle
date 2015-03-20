@@ -55,6 +55,7 @@ dependencies {
             libraries.scala,
             libraries.scala_async,
             libraries.scala_logging,
+            libraries.scallop,
             libraries.typesafeconf
 
     testCompile libraries.commons_conf,
