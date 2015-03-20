@@ -32,7 +32,7 @@ object FlowExpiration {
         val typeId = 0
     }
     object FLOW_EXPIRATION extends Expiration {
-        var value = (1 minutes).toNanos
+        var value = (2 minutes).toNanos
         val typeId = 1
     }
     object STATEFUL_FLOW_EXPIRATION extends Expiration {
