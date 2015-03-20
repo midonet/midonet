@@ -28,7 +28,7 @@ import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.UriResource;
 import org.midonet.api.host.validation.IsValidTunnelZoneId;
 import org.midonet.api.validation.MessageProperty;
-import org.midonet.brain.southbound.vtep.model.PhysicalSwitch;
+import org.midonet.cluster.data.vtep.model.PhysicalSwitch;
 import org.midonet.midolman.state.VtepConnectionState;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IPv4;
@@ -64,9 +64,9 @@ public class VTEP extends UriResource {
             connectionState = VtepConnectionState.ERROR;
         } else {
             connectionState = VtepConnectionState.CONNECTED;
-            description = ps.description;
-            name = ps.name;
-            tunnelIpAddrs = new ArrayList<>(ps.tunnelIps);
+            description = ps.description();
+            name = ps.name();
+            tunnelIpAddrs = new ArrayList<>(ps.tunnelIpStrings());
         }
     }
 

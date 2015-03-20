@@ -18,6 +18,8 @@ package org.midonet.brain.southbound.vtep;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
+
 
 import org.junit.Before;
 import org.junit.Test;
@@ -26,19 +28,19 @@ import org.opendaylight.controller.sal.utils.StatusCode;
 import org.opendaylight.ovsdb.lib.message.TableUpdate;
 import org.opendaylight.ovsdb.lib.message.TableUpdates;
 import org.opendaylight.ovsdb.lib.notation.OvsDBSet;
-import org.opendaylight.ovsdb.lib.notation.UUID;
 import org.opendaylight.ovsdb.lib.table.vtep.Physical_Switch;
 import org.opendaylight.ovsdb.lib.table.vtep.Ucast_Macs_Local;
 
 import rx.subjects.PublishSubject;
 import rx.subjects.Subject;
 
-import org.midonet.brain.services.vxgw.MacLocation;
 import org.midonet.brain.services.vxgw.VxLanPeerSyncException;
-import org.midonet.brain.southbound.vtep.model.LogicalSwitch;
-import org.midonet.brain.southbound.vtep.model.McastMac;
-import org.midonet.brain.southbound.vtep.model.UcastMac;
 import org.midonet.brain.test.RxTestUtils;
+import org.midonet.cluster.data.vtep.model.LogicalSwitch;
+import org.midonet.cluster.data.vtep.model.MacLocation;
+import org.midonet.cluster.data.vtep.model.McastMac;
+import org.midonet.cluster.data.vtep.model.UcastMac;
+import org.midonet.cluster.data.vtep.model.VtepMAC;
 import org.midonet.packets.IPv4Addr;
 
 import mockit.Expectations;
@@ -76,6 +78,8 @@ public class VtepTest {
     // A sample entry for the test VTEP
     private Physical_Switch physicalSwitch;
 
+    private UUID mehUuid = new UUID(0, 111);
+
     @Mocked
     private VtepDataClient vtepDataClient;
 
@@ -91,7 +95,8 @@ public class VtepTest {
         physicalSwitch = new Physical_Switch();
         physicalSwitch.setDescription("description");
         physicalSwitch.setName("vtep");
-        OvsDBSet<UUID> ports = new OvsDBSet<>();
+        OvsDBSet<org.opendaylight.ovsdb.lib.notation.UUID> ports =
+            new OvsDBSet<>();
         physicalSwitch.setPorts(ports);
         OvsDBSet<String> mgmtIps = new OvsDBSet<>();
         mgmtIps.add(mgmtIp.toString());
@@ -118,53 +123,51 @@ public class VtepTest {
 
     @Test
     public void testBrokerDoesntDupeUcastWithIp() throws Exception {
-        final UUID locatorId = new UUID(java.util.UUID.randomUUID().toString());
-        final UUID lsId = new UUID(java.util.UUID.randomUUID().toString());
+        final UUID locatorId = UUID.randomUUID();
+        final UUID lsId = UUID.randomUUID();
         new Expectations() {{
             vtepDataClient.listUcastMacsRemote();
-            times = 1; result = Arrays.asList(new UcastMac(mac1.IEEE802(), lsId,
-                                                           locatorId, macIp1));
+            times = 1; result = Arrays.asList(
+                UcastMac.apply(lsId, mac1, macIp1, locatorId));
         }};
         vtepBroker.apply(new MacLocation(mac1, macIp1, lsName, midoVxTunIp));
     }
 
     @Test
     public void testBrokerDoesntDupeUcastWithoutIp() throws Exception {
-        final UUID locatorId = new UUID(java.util.UUID.randomUUID().toString());
-        final UUID lsId = new UUID(java.util.UUID.randomUUID().toString());
+        final UUID locatorId = UUID.randomUUID();
+        final UUID lsId = UUID.randomUUID();
         new Expectations() {{
             vtepDataClient.listUcastMacsRemote();
-            times = 1; result = Arrays.asList(new UcastMac(mac1.IEEE802(), lsId,
-                                                           locatorId, null));
+            times = 1; result = Arrays.asList(
+                UcastMac.apply(lsId, mac1, locatorId));
         }};
         vtepBroker.apply(new MacLocation(mac1, null, lsName, midoVxTunIp));
     }
 
     @Test
     public void testBrokerDoesntDupeMcastWithIp() throws Exception {
-        final UUID locatorId = new UUID(java.util.UUID.randomUUID().toString());
-        final UUID lsId = new UUID(java.util.UUID.randomUUID().toString());
+        final UUID locatorId = UUID.randomUUID();
+        final UUID lsId = UUID.randomUUID();
         new Expectations() {{
             vtepDataClient.listMcastMacsRemote();
-            times = 1; result = Arrays.asList(new McastMac(VtepMAC.UNKNOWN_DST,
-                                                           lsId, locatorId,
-                                                           macIp1));
+            times = 1; result = Arrays.asList(
+                McastMac.apply(lsId, VtepMAC.UNKNOWN_DST(), macIp1, locatorId));
         }};
-        vtepBroker.apply(new MacLocation(VtepMAC.UNKNOWN_DST, macIp1, lsName,
+        vtepBroker.apply(new MacLocation(VtepMAC.UNKNOWN_DST(), macIp1, lsName,
                                          midoVxTunIp));
     }
 
     @Test
     public void testBrokerDoesntDupeMcastWithoutIp() throws Exception {
-        final UUID locatorId = new UUID(java.util.UUID.randomUUID().toString());
-        final UUID lsId = new UUID(java.util.UUID.randomUUID().toString());
+        final UUID locatorId = UUID.randomUUID();
+        final UUID lsId = UUID.randomUUID();
         new Expectations() {{
             vtepDataClient.listMcastMacsRemote();
-            times = 1; result = Arrays.asList(new McastMac(VtepMAC.UNKNOWN_DST,
-                                                           lsId, locatorId,
-                                                           null));
+            times = 1; result = Arrays.asList(
+                McastMac.apply(lsId, VtepMAC.UNKNOWN_DST(), locatorId));
         }};
-        vtepBroker.apply(new MacLocation(VtepMAC.UNKNOWN_DST, null, lsName,
+        vtepBroker.apply(new MacLocation(VtepMAC.UNKNOWN_DST(), null, lsName,
                                          midoVxTunIp));
     }
 
@@ -236,8 +239,8 @@ public class VtepTest {
     public void testObservableUpdatesMacAddition() throws Exception {
 
         // Our logical switch
-        final LogicalSwitch ls = new LogicalSwitch(new UUID("meh"), "dsc",
-                                                   "ls0", 111);
+        final UUID lsId = new UUID(0, 111);
+        final LogicalSwitch ls = new LogicalSwitch(lsId, "ls0", 111, "dsc");
 
         // Prepare an update consisting of a new row being added
         TableUpdates ups = makeLocalMacsUpdate(
@@ -252,14 +255,14 @@ public class VtepTest {
         //   resulting MacLocation emitted from the observable.
         new Expectations() {{
             vtepDataClient.getTunnelIp(); times = 1; result = vxTunEndpoint;
-            vtepDataClient.getLogicalSwitch(new UUID("meh"));
+            vtepDataClient.getLogicalSwitch(lsId);
             times = 1; result = ls;
             vtepDataClient.getTunnelIp(); times = 1; result = vxTunEndpoint;
         }};
 
         RxTestUtils.TestedObservable obs =
             RxTestUtils.test(vtepBroker.observableUpdates())
-                       .expect(new MacLocation(mac1, macIp1, ls.name,
+                       .expect(new MacLocation(mac1, macIp1, ls.name(),
                                                vxTunEndpoint))
                        .noErrors()
                        .notCompleted()
@@ -288,7 +291,7 @@ public class VtepTest {
         // Don't find the logical switch
         new Expectations() {{
             vtepDataClient.getTunnelIp(); times = 1; result = vxTunEndpoint;
-            vtepDataClient.getLogicalSwitch(new UUID("meh"));
+            vtepDataClient.getLogicalSwitch(new UUID(0, 111));
             times = 1; result = null;
         }};
 
@@ -320,22 +323,22 @@ public class VtepTest {
         );
         feedPhysicalSwitchUpdate(ups);
 
-        final LogicalSwitch ls = new LogicalSwitch(new UUID("meh"),
-                                                  "Description", "ls0", 111);
+        final LogicalSwitch ls = new LogicalSwitch(new UUID(0, 111), "ls0", 111,
+                                                  "Description");
 
         // The VtepBroker should process the update, fetching the logical switch
         // to which the update belongs to, since it's necessary to construct
         // the MacLocation
         new Expectations() {{
             vtepDataClient.getTunnelIp(); times = 1; result = vxTunEndpoint;
-            vtepDataClient.getLogicalSwitch(new UUID("meh"));
+            vtepDataClient.getLogicalSwitch(new UUID(0, 111));
             times = 1;
             result = ls;
         }};
 
         RxTestUtils.TestedObservable obs =
             RxTestUtils.test(vtepBroker.observableUpdates())
-                       .expect(new MacLocation(mac1, macIp1, ls.name, null))
+                       .expect(new MacLocation(mac1, macIp1, ls.name(), null))
                        .noErrors()
                        .notCompleted()
                        .subscribe();
@@ -398,24 +401,26 @@ public class VtepTest {
         // is able to capture the IP and process MAC updates.
         vtepUpdStream.onNext(tableUpdatesWithTunnelIp());
 
-        final UUID lsId1 = new UUID("blah1");
-        final UUID lsId2 = new UUID("blah2");
+        final UUID lsId1 = UUID.randomUUID();
+        final UUID lsId2 = UUID.randomUUID();
+        final UUID loc1 = UUID.randomUUID();
+        final UUID loc2 = UUID.randomUUID();
 
         new Expectations() {{
             vtepDataClient.listUcastMacsLocal();
             times = 1;
             result = Arrays.asList(
-                new UcastMac(sMac1, lsId1, new UUID("loc1"), macIp1.toString()),
-                new UcastMac(sMac2, lsId2, new UUID("loc2"), macIp2.toString())
+                UcastMac.apply(lsId1, sMac1, macIp1, loc1),
+                UcastMac.apply(lsId2, sMac2, macIp2, loc2)
             );
         }};
 
         new Expectations() {{
-            vtepDataClient.getLogicalSwitch(withAny(new UUID("")));
+            vtepDataClient.getLogicalSwitch(withAny(UUID.randomUUID()));
             times = 2;
             result = new Object[] {
-                new LogicalSwitch(lsId1, "dd", "meh1", 1),
-                new LogicalSwitch(lsId2, "oo", "meh2", 2)
+                new LogicalSwitch(lsId1, "meh1", 1, "dd"),
+                new LogicalSwitch(lsId2, "meh2", 2, "oo")
             };
         }};
 
@@ -450,22 +455,24 @@ public class VtepTest {
         // is able to capture the IP and process MAC updates.
         vtepUpdStream.onNext(tableUpdatesWithTunnelIp());
 
-        final UUID lsId = new UUID("blah2");
+        final UUID lsId = UUID.randomUUID();
+        final UUID loc1 = UUID.randomUUID();
+        final UUID loc2 = UUID.randomUUID();
 
         new Expectations() {{
             vtepDataClient.listUcastMacsLocal();
             times = 1;
             result = Arrays.asList(
-                new UcastMac(sMac1, lsId, new UUID("loc1"), null),
-                new UcastMac(sMac2, lsId, new UUID("loc2"), null)
+                UcastMac.apply(lsId, VtepMAC.fromString(sMac1), loc1),
+                UcastMac.apply(lsId, VtepMAC.fromString(sMac2), loc2)
             );
         }};
 
         new Expectations() {{
-            vtepDataClient.getLogicalSwitch(withAny(new UUID("")));
+            vtepDataClient.getLogicalSwitch(withAny(UUID.randomUUID()));
             times = 2;
             result = new Object[] {
-                new LogicalSwitch(lsId, "oo", "meh2", 2),
+                new LogicalSwitch(lsId, "meh2", 2, "oo"),
                 null // the switch goes away on the second call
             };
         }};
@@ -501,9 +508,9 @@ public class VtepTest {
         List<java.util.UUID> ids = Arrays.asList(boundNetworkId);
 
         final List<LogicalSwitch> lsList = Arrays.asList(
-            new LogicalSwitch(new UUID("ls1"), "midonet unwanted", oldLs, 1),
-            new LogicalSwitch(new UUID("ls2"), "non midonet", nonMidoLs, 2),
-            new LogicalSwitch(new UUID("ls3"), "midonet wanted", curLs, 3)
+            new LogicalSwitch(UUID.randomUUID(), oldLs, 1, "midonet unwanted"),
+            new LogicalSwitch(UUID.randomUUID(), nonMidoLs, 2, "non midonet"),
+            new LogicalSwitch(UUID.randomUUID(), curLs, 3, "midonet wanted")
         );
 
         new Expectations() {{
@@ -519,12 +526,14 @@ public class VtepTest {
     }
 
     private Ucast_Macs_Local makeUcastLocal(String mac, String ip) {
-        OvsDBSet<UUID> logSwitch = new OvsDBSet<>();
-        logSwitch.add(new UUID("meh"));
+        OvsDBSet<org.opendaylight.ovsdb.lib.notation.UUID> logSwitch =
+            new OvsDBSet<>();
+        logSwitch.add(
+            new org.opendaylight.ovsdb.lib.notation.UUID(mehUuid.toString()));
         Ucast_Macs_Local val = new Ucast_Macs_Local();
         val.setIpaddr(ip);
         val.setMac(mac);
-        val.setLocator(new OvsDBSet<UUID>());
+        val.setLocator(new OvsDBSet<org.opendaylight.ovsdb.lib.notation.UUID>());
         val.setLogical_switch(logSwitch);
         return val;
     }
