@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_86c62c48",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/concurrent/Expectation.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-20T15:05:57Z",
+      "side": 1,
+      "message": "Should this belong to the companion object?",
+      "range": {
+        "startLine": 54,
+        "startChar": 0,
+        "endLine": 55,
+        "endChar": 77
+      },
+      "revId": "2be4aba068be089eff4125fb860241e186139d97",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
