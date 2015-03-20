@@ -27,6 +27,9 @@ object NetlinkReader {
                                                      "Message truncated") {
         override def fillInStackTrace() = this
     }
+
+    private def isTruncated(dst: ByteBuffer, nbytes: Int, start: Int) =
+        nbytes < dst.getInt(start + NetlinkMessage.NLMSG_LEN_OFFSET)
 }
 
 /**
@@ -38,21 +41,14 @@ class NetlinkReader(val channel: NetlinkChannel) {
 
     /**
      * Reads from the channel into the destination buffer. Netlink errors are
-     * communicated by throwing a NetlinkException. This method will not modify
-     * the buffer's position. The amount of bytes read is returned and it
-     * matches dst.remaining().
+     * communicated by throwing a NetlinkException. Returns the amount of
+     * bytes read.
      */
     @throws(classOf[IOException])
     @throws(classOf[NetlinkException])
     def read(dst: ByteBuffer): Int = {
         val start = dst.position()
-        val nbytes = try {
-            channel.read(dst)
-        } finally {
-            dst.position(start)
-        }
-
-        dst.limit(nbytes)
+        val nbytes = channel.read(dst)
 
         if (nbytes >= NetlinkMessage.HEADER_SIZE) {
             val msgType = dst.getShort(start + NetlinkMessage.NLMSG_TYPE_OFFSET)
@@ -63,8 +59,7 @@ class NetlinkReader(val channel: NetlinkChannel) {
                     val errorMessage = cLibrary.lib.strerror(-error)
                     throw new NetlinkException(-error, errorMessage)
                 }
-            } else if (NetlinkMessage.isTruncated(dst) ||
-                       msgType == NLMessageType.OVERRUN) {
+            } else if (isTruncated(dst, nbytes, start) || msgType == NLMessageType.OVERRUN) {
                 throw MessageTruncated
             }
         } else if (nbytes > 0) {
