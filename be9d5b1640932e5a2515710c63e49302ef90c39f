@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_c919557b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/ChainMapper.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-20T17:34:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_46aa74d5",
+      "range": {
+        "startLine": 67,
+        "startChar": 12,
+        "endLine": 67,
+        "endChar": 28
+      },
+      "revId": "be9d5b1640932e5a2515710c63e49302ef90c39f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_26ff7803",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/ChainMapper.scala",
         "patchSetId": 3
@@ -36,6 +60,30 @@
       "writtenOn": "2015-03-20T14:49:47Z",
       "side": 1,
       "message": "Actually this map and the doOnNext could be merged in a single map, isn\u0027t it? Just place it after observeOn. You could define a private method ruleUpdated(rule: TopologyRule) to pass to makeFunc1.",
+      "range": {
+        "startLine": 68,
+        "startChar": 12,
+        "endLine": 68,
+        "endChar": 41
+      },
+      "revId": "be9d5b1640932e5a2515710c63e49302ef90c39f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_e91c116d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/ChainMapper.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-20T17:34:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_26ff7803",
       "range": {
         "startLine": 68,
         "startChar": 12,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_a9405936",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/ChainMapper.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 142,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-20T17:34:16Z",
+      "side": 1,
+      "message": "I\u0027m not sure this would work because in case the map contains an element I cannot update just the Int, I have to write that back to the map right?",
+      "parentUuid": "1a106d94_c6bae409",
+      "range": {
+        "startLine": 136,
+        "startChar": 0,
+        "endLine": 142,
+        "endChar": 9
+      },
+      "revId": "be9d5b1640932e5a2515710c63e49302ef90c39f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_c619447b",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/ChainMapper.scala",
         "patchSetId": 3
@@ -82,6 +154,30 @@
       "writtenOn": "2015-03-20T14:49:47Z",
       "side": 1,
       "message": "Create the new rule in a local val, and then add it to the map.",
+      "range": {
+        "startLine": 187,
+        "startChar": 12,
+        "endLine": 188,
+        "endChar": 55
+      },
+      "revId": "be9d5b1640932e5a2515710c63e49302ef90c39f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_2974699b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/ChainMapper.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 188,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-20T17:34:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_c619447b",
       "range": {
         "startLine": 187,
         "startChar": 12,
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_0979ad93",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/ChainMapper.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 198,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-20T17:34:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_a6124856",
+      "range": {
+        "startLine": 198,
+        "startChar": 16,
+        "endLine": 198,
+        "endChar": 29
+      },
+      "revId": "be9d5b1640932e5a2515710c63e49302ef90c39f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_6620509c",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/ChainMapper.scala",
         "patchSetId": 3
@@ -128,6 +248,30 @@
       "writtenOn": "2015-03-20T14:49:47Z",
       "side": 1,
       "message": "Same here.",
+      "range": {
+        "startLine": 199,
+        "startChar": 33,
+        "endLine": 199,
+        "endChar": 47
+      },
+      "revId": "be9d5b1640932e5a2515710c63e49302ef90c39f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_696e61cb",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/ChainMapper.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 199,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-20T17:34:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_6620509c",
       "range": {
         "startLine": 199,
         "startChar": 33,
@@ -163,6 +307,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_4973a5b1",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/ChainMapper.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 205,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-20T17:34:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_264db873",
+      "range": {
+        "startLine": 205,
+        "startChar": 23,
+        "endLine": 205,
+        "endChar": 36
+      },
+      "revId": "be9d5b1640932e5a2515710c63e49302ef90c39f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_a695288a",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/ChainMapper.scala",
         "patchSetId": 3
@@ -174,6 +342,30 @@
       "writtenOn": "2015-03-20T14:49:47Z",
       "side": 1,
       "message": "Too verbose: you\u0027re not even using it on line 250, and you only save 1 char.",
+      "range": {
+        "startLine": 221,
+        "startChar": 8,
+        "endLine": 221,
+        "endChar": 28
+      },
+      "revId": "be9d5b1640932e5a2515710c63e49302ef90c39f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_a967b9e9",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/ChainMapper.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 221,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-20T17:34:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_a695288a",
       "range": {
         "startLine": 221,
         "startChar": 8,
@@ -203,6 +395,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_89abddd5",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/ChainMapper.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 223,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-20T17:34:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_06eebc22",
+      "revId": "be9d5b1640932e5a2515710c63e49302ef90c39f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_86d90c86",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/ChainMapper.scala",
         "patchSetId": 3
@@ -214,6 +424,30 @@
       "writtenOn": "2015-03-20T14:49:47Z",
       "side": 1,
       "message": "Then, we can replace here the get with ruleState.",
+      "range": {
+        "startLine": 228,
+        "startChar": 16,
+        "endLine": 228,
+        "endChar": 29
+      },
+      "revId": "be9d5b1640932e5a2515710c63e49302ef90c39f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_e9b8912c",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/ChainMapper.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 228,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-20T17:34:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_86d90c86",
       "range": {
         "startLine": 228,
         "startChar": 16,
@@ -249,6 +483,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_c9b5d532",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/ChainMapper.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 229,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-20T17:34:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_e6e60044",
+      "range": {
+        "startLine": 229,
+        "startChar": 38,
+        "endLine": 229,
+        "endChar": 51
+      },
+      "revId": "be9d5b1640932e5a2515710c63e49302ef90c39f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_c6e30432",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/ChainMapper.scala",
         "patchSetId": 3
@@ -272,6 +530,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_0987ed62",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/ChainMapper.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 250,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-20T17:34:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_c6e30432",
+      "range": {
+        "startLine": 250,
+        "startChar": 12,
+        "endLine": 250,
+        "endChar": 26
+      },
+      "revId": "be9d5b1640932e5a2515710c63e49302ef90c39f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_a64a4825",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/ChainMapper.scala",
         "patchSetId": 3
@@ -283,6 +565,30 @@
       "writtenOn": "2015-03-20T14:49:47Z",
       "side": 1,
       "message": "Remove",
+      "range": {
+        "startLine": 273,
+        "startChar": 25,
+        "endLine": 273,
+        "endChar": 29
+      },
+      "revId": "be9d5b1640932e5a2515710c63e49302ef90c39f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_89647de6",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/ChainMapper.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 273,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-20T17:34:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_a64a4825",
       "range": {
         "startLine": 273,
         "startChar": 25,
@@ -342,6 +648,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_299bc9ca",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/ChainMapper.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 300,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-20T17:34:16Z",
+      "side": 1,
+      "message": "Chain ready may be confusing with some logging we sometimes do just to notify that some simulation object is ready. I actually prefer emitting, it\u0027s clearer. But as you said, let\u0027s discuss it.",
+      "parentUuid": "1a106d94_660cd095",
+      "range": {
+        "startLine": 300,
+        "startChar": 19,
+        "endLine": 300,
+        "endChar": 27
+      },
+      "revId": "be9d5b1640932e5a2515710c63e49302ef90c39f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_86c0ec7d",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/ChainMapper.scala",
         "patchSetId": 3
@@ -353,6 +683,30 @@
       "writtenOn": "2015-03-20T14:49:47Z",
       "side": 1,
       "message": "Add parentheses.",
+      "range": {
+        "startLine": 308,
+        "startChar": 39,
+        "endLine": 308,
+        "endChar": 51
+      },
+      "revId": "be9d5b1640932e5a2515710c63e49302ef90c39f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_09a08df3",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/ChainMapper.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 308,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-20T17:34:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_86c0ec7d",
       "range": {
         "startLine": 308,
         "startChar": 39,
@@ -388,6 +742,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_86d74cbf",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/ChainMapperTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-20T17:34:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_06bfdcd1",
+      "range": {
+        "startLine": 23,
+        "startChar": 0,
+        "endLine": 23,
+        "endChar": 42
+      },
+      "revId": "be9d5b1640932e5a2515710c63e49302ef90c39f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_26d3f839",
         "filename": "midolman/src/test/scala/org/midonet/midolman/topology/ChainMapperTest.scala",
         "patchSetId": 3
@@ -399,6 +777,30 @@
       "writtenOn": "2015-03-20T14:49:47Z",
       "side": 1,
       "message": "I don\u0027t think we should test mappers via the VT. The VT insulates the observable for each mapper with the behavior subject of the DeviceMapper, and re-emits notifications on that subject. For the mappers, the unit tests should do:\n\n  val mapper \u003d new ChainMapper(chain.getId, vt)\n  Observable.create(mapper).subscribe(obs)",
+      "range": {
+        "startLine": 84,
+        "startChar": 12,
+        "endLine": 85,
+        "endChar": 31
+      },
+      "revId": "be9d5b1640932e5a2515710c63e49302ef90c39f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_a68888c7",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/ChainMapperTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-20T17:34:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_26d3f839",
       "range": {
         "startLine": 84,
         "startChar": 12,
@@ -434,6 +836,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_09040d14",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/ChainMapperTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-20T17:34:16Z",
+      "side": 1,
+      "message": "Using get(x) does not exactly do the same thing. You could have a buggy mapper that emits twice the same chain. And so with obs.getOnNextEvents.get(0) the tests would pass although the chain should not have been emitted twice.\nAlso, I\u0027m not always checking that the notification list has the proper size because it would be redundant.",
+      "parentUuid": "1a106d94_265e58ea",
+      "range": {
+        "startLine": 90,
+        "startChar": 47,
+        "endLine": 90,
+        "endChar": 59
+      },
+      "revId": "be9d5b1640932e5a2515710c63e49302ef90c39f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_06a6bcc1",
         "filename": "midolman/src/test/scala/org/midonet/midolman/topology/ChainMapperTest.scala",
         "patchSetId": 3
@@ -457,6 +883,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_6909412c",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/ChainMapperTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 128,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-20T17:34:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_06a6bcc1",
+      "range": {
+        "startLine": 127,
+        "startChar": 0,
+        "endLine": 128,
+        "endChar": 45
+      },
+      "revId": "be9d5b1640932e5a2515710c63e49302ef90c39f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_e69e0063",
         "filename": "midolman/src/test/scala/org/midonet/midolman/topology/ChainMapperTest.scala",
         "patchSetId": 3
@@ -468,6 +918,30 @@
       "writtenOn": "2015-03-20T14:49:47Z",
       "side": 1,
       "message": "I think for tests such as this, the fast way would be to update the chain  and verify that the observer received only one notification (not 2). We should avoid awaiting for timeouts. These awaits make this test over 14 seconds to execute.\n\nThe same comment goes for all the other awaits that timeout.",
+      "range": {
+        "startLine": 255,
+        "startChar": 0,
+        "endLine": 256,
+        "endChar": 48
+      },
+      "revId": "be9d5b1640932e5a2515710c63e49302ef90c39f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_49f8c5e5",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/ChainMapperTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 256,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-20T17:34:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_e69e0063",
       "range": {
         "startLine": 255,
         "startChar": 0,
