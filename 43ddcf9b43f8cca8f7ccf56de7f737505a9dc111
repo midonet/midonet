@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_a9121956",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/PacketWorkflow.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 291,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-03-20T16:52:17Z",
+      "side": 0,
+      "message": "this still needs to be called",
+      "revId": "43ddcf9b43f8cca8f7ccf56de7f737505a9dc111",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_890f5d2e",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/PacketWorkflow.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 388,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-03-20T16:52:17Z",
+      "side": 0,
+      "message": "still needs to be called, dummy",
+      "revId": "43ddcf9b43f8cca8f7ccf56de7f737505a9dc111",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
