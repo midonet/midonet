@@ -17,8 +17,8 @@ package org.midonet.brain.southbound.vtep;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -26,6 +26,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+
+import scala.collection.JavaConversions;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -61,11 +63,13 @@ import rx.subjects.PublishSubject;
 import mockit.Expectations;
 import mockit.Mocked;
 
-import org.midonet.brain.southbound.vtep.model.LogicalSwitch;
-import org.midonet.brain.southbound.vtep.model.McastMac;
-import org.midonet.brain.southbound.vtep.model.PhysicalPort;
-import org.midonet.brain.southbound.vtep.model.PhysicalSwitch;
-import org.midonet.brain.southbound.vtep.model.UcastMac;
+import org.midonet.cluster.data.vtep.model.LogicalSwitch;
+import org.midonet.cluster.data.vtep.model.McastMac;
+import org.midonet.cluster.data.vtep.model.PhysicalPort;
+import org.midonet.cluster.data.vtep.model.PhysicalSwitch;
+import org.midonet.cluster.data.vtep.model.UcastMac;
+import org.midonet.cluster.data.vtep.model.VtepEndPoint;
+import org.midonet.cluster.data.vtep.model.VtepMAC;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
 
@@ -74,6 +78,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+
+import static org.midonet.brain.southbound.vtep.model.VtepModelTranslator.fromMido;
+import static org.midonet.brain.southbound.vtep.model.VtepModelTranslator.toMido;
 
 public class VtepDataClientImplTest {
 
@@ -129,10 +136,15 @@ public class VtepDataClientImplTest {
 
     private static final String PHYSICAL_PORT_0 = "port0";
     private static final String PHYSICAL_PORT_1 = "port1";
+    private static final java.util.UUID PHYSICAL_PORT_ID_0 =
+        java.util.UUID.randomUUID();
+    private static final java.util.UUID PHYSICAL_PORT_ID_1 =
+        java.util.UUID.randomUUID();
 
     private static final String MOCK_NAME = "vtep-name";
     private static final String MOCK_DESCRIPTION = "vtep-description";
-    private static final UUID MOCK_PHYSICAL_SWITCH_ID = new UUID("ps");
+    private static final java.util.UUID MOCK_PHYSICAL_SWITCH_ID =
+        java.util.UUID.randomUUID();
 
     private final PublishSubject<Connection> connectObservable =
         PublishSubject.create();
@@ -170,9 +182,9 @@ public class VtepDataClientImplTest {
         // Connection parameters.
         final Map<ConnectionConstants, String> params = new HashMap<>();
         params.put(ConnectionConstants.ADDRESS,
-                   MOCK_END_POINT.mgmtIp.toString());
+                   MOCK_END_POINT.mgmtIp().toString());
         params.put(ConnectionConstants.PORT,
-                   Integer.toString(MOCK_END_POINT.mgmtPort));
+                   Integer.toString(MOCK_END_POINT.mgmtPort()));
 
         // Basic expectations in all connections
         new Expectations() {{
@@ -216,10 +228,10 @@ public class VtepDataClientImplTest {
         OvsDBSet<String> ips = new OvsDBSet<>();
         OvsDBSet<String> tunnelIps = new OvsDBSet<>();
 
-        ips.add(MOCK_END_POINT.mgmtIp.toString());
+        ips.add(MOCK_END_POINT.mgmtIp().toString());
         tunnelIps.add(TUNNEL_IP.toString());
-        ports.add(new UUID(PHYSICAL_PORT_0));
-        ports.add(new UUID(PHYSICAL_PORT_1));
+        ports.add(new UUID(PHYSICAL_PORT_ID_0.toString()));
+        ports.add(new UUID(PHYSICAL_PORT_ID_1.toString()));
 
         Physical_Switch ps = new Physical_Switch();
         ps.setDescription(MOCK_DESCRIPTION);
@@ -245,8 +257,8 @@ public class VtepDataClientImplTest {
         psRows.put(MOCK_PHYSICAL_SWITCH_ID.toString(), ps);
 
         ConcurrentMap<String, Table<?>> portRows = new ConcurrentHashMap<>();
-        portRows.put(PHYSICAL_PORT_0, p1);
-        portRows.put(PHYSICAL_PORT_1, p2);
+        portRows.put(PHYSICAL_PORT_ID_0.toString(), p1);
+        portRows.put(PHYSICAL_PORT_ID_1.toString(), p2);
 
         mockCache.put(Physical_Switch.NAME.getName(), psRows);
         mockCache.put(Physical_Port.NAME.getName(), portRows);
@@ -280,14 +292,14 @@ public class VtepDataClientImplTest {
 
         List<PhysicalSwitch> pss = client.listPhysicalSwitches();
         assertEquals(1, pss.size());
-        assertEquals(MOCK_DESCRIPTION, pss.get(0).description);
-        assertEquals(MOCK_NAME, pss.get(0).name);
-        assertEquals(MOCK_END_POINT.mgmtIp.toString(),
-                     pss.get(0).mgmtIps.iterator().next());
-        assertEquals(TUNNEL_IP.toString(),
-                     pss.get(0).tunnelIps.iterator().next());
-        assertThat(pss.get(0).ports,
-                   containsInAnyOrder(PHYSICAL_PORT_0, PHYSICAL_PORT_1));
+        assertEquals(MOCK_DESCRIPTION, pss.get(0).description());
+        assertEquals(MOCK_NAME, pss.get(0).name());
+        assertEquals(MOCK_END_POINT.mgmtIp(),
+                     pss.get(0).mgmtIps().iterator().next());
+        assertEquals(TUNNEL_IP,
+                     pss.get(0).tunnelIps().iterator().next());
+        assertThat(JavaConversions.asJavaCollection(pss.get(0).ports()),
+                   containsInAnyOrder(PHYSICAL_PORT_ID_0, PHYSICAL_PORT_ID_1));
 
         testDisconnect(client, user);
     }
@@ -312,8 +324,8 @@ public class VtepDataClientImplTest {
 
         // Only the port name is part of the identity, enough to compare
         assertThat(pps, containsInAnyOrder(
-            new PhysicalPort("", PHYSICAL_PORT_0),
-            new PhysicalPort("", PHYSICAL_PORT_1)));
+            PhysicalPort.apply(PHYSICAL_PORT_ID_0, PHYSICAL_PORT_0, ""),
+            PhysicalPort.apply(PHYSICAL_PORT_ID_1, PHYSICAL_PORT_1, "")));
 
         testDisconnect(client, user);
     }
@@ -366,14 +378,15 @@ public class VtepDataClientImplTest {
         TestVtepDataClientImpl client = testConnect(cache, user);
 
         new Expectations() {{
-            cfgSrv.vtepBindVlan(node, "ls", "port", (short) 10, 100,
-                                Arrays.asList("10.3.2.1")); times = 1;
+            cfgSrv.vtepBindVlan(
+                node, "ls", "port", (short) 10, 100,
+                Collections.singletonList("10.3.2.1")); times = 1;
             result = new Status(StatusCode.SUCCESS);
         }};
 
         Status status = client.bindVlan(
             "ls", "port", (short) 10, 100,
-            Arrays.asList(IPv4Addr.apply("10.3.2.1")));
+            Collections.singletonList(IPv4Addr.apply("10.3.2.1")));
         assertEquals(StatusCode.SUCCESS, status.getCode());
 
         testDisconnect(client, user);
@@ -407,7 +420,7 @@ public class VtepDataClientImplTest {
 
     @Test
     public void testAddMcastMacRemoteUnknownDst() throws Exception {
-        testAddMcastMacRemote(VtepMAC.UNKNOWN_DST, IPv4Addr.apply("10.2.1.3"));
+        testAddMcastMacRemote(VtepMAC.UNKNOWN_DST(), IPv4Addr.apply("10.2.1.3"));
     }
 
     private void testAddUcastMacRemote(final MAC mac, final IPv4Addr macIp,
@@ -502,7 +515,7 @@ public class VtepDataClientImplTest {
         TestVtepDataClientImpl client = testConnect(cache, user);
 
         new Expectations() {{
-            cfgSrv.vtepDelBinding(node, MOCK_PHYSICAL_SWITCH_ID,
+            cfgSrv.vtepDelBinding(node, fromMido(MOCK_PHYSICAL_SWITCH_ID),
                                   PHYSICAL_PORT_0, (short)10);
             times = 1;
             result = new StatusWithUuid(StatusCode.SUCCESS, new UUID("uuid"));
@@ -525,7 +538,7 @@ public class VtepDataClientImplTest {
         testDisconnect(client, user);
 
         new Expectations() {{
-            cfgSrv.vtepDelBinding(node, MOCK_PHYSICAL_SWITCH_ID,
+            cfgSrv.vtepDelBinding(node, fromMido(MOCK_PHYSICAL_SWITCH_ID),
                                   PHYSICAL_PORT_0, (short)10);
             times = 0;
         }};
@@ -542,7 +555,7 @@ public class VtepDataClientImplTest {
         java.util.UUID owner = java.util.UUID.randomUUID();
 
         VtepDataClient client = provider.connect(
-            END_POINT.mgmtIp, END_POINT.mgmtPort, owner);
+            END_POINT.mgmtIp(), END_POINT.mgmtPort(), owner);
 
         client.awaitConnected();
 
@@ -565,7 +578,7 @@ public class VtepDataClientImplTest {
         java.util.UUID owner = java.util.UUID.randomUUID();
 
         VtepDataClient client = provider.connect(
-            END_POINT.mgmtIp, END_POINT.mgmtPort, owner);
+            END_POINT.mgmtIp(), END_POINT.mgmtPort(), owner);
 
         client.awaitConnected();
 
@@ -584,9 +597,9 @@ public class VtepDataClientImplTest {
         java.util.UUID owner2 = java.util.UUID.randomUUID();
 
         VtepDataClient client1 = provider.connect(
-            END_POINT.mgmtIp, END_POINT.mgmtPort, owner1);
+            END_POINT.mgmtIp(), END_POINT.mgmtPort(), owner1);
         VtepDataClient client2 = provider.connect(
-            END_POINT.mgmtIp, END_POINT.mgmtPort, owner2);
+            END_POINT.mgmtIp(), END_POINT.mgmtPort(), owner2);
 
         client1.awaitConnected();
         client2.awaitConnected();
@@ -604,9 +617,9 @@ public class VtepDataClientImplTest {
         java.util.UUID owner2 = java.util.UUID.randomUUID();
 
         VtepDataClient client1 = provider.connect(
-            END_POINT.mgmtIp, END_POINT.mgmtPort, owner1);
+            END_POINT.mgmtIp(), END_POINT.mgmtPort(), owner1);
         VtepDataClient client2 = provider.connect(
-            END_POINT.mgmtIp, END_POINT.mgmtPort, owner2);
+            END_POINT.mgmtIp(), END_POINT.mgmtPort(), owner2);
 
         client1.awaitConnected();
         client2.awaitConnected();
@@ -624,9 +637,9 @@ public class VtepDataClientImplTest {
         java.util.UUID owner2 = java.util.UUID.randomUUID();
 
         VtepDataClient client1 = provider.connect(
-            END_POINT.mgmtIp, END_POINT.mgmtPort, owner1);
+            END_POINT.mgmtIp(), END_POINT.mgmtPort(), owner1);
         VtepDataClient client2 = provider.connect(
-            END_POINT.mgmtIp, END_POINT.mgmtPort, owner2);
+            END_POINT.mgmtIp(), END_POINT.mgmtPort(), owner2);
 
         client1.awaitConnected();
         client2.awaitConnected();
@@ -643,7 +656,7 @@ public class VtepDataClientImplTest {
 
         for (int index = 0; index < STRESS_COUNT; index++) {
             VtepDataClient client = provider.connect(
-                END_POINT.mgmtIp, END_POINT.mgmtPort, owner);
+                END_POINT.mgmtIp(), END_POINT.mgmtPort(), owner);
 
             log.info("TEST {}", index);
 
@@ -667,7 +680,7 @@ public class VtepDataClientImplTest {
         java.util.UUID owner = java.util.UUID.randomUUID();
 
         VtepDataClient client = provider.connect(
-            END_POINT.mgmtIp, END_POINT.mgmtPort, owner);
+            END_POINT.mgmtIp(), END_POINT.mgmtPort(), owner);
 
         try {
             client.awaitConnected();
@@ -688,14 +701,14 @@ public class VtepDataClientImplTest {
         java.util.UUID owner = java.util.UUID.randomUUID();
 
         VtepDataClient client = provider.connect(
-            END_POINT.mgmtIp, END_POINT.mgmtPort, owner);
+            END_POINT.mgmtIp(), END_POINT.mgmtPort(), owner);
 
         client.awaitConnected();
 
         Collection<PhysicalSwitch> psList = client.listPhysicalSwitches();
         for (PhysicalSwitch ps : psList) {
             log.info("Physical switch: {}", ps);
-            Collection<PhysicalPort> ppList = client.listPhysicalPorts(ps.uuid);
+            Collection<PhysicalPort> ppList = client.listPhysicalPorts(ps.uuid());
             log.info("Physical ports: {}", ppList);
         }
 
@@ -709,7 +722,7 @@ public class VtepDataClientImplTest {
         java.util.UUID owner = java.util.UUID.randomUUID();
 
         VtepDataClient client = provider.connect(
-            END_POINT.mgmtIp, END_POINT.mgmtPort, owner);
+            END_POINT.mgmtIp(), END_POINT.mgmtPort(), owner);
 
         client.awaitConnected();
 
@@ -728,7 +741,7 @@ public class VtepDataClientImplTest {
         java.util.UUID owner = java.util.UUID.randomUUID();
 
         VtepDataClient client = provider.connect(
-            END_POINT.mgmtIp, END_POINT.mgmtPort, owner);
+            END_POINT.mgmtIp(), END_POINT.mgmtPort(), owner);
 
         client.awaitConnected();
 
@@ -745,7 +758,7 @@ public class VtepDataClientImplTest {
         java.util.UUID owner = java.util.UUID.randomUUID();
 
         VtepDataClient client = provider.connect(
-            END_POINT.mgmtIp, END_POINT.mgmtPort, owner);
+            END_POINT.mgmtIp(), END_POINT.mgmtPort(), owner);
 
         client.awaitConnected();
 
@@ -762,7 +775,7 @@ public class VtepDataClientImplTest {
         java.util.UUID owner = java.util.UUID.randomUUID();
 
         VtepDataClient client = provider.connect(
-            END_POINT.mgmtIp, END_POINT.mgmtPort, owner);
+            END_POINT.mgmtIp(), END_POINT.mgmtPort(), owner);
 
         client.awaitConnected();
 
@@ -779,7 +792,7 @@ public class VtepDataClientImplTest {
         java.util.UUID owner = java.util.UUID.randomUUID();
 
         VtepDataClient client = provider.connect(
-            END_POINT.mgmtIp, END_POINT.mgmtPort, owner);
+            END_POINT.mgmtIp(), END_POINT.mgmtPort(), owner);
 
         client.awaitConnected();
 
@@ -796,7 +809,7 @@ public class VtepDataClientImplTest {
         java.util.UUID owner = java.util.UUID.randomUUID();
 
         VtepDataClient client = provider.connect(
-            END_POINT.mgmtIp, END_POINT.mgmtPort, owner);
+            END_POINT.mgmtIp(), END_POINT.mgmtPort(), owner);
 
         client.awaitConnected();
 
@@ -817,7 +830,7 @@ public class VtepDataClientImplTest {
         java.util.UUID owner = java.util.UUID.randomUUID();
 
         VtepDataClient client = provider.connect(
-            END_POINT.mgmtIp, END_POINT.mgmtPort, owner);
+            END_POINT.mgmtIp(), END_POINT.mgmtPort(), owner);
 
         client.awaitConnected();
 
@@ -825,9 +838,9 @@ public class VtepDataClientImplTest {
         log.info("Logical switches : {}", lsList);
 
         for (LogicalSwitch ls : lsList) {
-            if (ls.name.startsWith("mn-")) {
-                log.info("Deleting logical switch {}", ls.name);
-                Status status = client.deleteLogicalSwitch(ls.name);
+            if (ls.name().startsWith("mn-")) {
+                log.info("Deleting logical switch {}", ls.name());
+                Status status = client.deleteLogicalSwitch(ls.name());
                 assertTrue(status.isSuccess());
             }
         }
@@ -842,7 +855,7 @@ public class VtepDataClientImplTest {
         java.util.UUID owner = java.util.UUID.randomUUID();
 
         VtepDataClient client = provider.connect(
-            END_POINT.mgmtIp, END_POINT.mgmtPort, owner);
+            END_POINT.mgmtIp(), END_POINT.mgmtPort(), owner);
 
         client.awaitConnected();
 
@@ -854,12 +867,12 @@ public class VtepDataClientImplTest {
         bindings.add(new ImmutablePair<>(PHYSICAL_PORT_0, (short) 101));
         bindings.add(new ImmutablePair<>(PHYSICAL_PORT_0, (short)102));
 
-        Status status = client.addBindings(ls.uuid, bindings);
+        Status status = client.addBindings(ls.uuid(), bindings);
         assertTrue(status.isSuccess());
 
-        Collection<Pair<org.opendaylight.ovsdb.lib.notation.UUID, Short>> bList
-            = client.listPortVlanBindings(ls.uuid);
-        log.info("Bindings for logical switch {} : {}", ls.uuid, bList);
+        Collection<Pair<java.util.UUID, Short>> bList
+            = client.listPortVlanBindings(ls.uuid());
+        log.info("Bindings for logical switch {} : {}", ls.uuid(), bList);
 
         status = client.deleteBinding(PHYSICAL_PORT_0, (short)100);
         assertTrue(status.isSuccess());
@@ -882,20 +895,20 @@ public class VtepDataClientImplTest {
         IPv4Addr tunnelIp = IPv4Addr.fromString("10.0.0.1");
 
         VtepDataClient client = provider.connect(
-            END_POINT.mgmtIp, END_POINT.mgmtPort, owner);
+            END_POINT.mgmtIp(), END_POINT.mgmtPort(), owner);
 
         client.awaitConnected();
 
         LogicalSwitch ls = addLogicalSwitch(client);
         assertNotNull(ls);
 
-        Status status = client.addUcastMacRemote(ls.name, mac, macIp, tunnelIp);
+        Status status = client.addUcastMacRemote(ls.name(), mac, macIp, tunnelIp);
         assertTrue(status.isSuccess());
 
-        status = client.deleteAllUcastMacRemote(ls.name, mac);
+        status = client.deleteAllUcastMacRemote(ls.name(), mac);
         assertTrue(status.isSuccess());
 
-        status = client.deleteLogicalSwitch(ls.name);
+        status = client.deleteLogicalSwitch(ls.name());
         assertTrue(status.isSuccess());
 
         client.disconnect(owner, false);
@@ -907,24 +920,24 @@ public class VtepDataClientImplTest {
     public void testVtepAddDeleteMcastMacRemote() throws Exception {
         java.util.UUID owner = java.util.UUID.randomUUID();
 
-        VtepMAC mac = VtepMAC.UNKNOWN_DST;
+        VtepMAC mac = VtepMAC.UNKNOWN_DST();
         IPv4Addr tunnelIp = IPv4Addr.fromString("10.0.0.1");
 
         VtepDataClient client = provider.connect(
-            END_POINT.mgmtIp, END_POINT.mgmtPort, owner);
+            END_POINT.mgmtIp(), END_POINT.mgmtPort(), owner);
 
         client.awaitConnected();
 
         LogicalSwitch ls = addLogicalSwitch(client);
         assertNotNull(ls);
 
-        Status status = client.addMcastMacRemote(ls.name, mac, tunnelIp);
+        Status status = client.addMcastMacRemote(ls.name(), mac, tunnelIp);
         assertTrue(status.isSuccess());
 
-        status = client.deleteAllMcastMacRemote(ls.name, mac);
+        status = client.deleteAllMcastMacRemote(ls.name(), mac);
         assertTrue(status.isSuccess());
 
-        status = client.deleteLogicalSwitch(ls.name);
+        status = client.deleteLogicalSwitch(ls.name());
         assertTrue(status.isSuccess());
 
         client.disconnect(owner, false);
@@ -939,17 +952,17 @@ public class VtepDataClientImplTest {
         assertTrue(status.isSuccess());
         log.info("Add logical switch: {}", status.getUuid());
 
-        LogicalSwitch ls = client.getLogicalSwitch(status.getUuid());
+        LogicalSwitch ls = client.getLogicalSwitch(toMido(status.getUuid()));
         log.info("Logical switch: {}", ls);
         assertNotNull(ls);
-        assertEquals(ls.uuid, status.getUuid());
+        assertEquals(ls.uuid(), toMido(status.getUuid()));
 
         return ls;
     }
 
     public static void deleteLogicalSwitch(VtepDataClient client,
                                            LogicalSwitch ls) {
-        Status status = client.deleteLogicalSwitch(ls.name);
+        Status status = client.deleteLogicalSwitch(ls.name());
         assertTrue(status.isSuccess());
     }
 
