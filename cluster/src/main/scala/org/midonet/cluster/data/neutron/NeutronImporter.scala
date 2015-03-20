@@ -78,17 +78,18 @@ object NeutronResourceType extends Enumeration {
     val AgentMembership = NeutronResourceType(
         "AGENTMEMBERSHIP", classOf[AgentMembership])
 
-    private val vals = Map(NoData.id -> NoData,
-                           AgentMembership.id -> AgentMembership,
-                           Config.id -> Config,
-                           Network.id -> Network, Subnet.id -> Subnet,
-                           Router.id -> Router, Port.id -> Port,
-                           FloatingIp.id -> FloatingIp,
-                           SecurityGroup.id -> SecurityGroup,
-                           SecurityGroupRule.id -> SecurityGroupRule,
-                           PortBinding.id -> PortBinding)
+    private val vals = Map[String, NeutronResourceType[_ <: Message]](
+        NoData.id -> NoData,
+        AgentMembership.id -> AgentMembership,
+        Config.id -> Config,
+        Network.id -> Network, Subnet.id -> Subnet,
+        Router.id -> Router, Port.id -> Port,
+        FloatingIp.id -> FloatingIp,
+        SecurityGroup.id -> SecurityGroup,
+        SecurityGroupRule.id -> SecurityGroupRule,
+        PortBinding.id -> PortBinding)
 
-    def valueOf(i: String) = vals(i)
+    def valueOf(i: String): NeutronResourceType[_ <: Message] = vals(i)
 }
 
 /** Interface for access to Neutron database. */
