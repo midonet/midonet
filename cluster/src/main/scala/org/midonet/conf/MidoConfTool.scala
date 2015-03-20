@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.midolman.management
+package org.midonet.conf
 
 import java.io.InputStreamReader
 import java.lang.{Short => JShort, Integer => JInt, Byte => JByte}
@@ -23,10 +23,9 @@ import scala.util.{Failure, Success, Try}
 import scala.collection.JavaConversions._
 
 import com.typesafe.config._
-import org.apache.curator.retry.RetryOneTime
-import org.apache.curator.framework.CuratorFrameworkFactory
-import org.midonet.conf.{HostIdGenerator, MidoNodeConfigurator}
 import org.rogach.scallop._
+
+import org.midonet.conf.{HostIdGenerator, MidoNodeConfigurator}
 
 object ConfCommand {
     val SUCCESS = 0
@@ -351,19 +350,19 @@ abstract class ConfigQuery(name: String) extends Subcommand(name) {
     }
 }
 
-object MidolmanConf extends App {
-    def getConfigurator(host: String, port: Int) = {
-        val zk = CuratorFrameworkFactory.newClient(s"$host:$port", new RetryOneTime(1000))
-        zk.start()
-        MidoNodeConfigurator.forAgents(zk)
+object MidoConfTool extends App {
+    def getConfigurator(nodeType: String) = nodeType match {
+        case MidoNodeType.AGENT => MidoNodeConfigurator.forAgents()
+        case MidoNodeType.BRAIN => MidoNodeConfigurator.forBrains()
+        case t => throw new Exception(s"Unknown MidoNet node type: $t")
     }
+
     def date = System.currentTimeMillis()
     val opts = new ScallopConf(args) {
-        val port = opt[Int]("port", short = 'p', default = Option(2181),
-                            descr = "ZooKeeper port",
-                            required = true)
-        val host = opt[String]("zookeeper", short = 'z', default = Option("localhost"),
-                               descr = "ZooKeeper Host")
+        val nodeType = opt[String]("type", short = 't',
+                                   default = Option(MidoNodeType.AGENT),
+                                   validate = (v) => MidoNodeType.all.contains(v),
+                                   descr = "Type of MidoNet node to configure")
 
         val bundledConfig = BundledConfig
         val dump = DumpConf
@@ -374,27 +373,26 @@ object MidolmanConf extends App {
         val templateGet = GetTemplate
         val templateSet = SetTemplate
 
-        printedName = "mm-conf"
+        printedName = "mn-conf"
         footer("Copyright (c) 2015 Midokura SARL, All Rights Reserved.")
     }
 
     val ret = (opts.subcommand flatMap {
         case subcommand: ConfCommand =>
-            for {host <- opts.host.get
-                 port <- opts.port.get} yield { (subcommand, host, port) }
+            for {nodeType <- opts.nodeType.get} yield { (subcommand, nodeType) }
         case s =>
             println(s)
             None
     } match {
-        case Some((subcommand, host, port)) =>
-            Try(subcommand.run(getConfigurator(host, port)))
+        case Some((subcommand, nodeType)) =>
+            Try(subcommand.run(getConfigurator(nodeType)))
         case _ =>
             Failure(new Exception("must specify a valid command"))
     }) match {
         case Success(retcode) =>
             retcode
         case Failure(e) =>
-            System.err.println("[mm-conf] Failed: " + e.getMessage)
+            System.err.println("[mn-conf] Failed: " + e.getMessage)
             throw e
             1
     }
