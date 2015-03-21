@@ -27,10 +27,14 @@ import scala.util.Try
 import com.typesafe.config._
 import org.apache.commons.configuration.{HierarchicalConfiguration, HierarchicalINIConfiguration}
 import org.apache.curator.framework.{CuratorFrameworkFactory, CuratorFramework}
-import org.apache.curator.framework.recipes.cache.{ChildData, NodeCache}
+import org.apache.curator.framework.recipes.cache.ChildData
 import org.apache.curator.retry.RetryOneTime
 import org.apache.zookeeper.KeeperException
+import rx.{Observer, Observable}
 
+import org.midonet.util.functors.makeFunc1
+import org.midonet.util.functors.makeFunc2
+import org.midonet.cluster.util.ObservableNodeCache
 
 /**
  * A configuration source capable of producing an immutable Config object.
@@ -44,6 +48,10 @@ object MidoNodeType {
     val BRAIN = "brain"
 
     val all = List(AGENT, BRAIN)
+}
+
+trait ObservableConf extends MidoConf {
+    def observable: Observable[Config]
 }
 
 /**
@@ -231,7 +239,7 @@ class MidoNodeConfigurator(zk: CuratorFramework,
      * @param node The node id
      * @return
      */
-    def centralPerNodeConfig(node: UUID): WritableConf =
+    def centralPerNodeConfig(node: UUID): WritableConf with ObservableConf =
         new ZookeeperConf(zk, s"/config/$nodeType/$node")
 
     /**
@@ -241,7 +249,8 @@ class MidoNodeConfigurator(zk: CuratorFramework,
      * @param node The node id.
      * @return
      */
-    def templateByNodeId(node: UUID): WritableConf = templateByName(templateNameForNode(node))
+    def templateByNodeId(node: UUID): WritableConf with ObservableConf =
+        templateByName(templateNameForNode(node))
 
     /**
      * Returns the WritableConf that points to a given configuration template.
@@ -249,8 +258,16 @@ class MidoNodeConfigurator(zk: CuratorFramework,
      * @param name The template name
      * @return
      */
-    def templateByName(name: String): WritableConf =
+    def templateByName(name: String): WritableConf with ObservableConf =
         new ZookeeperConf(zk, s"/config/templates/$nodeType/$name")
+
+
+    private def mappingFor(node: UUID, mappings: Config): String = {
+        if (mappings.hasPath(node.toString))
+            mappings.getString(node.toString)
+        else
+            "default"
+    }
 
     /**
      * Returns the configuration template name assigned to a given MidoNet node.
@@ -258,13 +275,7 @@ class MidoNodeConfigurator(zk: CuratorFramework,
      * @param node The node id
      * @return
      */
-    def templateNameForNode(node: UUID): String = {
-        val mappings: Config = templateMappings
-        if (mappings.hasPath(node.toString))
-            mappings.getString(node.toString)
-        else
-            "default"
-    }
+    def templateNameForNode(node: UUID): String = mappingFor(node, templateMappings)
 
     /**
      * Returns the Config object that holds the list of configuration template
@@ -289,26 +300,50 @@ class MidoNodeConfigurator(zk: CuratorFramework,
         _templateMappings.clearAndSet(mappings)
     }
 
+    def observableTemplateForNode(node: UUID): Observable[Config] = {
+        val templateName = _templateMappings.observable.map[String](makeFunc1{mappingFor(node, _)})
+        val template = templateName.distinctUntilChanged().map[Observable[Config]](makeFunc1{ templateByName(_).observable })
+        Observable.switchOnNext(template)
+    }
+
     /**
      * Returns the WritableConf that points to the configuration schema for
      * the node type managed by this configurator.
      */
-    def schema: WritableConf = new ZookeeperConf(zk, s"/config/schemas/$nodeType")
+    def schema: WritableConf with ObservableConf =
+        new ZookeeperConf(zk, s"/config/schemas/$nodeType")
 
     /**
      * Returns the Config object composed of all the server-side configuration
      * sources that make up the configuration for a given MidoNet node. These
      * sources are the node-specific configuration, its assigned template,
      * the 'default' template, and the schema.
-     *
-     * @param node The node id.
-     * @return
      */
     def centralConfig(node: UUID): Config =
         centralPerNodeConfig(node).get.
             withFallback(templateByNodeId(node).get).
             withFallback(templateByName("default").get).
             withFallback(schema.get)
+
+    private def combine(c1: Observable[Config], c2: Observable[Config]): Observable[Config] = {
+        Observable.combineLatest(c1, c2,
+            makeFunc2((a: Config, b: Config) => a.withFallback(b)))
+    }
+
+    /**
+     * Returns an Observable on the server-stored configuration for a
+     * particular node. The observable will emit new Config objects any
+     * time any of the sources that make up the configuration is updated.
+     * This works across changes to the template assignment for the given
+     * node.
+     */
+    def observableCentralConfig(node: UUID): Observable[Config] = {
+        implicit def unwrap(o: ObservableConf): Observable[Config] = o.observable
+
+        combine(centralPerNodeConfig(node),
+                combine(observableTemplateForNode(node),
+                        combine(templateByName("default"), schema)))
+    }
 
     /**
      * Returns the Config object that a given MidoNet node must use at runtime.
@@ -317,14 +352,22 @@ class MidoNodeConfigurator(zk: CuratorFramework,
      *   - The local configuration sources.
      *   - The server-side configuration sources
      *   - The schema bundled in the application's jars.
-     *
-     * @param node The node id.
-     * @return
      */
     def runtimeConfig(node: UUID): Config =
         localOnlyConfig.withFallback(centralConfig(node)).
                         withFallback(MidoNodeConfigurator.bootstrapConfig(inifile)).
                         withFallback(bundledSchema.get)
+
+    /**
+     * Return an Observable on the runtime configuration that a particular
+     * node must use at runtime.
+     */
+    def observableRuntimeConfig(node: UUID): Observable[Config] = {
+        combine(Observable.just(localOnlyConfig),
+                combine(observableCentralConfig(node),
+                        Observable.just(MidoNodeConfigurator.bootstrapConfig(inifile).
+                                        withFallback(bundledSchema.get))))
+    }
 
     /**
      * Returns the MidoConf object that points to the schema bundled with the
@@ -446,20 +489,22 @@ class ResourceConf(path: String) extends MidoConf {
  * @param zk
  * @param path
  */
-class ZookeeperConf(zk: CuratorFramework, path: String) extends MidoConf with WritableConf {
+class ZookeeperConf(zk: CuratorFramework, path: String) extends MidoConf with
+                                                                WritableConf with
+                                                                ObservableConf {
+
     private val renderOpts = ConfigRenderOptions.defaults().setOriginComments(false).
                                                             setComments(false).
                                                             setJson(false)
-
-    private val zknode: NodeCache = new NodeCache(zk, path)
     private val parseOpts = ConfigParseOptions.defaults().
-                    setAllowMissing(false).
-                    setOriginDescription(s"zookeeper:$path")
+        setAllowMissing(false).
+        setOriginDescription(s"zookeeper:///${zk.getNamespace}$path")
 
-    zknode.start(true)
+    private val cache = new ObservableNodeCache(zk, path, emitNoNodeAsEmpty = true)
+    cache.connect()
 
     private def parse(zkdata: ChildData): Config = {
-        if (zkdata eq null) {
+        if ((zkdata eq null) || (zkdata.getData eq  null)) {
             ConfigFactory.empty()
         } else {
             val data = new String(zkdata.getData)
@@ -470,13 +515,14 @@ class ZookeeperConf(zk: CuratorFramework, path: String) extends MidoConf with Wr
         }
     }
 
+    override val observable: Observable[Config] = cache.observable map makeFunc1(parse)
+
     override def get: Config = {
-        parse(zknode.getCurrentData).resolve()
+        parse(cache.current).resolve()
     }
 
     override protected def modify(changeset: Config => Config): Boolean = {
-        val zkdata = zknode.getCurrentData
-
+        val zkdata = cache.current
         try {
             if (zkdata eq null) {
                 val conf = changeset(ConfigFactory.empty)
