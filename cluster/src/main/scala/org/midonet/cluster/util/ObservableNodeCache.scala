@@ -49,8 +49,18 @@ import rx.subjects.BehaviorSubject
   * exception on the Observable as we're no longer able to report updates
   * from ZK.
   *
+  * Setting emitNoNodeAsEmpty to 'true', will change the behaviour of the
+  * ObservableNodeCache so that no onError or onCompleted events are emitted
+  * if the zookeeper node does not exist or becomes non-existent. Curator's
+  * NodeCache informs listeners across those situations, and the observable
+  * will behave like that. Under this operation mode, NoNode situations will
+  * translate in onNext() events that contain a ChildData object with null
+  * stat and data fields. These can be identity-compared with the EMPTY_DATA
+  * attribute in the ObservableNodeCache.
   */
-class ObservableNodeCache(zk: CuratorFramework, path: String) {
+class ObservableNodeCache(zk: CuratorFramework,
+                          path: String,
+                          emitNoNodeAsEmpty: Boolean = false) {
 
     /* Signals when the connection is stablished and the cache primed */
     private val connected = new AtomicBoolean(false)
@@ -63,6 +73,8 @@ class ObservableNodeCache(zk: CuratorFramework, path: String) {
 
     // The underlying Node cache
     private val nodeCache = new NodeCache(zk, path)
+
+    val EMPTY_DATA = new ChildData(path, null, null)
 
     /* The listener that will deal with data changes, and run always single
      * threaded in the zookeeper Event thread, but may run concurrently to a
@@ -79,7 +91,11 @@ class ObservableNodeCache(zk: CuratorFramework, path: String) {
             }
             nodeCache.getCurrentData match {
                 case cd: ChildData => stream.onNext(cd)
-                case _ => stream.onCompleted()
+                case null =>
+                    if (emitNoNodeAsEmpty)
+                        stream.onNext(EMPTY_DATA)
+                    else
+                        stream.onCompleted()
             }
         }
     }
@@ -112,7 +128,10 @@ class ObservableNodeCache(zk: CuratorFramework, path: String) {
         }
         nodeCache.start(true)
         if (current == null) {
-            stream.onError(new NoNodeException(s"Absent path: $path"))
+            if (emitNoNodeAsEmpty)
+                stream.onNext(EMPTY_DATA)
+            else
+                stream.onError(new NoNodeException(s"Absent path: $path"))
         } else {
             stream.onNext(current)
         }
