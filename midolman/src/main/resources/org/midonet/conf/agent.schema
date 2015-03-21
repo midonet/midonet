@@ -242,3 +242,47 @@ true to activate it.
 
     haproxy_file_loc = "/etc/midolman/l4lb/"
 }
+
+loggers {
+    root : "INFO"
+
+    org.apache.zookeeper : "INFO"
+    org.apache.cassandra : "INFO"
+    me.prettyprint.cassandra : "INFO"
+    org.eclipse.jetty : "INFO"
+
+    org.midonet.packets.default.packet-processor : "INFO"
+    org.midonet.packets.default.packet-processor_description : """
+Adjust this level to set the logging used for all packets processed"""
+
+    org.midonet.packet-worker : "INFO"
+    org.midonet.packet-worker_description : """
+logger for packet processing worker threads, when outside the context of a packet"""
+
+    org.midonet.devices.arp-table : "INFO"
+    org.midonet.devices.arp-table_description : """
+catch-all logger for arp table messages"""
+
+    // arp table messages for a specific router
+    // org.midonet.devices.arp-table.arp-table-THE_ROUTER_UUID : "INFO"
+
+    org.midonet.routing.bgp : "INFO"
+    org.midonet.flow-management : "INFO"
+    org.midonet.datapath-control : "INFO"
+    org.midonet.devices.devices-service : "INFO"
+    org.midonet.devices.underlay : "INFO"
+    org.midonet.state.table : "INFO"
+    org.midonet.state.replication : "INFO"
+
+    org.midonet.devices.bridge : "INFO"
+    org.midonet.devices.bridge_description : """
+logger for all bridges and their mac learning tables"""
+
+    // particular bridge and its mac learning tables
+    // org.midonet.devices.bridge.bridge-THE_BRIDGE_UUID : "INFO"
+
+    // communications with the datapath
+    org.midonet.netlink : "INFO"
+    org.midonet.io.select-loop : "INFO"
+    org.midonet.io.htb : "INFO"
+}
