@@ -35,6 +35,8 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.GnuParser;
 import org.apache.commons.cli.Options;
+import org.midonet.conf.HostIdGenerator;
+import org.midonet.conf.LoggerLevelWatcher;
 import org.midonet.conf.MidoNodeConfigurator;
 import org.midonet.midolman.config.MidolmanConfig;
 import org.slf4j.Logger;
@@ -179,6 +181,9 @@ public class Midolman {
                     setFormatted(true);
         Config conf = injector.getInstance(MidolmanConfig.class).conf();
         log.info("Loaded configuration: {}", conf.root().render(renderOpts));
+
+        configurator.observableRuntimeConfig(HostIdGenerator.getHostId()).
+                subscribe(new LoggerLevelWatcher());
 
         // fire the initialize message to an actor
         injector.getInstance(MidolmanActorsService.class).initProcessing();
