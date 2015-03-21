@@ -15,6 +15,7 @@
  */
 package org.midonet.cluster.util
 
+import java.util.UUID
 import java.util.concurrent.TimeUnit
 
 import org.apache.curator.framework.recipes.cache.ChildData
@@ -23,6 +24,7 @@ import org.apache.zookeeper.KeeperException.NoNodeException
 import org.junit.Assert.assertTrue
 import org.junit.runner.RunWith
 import org.scalatest._
+import org.scalatest.concurrent.Eventually._
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.util.ObservableTestUtils.observer
@@ -32,6 +34,45 @@ class ObservableNodeCacheTest extends Suite
                               with CuratorTestFramework
                               with Matchers {
 
+    def testNoNodeAsEmpty(): Unit = {
+        val path = s"/${UUID.randomUUID}"
+        val sub = observer[ChildData](4, 0, 0)
+
+        val onc = new ObservableNodeCache(curator, path, emitNoNodeAsEmpty = true)
+        onc.connect()
+        onc.observable.subscribe(sub)
+
+        eventually {
+            sub.getOnNextEvents should have size 1
+            sub.getOnNextEvents.get(0) should be (onc.EMPTY_DATA)
+        }
+
+        curator.create().inBackground().forPath(path, "a".getBytes)
+
+        eventually {
+            sub.getOnNextEvents should have size 2
+            sub.getOnNextEvents.get(1) should not be (onc.EMPTY_DATA)
+            new String(sub.getOnNextEvents.get(1).getData) should be ("a")
+        }
+
+        curator.delete().inBackground().forPath(path)
+
+        eventually {
+            sub.getOnNextEvents should have size 3
+            sub.getOnNextEvents.get(2) should be (onc.EMPTY_DATA)
+        }
+
+        curator.create().inBackground().forPath(path, "b".getBytes)
+
+        eventually {
+            sub.getOnNextEvents should have size 4
+            sub.getOnNextEvents.get(3) should not be (onc.EMPTY_DATA)
+            new String(sub.getOnNextEvents.get(3).getData) should be ("b")
+        }
+
+        sub.getOnErrorEvents should have size 0
+        sub.getOnCompletedEvents should have size 0
+    }
 
     /** Create and delete a node, verify that the observable emits the right
       * contents */
