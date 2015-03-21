@@ -116,7 +116,7 @@ object MidoNodeConfigurator {
         val MIDONET_CONF_LOCATIONS = List("~/.midonetrc", "/etc/midonet/midonet.conf",
             "/etc/midolman/midolman.conf")
 
-        val DEFAULTS_STR =
+        val DEFAULTS = ConfigFactory.parseString(
             """
               |zookeeper.zookeeper_hosts = "127.0.0.1:2181"
               |zookeeper.midolman_root_key = ${zookeeper.root_key}
@@ -124,16 +124,22 @@ object MidoNodeConfigurator {
               |zookeeper.base_retry = 1s
               |zookeeper.max_retries = 10
               |zookeeper.use_new_stack = false
-            """.stripMargin
+            """.stripMargin)
 
-        val defaults = ConfigFactory.parseString(DEFAULTS_STR)
+        val ENVIRONMENT = ConfigFactory.parseString(
+            """
+              |zookeeper.zookeeper_hosts = ${?MIDO_ZOOKEEPER_HOSTS}
+              |zookeeper.root_key = ${?MIDO_ZOOKEEPER_ROOT_KEY}
+            """.stripMargin)
 
         val locations = (inifile map ( List(_) ) getOrElse Nil) ::: MIDONET_CONF_LOCATIONS
 
         def loadCfg = (loc: String) => Try(new IniFileConf(loc).get).getOrElse(ConfigFactory.empty)
 
-        { for (l <- locations) yield loadCfg(l)
-        } reduce((a, b) => a.withFallback(b)) withFallback(ConfigFactory.systemProperties) withFallback(defaults) resolve()
+        ENVIRONMENT.withFallback({ for (l <- locations) yield loadCfg(l)
+        } reduce((a, b) => a.withFallback(b))
+            withFallback(ConfigFactory.systemProperties)
+            withFallback(DEFAULTS)).resolve()
     }
 
     def zkBootstrap(inifile: Option[String] = None): CuratorFramework =
