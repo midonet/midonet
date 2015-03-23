@@ -35,6 +35,7 @@ import org.midonet.midolman.HostRequestProxy.FlowStateBatch
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.DatapathChannel
 import org.midonet.midolman.logging.ActorLogWithoutPath
+import org.midonet.midolman.logging.FlowTracingContext
 import org.midonet.midolman.management.PacketTracing
 import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
 import org.midonet.midolman.simulation.PacketEmitter.GeneratedPacket
@@ -175,7 +176,7 @@ class DeduplicationActor(
                 else
                     handleErrorOn(pktCtx, error)
                 MDC.remove("cookie")
-                MDC.remove(TraceState.TraceLoggingContextKey)
+                FlowTracingContext.clearContext()
             }
             // Else the packet may have already been expired and dropped
     }
@@ -319,7 +320,7 @@ class DeduplicationActor(
             if (context.ingressed)
                 packetOut(1)
             MDC.remove("cookie")
-            MDC.remove(TraceState.TraceLoggingContextKey)
+            FlowTracingContext.clearContext()
         }
 
     protected def runWorkflow(pktCtx: PacketContext): Unit =
