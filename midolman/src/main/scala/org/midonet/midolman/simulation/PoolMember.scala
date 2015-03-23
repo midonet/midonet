@@ -73,7 +73,8 @@ final class PoolMember(@ScalaZoomField(name = "id",
         case member: PoolMember =>
             id == member.id && adminStateUp == member.adminStateUp &&
             status == member.status && address == member.address &&
-            protocolPort == member.protocolPort && weight == member.weight
+            protocolPort == member.protocolPort && weight == member.weight &&
+            natTargets == member.natTargets
         case _ => false
     }
 

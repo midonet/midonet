@@ -42,6 +42,9 @@ object Pool {
 
 final class Pool(val id: UUID, val adminStateUp: Boolean,
                  val lbMethod: PoolLBMethod,
+                 val healthMonitorId: UUID,
+                 val loadBalancerId: UUID,
+                 val members: Array[PoolMember],
                  val activePoolMembers: Array[PoolMember],
                  val disabledPoolMembers: Array[PoolMember])
     extends VirtualDevice {
@@ -194,6 +197,7 @@ final class Pool(val id: UUID, val adminStateUp: Boolean,
 
     override def toString =
         s"Pool [id=$id adminStateUp=$adminStateUp lbMethod=$lbMethod " +
+        s"healtMonitorId=$healthMonitorId loadBalancerId=$loadBalancerId " +
         s"activePoolMembers=${activePoolMembers.toSeq} " +
         s"disabledPoolMembers=${disabledPoolMembers.toSeq}]"
 
