@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,10 +31,10 @@ class WakerUpperTest extends FeatureSpec with Matchers {
     feature ("WakerUpper wakes blocked threads") {
 
         scenario ("WakerUpper is activated when a thread blocks") {
-            val then = Platform.currentTime
+            val parkStart = Platform.currentTime
             new Parkable {
                 override def shouldWakeUp(): Boolean =
-                    Platform.currentTime > then + 100
+                    Platform.currentTime > parkStart + 100
             } park()
         }
 
