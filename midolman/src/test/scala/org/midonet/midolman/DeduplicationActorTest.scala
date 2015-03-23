@@ -37,6 +37,7 @@ import org.midonet.midolman.simulation.PacketContext
 import org.midonet.midolman.simulation.PacketEmitter.GeneratedPacket
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackKey, ConnTrackValue}
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
+import org.midonet.midolman.state.TraceState.{TraceKey, TraceContext}
 import org.midonet.midolman.state.{FlowStatePackets, HappyGoLuckyLeaser, MockStateStorage}
 import org.midonet.midolman.topology.rcu.ResolvedHost
 import org.midonet.midolman.util.MidolmanSpec
@@ -342,6 +343,7 @@ class DeduplicationActorTest extends MidolmanSpec {
                                        new FlowInvalidator(null),
                                        new ShardedFlowStateTable[ConnTrackKey, ConnTrackValue](),
                                        new ShardedFlowStateTable[NatKey, NatBinding](),
+                                       new ShardedFlowStateTable[TraceKey, TraceContext](),
                                        new MockStateStorage(),
                                        HappyGoLuckyLeaser,
                                        metrics, packetOut)

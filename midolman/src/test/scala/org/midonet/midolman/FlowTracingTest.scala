@@ -44,6 +44,7 @@ import org.midonet.midolman.simulation.{Coordinator, PacketContext}
 import org.midonet.midolman.state.{HappyGoLuckyLeaser, MockStateStorage}
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackValue, ConnTrackKey}
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
+import org.midonet.midolman.state.TraceState.{TraceKey, TraceContext}
 import org.midonet.midolman.topology._
 import org.midonet.midolman.topology.rcu.ResolvedHost
 import org.midonet.midolman.util.MidolmanSpec
@@ -104,7 +105,7 @@ class FlowTracingTest extends MidolmanSpec {
     // override to avoid clearing the packet context
     def simulate(pktCtx: PacketContext)
             : (SimulationResult, PacketContext) = {
-        pktCtx.initialize(NO_CONNTRACK, NO_NAT, HappyGoLuckyLeaser)
+        pktCtx.initialize(NO_CONNTRACK, NO_NAT, HappyGoLuckyLeaser, NO_TRACE)
         val r = force {
             new Coordinator(pktCtx) simulate()
         }
@@ -287,6 +288,7 @@ class FlowTracingTest extends MidolmanSpec {
         new FlowInvalidator(null),
         new ShardedFlowStateTable[ConnTrackKey, ConnTrackValue](),
         new ShardedFlowStateTable[NatKey, NatBinding](),
+        new ShardedFlowStateTable[TraceKey, TraceContext](),
         new MockStateStorage(), HappyGoLuckyLeaser,
         new PacketPipelineMetrics(
             injector.getInstance(classOf[MetricRegistry])),
