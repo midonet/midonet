@@ -187,13 +187,18 @@ class Bridge(val id: UUID,
 
         val dstDlAddress = context.wcmatch.getEthDst
         val action =
-             if (isArpBroadcast())
+             if (isArpBroadcast()) {
                  handleARPRequest()
-             else if (Ethernet.isMcast(dstDlAddress))
+             } else if (isDhcpBroadcast()) {
+                 context.log.debug("Packet is DHCP broadcast. " +
+                     "Ending simulation, DHCP will be handled " +
+                     "by PacketWorkflow")
+                 NoOp
+             } else if (Ethernet.isMcast(dstDlAddress)) {
                  handleL2Multicast()
-             else
+             } else {
                  handleL2Unicast() // including ARP replies
-
+             }
         if (areChainsApplicable()) {
             doPostBridging(context, action)
         } else {
@@ -204,6 +209,16 @@ class Bridge(val id: UUID,
     private def isArpBroadcast()(implicit context: PacketContext) = {
         Ethernet.isBroadcast(context.wcmatch.getEthDst) &&
                              context.wcmatch.getEtherType == ARP.ETHERTYPE
+    }
+
+    private def isDhcpBroadcast()(implicit context: PacketContext) = {
+        context.wcmatch.getEthDst.asLong == 0xFFFFFFFFFFFFL &&
+            context.wcmatch.getEtherType == IPv4.ETHERTYPE &&
+            context.wcmatch.getNetworkDstIP.isInstanceOf[IPv4Addr] &&
+            (context.wcmatch.getNetworkDstIP.asInstanceOf[IPv4Addr].addr
+                 == 0xFFFFFFFF) &&
+            context.wcmatch.getNetworkProto == UDP.PROTOCOL_NUMBER &&
+            context.wcmatch.getSrcPort == 68 && context.wcmatch.getDstPort == 67
     }
 
     /**
