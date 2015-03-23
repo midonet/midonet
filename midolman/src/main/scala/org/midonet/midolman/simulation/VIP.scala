@@ -38,6 +38,8 @@ class VIP extends ZoomObject {
     var protocolPort: Int = _
     @ZoomField(name = "sticky_source_ip")
     var isStickySourceIP: Boolean = false
+    @ZoomField(name = "load_balancer_id", converter = classOf[UUIDConverter])
+    var loadBalancerId: UUID = _
 
     def this(id: UUID, adminStateUp: Boolean, poolId: UUID, address: IPv4Addr,
              protocolPort: Int, isStickySourceIP: Boolean) = {
