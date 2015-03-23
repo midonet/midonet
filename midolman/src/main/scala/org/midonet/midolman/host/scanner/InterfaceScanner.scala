@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,21 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.midolman.host.scanner;
 
-import java.util.Set;
+package org.midonet.midolman.host.scanner
 
-import org.midonet.Subscription;
-import org.midonet.midolman.host.interfaces.InterfaceDescription;
-import org.midonet.netlink.Callback;
+import rx.{Observer, Subscription}
+
+import org.midonet.midolman.host.interfaces.InterfaceDescription
+import org.midonet.netlink.rtnetlink.AbstractRtnetlikConnection
 
 /**
  * Interface data scanning API. It's job is scan and find out the
  * current list of interface data from the local system and notify
  * observers whenever there are changes.
  */
-public interface InterfaceScanner {
-    Subscription register(final Callback<Set<InterfaceDescription>> callback);
-    void start();
-    void shutdown();
+trait InterfaceScanner extends AbstractRtnetlikConnection {
+    def subscribe(obs: Observer[Set[InterfaceDescription]]): Subscription
+    def start(): Unit = {}
+    def stop(): Unit = {}
 }

@@ -17,6 +17,7 @@
 package org.midonet.netlink.rtnetlink
 
 import java.nio.ByteBuffer
+import java.util.{Set => JSet}
 
 import scala.reflect.ClassTag
 import scala.reflect.runtime.{universe => ru}
