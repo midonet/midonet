@@ -29,7 +29,7 @@ import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.midolman.simulation._
 import org.midonet.midolman.topology.VirtualTopology.Device
 import org.midonet.midolman.topology.VirtualTopologyActor.{BridgeRequest, ChainRequest, DeviceRequest, IPAddrGroupRequest, LoadBalancerRequest, PortRequest, Unsubscribe, _}
-import org.midonet.midolman.topology.devices.Port
+import org.midonet.midolman.topology.devices.{PoolHealthMonitorMap, Port}
 
 /**
  * An abstraction layer for the [[VirtualTopologyActor]] that redirects
@@ -146,6 +146,9 @@ abstract class VirtualTopologyRedirector extends Actor with MidolmanLogging {
         case r: LoadBalancerRequest =>
             log.debug("Request for load-balancer {}", r.id)
             onRequest[LoadBalancer](r)
+        case r: PoolHealthMonitorMapRequest =>
+            log.debug("Request for pool health monitor map")
+            onRequest[PoolHealthMonitorMap](r)
         case r: PoolRequest =>
             log.debug("Request for pool {}", r.id)
             onRequest[Pool](r)

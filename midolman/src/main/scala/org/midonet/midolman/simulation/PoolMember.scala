@@ -52,6 +52,10 @@ final class PoolMember(@ScalaZoomField(name = "id",
 
     def this() = this(null, false, LBStatus.INACTIVE, null, 0, 0)
 
+    // NOTE: as natTargets is determined from constructor params, it
+    // is excluded from equals comparator
+    // TODO: natTargets equals throws npe if any of the fields is null
+    // Is that the expected behaviour?
     private val natTargets = Array(new NatTarget(address, address,
                                                  protocolPort, protocolPort))
 

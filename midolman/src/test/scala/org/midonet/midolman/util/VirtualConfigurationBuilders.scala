@@ -527,7 +527,7 @@ trait VirtualConfigurationBuilders {
         clusterDataClient().vipUpdate(vip)
     }
 
-    def createHealthMonitor(id: UUID = UUID.randomUUID(),
+    def newHealthMonitor(id: UUID = UUID.randomUUID(),
                            adminStateUp: Boolean = true,
                            delay: Int = 2,
                            maxRetries: Int = 2,
@@ -543,7 +543,7 @@ trait VirtualConfigurationBuilders {
         hm
     }
 
-    def createRandomHealthMonitor
+    def newRandomHealthMonitor
             (id: UUID = UUID.randomUUID()): HealthMonitor = {
         val rand = new Random()
         val hm = new HealthMonitor()
