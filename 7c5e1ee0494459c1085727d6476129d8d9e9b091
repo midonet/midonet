@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_7882a501",
+        "filename": "midolman/src/man/mn-conf.1.ronn",
+        "patchSetId": 4
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-03-23T10:00:48Z",
+      "side": 1,
+      "message": "Regarding versions:\n\nmn-conf is 100% version agnostic. It\u0027s the schemas that get deployed to zookeeper that carry version information.\n\nRegarding storing bogus configuration:\n\nWhat you store needs to be a configuration file with a correct syntax. However individual keys are not validated (just like they were not before). I\u0027ve thought about this though. It would require adding another annotation to keys in the schema indicating the type, and validating values against those everytime they are written.",
+      "parentUuid": "1a106d94_f8c7b562",
+      "revId": "7c5e1ee0494459c1085727d6476129d8d9e9b091",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_78b465f2",
         "filename": "midolman/src/man/mn-conf.1.ronn",
         "patchSetId": 4
@@ -30,6 +48,24 @@
       "writtenOn": "2015-03-23T09:54:45Z",
       "side": 1,
       "message": "After reading the document, this doesn\u0027t sound like a template to me. \n\nOtherwise why not call it the group configuration?\n\nSimilarly, default template could be called the default configuration.",
+      "revId": "7c5e1ee0494459c1085727d6476129d8d9e9b091",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_388f8d25",
+        "filename": "midolman/src/man/mn-conf.1.ronn",
+        "patchSetId": 4
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-03-23T10:00:48Z",
+      "side": 1,
+      "message": "I don\u0027t have a strong preference, other than not being eager to rename everything. If more people agree with your view, I\u0027ll add a patch to rename it all on at the tip of the branch.\n\nTo me it sounds like a template in the sense that it\u0027s a pre-cooked configuration you apply to a node instead of configuring it manually, but I could be wrong.",
+      "parentUuid": "1a106d94_78b465f2",
       "revId": "7c5e1ee0494459c1085727d6476129d8d9e9b091",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
