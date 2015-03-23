@@ -256,7 +256,12 @@ public class TestRules {
 
     @Test
     public void testTraceRule() {
-        Rule rule = new TraceRule(cond);
+        UUID requestId = UUID.randomUUID();
+        UUID requestId2 = UUID.randomUUID();
+
+        Rule rule = new TraceRule(requestId, cond);
+        Rule rule2 = new TraceRule(requestId2, cond);
+
         // If the condition doesn't match the result is not modified.
         RuleResult res = new RuleResult(null, null);
         rule.process(pktCtx, res, ownerId, false);
@@ -269,13 +274,27 @@ public class TestRules {
         } catch (Exception tre) {
             Assert.assertEquals("Should be trace required exception",
                                 tre, TraceRequiredException.instance());
-            // correct behaviour
+            Assert.assertTrue("Trace is enabled for requestId",
+                    pktCtx.tracingEnabled(requestId));
+            Assert.assertFalse("Trace is not enabled for requestId2",
+                    pktCtx.tracingEnabled(requestId2));
         }
 
-        pktCtx.setTracingEnabled();
         res = new RuleResult(null, null);
         rule.process(pktCtx, res, ownerId, false);
         Assert.assertEquals(null, res.action);
+
+        try {
+            rule2.process(pktCtx, res, ownerId, false);
+            Assert.fail("Should throw exception");
+        } catch (Exception tre) {
+            Assert.assertEquals("Should be trace required exception",
+                                tre, TraceRequiredException.instance());
+            Assert.assertTrue("Trace is enabled for requestId",
+                    pktCtx.tracingEnabled(requestId));
+            Assert.assertTrue("Trace is enabled for requestId2",
+                    pktCtx.tracingEnabled(requestId2));
+        }
     }
 
     @Test
