@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_ecd7faeb",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/PacketContext.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 277,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-03-23T13:58:10Z",
+      "side": 0,
+      "message": "why is this gone? it should be in clear(), right?",
+      "revId": "214a268d03f4c4ee86009b580d6ae808aa836a1b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
