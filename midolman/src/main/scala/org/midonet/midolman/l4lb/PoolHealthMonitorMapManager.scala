@@ -15,17 +15,20 @@
  */
 package org.midonet.midolman.l4lb
 
+import java.util.UUID
+
+import scala.collection.immutable.Map
+
 import akka.actor.Actor
+
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.cluster.Client
-import java.util.UUID
 import org.midonet.midolman.topology.VirtualTopologyActor
-import scala.collection.immutable.Map
 import org.midonet.midolman.state.zkManagers.PoolHealthMonitorZkManager.PoolHealthMonitorConfig
+import org.midonet.midolman.topology.devices.{PoolHealthMonitor, PoolHealthMonitorMap}
 
 object PoolHealthMonitorMapManager {
     case class TriggerUpdate(mappings: Map[UUID, PoolHealthMonitorConfig])
-    case class PoolHealthMonitorMap(mappings: Map[UUID, PoolHealthMonitorConfig])
 }
 
 class PoolHealthMonitorMapManager(val client: Client)
@@ -34,14 +37,19 @@ class PoolHealthMonitorMapManager(val client: Client)
     import PoolHealthMonitorMapManager._
     import context.system
 
+    @Deprecated
+    def fromConfigMap(m: Map[UUID, PoolHealthMonitorConfig]):
+    Map[UUID, PoolHealthMonitor] =
+        m.map(e => (e._1, PoolHealthMonitor.fromConfig(e._1, e._2)))
+
     override def preStart() {
         client.getPoolHealthMonitorMap(
             new PoolHealthMonitorMapBuilderImpl(self))
     }
 
     def receive = {
-        case TriggerUpdate(mappings) => {
-            VirtualTopologyActor.getRef() ! PoolHealthMonitorMap(mappings)
-        }
+        case TriggerUpdate(mappings) =>
+            VirtualTopologyActor.getRef() !
+                PoolHealthMonitorMap(fromConfigMap(mappings))
     }
 }
