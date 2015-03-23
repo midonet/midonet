@@ -273,11 +273,12 @@ class PacketWorkflow(protected val dpState: DatapathState,
                      packet.getEthernet,
                      packet.getMatch, packet.getReason,
                      context.cookie))
+        val simRes = runSimulation(context)
 
         if (handleDHCP(context)) {
             NoOp
         } else {
-            runSimulation(context)
+            simRes
         }
     }
 

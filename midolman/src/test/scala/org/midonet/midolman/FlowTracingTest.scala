@@ -15,9 +15,10 @@
  */
 package org.midonet.midolman
 
-import java.util.UUID
+import java.util.{UUID, LinkedList}
 
 import scala.collection.mutable.Queue
+import scala.collection.JavaConversions._
 
 import akka.actor.Props
 import akka.testkit.TestActorRef
@@ -29,10 +30,11 @@ import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.DataClient
 import org.midonet.cluster.data.{Bridge => ClusterBridge, Chain}
+import org.midonet.cluster.data.dhcp.{Subnet, Host => DhcpHost}
 import org.midonet.cluster.data.ports.BridgePort
 import org.midonet.cluster.data.rules.{TraceRule => TraceRuleData}
 import org.midonet.midolman.PacketWorkflow.AddVirtualWildcardFlow
-import org.midonet.midolman.PacketWorkflow.SimulationResult
+import org.midonet.midolman.PacketWorkflow.{SimulationResult,NoOp}
 import org.midonet.midolman.UnderlayResolver.Route
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.DatapathChannel
@@ -41,6 +43,7 @@ import org.midonet.midolman.rules.Condition
 import org.midonet.midolman.rules.RuleResult
 import org.midonet.midolman.rules.TraceRule
 import org.midonet.midolman.simulation.{Coordinator, PacketContext}
+import org.midonet.midolman.simulation.PacketEmitter.GeneratedPacket
 import org.midonet.midolman.state.{HappyGoLuckyLeaser, MockStateStorage}
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackValue, ConnTrackKey}
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
@@ -50,7 +53,8 @@ import org.midonet.midolman.topology.rcu.ResolvedHost
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.odp.{Datapath, DpPort, FlowMatch, FlowMatches, Packet}
 import org.midonet.odp.flows.{FlowActionOutput, FlowKeys}
-import org.midonet.packets.Ethernet
+import org.midonet.packets.{DHCP,DHCPOption,Ethernet,IPv4,IPv4Addr}
+import org.midonet.packets.{IPv4Subnet,MAC,UDP}
 import org.midonet.packets.util.EthBuilder
 import org.midonet.packets.util.PacketBuilder._
 import org.midonet.sdn.state.ShardedFlowStateTable
@@ -69,6 +73,7 @@ class FlowTracingTest extends MidolmanSpec {
     var port2: BridgePort = _
     var chain: Chain = _
 
+    val dhcpSrcMac = MAC.fromString("00:02:03:04:05:06")
     val table = new ShardedFlowStateTable[TraceKey,TraceContext](clock)
         .addShard()
     implicit val traceTx = new FlowStateTransaction(table)
@@ -79,6 +84,17 @@ class FlowTracingTest extends MidolmanSpec {
         port2 = newBridgePort(bridge)
         materializePort(port1, hostId, "port1")
         materializePort(port2, hostId, "port2")
+
+        val subnet = new Subnet()
+            .setSubnetAddr(new IPv4Subnet("192.168.22.1", 24))
+            .setServerAddr(IPv4Addr.fromString("192.168.22.1"))
+            .setDefaultGateway(IPv4Addr.fromString("192.168.22.1"))
+        addDhcpSubnet(bridge, subnet)
+
+        val dhcpHost1 = new DhcpHost()
+                .setMAC(dhcpSrcMac)
+                .setIp(IPv4Addr.fromString("192.168.1.2"))
+        addDhcpHost(bridge, subnet, dhcpHost1)
 
         chain = newInboundChainOnBridge("my-chain", bridge)
         fetchTopology(bridge, port1, port2, chain)
@@ -96,6 +112,23 @@ class FlowTracingTest extends MidolmanSpec {
         { eth addr "00:02:03:04:05:06" -> "00:20:30:40:50:60" } <<
         { ip4 addr "192.168.0.1" --> "192.168.0.2" } <<
         { udp ports tpSrc ---> tpDst }
+
+    private def makeDHCPRequest(srcMac: MAC): Ethernet = {
+        { eth addr srcMac -> "ff:ff:ff:ff:ff:ff" } <<
+            { ip4 src 0 dst 0xffffffff } <<
+            { udp src 68 dst 67 } <<
+            { new DHCP()
+                 .setOpCode(0x01)
+                 .setHardwareType(0x01)
+                 .setHardwareAddressLength(6)
+                 .setClientHardwareAddress(srcMac)
+                 .setOptions(List(new DHCPOption(
+                                      DHCPOption.Code.DHCP_TYPE.value,
+                                      DHCPOption.Code.DHCP_TYPE.length,
+                                      Array[Byte](
+                                          DHCPOption.MsgType.DISCOVER.value))))
+            }
+    }
 
     implicit def ethBuilder2Packet(ethBuilder: EthBuilder[Ethernet]): Packet = {
         val frame: Ethernet = ethBuilder
@@ -236,6 +269,40 @@ class FlowTracingTest extends MidolmanSpec {
             ddaRef ! DeduplicationActor.HandlePackets(
                 List(makePacket(1000)).toArray)
             mockWorkflow.startInvokations should be (1)
+        }
+
+        scenario("DHCP gets traced") {
+            val workflow = packetWorkflow(Map(1 -> port1.getId,
+                                              2 -> port2.getId))
+
+            val requestId1 = UUID.randomUUID
+            newTraceRule(requestId1, chain,
+                         newCondition(tpDst = Some(67)), 1)
+
+            val generatedPackets = new LinkedList[GeneratedPacket]
+            val pktCtx = packetContextFor(
+                makeDHCPRequest(dhcpSrcMac),
+                port1.getId, generatedPackets, 1)
+            pktCtx.tracingEnabled(requestId1) should be (false)
+            try {
+                workflow.start(pktCtx)
+                fail("Should have thrown an exception")
+            } catch {
+                case TraceRequiredException => {
+                    pktCtx.log should be (PacketContext.traceLog)
+                    pktCtx.tracingEnabled(requestId1) should be (true)
+                }
+            }
+            generatedPackets.size should be (0)
+            workflow.start(pktCtx) should be (NoOp)
+
+            generatedPackets.size should be (1)
+            val dhcpReply = generatedPackets.get(0).eth
+                .getPayload.asInstanceOf[IPv4]
+                .getPayload.asInstanceOf[UDP]
+                .getPayload.asInstanceOf[DHCP]
+            dhcpReply.getOptions.count(
+                opt  => { opt.getCode == 53}) should be (1)
         }
     }
 
