@@ -30,6 +30,7 @@ import org.scalatest.junit.JUnitRunner
 import rx.observers.TestObserver
 
 import org.midonet.cluster.data.storage.{InMemoryStorage, Storage}
+import org.midonet.cluster.models.Topology
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.rpc.Commands.{ResponseType, Response}
 import org.midonet.cluster.util.UUIDUtil
@@ -92,25 +93,14 @@ class SessionInventoryTest extends FeatureSpec
 
     feature("responses can handle payload for all defined types") {
         scenario("generate updates") {
-            val testObjects: Set[Message] = Set(
-                Chain.getDefaultInstance,
-                Host.getDefaultInstance,
-                IPAddrGroup.getDefaultInstance,
-                Network.getDefaultInstance,
-                Pool.getDefaultInstance,
-                PoolMember.getDefaultInstance,
-                Port.getDefaultInstance,
-                PortGroup.getDefaultInstance,
-                Route.getDefaultInstance,
-                Router.getDefaultInstance,
-                LoadBalancer.getDefaultInstance,
-                VIP.getDefaultInstance,
-                Rule.getDefaultInstance,
-                TunnelZone.getDefaultInstance,
-                Vtep.getDefaultInstance,
-                VtepBinding.getDefaultInstance,
-                Dhcp.getDefaultInstance
-            )
+            val topologyClasses = classOf[Topology].getClasses.toSet[Class[_]]
+                .filterNot(_.getSimpleName.matches("(.*)OrBuilder"))
+                .filterNot(_.getSimpleName == "Type")
+            val testObjects: Set[Message] = topologyClasses.map(
+                _.getDeclaredMethod("getDefaultInstance")
+                    .invoke(null)
+                    .asInstanceOf[Message])
+
             testObjects.size shouldBe Type.values().size
 
             var testTypes: Set[Type] = Set()
