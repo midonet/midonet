@@ -16,6 +16,24 @@
       "revId": "214a268d03f4c4ee86009b580d6ae808aa836a1b",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_e2726348",
+        "filename": "midonet-api/src/main/java/org/midonet/api/system_data/TraceRequest.java",
+        "patchSetId": 6
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-03-23T17:41:46Z",
+      "side": 1,
+      "message": "to be able to access enablement as a resource from the rest api point of view. So instead of doing a POST /midonet/trace_requests/:id with {\"enabled\":true}, you do a PUT /midonet/trace_requests/:id/enabled with {\"enabled\":true} which is more restful i think.",
+      "parentUuid": "1a106d94_4fc72013",
+      "revId": "214a268d03f4c4ee86009b580d6ae808aa836a1b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
