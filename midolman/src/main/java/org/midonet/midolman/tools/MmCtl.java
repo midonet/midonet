@@ -469,7 +469,7 @@ public class MmCtl {
                     ZookeeperConnectionWatcher.class
                 ));
                 bind(MidolmanConfig.class).toInstance(
-                        new MidolmanConfig(MidoTestConfigurator.forAgents()));
+                        MidolmanConfig.apply());
                 install(new ZookeeperConnectionModule(
                         ZookeeperConnectionWatcher.class));
                 install(new SerializationModule());
