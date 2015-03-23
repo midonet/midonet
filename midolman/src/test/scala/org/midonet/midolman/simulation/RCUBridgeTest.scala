@@ -19,11 +19,11 @@ package org.midonet.midolman.simulation
 import akka.actor.ActorSystem
 import akka.event.Logging
 import scala.collection.mutable
-import java.lang.{Short => JShort}
 import java.util.UUID
 
 import org.junit.runner.RunWith
 import org.midonet.midolman.PacketWorkflow.Drop
+import org.midonet.midolman.flows.FlowInvalidator
 import org.scalatest.{Matchers, BeforeAndAfterAll, Suite}
 import org.scalatest.junit.JUnitRunner
 
@@ -35,7 +35,6 @@ import org.midonet.packets._
 import org.midonet.util.functors.{Callback0, Callback3}
 import org.midonet.cluster.VlanPortMapImpl
 import org.midonet.odp.{FlowMatch, Packet}
-
 
 @RunWith(classOf[JUnitRunner])
 class RCUBridgeTest extends Suite with BeforeAndAfterAll with Matchers {
@@ -86,7 +85,7 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with Matchers {
                             flowCount, Option(inFilterId), Option(outFilterId),
                             vlanBridgePortId, Seq.empty[UUID],
                             flowRemovedCallbackGen, rtrMacToLogicalPortId,
-                            rtrIpToMac, vlanToPort, List(brPort.id))
+                            rtrIpToMac, vlanToPort, List(brPort.id), new FlowInvalidator(null))
 
         brPort.hostId = UUID.randomUUID()
         brPort.interfaceName = "eth0"

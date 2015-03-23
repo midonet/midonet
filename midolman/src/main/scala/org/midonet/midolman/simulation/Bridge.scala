@@ -25,8 +25,8 @@ import akka.actor.ActorSystem
 import org.midonet.cluster.client._
 import org.midonet.midolman.NotYetException
 import org.midonet.midolman.PacketWorkflow.{Drop, NoOp, SimulationResult, TemporaryDrop}
+import org.midonet.midolman.flows.FlowInvalidator
 import org.midonet.midolman.rules.RuleResult
-import org.midonet.midolman.simulation.Bridge.UntaggedVlanId
 import org.midonet.midolman.topology.VirtualTopology.VirtualDevice
 import org.midonet.midolman.topology.VirtualTopologyActor._
 import org.midonet.midolman.topology.devices.BridgePort
@@ -37,6 +37,8 @@ import org.midonet.sdn.flows.FlowTagger.{tagForArpRequests, tagForBridgePort, ta
 
 object Bridge {
     final val UntaggedVlanId: Short = 0
+
+    val BPDU_DEST_MAC = MAC.fromAddress(Ethernet.BPDU_DEST)
 }
 
 /**
@@ -101,11 +103,13 @@ class Bridge(val id: UUID,
              val macToLogicalPortId: ROMap[MAC, UUID],
              val ipToMac: ROMap[IPAddr, MAC],
              val vlanToPort: VlanPortMap,
-             val exteriorPorts: List[UUID])
+             val exteriorPorts: List[UUID],
+             val flowInvalidator: FlowInvalidator)
             (implicit val actorSystem: ActorSystem) extends Coordinator.Device
                                                     with VirtualDevice {
 
-    import org.midonet.midolman.simulation.Coordinator._
+    import Bridge._
+    import Coordinator._
 
     val floodAction = FloodBridgeAction(id, exteriorPorts)
 
@@ -132,7 +136,7 @@ class Bridge(val id: UUID,
         context.log.debug("Current vlan-port map {}", vlanToPort)
 
         // Some basic sanity checks
-        if (Ethernet.isMcast(context.wcmatch.getEthSrc)) {
+        if (context.wcmatch.getEthSrc.isMcast) {
             context.log.info("Packet has multi/broadcast source, DROP")
             Drop
         } else {
@@ -189,8 +193,8 @@ class Bridge(val id: UUID,
         val action =
              if (isArpBroadcast())
                  handleARPRequest()
-             else if (Ethernet.isMcast(dstDlAddress))
-                 handleL2Multicast()
+             else if (dstDlAddress.isMcast)
+                 handleL2Multicast(dstDlAddress)
              else
                  handleL2Unicast() // including ARP replies
 
@@ -274,9 +278,10 @@ class Bridge(val id: UUID,
       * Used by normalProcess to deal with frames addressed to an L2 multicast
       * addr except for ARPs.
       */
-    private def handleL2Multicast()(implicit context: PacketContext)
+    private def handleL2Multicast(mcastMac: MAC)(implicit context: PacketContext)
     : SimulationResult = {
         context.log.debug("Handling L2 multicast {}", id)
+        invalidateTagsIfBpdu(mcastMac, context)
         multicastAction()
     }
 
@@ -379,7 +384,7 @@ class Bridge(val id: UUID,
     : SimulationResult = inPort match {
 
         case p: BridgePort if p.isExterior =>
-            // multicast from trunk, goes only to designated log. port
+            // multicast from trunk, goes only to designated logical port
             val vlanIds = context.ethernet.getVlanIDs
             val vlanId = if (vlanIds.isEmpty) null else vlanIds.get(0)
             // get interior port tagged with frame's vlan id
@@ -410,6 +415,17 @@ class Bridge(val id: UUID,
             context.log.warn("Unexpected input port type!")
             TemporaryDrop
     }
+
+    private def invalidateTagsIfBpdu(mcastMac: MAC, context: PacketContext): Unit =
+        if (mcastMac == BPDU_DEST_MAC) {
+            context.packet.getEthernet.getPayload match {
+                case bpdu: BPDU if bpdu.hasTopologyChangeNotice =>
+                    log.debug("Processing a BPDU multicast; invalidating bridge flows")
+                    flowInvalidator.scheduleInvalidationFor(deviceTag)
+                    context.markUserspaceOnly()
+                case _ =>
+            }
+        }
 
     /**
       * Used by normalProcess to handle specifically ARP multicast.
