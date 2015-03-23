@@ -293,6 +293,25 @@ public final class NetlinkMessage {
         buf.position(start);
     }
 
+    /**
+     * Iterates over a ByteBuffer containing a sequence of nested netlink
+     * attributes and calls a user given handler for every attributes, aligning
+     * the buffer position and limit at the edges of the attribute values before
+     * every calls to the handler. This function allows to process and
+     * deserialize a netlink message in one traversal. It is assumed that the
+     * buffer original position is pointing at a valid netlink header.
+     */
+    public static void scanNestedAttribute(ByteBuffer buf,
+                                           AttributeHandler handler) {
+        int start = buf.position();
+        int end = buf.limit();
+        short attrLen = buf.getShort();  // This is always 1 for the nested len.
+        short attrId = nested(buf.getShort());
+        buf.limit(end);
+        handler.use(buf, attrId);
+        buf.position(start);
+    }
+
     /** Scans through a ByteBuffer containing a sequence of netlink attributes
      *  and stop when the user given attribute id is found, returning the
      *  position within the ByteBuffer of the attribute value associated to

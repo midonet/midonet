@@ -17,6 +17,7 @@
 package org.midonet.netlink.rtnetlink
 
 import java.nio.ByteBuffer
+import java.util.{Set => JSet}
 
 import scala.reflect.ClassTag
 import scala.reflect.runtime.{universe => ru}
@@ -24,7 +25,7 @@ import scala.reflect.runtime.{universe => ru}
 import org.slf4j.{Logger, LoggerFactory}
 import rx.Observer
 
-import org.midonet.netlink.NetlinkConnection.DefaultNetlinkGroup
+import org.midonet.netlink.Netlink.Address
 import org.midonet.netlink._
 import org.midonet.packets.{IPv4Addr, MAC}
 import org.midonet.util.concurrent.NanoClock
@@ -34,31 +35,32 @@ import org.midonet.util.concurrent.NanoClock
  * RtnetlinkConnection instances which types are specified as its type
  * parameter.
  *
- * @param tag
- * @tparam T
+ * @param tag the implicit parameter passed at runtime to avoid type erasure.
+ * @tparam T the type of the class derived from RtnetlinkConnection.
  */
-class RtnetlinkConnectionProvider[+T <: RtnetlinkConnection]
+class RtnetlinkConnectionFactory[+T <: RtnetlinkConnection]
          (implicit tag: ClassTag[T]) {
+    import org.midonet.netlink.NetlinkConnection._
 
-//trait RtnetlinkConnectionProvider {
-    // val log: Logger = LoggerFactory.getLogger(classTag[T].runtimeClass)
     val log: Logger = LoggerFactory.getLogger(tag.runtimeClass)
-    // val log: Logger
 
     /**
-     * Instanciate corresponding class at runtime.
+     * Instantiate corresponding RtnetlinkConnection class at runtime.
      *
      * @see http://docs.scala-lang.org/overviews/reflection/overview.html#instantiating-a-type-at-runtime
      *
-     * @param addr Netlink address
-     * @param sendPool buffer pool used for sending
-     * @param group group ID of the Netlink channel
-     * @return an instance of the class derives RtnetlinkConnection
+     * @param addr Netlink address.
+     * @param maxPendingRequests the maximum number of Netlink requests.
+     * @param maxRequestSize the maximum Netlink request size.
+     * @param groups the groups of the Netlink channel to subscribe.
+     * @return an instance of the class derives RtnetlinkConnection.
      */
-    def apply(addr: Netlink.Address, sendPool: BufferPool,
-              group: Int = DefaultNetlinkGroup): T = try {
+    def apply(addr: Netlink.Address = new Address(0),
+              maxPendingRequests: Int = DefaultMaxRequests,
+              maxRequestSize: Int = DefaultMaxRequestSize,
+              groups: Int = DefaultNetlinkGroup): T = try {
         val channel = Netlink.selectorProvider.openNetlinkSocketChannel(
-            NetlinkProtocol.NETLINK_ROUTE, group)
+            NetlinkProtocol.NETLINK_ROUTE, groups)
 
         if (channel == null) {
             log.error("Error creating a NetlinkChannel. Presumably, " +
@@ -67,22 +69,28 @@ class RtnetlinkConnectionProvider[+T <: RtnetlinkConnection]
             channel.connect(addr)
         }
         val mirror = ru.runtimeMirror(getClass.getClassLoader)
-        // val clazz = ru.typeOf[T].typeSymbol.asClass
         val clazz = mirror.classSymbol(tag.runtimeClass)
         val classMirror = mirror.reflectClass(clazz)
         val constructor = clazz.toType.decl(
             ru.termNames.CONSTRUCTOR).asMethod
         val constructorMirror = classMirror.reflectConstructor(constructor)
-        constructorMirror(channel, sendPool, NanoClock.DEFAULT).asInstanceOf[T]
+        constructorMirror(channel, maxPendingRequests,
+            maxRequestSize, NanoClock.DEFAULT).asInstanceOf[T]
     } catch {
         case ex: Exception =>
             log.error("Error connectin to rtnetlink.")
             throw new RuntimeException(ex)
     }
+
+    def apply(): T = {
+        apply(new Address(0), maxPendingRequests = DefaultMaxRequests,
+            maxRequestSize = DefaultMaxRequestSize,
+            groups = DefaultNetlinkGroup)
+    }
 }
 
 object RtnetlinkConnection
-        extends RtnetlinkConnectionProvider[RtnetlinkConnection]
+        extends RtnetlinkConnectionFactory[RtnetlinkConnection]
 
 
 /*object RtnetlinkConnection {
@@ -106,15 +114,52 @@ object RtnetlinkConnection
     }
 }*/
 
+/**
+ * Abstracted interfaces for rtnetlink operations exposed publicly.
+ */
+trait AbstractRtnetlikConnection {
+    def linksList(observer: Observer[Set[Link]]): Unit
+    def linksGet(ifindex: Int, observer: Observer[Link]): Unit
+    def linksCreate(link: Link, observer: Observer[Link]): Unit
+    def linksSetAddr(link: Link, mac: MAC,
+                     observer: Observer[Boolean]): Unit
+    def linksSet(link: Link, observer: Observer[Boolean]): Unit
+    /*    def linksDel(link: Link, observer: Observer[Boolean]): Unit */
+    def addrsList(observer: Observer[Set[Addr]]): Unit
+    // def addrsGet(ifIndex: Int, observer: Observer[Addr]): Unit =
+    def addrsGet(ifIndex: Int, observer: Observer[Set[Addr]]): Unit
+    def addrsGet(ifIndex: Int, family: Byte,
+                 observer: Observer[Set[Addr]]): Unit
+    /*    def addrsCreate(addr: Addr, observer: Observer[Boolean]): Unit */
+    /*    def addrsDel(addr: Addr, observer: Observer[Boolean]): Unit */
+    def routesList(observer: Observer[Set[Route]]): Unit
+    def routesGet(dst: IPv4Addr, observer: Observer[Route]): Unit
+    def routesCreate(dst: IPv4Addr, prefix: Int, gw: IPv4Addr, link: Link,
+                     observer: Observer[Boolean]): Unit
+    /*    def routesDel(route: Route, observer: Observer[Boolean]): Unit */
+    def neighsList(observer: Observer[Set[Neigh]]): Unit
+}
+
+/**
+ * Default implementation of rtnetlink connection.
+ *
+ * @param channel the channel to be used for reading/writeing requests/replies.
+ * @param maxPendingRequests the maximum number of pending requests.
+ * @param maxRequestSize the maximum number of requests size.
+ * @param clock the clock passed to the broker.
+ */
 class RtnetlinkConnection(val channel: NetlinkChannel,
-                          sendPool: BufferPool,
-                          clock: NanoClock) extends NetlinkConnection {
+                          maxPendingRequests: Int,
+                          maxRequestSize: Int,
+                          clock: NanoClock)
+         extends NetlinkConnection
+         with AbstractRtnetlikConnection {
     import org.midonet.netlink.NetlinkConnection._
 
     override val pid: Int = channel.getLocalAddress.getPid
     override protected val log = LoggerFactory.getLogger(
         "org.midonet.netlink.rtnetlink-conn-" + pid)
-    override protected val requestPool = sendPool
+    // override protected val requestPool = sendPool
 
     private val protocol = new RtnetlinkProtocol(pid)
 
@@ -122,8 +167,8 @@ class RtnetlinkConnection(val channel: NetlinkChannel,
     protected val writer = new NetlinkBlockingWriter(channel)
     protected val replyBuf =
         BytesUtil.instance.allocateDirect(NetlinkReadBufSize)
-    override val requestBroker = new NetlinkRequestBroker(reader, writer,
-        MaxRequests, replyBuf, clock, timeout = DefaultTimeout)
+    override val requestBroker = new NetlinkRequestBroker(writer, reader,
+        maxPendingRequests, maxRequestSize, replyBuf, clock)
 
     /**
      * ResourceObserver create an observer and call the closure given by the
@@ -191,39 +236,39 @@ class RtnetlinkConnection(val channel: NetlinkChannel,
     def booleanObserver(observer: Observer[Boolean]): Observer[ByteBuffer] =
         bb2Resource(AlwaysTrueReader)(observer)
 
-    def linksList(observer: Observer[Set[Link]]): Unit =
+    override def linksList(observer: Observer[Set[Link]]): Unit =
         sendRequest(observer)(protocol.prepareLinkList)
 
 /*    def linksGet(ifName: String, observer: Observer[Link]): Unit =
         sendRequest(observer)(buf => protocol.prepareLinkGet(buf, ))*/
 
-    def linksGet(ifindex: Int, observer: Observer[Link]): Unit =
+    override def linksGet(ifindex: Int, observer: Observer[Link]): Unit =
         sendRequest(observer)(buf => protocol.prepareLinkGet(buf, ifindex))
 
-    def linksCreate(link: Link, observer: Observer[Link]): Unit =
+    override def linksCreate(link: Link, observer: Observer[Link]): Unit =
         sendRequest(observer)(buf => protocol.prepareLinkCreate(buf, link))
 
-    def linksSetAddr(link: Link, mac: MAC,
-                     observer: Observer[Boolean]): Unit =
+    override def linksSetAddr(link: Link, mac: MAC,
+                              observer: Observer[Boolean]): Unit =
         sendRequest(observer)(buf =>
             protocol.prepareLinkSetAddr(buf, link, mac))
 
-    def linksSet(link: Link, observer: Observer[Boolean]): Unit =
+    override def linksSet(link: Link, observer: Observer[Boolean]): Unit =
         sendRequest(observer)(buf => protocol.prepareLinkSet(buf, link))
 
 /*    def linksDel(link: Link, observer: Observer[Boolean]): Unit =
         sendRequest(observer)(buf => /* prepareLinkDel(buf, link */)*/
 
-    def addrsList(observer: Observer[Set[Addr]]): Unit =
+    override def addrsList(observer: Observer[Set[Addr]]): Unit =
         sendRequest(observer)(protocol.prepareAddrList)
 
     // def addrsGet(ifIndex: Int, observer: Observer[Addr]): Unit =
-    def addrsGet(ifIndex: Int, observer: Observer[Set[Addr]]): Unit =
+    override def addrsGet(ifIndex: Int, observer: Observer[Set[Addr]]): Unit =
         sendRequest(observer)(buf =>
             protocol.prepareAddrGet(buf, ifIndex, Addr.Family.AF_INET))
 
-    def addrsGet(ifIndex: Int, family: Byte,
-                 observer: Observer[Set[Addr]]): Unit =
+    override def addrsGet(ifIndex: Int, family: Byte,
+                          observer: Observer[Set[Addr]]): Unit =
         sendRequest(observer)(buf =>
             protocol.prepareAddrGet(buf, ifIndex, family))
 
@@ -233,13 +278,13 @@ class RtnetlinkConnection(val channel: NetlinkChannel,
 /*    def addrsDel(addr: Addr, observer: Observer[Boolean]): Unit =
         sendRequest(observer)(buf => protocol.prepareAddrDel(buf, addr))*/
 
-    def routesList(observer: Observer[Set[Route]]): Unit =
+    override def routesList(observer: Observer[Set[Route]]): Unit =
         sendRequest(observer)(protocol.prepareRouteList)
 
-    def routesGet(dst: IPv4Addr, observer: Observer[Route]): Unit =
+    override def routesGet(dst: IPv4Addr, observer: Observer[Route]): Unit =
         sendRequest(observer)(buf => protocol.prepareRouteGet(buf, dst))
 
-    def routesCreate(dst: IPv4Addr, prefix: Int, gw: IPv4Addr, link: Link,
+    override def routesCreate(dst: IPv4Addr, prefix: Int, gw: IPv4Addr, link: Link,
                      observer: Observer[Boolean]): Unit =
         sendRequest(observer)(buf =>
             protocol.prepareRouteNew(buf, dst, prefix, gw, link))
@@ -247,7 +292,7 @@ class RtnetlinkConnection(val channel: NetlinkChannel,
 /*    def routesDel(route: Route, observer: Observer[Boolean]): Unit =
         sendRequest(observer)(buf => /* protocol.prepareRouteDel(buf, route) */)*/
 
-    def neighsList(observer: Observer[Set[Neigh]]): Unit =
+    override def neighsList(observer: Observer[Set[Neigh]]): Unit =
         sendRequest(observer)(protocol.prepareNeighList)
 /*
     def neighsGet(ifName: String, observer: Observer[Neigh]): Unit =

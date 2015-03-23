@@ -18,6 +18,7 @@ package org.midonet.netlink.rtnetlink;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.HashMap;
 
 import com.google.common.base.Objects;
 
@@ -29,7 +30,7 @@ import org.midonet.packets.MAC;
 /**
  *
  */
-public class Link implements AttributeHandler, Cloneable {
+public class Link implements AttributeHandler, Cloneable, RtnetlinkResource {
 
     public class IfinfoMsg implements Cloneable {
         public byte family; /* AF_UNSPEC */
@@ -72,10 +73,6 @@ public class Link implements AttributeHandler, Cloneable {
             return Objects.hashCode(family, /*pad,*/ type, index,
                     flags, change);
         }
-    }
-
-    public interface NetDeviceFlags {
-        int IFF_UP = 1;
     }
 
     /**
@@ -181,14 +178,76 @@ public class Link implements AttributeHandler, Cloneable {
     }
 
     public interface Attr {
-        byte IFLA_UNSPEC    = 0;
-        byte IFLA_ADDRESS   = 1;
+        byte IFLA_UNSPEC = 0;
+        byte IFLA_ADDRESS = 1;
         byte IFLA_BROADCAST = 2;
-        byte IFLA_IFNAME    = 3;
-        byte IFLA_MTU       = 4;
-        byte IFLA_LINK      = 5;
-        byte IFLA_QDISC     = 6;
-        byte IFLA_STATS     = 7;
+        byte IFLA_IFNAME = 3;
+        byte IFLA_MTU = 4;
+        byte IFLA_LINK = 5;
+        byte IFLA_QDISC = 6;
+        byte IFLA_STATS = 7;
+        byte IFLA_COST = 8;
+        byte IFLA_PRIORITY = 9;
+        byte IFLA_MASTER = 10;
+        byte IFLA_WIRELESS = 11; /* Wireless Extension event - see wireless.h */
+        byte IFLA_PROTINFO = 12;  /* Protocol specific information for a link */
+        byte IFLA_TXQLEN = 13;
+        byte IFLA_MAP = 14;
+        byte IFLA_WEIGHT = 15;
+        byte IFLA_OPERSTATE = 16;
+        byte IFLA_LINKMODE = 17;
+        byte IFLA_LINKINFO = 18;
+        byte IFLA_NET_NS_PID = 19;
+        byte IFLA_IFALIAS = 20;
+        byte IFLA_NUM_VF = 21; /* Number of VFs if device is SR-IOV PF */
+        byte IFLA_VFINFO_LIST = 22;
+        byte IFLA_STATS64 = 23;
+        byte IFLA_VF_PORTS = 24;
+        byte IFLA_PORT_SELF = 25;
+        byte IFLA_AF_SPEC = 26;
+        byte IFLA_GROUP = 27;  /* Group the device belongs to */
+        byte IFLA_NET_NS_FD = 28;
+        byte IFLA_EXT_MASK = 29;  /* Extended info mask, VFs, etc */
+        byte IFLA_PROMISCUITY = 30; /* Promiscuity count: > 0 means acts PROMISC */
+        byte IFLA_NUM_TX_QUEUES = 31;
+        byte IFLA_NUM_RX_QUEUES = 32;
+        byte IFLA_CARRIER = 33;
+        byte IFLA_PHYS_PORT_ID = 34;
+        byte IFLA_CARRIER_CHANGES = 35;
+        byte IFLA_PHYS_SWITCH_ID = 36;
+    }
+
+    public interface NestedAttr {
+        public interface LinkInfo {
+            byte IFLA_INFO_UNSPEC = 0;
+            byte IFLA_INFO_KIND = 1;
+            byte IFLA_INFO_DATA = 2;
+            byte IFLA_INFO_XSTATS = 3;
+            byte IFLA_INFO_SLAVE_KIND = 4;
+            byte IFLA_INFO_SLAVE_DATA = 5;
+        }
+    }
+
+    public interface ExtMask {
+        int RTEXT_FILTER_VF     = 1 << 0;
+        int RTEXT_FILTER_BRVLAN = 1 << 1;
+    }
+
+    public interface NestedAttrKey {
+        String IFLA_INFO_UNSPEC = "IFLA_INFO_UNSPEC";
+        String IFLA_INFO_KIND = "IFLA_INFO_KIND";
+        String IFLA_INFO_DATA = "IFLA_INFO_DATA";
+        String IFLA_INFO_XSTATS = "IFLA_INFO_DATA";
+        String IFLA_INFO_SLAVE_KIND = "IFLA_INFO_SLAVE_KIND";
+        String IFLA_INFO_SLAVE_DATA = "IFLA_INFO_SLAVE_DATA";
+    }
+
+    public interface NestedAttrValue {
+        public interface LinkInfo {
+            String KIND_TUN = "tun";
+            String KIND_VETH = "veth";
+            String KIND_BRIDGE = "bridge";
+        }
     }
 
     @Override
@@ -210,6 +269,9 @@ public class Link implements AttributeHandler, Cloneable {
     public MAC mac;
     public String ifname;
     public int mtu;
+    public int link;
+
+    public HashMap<String, Object> attributes;
 
     public Link() {
         this.ifi = new IfinfoMsg();
@@ -265,28 +327,51 @@ public class Link implements AttributeHandler, Cloneable {
     public void use(ByteBuffer buf, short id) {
         ByteOrder originalOrder = buf.order();
         try {
-            switch (id) {
-                case Attr.IFLA_ADDRESS:
-                    if (buf.remaining() != 6) {
-                        this.mac = null;
-                    } else {
-                        byte[] rhs = new byte[6];
-                        buf.get(rhs);
-                        this.mac = MAC.fromAddress(rhs);
-                    }
-                    break;
-                case Attr.IFLA_IFNAME:
-                    byte[] s = new byte[buf.remaining()-1];
-                    buf.get(s);
-                    this.ifname = new String(s);
-                    break;
-                case Attr.IFLA_MTU:
-                    if (buf.remaining() != 4) {
-                        this.mtu = 0;
-                    } else {
-                        this.mtu = buf.getInt();
-                    }
-                    break;
+            if (!NetlinkMessage.isNested(id)) {
+                switch (id) {
+                    case Attr.IFLA_ADDRESS:
+                        if (buf.remaining() != 6) {
+                            this.mac = null;
+                        } else {
+                            byte[] rhs = new byte[6];
+                            buf.get(rhs);
+                            this.mac = MAC.fromAddress(rhs);
+                        }
+                        break;
+                    case Attr.IFLA_IFNAME:
+                        byte[] s = new byte[buf.remaining() - 1];
+                        buf.get(s);
+                        this.ifname = new String(s);
+                        break;
+                    case Attr.IFLA_MTU:
+                        if (buf.remaining() != 4) {
+                            this.mtu = 0;
+                        } else {
+                            this.mtu = buf.getInt();
+                        }
+                        break;
+                    case Attr.IFLA_LINK:
+                        if (buf.remaining() != 4) {
+                            this.link = this.ifi.index;
+                        } else {
+                            this.link = buf.getInt();
+                        }
+                        break;
+                    case Attr.IFLA_LINKINFO:
+                        if (buf.remaining() > 4) {
+                            NetlinkMessage.scanNestedAttribute(buf, this);
+                        }
+                        break;
+                }
+            } else {
+                switch (id) {
+                    case NestedAttr.LinkInfo.IFLA_INFO_KIND:
+                        byte[] s = new byte[buf.remaining() - 1];
+                        buf.get(s);
+                        this.attributes.put(
+                                NestedAttrKey.IFLA_INFO_KIND, new String(s));
+                        break;
+                }
             }
         } finally {
             buf.order(originalOrder);
@@ -337,6 +422,8 @@ public class Link implements AttributeHandler, Cloneable {
         } finally {
             buf.order(originalOrder);
         }
+        NetlinkMessage.writeIntAttr(buf, Attr.IFLA_EXT_MASK,
+                ExtMask.RTEXT_FILTER_VF | ExtMask.RTEXT_FILTER_BRVLAN);
         // buf.flip();
         return buf;
     }

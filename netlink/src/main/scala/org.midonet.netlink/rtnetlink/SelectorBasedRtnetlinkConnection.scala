@@ -29,21 +29,22 @@ import org.midonet.netlink._
 import org.midonet.util.concurrent.NanoClock
 
 object SelectorBasedRtnetlinkConnection extends
-        RtnetlinkConnectionProvider[SelectorBasedRtnetlinkConnection] {
+        RtnetlinkConnectionFactory[SelectorBasedRtnetlinkConnection] {
     private val SelectorTimeout = 0
 
-    override def apply(addr: Netlink.Address, sendPool: BufferPool,
-                       groups: Int = DefaultNetlinkGroup) = {
-        val conn = super.apply(addr, sendPool, groups)
+    override def apply() = {
+        val conn = super.apply()
         conn.start()
         conn
     }
 }
 
 class SelectorBasedRtnetlinkConnection(channel: NetlinkChannel,
-                                       sendPool: BufferPool,
+                                       maxPendingRequests: Int,
+                                       maxRequestSize: Int,
                                        clock: NanoClock)
-    extends RtnetlinkConnection(channel, sendPool, clock) {
+        extends RtnetlinkConnection(channel, maxPendingRequests,
+            maxRequestSize, clock) {
     import org.midonet.netlink.rtnetlink.SelectorBasedRtnetlinkConnection._
 
     val name = this.getClass.getName + pid

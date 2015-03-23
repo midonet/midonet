@@ -29,7 +29,7 @@ import rx.Observer
 
 import org.midonet.netlink._
 import org.midonet.netlink.Netlink.Address
-import org.midonet.netlink.NetlinkConnection.DefaultNetlinkGroup
+import org.midonet.netlink.NetlinkConnection._
 import org.midonet.netlink.rtnetlink._
 import org.midonet.odp.util.TapWrapper
 import org.midonet.packets.{MAC, IPv4Addr}
@@ -62,19 +62,20 @@ import org.midonet.util.concurrent.NanoClock
 } */
 
 object TestableSelectorBasedRtnetlinkConnection extends
-        RtnetlinkConnectionProvider[TestableSelectorBasedRtnetlinkConnection] {
-    override def apply(addr: Netlink.Address, sendPool: BufferPool,
-                       group: Int = DefaultNetlinkGroup) = {
-        val conn = super.apply(addr, sendPool, group)
+        RtnetlinkConnectionFactory[TestableSelectorBasedRtnetlinkConnection] {
+    override  def apply() = {
+        val conn = super.apply()
         conn.start()
         conn
     }
 }
 
 class TestableSelectorBasedRtnetlinkConnection(channel: NetlinkChannel,
-                                           sendPool: BufferPool,
-                                           clock: NanoClock)
-        extends SelectorBasedRtnetlinkConnection(channel, sendPool, clock) {
+                                              maxPendingRequests: Int,
+                                              maxRequestSize: Int,
+                                              clock: NanoClock)
+        extends SelectorBasedRtnetlinkConnection(channel, maxPendingRequests,
+            maxRequestSize, clock) {
     import TestableSelectorBasedRtnetlinkConnection._
     import RtnetlinkTest._
 
@@ -531,8 +532,7 @@ trait RtnetlinkTest {
 
 class RtnetlinkIntegrationTestBase extends RtnetlinkTest {
     val sendPool = new BufferPool(10, 20, 1024)
-    override val conn: TestableSelectorBasedRtnetlinkConnection =
-        TestableSelectorBasedRtnetlinkConnection(new Address(0), sendPool)
+    override val conn = TestableSelectorBasedRtnetlinkConnection()
 
     def run(): Boolean = {
         var passed = true

@@ -31,6 +31,8 @@ import org.midonet.util.concurrent.SystemNanoClock
 
 object RtnetlinkConnectionTest {
     val TestBufferSize = 1024
+    val TestMaxRequests = 8
+    val TestMaxRequestSize = 512
     val TestIfIndex = 42
     val TestMacString = "01:23:45:67:89:ab"
 }
@@ -44,7 +46,6 @@ class RtnetlinkConnectionTest extends FeatureSpec
 
     val log: Logger = LoggerFactory.getLogger(
         classOf[RtnetlinkConnectionTest])
-    val sendPool = new MockBufferPool(10, 20, TestBufferSize)
 
     private var seq: Int = 1
 
@@ -58,7 +59,9 @@ class RtnetlinkConnectionTest extends FeatureSpec
     }
 
     val rtnetlinkConnection =
-        new MockRtnetlinkConnection(channel, sendPool, new SystemNanoClock)
+        new MockRtnetlinkConnection(channel, TestMaxRequests,
+            TestMaxRequestSize, new SystemNanoClock)
+
     val protocol = new RtnetlinkProtocol(rtnetlinkConnection.pid)
 
     private def mockSendRequest(prepare: ByteBuffer => Unit): ByteBuffer = {

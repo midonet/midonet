@@ -21,7 +21,7 @@ import java.nio.ByteBuffer
 import org.midonet.netlink.{NetlinkProtocol, NetlinkMessageWrapper, NLFlag}
 import org.midonet.packets.{MAC, IPv4Addr}
 
-sealed class RtnetlinkProtocol(pid: Int) {
+final class RtnetlinkProtocol(pid: Int) {
     def messageFor(buf: ByteBuffer,
                    rtnetlinkType: Short): NetlinkMessageWrapper =
         NetlinkMessageWrapper(buf, NetlinkProtocol.NETLINK_ROUTE)

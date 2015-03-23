@@ -16,11 +16,10 @@
 
 package org.midonet.midolman.host.services
 
-import java.net.{UnknownHostException, InetAddress}
-import java.util
+import java.net.{InetAddress, UnknownHostException}
 import java.util.{Set => JSet, UUID}
-import java.util.concurrent.{TimeUnit, CountDownLatch}
 
+import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.Await
@@ -28,13 +27,14 @@ import scala.concurrent.duration._
 
 import com.google.common.util.concurrent.AbstractService
 import com.google.inject.Inject
+import rx.Observer
 
 import org.midonet.cluster.data.storage._
 import org.midonet.cluster.models.Topology.Host
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.storage.MidonetBackendConfig
-import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.cluster.util.IPAddressUtil._
+import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.config.HostIdGenerator
 import org.midonet.config.HostIdGenerator.PropertiesFileNotWritableException
 import org.midonet.midolman.host.config.HostConfig
@@ -48,8 +48,7 @@ import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.midolman.serialization.SerializationException
 import org.midonet.midolman.services.HostIdProviderService
 import org.midonet.midolman.state.{StateAccessException, ZkManager}
-import org.midonet.netlink.Callback
-import org.midonet.netlink.exceptions.NetlinkException
+import org.midonet.netlink.rtnetlink.Addr
 
 object HostService {
     class HostIdAlreadyInUseException(message: String)
@@ -74,10 +73,11 @@ class HostService @Inject()(hostConfig: HostConfig,
     override def doStart(): Unit = {
         log.info("Starting MidoNet Agent host service")
         try {
-            identifyHostId()
-            scanner.register(new Callback[util.Set[InterfaceDescription]] {
-                override def onSuccess(data: util.Set[InterfaceDescription])
-                : Unit = {
+            scanner.start()
+            scanner.subscribe(new Observer[Set[InterfaceDescription]] {
+                override def onCompleted(): Unit = {}
+                override def onError(t: Throwable): Unit = {}
+                override def onNext(data: Set[InterfaceDescription]): Unit = {
                     // Update the host interfaces only if the legacy storage is
                     // enabled
                     // TODO: Update host interfaces in ZOOM
@@ -86,9 +86,8 @@ class HostService @Inject()(hostConfig: HostConfig,
                             .updateInterfacesData(hostId, null, data)
                     }
                 }
-                override def onError(e: NetlinkException): Unit = { }
             })
-            scanner.start()
+            identifyHostId()
             notifyStarted()
             log.info("MidoNet Agent host service started")
         }
@@ -101,7 +100,7 @@ class HostService @Inject()(hostConfig: HostConfig,
 
     override def doStop(): Unit = {
         log.info("Stopping MidoNet Agent host service")
-        scanner.shutdown()
+        scanner.stop()
 
         // If the cluster storage is enabled, delete the ownership.
         if (backendConfig.isEnabled) {
@@ -136,10 +135,19 @@ class HostService @Inject()(hostConfig: HostConfig,
         val metadata = new HostMetadata
         metadata.setEpoch(epoch)
         val listAddresses = new ListBuffer[InetAddress]
-        for (info <- getInterfaces) {
-            listAddresses ++= info.getInetAddresses.asScala
-        }
-        metadata.setAddresses(listAddresses.toArray)
+        scanner.addrsList(new Observer[Set[Addr]] {
+            override def onCompleted(): Unit = {}
+            override def onError(t: Throwable): Unit = {}
+            override def onNext(addresses: Set[Addr]): Unit = {
+                addresses.foreach((address: Addr) => {
+                    listAddresses ++= address.ipv4.map(ipv4 =>
+                        InetAddress.getByAddress(ipv4.toBytes))
+                    listAddresses ++= address.ipv6.map(ipv6 =>
+                        InetAddress.getByName(ipv6.toString))
+                })
+                metadata.setAddresses(listAddresses.toArray)
+            }
+        })
         try {
             metadata.setName(InetAddress.getLocalHost.getHostName)
         } catch {
@@ -228,24 +236,4 @@ class HostService @Inject()(hostConfig: HostConfig,
     }
 
     override def getHostId: UUID =  hostId
-
-    @SuppressWarnings(Array("unchecked"))
-    private def getInterfaces: Set[InterfaceDescription] = {
-        val latch: CountDownLatch = new CountDownLatch(1)
-        val interfaces = Array.ofDim[JSet[InterfaceDescription]](1)
-        val s = scanner.register(new Callback[JSet[InterfaceDescription]] {
-            override def onSuccess(data: JSet[InterfaceDescription]): Unit = {
-                interfaces(0) = data
-                latch.countDown()
-            }
-            override def onError(e: NetlinkException): Unit = { }
-        })
-
-        if (!latch.await(1, TimeUnit.SECONDS)) {
-            throw new RuntimeException("Timeout while waiting for interfaces")
-        }
-
-        s.unsubscribe()
-        interfaces(0).asScala.toSet
-    }
 }

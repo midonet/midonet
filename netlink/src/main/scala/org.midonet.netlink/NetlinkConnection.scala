@@ -19,7 +19,6 @@ package org.midonet.netlink
 import java.nio.ByteBuffer
 
 import scala.collection.mutable
-import scala.concurrent.duration._
 
 import org.slf4j.Logger
 import rx.Observer
@@ -31,8 +30,8 @@ import org.midonet.netlink.rtnetlink.Rtnetlink
 case class NetlinkHeader(len: Int, t: Short, flags: Short, seq: Int, pid: Int)
 
 object NetlinkConnection {
-    val MaxRequests = 8
-    val DefaultTimeout = 5.seconds
+    val DefaultMaxRequests = 8
+    val DefaultMaxRequestSize = 512
     val NetlinkReadBufSize = 0x10000
     val DefaultNetlinkGroup = Rtnetlink.Group.LINK.bitmask |
         Rtnetlink.Group.NOTIFY.bitmask |
@@ -80,20 +79,16 @@ trait NetlinkConnection {
     val notificationObserver: Observer[ByteBuffer] = NetlinkRequestBroker.NOOP
 
     protected val log: Logger
-    protected val requestPool: BufferPool
+    // protected val requestPool: BufferPool
     protected val requestBroker: NetlinkRequestBroker
-
-    def getBuffer(): ByteBuffer = {
-        val buf = requestPool.take()
-        buf.clear()
-        buf
-    }
 
     protected def sendRequest(observer: Observer[ByteBuffer])
                              (prepare: ByteBuffer => Unit): Unit = {
-        val buf = getBuffer()
+        val seq: Int = requestBroker.nextSequence()
+        val buf: ByteBuffer = requestBroker.get(seq)
         prepare(buf)
-        requestBroker.writeRequest(buf, observer)
+        requestBroker.publishRequest(seq, observer)
+        requestBroker.writePublishedRequests()
     }
 
     private def processFailedRequest(seq: Int, error: Int,

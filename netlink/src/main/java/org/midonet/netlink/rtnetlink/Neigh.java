@@ -31,7 +31,7 @@ import org.midonet.packets.MAC;
 /**
  *
  */
-public class Neigh implements AttributeHandler {
+public class Neigh implements AttributeHandler, RtnetlinkResource {
 
     public class NDMsg {
         public byte family;

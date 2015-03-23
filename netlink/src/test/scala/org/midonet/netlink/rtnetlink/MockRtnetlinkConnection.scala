@@ -21,12 +21,13 @@ import org.midonet.netlink._
 import org.midonet.util.concurrent.NanoClock
 
 class MockRtnetlinkConnection(channel: NetlinkChannel,
-                              sendPool: BufferPool,
+                              maxPendingRequests: Int,
+                              maxRequestSize: Int,
                               clock: NanoClock)
-        extends RtnetlinkConnection(channel, sendPool, clock) {
+        extends RtnetlinkConnection(channel, maxPendingRequests,
+            maxRequestSize, clock) {
     override val replyBuf =
         BytesUtil.instance.allocate(NetlinkReadBufSize)
-    override val requestBroker = new NetlinkRequestBroker(reader, writer,
-        MaxRequests, replyBuf, clock, timeout = DefaultTimeout)
-
+    override val requestBroker = new NetlinkRequestBroker(writer, reader,
+        maxPendingRequests, maxRequestSize, replyBuf, clock)
 }
