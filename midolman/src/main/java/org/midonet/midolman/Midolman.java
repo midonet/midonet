@@ -42,7 +42,6 @@ import org.midonet.cluster.services.MidonetBackend;
 import org.midonet.cluster.storage.MidonetBackendModule;
 import org.midonet.cluster.storage.StateStorageModule;
 import org.midonet.event.agent.ServiceEvent;
-import org.midonet.midolman.cluster.InterfaceScannerModule;
 import org.midonet.midolman.cluster.LegacyClusterModule;
 import org.midonet.midolman.cluster.MidolmanActorsModule;
 import org.midonet.midolman.cluster.MidolmanModule;
@@ -149,8 +148,7 @@ public class Midolman {
             new MidolmanActorsModule(),
             new ResourceProtectionModule(),
             new MidolmanModule(),
-            new FlowStateStorageModule(),
-            new InterfaceScannerModule()
+            new FlowStateStorageModule()
         );
 
         // start the services

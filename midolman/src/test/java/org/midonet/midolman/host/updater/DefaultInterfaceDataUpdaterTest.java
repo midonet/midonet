@@ -41,7 +41,6 @@ import org.junit.Test;
 import org.midonet.cluster.config.ZookeeperConfig;
 import org.midonet.cluster.storage.MidonetBackendTestModule;
 import org.midonet.cluster.storage.StateStorageModule;
-import org.midonet.midolman.cluster.InterfaceScannerModule;
 import org.midonet.midolman.cluster.LegacyClusterModule;
 import org.midonet.midolman.cluster.ResourceProtectionModule;
 import org.midonet.midolman.cluster.config.ConfigProviderModule;
@@ -49,7 +48,7 @@ import org.midonet.midolman.cluster.datapath.MockDatapathModule;
 import org.midonet.midolman.cluster.serialization.SerializationModule;
 import org.midonet.midolman.cluster.state.MockFlowStateStorageModule;
 import org.midonet.midolman.cluster.zookeeper.MockZookeeperConnectionModule;
-import org.midonet.midolman.host.guice.HostModule;
+import org.midonet.midolman.host.guice.MockHostModule;
 import org.midonet.midolman.host.interfaces.InterfaceDescription;
 import org.midonet.midolman.host.state.HostDirectory;
 import org.midonet.midolman.host.state.HostZkManager;
@@ -104,7 +103,7 @@ public class DefaultInterfaceDataUpdaterTest {
             new MockFlowStateStorageModule(),
             new MockDatapathModule(),
             new MockZookeeperConnectionModule(),
-            new HostModule(),
+            new MockHostModule(),
             new MidonetBackendTestModule(),
             new LegacyClusterModule(),
             new StateStorageModule(),
@@ -113,8 +112,9 @@ public class DefaultInterfaceDataUpdaterTest {
                 JavaConversions.mapAsScalaMap(new HashMap<String, TestKit>()),
                 JavaConversions.mapAsScalaMap(new HashMap<String, TestActorRef<Actor>>()),
                 NanoClock$.MODULE$.DEFAULT()),
-            new ResourceProtectionModule(),
-            new InterfaceScannerModule());
+            new ResourceProtectionModule()
+            // new InterfaceScannerModule()
+        );
 
         directory = injector.getInstance(Directory.class);
         directory.add("/hosts", null, CreateMode.PERSISTENT);

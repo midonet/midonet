@@ -29,7 +29,7 @@ import org.midonet.packets.IPv4Addr;
 /**
  *
  */
-public class Route implements AttributeHandler {
+public class Route implements AttributeHandler, RtnetlinkResource {
 
     public class Rtmsg {
         public byte family;
