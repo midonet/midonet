@@ -143,6 +143,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_f86b3583",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/ChainMapper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-23T09:46:00Z",
+      "side": 1,
+      "message": "So as I understand there\u0027s nothing that prevents two rules from pointing to the same chain although we don\u0027t seem to be relying on this at the moment. I\u0027\u0027ll keep this as is to mimic the ChainManager behaviour. We can always change that later.",
+      "parentUuid": "1a106d94_4381c649",
+      "range": {
+        "startLine": 124,
+        "startChar": 16,
+        "endLine": 124,
+        "endChar": 33
+      },
+      "revId": "96034bbc916da7fa846392ba365c37c2c29873e6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a1371a2_6b1d99bd",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/ChainMapper.scala",
         "patchSetId": 2
