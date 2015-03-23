@@ -56,7 +56,7 @@ public final class VtepMAC {
     }
 
     public boolean isMcast() {
-        return mac == null || Ethernet.isMcast(mac);
+        return mac == null || mac.isMcast();
     }
 
     public boolean isUcast() {

@@ -19,7 +19,6 @@ import java.lang.{Short => JShort}
 import java.util.UUID
 
 import scala.collection.JavaConversions._
-import scala.collection.immutable
 
 import org.junit.experimental.categories.Category
 import org.junit.runner.RunWith
@@ -29,14 +28,12 @@ import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.data.{Bridge => ClusterBridge, TunnelZone}
 import org.midonet.cluster.data.ports.BridgePort
-import org.midonet.midolman.FlowController._
 import org.midonet.midolman.PacketWorkflow.{Drop, SimulationResult}
 import org.midonet.midolman.rules.{Condition, RuleResult}
 import org.midonet.midolman.simulation.Bridge
 import org.midonet.midolman.simulation.Coordinator.{FloodBridgeAction, ToPortAction}
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.util.MidolmanSpec
-import org.midonet.odp.flows.FlowActions.output
 import org.midonet.packets._
 import org.midonet.packets.util.PacketBuilder._
 
@@ -55,8 +52,8 @@ class BridgeSimulationTest extends MidolmanSpec {
     private var portOnHost2: BridgePort = _
     private var portOnHost3: BridgePort = _
 
-    private var bridge: ClusterBridge = _
-    private var bridgeDevice: Bridge = _
+    var bridge: ClusterBridge = _
+    var bridgeDevice: Bridge = _
 
 
     val host1Ip = IPv4Addr("192.168.100.1")
@@ -243,6 +240,19 @@ class BridgeSimulationTest extends MidolmanSpec {
         val (pktCtx, action) = simulateDevice(bridgeDevice,
                                               ethPkt, port1OnHost1.getId)
         action should be (Drop)
+    }
+
+    scenario("bpdu topology change packets invalidate flows") {
+        val ethPkt: Ethernet = { eth src "02:13:66:77:88:99" dst MAC.fromAddress(Ethernet.BPDU_DEST) }.packet
+        ethPkt.setPayload(new BPDU().setFlags(BPDU.FLAG_MASK_DEC_TOPOLOGY_CHANGE))
+        ethPkt.setVlanIDs(networkVlans)
+
+        val (pktCtx, action) = simulateDevice(bridgeDevice,
+                                              ethPkt, port1OnHost1.getId)
+        action shouldBe a [FloodBridgeAction]
+
+        pktCtx.wcmatch.userspaceFieldsSeen() should be (true)
+        flowInvalidator should invalidate (bridgeDevice.deviceTag)
     }
 
     scenario("mac migration on bridge") {

@@ -64,7 +64,8 @@ object VirtualTopologyActor extends Referenceable {
             s"${getClass.getSimpleName}[id=$id, update=$update]"
 
         protected[VirtualTopologyActor]
-        def managerFactory(client: Client, config: MidolmanConfig): () => Actor
+        def managerFactory(client: Client, flowInvalidator: FlowInvalidator,
+                           config: MidolmanConfig): () => Actor
     }
 
     case class PortRequest(id: UUID, update: Boolean = false)
@@ -74,7 +75,8 @@ object VirtualTopologyActor extends Referenceable {
         override val managerName = portManagerName(id)
 
         protected[VirtualTopologyActor]
-        override def managerFactory(client: Client, config: MidolmanConfig) =
+        override def managerFactory(client: Client, flowInvalidator: FlowInvalidator,
+                                    config: MidolmanConfig) =
             () => new PortManager(id, client)
     }
 
@@ -85,8 +87,9 @@ object VirtualTopologyActor extends Referenceable {
         override val managerName = bridgeManagerName(id)
 
         protected[VirtualTopologyActor]
-        override def managerFactory(client: Client, config: MidolmanConfig) =
-            () => new BridgeManager(id, client, config)
+        override def managerFactory(client: Client, flowInvalidator: FlowInvalidator,
+                                    config: MidolmanConfig) =
+            () => new BridgeManager(id, client, flowInvalidator, config)
     }
 
     case class RouterRequest(id: UUID, update: Boolean = false)
@@ -96,7 +99,8 @@ object VirtualTopologyActor extends Referenceable {
         override val managerName = routerManagerName(id)
 
         protected[VirtualTopologyActor]
-        def managerFactory(client: Client, config: MidolmanConfig) =
+        def managerFactory(client: Client, flowInvalidator: FlowInvalidator,
+                           config: MidolmanConfig) =
             () => new RouterManager(id, client, config)
     }
 
@@ -107,7 +111,8 @@ object VirtualTopologyActor extends Referenceable {
         override val managerName = chainManagerName(id)
 
         protected[VirtualTopologyActor]
-        def managerFactory(client: Client, config: MidolmanConfig) =
+        def managerFactory(client: Client, flowInvalidator: FlowInvalidator,
+                           config: MidolmanConfig) =
             () => new ChainManager(id, client)
     }
 
@@ -118,7 +123,8 @@ object VirtualTopologyActor extends Referenceable {
         override val managerName = iPAddrGroupManagerName(id)
 
         protected[VirtualTopologyActor]
-        def managerFactory(client: Client, config: MidolmanConfig) =
+        def managerFactory(client: Client, flowInvalidator: FlowInvalidator,
+                           config: MidolmanConfig) =
             () => new IPAddrGroupManager(id, client)
     }
 
@@ -129,7 +135,8 @@ object VirtualTopologyActor extends Referenceable {
         override val managerName = loadBalancerManagerName(id)
 
         protected[VirtualTopologyActor]
-        def managerFactory(client: Client, config: MidolmanConfig) =
+        def managerFactory(client: Client, flowInvalidator: FlowInvalidator,
+                           config: MidolmanConfig) =
             () => new LoadBalancerManager(id, client)
     }
 
@@ -140,7 +147,8 @@ object VirtualTopologyActor extends Referenceable {
         override val managerName = poolManagerName(id)
 
         protected[VirtualTopologyActor]
-        def managerFactory(client: Client, config: MidolmanConfig) =
+        def managerFactory(client: Client, flowInvalidator: FlowInvalidator,
+                           config: MidolmanConfig) =
             () => new PoolManager(id, client)
     }
 
@@ -151,7 +159,8 @@ object VirtualTopologyActor extends Referenceable {
         override val managerName = portGroupManagerName(id)
 
         protected[VirtualTopologyActor]
-        def managerFactory(client: Client, config: MidolmanConfig) =
+        def managerFactory(client: Client, flowInvalidator: FlowInvalidator,
+                           config: MidolmanConfig) =
             () => new PortGroupManager(id, client)
     }
 
@@ -163,7 +172,8 @@ object VirtualTopologyActor extends Referenceable {
         override val id = PoolConfig.POOL_HEALTH_MONITOR_MAP_KEY
 
         protected[VirtualTopologyActor]
-        def managerFactory(client: Client, config: MidolmanConfig) =
+        def managerFactory(client: Client, flowInvalidator: FlowInvalidator,
+                           config: MidolmanConfig) =
                   () => new PoolHealthMonitorMapManager(client)
     }
 
@@ -300,7 +310,7 @@ class VirtualTopologyActor extends VirtualTopologyRedirector {
 
         log.info("Manage device {}", req.id)
         if (createManager) {
-            val mgrFactory = req.managerFactory(clusterClient, config)
+            val mgrFactory = req.managerFactory(clusterClient, flowInvalidator, config)
             val props = Props { mgrFactory() }
                 .withDispatcher(context.props.dispatcher)
             context.actorOf(props, req.managerName)
