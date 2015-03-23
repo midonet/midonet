@@ -46,6 +46,7 @@ import org.midonet.midolman.simulation.Router
 import org.midonet.midolman.state.{HappyGoLuckyLeaser, MockStateStorage}
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackKey, ConnTrackValue}
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
+import org.midonet.midolman.state.TraceState.{TraceKey, TraceContext}
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.topology.rcu.ResolvedHost
 import org.midonet.midolman.util.MidolmanSpec
@@ -266,6 +267,7 @@ class PingTest extends MidolmanSpec {
         new FlowInvalidator(null),
         new ShardedFlowStateTable[ConnTrackKey, ConnTrackValue](),
         new ShardedFlowStateTable[NatKey, NatBinding](),
+        new ShardedFlowStateTable[TraceKey, TraceContext](),
         new MockStateStorage(), HappyGoLuckyLeaser,
         new PacketPipelineMetrics(injector.getInstance(classOf[MetricRegistry])),
         x => Unit)
