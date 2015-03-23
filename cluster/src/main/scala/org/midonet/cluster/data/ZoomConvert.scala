@@ -240,7 +240,8 @@ object ZoomConvert {
                 throw new ConvertException(
                     s"Message ${descriptor.getName} does not have a " +
                     s"field ${zoomField.name}")
-            } else if (protoField.isRepeated || message.hasField(protoField)) {
+            } else if (protoField.isRepeated || protoField.hasDefaultValue ||
+                       message.hasField(protoField)) {
                 // We ignore unset message fields, and let the corresponding
                 // Java object field set to the its type-default value.
                 try {

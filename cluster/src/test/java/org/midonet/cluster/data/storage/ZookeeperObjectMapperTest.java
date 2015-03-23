@@ -41,6 +41,7 @@ import org.midonet.cluster.models.Commons;
 import org.midonet.cluster.util.ClassAwaitableObserver;
 import org.midonet.cluster.util.UUIDUtil;
 import org.midonet.util.reactivex.AwaitableObserver;
+import org.midonet.util.reactivex.TestAwaitableObserver;
 
 import static org.apache.zookeeper.KeeperException.NoNodeException;
 import static org.hamcrest.Matchers.contains;
