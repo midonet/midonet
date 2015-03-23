@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_ddbaab09",
+        "filename": "cluster/src/main/scala/org/midonet/conf/MidoConf.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 304,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-03-23T03:38:24Z",
+      "side": 1,
+      "message": "The val name should indicate that it\u0027s an Observable. Also, a type info would also be helpful.",
+      "range": {
+        "startLine": 304,
+        "startChar": 12,
+        "endLine": 304,
+        "endChar": 24
+      },
+      "revId": "642f44e420056fa6010ff0ecdc86d2fb18a83d0a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_fd54c7cb",
+        "filename": "cluster/src/main/scala/org/midonet/conf/MidoConf.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 305,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-03-23T03:38:24Z",
+      "side": 1,
+      "message": "Please indent to keeps the 80-cols.",
+      "revId": "642f44e420056fa6010ff0ecdc86d2fb18a83d0a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_5d14fbf4",
+        "filename": "cluster/src/test/scala/org/midonet/conf/MidoConfTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-03-23T03:38:24Z",
+      "side": 1,
+      "message": "It\u0027s a confusing name.",
+      "range": {
+        "startLine": 104,
+        "startChar": 12,
+        "endLine": 104,
+        "endChar": 15
+      },
+      "revId": "642f44e420056fa6010ff0ecdc86d2fb18a83d0a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
