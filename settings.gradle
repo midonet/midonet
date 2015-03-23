@@ -2,4 +2,4 @@ include "midonet-util", "midonet-jdk-bootstrap", "netlink", "odp",
         "cluster", "midolman", "midonet-api", "midonet-client", "rpc",
         "brain:midonet-brain", 'brain:tools', 'brain:odl-ovsdb:commons:parent',
         'brain:odl-ovsdb:distribution:opendaylight', 'brain:odl-ovsdb:ovsdb',
-        'python-midonetclient'
+        'brain:vtep', 'python-midonetclient'
