@@ -17,7 +17,6 @@ package org.midonet.brain.southbound.vtep;
 
 import com.google.common.base.Objects;
 
-import org.midonet.packets.Ethernet;
 import org.midonet.packets.MAC;
 
 /**
@@ -56,7 +55,7 @@ public final class VtepMAC {
     }
 
     public boolean isMcast() {
-        return mac == null || Ethernet.isMcast(mac);
+        return mac == null || mac.mcast();
     }
 
     public boolean isUcast() {
