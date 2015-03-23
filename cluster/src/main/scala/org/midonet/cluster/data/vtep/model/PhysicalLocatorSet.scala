@@ -16,7 +16,10 @@
 
 package org.midonet.cluster.data.vtep.model
 
+import java.util
 import java.util.{Objects, UUID}
+
+import scala.collection.JavaConversions.asScalaSet
 
 /**
  * Represents a VTEP's physical locator set. The set of locators may be empty,
@@ -48,6 +51,10 @@ object PhysicalLocatorSet {
         new PhysicalLocatorSet(id, locators)
     def apply(locators: Set[UUID]): PhysicalLocatorSet =
         new PhysicalLocatorSet(null, locators)
+
+    // Java compatibility
+    def apply(id: UUID, locators: util.Set[UUID]): PhysicalLocatorSet =
+        new PhysicalLocatorSet(id, asScalaSet(locators).toSet)
 }
 
 

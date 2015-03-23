@@ -46,7 +46,7 @@ class PhysicalLocatorSetTest extends FeatureSpec with Matchers {
             s.locatorIds shouldBe locs
         }
         scenario("null locator set") {
-            val s = PhysicalLocatorSet(uuid, null)
+            val s = new PhysicalLocatorSet(uuid, null)
             s.uuid shouldBe uuid
             s.locatorIds.isEmpty shouldBe true
         }
