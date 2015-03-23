@@ -25,6 +25,29 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_4fe9e019",
+        "filename": "cluster/src/main/proto/topology.proto",
+        "patchSetId": 3
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-03-23T14:49:50Z",
+      "side": 1,
+      "message": "Just a heads-up: having a look at the code, I noticed that both router and pool (from Alex\u0027s pool mapper patch) have references to a LoadBalancer... should there be two separate back-reference fields? (I should probably put the same comment in Alex\u0027s patch :-)",
+      "range": {
+        "startLine": 105,
+        "startChar": 4,
+        "endLine": 107,
+        "endChar": 1
+      },
+      "revId": "a5da09c13201a3b52b07ad08aa7752ac925b550f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a1371a2_809a7912",
         "filename": "midolman/src/main/scala/org/midonet/cluster/services/MidonetBackendService.scala",
         "patchSetId": 3
