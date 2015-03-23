@@ -48,6 +48,7 @@ class PoolManager(val id: UUID, val clusterClient: Client) extends Actor
     import context.system // Used implicitly. Don't delete.
 
     private var poolConfig: Pool = null
+    private var allPoolMembers: Array[simulation.PoolMember] = null
     private var simPoolMembers: Array[simulation.PoolMember] = null
     private var disabledPoolMembers: Array[simulation.PoolMember] = null
 
@@ -57,6 +58,7 @@ class PoolManager(val id: UUID, val clusterClient: Client) extends Actor
 
     private def updatePoolMembers(newMembers: Set[PoolMember]): Unit = {
         // Convert to simulation objects before creating Pool
+        allPoolMembers = newMembers.map(toSimulationPoolMember).toArray
         simPoolMembers = newMembers.collect {
             case pm if pm.isUp => toSimulationPoolMember(pm)
         } (breakOut(Array.canBuildFrom))
@@ -72,7 +74,8 @@ class PoolManager(val id: UUID, val clusterClient: Client) extends Actor
     }
 
     private def publishUpdateIfReady() {
-        if (simPoolMembers == null || disabledPoolMembers == null) {
+        if (allPoolMembers == null ||
+            simPoolMembers == null || disabledPoolMembers == null) {
             log.debug(s"Not publishing pool $id. Still waiting for pool members.")
             return
         }
@@ -84,7 +87,9 @@ class PoolManager(val id: UUID, val clusterClient: Client) extends Actor
 
         val simPool = new simulation.Pool(
             id, poolConfig.isAdminStateUp, poolConfig.getLbMethod,
-            simPoolMembers, disabledPoolMembers)
+            poolConfig.getHealthMonitorId,
+            poolConfig.getLoadBalancerId,
+            allPoolMembers, simPoolMembers, disabledPoolMembers)
         VirtualTopologyActor ! simPool
         VirtualTopologyActor ! InvalidateFlowsByTag(FlowTagger.tagForDevice(id))
     }
