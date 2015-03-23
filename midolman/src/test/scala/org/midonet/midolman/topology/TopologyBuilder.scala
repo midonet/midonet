@@ -21,18 +21,20 @@ import scala.collection.JavaConverters._
 import scala.util.Random
 
 import org.midonet.cluster.models.Commons.{IPAddress, LBStatus}
+import org.midonet.cluster.models.Topology.HealthMonitor.HealthMonitorType
 import org.midonet.cluster.models.Topology.Host.PortBinding
 import org.midonet.cluster.models.Topology.IPAddrGroup.IPAddrPorts
 import org.midonet.cluster.models.Topology.Pool.{PoolLBMethod, PoolProtocol}
 import org.midonet.cluster.models.Topology.Route.NextHop
 import org.midonet.cluster.models.Topology.Rule.{Action, JumpRuleData, NatRuleData, NatTarget}
 import org.midonet.cluster.models.Topology.TunnelZone.HostToIp
-import org.midonet.cluster.models.Topology.{IPAddrGroup, VIP, _}
+import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.util.IPAddressUtil._
 import org.midonet.cluster.util.IPSubnetUtil._
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil, RangeUtil, UUIDUtil}
 import org.midonet.midolman.rules.FragmentPolicy
+import org.midonet.midolman.state.l4lb.{LBStatus => L4LBStatus}
 import org.midonet.packets._
 import org.midonet.util.Range
 
@@ -424,6 +426,7 @@ trait TopologyBuilder {
     }
 
     protected def createVIP(adminStateUp: Option[Boolean] = None,
+                            loadBalancerId: Option[UUID] = None,
                             poolId: Option[UUID] = None,
                             address: Option[String] = None,
                             protocolPort: Option[Int] = None,
@@ -433,6 +436,8 @@ trait TopologyBuilder {
             .setId(UUID.randomUUID().asProto)
         if (adminStateUp.isDefined)
             builder.setAdminStateUp(adminStateUp.get)
+        if (loadBalancerId.isDefined)
+            builder.setLoadBalancerId(loadBalancerId.get.asProto)
         if (poolId.isDefined)
             builder.setPoolId(poolId.get.asProto)
         if (address.isDefined)
@@ -553,6 +558,28 @@ trait TopologyBuilder {
             builder.setInterfaceName(interfaceName.get)
         builder
     }
+
+    protected def createHealthMonitor(id: UUID = UUID.randomUUID(),
+                                      adminStateUp: Boolean = false,
+                                      healthMonitorType: Option[HealthMonitorType] = None,
+                                      status: Option[LBStatus] = None,
+                                      delay: Option[Int] = None,
+                                      timeout: Option[Int] = None,
+                                      maxRetries: Option[Int] = None): HealthMonitor = {
+        val builder = HealthMonitor.newBuilder()
+            .setId(id.asProto).setAdminStateUp(adminStateUp)
+        if (healthMonitorType.isDefined)
+            builder.setType(healthMonitorType.get)
+        if (status.isDefined)
+            builder.setStatus(status.get)
+        if (delay.isDefined)
+            builder.setDelay(delay.get)
+        if (timeout.isDefined)
+            builder.setTimeout(timeout.get)
+        if (maxRetries.isDefined)
+            builder.setMaxRetries(maxRetries.get)
+        builder.build()
+    }
 }
 
 object TopologyBuilder {
@@ -646,8 +673,12 @@ object TopologyBuilder {
             pool.toBuilder.setAdminStateUp(adminStateUp).build()
         def setHealthMonitorId(healthMonitorId: UUID): Pool =
             pool.toBuilder.setHealthMonitorId(healthMonitorId.asProto).build()
+        def removeHealthMonitorId(): Pool =
+            pool.toBuilder.clearHealthMonitorId().build()
         def setLoadBalancerId(loadBalancerId: UUID): Pool =
             pool.toBuilder.setLoadBalancerId(loadBalancerId.asProto).build()
+        def removeLoadBalancerId(): Pool =
+            pool.toBuilder.clearLoadBalancerId().build()
         def setProtocol(protocol: PoolProtocol): Pool =
             pool.toBuilder.setProtocol(protocol).build()
         def setLBMethod(lbMethod: PoolLBMethod): Pool =
@@ -671,6 +702,31 @@ object TopologyBuilder {
             poolMember.toBuilder.setWeight(weight).build()
     }
 
+    class RichLoadBalancer(loadBalancer: LoadBalancer) {
+        def setAdminStateUp(adminStateUp: Boolean): LoadBalancer =
+            loadBalancer.toBuilder.setAdminStateUp(adminStateUp).build()
+    }
+
+    class RichVIP(vip: VIP) {
+        def setAddress(ipAddress: IPAddress): VIP =
+            vip.toBuilder.setAddress(ipAddress).build()
+    }
+
+    class RichHealthMonitor(healthMonitor: HealthMonitor) {
+        def setAdminStateUp(adminStateUp: Boolean): HealthMonitor =
+            healthMonitor.toBuilder.setAdminStateUp(adminStateUp).build()
+        def setStatus(status: LBStatus): HealthMonitor =
+            healthMonitor.toBuilder.setStatus(status).build()
+        def setStatus(status: L4LBStatus): HealthMonitor =
+            healthMonitor.toBuilder.setStatus(LBStatus.valueOf(status.name())).build()
+        def setDelay(delay: Int): HealthMonitor =
+            healthMonitor.toBuilder.setDelay(delay).build()
+        def setTimeout(timeout: Int): HealthMonitor =
+            healthMonitor.toBuilder.setTimeout(timeout).build()
+        def setMaxRetries(maxRetries: Int): HealthMonitor =
+            healthMonitor.toBuilder.setMaxRetries(maxRetries).build()
+    }
+
     private val random = new Random()
 
     def randomIPv4Subnet = new IPv4Subnet(random.nextInt(), random.nextInt(32))
@@ -689,4 +745,13 @@ object TopologyBuilder {
 
     implicit def asRichPoolMember(poolMember: PoolMember): RichPoolMember =
         new RichPoolMember(poolMember)
+
+    implicit def asRichLoadBalancer(loadBalancer: LoadBalancer): RichLoadBalancer =
+        new RichLoadBalancer(loadBalancer)
+
+    implicit def asRichVIP(vip: VIP): RichVIP =
+        new RichVIP(vip)
+
+    implicit def asRichHealthMonitor(healthMonitor: HealthMonitor): RichHealthMonitor =
+        new RichHealthMonitor(healthMonitor)
 }
