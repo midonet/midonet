@@ -50,6 +50,7 @@ public class TraceRequestZkManager
         .getLogger(TraceRequestZkManager.class);
 
     public static class TraceRequestConfig extends BaseConfig {
+        public String name;
         public TraceRequest.DeviceType deviceType;
         public UUID deviceId;
         public Condition condition;
@@ -59,10 +60,12 @@ public class TraceRequestZkManager
             super();
         }
 
-        public TraceRequestConfig(TraceRequest.DeviceType deviceType,
+        public TraceRequestConfig(String name,
+                                  TraceRequest.DeviceType deviceType,
                                   UUID deviceId, Condition condition,
                                   UUID enabledRule) {
             super();
+            this.name = name;
             this.deviceType = deviceType;
             this.deviceId = deviceId;
             this.condition = condition;
@@ -79,7 +82,8 @@ public class TraceRequestZkManager
             }
 
             TraceRequestConfig that = (TraceRequestConfig)other;
-            return deviceType == that.deviceType
+            return Objects.equals(name, that.name)
+                && deviceType == that.deviceType
                 && Objects.equals(deviceId, that.deviceId)
                 && Objects.equals(condition, that.condition)
                 && Objects.equals(enabledRule, that.enabledRule);
@@ -87,12 +91,14 @@ public class TraceRequestZkManager
 
         @Override
         public int hashCode() {
-            return Objects.hash(deviceType, deviceId, condition, enabledRule);
+            return Objects.hash(name, deviceType, deviceId,
+                                condition, enabledRule);
         }
 
         @Override
         public String toString() {
-            return "TraceRequestConfig{deviceType=" + deviceType
+            return "TraceRequestConfig{name=" + name
+                + ", deviceType=" + deviceType
                 + ", deviceId=" + deviceId
                 + ", condition=" + condition
                 + ", enabledRule=" + enabledRule + "}";

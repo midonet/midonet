@@ -27,6 +27,15 @@ public class TraceRequest
         super(null, new Data());
     }
 
+    public String getName() {
+        return getData().name;
+    }
+
+    public TraceRequest setName(String name) {
+        getData().name = name;
+        return this;
+    }
+
     public UUID getDeviceId() {
         return getData().deviceId;
     }
@@ -73,6 +82,7 @@ public class TraceRequest
     }
 
     public static class Data  {
+        public String name;
         public DeviceType deviceType;
         public UUID deviceId;
         public Condition condition;
@@ -88,7 +98,8 @@ public class TraceRequest
             }
 
             Data that = (Data)other;
-            return deviceType == that.deviceType
+            return Objects.equals(name, that.name)
+                && deviceType == that.deviceType
                 && Objects.equals(deviceId, that.deviceId)
                 && Objects.equals(condition, that.condition)
                 && Objects.equals(enabledRule, that.enabledRule);
@@ -96,12 +107,14 @@ public class TraceRequest
 
         @Override
         public int hashCode() {
-            return Objects.hash(deviceType, deviceId, condition, enabledRule);
+            return Objects.hash(name, deviceType, deviceId,
+                                condition, enabledRule);
         }
 
         @Override
         public String toString() {
-            return "TraceRequest.Data{deviceType=" + deviceType
+            return "TraceRequest.Data{name=" + name
+                + ", deviceType=" + deviceType
                 + ", deviceId=" + deviceId
                 + ", condition=" + condition
                 + ", enabledRule=" + enabledRule + "}";
