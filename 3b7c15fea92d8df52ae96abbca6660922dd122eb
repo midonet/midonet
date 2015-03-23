@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_1d31e3a2",
+        "filename": "cluster/src/main/scala/org/midonet/conf/LoggerLevelWatcher.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-03-23T03:56:21Z",
+      "side": 1,
+      "message": "Out-of-order.",
+      "revId": "3b7c15fea92d8df52ae96abbca6660922dd122eb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_fd196723",
+        "filename": "midolman/src/main/java/org/midonet/midolman/Midolman.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-03-23T03:56:21Z",
+      "side": 1,
+      "message": "Those 3 imports should join the block below.",
+      "range": {
+        "startLine": 38,
+        "startChar": 0,
+        "endLine": 40,
+        "endChar": 45
+      },
+      "revId": "3b7c15fea92d8df52ae96abbca6660922dd122eb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
