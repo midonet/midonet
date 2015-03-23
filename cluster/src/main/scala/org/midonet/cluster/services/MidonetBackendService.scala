@@ -43,6 +43,7 @@ abstract class MidonetBackend extends AbstractService {
              classOf[Chain],
              classOf[Dhcp],
              classOf[FloatingIp],
+             classOf[HealthMonitor],
              classOf[IPAddrGroup],
              classOf[LoadBalancer],
              classOf[Network],
@@ -56,6 +57,8 @@ abstract class MidonetBackend extends AbstractService {
              classOf[NeutronRouter],
              classOf[NeutronSubnet],
              classOf[NeutronVIP],
+             classOf[Pool],
+             classOf[PoolMember],
              classOf[Port],
              classOf[PortBinding],
              classOf[PortGroup],
@@ -66,9 +69,7 @@ abstract class MidonetBackend extends AbstractService {
              classOf[SecurityGroup],
              classOf[VIP],
              classOf[Vtep],
-             classOf[VtepBinding],
-             classOf[Pool],
-             classOf[PoolMember]
+             classOf[VtepBinding]
         ).foreach(store.registerClass)
 
         ownershipStore.registerClass(classOf[Host], OwnershipType.Exclusive)
