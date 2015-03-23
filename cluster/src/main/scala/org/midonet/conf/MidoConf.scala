@@ -30,8 +30,9 @@ import org.apache.curator.framework.{CuratorFrameworkFactory, CuratorFramework}
 import org.apache.curator.framework.recipes.cache.ChildData
 import org.apache.curator.retry.RetryOneTime
 import org.apache.zookeeper.KeeperException
-import rx.{Observer, Observable}
+import rx.Observable
 
+import org.midonet.conf.MidoConf._
 import org.midonet.util.functors.makeFunc1
 import org.midonet.util.functors.makeFunc2
 import org.midonet.cluster.util.ObservableNodeCache
@@ -43,6 +44,19 @@ trait MidoConf {
     def get: Config
 }
 
+object MidoConf {
+    implicit def toConfigValue(v: String): ConfigValue = ConfigValueFactory.fromAnyRef(v)
+    implicit def toConfigValue(v: Int): ConfigValue = ConfigValueFactory.fromAnyRef(v)
+    implicit def toConfigValue(v: Boolean): ConfigValue = ConfigValueFactory.fromAnyRef(v)
+
+    implicit def strTupleToConfigValue(v: (String, String)): ConfigValue =
+        ConfigValueFactory.fromAnyRef(v._1, v._2)
+    implicit def intTupleToConfigValue(v: (Int, String)): ConfigValue =
+        ConfigValueFactory.fromAnyRef(v._1, v._2)
+    implicit def boolTupleToConfigValue(v: (Boolean, String)): ConfigValue =
+        ConfigValueFactory.fromAnyRef(v._1, v._2)
+}
+
 object MidoNodeType {
     val AGENT = "agent"
     val BRAIN = "brain"
@@ -50,8 +64,14 @@ object MidoNodeType {
     val all = List(AGENT, BRAIN)
 }
 
-trait ObservableConf extends MidoConf {
+trait ObservableConf extends Closeable {
     def observable: Observable[Config]
+
+    def closeAfter[T](func: (this.type) => T): T = try {
+        func(this)
+    } finally {
+        close()
+    }
 }
 
 /**
@@ -64,8 +84,7 @@ trait ObservableConf extends MidoConf {
  */
 trait WritableConf extends MidoConf {
     private val emptySchema = ConfigFactory.empty().withValue(
-        "schemaVersion", ConfigValueFactory.fromAnyRef(-1))
-
+        "schemaVersion", -1)
     protected def modify(changeset: Config => Config): Boolean
 
     /**
@@ -290,11 +309,10 @@ class MidoNodeConfigurator(zk: CuratorFramework,
     def templateMappings: Config = _templateMappings.get
 
     /**
-     * Assings a configuration template to a MidoNet node.
+     * Assigns a configuration template to a MidoNet node.
      */
     def assignTemplate(node: UUID, template: String): Unit = {
-        val value = ConfigValueFactory.fromAnyRef(template)
-        _templateMappings.set(node.toString, value)
+        _templateMappings.set(node.toString, template)
     }
 
     def listTemplates: Seq[String] = zk.getChildren.forPath(s"/config/templates/$nodeType")
@@ -326,10 +344,10 @@ class MidoNodeConfigurator(zk: CuratorFramework,
      * the 'default' template, and the schema.
      */
     def centralConfig(node: UUID): Config =
-        centralPerNodeConfig(node).get.
-            withFallback(templateByNodeId(node).get).
-            withFallback(templateByName("default").get).
-            withFallback(schema.get)
+        centralPerNodeConfig(node).closeAfter(_.get).
+            withFallback(templateByNodeId(node).closeAfter(_.get)).
+            withFallback(templateByName("default").closeAfter(_.get)).
+            withFallback(schema.closeAfter(_.get))
 
     private def combine(c1: Observable[Config], c2: Observable[Config]): Observable[Config] = {
         Observable.combineLatest(c1, c2,
@@ -524,8 +542,10 @@ class ZookeeperConf(zk: CuratorFramework, path: String) extends MidoConf with
     override val observable: Observable[Config] = cache.observable map makeFunc1(parse)
 
     override def get: Config = {
-        parse(cache.current).resolve()
+        parse(cache.current)
     }
+
+    override def close() = cache.close()
 
     override protected def modify(changeset: Config => Config): Boolean = {
         val zkdata = cache.current
@@ -579,8 +599,7 @@ class IniFileConf(val filename: String) extends MidoConf {
             val newkey = s"$section.$key"
             val newval = iniconf.getSection(section).getString(key)
 
-            config = config.withValue(newkey,
-                ConfigValueFactory.fromAnyRef(newval, s"file://$filename"))
+            config = config.withValue(newkey, (newval, s"file://$filename"))
         }
 
         config
