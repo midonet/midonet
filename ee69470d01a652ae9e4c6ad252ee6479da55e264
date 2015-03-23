@@ -1,0 +1,72 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_3805cdc2",
+        "filename": "midolman/src/man/mn-conf.1.ronn",
+        "patchSetId": 3
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 1002709
+      },
+      "writtenOn": "2015-03-23T10:06:01Z",
+      "side": 1,
+      "message": "Zookeeper should not be mentioned. Change to a generic name such as \"central configuration repository\"",
+      "revId": "ee69470d01a652ae9e4c6ad252ee6479da55e264",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_b8cd3d89",
+        "filename": "midolman/src/man/mn-conf.1.ronn",
+        "patchSetId": 3
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 1002709
+      },
+      "writtenOn": "2015-03-23T10:06:01Z",
+      "side": 1,
+      "message": "it could be worth to add that the below goes from the more specific to the less specific (in addition of the priority)",
+      "revId": "ee69470d01a652ae9e4c6ad252ee6479da55e264",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_d8c47961",
+        "filename": "midolman/src/man/mn-conf.1.ronn",
+        "patchSetId": 3
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 1002709
+      },
+      "writtenOn": "2015-03-23T10:06:01Z",
+      "side": 1,
+      "message": "IMHO the configuration schema should not be in this list",
+      "revId": "ee69470d01a652ae9e4c6ad252ee6479da55e264",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_b87b7d28",
+        "filename": "midolman/src/man/mn-conf.1.ronn",
+        "patchSetId": 3
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 1002709
+      },
+      "writtenOn": "2015-03-23T10:06:01Z",
+      "side": 1,
+      "message": "\"separate namespace\" : the man page should not explain the implementation, just the usage. I would only keep the part after \"All `mm-conf` operations\"",
+      "revId": "ee69470d01a652ae9e4c6ad252ee6479da55e264",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
