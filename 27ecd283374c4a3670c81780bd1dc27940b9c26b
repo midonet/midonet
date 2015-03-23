@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_bd67efe9",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/services/c3po/C3POStorageManagerTest.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 222,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-03-23T01:20:13Z",
+      "side": 1,
+      "message": "You also need to update this.",
+      "range": {
+        "startLine": 222,
+        "startChar": 25,
+        "endLine": 222,
+        "endChar": 37
+      },
+      "revId": "27ecd283374c4a3670c81780bd1dc27940b9c26b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
