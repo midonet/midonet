@@ -197,10 +197,12 @@ trait FlowContext extends Clearable { this: PacketContext =>
  * used to pass state between different simulation stages, or between virtual
  * devices.
  */
-class PacketContext(val cookie: Int,
-                    val packet: Packet,
-                    val origMatch: FlowMatch,
-                    val egressPort: UUID = null) extends Clearable with FlowContext with StateContext {
+final class PacketContext(val cookie: Int,
+                          val packet: Packet,
+                          val origMatch: FlowMatch,
+                          val egressPort: UUID = null) extends Clearable
+                                                       with FlowContext
+                                                       with StateContext {
     var tracing: Boolean = false
     var log = PacketContext.defaultLog
 
@@ -284,6 +286,9 @@ class PacketContext(val cookie: Int,
     def setTracingEnabled(): Unit = {
         tracing = true
     }
+
+    def markUserspaceOnly(): Unit =
+        wcmatch.markUserspaceOnly()
 
     override def toString = s"PacketContext[$cookieStr]"
 }
