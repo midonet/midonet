@@ -84,6 +84,8 @@ class PoolManager(val id: UUID, val clusterClient: Client) extends Actor
 
         val simPool = new simulation.Pool(
             id, poolConfig.isAdminStateUp, poolConfig.getLbMethod,
+            poolConfig.getHealthMonitorId,
+            poolConfig.getLoadBalancerId,
             simPoolMembers, disabledPoolMembers)
         VirtualTopologyActor ! simPool
         VirtualTopologyActor ! InvalidateFlowsByTag(FlowTagger.tagForDevice(id))
