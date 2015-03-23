@@ -33,6 +33,7 @@ import org.midonet.midolman.simulation.Bridge
 import org.midonet.midolman.state.{MockStateStorage, FlowStateReplicator}
 import org.midonet.midolman.state.ConnTrackState._
 import org.midonet.midolman.state.NatState.{NatKey, NatBinding}
+import org.midonet.midolman.state.TraceState.{TraceKey, TraceContext}
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.topology.rcu.ResolvedHost
 import org.midonet.odp.flows.FlowActionOutput
@@ -80,8 +81,10 @@ class ConnTrackBenchmark extends MidolmanBenchmark {
     }
     val conntrackTable = new ShardedFlowStateTable[ConnTrackKey, ConnTrackValue].addShard()
     val natTable = new ShardedFlowStateTable[NatKey, NatBinding].addShard()
+    val traceTable = new ShardedFlowStateTable[TraceKey, TraceContext].addShard()
     implicit val conntrackTx = new FlowStateTransaction(conntrackTable)
     implicit val natTx = new FlowStateTransaction(natTable)
+    implicit val traceTx = new FlowStateTransaction(traceTable)
     var replicator: FlowStateReplicator = _
 
     @JmhSetup
@@ -104,6 +107,7 @@ class ConnTrackBenchmark extends MidolmanBenchmark {
         macTable.add(leftMac, leftPort.getId)
         macTable.add(rightMac, rightPort.getId)
         replicator = new FlowStateReplicator(conntrackTable, natTable,
+                                             traceTable,
                                              new MockStateStorage,
                                              underlayResolver,
                                              injector.getInstance(classOf[FlowInvalidator]),
@@ -113,8 +117,10 @@ class ConnTrackBenchmark extends MidolmanBenchmark {
     @Benchmark
     def benchmarkConntrack(holder: PacketHolder, bh: Blackhole): Unit = {
         bh.consume(sendPacket(leftPort -> holder.packet))
-        replicator.accumulateNewKeys(conntrackTx, natTx, leftPort.getId,
-                                     List(rightPort.getId).asJava, new HashSet(),
+        replicator.accumulateNewKeys(conntrackTx, natTx, traceTx,
+                                     leftPort.getId,
+                                     List(rightPort.getId).asJava,
+                                     new HashSet(),
                                      new ArrayList())
         conntrackTx.commit()
         conntrackTx.flush()
