@@ -101,6 +101,17 @@ class BridgeBuilderStateFeeder {
                 }
             })
         }
+
+        override def flush(): Unit =
+            reactor.submit(new Runnable() {
+                override def run(): Unit =
+                    try {
+                        map.flush()
+                        log.debug(s"Flushed MAC port map")
+                    } catch { case e: Throwable =>
+                        log.error(s"Failed to flush MAC port map", e)
+                    }
+                })
     }
 
     class OnUpdate(vlanId: Short, builder: BridgeBuilder)

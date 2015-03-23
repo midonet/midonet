@@ -115,6 +115,10 @@ public class MAC {
         return 0 == (addr & MULTICAST_BIT);
     }
 
+    public boolean mcast() {
+        return !unicast();
+    }
+
     @JsonValue
     @Override
     public String toString() {
@@ -126,11 +130,7 @@ public class MAC {
 
     @Override
     public boolean equals(Object rhs) {
-        if (this == rhs)
-            return true;
-        if (!(rhs instanceof MAC))
-            return false;
-        return this.addr == ((MAC)rhs).addr;
+        return rhs instanceof MAC && this.addr == ((MAC) rhs).addr;
     }
 
     @Override

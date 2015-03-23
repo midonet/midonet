@@ -156,8 +156,8 @@ class TopologyPrefetcherTest extends MidolmanSpec {
             When("Updating the bridge")
 
             topologyActor ! new SimBridge(
-                bridge.getId, false, bridge.getTunnelKey, null,
-                null, null, null, null, null, null, null, null, null, null, Nil)
+                bridge.getId, false, bridge.getTunnelKey, null, null, null, null,
+                null, null, null, null, null, null, null, Nil)
 
             Then("The hook method is called with the updated bridge")
             topologyActor.underlyingActor.get[SimBridge](bridge.getId).get

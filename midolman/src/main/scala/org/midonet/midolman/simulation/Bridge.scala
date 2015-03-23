@@ -26,7 +26,6 @@ import org.midonet.cluster.client._
 import org.midonet.midolman.NotYetException
 import org.midonet.midolman.PacketWorkflow.{Drop, NoOp, SimulationResult, TemporaryDrop}
 import org.midonet.midolman.rules.RuleResult
-import org.midonet.midolman.simulation.Bridge.UntaggedVlanId
 import org.midonet.midolman.topology.VirtualTopology.VirtualDevice
 import org.midonet.midolman.topology.VirtualTopologyActor._
 import org.midonet.midolman.topology.devices.BridgePort
@@ -37,6 +36,8 @@ import org.midonet.sdn.flows.FlowTagger.{tagForArpRequests, tagForBridgePort, ta
 
 object Bridge {
     final val UntaggedVlanId: Short = 0
+
+    val BPDU_DEST_MAC = MAC.fromAddress(Ethernet.BPDU_DEST)
 }
 
 /**
@@ -105,7 +106,8 @@ class Bridge(val id: UUID,
             (implicit val actorSystem: ActorSystem) extends Coordinator.Device
                                                     with VirtualDevice {
 
-    import org.midonet.midolman.simulation.Coordinator._
+    import Bridge._
+    import Coordinator._
 
     val floodAction = FloodBridgeAction(id, exteriorPorts)
 
@@ -125,158 +127,127 @@ class Bridge(val id: UUID,
      * the unicastAction and multicastAction methods to generate unicast and
      * multicast actions, these will take care of the vlan-id details for you.
      */
+    @throws[NotYetException]
     override def process(context: PacketContext): SimulationResult = {
         implicit val ctx = context
 
         context.log.debug("Current vlanPortId {}.", vlanPortId)
         context.log.debug("Current vlan-port map {}", vlanToPort)
 
-        // Some basic sanity checks
-        if (Ethernet.isMcast(context.wcmatch.getEthSrc)) {
-            context.log.info("Packet has multi/broadcast source, DROP")
+        val ethSrc = context.wcmatch.getEthSrc
+        if (ethSrc.mcast) {
+            context.log.info("Dropping packet with multi/broadcast source")
             Drop
         } else {
-            normalProcess()
+            normalProcess(ethSrc, context.wcmatch.getEthDst)
         }
     }
 
-    @throws[NotYetException]
-    def normalProcess()(implicit context: PacketContext,
-                                 actorSystem: ActorSystem)
-    : SimulationResult = {
+    private def normalProcess(ethSrc: MAC, ethDst: MAC)
+                             (implicit context: PacketContext,
+                                       actorSystem: ActorSystem) : SimulationResult = {
         context.addFlowTag(deviceTag)
-
-        if (!adminStateUp) {
-            context.log.debug("Bridge {} is down, DROP", id)
-            return Drop
-        }
-
-        if (areChainsApplicable()) {
-
-            // Call ingress (pre-bridging) chain. InputPort is already set.
-            context.outPortId = null
-            val preBridgeResult = Chain.apply(
-                inFilterId match {
-                    case Some(filterId) => tryAsk[Chain](filterId)
-                    case None => null
-                },
-                context, id, false)
-            context.log.debug("Ingress chain returned {}", preBridgeResult)
-
-            preBridgeResult.action match {
-                case RuleResult.Action.ACCEPT => // pass through
-                case RuleResult.Action.DROP | RuleResult.Action.REJECT =>
-                    val srcDlAddress = context.wcmatch.getEthSrc
-                    updateFlowCount(srcDlAddress, context)
-                    // No point in tagging by dst-MAC+Port because the outPort was
-                    // not used in deciding to drop the flow.
-                    return Drop
-                case other =>
-                    context.log.warn(
-                        s"PreBridging for $id returned $other which was not " +
-                        "ACCEPT, DROP or REJECT.")
-                    return TemporaryDrop
-            }
+        if (adminStateUp) {
+            val applyChains = areChainsApplicable()
+            val action =
+                if (applyChains)
+                    doPreBridging(ethSrc, ethDst)
+                else
+                    doBridging(ethSrc, ethDst)
+            if (applyChains)
+                doPostBridging(context, action)
+            else
+                action
         } else {
-            context.log.debug("Ignoring pre/post chains on vlan tagged traffic")
-        }
-
-        // Learn the entry
-        val srcDlAddress = context.wcmatch.getEthSrc
-        updateFlowCount(srcDlAddress, context)
-
-        val dstDlAddress = context.wcmatch.getEthDst
-        val action =
-             if (isArpBroadcast())
-                 handleARPRequest()
-             else if (Ethernet.isMcast(dstDlAddress))
-                 handleL2Multicast()
-             else
-                 handleL2Unicast() // including ARP replies
-
-        if (areChainsApplicable()) {
-            doPostBridging(context, action)
-        } else {
-            action
+            context.log.debug(s"Dropping packet because bridge $id is down")
+            Drop
         }
     }
 
-    private def isArpBroadcast()(implicit context: PacketContext) = {
-        Ethernet.isBroadcast(context.wcmatch.getEthDst) &&
-                             context.wcmatch.getEtherType == ARP.ETHERTYPE
-    }
-
-    /**
-     * Tells if chains should be executed for the current frames. So far, all
-     * will be, except those with a VLAN tag.
-     */
-    private def areChainsApplicable()(implicit context: PacketContext) = {
+    private def areChainsApplicable()(implicit context: PacketContext) =
         context.wcmatch.getVlanIds.isEmpty
+
+    private def doPreBridging(ethSrc: MAC, ethDst: MAC)(implicit context: PacketContext) = {
+        // Call ingress (pre-bridging) chain. InputPort is already set.
+        context.outPortId = null
+        val preBridgeResult = Chain.apply(
+            inFilterId match {
+                case Some(filterId) => tryAsk[Chain](filterId)
+                case None => null
+            }, context, id, false)
+        context.log.debug("Ingress chain returned {}", preBridgeResult)
+
+        preBridgeResult.action match {
+            case RuleResult.Action.ACCEPT =>
+                doBridging(ethSrc, ethDst)
+            case RuleResult.Action.DROP | RuleResult.Action.REJECT =>
+                updateFlowCount(ethSrc, context)
+                // No point in tagging by dst-MAC+Port because the outPort was
+                // not used in deciding to drop the flow.
+                Drop
+            case other =>
+                context.log.warn(
+                    s"PreBridging for $id returned $other which was not " +
+                    "ACCEPT, DROP or REJECT.")
+                TemporaryDrop
+        }
     }
 
-    /**
-      * Used by normalProcess to deal with L2 Unicast frames, this just decides
-      * on a port based on MAC
-      */
-    private def handleL2Unicast()(implicit context: PacketContext)
-    : SimulationResult = {
-        val ethDst = context.wcmatch.getEthDst
-        val ethSrc = context.wcmatch.getEthSrc
-        context.log.debug("Handling L2 unicast to {}", ethDst)
+    private def doBridging(ethSrc: MAC, ethDst: MAC)
+                               (implicit context: PacketContext): SimulationResult = {
+        updateFlowCount(ethSrc, context) // Learn the entry
+
         macToLogicalPortId.get(ethDst) match {
             case Some(logicalPort: UUID) => // some device (router|vab-bridge)
-                context.log.debug("Packet intended for interior port {}", logicalPort)
+                context.log.debug("Handling L2 unicast to {}", ethDst)
                 context.addFlowTag(tagForBridgePort(id, logicalPort))
                 unicastAction(logicalPort)
-            case None => // not a logical port, is the dstMac learned?
-                val vlanId = srcVlanTag(context)
-                val portId =
-                    if (ethDst == ethSrc) {
-                        context.inPortId
-                    } else {
-                        vlanMacTableMap.get(vlanId) match {
-                            case Some(map: MacLearningTable) => map.get(ethDst)
-                            case _ => null
-                        }
-                    }
-                // Tag the flow with the (src-port, src-mac) pair so we can
-                // invalidate the flow if the MAC migrates.
-                context.addFlowTag(tagForVlanPort(id, ethSrc, vlanId,
-                                                 context.inPortId))
-                if (portId == null) {
-                    context.log.debug("Dst MAC {}, VLAN {} is not learned: Flood",
-                        ethDst, vlanId)
-                    context.addFlowTag(
-                        tagForFloodedFlowsByDstMac(id, vlanId, ethDst))
-                    multicastAction()
-                } else if (portId == context.inPortId) {
-                    context.log.warn(
-                        "MAC {} VLAN {} resolves to InPort {}: DROP (temp)",
-                        ethDst, vlanId, portId)
-                    // No tags because temp flows aren't affected by
-                    // invalidations. would get byPort (ethDst, vlan, port)
-                    //
-                    // TODO: we may have to send it to InPort, instead of
-                    // dropping it. Some hardware vendors use L2 ping-pong
-                    // packets for their specific purposes (e.g. keepalive message)
-                    //
-                    TemporaryDrop
-                } else {
-                    context.log.debug("Dst MAC {}, VLAN {} on port {}: Forward",
-                        ethDst, vlanId, portId)
-                    context.addFlowTag(tagForVlanPort(id, ethDst, vlanId, portId))
-                    unicastAction(portId)
-                }
+            case None if ethDst.unicast =>
+                handleExteriorUnicast(ethSrc, ethDst)
+            case None if context.wcmatch.getEtherType == ARP.ETHERTYPE =>
+                handleARPRequest()
+            case None =>
+                handleL2Multicast(ethSrc, ethDst)
         }
     }
 
-    /**
-      * Used by normalProcess to deal with frames addressed to an L2 multicast
-      * addr except for ARPs.
-      */
-    private def handleL2Multicast()(implicit context: PacketContext)
+    private def handleExteriorUnicast(ethSrc: MAC, ethDst: MAC)
+                                     (implicit context: PacketContext): SimulationResult = {
+        val inportId = context.inPortId
+        val vlanId = srcVlanTag(context)
+        val portId =
+            if (ethDst == ethSrc) {
+                inportId
+            } else vlanMacTableMap.get(vlanId) match {
+                case Some(map: MacLearningTable) => map.get(ethDst)
+                case _ => null
+            }
+
+        // Tag the flow with the (src-port, src-mac) pair so we can
+        // invalidate the flow if the MAC migrates.
+        context.addFlowTag(tagForVlanPort(id, ethSrc, vlanId, context.inPortId))
+        if (portId == null) {
+            context.log.debug(s"Flooding because dst MAC $ethDst on VLAN $vlanId is not learned")
+            context.addFlowTag(tagForFloodedFlowsByDstMac(id, vlanId, ethDst))
+            multicastAction()
+        } else if (portId == inportId) {
+            log.debug(s"Dropping because MAC $ethDst on VLAN $vlanId resolved to ingress port")
+            // TODO: we may have to send it to InPort, instead of
+            // dropping it. Some hardware vendors use L2 ping-pong
+            // packets for their specific purposes (e.g. keepalive message)
+            //
+            TemporaryDrop
+        } else {
+            context.log.debug(s"Forwarding to port $portId with dst MAC $ethDst on VLAN $vlanId")
+            context.addFlowTag(tagForVlanPort(id, ethDst, vlanId, portId))
+            unicastAction(portId)
+        }
+    }
+
+    private def handleL2Multicast(ethSrc: MAC, ethDst: MAC)(implicit context: PacketContext)
     : SimulationResult = {
         context.log.debug("Handling L2 multicast {}", id)
+        flushMacLearningIfBpdu(ethDst, context)
         multicastAction()
     }
 
@@ -379,7 +350,7 @@ class Bridge(val id: UUID,
     : SimulationResult = inPort match {
 
         case p: BridgePort if p.isExterior =>
-            // multicast from trunk, goes only to designated log. port
+            // multicast from trunk, goes only to designated logical port
             val vlanIds = context.ethernet.getVlanIDs
             val vlanId = if (vlanIds.isEmpty) null else vlanIds.get(0)
             // get interior port tagged with frame's vlan id
@@ -410,6 +381,17 @@ class Bridge(val id: UUID,
             context.log.warn("Unexpected input port type!")
             TemporaryDrop
     }
+
+    private def flushMacLearningIfBpdu(mcastMac: MAC, context: PacketContext): Unit =
+        if (mcastMac == BPDU_DEST_MAC) {
+            context.markUserspaceOnly()
+            context.packet.getEthernet.getPayload match {
+                case bpdu: BPDU if bpdu.hasTopologyChangeNotice =>
+                    log.debug("Processing a BPDU multicast; flushing learned MACs")
+                    flowCount.flush()
+                case _ =>
+            }
+        }
 
     /**
       * Used by normalProcess to handle specifically ARP multicast.

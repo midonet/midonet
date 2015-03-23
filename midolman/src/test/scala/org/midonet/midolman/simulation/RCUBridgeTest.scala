@@ -19,11 +19,11 @@ package org.midonet.midolman.simulation
 import akka.actor.ActorSystem
 import akka.event.Logging
 import scala.collection.mutable
-import java.lang.{Short => JShort}
 import java.util.UUID
 
 import org.junit.runner.RunWith
 import org.midonet.midolman.PacketWorkflow.Drop
+import org.midonet.midolman.flows.FlowInvalidator
 import org.scalatest.{Matchers, BeforeAndAfterAll, Suite}
 import org.scalatest.junit.JUnitRunner
 
@@ -35,7 +35,6 @@ import org.midonet.packets._
 import org.midonet.util.functors.{Callback0, Callback3}
 import org.midonet.cluster.VlanPortMapImpl
 import org.midonet.odp.{FlowMatch, Packet}
-
 
 @RunWith(classOf[JUnitRunner])
 class RCUBridgeTest extends Suite with BeforeAndAfterAll with Matchers {
@@ -243,6 +242,7 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with Matchers {
 private class MockMacFlowCount extends MacFlowCount {
     override def increment(mac: MAC, vlanId: Short, port: UUID) {}
     override def decrement(mac: MAC,vlanId: Short, port: UUID) {}
+    override def flush(): Unit = {}
 }
 
 private class MockMacLearningTable(val table: mutable.Map[MAC, UUID])
@@ -269,6 +269,10 @@ private class MockMacLearningTable(val table: mutable.Map[MAC, UUID])
     override def notify(cb: Callback3[MAC, UUID, UUID]) {
         // Not implemented
     }
+
+    override def flush(): Unit =
+        additions foreach (removals += _)
+
 
     def reset() {
         additions.clear()
