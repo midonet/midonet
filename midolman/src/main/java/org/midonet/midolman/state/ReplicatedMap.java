@@ -17,6 +17,7 @@
 package org.midonet.midolman.state;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -26,8 +27,15 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+import javax.annotation.Nullable;
+
+import com.google.common.base.Function;
+import com.google.common.collect.Collections2;
+import com.google.common.collect.Iterables;
+
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
+import org.apache.zookeeper.Op;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -70,30 +78,56 @@ public abstract class ReplicatedMap<K, V> {
         }
     }
 
-    private class DirectoryWatcher implements Runnable {
-
-        /**
-         * Retrieve all the children of the watched directory, handling
-         * failures.
-         * @return the set of paths, or null if a failure happened
-         */
-        Set<String> getCurPaths() {
-            Set<String> paths = null;
-            try {
-                // TODO(pino, rossella): make this asynchronous.
-                paths = dir.getChildren("/", this);
-            } catch (KeeperException e) {
-                log.warn("DirectoryWatcher.run {}", e);
-                if (connectionWatcher == null) {
-                    throw new RuntimeException(e);
-                }
-                connectionWatcher.handleError("ReplicatedMap", this, e);
-            } catch (InterruptedException e) {
-                log.error("DirectoryWatcher.run {}", e);
-                Thread.currentThread().interrupt();
+    /**
+     * Retrieve all the children of the watched directory, handling
+     * failures.
+     * @return the set of paths, or null if a failure happened
+     */
+    Set<String> getCurPaths(Runnable watcher, Runnable retry) {
+        Set<String> paths = null;
+        try {
+            // TODO(pino, rossella): make this asynchronous.
+            paths = dir.getChildren("/", watcher);
+        } catch (KeeperException e) {
+            log.warn("DirectoryWatcher.run {}", e);
+            if (connectionWatcher == null) {
+                throw new RuntimeException(e);
             }
-            return paths;
+            connectionWatcher.handleError("ReplicatedMap", retry, e);
+        } catch (InterruptedException e) {
+            log.error("DirectoryWatcher.run {}", e);
+            Thread.currentThread().interrupt();
         }
+        return paths;
+    }
+
+    /**
+     * Cleans all paths in the given List. If a ZK exception occurs in the
+     * process it will abort the cleanup. InterruptedExceptions will
+     * stop the running thread.
+     *
+     * @param paths to clean up
+     */
+    void cleanup(final Collection<Path> paths) {
+        List<Op> ops = new ArrayList<>(paths.size());
+        for (Path path : paths) {
+            ops.add(Op.delete(encodePath(path.key, path.value, path.version), -1));
+            ownedVersions.remove(path.version);
+        }
+
+        try {
+            dir.multi(ops);
+        } catch (KeeperException e) {
+            log.error("DirectoryWatcher.run", e);
+            // TODO (guillermo) connectionWatcher.handleError()?
+            throw new RuntimeException(e);
+        } catch (InterruptedException e) {
+            log.error("DirectoryWatcher.run", e);
+            Thread.currentThread().interrupt();
+        }
+    }
+
+    private class DirectoryWatcher implements Runnable {
 
         /**
          * Takes the curPaths set and populates the given newMap with them,
@@ -126,28 +160,7 @@ public abstract class ReplicatedMap<K, V> {
             }
         }
 
-        /**
-         * Cleans all paths in the given List. If a ZK exception occurs in the
-         * process it will abort the cleanup. InterruptedExceptions will
-         * stop the running thread.
-         *
-         * @param paths to clean up
-         */
-        void cleanup(final List<Path> paths) {
-            for (Path path : paths) {
-                try {
-                    dir.delete(encodePath(path.key, path.value, path.version));
-                    ownedVersions.remove(path.version);
-                } catch (KeeperException e) {
-                    log.error("DirectoryWatcher.run", e);
-                    // TODO (guillermo) connectionWatcher.handleError()?
-                    throw new RuntimeException(e);
-                } catch (InterruptedException e) {
-                    log.error("DirectoryWatcher.run", e);
-                    Thread.currentThread().interrupt();
-                }
-            }
-        }
+
 
         /**
          * Compiles notifications to be sent after the newMap has been compiled.
@@ -187,11 +200,11 @@ public abstract class ReplicatedMap<K, V> {
             if (!running) {
                 return;
             }
-            Set<String> curPaths = getCurPaths();
+            Set<String> curPaths = getCurPaths(this, this);
             if (curPaths == null)
                 return;
 
-            List<Path> cleanupPaths = new LinkedList<>();
+            List<Path> cleanupPaths = new ArrayList<>();
             Set<Notification<K,V>> notifications = new HashSet<>();
 
             synchronized(ReplicatedMap.this) {
@@ -424,6 +437,28 @@ public abstract class ReplicatedMap<K, V> {
         return removeIfOwnerAndValue(key, null);
     }
 
+    /**
+     * Flushes all the entries in this replicated map.
+     */
+    public void flush() {
+        int retries = 5;
+        flush(retries);
+    }
+
+    private void flush(final int retries) {
+        cleanup(Collections2.transform(
+            getCurPaths(null, new Runnable() {
+                @Override public void run() {
+                    if (retries > 0)
+                        flush(retries - 1);
+                }
+            }), new Function<String, Path>() {
+                @Nullable @Override public Path apply(String input) {
+                    return decodePath(input);
+                }
+            }));
+    }
+
     private void notifyWatchers(final K key, final V oldValue,
                                 final V newValue) {
         for (Watcher<K, V> watcher : watchers) {
@@ -458,18 +493,11 @@ public abstract class ReplicatedMap<K, V> {
     }
 
     protected static String encodeFullPath(String k, String v, int version) {
-        StringBuilder strBuilder = new StringBuilder();
-        strBuilder.append(encodePathPrefix(k, v)).append(
-            String.format("%010d", version));
-        return strBuilder.toString();
+        return encodePathPrefix(k, v) + String.format("%010d", version);
     }
 
     protected static String encodePathPrefix(String key, String value) {
-        StringBuilder strBuilder = new StringBuilder();
-        strBuilder.append('/');
-        strBuilder.append(key).append(',');
-        strBuilder.append(value).append(',');
-        return strBuilder.toString();
+        return "/" + key + ',' + value + ',';
     }
 
     private String encodePath(K key, V value) {

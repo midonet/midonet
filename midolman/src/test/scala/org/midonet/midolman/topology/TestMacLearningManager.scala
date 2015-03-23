@@ -148,6 +148,9 @@ private class MockMacLearningTable(backend: mutable.Map[MAC, UUID])
         backend.remove(mac1)
     }
 
+    override def flush(): Unit =
+        backend.clear()
+
     override def notify(cb: Callback3[MAC, UUID, UUID]) {
         // Not implemented
     }

@@ -28,4 +28,6 @@ public interface MacLearningTable {
     void remove(MAC mac, UUID portID);
 
     void notify(Callback3<MAC, UUID, UUID> cb);
+
+    void flush();
 }

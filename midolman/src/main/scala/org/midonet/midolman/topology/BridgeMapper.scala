@@ -148,6 +148,10 @@ object BridgeMapper {
                               mac, Short.box(vlanId), portId)
             }
         }
+
+        override def flush(): Unit =
+            map.flush()
+
         /** TODO: Obsolete method. */
         override def notify(cb: Callback3[MAC, UUID, UUID]): Unit = ???
         /** Stops the underlying replicated map and completes the observable. */
@@ -176,29 +180,29 @@ object BridgeMapper {
      */
     private class MacLearning(tables: CMap[Short, BridgeMacLearningTable],
                               log: Logger, ttl: Duration) {
-        private val map =
-            new TimedExpirationMap[MacPortMapping, AnyRef](log, _ => ttl)
+        private val map = new TimedExpirationMap[MacPortMapping, AnyRef](log, _ => ttl)
         private val reducer = new Reducer[MacPortMapping, Any, Unit] {
-            override def apply(acc: Unit, mapping: MacPortMapping, value: Any)
-            : Unit = {
+            override def apply(acc: Unit, mapping: MacPortMapping, value: Any): Unit =
                 doOnMap(mapping.vlanId, _.remove(mapping.mac, mapping.portId))
-            }
         }
 
         /** Adds a mapping if does not exist, and increases its reference count */
-        def incrementRefCount(mapping: MacPortMapping): Unit = {
+        def incrementRefCount(mapping: MacPortMapping): Unit =
             if (map.putIfAbsentAndRef(mapping, mapping) eq null) {
                 doOnMap(mapping.vlanId, _.add(mapping.mac, mapping.portId))
             }
-        }
+
         /** Decrements the reference count for a given mapping */
-        def decrementRefCount(mapping: MacPortMapping, currentTime: Long): Unit = {
+        def decrementRefCount(mapping: MacPortMapping, currentTime: Long): Unit =
             map.unref(mapping, currentTime)
-        }
+
         /** Expires MAC-port mappings */
-        def expireEntries(currentTime: Long): Unit = {
+        def expireEntries(currentTime: Long): Unit =
             map.obliterateIdleEntries(currentTime, (), reducer)
-        }
+
+        def flush(): Unit =
+            tables.valuesIterator foreach (_.flush)
+
         /** Executes the specified operation on the MAC learning table for the
           * given VLAN.*/
         private def doOnMap(vlanId: Short, op: MacLearningTable => Unit): Unit = {
@@ -232,15 +236,16 @@ object BridgeMapper {
      * An implementation of the [[MacFlowCount]] trait that allows the
      * [[SimulationBridge]] device to update the MAC learning tables.
      */
-    private class BridgeMacFlowCount(macLearning: MacLearning)
-        extends MacFlowCount {
-        override def increment(mac: MAC, vlanId: Short, portId: UUID): Unit = {
+    private class BridgeMacFlowCount(macLearning: MacLearning) extends MacFlowCount {
+        override def increment(mac: MAC, vlanId: Short, portId: UUID): Unit =
             macLearning.incrementRefCount(MacPortMapping(vlanId, mac, portId))
-        }
-        override def decrement(mac: MAC, vlanId: Short, portId: UUID): Unit = {
+
+        override def decrement(mac: MAC, vlanId: Short, portId: UUID): Unit =
             macLearning.decrementRefCount(MacPortMapping(vlanId, mac, portId),
                                           Platform.currentTime)
-        }
+
+        override def flush(): Unit =
+            macLearning.flush()
     }
 
     /**
