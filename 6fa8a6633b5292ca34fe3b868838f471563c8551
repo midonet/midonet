@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_42189784",
+        "filename": "cluster/src/main/scala/org/midonet/conf/MidoConf.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 63,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-03-23T18:48:37Z",
+      "side": 1,
+      "message": "andClose(c \u003d\u003e c.get(...)) reads odd. how about \"with\" or \"using\"?",
+      "revId": "6fa8a6633b5292ca34fe3b868838f471563c8551",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
