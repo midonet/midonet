@@ -28,7 +28,7 @@ import org.eclipse.jetty.servlet.{ServletHolder, ServletContextHandler}
 import org.slf4j.LoggerFactory
 
 import org.midonet.brain.{ClusterMinion, BrainConfig, ClusterNode}
-import org.midonet.conf.MidoNodeConfigurator
+import org.midonet.conf.{ObservableConf, MidoNodeConfigurator}
 
 class ConfMinion @Inject()(nodeContext: ClusterNode.Context, config: BrainConfig)
         extends ClusterMinion(nodeContext) {
@@ -173,21 +173,21 @@ abstract class ConfigApiEndpoint(val configurator: MidoNodeConfigurator) extends
 
 class TemplateEndpoint(configurator: MidoNodeConfigurator) extends ConfigApiEndpoint(configurator) {
     override protected def getResource(name: String) =
-        configurator.templateByName(name).get
+        configurator.templateByName(name).andClose(_.get)
 
     override protected def postResource(name: String, content: Config) = {
-        configurator.templateByName(name).mergeAndSet(content)
+        configurator.templateByName(name).andClose(_.mergeAndSet(content))
         HttpServletResponse.SC_OK
     }
 
     override def deleteResource(name: String): Int = {
-        configurator.templateByName(name).clearAndSet(ConfigFactory.empty())
+        configurator.templateByName(name).andClose(_.clearAndSet(ConfigFactory.empty()))
         HttpServletResponse.SC_OK
     }
 }
 
 class SchemaEndpoint(configurator: MidoNodeConfigurator) extends ConfigApiEndpoint(configurator) {
-    override protected def getResource(name: String) = configurator.schema.get
+    override protected def getResource(name: String) = configurator.schema.andClose(_.get)
 }
 
 class RuntimeEndpoint(configurator: MidoNodeConfigurator) extends ConfigApiEndpoint(configurator) {
@@ -196,15 +196,15 @@ class RuntimeEndpoint(configurator: MidoNodeConfigurator) extends ConfigApiEndpo
 
 class PerNodeEndpoint(configurator: MidoNodeConfigurator) extends ConfigApiEndpoint(configurator) {
     override protected def getResource(name: String) =
-        configurator.centralPerNodeConfig(UUID.fromString(name)).get
+        configurator.centralPerNodeConfig(UUID.fromString(name)).andClose(_.get)
 
     override protected def postResource(name: String, content: Config) = {
-        configurator.centralPerNodeConfig(UUID.fromString(name)).mergeAndSet(content)
+        configurator.centralPerNodeConfig(UUID.fromString(name)).andClose(_.mergeAndSet(content))
         HttpServletResponse.SC_OK
     }
 
     override def deleteResource(name: String): Int = {
-        configurator.centralPerNodeConfig(UUID.fromString(name)).clearAndSet(ConfigFactory.empty())
+        configurator.centralPerNodeConfig(UUID.fromString(name)).andClose(_.clearAndSet(ConfigFactory.empty()))
         HttpServletResponse.SC_OK
     }
 }

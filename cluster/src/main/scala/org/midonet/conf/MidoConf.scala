@@ -52,6 +52,14 @@ object MidoNodeType {
 
 trait ObservableConf extends MidoConf {
     def observable: Observable[Config]
+
+    def close()
+
+    def andClose[T](func: (this.type) => T): T = try {
+        func(this)
+    } finally {
+        close()
+    }
 }
 
 /**
@@ -65,7 +73,6 @@ trait ObservableConf extends MidoConf {
 trait WritableConf extends MidoConf {
     private val emptySchema = ConfigFactory.empty().withValue(
         "schemaVersion", ConfigValueFactory.fromAnyRef(-1))
-
     protected def modify(changeset: Config => Config): Boolean
 
     /**
@@ -326,10 +333,10 @@ class MidoNodeConfigurator(zk: CuratorFramework,
      * the 'default' template, and the schema.
      */
     def centralConfig(node: UUID): Config =
-        centralPerNodeConfig(node).get.
-            withFallback(templateByNodeId(node).get).
-            withFallback(templateByName("default").get).
-            withFallback(schema.get)
+        centralPerNodeConfig(node).andClose(_.get).
+            withFallback(templateByNodeId(node).andClose(_.get)).
+            withFallback(templateByName("default").andClose(_.get)).
+            withFallback(schema.andClose(_.get))
 
     private def combine(c1: Observable[Config], c2: Observable[Config]): Observable[Config] = {
         Observable.combineLatest(c1, c2,
@@ -524,8 +531,10 @@ class ZookeeperConf(zk: CuratorFramework, path: String) extends MidoConf with
     override val observable: Observable[Config] = cache.observable map makeFunc1(parse)
 
     override def get: Config = {
-        parse(cache.current).resolve()
+        parse(cache.current)
     }
+
+    override def close() = cache.close()
 
     override protected def modify(changeset: Config => Config): Boolean = {
         val zkdata = cache.current
