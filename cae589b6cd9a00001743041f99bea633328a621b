@@ -1,0 +1,89 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_6c882ae8",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/PacketWorkflow.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-03-23T14:10:21Z",
+      "side": 1,
+      "message": "should we trace something here? this is where the packet is process on the egress host.",
+      "revId": "cae589b6cd9a00001743041f99bea633328a621b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_ec1c1ac4",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/PacketWorkflow.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 173,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-03-23T14:10:21Z",
+      "side": 1,
+      "message": "tunneled packets should never this far. i think this can be removed",
+      "revId": "cae589b6cd9a00001743041f99bea633328a621b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_4c79eefb",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/PacketWorkflow.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 197,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-03-23T14:10:21Z",
+      "side": 1,
+      "message": "style: add ()",
+      "revId": "cae589b6cd9a00001743041f99bea633328a621b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_cc531e6b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/StateContext.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-03-23T14:10:21Z",
+      "side": 1,
+      "message": "I don\u0027t think this is needed, since egress packets are tunneled packets that are handled in the UnderlayTrafficHandler.",
+      "revId": "cae589b6cd9a00001743041f99bea633328a621b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_0c77f603",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/StateContext.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-03-23T14:10:21Z",
+      "side": 1,
+      "message": "style: add()",
+      "revId": "cae589b6cd9a00001743041f99bea633328a621b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
