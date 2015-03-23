@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_f8c7b562",
+        "filename": "midolman/src/man/mn-conf.1.ronn",
+        "patchSetId": 4
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 1002773
+      },
+      "writtenOn": "2015-03-23T09:54:45Z",
+      "side": 1,
+      "message": "I assume mn-conf won\u0027t let you store bogus configuration, is that correct?\n\nAnd therefore mn-conf is version-aware?\n\nIs there be a way for it to report the version it\u0027s meant for?",
+      "revId": "7c5e1ee0494459c1085727d6476129d8d9e9b091",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_78b465f2",
+        "filename": "midolman/src/man/mn-conf.1.ronn",
+        "patchSetId": 4
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 1002773
+      },
+      "writtenOn": "2015-03-23T09:54:45Z",
+      "side": 1,
+      "message": "After reading the document, this doesn\u0027t sound like a template to me. \n\nOtherwise why not call it the group configuration?\n\nSimilarly, default template could be called the default configuration.",
+      "revId": "7c5e1ee0494459c1085727d6476129d8d9e9b091",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_f8f055cb",
+        "filename": "midolman/src/man/mn-conf.1.ronn",
+        "patchSetId": 4
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 1002773
+      },
+      "writtenOn": "2015-03-23T09:54:45Z",
+      "side": 1,
+      "message": "Trailing whitespace... here and several more below.",
+      "revId": "7c5e1ee0494459c1085727d6476129d8d9e9b091",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
