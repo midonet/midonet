@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_4087ef61",
+        "filename": "brain/midonet-brain/src/main/resources/org/midonet/conf/brain.schema",
+        "patchSetId": 15
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-03-23T22:57:01Z",
+      "side": 1,
+      "message": "still broken, should be Heartbeat",
+      "range": {
+        "startLine": 57,
+        "startChar": 44,
+        "endLine": 57,
+        "endChar": 54
+      },
+      "revId": "91a9b4c107f6ed776fde964959818b1f5bbbbf93",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
