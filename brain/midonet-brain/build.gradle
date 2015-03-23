@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 
 apply plugin: 'scala'
 apply plugin: 'application'
+apply from: "${rootProject.projectDir}/fpm.gradle"
+apply from: "${rootProject.projectDir}/git.gradle"
 
 jar {
     manifest {
@@ -75,6 +77,124 @@ dependencies {
                 libraries.scalatest,
                 libraries.sqlite
 }
+
+/////////////////////
+// PACKAGING TASKS //
+/////////////////////
+
+task preparePkg(type: Copy, dependsOn: installApp) {
+    from("${buildDir}/install/${project.name}") {
+        include "**/*"
+        exclude "bin"
+        into "/usr/share/midonet-brain"
+    }
+    from("conf") {
+        into "etc/midonet-brain"
+    }
+    from("src/deb/init/midonet-brain.conf") {
+        into "etc/init"
+    }
+    from("src/deb/init/midonet-brain-start") {
+        into "usr/share/midonet-brain-start"
+    }
+    from("src/deb/init/midonet-brain-env.sh") {
+        into "usr/share/midonet-brain"
+    }
+    into "${pkgDestDir}"
+    doLast {
+        new File("${pkgDestDir}/usr/share/midonet-brain/lib/${project.name}-${midonetVersion}.jar")
+            .renameTo("${pkgDestDir}/usr/share/midonet-brain/${project.name}-${midonetVersion}.jar")
+    }
+}
+
+task rhel7Prepare(type: Copy, dependsOn: installApp) {
+    from("src/rhel7/systemd/midonet-brain.service") {
+        into "usr/lib/systemd/system"
+    }
+    into "${pkgDestDir}"
+}
+
+task rhel6Prepare(type: Copy, dependsOn: installApp) {
+    from("src/rhel6/init.d/midonet-brain") {
+        into "etc/init.d"
+    }
+    from("src/rhel6/init/midonet-brain.conf") {
+        into "etc/init"
+    }
+    into "${pkgDestDir}"
+}
+
+packaging {
+    version = project.debVersion
+    maintainer = project.maintainer
+    vendor = project.vendor
+    url = project.url
+    description = 'Midonet Brain is MidoNet control cluster'
+    dependencies = []
+    confFiles = ['/etc/midonet-brain/logback.xml' ]
+    fpmOpts = ['-a', 'all',
+               '--category', 'network',
+               '--url', 'http://www.midonet.org',
+               '--epoch', '0']
+}
+
+preparePkg.dependsOn cleanPkg
+debian.dependsOn preparePkg
+
+if (project.rhelTarget == "7") {
+    rpm.dependsOn rhel7Prepare
+    rhel7Prepare.dependsOn preparePkg
+} else {
+    rpm.dependsOn rhel6Prepare
+    rhel6Prepare.dependsOn preparePkg
+}
+
+debian.doFirst {
+    project.packaging.version = project.debVersion
+    project.packaging.fpmOpts = project.packaging.fpmOpts.clone()
+    project.packaging.fpmOpts.addAll([
+            '-d', 'java7-runtime-headless',
+            '--deb-recommends', 'java7-runtime-headless | java7-runtime',
+            '--after-install', "${project.projectDir}/src/deb/control/postinst",
+            '--before-install', "${project.projectDir}/src/deb/control/preinst",
+            '--after-remove', "${project.projectDir}/src/deb/control/postrm",
+            '--before-remove', "${project.projectDir}/src/deb/control/prerm" ])
+}
+
+rpm.doFirst {
+    project.packaging.version = project.rpmVersion
+    project.packaging.iteration = project.rpmRelease
+    project.packaging.fpmOpts = project.packaging.fpmOpts.clone()
+    project.packaging.fpmOpts.addAll([
+            '--after-install', "${project.projectDir}/src/rhel6/control/postinst"])
+    if (project.rhelTarget == "7") {
+        project.packaging.fpmOpts.addAll([
+                '--after-install', "${project.projectDir}/src/rhel7/control/postinst",
+                '--before-install', "${project.projectDir}/src/rhel7/control/preinst",
+                '--after-remove', "${project.projectDir}/src/rhel7/control/postrm",
+                '--before-remove', "${project.projectDir}/src/rhel7/control/prerm",
+                '--depends', 'java'])
+    } else {
+        project.packaging.fpmOpts.addAll([
+                '--after-install', "${project.projectDir}/src/rhel6/control/postinst",
+                '--before-install', "${project.projectDir}/src/rhel6/control/preinst",
+                '--before-remove', "${project.projectDir}/src/rhel6/control/prerm",
+                '--depends', 'java7'])
+    }
+}
+
+debian.doLast {
+    new File("${buildDir}/install/${project.name}").deleteDir()
+}
+rpm.doLast {
+    new File("${buildDir}/install/${project.name}").deleteDir()
+}
+
+mainClassName = "org.midonet.brain.ClusterNode"
+
+/////////////////////
+// EXECUTION TASKS //
+/////////////////////
 
 // Runs the cluster daemon, locally. use -Pconf=conf/cluster.conf to
 // start it up pointing at the sample config file in brain/midonet-brain/conf -

@@ -1,0 +1,56 @@
+#!/bin/bash
+
+# Copyright 2015 Midokura SARL
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+set -e
+
+exec >> /var/log/midonet-brain/upstart-stderr.log
+exec 2>&1
+
+if [ -f /usr/share/midonet-brain/midonet-brain-env.sh ]; then
+    . /usr/share/midonet-brain/midonet-brain-env.sh
+else
+    echo "/usr/share/midonet-brain/midonet-brain-env.sh: file not found"
+    exit 1
+fi
+
+
+MIDO_JAR=`ls $MIDO_HOME/midonet-brain-*.jar`
+MIDO_DEP_CLASS_PATH=$MIDO_HOME/dep/*
+MIDO_MAIN=org.midonet.brain.ClusterNode
+
+test -r $MIDO_JAR || exit 1
+test -r $MIDO_BOOTSTRAP_JAR || exit 1
+
+# OpenJDK uses the system jnidispatcher as default, since /usr/lib/jni is in
+# the java library path. We specify our jna.jar in the classpath, this leads
+# to incompatibility.  We should use either (1) the system jnidispatcher and
+# the system jna.jar or (2) the packaged jnidispatcher and the packaged
+# jna.jar.  Here we remove the /usr/lib/jni from the library path to use the
+# package jnidispatcher
+JAVA_LIBRARY_PATH=-Djava.library.path=/lib:/usr/lib
+
+test -r $MIDO_ETC/midonet-brain-env.sh && . /etc/midonet-brain/midonet-brain-env.sh
+
+set -x
+
+JAVA_OPTS="$JVM_OPTS -Dmidonet-brain.log.dir=$MIDO_LOG_DIR -Dconfig.file=$MIDO_AKKA_CFG -Dlogback.configurationFile=$MIDO_CFG/$MIDO_LOG_BACK"
+if [ "xyes" = "x$DEBUG" ] ; then
+    JAVA_OPTS="$JAVA_OPTS -Xdebug -Xrunjdwp:transport=dt_socket,address=$MIDO_DEBUG_PORT,server=y,suspend=y"
+fi
+
+exec $JAVA $JAVA_LIBRARY_PATH  \
+ -cp $MIDO_ETC:$MIDO_JAR:$MIDO_DEP_CLASS_PATH \
+ $JAVA_OPTS $MIDO_MAIN -c $MIDO_CFG/$MIDO_CFG_FILE
