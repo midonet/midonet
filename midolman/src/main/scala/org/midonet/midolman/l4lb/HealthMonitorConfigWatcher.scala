@@ -17,20 +17,18 @@ package org.midonet.midolman.l4lb
 
 import java.util.UUID
 
-import scala.collection.JavaConverters._
 import scala.collection.immutable.{Map => IMap, Set => ISet}
-import scala.collection.mutable.{HashMap, HashSet => MSet, Map => MMap}
+import scala.collection.mutable
+import scala.collection.mutable.{HashSet => MSet, Map => MMap}
 
 import akka.actor.{Actor, ActorRef, Props}
 import org.midonet.midolman.Referenceable
-import org.midonet.midolman.l4lb.PoolHealthMonitorMapManager.PoolHealthMonitorMap
 import org.midonet.midolman.logging.ActorLogWithoutPath
-import org.midonet.midolman.simulation.LoadBalancer
-import org.midonet.midolman.state.zkManagers.PoolHealthMonitorZkManager.PoolHealthMonitorConfig
-import org.midonet.midolman.state.zkManagers.PoolHealthMonitorZkManager.PoolHealthMonitorConfig.{PoolMemberConfigWithId => ZkMemberConf, VipConfigWithId => ZkVipConf}
+import org.midonet.midolman.simulation.{VIP => SimVIP, LoadBalancer => SimLoadBalancer, PoolMember => SimPoolMember}
+import org.midonet.midolman.state.l4lb.VipSessionPersistence
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.topology.VirtualTopologyActor.{LoadBalancerRequest, PoolHealthMonitorMapRequest}
-
+import org.midonet.midolman.topology.devices.{PoolHealthMonitor, PoolHealthMonitorMap}
 
 /**
  * This actor is responsible for providing the configuration data to
@@ -42,12 +40,12 @@ object HealthMonitorConfigWatcher {
     }
 
     def convertDataMapToConfigMap(
-            map: IMap[UUID, PoolHealthMonitorConfig],
+            map: IMap[UUID, PoolHealthMonitor],
             fileLocs: String, suffix: String):
                 IMap[UUID, PoolConfig] = {
-        val newMap = HashMap[UUID, PoolConfig]()
+        val newMap = mutable.HashMap[UUID, PoolConfig]()
 
-        map foreach {case (id: UUID, phm: PoolHealthMonitorConfig) =>
+        map foreach {case (id: UUID, phm: PoolHealthMonitor) =>
                          newMap.put(id, convertDataToPoolConfig(id, fileLocs,
                              suffix, phm))}
 
@@ -57,39 +55,43 @@ object HealthMonitorConfigWatcher {
     val lbIdToRouterIdMap: MMap[UUID, UUID] = MMap.empty
 
     def getRouterId(loadBalancerId: UUID) =
-        lbIdToRouterIdMap get loadBalancerId getOrElse null
+        lbIdToRouterIdMap.get(loadBalancerId).orNull
 
     def convertDataToPoolConfig(poolId: UUID, fileLocs: String, suffix: String,
-            data: PoolHealthMonitorConfig): PoolConfig = {
+            data: PoolHealthMonitor): PoolConfig = {
         if (data == null) {
             null
-        } else if (data.loadBalancerConfig == null ||
-            data.healthMonitorConfig == null ) {
+        } else if (data.loadBalancer == null ||
+            data.healthMonitor == null ) {
             null
         } else {
             val vips = new MSet[VipConfig]
-            for (vipConfig : ZkVipConf <- data.vipConfigs.asScala) {
-                vips add new VipConfig(vipConfig.config.adminStateUp,
-                                       vipConfig.persistedId,
-                                       vipConfig.config.address,
-                                       vipConfig.config.protocolPort,
-                                       vipConfig.config.sessionPersistence)
+            for (vip : SimVIP <- data.vips) {
+                vips add new VipConfig(vip.adminStateUp,
+                                       vip.id,
+                                       if (vip.address == null) null
+                                       else vip.address.toString,
+                                       vip.protocolPort,
+                                       if (vip.isStickySourceIP)
+                                           VipSessionPersistence.SOURCE_IP
+                                       else null)
             }
             val hm = new HealthMonitorConfig(
-                    data.healthMonitorConfig.config.adminStateUp,
-                    data.healthMonitorConfig.config.delay,
-                    data.healthMonitorConfig.config.timeout,
-                    data.healthMonitorConfig.config.maxRetries)
+                    data.healthMonitor.adminStateUp,
+                    data.healthMonitor.delay,
+                    data.healthMonitor.timeout,
+                    data.healthMonitor.maxRetries)
             val members = new MSet[PoolMemberConfig]()
-            for (member: ZkMemberConf <- data.poolMemberConfigs.asScala) {
+            for (member: SimPoolMember <- data.poolMembers) {
                 members add new PoolMemberConfig(
-                        member.config.adminStateUp,
-                        member.persistedId,
-                        member.config.weight,
-                        member.config.address,
-                        member.config.protocolPort)
+                        member.adminStateUp,
+                        member.id,
+                        member.weight,
+                        if (member.address == null) null
+                        else member.address.toString,
+                        member.protocolPort)
             }
-            new PoolConfig(poolId, data.loadBalancerConfig.persistedId,
+            new PoolConfig(poolId, data.loadBalancer.id,
                     ISet(vips.toSeq:_*),
                     ISet(members.toSeq:_*), hm, true, fileLocs, suffix)
         }
@@ -125,10 +127,9 @@ class HealthMonitorConfigWatcher(val fileLocs: String, val suffix: String,
     }
 
     private def handleAddedMapping(poolId: UUID,
-                                   data: PoolHealthMonitorConfig) {
+                                   data: PoolHealthMonitor) {
         log.debug("handleAddedMapping added {}", poolId)
-        val poolConfig = convertDataToPoolConfig(poolId, fileLocs, suffix,
-                                                 data)
+        val poolConfig = convertDataToPoolConfig(poolId, fileLocs, suffix, data)
         if (currentLeader) {
             manager ! ConfigAdded(poolId, poolConfig,
                 getRouterId(poolConfig.loadBalancerId))
@@ -142,7 +143,7 @@ class HealthMonitorConfigWatcher(val fileLocs: String, val suffix: String,
     }
 
     private def handleMappingChange(
-                mappings: IMap[UUID, PoolHealthMonitorConfig]) {
+                mappings: IMap[UUID, PoolHealthMonitor]) {
 
         val convertedMap = convertDataMapToConfigMap(mappings, fileLocs, suffix)
         convertedMap.values filter (conf =>
@@ -157,8 +158,7 @@ class HealthMonitorConfigWatcher(val fileLocs: String, val suffix: String,
         val added = newPoolSet -- oldPoolSet
         val deleted = oldPoolSet -- newPoolSet
 
-        added.foreach(x =>
-                handleAddedMapping(x, mappings.get(x) getOrElse null))
+        added.foreach(x => handleAddedMapping(x, mappings.get(x).orNull))
         deleted.foreach(handleDeletedMapping)
         // The config data might have been changed. Check for those.
         for (pool <- convertedMap.keySet) {
@@ -192,10 +192,10 @@ class HealthMonitorConfigWatcher(val fileLocs: String, val suffix: String,
             log.debug(s"${mapping.size} mappings received")
             handleMappingChange(mapping)
 
-        case loadBalancer: LoadBalancer =>
+        case loadBalancer: SimLoadBalancer =>
             log.debug("load balancer {} received", loadBalancer.id)
 
-            def notifyChangedRouter(loadBalancer: LoadBalancer,
+            def notifyChangedRouter(loadBalancer: SimLoadBalancer,
                                     routerId: UUID) = {
                 lbIdToRouterIdMap put (loadBalancer.id, routerId)
                 // Notify every pool that is attached to this load balancer

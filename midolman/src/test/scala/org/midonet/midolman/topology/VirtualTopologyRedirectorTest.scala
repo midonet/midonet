@@ -33,13 +33,14 @@ import rx.Observable
 import rx.observers.TestObserver
 
 import org.midonet.cluster.data.storage.NotFoundException
+import org.midonet.cluster.models.{Topology => Proto}
 import org.midonet.cluster.models.Topology.{Port => TopologyPort}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.NotYetException
 import org.midonet.midolman.simulation._
 import org.midonet.midolman.topology.VirtualTopologyActor._
-import org.midonet.midolman.topology.devices.{BridgePort, Port => SimulationPort}
+import org.midonet.midolman.topology.devices.{Port => SimulationPort, PoolHealthMonitorMap, BridgePort}
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.{AwaitableActor, MessageAccumulator}
 import org.midonet.sdn.flows.FlowTagger
@@ -572,6 +573,31 @@ class VirtualTopologyRedirectorTest extends MidolmanSpec with TopologyBuilder
 
             expectLast({
                 case device: Pool => device shouldBeDeviceOf proto
+            })
+        }
+
+        scenario("Support for pool health monitor map") {
+            val hm = createHealthMonitor()
+            val lb = createLoadBalancer()
+            val pool = createPool(healthMonitorId = Some(hm.getId),
+                                  loadBalancerId = Some(lb.getId))
+            backend.store.create(hm)
+            backend.store.create(lb)
+            backend.store.create(pool)
+
+            VirtualTopologyActor ! PoolHealthMonitorMapRequest(update = true)
+            sender await timeout
+            sender await timeout
+
+            expectLast({
+                case device: PoolHealthMonitorMap =>
+                    device.mappings.size shouldBe 1
+                    device.mappings.contains(fromProto(pool.getId)) shouldBe true
+                    val phm = device.mappings.values.head
+                    phm.loadBalancer shouldBeDeviceOf lb
+                    phm.healthMonitor shouldBeDeviceOf hm
+                    phm.poolMembers.isEmpty shouldBe true
+                    phm.vips.isEmpty shouldBe true
             })
         }
     }
