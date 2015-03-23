@@ -1,0 +1,11 @@
+#!/bin/sh
+
+# MidoNet
+
+case "$1" in
+    remove)
+        if initctl status midonet-brain | grep running > /dev/null ; then
+            initctl stop midonet-brain 2>/dev/null >/dev/null
+        fi
+        ;;
+esac
