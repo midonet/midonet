@@ -1,0 +1,9 @@
+#!/bin/sh
+
+NAME="midonet-brain"
+DATADIR=/var/lib/midonet-brain
+POST_DIR=/var/lib/dpkg/info
+
+install -d /var/log/$NAME $DATADIR
+
+test -e /etc/init.d/midonet-brain || ln -s /lib/init/upstart-job /etc/init.d/midonet-brain
