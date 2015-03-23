@@ -1,0 +1,11 @@
+Package: midonet-brain
+Version: [[version]]
+Section: misc
+Priority: optional
+Architecture: all
+Depends: java7-runtime-headless
+Conflicts:
+Recommends: java7-jdk
+Maintainer: MidoNet <midonet-user@midonet.org>
+Description: Midonet-Brain is MidoNet controller cluster
+Distribution: development
