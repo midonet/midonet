@@ -712,7 +712,8 @@ final class BridgeMapper(bridgeId: UUID, implicit val vt: VirtualTopology)
             oldRouterMacPortMap,
             routerIpToMacMap.toMap,
             vlanPortMap,
-            exteriorPorts.toList)
+            exteriorPorts.toList,
+            vt.flowInvalidator)
 
         log.debug("Bridge ready: {}", device)
 

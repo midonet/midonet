@@ -28,6 +28,7 @@ import com.typesafe.scalalogging.Logger
 
 import org.midonet.cluster.Client
 import org.midonet.cluster.client._
+import org.midonet.midolman.flows.FlowInvalidator
 import org.midonet.midolman.topology.VirtualTopologyActor.InvalidateFlowsByTag
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.simulation.Bridge
@@ -111,7 +112,7 @@ class MacLearningManager(log: Logger, ttlMillis: Duration) {
         map.obliterateIdleEntries(currentTime, (), reducer)
 }
 
-class BridgeManager(id: UUID, val clusterClient: Client,
+class BridgeManager(id: UUID, val clusterClient: Client, flowInvalidator: FlowInvalidator,
                     val config: MidolmanConfig) extends DeviceWithChains {
     import context.system
 
@@ -146,7 +147,7 @@ import org.midonet.midolman.topology.BridgeManager._
             if (config.getMidolmanBridgeArpEnabled) ip4MacMap else null,
             flowCounts, Option(cfg.inboundFilter), Option(cfg.outboundFilter),
             vlanBridgePeerPortId, exteriorVxlanPortIds, flowRemovedCallback,
-            macToLogicalPortId, rtrIpToMac, vlanToPort, exteriorPorts)
+            macToLogicalPortId, rtrIpToMac, vlanToPort, exteriorPorts, flowInvalidator)
 
         VirtualTopologyActor ! bridge
         if (changed) {

@@ -20,12 +20,6 @@ package org.midonet.packets;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
-/**
- * TODO (galo) At the moment this just supports IEEE 802.1d, do we need to take
- * care of DEC BPDU?
- *
- * http://www.cisco.com/en/US/tech/tk870/tk136/tk885/technologies_tech_note09186a0080093cc6.shtml
- */
 public class BPDU extends BasePacket {
 
     public final static short ETHERTYPE = 0x0100;
@@ -33,9 +27,11 @@ public class BPDU extends BasePacket {
     public final static short HW_TYPE_ETHERNET = 0x1;
 
     public final static short PROTO_802_1D = 0;
+    public final static byte DEC_CODE = (byte) 0xE1;
 
     // IEEE 802.1D-2004
     public final static int FRAME_SIZE = 35; // bytes
+    public final static int DEC_FRAME_SIZE = 27; // bytes
 
     // TODO (galo) - look up those values
     public final static byte MESSAGE_TYPE_CONFIGURATION = 0;
@@ -43,6 +39,9 @@ public class BPDU extends BasePacket {
 
     public final static byte FLAG_MASK_802_1D_TOPOLOGY_CHANGE = (byte)0x80;
     public final static byte FLAG_MASK_802_1D_TOPOLOGY_CHANGE_ACK = (byte)0x01;
+
+    public final static byte FLAG_MASK_DEC_TOPOLOGY_CHANGE = (byte)0x80;
+    public final static byte FLAG_MASK_DEC_1D_TOPOLOGY_CHANGE_ACK = (byte)0x01;
 
     private short protocolId;
     private byte versionId;
@@ -56,6 +55,9 @@ public class BPDU extends BasePacket {
     private short maxAge; // in 1/256 secs
     private short helloTime; // in 1/256 secs
     private short fwdDelay; // in 1/256 secs
+
+    private byte topologyChangeMask;
+    private byte topologyChangeAckMask;
 
     public short getProtocolId() {
         return protocolId;
@@ -192,23 +194,17 @@ public class BPDU extends BasePacket {
     /**
      * Examines flags and determines whether the "topology change notice" field
      * is set to one.
-     *
-     * TODO (galo) these change in DEC BPDU
-     * @return
      */
     public boolean hasTopologyChangeNotice() {
-        return (flags & BPDU.FLAG_MASK_802_1D_TOPOLOGY_CHANGE) != 0;
+        return (flags & topologyChangeMask) != 0;
     }
 
     /**
      * Examines flags and determines whether the "topology change notice ack"
      * field is set to one.
-     *
-     * TODO (galo) these change in DEC BPDU
-     * @return
      */
     public boolean hasTopologyChangeNoticeAck() {
-        return (flags & BPDU.FLAG_MASK_802_1D_TOPOLOGY_CHANGE_ACK) != 0;
+        return (flags & topologyChangeAckMask) != 0;
     }
 
     @Override
@@ -284,18 +280,22 @@ public class BPDU extends BasePacket {
 
     @Override
     public IPacket deserialize(ByteBuffer bb) throws MalformedPacketException {
-        if (bb.remaining() < BPDU.FRAME_SIZE) {
-            throw new MalformedPacketException(
-                "BPDU only supports protocol IEEE 802.1d is supported");
+        try {
+            byte type = bb.get();
+            if (type == DEC_CODE)
+                return deserializeDec(bb);
+            if (type == 0 && bb.get() == 0)
+                return deserialize8021d(bb);
+        } catch (Exception e) {
+            throw new MalformedPacketException("Malformed BPDU packet", e);
         }
+        throw new MalformedPacketException("Unknown BPDU packet type");
+    }
 
-        protocolId = bb.getShort();
-
-        if (protocolId != BPDU.PROTO_802_1D) {
-            throw new MalformedPacketException(
-                "BPDU only supports protocol IEEE 802.1d is supported");
-        }
-
+    private IPacket deserialize8021d(ByteBuffer bb) {
+        protocolId = 0;
+        topologyChangeMask = FLAG_MASK_802_1D_TOPOLOGY_CHANGE;
+        topologyChangeAckMask = FLAG_MASK_802_1D_TOPOLOGY_CHANGE_ACK;
         versionId = bb.get();
         bpduMsgType = bb.get();
         flags = bb.get();
@@ -307,6 +307,24 @@ public class BPDU extends BasePacket {
         maxAge = bb.getShort();
         helloTime = bb.getShort();
         fwdDelay = bb.getShort();
+        return this;
+    }
+
+    private IPacket deserializeDec(ByteBuffer bb) {
+        protocolId = DEC_CODE;
+        topologyChangeMask = FLAG_MASK_DEC_TOPOLOGY_CHANGE;
+        topologyChangeAckMask = FLAG_MASK_DEC_1D_TOPOLOGY_CHANGE_ACK;
+        versionId = bb.get();
+        bpduMsgType = bb.get();
+        flags = bb.get();
+        rootBridgeId = bb.getLong();
+        rootPathCost = bb.getShort();
+        senderBridgeId = bb.getLong();
+        portId = bb.get();
+        msgAge = bb.get();
+        maxAge = bb.get();
+        helloTime = bb.get();
+        fwdDelay = bb.get();
         return this;
     }
 }
