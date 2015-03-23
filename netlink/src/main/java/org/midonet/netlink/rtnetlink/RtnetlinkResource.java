@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,6 @@
  * limitations under the License.
  */
 
-package org.midonet.midolman.cluster;
+package org.midonet.netlink.rtnetlink;
 
-import com.google.inject.PrivateModule;
-import org.midonet.midolman.host.scanner.DefaultInterfaceScanner;
-import org.midonet.midolman.host.scanner.InterfaceScanner;
-
-public class InterfaceScannerModule extends PrivateModule {
-
-    @Override
-    protected void configure() {
-        binder().requireExplicitBindings();
-        bind(InterfaceScanner.class).to(DefaultInterfaceScanner.class);
-        expose(InterfaceScanner.class);
-    }
-}
+public interface RtnetlinkResource {}

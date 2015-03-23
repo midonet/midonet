@@ -19,6 +19,7 @@ import java.lang.{Boolean => JBoolean, Integer => JInteger}
 import java.util.{Set => JSet, UUID}
 
 import scala.collection.JavaConverters._
+import scala.collection.JavaConversions._
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContextExecutor, Future}
 import scala.reflect._
@@ -29,8 +30,8 @@ import com.google.inject.Inject
 import com.typesafe.scalalogging.Logger
 import org.midonet.midolman.flows.FlowInvalidator
 import org.slf4j.LoggerFactory
+import rx.{Observer, Subscription}
 
-import org.midonet.Subscription
 import org.midonet.cluster.data.TunnelZone.{HostConfig => TZHostConfig, Type => TunnelType}
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.DatapathPortEntangler
@@ -142,7 +143,7 @@ object DatapathController extends Referenceable {
      * This message is sent when the separate thread has successfully
      * retrieved all information about the interfaces.
      */
-    case class InterfacesUpdate_(interfaces: JSet[InterfaceDescription])
+    case class InterfacesUpdate_(interfaces: Set[InterfaceDescription])
 
     case class ExistingDatapathPorts_(datapath: Datapath, ports: Set[DpPort])
 
@@ -355,12 +356,13 @@ class DatapathController extends Actor
 
         if (portWatcherEnabled) {
             log.info("Starting to schedule the port link status updates.")
-            portWatcher = interfaceScanner.register(
-                new Callback[JSet[InterfaceDescription]] {
-                    def onSuccess(data: JSet[InterfaceDescription]) {
+            portWatcher = interfaceScanner.subscribe(
+                new Observer[Set[InterfaceDescription]] {
+                    def onCompleted(): Unit = {}
+                    def onError(t: Throwable): Unit = {}
+                    def onNext(data: Set[InterfaceDescription]) {
                       self ! InterfacesUpdate_(data)
                     }
-                    def onError(e: NetlinkException) { /* not called */ }
             })
         }
 
