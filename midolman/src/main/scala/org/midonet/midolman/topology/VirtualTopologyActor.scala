@@ -31,14 +31,12 @@ import org.midonet.sdn.flows.FlowTagger.FlowTag
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.Client
-import org.midonet.cluster.data.l4lb.{Pool => PoolConfig}
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.l4lb.PoolHealthMonitorMapManager
 import org.midonet.midolman.NotYetException
 import org.midonet.midolman.Referenceable
 import org.midonet.midolman.simulation._
-import org.midonet.midolman.l4lb.PoolHealthMonitorMapManager.PoolHealthMonitorMap
-import org.midonet.midolman.topology.devices.{RouterPort, BridgePort, Port}
+import org.midonet.midolman.topology.devices.{PoolHealthMonitorMap, RouterPort, BridgePort, Port}
 import org.midonet.util.concurrent._
 
 /**
@@ -160,7 +158,7 @@ object VirtualTopologyActor extends Referenceable {
 
         protected[VirtualTopologyActor]
         override val managerName = poolHealthMonitorManagerName()
-        override val id = PoolConfig.POOL_HEALTH_MONITOR_MAP_KEY
+        override val id = PoolHealthMonitorMapper.PoolHealthMonitorMapKey
 
         protected[VirtualTopologyActor]
         def managerFactory(client: Client, config: MidolmanConfig) =
@@ -416,7 +414,7 @@ class VirtualTopologyActor extends VirtualTopologyRedirector {
             deviceUpdated(pg.id, pg)
         case PoolHealthMonitorMap(mappings) =>
             log.info("Received PoolHealthMonitorMappings")
-            deviceUpdated(PoolConfig.POOL_HEALTH_MONITOR_MAP_KEY,
+            deviceUpdated(PoolHealthMonitorMapper.PoolHealthMonitorMapKey,
                           PoolHealthMonitorMap(mappings))
         case InvalidateFlowsByTag(tag) =>
             log.debug("Invalidating flows for tag {}", tag)

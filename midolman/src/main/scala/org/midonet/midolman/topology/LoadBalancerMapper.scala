@@ -70,7 +70,9 @@ final class LoadBalancerMapper(lbId: UUID, vt: VirtualTopology)
     private def deviceUpdated(update: Any): SimLB = {
         assertThread()
         val lb = new SimLB(lbId, currentLB.getAdminStateUp,
-                           currentLB.getRouterId.asJava,
+                           if (currentLB.hasRouterId)
+                               currentLB.getRouterId.asJava
+                           else null,
                            vips.values.map(_.vip).toArray)
         log.debug("Load-balancer ready: {}", lb)
         lb
