@@ -34,7 +34,10 @@ enum Type {
     TUNNEL_ZONE = 10;
     VTEP = 11;
     VTEP_BINDING = 12;
-    DHCP=13;
+    DHCP = 13;
+    POOL = 14;
+    POOL_MEMBER = 15;
+    HEALTH_MONITOR = 16;
 }
 
 message Network {
@@ -361,3 +364,17 @@ message PoolMember {
     optional int32 port = 6;
     optional int32 weight = 7;
 }
+
+message HealthMonitor {
+    enum HealthMonitorType { TCP = 1; }
+
+    optional UUID id = 1;
+    optional bool admin_state_up = 2;
+    optional HealthMonitorType type = 3;
+    optional LBStatus status = 4;
+    optional int32 delay = 5;
+    optional int32 timeout = 6;
+    optional int32 maxRetries = 7;
+}
+
+

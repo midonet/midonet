@@ -181,17 +181,20 @@ message Response {
         oneof update {
             Chain chain = 1;
             Dhcp dhcp = 2;
-            Host host = 3;
-            IPAddrGroup ip_addr_group = 4;
-            Network network = 5;
-            Port port = 6;
-            PortGroup port_group = 7;
-            Route route = 8;
-            Router router = 9;
-            Rule rule = 10;
-            TunnelZone tunnel_zone = 11;
-            Vtep vtep = 12;
-            VtepBinding vtep_binding = 13;
+            HealthMonitor health_monitor = 3;
+            Host host = 4;
+            IPAddrGroup ip_addr_group = 5;
+            Network network = 6;
+            Pool pool = 7;
+            PoolMember pool_member = 8;
+            Port port = 9;
+            PortGroup port_group = 10;
+            Route route = 11;
+            Router router = 12;
+            Rule rule = 13;
+            TunnelZone tunnel_zone = 14;
+            Vtep vtep = 15;
+            VtepBinding vtep_binding = 16;
         }
     }
     message Snapshot {
