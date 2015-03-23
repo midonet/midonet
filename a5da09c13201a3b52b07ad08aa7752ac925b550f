@@ -48,6 +48,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_2f3c6493",
+        "filename": "cluster/src/main/proto/topology.proto",
+        "patchSetId": 3
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-03-23T14:57:07Z",
+      "side": 1,
+      "message": "On second thoughts, you may ignore the comment: the pool backreference, if needed, seems to belong to the pool mapper patch...",
+      "parentUuid": "1a106d94_4fe9e019",
+      "range": {
+        "startLine": 105,
+        "startChar": 4,
+        "endLine": 107,
+        "endChar": 1
+      },
+      "revId": "a5da09c13201a3b52b07ad08aa7752ac925b550f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a1371a2_809a7912",
         "filename": "midolman/src/main/scala/org/midonet/cluster/services/MidonetBackendService.scala",
         "patchSetId": 3
