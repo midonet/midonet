@@ -226,6 +226,10 @@ allprojects {
             sourceDirs += genDir
             idea.module.iml.withXml { p -> addProtobufFacet(p, genDir) }
         }
+
+        inheritOutputDirs = false
+        outputDir = file("${rootDir}/idea/out/${project.name}")
+        testOutputDir = file("${rootDir}/idea/test/${project.name}")
     }
 }
 
@@ -302,9 +306,6 @@ configure(subprojects.findAll {!it.name.contains('ovsdb')}) {
     idea.module {
         scopes.PROVIDED.plus += [configurations.perfCompile]
         scopes.PROVIDED.plus += [configurations.provided]
-        inheritOutputDirs = false
-        outputDir = file("${rootDir}/idea/out/${project.name}")
-        testOutputDir = file("${rootDir}/idea/test/${project.name}")
     }
 
     // The JMH annotation processor doesn't support Scala (yet?), so
