@@ -19,6 +19,57 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_eca6da52",
+        "filename": "cluster/src/main/scala/org/midonet/conf/LoggerLevelWatcher.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-03-23T14:24:04Z",
+      "side": 1,
+      "message": "extract to method?",
+      "revId": "3b7c15fea92d8df52ae96abbca6660922dd122eb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_2c68f2f4",
+        "filename": "cluster/src/main/scala/org/midonet/conf/LoggerLevelWatcher.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-03-23T14:24:04Z",
+      "side": 1,
+      "message": "style: I assume the 2nd argument is the default, right? it would read better with named arguments, like default \u003d Level.INFO",
+      "revId": "3b7c15fea92d8df52ae96abbca6660922dd122eb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_8c6da607",
+        "filename": "cluster/src/main/scala/org/midonet/conf/LoggerLevelWatcher.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-03-23T14:24:04Z",
+      "side": 1,
+      "message": "case ignored: ...",
+      "revId": "3b7c15fea92d8df52ae96abbca6660922dd122eb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_fd196723",
         "filename": "midolman/src/main/java/org/midonet/midolman/Midolman.java",
         "patchSetId": 3
