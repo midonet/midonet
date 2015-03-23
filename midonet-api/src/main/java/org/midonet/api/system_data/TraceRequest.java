@@ -35,6 +35,9 @@ public class TraceRequest extends UriResource {
     private UUID id;
 
     @NotNull
+    private String name;
+
+    @NotNull
     private DeviceType deviceType;
 
     @NotNull
@@ -47,15 +50,11 @@ public class TraceRequest extends UriResource {
         super();
     }
 
-    public TraceRequest(UUID id, DeviceType deviceType,
-                        UUID deviceId) {
-        this(id, deviceType, deviceId, new Condition());
-    }
-
-    public TraceRequest(UUID id, DeviceType deviceType,
+    public TraceRequest(UUID id, String name, DeviceType deviceType,
                         UUID deviceId, Condition condition) {
         super();
         this.id = id;
+        this.name = name;
         this.deviceType = deviceType;
         this.deviceId = deviceId;
         this.condition = condition;
@@ -64,6 +63,7 @@ public class TraceRequest extends UriResource {
     public TraceRequest(org.midonet.cluster.data.TraceRequest traceRequest) {
         super();
         this.id = traceRequest.getId();
+        this.name = traceRequest.getName();
         this.deviceType = traceRequest.getDeviceType();
         this.deviceId = traceRequest.getDeviceId();
         this.condition = new Condition();
@@ -76,6 +76,14 @@ public class TraceRequest extends UriResource {
 
     public UUID getId() {
         return id;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getName() {
+        return name;
     }
 
     public void setDeviceType(DeviceType deviceType) {
@@ -106,6 +114,7 @@ public class TraceRequest extends UriResource {
         org.midonet.midolman.rules.Condition c = condition.makeCondition();
         return new org.midonet.cluster.data.TraceRequest()
             .setId(id)
+            .setName(name)
             .setDeviceType(deviceType)
             .setDeviceId(deviceId)
             .setCondition(c);

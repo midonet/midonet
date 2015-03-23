@@ -55,6 +55,7 @@ class TraceRequestTest extends MidolmanSpec {
         clusterDataClient.bridgesCreate(bridge)
 
         val written = new TraceRequest()
+            .setName("foobar")
             .setDeviceType(TraceRequest.DeviceType.BRIDGE)
             .setDeviceId(bridge.getId)
             .setCondition(newCondition(tpDst = Some(500)))
@@ -91,12 +92,15 @@ class TraceRequestTest extends MidolmanSpec {
 
         And("a trace on each device")
         val trace1 = new TraceRequest()
+            .setName("foobar1")
             .setDeviceType(TraceRequest.DeviceType.BRIDGE)
             .setDeviceId(bridge.getId).setCondition(newCondition())
         val trace2 = new TraceRequest()
+            .setName("foobar2")
             .setDeviceType(TraceRequest.DeviceType.PORT)
             .setDeviceId(portId).setCondition(newCondition())
         val trace3 = new TraceRequest()
+            .setName("foobar3")
             .setDeviceType(TraceRequest.DeviceType.ROUTER)
             .setDeviceId(router.getId).setCondition(newCondition())
         clusterDataClient.traceRequestCreate(trace1)
@@ -128,7 +132,7 @@ class TraceRequestTest extends MidolmanSpec {
         val port = new BridgePort().setDeviceId(bridge.getId)
         val portId = clusterDataClient.portsCreate(port)
 
-                val router = new Router().setName("router0")
+        val router = new Router().setName("router0")
         clusterDataClient.routersCreate(router)
 
         val port2 = new RouterPort().setDeviceId(router.getId)
@@ -138,6 +142,7 @@ class TraceRequestTest extends MidolmanSpec {
 
         val createTrace = (dtype: TraceRequest.DeviceType, id: UUID) => {
             val trace = new TraceRequest()
+            .setName("foobar-"+id)
             .setDeviceType(dtype)
             .setDeviceId(id).setCondition(newCondition())
             clusterDataClient.traceRequestCreate(trace)
@@ -192,6 +197,7 @@ class TraceRequestTest extends MidolmanSpec {
                                   dataClient.bridgesDelete(bridge.getId) })
 
         val trace = new TraceRequest()
+            .setName("foobar")
             .setDeviceType(TraceRequest.DeviceType.BRIDGE)
             .setDeviceId(bridge.getId).setCondition(newCondition())
         intercept[StateAccessException] {
@@ -213,6 +219,7 @@ class TraceRequestTest extends MidolmanSpec {
         port1.getInboundFilter should be (null)
 
         val trace1 = new TraceRequest()
+            .setName("foobar")
             .setDeviceType(TraceRequest.DeviceType.PORT)
             .setDeviceId(portId)
             .setCondition(newCondition(tpSrc = Some(5000)))
@@ -280,6 +287,7 @@ class TraceRequestTest extends MidolmanSpec {
         clusterDataClient.bridgesCreate(bridge)
 
         val trace1 = new TraceRequest()
+            .setName("foobar")
             .setDeviceType(TraceRequest.DeviceType.BRIDGE)
             .setDeviceId(bridge.getId)
             .setCondition(newCondition(tpSrc = Some(5000)))
@@ -307,6 +315,7 @@ class TraceRequestTest extends MidolmanSpec {
         clusterDataClient.rulesFindByChain(chain.getId).size() should be (1)
 
         val trace1 = new TraceRequest()
+            .setName("foobar")
             .setDeviceType(TraceRequest.DeviceType.BRIDGE)
             .setDeviceId(bridge.getId)
             .setCondition(newCondition(tpSrc = Some(5000)))
@@ -362,6 +371,7 @@ class TraceRequestTest extends MidolmanSpec {
         clusterDataClient.rulesFindByChain(chain.getId).size() should be (1)
 
         val trace1 = new TraceRequest()
+            .setName("foobar")
             .setDeviceType(TraceRequest.DeviceType.BRIDGE)
             .setDeviceId(bridge.getId)
             .setCondition(newCondition(tpSrc = Some(5000)))
@@ -388,6 +398,7 @@ class TraceRequestTest extends MidolmanSpec {
         clusterDataClient.bridgesCreate(bridge)
 
         val trace1 = new TraceRequest()
+            .setName("foobar")
             .setDeviceType(TraceRequest.DeviceType.BRIDGE)
             .setDeviceId(bridge.getId)
             .setCondition(newCondition(tpSrc = Some(5000)))
@@ -411,6 +422,7 @@ class TraceRequestTest extends MidolmanSpec {
         clusterDataClient.bridgesCreate(bridge)
 
         val trace1 = new TraceRequest()
+            .setName("foobar")
             .setDeviceType(TraceRequest.DeviceType.BRIDGE)
             .setDeviceId(bridge.getId)
             .setCondition(newCondition(tpSrc = Some(5000)))

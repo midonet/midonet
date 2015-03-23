@@ -766,6 +766,7 @@ public class Converter {
     public static TraceRequest fromTraceRequestConfig(
             TraceRequestConfig traceRequestConfig) {
         return new TraceRequest()
+            .setName(traceRequestConfig.name)
             .setDeviceType(traceRequestConfig.deviceType)
             .setDeviceId(traceRequestConfig.deviceId)
             .setCondition(traceRequestConfig.condition)
@@ -775,6 +776,7 @@ public class Converter {
     public static TraceRequestConfig toTraceRequestConfig(
             TraceRequest traceRequest) {
         TraceRequestConfig config = new TraceRequestConfig();
+        config.name = traceRequest.getName();
         config.deviceType = traceRequest.getDeviceType();
         config.deviceId = traceRequest.getDeviceId();
         config.condition = traceRequest.getCondition();

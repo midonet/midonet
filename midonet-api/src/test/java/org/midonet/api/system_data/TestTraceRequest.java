@@ -115,8 +115,9 @@ public class TestTraceRequest extends JerseyTest {
     @Test(timeout=60000)
     public void testCRD() throws StateAccessException {
 
-        TraceRequest request = new TraceRequest(UUID.randomUUID(),
-                DeviceType.PORT, topology.getRouterPort(PORT0).getId());
+        TraceRequest request = new TraceRequest(UUID.randomUUID(), "foobar",
+                DeviceType.PORT, topology.getRouterPort(PORT0).getId(),
+                new Condition());
         ClientResponse response = traceResource.post(ClientResponse.class,
                                                      request);
         assertThat("Create should have succeeded",
@@ -135,8 +136,9 @@ public class TestTraceRequest extends JerseyTest {
                 request.toData().equals(readRequest.toData()));
 
         // create a second
-        TraceRequest request2 = new TraceRequest(UUID.randomUUID(),
-                DeviceType.BRIDGE, topology.getBridge(BRIDGE0).getId());
+        TraceRequest request2 = new TraceRequest(UUID.randomUUID(), "foobar2",
+                DeviceType.BRIDGE, topology.getBridge(BRIDGE0).getId(),
+                new Condition());
         ClientResponse response2 = traceResource.post(ClientResponse.class,
                                                       request2);
         assertThat("Create should have succeeded",
@@ -167,8 +169,9 @@ public class TestTraceRequest extends JerseyTest {
      */
     @Test(timeout=60000)
     public void testDoubleCreate() throws StateAccessException {
-        TraceRequest request = new TraceRequest(UUID.randomUUID(),
-                DeviceType.PORT, topology.getRouterPort(PORT0).getId());
+        TraceRequest request = new TraceRequest(UUID.randomUUID(), "foobar",
+                DeviceType.PORT, topology.getRouterPort(PORT0).getId(),
+                new Condition());
         ClientResponse response = traceResource.post(ClientResponse.class,
                                                      request);
         assertThat("Create should have succeeded",
@@ -191,10 +194,12 @@ public class TestTraceRequest extends JerseyTest {
     @Test(timeout=60000)
     public void testTenantLimitations() throws StateAccessException {
         // create two traces, the tenant owns the port but not the bridge
-        TraceRequest portTrace = new TraceRequest(UUID.randomUUID(),
-                DeviceType.PORT, topology.getRouterPort(PORT0).getId());
+        TraceRequest portTrace = new TraceRequest(UUID.randomUUID(), "foobar",
+                DeviceType.PORT, topology.getRouterPort(PORT0).getId(),
+                new Condition());
         TraceRequest bridgeTrace = new TraceRequest(UUID.randomUUID(),
-                DeviceType.BRIDGE, topology.getBridge(BRIDGE0).getId());
+                "foobar2", DeviceType.BRIDGE,
+                topology.getBridge(BRIDGE0).getId(), new Condition());
         ClientResponse response = traceResource
             .header(HEADER_X_AUTH_TOKEN, ADMIN0)
             .post(ClientResponse.class, portTrace);
@@ -246,10 +251,14 @@ public class TestTraceRequest extends JerseyTest {
         assertThat("Only one race requests is listed", traces.size(), equalTo(1));
 
         // tenant can create trace on router, but not bridge
-        TraceRequest bridgeTrace2 = new TraceRequest(UUID.randomUUID(),
-                DeviceType.BRIDGE, topology.getBridge(BRIDGE0).getId());
-        TraceRequest portTrace2 = new TraceRequest(UUID.randomUUID(),
-                DeviceType.PORT, topology.getRouterPort(PORT0).getId());
+        TraceRequest bridgeTrace2 = new TraceRequest(
+                UUID.randomUUID(), "foobar2",
+                DeviceType.BRIDGE, topology.getBridge(BRIDGE0).getId(),
+                new Condition());
+        TraceRequest portTrace2 = new TraceRequest(
+                UUID.randomUUID(), "foobar3",
+                DeviceType.PORT, topology.getRouterPort(PORT0).getId(),
+                new Condition());
 
         response = traceResource
             .header(HEADER_X_AUTH_TOKEN, TENANT0)
@@ -278,7 +287,8 @@ public class TestTraceRequest extends JerseyTest {
         condition.setNwDstAddress("10.0.0.1");
         condition.setNwSrcAddress("10.0.0.2");
 
-        TraceRequest portTrace = new TraceRequest(UUID.randomUUID(),
+        TraceRequest portTrace = new TraceRequest(
+                UUID.randomUUID(), "foobar",
                 DeviceType.PORT, topology.getRouterPort(PORT0).getId(),
                 condition);
         ClientResponse response = traceResource
@@ -302,8 +312,9 @@ public class TestTraceRequest extends JerseyTest {
 
     @Test(timeout=60000)
     public void testCreateWithNonExistantDevice() throws StateAccessException {
-        TraceRequest portTrace = new TraceRequest(UUID.randomUUID(),
-                DeviceType.BRIDGE, UUID.randomUUID());
+        TraceRequest portTrace = new TraceRequest(
+                UUID.randomUUID(), "foobar",
+                DeviceType.BRIDGE, UUID.randomUUID(), new Condition());
         ClientResponse response = traceResource
             .post(ClientResponse.class, portTrace);
         assertThat("Create should have failed",
@@ -313,8 +324,10 @@ public class TestTraceRequest extends JerseyTest {
 
     @Test(timeout=60000)
     public void testCreateWithWrongType() throws StateAccessException {
-        TraceRequest portTrace = new TraceRequest(UUID.randomUUID(),
-                DeviceType.BRIDGE, topology.getRouterPort(PORT0).getId());
+        TraceRequest portTrace = new TraceRequest(
+                UUID.randomUUID(), "foobar",
+                DeviceType.BRIDGE, topology.getRouterPort(PORT0).getId(),
+                new Condition());
         ClientResponse response = traceResource
             .post(ClientResponse.class, portTrace);
         assertThat("Create should have failed",
