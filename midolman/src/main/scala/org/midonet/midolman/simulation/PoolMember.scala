@@ -16,7 +16,7 @@
 
 package org.midonet.midolman.simulation
 
-import java.util.{Objects, UUID}
+import java.util.UUID
 
 import org.midonet.cluster.data.ZoomConvert.ScalaZoomField
 import org.midonet.cluster.data.ZoomObject
@@ -52,6 +52,10 @@ final class PoolMember(@ScalaZoomField(name = "id",
 
     def this() = this(null, false, LBStatus.INACTIVE, null, 0, 0)
 
+    // NOTE: as natTargets is determined from constructor params, it
+    // is excluded from equals comparator
+    // TODO: natTargets equals throws npe if any of the fields is null
+    // Is that the expected behaviour?
     private val natTargets = Array(new NatTarget(address, address,
                                                  protocolPort, protocolPort))
 
@@ -77,7 +81,5 @@ final class PoolMember(@ScalaZoomField(name = "id",
         case _ => false
     }
 
-    override def hashCode =
-        Objects.hash(id, Boolean.box(adminStateUp), status, address,
-                     Int.box(protocolPort), Int.box(weight))
+    override def hashCode: Int = id.hashCode()
 }

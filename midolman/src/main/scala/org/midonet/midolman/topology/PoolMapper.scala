@@ -215,6 +215,9 @@ final class PoolMapper(poolId: UUID, vt: VirtualTopology)
             pool.getId,
             pool.getAdminStateUp,
             PoolLBMethod.fromProto(pool.getLbMethod),
+            if (pool.hasHealthMonitorId) pool.getHealthMonitorId else null,
+            if (pool.hasLoadBalancerId) pool.getLoadBalancerId else null,
+            members.toArray,
             activePoolMembers,
             disabledPoolMembers)
     }
