@@ -335,3 +335,25 @@ message Host {
     // Backreference. Expected to be set from the Tunnel Zone side.
     repeated UUID tunnel_zone_ids = 101;
 }
+
+message HealthMonitor {
+    enum HealthMonitorType { TCP = 1; }
+
+    optional UUID id = 1;
+    optional bool admin_state_up = 2;
+    optional HealthMonitorType type = 3;
+    optional LBStatus status = 4;
+    optional int32 delay = 5;
+    optional int32 timeout = 6;
+    optional int32 maxRetries = 7;
+}
+
+message PoolHealthMonitor {
+    optional UUID id = 1;
+    optional UUID health_monitor_id = 3;
+    optional UUID load_balancer_id = 2;
+    repeated UUID vip_ids = 4;
+    repeated UUID pool_member_ids = 5;
+}
+
+
