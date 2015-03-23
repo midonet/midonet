@@ -16,6 +16,9 @@
 
 package org.midonet.midolman.rules;
 
+import java.util.Objects;
+
+
 import org.midonet.packets.IPv4Addr;
 
 import org.codehaus.jackson.annotate.JsonCreator;
@@ -62,8 +65,10 @@ public class NatTarget {
             return false;
 
         NatTarget nt = (NatTarget) other;
-        return nwStart.equals(nt.nwStart) && nwEnd.equals(nt.nwEnd) &&
-               tpStart == nt.tpStart && tpEnd == nt.tpEnd;
+        return Objects.equals(nwStart, nt.nwStart) &&
+               Objects.equals(nwEnd, nt.nwEnd) &&
+               Objects.equals(tpStart, nt.tpStart) &&
+               Objects.equals(tpEnd, nt.tpEnd);
     }
 
     @Override

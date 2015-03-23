@@ -61,6 +61,7 @@ object SessionInventory {
         val u: Update = m match {
             case h: Chain => Update.newBuilder().setChain(h).build()
             case h: Dhcp => Update.newBuilder().setDhcp(h).build()
+            case h: HealthMonitor => Update.newBuilder().setHealthMonitor(h).build()
             case h: Host => Update.newBuilder().setHost(h).build()
             case h: IPAddrGroup => Update.newBuilder().setIpAddrGroup(h).build()
             case h: Network => Update.newBuilder().setNetwork(h).build()
