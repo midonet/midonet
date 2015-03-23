@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,10 +20,15 @@ import com.google.inject.Inject;
 import com.google.inject.PrivateModule;
 import com.google.inject.Provider;
 import com.google.inject.Scopes;
+import com.google.inject.name.Named;
 
 import org.midonet.cluster.Client;
+import org.midonet.cluster.backend.cassandra.CassandraClient;
+import org.midonet.midolman.cluster.zookeeper.ZkConnectionProvider;
 import org.midonet.midolman.config.MidolmanConfig;
 import org.midonet.midolman.flows.FlowInvalidator;
+import org.midonet.midolman.logging.FlowTracingAppender;
+import org.midonet.midolman.logging.FlowTracingSchema$;
 import org.midonet.midolman.services.DatapathConnectionService;
 import org.midonet.midolman.services.MidolmanActorsService;
 import org.midonet.midolman.services.MidolmanService;
@@ -32,6 +37,7 @@ import org.midonet.midolman.simulation.Chain;
 import org.midonet.midolman.state.NatBlockAllocator;
 import org.midonet.midolman.state.ZkNatBlockAllocator;
 import org.midonet.midolman.topology.VirtualTopology;
+import org.midonet.util.eventloop.Reactor;
 
 /**
  * Main midolman configuration module
@@ -77,11 +83,38 @@ public class MidolmanModule extends PrivateModule {
         expose(FlowInvalidator.class);
 
         bindAllocator();
+
+        bind(FlowTracingAppender.class)
+            .toProvider(FlowTracingAppenderProvider.class)
+            .asEagerSingleton();
+        expose(FlowTracingAppender.class);
     }
 
     protected void bindAllocator() {
         bind(NatBlockAllocator.class).to(ZkNatBlockAllocator.class)
             .in(Scopes.SINGLETON);
         expose(NatBlockAllocator.class);
+    }
+
+    private static class FlowTracingAppenderProvider
+        implements Provider<FlowTracingAppender> {
+        @Inject
+        MidolmanConfig config;
+
+        @Inject
+        @Named(ZkConnectionProvider.DIRECTORY_REACTOR_TAG)
+        Reactor reactor;
+
+        @Override
+        public FlowTracingAppender get() {
+            CassandraClient cass = new CassandraClient(
+                    config.cassandra().servers(), config.cassandra().cluster(),
+                    FlowTracingSchema$.MODULE$.KEYSPACE_NAME(),
+                    config.cassandra().replication_factor(),
+                    FlowTracingSchema$.MODULE$.SCHEMA(), reactor);
+            cass.connect();
+
+            return new FlowTracingAppender(cass);
+        }
     }
 }

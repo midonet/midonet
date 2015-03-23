@@ -292,14 +292,16 @@ task manpages() {
 
 // run cassandra tests in series. Otherwise they interfere with each other
 task testCassandra(type:Test, dependsOn: testClasses) {
-    include 'org/midonet/midolman/logging/FlowTracingSchemaTest.class',
+    include 'org/midonet/midolman/logging/FlowTracingAppenderTest.class',
+            'org/midonet/midolman/logging/FlowTracingSchemaTest.class',
             'org/midonet/midolman/state/FlowStateStorageTest.class'
     outputs.upToDateWhen { false }
 }
 
 test {
     dependsOn testCassandra
-    exclude 'org/midonet/midolman/logging/FlowTracingSchemaTest.class',
+    exclude 'org/midonet/midolman/logging/FlowTracingAppenderTest.class',
+            'org/midonet/midolman/logging/FlowTracingSchemaTest.class',
             'org/midonet/midolman/state/FlowStateStorageTest.class'
     reports.html.enabled = false
 }
