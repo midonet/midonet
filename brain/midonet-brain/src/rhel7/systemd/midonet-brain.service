@@ -1,0 +1,15 @@
+[Unit]
+Description=MidoNet controller node
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/share/midonet-brain/midonet-brain-start
+# JVM exits with 143 when killed by SIGTERM, which is
+# considered successful termination
+SuccessExitStatus=143
+KillMode=process
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
