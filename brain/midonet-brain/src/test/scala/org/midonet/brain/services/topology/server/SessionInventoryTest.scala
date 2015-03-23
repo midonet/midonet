@@ -20,6 +20,7 @@ import java.util.concurrent.TimeUnit
 import java.util.UUID
 
 import com.google.protobuf.Message
+import org.midonet.cluster.models.Topology
 
 import scala.collection.JavaConversions._
 import scala.concurrent.duration.Duration
@@ -91,21 +92,14 @@ class SessionInventoryTest extends FeatureSpec
 
     feature("responses can handle payload for all defined types") {
         scenario("generate updates") {
-            val testObjects: Set[Message] = Set(
-                Chain.getDefaultInstance,
-                Host.getDefaultInstance,
-                IPAddrGroup.getDefaultInstance,
-                Network.getDefaultInstance,
-                Port.getDefaultInstance,
-                PortGroup.getDefaultInstance,
-                Route.getDefaultInstance,
-                Router.getDefaultInstance,
-                Rule.getDefaultInstance,
-                TunnelZone.getDefaultInstance,
-                Vtep.getDefaultInstance,
-                VtepBinding.getDefaultInstance,
-                Dhcp.getDefaultInstance
-            )
+            val topologyClasses = classOf[Topology].getClasses.toSet[Class[_]]
+                .filterNot(_.getSimpleName.matches("(.*)OrBuilder"))
+                .filterNot(_.getSimpleName == "Type")
+            val testObjects: Set[Message] = topologyClasses.map(
+                _.getDeclaredMethod("getDefaultInstance")
+                    .invoke(null)
+                    .asInstanceOf[Message])
+
             testObjects.size shouldBe Type.values().size
 
             var testTypes: Set[Type] = Set()

@@ -195,7 +195,8 @@ class VirtualTopology @Inject() (val backend: MidonetBackend,
         classTag[Bridge] -> (new BridgeMapper(_, this)(actorsService.system)),
         classTag[Chain] -> (new ChainMapper(_, this)),
         classTag[IPAddrGroup] -> (new IPAddrGroupMapper(_, this)),
-        classTag[PortGroup] -> (new PortGroupMapper(_, this))
+        classTag[PortGroup] -> (new PortGroupMapper(_, this)),
+        classTag[PoolHealthMonitorMap] -> (id => new PoolHealthMonitorMapper(this))
     )
 
     register(this)
