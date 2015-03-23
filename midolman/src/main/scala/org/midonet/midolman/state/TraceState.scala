@@ -21,6 +21,7 @@ import java.util.{ArrayList, Collections, List, Objects, UUID}
 import org.slf4j.{LoggerFactory,MDC}
 import scala.collection.JavaConverters._
 
+import org.midonet.midolman.logging.FlowTracingContext
 import org.midonet.midolman.simulation.PacketContext
 import org.midonet.midolman.state.FlowState.FlowStateKey
 import org.midonet.odp.FlowMatch
@@ -33,7 +34,6 @@ object TraceState {
     val log = LoggerFactory.getLogger(classOf[TraceState])
 
     val TraceTunnelKeyMask = 0x80000
-    val TraceLoggingContextKey = "traceIds"
 
     def traceBitPresent(tunnelId: Long): Boolean = {
         (tunnelId & TraceTunnelKeyMask) != 0
@@ -130,8 +130,8 @@ trait TraceState extends FlowState { this: PacketContext =>
     }
 
     def enableTracing(traceRequestId: UUID): Unit = {
+        val key = TraceKey.fromFlowMatch(origMatch)
         if (!traceContext.enabled) {
-            val key = TraceKey.fromFlowMatch(origMatch)
             val storedCtx = traceTx.get(key)
             if (storedCtx == null) {
                 traceContext.enable()
@@ -142,7 +142,8 @@ trait TraceState extends FlowState { this: PacketContext =>
         }
         traceContext.addRequest(traceRequestId)
         log = PacketContext.traceLog
-        MDC.put(TraceLoggingContextKey, tracingContext)
+        FlowTracingContext.updateContext(traceContext.requests,
+                                         traceContext.flowTraceId, key)
     }
 
     def traceFlowId(): UUID =
@@ -186,7 +187,8 @@ trait TraceState extends FlowState { this: PacketContext =>
         } else {
             traceContext.reset(storedContext)
         }
-        MDC.put(TraceLoggingContextKey, tracingContext)
+        FlowTracingContext.updateContext(traceContext.requests,
+                                         traceContext.flowTraceId, key)
 
         stripTraceBit(wcmatch)
     }
