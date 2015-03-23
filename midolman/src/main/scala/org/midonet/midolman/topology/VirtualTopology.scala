@@ -185,18 +185,19 @@ class VirtualTopology @Inject() (val backend: MidonetBackend,
         new ConcurrentHashMap[UUID, Observable[_]]()
 
     private val factories = Map[ClassTag[_], DeviceFactory](
-        classTag[Port] -> (new PortMapper(_, this)),
-        classTag[RouterPort] -> (new PortMapper(_, this)),
-        classTag[BridgePort] -> (new PortMapper(_, this)),
-        classTag[VxLanPort] -> (new PortMapper(_, this)),
-        classTag[TunnelZone] -> (new TunnelZoneMapper(_, this)),
-        classTag[Host] -> (new HostMapper(_, this)),
         classTag[Bridge] -> (new BridgeMapper(_, this)(actorsService.system)),
+        classTag[BridgePort] -> (new PortMapper(_, this)),
         classTag[Chain] -> (new ChainMapper(_, this)),
+        classTag[Host] -> (new HostMapper(_, this)),
         classTag[IPAddrGroup] -> (new IPAddrGroupMapper(_, this)),
-        classTag[PortGroup] -> (new PortGroupMapper(_, this)),
         classTag[LoadBalancer] -> (new LoadBalancerMapper(_, this)),
-        classTag[Pool] -> (new PoolMapper(_, this))
+        classTag[Pool] -> (new PoolMapper(_, this)),
+        classTag[PoolHealthMonitorMap] -> (id => new PoolHealthMonitorMapper(this)),
+        classTag[Port] -> (new PortMapper(_, this)),
+        classTag[PortGroup] -> (new PortGroupMapper(_, this)),
+        classTag[RouterPort] -> (new PortMapper(_, this)),
+        classTag[TunnelZone] -> (new TunnelZoneMapper(_, this)),
+        classTag[VxLanPort] -> (new PortMapper(_, this))
     )
 
     register(this)
