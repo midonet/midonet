@@ -41,6 +41,8 @@ object Pool {
 }
 
 class Pool(val id: UUID, val adminStateUp: Boolean, val lbMethod: PoolLBMethod,
+           val healthMonitorId: UUID,
+           val loadBalancerId: UUID,
            val activePoolMembers: Array[PoolMember],
            val disabledPoolMembers: Array[PoolMember]) extends VirtualDevice {
 

@@ -16,6 +16,7 @@
 
 package org.midonet.cluster.services.topology.common
 
+import com.google.protobuf.Message
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{FeatureSpec, Matchers}
@@ -25,37 +26,14 @@ import org.midonet.cluster.models.Topology
 @RunWith(classOf[JUnitRunner])
 class TopologyMappingsTest extends FeatureSpec with Matchers {
 
-    val types = List(Topology.Type.CHAIN,
-                     Topology.Type.HOST,
-                     Topology.Type.IP_ADDR_GROUP,
-                     Topology.Type.NETWORK,
-                     Topology.Type.PORT,
-                     Topology.Type.PORT_GROUP,
-                     Topology.Type.ROUTE,
-                     Topology.Type.ROUTER,
-                     Topology.Type.LOAD_BALANCER,
-                     Topology.Type.VIRTUAL_IP,
-                     Topology.Type.RULE,
-                     Topology.Type.TUNNEL_ZONE,
-                     Topology.Type.VTEP,
-                     Topology.Type.VTEP_BINDING,
-                     Topology.Type.DHCP)
+    val types: List[Topology.Type] = Topology.Type.values().toList
+        .sortBy({_.name})
 
-    val classes = List(classOf[Topology.Chain],
-                       classOf[Topology.Host],
-                       classOf[Topology.IPAddrGroup],
-                       classOf[Topology.Network],
-                       classOf[Topology.Port],
-                       classOf[Topology.PortGroup],
-                       classOf[Topology.Route],
-                       classOf[Topology.Router],
-                       classOf[Topology.LoadBalancer],
-                       classOf[Topology.VIP],
-                       classOf[Topology.Rule],
-                       classOf[Topology.TunnelZone],
-                       classOf[Topology.Vtep],
-                       classOf[Topology.VtepBinding],
-                       classOf[Topology.Dhcp])
+    val classes: List[Class[_ <: Message]] = classOf[Topology].getClasses.toList
+        .filterNot(_.getSimpleName.matches("(.*)OrBuilder"))
+        .filterNot(_.getSimpleName.matches("Type"))
+        .sortBy({_.getSimpleName})
+        .asInstanceOf[List[Class[_ <: Message]]]
 
     feature("map topology classes to type ids")
     {
@@ -67,12 +45,12 @@ class TopologyMappingsTest extends FeatureSpec with Matchers {
 
         scenario("convert from type to class") {
             types.zip(classes)
-                .forall(x => {TopologyMappings.klassOf(x._1) == Some(x._2)}) should be (true)
+                .forall(x => {TopologyMappings.klassOf(x._1) == Some(x._2)}) shouldBe true
         }
 
         scenario("convert from class to type") {
             classes.zip(types)
-                 .forall(x => {TopologyMappings.typeOf(x._1) == Some(x._2)}) should be (true)
+                 .forall(x => {TopologyMappings.typeOf(x._1) == Some(x._2)}) shouldBe true
         }
     }
 }
