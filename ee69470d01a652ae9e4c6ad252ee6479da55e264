@@ -71,6 +71,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_6fec9cc8",
+        "filename": "midolman/src/man/mn-conf.1.ronn",
+        "patchSetId": 3
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 1002709
+      },
+      "writtenOn": "2015-03-23T15:32:37Z",
+      "side": 1,
+      "message": "L17: \"The configuration for a particular MidoNet node is composed of several different sources\" : the schema is not a source of the configuration and not being considered by order of priority. Thus it should not be a point in this list but a separate paragraph.",
+      "parentUuid": "1a106d94_38602d35",
+      "revId": "ee69470d01a652ae9e4c6ad252ee6479da55e264",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_b87b7d28",
         "filename": "midolman/src/man/mn-conf.1.ronn",
         "patchSetId": 3
