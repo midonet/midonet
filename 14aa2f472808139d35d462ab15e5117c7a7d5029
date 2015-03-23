@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_8ca5a606",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/RouterMapperTest.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 831,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-23T12:51:41Z",
+      "side": 1,
+      "message": "updates?",
+      "range": {
+        "startLine": 831,
+        "startChar": 40,
+        "endLine": 831,
+        "endChar": 46
+      },
+      "revId": "14aa2f472808139d35d462ab15e5117c7a7d5029",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
