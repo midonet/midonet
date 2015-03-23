@@ -23,20 +23,23 @@ option java_outer_classname = "Topology";
 // One per type
 enum Type {
     CHAIN = 1;
-    HOST = 2;
-    IP_ADDR_GROUP = 3;
-    NETWORK = 4;
-    PORT = 5;
-    PORT_GROUP = 6;
-    ROUTE = 7;
-    ROUTER = 8;
-    LOAD_BALANCER = 9;
-    VIRTUAL_IP = 10;
-    RULE = 11;
-    TUNNEL_ZONE = 12;
-    VTEP = 13;
-    VTEP_BINDING = 14;
-    DHCP=15;
+    DHCP = 2;
+    HEALTH_MONITOR = 3;
+    HOST = 4;
+    IP_ADDR_GROUP = 5;
+    LOAD_BALANCER = 6;
+    NETWORK = 7;
+    POOL = 8;
+    POOL_MEMBER = 9;
+    PORT = 10;
+    PORT_GROUP = 11;
+    ROUTE = 12;
+    ROUTER = 13;
+    RULE = 14;
+    TUNNEL_ZONE = 15;
+    VIRTUAL_IP = 16;
+    VTEP = 17;
+    VTEP_BINDING = 18;
 }
 
 message Network {
@@ -384,3 +387,17 @@ message PoolMember {
     optional int32 port = 6;
     optional int32 weight = 7;
 }
+
+message HealthMonitor {
+    enum HealthMonitorType { TCP = 1; }
+
+    optional UUID id = 1;
+    optional bool admin_state_up = 2;
+    optional HealthMonitorType type = 3;
+    optional LBStatus status = 4;
+    optional int32 delay = 5;
+    optional int32 timeout = 6;
+    optional int32 maxRetries = 7;
+}
+
+
