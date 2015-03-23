@@ -200,7 +200,9 @@ trait FlowContext extends Clearable { this: PacketContext =>
 class PacketContext(val cookie: Int,
                     val packet: Packet,
                     val origMatch: FlowMatch,
-                    val egressPort: UUID = null) extends Clearable with FlowContext with StateContext {
+                    val egressPort: UUID = null) extends Clearable
+                                                 with FlowContext
+                                                 with StateContext {
     var log = PacketContext.defaultLog
 
     def jlog = log.underlying

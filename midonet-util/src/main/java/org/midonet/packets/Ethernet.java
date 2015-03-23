@@ -58,6 +58,11 @@ public class Ethernet extends BasePacket {
      */
     public static final int HEADER_TPID_LEN = 4;
 
+    /**
+     * The BPDU destination MAC, used to identify BPDU packets
+     */
+    public static final byte[] BPDU_DEST = MAC.stringToBytes("01:80:C2:00:00:00");
+
     public static Map<Short, Class<? extends IPacket>> etherTypeClassMap;
 
     static {
@@ -153,7 +158,7 @@ public class Ethernet extends BasePacket {
     }
 
     /**
-     * @param vlanID the vlanIDs to set
+     * @param vlanIDs the vlanIDs to set
      */
     public Ethernet setVlanIDs(List<Short> vlanIDs) {
         this.vlanIDs.addAll(vlanIDs);
@@ -289,6 +294,8 @@ public class Ethernet extends BasePacket {
             } catch (Exception e) {
                 this.payload = (new Data()).deserialize(bb);
             }
+        } else if (Arrays.equals(destinationMACAddress, BPDU_DEST)) {
+            this.payload = new BPDU().deserialize(bb);
         } else {
             this.payload = (new Data()).deserialize(bb);
         }
@@ -300,10 +307,6 @@ public class Ethernet extends BasePacket {
 
     public boolean isMcast() {
         return isMcast(destinationMACAddress);
-    }
-
-    public static boolean isMcast(MAC mac) {
-        return (mac == null) ? false : isMcast(mac.getAddress());
     }
 
     private static boolean isMcast(byte[] mac) {

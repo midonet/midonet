@@ -28,6 +28,7 @@ import com.typesafe.scalalogging.Logger
 
 import org.midonet.cluster.Client
 import org.midonet.cluster.client._
+import org.midonet.midolman.flows.FlowInvalidator
 import org.midonet.midolman.topology.VirtualTopologyActor.InvalidateFlowsByTag
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.simulation.Bridge
@@ -43,6 +44,7 @@ import org.midonet.util.functors.Callback0
 trait MacFlowCount {
     def increment(mac: MAC, vlanId: Short, port: UUID): Unit
     def decrement(mac: MAC, vlanId: Short, port: UUID): Unit
+    def flush(): Unit
 }
 
 trait RemoveFlowCallbackGenerator {
@@ -89,6 +91,8 @@ class MacLearningManager(log: Logger, ttlMillis: Duration) {
 
     val reducer = new Reducer[BridgeManager.MacPortMapping, Any, Unit] {
         override def apply(acc: Unit, key: MacPortMapping, value: Any): Unit =
+            // Remove the MAC from the MacLearningTable. Note that the MAC may
+            // have migrated in the meantime and the remove might be a no-op.
             vlanMacTableOperation(key.vlan, _.remove(key.mac, key.port))
     }
 
@@ -109,6 +113,9 @@ class MacLearningManager(log: Logger, ttlMillis: Duration) {
 
     def expireEntries(currentTime: Long): Unit =
         map.obliterateIdleEntries(currentTime, (), reducer)
+
+    def flush(): Unit =
+        vlanMacTableMap.valuesIterator foreach (_.flush())
 }
 
 class BridgeManager(id: UUID, val clusterClient: Client,
@@ -194,14 +201,15 @@ import org.midonet.midolman.topology.BridgeManager._
     }
 
     private class MacFlowCountImpl extends MacFlowCount {
-        override def increment(mac: MAC, vlanId: Short, port: UUID) {
+        override def increment(mac: MAC, vlanId: Short, port: UUID): Unit =
             learningMgr.incRefCount(MacPortMapping(mac, vlanId, port))
-        }
 
-        override def decrement(mac: MAC, vlanId: Short, port: UUID) {
+        override def decrement(mac: MAC, vlanId: Short, port: UUID): Unit =
             learningMgr.decRefCount(MacPortMapping(mac, vlanId, port),
                                     Platform.currentTime)
-        }
+
+        override def flush(): Unit =
+            learningMgr.flush()
     }
 
     class RemoveFlowCallbackGeneratorImpl() extends RemoveFlowCallbackGenerator{
