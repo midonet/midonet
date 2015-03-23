@@ -1,0 +1,61 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_3d82df52",
+        "filename": "cluster/src/main/scala/org/midonet/conf/MidoConf.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-03-23T02:10:52Z",
+      "side": 1,
+      "message": "Could you make this an enum, with a conversion utility function from String to enum? Something like this: https://github.com/midonet/midonet/blob/master/cluster/src/main/scala/org/midonet/cluster/data/neutron/NeutronImporter.scala#L54",
+      "revId": "99e87eacabcfd239d72e14e5c5664d41a19d1fff",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_ddb58b32",
+        "filename": "cluster/src/main/scala/org/midonet/conf/MidoConf.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 149,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-03-23T02:10:52Z",
+      "side": 1,
+      "message": "Just a suggestion, but why don\u0027t we import MidoNodeType.*?",
+      "range": {
+        "startLine": 149,
+        "startChar": 41,
+        "endLine": 149,
+        "endChar": 59
+      },
+      "revId": "99e87eacabcfd239d72e14e5c5664d41a19d1fff",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_7d7c5773",
+        "filename": "midolman/src/deb/bin/mn-conf",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-03-23T02:10:52Z",
+      "side": 1,
+      "message": "I wonder if such a single-character file name change (furthermore it\u0027s \u0027m\u0027 to \u0027n\u0027, so subtle :P) may cause some confusions in future...",
+      "revId": "99e87eacabcfd239d72e14e5c5664d41a19d1fff",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
