@@ -16,15 +16,17 @@
 
 package org.midonet.midolman.rules;
 
+import java.util.Objects;
+
+import org.codehaus.jackson.annotate.JsonCreator;
+import org.codehaus.jackson.annotate.JsonProperty;
+
 import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.data.ZoomObject;
 import org.midonet.cluster.models.Topology;
 import org.midonet.cluster.util.IPAddressUtil;
 import org.midonet.packets.IPv4Addr;
-
-import org.codehaus.jackson.annotate.JsonCreator;
-import org.codehaus.jackson.annotate.JsonProperty;
 
 @ZoomClass(clazz = Topology.Rule.NatTarget.class)
 public class NatTarget extends ZoomObject {
@@ -75,8 +77,10 @@ public class NatTarget extends ZoomObject {
             return false;
 
         NatTarget nt = (NatTarget) other;
-        return nwStart.equals(nt.nwStart) && nwEnd.equals(nt.nwEnd) &&
-               tpStart == nt.tpStart && tpEnd == nt.tpEnd;
+        return Objects.equals(nwStart, nt.nwStart) &&
+               Objects.equals(nwEnd, nt.nwEnd) &&
+               Objects.equals(tpStart, nt.tpStart) &&
+               Objects.equals(tpEnd, nt.tpEnd);
     }
 
     @Override
