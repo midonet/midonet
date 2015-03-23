@@ -15,33 +15,49 @@
  */
 package org.midonet.midolman.l4lb
 
+import java.util.UUID
+
+import scala.collection.immutable.Map
+
 import akka.actor.Actor
+
+import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.cluster.Client
-import java.util.UUID
-import org.midonet.midolman.topology.VirtualTopologyActor
-import scala.collection.immutable.Map
+import org.midonet.midolman.topology.VirtualTopology.Device
+import org.midonet.midolman.topology.devices.PoolHealthMonitorMap
+import org.midonet.midolman.topology.{PoolHealthMonitorMapper, VirtualTopology, VirtualTopologyActor}
 import org.midonet.midolman.state.zkManagers.PoolHealthMonitorZkManager.PoolHealthMonitorConfig
+import org.midonet.util.functors.{makeFunc1, makeAction1}
 
 object PoolHealthMonitorMapManager {
     case class TriggerUpdate(mappings: Map[UUID, PoolHealthMonitorConfig])
-    case class PoolHealthMonitorMap(mappings: Map[UUID, PoolHealthMonitorConfig])
+    case class PoolHealthMonitorLegacyMap(mappings: Map[UUID, PoolHealthMonitorConfig])
+        extends Device
 }
 
-class PoolHealthMonitorMapManager(val client: Client)
+class PoolHealthMonitorMapManager(val client: Client, config: MidolmanConfig)
         extends Actor with ActorLogWithoutPath {
 
     import PoolHealthMonitorMapManager._
     import context.system
 
     override def preStart() {
-        client.getPoolHealthMonitorMap(
-            new PoolHealthMonitorMapBuilderImpl(self))
+        if (config.zookeeper.useNewStack) {
+            VirtualTopology.observable[PoolHealthMonitorMap](
+                PoolHealthMonitorMapper.PoolHealthMonitorMapKey)
+                .map[PoolHealthMonitorLegacyMap](makeFunc1 {_.toConfig})
+                .subscribe(makeAction1[PoolHealthMonitorLegacyMap]
+                    (VirtualTopologyActor.getRef() ! _))
+        } else {
+            client.getPoolHealthMonitorMap(
+                new PoolHealthMonitorMapBuilderImpl(self))
+        }
     }
 
     def receive = {
         case TriggerUpdate(mappings) => {
-            VirtualTopologyActor.getRef() ! PoolHealthMonitorMap(mappings)
+            VirtualTopologyActor.getRef() ! PoolHealthMonitorLegacyMap(mappings)
         }
     }
 }

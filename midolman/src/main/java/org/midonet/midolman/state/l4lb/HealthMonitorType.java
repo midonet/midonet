@@ -16,6 +16,12 @@
 
 package org.midonet.midolman.state.l4lb;
 
+import org.midonet.cluster.data.ZoomEnum;
+import org.midonet.cluster.data.ZoomEnumValue;
+import org.midonet.cluster.models.Topology;
+
+@ZoomEnum(clazz = Topology.HealthMonitor.HealthMonitorType.class)
 public enum HealthMonitorType {
-    TCP
+    @ZoomEnumValue(value = "TCP")
+    TCP;
 }

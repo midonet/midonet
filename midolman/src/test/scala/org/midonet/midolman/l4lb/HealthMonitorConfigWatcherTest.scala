@@ -30,7 +30,7 @@ import org.midonet.midolman.state.zkManagers.PoolHealthMonitorZkManager.PoolHeal
 import org.midonet.midolman.state.zkManagers.VipZkManager
 import org.midonet.midolman.l4lb.HealthMonitor.{ConfigUpdated, ConfigDeleted, ConfigAdded}
 import org.midonet.midolman.l4lb.HealthMonitorConfigWatcher.BecomeHaproxyNode
-import org.midonet.midolman.l4lb.PoolHealthMonitorMapManager.PoolHealthMonitorMap
+import org.midonet.midolman.l4lb.PoolHealthMonitorMapManager.PoolHealthMonitorLegacyMap
 import org.midonet.midolman.simulation.CustomMatchers
 
 import org.scalatest._
@@ -105,20 +105,20 @@ class HealthMonitorConfigWatcherTest extends TestKit(ActorSystem("HealthMonitorC
             Given("A pool-health monitor mapping")
             val map = IMap(generateFakeMap.toSeq:_*)
             When("We send it to the config watcher")
-            watcher ! PoolHealthMonitorMap(map)
+            watcher ! PoolHealthMonitorLegacyMap(map)
             Then("We should expect nothing in return")
             expectNoMsg(50 milliseconds)
             And("We send more updates")
-            watcher ! PoolHealthMonitorMap(map)
+            watcher ! PoolHealthMonitorLegacyMap(map)
             Then("We should expect nothing in return")
             expectNoMsg(50 milliseconds)
-            watcher ! PoolHealthMonitorMap(
+            watcher ! PoolHealthMonitorLegacyMap(
                           new IMap[UUID, PoolHealthMonitorConfig]())
             expectNoMsg(50 milliseconds)
-            watcher ! PoolHealthMonitorMap(map)
+            watcher ! PoolHealthMonitorLegacyMap(map)
             expectNoMsg(50 milliseconds)
             map(uuidOne).healthMonitorConfig.config.delay = 2
-            watcher ! PoolHealthMonitorMap(map)
+            watcher ! PoolHealthMonitorLegacyMap(map)
             expectNoMsg(50 milliseconds)
         }
         scenario("config watcher becomes the leader after several updates " +
@@ -126,18 +126,18 @@ class HealthMonitorConfigWatcherTest extends TestKit(ActorSystem("HealthMonitorC
             Given("A pool-health monitor mapping")
             val map = generateFakeMap
             When("We send it to the config watcher")
-            watcher ! PoolHealthMonitorMap(IMap(map.toSeq:_*))
+            watcher ! PoolHealthMonitorLegacyMap(IMap(map.toSeq:_*))
             Then("We should expect nothing in return")
             expectNoMsg(50 milliseconds)
-            watcher ! PoolHealthMonitorMap(IMap(map.toSeq:_*))
+            watcher ! PoolHealthMonitorLegacyMap(IMap(map.toSeq:_*))
             expectNoMsg(50 milliseconds)
-            watcher ! PoolHealthMonitorMap(
+            watcher ! PoolHealthMonitorLegacyMap(
                 new IMap[UUID, PoolHealthMonitorConfig]())
             expectNoMsg(50 milliseconds)
-            watcher ! PoolHealthMonitorMap(IMap(map.toSeq:_*))
+            watcher ! PoolHealthMonitorLegacyMap(IMap(map.toSeq:_*))
             expectNoMsg(50 milliseconds)
             map(uuidOne).healthMonitorConfig.config.delay = 2
-            watcher ! PoolHealthMonitorMap(IMap(map.toSeq:_*))
+            watcher ! PoolHealthMonitorLegacyMap(IMap(map.toSeq:_*))
             When("We become the leader node")
             watcher ! BecomeHaproxyNode
             val res = new MMap[UUID, PoolConfig]
@@ -160,14 +160,14 @@ class HealthMonitorConfigWatcherTest extends TestKit(ActorSystem("HealthMonitorC
             Given("A pool-health monitor mapping")
             val map = generateFakeMap()
             When("We send it to the config watcher")
-            watcher ! PoolHealthMonitorMap(IMap(map.toSeq:_*))
+            watcher ! PoolHealthMonitorLegacyMap(IMap(map.toSeq:_*))
             Then("We should recieve the ConfigAdded for each mapping")
             expectMsgType[ConfigAdded]
             expectMsgType[ConfigAdded]
             expectMsgType[ConfigAdded]
             map remove uuidTwo
             And("We remove one of the maps")
-            watcher ! PoolHealthMonitorMap(IMap(map.toSeq:_*))
+            watcher ! PoolHealthMonitorLegacyMap(IMap(map.toSeq:_*))
             Then("We should receive the deletion back")
             val conf = expectMsgType[ConfigDeleted]
             conf.id shouldEqual uuidTwo
@@ -177,14 +177,14 @@ class HealthMonitorConfigWatcherTest extends TestKit(ActorSystem("HealthMonitorC
             Given("A pool-health monitor mapping")
             val map = generateFakeMap()
             When("We send it to the config watcher")
-            watcher ! PoolHealthMonitorMap(IMap(map.toSeq:_*))
+            watcher ! PoolHealthMonitorLegacyMap(IMap(map.toSeq:_*))
             Then("We should recieve the ConfigAdded for each mapping")
             expectMsgType[ConfigAdded]
             expectMsgType[ConfigAdded]
             expectMsgType[ConfigAdded]
             And("We update one of the maps")
             map(uuidTwo).healthMonitorConfig.config.delay = 10
-            watcher ! PoolHealthMonitorMap(IMap(map.toSeq:_*))
+            watcher ! PoolHealthMonitorLegacyMap(IMap(map.toSeq:_*))
             Then("We should receive the update notification back")
             val conf = expectMsgType[ConfigUpdated]
             conf.config.healthMonitor.delay shouldEqual 10

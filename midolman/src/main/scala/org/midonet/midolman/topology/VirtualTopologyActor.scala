@@ -37,7 +37,7 @@ import org.midonet.midolman.l4lb.PoolHealthMonitorMapManager
 import org.midonet.midolman.NotYetException
 import org.midonet.midolman.Referenceable
 import org.midonet.midolman.simulation._
-import org.midonet.midolman.l4lb.PoolHealthMonitorMapManager.PoolHealthMonitorMap
+import org.midonet.midolman.l4lb.PoolHealthMonitorMapManager.PoolHealthMonitorLegacyMap
 import org.midonet.midolman.topology.devices.{RouterPort, BridgePort, Port}
 import org.midonet.util.concurrent._
 
@@ -164,7 +164,7 @@ object VirtualTopologyActor extends Referenceable {
 
         protected[VirtualTopologyActor]
         def managerFactory(client: Client, config: MidolmanConfig) =
-                  () => new PoolHealthMonitorMapManager(client)
+                  () => new PoolHealthMonitorMapManager(client, config)
     }
 
     case class Unsubscribe(id: UUID)
@@ -414,10 +414,10 @@ class VirtualTopologyActor extends VirtualTopologyRedirector {
         case pg: PortGroup =>
             log.debug("Received a PortGroup for {}", pg.id)
             deviceUpdated(pg.id, pg)
-        case PoolHealthMonitorMap(mappings) =>
+        case PoolHealthMonitorLegacyMap(mappings) =>
             log.info("Received PoolHealthMonitorMappings")
             deviceUpdated(PoolConfig.POOL_HEALTH_MONITOR_MAP_KEY,
-                          PoolHealthMonitorMap(mappings))
+                          PoolHealthMonitorLegacyMap(mappings))
         case InvalidateFlowsByTag(tag) =>
             log.debug("Invalidating flows for tag {}", tag)
             flowInvalidator.scheduleInvalidationFor(tag)

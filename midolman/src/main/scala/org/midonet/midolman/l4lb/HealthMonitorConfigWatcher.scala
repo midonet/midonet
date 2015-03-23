@@ -23,7 +23,7 @@ import scala.collection.mutable.{HashMap, HashSet => MSet, Map => MMap}
 
 import akka.actor.{Actor, ActorRef, Props}
 import org.midonet.midolman.Referenceable
-import org.midonet.midolman.l4lb.PoolHealthMonitorMapManager.PoolHealthMonitorMap
+import org.midonet.midolman.l4lb.PoolHealthMonitorMapManager.PoolHealthMonitorLegacyMap
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.simulation.LoadBalancer
 import org.midonet.midolman.state.zkManagers.PoolHealthMonitorZkManager.PoolHealthMonitorConfig
@@ -188,7 +188,7 @@ class HealthMonitorConfigWatcher(val fileLocs: String, val suffix: String,
 
     override def receive = {
 
-        case PoolHealthMonitorMap(mapping) =>
+        case PoolHealthMonitorLegacyMap(mapping) =>
             log.debug(s"${mapping.size} mappings received")
             handleMappingChange(mapping)
 

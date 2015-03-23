@@ -21,7 +21,7 @@ import com.google.protobuf.MessageOrBuilder
 
 import org.scalatest.Matchers
 
-import org.midonet.cluster.models.Topology.{Chain => TopologyChain, IPAddrGroup => TopologyIPAddrGroup, LoadBalancer => TopologyLB, Network => TopologyBridge, Pool => TopologyPool, PoolMember => TopologyPoolMember, Port => TopologyPort, PortGroup => TopologyPortGroup, Rule => TopologyRule, VIP => TopologyVIP}
+import org.midonet.cluster.models.Topology.{Chain => TopologyChain, IPAddrGroup => TopologyIPAddrGroup, LoadBalancer => TopologyLB, Network => TopologyBridge, HealthMonitor => TopologyHealthMonitor, Pool => TopologyPool, PoolMember => TopologyPoolMember, Port => TopologyPort, PortGroup => TopologyPortGroup, Rule => TopologyRule, VIP => TopologyVIP}
 import org.midonet.cluster.util.IPAddressUtil._
 import org.midonet.cluster.util.IPSubnetUtil._
 import org.midonet.cluster.util.UUIDUtil._
@@ -29,8 +29,9 @@ import org.midonet.cluster.util.{IPSubnetUtil, RangeUtil}
 import org.midonet.midolman.rules.{Condition, ForwardNatRule, JumpRule, NatRule, NatTarget, Rule}
 import org.midonet.midolman.simulation._
 import org.midonet.midolman.state.l4lb
+import org.midonet.midolman.state.l4lb.HealthMonitorType
 import org.midonet.midolman.topology.TopologyMatchers._
-import org.midonet.midolman.topology.devices.{BridgePort, Port, RouterPort, VxLanPort}
+import org.midonet.midolman.topology.devices._
 import org.midonet.packets.MAC
 
 object TopologyMatchers {
@@ -273,6 +274,22 @@ object TopologyMatchers {
             poolMember.weight shouldBe pm.getWeight
         }
     }
+
+    class HealthMonitorMatcher(healthMonitor: HealthMonitor)
+        extends DeviceMatcher[TopologyHealthMonitor] {
+        override def shouldBeDeviceOf(hm: TopologyHealthMonitor): Unit = {
+            healthMonitor.id shouldBe hm.getId.asJava
+            healthMonitor.adminStateUp shouldBe hm.getAdminStateUp
+            healthMonitor.healthMonitorType shouldBe
+                (if (hm.hasType) HealthMonitorType.valueOf(hm.getType.name())
+                else HealthMonitorType.TCP)
+            healthMonitor.status shouldBe (if (hm.hasStatus)
+                l4lb.LBStatus.fromProto(hm.getStatus) else l4lb.LBStatus.INACTIVE)
+            healthMonitor.delay shouldBe hm.getDelay
+            healthMonitor.timeout shouldBe hm.getTimeout
+            healthMonitor.maxRetries shouldBe hm.getMaxRetries
+        }
+    }
 }
 
 trait TopologyMatchers {
@@ -327,4 +344,7 @@ trait TopologyMatchers {
 
     implicit def asMatcher(poolMember: PoolMember): PoolMemberMatcher =
         new PoolMemberMatcher(poolMember)
+
+    implicit def asMatcher(healthMonitor: HealthMonitor): HealthMonitorMatcher =
+        new HealthMonitorMatcher(healthMonitor)
 }
