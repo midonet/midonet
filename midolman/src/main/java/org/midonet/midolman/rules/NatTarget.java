@@ -16,15 +16,16 @@
 
 package org.midonet.midolman.rules;
 
+
+import org.codehaus.jackson.annotate.JsonCreator;
+import org.codehaus.jackson.annotate.JsonProperty;
+
 import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.data.ZoomObject;
 import org.midonet.cluster.models.Topology;
 import org.midonet.cluster.util.IPAddressUtil;
 import org.midonet.packets.IPv4Addr;
-
-import org.codehaus.jackson.annotate.JsonCreator;
-import org.codehaus.jackson.annotate.JsonProperty;
 
 @ZoomClass(clazz = Topology.Rule.NatTarget.class)
 public class NatTarget extends ZoomObject {
