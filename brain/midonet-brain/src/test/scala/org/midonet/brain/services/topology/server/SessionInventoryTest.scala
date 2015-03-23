@@ -30,6 +30,7 @@ import org.scalatest.junit.JUnitRunner
 import rx.observers.TestObserver
 
 import org.midonet.cluster.data.storage.{InMemoryStorage, Storage}
+import org.midonet.cluster.models.Topology
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.rpc.Commands.{ResponseType, Response}
 import org.midonet.cluster.util.UUIDUtil
@@ -92,25 +93,14 @@ class SessionInventoryTest extends FeatureSpec
 
     feature("responses can handle payload for all defined types") {
         scenario("generate updates") {
-            val testObjects: Set[Message] = Set(
-                Chain.getDefaultInstance,
-                Host.getDefaultInstance,
-                IPAddrGroup.getDefaultInstance,
-                Network.getDefaultInstance,
-                Pool.getDefaultInstance,
-                PoolMember.getDefaultInstance,
-                Port.getDefaultInstance,
-                PortGroup.getDefaultInstance,
-                Route.getDefaultInstance,
-                Router.getDefaultInstance,
-                LoadBalancer.getDefaultInstance,
-                VIP.getDefaultInstance,
-                Rule.getDefaultInstance,
-                TunnelZone.getDefaultInstance,
-                Vtep.getDefaultInstance,
-                VtepBinding.getDefaultInstance,
-                Dhcp.getDefaultInstance
-            )
+            val topologyClasses = classOf[Topology].getClasses.toSet[Class[_]]
+                .filterNot(_.getSimpleName.matches("(.*)OrBuilder"))
+                .filterNot(_.getSimpleName == "Type")
+            val testObjects: Set[Message] = topologyClasses.map(
+                _.getDeclaredMethod("getDefaultInstance")
+                    .invoke(null)
+                    .asInstanceOf[Message])
+
             testObjects.size shouldBe Type.values().size
 
             var testTypes: Set[Type] = Set()
@@ -250,7 +240,7 @@ class SessionInventoryTest extends FeatureSpec
             subs.unsubscribe()
 
             val events = collectionAsScalaIterable(collector.getOnNextEvents).toArray
-            events.size shouldBe 1
+            events.length shouldBe 1
             isNAck(events(0), req) shouldBe true
         }
 
@@ -273,7 +263,7 @@ class SessionInventoryTest extends FeatureSpec
             subs.unsubscribe()
 
             val events = collectionAsScalaIterable(collector.getOnNextEvents).toArray
-            events.size shouldBe 1
+            events.length shouldBe 1
             isBridge(events(0), oId, "bridge1") shouldBe true
         }
 
@@ -292,7 +282,7 @@ class SessionInventoryTest extends FeatureSpec
             subs.unsubscribe()
 
             val events = collectionAsScalaIterable(collector.getOnNextEvents).toArray
-            events.size shouldBe 1
+            events.length shouldBe 1
             isSnapshot(events(0), Set()) shouldBe true
         }
 
@@ -317,7 +307,7 @@ class SessionInventoryTest extends FeatureSpec
             subs.unsubscribe()
 
             val events = collectionAsScalaIterable(collector.getOnNextEvents).toArray
-            events.size shouldBe 1
+            events.length shouldBe 1
             isSnapshot(events(0), Set(oId1, oId2)) shouldBe true
         }
 
@@ -337,7 +327,7 @@ class SessionInventoryTest extends FeatureSpec
             subs.unsubscribe()
 
             val events = collectionAsScalaIterable(collector.getOnNextEvents).toArray
-            events.size shouldBe 2
+            events.length shouldBe 2
             events.exists(rsp => isAck(rsp, req)) shouldBe true
             events.exists(rsp => isError(rsp, req)) shouldBe true
         }
@@ -370,7 +360,7 @@ class SessionInventoryTest extends FeatureSpec
 
             collector.getOnCompletedEvents.size() shouldBe 0
             val events = collectionAsScalaIterable(collector.getOnNextEvents).toArray
-            events.size shouldBe 4
+            events.length shouldBe 4
             events.exists(rsp => isAck(rsp, req)) shouldBe true
             events.exists(rsp => isBridge(rsp, oId, "bridge")) shouldBe true
             events.exists(rsp => isBridge(rsp, oId, "bridge-update")) shouldBe true
@@ -397,7 +387,7 @@ class SessionInventoryTest extends FeatureSpec
 
             collector.getOnCompletedEvents.size() shouldBe 0
             val events = collectionAsScalaIterable(collector.getOnNextEvents).toArray
-            events.size shouldBe 1
+            events.length shouldBe 1
             isAck(events(0), req) shouldBe true
         }
 
@@ -425,7 +415,7 @@ class SessionInventoryTest extends FeatureSpec
 
             collector.getOnCompletedEvents.size() shouldBe 0
             val events = collectionAsScalaIterable(collector.getOnNextEvents).toArray
-            events.size shouldBe 4
+            events.length shouldBe 4
             events.exists(rsp => isAck(rsp, req1)) shouldBe true
             events.exists(rsp => isBridge(rsp, oId, "bridge")) shouldBe true
             events.exists(rsp => isBridge(rsp, oId, "bridge-1")) shouldBe true
@@ -458,7 +448,7 @@ class SessionInventoryTest extends FeatureSpec
 
             collector.getOnCompletedEvents.size() shouldBe 0
             val events = collectionAsScalaIterable(collector.getOnNextEvents).toArray
-            events.size shouldBe 6
+            events.length shouldBe 6
             events.exists(rsp => isAck(rsp, req)) shouldBe true
             events.exists(rsp => isBridge(rsp, b1, "bridge1")) shouldBe true
             events.exists(rsp => isBridge(rsp, b2, "bridge2")) shouldBe true
@@ -494,7 +484,7 @@ class SessionInventoryTest extends FeatureSpec
 
             collector.getOnCompletedEvents.size() shouldBe 0
             val events = collectionAsScalaIterable(collector.getOnNextEvents).toArray
-            events.size shouldBe 5
+            events.length shouldBe 5
             events.exists(rsp => isAck(rsp, req)) shouldBe true
             events.exists(rsp => isBridge(rsp, b1, "bridge1-update")) shouldBe true
             events.exists(rsp => isBridge(rsp, b2, "bridge2")) shouldBe true
@@ -518,7 +508,7 @@ class SessionInventoryTest extends FeatureSpec
 
             collector.getOnCompletedEvents.size() shouldBe 0
             val events = collectionAsScalaIterable(collector.getOnNextEvents).toArray
-            events.size shouldBe 1
+            events.length shouldBe 1
             isAck(events(0), req) shouldBe true
         }
 
@@ -553,7 +543,7 @@ class SessionInventoryTest extends FeatureSpec
 
             collector.getOnCompletedEvents.size() shouldBe 0
             val events = collector.getOnNextEvents
-            //events.size shouldBe 4
+            events.length shouldBe 4
             events.exists(rsp => isAck(rsp, req1)) shouldBe true
             events.exists(rsp => isBridge(rsp, b1, "bridge1")) shouldBe true
             events.exists(rsp => isBridge(rsp, b2, "bridge2")) shouldBe true
@@ -574,7 +564,7 @@ class SessionInventoryTest extends FeatureSpec
 
             collector.getOnCompletedEvents.size() shouldBe 1
             val events = collectionAsScalaIterable(collector.getOnNextEvents).toArray
-            events.size shouldBe 0
+            events.length shouldBe 0
         }
 
         scenario("terminate non-empty")
@@ -601,7 +591,7 @@ class SessionInventoryTest extends FeatureSpec
 
             collector.getOnCompletedEvents.size() shouldBe 1
             val events = collectionAsScalaIterable(collector.getOnNextEvents).toArray
-            events.size shouldBe 3
+            events.length shouldBe 3
             events.exists(rsp => isAck(rsp, req1)) shouldBe true
             events.exists(rsp => isBridge(rsp, oId, "bridge")) shouldBe true
             events.exists(rsp => isBridge(rsp, oId, "bridge-1")) shouldBe true
@@ -654,7 +644,7 @@ class SessionInventoryTest extends FeatureSpec
                 collectionAsScalaIterable(partial.getOnNextEvents).toArray[Response] ++
                 collectionAsScalaIterable(collector.getOnNextEvents).toArray[Response]
 
-            events.size shouldBe 12
+            events.length shouldBe 12
             events.exists(rsp => isAck(rsp, req)) shouldBe true
 
             events.exists(rsp => isBridge(rsp, b1, "bridge1")) shouldBe true
@@ -702,7 +692,7 @@ class SessionInventoryTest extends FeatureSpec
             val events =
                 collectionAsScalaIterable(collector.getOnNextEvents).toArray[Response]
 
-            events.size shouldBe 4
+            events.length shouldBe 4
             events.exists(rsp => isAck(rsp, req)) shouldBe true
 
             events.exists(rsp => isBridge(rsp, b1, "bridge1")) shouldBe true

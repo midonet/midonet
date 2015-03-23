@@ -20,14 +20,19 @@ import java.util.UUID
 import scala.collection.JavaConverters._
 import scala.util.Random
 
+import com.google.protobuf.Descriptors.{EnumDescriptor, FieldDescriptor}
+import com.google.protobuf.GeneratedMessage.Builder
+import com.google.protobuf.{ProtocolMessageEnum, Message, MessageOrBuilder}
+
 import org.midonet.cluster.models.Commons.{IPAddress, LBStatus}
+import org.midonet.cluster.models.Topology.HealthMonitor.HealthMonitorType
 import org.midonet.cluster.models.Topology.Host.PortBinding
 import org.midonet.cluster.models.Topology.IPAddrGroup.IPAddrPorts
 import org.midonet.cluster.models.Topology.Pool.{PoolLBMethod, PoolProtocol}
 import org.midonet.cluster.models.Topology.Route.NextHop
 import org.midonet.cluster.models.Topology.Rule.{Action, JumpRuleData, NatRuleData, NatTarget}
 import org.midonet.cluster.models.Topology.TunnelZone.HostToIp
-import org.midonet.cluster.models.Topology.{IPAddrGroup, VIP, _}
+import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.util.IPAddressUtil._
 import org.midonet.cluster.util.IPSubnetUtil._
 import org.midonet.cluster.util.UUIDUtil._
@@ -552,6 +557,49 @@ trait TopologyBuilder {
         if (interfaceName.isDefined)
             builder.setInterfaceName(interfaceName.get)
         builder
+    }
+
+    protected def createTopologyObject[T <: Message](
+        k: Class[T], attrs: Map[String, Any] = Map()): T = {
+        val builder: Builder[_] = k.getDeclaredMethod("newBuilder").invoke(null)
+            .asInstanceOf[Builder[_]]
+        val typeDesc = builder.getDescriptorForType
+
+        // Usual conversions
+        def convertToProto(v: Any): Any = v match {
+            case msg: MessageOrBuilder => msg
+            case msg: ProtocolMessageEnum =>
+                msg.getClass.getMethod("getDescriptor")
+                    .invoke(null)
+                    .asInstanceOf[EnumDescriptor]
+                    .findValueByName(msg.getValueDescriptor.getName)
+            case uuid: UUID => UUIDUtil.toProto(uuid)
+            case ip: IPAddr => IPAddressUtil.toProto(ip)
+            case list: Iterable[Any] =>
+                list.map(convertToProto).toList.asJava
+            case value if value != null && value.getClass != null =>
+                if (value.getClass.getDeclaredMethods.contains("asProto"))
+                    value.getClass.getDeclaredMethod("asProto").invoke(value)
+                else if (value.getClass.getDeclaredMethods.contains("toProto"))
+                    value.getClass.getDeclaredMethod("toProto").invoke(value)
+                else
+                    value
+            case other =>
+                other
+        }
+
+        attrs.foreach(a => try {
+            val field = typeDesc.findFieldByName(a._1)
+            builder.setField(field, convertToProto(a._2))
+        } catch {
+            case t: Throwable => throw new IllegalArgumentException(
+                "cannot set protobuf value for " + k.getSimpleName +
+                    "." + a._1 + ": " + a._2, t)
+        })
+        val idField = typeDesc.findFieldByName("id")
+        if (idField != null && attrs.get("id").isEmpty)
+            builder.setField(idField, UUID.randomUUID().asProto)
+        builder.build.asInstanceOf[T]
     }
 }
 
