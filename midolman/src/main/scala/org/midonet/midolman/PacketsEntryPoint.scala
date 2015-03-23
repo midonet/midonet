@@ -33,6 +33,7 @@ import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackKey, ConnTrackValue}
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
 import org.midonet.midolman.state.{FlowStateStorageFactory, NatBlockAllocator, NatLeaser}
+import org.midonet.midolman.state.TraceState.{TraceKey, TraceContext}
 import org.midonet.sdn.state.ShardedFlowStateTable
 import org.midonet.util.StatisticalCounter
 import org.midonet.util.concurrent.NanoClock
@@ -102,6 +103,7 @@ class PacketsEntryPoint extends Actor with ActorLogWithoutPath
     var connTrackStateTable: ShardedFlowStateTable[ConnTrackKey, ConnTrackValue] = _
     var natStateTable: ShardedFlowStateTable[NatKey, NatBinding] = _
     var natLeaser: NatLeaser = _
+    var traceStateTable: ShardedFlowStateTable[TraceKey, TraceContext] = _
 
     override def preStart(): Unit = {
         super.preStart()
@@ -115,6 +117,7 @@ class PacketsEntryPoint extends Actor with ActorLogWithoutPath
             val allocator = natBlockAllocator
             val clock = PacketsEntryPoint.this.clock
         }
+        traceStateTable = new ShardedFlowStateTable(clock)
 
         for (i <- 0 until NUM_WORKERS) {
             workers :+= startWorker(i)
@@ -140,6 +143,7 @@ class PacketsEntryPoint extends Actor with ActorLogWithoutPath
             config, cookieGen, dpChannel, clusterDataClient, flowInvalidator,
             connTrackStateTable.addShard(log = shardLogger(connTrackStateTable)),
             natStateTable.addShard(log = shardLogger(natStateTable)),
+            traceStateTable.addShard(log = shardLogger(traceStateTable)),
             storageFactory.create(),
             natLeaser,
             metrics,

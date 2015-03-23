@@ -19,9 +19,13 @@ package org.midonet.midolman.state
 import java.io.ByteArrayInputStream
 import java.util.UUID
 
+import com.google.protobuf.ByteString
+
 import org.midonet.midolman.state.ConnTrackState._
 import org.midonet.midolman.state.NatState._
+import org.midonet.midolman.state.TraceState.TraceKey
 import org.midonet.odp.FlowMatch
+import org.midonet.odp.flows.{IPFragmentType,FlowKeyEtherType}
 import org.midonet.packets._
 import org.midonet.rpc.{FlowStateProto => Proto}
 
@@ -173,6 +177,33 @@ object FlowStatePackets {
     def natBindingFromProto(proto: Proto.NatValue) =
         NatBinding(ipAddressFromProto(proto.getIp).asInstanceOf[IPv4Addr],
                    proto.getPort)
+
+    def traceKeyToProto(key: TraceKey,
+                        proto: Proto.TraceEntry.Builder): Unit = {
+        if (key.ethSrc != null) { proto.setEthSrc(key.ethSrc.asLong) }
+        if (key.ethDst != null) { proto.setEthDst(key.ethDst.asLong) }
+        if (key.etherType != FlowKeyEtherType.Type.ETH_P_NONE.value) {
+            proto.setEtherType(key.etherType)
+        }
+        if (key.networkSrc != null) { proto.setIpSrc(key.networkSrc) }
+        if (key.networkDst != null) { proto.setIpDst(key.networkDst) }
+        if (key.networkProto != 0) { proto.setIpProto(key.networkProto) }
+        if (key.srcPort != 0) { proto.setTpSrc(key.srcPort) }
+        if (key.dstPort != 0) { proto.setTpDst(key.dstPort) }
+    }
+
+    def traceKeyFromProto(proto: Proto.TraceEntry) =
+        TraceKey(if (proto.hasEthSrc) new MAC(proto.getEthSrc) else null,
+                 if (proto.hasEthDst) new MAC(proto.getEthDst) else null,
+                 if (proto.hasEtherType) proto.getEtherType.toShort
+                 else FlowKeyEtherType.Type.ETH_P_NONE.value.toShort,
+                 if (proto.hasIpSrc) ipAddressFromProto(proto.getIpSrc)
+                 else null,
+                 if (proto.hasIpDst) ipAddressFromProto(proto.getIpDst)
+                 else null,
+                 if (proto.hasIpProto) proto.getIpProto.toByte else 0,
+                 if (proto.hasTpSrc) proto.getTpSrc else 0,
+                 if (proto.hasTpDst) proto.getTpDst else 0)
 
     def parseDatagram(p: Ethernet): Proto.StateMessage  = {
         if (p.getDestinationMACAddress != DST_MAC ||
