@@ -32,7 +32,7 @@ import org.midonet.packets.IPv6Addr;
 /**
  *
  */
-public class Addr implements AttributeHandler {
+public class Addr implements AttributeHandler, RtnetlinkResource {
 
     public class IfaddrMsg {
         public byte family;
