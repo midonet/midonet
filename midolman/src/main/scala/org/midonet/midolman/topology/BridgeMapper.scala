@@ -38,7 +38,7 @@ import org.midonet.cluster.client.{IpMacMap, MacLearningTable}
 import org.midonet.cluster.models.Topology.{Network => TopologyBridge}
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.logging.MidolmanLogging
-import org.midonet.midolman.simulation.{Bridge => SimulationBridge}
+import org.midonet.midolman.simulation.{Bridge => SimulationBridge, Chain}
 import org.midonet.midolman.simulation.Bridge.UntaggedVlanId
 import org.midonet.midolman.state.ReplicatedMap.Watcher
 import org.midonet.midolman.state.{ReplicatedMap, StateAccessException}
@@ -266,7 +266,7 @@ object BridgeMapper {
  */
 final class BridgeMapper(bridgeId: UUID, implicit val vt: VirtualTopology)
                         (implicit actorSystem: ActorSystem)
-    extends DeviceMapper[SimulationBridge](bridgeId, vt) {
+    extends DeviceWithChainsMapper[SimulationBridge](bridgeId, vt) {
 
     import BridgeMapper._
 
@@ -350,6 +350,8 @@ final class BridgeMapper(bridgeId: UUID, implicit val vt: VirtualTopology)
         .doOnNext(makeAction1(bridgeUpdated))
     private lazy val deviceObservable = Observable
         .merge[TopologyBridge](connectionObservable, portsObservable,
+                               chainsObservable
+                                   .map[TopologyBridge](makeFunc1(chainUpdated)),
                                bridgeObservable)
         .doOnError(makeAction1(bridgeError))
         .filter(makeFunc1(isBridgeReady))
@@ -360,12 +362,13 @@ final class BridgeMapper(bridgeId: UUID, implicit val vt: VirtualTopology)
 
     /**
      * Indicates the bridge device is ready, when the states for all local and
-     * peer are ready.
+     * peer ports are ready, and all the chains are ready.
      */
     private def isBridgeReady(bridge: TopologyBridge): JBoolean = {
         assertThread()
         val ready: JBoolean =
-            localPorts.forall(_._2.isReady) && peerPorts.forall(_._2.isReady)
+            localPorts.forall(_._2.isReady) && peerPorts.forall(_._2.isReady) &&
+            areChainsReady
         log.debug("Bridge ready: {}", ready)
         ready
     }
@@ -392,6 +395,7 @@ final class BridgeMapper(bridgeId: UUID, implicit val vt: VirtualTopology)
             ipv4MacMap.complete()
         }
         portsSubject.onCompleted()
+        completeChains()
         macUpdatesSubject.onCompleted()
         connectionSubject.onCompleted()
         macUpdatesSubscription.unsubscribe()
@@ -444,6 +448,11 @@ final class BridgeMapper(bridgeId: UUID, implicit val vt: VirtualTopology)
             localPorts += portId -> portState
             portsSubject onNext portState.observable
         }
+
+        // Request the chains for this bridge.
+        requestChains(
+            if (bridge.hasInboundFilterId) bridge.getInboundFilterId else null,
+            if (bridge.hasOutboundFilterId) bridge.getOutboundFilterId else null)
     }
 
     /**
@@ -480,6 +489,13 @@ final class BridgeMapper(bridgeId: UUID, implicit val vt: VirtualTopology)
         } else {
             log.debug("Update for peer port {}", port.id)
         }
+        bridge
+    }
+
+    /** Handles updates for the chains. */
+    private def chainUpdated(chain: Chain): TopologyBridge = {
+        assertThread()
+        log.debug("Bridge chain updated {}", chain)
         bridge
     }
 
