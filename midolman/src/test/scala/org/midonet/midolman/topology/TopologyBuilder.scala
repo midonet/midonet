@@ -20,14 +20,18 @@ import java.util.UUID
 import scala.collection.JavaConverters._
 import scala.util.Random
 
+import com.google.protobuf.GeneratedMessage.Builder
+import com.google.protobuf.MessageOrBuilder
+
 import org.midonet.cluster.models.Commons.{IPAddress, LBStatus}
+import org.midonet.cluster.models.Topology.HealthMonitor.HealthMonitorType
 import org.midonet.cluster.models.Topology.Host.PortBinding
 import org.midonet.cluster.models.Topology.IPAddrGroup.IPAddrPorts
 import org.midonet.cluster.models.Topology.Pool.{PoolLBMethod, PoolProtocol}
 import org.midonet.cluster.models.Topology.Route.NextHop
 import org.midonet.cluster.models.Topology.Rule.{Action, JumpRuleData, NatRuleData, NatTarget}
 import org.midonet.cluster.models.Topology.TunnelZone.HostToIp
-import org.midonet.cluster.models.Topology.{IPAddrGroup, VIP, _}
+import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.util.IPAddressUtil._
 import org.midonet.cluster.util.IPSubnetUtil._
 import org.midonet.cluster.util.UUIDUtil._
@@ -551,6 +555,36 @@ trait TopologyBuilder {
         if (interfaceName.isDefined)
             builder.setInterfaceName(interfaceName.get)
         builder
+    }
+
+    protected def createTopologyObject[T <: Topology](
+        k: Class[T], attrs: Map[String, Any] = Map()): T = {
+        val builder: Builder[T] = k.getDeclaredMethod("newBuilder").invoke(null)
+            .asInstanceOf[Builder[T]]
+        val typeDesc = builder.getDescriptorForType
+
+        def convertToProto(v: Any): Any = {
+            if (v.isInstanceOf[Iterable[Any]])
+                v.asInstanceOf[Iterable[Any]].map(convertToProto).asJavaCollection
+            else if (v.getClass.getDeclaredMethod("asProto") != null)
+                v.getClass.getDeclaredMethod("asProto").invoke(v)
+            else if (v.getClass.getDeclaredMethod("toProto") != null)
+                v.getClass.getDeclaredMethod("toProto").invoke(v)
+            else
+                v
+        }
+
+        attrs.foreach(a => try {
+            builder.setField(typeDesc.findFieldByName(a._1), convertToProto(a._2))
+        } catch {
+            case t: Throwable => throw new IllegalArgumentException(
+                "cannot set protobuf value for " + k.getSimpleName +
+                    "." + a._1 + ": " + a._2, t)
+        })
+        val idField = typeDesc.findFieldByName("id")
+        if (idField != null && attrs.get("id").isEmpty)
+            builder.setField(idField, UUID.randomUUID().asProto)
+        builder.build.asInstanceOf[T]
     }
 }
 

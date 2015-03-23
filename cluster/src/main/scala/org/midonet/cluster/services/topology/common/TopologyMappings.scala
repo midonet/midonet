@@ -27,6 +27,8 @@ object TopologyMappings {
     /** Mapping Topology entity types to their container class */
     val typeToKlass: Map[Topology.Type, Class[_ <: Message]] = Map(
         Topology.Type.CHAIN  -> classOf[Topology.Chain],
+        Topology.Type.DHCP -> classOf[Topology.Dhcp],
+        Topology.Type.HEALTH_MONITOR -> classOf[Topology.HealthMonitor],
         Topology.Type.HOST -> classOf[Topology.Host],
         Topology.Type.IP_ADDR_GROUP -> classOf[Topology.IPAddrGroup],
         Topology.Type.NETWORK -> classOf[Topology.Network],
@@ -41,8 +43,7 @@ object TopologyMappings {
         Topology.Type.RULE -> classOf[Topology.Rule],
         Topology.Type.TUNNEL_ZONE -> classOf[Topology.TunnelZone],
         Topology.Type.VTEP -> classOf[Topology.Vtep],
-        Topology.Type.VTEP_BINDING -> classOf[Topology.VtepBinding],
-        Topology.Type.DHCP -> classOf[Topology.Dhcp]
+        Topology.Type.VTEP_BINDING -> classOf[Topology.VtepBinding]
     )
     /** Retrieve the klass for the given Topology entity type */
     def klassOf(t: Topology.Type) = typeToKlass.get(t)

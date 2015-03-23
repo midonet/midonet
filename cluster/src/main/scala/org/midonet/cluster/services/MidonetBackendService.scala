@@ -43,6 +43,7 @@ abstract class MidonetBackend extends AbstractService {
              classOf[Chain],
              classOf[Dhcp],
              classOf[FloatingIp],
+             classOf[HealthMonitor],
              classOf[IPAddrGroup],
              classOf[LoadBalancer],
              classOf[Network],
