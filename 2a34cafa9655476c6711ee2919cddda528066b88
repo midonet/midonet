@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_3652f913",
+        "filename": "netlink/src/main/scala/org.midonet.netlink/NetlinkRequestBroker.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-03-24T10:17:58Z",
+      "side": 0,
+      "message": "can we keep this private? it\u0027s an impl detail, exterior code shouldn\u0027t depend on this.",
+      "revId": "2a34cafa9655476c6711ee2919cddda528066b88",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}

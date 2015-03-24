@@ -1,0 +1,140 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_db5d8e4a",
+        "filename": "netlink/src/main/java/org/midonet/netlink/NLMessageType.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-03-24T10:17:58Z",
+      "side": 1,
+      "message": "final",
+      "revId": "9324c1d47fec8aa66fedb0fc2ed689b1e1989e54",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_bb5a524e",
+        "filename": "netlink/src/main/java/org/midonet/netlink/NLMessageType.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-03-24T10:17:58Z",
+      "side": 1,
+      "message": "private ctor?",
+      "revId": "9324c1d47fec8aa66fedb0fc2ed689b1e1989e54",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_db246ec8",
+        "filename": "netlink/src/main/scala/org.midonet.netlink/GenlProtocol.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-03-24T10:17:58Z",
+      "side": 1,
+      "message": "I don\u0027t like this, it\u0027s a confusing API.",
+      "revId": "9324c1d47fec8aa66fedb0fc2ed689b1e1989e54",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_564df571",
+        "filename": "netlink/src/main/scala/org.midonet.netlink/NetlinkConnection.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-03-24T10:17:58Z",
+      "side": 1,
+      "message": "Why not directly use the NetlinkRequestBroker?",
+      "revId": "9324c1d47fec8aa66fedb0fc2ed689b1e1989e54",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_b636e9e5",
+        "filename": "netlink/src/main/scala/org.midonet.netlink/NetlinkConnection.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-03-24T10:17:58Z",
+      "side": 1,
+      "message": "you\u0027re assuming this is not FULL. is it a valid assumption?",
+      "revId": "9324c1d47fec8aa66fedb0fc2ed689b1e1989e54",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_16341ddd",
+        "filename": "netlink/src/main/scala/org.midonet.netlink/NetlinkConnection.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-03-24T10:17:58Z",
+      "side": 1,
+      "message": "Still don\u0027t understand this.",
+      "revId": "9324c1d47fec8aa66fedb0fc2ed689b1e1989e54",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_d639e5d9",
+        "filename": "netlink/src/main/scala/org.midonet.netlink/NetlinkMessageWrapper.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-03-24T10:17:58Z",
+      "side": 1,
+      "message": "Why not have a method NetlinkMessageWrapper::genl(buf, type, cmd, ver) that does buf.position(Neltink.GENL_HEADER_SIZE) and buf.putShort(NetlinkMessage.GENL_RESERVED_OFFSET, 0)? Then we don\u0027t need the other Genl wrapper and everything is much simpler and straightforward.",
+      "revId": "9324c1d47fec8aa66fedb0fc2ed689b1e1989e54",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_96576d02",
+        "filename": "netlink/src/main/scala/org.midonet.netlink/NetlinkRequestBroker.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 271,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-03-24T10:17:58Z",
+      "side": 1,
+      "message": "can you remove this comment?",
+      "revId": "9324c1d47fec8aa66fedb0fc2ed689b1e1989e54",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
