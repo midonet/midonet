@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_51bcdf6c",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 5
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-03-24T16:11:35Z",
+      "side": 1,
+      "message": "could you put something like that _in_ the commit message. commit messages are important documentation.",
+      "parentUuid": "1a106d94_119f0761",
+      "revId": "de3f88ee8523aebd63b3f0ec231bd233d48c5d1d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_71811b4a",
         "filename": "midolman/src/main/scala/org/midonet/midolman/PacketWorkflow.scala",
         "patchSetId": 5
