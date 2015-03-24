@@ -557,16 +557,17 @@ class Port(p: Topology.Port)(implicit storage: StorageWithOwnership)
     // links, if any. Set to null to unlink
     def linkTo(p: Port): Port = {
         if (model.hasPeerId) {
-            Port.get(model.getPeerId) foreach {_.delete()}
+            // need to clear the peer id to avoid a loop
+            val peerId = model.getPeerId
+            clearField("peer_id").update()
+            Port.get(peerId) foreach {_.delete()}
         }
         if (p != null) {
             p.addRemotePort(this)
             setField("peer_id", p.getId)
             update()
-        } else {
-            clearField("peer_id")
-            this
         }
+        this
     }
 
     // Get back-references to tmpPorts linked to this one
@@ -574,8 +575,13 @@ class Port(p: Topology.Port)(implicit storage: StorageWithOwnership)
         model.getPortIdsList flatMap {Port.get(_)}
 
     // Get the target port to which this one is linked
-    def getTargetPort: Option[Port] =
-        if (model.getPeerId != null) Port.get(model.getPeerId) else None
+    def getTargetPort: Option[Port] = {
+        val peerId = model.getPeerId
+        if (peerId != null && !model.getPortIdsList.contains(peerId))
+            Port.get(peerId)
+        else
+            None
+    }
 
     // Get the devices linked to this one
     def getRemoteDevices: Iterable[VSwitch] =
