@@ -1,0 +1,198 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_f5f856c6",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 5
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-03-24T17:45:04Z",
+      "side": 1,
+      "message": "Some more context in the commit message would be useful. Who is the intended client of the library? What problem does it solve?",
+      "revId": "2a34cafa9655476c6711ee2919cddda528066b88",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_158d327c",
+        "filename": "midolman/src/main/java/org/midonet/midolman/io/SelectorBasedRtnetlinkConnection.java",
+        "patchSetId": 5
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-03-24T17:45:04Z",
+      "side": 1,
+      "message": "missing copyright",
+      "revId": "2a34cafa9655476c6711ee2919cddda528066b88",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_95f802e7",
+        "filename": "midolman/src/main/java/org/midonet/midolman/io/SelectorBasedRtnetlinkConnection.java",
+        "patchSetId": 5
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-03-24T17:45:04Z",
+      "side": 1,
+      "message": "empty comment is empty",
+      "revId": "2a34cafa9655476c6711ee2919cddda528066b88",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_f5dcd676",
+        "filename": "midolman/src/main/java/org/midonet/midolman/io/SelectorBasedRtnetlinkConnection.java",
+        "patchSetId": 5
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-03-24T17:45:04Z",
+      "side": 1,
+      "message": "should be an import",
+      "range": {
+        "startLine": 32,
+        "startChar": 29,
+        "endLine": 32,
+        "endChar": 34
+      },
+      "revId": "2a34cafa9655476c6711ee2919cddda528066b88",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_d5d9da84",
+        "filename": "midolman/src/main/java/org/midonet/midolman/io/SelectorBasedRtnetlinkConnection.java",
+        "patchSetId": 5
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-03-24T17:45:04Z",
+      "side": 1,
+      "message": "line is greater than 80. there\u0027s a couple more in this file also, but i won\u0027t mark them all",
+      "range": {
+        "startLine": 45,
+        "startChar": 101,
+        "endLine": 45,
+        "endChar": 104
+      },
+      "revId": "2a34cafa9655476c6711ee2919cddda528066b88",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_f5c33688",
+        "filename": "midolman/src/main/java/org/midonet/midolman/io/SelectorBasedRtnetlinkConnection.java",
+        "patchSetId": 5
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-03-24T17:45:04Z",
+      "side": 1,
+      "message": "catching Exception may swallow the interrupted status of the thread.",
+      "revId": "2a34cafa9655476c6711ee2919cddda528066b88",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_f54a1626",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/RtnetlinkMonitorExample.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-03-24T17:45:04Z",
+      "side": 1,
+      "message": "empty comment",
+      "revId": "2a34cafa9655476c6711ee2919cddda528066b88",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_951482f6",
+        "filename": "netlink/src/main/java/org/midonet/netlink/AbstractGenericNetlinkConnection.java",
+        "patchSetId": 5
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-03-24T17:45:04Z",
+      "side": 1,
+      "message": "empty comment",
+      "range": {
+        "startLine": 27,
+        "startChar": 1,
+        "endLine": 27,
+        "endChar": 2
+      },
+      "revId": "2a34cafa9655476c6711ee2919cddda528066b88",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_95b922ec",
+        "filename": "netlink/src/main/java/org/midonet/netlink/AbstractNetlinkConnection.java",
+        "patchSetId": 5
+      },
+      "lineNbr": 447,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-03-24T17:45:04Z",
+      "side": 1,
+      "message": "Setting the position here is a little weird. It requires cooperation between the concrete implementations for writing the header and this class. Moreover, I don\u0027t think it\u0027s necessary. You already know what should be in the header before you write the packet. Why not write the header first, then write the payload.",
+      "revId": "2a34cafa9655476c6711ee2919cddda528066b88",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_752c664b",
+        "filename": "netlink/src/main/java/org/midonet/netlink/AbstractRtnetlinkConnection.java",
+        "patchSetId": 5
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-03-24T17:45:04Z",
+      "side": 1,
+      "message": "empty comment",
+      "range": {
+        "startLine": 34,
+        "startChar": 1,
+        "endLine": 34,
+        "endChar": 2
+      },
+      "revId": "2a34cafa9655476c6711ee2919cddda528066b88",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
