@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_bb8532af",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/PacketWorkflow.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-03-24T09:47:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_6c882ae8",
+      "revId": "cae589b6cd9a00001743041f99bea633328a621b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_ec1c1ac4",
         "filename": "midolman/src/main/scala/org/midonet/midolman/PacketWorkflow.scala",
         "patchSetId": 5
@@ -30,6 +48,24 @@
       "writtenOn": "2015-03-23T14:10:21Z",
       "side": 1,
       "message": "tunneled packets should never this far. i think this can be removed",
+      "revId": "cae589b6cd9a00001743041f99bea633328a621b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_1b93a6fb",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/PacketWorkflow.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 173,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-03-24T09:47:25Z",
+      "side": 1,
+      "message": "handleFromTunnel calls handleFromUnderlay calls addTranslatedFlow calls handleFlow.",
+      "parentUuid": "1a106d94_ec1c1ac4",
       "revId": "cae589b6cd9a00001743041f99bea633328a621b",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -53,6 +89,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_fb8faaca",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/PacketWorkflow.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 197,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-03-24T09:47:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_4c79eefb",
+      "revId": "cae589b6cd9a00001743041f99bea633328a621b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_cc531e6b",
         "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/StateContext.scala",
         "patchSetId": 5
@@ -64,6 +118,24 @@
       "writtenOn": "2015-03-23T14:10:21Z",
       "side": 1,
       "message": "I don\u0027t think this is needed, since egress packets are tunneled packets that are handled in the UnderlayTrafficHandler.",
+      "revId": "cae589b6cd9a00001743041f99bea633328a621b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_fba68a52",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/StateContext.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-03-24T09:47:25Z",
+      "side": 1,
+      "message": "I don\u0027t understand what you mean here? We need to remove the trace tunnel bit in the tunnel key, so that when the packet workflow looks up the dp port via the key, it will actually find it.",
+      "parentUuid": "1a106d94_cc531e6b",
       "revId": "cae589b6cd9a00001743041f99bea633328a621b",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
