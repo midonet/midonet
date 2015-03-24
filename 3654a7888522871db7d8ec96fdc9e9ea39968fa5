@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_76aab1d5",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/TraceState.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-03-24T10:41:07Z",
+      "side": 1,
+      "message": "now this is called by clear() in the packet context",
+      "revId": "3654a7888522871db7d8ec96fdc9e9ea39968fa5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
