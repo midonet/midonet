@@ -16,6 +16,7 @@
 package org.midonet.cluster.data.storage
 
 import org.midonet.cluster.data.ObjId
+import org.midonet.cluster.data.storage.TransactionManager.getIdString
 
 /**
  * Catch-all wrapper for any non-runtime exception occurring in the
@@ -37,13 +38,15 @@ class ServiceUnavailableException(message: String)
 
 class NotFoundException (val clazz: Class[_], val id: ObjId)
     extends StorageException(
-        if (id != None) s"There is no ${clazz.getSimpleName} with ID $id."
+        if (id != None) s"There is no ${clazz.getSimpleName} with ID " +
+                        s"${getIdString(clazz, id)}."
         else s"There is no ${clazz.getSimpleName} with the specified ID.")
 
 class ObjectExistsException private[storage](val clazz: Class[_],
                                              val id: ObjId)
     extends StorageException(
-        s"A(n) ${clazz.getSimpleName} with ID $id already exists.")
+        s"A(n) ${clazz.getSimpleName} with ID ${getIdString(clazz, id)} " +
+        s"already exists.")
 
 /**
  * Thrown by the ZookeeperObjectMapper when a caller attempts to delete
@@ -77,8 +80,9 @@ class ObjectReferencedException private[storage](
         val referencingClass: Class[_],
         val referencingId: ObjId) extends StorageException(
     s"Cannot delete the ${referencedClass.getSimpleName} with ID " +
-    s"$referencingId because it is still referenced by the " +
-    s"${referencingClass.getSimpleName} with ID $referencingId.")
+    s"${getIdString(referencingClass, referencingId)} because it is still " +
+    s"referenced by the ${referencingClass.getSimpleName} with ID " +
+    s"${getIdString(referencingClass, referencingId)}.")
 
 /**
  * Thrown by the ZookeeperObjectMapper in response to a create or update
@@ -131,10 +135,9 @@ class ReferenceConflictException private[storage](
         val referencedClass: String, val referencedId: String)
     extends StorageException(
         s"Operation failed because the $referencingClass with ID " +
-        s"$referencingId. already references the " +
-        s"$referencedClass with ID $referencedId via the field " +
-        s"$referencingFieldName. This field can accommodate only one " +
-        "reference.")
+        s"$referencingId already references the $referencedClass with ID " +
+        s"$referencedId via the field $referencingFieldName. This field can " +
+        s"accommodate only one reference.")
 
 /**
  * Thrown by [[ZookeeperObjectMapper]] when a state object is being acquired
