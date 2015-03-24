@@ -72,6 +72,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_16909d94",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/PacketWorkflow.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 173,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-03-24T10:46:39Z",
+      "side": 1,
+      "message": "ah, yeah, you\u0027re right. still, i don\u0027t think we want this check to be executed for every single packet. \n\nI\u0027d just check if the tunnel key has the tracing bit set and immediately return NoOp (and trace something).",
+      "parentUuid": "1a106d94_1b93a6fb",
+      "revId": "cae589b6cd9a00001743041f99bea633328a621b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_4c79eefb",
         "filename": "midolman/src/main/scala/org/midonet/midolman/PacketWorkflow.scala",
         "patchSetId": 5
@@ -136,6 +154,24 @@
       "side": 1,
       "message": "I don\u0027t understand what you mean here? We need to remove the trace tunnel bit in the tunnel key, so that when the packet workflow looks up the dp port via the key, it will actually find it.",
       "parentUuid": "1a106d94_cc531e6b",
+      "revId": "cae589b6cd9a00001743041f99bea633328a621b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_96f3ed09",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/StateContext.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-03-24T10:46:39Z",
+      "side": 1,
+      "message": "we shouldn\u0027t even need to do that since we\u0027re not going to create a flow, right?\n\nalso, i\u0027d clear the tracing bit explicitly in handleFromUnderlay, far from code that runs for every packet.",
+      "parentUuid": "1a106d94_fba68a52",
       "revId": "cae589b6cd9a00001743041f99bea633328a621b",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
