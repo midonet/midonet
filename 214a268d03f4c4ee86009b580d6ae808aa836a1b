@@ -34,6 +34,24 @@
       "revId": "214a268d03f4c4ee86009b580d6ae808aa836a1b",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_356cae9c",
+        "filename": "midonet-api/src/main/java/org/midonet/api/system_data/TraceRequest.java",
+        "patchSetId": 6
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-03-24T16:55:21Z",
+      "side": 1,
+      "message": "But would that not be true of just about any property in any resource?\n\nAnyway, I\u0027m not going to fight this one out, it\u0027s a deprecated code base :-).",
+      "parentUuid": "1a106d94_e2726348",
+      "revId": "214a268d03f4c4ee86009b580d6ae808aa836a1b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
