@@ -1,0 +1,61 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_91e8177e",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/conf/ConfMinion.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 63,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-03-24T16:27:00Z",
+      "side": 1,
+      "message": "what about defining a:\n\naddServlet(context, xxxxConfigurator, \"some/url\") \n\nto simplify this?",
+      "revId": "38cdb85c3316b98d66e1ce89bdd8e5762f591102",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_71ed9b8b",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/conf/ConfMinion.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-03-24T16:27:00Z",
+      "side": 1,
+      "message": "text/plain; charset\u003dUTF-8\n\nAlso, maybe adding cache invalidation would be a good idea.",
+      "revId": "38cdb85c3316b98d66e1ce89bdd8e5762f591102",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_314fa394",
+        "filename": "midonet-api/src/main/java/org/midonet/api/servlet/RestApiJerseyServletModule.java",
+        "patchSetId": 14
+      },
+      "lineNbr": 186,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-03-24T16:27:00Z",
+      "side": 1,
+      "message": "Doesn\u0027t this conflict with the ClusterNode.Context that is instantiated in MidoBrainModule? It should be only bound at a single place.\n\nIt may very well be that I find the answer as I continue the review :D",
+      "range": {
+        "startLine": 186,
+        "startChar": 42,
+        "endLine": 186,
+        "endChar": 53
+      },
+      "revId": "38cdb85c3316b98d66e1ce89bdd8e5762f591102",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
