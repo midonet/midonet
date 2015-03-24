@@ -32,15 +32,31 @@ object TransactionManager {
     type BindingsMap = Multimap[Class[_], FieldBinding]
 
     case class Key(clazz: Class[_], id: String)
+    val NullKey = Key(null, null)
+
     case class ObjSnapshot(obj: Obj, version: Int, owners: Set[String])
 
-    trait TxOp
-    trait TxOwnerOp extends TxOp { def owner: String }
+    sealed trait TxOp
+    sealed trait TxOwnerOp extends TxOp { def owner: String }
+    sealed trait TxMapOp extends TxOp
+    sealed trait TxMapEntryOp extends TxOp
     case class TxCreate(obj: Obj, ops: Seq[TxOwnerOp]) extends TxOp
     case class TxUpdate(obj: Obj, version: Int, ops: Seq[TxOwnerOp]) extends TxOp
     case class TxDelete(version: Int, ops: Seq[TxOwnerOp]) extends TxOp
     case class TxCreateOwner(owner: String) extends TxOwnerOp
     case class TxDeleteOwner(owner: String) extends TxOwnerOp
+
+    class TxCreateMap(val mapId: String) extends TxMapOp {
+        val entryOps = new mutable.HashMap[String, TxMapEntryOp]
+    }
+    class TxUpdateMap(val mapId: String) extends TxMapOp {
+        val entryOps = new mutable.HashMap[String, TxMapEntryOp]
+    }
+    case class TxDeleteMap(mapId: String) extends TxMapOp
+
+    case class TxAddMapEntry(key: String, value: String) extends TxMapEntryOp
+    case class TxUpdateMapEntry(key: String, value: String) extends TxMapEntryOp
+    case class TxDeleteMapEntry(key: String) extends TxMapEntryOp
 
     private final val NewObjectVersion = -1
 
@@ -105,6 +121,8 @@ abstract class TransactionManager(classes: ClassesMap, bindings: BindingsMap) {
     // the list of owners, followed by a TxCreateOwner. These are added to the
     // ownership operations for each object operation.
     protected val ops = new mutable.LinkedHashMap[Key, TxOp]
+
+    protected val mapOps = new mutable.HashMap[String, TxMapOp]
 
     protected def isRegistered(clazz: Class[_]): Boolean
 
@@ -476,8 +494,44 @@ abstract class TransactionManager(classes: ClassesMap, bindings: BindingsMap) {
                 list += key -> txOp
             case _ =>
         }
-        list
+
+        for (op <- mapOps) op._2 match {
+            case cm: TxCreateMap =>
+                // We could use a key with String as the class and mapId or key
+                // as the ID (for maps and entries, respectively), but it
+                // wouldn't add anything, since the operations themselves
+                // contain that information.
+                list ++= flattenCreateMap(cm).map(NullKey -> _)
+                for (eo <- cm.entryOps.values)
+                    list += Key(null, cm.mapId) -> eo
+            case um: TxUpdateMap =>
+                for (eo <- um.entryOps.values)
+                    list += Key(null, um.mapId) -> eo
+            case dm: TxDeleteMap =>
+                 list ++= flattenDeleteMap(dm).map(NullKey -> _)
+        }
+
+        list.toList
     }
+
+    /**
+     * Flatten a TxDeleteMap operation into a sequence of operations. Needed
+     * because some storage engines *cough* Zookeeper *cough* need to have
+     * every little thing spelled out to them and don't allow deleting nodes
+     * until you delete all their children.
+     *
+     * Default implementation is to pretend we knew better than to use Zookeeper
+     * as a database, and just return the TxDeleteMap. Gory details in
+     * ZookeeperObjectMapper override.
+     */
+    protected def flattenDeleteMap(tx: TxDeleteMap): List[TxOp] = List(tx)
+
+    /**
+     * Same story as flattenDeleteMap, except this time it's that Zookeeper
+     * won't allow recursive creates, e.g., to create /maps/bridges/1/arp, we
+     * must first explicitly create /maps, /maps/bridges, and /maps/bridges/1.
+     */
+    protected def flattenCreateMap(tx: TxCreateMap): List[TxOp] = List(tx)
 
     /**
      * Creates a list of transaction operations when updating the owner of
@@ -520,4 +574,67 @@ abstract class TransactionManager(classes: ClassesMap, bindings: BindingsMap) {
                 "Ownership already exists")
         }
     }
+
+    def createMap(mapId: String): Unit = {
+        // No support for recreating a map that was deleted in the same
+        // transaction. This could be done, but we'd need to add an additional
+        // operation for clearing the map, and I don't anticipate needing
+        // support for this.
+        mapOps.get(mapId) match {
+            case None => mapOps(mapId) = new TxCreateMap(mapId)
+            case Some(_) => throw new MapExistsException(mapId)
+        }
+    }
+
+    def deleteMap(mapId: String): Unit = {
+        mapOps.get(mapId) match {
+            case Some(TxDeleteMap(_)) => throw new MapNotFoundException(mapId)
+            case _ => mapOps(mapId) = TxDeleteMap(mapId)
+        }
+    }
+
+    private def getEntryMap(mapId: String)
+    : mutable.Map[String, TxMapEntryOp] = mapOps.get(mapId) match {
+        case Some(tx: TxCreateMap) => tx.entryOps
+        case Some(tx: TxUpdateMap) => tx.entryOps
+        case Some(TxDeleteMap(_)) => throw new MapNotFoundException(mapId)
+        case None =>
+            val tx = new TxUpdateMap(mapId)
+            mapOps(mapId) = tx
+            tx.entryOps
+    }
+
+    def addMapEntry(mapId: String, key: String, value: String): Unit = {
+        val entryOps = getEntryMap(mapId)
+        entryOps(key) = entryOps.get(key) match {
+            case Some(TxAddMapEntry(_, _)) | Some(TxUpdateMapEntry(_, _)) =>
+                throw new MapEntryExistsException(mapId, key)
+            case Some(TxDeleteMapEntry(_)) => TxUpdateMapEntry(key, value)
+            case None => TxAddMapEntry(key, value)
+        }
+    }
+
+    def updateMapEntry(mapId: String, key: String, value: String): Unit = {
+        val entryOps = getEntryMap(mapId)
+        entryOps(key) = entryOps.get(key) match {
+            case Some(TxAddMapEntry(_, _)) => TxAddMapEntry(key, value)
+            case Some(TxUpdateMapEntry(_, _)) => TxUpdateMapEntry(key, value)
+            case Some(TxDeleteMapEntry(_)) => TxUpdateMapEntry(key, value)
+            case None => TxUpdateMapEntry(key, value)
+        }
+    }
+
+    def deleteMapEntry(mapId: String, key: String): Unit = {
+        val entryOps = getEntryMap(mapId)
+        entryOps.get(key) match {
+            case Some(TxAddMapEntry(_, _)) =>
+                entryOps -= key
+            case None | Some(TxUpdateMapEntry(_, _)) =>
+                entryOps(key) = TxDeleteMapEntry(key)
+            case Some(TxDeleteMapEntry(_)) =>
+                throw new MapEntryNotFoundException(mapId, key)
+        }
+    }
+
+
 }

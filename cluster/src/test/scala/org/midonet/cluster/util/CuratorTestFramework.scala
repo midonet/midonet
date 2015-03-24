@@ -97,7 +97,7 @@ trait CuratorTestFramework extends BeforeAndAfter
         teardown()
     }
 
-    protected def clearZookeeper() =
+    protected def clearZookeeper(): Unit =
         try curator.delete().deletingChildrenIfNeeded().forPath(ZK_ROOT) catch {
             case _: InterruptedException =>
                 fail("Curator did not connect to the test ZK server")

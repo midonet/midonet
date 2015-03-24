@@ -159,3 +159,37 @@ class OwnershipConflictException private[storage](val clazz: String,
            s"Object of class $clazz with ID $id cannot be owned by $newOwner " +
            s"because it has owner(s) $currentOwner")
 }
+
+/**
+ * Thrown when attempting to create a map that already exists. Unlike with
+ * objects, we don't allow deleting a map and then recreating it in the same
+ * transaction, so that will also produce this error.
+ */
+class MapExistsException private[storage](val mapId: String, msg: String)
+    extends StorageException(msg) {
+    def this(mapId: String) = this(mapId, s"Map $mapId already exists.")
+}
+
+/** Thrown when attempting to delete or modify a map that does not exist. */
+class MapNotFoundException private[storage](val mapId: String, msg: String)
+    extends StorageException(msg) {
+    def this(mapId: String) = this(mapId, s"Map $mapId does not exist.")
+}
+
+/** Thrown when attempting to create a map entry that already exists. */
+class MapEntryExistsException private[storage](
+        val mapId: String, val key: String, msg: String)
+    extends StorageException(msg) {
+    def this(mapId: String, key: String) =
+        this(mapId, key, s"Map $mapId already has an entry with key $key.")
+}
+
+/**
+ * Thrown when attempting to update or delete a map entry that doesn't exist.
+ */
+class MapEntryNotFoundException private[storage](
+        val mapId: String, val key: String, msg: String)
+    extends StorageException(msg) {
+    def this(mapId: String, key: String) =
+        this(mapId, key, s"Map $mapId does not have an entry with key $key.")
+}

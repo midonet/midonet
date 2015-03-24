@@ -26,6 +26,7 @@ import scala.collection.JavaConverters._
 import scala.collection.JavaConversions._
 import scala.collection.concurrent.TrieMap
 import scala.collection.mutable
+import scala.collection.mutable.ListBuffer
 import scala.concurrent.{ExecutionContext, Future, Promise}
 import scala.util.{Failure, Success}
 
@@ -230,43 +231,85 @@ class ZookeeperObjectMapper(
             var txn =
                 curator.inTransaction().asInstanceOf[CuratorTransactionFinal]
 
-            for ((Key(clazz, id), txOp) <- ops) txn = {
-                txOp match {
-                    case TxCreate(obj, _) =>
-                        txn.create()
-                            .forPath(getPath(clazz, id), serialize(obj)).and()
-                    case TxUpdate(obj, ver, ownerOps) =>
-                        txn.setData().withVersion(ver)
-                            .forPath(getPath(clazz, id), serialize(obj)).and()
-                    case TxDelete(ver, ownerOps) =>
-                        txn.delete().withVersion(ver)
-                            .forPath(getPath(clazz, id)).and()
-                    case TxCreateOwner(owner) =>
-                        txn.create().withMode(CreateMode.EPHEMERAL)
-                            .forPath(getOwnerPath(clazz, id, owner)).and()
-                    case TxDeleteOwner(owner) =>
-                        txn.delete()
-                            .forPath(getOwnerPath(clazz, id, owner)).and()
-                }
+            for ((Key(clazz, id), txOp) <- ops) txn = txOp match {
+                case TxCreate(obj, _) =>
+                    txn.create.forPath(getPath(clazz, id), serialize(obj)).and
+                case TxUpdate(obj, ver, ownerOps) =>
+                    txn.setData().withVersion(ver)
+                        .forPath(getPath(clazz, id), serialize(obj)).and
+                case TxDelete(ver, ownerOps) =>
+                    txn.delete.withVersion(ver).forPath(getPath(clazz, id)).and
+                case TxCreateOwner(owner) =>
+                    txn.create.withMode(CreateMode.EPHEMERAL)
+                        .forPath(getOwnerPath(clazz, id, owner)).and
+                case TxDeleteOwner(owner) =>
+                    txn.delete.forPath(getOwnerPath(clazz, id, owner)).and
+                case cm: TxCreateMap =>
+                    txn.create.forPath(cm.mapId).and
+                case TxDeleteMap(mapId) =>
+                    txn.delete.forPath(mapId).and
+                case TxAddMapEntry(key, value) =>
+                    txn.create.forPath(mapPath(id, key), asBytes(value)).and
+                case TxUpdateMapEntry(key, value) =>
+                    txn.setData().forPath(mapPath(id, key), asBytes(value)).and
+                case TxDeleteMapEntry(key) =>
+                    txn.delete.forPath(mapPath(id, key)).and
             }
 
             try txn.commit() catch {
-                case nee: NodeExistsException =>
-                    rethrowException(ops, nee)
-                case nee: NotEmptyException =>
-                    val op = opForException(ops, nee)
-                    throw new OwnershipConflictException(
-                        op._1.clazz.toString, op._1.id.toString)
-                case rce: ReferenceConflictException => throw rce
-                case ex@(_: BadVersionException | _: NoNodeException) =>
+                case bve: BadVersionException =>
                     // NoNodeException is assumed to be due to concurrent delete
                     // operation because we already successfully fetched any
                     // objects that are being updated.
-                    throw new ConcurrentModificationException(ex)
+                    throw new ConcurrentModificationException(bve)
+                case nee: NodeExistsException => rethrowException(ops, nee)
+                case nne: NoNodeException => rethrowException(ops, nne)
+                case nee: NotEmptyException => rethrowException(ops, nee)
+                case rce: ReferenceConflictException => throw rce
                 case ex: Exception =>
                     throw new InternalObjectMapperException(ex)
             }
         }
+
+        override protected def flattenCreateMap(tx: TxCreateMap): List[TxOp] = {
+            // Get each step in mapId's path. Drop the final step. We assume
+            // that it doesn't exist because the caller explicitly asked us to
+            // create it, so there's no need to check.
+            val steps =
+                tx.mapId.split("/").filterNot(_.isEmpty).dropRight(1).toList
+
+            // Fully-qualified paths to ancestors, in leaf-to-root order.
+            //
+            // E.g. Array("maps", "bridges", "1") becomes:
+            //   Array("/maps/bridges/1", "/maps/bridges", "/maps")
+            val ancestors =
+                steps.tail.scanLeft("/" + steps.head)(_ + "/" + _).reverse
+
+            // Figure out which ones still need to be created.
+            val ancestorsToCreate =
+                ancestors.takeWhile(curator.checkExists().forPath(_) == null)
+            val nodesToCreate = tx.mapId :: ancestorsToCreate
+
+            // Generate ops to create them, top to bottom.
+            nodesToCreate.reverseMap(new TxCreateMap(_))
+        }
+
+        override protected def flattenDeleteMap(tx: TxDeleteMap): List[TxOp] = {
+            // Using DeleteMap is kind of a kludge, since we're really just
+            // deleting nodes, most of which will be map entries, but it's the
+            // closest thing we have.
+            val ops = new ListBuffer[TxDeleteMap]
+            def recAddDeleteOps(path: String): Unit = {
+                for (c <- curator.getChildren.forPath(path))
+                    recAddDeleteOps(path + "/" + c)
+                ops += TxDeleteMap(path)
+            }
+            recAddDeleteOps(tx.mapId)
+            ops.toList
+        }
+
+        private def mapPath(mapId: String, key: String) = mapId + "/" + key
+        private def asBytes(s: String) = if (s != null) s.getBytes else null
 
         def releaseLock(): Unit = try {
             curator.delete().forPath(lockPath)
@@ -287,14 +330,21 @@ class ZookeeperObjectMapper(
         }
 
         /**
-         * Converts and rethrows an exception for transaction operation that
-         * generated the given [[NodeExistsException]], which can be either a
-         * [[ObjectExistsException]] if the original exception was thrown
-         * when creating an object, or a [[OwnershipConflictException]], if
-         * the original exception was thrown when creating an object owner.
+         * Given a [[NodeExistsException]] and the list of operations submitted
+         * for the transaction that produced the exception, throws an
+         * appropriate exception, depending on the operation that caused the
+         * exception.
+         *
+         * @throws ObjectExistsException if object creation failed.
+         * @throws OwnershipConflictException if object owner assignment failed.
+         * @throws MapExistsException if map creation failed.
+         * @throws MapEntryExistsException if adding a map entry failed.
+         * @throws InternalObjectMapperException for all other cases.
          */
         @throws[ObjectExistsException]
         @throws[OwnershipConflictException]
+        @throws[MapExistsException]
+        @throws[MapEntryExistsException]
         private def rethrowException(ops: Seq[(Key, TxOp)],
                                      e: NodeExistsException): Unit = {
             opForException(ops, e) match {
@@ -302,8 +352,59 @@ class ZookeeperObjectMapper(
                     throw new OwnershipConflictException(
                         key.clazz.getSimpleName, key.id.toString,
                         Set.empty[String], oop.owner)
+                case (_, cm: TxCreateMap) =>
+                    throw new MapExistsException(cm.mapId)
+                case (Key(_, mapId), ame: TxAddMapEntry) =>
+                    throw new MapEntryExistsException(mapId, ame.key)
                 case (key: Key, _) =>
                     throw new ObjectExistsException(key.clazz, key.id)
+                case _ => throw new InternalObjectMapperException(e)
+            }
+        }
+
+        /**
+         * Given a [[NoNodeException]] and the list of operations submitted
+         * for the transaction that produced the exception, throws an
+         * appropriate exception, depending on the operation that caused the
+         * exception.
+         *
+         * @throws MapNotFoundException if adding map entry failed.
+         * @throws ConcurrentModificationException for all other cases.
+         */
+        private def rethrowException(ops: Seq[(Key, TxOp)],
+                                     e: NoNodeException): Unit = {
+            opForException(ops, e) match {
+                case (Key(_, mapId), ame: TxAddMapEntry) =>
+                    throw new MapNotFoundException(mapId, ame.key)
+                case (Key(_, mapId), ume: TxUpdateMapEntry) =>
+                    throw new MapEntryNotFoundException(mapId, ume.key)
+                case (Key(_, mapId), dme: TxDeleteMapEntry) =>
+                    throw new MapEntryNotFoundException(mapId, dme.key)
+                case _ => throw new ConcurrentModificationException(e)
+            }
+        }
+
+        /**
+         * Given a [[NotEmptyException]] and the list of operations submitted
+         * for the transaction that produced the exception, throws an
+         * appropriate exception, depending on the operation that caused the
+         * exception.
+         *
+         * @throws OwnershipConflictException if owner operation failed.
+         * @throws ConcurrentModificationException if map deletion failed.
+         * @throws InternalObjectMapperException for all other cases.
+         */
+        private def rethrowException(ops: Seq[(Key, TxOp)],
+                                     e: NotEmptyException): Unit = {
+            opForException(ops, e) match {
+                case (Key(clazz, id), _: TxOwnerOp) =>
+                    throw new OwnershipConflictException(clazz.toString,
+                                                         id.toString)
+                case (_, _: TxDeleteMap) =>
+                    // We added operations to delete all descendants, so this
+                    // should only happen if there was a concurrent
+                    // modification.
+                    throw new ConcurrentModificationException(e)
                 case _ => throw new InternalObjectMapperException(e)
             }
         }
@@ -537,7 +638,7 @@ class ZookeeperObjectMapper(
         assertBuilt()
         assert(isRegistered(clazz))
 
-        val all = Promise[Seq[T]]
+        val all = Promise[Seq[T]]()
         val cb = new BackgroundCallback {
             override def processResult(client: CuratorFramework,
                                        evt: CuratorEvent): Unit = {
@@ -629,9 +730,17 @@ class ZookeeperObjectMapper(
             case DeleteOp(clazz, id, ignoresNeo) =>
                 manager.delete(clazz, id, ignoresNeo, None)
             case DeleteWithOwnerOp(clazz, id, owner) =>
-                manager.delete(clazz, id, false, Some(owner))
+                manager.delete(clazz, id, ignoresNeo = false, Some(owner))
             case DeleteOwnerOp(clazz, id, owner) =>
                 manager.deleteOwner(clazz, id, owner)
+            case CreateMap(mapId) => manager.createMap(mapId)
+            case DeleteMap(mapId) => manager.deleteMap(mapId)
+            case AddMapEntry(mapId, key, value) =>
+                manager.addMapEntry(mapId, key, value)
+            case UpdateMapEntry(mapId, key, value) =>
+                manager.updateMapEntry(mapId, key, value)
+            case DeleteMapEntry(mapId, key) =>
+                manager.deleteMapEntry(mapId, key)
         }
 
         try manager.commit() finally { manager.releaseLock() }
@@ -747,6 +856,19 @@ class ZookeeperObjectMapper(
                                                     onLastUnsubscribe)
             ownerCaches(clazz).putIfAbsent(id.toString, oc).getOrElse(oc)
         }).observable
+    }
+
+    // We should have public subscription methods, but we don't currently
+    // need them, and this is easier to implement for testing.
+    @VisibleForTesting
+    protected[storage] def getMapKeys(mapId: String): List[String] = {
+        curator.getChildren.forPath(mapId).asScala.toList
+    }
+
+    @VisibleForTesting
+    protected[storage] def getMapValue(mapId: String, key: String): String = {
+        val data = curator.getData.forPath(mapId + "/" + key)
+        if (data == null) null else new String(data)
     }
 
     /**

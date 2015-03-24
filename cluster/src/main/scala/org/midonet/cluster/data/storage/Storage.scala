@@ -61,6 +61,18 @@ private[storage]
 case class DeleteOwnerOp(clazz: Class[_], id: ObjId, owner: String)
     extends PersistenceOp
 
+case class CreateMap(mapId: String) extends PersistenceOp
+
+case class DeleteMap(mapId: String) extends PersistenceOp
+
+case class AddMapEntry(mapId: String, key: String, value: String)
+    extends PersistenceOp
+
+case class UpdateMapEntry(mapId: String, key: String, value: String)
+    extends PersistenceOp
+
+case class DeleteMapEntry(mapId: String, key: String) extends PersistenceOp
+
 /* Object ownership types */
 object OwnershipType extends Enumeration {
     class OwnershipType(val isExclusive: Boolean) extends Val

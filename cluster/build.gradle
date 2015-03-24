@@ -41,6 +41,7 @@ dependencies {
     compile libraries.cassandra,
             libraries.collections4,
             libraries.commons_cli,
+            libraries.commons_conf,
             libraries.commons_lang3,
             libraries.commons_dbcp2,
             libraries.curator_recipes,
@@ -54,10 +55,10 @@ dependencies {
             libraries.scala,
             libraries.scala_async,
             libraries.scala_logging,
-            libraries.typesafeconf
+            libraries.typesafeconf,
+            libraries.zookeeper
 
-    testCompile libraries.commons_conf,
-                libraries.curator_test,
+    testCompile libraries.curator_test,
                 libraries.hamcrest,
                 libraries.logback,
                 libraries.scalatest,
