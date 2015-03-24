@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_204913d1",
+        "filename": "brain/midonet-brain/build.gradle",
+        "patchSetId": 2
+      },
+      "lineNbr": 142,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-03-24T01:36:36Z",
+      "side": 1,
+      "message": "Perhaps it\u0027s a bit more readable if you bring those two lines below if-else below, and furthermore place \"preparePkg.dependsOn cleanPkg\" after \"debian.dependsOn preparePkg\".",
+      "range": {
+        "startLine": 141,
+        "startChar": 0,
+        "endLine": 142,
+        "endChar": 27
+      },
+      "revId": "1cb723568703ce5d4bb9ccb9862e4abfbfc5eade",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_e0f7fb8a",
+        "filename": "brain/midonet-brain/src/deb/init/midonet-brain-start",
+        "patchSetId": 2
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-03-24T01:36:36Z",
+      "side": 1,
+      "message": "s/package/packaged/ for consistency.",
+      "range": {
+        "startLine": 42,
+        "startChar": 2,
+        "endLine": 42,
+        "endChar": 9
+      },
+      "revId": "1cb723568703ce5d4bb9ccb9862e4abfbfc5eade",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
