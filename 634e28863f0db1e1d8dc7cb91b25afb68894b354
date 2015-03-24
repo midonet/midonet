@@ -279,6 +279,24 @@
       "revId": "634e28863f0db1e1d8dc7cb91b25afb68894b354",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_1b772604",
+        "filename": "netlink/src/main/scala/org.midonet.netlink/rtnetlink/RtnetlinkProtocol.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-03-24T09:04:09Z",
+      "side": 1,
+      "message": "you\u0027re writing more code and getting it executed because the IDE is stupid? :p",
+      "parentUuid": "1a106d94_dbf8eec6",
+      "revId": "634e28863f0db1e1d8dc7cb91b25afb68894b354",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
