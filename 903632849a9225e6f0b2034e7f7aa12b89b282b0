@@ -16,6 +16,24 @@
       "revId": "903632849a9225e6f0b2034e7f7aa12b89b282b0",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_78957be3",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Bridge.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 196,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-03-24T22:19:25Z",
+      "side": 1,
+      "message": "Wait, actually, now that I realize, this should not be in the bridge process() method, because a port filter could disallow these packets from getting to this point. I think it should be in \u0027packetIngressesPort\u0027, before the chain is applied. That\u0027s now in the coordinator because ports have now simulation code themselves (something we want to change eventually).",
+      "parentUuid": "1a106d94_35e5cea8",
+      "revId": "903632849a9225e6f0b2034e7f7aa12b89b282b0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
