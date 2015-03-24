@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_f1f86b4b",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 10
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-03-24T16:09:17Z",
+      "side": 1,
+      "message": "I forgot to link to the issue",
+      "parentUuid": "1a106d94_1120a7f6",
+      "range": {
+        "startLine": 7,
+        "startChar": 16,
+        "endLine": 7,
+        "endChar": 21
+      },
+      "revId": "0f579594b425f014c286e4534537b21310733aeb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_d101ef3a",
         "filename": "midolman/src/main/scala/org/midonet/midolman/package.scala",
         "patchSetId": 10
@@ -36,6 +60,24 @@
       "writtenOn": "2015-03-24T16:07:52Z",
       "side": 1,
       "message": "does this not generate a new object each time the implicit is applied? This happens for each packet context",
+      "revId": "0f579594b425f014c286e4534537b21310733aeb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_319a0315",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/package.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-03-24T16:09:17Z",
+      "side": 1,
+      "message": "no, because it\u0027s a value type (extends AnyVal). it will be converted into a static method.",
+      "parentUuid": "1a106d94_d101ef3a",
       "revId": "0f579594b425f014c286e4534537b21310733aeb",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
