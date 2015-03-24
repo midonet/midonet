@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_75c74613",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/logging/FlowTracingContext.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-03-24T18:31:36Z",
+      "side": 1,
+      "message": "why the TOS? (i already asked in a previous patch)",
+      "revId": "0f916ae8139438e5d61b8ffa08edcb19c5f0e8f3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
