@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_d1da8fe8",
+        "filename": "cluster/src/main/proto/topology.proto",
+        "patchSetId": 4
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-24T16:00:50Z",
+      "side": 1,
+      "message": "I thought this would be a good place because it\u0027s referenced by the router :-)",
+      "parentUuid": "1a106d94_313163a3",
+      "range": {
+        "startLine": 33,
+        "startChar": 0,
+        "endLine": 33,
+        "endChar": 22
+      },
+      "revId": "a5fdf1c08bdcc531fd7481c568f8b321f9cb1170",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_31304356",
         "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/VIP.scala",
         "patchSetId": 4
@@ -36,6 +60,30 @@
       "writtenOn": "2015-03-24T15:57:22Z",
       "side": 1,
       "message": "Isn\u0027t there a translation into Midonet topology objects?",
+      "range": {
+        "startLine": 30,
+        "startChar": 27,
+        "endLine": 30,
+        "endChar": 38
+      },
+      "revId": "a5fdf1c08bdcc531fd7481c568f8b321f9cb1170",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_f14a2bab",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/VIP.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-24T16:00:50Z",
+      "side": 1,
+      "message": "We apparently can\u0027t create the same message in two different proto files. Since VIP was already in Neutron I\u0027m using this one.",
+      "parentUuid": "1a106d94_31304356",
       "range": {
         "startLine": 30,
         "startChar": 27,
