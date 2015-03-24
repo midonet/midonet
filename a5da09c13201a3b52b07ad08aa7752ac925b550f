@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_16f25d9a",
+        "filename": "cluster/src/main/proto/topology.proto",
+        "patchSetId": 3
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-24T13:13:28Z",
+      "side": 1,
+      "message": "VIP is part of neutron.proto, just adding loadbalancer.",
+      "parentUuid": "3a1371a2_00ce895a",
+      "range": {
+        "startLine": 24,
+        "startChar": 5,
+        "endLine": 24,
+        "endChar": 9
+      },
+      "revId": "a5da09c13201a3b52b07ad08aa7752ac925b550f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_4fe9e019",
         "filename": "cluster/src/main/proto/topology.proto",
         "patchSetId": 3
@@ -72,6 +96,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_b6f42988",
+        "filename": "cluster/src/main/proto/topology.proto",
+        "patchSetId": 3
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-24T13:13:28Z",
+      "side": 1,
+      "message": "ok! I\u0027ll keep the back-reference here.",
+      "parentUuid": "1a106d94_2f3c6493",
+      "range": {
+        "startLine": 105,
+        "startChar": 4,
+        "endLine": 107,
+        "endChar": 1
+      },
+      "revId": "a5da09c13201a3b52b07ad08aa7752ac925b550f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a1371a2_809a7912",
         "filename": "midolman/src/main/scala/org/midonet/cluster/services/MidonetBackendService.scala",
         "patchSetId": 3
@@ -83,6 +131,24 @@
       "writtenOn": "2015-03-18T10:13:00Z",
       "side": 1,
       "message": "Do we want to do these TODOs in this patch?",
+      "revId": "a5da09c13201a3b52b07ad08aa7752ac925b550f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_b63b8937",
+        "filename": "midolman/src/main/scala/org/midonet/cluster/services/MidonetBackendService.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-24T13:13:28Z",
+      "side": 1,
+      "message": "Removed. I\u0027ll let Tomohiko and Brandon decide if they want to add those later on.",
+      "parentUuid": "3a1371a2_809a7912",
       "revId": "a5da09c13201a3b52b07ad08aa7752ac925b550f",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -141,6 +207,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_561215b5",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/LoadBalancer.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-24T13:13:28Z",
+      "side": 1,
+      "message": "It\u0027s the automatic importer that might have done this.",
+      "parentUuid": "1a106d94_2f1744a5",
+      "revId": "a5da09c13201a3b52b07ad08aa7752ac925b550f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_6f113cac",
         "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/LoadBalancer.scala",
         "patchSetId": 3
@@ -152,6 +236,24 @@
       "writtenOn": "2015-03-23T15:47:05Z",
       "side": 1,
       "message": "unneeded line break",
+      "revId": "a5da09c13201a3b52b07ad08aa7752ac925b550f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_960c8d96",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/LoadBalancer.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-24T13:13:28Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_6f113cac",
       "revId": "a5da09c13201a3b52b07ad08aa7752ac925b550f",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -204,6 +306,24 @@
       "writtenOn": "2015-03-23T15:47:05Z",
       "side": 1,
       "message": "why don\u0027t you guys enable syntax such should be device(..)? check the CustomMatchers.scala",
+      "revId": "a5da09c13201a3b52b07ad08aa7752ac925b550f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_76ed918b",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/TopologyMatchers.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 209,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-24T13:13:28Z",
+      "side": 1,
+      "message": "Yes we could have done it that way but I\u0027d prioritize uniformity in this class rather than changing this only for the load balancer.",
+      "parentUuid": "1a106d94_ef1c0cc4",
       "revId": "a5da09c13201a3b52b07ad08aa7752ac925b550f",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
