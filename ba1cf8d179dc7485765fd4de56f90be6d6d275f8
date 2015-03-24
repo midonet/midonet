@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_9587620f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BridgeMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 351,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-24T17:31:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_91b017df",
+      "range": {
+        "startLine": 351,
+        "startChar": 4,
+        "endLine": 351,
+        "endChar": 37
+      },
+      "revId": "ba1cf8d179dc7485765fd4de56f90be6d6d275f8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_11ad4789",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BridgeMapper.scala",
         "patchSetId": 1
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_d578ba2d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BridgeMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 454,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-24T17:31:16Z",
+      "side": 1,
+      "message": "No, we can\u0027t do that. If the proto field is not set, it will return a default instance not null. You can see that in the initFields() method of the proto message:\n\n  inboundFilterId_ \u003d org.midonet.cluster.models.Commons.UUID.getDefaultInstance();",
+      "parentUuid": "1a106d94_11ad4789",
+      "range": {
+        "startLine": 454,
+        "startChar": 16,
+        "endLine": 454,
+        "endChar": 78
+      },
+      "revId": "ba1cf8d179dc7485765fd4de56f90be6d6d275f8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_f1a98b7c",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BridgeMapper.scala",
         "patchSetId": 1
@@ -59,6 +107,30 @@
       "writtenOn": "2015-03-24T15:32:13Z",
       "side": 1,
       "message": "Same comment",
+      "range": {
+        "startLine": 455,
+        "startChar": 15,
+        "endLine": 455,
+        "endChar": 80
+      },
+      "revId": "ba1cf8d179dc7485765fd4de56f90be6d6d275f8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_758f4624",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BridgeMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 455,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-24T17:31:16Z",
+      "side": 1,
+      "message": "Same as above.",
+      "parentUuid": "1a106d94_f1a98b7c",
       "range": {
         "startLine": 455,
         "startChar": 15,
