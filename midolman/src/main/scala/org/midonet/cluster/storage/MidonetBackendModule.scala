@@ -69,10 +69,11 @@ class MidonetBackendConfigProvider extends Provider[MidonetBackendConfig] {
         cfgProvider.getConfig(classOf[MidonetBackendConfig])
 }
 
-class CuratorFrameworkProvider @Inject()(cfg: ZookeeperConfig)
+class CuratorFrameworkProvider @Inject()(cfg: MidonetBackendConfig)
     extends Provider[CuratorFramework] {
     override def get(): CuratorFramework = CuratorFrameworkFactory.newClient (
-        cfg.getZkHosts, new ExponentialBackoffRetry(1000, 10)
+        cfg.zookeeperHosts, new ExponentialBackoffRetry(cfg.zookeeperRetryMs,
+                                                        cfg.zookeeperMaxRetries)
     )
 }
 
