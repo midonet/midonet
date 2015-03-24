@@ -156,6 +156,103 @@
       "revId": "ee69470d01a652ae9e4c6ad252ee6479da55e264",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_f6722148",
+        "filename": "midolman/src/man/mn-conf.1.ronn",
+        "patchSetId": 3
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-03-24T12:03:48Z",
+      "side": 1,
+      "message": "does the dump contain the source of the configuration source? If you dumped the config and saw that there was something you didn\u0027t like, you could unset it. But if you don\u0027t know where it is from, you don\u0027t know whether to use -h or -t for unset.",
+      "revId": "ee69470d01a652ae9e4c6ad252ee6479da55e264",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_b678a92c",
+        "filename": "midolman/src/man/mn-conf.1.ronn",
+        "patchSetId": 3
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-03-24T12:03:48Z",
+      "side": 1,
+      "message": "It seems incomplete, that you can get and unset an individual key, but you can only set a whole file (even if it contains just one key).",
+      "range": {
+        "startLine": 76,
+        "startChar": 11,
+        "endLine": 76,
+        "endChar": 18
+      },
+      "revId": "ee69470d01a652ae9e4c6ad252ee6479da55e264",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_368dd932",
+        "filename": "midolman/src/man/mn-conf.1.ronn",
+        "patchSetId": 3
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-03-24T12:03:48Z",
+      "side": 1,
+      "message": "-c is undocumented.",
+      "range": {
+        "startLine": 76,
+        "startChar": 45,
+        "endLine": 76,
+        "endChar": 47
+      },
+      "revId": "ee69470d01a652ae9e4c6ad252ee6479da55e264",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_56ba15e2",
+        "filename": "midolman/src/man/mn-conf.1.ronn",
+        "patchSetId": 3
+      },
+      "lineNbr": 133,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-03-24T12:03:48Z",
+      "side": 1,
+      "message": "These values need to be here for bootstrapping rather than just backward compatibility.",
+      "revId": "ee69470d01a652ae9e4c6ad252ee6479da55e264",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_96b48df3",
+        "filename": "midolman/src/man/mn-conf.1.ronn",
+        "patchSetId": 3
+      },
+      "lineNbr": 140,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-03-24T12:03:48Z",
+      "side": 1,
+      "message": "It may be worth mentioning that these can be set in midolman-env.sh",
+      "revId": "ee69470d01a652ae9e4c6ad252ee6479da55e264",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
