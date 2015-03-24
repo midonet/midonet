@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_35e5cea8",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Bridge.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 196,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-03-24T18:36:01Z",
+      "side": 1,
+      "message": "this jump out to the parent context (the packet workflow) looks awkward to me. Why not just call handleDHCP from this location?",
+      "revId": "903632849a9225e6f0b2034e7f7aa12b89b282b0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
