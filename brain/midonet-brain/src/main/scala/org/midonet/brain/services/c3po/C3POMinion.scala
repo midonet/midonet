@@ -31,6 +31,7 @@ import org.midonet.brain.{ClusterNode, ScheduledClusterMinion, ScheduledMinionCo
 import org.midonet.cluster.data.neutron.{DataStateUpdater, SqlNeutronImporter, importer}
 import org.midonet.cluster.models.Neutron._
 import org.midonet.cluster.services.MidonetBackend
+import org.midonet.cluster.services.c3po.C3POState
 import org.midonet.cluster.util.UUIDUtil
 import org.midonet.config._
 
@@ -89,7 +90,10 @@ class C3POMinion @Inject()(nodeContext: ClusterNode.Context,
                 }
             }
 
-            dataStateUpdater.updateLastProcessedId(dataMgr.lastProcessedTaskId)
+            val newLastTaskId = dataMgr.lastProcessedTaskId
+            log.debug(".. updating last processed task ID: {}.", newLastTaskId)
+            if (C3POState.NO_TASKS_PROCESSED != newLastTaskId)
+                dataStateUpdater.updateLastProcessedId(newLastTaskId)
         } catch {
             case ex: Throwable =>
                 log.error("Unexpected exception in Neutron polling thread.", ex)

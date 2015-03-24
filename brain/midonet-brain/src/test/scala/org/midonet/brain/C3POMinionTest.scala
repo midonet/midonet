@@ -92,14 +92,14 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
     private val CREATE_STATE_TABLE =
         "CREATE TABLE midonet_data_state (" +
         "    id int(11) NOT NULL," +
-        "    last_processed_id int(11) DEFAULT NULL," +
+        "    last_processed_task_id int(11) DEFAULT NULL," +
         "    updated_at datetime NOT NULL," +
         "    PRIMARY KEY (id)" +
         ")"
     private val INIT_STATE_ROW =
         "INSERT INTO midonet_data_state values(1, NULL, datetime('now'))"
     private val LAST_PROCESSED_ID =
-        "SELECT last_processed_id FROM midonet_data_state WHERE id = 1"
+        "SELECT last_processed_task_id FROM midonet_data_state WHERE id = 1"
     private val LAST_PROCESSED_ID_COL = 1
 
     private val c3poCfg = new C3POConfig {
