@@ -456,6 +456,18 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
         s
     }
 
+    protected def portBindingJson(id: UUID,
+                                  hostId: UUID,
+                                  interfaceName: String,
+                                  portId: UUID): JsonNode = {
+        val pb = nodeFactory.objectNode
+        pb.put("id", id.toString)
+        pb.put("host_id", hostId.toString)
+        pb.put("interface_name", interfaceName)
+        pb.put("port_id", portId.toString)
+        pb
+    }
+
     protected case class ChainPair(inChain: Chain, outChain: Chain)
     protected def getChains(inChainId: Commons.UUID,
                             outChainId: Commons.UUID): ChainPair = {

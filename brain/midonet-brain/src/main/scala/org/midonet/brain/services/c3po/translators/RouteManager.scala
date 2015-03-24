@@ -77,6 +77,7 @@ trait RouteManager {
                                       nextHopGwIpAddr: IPAddress = null,
                                       srcSubnet: IPSubnet = univSubnet4,
                                       dstSubnet: IPSubnet = univSubnet4,
+                                      routerId: UUID = null,
                                       weight: Int = DEFAULT_WEIGHT): Route = {
         val bldr = Route.newBuilder
         bldr.setId(if (id != null) id else UUIDUtil.randomUuidProto)
@@ -86,6 +87,7 @@ trait RouteManager {
         bldr.setDstSubnet(dstSubnet)
         bldr.setWeight(weight)
         if (nextHopGwIpAddr != null) bldr.setNextHopGateway(nextHopGwIpAddr)
+        if (routerId != null) bldr.setRouterId(routerId)
         bldr.build()
     }
 
@@ -118,4 +120,8 @@ object RouteManager {
 
     def metadataServiceRouteId(dhcpPortId: UUID): UUID =
         dhcpPortId.xorWith(0xa0132e5a1583461cL, 0xa752d8609a517a6cL)
+
+    /** ID of next-hop route for a Floating IP address. */
+    def fipGatewayRouteId(fipId: UUID): UUID =
+        fipId.xorWith(0xa5257b5f7d8e49bbL, 0xa3d08db68f649715L)
 }
