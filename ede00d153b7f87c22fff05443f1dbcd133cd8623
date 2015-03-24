@@ -16,6 +16,24 @@
       "revId": "ede00d153b7f87c22fff05443f1dbcd133cd8623",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_82b0cfde",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/DeduplicationActor.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 336,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-03-24T10:24:51Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_4c044e7e",
+      "revId": "ede00d153b7f87c22fff05443f1dbcd133cd8623",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
