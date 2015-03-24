@@ -2,6 +2,108 @@
   "comments": [
     {
       "key": {
+        "uuid": "1a106d94_204e33c2",
+        "filename": "specs/2015.03/edge_router_translation.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-03-24T02:48:19Z",
+      "side": 1,
+      "message": "The section below is more or less a \"MidoNet 1.X Provider Router Overview\", so should be titled as such.",
+      "revId": "99a0500f574c0c5cf6302e7cde3b43b342daa32c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_40652f44",
+        "filename": "specs/2015.03/edge_router_translation.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-03-24T02:48:19Z",
+      "side": 1,
+      "message": "\"always at most one\" to be precise.",
+      "revId": "99a0500f574c0c5cf6302e7cde3b43b342daa32c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_a0e8637d",
+        "filename": "specs/2015.03/edge_router_translation.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-03-24T02:48:19Z",
+      "side": 1,
+      "message": "Need a paragraph here how the topology would look like with the new Edge Router and the virtual External Network that connect the Edge Router and tenant Routers, and why we\u0027re making changes.",
+      "revId": "99a0500f574c0c5cf6302e7cde3b43b342daa32c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_a0b6a388",
+        "filename": "specs/2015.03/edge_router_translation.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-03-24T02:48:19Z",
+      "side": 1,
+      "message": "The creation of an External Network is in other word just like creating a normal Network?",
+      "revId": "99a0500f574c0c5cf6302e7cde3b43b342daa32c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_80bba771",
+        "filename": "specs/2015.03/edge_router_translation.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-03-24T02:48:19Z",
+      "side": 1,
+      "message": "In other word, is creating a subnet on the External Network is just like creating a normal Subnet?",
+      "revId": "99a0500f574c0c5cf6302e7cde3b43b342daa32c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_20aab319",
+        "filename": "specs/2015.03/edge_router_translation.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-03-24T02:48:19Z",
+      "side": 1,
+      "message": "What user operation does this correspond to? A user connects the edge router to the External Network. And the corresponding Neutron resource CRUD is Router Interface Create?",
+      "revId": "99a0500f574c0c5cf6302e7cde3b43b342daa32c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a1371a2_6c0ad6d3",
         "filename": "specs/2015.03/edge_router_translation.md",
         "patchSetId": 4
@@ -225,6 +327,30 @@
       "side": 1,
       "message": "This is Router Create and Update so C3PO gets a router object.  I can make Router Create, Router Update, as the headers if that helps.\n\nAlso, I don\u0027t know much about ARP/MAC tables are stored in 1.X or 2.0 in detail so I assume you guys can fill in whatever that\u0027s missing.",
       "parentUuid": "3a1371a2_ac14cef5",
+      "range": {
+        "startLine": 65,
+        "startChar": 0,
+        "endLine": 65,
+        "endChar": 55
+      },
+      "revId": "99a0500f574c0c5cf6302e7cde3b43b342daa32c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_40688ff5",
+        "filename": "specs/2015.03/edge_router_translation.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-03-24T02:48:19Z",
+      "side": 1,
+      "message": "Yes, if you can relate a user operation (e.g. setting a gateway to the tenant router, etc), a corresponding Neutron Resource CRUD (Router Update), and resulting MidoNet topology manipulations, it would be a lot more helpful for us.",
+      "parentUuid": "3a1371a2_e7ca5f6d",
       "range": {
         "startLine": 65,
         "startChar": 0,
