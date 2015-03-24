@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -78,6 +78,14 @@ public class ZkPathManager {
 
     public String getHostVersionPath(UUID uuid, String version) {
         return getVersionPath(version) + "/" + uuid;
+    }
+
+    public String getTraceRequestsPath() {
+        return basePath().append("/traces").toString();
+    }
+
+    public String getTraceRequestPath(UUID uuid) {
+        return getTraceRequestsPath() + "/" + uuid;
     }
 
     private StringBuilder buildHealthMonitorLeaderDirPath() {
