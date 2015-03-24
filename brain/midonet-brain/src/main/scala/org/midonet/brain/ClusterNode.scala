@@ -20,6 +20,8 @@ import java.nio.file.{Files, Paths}
 import java.util.UUID
 import javax.sql.DataSource
 
+import scala.collection.JavaConverters._
+
 import com.codahale.metrics.{JmxReporter, MetricRegistry}
 import com.google.inject.name.Names
 import com.google.inject.{AbstractModule, Guice}
@@ -109,6 +111,15 @@ object ClusterNode extends App {
     dataSrc.setPassword(c3poConfig.password)
 
     private val daemon = new Daemon(nodeId, minionDefs)
+    private val configModule = new AbstractModule {
+        override def configure(): Unit = {
+            bind(classOf[ConfigProvider]).toInstance(cfgProvider)
+            log.info("Cluster configuration")
+            for ((cfgKey, cfgValue) <- cfgProvider.getAll.asScala) {
+                log.info(s"$cfgKey: $cfgValue")
+            }
+        }
+    }
     private val clusterNodeModule = new AbstractModule {
         override def configure(): Unit = {
 
@@ -118,7 +129,7 @@ object ClusterNode extends App {
             bind(classOf[ClusterNode.Context]).toInstance(nodeContext)
 
             // TODO: required for legacy modules, remove asap
-            bind(classOf[ConfigProvider]).toInstance(cfgProvider)
+            //bind(classOf[ConfigProvider]).toInstance(cfgProvider)
 
             // Minion configurations
             bind(classOf[C3POConfig]).toInstance(c3poConfig)
@@ -168,9 +179,10 @@ object ClusterNode extends App {
     }
 
     protected[brain] var injector = Guice.createInjector(
+        configModule,
         new MidonetBackendModule(),
-        dataClientDependencies,
-        clusterNodeModule
+        clusterNodeModule,
+        dataClientDependencies
     )
 
     log info "Registering shutdown hook"
