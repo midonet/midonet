@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_119f0761",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 5
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-03-24T15:25:42Z",
+      "side": 1,
+      "message": "the PacketContext is the type that unifies everything. you can\u0027t have a pre-allocated single queue with heterogeneous objects in it.",
+      "parentUuid": "1a106d94_113427dd",
+      "revId": "de3f88ee8523aebd63b3f0ec231bd233d48c5d1d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_71811b4a",
         "filename": "midolman/src/main/scala/org/midonet/midolman/PacketWorkflow.scala",
         "patchSetId": 5
@@ -30,6 +48,30 @@
       "writtenOn": "2015-03-24T14:53:56Z",
       "side": 1,
       "message": "this method name makes no sense now that it doesn\u0027t actually execute.",
+      "range": {
+        "startLine": 559,
+        "startChar": 16,
+        "endLine": 559,
+        "endChar": 26
+      },
+      "revId": "de3f88ee8523aebd63b3f0ec231bd233d48c5d1d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_d17baf27",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/PacketWorkflow.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 559,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-03-24T15:25:42Z",
+      "side": 1,
+      "message": "the name corresponds to the type of the packet. I guess I can rename it to handleGeneratedPacket.",
+      "parentUuid": "1a106d94_71811b4a",
       "range": {
         "startLine": 559,
         "startChar": 16,
@@ -59,6 +101,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_1176e73e",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/datapath/PacketExecutor.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-03-24T15:25:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_b13d53be",
+      "revId": "de3f88ee8523aebd63b3f0ec231bd233d48c5d1d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_114b875a",
         "filename": "midolman/src/main/scala/org/midonet/midolman/datapath/PacketExecutor.scala",
         "patchSetId": 5
@@ -76,6 +136,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_b178b32c",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/datapath/PacketExecutor.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-03-24T15:25:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_114b875a",
+      "revId": "de3f88ee8523aebd63b3f0ec231bd233d48c5d1d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_91f3f709",
         "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/PacketContext.scala",
         "patchSetId": 5
@@ -87,6 +165,24 @@
       "writtenOn": "2015-03-24T14:53:56Z",
       "side": 1,
       "message": "should be in StateContext.clear()",
+      "revId": "de3f88ee8523aebd63b3f0ec231bd233d48c5d1d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_f1722b48",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/PacketContext.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 255,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-03-24T15:25:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_91f3f709",
       "revId": "de3f88ee8523aebd63b3f0ec231bd233d48c5d1d",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
