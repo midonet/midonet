@@ -1,0 +1,95 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_113427dd",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 5
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-03-24T14:53:56Z",
+      "side": 1,
+      "message": "Why? what is the rationale behind the change?",
+      "revId": "de3f88ee8523aebd63b3f0ec231bd233d48c5d1d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_71811b4a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/PacketWorkflow.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 559,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-03-24T14:53:56Z",
+      "side": 1,
+      "message": "this method name makes no sense now that it doesn\u0027t actually execute.",
+      "range": {
+        "startLine": 559,
+        "startChar": 16,
+        "endLine": 559,
+        "endChar": 26
+      },
+      "revId": "de3f88ee8523aebd63b3f0ec231bd233d48c5d1d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_b13d53be",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/datapath/PacketExecutor.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-03-24T14:53:56Z",
+      "side": 1,
+      "message": "Looks like you are executing a stateMessage and a Packet for each event here. I\u0027d rename executeStatePacket to maybeExecuteStatePacket.",
+      "revId": "de3f88ee8523aebd63b3f0ec231bd233d48c5d1d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_114b875a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/datapath/PacketExecutor.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-03-24T14:53:56Z",
+      "side": 1,
+      "message": "Would be nice if the order of arguments were more consistent between this and executePacket.",
+      "revId": "de3f88ee8523aebd63b3f0ec231bd233d48c5d1d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_91f3f709",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/PacketContext.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 255,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-03-24T14:53:56Z",
+      "side": 1,
+      "message": "should be in StateContext.clear()",
+      "revId": "de3f88ee8523aebd63b3f0ec231bd233d48c5d1d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
