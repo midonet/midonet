@@ -36,6 +36,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_d16c4f39",
+        "filename": "midolman/src/man/mn-conf.1.ronn",
+        "patchSetId": 3
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-03-24T16:00:14Z",
+      "side": 1,
+      "message": "what do you mean by more/less specific? They can hold the same keys, the only real difference is priority.",
+      "parentUuid": "1a106d94_b8cd3d89",
+      "revId": "ee69470d01a652ae9e4c6ad252ee6479da55e264",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_d8c47961",
         "filename": "midolman/src/man/mn-conf.1.ronn",
         "patchSetId": 3
@@ -176,6 +194,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_f1734b13",
+        "filename": "midolman/src/man/mn-conf.1.ronn",
+        "patchSetId": 3
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-03-24T16:00:14Z",
+      "side": 1,
+      "message": "The dump prints (if printing from several sources) the merged config, but includes the source of each value as comments. Thus, yes, you will know where to change what you don\u0027t like.",
+      "parentUuid": "1a106d94_f6722148",
+      "revId": "ee69470d01a652ae9e4c6ad252ee6479da55e264",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_b678a92c",
         "filename": "midolman/src/man/mn-conf.1.ronn",
         "patchSetId": 3
@@ -222,6 +258,54 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_51605f35",
+        "filename": "midolman/src/man/mn-conf.1.ronn",
+        "patchSetId": 3
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-03-24T16:00:14Z",
+      "side": 1,
+      "message": "oops. will fix.",
+      "parentUuid": "1a106d94_368dd932",
+      "range": {
+        "startLine": 76,
+        "startChar": 45,
+        "endLine": 76,
+        "endChar": 47
+      },
+      "revId": "ee69470d01a652ae9e4c6ad252ee6479da55e264",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_b150b35f",
+        "filename": "midolman/src/man/mn-conf.1.ronn",
+        "patchSetId": 3
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-03-24T16:00:14Z",
+      "side": 1,
+      "message": "That\u0027s because -c is incomplete: by default, set merges the config you give as input on top of the existing one. So if you just give a key, as in the examples in the manpage, you are just setting that key and not touching anything else. If you give a -c, it will clear before writing.\n\nThis is why I didn\u0027t make set take a \u0027config-key\u0027 argument, because the merge vs clear give you total control.\n\nI\u0027ll document -c and explain a bit better.",
+      "parentUuid": "1a106d94_b678a92c",
+      "range": {
+        "startLine": 76,
+        "startChar": 11,
+        "endLine": 76,
+        "endChar": 18
+      },
+      "revId": "ee69470d01a652ae9e4c6ad252ee6479da55e264",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_56ba15e2",
         "filename": "midolman/src/man/mn-conf.1.ronn",
         "patchSetId": 3
@@ -239,6 +323,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_114ee7c1",
+        "filename": "midolman/src/man/mn-conf.1.ronn",
+        "patchSetId": 3
+      },
+      "lineNbr": 133,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-03-24T16:00:14Z",
+      "side": 1,
+      "message": "Yes, compatibility was meant to be about the file format, I\u0027ll clarify.",
+      "parentUuid": "1a106d94_56ba15e2",
+      "revId": "ee69470d01a652ae9e4c6ad252ee6479da55e264",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_96b48df3",
         "filename": "midolman/src/man/mn-conf.1.ronn",
         "patchSetId": 3
@@ -250,6 +352,24 @@
       "writtenOn": "2015-03-24T12:03:48Z",
       "side": 1,
       "message": "It may be worth mentioning that these can be set in midolman-env.sh",
+      "revId": "ee69470d01a652ae9e4c6ad252ee6479da55e264",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_91d137d0",
+        "filename": "midolman/src/man/mn-conf.1.ronn",
+        "patchSetId": 3
+      },
+      "lineNbr": 140,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-03-24T16:00:14Z",
+      "side": 1,
+      "message": "Not in the case of mn-conf. \n\n...but we should write a midolman(1) manual page some day :)",
+      "parentUuid": "1a106d94_96b48df3",
       "revId": "ee69470d01a652ae9e4c6ad252ee6479da55e264",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
