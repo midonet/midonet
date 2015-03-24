@@ -40,7 +40,7 @@ import org.slf4j.LoggerFactory
 import org.midonet.brain.ClusterNode.Context
 import org.midonet.brain.services.c3po.{C3POConfig, C3POMinion}
 import org.midonet.cluster.config.ZookeeperConfig
-import org.midonet.cluster.data.neutron.NeutronResourceType.{AgentMembership => AgentMembershipType, Config => ConfigType, Network => NetworkType, NoData, Port => PortType, Router => RouterType, SecurityGroup => SecurityGroupType, Subnet => SubnetType}
+import org.midonet.cluster.data.neutron.NeutronResourceType.{AgentMembership => AgentMembershipType, Config => ConfigType, Network => NetworkType, NoData, Port => PortType, PortBinding => PortBindingType, Router => RouterType, SecurityGroup => SecurityGroupType, Subnet => SubnetType}
 import org.midonet.cluster.data.neutron.TaskType._
 import org.midonet.cluster.data.neutron.{NeutronResourceType, TaskType}
 import org.midonet.cluster.data.storage.ObjectReferencedException
@@ -437,6 +437,18 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
         c.put("id", id.toString)
         c.put("ip_address", ipAddress)
         c
+    }
+
+    protected def portBindingJson(id: UUID,
+                                  hostId: UUID,
+                                  interfaceName: String,
+                                  portId: UUID): JsonNode = {
+        val pb = nodeFactory.objectNode
+        pb.put("id", id.toString)
+        pb.put("host_id", hostId.toString)
+        pb.put("interface_name", interfaceName)
+        pb.put("port_id", portId.toString)
+        pb
     }
 
     protected case class HostRoute(destination: String, nextHop: String)
@@ -848,5 +860,61 @@ class C3POMinionTest extends C3POMinionTestBase {
         // Tests that the host's reference to the tunnel zone is cleared.
         val hostNoTz = storage.get(classOf[Host], hostId).await()
         hostNoTz.getTunnelZoneIdsCount shouldBe 0
+    }
+
+    it should "handle Port Binding" in {
+        // Set up the host.
+        val hostId = UUID.randomUUID()
+        val host = Host.newBuilder.setId(hostId).build()
+        backend.ownershipStore.create(host, hostId)
+        eventually {
+            storage.exists(classOf[Host], hostId).await() shouldBe true
+        }
+
+        // Creates Network 1.
+        val network1Uuid = UUID.randomUUID()
+        val network1Json = networkJson(network1Uuid, "tenant1", "private-net")
+        executeSqlStmts(insertTaskSql(
+                id = 2, Create, NetworkType, network1Json.toString,
+                network1Uuid, "tx1"))
+
+        eventually {
+            storage.exists(classOf[Host], hostId).await() shouldBe true
+        }
+
+        val vifPortUuid = UUID.randomUUID()
+        val vifPortId = toProto(vifPortUuid)
+        // Creates a VIF port.
+        val vifPortJson = portJson(name = "port1", id = vifPortUuid,
+                                   networkId = network1Uuid).toString
+        executeSqlStmts(insertTaskSql(
+                id = 3, Create, PortType, vifPortJson, vifPortUuid, "tx2"))
+
+        val vifPort = eventually(storage.get(classOf[Port], vifPortId).await())
+        vifPort.getId should be (vifPortId)
+        vifPort.getNetworkId should be (toProto(network1Uuid))
+        vifPort.getAdminStateUp shouldBe true
+        vifPort.hasHostId shouldBe false
+
+        eventually {
+            storage.exists(classOf[Host], hostId).await() shouldBe true
+        }
+
+        val bindingUuid = UUID.randomUUID()
+        val bindingJson = portBindingJson(bindingUuid,
+                                          hostId,
+                                          "if1",
+                                          vifPortUuid).toString
+        executeSqlStmts(insertTaskSql(
+                id = 4, Create, PortBindingType, bindingJson, bindingUuid,
+                "tx3"))
+
+        // Tests that the host's reference to the tunnel zone is cleared.
+        eventually {
+            val boundHost = storage.get(classOf[Host], hostId).await()
+            boundHost.getPortBindingsCount shouldBe 1
+            val boundPort = storage.get(classOf[Port], vifPortUuid).await()
+            boundPort.getHostId shouldBe toProto(hostId)
+        }
     }
 }
