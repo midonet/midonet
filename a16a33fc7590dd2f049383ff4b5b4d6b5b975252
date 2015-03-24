@@ -34,6 +34,24 @@
       "revId": "a16a33fc7590dd2f049383ff4b5b4d6b5b975252",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_1b4e06c2",
+        "filename": "cluster/src/main/scala/org/midonet/conf/MidoConf.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-03-24T09:08:12Z",
+      "side": 1,
+      "message": "I think it\u0027s the type that does that, no? well, it was only a suggestion :)",
+      "parentUuid": "1a106d94_ec2b7a92",
+      "revId": "a16a33fc7590dd2f049383ff4b5b4d6b5b975252",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
