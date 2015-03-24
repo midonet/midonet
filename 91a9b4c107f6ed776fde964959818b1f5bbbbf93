@@ -22,6 +22,30 @@
       "revId": "91a9b4c107f6ed776fde964959818b1f5bbbbf93",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_1bfc463e",
+        "filename": "brain/midonet-brain/src/main/resources/org/midonet/conf/brain.schema",
+        "patchSetId": 15
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-03-24T09:25:29Z",
+      "side": 1,
+      "message": "fixed in a later patch!",
+      "parentUuid": "1a106d94_4087ef61",
+      "range": {
+        "startLine": 57,
+        "startChar": 44,
+        "endLine": 57,
+        "endChar": 54
+      },
+      "revId": "91a9b4c107f6ed776fde964959818b1f5bbbbf93",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
