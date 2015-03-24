@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_31d5e343",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterMapper.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 416,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-24T14:51:46Z",
+      "side": 1,
+      "message": "That must have taken some time to draw! :-)",
+      "range": {
+        "startLine": 383,
+        "startChar": 4,
+        "endLine": 416,
+        "endChar": 78
+      },
+      "revId": "b24258be680cb1505dba2e306a5a79e49c4dde63",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
