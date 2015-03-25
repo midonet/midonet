@@ -143,6 +143,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_49d8b353",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PortGroupMapper.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-25T14:14:39Z",
+      "side": 1,
+      "message": "Sounds good!",
+      "parentUuid": "1a106d94_e9753133",
+      "range": {
+        "startLine": 39,
+        "startChar": 16,
+        "endLine": 39,
+        "endChar": 81
+      },
+      "revId": "03ca6aadbc3fd5f3b2523d2b2ab64221902078d5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_4340a656",
         "filename": "midolman/src/test/scala/org/midonet/midolman/topology/PortGroupsMapperTest.scala",
         "patchSetId": 3
