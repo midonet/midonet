@@ -72,6 +72,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_a46eaec7",
+        "filename": "midolman/src/man/mn-conf.1.ronn",
+        "patchSetId": 3
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 1002709
+      },
+      "writtenOn": "2015-03-25T16:06:20Z",
+      "side": 1,
+      "message": "I meant that a node is more specific than a template (group of nodes) , a template is more specific than default (all nodes). \nNot a major issue, it was a suggestion :)",
+      "parentUuid": "1a106d94_d16c4f39",
+      "revId": "ee69470d01a652ae9e4c6ad252ee6479da55e264",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_d8c47961",
         "filename": "midolman/src/man/mn-conf.1.ronn",
         "patchSetId": 3
@@ -137,6 +155,24 @@
       "side": 1,
       "message": "But it actually is a source of the configuration and it is considered in order of priority exactly where it appears on the list. In other words, if you don\u0027t configure anything at all, it\u0027s the schema values that your nodes will be using. And any values you don\u0027t set in the templates or node configs will be taken from the schema.",
       "parentUuid": "1a106d94_6fec9cc8",
+      "revId": "ee69470d01a652ae9e4c6ad252ee6479da55e264",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_045fc20f",
+        "filename": "midolman/src/man/mn-conf.1.ronn",
+        "patchSetId": 3
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 1002709
+      },
+      "writtenOn": "2015-03-25T16:06:20Z",
+      "side": 1,
+      "message": "Ok, understood, I wasn\u0027t expecting values in the schema but types such as \"integer\" or \"string\".\nI find slightly confusing that there is a default value and a default template. Maybe default template would be better named \"global\", I\u0027m not sure how to best explain that level.",
+      "parentUuid": "1a106d94_2f30e455",
       "revId": "ee69470d01a652ae9e4c6ad252ee6479da55e264",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
