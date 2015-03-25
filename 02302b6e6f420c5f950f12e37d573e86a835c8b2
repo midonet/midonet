@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_9e465f22",
+        "filename": "midonet-api/src/main/java/org/midonet/api/system_data/rest_api/TraceRequestResource.java",
+        "patchSetId": 7
+      },
+      "lineNbr": 241,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-03-25T09:59:37Z",
+      "side": 1,
+      "message": "I was trying to keep the api conforming to how I understand. To just set a bit, you would need to do a PUT with the whole TraceRequest json object, which means you need to fetch the whole object first.\n\nThat said, I have no strong opinion on RESTful pureness, so if you think it\u0027s better to just have a PUT on the trace request resource, i\u0027ll do it that way.",
+      "parentUuid": "1a106d94_dbe3c903",
+      "revId": "02302b6e6f420c5f950f12e37d573e86a835c8b2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_3bf13dce",
         "filename": "midonet-api/src/main/java/org/midonet/api/system_data/rest_api/TraceRequestResource.java",
         "patchSetId": 7
@@ -30,6 +48,24 @@
       "writtenOn": "2015-03-25T02:47:25Z",
       "side": 1,
       "message": "Similarly, do we need this?  Couldn\u0027t the user simply do a GET on TraceRequest to get this information?",
+      "revId": "02302b6e6f420c5f950f12e37d573e86a835c8b2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_fe4af325",
+        "filename": "midonet-api/src/main/java/org/midonet/api/system_data/rest_api/TraceRequestResource.java",
+        "patchSetId": 7
+      },
+      "lineNbr": 271,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-03-25T09:59:37Z",
+      "side": 1,
+      "message": "I added it for symmetry with the PUT. Will remove depending on what you response for that.",
+      "parentUuid": "1a106d94_3bf13dce",
       "revId": "02302b6e6f420c5f950f12e37d573e86a835c8b2",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
