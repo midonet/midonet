@@ -93,15 +93,6 @@ public class MmCtl {
     private final String INSERT_TASK =
         "insert into midonet_tasks values (default, ?, ?, ?, ?, ?, ?, ?)";
 
-    private final String INSERT_PORT_BINDING =
-        "insert into midonet_port_binding values (?, ?, ?, ?)";
-
-    private final String DELETE_PORT_BINDING =
-        "delete from midonet_port_binding where id = ?";
-
-    private final String PORT_BINDING_QUERY =
-        "select id from midonet_port_binding where port_id = ?";
-
     private enum MM_CTL_RET_CODE {
 
         UNKNOWN_ERROR(-1, "Command failed"),
@@ -281,32 +272,12 @@ public class MmCtl {
         ps.executeUpdate();
     }
 
-    private void insertPortBinding(Connection connect, UUID id, UUID portId,
-                                   String interfaceName, UUID hostId)
-            throws SQLException {
-        PreparedStatement ps = connect.prepareStatement(INSERT_PORT_BINDING);
-        ps.setString(1, id.toString());
-        ps.setString(2, portId.toString());
-        ps.setString(3, hostId.toString());
-        ps.setString(4, interfaceName);
-        ps.executeUpdate();
-    }
-
-    private void deletePortBinding(Connection connect, UUID bindingId)
-            throws SQLException {
-        PreparedStatement ps = connect.prepareStatement(DELETE_PORT_BINDING);
-        ps.setString(1, bindingId.toString());
-        ps.executeUpdate();
-    }
-
     private void createBindEntries(UUID portId, String deviceName,
                                    UUID hostId) {
         Connection connect = connectToDatabase();
         try {
-            UUID bindingId = UUID.randomUUID();
-            insertTask(connect, bindingId, TASK_TYPE.CREATE, portId,
-                       deviceName, hostId);
-            insertPortBinding(connect, bindingId, portId, deviceName, hostId);
+            insertTask(connect, portId, TASK_TYPE.CREATE, portId, deviceName,
+                       hostId);
         } catch (SQLException e) {
             log.error("Failed to create port binding entries");
             failCloseConnection(connect);
@@ -315,27 +286,11 @@ public class MmCtl {
         successCloseConnection(connect);
     }
 
-    private UUID getBindingId(Connection connect, UUID portId) {
-        try {
-            PreparedStatement ps = connect.prepareStatement(PORT_BINDING_QUERY);
-            ps.setString(1, portId.toString());
-            ResultSet rs = ps.executeQuery();
-            rs.next();
-            return UUID.fromString(rs.getString("id"));
-        } catch (SQLException e) {
-            failCloseConnection(connect);
-            log.error("getBindingId failed: " + e.getMessage());
-            throw new RuntimeException(e);
-        }
-    }
-
     private void removeBindEntries(UUID portId, UUID hostId) {
         Connection connect = connectToDatabase();
         try {
-            UUID bindingId = getBindingId(connect, portId);
-            insertTask(connect, bindingId, TASK_TYPE.DELETE, portId,
-                       null, hostId);
-            deletePortBinding(connect, bindingId);
+            insertTask(connect, portId, TASK_TYPE.DELETE, portId, null,
+                       hostId);
         } catch (SQLException e) {
             failCloseConnection(connect);
             log.error("removeBindEntries failed: " + e.getMessage());
