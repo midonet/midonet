@@ -37,6 +37,23 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_1eef0fb2",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/StateContext.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-03-25T11:26:47Z",
+      "side": 1,
+      "message": "did you see my comments in patch #5?",
+      "revId": "cb1fb1e99ce1eb8712f76419fc7e6e015d216e1f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_3eb92b2f",
         "filename": "midolman/src/main/scala/org/midonet/midolman/state/TraceState.scala",
         "patchSetId": 7
