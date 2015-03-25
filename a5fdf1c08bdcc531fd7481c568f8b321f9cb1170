@@ -72,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_49d55342",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/LoadBalancer.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 142,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-25T13:40:49Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_b5f37e09",
+      "range": {
+        "startLine": 142,
+        "startChar": 10,
+        "endLine": 142,
+        "endChar": 17
+      },
+      "revId": "a5fdf1c08bdcc531fd7481c568f8b321f9cb1170",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_31304356",
         "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/VIP.scala",
         "patchSetId": 4
@@ -143,6 +167,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_89cf4bb0",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/VIP.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-25T13:40:49Z",
+      "side": 1,
+      "message": "I renamed VIP in neutron.proto to NeutronVIP and introduced a VIP in topology.proto",
+      "parentUuid": "1a106d94_b5ca5e9f",
+      "range": {
+        "startLine": 30,
+        "startChar": 27,
+        "endLine": 30,
+        "endChar": 38
+      },
+      "revId": "a5fdf1c08bdcc531fd7481c568f8b321f9cb1170",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_55632ab1",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/LoadBalancerMapper.scala",
         "patchSetId": 4
@@ -154,6 +202,30 @@
       "writtenOn": "2015-03-24T16:56:58Z",
       "side": 1,
       "message": "Use .toSet here.",
+      "range": {
+        "startLine": 84,
+        "startChar": 69,
+        "endLine": 84,
+        "endChar": 76
+      },
+      "revId": "a5fdf1c08bdcc531fd7481c568f8b321f9cb1170",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_c9c0237f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/LoadBalancerMapper.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-25T13:40:49Z",
+      "side": 1,
+      "message": "I removed this.",
+      "parentUuid": "1a106d94_55632ab1",
       "range": {
         "startLine": 84,
         "startChar": 69,
@@ -189,6 +261,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_29be1700",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/LoadBalancerMapper.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-25T13:40:49Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_955da2ec",
+      "range": {
+        "startLine": 85,
+        "startChar": 49,
+        "endLine": 85,
+        "endChar": 53
+      },
+      "revId": "a5fdf1c08bdcc531fd7481c568f8b321f9cb1170",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_d5471a1c",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/LoadBalancerMapper.scala",
         "patchSetId": 4
@@ -212,6 +308,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_69376fb1",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/LoadBalancerMapper.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-25T13:40:49Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_d5471a1c",
+      "range": {
+        "startLine": 105,
+        "startChar": 38,
+        "endLine": 105,
+        "endChar": 41
+      },
+      "revId": "a5fdf1c08bdcc531fd7481c568f8b321f9cb1170",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_3555cec6",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/LoadBalancerMapper.scala",
         "patchSetId": 4
@@ -223,6 +343,30 @@
       "writtenOn": "2015-03-24T16:56:58Z",
       "side": 1,
       "message": "Warn?",
+      "range": {
+        "startLine": 107,
+        "startChar": 20,
+        "endLine": 107,
+        "endChar": 25
+      },
+      "revId": "a5fdf1c08bdcc531fd7481c568f8b321f9cb1170",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_493c3394",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/LoadBalancerMapper.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-25T13:40:49Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_3555cec6",
       "range": {
         "startLine": 107,
         "startChar": 20,
