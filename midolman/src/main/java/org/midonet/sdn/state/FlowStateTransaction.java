@@ -106,7 +106,7 @@ public class FlowStateTransaction<K, V> {
             for (int i = 0; i < keys.size(); i++) {
                 if (keys.get(i).equals(key)) {
                     V oldV = values.get(i);
-                    values.add(i, value);
+                    values.set(i, value);
                     return oldV;
                 }
             }
