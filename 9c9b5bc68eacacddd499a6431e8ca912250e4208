@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_e43ee628",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/scanner/DefaultInterfaceScanner.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-03-25T17:10:25Z",
+      "side": 1,
+      "message": "The indices of interfaces are not necessarily sequential, especially for virtual interfaces, and we need to reallocate the ArrayList when a new link with the index larger than the boundary of the ArrayList. And InterfaceScanner is comprised of the information of two resources, the link and the address. They can be retrieved separately and the InterfaceScanner can be updated concurrently although we can use zip to avoid that. But I could just use ConcurrentMap here. Let me leave it as TrieMap in the next version and revisit it in the further revisions.",
+      "parentUuid": "1a106d94_fe53136a",
+      "range": {
+        "startLine": 73,
+        "startChar": 26,
+        "endLine": 73,
+        "endChar": 33
+      },
+      "revId": "9c9b5bc68eacacddd499a6431e8ca912250e4208",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_3e776b04",
         "filename": "midolman/src/main/scala/org/midonet/midolman/host/scanner/DefaultInterfaceScanner.scala",
         "patchSetId": 3
@@ -36,6 +60,30 @@
       "writtenOn": "2015-03-25T12:06:07Z",
       "side": 1,
       "message": "dead code. Do we intend to scan routes and neighbours in the future?",
+      "range": {
+        "startLine": 75,
+        "startChar": 4,
+        "endLine": 75,
+        "endChar": 11
+      },
+      "revId": "9c9b5bc68eacacddd499a6431e8ca912250e4208",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_849e1255",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/scanner/DefaultInterfaceScanner.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-03-25T17:10:25Z",
+      "side": 1,
+      "message": "I removed them.",
+      "parentUuid": "1a106d94_3e776b04",
       "range": {
         "startLine": 75,
         "startChar": 4,
@@ -82,6 +130,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_647956fc",
+        "filename": "netlink/src/main/java/org/midonet/netlink/rtnetlink/Link.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 182,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-03-25T17:10:25Z",
+      "side": 1,
+      "message": "I just neede IFLA_LINKINFO, which was not defined in the previous patch, but I added all values. Let me revisit this in the later revision for now.",
+      "parentUuid": "1a106d94_5e306756",
+      "revId": "9c9b5bc68eacacddd499a6431e8ca912250e4208",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_3e492bd1",
         "filename": "netlink/src/main/scala/org.midonet.netlink/NetlinkChannelFactory.scala",
         "patchSetId": 3
@@ -93,6 +159,24 @@
       "writtenOn": "2015-03-25T12:06:07Z",
       "side": 1,
       "message": "also, looks like it should be in previous patch.",
+      "revId": "9c9b5bc68eacacddd499a6431e8ca912250e4208",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_e46c2639",
+        "filename": "netlink/src/main/scala/org.midonet.netlink/NetlinkChannelFactory.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-03-25T17:10:25Z",
+      "side": 1,
+      "message": "I\u0027ll fix this in the next revision.",
+      "parentUuid": "1a106d94_3e492bd1",
       "revId": "9c9b5bc68eacacddd499a6431e8ca912250e4208",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
