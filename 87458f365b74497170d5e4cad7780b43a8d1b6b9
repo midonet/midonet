@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_9e813f4d",
+        "filename": "midonet-api/src/main/java/org/midonet/api/system_data/rest_api/TraceRequestResource.java",
+        "patchSetId": 8
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-03-25T09:53:04Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_db1c6916",
+      "revId": "87458f365b74497170d5e4cad7780b43a8d1b6b9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_3b1add17",
         "filename": "midonet-api/src/main/java/org/midonet/api/system_data/rest_api/TraceRequestResource.java",
         "patchSetId": 8
@@ -36,6 +54,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_fe95d388",
+        "filename": "midonet-api/src/main/java/org/midonet/api/system_data/rest_api/TraceRequestResource.java",
+        "patchSetId": 8
+      },
+      "lineNbr": 176,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-03-25T09:53:04Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_3b1add17",
+      "revId": "87458f365b74497170d5e4cad7780b43a8d1b6b9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_1b1721ef",
         "filename": "midonet-api/src/main/java/org/midonet/api/system_data/rest_api/TraceRequestResource.java",
         "patchSetId": 8
@@ -47,6 +83,24 @@
       "writtenOn": "2015-03-25T02:41:43Z",
       "side": 1,
       "message": "Should consume VendorMediaType.APPLICATION_TRACE_REQUEST_JSON  in the input",
+      "revId": "87458f365b74497170d5e4cad7780b43a8d1b6b9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_de92979e",
+        "filename": "midonet-api/src/main/java/org/midonet/api/system_data/rest_api/TraceRequestResource.java",
+        "patchSetId": 8
+      },
+      "lineNbr": 208,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-03-25T09:53:04Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_1b1721ef",
       "revId": "87458f365b74497170d5e4cad7780b43a8d1b6b9",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
