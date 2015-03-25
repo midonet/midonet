@@ -52,6 +52,24 @@
       "revId": "903632849a9225e6f0b2034e7f7aa12b89b282b0",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_7e74439c",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Bridge.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 196,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-03-25T09:16:01Z",
+      "side": 1,
+      "message": "mmmmm. ouch. d\u0027oh.",
+      "parentUuid": "1a106d94_784a9b84",
+      "revId": "903632849a9225e6f0b2034e7f7aa12b89b282b0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
