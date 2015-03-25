@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_9e3adf34",
+        "filename": "midolman/src/main/java/org/midonet/sdn/state/FlowStateTransaction.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-03-25T11:27:54Z",
+      "side": 1,
+      "message": "nice catch!",
+      "revId": "25f528aed92b23ae0af93aad1f18b1bcc4112f9b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
