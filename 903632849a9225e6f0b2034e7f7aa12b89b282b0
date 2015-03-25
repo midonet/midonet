@@ -106,6 +106,24 @@
       "revId": "903632849a9225e6f0b2034e7f7aa12b89b282b0",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_befebb69",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Bridge.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 196,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-03-25T11:19:02Z",
+      "side": 1,
+      "message": "I suggest going with the \"ignoring dhcp\" option, until after the zoom stuff is in. moving dhcp here is awkward until dataclient goes away, as we have no means to get a handle to it in the bridge without changing a whole pile of stuff.",
+      "parentUuid": "1a106d94_7ed0c353",
+      "revId": "903632849a9225e6f0b2034e7f7aa12b89b282b0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
