@@ -70,6 +70,24 @@
       "revId": "903632849a9225e6f0b2034e7f7aa12b89b282b0",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_fedcb376",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Bridge.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 196,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-03-25T09:48:49Z",
+      "side": 1,
+      "message": "I\u0027d say then we should ask Ryu whether the chains built by the neutron plugin would drop DHCP requests. If he says it\u0027s ok, then I\u0027m fine with this, after all on a real network the DHCP request would have to make it to another device.",
+      "parentUuid": "1a106d94_7e74439c",
+      "revId": "903632849a9225e6f0b2034e7f7aa12b89b282b0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
