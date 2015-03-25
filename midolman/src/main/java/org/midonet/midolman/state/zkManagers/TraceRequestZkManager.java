@@ -54,6 +54,7 @@ public class TraceRequestZkManager
         public TraceRequest.DeviceType deviceType;
         public UUID deviceId;
         public Condition condition;
+        public long limit;
         public UUID enabledRule;
 
         public TraceRequestConfig() {
@@ -63,12 +64,13 @@ public class TraceRequestZkManager
         public TraceRequestConfig(String name,
                                   TraceRequest.DeviceType deviceType,
                                   UUID deviceId, Condition condition,
-                                  UUID enabledRule) {
+                                  long limit, UUID enabledRule) {
             super();
             this.name = name;
             this.deviceType = deviceType;
             this.deviceId = deviceId;
             this.condition = condition;
+            this.limit = limit;
             this.enabledRule = enabledRule;
         }
 
@@ -86,13 +88,14 @@ public class TraceRequestZkManager
                 && deviceType == that.deviceType
                 && Objects.equals(deviceId, that.deviceId)
                 && Objects.equals(condition, that.condition)
+                && this.limit == that.limit
                 && Objects.equals(enabledRule, that.enabledRule);
         }
 
         @Override
         public int hashCode() {
             return Objects.hash(name, deviceType, deviceId,
-                                condition, enabledRule);
+                    condition, limit, enabledRule);
         }
 
         @Override
@@ -101,6 +104,7 @@ public class TraceRequestZkManager
                 + ", deviceType=" + deviceType
                 + ", deviceId=" + deviceId
                 + ", condition=" + condition
+                + ", limit=" + limit
                 + ", enabledRule=" + enabledRule + "}";
         }
     }

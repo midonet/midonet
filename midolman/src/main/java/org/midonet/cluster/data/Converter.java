@@ -510,7 +510,8 @@ public class Converter {
         if (rule instanceof TraceRule) {
             TraceRule typedRule = (TraceRule) rule;
             ruleConfig = new org.midonet.midolman.rules.TraceRule(
-                    typedRule.getRequestId(), typedRule.getCondition());
+                    typedRule.getRequestId(), typedRule.getCondition(),
+                    typedRule.getLimit());
         }
 
         if (rule instanceof JumpRule) {
@@ -570,7 +571,8 @@ public class Converter {
             org.midonet.midolman.rules.TraceRule casted
                 = (org.midonet.midolman.rules.TraceRule)ruleConfig;
             rule = new TraceRule(casted.getRequestId(),
-                    ruleConfig.getCondition());
+                                 ruleConfig.getCondition(),
+                                 casted.getLimit());
         }
 
         if (ruleConfig instanceof org.midonet.midolman.rules.JumpRule) {
@@ -770,6 +772,7 @@ public class Converter {
             .setDeviceType(traceRequestConfig.deviceType)
             .setDeviceId(traceRequestConfig.deviceId)
             .setCondition(traceRequestConfig.condition)
+            .setLimit(traceRequestConfig.limit)
             .setEnabledRule(traceRequestConfig.enabledRule);
     }
 
@@ -780,6 +783,7 @@ public class Converter {
         config.deviceType = traceRequest.getDeviceType();
         config.deviceId = traceRequest.getDeviceId();
         config.condition = traceRequest.getCondition();
+        config.limit = traceRequest.getLimit();
         config.enabledRule = traceRequest.getEnabledRule();
         return config;
     }
