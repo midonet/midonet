@@ -121,15 +121,15 @@ class TopologyZoomUpdaterTest extends FeatureSpec
 
             rt1.getPorts.size shouldBe 1
             val port1 = rt1.getPorts.iterator.next()
-            port1.getTargetDevice shouldNot be (None)
-            port1.getTargetDevice.get.isInstanceOf[Router] shouldBe true
-            port1.getTargetDevice.get.asInstanceOf[Router].getId shouldBe rt2.getId
+            port1.getLinkedDevice shouldNot be (None)
+            port1.getLinkedDevice.get.isInstanceOf[Router] shouldBe true
+            port1.getLinkedDevice.get.asInstanceOf[Router].getId shouldBe rt2.getId
 
             rt2.getPorts.size shouldBe 1
             val port2 = rt2.getPorts.iterator.next()
             port2.getId shouldNot be (port1.getId)
-            rt2.getRemoteDevices.size shouldBe 1
-            val remote = rt2.getRemoteDevices.iterator.next()
+            rt2.getLinkedRouters.size shouldBe 1
+            val remote = rt2.getLinkedRouters.iterator.next()
             remote.isInstanceOf[Router] shouldBe true
             remote.asInstanceOf[Router].getId shouldBe rt1.getId
         }
@@ -186,17 +186,17 @@ class TopologyZoomUpdaterTest extends FeatureSpec
 
             nt1.getPorts.size shouldBe 1
             val port1 = nt1.getPorts.iterator.next()
-            port1.getTargetDevice shouldNot be (None)
-            port1.getTargetDevice.get.isInstanceOf[Router] shouldBe true
-            port1.getTargetDevice.get.asInstanceOf[Router].getId shouldBe rt2.getId
+            port1.getLinkedDevice shouldNot be (None)
+            port1.getLinkedDevice.get.isInstanceOf[Router] shouldBe true
+            port1.getLinkedDevice.get.asInstanceOf[Router].getId shouldBe rt2.getId
 
             rt2.getPorts.size shouldBe 1
             val port2 = rt2.getPorts.iterator.next()
             port2.getId shouldNot be (port1.getId)
-            port2.getRemoteDevices.size shouldBe 1
+            port2.getLinkedDevice.isDefined shouldBe true
 
-            rt2.getRemoteDevices.size shouldBe 1
-            val remote = rt2.getRemoteDevices.iterator.next()
+            rt2.getLinkedNetworks.size shouldBe 1
+            val remote = rt2.getLinkedNetworks.iterator.next()
             remote.isInstanceOf[Network] shouldBe true
             remote.asInstanceOf[Network].getId shouldBe nt1.getId
         }
