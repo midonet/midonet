@@ -169,15 +169,17 @@ class Coordinator(context: PacketContext)
                 // Will fail if run in parallel because of side-effects
 
                 val originalMatch = context.origMatch.clone()
-                // TODO: maybe replace with some other alternative that spares
-                //       iterating the entire if we find the break cond
-                val results = acts map { a =>
-                    context.origMatch.reset(context.wcmatch)
-                    handleAction(a)
+                try {
+                    // TODO: maybe replace with some other alternative that
+                    // spares iterating the entire if we find the break cond
+                    val results = acts map { a =>
+                        context.origMatch.reset(context.wcmatch)
+                        handleAction(a)
+                    }
+                    results reduceLeft mergeSimulationResults
+                } finally {
+                    context.origMatch.reset(originalMatch)
                 }
-
-                context.origMatch.reset(originalMatch)
-                results reduceLeft mergeSimulationResults
 
             case FloodBridgeAction(brId, ports) =>
                 floodBridge(brId, ports)
