@@ -67,10 +67,6 @@ dependencies {
                 libraries.commons_io
 }
 
-test {
-    maxParallelForks = 1
-}
-
 distributions {
     main {
         baseName = project.name
