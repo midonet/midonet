@@ -26,6 +26,8 @@ public class TraceRule extends Rule {
     @NotNull
     private UUID requestId;
 
+    private long limit;
+
     public TraceRule() {
         super();
     }
@@ -33,10 +35,15 @@ public class TraceRule extends Rule {
     public TraceRule(org.midonet.cluster.data.rules.TraceRule rule) {
         super(rule);
         this.requestId = rule.getRequestId();
+        this.limit = rule.getLimit();
     }
 
     public UUID getRequestId() {
         return this.requestId;
+    }
+
+    public long getLimit() {
+        return this.limit;
     }
 
     @Override
@@ -48,7 +55,7 @@ public class TraceRule extends Rule {
     public org.midonet.cluster.data.rules.TraceRule toData () {
         org.midonet.cluster.data.rules.TraceRule data
             = new org.midonet.cluster.data.rules.TraceRule(requestId,
-                                                           makeCondition());
+                    makeCondition(), limit);
         super.setData(data);
         return data;
     }

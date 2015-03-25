@@ -284,7 +284,7 @@ class FlowTracingEgressMatchingTest extends MidolmanSpec {
 
     private def newTraceRule(requestId: UUID, chain: Chain,
                              condition: Condition, pos: Int): Unit = {
-        val traceRule = new TraceRuleData(requestId, condition)
+        val traceRule = new TraceRuleData(requestId, condition, Long.MaxValue)
             .setChainId(chain.getId).setPosition(pos)
         clusterDataClient.rulesCreate(traceRule)
 
