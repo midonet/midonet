@@ -63,6 +63,15 @@ public class TraceRequest
         return this;
     }
 
+    public long getLimit() {
+        return getData().limit;
+    }
+
+    public TraceRequest setLimit(long limit) {
+        getData().limit = limit;
+        return this;
+    }
+
     public UUID getEnabledRule() {
         return getData().enabledRule;
     }
@@ -86,6 +95,7 @@ public class TraceRequest
         public DeviceType deviceType;
         public UUID deviceId;
         public Condition condition;
+        public long limit;
         public UUID enabledRule;
 
         @Override
@@ -97,18 +107,20 @@ public class TraceRequest
                 return false;
             }
 
+            System.out.println("other " + other + " this " + this);
             Data that = (Data)other;
             return Objects.equals(name, that.name)
                 && deviceType == that.deviceType
                 && Objects.equals(deviceId, that.deviceId)
                 && Objects.equals(condition, that.condition)
+                && limit == that.limit
                 && Objects.equals(enabledRule, that.enabledRule);
         }
 
         @Override
         public int hashCode() {
             return Objects.hash(name, deviceType, deviceId,
-                                condition, enabledRule);
+                                condition, limit, enabledRule);
         }
 
         @Override
@@ -117,6 +129,7 @@ public class TraceRequest
                 + ", deviceType=" + deviceType
                 + ", deviceId=" + deviceId
                 + ", condition=" + condition
+                + ", limit=" + limit
                 + ", enabledRule=" + enabledRule + "}";
         }
     }

@@ -264,14 +264,7 @@ public class TestRules {
         Assert.assertEquals(Action.RETURN, res.action);
     }
 
-    @Test
-    public void testTraceRule() {
-        UUID requestId = UUID.randomUUID();
-        UUID requestId2 = UUID.randomUUID();
-
-        Rule rule = new TraceRule(requestId, cond);
-        Rule rule2 = new TraceRule(requestId2, cond);
-
+    private Ethernet createTracePacket() {
         /* Generate the actual packet as it is used
          * to look up the flow in the trace table
          */
@@ -289,7 +282,18 @@ public class TestRules {
         eth.setDestinationMACAddress(pktMatch.getEthDst());
         eth.setEtherType(pktMatch.getEtherType());
         eth.setPayload(ip);
+        return eth;
+    }
 
+    @Test
+    public void testTraceRule() {
+        UUID requestId = UUID.randomUUID();
+        UUID requestId2 = UUID.randomUUID();
+
+        Rule rule = new TraceRule(requestId, cond, Long.MAX_VALUE);
+        Rule rule2 = new TraceRule(requestId2, cond, Long.MAX_VALUE);
+
+        Ethernet eth = createTracePacket();
         pktCtx = new PacketContext(1, new Packet(eth, pktMatch),
                                    pktMatch, null);
         pktCtx.initialize(conntrackTx, natTx, HappyGoLuckyLeaser$.MODULE$,
@@ -328,6 +332,47 @@ public class TestRules {
             Assert.assertTrue("Trace is enabled for requestId2",
                     pktCtx.tracingEnabled(requestId2));
         }
+    }
+
+    @Test
+    public void testTraceRuleLimit() {
+        UUID requestId = UUID.randomUUID();
+
+        long limit = 10;
+        Rule rule = new TraceRule(requestId, cond, 10);
+
+        Ethernet eth = createTracePacket();
+        PacketContext pktCtx = null;
+        for (int i = 0; i < limit; i++) {
+            pktCtx = new PacketContext(1, new Packet(eth, pktMatch),
+                                       pktMatch, null);
+            pktCtx.initialize(conntrackTx, natTx, HappyGoLuckyLeaser$.MODULE$,
+                              traceTx);
+            pktCtx.inPortId_$eq(inPort);
+
+            RuleResult res = new RuleResult(null, null);
+            try {
+                rule.process(pktCtx, res, ownerId, false);
+
+                Assert.fail("Processing a trace rule without the"
+                            + " trace bit set should error");
+            } catch (Exception tre) {
+                Assert.assertEquals("Should be trace required exception",
+                                    tre, TraceRequiredException.instance());
+                Assert.assertTrue("Trace is enabled for requestId",
+                                  pktCtx.tracingEnabled(requestId));
+            }
+        }
+        pktCtx = new PacketContext(1, new Packet(eth, pktMatch),
+                                   pktMatch, null);
+        pktCtx.initialize(conntrackTx, natTx, HappyGoLuckyLeaser$.MODULE$,
+                          traceTx);
+        pktCtx.inPortId_$eq(inPort);
+
+        RuleResult res = new RuleResult(null, null);
+        rule.process(pktCtx, res, ownerId, false);
+        Assert.assertFalse("Trace is enabled for requestId",
+                          pktCtx.tracingEnabled(requestId));
     }
 
     @Test
