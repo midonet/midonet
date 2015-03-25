@@ -16,6 +16,24 @@
       "revId": "0f916ae8139438e5d61b8ffa08edcb19c5f0e8f3",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_3e9f6b61",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/logging/FlowTracingContext.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-03-25T10:43:50Z",
+      "side": 1,
+      "message": "because it\u0027s there, and flow matches match on it. I\u0027ve no strong opinion on having it here, so will remove if you think it\u0027s not needed.",
+      "parentUuid": "1a106d94_75c74613",
+      "revId": "0f916ae8139438e5d61b8ffa08edcb19c5f0e8f3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
