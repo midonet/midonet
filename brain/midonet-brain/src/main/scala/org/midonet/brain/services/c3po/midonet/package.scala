@@ -19,7 +19,7 @@ package org.midonet.brain.services.c3po
 import com.google.protobuf.Message
 
 import org.midonet.brain.services.c3po.C3POStorageManager.{OpType, Operation}
-import org.midonet.cluster.data.storage.{UpdateValidator, CreateOp, DeleteOp, UpdateOp}
+import org.midonet.cluster.data.storage.{UpdateValidator, CreateOp, DeleteOp, UpdateOp, UpdateWithOwnerOp}
 import org.midonet.cluster.models.Commons
 
 package object midonet {
@@ -37,6 +37,14 @@ package object midonet {
         extends MidoOp[T] {
         override val opType = OpType.Update
         override def toPersistenceOp = UpdateOp(model, validator)
+    }
+
+    case class UpdateWithOwner[T <: Message](
+            model: T, owner: String, validator: UpdateValidator[T] = null)
+        extends MidoOp[T] {
+        override val opType = OpType.Update
+        override def toPersistenceOp =
+            UpdateWithOwnerOp(model, owner, validator)
     }
 
     case class Delete[T <: Message](clazz: Class[T], id: Commons.UUID)

@@ -18,13 +18,13 @@ package org.midonet.brain.services.c3po.translators
 
 import scala.collection.JavaConverters._
 
-import org.midonet.brain.services.c3po.midonet.Update
+import org.midonet.brain.services.c3po.midonet.{Update, UpdateWithOwner}
 import org.midonet.brain.services.c3po.neutron
 import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.Neutron.PortBinding
 import org.midonet.cluster.models.Topology.{Host, Port}
-import org.midonet.cluster.util.UUIDUtil
+import org.midonet.cluster.util.UUIDUtil.fromProto
 import org.midonet.util.concurrent.toFutureOps
 
 /**
@@ -51,7 +51,7 @@ class PortBindingTranslator(storage: ReadOnlyStorage)
             bdg.getPortId == binding.getPortId)) {
             throw new TranslationException(neutron.Create(binding),
             msg = s"Interface ${binding.getInterfaceName} or port " +
-                  s"ID = ${UUIDUtil.fromProto(binding.getPortId)} " +
+                  s"ID = ${fromProto(binding.getPortId)} " +
                   "is already bound")
         }
 
@@ -63,7 +63,9 @@ class PortBindingTranslator(storage: ReadOnlyStorage)
         updatedPort.setHostId(updatedHost.getId)
         updatedPort.setInterfaceName(binding.getInterfaceName)
 
-        List(Update(updatedHost.build()), Update(updatedPort.build()))
+        List(UpdateWithOwner(updatedHost.build(),
+                             fromProto(binding.getHostId).toString),
+             Update(updatedPort.build()))
     }
 
     /**
@@ -102,6 +104,8 @@ class PortBindingTranslator(storage: ReadOnlyStorage)
         updatedPort.clearHostId()
         updatedPort.clearInterfaceName()
 
-        List(Update(updatedHost.build()), Update(updatedPort.build()))
+        List(UpdateWithOwner(updatedHost.build(),
+                             fromProto(binding.getHostId).toString),
+             Update(updatedPort.build()))
     }
 }
