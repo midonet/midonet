@@ -179,6 +179,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_e4f8a6c6",
+        "filename": "midolman/src/man/mn-conf.1.ronn",
+        "patchSetId": 3
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-03-25T16:22:31Z",
+      "side": 1,
+      "message": "I\u0027m open to suggestions for better explanations. The idea is that the schema offers default values that you can always fallback to, and it\u0027s managed by MidoNet.\n\nOTOH the default template starts out empty and is where the users places his global overrides of the midonet-provided default values. We will never touch the defaults template. That\u0027s what I tried to explain here.",
+      "parentUuid": "1a106d94_045fc20f",
+      "revId": "ee69470d01a652ae9e4c6ad252ee6479da55e264",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_b87b7d28",
         "filename": "midolman/src/man/mn-conf.1.ronn",
         "patchSetId": 3
