@@ -32,7 +32,7 @@ import org.midonet.cluster.models.Neutron.NeutronSubnet
 import org.midonet.cluster.models.Neutron.PortBinding
 import org.midonet.cluster.models.Neutron.SecurityGroup
 import org.midonet.cluster.models.Neutron.SecurityGroupRule
-import org.midonet.cluster.models.Neutron.VIP
+import org.midonet.cluster.models.Neutron.NeutronVIP
 import org.midonet.cluster.models.Topology.Chain
 import org.midonet.cluster.models.Topology.Dhcp
 import org.midonet.cluster.models.Topology.Host
@@ -88,8 +88,8 @@ object ModelsUtil {
         .asInstanceOf[FloatingIp]
 
      def nVIPFromTxt(protoTxt: String) =
-        protoFromTxt(protoTxt, VIP.newBuilder)
-        .asInstanceOf[VIP]
+        protoFromTxt(protoTxt, NeutronVIP.newBuilder)
+        .asInstanceOf[NeutronVIP]
 
      def nSecurityGroupFromTxt(protoTxt: String) =
         protoFromTxt(protoTxt, SecurityGroup.newBuilder)

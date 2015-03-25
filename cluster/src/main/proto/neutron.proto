@@ -172,7 +172,7 @@ message NeutronLoadBalancerPoolHealthMonitor {
     optional UUID id = 1;
 }
 
-message VIP {
+message NeutronVIP {
     optional UUID id = 1;
     optional string tenant_id = 2;
     optional UUID subnet_id = 3;

@@ -134,7 +134,7 @@ object NeutronDeserializer {
             case "org.midonet.cluster.models.SecurityGroupRule" =>
                 toMessage(node, classOf[NeutronSecurityGroupRule])
             case "org.midonet.cluster.models.VIP.SessionPersistence" =>
-                toMessage(node, classOf[VIP.SessionPersistence])
+                toMessage(node, classOf[NeutronVIP.SessionPersistence])
             case unknown => throw new NeutronDeserializationException(
                 s"Don't know how to deserialize message type $unknown.")
         }
