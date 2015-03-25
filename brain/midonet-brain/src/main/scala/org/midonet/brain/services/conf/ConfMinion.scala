@@ -28,7 +28,7 @@ import org.eclipse.jetty.servlet.{ServletHolder, ServletContextHandler}
 import org.slf4j.LoggerFactory
 
 import org.midonet.brain.{ClusterMinion, BrainConfig, ClusterNode}
-import org.midonet.conf.{ObservableConf, MidoNodeConfigurator}
+import org.midonet.conf.{MidoNodeType, ObservableConf, MidoNodeConfigurator}
 
 class ConfMinion @Inject()(nodeContext: ClusterNode.Context, config: BrainConfig)
         extends ClusterMinion(nodeContext) {
@@ -59,38 +59,28 @@ class ConfMinion @Inject()(nodeContext: ClusterNode.Context, config: BrainConfig
         val agentConfigurator = MidoNodeConfigurator.forAgents(zk)
         val brainConfigurator = MidoNodeConfigurator.forBrains(zk)
 
-        context.addServlet(new ServletHolder(
-            new TemplateEndpoint(agentConfigurator)), "/agent/template/*")
-        context.addServlet(new ServletHolder(
-            new TemplateEndpoint(brainConfigurator)), "/brain/template/*")
-
-        context.addServlet(new ServletHolder(
-            new PerNodeEndpoint(agentConfigurator)), "/agent/node/*")
-        context.addServlet(new ServletHolder(
-            new PerNodeEndpoint(brainConfigurator)), "/brain/node/*")
-
-        context.addServlet(new ServletHolder(
-            new SchemaEndpoint(agentConfigurator)), "/agent/schema")
-        context.addServlet(new ServletHolder(
-            new SchemaEndpoint(brainConfigurator)), "/brain/schema")
-
-        context.addServlet(new ServletHolder(
-            new RuntimeEndpoint(agentConfigurator)), "/agent/runtime-config/*")
-        context.addServlet(new ServletHolder(
-            new RuntimeEndpoint(brainConfigurator)), "/brain/runtime-config/*")
-
-        context.addServlet(new ServletHolder(
-            new TemplateMappingsEndpoint(agentConfigurator)), "/agent/template-mappings")
-        context.addServlet(new ServletHolder(
-            new TemplateMappingsEndpoint(brainConfigurator)), "/brain/template-mappings")
-
-        context.addServlet(new ServletHolder(
-            new TemplateListEndpoint(agentConfigurator)), "/agent/template-list")
-        context.addServlet(new ServletHolder(
-            new TemplateListEndpoint(brainConfigurator)), "/brain/template-list")
+        for (nodeType <- MidoNodeType.all) {
+            addServletsFor(new MidoNodeConfigurator(zk, nodeType, None), context)
+        }
 
         server.start()
         notifyStarted()
+    }
+
+    private def addServletsFor(c: MidoNodeConfigurator,
+                               ctx: ServletContextHandler): Unit = {
+        val nodeType = c.nodeType
+        def addServlet(endpoint: ConfigApiEndpoint, path: String): Unit = {
+            log.info(s"Registering config service servlet at /$nodeType/$path")
+            ctx.addServlet(new ServletHolder(endpoint), s"/$nodeType/$path")
+        }
+
+        addServlet(new SchemaEndpoint(c), "schema")
+        addServlet(new PerNodeEndpoint(c), "node/*")
+        addServlet(new RuntimeEndpoint(c), "runtime-config/*")
+        addServlet(new TemplateEndpoint(c), "template/*")
+        addServlet(new TemplateListEndpoint(c), "template-list")
+        addServlet(new TemplateMappingsEndpoint(c), "template-mappings")
     }
 
     override def doStop(): Unit = {
@@ -120,7 +110,10 @@ abstract class ConfigApiEndpoint(val configurator: MidoNodeConfigurator) extends
             func(req, resp)
         } catch {
             case e: Exception =>
-                resp.setContentType("text/plain")
+                resp.setContentType("text/plain; charset=utf-8")
+                resp.setHeader("Cache-Control", "no-cache, no-store, must-revalidate")
+                resp.setHeader("Pragma", "no-cache")
+                resp.setDateHeader("Expires", 0)
                 resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR)
                 e.printStackTrace(resp.getWriter)
                 e.printStackTrace(System.out)
@@ -147,6 +140,10 @@ abstract class ConfigApiEndpoint(val configurator: MidoNodeConfigurator) extends
         log.info(s"${req.getMethod} ${req.getRequestURI}")
         val content = getResource(resource(req))
         resp.getWriter.println(render(content))
+        resp.setContentType("application/json; charset=utf-8")
+        resp.setHeader("Cache-Control", "no-cache, no-store, must-revalidate")
+        resp.setHeader("Pragma", "no-cache")
+        resp.setDateHeader("Expires", 0)
         resp.setStatus(HttpServletResponse.SC_OK)
     }
 
