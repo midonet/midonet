@@ -303,6 +303,7 @@ if [ "$USE_CLUSTER" = "True" ]; then
 
     CLUSTER_CONF=$TOP_DIR/brain/midonet-brain/conf/cluster.conf
 
+    iniset $CLUSTER_CONF midonet-backend enabled true
     iniset $CLUSTER_CONF neutron-importer enabled true
     iniset $CLUSTER_CONF neutron-importer connection_str jdbc:mysql://localhost:3306/neutron
     iniset $CLUSTER_CONF neutron-importer password $MIDO_PASSWORD
