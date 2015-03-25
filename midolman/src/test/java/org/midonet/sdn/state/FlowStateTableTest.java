@@ -197,6 +197,22 @@ public class FlowStateTableTest {
         assertThat(shard.get(key("bar")), nullValue());
     }
 
+    @Test
+    public void testTransactionDupePut() {
+        FlowStateTable<TestKey, Integer> shard = shards.get(0);
+        FlowStateTransaction<TestKey, Integer> tx =
+            new FlowStateTransaction<>(shards.get(0));
+
+        tx.putAndRef(key("foo"), 1);
+        tx.putAndRef(key("bar"), 2);
+        tx.putAndRef(key("foo"), 3);
+
+        tx.commit();
+
+        assertThat(shard.get(key("foo")), equalTo(3));
+        assertThat(shard.get(key("bar")), equalTo(2));
+    }
+
     private void foldTest(FlowStateTable<TestKey, Integer> cs) {
         Set<TestKey> txKeys = cs.fold(new HashSet<TestKey>(), new KeyReducer());
         Set<TestKey> expectedKeys = new HashSet<>();
