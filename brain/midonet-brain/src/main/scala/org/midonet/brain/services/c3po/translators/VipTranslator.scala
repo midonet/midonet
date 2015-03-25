@@ -20,16 +20,16 @@ import com.google.protobuf.Message
 
 import org.midonet.brain.services.c3po.midonet.MidoOp
 import org.midonet.cluster.models.Commons.UUID
-import org.midonet.cluster.models.Neutron.VIP
+import org.midonet.cluster.models.Neutron.NeutronVIP
 
 /** Provides a Neutron model translator for VIP. */
-class VipTranslator extends NeutronTranslator[VIP]{
-    override protected def translateCreate(nm: VIP)
+class VipTranslator extends NeutronTranslator[NeutronVIP]{
+    override protected def translateCreate(nm: NeutronVIP)
     : List[MidoOp[_ <: Message]] = List()
 
     override protected def translateDelete(id: UUID)
     : List[MidoOp[_ <: Message]] = List()
 
-    override protected def translateUpdate(nm: VIP)
+    override protected def translateUpdate(nm: NeutronVIP)
     : List[MidoOp[_ <: Message]] = List()
 }
