@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_1e69cf8b",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZoomExceptions.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-25T10:17:40Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_7e828353",
+      "range": {
+        "startLine": 42,
+        "startChar": 26,
+        "endLine": 42,
+        "endChar": 27
+      },
+      "revId": "fb5e6f70b36e1293300d4e91b9eaf5e9e33603e7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_3e900b95",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZoomExceptions.scala",
         "patchSetId": 2
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_de6e1796",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZoomExceptions.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-25T10:17:40Z",
+      "side": 1,
+      "message": "Commons.UUID is when the id is a protobuf. It can also be a java UUID, in which case we use .toString.",
+      "parentUuid": "1a106d94_3e900b95",
+      "range": {
+        "startLine": 48,
+        "startChar": 60,
+        "endLine": 48,
+        "endChar": 65
+      },
+      "revId": "fb5e6f70b36e1293300d4e91b9eaf5e9e33603e7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_1e8d4f7c",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZoomExceptions.scala",
         "patchSetId": 2
@@ -59,6 +107,30 @@
       "writtenOn": "2015-03-25T09:39:44Z",
       "side": 1,
       "message": "What about these IDs?",
+      "range": {
+        "startLine": 138,
+        "startChar": 11,
+        "endLine": 138,
+        "endChar": 24
+      },
+      "revId": "fb5e6f70b36e1293300d4e91b9eaf5e9e33603e7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_3e6c8b9c",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZoomExceptions.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 138,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-25T10:17:40Z",
+      "side": 1,
+      "message": "These are already strings, converted with the same getIdString method.",
+      "parentUuid": "1a106d94_1e8d4f7c",
       "range": {
         "startLine": 138,
         "startChar": 11,
