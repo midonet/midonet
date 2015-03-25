@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_dbe3c903",
+        "filename": "midonet-api/src/main/java/org/midonet/api/system_data/rest_api/TraceRequestResource.java",
+        "patchSetId": 7
+      },
+      "lineNbr": 241,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-03-25T02:47:25Z",
+      "side": 1,
+      "message": "This should be VendorMediaType.APPLICATION_TRACE_REQUEST_JSON\n.  Do we need a separate endpoint just to enable it?  Could we just update TraceRequest with \u0027enabled\u0027 field set to true?  As long as we make it clear in the doc that \u0027enabled\u0027 is the only updatable field, it would simplify this design quite a bit.",
+      "revId": "02302b6e6f420c5f950f12e37d573e86a835c8b2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_3bf13dce",
+        "filename": "midonet-api/src/main/java/org/midonet/api/system_data/rest_api/TraceRequestResource.java",
+        "patchSetId": 7
+      },
+      "lineNbr": 271,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-03-25T02:47:25Z",
+      "side": 1,
+      "message": "Similarly, do we need this?  Couldn\u0027t the user simply do a GET on TraceRequest to get this information?",
+      "revId": "02302b6e6f420c5f950f12e37d573e86a835c8b2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
