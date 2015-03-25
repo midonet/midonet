@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_44cc1a36",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/scanner/DefaultInterfaceScanner.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-03-25T17:21:09Z",
+      "side": 1,
+      "message": "Actually I\u0027m not spawning a new thread in this class and HashMap would be enough. And the reallocation could be better. It\u0027s late here and let me revisit this tomorrow.",
+      "parentUuid": "1a106d94_e43ee628",
+      "range": {
+        "startLine": 73,
+        "startChar": 26,
+        "endLine": 73,
+        "endChar": 33
+      },
+      "revId": "9c9b5bc68eacacddd499a6431e8ca912250e4208",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_3e776b04",
         "filename": "midolman/src/main/scala/org/midonet/midolman/host/scanner/DefaultInterfaceScanner.scala",
         "patchSetId": 3
