@@ -413,7 +413,6 @@ class PortTranslator(protected val storage: ReadOnlyStorage)
 private[translators] object PortUpdateValidator extends UpdateValidator[Port] {
     override def validate(oldPort: Port, newPort: Port): Port = {
         newPort.toBuilder
-            .addAllPortIds(oldPort.getPortIdsList)
             .addAllRouteIds(oldPort.getRouteIdsList)
             .addAllRuleIds(oldPort.getRuleIdsList)
             .build()

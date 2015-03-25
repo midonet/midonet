@@ -126,7 +126,6 @@ message Port {
 
     // Backreferences
     repeated UUID rule_ids = 101;
-    repeated UUID port_ids = 102;
 }
 
 message PortGroup {
