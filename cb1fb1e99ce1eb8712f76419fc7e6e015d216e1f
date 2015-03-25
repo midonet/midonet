@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_fe7b1327",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/PacketWorkflow.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 199,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-03-25T11:12:57Z",
+      "side": 1,
+      "message": "Not for return flow but for what the flow looks like on the egress host (with nat mods etc applied). Point taken though, will rename.",
+      "parentUuid": "1a106d94_deabb7d4",
+      "revId": "cb1fb1e99ce1eb8712f76419fc7e6e015d216e1f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_3eb92b2f",
         "filename": "midolman/src/main/scala/org/midonet/midolman/state/TraceState.scala",
         "patchSetId": 7
@@ -30,6 +48,24 @@
       "writtenOn": "2015-03-25T09:33:06Z",
       "side": 1,
       "message": "I\u0027m not sure the if is necessary. If they are the same, then you\u0027ll just replace the entry in the state table.",
+      "revId": "cb1fb1e99ce1eb8712f76419fc7e6e015d216e1f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_fed033f9",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/TraceState.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 164,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-03-25T11:12:57Z",
+      "side": 1,
+      "message": "it should just replace, once https://review.gerrithub.io/227949 is committed, so will change it.",
+      "parentUuid": "1a106d94_3eb92b2f",
       "revId": "cb1fb1e99ce1eb8712f76419fc7e6e015d216e1f",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
