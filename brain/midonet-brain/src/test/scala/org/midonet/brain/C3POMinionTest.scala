@@ -571,7 +571,7 @@ class C3POMinionTest extends C3POMinionTestBase {
         }
     }
 
-    it should "manage port binding to a Network" in {
+    it should "execute VIF port CRUD tasks" in {
         // Creates Network 1.
         val network1Uuid = UUID.randomUUID()
         val network1Json = networkJson(network1Uuid, "tenant1", "private-net")

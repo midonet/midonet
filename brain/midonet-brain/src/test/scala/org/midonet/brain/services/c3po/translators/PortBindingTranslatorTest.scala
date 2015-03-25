@@ -30,6 +30,7 @@ import org.midonet.cluster.models.ModelsUtil._
 import org.midonet.cluster.models.Neutron.PortBinding
 import org.midonet.cluster.models.Topology.{Host, Port}
 import org.midonet.cluster.util.UUIDUtil.randomUuidProto
+import org.midonet.cluster.util.UUIDUtil.fromProto
 
 /**
  * Tests port binding translation.
@@ -145,7 +146,8 @@ class PortBindingTranslatorTest extends FlatSpec with BeforeAndAfter
             """)
 
         midoOps should contain inOrderOnly(
-            midonet.Update(host1WithPort1Bound),
+            midonet.UpdateWithOwner(host1WithPort1Bound,
+                                    fromProto(host1NoBindingsId).toString),
             midonet.Update(portWithHost(
                     newPortId, host1NoBindingsId, newIface)))
     }
@@ -171,7 +173,8 @@ class PortBindingTranslatorTest extends FlatSpec with BeforeAndAfter
             }
             """)
         midoOps should contain inOrderOnly(
-            midonet.Update(host2WithNewInterfacePort),
+            midonet.UpdateWithOwner(host2WithNewInterfacePort,
+                                    fromProto(host2With2BindingsId).toString),
             midonet.Update(portWithHost(
                     newPortId, host2With2BindingsId, newIface)))
     }
@@ -219,7 +222,8 @@ class PortBindingTranslatorTest extends FlatSpec with BeforeAndAfter
         """)
 
         midoOps should contain inOrderOnly(
-            midonet.Update(host2With1Binding),
+            midonet.UpdateWithOwner(host2With1Binding,
+                                    fromProto(host2With2BindingsId).toString),
             midonet.Update(portWithNoHost(portYOnHost2Id)))
     }
 }
