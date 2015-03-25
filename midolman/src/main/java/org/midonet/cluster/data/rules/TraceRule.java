@@ -26,14 +26,20 @@ import java.util.UUID;
  */
 public class TraceRule extends Rule<Rule.Data, TraceRule> {
     private final UUID requestId;
+    private final long limit;
 
-    public TraceRule(UUID requestId, Condition condition) {
+    public TraceRule(UUID requestId, Condition condition, long limit) {
         super(null, condition, new Data());
         this.requestId = requestId;
+        this.limit = limit;
     }
 
     public UUID getRequestId() {
         return requestId;
+    }
+
+    public long getLimit() {
+        return limit;
     }
 
     @Override

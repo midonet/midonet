@@ -16,6 +16,7 @@
 
 package org.midonet.midolman.rules;
 
+import java.util.Objects;
 import java.util.UUID;
 
 import org.slf4j.Logger;
@@ -31,11 +32,15 @@ public class TraceRule extends Rule {
         LoggerFactory.getLogger(TraceRule.class);
 
     private UUID requestId;
+    private long limit;
+    private long hits;
 
-    public TraceRule(UUID requestId, Condition condition) {
+    public TraceRule(UUID requestId, Condition condition, long limit) {
         // never actually sets the result action
         super(condition, Action.CONTINUE);
         this.requestId = requestId;
+        this.limit = limit;
+        this.hits = 0;
     }
 
     // Default constructor for the Jackson deserialization.
@@ -44,19 +49,26 @@ public class TraceRule extends Rule {
         super();
     }
 
-    public TraceRule(UUID requestId, Condition condition, UUID chainId,
-                     int position) {
+    public TraceRule(UUID requestId, Condition condition, long limit,
+                     UUID chainId, int position) {
         super(condition, Action.CONTINUE, chainId, position);
         this.requestId = requestId;
+        this.limit = limit;
+        this.hits = 0;
     }
 
     public UUID getRequestId() {
         return requestId;
     }
 
+    public long getLimit() {
+        return limit;
+    }
+
     @Override
     public void apply(PacketContext pktCtx, RuleResult res, UUID ownerId) {
-        if (!pktCtx.tracingEnabled(requestId)) {
+        if (!pktCtx.tracingEnabled(requestId) && hits < limit) {
+            hits++;
             pktCtx.enableTracing(requestId);
             throw TraceRequiredException.instance();
         }
@@ -65,7 +77,8 @@ public class TraceRule extends Rule {
 
     @Override
     public int hashCode() {
-        return 11 * super.hashCode() + requestId.hashCode();
+        return 11 * super.hashCode()
+            + Objects.hash(requestId.hashCode(), limit);
     }
 
     @Override
@@ -75,7 +88,8 @@ public class TraceRule extends Rule {
         if (!(other instanceof TraceRule))
             return false;
         return super.equals(other)
-            && this.requestId == ((TraceRule)other).requestId;
+            && this.requestId == ((TraceRule)other).requestId
+            && this.limit == ((TraceRule)other).limit;
     }
 
     @Override
@@ -83,6 +97,8 @@ public class TraceRule extends Rule {
         StringBuilder sb = new StringBuilder("TraceRule [");
         sb.append(super.toString());
         sb.append(", requestId=").append(requestId);
+        sb.append(", limit=").append(limit);
+        sb.append(", hits=").append(hits);
         sb.append("]");
         return sb.toString();
     }
