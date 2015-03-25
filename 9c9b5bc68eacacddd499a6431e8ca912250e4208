@@ -1,0 +1,101 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_fe53136a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/scanner/DefaultInterfaceScanner.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-03-25T12:06:07Z",
+      "side": 1,
+      "message": "Did you choose TrieMap for any particular reason? Since the number of entries is fairly small and the the whole set is set up each time anyhow, couldn\u0027t you use something like an ArrayList of InterfaceDescriptions and avoid creating garbage with each update?\n\nIn fact, a array list looks like a much more natural data structure for this since rtnetlink seems to be giving you an index in each upcall.",
+      "range": {
+        "startLine": 73,
+        "startChar": 26,
+        "endLine": 73,
+        "endChar": 33
+      },
+      "revId": "9c9b5bc68eacacddd499a6431e8ca912250e4208",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_3e776b04",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/scanner/DefaultInterfaceScanner.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-03-25T12:06:07Z",
+      "side": 1,
+      "message": "dead code. Do we intend to scan routes and neighbours in the future?",
+      "range": {
+        "startLine": 75,
+        "startChar": 4,
+        "endLine": 75,
+        "endChar": 11
+      },
+      "revId": "9c9b5bc68eacacddd499a6431e8ca912250e4208",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_be6d1b07",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/scanner/DefaultInterfaceScanner.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 242,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-03-25T12:06:07Z",
+      "side": 1,
+      "message": "dead code, remove?",
+      "revId": "9c9b5bc68eacacddd499a6431e8ca912250e4208",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_5e306756",
+        "filename": "netlink/src/main/java/org/midonet/netlink/rtnetlink/Link.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 182,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-03-25T12:06:07Z",
+      "side": 1,
+      "message": "these changes look like they should be part of the previous patch.",
+      "revId": "9c9b5bc68eacacddd499a6431e8ca912250e4208",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_3e492bd1",
+        "filename": "netlink/src/main/scala/org.midonet.netlink/NetlinkChannelFactory.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-03-25T12:06:07Z",
+      "side": 1,
+      "message": "also, looks like it should be in previous patch.",
+      "revId": "9c9b5bc68eacacddd499a6431e8ca912250e4208",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
