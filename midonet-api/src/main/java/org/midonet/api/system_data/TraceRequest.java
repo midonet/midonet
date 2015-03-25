@@ -46,6 +46,8 @@ public class TraceRequest extends UriResource {
     @NotNull
     private Condition condition;
 
+    private long limit = Long.MAX_VALUE;
+
     @NotNull
     private boolean enabled;
 
@@ -54,19 +56,21 @@ public class TraceRequest extends UriResource {
     }
 
     public TraceRequest(UUID id, String name, DeviceType deviceType,
-                        UUID deviceId, Condition condition, boolean enabled) {
+                        UUID deviceId, Condition condition,
+                        long limit, boolean enabled) {
         super();
         this.id = id;
         this.name = name;
         this.deviceType = deviceType;
         this.deviceId = deviceId;
         this.condition = condition;
+        this.limit = limit;
         this.enabled = enabled;
     }
 
     public TraceRequest(UUID id, String name, DeviceType deviceType,
                         UUID deviceId, Condition condition) {
-        this(id, name, deviceType, deviceId, condition, false);
+        this(id, name, deviceType, deviceId, condition, Long.MAX_VALUE, false);
     }
 
     public TraceRequest(org.midonet.cluster.data.TraceRequest traceRequest) {
@@ -77,6 +81,7 @@ public class TraceRequest extends UriResource {
         this.deviceId = traceRequest.getDeviceId();
         this.condition = new Condition();
         this.condition.setFromCondition(traceRequest.getCondition());
+        this.limit = traceRequest.getLimit();
         this.enabled = (traceRequest.getEnabledRule() != null);
     }
 
@@ -120,6 +125,14 @@ public class TraceRequest extends UriResource {
         return condition;
     }
 
+    public void setLimit(long limit) {
+        this.limit = limit;
+    }
+
+    public long getLimit() {
+        return limit;
+    }
+
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
     }
@@ -135,7 +148,8 @@ public class TraceRequest extends UriResource {
             .setName(name)
             .setDeviceType(deviceType)
             .setDeviceId(deviceId)
-            .setCondition(c);
+            .setCondition(c)
+            .setLimit(limit);
     }
 
     @Override
