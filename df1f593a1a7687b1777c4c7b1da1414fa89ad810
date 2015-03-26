@@ -22,6 +22,30 @@
       "revId": "df1f593a1a7687b1777c4c7b1da1414fa89ad810",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_92bacbdf",
+        "filename": "brain/tools/src/main/scala/org/midonet/brain/tools/TopologyZoomUpdater.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 637,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-03-26T15:18:55Z",
+      "side": 1,
+      "message": "I agree, but if you don\u0027t mind, I would leave this for a following patch...",
+      "parentUuid": "1a106d94_34aae770",
+      "range": {
+        "startLine": 633,
+        "startChar": 4,
+        "endLine": 637,
+        "endChar": 44
+      },
+      "revId": "df1f593a1a7687b1777c4c7b1da1414fa89ad810",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
