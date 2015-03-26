@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_94d0fb54",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/services/c3po/translators/PortBindingTranslatorIT.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-03-26T07:39:14Z",
+      "side": 1,
+      "message": "We\u0027ve had a lot of problems with sleep in the past. In addition to slowing down tests, they tend to lead to spurious failures when there\u0027s some kind of latency spike. I would prefer that we find a way to wait until the flush is done.\n\nMaybe add a flushPending method to C3POMinionTestBase that checks to see if the task table has a flush task, and then replace this with eventually(!flushPending).",
+      "range": {
+        "startLine": 49,
+        "startChar": 8,
+        "endLine": 51,
+        "endChar": 26
+      },
+      "revId": "240455b21465ce25e436964d60ba37281219cde8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_b4cff7af",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/services/c3po/translators/PortBindingTranslatorIT.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-03-26T07:39:14Z",
+      "side": 1,
+      "message": "Actually, we don\u0027t care about the host until we get here, right? Why not just create the host here? We\u0027re guaranteed not to get here until the Port is persisted to Zookeeper, which means the flush is definitely done.",
+      "revId": "240455b21465ce25e436964d60ba37281219cde8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
