@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_b23a6734",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Bridge.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 234,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-03-26T16:03:39Z",
+      "side": 1,
+      "message": "typo",
+      "revId": "8431d67d60029ad29b59feffffab1ddbbf1781cc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_123ffb26",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Bridge.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 250,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-03-26T16:03:39Z",
+      "side": 1,
+      "message": "flush()",
+      "revId": "8431d67d60029ad29b59feffffab1ddbbf1781cc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
