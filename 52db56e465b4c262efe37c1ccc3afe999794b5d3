@@ -53,6 +53,23 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_68876062",
+        "filename": "netlink/src/main/java/org/midonet/netlink/AbstractGenericNetlinkConnection.java",
+        "patchSetId": 7
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-03-26T17:40:42Z",
+      "side": 1,
+      "message": "What is this class for?",
+      "revId": "52db56e465b4c262efe37c1ccc3afe999794b5d3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_08134c5d",
         "filename": "netlink/src/main/java/org/midonet/netlink/AbstractNetlinkConnection.java",
         "patchSetId": 7
@@ -64,6 +81,30 @@
       "writtenOn": "2015-03-26T17:31:49Z",
       "side": 1,
       "message": "This class is getting split into GenericAbstractNetlinkConnection and AbstractNetlinkConnection, but AbstractNetlinkConnection is only used by GenericAbstract*, so the split shouldn\u0027t have happened.",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 2
+      },
+      "revId": "52db56e465b4c262efe37c1ccc3afe999794b5d3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_c87c9475",
+        "filename": "netlink/src/main/java/org/midonet/netlink/AbstractNetlinkConnection.java",
+        "patchSetId": 7
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-03-26T17:40:42Z",
+      "side": 1,
+      "message": "I agree. I don\u0027t see why this class needs to be changed at all. It\u0027s deprecated and the new stuff should be based solely on NetlinkRequestBroker :)",
+      "parentUuid": "1a106d94_08134c5d",
       "range": {
         "startLine": 1,
         "startChar": 0,
