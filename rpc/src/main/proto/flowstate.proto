@@ -74,12 +74,29 @@ message ConntrackKey {
     required UUID device = 6;
 }
 
+message TraceEntry {
+    // fields to build match from
+    optional uint64 eth_src = 1;
+    optional uint64 eth_dst = 2;
+    optional uint32 etherType = 3;
+    optional IpAddress ip_src = 4;
+    optional IpAddress ip_dst = 5;
+    optional uint32 ip_proto = 6;
+    optional uint32 tp_src = 7;
+    optional uint32 tp_dst = 8;
+
+    // ids of trace requests
+    optional UUID flow_trace_id = 10;
+    repeated UUID request_id = 11;
+}
+
 message FlowState {
     optional ConntrackKey conntrack_key = 1;
     repeated NatEntry nat_entries = 2;
     required UUID ingress_port = 3;
     optional UUID egress_port = 4;
     optional UUID egress_port_set = 5;
+    repeated TraceEntry trace_entry = 6;
 }
 
 message StateMessage {

@@ -29,6 +29,7 @@ import org.midonet.midolman.datapath.DatapathChannel
 import org.midonet.midolman.simulation.PortGroup
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackKey, ConnTrackValue}
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
+import org.midonet.midolman.state.TraceState.{TraceKey, TraceContext}
 import org.midonet.midolman.topology.devices.Port
 import org.midonet.midolman.topology.{VirtualTopologyActor => VTA}
 import org.midonet.midolman.{NotYetException, UnderlayResolver}
@@ -92,6 +93,7 @@ import org.midonet.util.functors.Callback0
  */
 abstract class BaseFlowStateReplicator(conntrackTable: FlowStateTable[ConnTrackKey, ConnTrackValue],
                                        natTable: FlowStateTable[NatKey, NatBinding],
+                                       traceTable: FlowStateTable[TraceKey, TraceContext],
                                        storage: FlowStateStorage,
                                        underlay: UnderlayResolver,
                                        flowInvalidator: FlowInvalidator,
@@ -105,6 +107,7 @@ abstract class BaseFlowStateReplicator(conntrackTable: FlowStateTable[ConnTrackK
     /* Used for message building */
     private[this] val txState = Proto.FlowState.newBuilder()
     private[this] val txNatEntry = Proto.NatEntry.newBuilder()
+    private[this] val txTraceEntry = Proto.TraceEntry.newBuilder()
     private[this] val currentMessage = Proto.StateMessage.newBuilder()
     private[this] var txIngressPort: UUID = _
     private[this] val txPeers: JSet[UUID] = new JHashSet[UUID]()
@@ -155,6 +158,32 @@ abstract class BaseFlowStateReplicator(conntrackTable: FlowStateTable[ConnTrackK
             callbacks.add(new Callback0 {
                 override def call(): Unit = natTable.unref(k)
             })
+            callbacks
+        }
+    }
+
+    private val _traceAdder = new Reducer[TraceKey, TraceContext,
+                                          ArrayList[Callback0]] {
+        override def apply(callbacks: ArrayList[Callback0],
+                           k: TraceKey, ctx: TraceContext)
+                : ArrayList[Callback0] = {
+            if (txPeers.size() > 0) {
+                log.debug("push trace key: {}", k)
+                txTraceEntry.clear()
+
+                traceKeyToProto(k, txTraceEntry)
+                txTraceEntry.setFlowTraceId(ctx.flowTraceId)
+                val iter = ctx.requests.iterator
+                while (iter.hasNext) {
+                    txTraceEntry.addRequestId(iter.next())
+                }
+                txState.addTraceEntry(txTraceEntry.build())
+            }
+
+            callbacks.add(new Callback0 {
+                override def call(): Unit = traceTable.unref(k)
+            })
+
             callbacks
         }
     }
@@ -221,10 +250,11 @@ abstract class BaseFlowStateReplicator(conntrackTable: FlowStateTable[ConnTrackK
     @throws(classOf[NotYetException])
     def accumulateNewKeys(conntrackTx: FlowStateTransaction[ConnTrackKey, ConnTrackValue],
                           natTx: FlowStateTransaction[NatKey, NatBinding],
+                          traceTx: FlowStateTransaction[TraceKey, TraceContext],
                           ingressPort: UUID, egressPorts: JList[UUID],
                           tags: JHashSet[FlowTag],
                           callbacks: ArrayList[Callback0]): Unit = {
-        if (natTx.size() == 0 && conntrackTx.size() == 0)
+        if (natTx.size() == 0 && conntrackTx.size() == 0 && traceTx.size() == 0)
             return
 
         resolvePeers(ingressPort, egressPorts, txPeers, txPorts, tags)
@@ -238,13 +268,15 @@ abstract class BaseFlowStateReplicator(conntrackTable: FlowStateTable[ConnTrackK
         txIngressPort = ingressPort
         conntrackTx.fold(callbacks, _conntrackAdder)
         natTx.fold(callbacks, _natAdder)
+        traceTx.fold(callbacks, _traceAdder)
 
         if (hasPeers)
             buildMessage(ingressPort)
     }
 
     def buildMessage(ingressPort: UUID): Unit =
-        if (txState.hasConntrackKey || txState.getNatEntriesCount > 0) {
+        if (txState.hasConntrackKey || txState.getNatEntriesCount > 0 ||
+                txState.getTraceEntryCount > 0) {
             txState.setIngressPort(uuidToProto(ingressPort))
             currentMessage.addNewState(txState.build())
             pendingMessages.add((txPeers, currentMessage.build()))
@@ -321,6 +353,19 @@ abstract class BaseFlowStateReplicator(conntrackTable: FlowStateTable[ConnTrackK
                 log.debug("Got new nat mapping: {} -> {}", k, v)
                 natTable.touch(k, v)
                 flowInvalidator.scheduleInvalidationFor(k)
+            }
+
+            val traceEntries = state.getTraceEntryList.iterator
+            while (traceEntries.hasNext) {
+                val trace = traceEntries.next
+                val k = traceKeyFromProto(trace)
+                val ids = new TraceContext(trace.getFlowTraceId)
+                val iter = trace.getRequestIdList.iterator
+                while (iter.hasNext) {
+                    ids.addRequest(iter.next)
+                }
+                log.debug("Got new trace state: {} -> {}", k, ids)
+                traceTable.touch(k, ids)
             }
         }
     }
@@ -401,13 +446,14 @@ abstract class BaseFlowStateReplicator(conntrackTable: FlowStateTable[ConnTrackK
 class FlowStateReplicator(
         conntrackTable: FlowStateTable[ConnTrackKey, ConnTrackValue],
         natTable: FlowStateTable[NatKey, NatBinding],
+        traceTable: FlowStateTable[TraceKey, TraceContext],
         storage: FlowStateStorage,
         underlay: UnderlayResolver,
         flowInvalidator: FlowInvalidator,
         tso: Byte)(implicit as: ActorSystem)
-        extends BaseFlowStateReplicator(conntrackTable, natTable, storage, underlay,
+        extends BaseFlowStateReplicator(conntrackTable, natTable, traceTable,
+                                        storage, underlay,
                                         flowInvalidator, tso) {
-
     override val log = Logger(LoggerFactory.getLogger("org.midonet.state.replication"))
 
     @throws(classOf[NotYetException])
