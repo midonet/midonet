@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_54be8300",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/services/c3po/translators/PortBindingTranslatorIT.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-03-26T07:57:02Z",
+      "side": 1,
+      "message": "I agree that sleep is a bad idea. I\u0027ll move this Host creation call down below where it\u0027s certain that flush has completed.",
+      "parentUuid": "1a106d94_94d0fb54",
+      "range": {
+        "startLine": 49,
+        "startChar": 8,
+        "endLine": 51,
+        "endChar": 26
+      },
+      "revId": "240455b21465ce25e436964d60ba37281219cde8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_b4cff7af",
         "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/services/c3po/translators/PortBindingTranslatorIT.scala",
         "patchSetId": 2
@@ -36,6 +60,24 @@
       "writtenOn": "2015-03-26T07:39:14Z",
       "side": 1,
       "message": "Actually, we don\u0027t care about the host until we get here, right? Why not just create the host here? We\u0027re guaranteed not to get here until the Port is persisted to Zookeeper, which means the flush is definitely done.",
+      "revId": "240455b21465ce25e436964d60ba37281219cde8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_34bb0710",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/services/c3po/translators/PortBindingTranslatorIT.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-03-26T07:57:02Z",
+      "side": 1,
+      "message": "A very good point, Brandon! Writing a C3POMinionTest is an art...",
+      "parentUuid": "1a106d94_b4cff7af",
       "revId": "240455b21465ce25e436964d60ba37281219cde8",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
