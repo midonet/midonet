@@ -67,10 +67,12 @@ public abstract class ZookeeperTest {
 
     private static HierarchicalConfiguration getConfig(String zkRoot) {
         HierarchicalConfiguration config = new HierarchicalConfiguration();
-        config.addProperty(ZookeeperConfig.GROUP_NAME + ".midolman_root_key",
-                           zkRoot);
+        config.addProperty("zookeeper.midolman_root_key", zkRoot);
+        config.addProperty("zookeeper.zookeeper_hosts",
+                           "127.0.0.1:" + ZK_PORT);
+        config.addProperty("midonet-backend.zookeeper_root_path", zkRoot);
         config.addProperty("midonet-backend.enabled", true);
-        config.addProperty(ZookeeperConfig.GROUP_NAME + ".zookeeper_hosts",
+        config.addProperty("midonet-backend.zookeeper_hosts",
                            "127.0.0.1:" + ZK_PORT);
 
         return config;
