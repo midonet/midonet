@@ -173,7 +173,7 @@ class PacketWorkflow(protected val dpState: DatapathState,
         } else {
             logResultNewFlow("will create flow", context)
             context.origMatch.propagateSeenFieldsFrom(context.wcmatch)
-            if (context.wcmatch.userspaceFieldsSeen) {
+            if (context.origMatch.userspaceFieldsSeen) {
                 context.log.debug("Userspace fields seen; skipping flow creation")
                 context.runFlowRemovedCallbacks()
                 UserspaceFlow
