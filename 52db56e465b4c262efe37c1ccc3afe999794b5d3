@@ -283,6 +283,23 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_0896ac94",
+        "filename": "netlink/src/main/scala/org.midonet.netlink/NetlinkMessageWrapper.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-03-26T17:42:17Z",
+      "side": 1,
+      "message": "hum.. what was the reasoning for having the nltype and flags as arguments in this method when they are not part of genl? why not add them to apply() as well?",
+      "revId": "52db56e465b4c262efe37c1ccc3afe999794b5d3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_6d1db273",
         "filename": "netlink/src/main/scala/org.midonet.netlink/rtnetlink/RtnetlinkConnection.scala",
         "patchSetId": 7
