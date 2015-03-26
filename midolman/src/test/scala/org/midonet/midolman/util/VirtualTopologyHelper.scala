@@ -210,6 +210,7 @@ trait VirtualTopologyHelper {
                 case key: FlowKeyICMPError =>
                     throw new IllegalArgumentException(
                         s"ICMP should be handled in userspace")
+                case key: FlowKeyTunnel => { /* ignore tunnel keys */ }
                 case unmatched =>
                     throw new IllegalArgumentException(s"Won't translate $unmatched")
             }
