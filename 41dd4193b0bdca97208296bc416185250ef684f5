@@ -1,0 +1,268 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_14c40b91",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/Storage.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-03-26T08:58:26Z",
+      "side": 1,
+      "message": "Could you suffix these op names with \"Op\" for consistency?",
+      "range": {
+        "startLine": 64,
+        "startChar": 11,
+        "endLine": 74,
+        "endChar": 25
+      },
+      "revId": "41dd4193b0bdca97208296bc416185250ef684f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_94059bc4",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/TransactionManager.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-03-26T08:58:26Z",
+      "side": 1,
+      "message": "You might want to explain what the key is. Also do you consider type-aliasing the mapOps key type?",
+      "revId": "41dd4193b0bdca97208296bc416185250ef684f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_740a9fd3",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/TransactionManager.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 511,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-03-26T08:58:26Z",
+      "side": 1,
+      "message": "This indentation seems wrong.",
+      "range": {
+        "startLine": 511,
+        "startChar": 17,
+        "endLine": 511,
+        "endChar": 64
+      },
+      "revId": "41dd4193b0bdca97208296bc416185250ef684f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_d40f13e0",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/TransactionManager.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 525,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-03-26T08:58:26Z",
+      "side": 1,
+      "message": "I\u0027d move the ZK related comments to ZoomTransactionManager and keep the comment here generic.",
+      "range": {
+        "startLine": 518,
+        "startChar": 70,
+        "endLine": 525,
+        "endChar": 38
+      },
+      "revId": "41dd4193b0bdca97208296bc416185250ef684f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_b41417f6",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/TransactionManager.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 532,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-03-26T08:58:26Z",
+      "side": 1,
+      "message": "Ditto.",
+      "range": {
+        "startLine": 530,
+        "startChar": 6,
+        "endLine": 532,
+        "endChar": 78
+      },
+      "revId": "41dd4193b0bdca97208296bc416185250ef684f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_945e3be8",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/TransactionManager.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 596,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-03-26T08:58:26Z",
+      "side": 1,
+      "message": "Isn\u0027t it better to call this \"getAllEntries\", \"getMapEntries\", or something along the line? Entry is a key/value pair so \"entry map\" doesn\u0027t really make sense.",
+      "range": {
+        "startLine": 596,
+        "startChar": 16,
+        "endLine": 596,
+        "endChar": 27
+      },
+      "revId": "41dd4193b0bdca97208296bc416185250ef684f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_7463bfb1",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/TransactionManager.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 604,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-03-26T08:58:26Z",
+      "side": 1,
+      "message": "On the first read, it\u0027s a little hard to follow. Could you add some comment here?",
+      "range": {
+        "startLine": 601,
+        "startChar": 8,
+        "endLine": 604,
+        "endChar": 23
+      },
+      "revId": "41dd4193b0bdca97208296bc416185250ef684f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_546cc39c",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/TransactionManager.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 622,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-03-26T08:58:26Z",
+      "side": 1,
+      "message": "Do you want to collapse into a single case statement?",
+      "range": {
+        "startLine": 621,
+        "startChar": 12,
+        "endLine": 622,
+        "endChar": 74
+      },
+      "revId": "41dd4193b0bdca97208296bc416185250ef684f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_74d57f42",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 261,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-03-26T08:58:26Z",
+      "side": 1,
+      "message": "s/NoNodeException/BadVersionException/",
+      "range": {
+        "startLine": 261,
+        "startChar": 23,
+        "endLine": 261,
+        "endChar": 38
+      },
+      "revId": "41dd4193b0bdca97208296bc416185250ef684f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_d4ca73a0",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 266,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-03-26T08:58:26Z",
+      "side": 1,
+      "message": "What has changed about NoNodeException? What makes it not a result of concurrent modification?",
+      "revId": "41dd4193b0bdca97208296bc416185250ef684f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_540323b8",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 300,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-03-26T08:58:26Z",
+      "side": 1,
+      "message": "Would you please rephrase the comment so that a lay person can understand?",
+      "range": {
+        "startLine": 298,
+        "startChar": 15,
+        "endLine": 300,
+        "endChar": 37
+      },
+      "revId": "41dd4193b0bdca97208296bc416185250ef684f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_54e7a340",
+        "filename": "cluster/src/test/scala/org/midonet/cluster/data/storage/ZoomMapTests.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-03-26T08:58:26Z",
+      "side": 1,
+      "message": "Bonus white space :P",
+      "range": {
+        "startLine": 31,
+        "startChar": 0,
+        "endLine": 31,
+        "endChar": 4
+      },
+      "revId": "41dd4193b0bdca97208296bc416185250ef684f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
