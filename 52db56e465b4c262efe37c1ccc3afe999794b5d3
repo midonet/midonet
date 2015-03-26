@@ -1,0 +1,347 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_f26e9f95",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/IntegrationTests.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-03-26T17:31:49Z",
+      "side": 1,
+      "message": "2015",
+      "revId": "52db56e465b4c262efe37c1ccc3afe999794b5d3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_925e4be8",
+        "filename": "netlink/src/main/java/org/midonet/netlink/AbstractGenericNetlinkConnection.java",
+        "patchSetId": 7
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-03-26T17:31:49Z",
+      "side": 1,
+      "message": "midonet import should be last in import list",
+      "revId": "52db56e465b4c262efe37c1ccc3afe999794b5d3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_3252f7dd",
+        "filename": "netlink/src/main/java/org/midonet/netlink/AbstractGenericNetlinkConnection.java",
+        "patchSetId": 7
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-03-26T17:31:49Z",
+      "side": 1,
+      "message": "empty comment",
+      "revId": "52db56e465b4c262efe37c1ccc3afe999794b5d3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_08134c5d",
+        "filename": "netlink/src/main/java/org/midonet/netlink/AbstractNetlinkConnection.java",
+        "patchSetId": 7
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-03-26T17:31:49Z",
+      "side": 1,
+      "message": "This class is getting split into GenericAbstractNetlinkConnection and AbstractNetlinkConnection, but AbstractNetlinkConnection is only used by GenericAbstract*, so the split shouldn\u0027t have happened.",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 2
+      },
+      "revId": "52db56e465b4c262efe37c1ccc3afe999794b5d3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_321797ef",
+        "filename": "netlink/src/main/java/org/midonet/netlink/NetlinkMessage.java",
+        "patchSetId": 7
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-03-26T17:31:49Z",
+      "side": 1,
+      "message": "2015",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "52db56e465b4c262efe37c1ccc3afe999794b5d3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_72310fa2",
+        "filename": "netlink/src/main/java/org/midonet/netlink/NetlinkMessage.java",
+        "patchSetId": 7
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-03-26T17:31:49Z",
+      "side": 1,
+      "message": "this calculation looks incorrect, at least in the labels being used. If the RTA len is supposed to come directly after the header, then RTA_LEN_OFFSET should be HEADER_SIZE. RTA_TYPE_OFFSET should be (RTA_LEN_OFFSET + RTA_LEN_SIZE).",
+      "revId": "52db56e465b4c262efe37c1ccc3afe999794b5d3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_08418c39",
+        "filename": "netlink/src/main/java/org/midonet/netlink/rtnetlink/Addr.java",
+        "patchSetId": 7
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-03-26T17:31:49Z",
+      "side": 1,
+      "message": "empty comment",
+      "revId": "52db56e465b4c262efe37c1ccc3afe999794b5d3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_68792093",
+        "filename": "netlink/src/main/java/org/midonet/netlink/rtnetlink/Link.java",
+        "patchSetId": 7
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-03-26T17:31:49Z",
+      "side": 1,
+      "message": "empty comment",
+      "range": {
+        "startLine": 30,
+        "startChar": 1,
+        "endLine": 30,
+        "endChar": 2
+      },
+      "revId": "52db56e465b4c262efe37c1ccc3afe999794b5d3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_88745c9d",
+        "filename": "netlink/src/main/java/org/midonet/netlink/rtnetlink/Link.java",
+        "patchSetId": 7
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-03-26T17:31:49Z",
+      "side": 1,
+      "message": "pad is meaningless in java. In the c structure it\u0027s there to word align the structure. we don\u0027t need it here.",
+      "revId": "52db56e465b4c262efe37c1ccc3afe999794b5d3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_e864f0e6",
+        "filename": "netlink/src/main/java/org/midonet/netlink/rtnetlink/Neigh.java",
+        "patchSetId": 7
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-03-26T17:31:49Z",
+      "side": 1,
+      "message": "empty comment",
+      "range": {
+        "startLine": 32,
+        "startChar": 1,
+        "endLine": 32,
+        "endChar": 2
+      },
+      "revId": "52db56e465b4c262efe37c1ccc3afe999794b5d3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_a87318b0",
+        "filename": "netlink/src/main/java/org/midonet/netlink/rtnetlink/Neigh.java",
+        "patchSetId": 7
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-03-26T17:31:49Z",
+      "side": 1,
+      "message": "remove the pads.",
+      "range": {
+        "startLine": 38,
+        "startChar": 28,
+        "endLine": 38,
+        "endChar": 29
+      },
+      "revId": "52db56e465b4c262efe37c1ccc3afe999794b5d3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_08686cb9",
+        "filename": "netlink/src/main/java/org/midonet/netlink/rtnetlink/Route.java",
+        "patchSetId": 7
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-03-26T17:31:49Z",
+      "side": 1,
+      "message": "empty comment",
+      "range": {
+        "startLine": 31,
+        "startChar": 1,
+        "endLine": 31,
+        "endChar": 3
+      },
+      "revId": "52db56e465b4c262efe37c1ccc3afe999794b5d3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_6d1db273",
+        "filename": "netlink/src/main/scala/org.midonet.netlink/rtnetlink/RtnetlinkConnection.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-03-26T17:31:49Z",
+      "side": 1,
+      "message": "typo, Rtnetlik -\u003e Rtnetlink",
+      "range": {
+        "startLine": 97,
+        "startChar": 6,
+        "endLine": 97,
+        "endChar": 32
+      },
+      "revId": "52db56e465b4c262efe37c1ccc3afe999794b5d3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_c820149e",
+        "filename": "netlink/src/main/scala/org.midonet.netlink/rtnetlink/RtnetlinkProtocol.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-03-26T17:31:49Z",
+      "side": 1,
+      "message": "why is this commented out?",
+      "range": {
+        "startLine": 93,
+        "startChar": 10,
+        "endLine": 93,
+        "endChar": 24
+      },
+      "revId": "52db56e465b4c262efe37c1ccc3afe999794b5d3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_88261cb9",
+        "filename": "netlink/src/test/scala/org/midonet/netlink/MockBufferPool.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-03-26T17:31:49Z",
+      "side": 1,
+      "message": "out of interest, why? We\u0027re tests running out of memory when directs weren\u0027t freed?",
+      "range": {
+        "startLine": 31,
+        "startChar": 51,
+        "endLine": 31,
+        "endChar": 65
+      },
+      "revId": "52db56e465b4c262efe37c1ccc3afe999794b5d3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_486264d9",
+        "filename": "netlink/src/test/scala/org/midonet/netlink/rtnetlink/RtnetlinkConnectionTest.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 330,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-03-26T17:31:49Z",
+      "side": 1,
+      "message": "commented out code? should it be removed? or fixed?",
+      "revId": "52db56e465b4c262efe37c1ccc3afe999794b5d3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_285f2810",
+        "filename": "odp/build.gradle",
+        "patchSetId": 7
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-03-26T17:31:49Z",
+      "side": 1,
+      "message": "indentation is 2 here, whereas it should be 4",
+      "revId": "52db56e465b4c262efe37c1ccc3afe999794b5d3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
