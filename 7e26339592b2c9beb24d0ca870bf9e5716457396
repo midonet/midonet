@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_d7e8b57e",
+        "filename": "cluster/src/main/proto/topology.proto",
+        "patchSetId": 6
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-26T14:11:22Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_b75d39ec",
+      "range": {
+        "startLine": 34,
+        "startChar": 4,
+        "endLine": 34,
+        "endChar": 7
+      },
+      "revId": "7e26339592b2c9beb24d0ca870bf9e5716457396",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_f71cd115",
         "filename": "cluster/src/main/proto/topology.proto",
         "patchSetId": 6
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_f7fe9137",
+        "filename": "cluster/src/main/proto/topology.proto",
+        "patchSetId": 6
+      },
+      "lineNbr": 111,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-26T14:11:22Z",
+      "side": 1,
+      "message": "I kept VIP",
+      "parentUuid": "1a106d94_f71cd115",
+      "range": {
+        "startLine": 111,
+        "startChar": 8,
+        "endLine": 111,
+        "endChar": 11
+      },
+      "revId": "7e26339592b2c9beb24d0ca870bf9e5716457396",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_371789ef",
         "filename": "cluster/src/test/scala/org/midonet/cluster/services/topology/common/TopologyMappingsTest.scala",
         "patchSetId": 6
@@ -59,6 +107,30 @@
       "writtenOn": "2015-03-26T12:23:30Z",
       "side": 1,
       "message": "See: it looks awkward \"Vip\" here and \"VIP below\". Better the other way around, isn\u0027t it?",
+      "range": {
+        "startLine": 37,
+        "startChar": 20,
+        "endLine": 37,
+        "endChar": 39
+      },
+      "revId": "7e26339592b2c9beb24d0ca870bf9e5716457396",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_779aa115",
+        "filename": "cluster/src/test/scala/org/midonet/cluster/services/topology/common/TopologyMappingsTest.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-26T14:11:22Z",
+      "side": 1,
+      "message": "Vip -\u003e VIRTUAL_IP",
+      "parentUuid": "1a106d94_371789ef",
       "range": {
         "startLine": 37,
         "startChar": 20,
@@ -141,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_d79f1502",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/LoadBalancer.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 141,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-26T14:11:22Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_d7dd5544",
+      "range": {
+        "startLine": 141,
+        "startChar": 10,
+        "endLine": 141,
+        "endChar": 24
+      },
+      "revId": "7e26339592b2c9beb24d0ca870bf9e5716457396",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_57f165cc",
         "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/VIP.scala",
         "patchSetId": 6
@@ -152,6 +248,30 @@
       "writtenOn": "2015-03-26T12:23:30Z",
       "side": 1,
       "message": "Unused import.",
+      "range": {
+        "startLine": 20,
+        "startChar": 0,
+        "endLine": 21,
+        "endChar": 43
+      },
+      "revId": "7e26339592b2c9beb24d0ca870bf9e5716457396",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_b7a41958",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/VIP.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-26T14:11:22Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_57f165cc",
       "range": {
         "startLine": 20,
         "startChar": 0,
@@ -187,6 +307,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_1789adca",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/VIP.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-26T14:11:22Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_37ee69ed",
+      "range": {
+        "startLine": 23,
+        "startChar": 44,
+        "endLine": 23,
+        "endChar": 57
+      },
+      "revId": "7e26339592b2c9beb24d0ca870bf9e5716457396",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_17e7ed13",
         "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/VIP.scala",
         "patchSetId": 6
@@ -198,6 +342,30 @@
       "writtenOn": "2015-03-26T12:23:30Z",
       "side": 1,
       "message": "Not needed.",
+      "range": {
+        "startLine": 85,
+        "startChar": 35,
+        "endLine": 85,
+        "endChar": 41
+      },
+      "revId": "7e26339592b2c9beb24d0ca870bf9e5716457396",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_f785f1ad",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/VIP.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-26T14:11:22Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_17e7ed13",
       "range": {
         "startLine": 85,
         "startChar": 35,
@@ -233,6 +401,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_f7acd137",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/LoadBalancerMapper.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-26T14:11:22Z",
+      "side": 1,
+      "message": "This method is named deviceUpdated in the other mappers so I thought of naming it the same way for consistency.",
+      "parentUuid": "1a106d94_37c5c95b",
+      "range": {
+        "startLine": 70,
+        "startChar": 16,
+        "endLine": 70,
+        "endChar": 29
+      },
+      "revId": "7e26339592b2c9beb24d0ca870bf9e5716457396",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_97a11dac",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/LoadBalancerMapper.scala",
         "patchSetId": 6
@@ -244,6 +436,30 @@
       "writtenOn": "2015-03-26T12:23:30Z",
       "side": 1,
       "message": "Line too long.",
+      "range": {
+        "startLine": 72,
+        "startChar": 59,
+        "endLine": 72,
+        "endChar": 89
+      },
+      "revId": "7e26339592b2c9beb24d0ca870bf9e5716457396",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_579325fa",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/LoadBalancerMapper.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-26T14:11:22Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_97a11dac",
       "range": {
         "startLine": 72,
         "startChar": 59,
@@ -279,6 +495,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_57aa051a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/LoadBalancerMapper.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-26T14:11:22Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_d7ab9587",
+      "range": {
+        "startLine": 83,
+        "startChar": 29,
+        "endLine": 84,
+        "endChar": 73
+      },
+      "revId": "7e26339592b2c9beb24d0ca870bf9e5716457396",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_17952d40",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/LoadBalancerMapper.scala",
         "patchSetId": 6
@@ -290,6 +530,30 @@
       "writtenOn": "2015-03-26T12:23:30Z",
       "side": 1,
       "message": "Parentheses not needed.",
+      "range": {
+        "startLine": 110,
+        "startChar": 31,
+        "endLine": 110,
+        "endChar": 58
+      },
+      "revId": "7e26339592b2c9beb24d0ca870bf9e5716457396",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_7768e1f5",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/LoadBalancerMapper.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-26T14:11:22Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_17952d40",
       "range": {
         "startLine": 110,
         "startChar": 31,
@@ -319,6 +583,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_d76d5506",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/LoadBalancerMapper.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-26T14:11:22Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_f7917153",
+      "revId": "7e26339592b2c9beb24d0ca870bf9e5716457396",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_9788fd23",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/LoadBalancerMapper.scala",
         "patchSetId": 6
@@ -330,6 +612,30 @@
       "writtenOn": "2015-03-26T12:23:30Z",
       "side": 1,
       "message": "The figure does not show the merge between this output and the one of the VIPs observable.",
+      "range": {
+        "startLine": 129,
+        "startChar": 0,
+        "endLine": 133,
+        "endChar": 57
+      },
+      "revId": "7e26339592b2c9beb24d0ca870bf9e5716457396",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_b7409957",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/LoadBalancerMapper.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 133,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-26T14:11:22Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_9788fd23",
       "range": {
         "startLine": 129,
         "startChar": 0,
@@ -365,6 +671,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_1777edd5",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/LoadBalancerMapper.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 141,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-26T14:11:22Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_379ca969",
+      "range": {
+        "startLine": 138,
+        "startChar": 0,
+        "endLine": 141,
+        "endChar": 6
+      },
+      "revId": "7e26339592b2c9beb24d0ca870bf9e5716457396",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_d78275ff",
         "filename": "midolman/src/test/scala/org/midonet/midolman/topology/LoadBalancerMapperTest.scala",
         "patchSetId": 6
@@ -376,6 +706,30 @@
       "writtenOn": "2015-03-26T12:23:30Z",
       "side": 1,
       "message": "Add shouldBe true here and for some of the other await messages that don\u0027t have it.",
+      "range": {
+        "startLine": 80,
+        "startChar": 12,
+        "endLine": 80,
+        "endChar": 30
+      },
+      "revId": "7e26339592b2c9beb24d0ca870bf9e5716457396",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_572fa5a1",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/LoadBalancerMapperTest.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-26T14:11:22Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_d78275ff",
       "range": {
         "startLine": 80,
         "startChar": 12,
@@ -411,6 +765,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_72046f15",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/LoadBalancerMapperTest.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-26T14:11:22Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_b787f90e",
+      "range": {
+        "startLine": 91,
+        "startChar": 63,
+        "endLine": 91,
+        "endChar": 70
+      },
+      "revId": "7e26339592b2c9beb24d0ca870bf9e5716457396",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_b7b9b9eb",
         "filename": "midolman/src/test/scala/org/midonet/midolman/topology/TopologyBuilder.scala",
         "patchSetId": 6
@@ -422,6 +800,30 @@
       "writtenOn": "2015-03-26T12:23:30Z",
       "side": 1,
       "message": "Not used.",
+      "range": {
+        "startLine": 448,
+        "startChar": 0,
+        "endLine": 455,
+        "endChar": 5
+      },
+      "revId": "7e26339592b2c9beb24d0ca870bf9e5716457396",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_1241bb39",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/TopologyBuilder.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 455,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-26T14:11:22Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_b7b9b9eb",
       "range": {
         "startLine": 448,
         "startChar": 0,
