@@ -201,7 +201,7 @@ class PacketContext(val cookie: Int,
                     val packet: Packet,
                     val origMatch: FlowMatch,
                     val egressPort: UUID = null) extends Clearable with FlowContext with StateContext {
-    var tracing: Boolean = false
+    var tracing: JSet[UUID] = new HashSet[UUID]
     var log = PacketContext.defaultLog
 
     def jlog = log.underlying
@@ -253,6 +253,11 @@ class PacketContext(val cookie: Int,
         this.packetEmitter = packetEmitter
     }
 
+    override def clear(): Unit = {
+        super.clear()
+        tracing.clear()
+    }
+
     def prepareForSimulation(lastInvalidationSeen: Long) {
         idle = false
         runs += 1
@@ -277,12 +282,17 @@ class PacketContext(val cookie: Int,
     def addGeneratedPacket(uuid: UUID, ethernet: Ethernet): Unit =
         packetEmitter.schedule(GeneratedPacket(uuid, ethernet))
 
-    def tracingEnabled: Boolean = {
-        tracing
+    def tracingContext : String = {
+        tracing.toString
     }
 
-    def setTracingEnabled(): Unit = {
-        tracing = true
+    def tracingEnabled(traceRequestId: UUID): Boolean = {
+        tracing.contains(traceRequestId)
+    }
+
+    def enableTracing(traceRequestId: UUID): Unit = {
+        tracing.add(traceRequestId)
+        log = PacketContext.traceLog
     }
 
     override def toString = s"PacketContext[$cookieStr]"
