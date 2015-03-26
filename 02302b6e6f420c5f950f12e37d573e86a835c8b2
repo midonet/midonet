@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_9482bb50",
+        "filename": "midonet-api/src/main/java/org/midonet/api/system_data/rest_api/TraceRequestResource.java",
+        "patchSetId": 7
+      },
+      "lineNbr": 241,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-03-26T06:15:30Z",
+      "side": 1,
+      "message": "I agree that there is no \u0027better\u0027 way.  I just find Enablement to be awkward.  If we were to go with the POST/bit approach, then I\u0027m thinking it would be better to just have two idempotent POST methods, \u0027enable\u0027 and \u0027disable\u0027, with no argument.  But if we go with this custom approach, then we would need to expose this URI to the client on the TraceRequest object so that the client can discover it.\n\nThat said, I personally feel that it\u0027s better to do a PUT (which is also idempotent) because typically you\u0027d do a GET before you do a PUT thus have all the data you need.   My other reasoning is that if we were to add more updatable fields in TraceRequest in the future, we may want to allow them to update multiple fields in one shot, and should not require creating new endpoints for that.\n\nBut I won\u0027t block this based on either design.  The media types still need to be changed here though.",
+      "parentUuid": "1a106d94_9e465f22",
+      "revId": "02302b6e6f420c5f950f12e37d573e86a835c8b2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_3bf13dce",
         "filename": "midonet-api/src/main/java/org/midonet/api/system_data/rest_api/TraceRequestResource.java",
         "patchSetId": 7
