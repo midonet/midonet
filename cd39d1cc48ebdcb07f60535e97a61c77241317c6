@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_0d0cfe41",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/PacketWorkflow.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-03-26T17:05:46Z",
+      "side": 1,
+      "message": "sorry, I\u0027ve got one more request: can this go into the None path below, so we don\u0027t have this check in the common case?",
+      "revId": "cd39d1cc48ebdcb07f60535e97a61c77241317c6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_88ff3c01",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/PacketWorkflow.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 113,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-03-26T17:05:46Z",
+      "side": 1,
+      "message": "... and this messaged moved with it?",
+      "revId": "cd39d1cc48ebdcb07f60535e97a61c77241317c6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_ed08822f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/PacketWorkflow.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 183,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-03-26T17:05:46Z",
+      "side": 1,
+      "message": "I think this should be handled in handleFromUnderlay",
+      "revId": "cd39d1cc48ebdcb07f60535e97a61c77241317c6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
