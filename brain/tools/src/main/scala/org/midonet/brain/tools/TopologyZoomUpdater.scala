@@ -145,16 +145,15 @@ class TopologyZoomUpdater @Inject()(val backend: MidonetBackend,
 
     /** updatable Routers */
     def tmpRouters: Iterable[Router] =
-        providerRouter.getRemoteDevices collect
-            {case r: Router if r.getId != fixedRouterId => r}
+        providerRouter.getLinkedRouters filter {_.getId != fixedRouterId}
 
     /** updatable Networks */
     def tmpNetworks: Iterable[Network] =
-        tmpRouters flatMap {_.getRemoteDevices} collect {case n: Network => n}
+        tmpRouters flatMap {_.getLinkedNetworks}
 
     /** updatable Ports */
     def tmpPorts: Iterable[Port] =
-        fixedNetwork.getPorts filter {_.getTargetDevice == None}
+        fixedNetwork.getPorts filter {_.getLinkedDevice == None}
 
     /** updatable Vteps */
     private val tmpVtepIds: mutable.Set[Commons.UUID] = mutable.Set()
@@ -253,6 +252,8 @@ class TopologyZoomUpdater @Inject()(val backend: MidonetBackend,
         fixedPortGroup.delete()
         fixedIpAddrGroup.delete()
         fixedTunnelZone.delete()
+        tmpRouters foreach {_.delete()}
+        fixedRouter.delete()
         providerRouter.delete()
     }
 
@@ -564,16 +565,12 @@ class Port(p: Topology.Port)(implicit storage: StorageWithOwnership)
         this
     }
 
-    // Get the target port to which this one is linked
-    def getTargetPort: Option[Port] =
-        if (model.hasPeerId) Port.get(model.getPeerId) else None
-
-    // Get the devices linked to this one
-    def getRemoteDevices: Iterable[VSwitch] = getTargetDevice
-
-    // Get the device to which this port is linked
-    def getTargetDevice: Option[VSwitch] =
-        getTargetPort flatMap {_.getDevice}
+    // Get the device to which this port is linked 
+    def getLinkedDevice: Option[VSwitch] = {
+        if (model.hasPeerId) {
+            Port.get(model.getPeerId) flatMap {_.getDevice}
+        } else None
+    }
 
     // Set VxLan parameters
     def setVxLanAttributes(vtep: Vtep): Port = {
@@ -606,7 +603,7 @@ class Router(p: Topology.Router)(implicit storage: StorageWithOwnership)
     def getId: Commons.UUID = getId(classOf[Commons.UUID])
 
     override def delete(): Unit = {
-        getRemoteDevices.foreach({_.delete()})
+        getLinkedNetworks.foreach({_.delete()})
         getPorts.foreach({_.delete()})
         super.delete()
     }
@@ -632,9 +629,13 @@ class Router(p: Topology.Router)(implicit storage: StorageWithOwnership)
     // Get attached tmpPorts
     def getPorts: Iterable[Port] = model.getPortIdsList flatMap {Port.get(_)}
 
-    // Get devices linked to this router
-    def getRemoteDevices: Iterable[VSwitch] =
-        getPorts.flatMap({_.getRemoteDevices})
+    // Get networks linked to this router
+    def getLinkedNetworks: Iterable[Network] =
+        getPorts flatMap {_.getLinkedDevice} collect {case n: Network => n}
+
+    // Get routers linked to this router
+    def getLinkedRouters: Iterable[Router] =
+        getPorts flatMap {_.getLinkedDevice} collect {case r: Router => r}
 }
 
 
@@ -659,7 +660,6 @@ class Network(p: Topology.Network)(implicit storage: StorageWithOwnership)
 
     override def delete(): Unit = {
         vtepBindings.foreach({_.delete()})
-        getRemoteDevices.foreach({_.delete()})
         getPorts.foreach({_.delete()})
         super.delete()
     }
@@ -689,10 +689,6 @@ class Network(p: Topology.Network)(implicit storage: StorageWithOwnership)
     def getPorts: Iterable[Port] =
         (model.getPortIdsList.toSet --
             model.getVxlanPortIdsList.toSet) flatMap {Port.get(_)}
-
-    // Get devices linked to this network
-    def getRemoteDevices: Iterable[VSwitch] =
-        getPorts.flatMap({_.getRemoteDevices})
 
     // get the list of vxlan tmpPorts
     def getVxLanPorts: Iterable[Port] =
