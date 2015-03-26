@@ -55,6 +55,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_747e1fe6",
+        "filename": "midonet-api/src/main/java/org/midonet/api/system_data/rest_api/TraceRequestResource.java",
+        "patchSetId": 7
+      },
+      "lineNbr": 241,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-03-26T10:35:26Z",
+      "side": 1,
+      "message": "I\u0027ve changed it to a put on the traceRequest resource.",
+      "parentUuid": "1a106d94_9482bb50",
+      "revId": "02302b6e6f420c5f950f12e37d573e86a835c8b2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_3bf13dce",
         "filename": "midonet-api/src/main/java/org/midonet/api/system_data/rest_api/TraceRequestResource.java",
         "patchSetId": 7
