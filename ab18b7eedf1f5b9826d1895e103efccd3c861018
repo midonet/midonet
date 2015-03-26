@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_d27c4375",
+        "filename": "midolman/src/main/java/org/midonet/midolman/Midolman.java",
+        "patchSetId": 21
+      },
+      "lineNbr": 177,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-03-26T14:39:48Z",
+      "side": 1,
+      "message": "why do we need to see the comments? The point of printing is to know what the daemon was running with in code.",
+      "revId": "ab18b7eedf1f5b9826d1895e103efccd3c861018",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_92d00b55",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/management/MidolmanConf.scala",
+        "patchSetId": 21
+      },
+      "lineNbr": 188,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-03-26T14:39:48Z",
+      "side": 1,
+      "message": "this should be a ConfigException",
+      "range": {
+        "startLine": 188,
+        "startChar": 30,
+        "endLine": 188,
+        "endChar": 39
+      },
+      "revId": "ab18b7eedf1f5b9826d1895e103efccd3c861018",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_32e4b73a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/management/MidolmanConf.scala",
+        "patchSetId": 21
+      },
+      "lineNbr": 193,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-03-26T14:39:48Z",
+      "side": 1,
+      "message": "typo",
+      "range": {
+        "startLine": 193,
+        "startChar": 38,
+        "endLine": 193,
+        "endChar": 45
+      },
+      "revId": "ab18b7eedf1f5b9826d1895e103efccd3c861018",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
