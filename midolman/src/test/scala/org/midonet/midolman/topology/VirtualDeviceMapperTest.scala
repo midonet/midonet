@@ -74,7 +74,7 @@ class VirtualDeviceMapperTest extends MidolmanSpec {
 
     type TestableObserver = AwaitableObserver[TestableDevice]
 
-    implicit var vt: VirtualTopology = _
+    private implicit var vt: VirtualTopology = _
 
     override def beforeTest(): Unit = {
         vt = injector.getInstance(classOf[VirtualTopology])
