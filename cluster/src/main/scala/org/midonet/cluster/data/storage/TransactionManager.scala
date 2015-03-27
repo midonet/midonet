@@ -170,12 +170,8 @@ abstract class TransactionManager(classes: ClassesMap, bindings: BindingsMap) {
 
     private def create(obj: Obj, owner: Option[String]): Unit = {
         assert(isRegistered(obj.getClass))
-
-        if (classes(obj.getClass).ownershipType.isExclusive &&
-            owner.isEmpty) {
-            throw new UnsupportedOperationException(
-                s"Class ${obj.getClass.getSimpleName} requires owner")
-        }
+        // Allow a creation of an object with an exclusive ownership type, whose
+        // ownership may later be claimed by others with an Update operation.
 
         val thisId = getObjectId(obj)
         val key = getKey(obj.getClass, thisId)
@@ -505,10 +501,8 @@ abstract class TransactionManager(classes: ClassesMap, bindings: BindingsMap) {
                               owners: Set[String], owner: Option[String],
                               throwIfExists: Boolean): Unit = {
         if (classes(clazz).ownershipType.isExclusive && owners.nonEmpty) {
-            if (owner.isEmpty) {
-                throw new UnsupportedOperationException(
-                    "Update not supported because owner is not specified")
-            } else if (owner.isDefined && !owners.contains(owner.get)) {
+            // We allow an owner-less update on an exclusive-ownership object.
+            if (owner.isDefined && !owners.contains(owner.get)) {
                 throw new OwnershipConflictException(
                     clazz.getSimpleName, id.toString, owners, owner.get,
                     "Caller does not own object")

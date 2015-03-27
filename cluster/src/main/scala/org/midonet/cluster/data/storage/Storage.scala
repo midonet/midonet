@@ -313,12 +313,14 @@ trait StorageWithOwnership extends Storage {
     /**
      * Registers an object class with support for ownership. The ownership type
      * can be one of the following:
-     * - [[OwnershipType.Exclusive]] Every object in this class supports only
-     * one owner at a time. The owner identifier is specified when the object
-     * is created, and ownership is released either when the object is deleted,
-     * or when the current owner disconnects from storage, orphaning the object.
-     * It is possible to update the ownership both by the current owner, and
-     * when an object has been orphaned.
+     * - [[OwnershipType.Exclusive]] Every object in this class permits at most
+     * one owner at any time. The owner identifier may be specified when the
+     * object is created, or may be created without an owner and its ownership
+     * may later be claimed by a subsequent Update operation. The ownership is
+     * released either when the object is deleted, or when the current owner
+     * disconnects from storage, orphaning the object. It is possible to update
+     * the ownership both by the current owner, and when an object has been
+     * orphaned.
      * - [[OwnershipType.Shared]] Every object in this class supports multiple
      * owners, where all owners are peers. Ownership is optional for objects
      * with shared ownership. Owners can be added using the update() or
@@ -345,8 +347,9 @@ trait StorageWithOwnership extends Storage {
     /**
      * Updates an object and its owner. The method has the following behavior
      * depending on the ownership type:
-     * - for [[OwnershipType.Exclusive]], the update succeeds only if the
-     *   specified owner is the current owner of the object, or if the object
+     * - for [[OwnershipType.Exclusive]], the update succeeds if update is a
+     *   regular, owner-agnostic update, the object is not assigned an owner,
+     *   the specified owner is the current owner of the object, or if the object
      *   has been orphaned and it has no owner.
      * - for [[OwnershipType.Shared]], it is always possible to update the
      *   owner.
