@@ -67,6 +67,8 @@ public class Route extends UriResource {
     @Pattern(regexp = IPv4.regex)
     private String srcNetworkAddr;
 
+    private boolean learned;
+
     @Min(0)
     @Max(32)
     private int srcNetworkLength;
@@ -104,6 +106,7 @@ public class Route extends UriResource {
         this.weight = data.getWeight();
         this.routerId = data.getRouterId();
         this.attributes = data.getAttributes();
+        this.learned = data.isLearned();
         if (data.getNextHop() == NextHop.BLACKHOLE) {
             this.type = Route.BlackHole;
         } else if (data.getNextHop() == NextHop.REJECT) {
@@ -152,6 +155,14 @@ public class Route extends UriResource {
      */
     public void setRouterId(UUID routerId) {
         this.routerId = routerId;
+    }
+
+    public boolean isLearned() {
+        return learned;
+    }
+
+    public void setLearned(boolean learned) {
+        this.learned = learned;
     }
 
     /**
@@ -323,6 +334,7 @@ public class Route extends UriResource {
 
         return new org.midonet.cluster.data.Route()
                 .setId(this.id)
+                .setLearned(this.learned)
                 .setSrcNetworkAddr(this.srcNetworkAddr)
                 .setSrcNetworkLength(this.srcNetworkLength)
                 .setDstNetworkAddr(this.dstNetworkAddr)
@@ -347,7 +359,9 @@ public class Route extends UriResource {
                 + srcNetworkLength + ", dstNetworkAddr=" + dstNetworkAddr
                 + ", dstNetworkLength=" + dstNetworkLength + ", nextHopPort="
                 + nextHopPort + ", nextHopGateway=" + nextHopGateway
-                + ", weight=" + weight + ", attributes=" + attributes;
+                + ", weight=" + weight
+                + ((learned) ?  ", learned" : "")
+                + ", attributes=" + attributes;
     }
 
     /**

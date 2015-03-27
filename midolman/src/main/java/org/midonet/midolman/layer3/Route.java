@@ -53,10 +53,12 @@ public class Route implements Serializable {
     public int weight;
     public String attributes;
     public UUID routerId;
+    public boolean learned = false;
 
     public Route(int srcNetworkAddr, int srcNetworkLength, int dstNetworkAddr,
             int dstNetworkLength, NextHop nextHop, UUID nextHopPort,
-            int nextHopGateway, int weight, String attributes, UUID routerId) {
+            int nextHopGateway, int weight, String attributes, UUID routerId,
+            boolean learned) {
         super();
         this.srcNetworkAddr = srcNetworkAddr;
         this.srcNetworkLength = srcNetworkLength;
@@ -68,6 +70,14 @@ public class Route implements Serializable {
         this.weight = weight;
         this.attributes = attributes;
         this.routerId = routerId;
+        this.learned = learned;
+    }
+
+    public Route(int srcNetworkAddr, int srcNetworkLength, int dstNetworkAddr,
+                 int dstNetworkLength, NextHop nextHop, UUID nextHopPort,
+                 int nextHopGateway, int weight, String attributes, UUID routerId) {
+        this(srcNetworkAddr, srcNetworkLength, dstNetworkAddr, dstNetworkLength,
+                nextHop, nextHopPort, nextHopGateway, weight, attributes, routerId, false);
     }
 
     public Route(IPv4Subnet srcSubnet, IPv4Subnet dstSubnet,
@@ -86,6 +96,15 @@ public class Route implements Serializable {
     }
 
     /* Custom accessors for more readable IP address representation in Jackson serialization. */
+
+    public boolean isLearned() {
+        return this.learned;
+    }
+
+    public void setLearned(boolean learned) {
+        this.learned = learned;
+    }
+
 
     public String getSrcNetworkAddr() {
         return IPv4Addr.intToString(this.srcNetworkAddr);
@@ -134,6 +153,7 @@ public class Route implements Serializable {
         if (!(obj instanceof Route)) return false;
         final Route rt = (Route) obj;
         return (Objects.equal(this.srcNetworkAddr, rt.srcNetworkAddr)
+                && Objects.equal(this.learned, rt.learned)
                 && Objects.equal(this.srcNetworkLength, rt.srcNetworkLength)
                 && Objects.equal(this.dstNetworkAddr, rt.dstNetworkAddr)
                 && Objects.equal(this.dstNetworkLength, rt.dstNetworkLength)
@@ -150,7 +170,7 @@ public class Route implements Serializable {
         return Objects.hashCode(srcNetworkAddr, srcNetworkLength,
                                 dstNetworkAddr, dstNetworkLength, nextHop,
                                 nextHopPort, nextHopGateway, weight, attributes,
-                                routerId);
+                                routerId, learned);
     }
 
     @Override
@@ -160,6 +180,8 @@ public class Route implements Serializable {
         sb.append(srcNetworkLength).append(",");
         sb.append(IPv4Addr.intToString(dstNetworkAddr)).append("/");
         sb.append(dstNetworkLength).append(",");
+        if (learned)
+            sb.append("learned,");
         if (null != nextHop)
             sb.append(nextHop.toString());
         sb.append(",");

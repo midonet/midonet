@@ -472,7 +472,8 @@ public class Converter {
             gateway,
             route.getWeight(),
             route.getAttributes(),
-            route.getRouterId()
+            route.getRouterId(),
+            route.isLearned()
         );
     }
 
@@ -492,7 +493,9 @@ public class Converter {
                 .setNextHopGateway(route.getNextHopGateway())
                 .setWeight(route.weight)
                 .setAttributes(route.attributes)
-                .setRouterId(route.routerId);
+                .setRouterId(route.routerId)
+                .setLearned(route.isLearned())
+        ;
     }
 
     public static org.midonet.midolman.rules.Rule toRuleConfig(Rule<?,?> rule) {

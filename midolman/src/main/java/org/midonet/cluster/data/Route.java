@@ -48,6 +48,15 @@ public class Route extends Entity.Base<UUID, Route.Data, Route> {
         return this;
     }
 
+    public boolean isLearned() {
+        return getData().learned;
+    }
+
+    public Route setLearned(boolean learned) {
+        getData().learned = learned;
+        return this;
+    }
+
     public String getSrcNetworkAddr() {
         return getData().srcNetworkAddr;
     }
@@ -187,12 +196,14 @@ public class Route extends Entity.Base<UUID, Route.Data, Route> {
         public String attributes;
         public UUID routerId;
         public Map<String, String> properties = new HashMap<String, String>();
+        public boolean learned;
 
         public Data() {
             srcNetworkAddr = "0.0.0.0";
             srcNetworkLength = 0;
             dstNetworkAddr = "0.0.0.0";
             dstNetworkLength = 0;
+            learned = false;
             nextHop = org.midonet.midolman.layer3.Route.NextHop.REJECT;
             nextHopPort = UUID.fromString("deadcafe-dead-c0de-dead-beefdeadbeef");
             nextHopGateway = IPv4Addr.intToString(
@@ -231,6 +242,9 @@ public class Route extends Entity.Base<UUID, Route.Data, Route> {
             } else if (!routerId.equals(rt.routerId))
                 return false;
 
+            if (learned != rt.learned)
+                return false;
+
             if (null == nextHopGateway || null == rt.nextHopGateway) {
                 if (!Objects.equals(nextHopGateway, rt.nextHopGateway))
                     return false;
@@ -251,6 +265,8 @@ public class Route extends Entity.Base<UUID, Route.Data, Route> {
             hash = 31 * hash + dstNetworkAddr.hashCode();
             hash = 23 * hash + dstNetworkLength;
 
+            if (learned)
+                hash = 31 * hash + 29;
             if (null != routerId)
                 hash = 47 * hash + routerId.hashCode();
             if (null != nextHop)
@@ -272,6 +288,8 @@ public class Route extends Entity.Base<UUID, Route.Data, Route> {
             sb.append(srcNetworkLength).append(",");
             sb.append(dstNetworkAddr).append(",");
             sb.append(dstNetworkLength).append(",");
+            if (learned)
+                sb.append("learned,");
             if (null != nextHop)
                 sb.append(nextHop.toString());
             sb.append(",");
