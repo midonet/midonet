@@ -61,11 +61,6 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
         store = injector.getInstance(classOf[MidonetBackend]).store
     }
 
-    override protected def fillConfig(config: Config) = {
-        super.fillConfig(config).withValue("midolman.cluster_storage_enabled",
-            ConfigValueFactory.fromAnyRef(true))
-    }
-
     private def assertThread(): Unit = {
         assert(vt.threadId == Thread.currentThread.getId)
     }

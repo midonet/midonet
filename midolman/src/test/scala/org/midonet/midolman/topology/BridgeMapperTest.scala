@@ -62,8 +62,6 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
     protected override def fillConfig(config: Config) = {
         super.fillConfig(ConfigFactory.parseString(
             s"""
-              |zookeeper.cluster_storage_enabled : true
-              |zookeeper.use_new_stack : true
               |midolman.enable_bridge_arp : true
               |bridge.mac_port_mapping_expire : "${macTtl.toMillis}ms"
             """.stripMargin).withFallback(config))

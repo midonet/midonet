@@ -109,8 +109,6 @@ trait MidolmanSpec extends FeatureSpecLike
         val defaults =
             """
               |cassandra.servers = "localhost:9171"
-              |zookeeper.cluster_storage_enabled = true
-              |zookeeper.curator_enabled = false
             """.stripMargin
         config.withFallback(ConfigFactory.parseString(defaults))
     }
