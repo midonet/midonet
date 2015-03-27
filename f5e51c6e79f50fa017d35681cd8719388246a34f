@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_47209249",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-27T10:08:04Z",
+      "side": 1,
+      "message": "remove?",
+      "range": {
+        "startLine": 12,
+        "startChar": 10,
+        "endLine": 12,
+        "endChar": 12
+      },
+      "revId": "f5e51c6e79f50fa017d35681cd8719388246a34f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_e7141ef7",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/Storage.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 350,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-27T10:08:04Z",
+      "side": 1,
+      "message": "the update?",
+      "range": {
+        "startLine": 350,
+        "startChar": 65,
+        "endLine": 350,
+        "endChar": 71
+      },
+      "revId": "f5e51c6e79f50fa017d35681cd8719388246a34f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_e72b7e2e",
+        "filename": "cluster/src/test/scala/org/midonet/cluster/data/storage/InMemoryStorageTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 976,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-27T10:08:04Z",
+      "side": 1,
+      "message": "Shouldn\u0027t we also test that a delete with no owner specified works for an owner-less object with exclusive ownership? Is this test already included in the existing tests?",
+      "range": {
+        "startLine": 976,
+        "startChar": 8,
+        "endLine": 976,
+        "endChar": 52
+      },
+      "revId": "f5e51c6e79f50fa017d35681cd8719388246a34f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
