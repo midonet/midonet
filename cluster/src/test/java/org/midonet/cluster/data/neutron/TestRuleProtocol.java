@@ -30,17 +30,18 @@ public class TestRuleProtocol {
 
         public static Object[] paramsForProtocols() {
             return $(
-                $(6, "tcp", RuleProtocol.TCP),
-                $(17, "udp", RuleProtocol.UDP),
-                $(1, "icmp", RuleProtocol.ICMP),
-                $(58, "icmpv6", RuleProtocol.ICMPv6)
+                $("6", "tcp", RuleProtocol.TCP),
+                $("17", "udp", RuleProtocol.UDP),
+                $("1", "icmp", RuleProtocol.ICMP),
+                $("58", "icmpv6", RuleProtocol.ICMPv6)
             );
         }
     }
 
     @Test
     @Parameters(source = ProtocolProvider.class, method="paramsForProtocols")
-    public void testForValue(int num, String val, RuleProtocol expected) {
+    public void testForValue(String num, String val, RuleProtocol expected) {
+
         RuleProtocol p = RuleProtocol.forValue(num);
         Assert.assertEquals(expected, p);
 
