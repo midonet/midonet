@@ -188,13 +188,13 @@ abstract class VtyConnection(val addr: String, val port: Int,
                 case PasswordRegex() =>
                     log.trace("password match")
                 case s: String =>
-                    log.warn("bgpd hello message doesn't match expected: \"" +
+                    log.trace("bgpd hello message doesn't match expected: \"" +
                         s + "\" size: " + s.size)
             }
         }
 
         if (versionMatch == false)  {
-            log.warn("bgpd version didn't match expected.")
+            log.debug("bgpd version didn't match expected.")
         }
 }
 
@@ -211,7 +211,7 @@ abstract class VtyConnection(val addr: String, val port: Int,
 
         for (message <- messages) {
             sendMessage(message)
-            log.info("doTransaction: %s".format(message))
+            log.debug("doTransaction: %s".format(message))
         }
 
         if (isConfigure) {
