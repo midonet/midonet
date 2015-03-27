@@ -30,6 +30,9 @@ class Route(resource_base.ResourceBase):
     def get_attributes(self):
         return self.dto['attributes']
 
+    def is_learned(self):
+        return self.dto['learned']
+
     def get_dst_network_addr(self):
         return self.dto['dstNetworkAddr']
 
@@ -62,6 +65,10 @@ class Route(resource_base.ResourceBase):
 
     def attributes(self, attributes):
         self.dto['attributes'] = attributes
+        return self
+
+    def learned(self, learned):
+        self.dto['learned'] = learned
         return self
 
     def dst_network_addr(self, addr):

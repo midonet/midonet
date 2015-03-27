@@ -70,6 +70,8 @@ public class Setup {
         paths.add(pathMgr.getLicensesPath());
         paths.add(pathMgr.getNatPath());
         paths.add(pathMgr.getTraceRequestsPath());
+        paths.add(pathMgr.getDeviceStatusPath());
+        paths.add(pathMgr.getBgpStatusPath());
 
         // Neutron paths
         paths.add(pathMgr.getNeutronPath());
