@@ -20,6 +20,7 @@ import java.util.UUID
 
 import scala.collection.JavaConversions._
 import scala.collection.mutable
+import scala.concurrent.duration._
 
 import akka.actor.{Actor, ActorRef, Stash}
 import akka.pattern.pipe
@@ -58,6 +59,7 @@ object RoutingHandler {
     // BgpdProcess will notify via these messages
     case object BGPD_READY
     case object BGPD_DEAD
+    case object FETCH_BGPD_STATUS
     case class BGPD_SHOW(cmd : String)
 
     case class PortActive(active: Boolean)
@@ -208,6 +210,19 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
     var zookeeperActive = true
     var portActive = true
 
+    private var bgpdStartupTime = 0L
+    private var lastBgpdStatusCheck = 0L
+
+    def now = System.currentTimeMillis()
+
+    def bgpdStatusCheckIsDue = {
+        if (now-bgpdStartupTime > 120000L)
+            now-lastBgpdStatusCheck > 30000L
+        else
+            now-lastBgpdStatusCheck > 5000L
+    }
+
+
     override def preStart() {
         log.info("({}) Starting, port {}.", phase, rport.id)
 
@@ -269,6 +284,8 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
 
         // Subscribe to the VTA for updates to the Port configuration.
         VirtualTopologyActor ! PortRequest(rport.id, update = true)
+
+        system.scheduler.schedule(2 seconds, 2500 milliseconds, self, FETCH_BGPD_STATUS)
 
         log.debug("({}) Started", phase)
     }
@@ -387,6 +404,7 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
                         peerRoutes.clear()
                         stopBGP()
                     }
+
                 case Started =>
                     log.warn("({}) RemoveBgpSession({}) unknown id", phase, bgpID)
 
@@ -444,6 +462,8 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
                     context.system.eventStream.publish(
                         BGPD_STATUS(rport.id, true))
 
+                    bgpdStartupTime = now
+
                 case _ =>
                     log.error("({}) BGP_READY expected only while Starting", phase)
             }
@@ -463,6 +483,28 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
                 case _ =>
                     log.error("({}) unexpected BGPD_DEAD message", phase)
             }
+
+        case FETCH_BGPD_STATUS if bgpdStatusCheckIsDue =>
+            bgps.headOption foreach {
+                case (id, bgp) =>
+                    log.debug("querying bgpd neighbour information")
+                    try {
+                        var status: String = "bgpd daemon is not ready"
+                        if (bgpVty ne null) {
+                            status = bgpVty.showGeneric("nei").
+                                filterNot(_.startsWith("bgpd#")).
+                                filterNot(_.startsWith("show ip bgp nei")).
+                                foldRight("")((a, b) => s"$a\n$b")
+                        }
+                        dataClient.bgpSetStatus(id, status)
+                    } catch {
+                        case e: Exception =>
+                            log.warn("Failed to check bgpd status", e)
+                    }
+                }
+
+        case FETCH_BGPD_STATUS => // ignored, check not due.
+
         case BGPD_SHOW(cmd) =>
             if (bgpVty != null)
                 sender ! BgpStatus(bgpVty.showGeneric(cmd).toArray)
@@ -540,6 +582,7 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
                     route.setNextHop(org.midonet.midolman.layer3.Route.NextHop.PORT)
                     route.setNextHopPort(rport.id)
                     route.setWeight(distance)
+                    route.setLearned(true)
                     val routeId = dataClient.routesCreateEphemeral(route)
                     peerRoutes.put(route, routeId)
                     log.debug("({}) announcing we've added a peer route", phase)
