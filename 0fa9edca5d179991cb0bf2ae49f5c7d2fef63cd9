@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_c72c824d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/DeduplicationActor.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 179,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-03-27T09:59:57Z",
+      "side": 1,
+      "message": "I\u0027d say this needs (), but it can be done in a subsequent patch so as not to disturb jenkins",
+      "revId": "0fa9edca5d179991cb0bf2ae49f5c7d2fef63cd9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
