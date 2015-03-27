@@ -392,7 +392,8 @@ public class RouteZkManager extends AbstractZkManager<UUID, Route> {
             SerializationException {
         UUID routeId = UUID.randomUUID();
         Route route = new Route(0, 0, config.portAddr, 32, Route.NextHop.LOCAL,
-                                portId, Route.NO_GATEWAY, 0, null, config.device_id);
+                                portId, Route.NO_GATEWAY, 0, null, config.device_id,
+                                false);
         return prepareRouteCreate(routeId, route, true, config);
     }
 
