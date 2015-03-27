@@ -1322,6 +1322,10 @@ class Route(ObjectType):
                                  getter = 'get_weight',
                                  setter = 'weight',
                                  optional = True))
+        self.put_attr(BooleanAttr(name = 'learned',
+                                  getter = 'is_learned',
+                                  setter = 'learned',
+                                  optional = True))
 
     def type_name(self):
         return "route"

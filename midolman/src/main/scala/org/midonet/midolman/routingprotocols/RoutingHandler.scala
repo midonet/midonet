@@ -540,6 +540,7 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
                     route.setNextHop(org.midonet.midolman.layer3.Route.NextHop.PORT)
                     route.setNextHopPort(rport.id)
                     route.setWeight(distance)
+                    route.setLearned(true)
                     val routeId = dataClient.routesCreateEphemeral(route)
                     peerRoutes.put(route, routeId)
                     log.debug("({}) announcing we've added a peer route", phase)
