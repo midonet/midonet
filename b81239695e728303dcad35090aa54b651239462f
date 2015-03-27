@@ -48,6 +48,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_871a8a15",
+        "filename": "cluster/src/main/proto/topology.proto",
+        "patchSetId": 1
+      },
+      "lineNbr": 326,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-27T10:19:08Z",
+      "side": 1,
+      "message": "Yes, it is. However I don\u0027t think it can be removed in this patch, because it only updates the protobuf model. This can be removed when we modify the HostService to write the set of interfaces rather than the list of addresses.",
+      "parentUuid": "3a1371a2_d641d70c",
+      "range": {
+        "startLine": 326,
+        "startChar": 0,
+        "endLine": 326,
+        "endChar": 37
+      },
+      "revId": "b81239695e728303dcad35090aa54b651239462f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a1371a2_130c2142",
         "filename": "cluster/src/main/proto/topology.proto",
         "patchSetId": 1
@@ -82,6 +106,30 @@
       "writtenOn": "2015-03-18T16:37:24Z",
       "side": 1,
       "message": "This looks like state information... Do we need it? (or better, do we plan to maintain it updated if the state changes?)",
+      "range": {
+        "startLine": 358,
+        "startChar": 8,
+        "endLine": 359,
+        "endChar": 35
+      },
+      "revId": "b81239695e728303dcad35090aa54b651239462f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_c7d3e236",
+        "filename": "cluster/src/main/proto/topology.proto",
+        "patchSetId": 1
+      },
+      "lineNbr": 359,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-03-27T10:19:08Z",
+      "side": 1,
+      "message": "Yes, it is state information.\n\nThe point of this patch was to invite comments as to what information we need to provide in terms of host interfaces.\n\nIn terms of updates, the HostService should modify the interface information whenever there is a change. Initially I was thinking that host interfaces could be provided into a separate HostState top-level object in zoom. But I think that would only complicate the API.",
+      "parentUuid": "3a1371a2_56e7a740",
       "range": {
         "startLine": 358,
         "startChar": 8,
