@@ -42,7 +42,7 @@ class DeviceMapperTest extends MidolmanSpec {
 
     class TestableDevice(val id: UUID, val value: Int = 0) extends Device {
         override def equals(o: Any): Boolean = o match {
-            case d: TestableDevice => (id eq d.id) && (value == d.value)
+            case d: TestableDevice => id == d.id && value == d.value
             case _ => false
         }
     }
@@ -52,7 +52,7 @@ class DeviceMapperTest extends MidolmanSpec {
     }
 
     class TestableMapper(id: UUID, obs: Observable[TestableDevice])
-                            (implicit vt: VirtualTopology)
+                        (implicit vt: VirtualTopology)
             extends DeviceMapper[TestableDevice](id, vt) {
 
         private val subscribed = new AtomicBoolean(false)
@@ -73,7 +73,7 @@ class DeviceMapperTest extends MidolmanSpec {
 
     type TestableObserver = AwaitableObserver[TestableDevice]
 
-    implicit var vt: VirtualTopology = _
+    private implicit var vt: VirtualTopology = _
 
     override def beforeTest(): Unit = {
         vt = injector.getInstance(classOf[VirtualTopology])

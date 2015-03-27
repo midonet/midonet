@@ -395,7 +395,7 @@ trait TopologyBuilder {
         builder
     }
 
-    protected def createChain(id: UUID,
+    protected def createChain(id: UUID = UUID.randomUUID,
                               name: Option[String] = None,
                               ruleIds: Set[UUID] = Set.empty): Chain = {
         val builder = Chain.newBuilder
@@ -534,6 +534,11 @@ object TopologyBuilder {
             port.toBuilder.clearPortMac().build()
     }
 
+    class RichChain(chain: Chain) {
+        def setName(name: String): Chain =
+            chain.toBuilder.setName(name).build()
+    }
+
     class RichPortGroup(portGroup: PortGroup) {
         def setName(name: String): PortGroup =
             portGroup.toBuilder.setName(name).build()
@@ -550,6 +555,8 @@ object TopologyBuilder {
     def randomIPv4Subnet = new IPv4Subnet(random.nextInt(), random.nextInt(32))
 
     implicit def asRichPort(port: Port): RichPort = new RichPort(port)
+
+    implicit def asRichChain(chain: Chain): RichChain = new RichChain(chain)
 
     implicit def asRichPortGroup(portGroup: PortGroup): RichPortGroup =
         new RichPortGroup(portGroup)
