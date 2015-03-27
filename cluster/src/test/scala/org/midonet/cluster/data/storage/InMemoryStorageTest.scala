@@ -933,6 +933,17 @@ class InMemoryStorageTest extends FeatureSpec with BeforeAndAfter
                 owner.toString)
         }
 
+        scenario("Test update exclusive new owner") {
+            val state = new ExclusiveState
+            storage.create(state)
+            await(storage.exists(classOf[ExclusiveState], state.id)) shouldBe true
+
+            val owner = UUID.randomUUID
+            storage.update(state, owner, null)
+            await(storage.getOwners(classOf[ExclusiveState], state.id)) shouldBe
+                Set(owner.toString)
+        }
+
         scenario("Test update exclusive same owner") {
             val state = new ExclusiveState
             val owner = UUID.randomUUID
@@ -962,6 +973,22 @@ class InMemoryStorageTest extends FeatureSpec with BeforeAndAfter
             e.newOwner shouldBe newOwner.toString
         }
 
+        scenario("Test delete exclusive no owner") {
+            val state = new ExclusiveState
+            storage.create(state)
+            await(storage.exists(classOf[ExclusiveState],
+                                 state.id)) shouldBe true
+
+            val owner = UUID.randomUUID
+            val e = intercept[OwnershipConflictException] {
+                storage.delete(classOf[ExclusiveState], state.id, owner)
+            }
+            e.clazz shouldBe classOf[ExclusiveState].getSimpleName
+            e.id shouldBe state.id.toString
+            e.currentOwner shouldBe Set()
+            e.newOwner shouldBe owner.toString
+        }
+
         scenario("Test delete exclusive same owner") {
             val state = new ExclusiveState
             val owner = UUID.randomUUID
@@ -985,6 +1012,18 @@ class InMemoryStorageTest extends FeatureSpec with BeforeAndAfter
             e.id shouldBe state.id.toString
             e.currentOwner shouldBe Set(owner.toString)
             e.newOwner shouldBe otherOwner.toString
+        }
+
+        scenario("Test update owner exclusive new owner") {
+            val state = new ExclusiveState
+            storage.create(state)
+            await(storage.exists(classOf[ExclusiveState],
+                                 state.id)) shouldBe true
+
+            val owner = UUID.randomUUID
+            storage.updateOwner(classOf[ExclusiveState], state.id, owner, true)
+            await(storage.getOwners(classOf[ExclusiveState], state.id)) shouldBe
+                Set(owner.toString)
         }
 
         scenario("Test update owner exclusive same owner with throw") {
@@ -1218,6 +1257,22 @@ class InMemoryStorageTest extends FeatureSpec with BeforeAndAfter
                 owner1.toString, owner2.toString)
         }
 
+        scenario("Test delete owner exclusive no owner") {
+            val state = new ExclusiveState
+            storage.create(state)
+            await(storage.exists(classOf[ExclusiveState],
+                                 state.id)) shouldBe true
+
+            val owner = UUID.randomUUID
+            val e = intercept[OwnershipConflictException] {
+                storage.deleteOwner(classOf[ExclusiveState], state.id, owner)
+            }
+            e.clazz shouldBe classOf[ExclusiveState].getSimpleName
+            e.id shouldBe state.id.toString
+            e.currentOwner shouldBe Set()
+            e.newOwner shouldBe owner.toString
+        }
+
         scenario("Test delete owner exclusive same owner") {
             val state = new ExclusiveState
             val owner = UUID.randomUUID
@@ -1311,11 +1366,15 @@ class InMemoryStorageTest extends FeatureSpec with BeforeAndAfter
                 owner1.toString, owner2.toString)
         }
 
+        /* Tests that we can create an exclusive-ownership object without
+         * specifying an owner. */
         scenario("Test regular create on exclusive ownership type") {
             val state = new ExclusiveState
-            intercept[UnsupportedOperationException] {
-                storage.create(state)
-            }
+            storage.create(state)
+            await(storage.exists(classOf[ExclusiveState],
+                                 state.id)) shouldBe true
+            await(storage.getOwners(classOf[ExclusiveState],
+                                    state.id)) shouldBe empty
         }
 
         scenario("Test regular create on shared ownership type") {
@@ -1325,14 +1384,15 @@ class InMemoryStorageTest extends FeatureSpec with BeforeAndAfter
             await(storage.getOwners(classOf[SharedState], state.id)) shouldBe empty
         }
 
+        /* Tests that we can perform an owner-less/agnostic update on an
+         * exclusive -ownership object. */
         scenario("Test regular update on exclusive ownership type") {
             val state = new ExclusiveState
             val owner = UUID.randomUUID
             storage.create(state, owner)
             await(storage.exists(classOf[ExclusiveState], state.id)) shouldBe true
-            intercept[UnsupportedOperationException] {
-                storage.update(state)
-            }
+
+            storage.update(state)
         }
 
         scenario("Test regular update on shared ownership type") {

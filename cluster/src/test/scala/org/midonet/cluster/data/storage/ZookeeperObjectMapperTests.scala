@@ -555,6 +555,23 @@ class ZookeeperObjectMapperTests extends Suite
         stat.getVersion shouldBe 0
     }
 
+    /**
+     * Tests that we can update assign an owner to an exclusive-ownership object
+     * that has been created without an owner.
+     */
+    def testUpdateExclusiveOwnerNewOwner(): Unit = {
+        val state = new ExclusiveState
+        zom.create(state)
+
+        val owner = UUID.randomUUID
+        zom.update(state, owner, null)
+        val path = zom.getOwnerPath(classOf[ExclusiveState], state.id, owner)
+        val stat = new Stat
+        curator.getData.storingStatIn(stat).forPath(path)
+        stat.getEphemeralOwner should not be 0L
+        stat.getVersion shouldBe 0
+    }
+
     def testUpdateExclusiveSameOwner(): Unit = {
         val state = new ExclusiveState
         val owner = UUID.randomUUID
@@ -594,6 +611,20 @@ class ZookeeperObjectMapperTests extends Suite
         e.newOwner shouldBe newOwner.toString
     }
 
+    /**
+     * Tests that we can NOT delete an owner-less exclusive-ownership object
+     * with a Delete with an owner specified.
+     */
+    def testDeleteExclusiveNoOwner(): Unit = {
+        val state = new ExclusiveState
+        zom.create(state)
+        await(zom.exists(classOf[ExclusiveState], state.id)) shouldBe true
+
+        val e = intercept[OwnershipConflictException] {
+            zom.delete(classOf[ExclusiveState], state.id, UUID.randomUUID)
+        }
+    }
+
     def testDeleteExclusiveSameOwner(): Unit = {
         val state = new ExclusiveState
         val owner = UUID.randomUUID
@@ -617,6 +648,24 @@ class ZookeeperObjectMapperTests extends Suite
         e.id shouldBe state.id.toString
         e.currentOwner shouldBe Set(owner.toString)
         e.newOwner shouldBe otherOwner.toString
+    }
+
+    /**
+     * Tests that we can update and assign an owner to an exclusive-ownership
+     * object that has been created without an owner.
+     */
+    def testUpdateOwnerExclusiveNewOwner(): Unit = {
+        val state = new ExclusiveState
+        zom.create(state)
+
+        val owner = UUID.randomUUID
+        zom.updateOwner(classOf[ExclusiveState], state.id, owner, true)
+
+        val path = zom.getOwnerPath(classOf[ExclusiveState], state.id, owner)
+        val stat = new Stat
+        curator.getData.storingStatIn(stat).forPath(path)
+        stat.getEphemeralOwner should not be 0L
+        stat.getVersion shouldBe 0
     }
 
     def testUpdateOwnerExclusiveSameOwnerThrowIfExists(): Unit = {
@@ -912,6 +961,20 @@ class ZookeeperObjectMapperTests extends Suite
             owner1.toString, owner2.toString)
     }
 
+    /**
+     * Tests that we can NOT delete an owner from an owner-less exclusive
+     * -ownership object.
+     */
+    def testDeleteOwnerExclusiveNoOwner(): Unit = {
+        val state = new ExclusiveState
+        zom.create(state)
+        await(zom.exists(classOf[ExclusiveState], state.id)) shouldBe true
+
+        val e = intercept[OwnershipConflictException] {
+            zom.deleteOwner(classOf[ExclusiveState], state.id, UUID.randomUUID)
+        }
+    }
+
     def testDeleteOwnerExclusiveSameOwner(): Unit = {
         val state = new ExclusiveState
         val owner = UUID.randomUUID
@@ -1005,11 +1068,15 @@ class ZookeeperObjectMapperTests extends Suite
             owner1.toString, owner2.toString)
     }
 
+    /**
+     * Tests that we can create an exclusive-ownership object without
+     * specifying an owner.
+     */
     def testRegularCreateOnExclusiveOwnershipType(): Unit = {
         val state = new ExclusiveState
-        intercept[UnsupportedOperationException] {
-            zom.create(state)
-        }
+        zom.create(state)
+        await(zom.exists(classOf[ExclusiveState], state.id)) shouldBe true
+        await(zom.getOwners(classOf[ExclusiveState], state.id)) shouldBe empty
     }
 
     def testRegularCreateOnSharedOwnershipType(): Unit = {
@@ -1019,14 +1086,22 @@ class ZookeeperObjectMapperTests extends Suite
         await(zom.getOwners(classOf[SharedState], state.id)) shouldBe empty
     }
 
+    /**
+     * Tests that we can perform an owner-less/agnostic update on an exclusive
+     * -ownership object.
+     */
     def testRegularUpdateOnExclusiveOwnershipType(): Unit = {
         val state = new ExclusiveState
         val owner = UUID.randomUUID
         zom.create(state, owner)
         await(zom.exists(classOf[ExclusiveState], state.id)) shouldBe true
-        intercept[UnsupportedOperationException] {
-            zom.update(state)
-        }
+
+        zom.update(state)
+        val path = zom.getOwnerPath(classOf[ExclusiveState], state.id, owner)
+        val stat = new Stat
+        curator.getData.storingStatIn(stat).forPath(path)
+        stat.getEphemeralOwner should not be 0L
+        stat.getVersion shouldBe 0
     }
 
     def testRegularUpdateOnSharedOwnershipType(): Unit = {
@@ -1041,6 +1116,14 @@ class ZookeeperObjectMapperTests extends Suite
         await(zom.get(classOf[SharedState], state.id)).value shouldBe 1
         await(zom.getOwners(classOf[SharedState], state.id)) shouldBe Set(
             owner.toString)
+    }
+
+    def testRegularDeleteOnExclusiveOwnershipTypeNoOwner(): Unit = {
+        val state = new ExclusiveState
+        zom.create(state)
+        await(zom.exists(classOf[ExclusiveState], state.id)) shouldBe true
+        zom.delete(classOf[ExclusiveState], state.id)
+        await(zom.exists(classOf[ExclusiveState], state.id)) shouldBe false
     }
 
     def testRegularDeleteOnExclusiveOwnershipType(): Unit = {
