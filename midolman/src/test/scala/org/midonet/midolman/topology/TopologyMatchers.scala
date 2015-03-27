@@ -18,16 +18,16 @@ package org.midonet.midolman.topology
 import scala.collection.JavaConverters._
 
 import com.google.protobuf.MessageOrBuilder
+
 import org.scalatest.Matchers
 
-import org.midonet.cluster.models.Topology.{IpAddrGroup => TopologyIPAddrGroup, LoadBalancer => TopologyLB, Network => TopologyBridge}
-import org.midonet.cluster.models.Topology.{Port => TopologyPort, PortGroup => TopologyPortGroup, Rule => TopologyRule, VIP => TopologyVIP}
+import org.midonet.cluster.models.Topology.{Chain => TopologyChain, IpAddrGroup => TopologyIPAddrGroup, LoadBalancer => TopologyLB, Network => TopologyBridge, Port => TopologyPort, PortGroup => TopologyPortGroup, Rule => TopologyRule, VIP => TopologyVIP}
 import org.midonet.cluster.util.IPAddressUtil._
 import org.midonet.cluster.util.IPSubnetUtil._
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.cluster.util.{IPSubnetUtil, RangeUtil}
 import org.midonet.midolman.rules.{Condition, ForwardNatRule, JumpRule, NatRule, NatTarget, Rule}
-import org.midonet.midolman.simulation.{Bridge, IPAddrGroup, LoadBalancer, PortGroup, VIP}
+import org.midonet.midolman.simulation.{Bridge, Chain, IPAddrGroup, LoadBalancer, PortGroup, VIP}
 import org.midonet.midolman.topology.TopologyMatchers.{BridgeMatcher, BridgePortMatcher, RouterPortMatcher, _}
 import org.midonet.midolman.topology.devices.{BridgePort, Port, RouterPort, VxLanPort}
 import org.midonet.packets.MAC
@@ -102,6 +102,16 @@ object TopologyMatchers {
                 Some(b.getOutboundFilterId.asJava) else None)
             bridge.vxlanPortIds should contain theSameElementsAs
                 b.getVxlanPortIdsList.asScala.map(_.asJava)
+        }
+    }
+
+    class ChainMatcher(chain: Chain) extends Matchers
+                                     with DeviceMatcher[TopologyChain] {
+        override def shouldBeDeviceOf(c: TopologyChain): Unit = {
+            chain.id shouldBe c.getId.asJava
+            chain.name shouldBe c.getName
+            chain.getRules.asScala.map(_.id) should contain theSameElementsAs c
+                .getRuleIdsList.asScala.map(_.asJava)
         }
     }
 
@@ -274,6 +284,9 @@ trait TopologyMatchers {
 
     implicit def asMatcher(bridge: Bridge): BridgeMatcher =
         new BridgeMatcher(bridge)
+
+    implicit def asMatcher(chain: Chain): ChainMatcher =
+        new ChainMatcher(chain)
 
     implicit def asMatcher(rule: Rule): RuleMatcher =
         new RuleMatcher(rule)
