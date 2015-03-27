@@ -1322,6 +1322,10 @@ class Route(ObjectType):
                                  getter = 'get_weight',
                                  setter = 'weight',
                                  optional = True))
+        self.put_attr(BooleanAttr(name = 'learned',
+                                  getter = 'is_learned',
+                                  setter = 'learned',
+                                  optional = True))
 
     def type_name(self):
         return "route"
@@ -1516,6 +1520,10 @@ class Bgp(ObjectType):
                                  value_type = IPv4Address(),
                                  getter = 'get_peer_addr',
                                  setter = 'peer_addr'))
+        self.put_attr(SingleAttr(name = 'status',
+                                 value_type = StringType(),
+                                 getter = 'get_status',
+                                 show = False))
         self.put_attr(Collection(name = 'route',
                                  element_type = AdRoute,
                                  list_method = 'get_ad_routes',

@@ -22,6 +22,7 @@ import java.util.UUID;
 
 import org.midonet.midolman.state.DirectoryCallback;
 import org.midonet.midolman.state.DirectoryCallbackFactory;
+import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.util.functors.Functor;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
@@ -80,12 +81,12 @@ public class BgpZkManager extends AbstractZkManager<UUID, BGP.Data> {
         return ops;
     }
 
-    public List<Op> prepareDelete(UUID id) throws StateAccessException,
+    private List<Op> prepareDelete(UUID id) throws StateAccessException,
             SerializationException {
         return prepareDelete(id, get(id));
     }
 
-    public List<Op> prepareDelete(UUID id, BGP.Data config)
+    private List<Op> prepareDelete(UUID id, BGP.Data config)
             throws StateAccessException, SerializationException {
         List<Op> ops = new ArrayList<>();
 
@@ -171,5 +172,30 @@ public class BgpZkManager extends AbstractZkManager<UUID, BGP.Data> {
     public void delete(UUID id) throws StateAccessException,
             SerializationException {
         zk.multi(prepareDelete(id));
+        deleteStatus(id);
     }
+
+    private void deleteStatus(UUID id) throws StateAccessException {
+        String path = paths.getBgpStatusPath() + "/" + id.toString();
+        try {
+            if (zk.exists(path))
+                zk.delete(path);
+        } catch (NoStatePathException e) {} // ignored
+    }
+
+    public void setStatus(UUID id, String status) throws StateAccessException {
+        String path = paths.getBgpStatusPath() + "/" + id.toString();
+        log.debug("Setting BGP session status at {} to {}", path, status);
+        zk.ensureEphemeral(path, status.getBytes());
+    }
+
+    public String getStatus(UUID id) throws StateAccessException {
+        String path = paths.getBgpStatusPath() + "/" + id.toString();
+        try {
+            return new String(zk.get(path));
+        } catch (NoStatePathException e) {
+            return "DOWN";
+        }
+    }
+
 }

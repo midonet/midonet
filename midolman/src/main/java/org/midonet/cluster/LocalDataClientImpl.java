@@ -283,9 +283,15 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
+    public void bgpSetStatus(@Nonnull UUID id, @Nonnull String status)
+            throws StateAccessException, SerializationException {
+        bgpZkManager.setStatus(id, status);
+    }
+
+    @Override
     public @CheckForNull BGP bgpGet(@Nonnull UUID id)
             throws StateAccessException, SerializationException {
-        return new BGP(id, bgpZkManager.get(id));
+        return new BGP(id, bgpZkManager.get(id)).setStatus(bgpZkManager.getStatus(id));
     }
 
     @Override

@@ -31,6 +31,9 @@ class Bgp(resource_base.ResourceBase):
     def get_id(self):
         return self.dto['id']
 
+    def get_status(self):
+        return self.dto['status']
+
     def get_local_as(self):
         return self.dto['localAS']
 
