@@ -105,6 +105,22 @@ public class ZkPathManager {
         return basePath().append("/gre");
     }
 
+    public String getDeviceStatusPath() {
+        return buildDeviceStatusPath().toString();
+    }
+
+    protected StringBuilder buildDeviceStatusPath() {
+        return basePath().append("/device_status");
+    }
+
+    public String getBgpStatusPath() {
+        return buildBgpStatusPath().toString();
+    }
+
+    protected StringBuilder buildBgpStatusPath() {
+        return buildDeviceStatusPath().append("/bgp");
+    }
+
     /**
      * Get tunnel (GRE) key path.
      *
