@@ -132,6 +132,12 @@ public class JerseyGuiceTestServletContextListener extends
     }
 
     @Override
+    protected void startConfApi() { }
+
+    @Override
+    protected void stopConfApi() { }
+
+    @Override
     protected Injector getInjector() {
         log.debug("getInjector: entered.");
 

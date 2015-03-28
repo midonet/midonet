@@ -60,6 +60,8 @@ dependencies {
             libraries.curator_framework,
             libraries.guava,
             libraries.guice,
+            libraries.jetty_server,
+            libraries.jetty_servlet,
             libraries.mockit,
             libraries.netty,
             libraries.mysql_jdbc,
@@ -71,6 +73,7 @@ dependencies {
 
     testCompile libraries.curator_test,
                 libraries.hamcrest_lib,
+                libraries.httpclient,
                 libraries.mockit,
                 libraries.scalatest,
                 libraries.sqlite

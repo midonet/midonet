@@ -127,13 +127,19 @@ object MidoNodeConfigurator {
         } reduce((a, b) => a.withFallback(b)) withFallback(ConfigFactory.systemProperties) withFallback(defaults) resolve()
     }
 
-    private def zkBootstrap(inifile: Option[String] = None): CuratorFramework = {
-        val cfg = bootstrapConfig(inifile)
+    def zkBootstrap(inifile: Option[String] = None): CuratorFramework =
+        zkBootstrap(bootstrapConfig(inifile))
 
+    def zkBootstrap(cfg: Config): CuratorFramework = {
         val serverString = cfg.getString("zookeeper.zookeeper_hosts")
-        val rootKey = cfg.getString("zookeeper.root_key")
 
-        val zk = CuratorFrameworkFactory.newClient(serverString, new RetryOneTime(1000))
+        val namespace = cfg.getString("zookeeper.root_key").stripPrefix("/")
+        val zk = CuratorFrameworkFactory.builder().
+                    connectString(serverString).
+                    connectionTimeoutMs(30*1000).
+                    retryPolicy(new RetryOneTime(1000)).
+                    namespace(namespace).
+                    build()
         zk.start()
         zk
     }
@@ -144,6 +150,9 @@ object MidoNodeConfigurator {
     def forAgents(inifile: String): MidoNodeConfigurator =
         forAgents(zkBootstrap(Option(inifile)), Option(inifile))
 
+    def forAgents(bootstrapConf: Config): MidoNodeConfigurator =
+        forAgents(zkBootstrap(bootstrapConf), None)
+
     def forAgents(): MidoNodeConfigurator = forAgents(zkBootstrap(), None)
 
     def forBrains(zk: CuratorFramework, inifile: Option[String] = None): MidoNodeConfigurator =
@@ -151,6 +160,9 @@ object MidoNodeConfigurator {
 
     def forBrains(inifile: String): MidoNodeConfigurator =
         forBrains(zkBootstrap(Option(inifile)), Option(inifile))
+
+    def forBrains(bootstrapConf: Config): MidoNodeConfigurator =
+        forBrains(zkBootstrap(bootstrapConf), None)
 
     def forBrains(): MidoNodeConfigurator = forBrains(zkBootstrap(), None)
 }
@@ -192,13 +204,14 @@ class MidoTestConfigurator(val nodeType: String, overrides: Config = ConfigFacto
 class MidoNodeConfigurator(zk: CuratorFramework,
                            val nodeType: String, inifile: Option[String] = None) {
 
-    private val _templateMappings = new ZookeeperConf(zk, s"/config/templates/$nodeType-mappings")
+    private val _templateMappings = new ZookeeperConf(zk, s"/config/template-mappings/$nodeType")
 
     {
         val zkClient = zk.getZookeeperClient
         zk.newNamespaceAwareEnsurePath(s"/config/$nodeType").ensure(zkClient)
         zk.newNamespaceAwareEnsurePath(s"/config/templates/$nodeType").ensure(zkClient)
         zk.newNamespaceAwareEnsurePath(s"/config/schemas/$nodeType").ensure(zkClient)
+        zk.newNamespaceAwareEnsurePath(s"/config/template-mappings").ensure(zkClient)
     }
 
     /**
@@ -264,6 +277,15 @@ class MidoNodeConfigurator(zk: CuratorFramework,
     def assignTemplate(node: UUID, template: String): Unit = {
         val value = ConfigValueFactory.fromAnyRef(template)
         _templateMappings.set(node.toString, value)
+    }
+
+    def listTemplates: Seq[String] = zk.getChildren.forPath(s"/config/templates/$nodeType")
+
+    /**
+     * Updates all the template assignments
+     */
+    def updateTemplateAssignments(mappings: Config): Unit = {
+        _templateMappings.clearAndSet(mappings)
     }
 
     /**

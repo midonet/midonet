@@ -17,10 +17,11 @@ package org.midonet.api.servlet;
 
 import javax.servlet.ServletContext;
 
+import com.typesafe.config.Config;
+
 import org.midonet.api.rest_api.RestApiModule;
 import org.midonet.api.vtep.VtepMockableDataClientFactory;
 import org.midonet.brain.southbound.vtep.VtepDataClientFactory;
-import org.midonet.cluster.storage.MidonetBackendTestModule;
 
 /**
  * Jersey servlet module for MidoNet REST API application.
@@ -45,5 +46,9 @@ public class RestApiTestJerseyServletModule extends RestApiJerseyServletModule {
                     .asEagerSingleton();
             }
         });
+    }
+
+    @Override
+    protected void installConfigApi(Config zkConf) {
     }
 }

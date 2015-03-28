@@ -52,9 +52,6 @@ public class MidolmanService extends AbstractService {
     @Inject
     MetricRegistry metrics;
 
-    @Inject
-    DashboardService dashboardService;
-
     @Inject(optional = true)
     HostService hostService;
 
@@ -126,7 +123,6 @@ public class MidolmanService extends AbstractService {
         services.add(selectLoopService);
         if (hostService != null)
             services.add(hostService);
-        services.add(dashboardService);
         services.add(actorsService);
         return services;
     }

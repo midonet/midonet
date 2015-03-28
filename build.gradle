@@ -53,6 +53,7 @@ project.ext {
             exclude group: 'org.hamcrest', module: 'hamcrest-integration'},
 
         scallop: "org.rogach:scallop_2.11:0.9.5",
+        httpclient: "org.apache.httpcomponents:fluent-hc:4.4",
 
         infinispan: "org.infinispan:infinispan-commons:7.0.2.Final",
         netty: "io.netty:netty-all:4.0.24.Final",
@@ -117,11 +118,10 @@ project.ext {
         validation: "javax.validation:validation-api:1.0.0.GA",
         servlet: "javax.servlet:servlet-api:2.5",
 
-        jetty: dependencies.create("org.mortbay.jetty:jetty:6.1.26") {
-            exclude group: 'org.mortbay.jetty', module: 'servlet-api'},
         jetty_server: dependencies.create("org.eclipse.jetty:jetty-server:${versions.jetty}") {
             exclude group: "org.eclipse.jetty:orbit:javax.servlet"
         },
+        jetty_servlet: "org.eclipse.jetty:jetty-servlet:${versions.jetty}",
         jetty_websocket: "org.eclipse.jetty:jetty-websocket:${versions.jetty}",
         jetty_deploy: "org.eclipse.jetty:jetty-deploy:${versions.jetty}",
         jminix: "org.jminix:jminix:1.1.0",
