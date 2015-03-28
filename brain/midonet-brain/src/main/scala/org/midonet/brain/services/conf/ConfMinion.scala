@@ -18,7 +18,6 @@ package org.midonet.brain.services.conf
 
 import java.util.UUID
 import javax.servlet.http.{HttpServlet, HttpServletResponse, HttpServletRequest}
-import scala.collection.JavaConverters._
 
 import com.google.inject.Inject
 import com.typesafe.config.{ConfigFactory, Config, ConfigRenderOptions}

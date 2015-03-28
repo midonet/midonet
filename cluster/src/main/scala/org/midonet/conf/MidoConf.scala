@@ -39,6 +39,13 @@ trait MidoConf {
     def get: Config
 }
 
+object MidoNodeType {
+    val AGENT = "agent"
+    val BRAIN = "brain"
+
+    val all = List(AGENT, BRAIN)
+}
+
 /**
  * A writable configuration source. All write operations will commit the
  * requested changes to the underlying configuration source before
@@ -98,7 +105,7 @@ trait WritableConf extends MidoConf {
 
 object MidoNodeConfigurator {
     def bootstrapConfig(inifile: Option[String] = None): Config = {
-        val MIDONET_CONF_LOCATIONS = List("~/.midonetrc", "/etc/midonet.conf",
+        val MIDONET_CONF_LOCATIONS = List("~/.midonetrc", "/etc/midonet/midonet.conf",
             "/etc/midolman/midolman.conf")
 
         val DEFAULTS_STR =
@@ -145,7 +152,7 @@ object MidoNodeConfigurator {
     }
 
     def forAgents(zk: CuratorFramework, inifile: Option[String] = None): MidoNodeConfigurator =
-            new MidoNodeConfigurator(zk, "agent", inifile)
+            new MidoNodeConfigurator(zk, MidoNodeType.AGENT, inifile)
 
     def forAgents(inifile: String): MidoNodeConfigurator =
         forAgents(zkBootstrap(Option(inifile)), Option(inifile))
@@ -156,7 +163,7 @@ object MidoNodeConfigurator {
     def forAgents(): MidoNodeConfigurator = forAgents(zkBootstrap(), None)
 
     def forBrains(zk: CuratorFramework, inifile: Option[String] = None): MidoNodeConfigurator =
-        new MidoNodeConfigurator(zk, "brain", inifile)
+        new MidoNodeConfigurator(zk, MidoNodeType.BRAIN, inifile)
 
     def forBrains(inifile: String): MidoNodeConfigurator =
         forBrains(zkBootstrap(Option(inifile)), Option(inifile))
@@ -170,21 +177,21 @@ object MidoNodeConfigurator {
 object MidoTestConfigurator {
     def bootstrap = MidoNodeConfigurator.bootstrapConfig(None)
 
-    def forAgents = new MidoTestConfigurator("agent").testConfig
+    def forAgents = new MidoTestConfigurator(MidoNodeType.AGENT).testConfig
 
     def forAgents(overrides: Config) = new MidoTestConfigurator(
-            "agent", overrides).testConfig
+            MidoNodeType.AGENT, overrides).testConfig
 
     def forAgents(overrides: String) = new MidoTestConfigurator(
-            "agent", ConfigFactory.parseString(overrides)).testConfig
+            MidoNodeType.AGENT, ConfigFactory.parseString(overrides)).testConfig
 
-    def forBrains = new MidoTestConfigurator("brain").testConfig
+    def forBrains = new MidoTestConfigurator(MidoNodeType.BRAIN).testConfig
 
     def forBrains(overrides: Config) = new MidoTestConfigurator(
-        "brain", overrides).testConfig
+        MidoNodeType.BRAIN, overrides).testConfig
 
     def forBrains(overrides: String) = new MidoTestConfigurator(
-        "brain", ConfigFactory.parseString(overrides)).testConfig
+        MidoNodeType.BRAIN, ConfigFactory.parseString(overrides)).testConfig
 }
 
 class MidoTestConfigurator(val nodeType: String, overrides: Config = ConfigFactory.empty) {
