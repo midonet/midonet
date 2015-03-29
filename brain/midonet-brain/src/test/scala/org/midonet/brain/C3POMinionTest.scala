@@ -115,7 +115,7 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
           |zookeeper.use_new_stack : true
         """.stripMargin)
 
-    private val c3poCfg = new C3POConfig(C3PO_CFG_OBJECT)
+    private val brainCfg = new BrainConfig(C3PO_CFG_OBJECT)
 
     // Data sources
     private val zk: TestingServer = new TestingServer(ZK_PORT)
@@ -165,7 +165,7 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
         }
     }
 
-    protected def getLastProcessedIdFromTable(): Option[Int] = {
+    protected def getLastProcessedIdFromTable: Option[Int] = {
         var c: Connection = null
         var lastProcessed: Option[Int] = None
         try {
@@ -251,7 +251,7 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
             curator.blockUntilConnected()
 
             val nodeCtx = new Context(UUID.randomUUID())
-            c3po = new C3POMinion(nodeCtx, c3poCfg, dataSrc, backend, curator)
+            c3po = new C3POMinion(nodeCtx, brainCfg, dataSrc, backend, curator)
             c3po.startAsync()
             c3po.awaitRunning(2, TimeUnit.SECONDS)
         } catch {

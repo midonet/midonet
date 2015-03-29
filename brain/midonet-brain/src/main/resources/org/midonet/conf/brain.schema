@@ -69,8 +69,8 @@ neutron_importer {
     connection_string : " "
     connection_string_description : """ """
 
-    jdbc_driver : " "
-    jdbc_driver_description : """ """
+    jdbc_driver_class : " "
+    jdbc_driver_class_description : """ """
 
     user : " "
     user_description : """ """
