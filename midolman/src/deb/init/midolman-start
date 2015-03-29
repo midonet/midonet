@@ -47,7 +47,7 @@ test -r $MIDO_ETC/midolman-env.sh && . /etc/midolman/midolman-env.sh
 
 set -x
 
-JAVA_OPTS="$JVM_OPTS -Dmidolman.log.dir=$MIDO_LOG_DIR -Dconfig.file=$MIDO_AKKA_CFG -Dlogback.configurationFile=$MIDO_CFG/$MIDO_LOG_BACK"
+JAVA_OPTS="$JVM_OPTS -Dmidolman.log.dir=$MIDO_LOG_DIR -Dlogback.configurationFile=$MIDO_CFG/$MIDO_LOG_BACK"
 if [ "xyes" = "x$DEBUG" ] ; then
     JAVA_OPTS="$JAVA_OPTS -Xdebug -Xrunjdwp:transport=dt_socket,address=$MIDO_DEBUG_PORT,server=y,suspend=y"
 fi

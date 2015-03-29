@@ -295,7 +295,6 @@ install_midolman() {
     popd
 
     install_config_file midolman/logback.xml /etc/midolman/
-    install_config_file midolman/midolman-akka.conf /etc/midolman/
     install_config_file midolman/midolman.conf /etc/midolman/
     install_config_file midolman/midolman-env.sh /etc/midolman/
 
@@ -583,7 +582,6 @@ make_report() {
     mkdir -p $REPORT_DIR/mm-conf
     cp /etc/midolman/midolman.conf $REPORT_DIR/mm-conf/
     cp /etc/midolman/midolman-env.sh $REPORT_DIR/mm-conf/
-    cp /etc/midolman/midolman-akka.conf $REPORT_DIR/mm-conf/
     cp /var/log/midolman/midolman.log $REPORT_DIR/
     chmod -R go+r $REPORT_DIR
 }
