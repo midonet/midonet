@@ -44,6 +44,7 @@ abstract class MidonetBackend extends AbstractService {
              classOf[Dhcp],
              classOf[FloatingIp],
              classOf[IpAddrGroup],
+             classOf[LoadBalancer],
              classOf[Network],
              classOf[NeutronConfig],
              classOf[NeutronHealthMonitor],
@@ -63,7 +64,6 @@ abstract class MidonetBackend extends AbstractService {
              classOf[Rule],
              classOf[TunnelZone],
              classOf[SecurityGroup],
-             classOf[LoadBalancer],
              classOf[VIP],
              classOf[Vtep],
              classOf[VtepBinding]
@@ -95,10 +95,7 @@ abstract class MidonetBackend extends AbstractService {
 }
 
 /** Class responsible for providing services to access to the new Storage
-  * services
-  *
-  * TODO: remove ZookeeperConfig in favour of MidonetBackendConfig
-  */
+  * services. */
 class MidonetBackendService @Inject() (cfg: MidonetBackendConfig,
                                        curator: CuratorFramework)
     extends MidonetBackend {
@@ -112,7 +109,9 @@ class MidonetBackendService @Inject() (cfg: MidonetBackendConfig,
 
     protected override def doStart(): Unit = {
         try {
-            curator.start()
+            if (cfg.curatorEnabled || cfg.useNewStack) {
+                curator.start()
+            }
             if (cfg.useNewStack) {
                 setupBindings()
             }

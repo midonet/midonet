@@ -34,17 +34,17 @@ object TopologyApiServiceApp extends App {
 
     private val cfgFile = args(0)
     private val nodeContext = new ClusterNode.Context(HostIdGenerator.getHostId)
+    private val config = BrainConfig(cfgFile)
 
     private val topologyApiServiceModule = new AbstractModule {
         override def configure(): Unit = {
-            bind(classOf[BrainConfig]).toInstance(BrainConfig(cfgFile))
             bind(classOf[ClusterNode.Context]).toInstance(nodeContext)
             bind(classOf[TopologyApiService]).in(classOf[Singleton])
         }
     }
 
     protected[brain] val injector = Guice.createInjector(
-        new MidonetBackendModule(),
+        new MidonetBackendModule(config.backend),
         topologyApiServiceModule
     )
 
