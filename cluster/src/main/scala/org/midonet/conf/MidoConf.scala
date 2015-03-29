@@ -504,7 +504,7 @@ class ZookeeperConf(zk: CuratorFramework, path: String) extends MidoConf with
                                                             setJson(false)
     private val parseOpts = ConfigParseOptions.defaults().
         setAllowMissing(false).
-        setOriginDescription(s"zookeeper:///${zk.getNamespace}$path")
+        setOriginDescription(s"zookeeper://${zk.getNamespace}$path")
 
     private val cache = new ObservableNodeCache(zk, path, emitNoNodeAsEmpty = true)
     cache.connect()

@@ -23,6 +23,7 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{GivenWhenThen, FeatureSpecLike, Matchers}
 import org.scalatest.concurrent.Eventually._
+import org.slf4j.LoggerFactory
 import rx.Observer
 
 import org.midonet.cluster.util.CuratorTestFramework
@@ -36,9 +37,16 @@ class MidoConfTest extends FeatureSpecLike
     val NODE = UUID.randomUUID()
 
     val SCHEMA = ConfigFactory.parseString("""
-          |schemaVersion = 23
-          |which.source = "schema"
+         |schemaVersion = 23
+         |which.source = "schema"
         """.stripMargin)
+    val LOGGER_CONF = ConfigFactory.parseString("""
+         |loggers {
+         |  class.a = "INFO"
+         |  class.b = "INFO"
+         |}
+        """.stripMargin)
+
     val TEMPLATE_A = ConfigFactory.parseString("which.source = \"template a\"")
     val TEMPLATE_B = ConfigFactory.parseString("which.source = \"template b\"")
     val NODE_CONF = ConfigFactory.parseString("which.source = \"node\"")
@@ -48,6 +56,30 @@ class MidoConfTest extends FeatureSpecLike
     override def setup(): Unit = {
         configurator = new MidoNodeConfigurator(curator, UUID.randomUUID().toString)
         configurator.schema.setAsSchema(SCHEMA)
+    }
+
+    scenario("log levels are adjusted") {
+        val watcher = new LoggerLevelWatcher()
+        val conf = configurator.centralPerNodeConfig(NODE)
+        conf.observable.subscribe(watcher)
+        conf.mergeAndSet(LOGGER_CONF)
+
+        val classA = LoggerFactory.getLogger("class.a")
+        val classB = LoggerFactory.getLogger("class.b")
+        val classC = LoggerFactory.getLogger("class.c")
+
+        eventually { classA.isDebugEnabled should be (false) }
+        eventually { classB.isDebugEnabled should be (false) }
+
+        conf.set("loggers.class.a", ConfigValueFactory.fromAnyRef("DEBUG"))
+        eventually { classA.isDebugEnabled should be (true) }
+
+        classC.isTraceEnabled should be (false)
+        conf.set("loggers.root", ConfigValueFactory.fromAnyRef("TRACE"))
+        eventually { classC.isTraceEnabled should be (true) }
+
+        conf.set("loggers.root", ConfigValueFactory.fromAnyRef("DEBUG"))
+        eventually { classC.isTraceEnabled should be (false) }
     }
 
     scenario("zookeeper: begins as an empty source") {
