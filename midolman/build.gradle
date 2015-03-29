@@ -107,6 +107,10 @@ task preparePkg(type: Copy, dependsOn: installApp) {
         exclude "bin"
         into "usr/share/midolman"
     }
+    from("${buildDir}/man/") {
+        include "*.*"
+        into "usr/share/man/man1"
+    }
     from("CHANGE-LOG.txt") {
         into "usr/share/doc/midolman/"
     }
@@ -264,3 +268,26 @@ task runWithSudo(type:Exec, dependsOn: installApp) {
     commandLine += sourceSets.main.runtimeClasspath.collect{ it.toString() }.join(':')
     commandLine += mainClassName
 }
+
+task manpages() {
+    logger.info("Building manual pages")
+    File outputDir = new File("${buildDir}/man")
+    FileTree inputFiles = fileTree(dir: "src/man", include: "*.ronn")
+
+    inputs.files { inputFiles }
+    outputs.files { project.fileTree(dir: outputDir, includes: ['*.gz']) }
+
+    outputDir.mkdirs()
+    inputFiles.each { File file ->
+        String filename = file.getName()
+        String outputFile = filename.replaceAll(/.ronn/, ".gz")
+        logger.info(" ...$filename -> $outputFile")
+        project.exec {
+            println "Building manual page: ${outputFile}"
+            commandLine "bash", "-c"
+            commandLine += "ronn --pipe --roff src/man/${filename} | gzip -c > ${buildDir}/man/${outputFile}"
+            workingDir project.projectDir
+        }
+    }
+}
+preparePkg.dependsOn manpages

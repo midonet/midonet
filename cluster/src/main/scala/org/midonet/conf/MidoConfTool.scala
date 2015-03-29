@@ -290,7 +290,7 @@ abstract class ConfigQuery(name: String) extends Subcommand(name) {
     import ConfCommand._
 
     val renderOpts = ConfigRenderOptions.defaults().setOriginComments(true).
-                                                    setComments(false).
+                                                    setComments(true).
                                                     setJson(false).
                                                     setFormatted(true)
 
