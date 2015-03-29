@@ -94,8 +94,6 @@ abstract class MidonetBackend extends AbstractService {
 
 /** Class responsible for providing services to access to the new Storage
   * services
-  * 
-  * TODO: remove ZookeeperConfig in favour of MidonetBackendConfig
   */
 class MidonetBackendService @Inject() (cfg: MidonetBackendConfig,
                                        curator: CuratorFramework)
@@ -110,7 +108,9 @@ class MidonetBackendService @Inject() (cfg: MidonetBackendConfig,
 
     protected override def doStart(): Unit = {
         try {
-            curator.start()
+            if (cfg.curatorEnabled || cfg.useNewStack) {
+                curator.start()
+            }
             if (cfg.useNewStack) {
                 setupBindings()
             }
