@@ -18,7 +18,7 @@ package org.midonet.conf
 
 import java.util.UUID
 
-import com.typesafe.config.{ConfigException, ConfigValueFactory, Config, ConfigFactory}
+import com.typesafe.config.{ConfigException, Config, ConfigFactory}
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{GivenWhenThen, FeatureSpecLike, Matchers}
@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory
 import rx.Observer
 
 import org.midonet.cluster.util.CuratorTestFramework
+import org.midonet.conf.MidoConf._
 
 @RunWith(classOf[JUnitRunner])
 class MidoConfTest extends FeatureSpecLike
@@ -71,14 +72,14 @@ class MidoConfTest extends FeatureSpecLike
         eventually { classA.isDebugEnabled should be (false) }
         eventually { classB.isDebugEnabled should be (false) }
 
-        conf.set("loggers.class.a", ConfigValueFactory.fromAnyRef("DEBUG"))
+        conf.set("loggers.class.a", "DEBUG")
         eventually { classA.isDebugEnabled should be (true) }
 
         classC.isTraceEnabled should be (false)
-        conf.set("loggers.root", ConfigValueFactory.fromAnyRef("TRACE"))
+        conf.set("loggers.root", "TRACE")
         eventually { classC.isTraceEnabled should be (true) }
 
-        conf.set("loggers.root", ConfigValueFactory.fromAnyRef("DEBUG"))
+        conf.set("loggers.root", "DEBUG")
         eventually { classC.isTraceEnabled should be (false) }
     }
 
@@ -92,7 +93,7 @@ class MidoConfTest extends FeatureSpecLike
         val path = "/testsource-" + UUID.randomUUID()
         val conf = new ZookeeperConf(curator, path)
 
-        conf.set("a.key", ConfigValueFactory.fromAnyRef("a value"))
+        conf.set("a.key", "a value")
         eventually { conf.get.getString("a.key") should be ("a value") }
 
         conf.unset("a.key")
@@ -104,8 +105,8 @@ class MidoConfTest extends FeatureSpecLike
         val path = "/testsource-" + UUID.randomUUID()
         val conf = new ZookeeperConf(curator, path)
 
-        conf.set("a.key", ConfigValueFactory.fromAnyRef("a value"))
-        conf.set("another.key", ConfigValueFactory.fromAnyRef(42))
+        conf.set("a.key", "a value")
+        conf.set("another.key", 42)
         eventually { conf.get.getString("a.key") should be ("a value") }
         eventually { conf.get.getInt("another.key") should be (42) }
 
@@ -118,8 +119,8 @@ class MidoConfTest extends FeatureSpecLike
         val path = "/testsource-" + UUID.randomUUID()
         val conf = new ZookeeperConf(curator, path)
 
-        conf.set("a.key", ConfigValueFactory.fromAnyRef("a value"))
-        conf.set("another.key", ConfigValueFactory.fromAnyRef(42))
+        conf.set("a.key", "a value")
+        conf.set("another.key", 42)
         eventually { conf.get.getString("a.key") should be ("a value") }
         eventually { conf.get.getInt("another.key") should be (42) }
 
@@ -149,16 +150,16 @@ class MidoConfTest extends FeatureSpecLike
         eventually { observer.get should not be (null) }
         observer.get.isEmpty should be (true)
 
-        conf.set(key, ConfigValueFactory.fromAnyRef(1))
+        conf.set(key, 1)
         eventually { observer.get should not be (null) }
         eventually { observer.get.getInt(key) should be (1) }
 
         curator.delete().forPath(path)
         eventually { observer.get.isEmpty should be (true) }
-        conf.set(key, ConfigValueFactory.fromAnyRef(1))
+        conf.set(key, 1)
         eventually { observer.get.getInt(key) should be (1) }
 
-        conf.set(key, ConfigValueFactory.fromAnyRef(2))
+        conf.set(key, 2)
         eventually { observer.get.getInt(key) should be (2) }
     }
 
@@ -208,11 +209,11 @@ class MidoConfTest extends FeatureSpecLike
 
         schema.get.getString("which.source") should be ("schema")
 
-        var newSchema = schema.get.withValue("which.source", ConfigValueFactory.fromAnyRef("new schema"))
+        var newSchema = schema.get.withValue("which.source", "new schema")
         schema.setAsSchema(newSchema) should be (false)
         schema.get.getString("which.source") should be ("schema")
 
-        newSchema = newSchema.withValue("schemaVersion", ConfigValueFactory.fromAnyRef(24))
+        newSchema = newSchema.withValue("schemaVersion", 24)
         configurator.schema.setAsSchema(newSchema) should be (true)
         eventually { schema.get.getString("which.source") should be ("new schema") }
     }

@@ -15,7 +15,7 @@
  */
 package org.midonet.cluster.util
 
-import java.io.IOException
+import java.io.{Closeable, IOException}
 import java.util.concurrent.atomic.AtomicBoolean
 
 import org.apache.curator.framework.CuratorFramework
@@ -60,7 +60,7 @@ import rx.subjects.BehaviorSubject
   */
 class ObservableNodeCache(zk: CuratorFramework,
                           path: String,
-                          emitNoNodeAsEmpty: Boolean = false) {
+                          emitNoNodeAsEmpty: Boolean = false) extends Closeable {
 
     /* Signals when the connection is stablished and the cache primed */
     private val connected = new AtomicBoolean(false)
