@@ -18,6 +18,7 @@ package org.midonet.midolman.guice.config;
 import com.google.inject.PrivateModule;
 import com.typesafe.config.Config;
 
+import com.typesafe.config.ConfigFactory;
 import org.midonet.conf.MidoNodeConfigurator;
 import org.midonet.conf.HostIdGenerator;
 import org.midonet.midolman.config.MidolmanConfig;
@@ -28,14 +29,16 @@ public class MidolmanConfigModule extends PrivateModule {
 
     public MidolmanConfigModule(MidoNodeConfigurator c) {
         try {
-            this.config = new MidolmanConfig(c.runtimeConfig(HostIdGenerator.getHostId()));
+            this.config = new MidolmanConfig(
+                c.runtimeConfig(HostIdGenerator.getHostId()), c.schema().get());
         } catch (HostIdGenerator.PropertiesFileNotWritableException e) {
             throw new RuntimeException(e);
         }
     }
 
+    // Only used in tests
     public MidolmanConfigModule(Config configuration) {
-        this.config = new MidolmanConfig(configuration);
+        this.config = new MidolmanConfig(configuration, ConfigFactory.empty());
     }
 
     @Override

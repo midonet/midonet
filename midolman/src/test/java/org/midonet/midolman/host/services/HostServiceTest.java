@@ -19,6 +19,7 @@ import java.net.InetAddress;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
+import com.typesafe.config.ConfigFactory;
 import scala.concurrent.Await;
 import scala.concurrent.Future;
 import scala.concurrent.duration.Duration;
@@ -84,7 +85,7 @@ public class HostServiceTest {
             bind(PathBuilder.class).toInstance(new PathBuilder(config.getString("zookeeper.root_key")));
             bind(InterfaceDataUpdater.class).to(DefaultInterfaceDataUpdater.class);
             bind(InterfaceScanner.class).to(MockInterfaceScanner.class);
-            bind(MidolmanConfig.class).toInstance(new MidolmanConfig(config));
+            bind(MidolmanConfig.class).toInstance(new MidolmanConfig(config, ConfigFactory.empty()));
             bind(MidonetBackend.class).to(MidonetTestBackend.class).asEagerSingleton();
             bind(MidonetBackendConfig.class).toInstance(
                     new MidonetBackendConfig(config.withFallback(MidoTestConfigurator.bootstrap())));

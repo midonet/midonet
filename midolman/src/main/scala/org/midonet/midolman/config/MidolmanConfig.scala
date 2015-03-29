@@ -18,7 +18,9 @@ package org.midonet.midolman.config
 import java.util.concurrent.TimeUnit
 import scala.util.Try
 
-import com.typesafe.config.{ConfigFactory, Config}
+import com.typesafe.config.{ConfigException, ConfigFactory, Config}
+import com.typesafe.scalalogging.Logger
+import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.storage.MidonetBackendConfig
 import org.midonet.conf.{HostIdGenerator, MidoNodeConfigurator, MidoTestConfigurator}
@@ -35,88 +37,112 @@ object MidolmanConfig {
             ConfigFactory.parseString(config).
                 withFallback(MidoTestConfigurator.forAgents))
 
-    def apply() = new MidolmanConfig(MidoNodeConfigurator.forAgents().runtimeConfig(HostIdGenerator.getHostId))
+    def apply() = {
+        val configurator = MidoNodeConfigurator.forAgents()
+        new MidolmanConfig(configurator.runtimeConfig(HostIdGenerator.getHostId),
+                           configurator.schema.get)
+    }
 }
 
-class MidolmanConfig(_conf: Config) {
+trait TypeFailureFallback {
+    val logger = Logger(LoggerFactory.getLogger("org.midonet.config"))
+
+    def conf: Config
+    def schema: Config
+
+    private def get[T](key: String, func: (Config, String) => T) = try {
+        func(conf, key)
+    } catch {
+        case e: ConfigException.WrongType =>
+            logger.warn(s"Invalid value for config key: $key, will fallback to schema", e)
+            func(schema, key)
+    }
+
+    def getBoolean(key: String): Boolean = get(key, (c, k) => c.getBoolean(k))
+    def getString(key: String): String = get(key, (c, k) => c.getString(k))
+    def getInt(key: String): Int = get(key, (c, k) => c.getInt(k))
+    def getDouble(key: String): Double = get(key, (c, k) => c.getDouble(k))
+    def getDuration(key: String, unit: TimeUnit): Long = get(key, (c, k) => c.getDuration(k, unit))
+}
+
+class MidolmanConfig(_conf: Config, val schema: Config = ConfigFactory.empty()) extends TypeFailureFallback {
     val conf = _conf.resolve()
 
-    def bridgeArpEnabled = conf.getBoolean("midolman.enable_bridge_arp")
-    def bgpKeepAlive = conf.getDuration("midolman.bgp_keepalive", TimeUnit.SECONDS).toInt
-    def bgpHoldTime = conf.getDuration("midolman.bgp_holdtime", TimeUnit.SECONDS).toInt
-    def bgpConnectRetry = conf.getDuration("midolman.bgp_connect_retry", TimeUnit.SECONDS).toInt
-    def bgpdConfigPath = conf.getString("midolman.bgpd_config")
-    def dhcpMtu: Short = conf.getInt("midolman.dhcp_mtu").toShort
-    def simulationThreads = conf.getInt("midolman.simulation_threads")
-    def outputChannels = conf.getInt("midolman.output_channels")
-    def inputChannelThreading = conf.getString("midolman.input_channel_threading")
-    def datapathName = Try(conf.getString("midolman.datapath")).getOrElse("midonet")
+    def bridgeArpEnabled = getBoolean("midolman.enable_bridge_arp")
+    def bgpKeepAlive = getDuration("midolman.bgp_keepalive", TimeUnit.SECONDS).toInt
+    def bgpHoldTime = getDuration("midolman.bgp_holdtime", TimeUnit.SECONDS).toInt
+    def bgpConnectRetry = getDuration("midolman.bgp_connect_retry", TimeUnit.SECONDS).toInt
+    def bgpdConfigPath = getString("midolman.bgpd_config")
+    def dhcpMtu: Short = getInt("midolman.dhcp_mtu").toShort
+    def simulationThreads = getInt("midolman.simulation_threads")
+    def outputChannels = getInt("midolman.output_channels")
+    def inputChannelThreading = getString("midolman.input_channel_threading")
+    def datapathName = Try(getString("midolman.datapath")).getOrElse("midonet")
 
-    val bridge = new BridgeConfig(conf)
-    val router = new RouterConfig(conf)
+    val bridge = new BridgeConfig(conf, schema)
+    val router = new RouterConfig(conf, schema)
     val zookeeper = new MidonetBackendConfig(conf)
-    val cassandra = new CassandraConfig(conf)
-    val datapath = new DatapathConfig(conf)
-    val arptable = new ArpTableConfig(conf)
-    val healthMonitor = new HealthMonitorConfig(conf)
-    val host = new HostConfig(conf)
-    val neutron = new NeutronConfig(conf)
+    val cassandra = new CassandraConfig(conf, schema)
+    val datapath = new DatapathConfig(conf, schema)
+    val arptable = new ArpTableConfig(conf, schema)
+    val healthMonitor = new HealthMonitorConfig(conf, schema)
+    val host = new HostConfig(conf, schema)
+    val neutron = new NeutronConfig(conf, schema)
 }
 
-class HostConfig(conf: Config) {
-    def waitTimeForUniqueId: Long = Try(conf.getDuration("host.wait_time_gen_id", TimeUnit.MILLISECONDS)).getOrElse(1000L)
-    def retriesForUniqueId = Try(conf.getInt("host.retries_gen_id")).getOrElse(300)
+class HostConfig(val conf: Config, val schema: Config) extends TypeFailureFallback {
+    def waitTimeForUniqueId: Long = Try(getDuration("host.wait_time_gen_id", TimeUnit.MILLISECONDS)).getOrElse(1000L)
+    def retriesForUniqueId = Try(getInt("host.retries_gen_id")).getOrElse(300)
 }
 
-class BridgeConfig(conf: Config) {
+class BridgeConfig(val conf: Config, val schema: Config) extends TypeFailureFallback {
     def macPortMappingExpiry = conf.getDuration("bridge.mac_port_mapping_expire", TimeUnit.MILLISECONDS).toInt
 }
 
-class RouterConfig(conf: Config) {
+class RouterConfig(val conf: Config, val schema: Config) extends TypeFailureFallback {
     def maxBgpPeerRoutes = conf.getInt("router.max_bgp_peer_routes")
 }
 
-class CassandraConfig(conf: Config) {
-    def servers = conf.getString("cassandra.servers")
-    def cluster = conf.getString("cassandra.cluster")
-    def replication_factor = conf.getInt("cassandra.replication_factor")
+class CassandraConfig(val conf: Config, val schema: Config) extends TypeFailureFallback {
+    def servers = getString("cassandra.servers")
+    def cluster = getString("cassandra.cluster")
+    def replication_factor = getInt("cassandra.replication_factor")
 }
 
-class DatapathConfig(conf: Config)
-{
-    def sendBufferPoolInitialSize = conf.getInt("datapath.send_buffer_pool_initial_size")
-    def sendBufferPoolMaxSize = conf.getInt("datapath.send_buffer_pool_max_size")
-    def sendBufferPoolBufSizeKb = conf.getInt("datapath.send_buffer_pool_buf_size_kb")
+class DatapathConfig(val conf: Config, val schema: Config) extends TypeFailureFallback {
+    def sendBufferPoolInitialSize = getInt("datapath.send_buffer_pool_initial_size")
+    def sendBufferPoolMaxSize = getInt("datapath.send_buffer_pool_max_size")
+    def sendBufferPoolBufSizeKb = getInt("datapath.send_buffer_pool_buf_size_kb")
 
-    def maxFlowCount = conf.getInt("datapath.max_flow_count")
+    def maxFlowCount = getInt("datapath.max_flow_count")
 
-    def vxlanVtepUdpPort = conf.getInt("datapath.vxlan_vtep_udp_port")
-    def vxlanOverlayUdpPort = conf.getInt("datapath.vxlan_overlay_udp_port")
+    def vxlanVtepUdpPort = getInt("datapath.vxlan_vtep_udp_port")
+    def vxlanOverlayUdpPort = getInt("datapath.vxlan_overlay_udp_port")
 
-    def globalIncomingBurstCapacity = conf.getInt("datapath.global_incoming_burst_capacity")
-    def vmIncomingBurstCapacity = conf.getInt("datapath.vm_incoming_burst_capacity")
-    def tunnelIncomingBurstCapacity = conf.getInt("datapath.tunnel_incoming_burst_capacity")
-    def vtepIncomingBurstCapacity = conf.getInt("datapath.vtep_incoming_burst_capacity")
+    def globalIncomingBurstCapacity = getInt("datapath.global_incoming_burst_capacity")
+    def vmIncomingBurstCapacity = getInt("datapath.vm_incoming_burst_capacity")
+    def tunnelIncomingBurstCapacity = getInt("datapath.tunnel_incoming_burst_capacity")
+    def vtepIncomingBurstCapacity = getInt("datapath.vtep_incoming_burst_capacity")
 
-    def controlPacketTos: Byte = conf.getInt("datapath.control_packet_tos").toByte
+    def controlPacketTos: Byte = getInt("datapath.control_packet_tos").toByte
 }
 
-class ArpTableConfig(conf: Config) {
-    def retryInterval = conf.getDuration("arptable.arp_retry_interval", TimeUnit.SECONDS)
-    def timeout = conf.getDuration("arptable.arp_timeout", TimeUnit.SECONDS)
-    def stale = conf.getDuration("arptable.arp_stale", TimeUnit.SECONDS)
-    def expiration = conf.getDuration("arptable.arp_expiration", TimeUnit.SECONDS)
+class ArpTableConfig(val conf: Config, val schema: Config) extends TypeFailureFallback {
+    def retryInterval = getDuration("arptable.arp_retry_interval", TimeUnit.SECONDS)
+    def timeout = getDuration("arptable.arp_timeout", TimeUnit.SECONDS)
+    def stale = getDuration("arptable.arp_stale", TimeUnit.SECONDS)
+    def expiration = getDuration("arptable.arp_expiration", TimeUnit.SECONDS)
 }
 
-class HealthMonitorConfig(conf: Config) {
-    def enable = conf.getBoolean("haproxy_health_monitor.health_monitor_enable")
-    def namespaceCleanup = conf.getBoolean("haproxy_health_monitor.namespace_cleanup")
-    def namespaceSuffix = conf.getString("haproxy_health_monitor.namespace_suffix")
-    def haproxyFileLoc = conf.getString("haproxy_health_monitor.haproxy_file_loc")
+class HealthMonitorConfig(val conf: Config, val schema: Config) extends TypeFailureFallback {
+    def enable = getBoolean("haproxy_health_monitor.health_monitor_enable")
+    def namespaceCleanup = getBoolean("haproxy_health_monitor.namespace_cleanup")
+    def namespaceSuffix = getString("haproxy_health_monitor.namespace_suffix")
+    def haproxyFileLoc = getString("haproxy_health_monitor.haproxy_file_loc")
 }
 
 
-class NeutronConfig(conf: Config) {
-    def tasksDb = conf.getString("cluster.tasks_db_connection")
-    def enabled = conf.getBoolean("cluster.enabled")
+class NeutronConfig(val conf: Config, val schema: Config) extends TypeFailureFallback {
+    def tasksDb = getString("cluster.tasks_db_connection")
+    def enabled = getBoolean("cluster.enabled")
 }
