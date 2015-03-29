@@ -36,6 +36,7 @@ import org.midonet.conf.MidoTestConfigurator;
 import org.midonet.midolman.cluster.LegacyClusterModule;
 import org.midonet.midolman.cluster.serialization.SerializationModule;
 import org.midonet.midolman.cluster.zookeeper.ZookeeperConnectionModule;
+import org.midonet.midolman.config.MidolmanConfig;
 import org.midonet.midolman.guice.config.MidolmanConfigModule;
 import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.PathBuilder;
@@ -95,13 +96,14 @@ public abstract class ZookeeperTest {
 
     private List<PrivateModule> getDepModules() {
         Config conf = MidoTestConfigurator.forAgents(getConfig(zkRoot));
+        MidolmanConfig config = MidolmanConfigModule.createConfig(conf);
 
         List<PrivateModule> modules = new ArrayList<>();
         modules.addAll(
             Arrays.asList(
                 new SerializationModule(),
-                new MidolmanConfigModule(conf),
-                new MidonetBackendModule(conf), // the real one, yes
+                new MidolmanConfigModule(config),
+                new MidonetBackendModule(config.zookeeper()),
                 new ZookeeperConnectionModule(SessionUnawareConnectionWatcher.class),
                 new LegacyClusterModule())
         );
