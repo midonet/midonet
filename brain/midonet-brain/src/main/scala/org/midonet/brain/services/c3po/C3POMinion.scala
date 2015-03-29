@@ -27,7 +27,7 @@ import org.slf4j.LoggerFactory
 import org.midonet.brain.services.c3po.NeutronDeserializer.toMessage
 import org.midonet.brain.services.c3po.translators._
 import org.midonet.cluster.data.neutron.DataStateUpdater
-import org.midonet.brain.{C3POConfig, ClusterNode, ScheduledClusterMinion}
+import org.midonet.brain.{BrainConfig, ClusterNode, ScheduledClusterMinion}
 import org.midonet.cluster.data.neutron.{SqlNeutronImporter, importer}
 import org.midonet.cluster.models.Neutron._
 import org.midonet.cluster.services.MidonetBackend
@@ -44,11 +44,11 @@ import org.midonet.cluster.util.UUIDUtil
   * @param curator API for access to ZK for internal uses of the C3PO serviceD/H
   */
 class C3POMinion @Inject()(nodeContext: ClusterNode.Context,
-                           config: C3POConfig,
+                           config: BrainConfig,
                            dataSrc: DataSource,
                            backend: MidonetBackend,
                            curator: CuratorFramework)
-    extends ScheduledClusterMinion(nodeContext, config) {
+    extends ScheduledClusterMinion(nodeContext, config.c3po) {
 
     private val log = LoggerFactory.getLogger(classOf[C3POMinion])
 
