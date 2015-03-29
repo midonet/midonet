@@ -147,13 +147,14 @@ public class Midolman {
         if (configurator.deployBundledConfig())
             log.info("Deployed new configuration schema into NSDB");
 
+        MidolmanConfig config = MidolmanConfigModule.createConfig(configurator);
 
         injector = Guice.createInjector(
-            MidonetBackendModule.apply(),
+            new MidolmanConfigModule(config),
+            new MidonetBackendModule(config.zookeeper()),
             new ZookeeperConnectionModule(ZookeeperConnectionWatcher.class),
             new SerializationModule(),
             new HostModule(),
-            new MidolmanConfigModule(configurator),
             new StateStorageModule(),
             new DatapathModule(),
             new LegacyClusterModule(),

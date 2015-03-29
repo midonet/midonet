@@ -160,7 +160,7 @@ public class MmCtl {
 
     private MmCtlResult bindPort(UUID portId, String deviceName) {
         log.debug("MmCtl.bindPort entered. portId=" + portId + ", deviceName="
-                + deviceName);
+                  + deviceName);
 
         UUID hostId;
         try {
@@ -207,7 +207,7 @@ public class MmCtl {
         try {
             Connection connection =
                 DriverManager.getConnection(
-                        "jdbc:" + config.neutron().tasksDb());
+                    "jdbc:" + config.neutron().tasksDb());
             try {
                 PreparedStatement ps = connection.prepareStatement("BEGIN");
                 ps.executeUpdate();
@@ -435,7 +435,8 @@ public class MmCtl {
         MidoNodeConfigurator configurator =
                 MidoNodeConfigurator.forAgents(configFilePath);
         return Guice.createInjector(
-                new MidolmanConfigModule(configurator),
+                new MidolmanConfigModule(MidolmanConfigModule
+                                             .createConfig(configurator)),
                 commandModule
         );
     }
