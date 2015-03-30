@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_1c5b8588",
+        "filename": "brain/vtep/build.gradle",
+        "patchSetId": 5
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-03-30T08:42:41Z",
+      "side": 1,
+      "message": "why needed?",
+      "range": {
+        "startLine": 19,
+        "startChar": 15,
+        "endLine": 19,
+        "endChar": 26
+      },
+      "revId": "a125653c44002f20f5e6d1eacfb0ad8faa81bea4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_fc5f8970",
+        "filename": "brain/vtep/src/main/java/org/midonet/vtep/OvsdbTranslator.java",
+        "patchSetId": 5
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-03-30T08:42:41Z",
+      "side": 1,
+      "message": "Does it need the generic type? (also on other methods)",
+      "range": {
+        "startLine": 96,
+        "startChar": 47,
+        "endLine": 96,
+        "endChar": 50
+      },
+      "revId": "a125653c44002f20f5e6d1eacfb0ad8faa81bea4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
