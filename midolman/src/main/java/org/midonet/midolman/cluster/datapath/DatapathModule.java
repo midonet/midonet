@@ -37,6 +37,7 @@ import org.slf4j.LoggerFactory;
 
 import org.midonet.Util;
 import org.midonet.midolman.config.MidolmanConfig;
+import org.midonet.midolman.datapath.DatapathBootstrap$;
 import org.midonet.midolman.datapath.DatapathChannel;
 import org.midonet.midolman.datapath.DisruptorDatapathChannel;
 import org.midonet.midolman.datapath.FlowProcessor;
@@ -51,6 +52,7 @@ import org.midonet.midolman.services.DatapathConnectionService;
 import org.midonet.netlink.NetlinkChannel;
 import org.midonet.netlink.NetlinkChannelFactory;
 import org.midonet.netlink.NetlinkSelectorProvider;
+import org.midonet.odp.Datapath;
 import org.midonet.odp.OvsNetlinkFamilies;
 import org.midonet.util.concurrent.AggregateEventPollerHandler;
 import org.midonet.util.concurrent.BackchannelEventProcessor;
@@ -71,6 +73,7 @@ public class DatapathModule extends PrivateModule {
 
         bindNetlinkConnectionFactory();
         bindOvsNetlinkFamilies();
+        bindDatapath();
         bindFlowProcessor();
         bindDatapathChannel();
         bindDatapathConnectionPool();
@@ -79,41 +82,63 @@ public class DatapathModule extends PrivateModule {
         expose(NetlinkChannelFactory.class);
         expose(OvsNetlinkFamilies.class);
         expose(FlowProcessor.class);
+        expose(Datapath.class);
         expose(DatapathChannel.class);
         expose(DatapathConnectionPool.class);
         expose(UpcallDatapathConnectionManager.class);
-
+        expose(Datapath.class);
         bind(DatapathConnectionService.class)
             .asEagerSingleton();
         expose(DatapathConnectionService.class);
     }
 
-    private EventProcessor[] createProcessors(int threads, RingBuffer ringBuffer,
-                                              SequenceBarrier barrier,
-                                              FlowProcessor flowProcessor,
-                                              OvsNetlinkFamilies families,
-                                              NetlinkChannelFactory channelFactory) {
+    private EventProcessor[] createProcessors(
+            int threads,
+            RingBuffer ringBuffer,
+            SequenceBarrier barrier,
+            FlowProcessor flowProcessor,
+            Datapath datapath,
+            OvsNetlinkFamilies families,
+            NetlinkChannelFactory channelFactory) {
         threads = Math.max(threads, 1);
         EventProcessor[] processors = new EventProcessor[threads];
         if (threads == 1) {
             EventPoller.Handler handler = new AggregateEventPollerHandler(
                 JavaConversions.asScalaBuffer(Arrays.asList(
                     flowProcessor,
-                    new EventPollerHandlerAdapter(
-                        new PacketExecutor(families, 1, 0, channelFactory)))));
+                    new EventPollerHandlerAdapter(new PacketExecutor(
+                        datapath, families, 1, 0, channelFactory)))));
             processors[0] = new BackchannelEventProcessor(
                 ringBuffer, handler, flowProcessor, Seq$.MODULE$.empty());
         } else {
             int numPacketHandlers = threads - 1;
             for (int i = 0; i < numPacketHandlers; ++i) {
                 PacketExecutor pexec = new PacketExecutor(
-                    families, numPacketHandlers, i, channelFactory);
+                    datapath, families, numPacketHandlers, i, channelFactory);
                 processors[i] = new BatchEventProcessor(ringBuffer, barrier, pexec);
             }
             processors[numPacketHandlers] = new BackchannelEventProcessor(
                 ringBuffer, flowProcessor, flowProcessor,  Seq$.MODULE$.empty());
         }
         return processors;
+    }
+
+    protected void bindDatapath() {
+        bind(Datapath.class).toProvider(new Provider<Datapath>() {
+            @Inject
+            MidolmanConfig config;
+
+            @Inject
+            NetlinkChannelFactory channelFactory;
+
+            @Inject
+            OvsNetlinkFamilies families;
+
+            public Datapath get() {
+                return DatapathBootstrap$.MODULE$.bootstrap(
+                    config, channelFactory, families);
+            }
+        });
     }
 
     protected void bindDatapathChannel() {
@@ -137,6 +162,7 @@ public class DatapathModule extends PrivateModule {
                         config.outputChannels(),
                         ringBuffer, barrier,
                         injector.getInstance(FlowProcessor.class),
+                        injector.getInstance(Datapath.class),
                         injector.getInstance(OvsNetlinkFamilies.class),
                         injector.getInstance(NetlinkChannelFactory.class));
                     return new DisruptorDatapathChannel(ringBuffer, processors);
@@ -182,6 +208,7 @@ public class DatapathModule extends PrivateModule {
                 @Override
                 public FlowProcessor get() {
                     return new FlowProcessor(
+                        injector.getInstance(Datapath.class),
                         injector.getInstance(OvsNetlinkFamilies.class),
                         config.simulationThreads(),
                         config.datapath().globalIncomingBurstCapacity() * 2,

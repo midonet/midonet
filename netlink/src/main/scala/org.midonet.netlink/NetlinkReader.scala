@@ -18,6 +18,10 @@ package org.midonet.netlink
 
 import java.io.IOException
 import java.nio.ByteBuffer
+import java.nio.channels.SelectionKey
+import java.util.concurrent.TimeoutException
+
+import scala.concurrent.duration.Duration
 
 import org.midonet.netlink.clib.cLibrary
 import org.midonet.netlink.exceptions.NetlinkException
@@ -66,5 +70,29 @@ class NetlinkReader(val channel: NetlinkChannel) {
             throw MessageTruncated
         }
         nbytes
+    }
+}
+
+class NetlinkTimeoutReader(
+        channel: NetlinkChannel,
+        timeout: Duration) extends NetlinkReader(channel) {
+    private val timeoutMillis = timeout.toMillis
+    private val selector = channel.selector()
+    private val selectionKey = {
+        if (channel.isBlocking)
+            channel.configureBlocking(false)
+        channel.register(selector, SelectionKey.OP_READ)
+    }
+
+    @throws(classOf[IOException])
+    @throws(classOf[NetlinkException])
+    @throws(classOf[TimeoutException])
+    override def read(dst: ByteBuffer): Int = {
+        selector.select(timeoutMillis)
+        if (selectionKey.isReadable) {
+            super.read(dst)
+        } else {
+            throw new TimeoutException()
+        }
     }
 }

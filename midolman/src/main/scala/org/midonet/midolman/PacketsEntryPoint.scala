@@ -164,7 +164,7 @@ class PacketsEntryPoint extends Actor with ActorLogWithoutPath
     override def receive = LoggingReceive {
 
         case m@DatapathReady(dp, _) =>
-            dpChannel.start(dp)
+            dpChannel.start()
             broadcast(m)
 
         case m: FlowStateBatch => broadcast(m)
