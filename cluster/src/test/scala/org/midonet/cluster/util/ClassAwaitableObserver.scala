@@ -28,12 +28,12 @@ import org.midonet.util.reactivex.AwaitableObserver
 
 class ClassAwaitableObserver[T](awaitCount: Int) extends TestObserver[Observable[T]] {
 
-    val observers = new mutable.MutableList[AwaitableObserver[T]]
+    val observers = new mutable.MutableList[TestObserver[T] with AwaitableObserver[T]]
     @volatile private var counter: CountDownLatch = new CountDownLatch(awaitCount)
 
     override def onNext(value: Observable[T]) {
         super.onNext(value)
-        val obs = new AwaitableObserver[T](1)
+        val obs = new TestObserver[T]() with AwaitableObserver[T]
         observers += obs
         value.subscribe(obs)
         counter.countDown()

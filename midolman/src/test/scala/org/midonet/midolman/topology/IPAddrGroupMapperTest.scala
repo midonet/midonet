@@ -25,6 +25,7 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 import rx.Observable
+import rx.observers.TestObserver
 
 import org.midonet.cluster.data.storage.{NotFoundException, Storage}
 import org.midonet.cluster.models.Topology.{IpAddrGroup => TopologyIPAddrGroup}
@@ -32,7 +33,7 @@ import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.simulation.{IPAddrGroup => SimAddrGroup}
 import org.midonet.midolman.util.MidolmanSpec
-import org.midonet.util.reactivex.AwaitableObserver
+import org.midonet.util.reactivex.{AssertableObserver, AwaitableObserver}
 
 @RunWith(classOf[JUnitRunner])
 class IPAddrGroupMapperTest extends MidolmanSpec with TopologyBuilder
@@ -51,6 +52,12 @@ class IPAddrGroupMapperTest extends MidolmanSpec with TopologyBuilder
         assert(vt.threadId == Thread.currentThread.getId)
     }
 
+    private def makeObservable() = new TestObserver[SimAddrGroup]
+                                       with AwaitableObserver[SimAddrGroup]
+                                       with AssertableObserver[SimAddrGroup] {
+        override def assert(): Unit = assertThread()
+    }
+
     feature("The ipAddrGroup mapper emits IpAddrGroup objects") {
         scenario("The mapper emits error for non-existing ipAddrGroups") {
             Given("An ipAddrGroup identifier")
@@ -60,13 +67,13 @@ class IPAddrGroupMapperTest extends MidolmanSpec with TopologyBuilder
             val mapper = new IPAddrGroupMapper(id, vt)
 
             And("An observer to the ipAddrGroup mapper")
-            val obs = new AwaitableObserver[SimAddrGroup](1, assertThread())
+            val obs = makeObservable()
 
             When("The observer subscribes to an observable on the mapper")
             Observable.create(mapper).subscribe(obs)
 
             Then("The observer should see a NotFoundException")
-            obs.await(timeout)
+            obs.awaitCompletion(timeout)
             obs.getOnErrorEvents should have size 1
             val e = obs.getOnErrorEvents.get(0).asInstanceOf[NotFoundException]
             e.clazz shouldBe classOf[TopologyIPAddrGroup]
@@ -81,13 +88,13 @@ class IPAddrGroupMapperTest extends MidolmanSpec with TopologyBuilder
             val mapper = new IPAddrGroupMapper(ipAddrGroup.getId.asJava, vt)
 
             And("An observer to the ipAddrGroup mapper")
-            val obs = new AwaitableObserver[SimAddrGroup](1, assertThread())
+            val obs = makeObservable()
 
             When("The observer subscribes to an observable on the mapper")
             Observable.create(mapper).subscribe(obs)
 
             Then("The observer should see the ipAddrGroup")
-            obs.await(timeout, 1) shouldBe true
+            obs.awaitOnNext(1, timeout) shouldBe true
             obs.getOnNextEvents should have size 1
             val simIpAddrGroup = obs.getOnNextEvents.asScala.last
             simIpAddrGroup shouldBeDeviceOf ipAddrGroup
@@ -98,7 +105,7 @@ class IPAddrGroupMapperTest extends MidolmanSpec with TopologyBuilder
                                Set(UUID.randomUUID()))
 
             Then("We receive the updated IPAddrGroup")
-            obs.await(timeout, 1) shouldBe true
+            obs.awaitOnNext(2, timeout) shouldBe true
             obs.getOnNextEvents should have size 2
 
             var updatedSimIpAddrGroup = obs.getOnNextEvents.asScala.last
@@ -108,7 +115,7 @@ class IPAddrGroupMapperTest extends MidolmanSpec with TopologyBuilder
             updatedProto = removeAllIps(updatedProto)
 
             Then("We receive the IPAddrGroup with no IPs")
-            obs.await(timeout, 1) shouldBe true
+            obs.awaitOnNext(3, timeout) shouldBe true
             obs.getOnNextEvents should have size 3
             updatedSimIpAddrGroup = obs.getOnNextEvents.asScala.last
             updatedSimIpAddrGroup shouldBeDeviceOf updatedProto
@@ -122,19 +129,19 @@ class IPAddrGroupMapperTest extends MidolmanSpec with TopologyBuilder
             val mapper = new IPAddrGroupMapper(ipAddrGroup.getId.asJava, vt)
 
             And("An observer to the ipAddrGroup mapper")
-            val obs = new AwaitableObserver[SimAddrGroup](1, assertThread())
+            val obs = makeObservable()
 
             When("The observer subscribes to an observable on the mapper")
             Observable.create(mapper).subscribe(obs)
 
             Then("The observer should see the ipAddrGroup")
-            obs.await(timeout, 1) shouldBe true
+            obs.awaitOnNext(1, timeout) shouldBe true
 
             And("When we delete the IPAddrGroup")
             store.delete(classOf[TopologyIPAddrGroup], ipAddrGroup.getId)
 
             Then("The observer receives an onComplete notification")
-            obs.await(timeout) shouldBe true
+            obs.awaitCompletion(timeout)
             obs.getOnCompletedEvents should have size 1
         }
     }

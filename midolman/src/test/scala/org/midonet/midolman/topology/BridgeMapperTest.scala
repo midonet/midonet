@@ -23,10 +23,10 @@ import com.typesafe.config.{ConfigFactory, Config}
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import rx.Observable
+import rx.observers.TestObserver
 
-import org.midonet.cluster.models.Topology.{Port => TopologyPort}
+import org.midonet.cluster.models.Topology.{Port => TopologyPort, Network => TopologyBridge}
 import org.midonet.cluster.data.storage.{NotFoundException, UpdateOp, CreateOp, Storage}
-import org.midonet.cluster.models.Topology.{Network => TopologyBridge}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.simulation.{Bridge => SimulationBridge}
@@ -35,7 +35,7 @@ import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.packets.{MAC, IPv4Addr}
 import org.midonet.sdn.flows.FlowTagger.{tagForArpRequests, tagForBridgePort, tagForBroadcast, tagForDevice, tagForFloodedFlowsByDstMac, tagForVlanPort}
 import org.midonet.util.MidonetEventually
-import org.midonet.util.reactivex.AwaitableObserver
+import org.midonet.util.reactivex.{AssertableObserver, AwaitableObserver}
 
 @RunWith(classOf[JUnitRunner])
 class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
@@ -69,20 +69,24 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             """.stripMargin).withFallback(config))
     }
 
-    private def createObserver(count: Int = 1)
-    : AwaitableObserver[SimulationBridge] = {
-        Given("An observer for the bridge mapper")
+    private def createObserver() = {
+        Given("An observer for the bridge mapp er")
         // It is possible to receive the initial notification on the current
         // thread, when the device was notified in the mapper's behavior subject
         // previous to the subscription.
-        new AwaitableObserver[SimulationBridge](
-            count, assert(vt.threadId == Thread.currentThread.getId ||
-                          threadId == Thread.currentThread.getId))
+        new TestObserver[SimulationBridge]
+        with AwaitableObserver[SimulationBridge]
+        with AssertableObserver[SimulationBridge] {
+            override def assert() =
+                BridgeMapperTest.this.assert(
+                    vt.threadId == Thread.currentThread.getId ||
+                    threadId == Thread.currentThread.getId)
+        }
     }
 
     private def testBridgeCreated(bridgeId: UUID,
-                                  obs: AwaitableObserver[SimulationBridge],
-                                  count: Int, test: Int)
+                                  obs: TestObserver[SimulationBridge]
+                                       with AwaitableObserver[SimulationBridge])
     : TopologyBridge = {
         Given("A bridge mapper")
         val mapper = new BridgeMapper(bridgeId, vt)
@@ -97,37 +101,37 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
         Observable.create(mapper).subscribe(obs)
 
         Then("The observer should receive the bridge device")
-        obs.await(5 seconds, count) shouldBe true
-        val device = obs.getOnNextEvents.get(test)
+        obs.awaitOnNext(1, 5 seconds) shouldBe true
+        val device = obs.getOnNextEvents.get(0)
         device shouldBeDeviceOf bridge
 
         bridge
     }
 
     private def testBridgeUpdated(bridge: TopologyBridge,
-                                  obs: AwaitableObserver[SimulationBridge],
-                                  count: Int, test: Int)
+                                  obs: TestObserver[SimulationBridge] with AwaitableObserver[SimulationBridge],
+                                  event: Int)
     : SimulationBridge = {
         When("The bridge is updated")
         store.update(bridge)
 
         Then("The observer should receive the update")
-        obs.await(timeout, count) shouldBe true
-        val device = obs.getOnNextEvents.get(test)
+        obs.awaitOnNext(event, timeout) shouldBe true
+        val device = obs.getOnNextEvents.get(event - 1)
         device shouldBeDeviceOf bridge
 
         device
     }
 
     private def testBridgeDeleted(bridgeId: UUID,
-                                  obs: AwaitableObserver[SimulationBridge],
-                                  count: Int)
+                                  obs: TestObserver[SimulationBridge]
+                                       with AwaitableObserver[SimulationBridge])
     : Unit = {
         When("The bridge is deleted")
         store.delete(classOf[TopologyBridge], bridgeId)
 
         Then("The observer should receive a completed notification")
-        obs.await(timeout, count) shouldBe true
+        obs.awaitCompletion(timeout)
         obs.getOnCompletedEvents should not be empty
     }
 
@@ -140,13 +144,13 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             val mapper = new BridgeMapper(bridgeId, vt)
 
             And("An observer to the bridge mapper")
-            val obs = new AwaitableObserver[SimulationBridge]
+            val obs = createObserver()
 
             When("The observer subscribes to an observable on the mapper")
             Observable.create(mapper).subscribe(obs)
 
             Then("The observer should see a NotFoundException")
-            obs.await(timeout) shouldBe true
+            obs.awaitCompletion(timeout)
             val e = obs.getOnErrorEvents.get(0).asInstanceOf[NotFoundException]
             e.clazz shouldBe classOf[TopologyBridge]
             e.id shouldBe bridgeId
@@ -154,31 +158,31 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
 
         scenario("The mapper emits existing bridge") {
             val bridgeId = UUID.randomUUID
-            val obs = createObserver(1)
-            testBridgeCreated(bridgeId, obs, count = 0, test = 0)
+            val obs = createObserver()
+            testBridgeCreated(bridgeId, obs)
         }
 
         scenario("The mapper emits new device on bridge update") {
             val bridgeId = UUID.randomUUID
-            val obs = createObserver(1)
-            testBridgeCreated(bridgeId, obs, count = 1, test = 0)
+            val obs = createObserver()
+            testBridgeCreated(bridgeId, obs)
             val bridgeUpdate = createBridge(id = bridgeId, adminStateUp = true)
-            testBridgeUpdated(bridgeUpdate, obs, count = 0, test = 1)
+            testBridgeUpdated(bridgeUpdate, obs, event = 2)
         }
 
         scenario("The mapper completes on bridge delete") {
             val bridgeId = UUID.randomUUID
-            val obs = createObserver(1)
-            testBridgeCreated(bridgeId, obs, count = 1, test = 0)
-            testBridgeDeleted(bridgeId, obs, count = 0)
+            val obs = createObserver()
+            testBridgeCreated(bridgeId, obs)
+            testBridgeDeleted(bridgeId, obs)
         }
     }
 
     feature("Test port updates") {
         scenario("Create port neither interior nor exterior") {
             val bridgeId = UUID.randomUUID
-            val obs = createObserver(1)
-            val bridge = testBridgeCreated(bridgeId, obs, count = 1, test = 0)
+            val obs = createObserver()
+            val bridge = testBridgeCreated(bridgeId, obs)
 
             When("Creating an exterior port for the bridge")
             val portId = UUID.randomUUID
@@ -186,7 +190,7 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             store.create(port)
 
             Then("The observer should receive the update")
-            obs.await(timeout) shouldBe true
+            obs.awaitOnNext(2, timeout) shouldBe true
             val device = obs.getOnNextEvents.get(1)
             device shouldBeDeviceOf bridge
             device.exteriorPorts shouldBe empty
@@ -195,8 +199,8 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
 
         scenario("Create and delete exterior port") {
             val bridgeId = UUID.randomUUID
-            val obs = createObserver(1)
-            val bridge = testBridgeCreated(bridgeId, obs, count = 1, test = 0)
+            val obs = createObserver()
+            val bridge = testBridgeCreated(bridgeId, obs)
 
             When("Creating a first exterior port for the bridge")
             val portId1 = UUID.randomUUID
@@ -206,7 +210,7 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             store.create(port1)
 
             Then("The observer should receive the update")
-            obs.await(timeout, 1) shouldBe true
+            obs.awaitOnNext(2, timeout) shouldBe true
             val device1 = obs.getOnNextEvents.get(1)
             device1 shouldBeDeviceOf bridge
 
@@ -222,7 +226,7 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             store.create(port2)
 
             Then("The observer should receive the update")
-            obs.await(timeout, 1) shouldBe true
+            obs.awaitOnNext(3, timeout) shouldBe true
             val device2 = obs.getOnNextEvents.get(2)
             device2 shouldBeDeviceOf bridge
 
@@ -234,7 +238,7 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             store.delete(classOf[TopologyPort], portId1)
 
             Then("The observer should receive the update")
-            obs.await(timeout, 1) shouldBe true
+            obs.awaitOnNext(4, timeout) shouldBe true
             val device3 = obs.getOnNextEvents.get(3)
             device3 shouldBeDeviceOf bridge
 
@@ -246,7 +250,7 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             store.delete(classOf[TopologyPort], portId2)
 
             Then("The observer should receive the update")
-            obs.await(timeout) shouldBe true
+            obs.awaitOnNext(5, timeout) shouldBe true
             val device4 = obs.getOnNextEvents.get(4)
             device4 shouldBeDeviceOf bridge
 
@@ -257,8 +261,8 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
 
         scenario("Update exterior port to exterior port") {
             val bridgeId = UUID.randomUUID
-            val obs = createObserver(1)
-            val bridge = testBridgeCreated(bridgeId, obs, count = 1, test = 0)
+            val obs = createObserver()
+            val bridge = testBridgeCreated(bridgeId, obs)
 
             When("Creating a first exterior port for the bridge")
             val portId = UUID.randomUUID
@@ -269,7 +273,7 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             store.create(port1)
 
             Then("The observer should receive the update")
-            obs.await(timeout, 1) shouldBe true
+            obs.awaitOnNext(2, timeout) shouldBe true
             val device1 = obs.getOnNextEvents.get(1)
             device1 shouldBeDeviceOf bridge
 
@@ -284,7 +288,7 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             store.update(port2)
 
             Then("The observer should receive the update")
-            obs.await(timeout) shouldBe true
+            obs.awaitOnNext(3, timeout) shouldBe true
             val device2 = obs.getOnNextEvents.get(2)
             device2 shouldBeDeviceOf bridge
 
@@ -295,8 +299,8 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
 
         scenario("Existing non-exterior port becomes exterior") {
             val bridgeId = UUID.randomUUID
-            val obs = createObserver(1)
-            val bridge = testBridgeCreated(bridgeId, obs, count = 1, test = 0)
+            val obs = createObserver()
+            val bridge = testBridgeCreated(bridgeId, obs)
 
             When("Creating a first exterior port for the bridge")
             val portId = UUID.randomUUID
@@ -305,7 +309,7 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             store.create(port1)
 
             Then("The observer should receive the update")
-            obs.await(timeout, 1) shouldBe true
+            obs.awaitOnNext(2, timeout) shouldBe true
             val device1 = obs.getOnNextEvents.get(1)
             device1 shouldBeDeviceOf bridge
 
@@ -320,7 +324,7 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             store.update(port2)
 
             Then("The observer should receive the update")
-            obs.await(timeout) shouldBe true
+            obs.awaitOnNext(3, timeout) shouldBe true
             val device2 = obs.getOnNextEvents.get(2)
             device2 shouldBeDeviceOf bridge
 
@@ -331,8 +335,8 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
 
         scenario("Existing exterior port becomes non-exterior") {
             val bridgeId = UUID.randomUUID
-            val obs = createObserver(1)
-            val bridge = testBridgeCreated(bridgeId, obs, count = 1, test = 0)
+            val obs = createObserver()
+            val bridge = testBridgeCreated(bridgeId, obs)
 
             When("Creating a first exterior port for the bridge")
             val portId = UUID.randomUUID
@@ -343,7 +347,7 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             store.create(port1)
 
             Then("The observer should receive the update")
-            obs.await(timeout, 1) shouldBe true
+            obs.awaitOnNext(2, timeout) shouldBe true
             val device1 = obs.getOnNextEvents.get(1)
             device1 shouldBeDeviceOf bridge
 
@@ -356,7 +360,7 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             store.update(port2)
 
             Then("The observer should receive the update")
-            obs.await(timeout) shouldBe true
+            obs.awaitOnNext(3, timeout) shouldBe true
             val device2 = obs.getOnNextEvents.get(2)
             device2 shouldBeDeviceOf bridge
 
@@ -367,8 +371,8 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
 
         scenario("Create interior port no VLAN peered to a bridge port no VLAN") {
             val bridgeId = UUID.randomUUID
-            val obs = createObserver(1)
-            val bridge = testBridgeCreated(bridgeId, obs, count = 1, test = 0)
+            val obs = createObserver()
+            val bridge = testBridgeCreated(bridgeId, obs)
 
             When("Creating an interior port with a peer bridge and port")
             val portId = UUID.randomUUID
@@ -385,7 +389,7 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
                             UpdateOp(port.setPeerId(peerPortId))))
 
             Then("The observer should receive the update")
-            obs.await(timeout) shouldBe true
+            obs.awaitOnNext(2, timeout) shouldBe true
             val device = obs.getOnNextEvents.get(1)
             device shouldBeDeviceOf bridge
 
@@ -403,8 +407,8 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
         scenario("Create interior port no VLAN peer to a bridge port VLAN") {
             val bridgeId = UUID.randomUUID
             val vlanId: Short = 1
-            val obs = createObserver(1)
-            val bridge = testBridgeCreated(bridgeId, obs, count = 1, test = 0)
+            val obs = createObserver()
+            val bridge = testBridgeCreated(bridgeId, obs)
 
             When("Creating an interior port with a peer bridge and port")
             val portId = UUID.randomUUID
@@ -422,7 +426,7 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
                             UpdateOp(port.setPeerId(peerPortId))))
 
             Then("The observer should receive the update")
-            obs.await(timeout) shouldBe true
+            obs.awaitOnNext(2, timeout) shouldBe true
             val device = obs.getOnNextEvents.get(1)
             device shouldBeDeviceOf bridge
 
@@ -440,8 +444,8 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
         scenario("Create interior port VLAN peered to a bridge port no VLAN") {
             val bridgeId = UUID.randomUUID
             val vlanId: Short = 1
-            val obs = createObserver(1)
-            val bridge = testBridgeCreated(bridgeId, obs, count = 1, test = 0)
+            val obs = createObserver()
+            val bridge = testBridgeCreated(bridgeId, obs)
 
             When("Creating an interior port with a peer bridge and port")
             val portId = UUID.randomUUID
@@ -459,7 +463,7 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
                             UpdateOp(port.setPeerId(peerPortId))))
 
             Then("The observer should receive the update")
-            obs.await(timeout) shouldBe true
+            obs.awaitOnNext(2, timeout) shouldBe true
             val device = obs.getOnNextEvents.get(1)
             device shouldBeDeviceOf bridge
 
@@ -481,8 +485,8 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             val bridgeId = UUID.randomUUID
             val vlanId: Short = 1
             val peerVlanId: Short = 2
-            val obs = createObserver(1)
-            val bridge = testBridgeCreated(bridgeId, obs, count = 1, test = 0)
+            val obs = createObserver()
+            val bridge = testBridgeCreated(bridgeId, obs)
 
             When("Creating an interior port with a peer bridge and port")
             val portId = UUID.randomUUID
@@ -501,7 +505,7 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
                             UpdateOp(port.setPeerId(peerPortId))))
 
             Then("The observer should receive the update")
-            obs.await(timeout) shouldBe true
+            obs.awaitOnNext(2, timeout) shouldBe true
             val device = obs.getOnNextEvents.get(1)
             device shouldBeDeviceOf bridge
 
@@ -522,8 +526,8 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
         scenario("Update interior port no VLAN to VLAN peered to bridge port no VLAN") {
             val bridgeId = UUID.randomUUID
             val vlanId: Short = 1
-            val obs = createObserver(1)
-            val bridge = testBridgeCreated(bridgeId, obs, count = 1, test = 0)
+            val obs = createObserver()
+            val bridge = testBridgeCreated(bridgeId, obs)
 
             When("Creating an interior port with a peer bridge and port")
             val portId = UUID.randomUUID
@@ -540,13 +544,13 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
                             UpdateOp(port.setPeerId(peerPortId))))
 
             And("Waiting for the first update")
-            obs.await(timeout, 1) shouldBe true
+            obs.awaitOnNext(2, timeout) shouldBe true
 
             When("Updating the port VLAN")
             store.update(port.setPeerId(peerPortId).setVlanId(vlanId))
 
             Then("The observer should receive two updates")
-            obs.await(timeout) shouldBe true
+            obs.awaitOnNext(3, timeout) shouldBe true
             val device1 = obs.getOnNextEvents.get(1)
             val device2 = obs.getOnNextEvents.get(2)
             device1 shouldBeDeviceOf bridge
@@ -576,8 +580,8 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             val bridgeId = UUID.randomUUID
             val vlanId: Short = 1
             val peerVlanId: Short = 2
-            val obs = createObserver(1)
-            val bridge = testBridgeCreated(bridgeId, obs, count = 1, test = 0)
+            val obs = createObserver()
+            val bridge = testBridgeCreated(bridgeId, obs)
 
             When("Creating an interior port with a peer bridge and port")
             val portId = UUID.randomUUID
@@ -595,13 +599,13 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
                             UpdateOp(port.setPeerId(peerPortId))))
 
             And("Waiting for the first update")
-            obs.await(timeout, 1) shouldBe true
+            obs.awaitOnNext(2, timeout) shouldBe true
 
             When("Updating the port VLAN")
             store.update(port.setPeerId(peerPortId).setVlanId(vlanId))
 
             Then("The observer should receive two updates")
-            obs.await(timeout) shouldBe true
+            obs.awaitOnNext(3, timeout) shouldBe true
             val device1 = obs.getOnNextEvents.get(1)
             val device2 = obs.getOnNextEvents.get(2)
             device1 shouldBeDeviceOf bridge
@@ -632,8 +636,8 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
         scenario("Update interior port VLAN to no VLAN peered to bridge port no VLAN") {
             val bridgeId = UUID.randomUUID
             val vlanId: Short = 1
-            val obs = createObserver(1)
-            val bridge = testBridgeCreated(bridgeId, obs, count = 1, test = 0)
+            val obs = createObserver()
+            val bridge = testBridgeCreated(bridgeId, obs)
 
             When("Creating an interior port with a peer bridge and port")
             val portId = UUID.randomUUID
@@ -651,13 +655,13 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
                             UpdateOp(port.setPeerId(peerPortId))))
 
             And("Waiting for the first update")
-            obs.await(timeout, 1) shouldBe true
+            obs.awaitOnNext(2, timeout) shouldBe true
 
             When("Updating the port VLAN")
             store.update(port.setPeerId(peerPortId).clearVlanId())
 
             Then("The observer should receive two updates")
-            obs.await(timeout) shouldBe true
+            obs.awaitOnNext(3, timeout) shouldBe true
             val device1 = obs.getOnNextEvents.get(1)
             val device2 = obs.getOnNextEvents.get(2)
             device1 shouldBeDeviceOf bridge
@@ -689,8 +693,8 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             val bridgeId = UUID.randomUUID
             val vlanId: Short = 1
             val peerVlanId: Short = 2
-            val obs = createObserver(1)
-            val bridge = testBridgeCreated(bridgeId, obs, count = 1, test = 0)
+            val obs = createObserver()
+            val bridge = testBridgeCreated(bridgeId, obs)
 
             When("Creating an interior port with a peer bridge and port")
             val portId = UUID.randomUUID
@@ -709,13 +713,13 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
                             UpdateOp(port.setPeerId(peerPortId))))
 
             And("Waiting for the first update")
-            obs.await(timeout, 1) shouldBe true
+            obs.awaitOnNext(2, timeout) shouldBe true
 
             When("Updating the port VLAN")
             store.update(port.setPeerId(peerPortId).clearVlanId())
 
             Then("The observer should receive two updates")
-            obs.await(timeout) shouldBe true
+            obs.awaitOnNext(3, timeout) shouldBe true
             val device1 = obs.getOnNextEvents.get(1)
             val device2 = obs.getOnNextEvents.get(2)
             device1 shouldBeDeviceOf bridge
@@ -747,8 +751,8 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             val bridgeId = UUID.randomUUID
             val vlanId1: Short = 1
             val vlanId2: Short = 2
-            val obs = createObserver(1)
-            val bridge = testBridgeCreated(bridgeId, obs, count = 1, test = 0)
+            val obs = createObserver()
+            val bridge = testBridgeCreated(bridgeId, obs)
 
             When("Creating an interior port and a peer bridge and port")
             val portId = UUID.randomUUID
@@ -766,13 +770,13 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
                             UpdateOp(port.setPeerId(peerPortId))))
 
             And("Waiting for the first update")
-            obs.await(timeout, 1) shouldBe true
+            obs.awaitOnNext(2, timeout) shouldBe true
 
             When("Updating the port VLAN")
             store.update(port.setPeerId(peerPortId).setVlanId(vlanId2))
 
             Then("The observer should receive two updates")
-            obs.await(timeout) shouldBe true
+            obs.awaitOnNext(3, timeout) shouldBe true
             val device1 = obs.getOnNextEvents.get(1)
             val device2 = obs.getOnNextEvents.get(2)
             device1 shouldBeDeviceOf bridge
@@ -804,8 +808,8 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
         scenario("Update peer port no VLAN to VLAN (local port has no VLAN)") {
             val bridgeId = UUID.randomUUID
             val peerVlanId: Short = 1
-            val obs = createObserver(1)
-            val bridge = testBridgeCreated(bridgeId, obs, count = 1, test = 0)
+            val obs = createObserver()
+            val bridge = testBridgeCreated(bridgeId, obs)
 
             When("Creating an interior port with a peer bridge and port")
             val portId = UUID.randomUUID
@@ -822,13 +826,13 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
                             UpdateOp(port.setPeerId(peerPortId))))
 
             And("Waiting for the first update")
-            obs.await(timeout, 1) shouldBe true
+            obs.awaitOnNext(2, timeout) shouldBe true
 
             When("Updating the peer port VLAN")
             store.update(peerPort.setPeerId(portId).setVlanId(peerVlanId))
 
             Then("The observer should receive two updates")
-            obs.await(timeout) shouldBe true
+            obs.awaitOnNext(3, timeout) shouldBe true
             val device1 = obs.getOnNextEvents.get(1)
             val device2 = obs.getOnNextEvents.get(2)
             device1 shouldBeDeviceOf bridge
@@ -859,8 +863,8 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             val bridgeId = UUID.randomUUID
             val vlanId: Short = 1
             val peerVlanId: Short = 2
-            val obs = createObserver(1)
-            val bridge = testBridgeCreated(bridgeId, obs, count = 1, test = 0)
+            val obs = createObserver()
+            val bridge = testBridgeCreated(bridgeId, obs)
 
             When("Creating an interior port and a peer bridge and port")
             val portId = UUID.randomUUID
@@ -878,13 +882,13 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
                             UpdateOp(port.setPeerId(peerPortId))))
 
             And("Waiting for the first update")
-            obs.await(timeout, 1) shouldBe true
+            obs.awaitOnNext(2, timeout) shouldBe true
 
             When("Updating the peer port VLAN")
             store.update(peerPort.setPeerId(portId).setVlanId(peerVlanId))
 
             Then("The observer should receive two updates")
-            obs.await(timeout) shouldBe true
+            obs.awaitOnNext(3, timeout) shouldBe true
             val device1 = obs.getOnNextEvents.get(1)
             val device2 = obs.getOnNextEvents.get(2)
             device1 shouldBeDeviceOf bridge
@@ -917,8 +921,8 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             val bridgeId = UUID.randomUUID
             val peerVlanId1: Short = 1
             val peerVlanId2: Short = 2
-            val obs = createObserver(1)
-            val bridge = testBridgeCreated(bridgeId, obs, count = 1, test = 0)
+            val obs = createObserver()
+            val bridge = testBridgeCreated(bridgeId, obs)
 
             When("Creating an interior port with a peer bridge and port")
             val portId = UUID.randomUUID
@@ -936,13 +940,13 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
                             UpdateOp(port.setPeerId(peerPortId))))
 
             And("Waiting for the first update")
-            obs.await(timeout, 1) shouldBe true
+            obs.awaitOnNext(2, timeout) shouldBe true
 
             When("Updating the peer port VLAN")
             store.update(peerPort.setPeerId(portId).setVlanId(peerVlanId2))
 
             Then("The observer should receive two updates")
-            obs.await(timeout) shouldBe true
+            obs.awaitOnNext(3, timeout) shouldBe true
             val device1 = obs.getOnNextEvents.get(1)
             val device2 = obs.getOnNextEvents.get(2)
             device1 shouldBeDeviceOf bridge
@@ -973,8 +977,8 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             val bridgeId = UUID.randomUUID
             val peerVlanId1: Short = 1
             val peerVlanId2: Short = 2
-            val obs = createObserver(1)
-            val bridge = testBridgeCreated(bridgeId, obs, count = 1, test = 0)
+            val obs = createObserver()
+            val bridge = testBridgeCreated(bridgeId, obs)
 
             When("Creating an interior port with a peer bridge and port")
             val portId = UUID.randomUUID
@@ -996,13 +1000,13 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
                             UpdateOp(port.setPeerId(peerPortId1))))
 
             And("Waiting for the first update")
-            obs.await(timeout, 2) shouldBe true
+            obs.awaitOnNext(2, timeout) shouldBe true
 
             When("Updating the peer port")
             store.update(port.setPeerId(peerPortId2))
 
             Then("The observer should receive three updates")
-            obs.await(timeout) shouldBe true
+            obs.awaitOnNext(4, timeout) shouldBe true
             val device1 = obs.getOnNextEvents.get(1)
             val device3 = obs.getOnNextEvents.get(3)
             device1 shouldBeDeviceOf bridge
@@ -1031,8 +1035,8 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
 
         scenario("Create interior port peered to a router port") {
             val bridgeId = UUID.randomUUID
-            val obs = createObserver(1)
-            val bridge = testBridgeCreated(bridgeId, obs, count = 1, test = 0)
+            val obs = createObserver()
+            val bridge = testBridgeCreated(bridgeId, obs)
 
             When("Creating an interior port and a peer router and port")
             val portId = UUID.randomUUID
@@ -1053,7 +1057,7 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
                             UpdateOp(port.setPeerId(peerPortId))))
 
             Then("The observer should receive the update")
-            obs.await(timeout) shouldBe true
+            obs.awaitOnNext(2, timeout) shouldBe true
             val device = obs.getOnNextEvents.get(1)
             device shouldBeDeviceOf bridge
 
@@ -1072,8 +1076,8 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
 
         scenario("MAC updated on peer router port") {
             val bridgeId = UUID.randomUUID
-            val obs = createObserver(1)
-            val bridge = testBridgeCreated(bridgeId, obs, count = 1, test = 0)
+            val obs = createObserver()
+            val bridge = testBridgeCreated(bridgeId, obs)
 
             When("Creating an interior port and a peer router and port")
             val portId = UUID.randomUUID
@@ -1093,7 +1097,7 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
                             UpdateOp(port.setPeerId(peerPortId))))
 
             Then("The observer should receive the update")
-            obs.await(timeout, 1) shouldBe true
+            obs.awaitOnNext(2, timeout) shouldBe true
             val device1 = obs.getOnNextEvents.get(1)
             device1 shouldBeDeviceOf bridge
 
@@ -1104,7 +1108,7 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             store.update(peerPort.setPeerId(portId).setPortMac(peerPortMac2))
 
             Then("The observer should receive the update")
-            obs.await(timeout) shouldBe true
+            obs.awaitOnNext(3, timeout) shouldBe true
             val device2 = obs.getOnNextEvents.get(2)
             device2 shouldBeDeviceOf bridge
 
@@ -1114,8 +1118,8 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
 
         scenario("IP updated on peer router port") {
             val bridgeId = UUID.randomUUID
-            val obs = createObserver(1)
-            val bridge = testBridgeCreated(bridgeId, obs, count = 1, test = 0)
+            val obs = createObserver()
+            val bridge = testBridgeCreated(bridgeId, obs)
 
             When("Creating an interior port and a peer router and port")
             val portId = UUID.randomUUID
@@ -1137,7 +1141,7 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
                             UpdateOp(port.setPeerId(peerPortId))))
 
             Then("The observer should receive the update")
-            obs.await(timeout, 1) shouldBe true
+            obs.awaitOnNext(2, timeout) shouldBe true
             val device1 = obs.getOnNextEvents.get(1)
             device1 shouldBeDeviceOf bridge
 
@@ -1148,7 +1152,7 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             store.update(peerPort.setPeerId(portId).setPortAddress(peerPortAddr2))
 
             Then("The observer should receive the update")
-            obs.await(timeout) shouldBe true
+            obs.awaitOnNext(3, timeout) shouldBe true
             val device2 = obs.getOnNextEvents.get(2)
             device2 shouldBeDeviceOf bridge
 
@@ -1158,8 +1162,8 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
 
         scenario("Update router peer port for interior port") {
             val bridgeId = UUID.randomUUID
-            val obs = createObserver(1)
-            val bridge = testBridgeCreated(bridgeId, obs, count = 1, test = 0)
+            val obs = createObserver()
+            val bridge = testBridgeCreated(bridgeId, obs)
 
             When("Creating an interior port with two peer router ports")
             val portId = UUID.randomUUID
@@ -1187,13 +1191,13 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
                             UpdateOp(port.setPeerId(peerPortId1))))
 
             And("Waiting for the first update")
-            obs.await(timeout, 2) shouldBe true
+            obs.awaitOnNext(2, timeout) shouldBe true
 
             When("Updating the peer port")
             store.update(port.setPeerId(peerPortId2))
 
             Then("The observer should receive three updates")
-            obs.await(timeout) shouldBe true
+            obs.awaitOnNext(4, timeout) shouldBe true
             val device1 = obs.getOnNextEvents.get(1)
             val device3 = obs.getOnNextEvents.get(3)
             device1 shouldBeDeviceOf bridge
@@ -1215,8 +1219,8 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
         scenario("Delete interior port peered to bridge port") {
             val bridgeId = UUID.randomUUID
             val vlanId: Short = 1
-            val obs = createObserver(1)
-            val bridge = testBridgeCreated(bridgeId, obs, count = 1, test = 0)
+            val obs = createObserver()
+            val bridge = testBridgeCreated(bridgeId, obs)
 
             When("Creating an interior port with a peer bridge and port")
             val portId = UUID.randomUUID
@@ -1234,13 +1238,13 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
                             UpdateOp(port.setPeerId(peerPortId))))
 
             Then("The observer should receive the update")
-            obs.await(timeout, 2) shouldBe true
+            obs.awaitOnNext(2, timeout) shouldBe true
 
             When("The port is deleted")
             store.delete(classOf[TopologyPort], portId)
 
             Then("The observer should receive the update")
-            obs.await(timeout) shouldBe true
+            obs.awaitOnNext(4, timeout) should be (true)
             val device = obs.getOnNextEvents.get(3)
             device shouldBeDeviceOf bridge
 
@@ -1255,8 +1259,8 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
         scenario("Delete interior port peered to router port") {
             val bridgeId = UUID.randomUUID
             val vlanId: Short = 1
-            val obs = createObserver(1)
-            val bridge = testBridgeCreated(bridgeId, obs, count = 1, test = 0)
+            val obs = createObserver()
+            val bridge = testBridgeCreated(bridgeId, obs)
 
             When("Creating an interior port with a peer router and port")
             val portId = UUID.randomUUID
@@ -1276,13 +1280,13 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
                             UpdateOp(port.setPeerId(peerPortId))))
 
             Then("The observer should receive the update")
-            obs.await(timeout, 2) shouldBe true
+            obs.awaitOnNext(2, timeout) shouldBe true
 
             When("The port is deleted")
             store.delete(classOf[TopologyPort], portId)
 
             Then("The observer should receive the update")
-            obs.await(timeout) shouldBe true
+            obs.awaitOnNext(4, timeout)
             val device = obs.getOnNextEvents.get(3)
             device shouldBeDeviceOf bridge
 
@@ -1302,8 +1306,8 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
     feature("Test flow invalidation") {
         scenario("For changes in exterior ports") {
             val bridgeId = UUID.randomUUID
-            val obs = createObserver(1)
-            testBridgeCreated(bridgeId, obs, count = 1, test = 0)
+            val obs = createObserver()
+            testBridgeCreated(bridgeId, obs)
 
             When("Creating an exterior port for the bridge")
             val portId = UUID.randomUUID
@@ -1313,7 +1317,7 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             store.create(port)
 
             Then("The observer should receive the update")
-            obs.await(timeout, 1) shouldBe true
+            obs.awaitOnNext(2, timeout) shouldBe true
 
             And("Brodcast flows should be invalidated")
             flowInvalidator should invalidate (
@@ -1324,7 +1328,7 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             store.delete(classOf[TopologyPort], portId)
 
             Then("The observer should receive the update")
-            obs.await(timeout) shouldBe true
+            obs.awaitOnNext(3, timeout) shouldBe true
 
             And("Brodcast flows should be invalidated")
             flowInvalidator should invalidate (
@@ -1336,8 +1340,8 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
 
         scenario("For added and updated MAC-port mappings") {
             val bridgeId = UUID.randomUUID
-            val obs = createObserver(1)
-            testBridgeCreated(bridgeId, obs, count = 1, test = 0)
+            val obs = createObserver()
+            testBridgeCreated(bridgeId, obs)
 
             When("Creating an interior port with a peer router and port")
             val portId = UUID.randomUUID
@@ -1357,7 +1361,7 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
                             UpdateOp(port.setPeerId(peerPortId))))
 
             Then("The observer should receive the update")
-            obs.await(timeout, 1) shouldBe true
+            obs.awaitOnNext(2, timeout) shouldBe true
 
             And("The MAC-port mapping should be invalidated")
             flowInvalidator should invalidate (
@@ -1370,7 +1374,7 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             store.update(peerPort.setPeerId(portId).setPortMac(peerPortMac2))
 
             Then("The observer should receive the update")
-            obs.await(timeout) shouldBe true
+            obs.awaitOnNext(3, timeout) shouldBe true
 
             And("The MAC-port mapping should be invalidated")
             flowInvalidator should invalidate (
@@ -1386,8 +1390,8 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
 
         scenario("For MAC added to port") {
             val bridgeId = UUID.randomUUID
-            val obs = createObserver(1)
-            val bridge = testBridgeCreated(bridgeId, obs, count = 1, test = 0)
+            val obs = createObserver()
+            val bridge = testBridgeCreated(bridgeId, obs)
 
             When("Creating two interior ports with two peer bridge ports")
             val portId1 = UUID.randomUUID
@@ -1414,7 +1418,7 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
                             UpdateOp(port2.setPeerId(peerPortId2))))
 
             Then("The observer should receive the update")
-            obs.await(timeout, 1) shouldBe true
+            obs.awaitOnNext(2, timeout) shouldBe true
             val device = obs.getOnNextEvents.get(1)
             device shouldBeDeviceOf bridge
             device.vlanMacTableMap.keySet should contain allOf(
@@ -1486,8 +1490,8 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
 
         scenario("MAC entries should expire") {
             val bridgeId = UUID.randomUUID
-            val obs = createObserver(1)
-            val bridge = testBridgeCreated(bridgeId, obs, count = 1, test = 0)
+            val obs = createObserver()
+            val bridge = testBridgeCreated(bridgeId, obs)
 
             When("Creating an interior port with a peer bridge and port")
             val portId = UUID.randomUUID
@@ -1506,7 +1510,7 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
                             UpdateOp(port.setPeerId(peerPortId))))
 
             Then("The observer should receive the update")
-            obs.await(timeout, 1) shouldBe true
+            obs.awaitOnNext(2, timeout) shouldBe true
             val device = obs.getOnNextEvents.get(1)
             device shouldBeDeviceOf bridge
             device.vlanMacTableMap.keySet should contain allOf(
