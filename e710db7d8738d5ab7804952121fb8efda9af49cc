@@ -111,6 +111,23 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_1010894d",
+        "filename": "cluster/src/tools/README-BORIS",
+        "patchSetId": 12
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-03-30T10:02:31Z",
+      "side": 1,
+      "message": "could we lower-case-ize the type names?\n\nplease please",
+      "revId": "e710db7d8738d5ab7804952121fb8efda9af49cc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_5cca1d50",
         "filename": "cluster/src/tools/README-BORIS",
         "patchSetId": 12
@@ -168,6 +185,23 @@
         "endLine": 58,
         "endChar": 9
       },
+      "revId": "e710db7d8738d5ab7804952121fb8efda9af49cc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_70345dde",
+        "filename": "cluster/src/tools/README-BORIS",
+        "patchSetId": 12
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-03-30T10:02:31Z",
+      "side": 1,
+      "message": "can i write a boris script where the second command uses the id returned by the 1st one?",
       "revId": "e710db7d8738d5ab7804952121fb8efda9af49cc",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -237,6 +271,23 @@
         "endLine": 94,
         "endChar": 16
       },
+      "revId": "e710db7d8738d5ab7804952121fb8efda9af49cc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_902bd981",
+        "filename": "cluster/src/tools/scala/cli/Boris.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-03-30T10:02:31Z",
+      "side": 1,
+      "message": "kudos for supporting all types on 431 lines of code :)",
       "revId": "e710db7d8738d5ab7804952121fb8efda9af49cc",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
