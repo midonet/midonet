@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_66582757",
+        "filename": "cluster/src/test/scala/org/midonet/cluster/cli/BorisTest.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 213,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-03-30T19:20:54Z",
+      "side": 1,
+      "message": "Mmm not really. So, the CLI is actually agnostic to the types that it manages. It doesn\u0027t really matter that we use Network in most tests. The goal is to prove that we can parse the grammar. Once a command like \"Type verb property value\" works, then it will work for all types, all verbs, all properties.\n\nThings that we *do* need to test are:\n- That only valid types are parsed (covered)\n- That valid verbs work (covered)\n- That only valid properties within a given type work (covered)\n- That values for properties of primitive types are parsed correctly (covered)\n- That values for properties of \"Commons\" types are parsed (these are the UUID, IPv4, etc.) (covered)\n- That values of complex types are parsed e.g.: a field of the Router is a list of Route entities (covered)\n\nGiven successes here, then the types are unimportant.\n\nI\u0027ll add more specific comments on your suggestions:\n\n    What if we add an item that\u0027s already present\n    What if we remove an item that is NOT present\n\nThese are not testing the CLI, but the underlying storage layer (ZOOM) which is already tested by itself. Both of these cases will throw a ZOOM error. What I will do is add some command that does trigger a ZOOM error, so we prove that the CLI can handle them.\n\n    What if we list and there are no items\n\nI could add this, but it won\u0027t actually add any real coverage (like, 0).\n\n    What if we remove from a repeated field when there are no more values (if valid) OR What if I remove from the repeated list using an ID that is not present.\n\nDitto, these are ZOOM errors that the CLI will report. But no much code to test on our side, beyond bubbling up the error.\n\n    What if creation of some items that take an already existing ID (like port create) are given a non-existent value?\n\nDitto, that\u0027s all in ZOOM, nothing in CLI.\n\n    What if I enter bad primitives or malformed IP?\n\nThese can be tested generically. I will add one or two cases that set invalid values in the properties to prove that the failure is bubbled up correctly.\n\n    What about deleting routers, rules, and Vteps (I see network and port)?\n    What about listing routers, ports, etc. (I see network)?\n    What about updating routers, ports, etc. (I see network)?\n    What about getting routers, ports, etc. (I see network)?\n\nAs noted above, these are identical. The CLI is generic so there is no difference between deleting a Router or a Network. Exactly the same code would be executed. \n\n    What about deleting routers with IDs still present?\n\nNot sure I understand? You mean deleting a router that contains routes that haven\u0027t been deleted?\n\n    What about deleting other entities that have already-configured objects (I see the network-port test, so that\u0027s covered)?\n\nThis is handled by the storage layer (ZOOM) that applies cascading deletes automatically. The CLI doesn\u0027t do anything with it, as long as it issues the DELETE to the parent object, ZOOM will take care of the rest (which is logically tested in the ZOOM tests).",
+      "parentUuid": "1a106d94_7c1d59bd",
+      "revId": "e710db7d8738d5ab7804952121fb8efda9af49cc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_3c512163",
         "filename": "cluster/src/tools/README-BORIS",
         "patchSetId": 12
