@@ -1,0 +1,89 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_131d3310",
+        "filename": "brain/midonet-brain/src/rhel6/control/postinst",
+        "patchSetId": 5
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1002749
+      },
+      "writtenOn": "2015-03-30T15:06:36Z",
+      "side": 1,
+      "message": "You can remove this file: we are not going to support Icehouse in 2.0 architecture, which is the last OpenStack release supported in RHEL6",
+      "revId": "8b222f38b97d4fb956068c42dff0327cb96df14e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_b3d37f37",
+        "filename": "brain/midonet-brain/src/rhel6/control/preinst",
+        "patchSetId": 5
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1002749
+      },
+      "writtenOn": "2015-03-30T15:06:36Z",
+      "side": 1,
+      "message": "same here",
+      "revId": "8b222f38b97d4fb956068c42dff0327cb96df14e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_93d80355",
+        "filename": "brain/midonet-brain/src/rhel6/control/prerm",
+        "patchSetId": 5
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1002749
+      },
+      "writtenOn": "2015-03-30T15:06:36Z",
+      "side": 1,
+      "message": "Same here",
+      "revId": "8b222f38b97d4fb956068c42dff0327cb96df14e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_f3ddf743",
+        "filename": "brain/midonet-brain/src/rhel6/init.d/midonet-brain",
+        "patchSetId": 5
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1002749
+      },
+      "writtenOn": "2015-03-30T15:06:36Z",
+      "side": 1,
+      "message": "Same here",
+      "revId": "8b222f38b97d4fb956068c42dff0327cb96df14e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_d3e27b02",
+        "filename": "brain/midonet-brain/src/rhel6/init/midonet-brain.conf",
+        "patchSetId": 5
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1002749
+      },
+      "writtenOn": "2015-03-30T15:06:36Z",
+      "side": 1,
+      "message": "And this one",
+      "revId": "8b222f38b97d4fb956068c42dff0327cb96df14e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
