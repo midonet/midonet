@@ -26,6 +26,8 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{BeforeAndAfter, FeatureSpec, Matchers}
 
+import rx.observers.TestObserver
+
 import org.midonet.cluster.data.storage.FieldBinding.DeleteAction
 import org.midonet.cluster.data.storage.FieldBinding.DeleteAction._
 import org.midonet.cluster.data.storage.ZookeeperObjectMapperTest._
@@ -34,8 +36,7 @@ import org.midonet.cluster.models.Commons
 import org.midonet.cluster.models.Topology.{Chain, Network, Router}
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.cluster.util.{ClassAwaitableObserver, ParentDeletedException, UUIDUtil}
-import org.midonet.util.eventloop.{CallingThreadReactor, Reactor}
-import org.midonet.util.reactivex.AwaitableObserver
+import org.midonet.util.reactivex.{AssertableObserver, AwaitableObserver}
 
 @RunWith(classOf[JUnitRunner])
 class InMemoryStorageTest extends FeatureSpec with BeforeAndAfter
@@ -97,6 +98,11 @@ class InMemoryStorageTest extends FeatureSpec with BeforeAndAfter
 
         storage.build()
     }
+
+    private def makeObservable[T](assertFunc: () => Unit = storage.assertEventThread) =
+        new TestObserver[T] with AwaitableObserver[T] with AssertableObserver[T] {
+            override def assert() = assertFunc()
+        }
 
     feature("Test multi") {
         scenario("Test multi create") {
@@ -215,12 +221,12 @@ class InMemoryStorageTest extends FeatureSpec with BeforeAndAfter
         scenario("Test subscribe") {
             val bridge = createPojoBridge()
             storage.create(bridge)
-            val obs = new AwaitableObserver[PojoBridge](2, storage.assertEventThread())
+            val obs = makeObservable[PojoBridge]()
             storage.observable(classOf[PojoBridge], bridge.id).subscribe(obs)
             val port = createPojoPort(bridgeId = bridge.id)
             storage.create(port)
 
-            obs.await(1 second, 0) shouldBe true
+            obs.awaitOnNext(1, 1 second) shouldBe true
         }
 
         scenario("Test subscribe all") {
@@ -749,9 +755,10 @@ class InMemoryStorageTest extends FeatureSpec with BeforeAndAfter
             val chain = createPojoChain()
             storage.create(chain)
 
-            val obs = new AwaitableObserver[PojoChain](1, assertThread())
+
+            val obs = makeObservable[PojoChain]()
             storage.observable(classOf[PojoChain], chain.id).subscribe(obs)
-            obs.await(1 second) shouldBe true
+            obs.awaitOnNext(1, 1 second) shouldBe true
             obs.getOnNextEvents should have size 1
             obs.getOnNextEvents.get(0).id shouldBe chain.id
             obs.getOnErrorEvents shouldBe empty
@@ -762,12 +769,12 @@ class InMemoryStorageTest extends FeatureSpec with BeforeAndAfter
             val chain = createPojoChain()
             storage.create(chain)
 
-            val obs = new AwaitableObserver[PojoChain](1, assertThread())
+            val obs = makeObservable[PojoChain]()
             storage.observable(classOf[PojoChain], chain.id).subscribe(obs)
-            obs.await(1 second, 1) shouldBe true
+            obs.awaitOnNext(1, 1 second) shouldBe true
             chain.name = "renamed_chain"
             storage.update(chain)
-            obs.await(1 second) shouldBe true
+            obs.awaitOnNext(2, 1 second) shouldBe true
             obs.getOnNextEvents should have size 2
             obs.getOnNextEvents.get(1).name shouldBe chain.name
         }
@@ -776,22 +783,22 @@ class InMemoryStorageTest extends FeatureSpec with BeforeAndAfter
             val chain = createPojoChain()
             storage.create(chain)
 
-            val obs = new AwaitableObserver[PojoChain](1, assertThread())
+            val obs = makeObservable[PojoChain]()
             storage.observable(classOf[PojoChain], chain.id).subscribe(obs)
-            obs.await(1 second, 1) shouldBe true
+            obs.awaitOnNext(1, 1 second) shouldBe true
             obs.getOnNextEvents should have size 1 // the initial value
             storage.delete(classOf[PojoChain], chain.id)
-            obs.await(1 second) shouldBe true
+            obs.awaitCompletion(1 second)
             obs.getOnNextEvents should have size 1
             obs.getOnCompletedEvents should have size 1
             obs.getOnErrorEvents shouldBe empty
         }
 
         scenario("Test subscribe to non-existent object") {
-            val obs = new AwaitableObserver[PojoChain](1, assertThread())
+            val obs = makeObservable[PojoChain]()
             val id = UUID.randomUUID
             storage.observable(classOf[PojoChain], id).subscribe(obs)
-            obs.await(1 second) shouldBe true
+            obs.awaitCompletion(1 second)
             val e = obs.getOnErrorEvents.get(0).asInstanceOf[NotFoundException]
             e.clazz shouldBe classOf[PojoChain]
             e.id shouldBe id
@@ -803,17 +810,17 @@ class InMemoryStorageTest extends FeatureSpec with BeforeAndAfter
             val chain = createPojoChain()
             storage.create(chain)
 
-            val obs1 = new AwaitableObserver[PojoChain](1, assertThread())
+            val obs1 = makeObservable[PojoChain]()
             storage.observable(classOf[PojoChain], chain.id).subscribe(obs1)
-            obs1.await(1 second, 1) shouldBe true
+            obs1.awaitOnNext(1, 1 second) shouldBe true
 
             chain.name = "renamed_chain"
             storage.update(chain)
-            obs1.await(1 second) shouldBe true
+            obs1.awaitOnNext(2, 1 second) shouldBe true
 
-            val obs2 = new AwaitableObserver[PojoChain](1, assertThread())
+            val obs2 = makeObservable[PojoChain]()
             storage.observable(classOf[PojoChain], chain.id).subscribe(obs2)
-            obs2.await(1 second) shouldBe true
+            obs2.awaitOnNext(1, 1 second) shouldBe true
 
             obs2.getOnNextEvents should have size 1
             obs2.getOnNextEvents.get(0).name shouldBe "renamed_chain"
@@ -883,10 +890,10 @@ class InMemoryStorageTest extends FeatureSpec with BeforeAndAfter
             obs1.observers should have size 2
 
             val chain1Sub = obs1.observers.get(0).get
-            chain1Sub.await(1 second, 1) shouldBe true
+            chain1Sub.awaitOnNext(1, 1 second) shouldBe true
 
             storage.delete(classOf[PojoChain], chain1.id)
-            chain1Sub.await(1 second, 0) shouldBe true
+            chain1Sub.awaitCompletion(1 second)
             chain1Sub.getOnErrorEvents shouldBe empty
             chain1Sub.getOnCompletedEvents should have size 1
             // the initial value
@@ -900,7 +907,7 @@ class InMemoryStorageTest extends FeatureSpec with BeforeAndAfter
             obs2.observers.size shouldBe 1
             val chain2Sub = obs2.observers.get(0).get
 
-            chain2Sub.await(1 second) shouldBe true
+            chain2Sub.awaitOnNext(1, 1 second) shouldBe true
             chain2Sub.getOnNextEvents.get(0).name shouldBe "chain2"
         }
     }
@@ -1394,22 +1401,22 @@ class InMemoryStorageTest extends FeatureSpec with BeforeAndAfter
         scenario("Test subscribe exclusive ownership on create") {
             val state = new ExclusiveState
             val owner = UUID.randomUUID
-            val obs = new AwaitableObserver[Set[String]](assert = assertThread())
+            val obs = makeObservable[Set[String]](assertThread)
             storage.create(state, owner)
             storage.ownersObservable(classOf[ExclusiveState], state.id).subscribe(obs)
-            obs.await(1 second) shouldBe true
+            obs.awaitOnNext(1, 1 second) shouldBe true
             obs.getOnNextEvents should contain only Set(owner.toString)
         }
 
         scenario("Test subscribe exclusive ownership on update") {
             val state = new ExclusiveState
             val owner = UUID.randomUUID
-            val obs = new AwaitableObserver[Set[String]](assert = assertThread())
+            val obs = makeObservable[Set[String]](assertThread)
             storage.create(state, owner)
             storage.ownersObservable(classOf[ExclusiveState], state.id).subscribe(obs)
-            obs.await(1 second, 1) shouldBe true
+            obs.awaitOnNext(1, 1 second) shouldBe true
             storage.update(state, owner, null)
-            obs.await(1 second) shouldBe true
+            obs.awaitOnNext(2, 1 second) shouldBe true
             obs.getOnNextEvents should contain theSameElementsAs Vector(
                 Set(owner.toString), Set(owner.toString))
         }
@@ -1417,12 +1424,12 @@ class InMemoryStorageTest extends FeatureSpec with BeforeAndAfter
         scenario("Test subscribe exclusive ownerhip on delete") {
             val state = new ExclusiveState
             val owner = UUID.randomUUID
-            val obs = new AwaitableObserver[Set[String]](assert = assertThread())
+            val obs = makeObservable[Set[String]](assertThread)
             storage.create(state, owner)
             storage.ownersObservable(classOf[ExclusiveState], state.id).subscribe(obs)
-            obs.await(1 second, 1) shouldBe true
+            obs.awaitOnNext(1, 1 second) shouldBe (true)
             storage.delete(classOf[ExclusiveState], state.id, owner)
-            obs.await(1 second) shouldBe true
+            obs.awaitCompletion(1 second)
             obs.getOnNextEvents should contain only Set(owner.toString)
             obs.getOnErrorEvents.get(0).getClass shouldBe classOf[
                 ParentDeletedException]
@@ -1431,9 +1438,9 @@ class InMemoryStorageTest extends FeatureSpec with BeforeAndAfter
         scenario("Test subscribe exclusive non-existing object") {
             val owner = UUID.randomUUID
             val id = UUID.randomUUID
-            val obs = new AwaitableObserver[Set[String]](assert = assertThread())
+            val obs = makeObservable[Set[String]](assertThread)
             storage.ownersObservable(classOf[ExclusiveState], id).subscribe(obs)
-            obs.await(1 second) shouldBe true
+            obs.awaitCompletion(1 second)
             obs.getOnNextEvents shouldBe empty
             obs.getOnErrorEvents.get(0).getClass shouldBe classOf[
                 ParentDeletedException]
@@ -1442,24 +1449,24 @@ class InMemoryStorageTest extends FeatureSpec with BeforeAndAfter
         scenario("Test subscribe shared ownership on create") {
             val state = new SharedState
             val owner = UUID.randomUUID
-            val obs = new AwaitableObserver[Set[String]](assert = assertThread())
+            val obs = makeObservable[Set[String]](assertThread)
             storage.create(state, owner)
             storage.ownersObservable(classOf[SharedState], state.id).subscribe(obs)
-            obs.await(1 second) shouldBe true
+            obs.awaitOnNext(1, 1 second) shouldBe true
             obs.getOnNextEvents should contain only Set(owner.toString)
         }
 
         scenario("Test subscribe shared ownership single owner") {
             val state = new SharedState
             val owner = UUID.randomUUID
-            val obs = new AwaitableObserver[Set[String]](assert = assertThread())
+            val obs = makeObservable[Set[String]](assertThread)
             storage.create(state, owner)
             storage.ownersObservable(classOf[SharedState], state.id).subscribe(obs)
-            obs.await(1 second, 1) shouldBe true
+            obs.awaitOnNext(1, 1 second) shouldBe true
             storage.update(state, owner, null)
-            obs.await(1 second, 1) shouldBe true
+            obs.awaitOnNext(2, 1 second) shouldBe true
             storage.delete(classOf[SharedState], state.id, owner)
-            obs.await(1 second) shouldBe true
+            obs.awaitCompletion(1 second)
             obs.getOnNextEvents should contain theSameElementsAs Vector(
                 Set(owner.toString), Set(owner.toString))
             obs.getOnErrorEvents.get(0).getClass shouldBe classOf[
@@ -1471,20 +1478,20 @@ class InMemoryStorageTest extends FeatureSpec with BeforeAndAfter
             val owner1 = UUID.randomUUID
             val owner2 = UUID.randomUUID
             val owner3 = UUID.randomUUID
-            val obs = new AwaitableObserver[Set[String]](assert = assertThread())
+            val obs = makeObservable[Set[String]](assertThread)
             storage.create(state, owner1)
             storage.ownersObservable(classOf[SharedState], state.id).subscribe(obs)
-            obs.await(1 second, 1) shouldBe true
+            obs.awaitOnNext(1, 1 second) shouldBe true
             storage.update(state, owner2, null)
-            obs.await(1 second, 1) shouldBe true
+            obs.awaitOnNext(1, 1 second) shouldBe true
             storage.update(state, owner3, null)
-            obs.await(1 second, 1) shouldBe true
+            obs.awaitOnNext(1, 1 second) shouldBe true
             storage.delete(classOf[SharedState], state.id, owner1)
-            obs.await(1 second, 1) shouldBe true
+            obs.awaitOnNext(1, 1 second) shouldBe true
             storage.delete(classOf[SharedState], state.id, owner2)
-            obs.await(1 second, 1) shouldBe true
+            obs.awaitOnNext(1, 1 second) shouldBe true
             storage.delete(classOf[SharedState], state.id, owner3)
-            obs.await(1 second) shouldBe true
+            obs.awaitCompletion(1 second)
             obs.getOnNextEvents should contain theSameElementsAs Vector(
                 Set(owner1.toString),
                 Set(owner1.toString, owner2.toString),
@@ -1500,20 +1507,20 @@ class InMemoryStorageTest extends FeatureSpec with BeforeAndAfter
             val owner1 = UUID.randomUUID
             val owner2 = UUID.randomUUID
             val owner3 = UUID.randomUUID
-            val obs = new AwaitableObserver[Set[String]](assert = assertThread())
+            val obs = makeObservable[Set[String]](assertThread)
             storage.create(state)
             storage.ownersObservable(classOf[SharedState], state.id).subscribe(obs)
-            obs.await(1 second, 1) shouldBe true
+            obs.awaitOnNext(1, 1 second) shouldBe true
             storage.updateOwner(classOf[SharedState], state.id, owner1, false)
-            obs.await(1 second, 1) shouldBe true
+            obs.awaitOnNext(2, 1 second) shouldBe true
             storage.updateOwner(classOf[SharedState], state.id, owner2, false)
-            obs.await(1 second, 1) shouldBe true
+            obs.awaitOnNext(3, 1 second) shouldBe true
             storage.updateOwner(classOf[SharedState], state.id, owner3, false)
-            obs.await(1 second, 1) shouldBe true
+            obs.awaitOnNext(4, 1 second) shouldBe true
             storage.deleteOwner(classOf[SharedState], state.id, owner1)
-            obs.await(1 second, 1) shouldBe true
+            obs.awaitOnNext(5, 1 second) shouldBe true
             storage.deleteOwner(classOf[SharedState], state.id, owner2)
-            obs.await(1 second, 1) shouldBe true
+            obs.awaitOnNext(6, 1 second) shouldBe true
             storage.deleteOwner(classOf[SharedState], state.id, owner3)
             await(storage.exists(classOf[SharedState], state.id)) shouldBe true
             obs.getOnNextEvents should contain theSameElementsAs Vector(

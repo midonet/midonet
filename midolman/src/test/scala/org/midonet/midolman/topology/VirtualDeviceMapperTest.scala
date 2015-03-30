@@ -21,13 +21,13 @@ import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import rx.Observable
+import rx.observers.TestObserver
 import rx.subjects.BehaviorSubject
 
 import org.midonet.midolman.topology.VirtualTopology.VirtualDevice
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.sdn.flows.FlowTagger.DeviceTag
 import org.midonet.util.functors._
-import org.midonet.util.reactivex._
 
 @RunWith(classOf[JUnitRunner])
 class VirtualDeviceMapperTest extends MidolmanSpec {
@@ -72,7 +72,7 @@ class VirtualDeviceMapperTest extends MidolmanSpec {
             Observable.create(new TestableMapper(id, obs))
     }
 
-    type TestableObserver = AwaitableObserver[TestableDevice]
+    type TestableObserver = TestObserver[TestableDevice]
 
     implicit var vt: VirtualTopology = _
 

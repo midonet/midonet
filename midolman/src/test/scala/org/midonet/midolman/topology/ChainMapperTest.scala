@@ -28,8 +28,9 @@ import akka.testkit.TestKit
 import com.typesafe.config.{ConfigValueFactory, Config}
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
+import rx.observers.TestObserver
 
-import rx.{Observable, Subscription}
+import rx.Observable
 
 import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.data.storage.{NotFoundException, Storage}
@@ -41,8 +42,8 @@ import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.rules.{Rule => SimRule}
 import org.midonet.midolman.simulation.{Chain => SimChain}
 import org.midonet.midolman.util.MidolmanSpec
-import org.midonet.midolman.{FlowController, NotYetException}
-import org.midonet.util.reactivex.AwaitableObserver
+import org.midonet.midolman.NotYetException
+import org.midonet.util.reactivex.{AssertableObserver, AwaitableObserver}
 
 @RunWith(classOf[JUnitRunner])
 class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
@@ -68,10 +69,11 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
         assert(vt.threadId == Thread.currentThread.getId)
     }
 
-    private def subscribreToChain(count: Int, chainId: UUID)
-    : (Subscription, AwaitableObserver[SimChain]) = {
+    private def subscribeToChain(count: Int, chainId: UUID) = {
         val mapper = new ChainMapper(chainId, vt)
-        val obs = new AwaitableObserver[SimChain](count, assertThread())
+        val obs = new TestObserver[SimChain] with AwaitableObserver[SimChain] with AssertableObserver[SimChain] {
+            override def assert() = assertThread()
+        }
         val subscription = Observable.create(mapper).subscribe(obs)
         (subscription, obs)
     }
@@ -86,10 +88,10 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
                                            Set(rule1.getId))
 
             When("We subscribe to the chain")
-            val (subscription, obs) = subscribreToChain(count = 1, chainId)
+            val (subscription, obs) = subscribeToChain(count = 1, chainId)
 
             Then("We receive only one update with the chain with the rule")
-            obs.await(timeout, 1) shouldBe true
+            obs.awaitOnNext(1, timeout) shouldBe true
             obs.getOnNextEvents should have size 1
             val simChain = obs.getOnNextEvents.asScala.last
             assertEquals(chain, simChain, List(rule1), null)
@@ -100,7 +102,7 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
             var updatedChain = addRuleToChain(rule2, chain)
 
             Then("We receive the chain with the two rules")
-            obs.await(timeout, 1) shouldBe true
+            obs.awaitOnNext(2, timeout) shouldBe true
             obs.getOnNextEvents should have size 2
             var updatedSimChain = obs.getOnNextEvents.asScala.last
             assertEquals(updatedChain, updatedSimChain, List(rule1, rule2), null)
@@ -109,7 +111,7 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
             updatedChain = removeRuleFromChain(rule2.getId, updatedChain)
 
             Then("We receive the chain with only 1 rule")
-            obs.await(timeout, 1) shouldBe true
+            obs.awaitOnNext(3, timeout) shouldBe true
             obs.getOnNextEvents should have size 3
             updatedSimChain = obs.getOnNextEvents.asScala.last
             assertEquals(updatedChain, updatedSimChain, List(rule1), null)
@@ -118,7 +120,7 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
             updatedChain = removeRuleFromChain(rule1.getId, updatedChain)
 
             Then("We receive the chain with an empty list of rules")
-            obs.await(timeout) shouldBe true
+            obs.awaitOnNext(4, timeout) shouldBe true
             obs.getOnNextEvents should have size 4
             updatedSimChain = obs.getOnNextEvents.asScala.last
             assertEquals(updatedChain, updatedSimChain, List.empty, null)
@@ -174,10 +176,10 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
             val chain = buildAndStoreChain(chainId, "test-chain", Set.empty)
 
             When("We subscribe to the chain")
-            val (subscription, obs) = subscribreToChain(count = 1, chainId)
+            val (subscription, obs) = subscribeToChain(count = 1, chainId)
 
             Then("We receive the chain")
-            obs.await(timeout, 1) shouldBe true
+            obs.awaitOnNext(1, timeout) shouldBe true
             val simChain = obs.getOnNextEvents.asScala.last
             assertEquals(chain, simChain, List.empty, null)
 
@@ -185,7 +187,7 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
             store.delete(classOf[ProtoChain], chain.getId)
 
             Then("The observable completes")
-            obs.await(timeout) shouldBe true
+            obs.awaitCompletion(timeout)
             obs.getOnCompletedEvents should have size 1
         }
 
@@ -200,11 +202,11 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
                                            Set(jumpRule.getId))
 
             When("We subscribe to the chain")
-            val (_, obs) = subscribreToChain(count = 1, chainId)
+            val (_, obs) = subscribeToChain(count = 1, chainId)
 
 
             Then("We receive the chain with the jump rule and associated chain")
-            obs.await(timeout, 1) shouldBe true
+            obs.awaitOnNext(1, timeout) shouldBe true
             val simChain = obs.getOnNextEvents.asScala.last
             assertEquals(chain, simChain, List(jumpRule), jumpChain)
 
@@ -216,7 +218,7 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
                                                  newJumpChain.getId)
 
             Then("We receive the chain with the new jump rule and associated chain")
-            obs.await(timeout, 1) shouldBe true
+            obs.awaitOnNext(2, timeout) shouldBe true
             var updatedSimChain = obs.getOnNextEvents.asScala.last
             assertEquals(chain, updatedSimChain, List(updatedJumpRule),
                          newJumpChain)
@@ -227,7 +229,7 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
             store.update(updatedJumpChain)
 
             Then("We receive the chain with the updated jump chain")
-            obs.await(timeout, 1) shouldBe true
+            obs.awaitOnNext(3, timeout) shouldBe true
             updatedSimChain = obs.getOnNextEvents.asScala.last
             assertEquals(chain, updatedSimChain, List(updatedJumpRule),
                          updatedJumpChain)
@@ -236,7 +238,7 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
             val updatedChain = removeRuleFromChain(jumpRule.getId, chain)
 
             Then("We receive the chain without any rules")
-            obs.await(timeout, 1) shouldBe true
+            obs.awaitOnNext(4, timeout) shouldBe true
             updatedSimChain = obs.getOnNextEvents.asScala.last
             assertEquals(updatedChain, updatedSimChain, List.empty,
                          jumpChain = null)
@@ -250,7 +252,7 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
                              .build())
 
             Then("We receive only one update")
-            obs.await(timeout, 1) shouldBe true
+            obs.awaitOnNext(5, timeout) shouldBe true
             obs.getOnNextEvents should have size 5
 
             And("When we update the jump chain and the chain")
@@ -262,7 +264,7 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
                              .build())
 
             Then("We receive only one update")
-            obs.await(timeout) shouldBe true
+            obs.awaitOnNext(6, timeout) shouldBe true
             obs.getOnNextEvents should have size 6
         }
 
@@ -277,10 +279,10 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
                                            Set(jumpRule1.getId))
 
             When("We subscribe to the chain")
-            val (_, obs) = subscribreToChain(count = 1, chainId)
+            val (_, obs) = subscribeToChain(count = 1, chainId)
 
             Then("We receive the chain with the jump rule and associated chain")
-            obs.await(timeout, 1) shouldBe true
+            obs.awaitOnNext(1, timeout) shouldBe true
             var simChain = obs.getOnNextEvents.asScala.last
             assertEquals(chain, simChain, List(jumpRule1), jumpChain)
 
@@ -289,7 +291,7 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
             var updatedChain = addRuleToChain(jumpRule2, chain)
 
             Then("We receive the chain with the two jump rules")
-            obs.await(timeout, 1) shouldBe true
+            obs.awaitOnNext(2, timeout) shouldBe true
             simChain = obs.getOnNextEvents.asScala.last
             assertEquals(updatedChain, simChain, List(jumpRule1, jumpRule2),
                          jumpChain)
@@ -298,7 +300,7 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
             updatedChain = removeRuleFromChain(jumpRule1.getId, updatedChain)
 
             Then("We receive the updated chain")
-            obs.await(timeout, 1) shouldBe true
+            obs.awaitOnNext(3, timeout) shouldBe true
             simChain = obs.getOnNextEvents.asScala.last
             assertEquals(updatedChain, simChain, List(jumpRule2), jumpChain)
 
@@ -309,7 +311,7 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
             store.update(updatedJumpChain)
 
             Then("We receive the updated chain")
-            obs.await(timeout, 1) shouldBe true
+            obs.awaitOnNext(4, timeout) shouldBe true
             simChain = obs.getOnNextEvents.asScala.last
             assertEquals(updatedChain, simChain, List(jumpRule2),
                          updatedJumpChain)
@@ -318,7 +320,7 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
             updatedChain = removeRuleFromChain(jumpRule2.getId, updatedChain)
 
             Then("We receive the chain with no rules")
-            obs.await(timeout, 1) shouldBe true
+            obs.awaitOnNext(5, timeout) shouldBe true
             simChain = obs.getOnNextEvents.asScala.last
             assertEquals(updatedChain, simChain, List.empty, jumpChain = null)
 
@@ -331,7 +333,7 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
                 .build())
 
             Then("We receive only one update")
-            obs.await(timeout) shouldBe true
+            obs.awaitOnNext(6, timeout) shouldBe true
             obs.getOnNextEvents should have size 6
         }
 
@@ -349,10 +351,10 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
                                            Set(rule.getId.asJava))
 
             When("We subscribe to the chain")
-            val (_, obs) = subscribreToChain(count = 1, chainId)
+            val (_, obs) = subscribeToChain(count = 1, chainId)
 
             Then("We receive the chain with the rule and associated IPAddrGroups")
-            obs.await(timeout, 1) shouldBe true
+            obs.awaitOnNext(1, timeout) shouldBe true
             obs.getOnNextEvents should have size 1
             val simChain = obs.getOnNextEvents.asScala.last
             assertEquals(chain, simChain, List(rule), jumpChain = null,
@@ -366,7 +368,7 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
             store.update(updatedIPAddrGrpSrc)
 
             Then("We receive the chain with the updated IPAddrGroupSrc")
-            obs.await(timeout, 1) shouldBe true
+            obs.awaitOnNext(2, timeout) shouldBe true
             obs.getOnNextEvents should have size 2
             var updatedSimChain = obs.getOnNextEvents.asScala.last
             assertEquals(chain, updatedSimChain, List(rule), jumpChain = null,
@@ -377,7 +379,7 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
             val updatedChain = removeRuleFromChain(rule.getId.asJava, chain)
 
             Then("We receive the chain with no rules")
-            obs.await(timeout, 1) shouldBe true
+            obs.awaitOnNext(3, timeout) shouldBe true
             obs.getOnNextEvents should have size 3
             updatedSimChain = obs.getOnNextEvents.asScala.last
             assertEquals(updatedChain, updatedSimChain, rules = List.empty,
@@ -392,7 +394,7 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
                              .build())
 
             Then("We receive only one update")
-            obs.await(timeout, 1) shouldBe true
+            obs.awaitOnNext(4, timeout) shouldBe true
             obs.getOnNextEvents should have size 4
 
             When("We update the rule and the main chain")
@@ -404,7 +406,7 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
                              .build())
 
             Then("We receive only one update")
-            obs.await(timeout) shouldBe true
+            obs.awaitOnNext(5, timeout) shouldBe true
             obs.getOnNextEvents should have size 5
         }
 
@@ -423,10 +425,10 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
                                                rule2.getId.asJava))
 
             When("We subscribe to the chain")
-            val (_, obs) = subscribreToChain(count = 1, chainId)
+            val (_, obs) = subscribeToChain(count = 1, chainId)
 
             Then("We receive the chain with the rules and associated IPAddrGroup")
-            obs.await(timeout, 1) shouldBe true
+            obs.awaitOnNext(1, timeout) shouldBe true
             obs.getOnNextEvents should have size 1
             val simChain = obs.getOnNextEvents.asScala.last
             assertEquals(chain, simChain, List(rule1, rule2),
@@ -437,7 +439,7 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
             var updatedChain = removeRuleFromChain(rule1.getId, chain)
 
             Then("We receive the updated chain")
-            obs.await(timeout, 1) shouldBe true
+            obs.awaitOnNext(2, timeout) shouldBe true
             obs.getOnNextEvents should have size 2
             var updatedSimChain = obs.getOnNextEvents.asScala.last
             assertEquals(chain, updatedSimChain, List(rule2), jumpChain = null,
@@ -450,7 +452,7 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
             store.update(updatedIPAddrGrpSrc)
 
             Then("We receive the chain with the updated IPAddrGroupSrc")
-            obs.await(timeout, 1) shouldBe true
+            obs.awaitOnNext(3, timeout) shouldBe true
             obs.getOnNextEvents should have size 3
             updatedSimChain = obs.getOnNextEvents.asScala.last
             assertEquals(chain, updatedSimChain, List(rule2), jumpChain = null,
@@ -460,7 +462,7 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
             updatedChain = removeRuleFromChain(rule2.getId, updatedChain)
 
             Then("We receive the updated chain")
-            obs.await(timeout, 1) shouldBe true
+            obs.awaitOnNext(4, timeout) shouldBe true
             obs.getOnNextEvents should have size 4
             updatedSimChain = obs.getOnNextEvents.asScala.last
             assertEquals(updatedChain, updatedSimChain, rules = List.empty,
@@ -475,7 +477,7 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
                              .build())
 
             Then("We receive only one update")
-            obs.await(timeout) shouldBe true
+            obs.awaitOnNext(5, timeout) shouldBe true
             obs.getOnNextEvents should have size 5
         }
     }

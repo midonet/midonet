@@ -46,7 +46,7 @@ import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.MessageAccumulator
 import org.midonet.packets.{IPAddr, IPv4Addr}
 import org.midonet.util.reactivex.AwaitableObserver
-
+import rx.observers.TestObserver
 
 @RunWith(classOf[JUnitRunner])
 class VTPMRedirectorTest extends TestKit(ActorSystem("VTPMRedirectorTest"))
@@ -180,7 +180,7 @@ class VTPMRedirectorTest extends TestKit(ActorSystem("VTPMRedirectorTest"))
             expectMsg(ZoneMembers(tunnelId, OldTunnel.Type.vtep, hosts))
 
             When("We create an observer to the VT observable")
-            val observer = new AwaitableObserver[SimHost](2)
+            val observer = new TestObserver[SimHost] with AwaitableObserver[SimHost]
             vt.observables(tunnelId.asJava)
                 .asInstanceOf[Observable[SimHost]]
                 .subscribe(observer)
@@ -189,7 +189,7 @@ class VTPMRedirectorTest extends TestKit(ActorSystem("VTPMRedirectorTest"))
             store.delete(classOf[ProtoTunnelZone], tunnelId)
 
             And("We wait for the deletion to be notified")
-            observer.await(5 seconds) shouldBe true
+            observer.awaitCompletion(5 seconds)
 
             Then("tryAsk should result in a NotYetException as the VTPM DeviceCaches"
                  + "should have been cleared")
@@ -332,7 +332,7 @@ class VTPMRedirectorTest extends TestKit(ActorSystem("VTPMRedirectorTest"))
             expectMsg(simHost)
 
             When("We create an observer to the VT observable")
-            val observer = new AwaitableObserver[SimHost](2)
+            val observer = new TestObserver[SimHost] with AwaitableObserver[SimHost]
             vt.observables(protoHost.getId.asJava)
                 .asInstanceOf[Observable[SimHost]]
                 .subscribe(observer)
@@ -342,7 +342,7 @@ class VTPMRedirectorTest extends TestKit(ActorSystem("VTPMRedirectorTest"))
                          protoHost.getId.asJava.toString)
 
             And("We wait for the deletion to be notified")
-            observer.await(5 seconds) shouldBe true
+            observer.awaitCompletion(5 seconds)
 
             Then("The observer should receive a completed notification")
             observer.getOnCompletedEvents should not be empty
