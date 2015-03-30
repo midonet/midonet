@@ -1,0 +1,159 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_9cdbf51a",
+        "filename": "cluster/src/tools/README-BORIS",
+        "patchSetId": 12
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 1002732
+      },
+      "writtenOn": "2015-03-30T08:22:31Z",
+      "side": 1,
+      "message": "extra white space.",
+      "range": {
+        "startLine": 31,
+        "startChar": 19,
+        "endLine": 31,
+        "endChar": 20
+      },
+      "revId": "e710db7d8738d5ab7804952121fb8efda9af49cc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_bcbb51c3",
+        "filename": "cluster/src/tools/README-BORIS",
+        "patchSetId": 12
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 1002732
+      },
+      "writtenOn": "2015-03-30T08:22:31Z",
+      "side": 1,
+      "message": "Can you provide a list of Types? or how to find those?",
+      "range": {
+        "startLine": 33,
+        "startChar": 0,
+        "endLine": 34,
+        "endChar": 23
+      },
+      "revId": "e710db7d8738d5ab7804952121fb8efda9af49cc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_5cca1d50",
+        "filename": "cluster/src/tools/README-BORIS",
+        "patchSetId": 12
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1002732
+      },
+      "writtenOn": "2015-03-30T08:22:31Z",
+      "side": 1,
+      "message": "Can you provide a machine friendly output? e.g. json. So it can be programmatically used?",
+      "revId": "e710db7d8738d5ab7804952121fb8efda9af49cc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_7cd8b91d",
+        "filename": "cluster/src/tools/README-BORIS",
+        "patchSetId": 12
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1002732
+      },
+      "writtenOn": "2015-03-30T08:22:31Z",
+      "side": 1,
+      "message": "What are the default values?",
+      "range": {
+        "startLine": 56,
+        "startChar": 17,
+        "endLine": 56,
+        "endChar": 32
+      },
+      "revId": "e710db7d8738d5ab7804952121fb8efda9af49cc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_fc030971",
+        "filename": "cluster/src/tools/README-BORIS",
+        "patchSetId": 12
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 1002732
+      },
+      "writtenOn": "2015-03-30T08:22:31Z",
+      "side": 1,
+      "message": "what does \"Commons package\" mean?",
+      "range": {
+        "startLine": 83,
+        "startChar": 4,
+        "endLine": 83,
+        "endChar": 20
+      },
+      "revId": "e710db7d8738d5ab7804952121fb8efda9af49cc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_3cf5a183",
+        "filename": "cluster/src/tools/README-BORIS",
+        "patchSetId": 12
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 1002732
+      },
+      "writtenOn": "2015-03-30T08:22:31Z",
+      "side": 1,
+      "message": "extra spaces",
+      "range": {
+        "startLine": 85,
+        "startChar": 36,
+        "endLine": 85,
+        "endChar": 39
+      },
+      "revId": "e710db7d8738d5ab7804952121fb8efda9af49cc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_dc2bade9",
+        "filename": "cluster/src/tools/README-BORIS",
+        "patchSetId": 12
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 1002732
+      },
+      "writtenOn": "2015-03-30T08:22:31Z",
+      "side": 1,
+      "message": "extra f",
+      "range": {
+        "startLine": 94,
+        "startChar": 15,
+        "endLine": 94,
+        "endChar": 16
+      },
+      "revId": "e710db7d8738d5ab7804952121fb8efda9af49cc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
