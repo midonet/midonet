@@ -70,6 +70,115 @@
       "revId": "3b6032c0f087dea8ec85bdf851386a26fee32855",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_d3cf1baf",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/vtep/model/PhysicalSwitch.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-03-30T14:56:29Z",
+      "side": 1,
+      "message": "ditto re. immutability",
+      "range": {
+        "startLine": 41,
+        "startChar": 39,
+        "endLine": 41,
+        "endChar": 49
+      },
+      "revId": "3b6032c0f087dea8ec85bdf851386a26fee32855",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_53520bde",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/vtep/model/PhysicalSwitch.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-03-30T14:56:29Z",
+      "side": 1,
+      "message": "the \"case other\" should do I think",
+      "range": {
+        "startLine": 80,
+        "startChar": 7,
+        "endLine": 80,
+        "endChar": 26
+      },
+      "revId": "3b6032c0f087dea8ec85bdf851386a26fee32855",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_b35edfe7",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/vtep/model/PhysicalSwitch.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-03-30T14:56:29Z",
+      "side": 1,
+      "message": "This is odd. I\u0027d use the same identity consistently, what\u0027s the rationale?",
+      "revId": "3b6032c0f087dea8ec85bdf851386a26fee32855",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_33f94fc9",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/vtep/model/VtepMAC.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-03-30T14:56:29Z",
+      "side": 1,
+      "message": "I\u0027d rather remove the ability to construct with a null MAC, and instead provide the method in the companion object:\n\nobject VtepMac {\n  fromMac(mac: MAC) // throws if mac \u003d\u003d null\n  unknownDst() // uses a static instance, with the value set to UNKNOWN_DST\n}",
+      "range": {
+        "startLine": 32,
+        "startChar": 33,
+        "endLine": 32,
+        "endChar": 58
+      },
+      "revId": "3b6032c0f087dea8ec85bdf851386a26fee32855",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_13f6d3d7",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/vtep/model/VtepMAC.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-03-30T14:56:29Z",
+      "side": 1,
+      "message": "ditto",
+      "range": {
+        "startLine": 44,
+        "startChar": 12,
+        "endLine": 44,
+        "endChar": 13
+      },
+      "revId": "3b6032c0f087dea8ec85bdf851386a26fee32855",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
