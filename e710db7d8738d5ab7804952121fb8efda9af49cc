@@ -60,6 +60,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_26258fc2",
+        "filename": "cluster/src/tools/README-BORIS",
+        "patchSetId": 12
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-03-30T19:36:04Z",
+      "side": 1,
+      "message": "Yes, I\u0027ll clarify (and possibly give an example).",
+      "parentUuid": "1a106d94_3c512163",
+      "range": {
+        "startLine": 25,
+        "startChar": 0,
+        "endLine": 25,
+        "endChar": 61
+      },
+      "revId": "e710db7d8738d5ab7804952121fb8efda9af49cc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_9cdbf51a",
         "filename": "cluster/src/tools/README-BORIS",
         "patchSetId": 12
@@ -106,6 +130,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_260c6f42",
+        "filename": "cluster/src/tools/README-BORIS",
+        "patchSetId": 12
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-03-30T19:36:04Z",
+      "side": 1,
+      "message": "They are in cluster/src/main/proto/topology.proto, for dev I think we can keep them there as anyone can just look them up via Github and we\u0027re all sufficiently tech-savvy to read them. https://github.com/midonet/midonet/blob/master/cluster/src/main/proto/topology.proto\n\nBut, if this is going to be used beyond internal engineers, I\u0027d suggest to enhance this:\n\n- Either on build time, we generate a man page with this README, and dynamically paste the types (and possibly the definitions) in the README. \n- Or, have the CLI is to provide a command to dump of the supported objects (which is doable using pretty much the same code as for inline suggestions).\n\nThose are nice to haves, but as I said today for engineers I think the proto file is sufficiently readable. Tell me otherwise.",
+      "parentUuid": "1a106d94_bcbb51c3",
+      "range": {
+        "startLine": 33,
+        "startChar": 0,
+        "endLine": 34,
+        "endChar": 23
+      },
+      "revId": "e710db7d8738d5ab7804952121fb8efda9af49cc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_dcc72d11",
         "filename": "cluster/src/tools/README-BORIS",
         "patchSetId": 12
@@ -117,6 +165,30 @@
       "writtenOn": "2015-03-30T08:45:58Z",
       "side": 1,
       "message": "Can we get a pseudo-BNF or even just a standard \"Unix-style help\" list for these, so we know which verbs are useful for which types exactly?  And which exact parameters/fields are valid for which verb/type combo?\n\nSomething like:\n\nnetwork create name \u003cname\u003e [optional_field optional_value]\nnetwork update id \u003cid\u003e name \u003cname\u003e\n\nor:\n\n\u003ctype\u003e create name \u003cname\u003e\n\u003ctype\u003e update id \u003cid\u003e name \u003cname\u003e\n\nif the verbs are the same for all types.\n\nBasically, it would go a long way into explaining the full grammar as well as all the cool things I can do (and how!), in one quick summary section.",
+      "range": {
+        "startLine": 45,
+        "startChar": 0,
+        "endLine": 46,
+        "endChar": 31
+      },
+      "revId": "e710db7d8738d5ab7804952121fb8efda9af49cc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_66066722",
+        "filename": "cluster/src/tools/README-BORIS",
+        "patchSetId": 12
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-03-30T19:36:04Z",
+      "side": 1,
+      "message": "Yeah, i\u0027ll specify the grammar better.\n\nRe documenting the specific types see the notes above. I plan to add auto completion, and we could have a dump command to show the syntax of each type. \n\nHowever, given that the proto file is very easy to read, and we\u0027re using this internally I\u0027d say we should prioritize other enhancements over it.\n\nMy point is avoiding to hardcode code or documentation with specific types, and instead generate them dynamically as the proto file grows, so that there is 0 maintenance cost.",
+      "parentUuid": "1a106d94_dcc72d11",
       "range": {
         "startLine": 45,
         "startChar": 0,
@@ -146,6 +218,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_46036b0f",
+        "filename": "cluster/src/tools/README-BORIS",
+        "patchSetId": 12
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-03-30T19:36:04Z",
+      "side": 1,
+      "message": "Yeah, I couldn\u0027t get bothered to do it but it\u0027s in the list :D",
+      "parentUuid": "1a106d94_1010894d",
+      "revId": "e710db7d8738d5ab7804952121fb8efda9af49cc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_5cca1d50",
         "filename": "cluster/src/tools/README-BORIS",
         "patchSetId": 12
@@ -163,6 +253,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_a9ff9000",
+        "filename": "cluster/src/tools/README-BORIS",
+        "patchSetId": 12
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-03-30T19:36:04Z",
+      "side": 1,
+      "message": "Certainly. \n\nDo you prefer to see a full JSON dump of the object by default? This makes my life easier actually :D",
+      "parentUuid": "1a106d94_5cca1d50",
+      "revId": "e710db7d8738d5ab7804952121fb8efda9af49cc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_7cd8b91d",
         "filename": "cluster/src/tools/README-BORIS",
         "patchSetId": 12
@@ -174,6 +282,30 @@
       "writtenOn": "2015-03-30T08:22:31Z",
       "side": 1,
       "message": "What are the default values?",
+      "range": {
+        "startLine": 56,
+        "startChar": 17,
+        "endLine": 56,
+        "endChar": 32
+      },
+      "revId": "e710db7d8738d5ab7804952121fb8efda9af49cc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_491a5c6f",
+        "filename": "cluster/src/tools/README-BORIS",
+        "patchSetId": 12
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-03-30T19:36:04Z",
+      "side": 1,
+      "message": "The ones defined in the proto file (again, these could be exposed in the inline suggestions, or the dump command, when implemented). \n\nBut actually we\u0027re planning to remove defaults because future versions of protobufs don\u0027t support it.",
+      "parentUuid": "1a106d94_7cd8b91d",
       "range": {
         "startLine": 56,
         "startChar": 17,
@@ -209,6 +341,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_c925acac",
+        "filename": "cluster/src/tools/README-BORIS",
+        "patchSetId": 12
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-03-30T19:36:04Z",
+      "side": 1,
+      "message": "On\n\n  Type verb id \u003cuuid\u003e \u003cproperty\u003e \u003cvalue\u003e\n\nyou\u0027d be updating the entity with id \u003cuuid\u003e of type Type, setting the \u003cproperty\u003e to \u003cvalue\u003e\n\nI\u0027ll clarify this.",
+      "parentUuid": "1a106d94_3cd801ef",
+      "range": {
+        "startLine": 58,
+        "startChar": 0,
+        "endLine": 58,
+        "endChar": 9
+      },
+      "revId": "e710db7d8738d5ab7804952121fb8efda9af49cc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_70345dde",
         "filename": "cluster/src/tools/README-BORIS",
         "patchSetId": 12
@@ -220,6 +376,24 @@
       "writtenOn": "2015-03-30T10:02:31Z",
       "side": 1,
       "message": "can i write a boris script where the second command uses the id returned by the 1st one?",
+      "revId": "e710db7d8738d5ab7804952121fb8efda9af49cc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_e957c800",
+        "filename": "cluster/src/tools/README-BORIS",
+        "patchSetId": 12
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-03-30T19:36:04Z",
+      "side": 1,
+      "message": "Yeah, I have a plan for this, that works nicely assuming you can do \"cat script | boris\". E.g., Boris stacks internally all ids modified, and gives you aliases like \"id6\" meaning the id of the object modified 6 commands ago.\n\n@tomoe @michael your scripts are primary users of this, so idease are welcome.",
+      "parentUuid": "1a106d94_70345dde",
       "revId": "e710db7d8738d5ab7804952121fb8efda9af49cc",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -249,6 +423,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_093ea4b8",
+        "filename": "cluster/src/tools/README-BORIS",
+        "patchSetId": 12
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-03-30T19:36:04Z",
+      "side": 1,
+      "message": "Commons is another protobuf file that contains various utility classes. For example, UUID, IP addresses, Ranges, etc. The definition is https://github.com/midonet/midonet/blob/master/cluster/src/main/proto/commons.proto",
+      "parentUuid": "1a106d94_fc030971",
+      "range": {
+        "startLine": 83,
+        "startChar": 4,
+        "endLine": 83,
+        "endChar": 20
+      },
+      "revId": "e710db7d8738d5ab7804952121fb8efda9af49cc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_3cf5a183",
         "filename": "cluster/src/tools/README-BORIS",
         "patchSetId": 12
@@ -260,6 +458,30 @@
       "writtenOn": "2015-03-30T08:22:31Z",
       "side": 1,
       "message": "extra spaces",
+      "range": {
+        "startLine": 85,
+        "startChar": 36,
+        "endLine": 85,
+        "endChar": 39
+      },
+      "revId": "e710db7d8738d5ab7804952121fb8efda9af49cc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_49489c5b",
+        "filename": "cluster/src/tools/README-BORIS",
+        "patchSetId": 12
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-03-30T19:36:04Z",
+      "side": 1,
+      "message": "It\u0027s done on purpose, and all over the place, I think Jacob like these.",
+      "parentUuid": "1a106d94_3cf5a183",
       "range": {
         "startLine": 85,
         "startChar": 36,
@@ -312,6 +534,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_a974b09c",
+        "filename": "cluster/src/tools/README-BORIS",
+        "patchSetId": 12
+      },
+      "lineNbr": 137,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-03-30T19:36:04Z",
+      "side": 1,
+      "message": "Yes, I\u0027ll paste the real output",
+      "parentUuid": "1a106d94_33414f3a",
+      "revId": "e710db7d8738d5ab7804952121fb8efda9af49cc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_902bd981",
         "filename": "cluster/src/tools/scala/cli/Boris.scala",
         "patchSetId": 12
@@ -323,6 +563,24 @@
       "writtenOn": "2015-03-30T10:02:31Z",
       "side": 1,
       "message": "kudos for supporting all types on 431 lines of code :)",
+      "revId": "e710db7d8738d5ab7804952121fb8efda9af49cc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_8979f495",
+        "filename": "cluster/src/tools/scala/cli/Boris.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-03-30T19:36:04Z",
+      "side": 1,
+      "message": "Midonet-cli set the right precedent ;)",
+      "parentUuid": "1a106d94_902bd981",
       "revId": "e710db7d8738d5ab7804952121fb8efda9af49cc",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
