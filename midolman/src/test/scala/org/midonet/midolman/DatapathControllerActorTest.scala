@@ -21,22 +21,21 @@ import scala.concurrent.{ExecutionContext, Future}
 import akka.actor._
 import com.typesafe.config.{Config, ConfigValueFactory}
 import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
-
 import org.midonet.cluster.data.TunnelZone
-import org.midonet.conf.MidoTestConfigurator
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.host.interfaces.InterfaceDescription
 import org.midonet.midolman.io.{ChannelType, UpcallDatapathConnectionManager}
+import org.midonet.midolman.services.HostIdProviderService
 import org.midonet.midolman.state.{FlowStateStorageFactory, MockStateStorage}
-import org.midonet.midolman.topology.rcu.ResolvedHost
 import org.midonet.midolman.topology.VirtualToPhysicalMapper
+import org.midonet.midolman.topology.rcu.ResolvedHost
 import org.midonet.midolman.util.MidolmanSpec
-import org.midonet.midolman.util.mock.MessageAccumulator
-import org.midonet.odp.{Datapath, DpPort}
+import org.midonet.midolman.util.mock.{MessageAccumulator, MockInterfaceScanner}
 import org.midonet.odp.ports._
+import org.midonet.odp.{Datapath, DpPort}
 import org.midonet.packets.IPv4Addr
 import org.midonet.sdn.flows.FlowTagger
+import org.scalatest.junit.JUnitRunner
 
 object DatapathControllerActorTest {
     val TestDhcpMtu: Short = 4200
@@ -44,9 +43,9 @@ object DatapathControllerActorTest {
 
 @RunWith(classOf[JUnitRunner])
 class DatapathControllerActorTest extends MidolmanSpec {
-    import DatapathControllerActorTest._
-    import DatapathController._
-    import VirtualToPhysicalMapper.{ZoneChanged, ZoneMembers}
+    import org.midonet.midolman.DatapathController._
+    import org.midonet.midolman.DatapathControllerActorTest._
+    import org.midonet.midolman.topology.VirtualToPhysicalMapper.{ZoneChanged, ZoneMembers}
 
     registerActors(DatapathController -> (() => new TestableDpC
                                                 with MessageAccumulator),
@@ -63,66 +62,64 @@ class DatapathControllerActorTest extends MidolmanSpec {
             ConfigValueFactory.fromAnyRef(TestDhcpMtu)))
     }
 
-    class TestableDpC extends DatapathController {
-        override def storageFactory = new FlowStateStorageFactory() {
-            override def create() = new MockStateStorage()
-        }
+    class TestableDpC extends DatapathController(
+            new DatapathStateDriver(new Datapath(0, "midonet")),
+            injector.getInstance(classOf[HostIdProviderService]),
+            new MockInterfaceScanner(),
+            config,
+            new UpcallDatapathConnectionManager {
+                var ports = Set.empty[DpPort]
 
-        datapath = new Datapath(0, "midonet")
+                override def createAndHookDpPort(dp: Datapath, port: DpPort, t: ChannelType)
+                                                (implicit ec: ExecutionContext,
+                                                          as: ActorSystem) =
+                    if (ports contains port) {
+                        Future.successful((DpPort.fakeFrom(port, 0), 0))
+                    } else {
+                        ports += port
+                        Future.failed(new IllegalArgumentException("fake error"))
+                    }
 
-        config = MidolmanConfig.forTests("agent.datapath.vxlan_udp_port = 4444")
+                    override def deleteDpPort(datapath: Datapath, port: DpPort)
+                                             (implicit ec: ExecutionContext,
+                                                       as: ActorSystem) =
+                        Future(true)(ec)
 
-        upcallConnManager = new UpcallDatapathConnectionManager {
-            var ports = Set.empty[DpPort]
-
-            override def createAndHookDpPort(dp: Datapath, port: DpPort, t: ChannelType)
-                                            (implicit ec: ExecutionContext,
-                                                      as: ActorSystem) =
-                if (ports contains port) {
-                    Future.successful((DpPort.fakeFrom(port, 0), 0))
-                } else {
-                    ports += port
-                    Future.failed(new IllegalArgumentException("fake error"))
-                }
-
-            override def deleteDpPort(datapath: Datapath, port: DpPort)
-                                     (implicit ec: ExecutionContext,
-                                               as: ActorSystem) =
-                Future(true)
-
-        }
-    }
+                },
+            flowInvalidator,
+            clock,
+            new FlowStateStorageFactory() {
+                override def create() = new MockStateStorage()
+            })
 
     var dpc: TestableDpC = _
 
     protected override def beforeTest() = {
         dpc = DatapathController.as[TestableDpC]
-        dpc.datapath = dpc.datapathConnection.futures.datapathsCreate("midonet").get()
         newHost("host1", hostId)
     }
 
     scenario("The default MTU should be retrieved from the config file") {
         val config = injector.getInstance(classOf[MidolmanConfig])
-        DatapathController.defaultMtu should be (config.dhcpMtu.toShort)
+        DatapathController.defaultMtu should be (config.dhcpMtu)
         DatapathController.defaultMtu should be (TestDhcpMtu)
         DatapathController.defaultMtu should not be MidolmanConfig.DEFAULT_MTU
     }
 
     scenario("The DPC retries when the port creation fails") {
-        dpc.dpState.greOverlayTunnellingOutputAction should be (null)
-        dpc.dpState.vxlanOverlayTunnellingOutputAction should be (null)
-        dpc.dpState.vtepTunnellingOutputAction should be (null)
+        dpc.driver.tunnelOverlayGre should be (null)
+        dpc.driver.tunnelOverlayVxLan should be (null)
+        dpc.driver.tunnelVtepVxLan should be (null)
 
-        DatapathController ! Initialize
+        initialize()
 
-        dpc.dpState.greOverlayTunnellingOutputAction should not be null
-        dpc.dpState.vxlanOverlayTunnellingOutputAction should not be null
-        dpc.dpState.vtepTunnellingOutputAction should not be null
+        dpc.driver.tunnelOverlayGre should not be null
+        dpc.driver.tunnelOverlayVxLan should not be null
+        dpc.driver.tunnelVtepVxLan should not be null
     }
 
     scenario("DatapathActor handles tunnel zones") {
-        DatapathController ! Initialize
-        DatapathController.getAndClear()
+        initialize()
 
         val tunnelZone = greTunnelZone("default")
         val host2 = newHost("host2")
@@ -140,10 +137,10 @@ class DatapathControllerActorTest extends MidolmanSpec {
         DatapathController.messages.collect { case p: ZoneChanged => p } should have size 1
         DatapathController.getAndClear() should have size 3
 
-        val output = dpc.dpState.asInstanceOf[DatapathStateManager]
-                                .greOverlayTunnellingOutputAction
+        val output = dpc.driver.asInstanceOf[DatapathStateDriver]
+            .tunnelOverlayGre.toOutputAction
         val route1 = UnderlayResolver.Route(srcIp.toInt, dstIp1.toInt, output)
-        dpc.dpState.peerTunnelInfo(host2.getId) should be (Some(route1))
+        dpc.driver.peerTunnelInfo(host2.getId) should be (Some(route1))
 
         val tag1 = FlowTagger tagForTunnelRoute (srcIp.toInt, dstIp1.toInt)
         flowInvalidator should invalidate(tag1)
@@ -160,9 +157,15 @@ class DatapathControllerActorTest extends MidolmanSpec {
         DatapathController.getAndClear() should have size 2
 
         val route2 = UnderlayResolver.Route(srcIp.toInt, dstIp2.toInt, output)
-        dpc.dpState.peerTunnelInfo(host2.getId) should be (Some(route2))
+        dpc.driver.peerTunnelInfo(host2.getId) should be (Some(route2))
 
         val tag2 = FlowTagger tagForTunnelRoute (srcIp.toInt, dstIp2.toInt)
         flowInvalidator should invalidate(tag1, tag2)
+    }
+
+    private def initialize(): Unit = {
+        DatapathController ! Initialize
+        while (scheduler.pop exists { r => r.run(); true }) { }
+        DatapathController.getAndClear()
     }
 }

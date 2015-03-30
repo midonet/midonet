@@ -15,25 +15,25 @@
  */
 package org.midonet.midolman
 
-import java.lang.{Boolean => JBoolean, Integer => JInteger}
-import java.util.{Set => JSet, UUID}
+import java.lang.{Integer => JInteger}
+import java.util.{Set => JSet, HashMap, UUID}
 
 import scala.collection.JavaConverters._
 import scala.concurrent.duration._
-import scala.concurrent.{ExecutionContextExecutor, Future}
+import scala.concurrent.Future
 import scala.reflect._
 
 import akka.actor._
 import akka.pattern.{after, pipe}
 import com.google.inject.Inject
 import com.typesafe.scalalogging.Logger
-import org.midonet.midolman.flows.FlowInvalidator
 import org.slf4j.LoggerFactory
 
 import org.midonet.Subscription
 import org.midonet.cluster.data.TunnelZone.{HostConfig => TZHostConfig, Type => TunnelType}
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.DatapathPortEntangler
+import org.midonet.midolman.flows.FlowInvalidator
 import org.midonet.midolman.host.interfaces.InterfaceDescription
 import org.midonet.midolman.host.scanner.InterfaceScanner
 import org.midonet.midolman.io._
@@ -42,10 +42,9 @@ import org.midonet.midolman.services.HostIdProviderService
 import org.midonet.midolman.state.{FlowStateStorage, FlowStateStorageFactory}
 import org.midonet.midolman.topology.VirtualToPhysicalMapper.{TunnelZoneRequest, ZoneChanged, ZoneMembers}
 import org.midonet.midolman.topology._
-import org.midonet.midolman.topology.rcu.ResolvedHost
 import org.midonet.netlink.Callback
+import org.midonet.midolman.topology.rcu.ResolvedHost
 import org.midonet.netlink.exceptions.NetlinkException
-import org.midonet.netlink.exceptions.NetlinkException.ErrorCode
 import org.midonet.odp.flows.FlowActionOutput
 import org.midonet.odp.ports._
 import org.midonet.odp.{Datapath, DpPort, OvsConnectionOps}
@@ -60,46 +59,29 @@ object UnderlayResolver {
 
 trait UnderlayResolver {
 
-    import org.midonet.midolman.UnderlayResolver.Route
+    import UnderlayResolver.Route
 
-    /** object representing the current host */
-    def host: ResolvedHost
-
-    /** pair of IPv4 addresses from current host to remote peer host.
-     *  None if information not available or peer outside of tunnel Zone. */
-
-    /** Looks up a tunnel route to a remote peer and return a pair of IPv4
-     *  addresses as 4B int from current host to remote peer host.
-     *  @param  peer a peer midolman UUID
-     *  @return first possible tunnel route, or None if unknown peer or no
-     *          route to that peer
+    /** Looks up a tunnel route to a remote peer. If there are multiple routes,
+      * this method makes no guarantees as to which one is returned.
      */
     def peerTunnelInfo(peer: UUID): Option[Route]
 
-    /** Return the FlowAction for emitting traffic on the vxlan tunnelling port
-     *  towards vtep peers. */
     def vtepTunnellingOutputAction: FlowActionOutput
 
-    /** tells if the given portNumber points to the vtep tunnel port. */
     def isVtepTunnellingPort(portNumber: Integer): Boolean
 
-    /** tells if the given portNumber points to the overlay tunnel port. */
     def isOverlayTunnellingPort(portNumber: Integer): Boolean
 }
 
 trait VirtualPortsResolver {
-
-    /** Returns bounded datapath port or None if port not found */
     def getDpPortNumberForVport(vportId: UUID): JInteger
-
-    /** Returns bounded datapath port or None if port not found */
     def dpPortForTunnelKey(tunnelKey: Long): DpPort
-
-    /** Returns vport UUID of bounded datapath port, or None if not found */
     def getVportForDpPortNumber(portNum: JInteger): UUID
 }
 
-trait DatapathState extends VirtualPortsResolver with UnderlayResolver
+trait DatapathState extends VirtualPortsResolver with UnderlayResolver {
+    def datapath: Datapath
+}
 
 object DatapathController extends Referenceable {
 
@@ -122,23 +104,10 @@ object DatapathController extends Referenceable {
     var defaultMtu: Short = MidolmanConfig.DEFAULT_MTU
 
     /**
-     * Message sent to the [[org.midonet.midolman.FlowController]] actor to let
-     * it know that it can install the the packetIn hook inside the datapath.
-     *
-     * @param datapath the active datapath
-     */
-    case class DatapathReady(datapath: Datapath, state: DatapathState)
-
-    /**
      * This message is sent when the separate thread has successfully
      * retrieved all information about the interfaces.
      */
     case class InterfacesUpdate_(interfaces: JSet[InterfaceDescription])
-
-    case class ExistingDatapathPorts_(datapath: Datapath, ports: Set[DpPort])
-
-    /** Signals that the ports in the datapath were cleared */
-    case object DatapathClear_
 
     // Signals that the tunnel ports have been created
     case object TunnelPortsCreated_
@@ -168,86 +137,36 @@ object DatapathController extends Referenceable {
  *
  * The DP Controller is also responsible for managing overlay tunnels.
  */
-class DatapathController extends Actor
-                         with ActorLogWithoutPath
-                         with SingleThreadExecutionContextProvider
-                         with MtuIncreaser {
+class DatapathController @Inject() (val driver: DatapathStateDriver,
+                                    hostService: HostIdProviderService,
+                                    interfaceScanner: InterfaceScanner,
+                                    config: MidolmanConfig,
+                                    upcallConnManager: UpcallDatapathConnectionManager,
+                                    flowInvalidator: FlowInvalidator,
+                                    clock: NanoClock,
+                                    storageFactory: FlowStateStorageFactory)
+        extends Actor with ActorLogWithoutPath
+                      with SingleThreadExecutionContextProvider
+                      with DatapathPortEntangler
+                      with MtuIncreaser {
 
     import org.midonet.midolman.DatapathController._
     import org.midonet.midolman.topology.VirtualToPhysicalMapper.TunnelZoneUnsubscribe
     import context.system
+    import context.dispatcher
 
     override def logSource = "org.midonet.datapath-control"
 
-    implicit val logger: Logger = log
-    implicit protected def executor: ExecutionContextExecutor = context.dispatcher
-
-    @Inject
-    val dpConnPool: DatapathConnectionPool = null
-
-    def datapathConnection = if (dpConnPool != null) dpConnPool.get(0) else null
-
-    @Inject
-    val hostService: HostIdProviderService = null
-
-    @Inject
-    val interfaceScanner: InterfaceScanner = null
-
-    @Inject
-    var config: MidolmanConfig = null
-
-    var datapath: Datapath = null
-
-    @Inject
-    var upcallConnManager: UpcallDatapathConnectionManager = null
-
-    @Inject
-    var _storageFactory: FlowStateStorageFactory = null
-
-    @Inject
-    var flowInvalidator: FlowInvalidator = _
-
-    protected def storageFactory = _storageFactory
-
     var storage: FlowStateStorage = _
 
-    val dpState = new DatapathStateManager(
-        new DatapathPortEntangler.Controller {
-            override def addToDatapath(port: String): Future[(DpPort, Int)] = {
-                log.debug(s"Creating port $port")
-                upcallConnManager.createAndHookDpPort(datapath,
-                                                      new NetDevPort(port),
-                                                      VirtualMachine)
-            }
-
-            override def removeFromDatapath(port: DpPort): Future[_] = {
-                log.debug(s"Removing port ${port.getName}")
-                upcallConnManager.deleteDpPort(datapath, port)
-            }
-
-            override def setVportStatus(port: DpPort, vport: UUID, tunnelKey: Long,
-                                        isActive: Boolean): Unit = {
-                log.info(s"Port ${port.getPortNo}/${port.getName}/$vport " +
-                         s"became ${if (isActive) "active" else "inactive"}")
-                system.eventStream.publish(LocalPortActive(vport, isActive))
-                invalidateTunnelKeyFlows(port, tunnelKey, isActive)
-                if (isActive)
-                    increaseMtu(vport)
-            }
-        }
-    )(singleThreadExecutionContext, log)
-
-    var initializer: ActorRef = system.deadLetters  // only used in tests
-
-    var host: ResolvedHost = null
+    var zones = Map[UUID, IPAddr]()
 
     var portWatcher: Subscription = null
-    var portWatcherEnabled = true
 
     override def preStart(): Unit = {
+        super.preStart()
         defaultMtu = config.dhcpMtu
         cachedMinMtu = defaultMtu
-        super.preStart()
         storage = storageFactory.create()
         context become (DatapathInitializationActor orElse {
             case m =>
@@ -262,53 +181,43 @@ class DatapathController extends Actor
     }
 
     val DatapathInitializationActor: Receive = {
-
         case Initialize =>
-            initializer = sender()
-            subscribeToHost(hostService.hostId)
-
-        case h: ResolvedHost =>
-            val oldHost = host
-            host = h
-            dpState.host = h
-            if (oldHost eq null) {
-                readDatapathInformation()
-            }
-
-        case ExistingDatapathPorts_(datapathObj, ports) =>
-            this.datapath = datapathObj
-            val conn = new OvsConnectionOps(datapathConnection)
-            Future.traverse(ports) { deleteExistingPort(_, conn) } map { _ =>
-                DatapathClear_ } pipeTo self
-
-        case DatapathClear_ =>
             makeTunnelPort(OverlayTunnel) { () =>
                 GreTunnelPort make "tngre-overlay"
             } flatMap { gre =>
-                dpState setTunnelOverlayGre gre
+                driver.tunnelOverlayGre = gre
                 makeTunnelPort(OverlayTunnel) { () =>
                     val overlayUdpPort = config.datapath.vxlanOverlayUdpPort
                     VxLanTunnelPort make("tnvxlan-overlay", overlayUdpPort)
                 }
             } flatMap { vxlan =>
-                dpState setTunnelOverlayVxLan vxlan
+                driver.tunnelOverlayVxLan = vxlan
                 makeTunnelPort(VtepTunnel) { () =>
                     val vtepUdpPort = config.datapath.vxlanVtepUdpPort
                     VxLanTunnelPort make("tnvxlan-vtep", vtepUdpPort)
                }
             } map { vtep =>
-                dpState setTunnelVtepVxLan vtep
+                driver.tunnelVtepVxLan = vtep
                 TunnelPortsCreated_
             } pipeTo self
 
         case TunnelPortsCreated_ =>
-            completeInitialization()
+            subscribeToHost(hostService.hostId)
+            log.info("Initialization complete. Starting to act as a controller.")
+            context become receive
+            portWatcher = interfaceScanner.register(
+                new Callback[JSet[InterfaceDescription]] {
+                    def onSuccess(data: JSet[InterfaceDescription]) {
+                        self ! InterfacesUpdate_(data)
+                    }
+                    def onError(e: NetlinkException) { /* not called */ }
+            })
     }
 
     def deleteExistingPort(port: DpPort, conn: OvsConnectionOps) = port match {
         case internalPort: InternalPort =>
             log.debug("Keeping {} found during initialization", port)
-            dpState registerInternalPort internalPort
+            registerInternalPort(internalPort)
             Future successful port
         case _ =>
             log.debug("Deleting {} found during initialization", port)
@@ -316,7 +225,7 @@ class DatapathController extends Actor
     }
 
     def ensureDeletePort(port: DpPort, conn: OvsConnectionOps): Future[DpPort] =
-        conn.delPort(port, datapath) recoverWith {
+        conn.delPort(port, driver.datapath) recoverWith {
             case ex: Throwable =>
                 log.warn("retrying deletion of " + port.getName +
                          " because of {}", ex)
@@ -325,7 +234,7 @@ class DatapathController extends Actor
 
     def makeTunnelPort[P <: DpPort](t: ChannelType)(portFact: () => P)
                                    (implicit tag: ClassTag[P]): Future[P] =
-        upcallConnManager.createAndHookDpPort(datapath, portFact(), t) map {
+        upcallConnManager.createAndHookDpPort(driver.datapath, portFact(), t) map {
             case (p, _) => p.asInstanceOf[P]
         } recoverWith {
             case ex: Throwable =>
@@ -333,42 +242,13 @@ class DatapathController extends Actor
                 after(1 second, system.scheduler)(makeTunnelPort(t)(portFact))
         }
 
-    /**
-     * Complete initialization and notify the actor that requested init.
-     */
-    def completeInitialization() {
-        log.info("Initialization complete. Starting to act as a controller.")
-        context become receive
-        val datapathReadyMsg = DatapathReady(datapath, dpState)
-        system.eventStream.publish(datapathReadyMsg)
-        initializer ! datapathReadyMsg
-
-        for ((zoneId, _) <- host.zones) {
-            VirtualToPhysicalMapper ! TunnelZoneRequest(zoneId)
-        }
-
-        if (portWatcherEnabled) {
-            log.info("Starting to schedule the port link status updates.")
-            portWatcher = interfaceScanner.register(
-                new Callback[JSet[InterfaceDescription]] {
-                    def onSuccess(data: JSet[InterfaceDescription]) {
-                      self ! InterfacesUpdate_(data)
-                    }
-                    def onError(e: NetlinkException) { /* not called */ }
-            })
-        }
-
-        log.info(s"Process the host's interface-vport bindings.")
-        dpState.updateVPortInterfaceBindings(host.ports)
-    }
-
     private def doDatapathZonesUpdate(
             oldZones: Map[UUID, IPAddr],
-            newZones: Map[UUID, IPAddr]) {
+            newZones: Map[UUID, IPAddr]): Unit =  {
         val dropped = oldZones.keySet.diff(newZones.keySet)
         for (zone <- dropped) {
             VirtualToPhysicalMapper ! TunnelZoneUnsubscribe(zone)
-            for (tag <- dpState.removePeersForZone(zone)) {
+            for (tag <- driver.removePeersForZone(zone)) {
                 flowInvalidator.scheduleInvalidationFor(tag)
             }
         }
@@ -393,19 +273,18 @@ class DatapathController extends Actor
             }
             self ! Initialize
 
-        case hostUpdate: ResolvedHost =>
-            val oldZones = host.zones
-            val newZones = hostUpdate.zones
+        case host: ResolvedHost =>
+            val oldZones = zones
+            val newZones = host.zones
 
-            host = hostUpdate
-            dpState.host = hostUpdate
+            zones = newZones
 
-            dpState.updateVPortInterfaceBindings(host.ports)
+            updateVPortInterfaceBindings(host.ports)
             doDatapathZonesUpdate(oldZones, newZones)
 
         case m@ZoneMembers(zone, zoneType, members) =>
             log.debug("ZoneMembers event: {}", m)
-            if (dpState.host.zones contains zone) {
+            if (zones contains zone) {
                 for (m <- members) {
                     handleZoneChange(zone, zoneType, m, HostConfigOperation.Added)
                 }
@@ -413,18 +292,18 @@ class DatapathController extends Actor
 
         case m@ZoneChanged(zone, zoneType, hostConfig, op) =>
             log.debug("ZoneChanged event: {}", m)
-            if (dpState.host.zones contains zone)
+            if (zones contains zone)
                 handleZoneChange(zone, zoneType, hostConfig, op)
 
         case InterfacesUpdate_(interfaces) =>
-            dpState.updateInterfaces(interfaces)
+            updateInterfaces(interfaces)
             setTunnelMtu(interfaces)
     }
 
     def handleZoneChange(zone: UUID, t: TunnelType, config: TZHostConfig,
                          op: HostConfigOperation.Value) {
 
-        if (config.getId == dpState.host.id)
+        if (config.getId == hostService.hostId())
             return
 
         val peerUUID = config.getId
@@ -438,17 +317,39 @@ class DatapathController extends Actor
             tags foreach flowInvalidator.scheduleInvalidationFor
 
         def processDelPeer(): Unit =
-            processTags(dpState.removePeer(peerUUID, zone))
+            processTags(driver.removePeer(peerUUID, zone))
 
         def processAddPeer() =
-            host.zones.get(zone) map { _.asInstanceOf[IPv4Addr].toInt } match {
-                case Some(srcIp) =>
+            zones.get(zone) match {
+                case Some(srcIp: IPv4Addr) =>
                     val dstIp = config.getIp.toInt
-                    processTags(dpState.addPeer(peerUUID, zone, srcIp, dstIp, t))
-                case None =>
+                    val tags = driver.addPeer(peerUUID, zone, srcIp.toInt, dstIp, t)
+                    processTags(tags)
+                case _ =>
                     log.info("Could not find this host's ip for zone {}", zone)
             }
 
+    }
+
+    override def addToDatapath(port: String): Future[(DpPort, Int)] = {
+        log.debug(s"Creating port $port")
+        upcallConnManager.createAndHookDpPort(
+                driver.datapath, new NetDevPort(port), VirtualMachine)
+    }
+
+    override def removeFromDatapath(port: DpPort): Future[_] = {
+        log.debug(s"Removing port ${port.getName}")
+        upcallConnManager.deleteDpPort(driver.datapath, port)
+    }
+
+    override def setVportStatus(port: DpPort, vport: UUID, tunnelKey: Long,
+                                isActive: Boolean): Unit = {
+        log.info(s"Port ${port.getPortNo}/${port.getName}/$vport " +
+                 s"became ${if (isActive) "active" else "inactive"}")
+        VirtualToPhysicalMapper ! LocalPortActive(vport, isActive)
+        invalidateTunnelKeyFlows(port, tunnelKey, isActive)
+        if (isActive)
+            increaseMtu(vport)
     }
 
     private def invalidateTunnelKeyFlows(port: DpPort, tunnelKey: Long,
@@ -468,7 +369,7 @@ class DatapathController extends Actor
 
         for { intf <- interfaces.asScala
               inetAddress <- intf.getInetAddresses.asScala
-              zone <- host.zones
+              zone <- zones
               if zone._2.equalsInetAddress(inetAddress)
         } {
             val tunnelMtu = (defaultMtu - overhead).toShort
@@ -483,124 +384,37 @@ class DatapathController extends Actor
             cachedMinMtu = minMtu
         }
     }
+}
 
-    /*
-     * ONLY USE THIS DURING INITIALIZATION.
-     */
-    private def readDatapathInformation() {
-        def handleExistingDP(dp: Datapath) {
-            log.info("The datapath already existed. Flushing the flows.")
-            datapathConnection.flowsFlush(dp,
-                new Callback[JBoolean] {
-                    def onSuccess(data: JBoolean) {}
-                    def onError(ex: NetlinkException) {
-                        log.error("Failed to flush the Datapath's flows!")
-                    }
-                }
-            )
-            // Query the datapath ports without waiting for the flush to exit.
-            queryDatapathPorts(dp)
-        }
-
-        val retryTask = new Runnable {
-            def run() = readDatapathInformation()
-        }
-
-        val dpCreateCallback = new Callback[Datapath] {
-            def onSuccess(data: Datapath) {
-                log.info("Datapath created {}", data)
-                queryDatapathPorts(data)
-            }
-            def onError(ex: NetlinkException) {
-                log.error("Datapath creation failure", ex)
-                system.scheduler.scheduleOnce(100 millis, retryTask)
-            }
-        }
-
-        val dpGetCallback = new Callback[Datapath] {
-            def onSuccess(dp: Datapath) {
-                handleExistingDP(dp)
-            }
-            def onError(ex: NetlinkException) {
-                ex.getErrorCodeEnum match {
-                    case ErrorCode.ENODEV =>
-                        log.info("Datapath is missing. Creating.")
-                        datapathConnection.datapathsCreate(
-                            config.datapathName, dpCreateCallback)
-                    case ErrorCode.ETIMEOUT =>
-                        log.error("Timeout while getting the datapath")
-                        system.scheduler.scheduleOnce(100 millis, retryTask)
-                    case other =>
-                        log.error("Unexpected error while getting datapath", ex)
-                }
-            }
-        }
-
-        datapathConnection.datapathsGet(config.datapathName, dpGetCallback)
-    }
-
-    /*
-     * ONLY USE THIS DURING INITIALIZATION.
-     */
-    private def queryDatapathPorts(datapath: Datapath) {
-        log.debug("Enumerating ports for datapath: " + datapath)
-        datapathConnection.portsEnumerate(datapath,
-            new Callback[JSet[DpPort]] {
-                def onSuccess(ports: JSet[DpPort]) {
-                    self ! ExistingDatapathPorts_(datapath, ports.asScala.toSet)
-                }
-                // WARN: this is ugly. Normally we should configure
-                // the message error handling inside the router
-                def onError(ex: NetlinkException) {
-                    system.scheduler.scheduleOnce(100 millis, new Runnable {
-                        def run() {
-                            queryDatapathPorts(datapath)
-                        }
-                    })
-                }
-            }
-        )
-    }
+object DatapathStateDriver {
+    case class DpTriad(
+        ifname: String,
+        var isUp: Boolean = false,
+        var vport: UUID = null,
+        var tunnelKey: Long = 0L,
+        var dpPort: DpPort = null,
+        var dpPortNo: Integer = null)
 }
 
 /** class which manages the state changes triggered by message receive by
  *  the DatapathController. It also exposes the DatapathController managed
  *  data to clients for WilcardFlow translation. */
-class DatapathStateManager(val controller: DatapathPortEntangler.Controller)
-                          (implicit val ec: SingleThreadExecutionContext,
-                                    val log: Logger)
-                          extends DatapathState with DatapathPortEntangler {
+class DatapathStateDriver(val datapath: Datapath) extends DatapathState  {
+    import DatapathStateDriver._
+    import UnderlayResolver.Route
 
-    import org.midonet.midolman.UnderlayResolver.Route
+    val log = Logger(LoggerFactory.getLogger("org.midonet.datapath-control"))
 
     var tunnelOverlayGre: GreTunnelPort = _
     var tunnelOverlayVxLan: VxLanTunnelPort = _
     var tunnelVtepVxLan: VxLanTunnelPort = _
 
-    var greOverlayTunnellingOutputAction: FlowActionOutput = _
-    var vxlanOverlayTunnellingOutputAction: FlowActionOutput = _
-    var vtepTunnellingOutputAction: FlowActionOutput = _
+    val interfaceToTriad = new HashMap[String, DpTriad]()
+    val vportToTriad = new HashMap[UUID, DpTriad]()
+    val keyToTriad = new HashMap[Long, DpTriad]()
+    val dpPortNumToTriad = new HashMap[Int, DpTriad]
 
-    /** set the DPC reference to the gre tunnel port bound in the datapath */
-    def setTunnelOverlayGre(port: GreTunnelPort) = {
-        tunnelOverlayGre = port
-        greOverlayTunnellingOutputAction = port.toOutputAction
-        log.info(s"gre overlay tunnel port was assigned to $port")
-    }
-
-    /** set the DPC reference to the vxlan tunnel port bound in the datapath */
-    def setTunnelOverlayVxLan(port: VxLanTunnelPort) = {
-        tunnelOverlayVxLan = port
-        vxlanOverlayTunnellingOutputAction = port.toOutputAction
-        log.info(s"vxlan overlay tunnel port was assigned to $port")
-    }
-
-    /** set the DPC reference to the vxlan tunnel port bound in the datapath */
-    def setTunnelVtepVxLan(port: VxLanTunnelPort) = {
-        tunnelVtepVxLan = port
-        vtepTunnellingOutputAction = port.toOutputAction
-        log.info(s"vxlan vtep tunnel port was assigned to $port")
-    }
+    override def vtepTunnellingOutputAction = tunnelVtepVxLan.toOutputAction
 
     def isVtepTunnellingPort(portNumber: Integer) =
         tunnelVtepVxLan.getPortNo == portNumber
@@ -608,10 +422,6 @@ class DatapathStateManager(val controller: DatapathPortEntangler.Controller)
     def isOverlayTunnellingPort(portNumber: Integer) =
         tunnelOverlayGre.getPortNo == portNumber ||
         tunnelOverlayVxLan.getPortNo == portNumber
-
-    /** reference to the current host information. Used to query this host ip
-     *  when adding tunnel routes to peer host for given zone uuid. */
-    var host: ResolvedHost = _
 
     /** 2D immutable map of peerUUID -> zoneUUID -> (srcIp, dstIp, outputAction)
      *  this map stores all the possible underlay routes from this host
@@ -635,8 +445,8 @@ class DatapathStateManager(val controller: DatapathPortEntangler.Controller)
                 srcIp: Int, dstIp: Int, t: TunnelType): Seq[FlowTag] = {
         val outputAction = t match {
             case TunnelType.vtep => return Seq.empty[FlowTag]
-            case TunnelType.gre => greOverlayTunnellingOutputAction
-            case TunnelType.vxlan => vxlanOverlayTunnellingOutputAction
+            case TunnelType.gre => tunnelOverlayGre.toOutputAction
+            case TunnelType.vxlan => tunnelOverlayVxLan.toOutputAction
         }
 
         val newRoute = Route(srcIp, dstIp, outputAction)
