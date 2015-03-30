@@ -46,6 +46,30 @@
       "revId": "3b6032c0f087dea8ec85bdf851386a26fee32855",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_b3d09f54",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/vtep/model/PhysicalLocatorSet.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-03-30T14:47:22Z",
+      "side": 1,
+      "message": "It\u0027s a good idea that they are immutable since the ref. to the set is public, so that way we avoid unintentional modifications.",
+      "parentUuid": "1a106d94_d381db4b",
+      "range": {
+        "startLine": 26,
+        "startChar": 27,
+        "endLine": 26,
+        "endChar": 36
+      },
+      "revId": "3b6032c0f087dea8ec85bdf851386a26fee32855",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
