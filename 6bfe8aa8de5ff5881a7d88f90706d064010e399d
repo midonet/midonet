@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_7c55591c",
+        "filename": "midolman/src/main/scala/org/midonet/cluster/storage/MidonetBackendModule.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-03-30T09:43:06Z",
+      "side": 1,
+      "message": "I want to discuss this with you guys Alex.\n\nThe bootstrap config should only be used for the config library itself. Yet right now the entire cluster zk config is being read from there instead of zk. I believe we should change this too:\n\nbootstrap config library -\u003e read full config from zk -\u003e start backend.",
+      "revId": "6bfe8aa8de5ff5881a7d88f90706d064010e399d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
