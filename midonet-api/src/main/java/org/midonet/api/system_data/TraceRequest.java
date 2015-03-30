@@ -46,6 +46,8 @@ public class TraceRequest extends UriResource {
     @NotNull
     private Condition condition;
 
+    private long creationTimestampMs = System.currentTimeMillis();
+
     private long limit = Long.MAX_VALUE;
 
     @NotNull
@@ -57,6 +59,7 @@ public class TraceRequest extends UriResource {
 
     public TraceRequest(UUID id, String name, DeviceType deviceType,
                         UUID deviceId, Condition condition,
+                        long creationTimestampMs,
                         long limit, boolean enabled) {
         super();
         this.id = id;
@@ -64,13 +67,15 @@ public class TraceRequest extends UriResource {
         this.deviceType = deviceType;
         this.deviceId = deviceId;
         this.condition = condition;
+        this.creationTimestampMs = creationTimestampMs;
         this.limit = limit;
         this.enabled = enabled;
     }
 
     public TraceRequest(UUID id, String name, DeviceType deviceType,
                         UUID deviceId, Condition condition) {
-        this(id, name, deviceType, deviceId, condition, Long.MAX_VALUE, false);
+        this(id, name, deviceType, deviceId, condition,
+                System.currentTimeMillis(), Long.MAX_VALUE, false);
     }
 
     public TraceRequest(org.midonet.cluster.data.TraceRequest traceRequest) {
@@ -81,6 +86,7 @@ public class TraceRequest extends UriResource {
         this.deviceId = traceRequest.getDeviceId();
         this.condition = new Condition();
         this.condition.setFromCondition(traceRequest.getCondition());
+        this.creationTimestampMs = traceRequest.getCreationTimestampMs();
         this.limit = traceRequest.getLimit();
         this.enabled = (traceRequest.getEnabledRule() != null);
     }
@@ -125,6 +131,14 @@ public class TraceRequest extends UriResource {
         return condition;
     }
 
+    public long getCreationTimestampMs() {
+        return creationTimestampMs;
+    }
+
+    public void setCreationTimestampMs(long timestampMs) {
+        this.creationTimestampMs = timestampMs;
+    }
+
     public void setLimit(long limit) {
         this.limit = limit;
     }
@@ -149,6 +163,7 @@ public class TraceRequest extends UriResource {
             .setDeviceType(deviceType)
             .setDeviceId(deviceId)
             .setCondition(c)
+            .setCreationTimestampMs(creationTimestampMs)
             .setLimit(limit);
     }
 
@@ -158,6 +173,8 @@ public class TraceRequest extends UriResource {
             + ", deviceType=" + deviceType
             + ", deviceId=" + deviceId
             + ", condition=" + condition
+            + ", creationTimestampMs=" + creationTimestampMs
+            + ", limit=" + limit
             + ", enabled=" + enabled + "}";
     }
 

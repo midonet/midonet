@@ -772,6 +772,7 @@ public class Converter {
             .setDeviceType(traceRequestConfig.deviceType)
             .setDeviceId(traceRequestConfig.deviceId)
             .setCondition(traceRequestConfig.condition)
+            .setCreationTimestampMs(traceRequestConfig.creationTimestampMs)
             .setLimit(traceRequestConfig.limit)
             .setEnabledRule(traceRequestConfig.enabledRule);
     }
@@ -783,6 +784,7 @@ public class Converter {
         config.deviceType = traceRequest.getDeviceType();
         config.deviceId = traceRequest.getDeviceId();
         config.condition = traceRequest.getCondition();
+        config.creationTimestampMs = traceRequest.getCreationTimestampMs();
         config.limit = traceRequest.getLimit();
         config.enabledRule = traceRequest.getEnabledRule();
         return config;
