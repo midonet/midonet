@@ -16,7 +16,6 @@
 
 package org.midonet.midolman
 
-import java.util.UUID.randomUUID
 import java.util.UUID
 import java.util.concurrent.TimeUnit
 
@@ -31,7 +30,6 @@ import org.midonet.midolman.state.ConnTrackState._
 import org.midonet.midolman.state.NatState.{NatKey, NatBinding}
 import org.midonet.midolman.state.TraceState.{TraceKey, TraceContext}
 import org.midonet.midolman.topology.VirtualTopologyActor
-import org.midonet.midolman.topology.rcu.ResolvedHost
 import org.midonet.midolman.UnderlayResolver.Route
 import org.midonet.odp.flows.FlowActionOutput
 import org.midonet.packets.{IPv4Addr, MAC}
@@ -58,7 +56,6 @@ class ConnTrackBenchmark extends MidolmanBenchmark {
     var rightPort: BridgePort = _
 
     val underlayResolver = new UnderlayResolver {
-        override def host= new ResolvedHost(randomUUID(), true, Map(), Map())
         override def peerTunnelInfo(peer: UUID): Option[Route] = None
         override def isVtepTunnellingPort(portNumber: Integer): Boolean = false
         override def isOverlayTunnellingPort(portNumber: Integer): Boolean = false
@@ -99,6 +96,7 @@ class ConnTrackBenchmark extends MidolmanBenchmark {
         replicator = new FlowStateReplicator(conntrackTable, natTable,
                                              traceTable,
                                              new MockStateStorage,
+                                             hostId,
                                              underlayResolver,
                                              mockFlowInvalidation,
                                              0)

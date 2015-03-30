@@ -68,7 +68,7 @@ final class NetlinkRequestBroker(writer: NetlinkBlockingWriter,
                                  reader: NetlinkReader,
                                  maxPendingRequests: Int,
                                  maxRequestSize: Int,
-                                 readBuf: ByteBuffer,
+                                 maxReplySize: Int,
                                  clock: NanoClock,
                                  timeout: Duration = 10 seconds,
                                  notifications: Observer[ByteBuffer] = null) {
@@ -104,6 +104,8 @@ final class NetlinkRequestBroker(writer: NetlinkBlockingWriter,
             i += 1
         }
     }
+
+    private val readBuf = BytesUtil.instance.allocateDirect(maxReplySize)
 
     /**
      * The highest published sequence for writing. Used to synchronize between

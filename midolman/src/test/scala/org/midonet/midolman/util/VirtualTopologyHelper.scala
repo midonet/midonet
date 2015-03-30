@@ -17,6 +17,8 @@ package org.midonet.midolman.util
 
 import java.util.{LinkedList, List => JList, Queue, UUID}
 
+import org.midonet.midolman.topology.VirtualToPhysicalMapper.HostRequest
+import org.midonet.midolman.topology.devices.Host
 import org.midonet.util.UnixClock
 
 import scala.collection.JavaConversions._
@@ -46,7 +48,7 @@ import org.midonet.midolman.state.ConnTrackState._
 import org.midonet.midolman.state.{ArpRequestBroker, MockStateStorage, HappyGoLuckyLeaser}
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
 import org.midonet.midolman.state.TraceState.{TraceKey, TraceContext}
-import org.midonet.midolman.topology.VirtualTopologyActor
+import org.midonet.midolman.topology.{VirtualToPhysicalMapper, VirtualTopologyActor}
 import org.midonet.midolman.topology.VirtualTopologyActor.{BridgeRequest, ChainRequest, IPAddrGroupRequest, PortRequest, RouterRequest}
 import org.midonet.odp.flows.{FlowAction, FlowActionOutput, FlowKeys}
 import org.midonet.odp._
@@ -84,6 +86,11 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
         Await.result(Future.sequence(entities map buildRequest map
                                      { VirtualTopologyActor ? _ }),
                      timeout.duration)
+
+    def fetchHost(hostId: UUID): Host =
+        Await.result(
+            ask(VirtualToPhysicalMapper, HostRequest(hostId)).asInstanceOf[Future[Host]],
+            timeout.duration)
 
     def feedArpTable(router: SimRouter, ip: IPv4Addr, mac: MAC): Unit = {
         ArpCacheHelper.feedArpCache(router, ip, mac)
@@ -235,9 +242,28 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
                        natTable: FlowStateTable[NatKey, NatBinding] = new ShardedFlowStateTable[NatKey, NatBinding](clock).addShard(),
                        traceTable: FlowStateTable[TraceKey, TraceContext] = new ShardedFlowStateTable[TraceKey, TraceContext](clock).addShard())
                       (implicit hostId: UUID, client: DataClient) = {
-        val pktWkfl = TestActorRef[PacketWorkflow](Props(new PacketWorkflow(
+        val dpState = new DatapathState {
+            override val datapath = new Datapath(0, "midonet")
+            override def peerTunnelInfo(peer: UUID): Option[UnderlayRoute] =
+                peers.get(peer)
+            override def isVtepTunnellingPort(portNumber: Integer): Boolean = false
+            override def isOverlayTunnellingPort(portNumber: Integer): Boolean =
+                tunnelPorts.contains(portNumber)
+            override def vtepTunnellingOutputAction: FlowActionOutput = null
+            override def getVportForDpPortNumber(portNum: Integer): UUID =
+                dpPortToVport get portNum orNull
+            override def dpPortForTunnelKey(tunnelKey: Long): DpPort =
+                DpPort.fakeFrom(new InternalPort("dpPort-" + tunnelKey),
+                                tunnelKey.toInt)
+            override def getDpPortNumberForVport(vportId: UUID): Integer =
+                (dpPortToVport map (_.swap) toMap) get vportId map Integer.valueOf orNull
+        }
+
+        TestActorRef[PacketWorkflow](Props(new PacketWorkflow(
             0,
             config,
+            hostId,
+            dpState,
             new CookieGenerator(0, 1),
             clock,
             dpChannel,
@@ -257,23 +283,6 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
                 super.runWorkflow(pktCtx)
             }
         }))
-        pktWkfl ! DatapathController.DatapathReady(new Datapath(0, "midonet"), new DatapathState {
-            override def host: ResolvedHost = new ResolvedHost(hostId, true, Map(), Map())
-            override def peerTunnelInfo(peer: UUID): Option[UnderlayRoute] =
-                peers.get(peer)
-            override def isVtepTunnellingPort(portNumber: Integer): Boolean = false
-            override def isOverlayTunnellingPort(portNumber: Integer): Boolean =
-                tunnelPorts.contains(portNumber)
-            override def vtepTunnellingOutputAction: FlowActionOutput = null
-            override def getVportForDpPortNumber(portNum: Integer): UUID =
-                dpPortToVport get portNum orNull
-            override def dpPortForTunnelKey(tunnelKey: Long): DpPort =
-                DpPort.fakeFrom(new InternalPort("dpPort-" + tunnelKey),
-                                tunnelKey.toInt)
-            override def getDpPortNumberForVport(vportId: UUID): Integer =
-                (dpPortToVport map (_.swap) toMap) get vportId map Integer.valueOf orNull
-        })
-        pktWkfl
     }
 
     @inline

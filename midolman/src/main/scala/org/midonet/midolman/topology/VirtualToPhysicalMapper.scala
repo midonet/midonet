@@ -17,7 +17,6 @@ package org.midonet.midolman.topology
 
 import java.util.{Set => JSet, UUID}
 
-import scala.collection.immutable.{Set => ROSet}
 import scala.collection.mutable
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
@@ -94,7 +93,7 @@ object VirtualToPhysicalMapper extends Referenceable {
                            op: HostConfigOperation.Value)
 
     case class ZoneMembers(zone: UUID, zoneType: TunnelZone.Type,
-                           members: ROSet[TunnelZone.HostConfig] = Set.empty) {
+                           members: Set[TunnelZone.HostConfig] = Set.empty) {
 
         def change(change: ZoneChanged) = copy(
             zoneType = change.zoneType,

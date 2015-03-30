@@ -85,17 +85,6 @@ class PacketWorkflowTest extends MidolmanSpec {
 
         ddaRef = TestActorRef(ddaProps)(actorSystem)
         dda should not be null
-        ddaRef ! DatapathController.DatapathReady(new Datapath(0, "midonet"), new DatapathState {
-            override def dpPortForTunnelKey(tunnelKey: Long): DpPort = ???
-            override def getVportForDpPortNumber(portNum: Integer): UUID = ???
-            override def getDpPortNumberForVport(vportId: UUID): Integer = ???
-            override def host = new ResolvedHost(UUID.randomUUID(), true,
-                                                 Map(), Map())
-            override def peerTunnelInfo(peer: UUID): Option[Route] = ???
-            override def isVtepTunnellingPort(portNumber: Integer): Boolean = ???
-            override def isOverlayTunnellingPort(portNumber: Integer): Boolean = ???
-            override def vtepTunnellingOutputAction: FlowActionOutput = ???
-        })
     }
 
     def makeFrame(variation: Short) =
@@ -381,6 +370,7 @@ class PacketWorkflowTest extends MidolmanSpec {
                       override val simulationExpireMillis: Long)
             extends PacketWorkflow(0,
                                    injector.getInstance(classOf[MidolmanConfig]),
+                                   hostId, new DatapathStateDriver(new Datapath(0, "midonet")),
                                    cookieGen, clock, dpChannel,
                                    clusterDataClient, flowInvalidator, flowProcessor,
                                    conntrackTable, natTable,

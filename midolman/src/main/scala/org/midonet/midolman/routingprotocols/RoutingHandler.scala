@@ -39,7 +39,7 @@ import org.midonet.midolman._
 import org.midonet.midolman.topology.devices.{Port, RouterPort}
 import org.midonet.netlink.AfUnix
 import org.midonet.odp.ports.NetDevPort
-import org.midonet.odp.{Datapath, DpPort}
+import org.midonet.odp.DpPort
 import org.midonet.packets._
 import org.midonet.quagga.ZebraProtocol.RIBType
 import org.midonet.quagga._
@@ -108,7 +108,6 @@ object RoutingHandler {
  * RoutingHandlers for different virtual ports of the same router. *
  */
 class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
-                     val datapath: Datapath,
                      val flowInvalidator: FlowInvalidator,
                      val dpState: DatapathState,
                      val upcallConnManager: UpcallDatapathConnectionManager,
@@ -116,11 +115,11 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
                      val config: MidolmanConfig,
                      val connWatcher: ZkConnectionAwareWatcher,
                      val selectLoop: SelectLoop)
-    extends Actor with ActorLogWithoutPath with Stash with FlowTranslator {
+    extends Actor with ActorLogWithoutPath with Stash {
 
     import RoutingHandler._
-
-    override protected implicit val system = context.system
+    import context.dispatcher
+    import context.system
 
     override def logSource = s"org.midonet.routing.bgp.bgp-$bgpIdx"
 
@@ -759,7 +758,7 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
 
     private def createDpPort(port: String): Unit = {
         log.debug(s"Creating port $port")
-        val f = upcallConnManager.createAndHookDpPort(datapath,
+        val f = upcallConnManager.createAndHookDpPort(dpState.datapath,
                                                       new NetDevPort(port),
                                                       VirtualMachine)
         f map { case (dpPort, pid) =>
@@ -769,7 +768,7 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
 
     private def removeDpPort(port: DpPort): Unit = {
         log.debug(s"Removing port ${port.getName}")
-        upcallConnManager.deleteDpPort(datapath, port) map { _ =>
+        upcallConnManager.deleteDpPort(dpState.datapath, port) map { _ =>
             DpPortDeleteSuccess(port)
         } recover { case e => DpPortError(port.getName, e) } pipeTo self
     }

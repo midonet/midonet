@@ -24,7 +24,6 @@ import com.google.inject.Inject
 
 import org.midonet.cluster.state.{StateStorage, LocalPortActive}
 import org.midonet.cluster.{Client, DataClient}
-import org.midonet.midolman.DatapathController.DatapathReady
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.cluster.MidolmanActorsModule.ZEBRA_SERVER_LOOP
 import org.midonet.midolman.flows.FlowInvalidator
@@ -36,8 +35,7 @@ import org.midonet.midolman.state.ZkConnectionAwareWatcher
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.topology.VirtualTopologyActor.PortRequest
 import org.midonet.midolman.topology.devices.{Port, RouterPort}
-import org.midonet.midolman.{DatapathReadySubscriberActor, DatapathState, Referenceable}
-import org.midonet.odp.Datapath
+import org.midonet.midolman.{DatapathState, Referenceable}
 import org.midonet.util.concurrent.ReactiveActor
 import org.midonet.util.concurrent.ReactiveActor.OnNext
 import org.midonet.util.eventloop.SelectLoop
@@ -50,8 +48,7 @@ object RoutingManagerActor extends Referenceable {
 }
 
 class RoutingManagerActor extends ReactiveActor[LocalPortActive]
-                          with ActorLogWithoutPath
-                          with DatapathReadySubscriberActor {
+                          with ActorLogWithoutPath {
     import context.system
 
     override def logSource = "org.midonet.routing.bgp"
@@ -74,14 +71,13 @@ class RoutingManagerActor extends ReactiveActor[LocalPortActive]
     var zebraLoop: SelectLoop = null
     @Inject
     var flowInvalidator: FlowInvalidator = null
+    @Inject
+    var dpState: DatapathState = null
 
     private var bgpPortIdx = 0
 
     private val activePorts = mutable.Set[UUID]()
     private val portHandlers = mutable.Map[UUID, ActorRef]()
-
-    var datapath: Datapath = null
-    var dpState: DatapathState = null
 
     @Inject
     var upcallConnManager: UpcallDatapathConnectionManager = null
@@ -92,9 +88,6 @@ class RoutingManagerActor extends ReactiveActor[LocalPortActive]
     }
 
     override def receive = {
-        case DatapathReady(dp, state) =>
-            datapath = dp
-            dpState = state
         case OnNext(LocalPortActive(portID, true)) =>
             log.debug(s"port $portID became active")
             if (!activePorts.contains(portID)) {
@@ -155,7 +148,7 @@ class RoutingManagerActor extends ReactiveActor[LocalPortActive]
                 portHandlers.put(
                     port.id,
                     context.actorOf(
-                        Props(new RoutingHandler(port, portIndexForHandler, datapath,
+                        Props(new RoutingHandler(port, portIndexForHandler,
                                     flowInvalidator, dpState, upcallConnManager,
                                     client, dataClient, config, zkConnWatcher, zebraLoop)).
                               withDispatcher("actors.pinned-dispatcher"),
