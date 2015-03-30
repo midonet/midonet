@@ -19,10 +19,10 @@ package org.midonet.midolman.util.mock
 import java.util.{ArrayList, List => JList, Map => JMap}
 
 import com.typesafe.scalalogging.Logger
-import org.midonet.midolman.datapath.{StatePacketExecutor, DatapathChannel}
+import org.midonet.midolman.datapath.{DatapathChannel, StatePacketExecutor}
 import org.midonet.midolman.simulation.PacketContext
 import org.midonet.odp.flows.FlowAction
-import org.midonet.odp.{Flow, FlowMatch, Packet, Datapath}
+import org.midonet.odp.{Flow, FlowMatch, Packet}
 import org.slf4j.helpers.NOPLogger
 
 class MockDatapathChannel(val flowsTable: JMap[FlowMatch, Flow] = null)
@@ -67,7 +67,6 @@ class MockDatapathChannel(val flowsTable: JMap[FlowMatch, Flow] = null)
         0
     }
 
+    override def start(): Unit = { }
     override def stop(): Unit = { }
-
-    override def start(datapath: Datapath): Unit = { }
 }

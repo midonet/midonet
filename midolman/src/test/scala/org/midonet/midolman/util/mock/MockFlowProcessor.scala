@@ -26,13 +26,14 @@ import org.midonet.netlink.NetlinkMessage
 import org.midonet.odp.OpenVSwitch.Flow.Attr
 import org.midonet.odp.family.{DatapathFamily, FlowFamily, PacketFamily, PortFamily}
 import org.midonet.odp.flows.FlowKeys
-import org.midonet.odp.{Flow, FlowMatch, OvsNetlinkFamilies}
+import org.midonet.odp.{Datapath, Flow, FlowMatch, OvsNetlinkFamilies}
 import org.midonet.util.concurrent.MockClock
 import org.slf4j.LoggerFactory
 import rx.Observer
 
 class MockFlowProcessor(val flowsTable: JMap[FlowMatch, Flow] = null)
         extends FlowProcessor(
+            new Datapath(0, "midonet"),
             new OvsNetlinkFamilies(
                 new DatapathFamily(0),
                 new PortFamily(0),
@@ -44,6 +45,7 @@ class MockFlowProcessor(val flowsTable: JMap[FlowMatch, Flow] = null)
             new MockNetlinkChannelFactory,
             new MockSelectorProvider,
             new MockClock) {
+
     var flowDelCb: Flow => Unit = _
 
     private val log = Logger(LoggerFactory.getLogger(

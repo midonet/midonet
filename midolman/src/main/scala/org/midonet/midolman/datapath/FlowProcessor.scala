@@ -32,7 +32,7 @@ import org.midonet.midolman.datapath.DisruptorDatapathChannel._
 import org.midonet.netlink._
 import org.midonet.netlink.exceptions.NetlinkException
 import org.midonet.odp.flows.{FlowAction, FlowKey}
-import org.midonet.odp.{FlowMask, FlowMatch, OvsNetlinkFamilies, OvsProtocol}
+import org.midonet.odp._
 import org.midonet.util.concurrent.{Backchannel, NanoClock}
 
 object FlowProcessor {
@@ -49,7 +49,8 @@ object FlowProcessor {
     private val MAX_BUF_CAPACITY = 4 * 1024 * 1024
 }
 
-class FlowProcessor(families: OvsNetlinkFamilies,
+class FlowProcessor(datapath: Datapath,
+                    families: OvsNetlinkFamilies,
                     numPartitions: Int,
                     maxPendingRequests: Int,
                     maxRequestSize: Int,
@@ -64,6 +65,9 @@ class FlowProcessor(families: OvsNetlinkFamilies,
 
     private val log = Logger(LoggerFactory.getLogger(
         "org.midonet.datapath.flow-processor"))
+
+    private val datapathId = datapath.getIndex
+    private val supportsMegaflow = datapath.supportsMegaflow()
 
     private var writeBuf = BytesUtil.instance.allocateDirect(64 * 1024)
     private val mainChannel = channelFactory.create(blocking = true)
@@ -118,7 +122,7 @@ class FlowProcessor(families: OvsNetlinkFamilies,
                 new NetlinkReader(channel),
                 maxPendingRequests,
                 maxRequestSize,
-                BytesUtil.instance.allocateDirect(8 * 1024),
+                BytesUtil.instance.allocateDirect(8 * 1024), // TODO: Reply buf size needs to be increased to match writeBuf
                 clock)
             i += 1
         }
@@ -140,12 +144,12 @@ class FlowProcessor(families: OvsNetlinkFamilies,
         event.flowCreateRef = null
         if (context.flow ne null) {
             try {
-                val mask = if (event.supportsMegaflow) {
+                val mask = if (supportsMegaflow) {
                     flowMask.calculateFor(flowMatch)
                     context.log.debug(s"Applying mask $flowMask")
                     flowMask
                 } else null
-                writeFlow(event.datapathId, flowMatch.getKeys,
+                writeFlow(datapathId, flowMatch.getKeys,
                           context.flowActions, mask)
                 context.log.debug("Created datapath flow")
             } catch { case t: Throwable =>
