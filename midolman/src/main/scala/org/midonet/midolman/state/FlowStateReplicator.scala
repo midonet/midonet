@@ -91,6 +91,7 @@ abstract class BaseFlowStateReplicator(conntrackTable: FlowStateTable[ConnTrackK
                                        natTable: FlowStateTable[NatKey, NatBinding],
                                        traceTable: FlowStateTable[TraceKey, TraceContext],
                                        storage: FlowStateStorage,
+                                       hostId: UUID,
                                        underlay: UnderlayResolver,
                                        flowInvalidation: FlowInvalidation,
                                        tos: Byte) {
@@ -109,7 +110,7 @@ abstract class BaseFlowStateReplicator(conntrackTable: FlowStateTable[ConnTrackK
     private[this] val txPeers: JSet[UUID] = new JHashSet[UUID]()
     private[this] val txPorts: JSet[UUID] = new JHashSet[UUID]()
 
-    private[this] val hostId = uuidToProto(underlay.host.id)
+    private[this] val hostIdProto = uuidToProto(hostId)
 
     private val _conntrackAdder = new Reducer[ConnTrackKey, ConnTrackValue, ArrayList[Callback0]] {
         override def apply(callbacks: ArrayList[Callback0], k: ConnTrackKey,
@@ -175,7 +176,7 @@ abstract class BaseFlowStateReplicator(conntrackTable: FlowStateTable[ConnTrackK
 
     private def resetCurrentMessage() {
         currentMessage.clear()
-        currentMessage.setSender(hostId)
+        currentMessage.setSender(hostIdProto)
         currentMessage.setEpoch(0L /* the epoch is not used*/)
 
         /* We don't expect ACKs, seq is unused for now */
@@ -323,7 +324,7 @@ abstract class BaseFlowStateReplicator(conntrackTable: FlowStateTable[ConnTrackK
     private def collectPeersForPort(portId: UUID, hosts: JSet[UUID],
                                     ports: JSet[UUID], tags: JSet[FlowTag]) {
         def addPeerFor(port: Port) {
-            if ((port.hostId ne null) && (port.hostId != underlay.host.id))
+            if ((port.hostId ne null) && (port.hostId != hostId))
                 hosts.add(port.hostId)
             tags.add(port.deviceTag)
         }
@@ -374,11 +375,12 @@ class FlowStateReplicator(
         natTable: FlowStateTable[NatKey, NatBinding],
         traceTable: FlowStateTable[TraceKey, TraceContext],
         storage: FlowStateStorage,
+        hostId: UUID,
         underlay: UnderlayResolver,
         flowInvalidation: FlowInvalidation,
         tso: Byte)(implicit as: ActorSystem)
         extends BaseFlowStateReplicator(conntrackTable, natTable, traceTable,
-                                        storage, underlay,
+                                        storage, hostId, underlay,
                                         flowInvalidation, tso) {
     override val log = Logger(LoggerFactory.getLogger("org.midonet.state.replication"))
 

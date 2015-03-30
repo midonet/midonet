@@ -18,7 +18,7 @@ package org.midonet.midolman
 
 import java.util.{HashMap, ArrayList}
 
-import akka.actor.{Actor, ActorRef, ActorSystem}
+import akka.actor.{Actor, ActorSystem}
 
 import org.jctools.queues.SpscArrayQueue
 
@@ -42,13 +42,13 @@ import org.midonet.util.concurrent.WakerUpper.Parkable
 trait FlowController extends FlowLifecycle with FlowInvalidation
                      with FlowExpiration with Backchannel { this: Actor =>
 
-    val id: Int
-    val config: MidolmanConfig
-    val clock: NanoClock
-    val flowProcessor: FlowProcessor
-    val flowInvalidator: FlowInvalidator
+    protected val id: Int
+    protected val config: MidolmanConfig
+    protected val clock: NanoClock
+    protected val flowProcessor: FlowProcessor
+    protected val flowInvalidator: FlowInvalidator
+    protected val datapathId: Int
     val metrics: PacketPipelineMetrics
-    def datapathId: Int
 
     implicit val system: ActorSystem
 

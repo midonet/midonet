@@ -46,7 +46,7 @@ class NetlinkRequestBrokerTest extends FeatureSpec
     val clock = new MockClock
     val notifications = new CountingObserver()
     val broker = new NetlinkRequestBroker(writer,reader, maxRequests, 512,
-                                          ByteBuffer.allocate(1024), clock,
+                                          1024, clock,
                                           timeout = 1 milli, notifications)
 
     before {

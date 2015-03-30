@@ -33,7 +33,7 @@ object OvsNetlinkFamilies {
     def discover(channel: NetlinkChannel): OvsNetlinkFamilies = {
         val broker = new NetlinkRequestBroker(
             new NetlinkBlockingWriter(channel), new NetlinkReader(channel),
-            1, 2048, BytesUtil.instance.allocate(2048), NanoClock.DEFAULT)
+            1, 2048, 2048, NanoClock.DEFAULT)
         val pid = channel.getLocalAddress.getPid
 
         def request[T >: Null](family: String, f: ByteBuffer => T): T = {

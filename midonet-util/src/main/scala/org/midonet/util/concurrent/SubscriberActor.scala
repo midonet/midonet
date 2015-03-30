@@ -14,11 +14,9 @@
  * limitations under the License.
  */
 
-package org.midonet.midolman
+package org.midonet.util.concurrent
 
 import akka.actor.Actor
-import org.midonet.midolman.DatapathController.DatapathReady
-import org.midonet.midolman.topology.LocalPortActive
 
 trait SubscriberActor extends Actor {
 
@@ -35,12 +33,4 @@ trait SubscriberActor extends Actor {
             this.context.system.eventStream.unsubscribe(this.self, _))
         super.postStop()
     }
-}
-
-trait DatapathReadySubscriberActor extends SubscriberActor {
-    override def subscribedClasses = Seq(classOf[DatapathReady])
-}
-
-trait LocalPortActiveSubscriberActor extends SubscriberActor {
-    override def subscribedClasses = Seq(classOf[LocalPortActive])
 }

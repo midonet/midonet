@@ -23,6 +23,7 @@ import javax.inject.Singleton;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 
+import org.midonet.midolman.DatapathStateDriver;
 import org.midonet.midolman.config.MidolmanConfig;
 import org.midonet.midolman.datapath.DatapathChannel;
 import org.midonet.midolman.datapath.FlowProcessor;
@@ -34,6 +35,7 @@ import org.midonet.midolman.util.mock.MockFlowProcessor;
 import org.midonet.midolman.util.mock.MockUpcallDatapathConnectionManager;
 import org.midonet.netlink.MockNetlinkChannelFactory;
 import org.midonet.netlink.NetlinkChannelFactory;
+import org.midonet.odp.Datapath;
 import org.midonet.odp.Flow;
 import org.midonet.odp.FlowMatch;
 
@@ -54,6 +56,12 @@ public class MockDatapathModule extends DatapathModule {
                     }
                 })
                 .in(Singleton.class);
+    }
+
+    @Override
+    protected void bindDatapathStateDriver() {
+        bind(DatapathStateDriver.class).toInstance(
+            new DatapathStateDriver(new Datapath(0, "midonet")));
     }
 
     @Override
