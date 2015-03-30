@@ -21,7 +21,8 @@ import scala.collection.JavaConversions._
 import scala.collection.mutable.ArrayBuffer
 import scala.concurrent.{ExecutionContext, Future}
 
-import org.slf4j.LoggerFactory
+import org.midonet.midolman.DatapathStateDriver
+import org.midonet.midolman.DatapathStateDriver.DpTriad
 import org.slf4j.helpers.NOPLogger
 import com.typesafe.scalalogging.Logger
 
@@ -29,17 +30,22 @@ import org.junit.runner.RunWith
 import org.scalatest._
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.midolman.datapath.DatapathPortEntangler.DpTriad
 import org.midonet.midolman.host.interfaces.InterfaceDescription
 import org.midonet.midolman.topology.rcu.PortBinding
-import org.midonet.odp.DpPort
+import org.midonet.odp.{Datapath, DpPort}
 import org.midonet.odp.ports.{InternalPort, NetDevPort}
 import org.midonet.util.concurrent._
 
 @RunWith(classOf[JUnitRunner])
 class DatapathPortEntanglerTest extends FlatSpec with ShouldMatchers with OneInstancePerTest {
 
-    val controller = new DatapathPortEntangler.Controller {
+    val entangler = new DatapathPortEntangler {
+        val log = Logger(NOPLogger.NOP_LOGGER)
+        override protected val singleThreadExecutionContext =
+            ExecutionContext.callingThread
+
+        protected val driver = new DatapathStateDriver(new Datapath(0, "midonet"))
+
         var portCreated: DpPort = _
         var portRemoved: DpPort = _
         var portActive: Boolean = _
@@ -68,12 +74,6 @@ class DatapathPortEntanglerTest extends FlatSpec with ShouldMatchers with OneIns
         }
     }
 
-    val entangler = new DatapathPortEntangler {
-        val controller = DatapathPortEntanglerTest.this.controller
-        val log = Logger(NOPLogger.NOP_LOGGER)
-        val ec = ExecutionContext.callingThread
-    }
-
     trait DatapathOperation {
         val port: String
 
@@ -95,7 +95,7 @@ class DatapathPortEntanglerTest extends FlatSpec with ShouldMatchers with OneIns
             val newTriad = entangler.interfaceToTriad.get(port)
             val oldTriad = prevInterfaceToTriad.get(port).orNull
 
-            if (controller.portCreated ne null) {
+            if (entangler.portCreated ne null) {
                 isUp should be (true)
 
                 oldTriad.isUp should be (false)
@@ -117,8 +117,8 @@ class DatapathPortEntanglerTest extends FlatSpec with ShouldMatchers with OneIns
                 entangler.vportToTriad containsKey newTriad.vport should be (true)
                 entangler.keyToTriad containsKey newTriad.tunnelKey should be (true)
 
-                controller.portActive should be (true)
-            } else if (controller.portRemoved ne null) {
+                entangler.portActive should be (true)
+            } else if (entangler.portRemoved ne null) {
                 isUp should be (false)
 
                 oldTriad.isUp should be (true)
@@ -144,7 +144,7 @@ class DatapathPortEntanglerTest extends FlatSpec with ShouldMatchers with OneIns
                 entangler.vportToTriad containsKey newTriad.vport should be (true)
                 entangler.keyToTriad containsKey newTriad.tunnelKey should be (false)
 
-                controller.portActive should be (false)
+                entangler.portActive should be (false)
             } else {
                 (oldTriad, newTriad) match {
                     case (null, null) =>
@@ -181,9 +181,9 @@ class DatapathPortEntanglerTest extends FlatSpec with ShouldMatchers with OneIns
             val newTriad = entangler.interfaceToTriad.get(port)
             val oldTriad = prevInterfaceToTriad.get(port).orNull
 
-            if (controller.portCreated ne null) {
+            if (entangler.portCreated ne null) {
                 fail("port added on interface delete")
-            } else if (controller.portRemoved ne null) {
+            } else if (entangler.portRemoved ne null) {
                 oldTriad.isUp should be (true)
                 oldTriad.vport should not be null
                 oldTriad.dpPort should not be null
@@ -207,7 +207,7 @@ class DatapathPortEntanglerTest extends FlatSpec with ShouldMatchers with OneIns
                 entangler.vportToTriad containsKey newTriad.vport should be (true)
                 entangler.keyToTriad containsKey newTriad.tunnelKey should be (false)
 
-                controller.portActive should be (false)
+                entangler.portActive should be (false)
             } else {
                 (oldTriad, newTriad) match {
                     case (null, null) =>
@@ -244,7 +244,7 @@ class DatapathPortEntanglerTest extends FlatSpec with ShouldMatchers with OneIns
             val newTriad = entangler.interfaceToTriad.get(port)
             val oldTriad = prevInterfaceToTriad.get(port).orNull
 
-            if (controller.portCreated ne null) {
+            if (entangler.portCreated ne null) {
                 oldTriad.isUp should be (true)
                 oldTriad.vport should be (null)
                 if (internal) {
@@ -264,8 +264,8 @@ class DatapathPortEntanglerTest extends FlatSpec with ShouldMatchers with OneIns
                 entangler.vportToTriad containsKey newTriad.vport should be (true)
                 entangler.keyToTriad containsKey newTriad.tunnelKey should be (true)
 
-                controller.portActive should be (true)
-            } else if (controller.portRemoved ne null) {
+                entangler.portActive should be (true)
+            } else if (entangler.portRemoved ne null) {
                 fail("port removed on new binding")
             } else {
                 (oldTriad, newTriad) match {
@@ -302,9 +302,9 @@ class DatapathPortEntanglerTest extends FlatSpec with ShouldMatchers with OneIns
             val newTriad = entangler.interfaceToTriad.get(port)
             val oldTriad = prevInterfaceToTriad.get(port).orNull
 
-            if (controller.portCreated ne null) {
+            if (entangler.portCreated ne null) {
                 fail("port created on new deleted binding")
-            } else if (controller.portRemoved ne null) {
+            } else if (entangler.portRemoved ne null) {
                 oldTriad.isUp should be (true)
                 oldTriad.vport should not be null
                 oldTriad.dpPort should not be null
@@ -328,7 +328,7 @@ class DatapathPortEntanglerTest extends FlatSpec with ShouldMatchers with OneIns
                 entangler.vportToTriad containsKey port should be (false)
                 entangler.keyToTriad containsKey newTriad.tunnelKey should be (false)
 
-                controller.portActive should be (false)
+                entangler.portActive should be (false)
             } else {
                 (oldTriad, newTriad) match {
                     case (null, null) =>
@@ -391,7 +391,7 @@ class DatapathPortEntanglerTest extends FlatSpec with ShouldMatchers with OneIns
                 }).toMap
                 op.act()
                 op.validate(prevInterfaceToTriad)
-                controller.clear()
+                entangler.clear()
             }
         } catch { case e: Throwable =>
             throw new Exception(s"Failed with history = $arrayBuffer", e)
@@ -399,11 +399,17 @@ class DatapathPortEntanglerTest extends FlatSpec with ShouldMatchers with OneIns
     }
 
     "A failed DP port create operation" should "be retried" in {
-        val failOnceController = new DatapathPortEntangler.Controller {
+        val entangler = new DatapathPortEntangler {
+            val log = Logger(NOPLogger.NOP_LOGGER)
+            override protected val singleThreadExecutionContext =
+                ExecutionContext.callingThread
+
             var shouldFail = true
             var portActive = false
 
-            override def addToDatapath(interfaceName: String): Future[(DpPort, Int)] =
+            protected val driver = new DatapathStateDriver(new Datapath(0, "midonet"))
+
+            def addToDatapath(interfaceName: String): Future[(DpPort, Int)] =
                 if (shouldFail) {
                     shouldFail = false
                     Future.failed(new Exception)
@@ -412,20 +418,14 @@ class DatapathPortEntanglerTest extends FlatSpec with ShouldMatchers with OneIns
                     Future.successful((dpPort, 1))
                 }
 
-            override def removeFromDatapath(port: DpPort): Future[Boolean] = {
+            def removeFromDatapath(port: DpPort): Future[Boolean] = {
                 Future.successful(true)
             }
 
-            override def setVportStatus(port: DpPort, vport: UUID, tunnelKey: Long,
+            def setVportStatus(port: DpPort, vport: UUID, tunnelKey: Long,
                                         isActive: Boolean): Unit = {
                 portActive = isActive
             }
-        }
-
-        val entangler = new DatapathPortEntangler {
-            val controller = failOnceController
-            val log = Logger(NOPLogger.NOP_LOGGER)
-            val ec = ExecutionContext.callingThread
         }
 
         val id = UUID.randomUUID()
@@ -435,7 +435,7 @@ class DatapathPortEntanglerTest extends FlatSpec with ShouldMatchers with OneIns
         entangler.updateVPortInterfaceBindings(Map(id -> binding))
         entangler.updateInterfaces(new HashSet[InterfaceDescription] { add(desc) })
 
-        controller.portActive should be (false)
+        entangler.portActive should be (false)
         entangler.interfaceToTriad containsKey "eth1" should be (true)
         entangler.vportToTriad containsKey id should be (true)
         entangler.dpPortNumToTriad containsKey 1 should be (false)

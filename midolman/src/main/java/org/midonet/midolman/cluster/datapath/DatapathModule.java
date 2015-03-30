@@ -26,6 +26,7 @@ import com.google.inject.Injector;
 import com.google.inject.PrivateModule;
 import com.google.inject.Provider;
 
+import com.google.inject.Provides;
 import com.lmax.disruptor.BatchEventProcessor;
 import com.lmax.disruptor.EventPoller;
 import com.lmax.disruptor.EventProcessor;
@@ -36,7 +37,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.midonet.Util;
+import org.midonet.midolman.DatapathState;
+import org.midonet.midolman.DatapathStateDriver;
+import org.midonet.midolman.UnderlayResolver;
+import org.midonet.midolman.VirtualPortsResolver;
 import org.midonet.midolman.config.MidolmanConfig;
+import org.midonet.midolman.datapath.DatapathBootstrap$;
 import org.midonet.midolman.datapath.DatapathChannel;
 import org.midonet.midolman.datapath.DisruptorDatapathChannel;
 import org.midonet.midolman.datapath.FlowProcessor;
@@ -50,6 +56,7 @@ import org.midonet.midolman.io.TokenBucketPolicy;
 import org.midonet.midolman.services.DatapathConnectionService;
 import org.midonet.netlink.NetlinkChannel;
 import org.midonet.netlink.NetlinkChannelFactory;
+import org.midonet.odp.Datapath;
 import org.midonet.odp.OvsNetlinkFamilies;
 import org.midonet.util.concurrent.AggregateEventPollerHandler;
 import org.midonet.util.concurrent.BackchannelEventProcessor;
@@ -70,6 +77,10 @@ public class DatapathModule extends PrivateModule {
 
         bindNetlinkConnectionFactory();
         bindOvsNetlinkFamilies();
+        bindDatapathStateDriver();
+        bind(DatapathState.class).to(DatapathStateDriver.class);
+        bind(VirtualPortsResolver.class).to(DatapathStateDriver.class);
+        bind(UnderlayResolver.class).to(DatapathStateDriver.class);
         bindFlowProcessor();
         bindDatapathChannel();
         bindDatapathConnectionPool();
@@ -81,38 +92,62 @@ public class DatapathModule extends PrivateModule {
         expose(DatapathChannel.class);
         expose(DatapathConnectionPool.class);
         expose(UpcallDatapathConnectionManager.class);
-
+        expose(DatapathStateDriver.class);
+        expose(DatapathState.class);
+        expose(VirtualPortsResolver.class);
+        expose(UnderlayResolver.class);
         bind(DatapathConnectionService.class)
             .asEagerSingleton();
         expose(DatapathConnectionService.class);
     }
 
-    private EventProcessor[] createProcessors(int threads, RingBuffer ringBuffer,
-                                              SequenceBarrier barrier,
-                                              FlowProcessor flowProcessor,
-                                              OvsNetlinkFamilies families,
-                                              NetlinkChannelFactory channelFactory) {
+    private EventProcessor[] createProcessors(
+            int threads,
+            RingBuffer ringBuffer,
+            SequenceBarrier barrier,
+            FlowProcessor flowProcessor,
+            DatapathState dpState,
+            OvsNetlinkFamilies families,
+            NetlinkChannelFactory channelFactory) {
         threads = Math.max(threads, 1);
         EventProcessor[] processors = new EventProcessor[threads];
         if (threads == 1) {
             EventPoller.Handler handler = new AggregateEventPollerHandler(
                 JavaConversions.asScalaBuffer(Arrays.asList(
                     flowProcessor,
-                    new EventPollerHandlerAdapter(
-                        new PacketExecutor(families, 1, 0, channelFactory)))));
+                    new EventPollerHandlerAdapter(new PacketExecutor(
+                        dpState, families, 1, 0, channelFactory)))));
             processors[0] = new BackchannelEventProcessor(
                 ringBuffer, handler, flowProcessor, Seq$.MODULE$.empty());
         } else {
             int numPacketHandlers = threads - 1;
             for (int i = 0; i < numPacketHandlers; ++i) {
                 PacketExecutor pexec = new PacketExecutor(
-                    families, numPacketHandlers, i, channelFactory);
+                    dpState, families, numPacketHandlers, i, channelFactory);
                 processors[i] = new BatchEventProcessor(ringBuffer, barrier, pexec);
             }
             processors[numPacketHandlers] = new BackchannelEventProcessor(
                 ringBuffer, flowProcessor, flowProcessor,  Seq$.MODULE$.empty());
         }
         return processors;
+    }
+
+    protected void bindDatapathStateDriver() {
+        bind(DatapathStateDriver.class).toProvider(new Provider<DatapathStateDriver>() {
+            @Inject
+            MidolmanConfig config;
+
+            @Inject
+            NetlinkChannelFactory channelFactory;
+
+            @Inject
+            OvsNetlinkFamilies families;
+
+            public DatapathStateDriver get() {
+                return DatapathBootstrap$.MODULE$.bootstrap(
+                    config, channelFactory, families);
+            }
+        }).asEagerSingleton();
     }
 
     protected void bindDatapathChannel() {
@@ -128,14 +163,17 @@ public class DatapathModule extends PrivateModule {
                 public DatapathChannel get() {
                     int capacity = Util.findNextPositivePowerOfTwo(
                         config.datapath().globalIncomingBurstCapacity() * 2);
-                    RingBuffer<PacketContextHolder> ringBuffer = RingBuffer.createMultiProducer(
-                        Factory$.MODULE$,
-                        capacity);
+                    RingBuffer<PacketContextHolder>
+                        ringBuffer =
+                        RingBuffer.createMultiProducer(
+                            Factory$.MODULE$,
+                            capacity);
                     SequenceBarrier barrier = ringBuffer.newBarrier();
                     EventProcessor processors[] = createProcessors(
                         config.outputChannels(),
                         ringBuffer, barrier,
                         injector.getInstance(FlowProcessor.class),
+                        injector.getInstance(DatapathState.class),
                         injector.getInstance(OvsNetlinkFamilies.class),
                         injector.getInstance(NetlinkChannelFactory.class));
                     return new DisruptorDatapathChannel(ringBuffer, processors);
@@ -181,6 +219,7 @@ public class DatapathModule extends PrivateModule {
                 @Override
                 public FlowProcessor get() {
                     return new FlowProcessor(
+                        injector.getInstance(DatapathState.class),
                         injector.getInstance(OvsNetlinkFamilies.class),
                         config.datapath().globalIncomingBurstCapacity() * 2,
                         512, // Flow request size
