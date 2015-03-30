@@ -341,3 +341,17 @@ class Rule(resource_base.ResourceBase):
     def fragment_policy(self, fragment_policy):
         self.dto['fragmentPolicy'] = fragment_policy
         return self
+
+    def trace_request_id(self, request_id):
+        self.dto['requestId'] = request_id
+        return self
+
+    def get_trace_request_id(self):
+        return self.dto['requestId']
+
+    def trace_limit(self, limit):
+        self.dto['limit'] = limit
+        return self
+
+    def get_trace_limit(self):
+        return self.dto['limit']
