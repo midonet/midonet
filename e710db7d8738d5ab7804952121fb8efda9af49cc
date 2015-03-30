@@ -2,6 +2,23 @@
   "comments": [
     {
       "key": {
+        "uuid": "1a106d94_7c1d59bd",
+        "filename": "cluster/src/test/scala/org/midonet/cluster/cli/BorisTest.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 213,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2015-03-30T08:24:24Z",
+      "side": 1,
+      "message": "I am assuming that all the tests above test the item that\u0027s listed in the string, and not double testing or testing a different scenario.\n\nGiven that, I have a few more ideas for tests that I didn\u0027t catch ion the above list (if it\u0027s there, apologies, just please point me to the line number; if it\u0027s irrelevant, apologies, just explain why it\u0027s not applicable):\n\n* What if we add an item that\u0027s already present\n* What if we remove an item that is NOT present\n* What if we list and there are no items\n* What if we remove from a repeated field when there are no more values (if valid) OR What if I remove from the repeated list using an ID that is not present.\n* What if creation of some items that take an already existing ID (like port create) are given a non-existent value?\n* What if I enter bad primitives or malformed IP?\n* What about deleting routers, rules, and Vteps (I see network and port)?\n* What about listing routers, ports, etc. (I see network)?\n* What about updating routers, ports, etc. (I see network)?\n* What about getting routers, ports, etc. (I see network)?\n* What about deleting routers with IDs still present?\n* What about deleting other entities that have already-configured objects (I see the network-port test, so that\u0027s covered)?",
+      "revId": "e710db7d8738d5ab7804952121fb8efda9af49cc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_9cdbf51a",
         "filename": "cluster/src/tools/README-BORIS",
         "patchSetId": 12
