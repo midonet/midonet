@@ -22,6 +22,7 @@ import org.scalatest.{Matchers, FeatureSpec}
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.util.reactivex.AwaitableObserver
+import rx.observers.TestObserver
 
 @RunWith(classOf[JUnitRunner])
 class ObservablePathDirectoryCacheTest extends FeatureSpec
@@ -62,9 +63,9 @@ class ObservablePathDirectoryCacheTest extends FeatureSpec
             createParent()
 
             val opdc = ObservablePathDirectoryCache.create(curator, parentPath)
-            val obs = new AwaitableObserver[Set[String]]()
+            val obs = new TestObserver[Set[String]] with AwaitableObserver[Set[String]]
             opdc.subscribe(obs)
-            obs.await(1.second)
+            obs.awaitOnNext(1, 1.second)
 
             obs.getOnNextEvents should contain only Set()
             obs.getOnErrorEvents shouldBe empty
@@ -76,9 +77,9 @@ class ObservablePathDirectoryCacheTest extends FeatureSpec
             createChildren(0, 4)
 
             val opdc = ObservablePathDirectoryCache.create(curator, parentPath)
-            val obs = new AwaitableObserver[Set[String]]()
+            val obs = new TestObserver[Set[String]] with AwaitableObserver[Set[String]]
             opdc.subscribe(obs)
-            obs.await(1.second)
+            obs.awaitOnNext(1, 1.second)
 
             obs.getOnNextEvents should contain only Set("0", "1", "2", "3", "4")
             obs.getOnErrorEvents shouldBe empty
@@ -89,16 +90,16 @@ class ObservablePathDirectoryCacheTest extends FeatureSpec
             createParent()
 
             val opdc = ObservablePathDirectoryCache.create(curator, parentPath)
-            val obs = new AwaitableObserver[Set[String]]()
+            val obs = new TestObserver[Set[String]] with AwaitableObserver[Set[String]]
             opdc.subscribe(obs)
 
-            obs.await(1.second, 1)
+            obs.awaitOnNext(1, 1.second)
             createChild(0)
-            obs.await(1.second, 1)
+            obs.awaitOnNext(2, 1.second)
             createChild(1)
-            obs.await(1.second, 1)
+            obs.awaitOnNext(3, 1.second)
             createChild(2)
-            obs.await(1.second)
+            obs.awaitOnNext(4, 1.second)
 
             obs.getOnNextEvents should contain inOrderOnly(
                 Set(), Set("0"), Set("0", "1"), Set("0", "1", "2"))
@@ -111,14 +112,14 @@ class ObservablePathDirectoryCacheTest extends FeatureSpec
             createChildren(0, 4)
 
             val opdc = ObservablePathDirectoryCache.create(curator, parentPath)
-            val obs = new AwaitableObserver[Set[String]]()
+            val obs = new TestObserver[Set[String]] with AwaitableObserver[Set[String]]
 
             opdc.subscribe(obs)
-            obs.await(1.second, 1)
+            obs.awaitOnNext(1, 1.second)
             deleteChild(0)
-            obs.await(1.second, 1)
+            obs.awaitOnNext(2, 1.second)
             deleteChild(1)
-            obs.await(1.second)
+            obs.awaitOnNext(3, 1.second)
 
             obs.getOnNextEvents should contain inOrderOnly(
                 Set("0", "1", "2", "3", "4"), Set("1", "2", "3", "4"),
@@ -133,12 +134,12 @@ class ObservablePathDirectoryCacheTest extends FeatureSpec
             createParent()
 
             val opdc = ObservablePathDirectoryCache.create(curator, parentPath)
-            val obs = new AwaitableObserver[Set[String]]()
+            val obs = new TestObserver[Set[String]] with AwaitableObserver[Set[String]]
 
             opdc.subscribe(obs)
-            obs.await(1.second, 1)
+            obs.awaitOnNext(1, 1.second)
             opdc.close()
-            obs.await(1.second)
+            obs.awaitCompletion(1.second)
 
             obs.getOnNextEvents should contain only Set()
             obs.getOnErrorEvents.get(0).getClass shouldBe classOf[
@@ -151,10 +152,10 @@ class ObservablePathDirectoryCacheTest extends FeatureSpec
         scenario("Error on parent does not exist") {
             val path = ZK_ROOT + "/none"
             val opdc = ObservablePathDirectoryCache.create(curator, path)
-            val obs = new AwaitableObserver[Set[String]](2)
+            val obs = new TestObserver[Set[String]] with AwaitableObserver[Set[String]]
 
             opdc.subscribe(obs)
-            obs.await(1.second)
+            obs.awaitCompletion(1.second)
 
             obs.getOnNextEvents shouldBe empty
             obs.getOnErrorEvents.get(0).getClass shouldBe classOf[
@@ -166,13 +167,13 @@ class ObservablePathDirectoryCacheTest extends FeatureSpec
             createParent()
 
             val opdc = ObservablePathDirectoryCache.create(curator, parentPath)
-            val obs = new AwaitableObserver[Set[String]]()
+            val obs = new TestObserver[Set[String]] with AwaitableObserver[Set[String]]
 
             opdc.subscribe(obs)
-            obs.await(1.second, 1)
+            obs.awaitOnNext(1, 1.second)
 
             deleteParent()
-            obs.await(1.second)
+            obs.awaitCompletion(1.second)
 
             obs.getOnNextEvents should contain only Set()
             obs.getOnErrorEvents.get(0).getClass shouldBe classOf[
@@ -183,10 +184,10 @@ class ObservablePathDirectoryCacheTest extends FeatureSpec
             curator.close()
 
             val opdc = ObservablePathDirectoryCache.create(curator, parentPath)
-            val obs = new AwaitableObserver[Set[String]]()
+            val obs = new TestObserver[Set[String]] with AwaitableObserver[Set[String]]
 
             opdc.subscribe(obs)
-            obs.await(1.second)
+            obs.awaitCompletion(1.second)
 
             obs.getOnNextEvents shouldBe empty
             obs.getOnErrorEvents.get(0).getClass shouldBe classOf[
@@ -197,12 +198,12 @@ class ObservablePathDirectoryCacheTest extends FeatureSpec
             createParent()
 
             val opdc = ObservablePathDirectoryCache.create(curator, parentPath)
-            val obs = new AwaitableObserver[Set[String]]()
+            val obs = new TestObserver[Set[String]] with AwaitableObserver[Set[String]]
 
             opdc.subscribe(obs)
-            obs.await(1.second, 1)
+            obs.awaitOnNext(1, 1.second)
             zk.stop()
-            obs.await(30.seconds)
+            obs.awaitCompletion(30.seconds)
 
             obs.getOnNextEvents should contain only Set()
             obs.getOnErrorEvents.get(0).getClass shouldBe classOf[
