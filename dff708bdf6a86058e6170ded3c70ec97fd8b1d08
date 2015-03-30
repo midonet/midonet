@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_907e39e3",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/PacketWorkflowTest.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 295,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-03-30T13:15:59Z",
+      "side": 1,
+      "message": "why is this commented out? These seem to still be valid scenarios.",
+      "range": {
+        "startLine": 295,
+        "startChar": 4,
+        "endLine": 295,
+        "endChar": 11
+      },
+      "revId": "dff708bdf6a86058e6170ded3c70ec97fd8b1d08",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_d088b1e9",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/PacketWorkflowTest.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 481,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-03-30T13:15:59Z",
+      "side": 1,
+      "message": "How does this compile?",
+      "range": {
+        "startLine": 481,
+        "startChar": 11,
+        "endLine": 481,
+        "endChar": 13
+      },
+      "revId": "dff708bdf6a86058e6170ded3c70ec97fd8b1d08",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
