@@ -26,7 +26,6 @@ import akka.util.Timeout
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.midolman.DatapathController.DatapathReady
 import org.midonet.midolman.PacketsEntryPoint.{GetWorkers, Workers}
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.MessageAccumulator
@@ -48,7 +47,6 @@ class PacketsEntryPointTestCase extends MidolmanSpec
     override def beforeTest() {
         datapath = mockDpConn().futures.datapathsCreate("midonet").get()
         testablePep = PacketsEntryPoint.as[TestablePEP]
-        PacketsEntryPoint ! DatapathController.DatapathReady(datapath, null)
     }
 
     def makeFrame(variation: Short) =
@@ -76,22 +74,6 @@ class PacketsEntryPointTestCase extends MidolmanSpec
                 workers should not be null
             }
             workers.list.length should equal (testablePep.NUM_WORKERS)
-        }
-    }
-
-    feature("PacketsEntryPoint forwards messages") {
-        scenario("forwards DatapathReady msgs") {
-            When("the DpC sends a DatapathReady msg")
-            testablePep.children foreach { _.getAndClear() }
-            val msg = DatapathReady(datapath, null)
-            PacketsEntryPoint ! msg
-
-            Then("all the PEP's children should receive the list")
-            eventually {
-                for (child <- testablePep.children) {
-                    child.messages should equal (List(msg))
-                }
-            }
         }
     }
 

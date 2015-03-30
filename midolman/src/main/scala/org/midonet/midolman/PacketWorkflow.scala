@@ -135,6 +135,8 @@ trait UnderlayTrafficHandler { this: PacketWorkflow =>
 class PacketWorkflow(
             val id: Int,
             val config: MidolmanConfig,
+            val hostId: UUID,
+            val dpState: DatapathState,
             val cookieGen: CookieGenerator,
             val clock: NanoClock,
             val dpChannel: DatapathChannel,
@@ -152,14 +154,10 @@ class PacketWorkflow(
         with UnderlayTrafficHandler with FlowTranslator with RoutingWorkflow
         with FlowController {
 
-    import DatapathController.DatapathReady
     import PacketWorkflow._
 
     override def logSource = "org.midonet.packet-worker"
     val resultLogger = Logger(LoggerFactory.getLogger("org.midonet.packets.results"))
-
-    var dpState: DatapathState = null
-    var datapathId: Int = _
 
     implicit val dispatcher = this.context.system.dispatcher
     implicit val system = this.context.system
@@ -174,7 +172,17 @@ class PacketWorkflow(
     protected val connTrackTx = new FlowStateTransaction(connTrackStateTable)
     protected val natTx = new FlowStateTransaction(natStateTable)
     protected val traceStateTx = new FlowStateTransaction(traceStateTable)
-    protected var replicator: FlowStateReplicator = _
+    protected var replicator = new FlowStateReplicator(
+            connTrackStateTable,
+            natStateTable,
+            traceStateTable,
+            storage,
+            hostId,
+            dpState,
+            this,
+            config.datapath.controlPacketTos)
+
+    protected val datapathId = dpState.datapath.getIndex
 
     protected val arpBroker = new ArpRequestBroker(genPacketEmitter, config, flowInvalidator )
 
@@ -193,22 +201,7 @@ class PacketWorkflow(
             }
         }
 
-    context.become {
-        case DatapathReady(dp, state) =>
-            dpState = state
-            datapathId = dp.getIndex
-            replicator = new FlowStateReplicator(connTrackStateTable,
-                                                 natStateTable,
-                                                 traceStateTable,
-                                                 storage,
-                                                 dpState,
-                                                 this,
-                                                 config.datapath.controlPacketTos)
-            context.become(receive)
-            system.scheduler.schedule(20 millis, 5 seconds, self, CheckBackchannels)
-            unstashAll()
-        case _ => stash()
-    }
+    system.scheduler.schedule(20 millis, 5 seconds, self, CheckBackchannels)
 
     override def receive = {
         case m: FlowStateBatch =>
