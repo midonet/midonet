@@ -15,33 +15,18 @@
  */
 package org.midonet.midolman.datapath
 
-import java.util.{Set => JSet, HashSet, HashMap, UUID}
+import java.util.{Set => JSet, HashSet, UUID}
 
 import scala.concurrent.Future
 
 import com.typesafe.scalalogging.Logger
+import org.midonet.midolman.DatapathStateDriver
+import org.midonet.midolman.DatapathStateDriver.DpTriad
 import org.midonet.midolman.host.interfaces.InterfaceDescription
 import org.midonet.midolman.topology.rcu.PortBinding
 import org.midonet.odp.DpPort
 import org.midonet.odp.ports.InternalPort
 import org.midonet.util.concurrent._
-
-object DatapathPortEntangler {
-    trait Controller {
-        def addToDatapath(interfaceName: String): Future[(DpPort, Int)]
-        def removeFromDatapath(port: DpPort): Future[_]
-        def setVportStatus(
-            port: DpPort, vport: UUID, tunnelKey: Long, isActive: Boolean): Unit
-    }
-
-    case class DpTriad(
-            ifname: String,
-            var isUp: Boolean = false,
-            var vport: UUID = null,
-            var tunnelKey: Long = 0L,
-            var dpPort: DpPort = null,
-            var dpPortNo: Integer = null)
-}
 
 /**
  * This class manages the relationships between interfaces, datapath ports,
@@ -94,22 +79,25 @@ object DatapathPortEntangler {
  *   message to the VirtualToPhysicalMapper.
  */
 trait DatapathPortEntangler {
-    import DatapathPortEntangler._
-
-    val controller: Controller
-    implicit val ec: SingleThreadExecutionContext
-    implicit val log: Logger
-
-    val interfaceToTriad = new HashMap[String, DpTriad]()
-    val vportToTriad = new HashMap[UUID, DpTriad]()
-    val keyToTriad = new HashMap[Long, DpTriad]()
-    val dpPortNumToTriad = new HashMap[Int, DpTriad]
+    protected val driver: DatapathStateDriver
+    protected implicit val singleThreadExecutionContext: SingleThreadExecutionContext
+    protected implicit val log: Logger
 
     // Sequentializes updates to a particular port. Note that while an update
     // is in progress, new updates can be scheduled.
     private val conveyor = new MultiLaneConveyorBelt[String](_ => {
         /* errors are logged elsewhere */
     })
+
+    def addToDatapath(interfaceName: String): Future[(DpPort, Int)]
+    def removeFromDatapath(port: DpPort): Future[_]
+    def setVportStatus(
+        port: DpPort, vport: UUID, tunnelKey: Long, isActive: Boolean): Unit
+
+    def interfaceToTriad = driver.interfaceToTriad
+    def vportToTriad = driver.vportToTriad
+    def keyToTriad = driver.keyToTriad
+    def dpPortNumToTriad = driver.dpPortNumToTriad
 
     /**
      * Registers an internal port (namely, port 0)
@@ -261,7 +249,7 @@ trait DatapathPortEntangler {
             if (!isInternal(triad)) {
                 val dpPort = triad.dpPort
                 triad.dpPort = null
-                (controller removeFromDatapath dpPort) recover { case t =>
+                removeFromDatapath(dpPort) recover { case t =>
                     // We got ourselves a dangling port
                     log.warn(s"Failed to remove port $dpPort: ${t.getMessage}")
                 }
@@ -280,7 +268,7 @@ trait DatapathPortEntangler {
         (triad.dpPort ne null) && triad.dpPort.isInstanceOf[InternalPort]
 
     private def addDpPort(triad: DpTriad): Future[_] =
-        (controller addToDatapath triad.ifname) map { case (dpPort, _) =>
+        addToDatapath(triad.ifname) map { case (dpPort, _) =>
             log.info(s"Datapath port ${triad.ifname} added")
             triad.dpPort = dpPort
             triad.dpPortNo = dpPort.getPortNo
@@ -297,7 +285,6 @@ trait DatapathPortEntangler {
             keyToTriad.put(triad.tunnelKey, triad)
         else
             keyToTriad.remove(triad.tunnelKey)
-        controller.setVportStatus(
-            triad.dpPort, triad.vport, triad.tunnelKey, active)
+        setVportStatus(triad.dpPort, triad.vport, triad.tunnelKey, active)
     }
 }

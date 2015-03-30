@@ -110,7 +110,7 @@ class FlowStateReplicatorTest extends MidolmanSpec {
     val dpChannel = new MockDatapathChannel()
     var packetsSeen = List[(Packet, List[FlowAction])]()
 
-    val ethernet: Ethernet = ({ eth src MAC.random() dst MAC.random() }).packet
+    val ethernet: Ethernet = { eth src MAC.random() dst MAC.random() }.packet
 
     implicit var connTrackTx: ConnTrackTx = _
     implicit var natTx: NatTx = _
@@ -469,7 +469,7 @@ class FlowStateReplicatorTest extends MidolmanSpec {
         val natTable = new MockFlowStateTable[NatKey, NatBinding]()
         val traceTable = new MockFlowStateTable[TraceKey, TraceContext]()
     } with BaseFlowStateReplicator(conntrackTable, natTable, traceTable,
-                                   new MockStateStorage, underlay,
+                                   new MockStateStorage, ingressHostId, underlay,
                                    mockFlowInvalidation,
                                    0) {
 
@@ -494,8 +494,6 @@ class FlowStateReplicatorTest extends MidolmanSpec {
         import org.midonet.midolman.UnderlayResolver.Route
 
         val output = FlowActions.output(23)
-
-        override def host = ResolvedHost(hostId, true, Map.empty, Map.empty)
 
         override def peerTunnelInfo(peer: UUID): Option[Route] = {
             if (peers.contains(peer))

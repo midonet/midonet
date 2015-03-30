@@ -26,6 +26,8 @@ import akka.actor.ActorSystem
 import akka.util.Timeout
 
 import org.midonet.midolman.simulation.{Bridge, PacketContext}
+import org.midonet.midolman.topology.VirtualToPhysicalMapper
+import org.midonet.midolman.topology.VirtualToPhysicalMapper.HostRequest
 import org.midonet.midolman.topology.VirtualTopologyActor.tryAsk
 import org.midonet.midolman.topology.devices.{Port, VxLanPort}
 import org.midonet.odp.flows.FlowActions.{output, setKey}
@@ -41,7 +43,8 @@ trait FlowTranslator {
     import FlowTranslator._
     import VirtualActions._
 
-    protected def dpState: DatapathState
+    protected val dpState: DatapathState
+    protected val hostId: UUID
 
     implicit protected val requestReplyTimeout = new Timeout(5, TimeUnit.SECONDS)
     implicit protected def system: ActorSystem
@@ -145,7 +148,9 @@ trait FlowTranslator {
                                     context: PacketContext): Unit = {
         context.log.debug(s"Emitting towards vtep at $vtepIp with vni $vni")
 
-        val tzMembership = dpState.host.zones.get(tzId)
+        val host = VirtualToPhysicalMapper.tryAsk(new HostRequest(hostId))
+        val tzMembership = host.tunnelZones.get(tzId)
+
         if (tzMembership eq None) {
             context.log.warn(s"Can't output to VTEP with tunnel IP: $vtepIp, host not in "
                              + s"VTEP's tunnel zone: $tzId")
@@ -166,7 +171,7 @@ trait FlowTranslator {
             while (ports.nonEmpty) {
                 val port = ports.head
                 ports = ports.tail
-                if (port.hostId == dpState.host.id) {
+                if (port.hostId == hostId) {
                     val portNo = dpState.getDpPortNumberForVport(port.id)
                     if (portNo ne null) {
                         context.outPorts.add(port.id)
@@ -181,7 +186,7 @@ trait FlowTranslator {
             while (ports.nonEmpty) {
                 val port = ports.head
                 ports = ports.tail
-                if (port.hostId != dpState.host.id) {
+                if (port.hostId != hostId) {
                     context.outPorts.add(port.id)
                     outputActionsToPeer(port.tunnelKey, port.hostId, context)
                 }

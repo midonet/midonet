@@ -18,6 +18,7 @@ package org.midonet.netlink
 
 import java.io.IOException
 import java.nio.ByteBuffer
+import java.nio.channels.SelectionKey
 
 import scala.concurrent.duration._
 
@@ -40,6 +41,11 @@ class NetlinkBlockingWriter(channel: NetlinkChannel) extends NetlinkWriter(chann
 
     private val timeout = (100 millis).toMillis
     private val selector = channel.selector()
+
+    {
+        if (!channel.isBlocking)
+            channel.register(selector, SelectionKey.OP_WRITE)
+    }
 
     /**
      * Writes into the underlying channel, blocking regardless of the channel

@@ -38,7 +38,7 @@ import org.midonet.midolman.topology.VirtualTopologyActor.BridgeRequest
 import org.midonet.midolman.topology._
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.MessageAccumulator
-import org.midonet.odp.DpPort
+import org.midonet.odp.{Datapath, DpPort}
 import org.midonet.odp.flows.FlowActions.output
 import org.midonet.odp.flows.{FlowAction, FlowActionOutput}
 import org.midonet.odp.protos.OvsDatapathConnection
@@ -399,11 +399,15 @@ class AdminStateTest extends MidolmanSpec {
 
         val cookieStr: String = ""
 
+        override protected val hostId: UUID = AdminStateTest.this.hostId
+
         protected val dpState: DatapathState = new DatapathState {
             val host = rcu.ResolvedHost(hostId, true, Map.empty, Map.empty)
             def peerTunnelInfo(peer: UUID) = null
             def overlayTunnellingOutputAction: FlowActionOutput = null
             def dpPortForTunnelKey(key: Long) = null
+            def greOverlayTunnellingOutputAction: FlowActionOutput = null
+            def vxlanOverlayTunnellingOutputAction: FlowActionOutput = null
             def vtepTunnellingOutputAction: FlowActionOutput = null
             def getDpPortNumberForVport(vportId: UUID): Integer = 1
             def getDpPortForInterface(itfName: String): DpPort = null
@@ -413,6 +417,7 @@ class AdminStateTest extends MidolmanSpec {
             def uplinkPid: Int = 0
             def isVtepTunnellingPort(portNumber: Integer): Boolean = false
             def isOverlayTunnellingPort(portNumber: Integer): Boolean = false
+            def datapath: Datapath = new Datapath(0, "midonet")
         }
 
         def translate(simRes: (SimulationResult, PacketContext)): Seq[FlowAction] = {
@@ -424,6 +429,7 @@ class AdminStateTest extends MidolmanSpec {
         }
 
         def receive = emptyBehavior
+
     }
 
     private[this] def assertExpectedIcmpProhibitPacket(routerPort: RouterPort,
