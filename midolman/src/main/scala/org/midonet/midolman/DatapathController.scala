@@ -15,7 +15,7 @@
  */
 package org.midonet.midolman
 
-import java.lang.{Boolean => JBoolean, Integer => JInteger}
+import java.lang.{Integer => JInteger}
 import java.util.{Set => JSet, UUID}
 
 import scala.collection.JavaConverters._
@@ -43,9 +43,8 @@ import org.midonet.midolman.state.{FlowStateStorage, FlowStateStorageFactory}
 import org.midonet.midolman.topology.VirtualToPhysicalMapper.{TunnelZoneRequest, ZoneChanged, ZoneMembers}
 import org.midonet.midolman.topology._
 import org.midonet.midolman.topology.rcu.{PortBinding, ResolvedHost}
-import org.midonet.netlink.Callback
+import org.midonet.netlink._
 import org.midonet.netlink.exceptions.NetlinkException
-import org.midonet.netlink.exceptions.NetlinkException.ErrorCode
 import org.midonet.odp.flows.FlowActionOutput
 import org.midonet.odp.ports._
 import org.midonet.odp.{Datapath, DpPort, OvsConnectionOps}
@@ -144,11 +143,6 @@ object DatapathController extends Referenceable {
      */
     case class InterfacesUpdate_(interfaces: JSet[InterfaceDescription])
 
-    case class ExistingDatapathPorts_(datapath: Datapath, ports: Set[DpPort])
-
-    /** Signals that the ports in the datapath were cleared */
-    case object DatapathClear_
-
     // Signals that the tunnel ports have been created
     case object TunnelPortsCreated_
 
@@ -177,9 +171,16 @@ object DatapathController extends Referenceable {
  *
  * The DP Controller is also responsible for managing overlay tunnels.
  */
-class DatapathController extends Actor
-                         with ActorLogWithoutPath
-                         with SingleThreadExecutionContextProvider {
+class DatapathController @Inject() (datapath: Datapath,
+                                    hostService: HostIdProviderService,
+                                    interfaceScanner: InterfaceScanner,
+                                    config: MidolmanConfig,
+                                    upcallConnManager: UpcallDatapathConnectionManager,
+                                    flowInvalidator: FlowInvalidator,
+                                    clock: NanoClock,
+                                    storageFactory: FlowStateStorageFactory)
+        extends Actor with ActorLogWithoutPath
+                      with SingleThreadExecutionContextProvider {
 
     import org.midonet.midolman.DatapathController._
     import org.midonet.midolman.topology.VirtualToPhysicalMapper.TunnelZoneUnsubscribe
@@ -189,33 +190,6 @@ class DatapathController extends Actor
 
     implicit val logger: Logger = log
     implicit protected def executor: ExecutionContextExecutor = context.dispatcher
-
-    @Inject
-    val dpConnPool: DatapathConnectionPool = null
-
-    def datapathConnection = if (dpConnPool != null) dpConnPool.get(0) else null
-
-    @Inject
-    val hostService: HostIdProviderService = null
-
-    @Inject
-    val interfaceScanner: InterfaceScanner = null
-
-    @Inject
-    var config: MidolmanConfig = null
-
-    var datapath: Datapath = null
-
-    @Inject
-    var upcallConnManager: UpcallDatapathConnectionManager = null
-
-    @Inject
-    var _storageFactory: FlowStateStorageFactory = null
-
-    @Inject
-    var flowInvalidator: FlowInvalidator = _
-
-    protected def storageFactory = _storageFactory
 
     var storage: FlowStateStorage = _
 
@@ -278,38 +252,32 @@ class DatapathController extends Actor
             host = h
             dpState.host = h
             if (oldHost eq null) {
-                readDatapathInformation()
+                initializeTunnelPorts()
             }
-
-        case ExistingDatapathPorts_(datapathObj, ports) =>
-            this.datapath = datapathObj
-            val conn = new OvsConnectionOps(datapathConnection)
-            Future.traverse(ports) { deleteExistingPort(_, conn) } map { _ =>
-                DatapathClear_ } pipeTo self
-
-        case DatapathClear_ =>
-            makeTunnelPort(OverlayTunnel) { () =>
-                GreTunnelPort make "tngre-overlay"
-            } flatMap { gre =>
-                dpState setTunnelOverlayGre gre
-                makeTunnelPort(OverlayTunnel) { () =>
-                    val overlayUdpPort = config.datapath.vxlanOverlayUdpPort
-                    VxLanTunnelPort make("tnvxlan-overlay", overlayUdpPort)
-                }
-            } flatMap { vxlan =>
-                dpState setTunnelOverlayVxLan vxlan
-                makeTunnelPort(VtepTunnel) { () =>
-                    val vtepUdpPort = config.datapath.vxlanVtepUdpPort
-                    VxLanTunnelPort make("tnvxlan-vtep", vtepUdpPort)
-               }
-            } map { vtep =>
-                dpState setTunnelVtepVxLan vtep
-                TunnelPortsCreated_
-            } pipeTo self
 
         case TunnelPortsCreated_ =>
             completeInitialization()
     }
+
+    private def initializeTunnelPorts(): Unit =
+        makeTunnelPort(OverlayTunnel) { () =>
+            GreTunnelPort make "tngre-overlay"
+        } flatMap { gre =>
+            dpState setTunnelOverlayGre gre
+            makeTunnelPort(OverlayTunnel) { () =>
+                val overlayUdpPort = config.datapath.vxlanOverlayUdpPort
+                VxLanTunnelPort make("tnvxlan-overlay", overlayUdpPort)
+            }
+        } flatMap { vxlan =>
+            dpState setTunnelOverlayVxLan vxlan
+            makeTunnelPort(VtepTunnel) { () =>
+                val vtepUdpPort = config.datapath.vxlanVtepUdpPort
+                VxLanTunnelPort make("tnvxlan-vtep", vtepUdpPort)
+           }
+        } map { vtep =>
+            dpState setTunnelVtepVxLan vtep
+            TunnelPortsCreated_
+        } pipeTo self
 
     def deleteExistingPort(port: DpPort, conn: OvsConnectionOps) = port match {
         case internalPort: InternalPort =>
@@ -489,84 +457,6 @@ class DatapathController extends Actor
             log.info(s"Changing MTU from $cachedMinMtu to $minMtu")
             cachedMinMtu = minMtu
         }
-    }
-
-    /*
-     * ONLY USE THIS DURING INITIALIZATION.
-     */
-    private def readDatapathInformation() {
-        def handleExistingDP(dp: Datapath) {
-            log.info("The datapath already existed. Flushing the flows.")
-            datapathConnection.flowsFlush(dp,
-                new Callback[JBoolean] {
-                    def onSuccess(data: JBoolean) {}
-                    def onError(ex: NetlinkException) {
-                        log.error("Failed to flush the Datapath's flows!")
-                    }
-                }
-            )
-            // Query the datapath ports without waiting for the flush to exit.
-            queryDatapathPorts(dp)
-        }
-
-        val retryTask = new Runnable {
-            def run() = readDatapathInformation()
-        }
-
-        val dpCreateCallback = new Callback[Datapath] {
-            def onSuccess(data: Datapath) {
-                log.info("Datapath created {}", data)
-                queryDatapathPorts(data)
-            }
-            def onError(ex: NetlinkException) {
-                log.error("Datapath creation failure", ex)
-                system.scheduler.scheduleOnce(100 millis, retryTask)
-            }
-        }
-
-        val dpGetCallback = new Callback[Datapath] {
-            def onSuccess(dp: Datapath) {
-                handleExistingDP(dp)
-            }
-            def onError(ex: NetlinkException) {
-                ex.getErrorCodeEnum match {
-                    case ErrorCode.ENODEV =>
-                        log.info("Datapath is missing. Creating.")
-                        datapathConnection.datapathsCreate(
-                            config.datapathName, dpCreateCallback)
-                    case ErrorCode.ETIMEOUT =>
-                        log.error("Timeout while getting the datapath")
-                        system.scheduler.scheduleOnce(100 millis, retryTask)
-                    case other =>
-                        log.error("Unexpected error while getting datapath", ex)
-                }
-            }
-        }
-
-        datapathConnection.datapathsGet(config.datapathName, dpGetCallback)
-    }
-
-    /*
-     * ONLY USE THIS DURING INITIALIZATION.
-     */
-    private def queryDatapathPorts(datapath: Datapath) {
-        log.debug("Enumerating ports for datapath: " + datapath)
-        datapathConnection.portsEnumerate(datapath,
-            new Callback[JSet[DpPort]] {
-                def onSuccess(ports: JSet[DpPort]) {
-                    self ! ExistingDatapathPorts_(datapath, ports.asScala.toSet)
-                }
-                // WARN: this is ugly. Normally we should configure
-                // the message error handling inside the router
-                def onError(ex: NetlinkException) {
-                    system.scheduler.scheduleOnce(100 millis, new Runnable {
-                        def run() {
-                            queryDatapathPorts(datapath)
-                        }
-                    })
-                }
-            }
-        )
     }
 }
 

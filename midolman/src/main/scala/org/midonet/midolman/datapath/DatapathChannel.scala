@@ -16,38 +16,28 @@
 package org.midonet.midolman.datapath
 
 import com.lmax.disruptor._
-
 import org.midonet.midolman.datapath.DisruptorDatapathChannel.PacketContextHolder
 import org.midonet.midolman.simulation.PacketContext
-import org.midonet.odp._
 
 trait DatapathChannel {
     def handoff(context: PacketContext): Long
 
-    def start(datapath: Datapath): Unit
+    def start(): Unit
     def stop(): Unit
 }
 
 object DisruptorDatapathChannel {
     sealed class PacketContextHolder(var packetExecRef: PacketContext,
-                                     var flowCreateRef: PacketContext,
-                                     var datapathId: Int,
-                                     var supportsMegaflow: Boolean)
+                                     var flowCreateRef: PacketContext)
 
     object Factory extends EventFactory[PacketContextHolder] {
-        override def newInstance() = new PacketContextHolder(null, null, 0, false)
+        override def newInstance() = new PacketContextHolder(null, null)
     }
 }
 
 class DisruptorDatapathChannel(ringBuffer: RingBuffer[PacketContextHolder],
                                processors: Array[_ <: EventProcessor]) extends DatapathChannel {
-    private var datapathId: Int = _
-    private var supportsMegaflow: Boolean = _
-
-    def start(datapath: Datapath): Unit = {
-        datapathId = datapath.getIndex
-        supportsMegaflow = datapath.supportsMegaflow()
-
+    def start(): Unit = {
         processors foreach { proc =>
             ringBuffer.addGatingSequences(proc.getSequence)
         }
@@ -71,8 +61,6 @@ class DisruptorDatapathChannel(ringBuffer: RingBuffer[PacketContextHolder],
         val event = ringBuffer.get(seq)
         event.packetExecRef = context
         event.flowCreateRef = context
-        event.datapathId = datapathId
-        event.supportsMegaflow = supportsMegaflow
         ringBuffer.publish(seq)
         seq
     }
