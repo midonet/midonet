@@ -34,6 +34,7 @@ import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.util.{ClassAwaitableObserver, CuratorTestFramework, ParentDeletedException, PathCacheDisconnectedException}
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.util.reactivex.AwaitableObserver
+import rx.observers.TestObserver
 
 @RunWith(classOf[JUnitRunner])
 class ZookeeperObjectMapperTests extends Suite
@@ -438,17 +439,16 @@ class ZookeeperObjectMapperTests extends Suite
     @Test(timeout = 2000)
     def testSubscribe() {
         val bridge = createBridge()
-        val obs = new AwaitableObserver[PojoBridge](1)
+        val obs = new TestObserver[PojoBridge] with AwaitableObserver[PojoBridge]
         zom.observable(classOf[PojoBridge], bridge.id).subscribe(obs)
-        obs.await(1.second)
-        obs.reset(1)
+        obs.awaitOnNext(1, 1.second)
         addPortToBridge(bridge.id)
-        obs.await(1.second)
+        obs.awaitOnNext(2, 1.second)
     }
 
     def testSubscribeWithGc() = {
         val bridge = createBridge()
-        val obs = new AwaitableObserver[PojoBridge](0)
+        val obs = new TestObserver[PojoBridge]
         val sub = zom.observable(classOf[PojoBridge], bridge.id).subscribe(obs)
 
         zom.subscriptionCount(classOf[PojoBridge], bridge.id) shouldBe Option(1)
@@ -1088,22 +1088,22 @@ class ZookeeperObjectMapperTests extends Suite
     def testSubscribeExclusiveOwnershipOnCreate(): Unit = {
         val state = new ExclusiveState
         val owner = UUID.randomUUID
-        val obs = new AwaitableObserver[Set[String]]()
+        val obs = new TestObserver[Set[String]] with AwaitableObserver[Set[String]]
         zom.create(state, owner)
         zom.ownersObservable(classOf[ExclusiveState], state.id).subscribe(obs)
-        obs.await(1.second)
+        obs.awaitOnNext(1, 1.second)
         obs.getOnNextEvents should contain only Set(owner.toString)
     }
 
     def testSubscribeExclusiveOwnershipOnUpdate(): Unit = {
         val state = new ExclusiveState
         val owner = UUID.randomUUID
-        val obs = new AwaitableObserver[Set[String]]()
+        val obs = new TestObserver[Set[String]] with AwaitableObserver[Set[String]]
         zom.create(state, owner)
         zom.ownersObservable(classOf[ExclusiveState], state.id).subscribe(obs)
-        obs.await(1.second, 1)
+        obs.awaitOnNext(1, 1 second)
         zom.update(state, owner, null)
-        obs.await(1.second)
+        obs.awaitOnNext(2, 1 second)
         obs.getOnNextEvents should contain theSameElementsAs Vector(
             Set(owner.toString), Set(owner.toString))
     }
@@ -1111,12 +1111,12 @@ class ZookeeperObjectMapperTests extends Suite
     def testSubscribeExclusiveOwnershipOnDelete(): Unit = {
         val state = new ExclusiveState
         val owner = UUID.randomUUID
-        val obs = new AwaitableObserver[Set[String]]()
+        val obs = new TestObserver[Set[String]] with AwaitableObserver[Set[String]]
         zom.create(state, owner)
         zom.ownersObservable(classOf[ExclusiveState], state.id).subscribe(obs)
-        obs.await(1.second, 1)
+        obs.awaitOnNext(1, 1 second)
         zom.delete(classOf[ExclusiveState], state.id, owner)
-        obs.await(1.second)
+        obs.awaitOnNext(2, 1 second)
         obs.getOnNextEvents should contain only Set(owner.toString)
         obs.getOnErrorEvents.get(0).getClass shouldBe classOf[
             ParentDeletedException]
@@ -1125,9 +1125,9 @@ class ZookeeperObjectMapperTests extends Suite
     def testSubscribeExclusiveNonExistingObject(): Unit = {
         val owner = UUID.randomUUID
         val id = UUID.randomUUID
-        val obs = new AwaitableObserver[Set[String]]()
+        val obs = new TestObserver[Set[String]] with AwaitableObserver[Set[String]]
         zom.ownersObservable(classOf[ExclusiveState], id).subscribe(obs)
-        obs.await(1.second)
+        obs.awaitCompletion(1 second)
         obs.getOnNextEvents shouldBe empty
         obs.getOnErrorEvents.get(0).getClass shouldBe classOf[
             ParentDeletedException]
@@ -1136,24 +1136,24 @@ class ZookeeperObjectMapperTests extends Suite
     def testSubscribeSharedOwnershipOnCreate(): Unit = {
         val state = new SharedState
         val owner = UUID.randomUUID
-        val obs = new AwaitableObserver[Set[String]]()
+        val obs = new TestObserver[Set[String]] with AwaitableObserver[Set[String]]
         zom.create(state, owner)
         zom.ownersObservable(classOf[SharedState], state.id).subscribe(obs)
-        obs.await(1.second)
+        obs.awaitOnNext(1, 1 second)
         obs.getOnNextEvents should contain only Set(owner.toString)
     }
 
     def testSubscribeSharedOwnershipSingleOwner(): Unit = {
         val state = new SharedState
         val owner = UUID.randomUUID
-        val obs = new AwaitableObserver[Set[String]]()
+        val obs = new TestObserver[Set[String]] with AwaitableObserver[Set[String]]
         zom.create(state, owner)
         zom.ownersObservable(classOf[SharedState], state.id).subscribe(obs)
-        obs.await(1.second, 1)
+        obs.awaitOnNext(1, 1 second)
         zom.update(state, owner, null)
-        obs.await(1.second, 1)
+        obs.awaitOnNext(2, 1 second)
         zom.delete(classOf[SharedState], state.id, owner)
-        obs.await(1.second)
+        obs.awaitCompletion(1 second)
         obs.getOnNextEvents should contain theSameElementsAs Vector(
             Set(owner.toString), Set(owner.toString))
         obs.getOnErrorEvents.get(0).getClass shouldBe classOf[
@@ -1165,20 +1165,20 @@ class ZookeeperObjectMapperTests extends Suite
         val owner1 = UUID.randomUUID
         val owner2 = UUID.randomUUID
         val owner3 = UUID.randomUUID
-        val obs = new AwaitableObserver[Set[String]]()
+        val obs = new TestObserver[Set[String]] with AwaitableObserver[Set[String]]
         zom.create(state, owner1)
         zom.ownersObservable(classOf[SharedState], state.id).subscribe(obs)
-        obs.await(1.second, 1)
+        obs.awaitOnNext(1, 1 second)
         zom.update(state, owner2, null)
-        obs.await(1.second, 1)
+        obs.awaitOnNext(2, 1 second)
         zom.update(state, owner3, null)
-        obs.await(1.second, 1)
+        obs.awaitOnNext(3, 1 second)
         zom.delete(classOf[SharedState], state.id, owner1)
-        obs.await(1.second, 1)
+        obs.awaitOnNext(4, 1 second)
         zom.delete(classOf[SharedState], state.id, owner2)
-        obs.await(1.second, 1)
+        obs.awaitOnNext(5, 1 second)
         zom.delete(classOf[SharedState], state.id, owner3)
-        obs.await(1.second)
+        obs.awaitCompletion(1 second)
         obs.getOnNextEvents should contain theSameElementsAs Vector(
             Set(owner1.toString),
             Set(owner1.toString, owner2.toString),
@@ -1194,21 +1194,22 @@ class ZookeeperObjectMapperTests extends Suite
         val owner1 = UUID.randomUUID
         val owner2 = UUID.randomUUID
         val owner3 = UUID.randomUUID
-        val obs = new AwaitableObserver[Set[String]]()
+        val obs = new TestObserver[Set[String]] with AwaitableObserver[Set[String]]
         zom.create(state)
         zom.ownersObservable(classOf[SharedState], state.id).subscribe(obs)
-        obs.await(1.second, 1)
+        obs.awaitOnNext(1, 1 second)
         zom.updateOwner(classOf[SharedState], state.id, owner1, false)
-        obs.await(1.second, 1)
+        obs.awaitOnNext(2, 1 second)
         zom.updateOwner(classOf[SharedState], state.id, owner2, false)
-        obs.await(1.second, 1)
+        obs.awaitOnNext(3, 1 second)
         zom.updateOwner(classOf[SharedState], state.id, owner3, false)
-        obs.await(1.second, 1)
+        obs.awaitOnNext(4, 1 second)
         zom.deleteOwner(classOf[SharedState], state.id, owner1)
-        obs.await(1.second, 1)
+        obs.awaitOnNext(5, 1 second)
         zom.deleteOwner(classOf[SharedState], state.id, owner2)
-        obs.await(1.second, 1)
+        obs.awaitOnNext(6, 1 second)
         zom.deleteOwner(classOf[SharedState], state.id, owner3)
+        obs.awaitOnNext(7, 1 second)
         await(zom.exists(classOf[SharedState], state.id)) shouldBe true
         obs.getOnNextEvents should contain theSameElementsAs Vector(
             Set.empty,

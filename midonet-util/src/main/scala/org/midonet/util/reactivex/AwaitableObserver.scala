@@ -15,48 +15,98 @@
  */
 package org.midonet.util.reactivex
 
-import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeoutException
+import java.util.concurrent.locks.LockSupport
 
 import scala.concurrent.duration.Duration
 
-import rx.observers.TestObserver
+import rx.Observer
 
-class AwaitableObserver[T](awaitCount: Int = 1, assert: => Unit = {})
-    extends TestObserver[T] {
+object AwaitableObserver {
+    private val AWAITING = new Object()
+    private val DONE = new Object()
+}
 
-    def this(awaitCount: Int) = this(awaitCount, {})
+/**
+ * Trait to be mixed into an Observer that can be awaited.
+ * The `awaitCompletion` method blocks the calling thread until the stream
+ * finishes or the timeout expired. The `awaitOnNext` awaits a number of onNext
+ * events to have happened and returns true or false whether the stream saw the
+ * expected number of events or it finished prematurely. It is also subjected to
+ * a timeout. A `reset` method is provided in case the Observer instance needs
+ * to be reused.
+ */
+trait AwaitableObserver[T] extends Observer[T] {
+    import AwaitableObserver._
 
-    @volatile private var counter = new CountDownLatch(awaitCount)
+    @volatile private var events = 0L
+    @volatile private var awaitingCount = 0L
+    @volatile private var status = AWAITING
+    @volatile private var thread: Thread = _
 
-    override def onNext(value: T): Unit = synchronized {
+    abstract override def onNext(value: T): Unit = {
         super.onNext(value)
-        assert
-        counter.countDown()
+        events += 1
+        val ac = awaitingCount
+        if (ac > 0 && (events - ac) == 0) {
+            wakeUp()
+        }
     }
 
-    override def onCompleted(): Unit = {
+    abstract override def onCompleted(): Unit = try {
         super.onCompleted()
-        assert
-        counter.countDown()
-    }
-
-    override def onError(e: Throwable): Unit = {
-        super.onError(e)
-        assert
-        counter.countDown()
-    }
-
-    def await(duration: Duration): Boolean = {
-        counter.await(duration.length, duration.unit)
-    }
-
-    def await(duration: Duration, resetCount: Int): Boolean = try {
-        counter.await(duration.length, duration.unit)
     } finally {
-        counter = new CountDownLatch(resetCount)
+        status = DONE
+        wakeUp()
     }
 
-    def reset(resetCount: Int): Unit = {
-        counter = new CountDownLatch(resetCount)
+    abstract override def onError(e: Throwable): Unit = try {
+        super.onError(e)
+    } finally {
+        status = DONE
+        wakeUp()
+    }
+
+    private def wakeUp(): Unit =
+        if (thread ne null) {
+            LockSupport.unpark(thread)
+        }
+
+    @throws(classOf[TimeoutException])
+    def awaitCompletion(timeout: Duration): Unit =
+       await(Long.MaxValue, timeout)
+
+    @throws(classOf[TimeoutException])
+    def awaitOnNext(expectedEvents: Long, timeout: Duration): Boolean = try {
+        awaitingCount = expectedEvents
+        await(expectedEvents, timeout)
+        events >= expectedEvents
+    } finally {
+        awaitingCount = 0
+    }
+
+    private def await(expectedEvents: Long, timeout: Duration): Unit = {
+        var toWait = timeout.toNanos
+        thread = Thread.currentThread()
+        try {
+            do {
+                if ((status eq DONE) || events >= expectedEvents)
+                    return
+
+                if (timeout != Duration.Inf && toWait < 0)
+                    throw new TimeoutException()
+
+                val start = System.nanoTime()
+                LockSupport.parkNanos(toWait)
+                toWait -= System.nanoTime() - start
+            } while (true)
+        } finally {
+            thread = null
+        }
+    }
+
+    def reset(): Unit = {
+        status = AWAITING
+        events = 0
     }
 }

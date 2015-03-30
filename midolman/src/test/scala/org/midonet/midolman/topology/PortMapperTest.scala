@@ -30,7 +30,8 @@ import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.topology.devices.{Port => SimPort, VxLanPort, RouterPort, BridgePort}
 import org.midonet.midolman.util.MidolmanSpec
-import org.midonet.util.reactivex.AwaitableObserver
+import org.midonet.util.reactivex.{AssertableObserver, AwaitableObserver}
+import rx.observers.TestObserver
 
 @RunWith(classOf[JUnitRunner])
 class PortMapperTest extends MidolmanSpec with TopologyBuilder
@@ -48,6 +49,12 @@ class PortMapperTest extends MidolmanSpec with TopologyBuilder
     private def assertThread(): Unit = {
         assert(vt.threadId == Thread.currentThread.getId)
     }
+    
+    private def makeObservable() = new TestObserver[SimPort]
+                                   with AwaitableObserver[SimPort]
+                                   with AssertableObserver[SimPort] {
+            override def assert() = assertThread()
+    }
 
     feature("The port mapper emits port devices") {
         scenario("The mapper emits error for non-existing port") {
@@ -58,13 +65,13 @@ class PortMapperTest extends MidolmanSpec with TopologyBuilder
             val mapper = new PortMapper(id, vt)
 
             And("An observer to the port mapper")
-            val obs = new AwaitableObserver[SimPort](1, assertThread())
+            val obs = makeObservable()
 
             When("The observer subscribes to an observable on the mapper")
             Observable.create(mapper).subscribe(obs)
 
             Then("The observer should see a NotFoundException")
-            obs.await(timeout) shouldBe true
+            obs.awaitCompletion(timeout)
             val e = obs.getOnErrorEvents.get(0).asInstanceOf[NotFoundException]
             e.clazz shouldBe classOf[TopologyPort]
             e.id shouldBe id
@@ -84,13 +91,13 @@ class PortMapperTest extends MidolmanSpec with TopologyBuilder
             val mapper = new PortMapper(id, vt)
 
             And("An observer to the port mapper")
-            val obs = new AwaitableObserver[SimPort](1, assertThread())
+            val obs = makeObservable()
 
             When("The observer subscribes to an observable on the mapper")
             Observable.create(mapper).subscribe(obs)
 
             Then("The observer should receive a bridge port")
-            obs.await(timeout) shouldBe true
+            obs.awaitOnNext(1, timeout) shouldBe true
             val device = obs.getOnNextEvents.get(0).asInstanceOf[BridgePort]
             device shouldBeDeviceOf port
             device.isActive shouldBe false
@@ -110,13 +117,13 @@ class PortMapperTest extends MidolmanSpec with TopologyBuilder
             val mapper = new PortMapper(id, vt)
 
             And("An observer to the port mapper")
-            val obs = new AwaitableObserver[SimPort](1, assertThread())
+            val obs = makeObservable()
 
             When("The observer subscribes to an observable on the mapper")
             Observable.create(mapper).subscribe(obs)
 
             Then("The observer should receive a router port")
-            obs.await(timeout) shouldBe true
+            obs.awaitOnNext(1, timeout) shouldBe true
             val device = obs.getOnNextEvents.get(0).asInstanceOf[RouterPort]
             device shouldBeDeviceOf port
             device.isActive shouldBe false
@@ -134,13 +141,13 @@ class PortMapperTest extends MidolmanSpec with TopologyBuilder
             val mapper = new PortMapper(id, vt)
 
             And("An observer to the port mapper")
-            val obs = new AwaitableObserver[SimPort](1, assertThread())
+            val obs = makeObservable()
 
             When("The observer subscribes to an observable on the mapper")
             Observable.create(mapper).subscribe(obs)
 
             Then("The observer should receive a router port")
-            obs.await(timeout) shouldBe true
+            obs.awaitOnNext(1, timeout) shouldBe true
             val device = obs.getOnNextEvents.get(0).asInstanceOf[VxLanPort]
             device shouldBeDeviceOf port
             device.isActive shouldBe true
@@ -162,13 +169,13 @@ class PortMapperTest extends MidolmanSpec with TopologyBuilder
             val mapper = new PortMapper(id, vt)
 
             And("An observer to the port mapper")
-            val obs = new AwaitableObserver[SimPort](1, assertThread())
+            val obs = makeObservable()
 
             When("The observer subscribes to an observable on the mapper")
             Observable.create(mapper).subscribe(obs)
 
             Then("The observer should receive the port")
-            obs.await(timeout, 1) shouldBe true
+            obs.awaitOnNext(1, timeout) shouldBe true
             val device1 = obs.getOnNextEvents.get(0).asInstanceOf[BridgePort]
             device1 shouldBeDeviceOf port1
             device1.adminStateUp shouldBe false
@@ -178,7 +185,7 @@ class PortMapperTest extends MidolmanSpec with TopologyBuilder
             store.update(port2)
 
             Then("The observer should receive the update")
-            obs.await(timeout) shouldBe true
+            obs.awaitOnNext(2, timeout) shouldBe true
             val device2 = obs.getOnNextEvents.get(1).asInstanceOf[BridgePort]
             device2 shouldBeDeviceOf port2
             device2.adminStateUp shouldBe true
@@ -199,13 +206,13 @@ class PortMapperTest extends MidolmanSpec with TopologyBuilder
             val mapper = new PortMapper(id, vt)
 
             And("An observer to the port mapper")
-            val obs = new AwaitableObserver[SimPort](1, assertThread())
+            val obs = makeObservable()
 
             When("The observer subscribes to an observable on the mapper")
             Observable.create(mapper).subscribe(obs)
 
             Then("The observer should receive the port")
-            obs.await(timeout, 1) shouldBe true
+            obs.awaitOnNext(1, timeout) shouldBe true
             obs.getOnNextEvents.size shouldBe 1
             val device1 = obs.getOnNextEvents.get(0).asInstanceOf[BridgePort]
             device1 shouldBeDeviceOf port
@@ -216,7 +223,7 @@ class PortMapperTest extends MidolmanSpec with TopologyBuilder
             store.updateOwner(classOf[TopologyPort], id, owner1, true)
 
             Then("The observer should receive the update")
-            obs.await(timeout, 1) shouldBe true
+            obs.awaitOnNext(2, timeout) shouldBe true
             obs.getOnNextEvents.size shouldBe 2
             val device2 = obs.getOnNextEvents.get(1).asInstanceOf[BridgePort]
             device2 shouldBeDeviceOf port
@@ -239,7 +246,7 @@ class PortMapperTest extends MidolmanSpec with TopologyBuilder
             store.deleteOwner(classOf[TopologyPort], id, owner2)
 
             Then("The observer should receive a new update")
-            obs.await(timeout) shouldBe true
+            obs.awaitOnNext(3, timeout) shouldBe true
             obs.getOnNextEvents.size shouldBe 3
             val device3 = obs.getOnNextEvents.get(2).asInstanceOf[BridgePort]
             device3 shouldBeDeviceOf port
@@ -260,13 +267,13 @@ class PortMapperTest extends MidolmanSpec with TopologyBuilder
             val mapper = new PortMapper(id, vt)
 
             And("An observer to the port mapper")
-            val obs = new AwaitableObserver[SimPort](1, assertThread())
+            val obs = makeObservable()
 
             When("The observer subscribes to an observable on the mapper")
             Observable.create(mapper).subscribe(obs)
 
             Then("The observer should receive the port")
-            obs.await(timeout, 1) shouldBe true
+            obs.awaitOnNext(1, timeout) shouldBe true
             val device1 = obs.getOnNextEvents.get(0).asInstanceOf[BridgePort]
             device1 shouldBeDeviceOf port
 
@@ -274,7 +281,7 @@ class PortMapperTest extends MidolmanSpec with TopologyBuilder
             store.delete(classOf[TopologyPort], id)
 
             Then("The observer should receive a completed notification")
-            obs.await(timeout) shouldBe true
+            obs.awaitCompletion(timeout)
             obs.getOnCompletedEvents should not be empty
         }
     }
