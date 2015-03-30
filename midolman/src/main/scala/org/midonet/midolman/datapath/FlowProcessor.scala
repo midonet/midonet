@@ -28,7 +28,7 @@ import com.typesafe.scalalogging.Logger
 import org.midonet.midolman.datapath.DisruptorDatapathChannel._
 import org.midonet.netlink._
 import org.midonet.netlink.exceptions.NetlinkException
-import org.midonet.odp.{FlowMask, FlowMatch, OvsNetlinkFamilies, OvsProtocol}
+import org.midonet.odp._
 import org.midonet.odp.flows.{FlowAction, FlowKey}
 import org.midonet.Util
 import org.midonet.util.concurrent.{NanoClock, Backchannel}
@@ -47,7 +47,8 @@ object FlowProcessor {
     private val MAX_BUF_CAPACITY = 4 * 1024 * 1024
 }
 
-class FlowProcessor(families: OvsNetlinkFamilies,
+class FlowProcessor(datapath: Datapath,
+                    families: OvsNetlinkFamilies,
                     maxPendingRequests: Int,
                     maxRequestSize: Int,
                     channelFactory: NetlinkChannelFactory,
@@ -61,6 +62,9 @@ class FlowProcessor(families: OvsNetlinkFamilies,
     private val log = Logger(LoggerFactory.getLogger(
         "org.midonet.datapath.flow-processor"))
 
+    private val datapathId = datapath.getIndex
+    private val supportsMegaflow = datapath.supportsMegaflow()
+
     private var writeBuf = BytesUtil.instance.allocateDirect(64 * 1024)
     private val channel = channelFactory.create(blocking = true)
     private val pid = channel.getLocalAddress.getPid
@@ -71,8 +75,12 @@ class FlowProcessor(families: OvsNetlinkFamilies,
 
     private val writer = new NetlinkBlockingWriter(channel)
     private val broker = new NetlinkRequestBroker(
-        writer, new NetlinkReader(channel), maxPendingRequests, maxRequestSize,
-        BytesUtil.instance.allocateDirect(8 * 1024), clock)
+        writer,
+        new NetlinkReader(channel),
+        maxPendingRequests,
+        maxRequestSize,
+        64 * 1024, // TODO: Reply buf size needs to be increased to match writeBuf
+        clock)
 
     private val protocol = new OvsProtocol(pid, families)
 
@@ -87,12 +95,12 @@ class FlowProcessor(families: OvsNetlinkFamilies,
         event.flowCreateRef = null
         if (context.flow ne null) {
             try {
-                val mask = if (event.supportsMegaflow) {
+                val mask = if (supportsMegaflow) {
                     flowMask.calculateFor(flowMatch)
                     context.log.debug(s"Applying mask $flowMask")
                     flowMask
                 } else null
-                writeFlow(event.datapathId, flowMatch.getKeys,
+                writeFlow(datapathId, flowMatch.getKeys,
                           context.flowActions, mask)
                 context.log.debug("Created datapath flow")
             } catch { case t: Throwable =>

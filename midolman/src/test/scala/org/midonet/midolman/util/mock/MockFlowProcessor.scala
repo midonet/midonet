@@ -28,11 +28,12 @@ import rx.Observer
 
 import org.midonet.midolman.datapath.FlowProcessor
 import org.midonet.netlink.{NetlinkMessage, MockNetlinkChannelFactory}
-import org.midonet.odp.{OvsNetlinkFamilies, Flow, FlowMatch}
+import org.midonet.odp.{Datapath, OvsNetlinkFamilies, Flow, FlowMatch}
 import org.midonet.util.concurrent.MockClock
 
 class MockFlowProcessor(val flowsTable: JMap[FlowMatch, Flow] = null)
-        extends FlowProcessor(new OvsNetlinkFamilies(new DatapathFamily(0),
+        extends FlowProcessor(new Datapath(0, "midonet"),
+                              new OvsNetlinkFamilies(new DatapathFamily(0),
                                                      new PortFamily(0),
                                                      new FlowFamily(0),
                                                      new PacketFamily(0), 0, 0),

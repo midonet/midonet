@@ -24,6 +24,7 @@ import com.lmax.disruptor.RingBuffer
 import org.jctools.queues.SpscArrayQueue
 
 import org.junit.runner.RunWith
+import org.midonet.odp.Datapath.{Stats, MegaflowStats}
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.concurrent.Eventually._
 
@@ -50,14 +51,19 @@ class DatapathChannelTest extends MidolmanSpec {
 
     val ovsFamilies = new OvsNetlinkFamilies(new DatapathFamily(1), new PortFamily(2),
                                              new FlowFamily(3), new PacketFamily(4), 5, 6)
-    private val fp = new FlowProcessor(ovsFamilies, 1024, 2048, factory, clock)
+    val datapathId = 11
+    val datapath = new Datapath(datapathId, "midonet",
+                                new Stats(0, 0, 0, 0), new MegaflowStats(0, 0))
+    private val fp = new FlowProcessor(
+        datapath, ovsFamilies, 1024, 2048, factory, clock)
     val ringBuffer = RingBuffer.createSingleProducer[PacketContextHolder](
         DisruptorDatapathChannel.Factory, capacity)
     val processors = Array(new BackchannelEventProcessor[PacketContextHolder](
         ringBuffer,
         new AggregateEventPollerHandler(
             fp,
-            new EventPollerHandlerAdapter(new PacketExecutor(ovsFamilies, 1, 0, factory))),
+            new EventPollerHandlerAdapter(
+                new PacketExecutor(datapath, ovsFamilies, 1, 0, factory))),
         fp))
 
     val dpChannel = new DisruptorDatapathChannel(ringBuffer, processors)
@@ -72,13 +78,11 @@ class DatapathChannelTest extends MidolmanSpec {
         actions.add(FlowActions.output(1))
     }
 
-    val datapathId = 11
-
-    override def beforeTest() {
-        dpChannel.start(new Datapath(datapathId, "midonet"))
+    override def beforeTest(): Unit = {
+        dpChannel.start()
     }
 
-    override def afterTest() {
+    override def afterTest(): Unit = {
         dpChannel.stop()
     }
 
@@ -119,6 +123,7 @@ class DatapathChannelTest extends MidolmanSpec {
             }
 
             val bb = nlChannel.written.poll()
+            log.debug("Messages: " + nlChannel.written.size())
             bb.getInt(NetlinkMessage.NLMSG_PID_OFFSET) should be (10)
             bb.position(NetlinkMessage.GENL_HEADER_SIZE)
             bb.getInt() should be (datapathId)
