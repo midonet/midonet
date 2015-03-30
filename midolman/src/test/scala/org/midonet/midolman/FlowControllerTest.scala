@@ -46,7 +46,7 @@ class FlowControllerTest extends MidolmanSpec {
              val config = FlowControllerTest.this.config
              val metrics = FlowControllerTest.this.metrics
              val clock = FlowControllerTest.this.clock
-             var datapathId = 0
+             val datapathId = 0
              implicit val system = FlowControllerTest.this.actorSystem
              val log = Logger(NOPLogger.NOP_LOGGER)
              val actor = TestProbe()(system).ref

@@ -40,7 +40,7 @@ import org.midonet.midolman.topology.{LocalPortActive, VirtualToPhysicalMapper, 
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.odp.flows.FlowActions.{output, pushVLAN, setKey, userspace}
 import org.midonet.odp.flows.{FlowAction, FlowActionOutput, FlowActions, FlowKeys}
-import org.midonet.odp.{DpPort, FlowMatch, Packet}
+import org.midonet.odp.{Datapath, DpPort, FlowMatch, Packet}
 import org.midonet.packets.util.PacketBuilder._
 import org.midonet.packets.{Ethernet, ICMP, IPv4Addr}
 import org.midonet.sdn.flows.FlowTagger
@@ -482,9 +482,11 @@ class FlowTranslatorTest extends MidolmanSpec {
         implicit protected def system: ActorSystem = actorSystem
         implicit override protected def executor = ExecutionContext.callingThread
         val log: LoggingAdapter = Logging.getLogger(system, this.getClass)
+        override protected val hostId: UUID = FlowTranslatorTest.this.hostId
 
         override def translateActions(pktCtx: PacketContext): Unit =
             super.translateActions(pktCtx)
+
     }
 
     class TestDatapathState extends DatapathState {
@@ -509,6 +511,8 @@ class FlowTranslatorTest extends MidolmanSpec {
         def isVtepTunnellingPort(portNumber: Integer): Boolean =
             portNumber == vxlanPortNumber
         def isOverlayTunnellingPort(portNumber: Integer): Boolean = false
+
+        def datapath: Datapath = new Datapath(0, "midonet")
     }
 
     def translationScenario(name: String)

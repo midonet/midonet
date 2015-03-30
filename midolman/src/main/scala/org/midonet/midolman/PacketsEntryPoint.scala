@@ -28,6 +28,7 @@ import com.codahale.metrics.MetricRegistry
 import com.google.inject.Inject
 
 import com.typesafe.scalalogging.Logger
+import org.midonet.midolman.services.HostIdProviderService
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.DataClient
@@ -53,9 +54,7 @@ object PacketsEntryPoint extends Referenceable {
     case class Workers(list: IndexedSeq[ActorRef])
 }
 
-class PacketsEntryPoint extends Actor with ActorLogWithoutPath
-        with DatapathReadySubscriberActor {
-    import org.midonet.midolman.DatapathController.DatapathReady
+class PacketsEntryPoint extends Actor with ActorLogWithoutPath {
     import org.midonet.midolman.PacketsEntryPoint._
 
     private var _NUM_WORKERS = 1
@@ -109,6 +108,12 @@ class PacketsEntryPoint extends Actor with ActorLogWithoutPath
     @Inject
     var natBlockAllocator: NatBlockAllocator = _
 
+    @Inject
+    var dpState: DatapathState = _
+
+    @Inject
+    var hostIdProviderService: HostIdProviderService = _
+
     var connTrackStateTable: ShardedFlowStateTable[ConnTrackKey, ConnTrackValue] = _
     var natStateTable: ShardedFlowStateTable[NatKey, NatBinding] = _
     var natLeaser: NatLeaser = _
@@ -150,8 +155,8 @@ class PacketsEntryPoint extends Actor with ActorLogWithoutPath
         val cookieGen = new CookieGenerator(index, NUM_WORKERS)
         Props(
             classOf[PacketWorkflow],
-            index, config, cookieGen, clock, dpChannel, clusterDataClient,
-            flowInvalidator, flowProcessor,
+            index, config, hostIdProviderService.hostId(), dpState, cookieGen,
+            clock, dpChannel, clusterDataClient, flowInvalidator, flowProcessor,
             connTrackStateTable.addShard(log = shardLogger(connTrackStateTable)),
             natStateTable.addShard(log = shardLogger(natStateTable)),
             traceStateTable.addShard(log = shardLogger(traceStateTable)),
@@ -162,10 +167,6 @@ class PacketsEntryPoint extends Actor with ActorLogWithoutPath
     private def broadcast(m: Any) { workers foreach ( _ ! m ) }
 
     override def receive = LoggingReceive {
-
-        case m@DatapathReady(dp, _) =>
-            dpChannel.start(dp)
-            broadcast(m)
 
         case m: FlowStateBatch => broadcast(m)
 

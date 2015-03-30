@@ -235,9 +235,28 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
                        natTable: FlowStateTable[NatKey, NatBinding] = new ShardedFlowStateTable[NatKey, NatBinding](clock).addShard(),
                        traceTable: FlowStateTable[TraceKey, TraceContext] = new ShardedFlowStateTable[TraceKey, TraceContext](clock).addShard())
                       (implicit hostId: UUID, client: DataClient) = {
-        val pktWkfl = TestActorRef[PacketWorkflow](Props(new PacketWorkflow(
+        val dpState = new DatapathState {
+            override val datapath = new Datapath(0, "midonet")
+            override def peerTunnelInfo(peer: UUID): Option[UnderlayRoute] =
+                peers.get(peer)
+            override def isVtepTunnellingPort(portNumber: Integer): Boolean = false
+            override def isOverlayTunnellingPort(portNumber: Integer): Boolean =
+                tunnelPorts.contains(portNumber)
+            override def vtepTunnellingOutputAction: FlowActionOutput = null
+            override def getVportForDpPortNumber(portNum: Integer): UUID =
+                dpPortToVport get portNum orNull
+            override def dpPortForTunnelKey(tunnelKey: Long): DpPort =
+                DpPort.fakeFrom(new InternalPort("dpPort-" + tunnelKey),
+                                tunnelKey.toInt)
+            override def getDpPortNumberForVport(vportId: UUID): Integer =
+                (dpPortToVport map (_.swap) toMap) get vportId map Integer.valueOf orNull
+        }
+
+        TestActorRef[PacketWorkflow](Props(new PacketWorkflow(
             0,
             config,
+            hostId,
+            dpState,
             new CookieGenerator(0, 1),
             clock,
             dpChannel,
@@ -257,23 +276,6 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
                 super.runWorkflow(pktCtx)
             }
         }))
-        pktWkfl ! DatapathController.DatapathReady(new Datapath(0, "midonet"), new DatapathState {
-            override def host: ResolvedHost = new ResolvedHost(hostId, true, Map(), Map())
-            override def peerTunnelInfo(peer: UUID): Option[UnderlayRoute] =
-                peers.get(peer)
-            override def isVtepTunnellingPort(portNumber: Integer): Boolean = false
-            override def isOverlayTunnellingPort(portNumber: Integer): Boolean =
-                tunnelPorts.contains(portNumber)
-            override def vtepTunnellingOutputAction: FlowActionOutput = null
-            override def getVportForDpPortNumber(portNum: Integer): UUID =
-                dpPortToVport get portNum orNull
-            override def dpPortForTunnelKey(tunnelKey: Long): DpPort =
-                DpPort.fakeFrom(new InternalPort("dpPort-" + tunnelKey),
-                                tunnelKey.toInt)
-            override def getDpPortNumberForVport(vportId: UUID): Integer =
-                (dpPortToVport map (_.swap) toMap) get vportId map Integer.valueOf orNull
-        })
-        pktWkfl
     }
 
     @inline

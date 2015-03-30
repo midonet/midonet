@@ -22,6 +22,7 @@ import java.util._
 import com.google.protobuf.{MessageLite, CodedOutputStream}
 
 import com.typesafe.scalalogging.Logger
+import org.midonet.midolman.DatapathState
 import org.slf4j.LoggerFactory
 
 import com.lmax.disruptor.{EventHandler, LifecycleAware}
@@ -30,7 +31,7 @@ import org.midonet.midolman.datapath.DisruptorDatapathChannel._
 import org.midonet.midolman.simulation.PacketContext
 import org.midonet.netlink._
 import org.midonet.odp.flows.FlowAction
-import org.midonet.odp.{FlowMatches, Packet, OvsProtocol, OvsNetlinkFamilies}
+import org.midonet.odp._
 import org.midonet.packets.FlowStateEthernet
 import org.midonet.util.FixedArrayOutputStream
 
@@ -68,13 +69,16 @@ object PacketExecutor {
     private val MAX_BUF_CAPACITY = 4 * 1024 * 1024
 }
 
-sealed class PacketExecutor(families: OvsNetlinkFamilies,
+sealed class PacketExecutor(dpState: DatapathState,
+                            families: OvsNetlinkFamilies,
                             numHandlers: Int, index: Int,
                             channelFactory: NetlinkChannelFactory)
     extends EventHandler[PacketContextHolder]
     with LifecycleAware with StatePacketExecutor {
 
     val log = Logger(LoggerFactory.getLogger(s"org.midonet.datapath.packet-executor-$index"))
+
+    private val datapathId = dpState.datapath.getIndex
 
     private var writeBuf = BytesUtil.instance.allocateDirect(64 * 1024)
     private val readBuf = BytesUtil.instance.allocateDirect(8 * 1024)
@@ -97,11 +101,10 @@ sealed class PacketExecutor(families: OvsNetlinkFamilies,
             event.packetExecRef = null
             val actions = context.packetActions
             val packet = context.packet
-            val dpId = event.datapathId
             if (actions.size > 0 && packet.getReason != Packet.Reason.FlowActionUserspace) {
                 try {
-                    maybeExecuteStatePacket(dpId, context)
-                    executePacket(dpId, packet, actions)
+                    maybeExecuteStatePacket(datapathId, context)
+                    executePacket(datapathId, packet, actions)
                     context.log.debug(s"Executed packet")
                 } catch { case t: Throwable =>
                     context.log.error(s"Failed to execute packet", t)
