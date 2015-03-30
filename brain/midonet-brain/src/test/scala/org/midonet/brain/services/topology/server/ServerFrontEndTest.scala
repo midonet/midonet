@@ -31,6 +31,7 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{FeatureSpec, Matchers}
 import org.slf4j.LoggerFactory
+import rx.observers.TestObserver
 
 import rx.{Observable, Observer}
 import rx.subjects.{ReplaySubject, Subject}
@@ -44,7 +45,6 @@ import org.midonet.cluster.util.UUIDUtil
 import org.midonet.util.functors.makeAction0
 import org.midonet.util.netty._
 import org.midonet.util.reactivex.AwaitableObserver
-
 
 @RunWith(classOf[JUnitRunner])
 class ServerFrontEndTest extends FeatureSpec with Matchers {
@@ -225,7 +225,7 @@ class ServerFrontEndTest extends FeatureSpec with Matchers {
             srv.startAsync().awaitRunning()
             srv.isRunning shouldBe true
 
-            val answers = new AwaitableObserver[Commands.Response](4)
+            val answers = new TestObserver[Commands.Response] with AwaitableObserver[Commands.Response]
             val client = newClient
             val subs = client.observable.subscribe(answers)
 
@@ -237,7 +237,7 @@ class ServerFrontEndTest extends FeatureSpec with Matchers {
             cli.isRunning shouldBe true
 
             client.awaitCompletion(WAIT_TIME)
-            answers.await(WAIT_TIME)
+            answers.awaitCompletion(WAIT_TIME)
 
             cli.stopAsync().awaitTerminated()
             srv.stopAsync().awaitTerminated()

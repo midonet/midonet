@@ -21,6 +21,7 @@ import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import rx.Observable
+import rx.observers.TestObserver
 import rx.subjects.BehaviorSubject
 import rx.subscriptions.Subscriptions
 
@@ -71,7 +72,7 @@ class DeviceMapperTest extends MidolmanSpec {
             Observable.create(new TestableMapper(id, obs))
     }
 
-    type TestableObserver = AwaitableObserver[TestableDevice]
+    type TestableObserver = TestObserver[TestableDevice]
 
     implicit var vt: VirtualTopology = _
 

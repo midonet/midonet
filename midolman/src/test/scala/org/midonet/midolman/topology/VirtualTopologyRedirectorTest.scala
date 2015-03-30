@@ -27,6 +27,7 @@ import com.typesafe.config.{Config, ConfigValueFactory}
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import rx.Observable
+import rx.observers.TestObserver
 
 import org.midonet.cluster.data.storage.{CreateOp, NotFoundException}
 import org.midonet.cluster.models.Topology.Rule.Action
@@ -154,7 +155,7 @@ class VirtualTopologyRedirectorTest extends MidolmanSpec with TopologyBuilder
             backend.store.create(port1)
 
             And("An awaitable observer to the virtual topology")
-            val obs = new AwaitableObserver[SimulationPort](2)
+            val obs = new TestObserver[SimulationPort] with AwaitableObserver[SimulationPort]
 
             When("Requesting the port")
             // Try get the port, and wait for the port to be cached.
@@ -179,7 +180,7 @@ class VirtualTopologyRedirectorTest extends MidolmanSpec with TopologyBuilder
             backend.store.update(port2)
 
             And("Waiting for the port to update the topology")
-            obs.await(timeout) shouldBe true
+            obs.awaitOnNext(2, timeout) shouldBe true
 
             And("Requesting the port")
             val device = VirtualTopologyActor.tryAsk[SimulationPort](portId)
@@ -202,14 +203,14 @@ class VirtualTopologyRedirectorTest extends MidolmanSpec with TopologyBuilder
             }.waitFor, timeout)
 
             When("Deleting the port")
-            val obs = new AwaitableObserver[SimulationPort](2)
+            val obs = new TestObserver[SimulationPort] with AwaitableObserver[SimulationPort]
             vt.observables.get(portId)
                .asInstanceOf[Observable[SimulationPort]]
                .subscribe(obs)
 
             backend.store.delete(classOf[TopologyPort], portId)
             // Waiting for the notification of the deletion.
-            obs.await(timeout)
+            obs.awaitCompletion(timeout)
 
             And("Requesting the port a second time")
             val e1 = intercept[NotYetException] {
@@ -296,7 +297,7 @@ class VirtualTopologyRedirectorTest extends MidolmanSpec with TopologyBuilder
             backend.store.create(port1)
 
             And("An awaitable observer to the virtual topology")
-            val obs = new AwaitableObserver[SimulationPort](2)
+            val obs = new TestObserver[SimulationPort] with AwaitableObserver[SimulationPort]
 
             When("Sending a port request to the VTA and waiting for reply")
             VirtualTopologyActor ! PortRequest(portId, update = false)
@@ -318,7 +319,7 @@ class VirtualTopologyRedirectorTest extends MidolmanSpec with TopologyBuilder
             backend.store.update(port2)
 
             And("Waiting for the port to update the topology")
-            obs.await(timeout) shouldBe true
+            obs.awaitOnNext(2, timeout) shouldBe true
 
             Then("The sender should not have received the updated port")
             sender.messages.size shouldBe 1
@@ -338,7 +339,7 @@ class VirtualTopologyRedirectorTest extends MidolmanSpec with TopologyBuilder
             backend.store.create(port1)
 
             And("An awaitable observer to the virtual topology")
-            val obs = new AwaitableObserver[SimulationPort](2)
+            val obs = new TestObserver[SimulationPort] with AwaitableObserver[SimulationPort]
 
             When("Sending a port request to the VTA and waiting for reply")
             VirtualTopologyActor ! PortRequest(portId, update = true)
@@ -360,7 +361,7 @@ class VirtualTopologyRedirectorTest extends MidolmanSpec with TopologyBuilder
             backend.store.update(port2)
 
             And("Waiting for the port to update the topology")
-            obs.await(timeout) shouldBe true
+            obs.awaitOnNext(2, timeout) shouldBe true
 
             Then("The sender should have received the updated port")
             sender.messages.size shouldBe 2
@@ -378,7 +379,7 @@ class VirtualTopologyRedirectorTest extends MidolmanSpec with TopologyBuilder
             backend.store.create(port1)
 
             And("An awaitable observer to the virtual topology")
-            val obs = new AwaitableObserver[SimulationPort](2)
+            val obs = new TestObserver[SimulationPort] with AwaitableObserver[SimulationPort]
 
             When("Sending a port request to the VTA and waiting for reply")
             VirtualTopologyActor ! PortRequest(portId, update = true)
@@ -403,7 +404,7 @@ class VirtualTopologyRedirectorTest extends MidolmanSpec with TopologyBuilder
             backend.store.update(port2)
 
             And("Waiting for the port to update the topology")
-            obs.await(timeout) shouldBe true
+            obs.awaitOnNext(2, timeout) shouldBe true
 
             Then("The sender should note have received the updated port")
             sender.messages.size shouldBe 1
@@ -421,7 +422,7 @@ class VirtualTopologyRedirectorTest extends MidolmanSpec with TopologyBuilder
             backend.store.create(port)
 
             And("An awaitable observer to the virtual topology")
-            val obs = new AwaitableObserver[SimulationPort](2)
+            val obs = new TestObserver[SimulationPort] with AwaitableObserver[SimulationPort]
 
             When("Sending a port request to the VTA and waiting for reply")
             VirtualTopologyActor ! PortRequest(portId, update = true)
@@ -443,7 +444,7 @@ class VirtualTopologyRedirectorTest extends MidolmanSpec with TopologyBuilder
                    timeout) shouldBe false
 
             And("Waiting for the port to update the topology")
-            obs.await(timeout) shouldBe true
+            obs.awaitCompletion(timeout)
 
             Then("The sender should no have received other message")
             sender.messages.size shouldBe 1
@@ -459,7 +460,7 @@ class VirtualTopologyRedirectorTest extends MidolmanSpec with TopologyBuilder
             backend.store.create(port1)
 
             And("An awaitable observer to the virtual topology")
-            val obs = new AwaitableObserver[SimulationPort](1)
+            val obs = new TestObserver[SimulationPort] with AwaitableObserver[SimulationPort]
 
             When("Sending a port request to the VTA and waiting for reply")
             VirtualTopologyActor ! PortRequest(portId, update = false)
@@ -469,7 +470,7 @@ class VirtualTopologyRedirectorTest extends MidolmanSpec with TopologyBuilder
                 .subscribe(obs)
 
             And("Waiting for the port to update the topology")
-            obs.await(timeout, 1) shouldBe true
+            obs.awaitOnNext(1, timeout) shouldBe true
 
             Then("The flow should receive an invalidate message")
             flowInvalidator should invalidate(FlowTagger.tagForDevice(portId))
@@ -481,7 +482,7 @@ class VirtualTopologyRedirectorTest extends MidolmanSpec with TopologyBuilder
             backend.store.update(port2)
 
             And("Waiting for the port to update the topology")
-            obs.await(timeout) shouldBe true
+            obs.awaitOnNext(2, timeout) shouldBe true
 
             Then("The flow should receive an invalidate message")
             flowInvalidator should invalidate(FlowTagger.tagForDevice(portId))

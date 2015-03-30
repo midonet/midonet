@@ -33,7 +33,8 @@ import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.simulation.{LoadBalancer => SimLB, VIP => SimVIP}
 import org.midonet.midolman.util.MidolmanSpec
-import org.midonet.util.reactivex.AwaitableObserver
+import org.midonet.util.reactivex.{AssertableObserver, AwaitableObserver}
+import rx.observers.TestObserver
 
 @RunWith(classOf[JUnitRunner])
 class LoadBalancerMapperTest extends MidolmanSpec
@@ -52,6 +53,12 @@ class LoadBalancerMapperTest extends MidolmanSpec
     private def assertThread(): Unit = {
         assert(vt.threadId == Thread.currentThread.getId)
     }
+    
+    private def makeObservable() = new TestObserver[SimLB] 
+                                   with AwaitableObserver[SimLB]
+                                   with AssertableObserver[SimLB] {
+        override def assert() = assertThread()
+    }
 
     feature("The load-balancer mapper emits proper simulation objects") {
         scenario("The mapper emits error for non-existing load-balancers") {
@@ -62,13 +69,13 @@ class LoadBalancerMapperTest extends MidolmanSpec
             val mapper = new LoadBalancerMapper(id, vt)
 
             And("An observer to the load-balancer mapper")
-            val obs = new AwaitableObserver[SimLB](1, assertThread())
+            val obs = makeObservable()
 
             When("The observer subscribes to an observable on the mapper")
             Observable.create(mapper).subscribe(obs)
 
             Then("The observer should see a NotFoundException")
-            obs.await(timeout) shouldBe true
+            obs.awaitCompletion(timeout)
             val e = obs.getOnErrorEvents.get(0).asInstanceOf[NotFoundException]
             e.clazz shouldBe classOf[TopologyLB]
             e.id shouldBe id
@@ -81,11 +88,11 @@ class LoadBalancerMapperTest extends MidolmanSpec
             Then("When we subscribe to the load-balancer observable")
             val lbMapper = new LoadBalancerMapper(protoLB.getId, vt)
             val observable = Observable.create(lbMapper)
-            val obs = new AwaitableObserver[SimLB](1, assertThread())
+            val obs = makeObservable()
             observable.subscribe(obs)
 
             Then("We obtain a simulation load-balancer with no vips")
-            obs.await(timeout, 1) shouldBe true
+            obs.awaitOnNext(1, timeout) shouldBe true
             obs.getOnNextEvents should have size 1
             var simLB = obs.getOnNextEvents.asScala.last
             simLB shouldBeDeviceOf protoLB
@@ -95,7 +102,7 @@ class LoadBalancerMapperTest extends MidolmanSpec
             var updatedProtoLB = addVipToLoadBalancer(protoLB, vip1.getId)
 
             Then("We receive the load-balancer with one vip")
-            obs.await(timeout, 1) shouldBe true
+            obs.awaitOnNext(2, timeout) shouldBe true
             obs.getOnNextEvents should have size 2
             simLB = obs.getOnNextEvents.asScala.last
             simLB shouldBeDeviceOf updatedProtoLB
@@ -108,7 +115,7 @@ class LoadBalancerMapperTest extends MidolmanSpec
             store.update(updatedVip1)
 
             Then("We receive the load-balancer with the updated vip")
-            obs.await(timeout, 1) shouldBe true
+            obs.awaitOnNext(3, timeout) shouldBe true
             obs.getOnNextEvents should have size 3
             simLB = obs.getOnNextEvents.asScala.last
             simLB shouldBeDeviceOf updatedProtoLB
@@ -119,7 +126,7 @@ class LoadBalancerMapperTest extends MidolmanSpec
             updatedProtoLB = addVipToLoadBalancer(updatedProtoLB, vip2.getId)
 
             Then("We receive the load-balancer with 2 vips")
-            obs.await(timeout, 1) shouldBe true
+            obs.awaitOnNext(4, timeout) shouldBe true
             obs.getOnNextEvents should have size 4
             simLB = obs.getOnNextEvents.asScala.last
             simLB shouldBeDeviceOf updatedProtoLB
@@ -129,7 +136,7 @@ class LoadBalancerMapperTest extends MidolmanSpec
             updatedProtoLB = removeVipsFromLoadBalancer(updatedProtoLB)
 
             Then("We receive the load-balancer with no vips")
-            obs.await(timeout, 1) shouldBe true
+            obs.awaitOnNext(5, timeout) shouldBe true
             obs.getOnNextEvents should have size 5
             simLB = obs.getOnNextEvents.asScala.last
             simLB shouldBeDeviceOf updatedProtoLB
@@ -144,7 +151,7 @@ class LoadBalancerMapperTest extends MidolmanSpec
                              .build())
 
             Then("We receive only one update")
-            obs.await(timeout) shouldBe true
+            obs.awaitOnNext(6, timeout) shouldBe true
             obs.getOnNextEvents should have size 6
         }
 
@@ -155,11 +162,11 @@ class LoadBalancerMapperTest extends MidolmanSpec
             Then("When we subscribe to the load-balancer observable")
             val lbMapper = new LoadBalancerMapper(protoLB.getId, vt)
             val observable = Observable.create(lbMapper)
-            val obs = new AwaitableObserver[SimLB](1, assertThread())
+            val obs = makeObservable()
             observable.subscribe(obs)
 
             Then("We obtain a simulation load-balancer with no vips")
-            obs.await(timeout, 1) shouldBe true
+            obs.awaitOnNext(1, timeout) shouldBe true
             val simLB = obs.getOnNextEvents.asScala.last
             simLB shouldBeDeviceOf protoLB
 
@@ -167,7 +174,7 @@ class LoadBalancerMapperTest extends MidolmanSpec
             store.delete(classOf[TopologyLB], protoLB.getId)
 
             Then("The mapper emits an on complete notification")
-            obs.await(timeout) shouldBe true
+            obs.awaitCompletion(timeout)
             obs.getOnCompletedEvents should have size 1
         }
     }
