@@ -61,6 +61,10 @@ private[storage]
 case class DeleteOwnerOp(clazz: Class[_], id: ObjId, owner: String)
     extends PersistenceOp
 
+case class CreateNodeOp(path: String, value: String) extends PersistenceOp
+case class UpdateNodeOp(path: String, value: String) extends PersistenceOp
+case class DeleteNodeOp(path: String) extends PersistenceOp
+
 /* Object ownership types */
 object OwnershipType extends Enumeration {
     class OwnershipType(val isExclusive: Boolean) extends Val
