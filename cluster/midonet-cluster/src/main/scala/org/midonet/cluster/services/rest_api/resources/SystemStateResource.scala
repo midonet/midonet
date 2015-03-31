@@ -22,7 +22,7 @@ import javax.ws.rs.{GET, Path, Produces}
 import com.google.inject.servlet.RequestScoped
 
 import org.midonet.cluster.rest_api.models.SystemState
-import org.midonet.cluster.services.rest_api.MidonetMediaTypes
+import org.midonet.cluster.services.rest_api.MidonetTypes
 
 @Path("system_state") // TODO: why?!?? figure out how to use the ResourceUris one
 @RequestScoped
@@ -31,8 +31,8 @@ class SystemStateResource {
     // TODO: we're cheating here, it should use a real system state, but for
     //       now our goal is passing MDTS so we don't really need it
     @GET
-    @Produces(Array(MidonetMediaTypes.APPLICATION_SYSTEM_STATE_JSON,
-                    MidonetMediaTypes.APPLICATION_SYSTEM_STATE_JSON_V2,
+    @Produces(Array(MidonetTypes.APPLICATION_SYSTEM_STATE_JSON,
+                    MidonetTypes.APPLICATION_SYSTEM_STATE_JSON_V2,
                     MediaType.APPLICATION_JSON))
     def get(): SystemState = {
         val st = new SystemState()

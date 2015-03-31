@@ -13,39 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.midonet.cluster.rest_api.models;
 
-import java.util.UUID;
+import java.lang.reflect.Type;
 
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Pattern;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import org.midonet.cluster.data.ZoomClass;
+import org.midonet.cluster.data.ZoomConvert;
 import org.midonet.cluster.data.ZoomField;
+import org.midonet.cluster.models.Commons;
 import org.midonet.cluster.models.Topology;
-import org.midonet.cluster.rest_api.annotation.ParentId;
 import org.midonet.cluster.rest_api.annotation.Resource;
 import org.midonet.cluster.rest_api.annotation.ResourceId;
 import org.midonet.cluster.util.IPAddressUtil;
-import org.midonet.cluster.util.UUIDUtil;
-import org.midonet.packets.IPv4;
+import org.midonet.cluster.util.MACUtil;
+import org.midonet.packets.MAC;
 
 @XmlRootElement
-@Resource(name = ResourceUris.HOSTS, parents = { TunnelZone.class })
-@ZoomClass(clazz = Topology.TunnelZone.HostToIp.class)
-public class TunnelZoneHost extends UriResource {
-
-    @ParentId
-    public UUID tunnelZoneId;
+@Resource(name = ResourceUris.DHCP_HOSTS, parents = { DhcpSubnet.class })
+@ZoomClass(clazz = Topology.Dhcp.Host.class)
+public class DhcpHost extends UriResource {
 
     @ResourceId
-    @ZoomField(name = "host_id", converter = UUIDUtil.Converter.class)
-    public UUID hostId;
-
-    @NotNull
-    @Pattern(regexp = IPv4.regex, message = "is an invalid IP format")
-    @ZoomField(name = "ip", converter = IPAddressUtil.Converter.class)
-    public String ipAddress;
+    @ZoomField(name = "mac")
+    public String macAddr;
+    @ZoomField(name = "ip_address", converter = IPAddressUtil.Converter.class)
+    public String ipAddr;
+    @ZoomField(name = "name")
+    public String name;
 
 }

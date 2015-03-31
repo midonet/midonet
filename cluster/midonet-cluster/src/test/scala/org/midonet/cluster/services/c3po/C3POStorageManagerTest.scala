@@ -26,7 +26,7 @@ import com.google.protobuf.Message
 import org.junit.runner.RunWith
 import org.mockito.ArgumentMatcher
 import org.mockito.Matchers.{any, anyObject, argThat}
-import org.mockito.Mockito.{doThrow, mock, never, times, verify, when}
+import org.mockito.Mockito.{doThrow, mock, never, verify, when}
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{BeforeAndAfterEach, FlatSpec}
 
@@ -36,7 +36,6 @@ import org.midonet.cluster.data.storage.{CreateOp, DeleteOp, PersistenceOp, Stor
 import org.midonet.cluster.models.Commons
 import org.midonet.cluster.models.Neutron.{NeutronNetwork, NeutronPort, NeutronRoute}
 import org.midonet.cluster.models.Topology.{Network, Port}
-import org.midonet.cluster.services.c3po.C3POState
 import org.midonet.cluster.util.UUIDUtil.randomUuidProto
 import org.midonet.midolman.state.PathBuilder
 

@@ -13,30 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.midonet.cluster.rest_api.models;
 
 import java.util.UUID;
 
-import javax.xml.bind.annotation.XmlElement;
+import javax.validation.constraints.NotNull;
 
-import org.midonet.cluster.data.ZoomField;
-import org.midonet.cluster.rest_api.annotation.ParentId;
-import org.midonet.cluster.rest_api.annotation.Resource;
-import org.midonet.cluster.util.UUIDUtil;
+public class TraceRule extends Rule {
 
-@Resource(name = ResourceUris.PORTS, parents = { Bridge.class })
-public class BridgePort extends Port {
+    @NotNull
+    public UUID requestId;
 
-    @ZoomField(name = "vlan_id")
-    public short vlanId;
+    public long limit;
 
-    @XmlElement(name = "deviceId")
-    @ZoomField(name = "network_id", converter = UUIDUtil.Converter.class)
-    @ParentId
-    public UUID networkId;
+    public TraceRule() {
+        super(RuleType.TRACE, RuleAction.CONTINUE);
+    }
 
+    @Override
     public String getType() {
-        return PortType.BRIDGE;
+        return Rule.Trace;
     }
 
 }
