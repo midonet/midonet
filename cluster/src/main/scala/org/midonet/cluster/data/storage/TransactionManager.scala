@@ -15,8 +15,8 @@
  */
 package org.midonet.cluster.data.storage
 
-import scala.collection.mutable
 import scala.collection.JavaConverters._
+import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 
 import com.google.common.collect.Multimap
@@ -24,7 +24,8 @@ import com.google.protobuf.Message
 
 import org.midonet.cluster.data._
 import org.midonet.cluster.data.storage.FieldBinding.DeleteAction
-import org.midonet.cluster.data.storage.TransactionManager.{ClassesMap, BindingsMap}
+import org.midonet.cluster.data.storage.TransactionManager.{BindingsMap, ClassesMap}
+import org.midonet.util.collection.PathMap
 
 object TransactionManager {
 
@@ -32,15 +33,24 @@ object TransactionManager {
     type BindingsMap = Multimap[Class[_], FieldBinding]
 
     case class Key(clazz: Class[_], id: String)
+
     case class ObjSnapshot(obj: Obj, version: Int, owners: Set[String])
 
-    trait TxOp
-    trait TxOwnerOp extends TxOp { def owner: String }
+    sealed trait TxOp
+    sealed trait TxOwnerOp extends TxOp { def owner: String }
+    sealed trait TxNodeOp extends TxOp
     case class TxCreate(obj: Obj, ops: Seq[TxOwnerOp]) extends TxOp
     case class TxUpdate(obj: Obj, version: Int, ops: Seq[TxOwnerOp]) extends TxOp
     case class TxDelete(version: Int, ops: Seq[TxOwnerOp]) extends TxOp
     case class TxCreateOwner(owner: String) extends TxOwnerOp
     case class TxDeleteOwner(owner: String) extends TxOwnerOp
+    case class TxCreateNode(value: String) extends TxNodeOp
+    case class TxUpdateNode(value: String) extends TxNodeOp
+    case class TxDeleteNode() extends TxNodeOp
+
+    // No-op. Used in nodeOps map to indicate that we've checked the data store
+    // and confirmed that this node exists.
+    case class TxNodeExists() extends TxNodeOp
 
     private final val NewObjectVersion = -1
 
@@ -105,6 +115,22 @@ abstract class TransactionManager(classes: ClassesMap, bindings: BindingsMap) {
     // the list of owners, followed by a TxCreateOwner. These are added to the
     // ownership operations for each object operation.
     protected val ops = new mutable.LinkedHashMap[Key, TxOp]
+
+    // Transaction-local cache of node operations, indexed by node path. Node
+    // operations are independent of object operations, and are used to create
+    // and modify hierarchical node structures that don't fit into
+    // Storage/Zoom's flat object model. As with the other caches, this lasts
+    // for the life of the transaction, accumulating and flattening changes to
+    // nodes.
+    //
+    // For example, CreateNodeOp("/a/b/c", "val1") will set nodeOps("/a/b/c") to
+    // TxCreateNode("val1"), and if the operation UpdateNodeOp("/a/b/c", "val2")
+    // appears later in the transaction, then TxCreateNode("val1") will be
+    // replaced with TxCreateNode("val2"), as this is logically equivalent to
+    // creating the node with value "val1" and then updating its value to
+    // "val2".
+    protected val nodeOps = new PathMap[TxNodeOp]
+    nodeOps("/") = TxNodeExists() // The root node always exists.
 
     protected def isRegistered(clazz: Class[_]): Boolean
 
@@ -222,7 +248,8 @@ abstract class TransactionManager(classes: ClassesMap, bindings: BindingsMap) {
         val snapshot = get(clazz, thisId).getOrElse(
             throw new NotFoundException(clazz, thisId))
 
-        validateOwner(clazz, thisId, snapshot.owners, owner, false)
+        validateOwner(clazz, thisId, snapshot.owners, owner,
+                      throwIfExists = false)
 
         // Invoke the validator/update callback if provided. If it returns
         // a modified object, use that in place of obj for the update.
@@ -472,7 +499,24 @@ abstract class TransactionManager(classes: ClassesMap, bindings: BindingsMap) {
                 list += key -> txOp
             case _ =>
         }
-        list
+
+        // Get node ops. The iterator produces them in breadth-first order.
+        // The toList call is needed to make collect preserve the breadth-first
+        // order.
+        val nops = nodeOps.toList.collect {
+            // TxNodeExists doesn't correspond to a real operation.
+            case (path, op) if !op.isInstanceOf[TxNodeExists] =>
+                (Key(null, path), op)
+        }
+
+        // Delete operations need to be sorted such that children are deleted
+        // before their parents. Simply reversing them should do this, since
+        // they were already in top-down breadth-first order.
+        val (delOps, otherOps) = nops.partition(_._2.isInstanceOf[TxDeleteNode])
+        list ++= otherOps
+        list ++= delOps.reverse
+
+        list.toList
     }
 
     /**
@@ -514,4 +558,89 @@ abstract class TransactionManager(classes: ClassesMap, bindings: BindingsMap) {
                 "Ownership already exists")
         }
     }
+
+    def createNode(path: String, value: String): Unit = {
+        nodeOps.get(path) match {
+            case None =>
+                val cn = TxCreateNode(value)
+                nodeOps(path) = cn
+                ensureNode(parentPath(path))
+            case Some(dn @ TxDeleteNode()) =>
+                nodeOps(path) = new TxUpdateNode(value)
+                ensureNode(parentPath(path))
+            case Some(TxCreateNode(_) | TxUpdateNode(_) | TxNodeExists()) =>
+                throw new StorageNodeExistsException(path)
+        }
+    }
+
+    /**
+     * Ensure that the specified node exists, adding create operations for
+     * it and any ancestor nodes that do not yet exist.
+     */
+    private def ensureNode(path: String): Unit = {
+        nodeOps.get(path) match {
+            case None => // Don't know whether this node exists.
+                if (nodeExists(path)) {
+                    nodeOps(path) = TxNodeExists()
+                } else {
+                    val cn = TxCreateNode(null)
+                    nodeOps(path) = cn
+                    ensureNode(parentPath(path))
+                }
+            case Some(TxDeleteNode()) =>
+                nodeOps(path) = TxUpdateNode(null)
+                ensureNode(parentPath(path))
+            case Some(TxCreateNode(_) | TxUpdateNode(_) | TxNodeExists()) =>
+                // Already exists.
+        }
+    }
+
+    def updateNode(path: String, value: String): Unit = {
+        nodeOps.get(path) match {
+            case None | Some(TxUpdateNode(_) | TxNodeExists()) =>
+                nodeOps(path) = TxUpdateNode(value)
+            case Some(TxCreateNode(_)) =>
+                nodeOps(path) = TxCreateNode(value)
+            case Some(TxDeleteNode()) =>
+                throw new StorageNodeNotFoundException(path)
+        }
+    }
+
+    def deleteNode(path: String): Unit = {
+        // First mark all known descendants for deletion.
+        for ((p, op) <- nodeOps.getDescendants(path)) op match {
+            case TxCreateNode(_) => nodeOps -= p
+            case TxUpdateNode(_) | TxNodeExists() =>
+                nodeOps(p) = TxDeleteNode()
+            case TxDeleteNode() =>
+        }
+
+        // Mark the node itself for deletion.
+        if (nodeOps.get(path).isEmpty) nodeOps(path) = TxDeleteNode()
+
+        // Now add delete operations for all remaining descendant nodes in
+        // Zookeeper that we don't know about yet.
+        def recDelete(path: String): Unit = {
+            for (child <- childrenOf(path) if nodeOps.get(child).isEmpty) {
+                nodeOps(child) = TxDeleteNode()
+                recDelete(child)
+            }
+        }
+        recDelete(path)
+    }
+
+    private def parentPath(path: String): String = {
+        if (path.head != '/' || path.last == '/')
+            throw new IllegalArgumentException("Invalid path: " + path)
+        val i = path.lastIndexOf('/')
+        if (i == 0) "/" else path.substring(0, i)
+    }
+
+    /** Query the backend store to determine if a node exists at the
+      * specified path. */
+    protected def nodeExists(path: String): Boolean
+
+    /** Query the backend store to get the fully-qualified paths of all
+      * children of the specified node. */
+    protected def childrenOf(path: String): Seq[String]
 }
