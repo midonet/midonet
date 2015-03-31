@@ -21,7 +21,7 @@ apply from: "${rootProject.projectDir}/fpm.gradle"
 
 jar {
     manifest {
-        attributes 'Implementation-Title': 'MidNet REST API server',
+        attributes 'Implementation-Title': 'MidoNet REST API server',
                    'Implementation-Version': version
     }
 }

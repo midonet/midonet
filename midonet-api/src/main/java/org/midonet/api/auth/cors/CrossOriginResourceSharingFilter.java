@@ -16,6 +16,8 @@
 
 package org.midonet.api.auth.cors;
 
+import java.io.IOException;
+
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
@@ -24,13 +26,14 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import org.midonet.api.HttpSupport;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import org.midonet.rest.HttpSupport;
 
 /**
  * Servlet filter which allows clients cross-origin request sharing (CORS).
@@ -53,8 +56,7 @@ public final class CrossOriginResourceSharingFilter implements Filter {
      * @param filterConfig
      *         A filter configuration object used by a servlet container to
      *         pass information to a filter during initialization.
-     * @throws ServletException
-     *         A servlet error.
+     * @throws ServletException A servlet error.
      */
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
@@ -79,16 +81,11 @@ public final class CrossOriginResourceSharingFilter implements Filter {
      *     Access-Control-Allow-Origin:* has no influence in REST Web Service
      *     </a>
      *
-     * @param servletRequest
-     *         Request passed along the chain.
-     * @param servletResponse
-     *         Response passed along the chain.
-     * @param filterChain
-     *         Filter chain to keep the request going.
-     * @throws IOException
-     *         IO error.
-     * @throws ServletException
-     *         A servlet error.
+     * @param servletRequest Request passed along the chain.
+     * @param servletResponse Response passed along the chain.
+     * @param filterChain Filter chain to keep the request going.
+     * @throws IOException IO error.
+     * @throws ServletException A servlet error.
      */
     @Override
     public void doFilter(ServletRequest servletRequest,

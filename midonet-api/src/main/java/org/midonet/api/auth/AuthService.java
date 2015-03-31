@@ -18,6 +18,8 @@ package org.midonet.api.auth;
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
+import org.midonet.rest.Token;
+
 /**
  * Interface for auth service.
  */
