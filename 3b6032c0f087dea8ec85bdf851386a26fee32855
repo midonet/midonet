@@ -136,6 +136,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_2423c706",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/vtep/model/PhysicalSwitch.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-03-31T09:02:58Z",
+      "side": 1,
+      "message": "The VTEP data models come from 2 different sources: from the VTEP itself (in which case they have a uuid), or the Vtep controller code in the Midonet brain, (in which case they don\u0027t have a uuid). The idea is that, if two records come from the VTEP, they are the same record if they have the same UUID (even if the contents are different - that would be an update). Otherwise, when no uuid is present, that means that we are creating a set of records to be stored in the VTEP, so differentiation should come from the contents (because the UUID is not yet set).\n\nI admit the rationale is confusing, so maybe it can be better to always generate a uuid, and use that as a base for the hashcode. What do you think?",
+      "parentUuid": "1a106d94_b35edfe7",
+      "revId": "3b6032c0f087dea8ec85bdf851386a26fee32855",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_33f94fc9",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/vtep/model/VtepMAC.scala",
         "patchSetId": 7
