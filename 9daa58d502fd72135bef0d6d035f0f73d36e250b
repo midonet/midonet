@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_e49ecf55",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PoolHealthMonitorMapper.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-03-31T08:38:42Z",
+      "side": 1,
+      "message": "Changed (though we have other upper case constants in the code, due to the java-scala mix...)",
+      "parentUuid": "1a106d94_d3b9dbea",
+      "range": {
+        "startLine": 38,
+        "startChar": 14,
+        "endLine": 38,
+        "endChar": 41
+      },
+      "revId": "9daa58d502fd72135bef0d6d035f0f73d36e250b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_73f107cd",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PoolHealthMonitorMapper.scala",
         "patchSetId": 7
@@ -36,6 +60,30 @@
       "writtenOn": "2015-03-30T15:47:28Z",
       "side": 1,
       "message": "Isn\u0027t this a poolhealthmonitor?",
+      "range": {
+        "startLine": 50,
+        "startChar": 50,
+        "endLine": 50,
+        "endChar": 70
+      },
+      "revId": "9daa58d502fd72135bef0d6d035f0f73d36e250b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_84ad5b8b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PoolHealthMonitorMapper.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-03-31T08:38:42Z",
+      "side": 1,
+      "message": "yes... though it actually exposes a map of pool health monitors... Changed.",
+      "parentUuid": "1a106d94_73f107cd",
       "range": {
         "startLine": 50,
         "startChar": 50,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_c4b633dc",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PoolHealthMonitorMapper.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-03-31T08:38:42Z",
+      "side": 1,
+      "message": "Fixed.",
+      "parentUuid": "1a106d94_53efabb0",
+      "range": {
+        "startLine": 61,
+        "startChar": 12,
+        "endLine": 61,
+        "endChar": 69
+      },
+      "revId": "9daa58d502fd72135bef0d6d035f0f73d36e250b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_53c16b2d",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PoolHealthMonitorMapper.scala",
         "patchSetId": 7
@@ -82,6 +154,30 @@
       "writtenOn": "2015-03-30T15:47:28Z",
       "side": 1,
       "message": "We shouldn\u0027t need this subject. The idea is to compose input observables, and expose the composition as the output observable below.",
+      "range": {
+        "startLine": 145,
+        "startChar": 4,
+        "endLine": 145,
+        "endChar": 58
+      },
+      "revId": "9daa58d502fd72135bef0d6d035f0f73d36e250b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_a4e217d3",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PoolHealthMonitorMapper.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 145,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-03-31T08:38:42Z",
+      "side": 1,
+      "message": "Pending to change. I\u0027ll try to rewrite the code to avoid having this subject.",
+      "parentUuid": "1a106d94_53c16b2d",
       "range": {
         "startLine": 145,
         "startChar": 4,
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_04e84bb3",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PoolHealthMonitorMapper.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 156,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-03-31T08:38:42Z",
+      "side": 1,
+      "message": "Changed into a subscription",
+      "parentUuid": "1a106d94_f3e7b7e2",
+      "range": {
+        "startLine": 150,
+        "startChar": 8,
+        "endLine": 156,
+        "endChar": 59
+      },
+      "revId": "9daa58d502fd72135bef0d6d035f0f73d36e250b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_73c46740",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PoolHealthMonitorMapper.scala",
         "patchSetId": 7
@@ -140,6 +260,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_e4ec0fca",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PoolHealthMonitorMapper.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 166,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-03-31T08:38:42Z",
+      "side": 1,
+      "message": "Changed into a subscription",
+      "parentUuid": "1a106d94_73c46740",
+      "range": {
+        "startLine": 159,
+        "startChar": 3,
+        "endLine": 166,
+        "endChar": 67
+      },
+      "revId": "9daa58d502fd72135bef0d6d035f0f73d36e250b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_33d14ffc",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PoolHealthMonitorMapper.scala",
         "patchSetId": 7
@@ -151,6 +295,30 @@
       "writtenOn": "2015-03-30T15:47:28Z",
       "side": 1,
       "message": "Here, the output observable should compose the input observable from above. In that way, any subscriber to the mapper will become a subscriber to the input observables. This will ensure that any handling method you have (for doOnNext, doOnCompleted, etc) is being called when receiving notifications.",
+      "range": {
+        "startLine": 181,
+        "startChar": 8,
+        "endLine": 181,
+        "endChar": 30
+      },
+      "revId": "9daa58d502fd72135bef0d6d035f0f73d36e250b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_24ce275b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PoolHealthMonitorMapper.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 181,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-03-31T08:38:42Z",
+      "side": 1,
+      "message": "I\u0027ll try to rewrite the code to eliminate the intermediate subject.",
+      "parentUuid": "1a106d94_33d14ffc",
       "range": {
         "startLine": 181,
         "startChar": 8,
