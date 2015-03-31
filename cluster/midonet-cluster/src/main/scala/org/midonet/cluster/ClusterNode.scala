@@ -103,7 +103,8 @@ object ClusterNode extends App {
         new MinionDef("vxgw", clusterConf.vxgw),
         new MinionDef("neutron-importer", clusterConf.c3po),
         new MinionDef("conf_api", clusterConf.confApi),
-        new MinionDef("topology", clusterConf.topologyApi)
+        new MinionDef("topology", clusterConf.topologyApi),
+        new MinionDef("rest-api", clusterConf.restApi)
     )
 
     // TODO: move this out to a Guice module that provides access to the
@@ -180,14 +181,14 @@ object ClusterNode extends App {
         }
         if (injector.getInstance(classOf[MidonetBackend]).isRunning)
             injector.getInstance(classOf[MidonetBackend])
-                .stopAsync().awaitTerminated()
+                    .stopAsync().awaitTerminated()
     }
 
     log info "MidoNet Cluster daemon starts.."
     try {
         jmxReporter.start()
         injector.getInstance(classOf[MidonetBackend])
-            .startAsync().awaitRunning()
+                .startAsync().awaitRunning()
         daemon.startAsync().awaitRunning()
         log info "MidoNet Cluster is up"
     } catch {
