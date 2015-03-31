@@ -27,6 +27,7 @@ class InternalObjectMapperException private[storage](message: String,
                                                      cause: Throwable)
     extends StorageException(message, cause) {
     private[storage] def this(cause: Throwable) = this(null, cause)
+    private[storage] def this(msg: String) = this(msg, null)
 }
 
 /**
@@ -161,4 +162,19 @@ class OwnershipConflictException private[storage](val clazz: String,
     = this(clazz, id, currentOwner, newOwner,
            s"Object of class $clazz with ID $id cannot be owned by $newOwner " +
            s"because it has owner(s) $currentOwner")
+}
+
+/**
+ * Thrown when attempting to create a node that already exists.
+ */
+class StorageNodeExistsException private[storage](val path: String, msg: String)
+    extends StorageException(msg) {
+    def this(path: String) = this(path, s"There is already a node at $path.")
+}
+
+/** Thrown when attempting to delete or modify a node that does not exist. */
+class StorageNodeNotFoundException private[storage](val path: String,
+                                                    msg: String)
+    extends StorageException(msg) {
+    def this(path: String) = this(path, s"There is no node at $path.")
 }
