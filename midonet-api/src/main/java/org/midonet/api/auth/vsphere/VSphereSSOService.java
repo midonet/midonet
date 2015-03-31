@@ -19,6 +19,7 @@ import java.rmi.RemoteException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+
 import javax.servlet.http.HttpServletRequest;
 
 import com.google.common.base.Objects;
@@ -27,14 +28,15 @@ import com.google.common.collect.ImmutableList;
 import com.google.inject.Inject;
 import com.vmware.vim25.Permission;
 import com.vmware.vim25.mo.Datacenter;
+
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.apache.commons.lang3.StringUtils;
 
-import org.midonet.brain.rest_api.auth.AuthException;
 import org.midonet.api.auth.AuthRole;
-import org.midonet.brain.rest_api.auth.AuthService;
 import org.midonet.api.auth.MockAuthService;
+import org.midonet.brain.rest_api.auth.AuthException;
+import org.midonet.brain.rest_api.auth.AuthService;
 import org.midonet.brain.rest_api.auth.Tenant;
 import org.midonet.brain.rest_api.auth.Token;
 import org.midonet.brain.rest_api.auth.UserIdentity;
