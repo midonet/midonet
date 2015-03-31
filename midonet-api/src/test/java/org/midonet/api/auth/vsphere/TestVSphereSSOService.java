@@ -31,7 +31,7 @@ import org.mockito.MockitoAnnotations;
 import org.midonet.api.auth.AuthException;
 import org.midonet.api.auth.AuthRole;
 import org.midonet.api.auth.Tenant;
-import org.midonet.api.auth.Token;
+import org.midonet.rest.Token;
 import org.midonet.api.auth.UserIdentity;
 
 import static org.junit.Assert.*;
