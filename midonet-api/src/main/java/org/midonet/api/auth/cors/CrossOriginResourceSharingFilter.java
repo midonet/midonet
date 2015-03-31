@@ -16,6 +16,8 @@
 
 package org.midonet.api.auth.cors;
 
+import java.io.IOException;
+
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
@@ -24,27 +26,21 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
-import org.midonet.api.HttpSupport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Servlet filter which allows clients cross-origin request sharing (CORS).
- *
- * @author Taku Fukushima <tfukushima@midokura.com>
- */
-@Singleton
+import static org.midonet.rest.HttpSupport.ACCESS_CONTROL_ALLOW_CREDENTIALS_KEY;
+import static org.midonet.rest.HttpSupport.ACCESS_CONTROL_ALLOW_HEADERS_KEY;
+import static org.midonet.rest.HttpSupport.ACCESS_CONTROL_ALLOW_METHODS_KEY;
+import static org.midonet.rest.HttpSupport.ACCESS_CONTROL_ALLOW_ORIGIN_KEY;
+import static org.midonet.rest.HttpSupport.ACCESS_CONTROL_EXPOSE_HEADERS_KEY;
+import static org.midonet.rest.HttpSupport.OPTIONS_METHOD;
+
 public final class CrossOriginResourceSharingFilter implements Filter {
 
     private final static Logger log =
             LoggerFactory.getLogger(CrossOriginResourceSharingFilter.class);
-
-    @Inject
-    private CorsConfig config;
 
     /**
      * Called by the web container to indicate to a filter that it is being
@@ -53,8 +49,7 @@ public final class CrossOriginResourceSharingFilter implements Filter {
      * @param filterConfig
      *         A filter configuration object used by a servlet container to
      *         pass information to a filter during initialization.
-     * @throws ServletException
-     *         A servlet error.
+     * @throws ServletException A servlet error.
      */
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
@@ -102,22 +97,19 @@ public final class CrossOriginResourceSharingFilter implements Filter {
 
         // This should be added in response to both the preflight and the
         // actual request
-        response.addHeader(HttpSupport.ACCESS_CONTROL_ALLOW_ORIGIN_KEY,
-                config.getAccessControlAllowOrigin());
-        response.addHeader(HttpSupport.ACCESS_CONTROL_ALLOW_METHODS_KEY,
-                config.getAccessControlAllowMethods());
-        response.addHeader(HttpSupport.ACCESS_CONTROL_EXPOSE_HEADERS_KEY,
-                config.getAccessControlExposeHeaders());
+        response.addHeader(ACCESS_CONTROL_ALLOW_ORIGIN_KEY, "*");
+        response.addHeader(ACCESS_CONTROL_ALLOW_METHODS_KEY,
+                           "GET, POST, PUT, DELETE, OPTIONS");
+        response.addHeader(ACCESS_CONTROL_EXPOSE_HEADERS_KEY,
+                           "Location");
 
-        if (HttpSupport.OPTIONS_METHOD.equalsIgnoreCase(
-                request.getMethod())) {
+        if (OPTIONS_METHOD.equalsIgnoreCase(request.getMethod())) {
 
             // TODO: Credentials are ignored.  Handle credentials when the
             // allow origin header is not wild-carded.
-            response.addHeader(HttpSupport.ACCESS_CONTROL_ALLOW_CREDENTIALS_KEY,
-                    null);
-            response.addHeader(HttpSupport.ACCESS_CONTROL_ALLOW_HEADERS_KEY,
-                    config.getAccessControlAllowHeaders());
+            response.addHeader(ACCESS_CONTROL_ALLOW_CREDENTIALS_KEY, null);
+            response.addHeader(ACCESS_CONTROL_ALLOW_HEADERS_KEY,
+                               "Origin, X-Auth-Token, Content-Type, Accept");
             log.debug("CrossOriginResourceSharingFilter.doFilter: exiting " +
                     "after handling OPTION.");
             return;

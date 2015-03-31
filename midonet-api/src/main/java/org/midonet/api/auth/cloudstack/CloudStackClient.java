@@ -21,7 +21,7 @@ import com.sun.jersey.api.client.UniformInterfaceException;
 import com.sun.jersey.api.client.WebResource;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
-import org.midonet.api.HttpSupport;
+import org.midonet.rest.HttpSupport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
