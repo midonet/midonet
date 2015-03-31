@@ -15,7 +15,6 @@
  */
 package org.midonet.cluster.rest_api.models;
 
-
 /**
  * Port type constants
  */

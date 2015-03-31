@@ -334,9 +334,7 @@ class ZookeeperObjectMapperTests extends Suite
         val chains = List("chain0", "chain1", "chain2").map(pojoChain)
         zom.multi(chains.map(CreateOp))
         val twoIds = chains.take(2).map(_.id).asJava
-        val twoChains = await(
-            Future.sequence(zom.getAll(classOf[PojoChain], twoIds.asScala))
-        )
+        val twoChains = await(zom.getAll(classOf[PojoChain], twoIds.asScala))
         twoChains.map(_.name) should equal(List("chain0", "chain1"))
     }
 
@@ -346,9 +344,7 @@ class ZookeeperObjectMapperTests extends Suite
             .map(protoChain(UUID.randomUUID, _))
         zom.multi(chains.map(CreateOp))
         val twoIds = chains.take(2).map(_.getId.asJava).asJava
-        val twoChains = await(
-            Future.sequence(zom.getAll(classOf[Chain], twoIds.asScala))
-        )
+        val twoChains = await(zom.getAll(classOf[Chain], twoIds.asScala))
         twoChains.map(_.getName) should equal(List("chain0", "chain1"))
     }
 

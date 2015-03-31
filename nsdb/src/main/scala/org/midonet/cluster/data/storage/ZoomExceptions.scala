@@ -43,8 +43,7 @@ class NotFoundException (val clazz: Class[_], val id: ObjId)
                         s"${getIdString(clazz, id)}."
         else s"There is no ${clazz.getSimpleName} with the specified ID.")
 
-class ObjectExistsException private[storage](val clazz: Class[_],
-                                             val id: ObjId)
+class ObjectExistsException (val clazz: Class[_], val id: ObjId)
     extends StorageException(
         s"A(n) ${clazz.getSimpleName} with ID ${getIdString(clazz, id)} " +
         s"already exists.")
@@ -75,7 +74,7 @@ class ObjectExistsException private[storage](val clazz: Class[_],
  * // Port -> Bridge binding has a CLEAR DeleteAction.
  * mapper.delete(port);
  */
-class ObjectReferencedException private[storage](
+class ObjectReferencedException private[storage] (
         val referencedClass: Class[_],
         val referencedId: ObjId,
         val referencingClass: Class[_],

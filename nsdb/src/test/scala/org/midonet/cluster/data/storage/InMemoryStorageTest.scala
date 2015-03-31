@@ -211,8 +211,7 @@ class InMemoryStorageTest extends FeatureSpec with BeforeAndAfter
             storage.multi(chains.map(CreateOp))
             val twoIds = chains.take(2).map(_.id).asJava
             val twoChains = await(
-                Future.sequence(storage.getAll(classOf[PojoChain],
-                                               twoIds.asScala)))
+                storage.getAll(classOf[PojoChain], twoIds.asScala))
             twoChains.map(_.name) should equal(List("chain0", "chain1"))
         }
     }

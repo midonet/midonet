@@ -130,7 +130,7 @@ trait ZoomStorageTester extends StorageTester
     }
 
     override def getAll[T](clazz: Class[T],
-                           ids: Seq[_ <: ObjId]): Seq[Future[T]] = {
+                           ids: Seq[_ <: ObjId]): Future[Seq[T]] = {
         zoom.getAll(clazz, ids)
     }
 

@@ -24,6 +24,7 @@ import javax.validation.constraints.Pattern;
 import javax.xml.bind.annotation.XmlTransient;
 
 import org.midonet.cluster.data.ZoomField;
+import org.midonet.cluster.rest_api.annotation.ParentId;
 import org.midonet.cluster.util.UUIDUtil;
 import org.midonet.packets.IPv4;
 
@@ -43,13 +44,10 @@ public class RouterPort extends Port {
 
     protected String portMac;
 
-    @ZoomField(name = "router_id", converter = UUIDUtil.Converter.class)
     @XmlTransient
+    @ZoomField(name = "router_id", converter = UUIDUtil.Converter.class)
+    @ParentId
     public UUID routerId;
-
-    public RouterPort() {
-        super();
-    }
 
     @Override
     public UUID getDeviceId() {
@@ -57,7 +55,8 @@ public class RouterPort extends Port {
     }
 
     @Override
-    public void setDeviceId(UUID id) {
-        routerId = id;
+    public void setDeviceId(UUID deviceId) {
+        routerId = deviceId;
     }
+
 }

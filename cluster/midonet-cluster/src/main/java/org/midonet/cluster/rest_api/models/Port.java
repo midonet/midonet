@@ -16,8 +16,8 @@
 package org.midonet.cluster.rest_api.models;
 
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicLong;
 
-import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import org.codehaus.jackson.annotate.JsonSubTypes;
@@ -27,6 +27,8 @@ import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomConvert;
 import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.models.Topology;
+import org.midonet.cluster.rest_api.annotation.Resource;
+import org.midonet.cluster.rest_api.annotation.ResourceId;
 import org.midonet.cluster.util.UUIDUtil;
 import org.midonet.util.version.Since;
 
@@ -41,9 +43,13 @@ import org.midonet.util.version.Since;
         @JsonSubTypes.Type(value = ExteriorRouterPort.class, name = PortType.EXTERIOR_ROUTER),
         @JsonSubTypes.Type(value = InteriorRouterPort.class, name = PortType.INTERIOR_ROUTER),
         @JsonSubTypes.Type(value = VxLanPort.class, name = PortType.VXLAN)})
+@Resource(name = ResourceUris.PORTS)
 @ZoomClass(clazz = Topology.Port.class, factory = Port.PortFactory.class)
 public abstract class Port extends UriResource {
 
+    private static AtomicLong tunnelKeySeed = new AtomicLong();
+
+    @ResourceId
     @ZoomField(name = "id", converter = UUIDUtil.Converter.class)
     public UUID id;
 
@@ -56,14 +62,15 @@ public abstract class Port extends UriResource {
     @ZoomField(name = "outbound_filter_id", converter = UUIDUtil.Converter.class)
     public UUID outboundFilterId;
 
+    @ZoomField(name = "tunnel_key")
+    public long tunnelKey;
+
     @ZoomField(name = "vif_id", converter = UUIDUtil.Converter.class)
     public UUID vifId;
 
-    @Since("2")
     @ZoomField(name = "host_id", converter = UUIDUtil.Converter.class)
     public UUID hostId;
 
-    @Since("2")
     @ZoomField(name = "interface_name")
     public String interfaceName;
 
@@ -74,10 +81,9 @@ public abstract class Port extends UriResource {
         adminStateUp = true;
     }
 
-    @XmlElement(name = "deviceId")
-    abstract public UUID getDeviceId();
+    public abstract UUID getDeviceId();
 
-    abstract public void setDeviceId(UUID id);
+    public abstract void setDeviceId(UUID deviceId);
 
     public static final class PortFactory implements ZoomConvert.Factory<Port, Topology.Port> {
         @Override
@@ -90,10 +96,10 @@ public abstract class Port extends UriResource {
     }
 
     @Override
-    public String getUri() {
-        return ResourceUris.PORTS;
+    public void beforeToProto() {
+        if (0 == tunnelKey) {
+            tunnelKey = tunnelKeySeed.incrementAndGet();
+        }
     }
 
 }
-
-

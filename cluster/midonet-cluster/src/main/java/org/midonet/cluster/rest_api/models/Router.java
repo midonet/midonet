@@ -23,12 +23,17 @@ import javax.xml.bind.annotation.XmlRootElement;
 import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.models.Topology;
+import org.midonet.cluster.rest_api.annotation.Resource;
+import org.midonet.cluster.rest_api.annotation.ResourceId;
 import org.midonet.cluster.util.UUIDUtil;
+import org.midonet.util.version.Since;
 
 @XmlRootElement(name = "router")
+@Resource(name = ResourceUris.ROUTERS)
 @ZoomClass(clazz = Topology.Router.class)
 public class Router extends UriResource {
 
+    @ResourceId
     @ZoomField(name = "id", converter = UUIDUtil.Converter.class)
     public UUID id;
 
@@ -53,13 +58,19 @@ public class Router extends UriResource {
         adminStateUp = true;
     }
 
-    @Override
-    public void setBaseUri(URI baseUri) {
-        super.setBaseUri(baseUri);
+    public URI getPorts() {
+        return getUriFor(ResourceUris.PORTS);
     }
 
-    @Override
-    public String getUri() {
-        return ResourceUris.ROUTERS;
+    public URI getPeerPorts() {
+        return getUriFor(ResourceUris.PEER_PORTS);
+    }
+
+    public URI getRoutes() {
+        return getUriFor(ResourceUris.ROUTES);
+    }
+
+    public URI getLoadBalancer() {
+        return getUriFor(ResourceUris.LOAD_BALANCERS, loadBalancerId);
     }
 }

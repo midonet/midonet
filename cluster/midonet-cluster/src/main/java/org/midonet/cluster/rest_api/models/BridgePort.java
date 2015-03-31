@@ -17,15 +17,22 @@ package org.midonet.cluster.rest_api.models;
 
 import java.util.UUID;
 
+import javax.xml.bind.annotation.XmlTransient;
+
 import org.midonet.cluster.data.ZoomField;
+import org.midonet.cluster.rest_api.annotation.ParentId;
+import org.midonet.cluster.rest_api.annotation.Resource;
 import org.midonet.cluster.util.UUIDUtil;
 
+@Resource(name = ResourceUris.PORTS, parents = { Bridge.class })
 public class BridgePort extends Port {
 
     @ZoomField(name = "vlan_id")
-    public volatile Short vlanId;
+    public short vlanId;
 
+    @XmlTransient
     @ZoomField(name = "network_id", converter = UUIDUtil.Converter.class)
+    @ParentId
     public UUID networkId;
 
     public String getType() {
@@ -38,8 +45,8 @@ public class BridgePort extends Port {
     }
 
     @Override
-    public void setDeviceId(UUID id) {
-        networkId = id;
+    public void setDeviceId(UUID deviceId) {
+        networkId = deviceId;
     }
 
 }

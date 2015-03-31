@@ -29,11 +29,11 @@ import org.midonet.packets.{IPAddr, IPv6Addr, IPv4Addr}
  */
 object IPAddressUtil {
 
-    private val ADDRESS_STRING = classOf[String]
-    private val IPADDR = classOf[IPAddr]
-    private val IPV4ADDR = classOf[IPv4Addr]
-    private val IPV6ADDR = classOf[IPv6Addr]
-    private val INETADDRESS = classOf[InetAddress]
+    private final val StringClass = classOf[String]
+    private final val IPAddrClass = classOf[IPAddr]
+    private final val IPv4AddrClass = classOf[IPv4Addr]
+    private final val IPv6AddrClass = classOf[IPv6Addr]
+    private final val InetAddressClass = classOf[InetAddress]
 
     implicit def toProto(addr: String): Commons.IPAddress =
         IPAddr.fromString(addr)
@@ -111,11 +111,11 @@ object IPAddressUtil {
 
         override def fromProto(value: Commons.IPAddress, clazz: Type): Any = {
             clazz match {
-                case ADDRESS_STRING => value.getAddress
-                case IPADDR => IPAddressUtil.toIPAddr(value)
-                case IPV4ADDR => IPAddressUtil.toIPv4Addr(value)
-                case IPV6ADDR => IPAddressUtil.toIPv6Addr(value)
-                case INETADDRESS => IPAddressUtil.toInetAddress(value)
+                case StringClass => value.getAddress
+                case IPAddrClass => IPAddressUtil.toIPAddr(value)
+                case IPv4AddrClass => IPAddressUtil.toIPv4Addr(value)
+                case IPv6AddrClass => IPAddressUtil.toIPv6Addr(value)
+                case InetAddressClass => IPAddressUtil.toInetAddress(value)
                 case _ =>
                     throw new ConvertException(s"Unsupported class $clazz")
             }
