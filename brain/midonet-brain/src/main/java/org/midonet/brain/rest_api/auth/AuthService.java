@@ -19,6 +19,9 @@ import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 
+/**
+ * Interface for auth service.
+ */
 public interface AuthService {
 
     UserIdentity getUserIdentityByToken(String token) throws AuthException;
