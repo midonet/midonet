@@ -17,18 +17,15 @@ package org.midonet.midolman.topology
 
 import java.util.UUID
 
-import com.typesafe.config.{ConfigValueFactory, Config}
-
 import scala.concurrent.Await.{ready, result}
 import scala.concurrent.Future
 import scala.concurrent.duration._
 
 import akka.actor.Props
 import akka.testkit.TestActorRef
-
+import com.typesafe.config.{Config, ConfigValueFactory}
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
-
 import rx.Observable
 
 import org.midonet.cluster.data.storage.{CreateOp, NotFoundException}
@@ -36,13 +33,13 @@ import org.midonet.cluster.models.Topology.Rule.Action
 import org.midonet.cluster.models.Topology.{Port => TopologyPort}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.util.UUIDUtil._
+import org.midonet.midolman.NotYetException
 import org.midonet.midolman.rules.{LiteralRule, RuleResult}
-import org.midonet.midolman.simulation.{Chain, IPAddrGroup, PortGroup}
-import org.midonet.midolman.topology.VirtualTopologyActor.{ChainRequest, IPAddrGroupRequest, PortGroupRequest, PortRequest, Unsubscribe}
+import org.midonet.midolman.simulation.{Chain => SimChain, IPAddrGroup, LoadBalancer => SimLB, PortGroup}
+import org.midonet.midolman.topology.VirtualTopologyActor.{ChainRequest, IPAddrGroupRequest, LoadBalancerRequest, PortGroupRequest, PortRequest, Unsubscribe}
 import org.midonet.midolman.topology.devices.{BridgePort, Port => SimulationPort}
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.{AwaitableActor, MessageAccumulator}
-import org.midonet.midolman.{FlowController, NotYetException}
 import org.midonet.sdn.flows.FlowTagger
 import org.midonet.util.reactivex.AwaitableObserver
 
@@ -518,7 +515,7 @@ class VirtualTopologyRedirectorTest extends MidolmanSpec with TopologyBuilder
             sender.await(timeout)
 
             expectLast({
-                case chain: Chain =>
+                case chain: SimChain =>
                     chain.id shouldBe chainId
                     chain.name shouldBe "test-chain"
                     val rule = chain.getRules.get(0)
@@ -549,6 +546,21 @@ class VirtualTopologyRedirectorTest extends MidolmanSpec with TopologyBuilder
             sender await timeout
 
             expectLast({ case pg: PortGroup => pg shouldBeDeviceOf portGroup })
+        }
+
+        scenario("Test that load-balancers are supported") {
+            val vip = createVip()
+            backend.store.create(vip)
+            val loadBalancer = createLB(vips = Set(vip.getId.asJava))
+            backend.store.create(loadBalancer)
+            VirtualTopologyActor ! LoadBalancerRequest(loadBalancer.getId.asJava,
+                                                       update = false)
+            sender.await(timeout)
+
+            expectLast({
+                case simLB: SimLB =>
+                    simLB shouldBeDeviceOf loadBalancer
+            })
         }
     }
 }
