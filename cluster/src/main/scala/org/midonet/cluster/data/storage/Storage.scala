@@ -61,6 +61,25 @@ private[storage]
 case class DeleteOwnerOp(clazz: Class[_], id: ObjId, owner: String)
     extends PersistenceOp
 
+/**
+ * Operation to create a node with the specified value at the specified path.
+ * The node must not already exist. Ancestor nodes need not exist, and will be
+ * created as needed to provide a path from the root to the new node.
+ */
+case class CreateNodeOp(path: String, value: String) extends PersistenceOp
+
+/**
+ * Operation to update the value of the node at the specified path. The node
+ * must already exist.
+ */
+case class UpdateNodeOp(path: String, value: String) extends PersistenceOp
+
+/**
+ * Operation to delete the node at the specified path. The node must already
+ * exist. If any descendant nodes exist, they will be recursively deleted.
+ */
+case class DeleteNodeOp(path: String) extends PersistenceOp
+
 /* Object ownership types */
 object OwnershipType extends Enumeration {
     class OwnershipType(val isExclusive: Boolean) extends Val
