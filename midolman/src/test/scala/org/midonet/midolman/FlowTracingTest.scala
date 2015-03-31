@@ -86,7 +86,7 @@ class FlowTracingTest extends MidolmanSpec {
 
     private def newTraceRule(requestId: UUID, chain: Chain,
                              condition: Condition, pos: Int) {
-        val traceRule = new TraceRuleData(requestId, condition)
+        val traceRule = new TraceRuleData(requestId, condition, Long.MaxValue)
             .setChainId(chain.getId).setPosition(pos)
         clusterDataClient.rulesCreate(traceRule)
         fetchDevice(chain)
@@ -221,7 +221,7 @@ class FlowTracingTest extends MidolmanSpec {
         scenario("restart on trace requested exception") {
             val requestId = UUID.randomUUID
             val rule = new TraceRule(requestId, newCondition(tpDst = Some(500)),
-                                     UUID.randomUUID, 1)
+                                     Long.MaxValue, UUID.randomUUID, 1)
             val mockWorkflow = new MockPacketWorkflow(requestId, rule)
             val ddaProps = Props { new TestableDDAWithWorkflow(mockWorkflow) }
             val ddaRef = TestActorRef(ddaProps)(actorSystem)

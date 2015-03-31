@@ -3299,7 +3299,8 @@ public class LocalDataClientImpl implements DataClient {
         }
 
         TraceRule rule = new TraceRule(request.getId(),
-                                       request.getCondition());
+                                       request.getCondition(),
+                                       request.getLimit());
         rule.setChainId(chainId).setPosition(1).setId(UUID.randomUUID());
 
         ops.addAll(ruleZkManager.prepareInsertPositionOrdering(
