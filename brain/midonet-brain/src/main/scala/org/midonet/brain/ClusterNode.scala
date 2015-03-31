@@ -28,7 +28,7 @@ import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.storage._
-import org.midonet.conf.{MidoNodeConfigurator, HostIdGenerator}
+import org.midonet.conf.{HostIdGenerator, MidoNodeConfigurator}
 import org.midonet.midolman.cluster.LegacyClusterModule
 import org.midonet.midolman.cluster.serialization.SerializationModule
 import org.midonet.midolman.cluster.zookeeper.ZookeeperConnectionModule.ZookeeperReactorProvider
@@ -71,9 +71,12 @@ object ClusterNode extends App {
         System.exit(1)
     }
 
-    val conf = MidoNodeConfigurator(configFile).runtimeConfig(HostIdGenerator.getHostId)
-    val brainConf = new BrainConfig(conf)
-    val backendConf = new MidonetBackendConfig(conf)
+    val configurator = MidoNodeConfigurator(configFile)
+    if (configurator.deployBundledConfig()) {
+        log.info("Deployed new configuration schema into NSDB")
+    }
+    val brainConf = new BrainConfig(
+        configurator.runtimeConfig(HostIdGenerator.getHostId))
 
     // Load cluster node configuration
     private val nodeId = HostIdGenerator.getHostId
@@ -81,11 +84,13 @@ object ClusterNode extends App {
     // Prepare the Cluster node context for injection
     private val nodeContext = new Context(nodeId)
 
-    private val minionDefs: List[MinionDef[ClusterMinion]] =
-        List (new MinionDef("heartbeat", brainConf.hearbeat),
-              new MinionDef("vxgw", brainConf.vxgw),
-              new MinionDef("neutron-importer", brainConf.c3po),
-              new MinionDef("topology", brainConf.topologyApi))
+    private val minionDefs: List[MinionDef[ClusterMinion]] = List (
+        new MinionDef("heartbeat", brainConf.hearbeat),
+        new MinionDef("vxgw", brainConf.vxgw),
+        new MinionDef("neutron-importer", brainConf.c3po),
+        new MinionDef("topology", brainConf.topologyApi),
+        new MinionDef("rest-api", brainConf.restApi)
+    )
 
     // TODO: move this out to a Guice module that provides access to the
     // NeutronDB
@@ -147,7 +152,7 @@ object ClusterNode extends App {
     }
 
     protected[brain] var injector = Guice.createInjector(
-        new MidonetBackendModule(conf),
+        new MidonetBackendModule(brainConf.backend),
         clusterNodeModule,
         dataClientDependencies
     )
@@ -161,14 +166,14 @@ object ClusterNode extends App {
         }
         if (injector.getInstance(classOf[MidonetBackend]).isRunning)
             injector.getInstance(classOf[MidonetBackend])
-                .stopAsync().awaitTerminated()
+                    .stopAsync().awaitTerminated()
     }
 
     log info "MidoNet Cluster daemon starts.."
     try {
         jmxReporter.start()
         injector.getInstance(classOf[MidonetBackend])
-            .startAsync().awaitRunning()
+                .startAsync().awaitRunning()
         daemon.startAsync().awaitRunning()
         log info "MidoNet Cluster is up"
     } catch {
