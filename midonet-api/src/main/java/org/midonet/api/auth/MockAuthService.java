@@ -15,7 +15,18 @@
  */
 package org.midonet.api.auth;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import javax.servlet.http.HttpServletRequest;
+
 import com.google.inject.Inject;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.midonet.brain.rest_api.auth.AuthDataAccessException;
 import org.midonet.brain.rest_api.auth.AuthException;
@@ -25,11 +36,6 @@ import org.midonet.brain.rest_api.auth.Token;
 import org.midonet.brain.rest_api.auth.UserIdentity;
 import org.midonet.cluster.DataClient;
 import org.midonet.midolman.state.StateAccessException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.servlet.http.HttpServletRequest;
-import java.util.*;
 
 /**
  * Configurable auth client that skips authentication but allows setting of
