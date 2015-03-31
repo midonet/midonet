@@ -17,7 +17,7 @@ package org.midonet.cluster.data.storage
 
 import java.util.concurrent.atomic.{AtomicInteger, AtomicReference}
 import java.util.concurrent.locks.ReentrantReadWriteLock
-import java.util.concurrent.{ThreadFactory, Executors, ConcurrentHashMap}
+import java.util.concurrent.{ConcurrentHashMap, Executors, ThreadFactory}
 import java.util.{List => JList}
 
 import scala.async.Async.async
@@ -25,11 +25,12 @@ import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
 import scala.collection.concurrent.TrieMap
 import scala.collection.mutable
-import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration._
+import scala.concurrent.{ExecutionContext, Future}
 
 import com.google.common.collect.ArrayListMultimap
 import com.google.protobuf.Message
+
 import org.apache.zookeeper.KeeperException.BadVersionException
 
 import rx.Observable.OnSubscribe
@@ -44,8 +45,8 @@ import org.midonet.cluster.data.storage.TransactionManager._
 import org.midonet.cluster.data.storage.ZookeeperObjectMapper._
 import org.midonet.cluster.data.{Obj, ObjId}
 import org.midonet.cluster.util.ParentDeletedException
-import org.midonet.util.concurrent._
 import org.midonet.util.concurrent.Locks.{withReadLock, withWriteLock}
+import org.midonet.util.concurrent._
 
 /**
  * A simple in-memory implementation of the [[Storage]] trait, equivalent to
@@ -390,6 +391,7 @@ class InMemoryStorage extends StorageWithOwnership {
                         clazz.validateUpdate(key.id, ver, ownerOps)
                     case TxDelete(ver, ownerOps) =>
                         clazz.validateDelete(key.id, ver, ownerOps)
+                    case _ => throw new NotImplementedError(op.toString)
                 }
             }
 
@@ -403,6 +405,7 @@ class InMemoryStorage extends StorageWithOwnership {
                         clazz.update(key.id, obj, ver, ownerOps)
                     case TxDelete(ver, ownerOps) =>
                         clazz.delete(key.id, ver, ownerOps)
+                    case _ => throw new NotImplementedError(op.toString)
                 }
             }
 
@@ -411,6 +414,16 @@ class InMemoryStorage extends StorageWithOwnership {
                 classes(key.clazz).emitUpdates()
             }
         }).await(InMemoryStorage.IOTimeout)
+
+        /** Query the backend store to determine if a node exists at the
+          * specified path. */
+        override protected def nodeExists(path: String): Boolean =
+            throw new NotImplementedError()
+
+        /** Query the backend store to get the fully-qualified paths of all
+          * children of the specified node. */
+        override protected def childrenOf(path: String): Seq[String] =
+            throw new NotImplementedError()
     }
 
     @volatile private var ioThreadId: Long = -1L
@@ -500,6 +513,7 @@ class InMemoryStorage extends StorageWithOwnership {
                 manager.delete(clazz, id, ignoresNeo = false, Some(owner))
             case DeleteOwnerOp(clazz, id, owner) =>
                 manager.deleteOwner(clazz, id, owner)
+            case op => throw new NotImplementedError(op.toString)
         }
 
         manager.commit()
