@@ -28,13 +28,13 @@ import com.google.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.midonet.cluster.DataClient;
 import org.midonet.cluster.auth.AuthDataAccessException;
 import org.midonet.cluster.auth.AuthException;
 import org.midonet.cluster.auth.AuthService;
 import org.midonet.cluster.auth.Tenant;
 import org.midonet.cluster.auth.Token;
 import org.midonet.cluster.auth.UserIdentity;
-import org.midonet.cluster.DataClient;
 import org.midonet.midolman.state.StateAccessException;
 
 /**
