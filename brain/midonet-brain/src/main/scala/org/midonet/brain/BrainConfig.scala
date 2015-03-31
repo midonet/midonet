@@ -48,6 +48,8 @@ object BrainConfig {
 }
 
 class BrainConfig(_conf: Config) {
+    val PREFIX = "brain"
+
     val conf = _conf.resolve()
 
     val backend = new MidonetBackendConfig(conf)
@@ -59,6 +61,7 @@ class BrainConfig(_conf: Config) {
     val topologyUpdater = new TopologyZoomUpdaterConfig(conf)
     val snoopy = new TopologySnoopyConfig(conf)
     val confApi = new ConfApiConfig(conf)
+    val restApi = new RestApiConfig(conf)
 }
 
 class EmbeddedClusterNodeConfig(conf: Config) {
@@ -132,4 +135,13 @@ class ConfApiConfig(val conf: Config) extends MinionConfig[ConfMinion] {
     override def minionClass = conf.getString("brain.conf_api.with")
 
     def httpPort = conf.getInt("brain.conf_api.http_port")
+}
+
+class RestApiConfig(val conf: Config) extends MinionConfig[ConfMinion] {
+    val PREFIX = "brain.rest_api"
+
+    override def isEnabled = conf.getBoolean("brain.rest_api.enabled")
+    override def minionClass = conf.getString("brain.rest_api.with")
+
+    def httpPort = conf.getInt("brain.rest_api.http_port")
 }
