@@ -190,8 +190,8 @@ object SetConf extends ConfigWriter("set") with ConfCommand {
                         s"not follow schema type (${schemaVal.render()}})")
             } catch {
                 case e: ConfigException.Missing =>
-                    println(s"Installing configuration key that cannot be "+
-                        "found in the schema: $key")
+                    println(s"Installing configuration key that cannot be " +
+                            s"found in the schema: $key")
             }
 
         }
