@@ -30,14 +30,14 @@ import org.midonet.conf.{HostIdGenerator, MidoNodeConfigurator, MidoTestConfigur
 object ClusterConfig {
     val DEFAULT_MTU: Short = 1500
 
-    def forTests = new ClusterConfig(MidoTestConfigurator.forClusters)
+    def forTests = new ClusterConfig(MidoTestConfigurator.forClusters())
 
     def forTests(config: Config) = new ClusterConfig(
-            config.withFallback(MidoTestConfigurator.forClusters))
+            config.withFallback(MidoTestConfigurator.forClusters()))
 
     def forTests(config: String) = new ClusterConfig(
             ConfigFactory.parseString(config).
-                withFallback(MidoTestConfigurator.forClusters))
+                withFallback(MidoTestConfigurator.forClusters()))
 
     def apply() = new ClusterConfig(MidoNodeConfigurator().
                     runtimeConfig(HostIdGenerator.getHostId))
@@ -48,6 +48,8 @@ object ClusterConfig {
 }
 
 class ClusterConfig(_conf: Config) {
+    val PREFIX = "cluster"
+
     val conf = _conf.resolve()
 
     val backend = new MidonetBackendConfig(conf)
@@ -59,6 +61,7 @@ class ClusterConfig(_conf: Config) {
     val topologyUpdater = new TopologyZoomUpdaterConfig(conf)
     val snoopy = new TopologySnoopyConfig(conf)
     val confApi = new ConfApiConfig(conf)
+    val restApi = new RestApiConfig(conf)
 }
 
 class EmbeddedClusterNodeConfig(conf: Config) {
@@ -132,4 +135,13 @@ class ConfApiConfig(val conf: Config) extends MinionConfig[ConfMinion] {
     override def minionClass = conf.getString("cluster.conf_api.with")
 
     def httpPort = conf.getInt("cluster.conf_api.http_port")
+}
+
+class RestApiConfig(val conf: Config) extends MinionConfig[ConfMinion] {
+    val PREFIX = "cluster.rest_api"
+
+    override def isEnabled = conf.getBoolean("cluster.rest_api.enabled")
+    override def minionClass = conf.getString("cluster.rest_api.with")
+
+    def httpPort = conf.getInt("cluster.rest_api.http_port")
 }

@@ -19,6 +19,7 @@ import com.google.common.util.concurrent.AbstractService
 import com.google.inject.Inject
 
 import org.apache.curator.framework.CuratorFramework
+import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.data.storage.FieldBinding.DeleteAction._
 import org.midonet.cluster.data.storage.{OwnershipType, Storage, StorageWithOwnership, ZookeeperObjectMapper}
@@ -123,6 +124,7 @@ class MidonetBackendService @Inject() (cfg: MidonetBackendConfig,
     override def isEnabled = cfg.useNewStack
 
     protected override def doStart(): Unit = {
+        LoggerFactory.getLogger(this.getClass).info(s"Starting backend ${this}")
         try {
             if (cfg.curatorEnabled || cfg.useNewStack) {
                 curator.start()
