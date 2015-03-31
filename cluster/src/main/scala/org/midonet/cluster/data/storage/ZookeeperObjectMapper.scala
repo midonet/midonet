@@ -22,8 +22,8 @@ import java.util.concurrent.atomic.AtomicLong
 import java.util.{ConcurrentModificationException, List => JList}
 
 import scala.async.Async.async
-import scala.collection.JavaConverters._
 import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 import scala.collection.concurrent.TrieMap
 import scala.collection.mutable
 import scala.concurrent.{ExecutionContext, Future, Promise}
@@ -40,8 +40,8 @@ import org.apache.curator.utils.EnsurePath
 import org.apache.zookeeper.KeeperException._
 import org.apache.zookeeper.OpResult.ErrorResult
 import org.apache.zookeeper.Watcher.Event.EventType.NodeDataChanged
+import org.apache.zookeeper._
 import org.apache.zookeeper.data.Stat
-import org.apache.zookeeper.{CreateMode, KeeperException, WatchedEvent, Watcher}
 import org.codehaus.jackson.JsonFactory
 import org.codehaus.jackson.map.ObjectMapper
 import org.slf4j.LoggerFactory
@@ -230,43 +230,59 @@ class ZookeeperObjectMapper(
             var txn =
                 curator.inTransaction().asInstanceOf[CuratorTransactionFinal]
 
-            for ((Key(clazz, id), txOp) <- ops) txn = {
-                txOp match {
-                    case TxCreate(obj, _) =>
-                        txn.create()
-                            .forPath(getPath(clazz, id), serialize(obj)).and()
-                    case TxUpdate(obj, ver, ownerOps) =>
-                        txn.setData().withVersion(ver)
-                            .forPath(getPath(clazz, id), serialize(obj)).and()
-                    case TxDelete(ver, ownerOps) =>
-                        txn.delete().withVersion(ver)
-                            .forPath(getPath(clazz, id)).and()
-                    case TxCreateOwner(owner) =>
-                        txn.create().withMode(CreateMode.EPHEMERAL)
-                            .forPath(getOwnerPath(clazz, id, owner)).and()
-                    case TxDeleteOwner(owner) =>
-                        txn.delete()
-                            .forPath(getOwnerPath(clazz, id, owner)).and()
-                }
+            for ((Key(clazz, id), txOp) <- ops) txn = txOp match {
+                case TxCreate(obj, _) =>
+                    txn.create.forPath(getPath(clazz, id), serialize(obj)).and
+                case TxUpdate(obj, ver, ownerOps) =>
+                    txn.setData().withVersion(ver)
+                        .forPath(getPath(clazz, id), serialize(obj)).and
+                case TxDelete(ver, ownerOps) =>
+                    txn.delete.withVersion(ver).forPath(getPath(clazz, id)).and
+                case TxCreateOwner(owner) =>
+                    txn.create.withMode(CreateMode.EPHEMERAL)
+                        .forPath(getOwnerPath(clazz, id, owner)).and
+                case TxDeleteOwner(owner) =>
+                    txn.delete.forPath(getOwnerPath(clazz, id, owner)).and
+                case TxCreateNode(value) =>
+                    txn.create.forPath(id, asBytes(value)).and
+                case TxUpdateNode(value) =>
+                    txn.setData().forPath(id, asBytes(value)).and
+                case TxDeleteNode() =>
+                    txn.delete.forPath(id).and
+                case TxNodeExists() =>
+                    throw new InternalObjectMapperException(
+                        "TxNodeExists should have been filtered by flattenOps.")
             }
 
             try txn.commit() catch {
-                case nee: NodeExistsException =>
-                    rethrowException(ops, nee)
-                case nee: NotEmptyException =>
-                    val op = opForException(ops, nee)
-                    throw new OwnershipConflictException(
-                        op._1.clazz.toString, op._1.id.toString)
-                case rce: ReferenceConflictException => throw rce
-                case ex@(_: BadVersionException | _: NoNodeException) =>
+                case bve: BadVersionException =>
                     // NoNodeException is assumed to be due to concurrent delete
                     // operation because we already successfully fetched any
                     // objects that are being updated.
-                    throw new ConcurrentModificationException(ex)
+                    throw new ConcurrentModificationException(bve)
+                case nee: NodeExistsException => rethrowException(ops, nee)
+                case nne: NoNodeException => rethrowException(ops, nne)
+                case nee: NotEmptyException => rethrowException(ops, nee)
+                case rce: ReferenceConflictException => throw rce
                 case ex: Exception =>
                     throw new InternalObjectMapperException(ex)
             }
         }
+
+        override protected def nodeExists(path: String): Boolean =
+            curator.checkExists.forPath(path) != null
+
+        override protected def childrenOf(path: String): Seq[String] = {
+            val prefix = if (path == "/") path else path + "/"
+            try {
+                curator.getChildren.forPath(path).asScala.map(prefix + _)
+            } catch {
+                case nne: NoNodeException => Seq.empty
+            }
+        }
+
+        /** Get s's bytes, or null if s is null. */
+        private def asBytes(s: String) = if (s != null) s.getBytes else null
 
         def releaseLock(): Unit = try {
             curator.delete().forPath(lockPath)
@@ -287,14 +303,19 @@ class ZookeeperObjectMapper(
         }
 
         /**
-         * Converts and rethrows an exception for transaction operation that
-         * generated the given [[NodeExistsException]], which can be either a
-         * [[ObjectExistsException]] if the original exception was thrown
-         * when creating an object, or a [[OwnershipConflictException]], if
-         * the original exception was thrown when creating an object owner.
+         * Given a [[NodeExistsException]] and the list of operations submitted
+         * for the transaction that produced the exception, throws an
+         * appropriate exception, depending on the operation that caused the
+         * exception.
+         *
+         * @throws ObjectExistsException if object creation failed.
+         * @throws OwnershipConflictException if object owner assignment failed.
+         * @throws StorageNodeExistsException if node creation failed.
+         * @throws InternalObjectMapperException for all other cases.
          */
         @throws[ObjectExistsException]
         @throws[OwnershipConflictException]
+        @throws[StorageNodeExistsException]
         private def rethrowException(ops: Seq[(Key, TxOp)],
                                      e: NodeExistsException): Unit = {
             opForException(ops, e) match {
@@ -302,8 +323,55 @@ class ZookeeperObjectMapper(
                     throw new OwnershipConflictException(
                         key.clazz.getSimpleName, key.id.toString,
                         Set.empty[String], oop.owner)
+                case (Key(_, path), cm: TxCreateNode) =>
+                    throw new StorageNodeExistsException(path)
                 case (key: Key, _) =>
                     throw new ObjectExistsException(key.clazz, key.id)
+                case _ => throw new InternalObjectMapperException(e)
+            }
+        }
+
+        /**
+         * Given a [[NoNodeException]] and the list of operations submitted
+         * for the transaction that produced the exception, throws an
+         * appropriate exception, depending on the operation that caused the
+         * exception.
+         *
+         * @throws StorageNodeNotFoundException if a node was not found.
+         * @throws ConcurrentModificationException for all other cases.
+         */
+        private def rethrowException(ops: Seq[(Key, TxOp)],
+                                     e: NoNodeException): Unit = {
+            opForException(ops, e) match {
+                case (Key(_, path), _: TxUpdateNode) =>
+                    throw new StorageNodeNotFoundException(path)
+                case (Key(_, path), _: TxDeleteNode) =>
+                    throw new StorageNodeNotFoundException(path)
+                case _ => throw new ConcurrentModificationException(e)
+            }
+        }
+
+        /**
+         * Given a [[NotEmptyException]] and the list of operations submitted
+         * for the transaction that produced the exception, throws an
+         * appropriate exception, depending on the operation that caused the
+         * exception.
+         *
+         * @throws OwnershipConflictException if owner operation failed.
+         * @throws ConcurrentModificationException if map deletion failed.
+         * @throws InternalObjectMapperException for all other cases.
+         */
+        private def rethrowException(ops: Seq[(Key, TxOp)],
+                                     e: NotEmptyException): Unit = {
+            opForException(ops, e) match {
+                case (Key(clazz, id), _: TxOwnerOp) =>
+                    throw new OwnershipConflictException(clazz.toString,
+                                                         id.toString)
+                case (_, _: TxDeleteNode) =>
+                    // We added operations to delete all descendants, so this
+                    // should only happen if there was a concurrent
+                    // modification.
+                    throw new ConcurrentModificationException(e)
                 case _ => throw new InternalObjectMapperException(e)
             }
         }
@@ -537,7 +605,7 @@ class ZookeeperObjectMapper(
         assertBuilt()
         assert(isRegistered(clazz))
 
-        val all = Promise[Seq[T]]
+        val all = Promise[Seq[T]]()
         val cb = new BackgroundCallback {
             override def processResult(client: CuratorFramework,
                                        evt: CuratorEvent): Unit = {
@@ -629,9 +697,12 @@ class ZookeeperObjectMapper(
             case DeleteOp(clazz, id, ignoresNeo) =>
                 manager.delete(clazz, id, ignoresNeo, None)
             case DeleteWithOwnerOp(clazz, id, owner) =>
-                manager.delete(clazz, id, false, Some(owner))
+                manager.delete(clazz, id, ignoresNeo = false, Some(owner))
             case DeleteOwnerOp(clazz, id, owner) =>
                 manager.deleteOwner(clazz, id, owner)
+            case CreateNode(path, value) => manager.createNode(path, value)
+            case UpdateNode(path, value) => manager.updateNode(path, value)
+            case DeleteNode(path) => manager.deleteNode(path)
         }
 
         try manager.commit() finally { manager.releaseLock() }
@@ -747,6 +818,19 @@ class ZookeeperObjectMapper(
                                                     onLastUnsubscribe)
             ownerCaches(clazz).putIfAbsent(id.toString, oc).getOrElse(oc)
         }).observable
+    }
+
+    // We should have public subscription methods, but we don't currently
+    // need them, and this is easier to implement for testing.
+    @VisibleForTesting
+    protected[storage] def getNodeValue(path: String): String = {
+        val data = curator.getData.forPath(path)
+        if (data == null) null else new String(data)
+    }
+
+    @VisibleForTesting
+    protected[storage] def getNodeChildren(path: String): Seq[String] = {
+        curator.getChildren.forPath(path).asScala
     }
 
     /**
