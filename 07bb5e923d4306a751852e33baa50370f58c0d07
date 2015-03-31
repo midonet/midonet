@@ -189,6 +189,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_641dbfbd",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/PortMapperTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-03-31T09:04:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_c4a113ab",
+      "revId": "07bb5e923d4306a751852e33baa50370f58c0d07",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_a4a697bf",
         "filename": "midolman/src/test/scala/org/midonet/midolman/topology/VTPMRedirectorTest.scala",
         "patchSetId": 3
@@ -251,6 +269,30 @@
       "writtenOn": "2015-03-31T07:56:01Z",
       "side": 1,
       "message": "\"expectedEventCount\" for readability / consistency?",
+      "range": {
+        "startLine": 76,
+        "startChar": 20,
+        "endLine": 76,
+        "endChar": 34
+      },
+      "revId": "07bb5e923d4306a751852e33baa50370f58c0d07",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_6473ff4d",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/reactivex/AwaitableObserver.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-03-31T09:04:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_c488f324",
       "range": {
         "startLine": 76,
         "startChar": 20,
