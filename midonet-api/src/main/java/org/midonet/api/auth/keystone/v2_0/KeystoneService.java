@@ -30,6 +30,7 @@ import org.slf4j.LoggerFactory;
 import org.midonet.api.auth.*;
 import org.midonet.api.auth.keystone.KeystoneConfig;
 import org.midonet.api.auth.keystone.KeystoneInvalidFormatException;
+import org.midonet.rest.Token;
 
 /**
  * Keystone Service.

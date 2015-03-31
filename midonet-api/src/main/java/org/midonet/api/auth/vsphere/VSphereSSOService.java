@@ -36,7 +36,7 @@ import org.midonet.api.auth.AuthRole;
 import org.midonet.api.auth.AuthService;
 import org.midonet.api.auth.MockAuthService;
 import org.midonet.api.auth.Tenant;
-import org.midonet.api.auth.Token;
+import org.midonet.rest.Token;
 import org.midonet.api.auth.UserIdentity;
 
 public class VSphereSSOService implements AuthService {
