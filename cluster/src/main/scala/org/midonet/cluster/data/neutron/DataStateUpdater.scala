@@ -16,7 +16,7 @@
 
 package org.midonet.cluster.data.neutron
 
-import java.sql.{Connection, ResultSet, Time}
+import java.sql.{Connection, Date, ResultSet}
 
 import javax.sql.DataSource
 
@@ -46,7 +46,7 @@ class DataStateUpdater(dataSrc: DataSource) {
 
             val stmt = con.prepareStatement(UPDATE_LAST_PROCESSED_ID)
             stmt.setInt(1, taskId)
-            stmt.setTime(2, new Time(System.currentTimeMillis()))
+            stmt.setDate(2, new Date(System.currentTimeMillis()))
             stmt.executeUpdate()
             stmt.close()
         } catch {
