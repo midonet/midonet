@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,29 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.midonet.cluster.rest_api.models;
 
-import javax.xml.bind.annotation.XmlRootElement;
+import java.util.UUID;
 
-@XmlRootElement
-public class ErrorEntity {
+import javax.validation.constraints.NotNull;
 
-    private String message = null;
-    private int code = 0;
+public class TraceRule extends Rule {
 
-    public String getMessage() {
-        return message;
+    @NotNull
+    public UUID requestId;
+
+    public long limit;
+
+    public TraceRule() {
+        super(RuleType.TRACE, RuleAction.CONTINUE);
     }
 
-    public void setMessage(String message) {
-        this.message = message;
+    @Override
+    public String getType() {
+        return Rule.Trace;
     }
 
-    public int getCode() {
-        return code;
-    }
-
-    public void setCode(int code) {
-        this.code = code;
-    }
 }

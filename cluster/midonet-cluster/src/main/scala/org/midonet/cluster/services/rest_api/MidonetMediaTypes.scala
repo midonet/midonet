@@ -16,15 +16,11 @@
 
 package org.midonet.cluster.services.rest_api
 
-import com.google.protobuf.Message
-
-import org.midonet.cluster.data.ZoomObject
-import org.midonet.cluster.models.Topology
 import org.midonet.cluster.rest_api.models.ResourceUris._
-import org.midonet.cluster.rest_api.models._
 import org.midonet.util.collection.Bimap
 
-/** All the MediaTypes offered by MidoNet */
+/** All the MediaTypes offered by MidoNet, plus some utility lookups into maps
+  * between domains. */
 object MidonetMediaTypes {
 
     final val APPLICATION_JSON_V4 = "application/vnd.org.midonet.Application-v4+json"
@@ -141,39 +137,6 @@ object MidonetMediaTypes {
     final val APPLICATION_TRACE_REQUEST_JSON = "application/vnd.org.midonet.TraceRequest-v1+json"
     final val APPLICATION_TRACE_REQUEST_COLLECTION_JSON = "application/vnd.org.midonet.collection.TraceRequest-v1+json"
 
-    val resourceOf = Map[String, Class[_ <: UriResource]] (
-        APPLICATION_BRIDGE_COLLECTION_JSON -> classOf[Bridge],
-        APPLICATION_BRIDGE_COLLECTION_JSON_V2 -> classOf[Bridge],
-        APPLICATION_BRIDGE_COLLECTION_JSON_V3 -> classOf[Bridge],
-        APPLICATION_BRIDGE_JSON -> classOf[Bridge],
-        APPLICATION_BRIDGE_JSON_V2 -> classOf[Bridge],
-        APPLICATION_BRIDGE_JSON_V3 -> classOf[Bridge],
-        APPLICATION_HOST_COLLECTION_JSON_V2 -> classOf[Host],
-        APPLICATION_HOST_COLLECTION_JSON_V3 -> classOf[Host],
-        APPLICATION_HOST_JSON_V2 -> classOf[Host],
-        APPLICATION_HOST_JSON_V3 -> classOf[Host],
-        APPLICATION_PORT_COLLECTION_JSON -> classOf[Port],
-        APPLICATION_PORT_JSON -> classOf[Port],
-        APPLICATION_PORT_V2_COLLECTION_JSON-> classOf[Port],
-        APPLICATION_PORT_V2_JSON-> classOf[Port],
-        APPLICATION_ROUTER_COLLECTION_JSON -> classOf[Router],
-        APPLICATION_ROUTER_COLLECTION_JSON_V2 -> classOf[Router],
-        APPLICATION_ROUTER_JSON -> classOf[Router],
-        APPLICATION_ROUTER_JSON_V2 -> classOf[Router],
-        APPLICATION_TUNNEL_ZONE_COLLECTION_JSON -> classOf[TunnelZone],
-        APPLICATION_TUNNEL_ZONE_JSON -> classOf[TunnelZone]
-    )
-
-    // TODO: This should be redundant, by looking at the key's annotations
-    val zoomFor = Bimap(Map[Class[_ <: ZoomObject], Class[_ <: Message]] (
-        classOf[BridgePort] -> classOf[Topology.Port],
-        classOf[Bridge] -> classOf[Topology.Network],
-        classOf[Host] -> classOf[Topology.Host],
-        classOf[Port] -> classOf[Topology.Port],
-        classOf[RouterPort] -> classOf[Topology.Port],
-        classOf[Router] -> classOf[Topology.Router],
-        classOf[TunnelZone] -> classOf[Topology.TunnelZone]
-    ))
     val resourceNames = Bimap[String, String](Map(
         APPLICATION_BRIDGE_JSON -> BRIDGES,
         APPLICATION_BRIDGE_JSON_V2 -> BRIDGES,
@@ -228,10 +191,4 @@ object MidonetMediaTypes {
         APPLICATION_TRACE_REQUEST_JSON -> TRACE_REQUESTS
     ))
 
-    def resourceFromName(resName: String): String =
-        resourceNames.inverse.get(resName).orNull
-
-    def protoFromResName(resName: String): Class[_ <: Message] = {
-        zoomFor.get(resourceOf.get(resourceFromName(resName)).orNull).orNull
-    }
 }

@@ -16,13 +16,13 @@
 
 package org.midonet.cluster.rest_api.models;
 
-import org.codehaus.jackson.annotate.JsonAutoDetect;
 import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.ObjectMapper;
 
-/** This class contains the name of all the resources that are exposed via our
-  * REST API.
-  */
+/**
+ * This class contains the name of all the resources that are exposed via our
+ * REST API.
+ */
 public final class ResourceUris {
     public static final String AD_ROUTES = "ad_routes";
     public static final String ARP_TABLE = "arp_table";
@@ -78,9 +78,6 @@ public final class ResourceUris {
     public static final ObjectMapper objectMapper = new ObjectMapper();
     static {
         objectMapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        /*
-        objectMapper.setVisibilityChecker(objectMapper.getVisibilityChecker()
-                                                       .withFieldVisibility(JsonAutoDetect.Visibility.ANY));
-        */
+        objectMapper.configure(DeserializationConfig.Feature.USE_GETTERS_AS_SETTERS, false);
     }
 }
