@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_a4ee9720",
+        "filename": "cluster/src/test/scala/org/midonet/cluster/cli/BorisTest.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 213,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2015-03-31T01:40:42Z",
+      "side": 1,
+      "message": "Okay.  \nRegarding printing a null list: that suggestion was just to make sure that some exception doesn\u0027t get thrown when a null list returns to the CLI and the CLI goes to print out something that\u0027s null. :)\n\nAs for the rest: as this is a unit test, I will go with your judgement on the tests to ensure I will encounter no issues with the boris tool when we use this as part of MDTS.  Just bear in mind that when MDTS starts throwing data at this, it will likely be highly variant, and sometimes incorrect (cleaning up a topology in a global tear_down function that has already been cleaned up in the test for example), as well as purposeful negative tests designed to exercise the topologies.  \n\nThe list above were just suggestions I came up with keeping MDTS in mind. If you are confident you have 100% test coverage and operability under any usable scenarios (i.e. I don\u0027t care about crazy, no-on-will-do-this scenarios, only the ones MDTS will actually need), then I won\u0027t push back on anything.",
+      "parentUuid": "1a106d94_66582757",
+      "revId": "e710db7d8738d5ab7804952121fb8efda9af49cc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_3c512163",
         "filename": "cluster/src/tools/README-BORIS",
         "patchSetId": 12
