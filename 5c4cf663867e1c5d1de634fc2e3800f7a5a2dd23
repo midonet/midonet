@@ -1,0 +1,303 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_3a3f5c27",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/SessionInventory.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-31T15:56:32Z",
+      "side": 1,
+      "message": "Add Pool and perhaps PoolMember here.",
+      "range": {
+        "startLine": 61,
+        "startChar": 24,
+        "endLine": 61,
+        "endChar": 33
+      },
+      "revId": "5c4cf663867e1c5d1de634fc2e3800f7a5a2dd23",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_da11e8ad",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/services/topology/server/SessionInventoryTest.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-31T15:56:32Z",
+      "side": 1,
+      "message": "Add Pool and perhaps PoolMember here.",
+      "range": {
+        "startLine": 94,
+        "startChar": 44,
+        "endLine": 94,
+        "endChar": 48
+      },
+      "revId": "5c4cf663867e1c5d1de634fc2e3800f7a5a2dd23",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_da3a8835",
+        "filename": "cluster/src/main/proto/topology.proto",
+        "patchSetId": 10
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-31T15:56:32Z",
+      "side": 1,
+      "message": "Pool and PoolMember have to be added here.",
+      "range": {
+        "startLine": 24,
+        "startChar": 5,
+        "endLine": 24,
+        "endChar": 9
+      },
+      "revId": "5c4cf663867e1c5d1de634fc2e3800f7a5a2dd23",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_3a6d9c33",
+        "filename": "cluster/src/main/proto/topology.proto",
+        "patchSetId": 10
+      },
+      "lineNbr": 364,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-31T15:56:32Z",
+      "side": 1,
+      "message": "Shouldn\u0027t this be 1?",
+      "range": {
+        "startLine": 364,
+        "startChar": 38,
+        "endLine": 364,
+        "endChar": 39
+      },
+      "revId": "5c4cf663867e1c5d1de634fc2e3800f7a5a2dd23",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_1a6a601a",
+        "filename": "cluster/src/main/proto/topology.proto",
+        "patchSetId": 10
+      },
+      "lineNbr": 373,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-31T15:56:32Z",
+      "side": 1,
+      "message": "Is this really needed for Pools?",
+      "range": {
+        "startLine": 373,
+        "startChar": 22,
+        "endLine": 373,
+        "endChar": 28
+      },
+      "revId": "5c4cf663867e1c5d1de634fc2e3800f7a5a2dd23",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_da49e88c",
+        "filename": "cluster/src/main/proto/topology.proto",
+        "patchSetId": 10
+      },
+      "lineNbr": 382,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-31T15:56:32Z",
+      "side": 1,
+      "message": "I know that this is legacy but it\u0027s difficult to understand the difference between admin_state_up and status here.",
+      "range": {
+        "startLine": 382,
+        "startChar": 22,
+        "endLine": 382,
+        "endChar": 28
+      },
+      "revId": "5c4cf663867e1c5d1de634fc2e3800f7a5a2dd23",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_3a263c17",
+        "filename": "cluster/src/main/proto/topology_api.proto",
+        "patchSetId": 10
+      },
+      "lineNbr": 181,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-31T15:56:32Z",
+      "side": 1,
+      "message": "Add Pool and perhaps PoolMember.",
+      "range": {
+        "startLine": 181,
+        "startChar": 14,
+        "endLine": 181,
+        "endChar": 20
+      },
+      "revId": "5c4cf663867e1c5d1de634fc2e3800f7a5a2dd23",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_5a1df8bc",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/common/TopologyMappings.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-31T15:56:32Z",
+      "side": 1,
+      "message": "add Pool and perhaps PoolMember.",
+      "range": {
+        "startLine": 28,
+        "startChar": 8,
+        "endLine": 28,
+        "endChar": 19
+      },
+      "revId": "5c4cf663867e1c5d1de634fc2e3800f7a5a2dd23",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_9a7e50e3",
+        "filename": "cluster/src/test/scala/org/midonet/cluster/services/topology/common/TopologyMappingsTest.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-31T15:56:32Z",
+      "side": 1,
+      "message": "Add pool and perhaps pool member.",
+      "range": {
+        "startLine": 44,
+        "startChar": 8,
+        "endLine": 44,
+        "endChar": 15
+      },
+      "revId": "5c4cf663867e1c5d1de634fc2e3800f7a5a2dd23",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_fa9f8401",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/PoolMapper.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-31T15:56:32Z",
+      "side": 1,
+      "message": "added/removed",
+      "range": {
+        "startLine": 84,
+        "startChar": 75,
+        "endLine": 84,
+        "endChar": 80
+      },
+      "revId": "5c4cf663867e1c5d1de634fc2e3800f7a5a2dd23",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_1a86e0b9",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/PoolMapper.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-31T15:56:32Z",
+      "side": 1,
+      "message": "Add illustration of the mapper?",
+      "range": {
+        "startLine": 98,
+        "startChar": 27,
+        "endLine": 98,
+        "endChar": 37
+      },
+      "revId": "5c4cf663867e1c5d1de634fc2e3800f7a5a2dd23",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_9a9ad012",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/PoolMapper.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-31T15:56:32Z",
+      "side": 1,
+      "message": "\"... which occurs when..\"?",
+      "range": {
+        "startLine": 104,
+        "startChar": 39,
+        "endLine": 104,
+        "endChar": 40
+      },
+      "revId": "5c4cf663867e1c5d1de634fc2e3800f7a5a2dd23",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_1a7420ce",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/VirtualTopologyRedirectorTest.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 551,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-03-31T15:56:32Z",
+      "side": 1,
+      "message": "Add a similar test for pools?",
+      "range": {
+        "startLine": 551,
+        "startChar": 8,
+        "endLine": 551,
+        "endChar": 16
+      },
+      "revId": "5c4cf663867e1c5d1de634fc2e3800f7a5a2dd23",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
