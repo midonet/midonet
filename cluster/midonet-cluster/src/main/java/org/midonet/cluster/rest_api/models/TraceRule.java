@@ -13,17 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.midonet.cluster.rest_api.models;
 
-/**
- * Port type constants
- */
-public class PortType {
-    public static final String BRIDGE = "Bridge";
-    public static final String ROUTER = "Router";
-    public static final String EXTERIOR_BRIDGE = "ExteriorBridge";
-    public static final String EXTERIOR_ROUTER = "ExteriorRouter";
-    public static final String INTERIOR_BRIDGE = "InteriorBridge";
-    public static final String INTERIOR_ROUTER = "InteriorRouter";
-    public static final String VXLAN = "Vxlan";
+import java.util.UUID;
+
+import javax.validation.constraints.NotNull;
+
+public class TraceRule extends Rule {
+
+    @NotNull
+    public UUID requestId;
+
+    public long limit;
+
+    public TraceRule() {
+        super(RuleType.TRACE, RuleAction.CONTINUE);
+    }
+
+    @Override
+    public String getType() {
+        return Rule.Trace;
+    }
+
 }

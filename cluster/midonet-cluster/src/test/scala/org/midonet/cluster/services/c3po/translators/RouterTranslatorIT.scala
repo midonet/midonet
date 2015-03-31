@@ -142,7 +142,7 @@ class RouterTranslatorIT extends C3POMinionTestBase {
         storage.exists(classOf[Port], trGwPortId).await() shouldBe false
 
         val List(prV3, trV3) =
-            storage.getAll(classOf[Router], List(prId, trId)).map(_.await())
+            storage.getAll(classOf[Router], List(prId, trId)).await()
         prV3.getPortIdsCount shouldBe 0
         trV3.getPortIdsCount shouldBe 0
 
@@ -195,7 +195,7 @@ class RouterTranslatorIT extends C3POMinionTestBase {
             List(prLocalRtId, prGwRtId, trLocalRtId, trGwRtId)
                 .map(storage.get(classOf[Route], _)).map(_.await())
 
-        val List(prGwPort, trGwPort) = portFs.map(_.await())
+        val List(prGwPort, trGwPort) = portFs.await()
 
         // Check ports have correct router and route IDs.
         prGwPort.getRouterId shouldBe RouterTranslator.providerRouterId
