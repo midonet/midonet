@@ -18,6 +18,8 @@ package org.midonet.api.auth;
 import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 
+import org.midonet.rest.Token;
+
 /**
  * This class is for testing purpose.
  * Used by the {@code TestAuthServiceProvider} to test the fallback mechanism
