@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_a4d85754",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 3
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-03-31T06:52:30Z",
+      "side": 1,
+      "message": "Perhaps it\u0027s a bit more helpful if the commit message mentions that MidonetBackendService has now superseded StorageService.",
+      "revId": "529327046b8f48474c3c7359d3205b6b3ef355c5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_64177fee",
+        "filename": "cluster/src/main/scala/org/midonet/conf/MidoConfTool.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 193,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-03-31T06:52:30Z",
+      "side": 1,
+      "message": "The first \"s\" is not necessary.",
+      "range": {
+        "startLine": 193,
+        "startChar": 28,
+        "endLine": 193,
+        "endChar": 29
+      },
+      "revId": "529327046b8f48474c3c7359d3205b6b3ef355c5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
