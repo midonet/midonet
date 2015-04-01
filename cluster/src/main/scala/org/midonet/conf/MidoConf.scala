@@ -21,21 +21,24 @@ import java.net.{URL, URI}
 import java.util.UUID
 import java.util.zip.ZipInputStream
 
+import scala.concurrent.duration._
 import scala.collection.JavaConversions._
 import scala.util.Try
 
 import com.typesafe.config._
 import org.apache.commons.configuration.{HierarchicalConfiguration, HierarchicalINIConfiguration}
 import org.apache.curator.framework.{CuratorFrameworkFactory, CuratorFramework}
-import org.apache.curator.framework.recipes.cache.ChildData
+import org.apache.curator.framework.recipes.cache.{NodeCache, ChildData}
 import org.apache.curator.retry.RetryOneTime
 import org.apache.zookeeper.KeeperException
-import rx.Observable
+import rx.{Observer, Observable}
 
+import org.midonet.cluster.util.{NodeCacheObservable, NodeObservableClosedException, NodeObservable}
 import org.midonet.conf.MidoConf._
 import org.midonet.util.functors.makeFunc1
 import org.midonet.util.functors.makeFunc2
-import org.midonet.cluster.util.ObservableNodeCache
+import org.midonet.util.reactivex._
+import org.midonet.util.concurrent._
 
 /**
  * A configuration source capable of producing an immutable Config object.
@@ -529,8 +532,7 @@ class ZookeeperConf(zk: CuratorFramework, path: String) extends MidoConf with
         setAllowMissing(false).
         setOriginDescription(s"zookeeper://${zk.getNamespace}$path")
 
-    private val cache = new ObservableNodeCache(zk, path, emitNoNodeAsEmpty = true)
-    cache.connect()
+    private var cache = NodeCacheObservable.create(zk, path)
 
     private def parse(zkdata: ChildData): Config = {
         if ((zkdata eq null) || (zkdata.getData eq  null)) {
@@ -544,16 +546,16 @@ class ZookeeperConf(zk: CuratorFramework, path: String) extends MidoConf with
         }
     }
 
-    override val observable: Observable[Config] = cache.observable map makeFunc1(parse)
+    override val observable: Observable[Config] = cache map makeFunc1(parse)
 
     override def get: Config = {
-        parse(cache.current)
+        parse(cache.asFuture.await())
     }
 
     override def close() = cache.close()
 
     override protected def modify(changeset: Config => Config): Boolean = {
-        val zkdata = cache.current
+        val zkdata = cache.asFuture.await()
         try {
             if (zkdata eq null) {
                 val conf = changeset(ConfigFactory.empty)

@@ -26,7 +26,7 @@ import rx.observers.TestObserver
 import org.midonet.util.reactivex.AwaitableObserver
 
 @RunWith(classOf[JUnitRunner])
-class ObservablePathDirectoryCacheTest extends FeatureSpec
+class PathDirectoryObservableTest extends FeatureSpec
                                        with CuratorTestFramework
                                        with Matchers {
 
@@ -63,7 +63,7 @@ class ObservablePathDirectoryCacheTest extends FeatureSpec
         scenario("Notification of empty children set") {
             createParent()
 
-            val opdc = ObservablePathDirectoryCache.create(curator, parentPath)
+            val opdc = PathDirectoryObservable.create(curator, parentPath)
             val obs = new TestObserver[Set[String]] with AwaitableObserver[Set[String]]
             opdc.subscribe(obs)
             obs.awaitOnNext(1, 1.second)
@@ -77,7 +77,7 @@ class ObservablePathDirectoryCacheTest extends FeatureSpec
             createParent()
             createChildren(0, 4)
 
-            val opdc = ObservablePathDirectoryCache.create(curator, parentPath)
+            val opdc = PathDirectoryObservable.create(curator, parentPath)
             val obs = new TestObserver[Set[String]] with AwaitableObserver[Set[String]]
             opdc.subscribe(obs)
             obs.awaitOnNext(1, 1.second)
@@ -90,7 +90,7 @@ class ObservablePathDirectoryCacheTest extends FeatureSpec
         scenario("Notification of added children") {
             createParent()
 
-            val opdc = ObservablePathDirectoryCache.create(curator, parentPath)
+            val opdc = PathDirectoryObservable.create(curator, parentPath)
             val obs = new TestObserver[Set[String]] with AwaitableObserver[Set[String]]
             opdc.subscribe(obs)
 
@@ -112,7 +112,7 @@ class ObservablePathDirectoryCacheTest extends FeatureSpec
             createParent()
             createChildren(0, 4)
 
-            val opdc = ObservablePathDirectoryCache.create(curator, parentPath)
+            val opdc = PathDirectoryObservable.create(curator, parentPath)
             val obs = new TestObserver[Set[String]] with AwaitableObserver[Set[String]]
 
             opdc.subscribe(obs)
@@ -134,7 +134,7 @@ class ObservablePathDirectoryCacheTest extends FeatureSpec
         scenario("Error on cache close") {
             createParent()
 
-            val opdc = ObservablePathDirectoryCache.create(curator, parentPath)
+            val opdc = PathDirectoryObservable.create(curator, parentPath)
             val obs = new TestObserver[Set[String]] with AwaitableObserver[Set[String]]
 
             opdc.subscribe(obs)
@@ -144,7 +144,7 @@ class ObservablePathDirectoryCacheTest extends FeatureSpec
 
             obs.getOnNextEvents should contain only Set()
             obs.getOnErrorEvents.get(0).getClass shouldBe classOf[
-                DirectoryCacheDisconnectedException]
+                DirectoryObservableClosedException]
             obs.getOnCompletedEvents shouldBe empty
         }
     }
@@ -152,7 +152,7 @@ class ObservablePathDirectoryCacheTest extends FeatureSpec
     feature("Test observable errors") {
         scenario("Error on parent does not exist") {
             val path = ZK_ROOT + "/none"
-            val opdc = ObservablePathDirectoryCache.create(curator, path)
+            val opdc = PathDirectoryObservable.create(curator, path)
             val obs = new TestObserver[Set[String]] with AwaitableObserver[Set[String]]
 
             opdc.subscribe(obs)
@@ -167,7 +167,7 @@ class ObservablePathDirectoryCacheTest extends FeatureSpec
         scenario("Error on parent deletion") {
             createParent()
 
-            val opdc = ObservablePathDirectoryCache.create(curator, parentPath)
+            val opdc = PathDirectoryObservable.create(curator, parentPath)
             val obs = new TestObserver[Set[String]] with AwaitableObserver[Set[String]]
 
             opdc.subscribe(obs)
@@ -184,7 +184,7 @@ class ObservablePathDirectoryCacheTest extends FeatureSpec
         scenario("Error on connect failure") {
             curator.close()
 
-            val opdc = ObservablePathDirectoryCache.create(curator, parentPath)
+            val opdc = PathDirectoryObservable.create(curator, parentPath)
             val obs = new TestObserver[Set[String]] with AwaitableObserver[Set[String]]
 
             opdc.subscribe(obs)
@@ -192,13 +192,13 @@ class ObservablePathDirectoryCacheTest extends FeatureSpec
 
             obs.getOnNextEvents shouldBe empty
             obs.getOnErrorEvents.get(0).getClass shouldBe classOf[
-                DirectoryCacheDisconnectedException]
+                DirectoryObservableDisconnectedException]
         }
 
         scenario("Error on lost connection") {
             createParent()
 
-            val opdc = ObservablePathDirectoryCache.create(curator, parentPath)
+            val opdc = PathDirectoryObservable.create(curator, parentPath)
             val obs = new TestObserver[Set[String]] with AwaitableObserver[Set[String]]
 
             opdc.subscribe(obs)
@@ -208,7 +208,7 @@ class ObservablePathDirectoryCacheTest extends FeatureSpec
 
             obs.getOnNextEvents should contain only Set()
             obs.getOnErrorEvents.get(0).getClass shouldBe classOf[
-                DirectoryCacheDisconnectedException]
+                DirectoryObservableDisconnectedException]
             curator.close()
         }
     }

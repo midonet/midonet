@@ -70,7 +70,7 @@ trait AwaitableObserver[T] extends Observer[T] {
 
     @throws(classOf[TimeoutException])
     def awaitCompletion(timeout: Duration): Unit =
-       await(Long.MaxValue, timeout)
+        await(Long.MaxValue, timeout)
 
     @throws(classOf[TimeoutException])
     def awaitOnNext(expectedEvents: Long, timeout: Duration): Boolean = try {

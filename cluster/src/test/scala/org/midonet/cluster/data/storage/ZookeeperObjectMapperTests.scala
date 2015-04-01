@@ -33,7 +33,7 @@ import rx.observers.TestObserver
 import org.midonet.cluster.data.storage.FieldBinding.DeleteAction._
 import org.midonet.cluster.data.storage.ZookeeperObjectMapperTest._
 import org.midonet.cluster.models.Topology._
-import org.midonet.cluster.util.{ClassAwaitableObserver, CuratorTestFramework, ParentDeletedException, PathCacheDisconnectedException}
+import org.midonet.cluster.util.{ClassAwaitableObserver, CuratorTestFramework, ParentDeletedException, PathDisconnectedException}
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.util.reactivex.AwaitableObserver
 
@@ -128,7 +128,7 @@ class ZookeeperObjectMapperTests extends Suite
         }
         override def hashCode: Int = id.hashCode
     }
-
+/*
     def testMultiCreateJava() {
         val bridge = pojoBridge()
         val port = pojoPort(bridgeId = bridge.id)
@@ -426,17 +426,6 @@ class ZookeeperObjectMapperTests extends Suite
                        DeleteOp(classOf[Rule], rule.getId.asJava, true)))
     }
 
-    private def createBridge() : PojoBridge = {
-        val bridge = pojoBridge()
-        zom.create(bridge)
-        bridge
-    }
-
-    private def addPortToBridge(bId: UUID) = {
-        val port = pojoPort(bridgeId = bId)
-        zom.create(port)
-    }
-
     @Test(timeout = 2000)
     def testSubscribe() {
         val bridge = createBridge()
@@ -465,22 +454,146 @@ class ZookeeperObjectMapperTests extends Suite
         zom.observable(classOf[PojoBridge]).subscribe(obs)
 
         obs.await(1.second, 0)
-    }
+    }*/
 
-    def testSubscribeAllWithGc() {
+    def testSubscribeAllClosesCacheOnLastUnsubscribe(): Unit = {
         val obs = new ClassAwaitableObserver[PojoBridge](0)
         val sub = zom.observable(classOf[PojoBridge]).subscribe(obs)
 
-        zom.subscriptionCount(classOf[PojoBridge]) should equal (Option(1))
-        sub.unsubscribe()
-        zom.subscriptionCount(classOf[PojoBridge]) should equal (None)
+        val cache1 = zom.getClassSubscriptionCache(classOf[PojoBridge]).get
+        cache1.hasObservers shouldBe true
+        cache1.isClosed shouldBe false
 
-        obs.getOnCompletedEvents should have size 0
-        obs.getOnErrorEvents should have size 1
-        assert(obs.getOnErrorEvents.get(0)
-                  .isInstanceOf[PathCacheDisconnectedException])
+        sub.unsubscribe()
+        cache1.hasObservers shouldBe false
+        cache1.isClosed shouldBe true
+
+        obs.getOnCompletedEvents shouldBe empty
+        obs.getOnErrorEvents shouldBe empty
+
+        val cache2 = zom.getClassSubscriptionCache(classOf[PojoBridge]).get
+        cache1 eq cache2 shouldBe true
     }
 
+    def testSubscribeAllObservableRecoversOnClosedCache(): Unit = {
+        val obs1 = new ClassAwaitableObserver[PojoBridge](0)
+        val sub1 = zom.observable(classOf[PojoBridge]).subscribe(obs1)
+
+        val cache1 = zom.getClassSubscriptionCache(classOf[PojoBridge]).get
+
+        sub1.unsubscribe()
+        cache1.hasObservers shouldBe false
+        cache1.isClosed shouldBe true
+
+        val obs2 = new ClassAwaitableObserver[PojoBridge](0)
+        val sub2 = zom.observable(classOf[PojoBridge]).subscribe(obs2)
+
+        val cache2 = zom.getClassSubscriptionCache(classOf[PojoBridge]).get
+        cache1 ne cache2 shouldBe true
+        cache2.hasObservers shouldBe true
+        cache2.isClosed shouldBe false
+
+        obs2.getOnCompletedEvents shouldBe empty
+        obs2.getOnErrorEvents shouldBe empty
+    }
+
+    def testSubscribeAllObservableRecoversWhenCacheCloses(): Unit = {
+        val obs = new ClassAwaitableObserver[PojoBridge](0)
+        val sub = zom.observable(classOf[PojoBridge]).subscribe(obs)
+
+        val cache1 = zom.getClassSubscriptionCache(classOf[PojoBridge]).get
+
+        cache1.hasObservers shouldBe true
+        cache1.isClosed shouldBe false
+
+        cache1.close()
+
+        cache1.hasObservers shouldBe false
+        cache1.isClosed shouldBe true
+
+        sub.isUnsubscribed shouldBe false
+
+        val cache2 = zom.getClassSubscriptionCache(classOf[PojoBridge]).get
+        cache1 ne cache2 shouldBe true
+        cache2.hasObservers shouldBe true
+        cache2.isClosed shouldBe false
+    }
+
+    def testOwnersObservableClosesCacheOnLastUnsubscribe(): Unit = {
+        val bridge = createBridge()
+        val obs = new TestObserver[Set[String]]
+        val sub =
+            zom.ownersObservable(classOf[PojoBridge], bridge.id).subscribe(obs)
+
+        val cache1 = zom.getOwnersSubscriptionCache(classOf[PojoBridge],
+                                                    bridge.id).get
+        cache1.hasObservers shouldBe true
+        cache1.isClosed shouldBe false
+
+        sub.unsubscribe()
+        cache1.hasObservers shouldBe false
+        cache1.isClosed shouldBe true
+
+        obs.getOnCompletedEvents shouldBe empty
+        obs.getOnErrorEvents shouldBe empty
+
+        val cache2 = zom.getOwnersSubscriptionCache(classOf[PojoBridge],
+                                                    bridge.id).get
+        cache1 eq cache2 shouldBe true
+    }
+
+    def testOwnersObservableRecoversOnClosedCache(): Unit = {
+        val bridge = createBridge()
+        val obs1 = new TestObserver[Set[String]]
+        val sub1 =
+            zom.ownersObservable(classOf[PojoBridge], bridge.id).subscribe(obs1)
+
+        val cache1 = zom.getOwnersSubscriptionCache(classOf[PojoBridge],
+                                                    bridge.id).get
+
+        sub1.unsubscribe()
+        cache1.hasObservers shouldBe false
+        cache1.isClosed shouldBe true
+
+        val obs2 = new TestObserver[Set[String]]
+        val sub2 =
+            zom.ownersObservable(classOf[PojoBridge], bridge.id).subscribe(obs1)
+
+        val cache2 = zom.getOwnersSubscriptionCache(classOf[PojoBridge],
+                                                    bridge.id).get
+        cache1 ne cache2 shouldBe true
+        cache2.hasObservers shouldBe true
+        cache2.isClosed shouldBe false
+
+        obs2.getOnCompletedEvents shouldBe empty
+        obs2.getOnErrorEvents shouldBe empty
+    }
+
+    def testOwnersObservableRecoversWhenCacheCloses(): Unit = {
+        val bridge = createBridge()
+        val obs = new TestObserver[Set[String]]
+        val sub =
+            zom.ownersObservable(classOf[PojoBridge], bridge.id).subscribe(obs)
+
+        val cache1 = zom.getOwnersSubscriptionCache(classOf[PojoBridge],
+                                                    bridge.id).get
+        cache1.hasObservers shouldBe true
+        cache1.isClosed shouldBe false
+
+        cache1.close()
+
+        cache1.hasObservers shouldBe false
+        cache1.isClosed shouldBe true
+
+        sub.isUnsubscribed shouldBe false
+
+        val cache2 = zom.getOwnersSubscriptionCache(classOf[PojoBridge],
+                                                    bridge.id).get
+        cache1 ne cache2 shouldBe true
+        cache2.hasObservers shouldBe true
+        cache2.isClosed shouldBe false
+    }
+/*
     def testGetPath() {
         zom.getPath(classOf[PojoBridge]) should equal (s"$ZK_ROOT/1/PojoBridge")
     }
@@ -1303,7 +1416,19 @@ class ZookeeperObjectMapperTests extends Suite
             Set(owner2.toString, owner3.toString),
             Set(owner3.toString),
             Set.empty)
+    }*/
+
+    private def createBridge() : PojoBridge = {
+        val bridge = pojoBridge()
+        zom.create(bridge)
+        bridge
     }
+
+    private def addPortToBridge(bId: UUID) = {
+        val port = pojoPort(bridgeId = bId)
+        zom.create(port)
+    }
+
 }
 
 private object ZookeeperObjectMapperTests {
