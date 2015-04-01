@@ -364,14 +364,8 @@ def test_icmp_failback():
     clear_bgp(p2)
 
 @attr(version="v1.2.0", slow=True)
-@failures(NoFailure(),
-          NetifFailure(NS_CASSANDRA_1, 'eth0', 30),
-          NoFailure(),
-          NetifFailure(NS_CASSANDRA_2, 'eth0', 30),
-          NetifFailure(NS_CASSANDRA_3, 'eth0', 30),
-          NoFailure())
 @bindings(binding_uplink_1, binding_uplink_2, binding_indirect)
-def test_snat_1():
+def test_snat():
     """
     Title: Emulate Cassandra failure
 
@@ -392,39 +386,6 @@ def test_snat_1():
         for i in range(0, 10):
             # BGP #1 is working
             ping_inet(count=1, retry_count=5)
-    finally:
-        unset_filters('router-000-001')
-
-    clear_bgp(p1)
-
-# FIXME: https://midobugs.atlassian.net/browse/MN-1759
-@attr(version="v1.2.0", slow=True, flaky=True)
-@bindings(binding_uplink_1, binding_uplink_2, binding_indirect)
-def test_snat_2():
-    """
-    Title: Emulate Cassandra failure
-
-           basically the same one as test_snat_1, but the difference is
-           how and when to inject failures.
-
-    """
-    p1 = add_bgp_1(route_snat)
-
-    set_filters('router-000-001', 'pre_filter_snat_ip', 'post_filter_snat_ip')
-
-    try:
-        for failure in (NoFailure(),
-                        NetifFailure(NS_CASSANDRA_1, 'eth0', 30),
-                        NoFailure(),
-                        NetifFailure(NS_CASSANDRA_2, 'eth0', 30),
-                        NetifFailure(NS_CASSANDRA_3, 'eth0', 30),
-                        NoFailure()):
-            failure.inject()
-            try:
-                for i in range(0, 10):
-                    ping_inet(count=1, retry_count=5)
-            finally:
-                failure.eject()
     finally:
         unset_filters('router-000-001')
 
