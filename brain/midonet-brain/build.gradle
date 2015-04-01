@@ -79,7 +79,7 @@ dependencies {
                 libraries.sqlite
 }
 
-// Runs the cluster daemon, locally. use -Pconf=conf/cluster.conf to
+// Runs the cluster daemon, locally. use -Pconf=conf/midonet-brain.conf to
 // start it up pointing at the sample config file in brain/midonet-brain/conf -
 // Note that the path is relative to the midonet-brain submodule.
 run {
@@ -87,7 +87,7 @@ run {
     if (project.hasProperty("conf")) {
         args = [conf]
     } else {
-        args = ["conf/cluster.conf"]
+        args = ["conf/midonet-brain.conf"]
     }
 }
 
@@ -108,7 +108,7 @@ task runTopologyZoomUpdater(type: JavaExec) {
 }
 
 // Runs the Topology API service in stand-alone mode.
-// Use -Pconf=conf/cluster.conf to start it pointing at the sample config file
+// Use -Pconf=conf/midonet-brain.conf to start it pointing at the sample config file
 // in brain/midonet-brain/conf
 // Note that the path is relative to the midonet-brain submodule.
 task runTopologyApi(type: JavaExec) {
@@ -118,7 +118,7 @@ task runTopologyApi(type: JavaExec) {
     if (project.hasProperty("conf")) {
         args = [conf]
     } else {
-        args = ["conf/cluster.conf"]
+        args = ["conf/midonet-brain.conf"]
     }
 }
 

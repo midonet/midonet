@@ -31,16 +31,16 @@ object TopologyZoomUpdaterApp extends App {
     private val log = LoggerFactory.getLogger(this.getClass)
 
     private val cfgFile = args(0)
+    private val config = BrainConfig(cfgFile)
 
     private val topologyZkUpdaterModule = new AbstractModule {
         override def configure(): Unit = {
-            bind(classOf[BrainConfig]).toInstance(BrainConfig(cfgFile))
             bind(classOf[TopologyZoomUpdater]).in(classOf[Singleton])
         }
     }
 
     protected[brain] val injector = Guice.createInjector(
-        new MidonetBackendModule(),
+        new MidonetBackendModule(config.backend),
         topologyZkUpdaterModule
     )
 

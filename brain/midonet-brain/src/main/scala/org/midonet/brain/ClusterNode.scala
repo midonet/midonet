@@ -28,14 +28,13 @@ import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.storage._
-import org.midonet.conf.{HostIdGenerator, MidoNodeConfigurator}
+import org.midonet.conf.HostIdGenerator
 import org.midonet.midolman.cluster.LegacyClusterModule
 import org.midonet.midolman.cluster.serialization.SerializationModule
 import org.midonet.midolman.cluster.zookeeper.ZookeeperConnectionModule.ZookeeperReactorProvider
 import org.midonet.midolman.cluster.zookeeper.{DirectoryProvider, ZkConnectionProvider}
 import org.midonet.midolman.state.{Directory, ZkConnection, ZkConnectionAwareWatcher, ZookeeperConnectionWatcher}
 import org.midonet.util.eventloop.Reactor
-
 
 /** Base exception for all MidoNet Cluster errors. */
 class ClusterException(msg: String, cause: Throwable)
@@ -126,8 +125,6 @@ object ClusterNode extends App {
             // Zookeeper stuff for DataClient
             // roughly equivalent to ZookeeperConnectionModule,
             // but without conflicts
-            val zkConfig = new MidonetBackendConfig(MidoNodeConfigurator.bootstrapConfig())
-            bind(classOf[MidonetBackendConfig]).toInstance(zkConfig)
             bind(classOf[ZkConnection])
                 .toProvider(classOf[ZkConnectionProvider])
                 .asEagerSingleton()
@@ -148,7 +145,7 @@ object ClusterNode extends App {
     }
 
     protected[brain] var injector = Guice.createInjector(
-        new MidonetBackendModule(),
+        new MidonetBackendModule(conf.backend),
         clusterNodeModule,
         dataClientDependencies
     )

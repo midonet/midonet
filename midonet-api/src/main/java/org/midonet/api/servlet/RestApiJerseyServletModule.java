@@ -107,6 +107,12 @@ public class RestApiJerseyServletModule extends JerseyServletModule {
                 ConfigValueFactory.fromAnyRef(zkconf.getZkRootPath()))
             .withValue("zookeeper.session_timeout",
                 ConfigValueFactory.fromAnyRef(zkconf.getZkSessionTimeout()))
+            .withValue("zookeeper.max_retries",
+                ConfigValueFactory.fromAnyRef(10))
+            .withValue("zookeeper.base_retry",
+                ConfigValueFactory.fromAnyRef("1s"))
+            .withValue("zookeeper.curator_enabled",
+                ConfigValueFactory.fromAnyRef(true))
             .withValue("zookeeper.use_new_stack",
                 ConfigValueFactory.fromAnyRef(false));
         log.info("Loaded zookeeper config: {}", ret.root().render());
