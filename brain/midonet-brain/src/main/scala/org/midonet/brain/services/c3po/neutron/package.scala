@@ -23,7 +23,7 @@ import org.midonet.cluster.models.Commons
 
 package object neutron {
 
-    sealed trait NeutronOp[T <: Message] extends Operation[T]
+    sealed trait NeutronOp[T <: Message] extends Operation
 
     case class Create[T <: Message](model: T) extends NeutronOp[T] {
         override val opType = OpType.Create

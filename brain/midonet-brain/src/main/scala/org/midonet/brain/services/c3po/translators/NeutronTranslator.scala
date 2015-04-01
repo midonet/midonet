@@ -42,7 +42,7 @@ trait NeutronTranslator[NeutronModel <: Message] {
       * to a different model that represent the complete translation of the
       * first to the latter. */
     @throws[TranslationException]
-    def translate(op: NeutronOp[NeutronModel]): List[Operation[_]] = try {
+    def translate(op: NeutronOp[NeutronModel]): List[Operation] = try {
         op match {
             case neutron.Create(nm) => translateCreate(nm)
             case neutron.Update(nm) => translateUpdate(nm)

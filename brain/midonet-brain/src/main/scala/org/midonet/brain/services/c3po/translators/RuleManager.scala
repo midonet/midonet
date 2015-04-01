@@ -17,7 +17,7 @@
 package org.midonet.brain.services.c3po.translators
 
 import org.midonet.brain.services.c3po.C3POStorageManager.Operation
-import org.midonet.brain.services.c3po.midonet.{Create, Delete, Update}
+import org.midonet.brain.services.c3po.midonet.{Create, Delete, MidoOp, Update}
 import org.midonet.cluster.models.Commons.{IPAddress, UUID}
 import org.midonet.cluster.models.Topology.Rule
 import org.midonet.cluster.models.Topology.Rule.Action._
@@ -66,7 +66,7 @@ trait RuleManager {
         NatRuleData.newBuilder.setDnat(dnat).setReverse(true).build()
     }
 
-    protected def toRuleIdList(ops: Seq[Operation[Rule]]) = ops.map {
+    protected def toRuleIdList(ops: Seq[MidoOp[Rule]]) = ops.map {
         case Create(r: Rule) => r.getId
         case Update(r: Rule, _) => r.getId
         case Delete(_, id) => id
