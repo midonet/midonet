@@ -426,7 +426,8 @@ public class TestTraceRequest extends JerseyTest {
     public void testEnabledOnCreation() throws StateAccessException {
         TraceRequest bridgeTrace = new TraceRequest(UUID.randomUUID(), "foobar",
                 DeviceType.BRIDGE, topology.getBridge(BRIDGE0).getId(),
-                new Condition(), Long.MAX_VALUE, true);
+                new Condition(), System.currentTimeMillis(),
+                Long.MAX_VALUE, true);
 
         ClientResponse response = traceResource
             .header(HEADER_X_AUTH_TOKEN, ADMIN0)
@@ -446,7 +447,8 @@ public class TestTraceRequest extends JerseyTest {
     public void testConflictingPut() throws StateAccessException {
         TraceRequest bridgeTrace = new TraceRequest(UUID.randomUUID(), "foobar",
                 DeviceType.BRIDGE, topology.getBridge(BRIDGE0).getId(),
-                new Condition(), Long.MAX_VALUE, true);
+                new Condition(), System.currentTimeMillis(),
+                Long.MAX_VALUE, true);
 
         ClientResponse response = traceResource
             .header(HEADER_X_AUTH_TOKEN, ADMIN0)

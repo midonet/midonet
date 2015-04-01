@@ -63,6 +63,15 @@ public class TraceRequest
         return this;
     }
 
+    public long getCreationTimestampMs() {
+        return getData().creationTimestampMs;
+    }
+
+    public TraceRequest setCreationTimestampMs(long creationTimestampMs) {
+        getData().creationTimestampMs = creationTimestampMs;
+        return this;
+    }
+
     public long getLimit() {
         return getData().limit;
     }
@@ -95,6 +104,7 @@ public class TraceRequest
         public DeviceType deviceType;
         public UUID deviceId;
         public Condition condition;
+        public long creationTimestampMs;
         public long limit;
         public UUID enabledRule;
 
@@ -113,6 +123,7 @@ public class TraceRequest
                 && deviceType == that.deviceType
                 && Objects.equals(deviceId, that.deviceId)
                 && Objects.equals(condition, that.condition)
+                && creationTimestampMs == that.creationTimestampMs
                 && limit == that.limit
                 && Objects.equals(enabledRule, that.enabledRule);
         }
@@ -120,7 +131,7 @@ public class TraceRequest
         @Override
         public int hashCode() {
             return Objects.hash(name, deviceType, deviceId,
-                                condition, limit, enabledRule);
+                    condition, creationTimestampMs, limit, enabledRule);
         }
 
         @Override
@@ -129,6 +140,7 @@ public class TraceRequest
                 + ", deviceType=" + deviceType
                 + ", deviceId=" + deviceId
                 + ", condition=" + condition
+                + ", creationTimestamp=" + creationTimestampMs
                 + ", limit=" + limit
                 + ", enabledRule=" + enabledRule + "}";
         }

@@ -54,6 +54,7 @@ public class TraceRequestZkManager
         public TraceRequest.DeviceType deviceType;
         public UUID deviceId;
         public Condition condition;
+        public long creationTimestampMs;
         public long limit;
         public UUID enabledRule;
 
@@ -64,6 +65,7 @@ public class TraceRequestZkManager
         public TraceRequestConfig(String name,
                                   TraceRequest.DeviceType deviceType,
                                   UUID deviceId, Condition condition,
+                                  long creationTimestampMs,
                                   long limit, UUID enabledRule) {
             super();
             this.name = name;
@@ -71,6 +73,7 @@ public class TraceRequestZkManager
             this.deviceId = deviceId;
             this.condition = condition;
             this.limit = limit;
+            this.creationTimestampMs = creationTimestampMs;
             this.enabledRule = enabledRule;
         }
 
@@ -88,6 +91,7 @@ public class TraceRequestZkManager
                 && deviceType == that.deviceType
                 && Objects.equals(deviceId, that.deviceId)
                 && Objects.equals(condition, that.condition)
+                && this.creationTimestampMs == creationTimestampMs
                 && this.limit == that.limit
                 && Objects.equals(enabledRule, that.enabledRule);
         }
@@ -95,7 +99,7 @@ public class TraceRequestZkManager
         @Override
         public int hashCode() {
             return Objects.hash(name, deviceType, deviceId,
-                    condition, limit, enabledRule);
+                    condition, creationTimestampMs, limit, enabledRule);
         }
 
         @Override
@@ -104,6 +108,7 @@ public class TraceRequestZkManager
                 + ", deviceType=" + deviceType
                 + ", deviceId=" + deviceId
                 + ", condition=" + condition
+                + ", creationTimestampMs=" + creationTimestampMs
                 + ", limit=" + limit
                 + ", enabledRule=" + enabledRule + "}";
         }
