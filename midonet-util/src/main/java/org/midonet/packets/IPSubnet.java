@@ -83,7 +83,8 @@ public abstract class IPSubnet<T extends IPAddr> {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (this.getClass() != o.getClass()) return false;
+        if (o == null || this.getClass() != o.getClass())
+            return false;
 
         IPSubnet<T> that = Util.uncheckedCast(o);
         return prefixLen == that.prefixLen &&
