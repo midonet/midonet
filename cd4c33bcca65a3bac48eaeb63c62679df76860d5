@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_ffbf71ce",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/C3POMinion.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-04-01T09:08:38Z",
+      "side": 1,
+      "message": "well, this can\u0027t stand!",
+      "revId": "cd4c33bcca65a3bac48eaeb63c62679df76860d5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
