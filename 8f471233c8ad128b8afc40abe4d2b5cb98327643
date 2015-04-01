@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_5ce9737f",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 667,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-04-01T04:26:09Z",
+      "side": 1,
+      "message": "Is this intended to be thread-safe? I see some things that look like extra work being done to make it thread-safe (e.g. copying the cache collections before closing the caches) to make it thread-safe, but also some ways in which it isn\u0027t thread-safe.",
+      "revId": "8f471233c8ad128b8afc40abe4d2b5cb98327643",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_1ceffb88",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 675,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-04-01T04:26:09Z",
+      "side": 1,
+      "message": "toList or toArray would be a bit more efficient. No need for a set, which does extra work to ensure uniqueness.",
+      "range": {
+        "startLine": 675,
+        "startChar": 53,
+        "endLine": 675,
+        "endChar": 58
+      },
+      "revId": "8f471233c8ad128b8afc40abe4d2b5cb98327643",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
