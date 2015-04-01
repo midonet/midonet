@@ -1,0 +1,377 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_9c7c8b22",
+        "filename": "brain/tools/src/main/scala/org/midonet/brain/tools/TopologyZoomUpdater.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 899,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-04-01T02:29:01Z",
+      "side": 1,
+      "message": "You can omit this call to build. The top level build call will recursively call build on sub-messages.",
+      "range": {
+        "startLine": 899,
+        "startChar": 36,
+        "endLine": 899,
+        "endChar": 44
+      },
+      "revId": "bbe75cdca721526520b2542c1f5a72b78cb66db2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_bc9ce76a",
+        "filename": "cluster/src/main/proto/topology.proto",
+        "patchSetId": 4
+      },
+      "lineNbr": 355,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-04-01T02:29:01Z",
+      "side": 1,
+      "message": "Can we omit \"_TYPE\"?",
+      "range": {
+        "startLine": 352,
+        "startChar": 12,
+        "endLine": 355,
+        "endChar": 29
+      },
+      "revId": "bbe75cdca721526520b2542c1f5a72b78cb66db2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_fc8dbf32",
+        "filename": "cluster/src/main/proto/topology.proto",
+        "patchSetId": 4
+      },
+      "lineNbr": 365,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-04-01T02:29:01Z",
+      "side": 1,
+      "message": "Similarly, can we omit \"_EP\"?",
+      "range": {
+        "startLine": 358,
+        "startChar": 12,
+        "endLine": 365,
+        "endChar": 27
+      },
+      "revId": "bbe75cdca721526520b2542c1f5a72b78cb66db2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_5c833304",
+        "filename": "cluster/src/main/proto/topology.proto",
+        "patchSetId": 4
+      },
+      "lineNbr": 373,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-04-01T02:29:01Z",
+      "side": 1,
+      "message": "Can we omit \"_TYPE\"?",
+      "range": {
+        "startLine": 368,
+        "startChar": 12,
+        "endLine": 373,
+        "endChar": 29
+      },
+      "revId": "bbe75cdca721526520b2542c1f5a72b78cb66db2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_bcefc7af",
+        "filename": "midolman/src/main/java/org/midonet/midolman/host/interfaces/InterfaceDescription.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-04-01T02:29:01Z",
+      "side": 1,
+      "message": "s/2014/2015/",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "bbe75cdca721526520b2542c1f5a72b78cb66db2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_dcf28399",
+        "filename": "midolman/src/main/java/org/midonet/midolman/host/scanner/DefaultInterfaceScanner.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-04-01T02:29:01Z",
+      "side": 1,
+      "message": "s/2014/2015/",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "bbe75cdca721526520b2542c1f5a72b78cb66db2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_9cf80b7e",
+        "filename": "midolman/src/main/java/org/midonet/midolman/services/HostIdProviderService.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-04-01T02:29:01Z",
+      "side": 1,
+      "message": "s/2014/2015/",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "bbe75cdca721526520b2542c1f5a72b78cb66db2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_7cc70f46",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-04-01T02:29:01Z",
+      "side": 1,
+      "message": "This method name seems confusing, how about updateNewStack to be in line with the config option name?",
+      "range": {
+        "startLine": 102,
+        "startChar": 24,
+        "endLine": 102,
+        "endChar": 39
+      },
+      "revId": "bbe75cdca721526520b2542c1f5a72b78cb66db2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_fcbbffc1",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 154,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-04-01T02:29:01Z",
+      "side": 1,
+      "message": "A single method should do a single thing, therefore, \u0027identifyHost\u0027 should just just do that. Here this method should just get and set Host ID and name.",
+      "revId": "bbe75cdca721526520b2542c1f5a72b78cb66db2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_5cb173e0",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 157,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-04-01T02:29:01Z",
+      "side": 1,
+      "message": "A more specific exception is ideal. How about java.lang.IllegalStateException?",
+      "range": {
+        "startLine": 157,
+        "startChar": 22,
+        "endLine": 157,
+        "endChar": 38
+      },
+      "revId": "bbe75cdca721526520b2542c1f5a72b78cb66db2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_3cb637da",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 165,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-04-01T02:29:01Z",
+      "side": 1,
+      "message": "This is a separate operation that should be called from inside doStart()",
+      "revId": "bbe75cdca721526520b2542c1f5a72b78cb66db2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_dcc44342",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 185,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-04-01T02:29:01Z",
+      "side": 1,
+      "message": "This call can be, at least pulled out of this if clause, but I\u0027d say that it should be called at the same level / location as createHost().",
+      "range": {
+        "startLine": 185,
+        "startChar": 12,
+        "endLine": 185,
+        "endChar": 28
+      },
+      "revId": "bbe75cdca721526520b2542c1f5a72b78cb66db2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_1cdedb11",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 189,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-04-01T02:29:01Z",
+      "side": 1,
+      "message": "Just a suggestion and you can disregard if you want. I\u0027d collapse createHost and createHostOrExit since createHostOrExit doesn\u0027t add much other than saving one level of nesting.",
+      "revId": "bbe75cdca721526520b2542c1f5a72b78cb66db2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_9cd12bfe",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 244,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-04-01T02:29:01Z",
+      "side": 1,
+      "message": "You can skip exists and directly call get and catch NotFoundException to save 1 backend roundtrip.",
+      "range": {
+        "startLine": 240,
+        "startChar": 12,
+        "endLine": 244,
+        "endChar": 75
+      },
+      "revId": "bbe75cdca721526520b2542c1f5a72b78cb66db2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_fc093f96",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 295,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-04-01T02:29:01Z",
+      "side": 1,
+      "message": "Right now, this is completely duplicated above in createInBackend().",
+      "range": {
+        "startLine": 275,
+        "startChar": 4,
+        "endLine": 295,
+        "endChar": 5
+      },
+      "revId": "bbe75cdca721526520b2542c1f5a72b78cb66db2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_fc301f58",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 317,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-04-01T02:29:01Z",
+      "side": 1,
+      "message": "Why we don\u0027t call identifyHost in those cases?",
+      "range": {
+        "startLine": 317,
+        "startChar": 20,
+        "endLine": 317,
+        "endChar": 36
+      },
+      "revId": "bbe75cdca721526520b2542c1f5a72b78cb66db2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_3c04777a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 353,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-04-01T02:29:01Z",
+      "side": 1,
+      "message": "I haven\u0027t tested this but can you do something like this?\n\n\ninterfaces.map(_.getInetAddresses.asScala).toSeq",
+      "range": {
+        "startLine": 349,
+        "startChar": 8,
+        "endLine": 353,
+        "endChar": 17
+      },
+      "revId": "bbe75cdca721526520b2542c1f5a72b78cb66db2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
