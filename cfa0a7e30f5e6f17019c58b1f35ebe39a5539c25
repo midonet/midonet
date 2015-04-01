@@ -16,6 +16,24 @@
       "revId": "cfa0a7e30f5e6f17019c58b1f35ebe39a5539c25",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_9f7c7d22",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 8
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-04-01T09:30:14Z",
+      "side": 1,
+      "message": "Because we think it\u0027s a good default value, that is, a good compromise between re-simulations and flow table size.",
+      "parentUuid": "1a106d94_5c3cd3e2",
+      "revId": "cfa0a7e30f5e6f17019c58b1f35ebe39a5539c25",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
