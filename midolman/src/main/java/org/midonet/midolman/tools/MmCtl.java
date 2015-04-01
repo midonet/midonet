@@ -22,14 +22,12 @@ import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Date;
 import java.util.UUID;
 
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.sun.security.auth.module.UnixSystem;
@@ -42,15 +40,16 @@ import org.apache.commons.cli.OptionGroup;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
-import org.midonet.conf.MidoNodeConfigurator;
-import org.midonet.conf.MidoTestConfigurator;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.host.Host;
 import org.midonet.cluster.data.host.VirtualPortMapping;
+import org.midonet.cluster.storage.MidonetBackendModule;
 import org.midonet.conf.HostIdGenerator;
+import org.midonet.conf.MidoNodeConfigurator;
 import org.midonet.midolman.cluster.LegacyClusterModule;
 import org.midonet.midolman.cluster.serialization.SerializationModule;
 import org.midonet.midolman.cluster.zookeeper.ZookeeperConnectionModule;
@@ -104,7 +103,7 @@ public class MmCtl {
         private final int code;
         private final String msg;
 
-        private MM_CTL_RET_CODE(int code, String msg) {
+        MM_CTL_RET_CODE(int code, String msg) {
             this.code = code;
             this.msg = msg;
         }
@@ -416,28 +415,16 @@ public class MmCtl {
 
     private static Injector getInjector(String configFilePath) {
 
-        AbstractModule commandModule = new AbstractModule() {
-
-            @Override
-            protected void configure() {
-                install(new ZookeeperConnectionModule(
-                    ZookeeperConnectionWatcher.class
-                ));
-                bind(MidolmanConfig.class).toInstance(
-                        MidolmanConfig.apply());
-                install(new ZookeeperConnectionModule(
-                        ZookeeperConnectionWatcher.class));
-                install(new SerializationModule());
-                install(new LegacyClusterModule());
-            }
-        };
-
         MidoNodeConfigurator configurator =
-                MidoNodeConfigurator.forAgents(configFilePath);
+            MidoNodeConfigurator.forAgents(configFilePath);
+        MidolmanConfig config = MidolmanConfigModule.createConfig(configurator);
+
         return Guice.createInjector(
-                new MidolmanConfigModule(MidolmanConfigModule
-                                             .createConfig(configurator)),
-                commandModule
+            new MidolmanConfigModule(config),
+            new MidonetBackendModule(config.zookeeper()),
+            new ZookeeperConnectionModule(ZookeeperConnectionWatcher.class),
+            new SerializationModule(),
+            new LegacyClusterModule()
         );
     }
 
@@ -478,7 +465,7 @@ public class MmCtl {
             MmCtl mmctl = new MmCtl(injector.getInstance(DataClient.class),
                     injector.getInstance(MidolmanConfig.class));
 
-            MmCtlResult res = null;
+            MmCtlResult res;
             if (cl.hasOption("bind-port")) {
                 String[] opts = cl.getOptionValues("bind-port");
 
