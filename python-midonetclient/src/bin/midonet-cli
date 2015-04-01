@@ -1864,6 +1864,17 @@ class Rule(Condition):
                                 getter = 'get_nat_targets',
                                 setter = 'nat_targets',
                                 optional = True))
+        self.put_attr(SingleAttr(name = 'traceid',
+                                 value_type = StringType(),
+                                 getter = 'get_trace_request_id',
+                                 setter = 'trace_request_id',
+                                 optional = True))
+        self.put_attr(SingleAttr(name = 'tracelimit',
+                                 value_type = StringType(),
+                                 getter = 'get_trace_limit',
+                                 setter = 'trace_limit',
+                                 optional = True))
+
 
     def type_name(self):
         return "rule"
