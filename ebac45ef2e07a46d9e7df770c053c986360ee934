@@ -1,0 +1,113 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_dc49e3d1",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/collection/PathMap.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-04-01T03:49:42Z",
+      "side": 1,
+      "message": "Isn\u0027t this redundant because mutable.AbstractMap implements mutable.Map?",
+      "range": {
+        "startLine": 34,
+        "startChar": 25,
+        "endLine": 34,
+        "endChar": 52
+      },
+      "revId": "ebac45ef2e07a46d9e7df770c053c986360ee934",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_1c7a5bf1",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/collection/PathMap.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-04-01T03:49:42Z",
+      "side": 1,
+      "message": "Can you make this into a method comment?",
+      "range": {
+        "startLine": 66,
+        "startChar": 8,
+        "endLine": 66,
+        "endChar": 68
+      },
+      "revId": "ebac45ef2e07a46d9e7df770c053c986360ee934",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_bc46a7bd",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/collection/PathMap.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-04-01T03:49:42Z",
+      "side": 1,
+      "message": "Why don\u0027t you type-def this?",
+      "range": {
+        "startLine": 108,
+        "startChar": 16,
+        "endLine": 108,
+        "endChar": 38
+      },
+      "revId": "ebac45ef2e07a46d9e7df770c053c986360ee934",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_9c6dab35",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/collection/PathMap.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 114,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-04-01T03:49:42Z",
+      "side": 1,
+      "message": "getOrElseUpdate?",
+      "range": {
+        "startLine": 114,
+        "startChar": 25,
+        "endLine": 114,
+        "endChar": 28
+      },
+      "revId": "ebac45ef2e07a46d9e7df770c053c986360ee934",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_3c60f731",
+        "filename": "midonet-util/src/test/scala/org/midonet/util/collection/PathMapTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-04-01T03:49:42Z",
+      "side": 1,
+      "message": "Do we want a test for the root node? E.g. pm(\"/\") \u003d \"ROOT\", etc?",
+      "revId": "ebac45ef2e07a46d9e7df770c053c986360ee934",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
