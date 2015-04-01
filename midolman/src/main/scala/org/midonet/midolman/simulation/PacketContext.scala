@@ -20,10 +20,10 @@ import java.util.{Arrays, ArrayList, HashSet, Set => JSet, UUID}
 import scala.collection.JavaConversions._
 
 import com.typesafe.scalalogging.Logger
-import org.midonet.midolman.flows.ManagedFlow
 import org.slf4j.LoggerFactory
 
 import org.midonet.midolman._
+import org.midonet.midolman.flows.ManagedFlow
 import org.midonet.midolman.simulation.PacketEmitter.GeneratedPacket
 import org.midonet.midolman.state.FlowStatePackets
 import org.midonet.odp.{FlowMatch, Packet}
