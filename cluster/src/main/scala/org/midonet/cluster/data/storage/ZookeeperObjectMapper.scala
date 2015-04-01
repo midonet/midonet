@@ -52,7 +52,9 @@ import org.midonet.cluster.data.storage.FieldBinding.DeleteAction
 import org.midonet.cluster.data.storage.OwnershipType.OwnershipType
 import org.midonet.cluster.data.storage.TransactionManager._
 import org.midonet.cluster.data.{Obj, ObjId}
+import org.midonet.cluster.util.{PathClosedException, DirectoryObservableClosedException, NodeObservableClosedException}
 import org.midonet.util.reactivex._
+import org.midonet.util.functors.makeFunc1
 
 /**
  * Object mapper that uses Zookeeper as a data store. Maintains referential
@@ -537,7 +539,7 @@ class ZookeeperObjectMapper(
         assertBuilt()
         assert(isRegistered(clazz))
 
-        val all = Promise[Seq[T]]
+        val all = Promise[Seq[T]]()
         val cb = new BackgroundCallback {
             override def processResult(client: CuratorFramework,
                                        evt: CuratorEvent): Unit = {
@@ -629,7 +631,7 @@ class ZookeeperObjectMapper(
             case DeleteOp(clazz, id, ignoresNeo) =>
                 manager.delete(clazz, id, ignoresNeo, None)
             case DeleteWithOwnerOp(clazz, id, owner) =>
-                manager.delete(clazz, id, false, Some(owner))
+                manager.delete(clazz, id, ignoresNeo = false, Some(owner))
             case DeleteOwnerOp(clazz, id, owner) =>
                 manager.deleteOwner(clazz, id, owner)
         }
@@ -686,32 +688,21 @@ class ZookeeperObjectMapper(
                                       version: Long = this.version.longValue) =
         getPath(clazz, id, version) + "/" + owner.toString
 
-    /**
-     * @return The number of subscriptions to the given class and id. If the
-     *         corresponding entry does not exist, None is returned.
-     */
-    @VisibleForTesting
-    protected[storage] def subscriptionCount[T](clazz: Class[T], id: ObjId)
-    : Option[Int] = {
-        instanceCaches(clazz).get(id.toString).map(_.subscriptionCount)
-    }
-
     override def observable[T](clazz: Class[T], id: ObjId): Observable[T] = {
         assertBuilt()
         assert(isRegistered(clazz))
 
         instanceCaches(clazz).getOrElse(id.toString, {
-            val onLastUnsubscribe = (c: InstanceSubscriptionCache[_]) => {
-                instanceCaches.get(clazz).foreach( _ remove id.toString )
-            }
             val ic = new InstanceSubscriptionCache(clazz, getPath(clazz, id),
-                                                   id.toString, curator,
-                                                   onLastUnsubscribe)
-            instanceCaches(clazz).putIfAbsent(id.toString, ic) getOrElse {
-                async { ic.connect() }
-                ic
-            }
+                                                   id.toString, curator)
+            instanceCaches(clazz).putIfAbsent(id.toString, ic).getOrElse(ic)
         }).observable.asInstanceOf[Observable[T]]
+            .onErrorResumeNext(makeFunc1((e: Throwable) => e match {
+                case e: NodeObservableClosedException =>
+                    instanceCaches(clazz).remove(id.toString)
+                    observable(clazz, id)
+                case e: Throwable => Observable.error(e)
+            }))
     }
 
     /**
@@ -725,13 +716,15 @@ class ZookeeperObjectMapper(
         assert(isRegistered(clazz))
 
         classCaches.getOrElse(clazz, {
-            val onLastUnsubscribe: ClassSubscriptionCache[_] => Unit = c => {
-                classCaches.remove(clazz)
-            }
-            val cc = new ClassSubscriptionCache(clazz, getPath(clazz), curator,
-                                                onLastUnsubscribe)
+            val cc = new ClassSubscriptionCache(clazz, getPath(clazz), curator)
             classCaches.putIfAbsent(clazz, cc).getOrElse(cc)
         }).asInstanceOf[ClassSubscriptionCache[T]].observable
+            .onErrorResumeNext(makeFunc1((e: Throwable) => e match {
+                case e: PathClosedException =>
+                    classCaches.remove(clazz)
+                    observable(clazz)
+                case e: Throwable => Observable.error(e)
+            }))
     }
 
     override def ownersObservable(clazz: Class[_], id: ObjId)
@@ -740,22 +733,27 @@ class ZookeeperObjectMapper(
         assert(isRegistered(clazz))
 
         ownerCaches(clazz).getOrElse(id.toString, {
-            val onLastUnsubscribe: DirectorySubscriptionCache => Unit = c => {
-                ownerCaches.get(clazz).foreach( _ remove id.toString )
-            }
-            val oc = new DirectorySubscriptionCache(getPath(clazz, id), curator,
-                                                    onLastUnsubscribe)
+            val oc = new DirectorySubscriptionCache(getPath(clazz, id), curator)
             ownerCaches(clazz).putIfAbsent(id.toString, oc).getOrElse(oc)
         }).observable
+            .onErrorResumeNext(makeFunc1((e: Throwable) => e match {
+                case e: DirectoryObservableClosedException =>
+                    ownerCaches(clazz).remove(id.toString)
+                    ownersObservable(clazz, id)
+                case e: Throwable => Observable.error(e)
+            }))
     }
 
-    /**
-     * @return The number of subscriptions to the given class. If the
-     *         corresponding entry does not exist, None is returned.
-     */
     @VisibleForTesting
-    protected[storage] def subscriptionCount[T](clazz: Class[T]): Option[Int] = {
-        classCaches.get(clazz).map(_.subscriptionCount)
+    private[storage] def getClassSubscriptionCache(clazz: Class[_])
+    : Option[ClassSubscriptionCache[_]] = {
+        classCaches get clazz
+    }
+
+    @VisibleForTesting
+    private[storage] def getOwnersSubscriptionCache(clazz: Class[_], id: ObjId)
+    : Option[DirectorySubscriptionCache] = {
+        ownerCaches(clazz) get id.toString
     }
 
     private def assertBuilt() {

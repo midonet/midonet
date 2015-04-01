@@ -15,6 +15,8 @@
  */
 package org.midonet.cluster.util
 
+import java.io.IOException
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import javax.annotation.concurrent.GuardedBy
 
@@ -34,11 +36,13 @@ import org.apache.zookeeper.Watcher.Event.EventType._
 import org.slf4j.LoggerFactory.getLogger
 import rx.Observable.OnSubscribe
 import rx.subjects.{BehaviorSubject, PublishSubject, Subject}
+import rx.subscriptions.Subscriptions
 import rx.{Observable, Subscriber}
 
 import org.midonet.util.concurrent.Locks._
+import org.midonet.util.functors.makeAction0
 
-object ObservablePathChildrenCache {
+object PathChildrenObservable {
 
     /** This method will provide a hot observable emitting the child observables
       * for each of the child nodes that exist now, or are created later, on the
@@ -67,8 +71,8 @@ object ObservablePathChildrenCache {
       * All data notifications are executed on ZK's watcher thread.
       */
     def create(zk: CuratorFramework, path: String)
-    : ObservablePathChildrenCache = {
-        new ObservablePathChildrenCache(new OnSubscribeToPathChildren(zk, path))
+    : PathChildrenObservable = {
+        new PathChildrenObservable(new OnSubscribeToPathChildren(zk, path))
     }
 }
 
@@ -88,9 +92,14 @@ class OnSubscribeToPathChildren(zk: CuratorFramework, path: String)
 
     // The main stream of observables for each child node
     private val stream = PublishSubject.create[Observable[ChildData]]()
+    private val unsubscribeAction = makeAction0 {
+        if (!stream.hasObservers) {
+            safeClose(new PathClosedException)
+        }
+    }
 
-    @volatile
-    private var connectionLost = false
+    @volatile private var initialized = false
+    private val terminated = new AtomicBoolean(false)
 
     // PathChildrenCache can't deal with deletions of the parent, so we have to
     private var watcher = new CuratorWatcher {
@@ -101,9 +110,6 @@ class OnSubscribeToPathChildren(zk: CuratorFramework, path: String)
             }
         }
     }
-
-    @volatile
-    private var initialized = false
 
     private var cacheListener = new PathChildrenCacheListener {
         override def childEvent(client: CuratorFramework,
@@ -119,7 +125,7 @@ class OnSubscribeToPathChildren(zk: CuratorFramework, path: String)
                 case CONNECTION_RECONNECTED =>
                     log.debug(s"connection restored $path")
                 case CONNECTION_LOST =>
-                    lostConnection(new PathCacheDisconnectedException())
+                    safeClose(new PathDisconnectedException())
                 case INITIALIZED =>
                     initialized = true
                     doInitialize = null // gc the callback
@@ -136,7 +142,7 @@ class OnSubscribeToPathChildren(zk: CuratorFramework, path: String)
                                   newState: ConnectionState): Unit = {
             newState match {
                 case ConnectionState.LOST =>
-                    lostConnection(new PathCacheDisconnectedException())
+                    safeClose(new PathDisconnectedException())
                 case _ =>
             }
         }
@@ -154,7 +160,7 @@ class OnSubscribeToPathChildren(zk: CuratorFramework, path: String)
                                    e: CuratorEvent): Unit = e.getType match {
             case CuratorEventType.EXISTS if !initialized =>
                 if (e.getResultCode == NONODE.intValue()) {
-                    lostConnection(new NoNodeException(path))
+                    safeClose(new NoNodeException(path))
                 } else if (e.getResultCode == OK.intValue()) {
                     cache.start(StartMode.POST_INITIALIZED_EVENT)
                 }
@@ -184,20 +190,19 @@ class OnSubscribeToPathChildren(zk: CuratorFramework, path: String)
      *
      * This runs on the data event thread.
      */
-    override def call(s: Subscriber[_ >: Observable[ChildData]]): Unit = {
-        if (connectionLost) {
-            s.onError(new PathCacheDisconnectedException)
+    override def call(child: Subscriber[_ >: Observable[ChildData]]): Unit = {
+        withReadLock(childrenLock) { // Probably not necessary, removals
+                                     // happen in the same thrad
+            val it = childStreams.values.iterator // NPE-safe
+            while(it.hasNext && !terminated.get) {
+                child.onNext(it.next())
+            }
+        }
+        if (!terminated.get) {
+            stream subscribe child
+            child.add(Subscriptions.create(unsubscribeAction))
         } else {
-            withReadLock(childrenLock) { // Probably not necessary, removals
-                                         // happen in the same thrad
-                val it = childStreams.values.iterator // NPE-safe
-                while(it.hasNext && !connectionLost) {
-                    s.onNext(it.next())
-                }
-            }
-            if (!connectionLost) {
-                stream subscribe s
-            }
+            child.onError(new PathClosedException)
         }
     }
 
@@ -207,35 +212,44 @@ class OnSubscribeToPathChildren(zk: CuratorFramework, path: String)
      * Runs on the data event thread.
      */
     private def parentDeleted(): Unit = {
-        if (connectionLost) {
+        if (terminated.get) {
             return
         }
         stream.onCompleted()
         val e = new ParentDeletedException(path)
         val it = childStreams.values.iterator
-        while (it.hasNext && !connectionLost) {
+        while (it.hasNext && !terminated.get) {
             it.next().onError(e)
         }
     }
 
     /** The Observable is not recoverable. Mark it as such so any new
       * subscribers get an error and are forced to retrieve a new one. Existing
-      * subscribers will receive an onError with a DisconnectedException, as
-      * well as all child subscribers.
+      * subscribers will receive an onError with either a
+      * [[PathDisconnectedException]] if the connection to ZK was lost or a
+      * [[PathClosedException]] if the cache was closed, as well as all
+      * child subscribers.
       *
       * Runs on the connection event thread.
       */
-    private def lostConnection(e: Throwable): Unit = {
-        connectionLost = true
-        cache.getListenable.removeListener(cacheListener)
-        zk.getConnectionStateListenable.removeListener(connListener)
-        cache.close()
-        stream.onError(e)
-        childStreams.values.foreach(_ onError e)
-        childStreams.clear()
-        cacheListener = null
-        connListener = null
-        watcher = null
+    @throws[IOException]
+    private def close(e: Throwable): Unit = {
+        if (terminated.compareAndSet(false, true)) {
+            cache.getListenable.removeListener(cacheListener)
+            zk.getConnectionStateListenable.removeListener(connListener)
+            stream.onError(e)
+            childStreams.values.foreach(_ onError e)
+            childStreams.clear()
+            cacheListener = null
+            connListener = null
+            watcher = null
+            cache.close()
+        }
+    }
+
+    private def safeClose(e: Throwable): Unit = {
+        try { close(e) }
+        catch { case ex: IOException => }
     }
 
     /* A child node was deleted, the child observable will be completed.
@@ -247,7 +261,7 @@ class OnSubscribeToPathChildren(zk: CuratorFramework, path: String)
         withWriteLock(childrenLock) {
             cs = childStreams.remove(e.getData.getPath)
         }
-        if (!connectionLost) {
+        if (!terminated.get) {
             cs.foreach { _.onCompleted() }
         }
     }
@@ -255,7 +269,7 @@ class OnSubscribeToPathChildren(zk: CuratorFramework, path: String)
     /* A child node was modified, emit the new state on its stream */
     private def changedChild(e: PathChildrenCacheEvent): Unit = {
         childStreams.get(e.getData.getPath).foreach { s =>
-            if (!connectionLost) s onNext e.getData
+            if (!terminated.get) s onNext e.getData
         }
     }
 
@@ -265,7 +279,7 @@ class OnSubscribeToPathChildren(zk: CuratorFramework, path: String)
       * observable. We will have to block the children cache to guarantee no
       * missed updates on subscribers. */
     private def newChild(childData: ChildData): Unit = {
-        if (connectionLost) {
+        if (terminated.get) {
             return
         }
         var newStream: Subject[ChildData, ChildData] = null
@@ -275,7 +289,7 @@ class OnSubscribeToPathChildren(zk: CuratorFramework, path: String)
                 childStreams.put(childData.getPath, newStream)
             }
         }
-        if (connectionLost) {
+        if (terminated.get) {
             childStreams.remove(childData.getPath)
         } else if (newStream != null) {
             stream onNext newStream
@@ -286,7 +300,7 @@ class OnSubscribeToPathChildren(zk: CuratorFramework, path: String)
       * loss. The parent and child observables will emit a
       * PathCacheDisconnectedException signalling that the observables are
       * no longer listening ZK updates. */
-    def close(): Unit = lostConnection(new PathCacheDisconnectedException())
+    def close(): Unit = close(new PathClosedException)
 
     /** Expose the ChildData of the children under the given absolute path. */
     def child(path: String): ChildData = cache.getCurrentData(path)
@@ -307,7 +321,7 @@ class OnSubscribeToPathChildren(zk: CuratorFramework, path: String)
 
     /** Expose a view of the latest known state of all children */
     def allChildren: Seq[ChildData] = {
-        if (connectionLost) {
+        if (terminated.get) {
             Seq.empty
         } else {
             val children = cache.getCurrentData
@@ -316,7 +330,14 @@ class OnSubscribeToPathChildren(zk: CuratorFramework, path: String)
         }
     }
 
+    /** Indicates that the underlying stream has one or more observers
+      * subscribed to it. */
+    def hasObservers = stream.hasObservers
+
+    /** Indicates that the cache is in terminated state and therefore unusable */
+    def isClosed = terminated.get
 }
+
 /**
  * The ObservablePathChildrenCache provides a wrapper around an ordinary
  * Curator's PathChildrenCache, exposing an API that allows retrieving an
@@ -328,7 +349,7 @@ class OnSubscribeToPathChildren(zk: CuratorFramework, path: String)
  * that ZK uses to process the server's notification so you can assume that
  * data notifications emitted from the Observable will be serialized.
  */
-class ObservablePathChildrenCache(onSubscribe: OnSubscribeToPathChildren)
+class PathChildrenObservable(onSubscribe: OnSubscribeToPathChildren)
     extends Observable[Observable[ChildData]] (onSubscribe) {
 
     /** Complete the observable for all subscribers, and terminate the
@@ -346,6 +367,14 @@ class ObservablePathChildrenCache(onSubscribe: OnSubscribeToPathChildren)
 
     /** Returns a view of all children currently known to the cache */
     def allChildren: Seq[ChildData] = onSubscribe.allChildren
+
+    /** Indicates that the underlying cache has one or more observers subscribed
+      * to the cache. */
+    def hasObservers = onSubscribe.hasObservers
+
+    /** Indicates that the underlying cache has closed its ZooKeeper
+      * connection and is therefore unusable. */
+    def isClosed = onSubscribe.isClosed
 }
 
 /** Signals that the parent node has been deleted */
@@ -353,7 +382,10 @@ class ParentDeletedException(path: String)
     extends RuntimeException(s"Parent $path removed")
 
 /** Signals that the underlying cache has lost the connection to ZK. */
-class PathCacheDisconnectedException extends RuntimeException
+class PathDisconnectedException extends RuntimeException
+
+/** Signals that the underlying cache was closed. */
+class PathClosedException extends RuntimeException
 
 /** Signals that the requested path is not a known child of the observed node */
 class ChildNotExistsException(path: String)

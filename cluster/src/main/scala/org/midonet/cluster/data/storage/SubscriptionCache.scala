@@ -15,18 +15,16 @@
  */
 package org.midonet.cluster.data.storage
 
-import java.util.concurrent.atomic.AtomicInteger
-
 import scala.collection.concurrent.TrieMap
 
-import com.google.common.annotations.VisibleForTesting
 import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.recipes.cache.ChildData
+
 import rx.Observable
 import rx.functions.Func1
 
-import org.midonet.cluster.util.{ObservablePathDirectoryCache, ObservableNodeCache, ObservablePathChildrenCache}
-import org.midonet.util.functors.{makeAction0, makeFunc1}
+import org.midonet.cluster.util.{NodeObservable, PathChildrenObservable, PathDirectoryObservable}
+import org.midonet.util.functors.makeFunc1
 
 /**
  * Watches the specified Zookeeper node's data and deserializes updates to
@@ -44,29 +42,14 @@ import org.midonet.util.functors.{makeAction0, makeFunc1}
  * @param clazz Class to deserialize to.
  * @param path Zookeeper path of node to watch.
  * @param id The id of the node.
- * @param onLastUnsubscribe A function that is called when the last subscriber
- *                          unsubscribes. This is used to pass the ids of caches
- *                          to garbage collect to ZOOM.
  */
 private[storage]
 class InstanceSubscriptionCache[T](val clazz: Class[T],
                                    val path: String,
                                    val id: String,
-                                   val curator: CuratorFramework,
-                                   val onLastUnsubscribe:
-                                       (InstanceSubscriptionCache[_]) => Unit) {
+                                   val curator: CuratorFramework) {
 
-    private val nodeCache = new ObservableNodeCache(curator, path)
-
-    // Auxiliary stuff for GC
-    private val refCount = new AtomicInteger()
-    private val onSubscribe = makeAction0 { refCount.incrementAndGet() }
-    private val onUnsubscribe = makeAction0 {
-            if (refCount.decrementAndGet() == 0) {
-                nodeCache.close()
-                onLastUnsubscribe(this)
-            }
-    }
+    private val nodeCache = NodeObservable.create(curator, path)
 
     /** The Observable where clients interested in updates about this entity may
       * subscribe. Elements will start flowing as soon as connect() is called
@@ -79,21 +62,13 @@ class InstanceSubscriptionCache[T](val clazz: Class[T],
       * the connection is dead. The subscriber is then responsible to use an
       * operator such as onErrorResumeNext to recreate a new
       * InstanceSubscriptionCache and fetch the restored Observable. */
-    val observable = nodeCache.observable
-                              .map[T](DeserializerCache.deserializer(clazz))
-                              .doOnSubscribe(onSubscribe)
-                              .doOnUnsubscribe(onUnsubscribe)
-
-    def connect(): Unit = nodeCache.connect()
-
-    @VisibleForTesting
-    def subscriptionCount = refCount.get
-
-    /** Retrieve the last known value of the watched entity. */
-    def current: T = DeserializerCache.deserializer(clazz)
-                                      .call(nodeCache.current)
+    val observable = nodeCache.map[T](DeserializerCache.deserializer(clazz))
 
     def close() = nodeCache.close()
+
+    def hasObservers = nodeCache.hasObservers
+
+    def isClosed = nodeCache.isClosed
 
 }
 
@@ -105,27 +80,13 @@ class InstanceSubscriptionCache[T](val clazz: Class[T],
  *
  * @param clazz Class to deserialize to.
  * @param path Path of parent node to watch.
- * @param onLastUnsubscribe A function that is called when the last subscriber
- *                          unsubscribes. This is used to pass the ids of caches
- *                          to garbage collect to ZOOM.
  */
 private[storage]
 class ClassSubscriptionCache[T](val clazz: Class[T],
                                 path: String,
-                                curator: CuratorFramework,
-                                onLastUnsubscribe:
-                                    (ClassSubscriptionCache[_]) => Unit) {
+                                curator: CuratorFramework) {
 
-    private val pathCache = ObservablePathChildrenCache.create(curator, path)
-    private val refCount = new AtomicInteger()
-
-    private val decSubscribers = makeAction0 (
-        if (refCount.decrementAndGet() == 0) {
-            pathCache.close()
-            onLastUnsubscribe(ClassSubscriptionCache.this)
-        }
-    )
-    private val incSubscribers = makeAction0(refCount.incrementAndGet())
+    private val pathCache = PathChildrenObservable.create(curator, path)
 
     private val deserializer = makeFunc1 {
         obs: Observable[ChildData] =>
@@ -133,12 +94,12 @@ class ClassSubscriptionCache[T](val clazz: Class[T],
     }
 
     val observable = pathCache.map[Observable[T]](deserializer)
-                              .doOnSubscribe(incSubscribers)
-                              .doOnUnsubscribe(decSubscribers)
-
-    def subscriptionCount = refCount.get
 
     def close() = pathCache.close()
+
+    def hasObservers = pathCache.hasObservers
+
+    def isClosed = pathCache.isClosed
 
 }
 
@@ -147,33 +108,19 @@ class ClassSubscriptionCache[T](val clazz: Class[T],
  * that emits the set of the current childrens' names.
  *
  * @param path Path of the parent node to watch.
- * @param onLastUnsubscribe A function that is called when the last subscriber
- *                          unsubscribes.
  */
 private[storage]
 class DirectorySubscriptionCache(path: String,
-                                 curator: CuratorFramework,
-                                 onLastUnsubscribe:
-                                     (DirectorySubscriptionCache) => Unit) {
+                                 curator: CuratorFramework) {
 
-    private val dirCache = ObservablePathDirectoryCache.create(curator, path)
-    private val refCount = new AtomicInteger()
+    val observable = PathDirectoryObservable.create(curator, path)
 
-    private val decSubscribers = makeAction0 (
-        if (refCount.decrementAndGet() == 0) {
-            dirCache.close()
-            onLastUnsubscribe(DirectorySubscriptionCache.this)
-        }
-    )
-    private val incSubscribers = makeAction0(refCount.incrementAndGet())
+    def close(): Unit = observable.close()
 
-    val observable = dirCache
-        .doOnSubscribe(incSubscribers)
-        .doOnUnsubscribe(decSubscribers)
+    def hasObservers = observable.hasObservers
 
-    def subscriptionCount = refCount.get
+    def isClosed = observable.isClosed
 
-    def close(): Unit = dirCache.close()
 }
 
 /**

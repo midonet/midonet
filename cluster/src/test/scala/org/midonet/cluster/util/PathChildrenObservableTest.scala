@@ -36,12 +36,12 @@ import org.midonet.util.MidonetEventually
 import org.midonet.util.functors.makeRunnable
 
 @RunWith(classOf[JUnitRunner])
-class ObservablePathChildrenCacheTest extends Suite
+class PathChildrenObservableTest extends Suite
                                       with CuratorTestFramework
                                       with Matchers
                                       with MidonetEventually {
 
-    val log = LoggerFactory.getLogger(classOf[ObservablePathChildrenCache])
+    val log = LoggerFactory.getLogger(classOf[PathChildrenObservable])
 
     /** Subscribes to an ObservablePathChildrenCache and also to every child
       * observable that appears, accumulating all the data received. The given
@@ -102,7 +102,7 @@ class ObservablePathChildrenCacheTest extends Suite
         val latch = new CountDownLatch(nChildren)
         val collector = new ChildDataAccumulator(latch)
         makePaths(nChildren)
-        val opcc = ObservablePathChildrenCache.create(curator, ZK_ROOT)
+        val opcc = PathChildrenObservable.create(curator, ZK_ROOT)
         opcc.subscribe(collector)
         assert(latch.await(1, TimeUnit.SECONDS))
         collector.getOnNextEvents should have size nChildren
@@ -117,7 +117,7 @@ class ObservablePathChildrenCacheTest extends Suite
     }
 
     def testOnNonExistentPath(): Unit = {
-        val o = ObservablePathChildrenCache.create(curator, "/NOT_EXISTS")
+        val o = PathChildrenObservable.create(curator, "/NOT_EXISTS")
         val l1 = new CountDownLatch(1)
         val l2 = new CountDownLatch(1)
         def observer = (l: CountDownLatch) =>
@@ -144,7 +144,7 @@ class ObservablePathChildrenCacheTest extends Suite
     def testObservableChildForNonExistingChild(): Unit = {
         val ts = new TestObserver[ChildData]()
         makePaths(1)
-        ObservablePathChildrenCache.create(curator, ZK_ROOT)
+        PathChildrenObservable.create(curator, ZK_ROOT)
                                    .observableChild("NOT_A_REAL_CHILD")
                                    .subscribe(ts)
         ts.assertTerminalEvent()
@@ -172,7 +172,7 @@ class ObservablePathChildrenCacheTest extends Suite
             }
         }
         makePaths(nItems)
-        val opcc = ObservablePathChildrenCache.create(curator, ZK_ROOT)
+        val opcc = PathChildrenObservable.create(curator, ZK_ROOT)
         opcc.asObservable().subscribe(ts)
         assert(count.await(1, TimeUnit.SECONDS))
         opcc close()
@@ -181,7 +181,7 @@ class ObservablePathChildrenCacheTest extends Suite
         ts.getOnNextEvents should have size nItems
         ts.getOnErrorEvents should have size 1
         assert(ts.getOnErrorEvents
-                 .get(0).isInstanceOf[PathCacheDisconnectedException])
+                 .get(0).isInstanceOf[PathClosedException])
 
         // Review all the emitted observables and ensure that they are all
         // erroring
@@ -201,7 +201,7 @@ class ObservablePathChildrenCacheTest extends Suite
 
         makePaths(2)
         val collector = new ChildDataAccumulator()
-        val opcc = ObservablePathChildrenCache.create(curator, ZK_ROOT)
+        val opcc = PathChildrenObservable.create(curator, ZK_ROOT)
         opcc.subscribe(collector)
 
         eventually {
@@ -238,7 +238,7 @@ class ObservablePathChildrenCacheTest extends Suite
         val nodeData = makePaths(1)
         val childData = nodeData.values.head
         val collector = new ChildDataAccumulator()
-        val opcc = ObservablePathChildrenCache.create(curator, ZK_ROOT)
+        val opcc = PathChildrenObservable.create(curator, ZK_ROOT)
 
         nodeData should not be null
 
@@ -280,7 +280,7 @@ class ObservablePathChildrenCacheTest extends Suite
         val nodeData = makePaths(1)
         val oldChildData = nodeData.values.head
         val collector = new ChildDataAccumulator()
-        val opcc = ObservablePathChildrenCache.create(curator, ZK_ROOT)
+        val opcc = PathChildrenObservable.create(curator, ZK_ROOT)
 
         opcc.subscribe(collector)
 
@@ -319,7 +319,7 @@ class ObservablePathChildrenCacheTest extends Suite
 
         makePaths(nInitial) // Create nInitial children
 
-        val opcc = ObservablePathChildrenCache.create(curator, ZK_ROOT)
+        val opcc = PathChildrenObservable.create(curator, ZK_ROOT)
 
         // Let the OPCC catch up to the initial state
         eventually { opcc.allChildren should have size nInitial }
@@ -378,7 +378,7 @@ class ObservablePathChildrenCacheTest extends Suite
 /** Tests related to connection failures handling that tweak session and cnxn
   * timeouts. */
 @RunWith(classOf[JUnitRunner])
-class ObservablePathChildrenCacheConnectionTest extends Suite
+class PathChildrenObservableConnectionTest extends Suite
     with CuratorTestFramework
     with Matchers {
 
@@ -391,7 +391,7 @@ class ObservablePathChildrenCacheConnectionTest extends Suite
     def testOnErrorEmittedWhenCacheLosesConnection(): Unit = {
         val ts1 = observer[Observable[ChildData]](2, 1, 0)
         makePaths(2)
-        val o = ObservablePathChildrenCache.create(curator, ZK_ROOT)
+        val o = PathChildrenObservable.create(curator, ZK_ROOT)
         o.subscribe(ts1)
         assert(ts1.c.await(1, TimeUnit.SECONDS))
         ts1.getOnErrorEvents shouldBe empty
@@ -400,7 +400,7 @@ class ObservablePathChildrenCacheConnectionTest extends Suite
         assert(ts1.e.await(cnxnTimeoutMs * 5, TimeUnit.MILLISECONDS))
         ts1.getOnErrorEvents should have size 1
         assert(
-            ts1.getOnErrorEvents.get(0).isInstanceOf[PathCacheDisconnectedException]
+            ts1.getOnErrorEvents.get(0).isInstanceOf[PathDisconnectedException]
         )
         zk.restart()
 
@@ -408,7 +408,7 @@ class ObservablePathChildrenCacheConnectionTest extends Suite
         val ts2 = observer[Observable[ChildData]](0, 0, 0)
         o.subscribe(ts2)
         assert(ts2.e.await(1, TimeUnit.SECONDS))
-        assert(ts2.getOnErrorEvents.get(0).isInstanceOf[PathCacheDisconnectedException])
+        assert(ts2.getOnErrorEvents.get(0).isInstanceOf[PathClosedException])
         ts2.getOnNextEvents shouldBe empty
         ts2.getOnCompletedEvents shouldBe empty
     }
