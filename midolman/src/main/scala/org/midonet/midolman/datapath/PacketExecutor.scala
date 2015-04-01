@@ -16,17 +16,18 @@
 
 package org.midonet.midolman.datapath
 
+import java.nio.BufferOverflowException
 import java.util._
 
 import com.google.protobuf.{MessageLite, CodedOutputStream}
 
 import com.typesafe.scalalogging.Logger
-import org.midonet.midolman.simulation.PacketContext
 import org.slf4j.LoggerFactory
 
 import com.lmax.disruptor.{EventHandler, LifecycleAware}
 
 import org.midonet.midolman.datapath.DisruptorDatapathChannel._
+import org.midonet.midolman.simulation.PacketContext
 import org.midonet.netlink._
 import org.midonet.odp.flows.FlowAction
 import org.midonet.odp.{FlowMatches, Packet, OvsProtocol, OvsNetlinkFamilies}
@@ -63,6 +64,10 @@ trait StatePacketExecutor {
     }
 }
 
+object PacketExecutor {
+    private val MAX_BUF_CAPACITY = 4 * 1024 * 1024
+}
+
 sealed class PacketExecutor(families: OvsNetlinkFamilies,
                             numHandlers: Int, index: Int,
                             channelFactory: NetlinkChannelFactory)
@@ -71,8 +76,8 @@ sealed class PacketExecutor(families: OvsNetlinkFamilies,
 
     val log = Logger(LoggerFactory.getLogger(s"org.midonet.datapath.packet-executor-$index"))
 
-    private val writeBuf = BytesUtil.instance.allocateDirect(4*1024)
-    private val readBuf = BytesUtil.instance.allocateDirect(4*1024)
+    private var writeBuf = BytesUtil.instance.allocateDirect(64 * 1024)
+    private val readBuf = BytesUtil.instance.allocateDirect(8 * 1024)
     private val channel = channelFactory.create(blocking = true)
     private val pid = channel.getLocalAddress.getPid
 
@@ -123,6 +128,14 @@ sealed class PacketExecutor(families: OvsNetlinkFamilies,
         try {
             protocol.preparePacketExecute(datapathId, packet, actions, writeBuf)
             writer.write(writeBuf)
+        } catch { case e: BufferOverflowException =>
+            val capacity = writeBuf.capacity()
+            if (capacity >= PacketExecutor.MAX_BUF_CAPACITY)
+                throw e
+            val newCapacity = capacity * 2
+            writeBuf = BytesUtil.instance.allocateDirect(newCapacity)
+            log.debug(s"Increasing buffer size to $newCapacity")
+            executePacket(datapathId, packet, actions)
         } finally {
             writeBuf.clear()
         }
