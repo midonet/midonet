@@ -66,7 +66,7 @@ trait RuleManager {
         NatRuleData.newBuilder.setDnat(dnat).setReverse(true).build()
     }
 
-    protected def toRuleIdList(ops: Seq[Operation[Rule]]) = ops.map {
+    protected def toRuleIdList(ops: Seq[Operation]) = ops.map {
         case Create(r: Rule) => r.getId
         case Update(r: Rule, _) => r.getId
         case Delete(_, id) => id

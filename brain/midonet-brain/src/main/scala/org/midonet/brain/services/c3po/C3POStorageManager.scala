@@ -50,7 +50,7 @@ object C3POStorageManager {
     }
 
     /** A generic operation on a model */
-    trait Operation[T <: Message] {
+    trait Operation {
         def opType: OpType.OpType
         def toPersistenceOp: PersistenceOp
     }

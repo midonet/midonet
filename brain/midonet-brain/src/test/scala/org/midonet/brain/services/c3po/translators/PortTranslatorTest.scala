@@ -44,8 +44,8 @@ trait OpMatchers {
      * ignoring the "id" field when the expected message doesn't have the field
      * set. This is needed because often an ID of a model is assigned randomly.
      */
-    class ContainsOp[M <: Message](expected: Operation[M])
-    extends Matcher[List[Operation[M]]] {
+    class ContainsOp[M <: Message](expected: Operation)
+    extends Matcher[List[Operation]] {
         private def matchesModuloId(expected: Message,
                                     actual: Message): Boolean = {
             if (actual.getClass != expected.getClass) return false
@@ -60,7 +60,7 @@ trait OpMatchers {
             expectedFields == actualFields
         }
 
-        private def matchesOp(expected: Operation[M], actual: Operation[M]) = {
+        private def matchesOp(expected: Operation, actual: Operation) = {
             if (expected.opType == actual.opType) {
                 expected match {
                     case midonet.Create(m) =>
@@ -74,14 +74,14 @@ trait OpMatchers {
             } else false
         }
 
-        def apply(left: List[Operation[M]]) =
+        def apply(left: List[Operation]) =
             MatchResult(left.exists { matchesOp(expected, _) },
                         s"$left\n\ndoes not contain a matching operation\n\n" +
                         s"$expected",
                         s"$left\n\ncontains a matching operation\n\n$expected")
     }
 
-    def containOp[M <: Message](expected: Operation[M]) =
+    def containOp[M <: Message](expected: Operation) =
         new ContainsOp[M](expected)
 }
 
@@ -196,7 +196,7 @@ class PortTranslatorTest extends FlatSpec with BeforeAndAfter
      * first one found.
      */
     protected def findChainOp(
-            ops: List[Operation[Message]], op: OpType.OpType, chainId: UUID) = {
+            ops: List[Operation], op: OpType.OpType, chainId: UUID) = {
         ops.collectFirst {
             case midonet.Create(c: Chain)
                     if c.getId == chainId && op == OpType.Create => c
@@ -299,9 +299,9 @@ class VifPortCreateTranslationTest extends VifPortTranslationTest {
 
     "A created VIF port" should "have security bindings" in {
 
-        val midoOps: List[Operation[Message]] =
+        val midoOps: List[Operation] =
             translator.translate(neutron.Create(vifPortWithFipsAndSgs))
-                      .asInstanceOf[List[Operation[Message]]]
+                      .asInstanceOf[List[Operation]]
 
         midoOps should contain (midonet.Create(mPortWithChains))
 
@@ -559,9 +559,9 @@ class VifPortUpdateDeleteTranslationTest extends VifPortTranslationTest {
         when(storage.get(classOf[NeutronPort], portId))
             .thenReturn(Promise.successful(vifPortWithFipsAndSgs).future)
 
-        val midoOps: List[Operation[Message]] =
+        val midoOps: List[Operation] =
             translator.translate(neutron.Update(vifPortWithFipsAndSgs2))
-                      .asInstanceOf[List[Operation[Message]]]
+                      .asInstanceOf[List[Operation]]
 
         val revFlowRuleOutbound = mRuleFromTxt(s"""
             type: LITERAL_RULE
@@ -822,9 +822,9 @@ class DhcpPortCreateTranslationTest extends DhcpPortTranslationTest {
     }
 
     "DHCP port CREATE" should "configure DHCP" in {
-        val midoOps: List[Operation[Message]] =
+        val midoOps: List[Operation] =
             translator.translate(neutron.Create(dhcpPort))
-                      .asInstanceOf[List[Operation[Message]]]
+                      .asInstanceOf[List[Operation]]
 
         midoOps.size shouldBe 4
         midoOps(0) shouldBe midonet.Create(mRouteFromTxt(s"""

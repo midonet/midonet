@@ -25,7 +25,7 @@ import org.midonet.cluster.models.Commons
 package object midonet {
 
     /** Defines an operation on a MidoNet model. */
-    sealed trait MidoOp[T <: Message] extends Operation[T]
+    sealed trait MidoOp[T <: Message] extends Operation
 
     case class Create[T <: Message](model: T) extends MidoOp[T] {
         override val opType = OpType.Create
