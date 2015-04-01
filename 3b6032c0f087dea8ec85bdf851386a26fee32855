@@ -73,6 +73,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_bf69798d",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/vtep/model/PhysicalLocatorSet.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-04-01T10:17:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_b3d09f54",
+      "range": {
+        "startLine": 26,
+        "startChar": 27,
+        "endLine": 26,
+        "endChar": 36
+      },
+      "revId": "3b6032c0f087dea8ec85bdf851386a26fee32855",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_d3cf1baf",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/vtep/model/PhysicalSwitch.scala",
         "patchSetId": 7
@@ -96,6 +120,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_1f2d2d47",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/vtep/model/PhysicalSwitch.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-04-01T10:17:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_d3cf1baf",
+      "range": {
+        "startLine": 41,
+        "startChar": 39,
+        "endLine": 41,
+        "endChar": 49
+      },
+      "revId": "3b6032c0f087dea8ec85bdf851386a26fee32855",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_53520bde",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/vtep/model/PhysicalSwitch.scala",
         "patchSetId": 7
@@ -107,6 +155,30 @@
       "writtenOn": "2015-03-30T14:56:29Z",
       "side": 1,
       "message": "the \"case other\" should do I think",
+      "range": {
+        "startLine": 80,
+        "startChar": 7,
+        "endLine": 80,
+        "endChar": 26
+      },
+      "revId": "3b6032c0f087dea8ec85bdf851386a26fee32855",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_1fd40d1f",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/vtep/model/PhysicalSwitch.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-04-01T10:17:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_53520bde",
       "range": {
         "startLine": 80,
         "startChar": 7,
@@ -154,6 +226,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_bfaa196e",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/vtep/model/PhysicalSwitch.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-04-01T10:17:35Z",
+      "side": 1,
+      "message": "I\u0027ve changed it to be based on uuid only",
+      "parentUuid": "1a106d94_2423c706",
+      "revId": "3b6032c0f087dea8ec85bdf851386a26fee32855",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_33f94fc9",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/vtep/model/VtepMAC.scala",
         "patchSetId": 7
@@ -177,6 +267,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_ffa651c0",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/vtep/model/VtepMAC.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-04-01T10:17:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_33f94fc9",
+      "range": {
+        "startLine": 32,
+        "startChar": 33,
+        "endLine": 32,
+        "endChar": 58
+      },
+      "revId": "3b6032c0f087dea8ec85bdf851386a26fee32855",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_13f6d3d7",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/vtep/model/VtepMAC.scala",
         "patchSetId": 7
@@ -188,6 +302,30 @@
       "writtenOn": "2015-03-30T14:56:29Z",
       "side": 1,
       "message": "ditto",
+      "range": {
+        "startLine": 44,
+        "startChar": 12,
+        "endLine": 44,
+        "endChar": 13
+      },
+      "revId": "3b6032c0f087dea8ec85bdf851386a26fee32855",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_5facc5a0",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/vtep/model/VtepMAC.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-04-01T10:17:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_13f6d3d7",
       "range": {
         "startLine": 44,
         "startChar": 12,
