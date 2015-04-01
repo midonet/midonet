@@ -442,6 +442,9 @@ class PacketWorkflow(
                 context.flowRemovedCallbacks.runAndClear()
                 UserspaceFlow
             } else {
+                val flowMask = new FlowMask
+                flowMask.calculateFor(context.origMatch)
+                context.log.debug(s"Flow mask: $flowMask")
                 tryAddFlow(context, expiration)
                 FlowCreated
             }

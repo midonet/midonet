@@ -16,7 +16,8 @@
 
 package org.midonet.midolman.datapath
 
-import java.nio.ByteBuffer
+import java.nio.{BufferOverflowException, ByteBuffer}
+import java.util.ArrayList
 
 import com.lmax.disruptor.{Sequencer, LifecycleAware, EventPoller}
 import rx.Observer
@@ -28,6 +29,7 @@ import org.midonet.midolman.datapath.DisruptorDatapathChannel._
 import org.midonet.netlink._
 import org.midonet.netlink.exceptions.NetlinkException
 import org.midonet.odp.{FlowMask, FlowMatch, OvsNetlinkFamilies, OvsProtocol}
+import org.midonet.odp.flows.{FlowAction, FlowKey}
 import org.midonet.Util
 import org.midonet.util.concurrent.{NanoClock, Backchannel}
 
@@ -41,6 +43,8 @@ object FlowProcessor {
      */
     private val sequenceAddress = unsafe.objectFieldOffset(
         classOf[FlowProcessor].getDeclaredField("lastSequence"))
+
+    private val MAX_BUF_CAPACITY = 4 * 1024 * 1024
 }
 
 class FlowProcessor(families: OvsNetlinkFamilies,
@@ -57,7 +61,7 @@ class FlowProcessor(families: OvsNetlinkFamilies,
     private val log = Logger(LoggerFactory.getLogger(
         "org.midonet.datapath.flow-processor"))
 
-    private val writeBuf = BytesUtil.instance.allocateDirect(8*1024)
+    private var writeBuf = BytesUtil.instance.allocateDirect(64 * 1024)
     private val channel = channelFactory.create(blocking = true)
     private val pid = channel.getLocalAddress.getPid
 
@@ -85,23 +89,38 @@ class FlowProcessor(families: OvsNetlinkFamilies,
             try {
                 val mask = if (event.supportsMegaflow) {
                     flowMask.calculateFor(flowMatch)
+                    context.log.debug(s"Flow mask: $flowMask")
                     flowMask
                 } else null
-                protocol.prepareFlowCreate(event.datapathId, flowMatch.getKeys,
-                                           context.flowActions, mask, writeBuf)
-                writer.write(writeBuf)
+                writeFlow(event.datapathId, flowMatch.getKeys,
+                          context.flowActions, mask)
                 context.log.debug("Created datapath flow")
             } catch { case t: Throwable =>
                 context.log.error("Failed to create datapath flow", t)
             } finally {
-                writeBuf.clear()
                 flowMask.clear()
+                writeBuf.clear()
             }
 
             lastSequence = sequence
         }
         true
     }
+
+    private def writeFlow(datapathId: Int, keys: ArrayList[FlowKey],
+                          actions: ArrayList[FlowAction], mask: FlowMask): Unit =
+        try {
+            protocol.prepareFlowCreate(datapathId, keys, actions, mask, writeBuf)
+            writer.write(writeBuf)
+        } catch { case e: BufferOverflowException =>
+            val capacity = writeBuf.capacity()
+            if (capacity >= MAX_BUF_CAPACITY)
+                throw e
+            val newCapacity = capacity * 2
+            writeBuf = BytesUtil.instance.allocateDirect(newCapacity)
+            log.debug(s"Increasing buffer size to $newCapacity")
+            writeFlow(datapathId, keys, actions, mask)
+        }
 
     def capacity = broker.capacity
 
