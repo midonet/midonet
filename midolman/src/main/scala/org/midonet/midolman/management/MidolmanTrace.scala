@@ -16,6 +16,7 @@
 package org.midonet.midolman.management
 
 import java.lang.{Short => JShort, Integer => JInt, Byte => JByte}
+import java.util
 import org.rogach.scallop._
 import javax.management.remote.{JMXConnectorFactory, JMXServiceURL}
 import javax.management.{JMX, ObjectName}
@@ -74,7 +75,7 @@ abstract class Matcher(name: String) extends Subcommand(name) {
     def makeTracer: PacketTracer =
         PacketTracer(etherType, macSrc, macDst, ipProto,
                      ipSrc, ipDst, srcPort, dstPort,
-                     if (debug.get.isDefined) LogLevel.DEBUG else LogLevel.TRACE,
+                     if (debug.get.isDefined && debug.get.get) LogLevel.DEBUG else LogLevel.TRACE,
                      limit)
 }
 
@@ -104,7 +105,7 @@ object FlushTraces extends Subcommand("flush") with TraceCommand {
         descr = "flush expired tracers only")
 
     override def run(tracingProxy: PacketTracingMXBean) = {
-        val num = if (deadOnly.isDefined)
+        val num = if (deadOnly.get.isDefined && deadOnly.get.get)
                       tracingProxy.flushDeadTracers()
                   else
                       tracingProxy.flush()
@@ -120,7 +121,7 @@ object ListTraces extends Subcommand("list") with TraceCommand {
         descr = "list active tracers only")
 
     override def run(tracingProxy: PacketTracingMXBean) = {
-        val tracers = if (liveOnly.isDefined)
+        val tracers = if (liveOnly.get.isDefined && liveOnly.get.get)
                           tracingProxy.getLiveTracers
                       else
                           tracingProxy.getTracers
