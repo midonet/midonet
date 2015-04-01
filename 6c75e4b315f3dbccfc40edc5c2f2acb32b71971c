@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_7c1719ee",
+        "filename": "specs/2015.03/neutron_translation.md",
+        "patchSetId": 14
+      },
+      "lineNbr": 147,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2015-04-01T06:39:23Z",
+      "side": 1,
+      "message": "serverAddr",
+      "range": {
+        "startLine": 147,
+        "startChar": 45,
+        "endLine": 147,
+        "endChar": 54
+      },
+      "revId": "6c75e4b315f3dbccfc40edc5c2f2acb32b71971c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_7c09cf30",
+        "filename": "specs/2015.03/neutron_translation.md",
+        "patchSetId": 14
+      },
+      "lineNbr": 376,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2015-04-01T06:39:23Z",
+      "side": 1,
+      "message": "neutron SG maps port_range_max/min to ICMP type/code.\ndoes midonet tpDst have the same semantics?",
+      "revId": "6c75e4b315f3dbccfc40edc5c2f2acb32b71971c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_dcd3ad36",
+        "filename": "specs/2015.03/neutron_translation.md",
+        "patchSetId": 14
+      },
+      "lineNbr": 690,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2015-04-01T06:39:23Z",
+      "side": 1,
+      "message": "PORTBINDING",
+      "range": {
+        "startLine": 690,
+        "startChar": 14,
+        "endLine": 690,
+        "endChar": 24
+      },
+      "revId": "6c75e4b315f3dbccfc40edc5c2f2acb32b71971c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
