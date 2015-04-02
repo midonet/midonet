@@ -49,12 +49,6 @@ trait IPAddr {
      *  the given argument, or starting from it (order does not matter). */
     def range(that: T): java.lang.Iterable[T]
 
-    /**
-     * Returns true iff the inet address passed as an argument is equal to this
-     * IPAddr.
-     */
-    def equalsInetAddress(inetAddress: InetAddress): Boolean
-
     def isMcast: Boolean
 }
 
@@ -78,7 +72,7 @@ object IPAddr {
                     var currentAddr = from
                     var isDone = false
 
-                    override def hasNext() = !isDone
+                    override def hasNext = !isDone
 
                     override def next() = {
                         val ip = currentAddr
@@ -92,7 +86,7 @@ object IPAddr {
                     }
 
                     override def remove() {
-                        throw new UnsupportedOperationException;
+                        throw new UnsupportedOperationException
                     }
                 }
         }

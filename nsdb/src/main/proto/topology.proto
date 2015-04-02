@@ -470,7 +470,6 @@ message BGP {
 }
 
 message BGPRoute {
-
     optional UUID id = 1;
     optional IPSubnet subnet = 2;
 
