@@ -20,7 +20,6 @@ import java.util.UUID
 import scala.collection.JavaConversions._
 import scala.concurrent.duration.DurationInt
 
-import com.typesafe.config.{Config, ConfigValueFactory}
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import rx.Observable

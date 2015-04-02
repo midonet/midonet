@@ -76,7 +76,7 @@ public class HostServiceTest {
     String basePath = "/midolman";
     private Config config = MidoTestConfigurator.forAgents().
             withValue("zookeeper.root_key", ConfigValueFactory.fromAnyRef(basePath)).
-            withValue("host.retries_gen_id", ConfigValueFactory.fromAnyRef(0));
+            withValue("agent.host.retries_gen_id", ConfigValueFactory.fromAnyRef(0));
 
     public class TestModule extends AbstractModule {
 
@@ -88,7 +88,7 @@ public class HostServiceTest {
             bind(MidolmanConfig.class).toInstance(new MidolmanConfig(config, ConfigFactory.empty()));
             bind(MidonetBackend.class).to(MidonetTestBackend.class).asEagerSingleton();
             bind(MidonetBackendConfig.class).toInstance(
-                    new MidonetBackendConfig(config.withFallback(MidoTestConfigurator.bootstrap())));
+                    new MidonetBackendConfig(config.withFallback(MidoTestConfigurator.forAgents())));
         }
 
         @Provides @Singleton

@@ -28,7 +28,7 @@ import org.eclipse.jetty.servlet.{ServletHolder, ServletContextHandler}
 import org.slf4j.LoggerFactory
 
 import org.midonet.brain.{ClusterMinion, BrainConfig, ClusterNode}
-import org.midonet.conf.{MidoNodeType, ObservableConf, MidoNodeConfigurator}
+import org.midonet.conf.{ObservableConf, MidoNodeConfigurator}
 
 class ConfMinion @Inject()(nodeContext: ClusterNode.Context, config: BrainConfig)
         extends ClusterMinion(nodeContext) {
@@ -39,12 +39,11 @@ class ConfMinion @Inject()(nodeContext: ClusterNode.Context, config: BrainConfig
     var zk: CuratorFramework = _
 
     override def doStart(): Unit = {
-        log.info(s"Starting configuration API service at ${config.confApi.httpPort}")
-
-        zk = MidoNodeConfigurator.zkBootstrap(config.conf)
-
-        if (MidoNodeConfigurator.forBrains(zk).deployBundledConfig())
+        val configurator = MidoNodeConfigurator(config.conf)
+        if (configurator.deployBundledConfig())
             log.info("Deployed new configuration schemas for brain MidoNet nodes")
+
+        log.info(s"Starting configuration API service at ${config.confApi.httpPort}")
 
         server = new Server()
         val http = new BlockingChannelConnector()
@@ -55,24 +54,16 @@ class ConfMinion @Inject()(nodeContext: ClusterNode.Context, config: BrainConfig
         context.setContextPath("/conf")
         context.setClassLoader(Thread.currentThread().getContextClassLoader)
         server.setHandler(context)
-
-        val agentConfigurator = MidoNodeConfigurator.forAgents(zk)
-        val brainConfigurator = MidoNodeConfigurator.forBrains(zk)
-
-        for (nodeType <- MidoNodeType.all) {
-            addServletsFor(new MidoNodeConfigurator(zk, nodeType, None), context)
-        }
-
+        addServletsFor(configurator, context)
         server.start()
         notifyStarted()
     }
 
     private def addServletsFor(c: MidoNodeConfigurator,
                                ctx: ServletContextHandler): Unit = {
-        val nodeType = c.nodeType
         def addServlet(endpoint: ConfigApiEndpoint, path: String): Unit = {
-            log.info(s"Registering config service servlet at /$nodeType/$path")
-            ctx.addServlet(new ServletHolder(endpoint), s"/$nodeType/$path")
+            log.info(s"Registering config service servlet at /$path")
+            ctx.addServlet(new ServletHolder(endpoint), s"/$path")
         }
 
         addServlet(new SchemaEndpoint(c), "schema")
@@ -184,7 +175,7 @@ class TemplateEndpoint(configurator: MidoNodeConfigurator) extends ConfigApiEndp
 }
 
 class SchemaEndpoint(configurator: MidoNodeConfigurator) extends ConfigApiEndpoint(configurator) {
-    override protected def getResource(name: String) = configurator.schema.closeAfter(_.get)
+    override protected def getResource(name: String) = configurator.mergedSchemas()
 }
 
 class RuntimeEndpoint(configurator: MidoNodeConfigurator) extends ConfigApiEndpoint(configurator) {

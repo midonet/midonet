@@ -94,16 +94,15 @@ class ConfApiTest extends FeatureSpecLike
 
     private val confStr =
         s"""
-          |conf_api.enabled : true
-          |conf_api.http_port : ${HTTP_PORT}
+          |brain.conf_api.enabled : true
+          |brain.conf_api.http_port : ${HTTP_PORT}
         """.stripMargin
 
     override def config = ConfigFactory.parseString(confStr).withFallback(super.config)
 
     before {
         clearZookeeper()
-        MidoNodeConfigurator.forBrains(config).deployBundledConfig()
-        MidoNodeConfigurator.forAgents(config)
+        MidoNodeConfigurator(config).deployBundledConfig()
     }
 
     override def beforeAll(): Unit = {
@@ -131,29 +130,21 @@ class ConfApiTest extends FeatureSpecLike
     private def delete(path: String) =
         Request.Delete(url(path)).execute().returnResponse().getStatusLine.getStatusCode
 
-    scenario("reads, writes and deletes brain templates") {
-        testWritableSource("conf/brain/template/new_template")
+    scenario("reads, writes and deletes templates") {
+        testWritableSource("conf/template/new_template")
     }
 
     scenario("reads, writes and deletes per node brain configuration") {
-        testWritableSource("conf/brain/node/" + UUID.randomUUID())
-    }
-
-    scenario("reads, writes and deletes agent templates") {
-        testWritableSource("conf/agent/template/new_template")
-    }
-
-    scenario("reads, writes and deletes per node agent configuration") {
-        testWritableSource("conf/agent/node/" + UUID.randomUUID())
+        testWritableSource("conf/node/" + UUID.randomUUID())
     }
 
     scenario("reads schemas") {
         When("When a GET is done on the schema URL for a known node type")
-        val schema = get("conf/brain/schema")
+        val schema = get("conf/schema")
 
         schema.isEmpty should be (false)
         Then("the response is a valid schema with its schemaVersion key")
-        schema.getInt("schemaVersion") should be > 0
+        schema.getInt("brain.schemaVersion") should be > 0
     }
 
     scenario("assigns templates") {
@@ -162,22 +153,22 @@ class ConfApiTest extends FeatureSpecLike
         val template = s"""the.name : "seven" """
 
         When("An updated set of template mappings is posted to the API")
-        post("conf/brain/template-mappings", assignment)
+        post("conf/template-mappings", assignment)
 
-        val mappings = get("conf/brain/template-mappings")
+        val mappings = get("conf/template-mappings")
         Then("getting the mappings should return the same set")
         mappings.getString(nodeId) should be ("the_template")
 
-        var runtimeConf = get(s"conf/brain/runtime-config/$nodeId")
+        var runtimeConf = get(s"conf/runtime-config/$nodeId")
         intercept[ConfigException.Missing] {
             runtimeConf.getString("the.name") should be ("seven")
         }
 
         When("New configuration content is posted to a template")
-        post("conf/brain/template/the_template", template)
+        post("conf/template/the_template", template)
 
         Then("the runtime configuration for a node assigned to the template should include that content")
-        runtimeConf = get(s"conf/brain/runtime-config/$nodeId")
+        runtimeConf = get(s"conf/runtime-config/$nodeId")
         runtimeConf.getString("the.name") should be ("seven")
     }
 
@@ -186,16 +177,16 @@ class ConfApiTest extends FeatureSpecLike
         val vandelay = s"""art.vandelay : "architect" """
 
         When("New two templates are created for the first time")
-        get("conf/brain/template-list").getStringList("templates") should have size 0
+        val origSize = get("conf/template-list").getStringList("templates").size
 
-        post("conf/brain/template/seven", seven)
-        post("conf/brain/template/vandelay", vandelay)
+        post("conf/template/seven", seven)
+        post("conf/template/vandelay", vandelay)
 
         Then("the list of templates should contain the new templates")
-        val templates = get("conf/brain/template-list").getStringList("templates")
+        val templates = get("conf/template-list").getStringList("templates")
         templates should contain ("seven")
         templates should contain ("vandelay")
-        templates should have size 2
+        templates should have size (2 + origSize)
     }
 
     def testWritableSource(path: String) {

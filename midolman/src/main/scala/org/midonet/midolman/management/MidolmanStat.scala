@@ -227,6 +227,7 @@ object MidolmanMetricCatalog {
 }
 
 object MidolmanStat extends App {
+    System.setProperty("logback.configurationFile", "logback-disabled.xml")
 
     private def connect(host: String, port: Int): MBeanServerConnection = {
         val url = new JMXServiceURL(

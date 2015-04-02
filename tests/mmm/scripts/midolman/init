@@ -57,6 +57,10 @@ bgp_keepalive = 1s
 bgp_holdtime = 3s
 bgp_connect_retry = 1s
 
+[loggers]
+
+root = DEBUG
+
 EOF
 
     sed -i 's/root level="INFO"/root level="DEBUG"/' /etc/midolman.$n/logback.xml

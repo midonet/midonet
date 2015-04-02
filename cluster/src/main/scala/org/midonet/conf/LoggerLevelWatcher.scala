@@ -24,15 +24,20 @@ import com.typesafe.scalalogging.Logger
 import org.slf4j.LoggerFactory
 import rx.Observer
 
-class LoggerLevelWatcher extends Observer[Config] {
+class LoggerLevelWatcher(prefix: Option[String] = None) extends Observer[Config] {
     val log = Logger(LoggerFactory.getLogger("org.midonet.config"))
 
     private def logbackLogger(name: String) = LoggerFactory.getLogger(name).
         asInstanceOf[ch.qos.logback.classic.Logger]
 
+    private def loggerConf(config: Config) = prefix match {
+        case Some(p) => config.getConfig(s"$p.loggers")
+        case None => config.getConfig("loggers")
+    }
+
     override def onNext(config: Config): Unit = {
         try {
-            val logconf = config.getConfig("loggers")
+            val logconf = loggerConf(config)
             for (entry <- logconf.entrySet
                     if !entry.getKey.endsWith("_description") && entry.getKey != "root") {
                 val level = Level.toLevel(logconf.getString(entry.getKey), Level.INFO)

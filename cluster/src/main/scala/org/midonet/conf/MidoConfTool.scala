@@ -85,7 +85,7 @@ object GetTemplate extends TemplateCommand("template-get") with ConfCommand {
         val assignments = configurator.templateMappings
         val host = getHost
 
-        if (allHosts.isDefined) {
+        if (allHosts.isDefined && allHosts.get.get) {
             for (assignment <- assignments.entrySet;
                  key = assignment.getKey;
                  value = assignments.getString(key)) {
@@ -123,7 +123,7 @@ object BundledConfig extends Subcommand("dump-bundled-config") with ConfCommand 
                                                     setFormatted(true)
 
     override def run(configurator: MidoNodeConfigurator) = {
-        val schema = configurator.bundledSchema.get
+        val schema = configurator.mergedBundledSchemas
         val templates = configurator.bundledTemplates
 
         if (!schema.isEmpty) {
@@ -147,16 +147,54 @@ object DeployBundledConfig extends Subcommand("deploy") with ConfCommand {
 
     override def run(configurator: MidoNodeConfigurator) = {
         if (configurator.deployBundledConfig()) {
-            val schema = configurator.bundledSchema
             val templates = configurator.bundledTemplates
-
-            println(s"Deployed schema, version "+ schema.get.getString("schemaVersion"))
+            println(s"Deployed schema")
             for ((name, template) <- templates) {
                 println(s"Deployed configuration template: $name ")
             }
         } else {
             println("Deployed schema is up to date, nothing to do")
         }
+        ConfCommand.SUCCESS
+    }
+}
+
+object ImportConf extends ConfigWriter("import") with ConfCommand {
+    descr("Imports a legacy configuration file into the selected configuration source.")
+
+    val renderOpts = ConfigRenderOptions.defaults().setOriginComments(false).
+                                                    setComments(false).
+                                                    setJson(false).
+                                                    setFormatted(true)
+
+    val filename = opt[String]("file", short = 'f', required = true, descr =
+        "Path to the file to be imported. ")
+    val importAll = opt[Boolean]("all", short = 'a', default = Some(false), descr =
+        "Import all the values present in the config file even if they do not "+
+            "differ from the configuration schema.")
+
+    override def run(configurator: MidoNodeConfigurator) = {
+        val newConf = new LegacyConf(filename.get.get).get
+        val dest = makeConfig(configurator)
+
+        var toImport = newConf
+
+        if (!importAll.get.get) {
+            val schemas = configurator.mergedSchemas().resolve()
+            toImport = ConfigFactory.empty
+
+            for (entry <- newConf.entrySet) {
+                val k = entry.getKey
+                if (!schemas.hasPath(k) || schemas.getString(k) != newConf.getString(k)) {
+                    toImport = toImport.withValue(k, entry.getValue)
+                }
+            }
+        }
+
+        println("Importing legacy configuration:")
+        println(toImport.root().render(renderOpts))
+
+        dest.mergeAndSet(toImport)
         ConfCommand.SUCCESS
     }
 }
@@ -171,7 +209,7 @@ object SetConf extends ConfigWriter("set") with ConfCommand {
 
     override def run(configurator: MidoNodeConfigurator) = {
         val parseOpts = ConfigParseOptions.defaults().setOriginDescription("STDIN")
-        val schema = configurator.schema.get
+        val schema = configurator.mergedSchemas()
         val zkConf = makeConfig(configurator)
 
         val reader = new InputStreamReader(System.in)
@@ -346,25 +384,17 @@ abstract class ConfigQuery(name: String) extends Subcommand(name) {
         }
 
         if (useSchema)
-            conf = conf.withFallback(configurator.schema.get)
+            conf = conf.withFallback(configurator.mergedSchemas)
 
         conf
     }
 }
 
 object MidoConfTool extends App {
-    def getConfigurator(nodeType: String) = nodeType match {
-        case MidoNodeType.AGENT => MidoNodeConfigurator.forAgents()
-        case MidoNodeType.BRAIN => MidoNodeConfigurator.forBrains()
-        case t => throw new Exception(s"Unknown MidoNet node type: $t")
-    }
+    System.setProperty("logback.configurationFile", "logback-disabled.xml")
 
     def date = System.currentTimeMillis()
     val opts = new ScallopConf(args) {
-        val nodeType = opt[String]("type", short = 't',
-                                   default = Option(MidoNodeType.AGENT),
-                                   validate = (v) => MidoNodeType.all.contains(v),
-                                   descr = "Type of MidoNet node to configure")
 
         val bundledConfig = BundledConfig
         val dump = DumpConf
@@ -374,23 +404,21 @@ object MidoConfTool extends App {
         val unset = UnsetConf
         val templateGet = GetTemplate
         val templateSet = SetTemplate
+        val importConf = ImportConf
 
         printedName = "mn-conf"
         footer("Copyright (c) 2015 Midokura SARL, All Rights Reserved.")
     }
 
-    val ret = (opts.subcommand flatMap {
+    def invalidEx = new Exception("must specify a valid command")
+
+    val ret = opts.subcommand map {
         case subcommand: ConfCommand =>
-            for {nodeType <- opts.nodeType.get} yield { (subcommand, nodeType) }
+            Try(subcommand.run(MidoNodeConfigurator()))
         case s =>
             println(s)
-            None
-    } match {
-        case Some((subcommand, nodeType)) =>
-            Try(subcommand.run(getConfigurator(nodeType)))
-        case _ =>
-            Failure(new Exception("must specify a valid command"))
-    }) match {
+            Failure(invalidEx)
+    } getOrElse Failure(invalidEx) match {
         case Success(retcode) =>
             retcode
         case Failure(e) =>
