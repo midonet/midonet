@@ -207,11 +207,7 @@ class LoadBalancerMapperTest extends MidolmanSpec
     }
 
     private def buildAndStoreVip(ip: String): TopologyVIP = {
-        val vip = createVip(adminStateUp = Some(true),
-                            poolId = Some(UUID.randomUUID()),
-                            address = Some(ip),
-                            protocolPort = Some(7777),
-                            isStickySourceIp = Some(false))
+        val vip = createVIP()
         store.create(vip)
         vip
     }
