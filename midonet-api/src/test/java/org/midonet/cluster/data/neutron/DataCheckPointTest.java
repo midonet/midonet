@@ -100,7 +100,7 @@ public class DataCheckPointTest {
 
         public TestDataClientModule(HierarchicalConfiguration config) {
             this.config = new LegacyConf(config).get().
-                    withFallback(MidoTestConfigurator.bootstrap());
+                    withFallback(MidoTestConfigurator.forAgents());
         }
 
         @Override

@@ -21,6 +21,8 @@ import java.net.{URL, URI}
 import java.util.UUID
 import java.util.zip.ZipInputStream
 
+import com.typesafe.scalalogging.Logger
+import org.slf4j.LoggerFactory
 import scala.collection.JavaConversions._
 import scala.util.Try
 
@@ -57,13 +59,6 @@ object MidoConf {
         ConfigValueFactory.fromAnyRef(v._1, v._2)
 }
 
-object MidoNodeType {
-    val AGENT = "agent"
-    val BRAIN = "brain"
-
-    val all = List(AGENT, BRAIN)
-}
-
 trait ObservableConf extends Closeable {
     def observable: Observable[Config]
 
@@ -72,6 +67,12 @@ trait ObservableConf extends Closeable {
     } finally {
         close()
     }
+}
+
+trait Schema extends WritableConf {
+    def version: Int
+    def schemaName: String
+    def setAsSchema(schema: Config): Boolean
 }
 
 /**
@@ -83,8 +84,6 @@ trait ObservableConf extends Closeable {
  * Config objects retrieved prior to write operation will remain unchanged.
  */
 trait WritableConf extends MidoConf {
-    private val emptySchema = ConfigFactory.empty().withValue(
-        "schemaVersion", -1)
     protected def modify(changeset: Config => Config): Boolean
 
     /**
@@ -108,26 +107,6 @@ trait WritableConf extends MidoConf {
      * given Config object in its place.
      */
     def clearAndSet(config: Config): Unit = modify { _ => config }
-
-    /**
-     * Write a schema to this config source.
-     *
-     * Schemas must contain a "schemaVersion" configuration key. The operation
-     * will be a no-op if the existing schema version is equal or bigger than
-     * the supplied schema.
-     *
-     * Malformed schemas will make this method throw an exception.
-     */
-    def setAsSchema(schema: Config): Boolean = modify { oldSchema =>
-        val oldV = oldSchema.withFallback(emptySchema).getInt("schemaVersion")
-        val newV = schema.getInt("schemaVersion")
-
-        if (newV > oldV)
-            schema
-        else
-            oldSchema
-    }
-
 }
 
 object MidoNodeConfigurator {
@@ -139,14 +118,8 @@ object MidoNodeConfigurator {
             """
             |zookeeper {
             |    zookeeper_hosts = "127.0.0.1:2181"
-            |    session_timeout : 30s
-            |    session_gracetime : ${zookeeper.session_timeout}
             |    root_key : "/midonet/v1"
             |    midolman_root_key = ${zookeeper.root_key}
-            |    curator_enabled : false
-            |    max_retries : 10
-            |    base_retry : 1s
-            |    use_new_stack : false
             |}
             """.stripMargin)
 
@@ -158,7 +131,7 @@ object MidoNodeConfigurator {
 
         val locations = (inifile map ( List(_) ) getOrElse Nil) ::: MIDONET_CONF_LOCATIONS
 
-        def loadCfg = (loc: String) => Try(new IniFileConf(loc).get).getOrElse(ConfigFactory.empty)
+        def loadCfg = (loc: String) => Try(new IniFileConf(loc, None).get).getOrElse(ConfigFactory.empty)
 
         ENVIRONMENT.withFallback({ for (l <- locations) yield loadCfg(l)
         } reduce((a, b) => a.withFallback(b))
@@ -183,53 +156,42 @@ object MidoNodeConfigurator {
         zk
     }
 
-    def forAgents(zk: CuratorFramework, inifile: Option[String] = None): MidoNodeConfigurator =
-            new MidoNodeConfigurator(zk, MidoNodeType.AGENT, inifile)
+    def apply(zk: CuratorFramework, inifile: Option[String] = None): MidoNodeConfigurator =
+            new MidoNodeConfigurator(zk, inifile)
 
-    def forAgents(inifile: String): MidoNodeConfigurator =
-        forAgents(zkBootstrap(Option(inifile)), Option(inifile))
+    def apply(inifile: String): MidoNodeConfigurator =
+        apply(zkBootstrap(Option(inifile)), Option(inifile))
 
-    def forAgents(bootstrapConf: Config): MidoNodeConfigurator =
-        forAgents(zkBootstrap(bootstrapConf), None)
+    def apply(bootstrapConf: Config): MidoNodeConfigurator =
+        apply(zkBootstrap(bootstrapConf), None)
 
-    def forAgents(): MidoNodeConfigurator = forAgents(zkBootstrap(), None)
-
-    def forBrains(zk: CuratorFramework, inifile: Option[String] = None): MidoNodeConfigurator =
-        new MidoNodeConfigurator(zk, MidoNodeType.BRAIN, inifile)
-
-    def forBrains(inifile: String): MidoNodeConfigurator =
-        forBrains(zkBootstrap(Option(inifile)), Option(inifile))
-
-    def forBrains(bootstrapConf: Config): MidoNodeConfigurator =
-        forBrains(zkBootstrap(bootstrapConf), None)
-
-    def forBrains(): MidoNodeConfigurator = forBrains(zkBootstrap(), None)
+    def apply(): MidoNodeConfigurator = apply(zkBootstrap())
 }
 
 object MidoTestConfigurator {
     def bootstrap = MidoNodeConfigurator.bootstrapConfig(None)
 
-    def forAgents = new MidoTestConfigurator(MidoNodeType.AGENT).testConfig
+    def forAgents(): Config = forAgents(ConfigFactory.empty)
 
-    def forAgents(overrides: Config) = new MidoTestConfigurator(
-            MidoNodeType.AGENT, overrides).testConfig
+    def forAgents(overrides: String): Config = forAgents(ConfigFactory.parseString(overrides))
 
-    def forAgents(overrides: String) = new MidoTestConfigurator(
-            MidoNodeType.AGENT, ConfigFactory.parseString(overrides)).testConfig
+    def forAgents(overrides: Config): Config = {
+        overrides.withFallback(
+            new ResourceConf(s"org/midonet/conf/schemas/agent.conf").get).withFallback(
+                new ResourceConf(s"org/midonet/conf/schemas/nsdb.conf").get).withFallback(
+                    MidoNodeConfigurator.bootstrapConfig())
+    }
 
-    def forBrains = new MidoTestConfigurator(MidoNodeType.BRAIN).testConfig
+    def forBrains(): Config = forBrains(ConfigFactory.empty)
 
-    def forBrains(overrides: Config) = new MidoTestConfigurator(
-        MidoNodeType.BRAIN, overrides).testConfig
+    def forBrains(overrides: String): Config = forBrains(ConfigFactory.parseString(overrides))
 
-    def forBrains(overrides: String) = new MidoTestConfigurator(
-        MidoNodeType.BRAIN, ConfigFactory.parseString(overrides)).testConfig
-}
-
-class MidoTestConfigurator(val nodeType: String, overrides: Config = ConfigFactory.empty) {
-    def testConfig: Config = overrides.withFallback(
-            new ResourceConf(s"org/midonet/conf/$nodeType.schema").get).
-                withFallback(MidoNodeConfigurator.bootstrapConfig())
+    def forBrains(overrides: Config): Config = {
+        overrides.withFallback(
+            new ResourceConf(s"org/midonet/conf/schemas/brain.conf").get).withFallback(
+                new ResourceConf(s"org/midonet/conf/schemas/nsdb.conf").get).withFallback(
+                    MidoNodeConfigurator.bootstrapConfig())
+    }
 }
 
 /**
@@ -237,21 +199,26 @@ class MidoTestConfigurator(val nodeType: String, overrides: Config = ConfigFacto
  * make up the configuration of a MidoNet node.
  *
  * @param zk Curator framework connection.
- * @param nodeType Node type. Known types are "agent" and "brain".
- * @param inifile Optional location of a legacy .ini configuration file.
+ * @param agentLegacyIniFile Optional location of a legacy .ini configuration file.
  */
 class MidoNodeConfigurator(zk: CuratorFramework,
-                           val nodeType: String, inifile: Option[String] = None) {
+                           agentLegacyIniFile: Option[String] = Some("/etc/midolman/midolman.conf")) {
+    val log = Logger(LoggerFactory.getLogger("org.midonet.conf"))
 
-    private val _templateMappings = new ZookeeperConf(zk, s"/config/template-mappings/$nodeType")
+    private val _templateMappings = new ZookeeperConf(zk, s"/config/template-mappings")
 
     {
         val zkClient = zk.getZookeeperClient
-        zk.newNamespaceAwareEnsurePath(s"/config/$nodeType").ensure(zkClient)
-        zk.newNamespaceAwareEnsurePath(s"/config/templates/$nodeType").ensure(zkClient)
-        zk.newNamespaceAwareEnsurePath(s"/config/schemas/$nodeType").ensure(zkClient)
-        zk.newNamespaceAwareEnsurePath(s"/config/template-mappings").ensure(zkClient)
+        zk.newNamespaceAwareEnsurePath(s"/config").ensure(zkClient)
+        zk.newNamespaceAwareEnsurePath(s"/config/nodes").ensure(zkClient)
+        zk.newNamespaceAwareEnsurePath(s"/config/templates").ensure(zkClient)
+        zk.newNamespaceAwareEnsurePath(s"/config/schemas").ensure(zkClient)
+        zk.newNamespaceAwareEnsurePath(s"/config").ensure(zkClient)
     }
+
+    def legacyConfigFile: Config = {
+        agentLegacyIniFile map (new IniFileConf(_, Some("agent")).get)
+    }.getOrElse(ConfigFactory.empty)
 
     /**
      * Returns a Config object composed solely of local configuration sources.
@@ -259,8 +226,7 @@ class MidoNodeConfigurator(zk: CuratorFramework,
      * These sources are system properties, environment variables and
      * configuration files.
      */
-    def localOnlyConfig: Config = ConfigFactory.systemEnvironment().
-            withFallback(inifile map { new IniFileConf(_).get } getOrElse ConfigFactory.empty)
+    def localOnlyConfig: Config = ConfigFactory.systemEnvironment().withFallback(legacyConfigFile)
 
     /**
      * Returns the WritableConf that points to the centrally stored configuration
@@ -270,7 +236,7 @@ class MidoNodeConfigurator(zk: CuratorFramework,
      * @return
      */
     def centralPerNodeConfig(node: UUID): WritableConf with ObservableConf =
-        new ZookeeperConf(zk, s"/config/$nodeType/$node")
+        new ZookeeperConf(zk, s"/config/nodes/$node")
 
     /**
      * Returns the WritableConf that points to the configuration template assigned
@@ -289,7 +255,7 @@ class MidoNodeConfigurator(zk: CuratorFramework,
      * @return
      */
     def templateByName(name: String): WritableConf with ObservableConf =
-        new ZookeeperConf(zk, s"/config/templates/$nodeType/$name")
+        new ZookeeperConf(zk, s"/config/templates/$name")
 
 
     private def mappingFor(node: UUID, mappings: Config): String = {
@@ -320,7 +286,17 @@ class MidoNodeConfigurator(zk: CuratorFramework,
         _templateMappings.set(node.toString, template)
     }
 
-    def listTemplates: Seq[String] = zk.getChildren.forPath(s"/config/templates/$nodeType")
+    def listTemplates: Seq[String] = zk.getChildren.forPath(s"/config/templates")
+
+    def listSchemas: Seq[String] = zk.getChildren.forPath(s"/config/schemas")
+
+    def mergedSchemas(): Config = {
+        listSchemas map (schema(_).closeAfter(_.get)) reduce ((a, b) => a.withFallback(b))
+    }
+
+    def observableMergedSchemas(): Observable[Config] = {
+        listSchemas map (schema(_).observable) reduce ((a, b) => combine(a, b))
+    }
 
     /**
      * Updates all the template assignments
@@ -339,8 +315,8 @@ class MidoNodeConfigurator(zk: CuratorFramework,
      * Returns the WritableConf that points to the configuration schema for
      * the node type managed by this configurator.
      */
-    def schema: WritableConf with ObservableConf =
-        new ZookeeperConf(zk, s"/config/schemas/$nodeType")
+    def schema(name: String): Schema with ObservableConf =
+        new ZookeeperSchema(zk, s"/config/schemas/$name", name)
 
     /**
      * Returns the Config object composed of all the server-side configuration
@@ -352,7 +328,7 @@ class MidoNodeConfigurator(zk: CuratorFramework,
         centralPerNodeConfig(node).closeAfter(_.get).
             withFallback(templateByNodeId(node).closeAfter(_.get)).
             withFallback(templateByName("default").closeAfter(_.get)).
-            withFallback(schema.closeAfter(_.get))
+            withFallback(mergedSchemas())
 
     private def combine(c1: Observable[Config], c2: Observable[Config]): Observable[Config] = {
         Observable.combineLatest(c1, c2,
@@ -371,7 +347,8 @@ class MidoNodeConfigurator(zk: CuratorFramework,
 
         combine(centralPerNodeConfig(node),
                 combine(observableTemplateForNode(node),
-                        combine(templateByName("default"), schema)))
+                        combine(templateByName("default"),
+                                observableMergedSchemas())))
     }
 
     /**
@@ -383,9 +360,11 @@ class MidoNodeConfigurator(zk: CuratorFramework,
      *   - The schema bundled in the application's jars.
      */
     def runtimeConfig(node: UUID): Config =
-        localOnlyConfig.withFallback(centralConfig(node)).
-                        withFallback(MidoNodeConfigurator.bootstrapConfig(inifile)).
-                        withFallback(bundledSchema.get)
+        localOnlyConfig.
+            withFallback(centralConfig(node)).
+            withFallback(mergedBundledSchemas)
+
+    def runtimeConfig: Config = runtimeConfig(HostIdGenerator.getHostId())
 
     /**
      * Return an Observable on the runtime configuration that a particular
@@ -394,25 +373,36 @@ class MidoNodeConfigurator(zk: CuratorFramework,
     def observableRuntimeConfig(node: UUID): Observable[Config] = {
         combine(Observable.just(localOnlyConfig),
                 combine(observableCentralConfig(node),
-                        Observable.just(MidoNodeConfigurator.bootstrapConfig(inifile).
-                                        withFallback(bundledSchema.get))))
+                        Observable.just(mergedBundledSchemas)))
     }
 
     /**
      * Returns the MidoConf object that points to the schema bundled with the
      * running application.
      */
-    def bundledSchema: MidoConf = new ResourceConf(s"org/midonet/conf/$nodeType.schema")
+    def bundledSchema(name: String): MidoConf =
+        new ResourceConf(s"org/midonet/conf/$name.conf")
 
-    private def deploySchema(): Boolean = {
-        val newSchema = bundledSchema.get
-        if (!newSchema.isEmpty)
-            schema.setAsSchema(newSchema)
-        else
-            false
+    def mergedBundledSchemas: Config = {
+        (for ((_, s) <- bundledSchemas) yield s.get) reduce ((a, b) => a.withFallback(b))
     }
 
-    private def extractTemplatesFromJar(uri: URI): List[(String, ResourceConf)] = {
+    private def deploySchemas(): Boolean = {
+        var ret = false
+        for ((name, newSchema) <- bundledSchemas) {
+            val newConfig = newSchema.get
+            if (!newConfig.isEmpty) {
+                val zkSchema = schema(name)
+                if (zkSchema.setAsSchema(newConfig)) {
+                    ret = true
+                    log.info(s"Deployed schema $name with version ${zkSchema.version}")
+                }
+            }
+        }
+        ret
+    }
+
+    private def extractTemplatesFromJar(uri: URI): List[(String, MidoConf)] = {
         var templates: List[(String, ResourceConf)] = List.empty
 
         // starts with jar:
@@ -444,20 +434,20 @@ class MidoNodeConfigurator(zk: CuratorFramework,
         templates
     }
 
-    private def extractTemplatesFromDir(uri: URI): List[(String, ResourceConf)] = {
-        var templates: List[(String, ResourceConf)] = List.empty
+    private def extractTemplatesFromDir(uri: URI): List[(String, MidoConf)] = {
+        var templates: List[(String, MidoConf)] = List.empty
         val dir = new File(uri)
         for (child <- dir.listFiles if child.getName.endsWith(".conf")) {
             val fn = child.getName
             val templateName = fn.substring(0, fn.lastIndexOf('.'))
-            templates ::= (templateName, new ResourceConf(child.getCanonicalPath))
+            templates ::= (templateName, new FileConf(child.getAbsoluteFile))
         }
         templates
     }
 
-    def bundledTemplates: Seq[(String, MidoConf)] = {
-        val path = s"org/midonet/conf/templates/$nodeType"
-        val urls = getClass. getClassLoader.getResources(path)
+    private def bundledConfigSources(sourceType: String): Seq[(String, MidoConf)] = {
+        val path = s"org/midonet/conf/$sourceType"
+        val urls = getClass.getClassLoader.getResources(path)
 
         if (urls.hasMoreElements) {
             val uri = urls.nextElement.toURI
@@ -470,6 +460,10 @@ class MidoNodeConfigurator(zk: CuratorFramework,
         }
     }
 
+    def bundledTemplates: Seq[(String, MidoConf)] = bundledConfigSources("templates")
+
+    def bundledSchemas: Seq[(String, MidoConf)] = bundledConfigSources("schemas")
+
     /**
      * Reads the schema and configuration templates that are bundled with the
      * running application and tries to deploy them to the server side.
@@ -480,10 +474,11 @@ class MidoNodeConfigurator(zk: CuratorFramework,
      * an update.
      */
     def deployBundledConfig(): Boolean = {
-        val isUpdate = deploySchema()
+        val isUpdate = deploySchemas()
         if (isUpdate) {
             for ((name, conf) <- bundledTemplates) {
                 templateByName(name).clearAndSet(conf.get)
+                log.info(s"Deployed config template: $name")
             }
         }
         isUpdate
@@ -496,6 +491,8 @@ class MidoNodeConfigurator(zk: CuratorFramework,
  * @param path
  */
 class ResourceConf(path: String) extends MidoConf {
+    val log = Logger(LoggerFactory.getLogger("org.midonet.conf"))
+
     val parseOpts = ConfigParseOptions.defaults().
         setAllowMissing(false).
         setOriginDescription(s"resource:$path").
@@ -503,11 +500,32 @@ class ResourceConf(path: String) extends MidoConf {
 
     override def get: Config = try {
         val stream = getClass.getClassLoader.getResourceAsStream(path)
-
         ConfigFactory.parseReader(new InputStreamReader(stream), parseOpts)
     } catch {
         case e: Exception =>
-            e.printStackTrace()
+            log.warn(s"Failed to load config from resource: $path", e)
+            ConfigFactory.empty()
+    }
+}
+
+/**
+ * A MidoConf implementation that reads configuration from a file
+ *
+ * @param file
+ */
+class FileConf(file: File) extends MidoConf {
+    val log = Logger(LoggerFactory.getLogger("org.midonet.conf"))
+
+    val parseOpts = ConfigParseOptions.defaults().
+        setAllowMissing(false).
+        setOriginDescription(s"file://${file.getAbsolutePath}").
+        setSyntax(ConfigSyntax.CONF)
+
+    override def get: Config = try {
+        ConfigFactory.parseFile(file)
+    } catch {
+        case e: Exception =>
+            log.warn(s"Failed to load config from file: ${file.getAbsolutePath}", e)
             ConfigFactory.empty()
     }
 }
@@ -584,12 +602,42 @@ class ZookeeperConf(zk: CuratorFramework, path: String) extends MidoConf with
     }
 }
 
+class ZookeeperSchema(zk: CuratorFramework, path: String,
+        override val schemaName: String) extends ZookeeperConf(zk, path) with Schema {
+
+    private val VERSION_KEY = s"$schemaName.schemaVersion"
+    private val EMPTY = ConfigFactory.empty().withValue(VERSION_KEY, -1)
+
+    def version = Try(get.getInt(VERSION_KEY)).getOrElse(-1)
+
+    /**
+     * Write a schema to this config source.
+     *
+     * Schemas must contain a "$schenaName.schemaVersion" configuration key. The
+     * operation will be a no-op if the existing schema version is equal or
+     * bigger than the supplied schema.
+     *
+     * Malformed schemas will make this method throw an exception.
+     */
+    def setAsSchema(schema: Config): Boolean = modify { oldSchema =>
+        val oldV = oldSchema.withFallback(EMPTY).getInt(VERSION_KEY)
+        val newV = schema.getInt(VERSION_KEY)
+
+        if (newV > oldV)
+            schema
+        else
+            oldSchema
+    }
+}
+
 /**
  * A MidoConf implementation backed by a .ini configuration file.
  *
  * @param filename
  */
-class IniFileConf(val filename: String) extends MidoConf {
+class IniFileConf(val filename: String, val parentSection: Option[String]) extends MidoConf {
+
+    val prefix = parentSection map (_ + ".") getOrElse ""
 
     private val iniconf: HierarchicalINIConfiguration = new HierarchicalINIConfiguration()
     iniconf.setDelimiterParsingDisabled(true)
@@ -601,7 +649,7 @@ class IniFileConf(val filename: String) extends MidoConf {
         var config = ConfigFactory.empty()
         for (section <- iniconf.getSections;
              key <- iniconf.getSection(section).getKeys) {
-            val newkey = s"$section.$key"
+            val newkey = s"$prefix$section.$key"
             val newval = iniconf.getSection(section).getString(key)
 
             config = config.withValue(newkey, (newval, s"file://$filename"))
@@ -620,8 +668,13 @@ class LegacyConf(val hconf: HierarchicalConfiguration) extends MidoConf {
         var config = ConfigFactory.empty()
         for (key <- hconf.getKeys) {
             val newval = hconf.getProperty(key)
-            config = config.withValue(key,
-                ConfigValueFactory.fromAnyRef(newval, s"legacy conf"))
+            if (key.startsWith("zookeeper.")) {
+                config = config.withValue(key,
+                    ConfigValueFactory.fromAnyRef(newval, s"legacy conf"))
+            } else {
+                config = config.withValue(s"agent.$key",
+                    ConfigValueFactory.fromAnyRef(newval, s"legacy conf"))
+            }
         }
         config
     }
