@@ -15,21 +15,25 @@
  */
 package org.midonet.midolman
 
+import java.lang.{Boolean => JBoolean, Integer => JInteger}
+import java.net.InetAddress
 import java.util.concurrent.ConcurrentHashMap
-import java.lang.{Integer => JInteger}
-import java.util.{Set => JSet, UUID}
+import java.util.{HashMap => JHashMap, Set => JSet, UUID}
 
-import scala.collection.JavaConverters._
 import scala.collection.JavaConversions._
-import scala.concurrent.duration._
+import scala.collection.JavaConverters._
 import scala.concurrent.Future
+import scala.concurrent.duration._
 import scala.reflect._
 
 import akka.actor._
 import akka.pattern.{after, pipe}
+
 import com.google.inject.Inject
 import com.typesafe.scalalogging.Logger
+
 import org.slf4j.LoggerFactory
+
 import rx.{Observer, Subscription}
 
 import org.midonet.cluster.data.TunnelZone.{HostConfig => TZHostConfig, Type => TunnelType}
@@ -155,8 +159,8 @@ class DatapathController @Inject() (val driver: DatapathStateDriver,
 
     import org.midonet.midolman.DatapathController._
     import org.midonet.midolman.topology.VirtualToPhysicalMapper.TunnelZoneUnsubscribe
-    import context.system
-    import context.dispatcher
+
+    import context.{dispatcher, system}
 
     override def logSource = "org.midonet.datapath-control"
 
@@ -379,7 +383,7 @@ class DatapathController @Inject() (val driver: DatapathStateDriver,
         for { intf <- interfaces.asScala
               inetAddress <- intf.getInetAddresses.asScala
               zone <- zones
-              if zone._2.equalsInetAddress(inetAddress)
+              if InetAddress.getByAddress(zone._2.toBytes) == inetAddress
         } {
             val tunnelMtu = (defaultMtu - overhead).toShort
             minMtu = minMtu.min(tunnelMtu)

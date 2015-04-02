@@ -37,7 +37,6 @@ import org.midonet.midolman.topology.VirtualTopologyActor.PortRequest
 import org.midonet.midolman.topology.devices.{Port, RouterPort}
 import org.midonet.midolman.{DatapathState, Referenceable}
 import org.midonet.util.concurrent.ReactiveActor
-import org.midonet.util.concurrent.ReactiveActor.OnNext
 import org.midonet.util.eventloop.SelectLoop
 
 object RoutingManagerActor extends Referenceable {
@@ -88,7 +87,7 @@ class RoutingManagerActor extends ReactiveActor[LocalPortActive]
     }
 
     override def receive = {
-        case OnNext(LocalPortActive(portID, true)) =>
+        case LocalPortActive(portID, true) =>
             log.debug(s"port $portID became active")
             if (!activePorts.contains(portID)) {
                 activePorts.add(portID)
@@ -100,7 +99,7 @@ class RoutingManagerActor extends ReactiveActor[LocalPortActive]
                 case Some(routingHandler) => routingHandler ! PortActive(true)
             }
 
-        case OnNext(LocalPortActive(portID, false)) =>
+        case LocalPortActive(portID, false) =>
             log.debug(s"port $portID became inactive")
             if (!activePorts.contains(portID)) {
                 log.error("we should have had information about port {}",

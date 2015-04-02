@@ -144,16 +144,4 @@ class IPv6AddrTest extends Suite with Matchers {
             "0:0:0:0:0:0:0:0"
     }
 
-
-    def testEqualsInetAddress() = {
-        val inet6Addr = InetAddress.getByName("0:0:0:0:0:0:0:1")
-        val ipv6Addr = IPv6Addr.fromString("0:0:0:0:0:0:0:1")
-        assert(ipv6Addr.equalsInetAddress(inet6Addr))
-
-        val inet6Addr2 = InetAddress.getByName("0:0:0:0:0:0:0:2")
-        assert(!ipv6Addr.equalsInetAddress(inet6Addr2))
-
-        val inet4Addr = InetAddress.getByName("10.0.0.1")
-        assert(!ipv6Addr.equalsInetAddress(inet4Addr))
-    }
 }

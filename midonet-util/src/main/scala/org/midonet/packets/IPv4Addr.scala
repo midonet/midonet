@@ -79,10 +79,6 @@ class IPv4Addr(val addr: Int) extends IPAddr with Ordered[IPv4Addr] {
     override def range(that: IPv4Addr) =
         if (that < this) IPAddr.range(that, this) else IPAddr.range(this, that)
 
-    override def equalsInetAddress(inetAddress: InetAddress): Boolean =
-        inetAddress.isInstanceOf[Inet4Address] &&
-            ByteBuffer.wrap(inetAddress.getAddress).getInt == addr
-
     def isMcast: Boolean =
         (addr >>> 28) == 0xE
 }
