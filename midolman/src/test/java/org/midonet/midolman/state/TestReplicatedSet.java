@@ -28,7 +28,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import org.midonet.midolman.layer3.Route;
-import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.util.serialization.SerializationException;
 
 
 public class TestReplicatedSet {

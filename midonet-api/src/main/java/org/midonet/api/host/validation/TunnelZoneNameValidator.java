@@ -22,7 +22,7 @@ import com.google.inject.Inject;
 import org.midonet.api.validation.MessageProperty;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.TunnelZone;
-import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.util.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 
 public class TunnelZoneNameValidator implements

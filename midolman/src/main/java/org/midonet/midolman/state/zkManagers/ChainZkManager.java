@@ -25,8 +25,8 @@ import org.slf4j.LoggerFactory;
 
 import org.midonet.midolman.rules.Rule;
 import org.midonet.midolman.rules.RuleList;
-import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.serialization.Serializer;
+import org.midonet.util.serialization.SerializationException;
+import org.midonet.util.serialization.Serializer;
 import org.midonet.midolman.state.AbstractZkManager;
 import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.DirectoryCallback;
@@ -188,7 +188,7 @@ public class ChainZkManager
      * @param config
      *            ChainConfig object.
      * @return A list of Op objects to represent the operations to perform.
-     * @throws org.midonet.midolman.serialization.SerializationException
+     * @throws org.midonet.util.serialization.SerializationException
      *             Serialization error occurred.
      */
     public List<Op> prepareCreate(UUID id, ChainConfig config)

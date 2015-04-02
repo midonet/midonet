@@ -26,9 +26,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.midonet.api.network.Bridge;
-import org.midonet.api.validation.MessageProperty;
 import org.midonet.cluster.DataClient;
-import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.util.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 
 public class VxlanPortIdIntact implements

@@ -47,7 +47,7 @@ import org.midonet.cluster.LocalDataClientImpl;
 import org.midonet.cluster.services.LegacyStorageService;
 import org.midonet.cluster.storage.MidonetBackendConfig;
 import org.midonet.midolman.host.state.HostZkManager;
-import org.midonet.midolman.serialization.Serializer;
+import org.midonet.util.serialization.Serializer;
 import org.midonet.midolman.state.BaseZkManager;
 import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.PathBuilder;

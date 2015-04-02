@@ -17,8 +17,8 @@ package org.midonet.midolman.state.zkManagers;
 
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.Op;
-import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.serialization.Serializer;
+import org.midonet.util.serialization.SerializationException;
+import org.midonet.util.serialization.Serializer;
 import org.midonet.midolman.state.AbstractZkManager;
 import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.StateAccessException;
@@ -91,7 +91,7 @@ public class TunnelZkManager
      * @param tunnelKey
      *            TunnelKey ZooKeeper entry to update.
      * @return A list of Op objects representing the operations to perform.
-     * @throws org.midonet.midolman.serialization.SerializationException
+     * @throws org.midonet.util.serialization.SerializationException
      *             Serialization error occurred.
      */
     public List<Op> prepareTunnelUpdate(int tunnelKeyId, TunnelKey tunnelKey)

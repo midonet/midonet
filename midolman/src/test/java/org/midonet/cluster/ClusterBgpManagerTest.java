@@ -38,7 +38,7 @@ import org.midonet.midolman.cluster.serialization.SerializationModule;
 import org.midonet.midolman.cluster.zookeeper.MockZookeeperConnectionModule;
 import org.midonet.conf.MidoTestConfigurator;
 import org.midonet.midolman.guice.config.MidolmanConfigModule;
-import org.midonet.midolman.serialization.Serializer;
+import org.midonet.util.serialization.Serializer;
 import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.ZkManager;

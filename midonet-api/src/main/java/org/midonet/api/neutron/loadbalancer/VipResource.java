@@ -45,7 +45,7 @@ import org.midonet.client.neutron.loadbalancer.LBMediaType;
 import org.midonet.cluster.data.neutron.LoadBalancerApi;
 import org.midonet.cluster.data.neutron.loadbalancer.VIP;
 import org.midonet.event.neutron.VipEvent;
-import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.util.serialization.SerializationException;
 import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.StatePathExistsException;

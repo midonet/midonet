@@ -47,7 +47,7 @@ import org.midonet.cluster.data.neutron.loadbalancer.Pool;
 import org.midonet.cluster.data.neutron.loadbalancer.PoolHealthMonitor;
 import org.midonet.event.neutron.PoolEvent;
 import org.midonet.event.neutron.PoolHealthMonitorEvent;
-import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.util.serialization.SerializationException;
 import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.StatePathExistsException;

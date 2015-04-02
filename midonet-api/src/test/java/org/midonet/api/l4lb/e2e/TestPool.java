@@ -37,7 +37,7 @@ import org.midonet.client.dto.DtoLoadBalancer;
 import org.midonet.client.dto.DtoPool;
 import org.midonet.client.dto.DtoVip;
 import org.midonet.client.dto.l4lb.LBStatus;
-import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.util.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;

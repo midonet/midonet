@@ -19,8 +19,8 @@ import java.util.*;
 
 import com.google.common.base.Objects;
 import org.midonet.cluster.data.neutron.Router;
-import org.midonet.midolman.serialization.Serializer;
-import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.util.serialization.Serializer;
+import org.midonet.util.serialization.SerializationException;
 import org.midonet.midolman.state.AbstractZkManager;
 import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.PathBuilder;

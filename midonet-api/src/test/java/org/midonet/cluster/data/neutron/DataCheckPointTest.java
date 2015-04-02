@@ -56,7 +56,7 @@ import org.midonet.midolman.cluster.zookeeper.MockZookeeperConnectionModule;
 import org.midonet.midolman.rules.Condition;
 import org.midonet.midolman.rules.NatTarget;
 import org.midonet.midolman.rules.RuleResult;
-import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.util.serialization.SerializationException;
 import org.midonet.midolman.state.CheckpointedDirectory;
 import org.midonet.midolman.state.CheckpointedMockDirectory;
 import org.midonet.midolman.state.Directory;

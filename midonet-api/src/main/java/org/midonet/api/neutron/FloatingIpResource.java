@@ -26,7 +26,7 @@ import org.midonet.cluster.data.Rule;
 import org.midonet.cluster.data.neutron.FloatingIp;
 import org.midonet.cluster.data.neutron.L3Api;
 import org.midonet.event.neutron.FloatingIpEvent;
-import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.util.serialization.SerializationException;
 import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.StatePathExistsException;

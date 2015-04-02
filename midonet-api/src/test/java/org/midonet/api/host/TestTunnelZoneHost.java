@@ -53,7 +53,7 @@ import org.midonet.client.resource.TunnelZone;
 import org.midonet.client.resource.TunnelZoneHost;
 import org.midonet.midolman.host.state.HostDirectory;
 import org.midonet.midolman.host.state.HostZkManager;
-import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.util.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.packets.MAC;
 

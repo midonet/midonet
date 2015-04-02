@@ -29,7 +29,7 @@ import org.slf4j.LoggerFactory;
 
 import org.midonet.cluster.ZookeeperTest;
 import org.midonet.cluster.data.Rule;
-import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.util.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.packets.MAC;
 

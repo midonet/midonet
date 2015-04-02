@@ -39,7 +39,7 @@ import com.typesafe.scalalogging.Logger$;
 import org.midonet.midolman.TraceRequiredException;
 import org.midonet.midolman.cluster.serialization.SerializationModule;
 import org.midonet.midolman.rules.RuleResult.Action;
-import org.midonet.midolman.serialization.Serializer;
+import org.midonet.util.serialization.Serializer;
 import org.midonet.midolman.simulation.PacketContext;
 import org.midonet.midolman.state.ConnTrackState;
 import org.midonet.midolman.state.Directory;

@@ -45,11 +45,11 @@ import org.midonet.midolman.host.state.HostDirectory.{Metadata => HostMetadata}
 import org.midonet.midolman.host.state.HostZkManager
 import org.midonet.midolman.host.updater.InterfaceDataUpdater
 import org.midonet.midolman.logging.MidolmanLogging
-import org.midonet.midolman.serialization.SerializationException
 import org.midonet.midolman.services.HostIdProviderService
 import org.midonet.midolman.state.{StateAccessException, ZkManager}
 import org.midonet.netlink.Callback
 import org.midonet.netlink.exceptions.NetlinkException
+import org.midonet.util.serialization.SerializationException
 
 object HostService {
     class HostIdAlreadyInUseException(message: String)

@@ -21,7 +21,7 @@ import com.google.inject.PrivateModule;
 import com.google.inject.TypeLiteral;
 
 import org.midonet.midolman.SystemDataProvider;
-import org.midonet.midolman.serialization.Serializer;
+import org.midonet.util.serialization.Serializer;
 import org.midonet.midolman.state.ZkSystemDataProvider;
 import org.midonet.midolman.version.VersionComparator;
 

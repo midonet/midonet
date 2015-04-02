@@ -35,12 +35,12 @@ import org.midonet.cluster.DataClient
 import org.midonet.cluster.data.Bridge
 import org.midonet.cluster.data.Bridge.UNTAGGED_VLAN_ID
 import org.midonet.cluster.data.ports.VxLanPort
-import org.midonet.midolman.serialization.SerializationException
 import org.midonet.midolman.state.Directory.DefaultTypedWatcher
 import org.midonet.midolman.state.ReplicatedMap.Watcher
 import org.midonet.midolman.state._
 import org.midonet.packets.{IPv4Addr, MAC}
 import org.midonet.util.functors.makeRunnable
+import org.midonet.util.serialization.SerializationException
 
 object VxlanGateway {
     protected[vxgw] val executor = newSingleThreadExecutor(

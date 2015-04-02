@@ -43,7 +43,7 @@ import org.midonet.cluster.client.TunnelZones;
 import org.midonet.cluster.data.TunnelZone;
 import org.midonet.cluster.data.l4lb.Pool;
 import org.midonet.midolman.cluster.zookeeper.ZkConnectionProvider;
-import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.util.serialization.SerializationException;
 import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkConnectionAwareWatcher;

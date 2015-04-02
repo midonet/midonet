@@ -25,7 +25,6 @@ import java.util.UUID;
 
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigValueFactory;
-import scala.collection.JavaConversions;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -51,7 +50,7 @@ import org.midonet.midolman.host.guice.HostModule;
 import org.midonet.midolman.host.interfaces.InterfaceDescription;
 import org.midonet.midolman.host.state.HostDirectory;
 import org.midonet.midolman.host.state.HostZkManager;
-import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.util.serialization.SerializationException;
 import org.midonet.midolman.services.MidolmanActorsService;
 import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.MockDirectory;

@@ -21,7 +21,7 @@ import org.midonet.api.auth.Authorizer;
 import org.midonet.api.network.Port;
 import org.midonet.api.network.PortFactory;
 import org.midonet.api.network.RouterPort;
-import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.util.serialization.SerializationException;
 import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.cluster.DataClient;

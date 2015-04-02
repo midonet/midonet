@@ -16,7 +16,7 @@
 
 package org.midonet.midolman.state.zkManagers;
 
-import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.util.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 
 public interface ConfigGetter<K, CFG> {

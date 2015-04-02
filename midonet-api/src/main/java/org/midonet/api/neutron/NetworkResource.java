@@ -25,7 +25,7 @@ import org.midonet.client.neutron.NeutronMediaType;
 import org.midonet.cluster.data.neutron.Network;
 import org.midonet.cluster.data.neutron.NetworkApi;
 import org.midonet.event.neutron.NetworkEvent;
-import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.util.serialization.SerializationException;
 import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.StatePathExistsException;

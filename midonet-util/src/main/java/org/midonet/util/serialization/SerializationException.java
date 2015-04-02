@@ -13,11 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.midolman.serialization;
+package org.midonet.util.serialization;
 
-/**
- * Exception class to indicate serialization error
- */
 public class SerializationException extends Exception {
     private static final long serialVersionUID = 1L;
 

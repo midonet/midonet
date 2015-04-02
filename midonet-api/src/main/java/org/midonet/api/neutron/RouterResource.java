@@ -27,7 +27,7 @@ import org.midonet.cluster.data.neutron.L3Api;
 import org.midonet.cluster.data.neutron.Router;
 import org.midonet.cluster.data.neutron.RouterInterface;
 import org.midonet.event.neutron.RouterEvent;
-import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.util.serialization.SerializationException;
 import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.StatePathExistsException;

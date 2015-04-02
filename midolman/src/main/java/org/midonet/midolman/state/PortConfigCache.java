@@ -20,9 +20,8 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
-import com.google.inject.Inject;
-import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.serialization.Serializer;
+import org.midonet.util.serialization.SerializationException;
+import org.midonet.util.serialization.Serializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

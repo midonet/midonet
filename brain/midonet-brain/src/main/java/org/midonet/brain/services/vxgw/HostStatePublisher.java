@@ -37,7 +37,7 @@ import org.midonet.brain.services.vxgw.monitor.HostMonitor;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.EntityIdSetEvent;
 import org.midonet.cluster.data.host.Host;
-import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.util.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZookeeperConnectionWatcher;
 

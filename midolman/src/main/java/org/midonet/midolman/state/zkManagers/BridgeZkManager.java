@@ -30,8 +30,8 @@ import org.slf4j.LoggerFactory;
 import org.midonet.cluster.WatchableZkManager;
 import org.midonet.cluster.data.Bridge;
 import org.midonet.cluster.data.neutron.Network;
-import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.serialization.Serializer;
+import org.midonet.util.serialization.SerializationException;
+import org.midonet.util.serialization.Serializer;
 import org.midonet.midolman.state.AbstractZkManager;
 import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.PathBuilder;
@@ -159,7 +159,7 @@ public class BridgeZkManager
      * @param config
      *            BridgeConfig object
      * @return A list of Op objects to represent the operations to perform.
-     * @throws org.midonet.midolman.serialization.SerializationException
+     * @throws org.midonet.util.serialization.SerializationException
      *             Serialization error occurred.
      * @throws StateAccessException
      *             Error accessing ZooKeeper.
@@ -212,7 +212,7 @@ public class BridgeZkManager
      * @param id ID of the bridge to update
      * @param newConfig the new bridge configuration.
      * @return The ZK operation required to update the bridge.
-     * @throws org.midonet.midolman.serialization.SerializationException
+     * @throws org.midonet.util.serialization.SerializationException
      *             if the BridgeConfig could not be serialized.
      */
     public List<Op> prepareUpdate(UUID id, BridgeConfig newConfig)
@@ -287,7 +287,7 @@ public class BridgeZkManager
      * Constructs a list of operations to perform in a bridge deletion.
      *
      * @return A list of Op objects representing the operations to perform.
-     * @throws org.midonet.midolman.serialization.SerializationException
+     * @throws org.midonet.util.serialization.SerializationException
      *             Serialization error occurred.
      */
     public List<Op> prepareBridgeDelete(UUID id, BridgeConfig config)

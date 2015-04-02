@@ -16,9 +16,8 @@
 package org.midonet.cluster;
 
 import java.util.List;
-import java.util.UUID;
 
-import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.util.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 
 /**

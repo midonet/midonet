@@ -22,8 +22,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-import org.midonet.midolman.serialization.Serializer;
-import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.util.serialization.Serializer;
+import org.midonet.util.serialization.SerializationException;
 import org.midonet.midolman.state.AbstractZkManager;
 import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.DirectoryCallback;

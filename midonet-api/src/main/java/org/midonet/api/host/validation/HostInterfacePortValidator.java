@@ -23,7 +23,7 @@ import com.google.inject.Inject;
 import org.midonet.api.host.HostInterfacePort;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.host.VirtualPortMapping;
-import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.util.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 
 public class HostInterfacePortValidator implements

@@ -27,7 +27,7 @@ import rx.Observable;
 import rx.subjects.PublishSubject;
 
 import org.midonet.cluster.DataClient;
-import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.util.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZookeeperConnectionWatcher;
 

@@ -18,9 +18,9 @@ package org.midonet.midolman.state.zkManagers;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooDefs.Ids;
-import org.codehaus.jackson.annotate.JsonIgnore;
-import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.serialization.Serializer;
+
+import org.midonet.util.serialization.SerializationException;
+import org.midonet.util.serialization.Serializer;
 import org.midonet.midolman.state.*;
 import org.midonet.packets.IPAddr$;
 import org.midonet.util.functors.Functors;

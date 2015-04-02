@@ -31,12 +31,12 @@ import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.storage.MidonetBackendConfig
 import org.midonet.cluster.{ClusterRouterManager, DataClient}
 import org.midonet.midolman.logging.MidolmanLogging
-import org.midonet.midolman.serialization.SerializationException
 import org.midonet.midolman.simulation.Bridge.UntaggedVlanId
 import org.midonet.midolman.state.zkManagers.PortZkManager
 import org.midonet.midolman.state.{PortConfig, PortDirectory, StateAccessException, _}
 import org.midonet.util.eventloop.Reactor
 import org.midonet.util.functors.makeRunnable
+import org.midonet.util.serialization.SerializationException
 
 /**
  * An implementation of the [[StateStorage]] trait using the legacy ZooKeeper

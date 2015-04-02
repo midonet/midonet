@@ -18,7 +18,6 @@ package org.midonet.midolman.state.zkManagers;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 
 import com.google.common.base.Preconditions;
@@ -30,10 +29,9 @@ import org.slf4j.LoggerFactory;
 
 import org.midonet.cluster.data.dhcp.ExtraDhcpOpt;
 import org.midonet.cluster.data.neutron.Route;
-import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.serialization.Serializer;
+import org.midonet.util.serialization.SerializationException;
+import org.midonet.util.serialization.Serializer;
 import org.midonet.midolman.state.BaseZkManager;
-import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkManager;
