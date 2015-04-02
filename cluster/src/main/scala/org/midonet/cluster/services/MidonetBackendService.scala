@@ -39,6 +39,8 @@ abstract class MidonetBackend extends AbstractService {
       * supported by MidoNet. */
     final def setupBindings(): Unit = {
         List(classOf[AgentMembership],
+             classOf[Bgp],
+             classOf[BgpRoute],
              classOf[C3POState],
              classOf[Chain],
              classOf[Dhcp],
@@ -88,6 +90,11 @@ abstract class MidonetBackend extends AbstractService {
 
         store.declareBinding(classOf[Host], "tunnel_zone_ids", CLEAR,
                              classOf[TunnelZone], "host_ids", CLEAR)
+
+        store.declareBinding(classOf[Port], "bgp_ids", CASCADE,
+                             classOf[Bgp], "port_id", CLEAR)
+        store.declareBinding(classOf[Bgp], "bgp_route_ids", CASCADE,
+                             classOf[BgpRoute], "bgp_id", CLEAR)
 
         store.build()
     }
