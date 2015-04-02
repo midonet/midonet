@@ -22,18 +22,16 @@ import rx.Observer
 object ReactiveActor {
 
     sealed trait ReactiveAction
-    case class OnNext[+D <: AnyRef](value: D)
-        extends ReactiveAction
     case class OnError(e: Throwable) extends ReactiveAction
-    case class OnCompleted() extends ReactiveAction
+    case object OnCompleted extends ReactiveAction
 
 }
 
-trait ReactiveActor[D <: AnyRef] extends Actor with Observer[D] {
+trait ReactiveActor[T <: AnyRef] extends Actor with Observer[T] {
 
     import org.midonet.util.concurrent.ReactiveActor._
 
-    protected[this] implicit val observer: Observer[D] = this
+    protected[this] implicit val observer: Observer[T] = this
 
     override def onCompleted(): Unit =
         self ! OnCompleted
@@ -41,6 +39,6 @@ trait ReactiveActor[D <: AnyRef] extends Actor with Observer[D] {
     override def onError(e: Throwable): Unit =
         self ! OnError(e)
 
-    override def onNext(t: D): Unit = if (null != t)
-        self ! OnNext(t)
+    override def onNext(value: T): Unit = if (value ne null)
+        self ! value
 }
