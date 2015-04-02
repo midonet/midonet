@@ -53,7 +53,7 @@ object MidonetBackendTestModule {
 }
 
 /** Provides all dependencies for the new backend, using a FAKE zookeeper. */
-class MidonetBackendTestModule(cfg: Config = MidoTestConfigurator.bootstrap)
+class MidonetBackendTestModule(cfg: Config = MidoTestConfigurator.forAgents())
     extends MidonetBackendModule(new MidonetBackendConfig(cfg)) {
 
     override protected def bindStorage(): Unit = {

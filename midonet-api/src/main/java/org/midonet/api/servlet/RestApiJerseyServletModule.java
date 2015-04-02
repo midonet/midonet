@@ -190,7 +190,7 @@ public class RestApiJerseyServletModule extends JerseyServletModule {
         try {
             UUID hostId = HostIdGenerator.getHostId();
             BrainConfig brainConf = new BrainConfig(zkConf.withFallback(
-                MidoNodeConfigurator.forBrains(zkConf).runtimeConfig(hostId)));
+                MidoNodeConfigurator.apply(zkConf).runtimeConfig(hostId)));
             ClusterNode.Context ctx = new ClusterNode.Context(hostId, true);
             bind(ConfMinion.class).toInstance(new ConfMinion(ctx, brainConf));
         } catch (Exception e) {

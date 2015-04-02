@@ -47,7 +47,7 @@ public class MidolmanConfigModule extends PrivateModule {
         try {
             return new MidolmanConfig(
                 configurator.runtimeConfig(HostIdGenerator.getHostId()),
-                configurator.schema().get());
+                configurator.mergedSchemas());
         } catch (HostIdGenerator.PropertiesFileNotWritableException e) {
             throw new RuntimeException(e);
         }

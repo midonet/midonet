@@ -15,6 +15,7 @@
  */
 package org.midonet.cluster.util
 
+import java.util.UUID
 import java.util.concurrent.TimeUnit
 
 import scala.collection.concurrent.TrieMap

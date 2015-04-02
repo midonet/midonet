@@ -23,7 +23,7 @@ import com.google.inject.{AbstractModule, Guice, Singleton}
 import org.slf4j.LoggerFactory
 
 import org.midonet.brain.{BrainConfig, ClusterNode}
-import org.midonet.conf.HostIdGenerator
+import org.midonet.conf.{MidoNodeConfigurator, HostIdGenerator}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.storage.MidonetBackendModule
 import org.midonet.util.concurrent.CallingThreadExecutionContext

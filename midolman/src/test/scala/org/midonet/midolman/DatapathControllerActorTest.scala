@@ -59,7 +59,7 @@ class DatapathControllerActorTest extends MidolmanSpec {
     val dpPortDev = new NetDevPort("eth0")
 
     override def fillConfig(config: Config) = {
-        super.fillConfig(config.withValue("midolman.dhcp_mtu",
+        super.fillConfig(config.withValue("agent.midolman.dhcp_mtu",
             ConfigValueFactory.fromAnyRef(TestDhcpMtu)))
     }
 
@@ -70,7 +70,7 @@ class DatapathControllerActorTest extends MidolmanSpec {
 
         datapath = new Datapath(0, "midonet")
 
-        config = MidolmanConfig.forTests("datapath.vxlan_udp_port = 4444")
+        config = MidolmanConfig.forTests("agent.datapath.vxlan_udp_port = 4444")
 
         upcallConnManager = new UpcallDatapathConnectionManager {
             var ports = Set.empty[DpPort]

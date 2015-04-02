@@ -3,12 +3,12 @@ mn-conf(1) -- MidoNet configuration tool
 
 ## SYNOPSIS
 
-    $ mn-conf [-t agent|brain] dump  [-h HOST_ID | -t TEMPLATE_NAME -s] [-H]
-    $ mn-conf [-t agent|brain] get   [-h HOST_ID | -t TEMPLATE_NAME -s] [-H] CONFIG_KEY
-    $ mn-conf [-t agent|brain] set   [-h HOST_ID | -t TEMPLATE_NAME] [-c] < CONFIG_FILE
-    $ mn-conf [-t agent|brain] unset [-h HOST_ID | -t TEMPLATE_NAME] CONFIG_KEY
-    $ mn-conf [-t agent|brain] template-get [-a | -h HOST_ID]
-    $ mn-conf [-t agent|brain] template-set -h HOST_ID -t TEMPLATE_NAME
+    $ mn-conf dump  [-h HOST_ID | -t TEMPLATE_NAME -s] [-H]
+    $ mn-conf get   [-h HOST_ID | -t TEMPLATE_NAME -s] [-H] CONFIG_KEY
+    $ mn-conf set   [-h HOST_ID | -t TEMPLATE_NAME] [-c] < CONFIG_FILE
+    $ mn-conf unset [-h HOST_ID | -t TEMPLATE_NAME] CONFIG_KEY
+    $ mn-conf template-get [-a | -h HOST_ID]
+    $ mn-conf template-set -h HOST_ID -t TEMPLATE_NAME
 
 ## DESCRIPTION
 
@@ -23,7 +23,6 @@ The configuration for a particular MidoNet node is composed of several different
 
 Note that, at runtime, MidoNet nodes will read legacy configuration files too, and they will take precedence over central repository configuration. Thus MidoNet agent will give priority to any values it finds in `/etc/midolman/midolman.conf` over the configuration sources described above. This cannot be managed with `mn-conf`, because it doesn't know if its running on the same host.
 
-Additionally, each type of MidoNet node (agents, cluster nodes) stores configuration in a separate namespace. Thus, all `mn-conf` operations need to be told which kind of node to act on. By default it will act on the MidoNet agent configuration, as that is the most common type of node.
 
 ## CONFIGURATION FORMAT
 
@@ -99,9 +98,6 @@ Queries the assignments of configuration templates to MidoNet node IDs.
 Assigns a configuration template to a host id.
 
 ## MISCELLANEOUS OPTIONS
-
-  * `-t` <agent|brain>, `--type` <agent|brain>:
-    This option tells `mn-conf` which type of MidoNet node to configure or read configuration for. Allowed values are 'agent' (the default), and 'brain'.
 
   * `-h`, `--help`:
     Print a brief help message.

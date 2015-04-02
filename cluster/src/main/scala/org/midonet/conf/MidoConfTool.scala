@@ -85,7 +85,7 @@ object GetTemplate extends TemplateCommand("template-get") with ConfCommand {
         val assignments = configurator.templateMappings
         val host = getHost
 
-        if (allHosts.isDefined) {
+        if (allHosts.isDefined && allHosts.get.get) {
             for (assignment <- assignments.entrySet;
                  key = assignment.getKey;
                  value = assignments.getString(key)) {
@@ -123,7 +123,7 @@ object BundledConfig extends Subcommand("dump-bundled-config") with ConfCommand 
                                                     setFormatted(true)
 
     override def run(configurator: MidoNodeConfigurator) = {
-        val schema = configurator.bundledSchema.get
+        val schema = configurator.mergedBundledSchemas
         val templates = configurator.bundledTemplates
 
         if (!schema.isEmpty) {
@@ -147,10 +147,8 @@ object DeployBundledConfig extends Subcommand("deploy") with ConfCommand {
 
     override def run(configurator: MidoNodeConfigurator) = {
         if (configurator.deployBundledConfig()) {
-            val schema = configurator.bundledSchema
             val templates = configurator.bundledTemplates
-
-            println(s"Deployed schema, version "+ schema.get.getString("schemaVersion"))
+            println(s"Deployed schema")
             for ((name, template) <- templates) {
                 println(s"Deployed configuration template: $name ")
             }
@@ -171,7 +169,7 @@ object SetConf extends ConfigWriter("set") with ConfCommand {
 
     override def run(configurator: MidoNodeConfigurator) = {
         val parseOpts = ConfigParseOptions.defaults().setOriginDescription("STDIN")
-        val schema = configurator.schema.get
+        val schema = configurator.mergedSchemas()
         val zkConf = makeConfig(configurator)
 
         val reader = new InputStreamReader(System.in)
@@ -346,25 +344,15 @@ abstract class ConfigQuery(name: String) extends Subcommand(name) {
         }
 
         if (useSchema)
-            conf = conf.withFallback(configurator.schema.get)
+            conf = conf.withFallback(configurator.mergedSchemas)
 
         conf
     }
 }
 
 object MidoConfTool extends App {
-    def getConfigurator(nodeType: String) = nodeType match {
-        case MidoNodeType.AGENT => MidoNodeConfigurator.forAgents()
-        case MidoNodeType.BRAIN => MidoNodeConfigurator.forBrains()
-        case t => throw new Exception(s"Unknown MidoNet node type: $t")
-    }
-
     def date = System.currentTimeMillis()
     val opts = new ScallopConf(args) {
-        val nodeType = opt[String]("type", short = 't',
-                                   default = Option(MidoNodeType.AGENT),
-                                   validate = (v) => MidoNodeType.all.contains(v),
-                                   descr = "Type of MidoNet node to configure")
 
         val bundledConfig = BundledConfig
         val dump = DumpConf
@@ -379,18 +367,15 @@ object MidoConfTool extends App {
         footer("Copyright (c) 2015 Midokura SARL, All Rights Reserved.")
     }
 
-    val ret = (opts.subcommand flatMap {
+    def invalidEx = new Exception("must specify a valid command")
+
+    val ret = opts.subcommand map {
         case subcommand: ConfCommand =>
-            for {nodeType <- opts.nodeType.get} yield { (subcommand, nodeType) }
+            Try(subcommand.run(MidoNodeConfigurator()))
         case s =>
             println(s)
-            None
-    } match {
-        case Some((subcommand, nodeType)) =>
-            Try(subcommand.run(getConfigurator(nodeType)))
-        case _ =>
-            Failure(new Exception("must specify a valid command"))
-    }) match {
+            Failure(invalidEx)
+    } getOrElse Failure(invalidEx) match {
         case Success(retcode) =>
             retcode
         case Failure(e) =>
