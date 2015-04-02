@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_281271b1",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/collection/PathMap.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-04-02T09:12:40Z",
+      "side": 1,
+      "message": "Maybe you should specify that this class is not thread-safe.",
+      "range": {
+        "startLine": 33,
+        "startChar": 0,
+        "endLine": 33,
+        "endChar": 13
+      },
+      "revId": "cd77d8c4c4e6b6d2682ed774ac304e2cd0ec9e4b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
