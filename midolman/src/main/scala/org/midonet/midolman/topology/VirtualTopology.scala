@@ -21,6 +21,7 @@ import java.util.concurrent.{ConcurrentHashMap, Executors, ThreadFactory}
 
 import scala.concurrent.{Future, Promise}
 import scala.reflect._
+import scala.util.control.NonFatal
 
 import com.google.inject.Inject
 
@@ -164,7 +165,7 @@ class VirtualTopology @Inject() (val backend: MidonetBackend,
                                  val connectionWatcher: ZkConnectionAwareWatcher,
                                  val simBackChannel: SimulationBackChannel,
                                  val actorsService: MidolmanActorsService)
-        extends MidolmanLogging {
+    extends MidolmanLogging {
 
     import VirtualTopology._
 
@@ -270,11 +271,13 @@ class VirtualTopology @Inject() (val backend: MidonetBackend,
      * Checks that this method is executed on the virtual topology thread.
      */
     @throws[DeviceMapperException]
-    @inline private[topology] def assertThread(): Unit = {
+    @inline
+    private[topology] def assertThread(): Unit = {
         if (vtThreadId != Thread.currentThread.getId) {
             throw new DeviceMapperException(
                 s"Call expected on thread $vtThreadId but received on " +
                 s"${Thread.currentThread().getId}")
         }
     }
+
 }
