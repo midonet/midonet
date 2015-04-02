@@ -86,6 +86,8 @@ object ListMeters extends Subcommand("list") with MeterCommand {
 }
 
 object MidolmanMeter extends App {
+    System.setProperty("logback.configurationFile", "logback-disabled.xml")
+
     private def getMeteringBean(host: String, port: Int): Try[MeteringMXBean] = {
         try {
             val url = new JMXServiceURL(

@@ -19,6 +19,7 @@ package org.midonet.conf
 import java.util.UUID
 
 import com.typesafe.config.{ConfigException, Config, ConfigFactory}
+import org.apache.curator.framework.CuratorFramework
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{GivenWhenThen, FeatureSpecLike, Matchers}
@@ -37,8 +38,8 @@ class MidoConfTest extends FeatureSpecLike
 
     val NODE = UUID.randomUUID()
 
-    val SCHEMA = ConfigFactory.parseString("""
-         |schemaVersion = 23
+    def SCHEMA = ConfigFactory.parseString(s"""
+         |foo.schemaVersion = 23
          |which.source = "schema"
         """.stripMargin)
     val LOGGER_CONF = ConfigFactory.parseString("""
@@ -54,13 +55,21 @@ class MidoConfTest extends FeatureSpecLike
 
     var configurator: MidoNodeConfigurator = _
 
+    var namespace: CuratorFramework = _
+
     override def setup(): Unit = {
-        configurator = new MidoNodeConfigurator(curator, UUID.randomUUID().toString)
-        configurator.schema.setAsSchema(SCHEMA)
+        val prefix = UUID.randomUUID().toString
+        curator.create().forPath(s"/$prefix")
+        namespace = curator.usingNamespace(prefix)
+        configurator = new MidoNodeConfigurator(namespace, None)
+        configurator.schema("foo").setAsSchema(SCHEMA)
+    }
+
+    override def teardown(): Unit = {
     }
 
     scenario("log levels are adjusted") {
-        val watcher = new LoggerLevelWatcher()
+        val watcher = new LoggerLevelWatcher(None)
         val conf = configurator.centralPerNodeConfig(NODE)
         conf.observable.subscribe(watcher)
         conf.mergeAndSet(LOGGER_CONF)
@@ -85,13 +94,13 @@ class MidoConfTest extends FeatureSpecLike
 
     scenario("zookeeper: begins as an empty source") {
         val path = "/testsource-" + UUID.randomUUID()
-        val conf = new ZookeeperConf(curator, path)
+        val conf = new ZookeeperConf(namespace, path)
         conf.get.isEmpty should be (true)
     }
 
     scenario("zookeeper: set and unset a key") {
         val path = "/testsource-" + UUID.randomUUID()
-        val conf = new ZookeeperConf(curator, path)
+        val conf = new ZookeeperConf(namespace, path)
 
         conf.set("a.key", "a value")
         eventually { conf.get.getString("a.key") should be ("a value") }
@@ -103,7 +112,7 @@ class MidoConfTest extends FeatureSpecLike
 
     scenario("zookeeper: merge a config") {
         val path = "/testsource-" + UUID.randomUUID()
-        val conf = new ZookeeperConf(curator, path)
+        val conf = new ZookeeperConf(namespace, path)
 
         conf.set("a.key", "a value")
         conf.set("another.key", 42)
@@ -117,7 +126,7 @@ class MidoConfTest extends FeatureSpecLike
 
     scenario("zookeeper: clear and set a config") {
         val path = "/testsource-" + UUID.randomUUID()
-        val conf = new ZookeeperConf(curator, path)
+        val conf = new ZookeeperConf(namespace, path)
 
         conf.set("a.key", "a value")
         conf.set("another.key", 42)
@@ -143,7 +152,7 @@ class MidoConfTest extends FeatureSpecLike
     scenario("zookeeper: can be observed across path delete() and create() ops") {
         val key = "a.key"
         val path = "/testsource-" + UUID.randomUUID()
-        val conf = new ZookeeperConf(curator, path)
+        val conf = new ZookeeperConf(namespace, path)
         val observer = makeObserver()
 
         conf.observable.subscribe(observer)
@@ -154,7 +163,7 @@ class MidoConfTest extends FeatureSpecLike
         eventually { observer.get should not be (null) }
         eventually { observer.get.getInt(key) should be (1) }
 
-        curator.delete().forPath(path)
+        namespace.delete().forPath(path)
         eventually { observer.get.isEmpty should be (true) }
         conf.set(key, 1)
         eventually { observer.get.getInt(key) should be (1) }
@@ -205,7 +214,7 @@ class MidoConfTest extends FeatureSpecLike
     }
 
     scenario("reads and updates schemas") {
-        val schema = configurator.schema
+        val schema = configurator.schema("foo")
 
         schema.get.getString("which.source") should be ("schema")
 
@@ -213,8 +222,8 @@ class MidoConfTest extends FeatureSpecLike
         schema.setAsSchema(newSchema) should be (false)
         schema.get.getString("which.source") should be ("schema")
 
-        newSchema = newSchema.withValue("schemaVersion", 24)
-        configurator.schema.setAsSchema(newSchema) should be (true)
+        newSchema = newSchema.withValue(s"foo.schemaVersion", 24)
+        configurator.schema("foo").setAsSchema(newSchema) should be (true)
         eventually { schema.get.getString("which.source") should be ("new schema") }
     }
 }

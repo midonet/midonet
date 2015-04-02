@@ -110,7 +110,7 @@ trait MidolmanSpec extends FeatureSpecLike
     protected def fillConfig(config: Config = ConfigFactory.empty) : Config = {
         val defaults =
             """
-              |cassandra.servers = "localhost:9171"
+              |agent.cassandra.servers = "localhost:9171"
             """.stripMargin
         config.withFallback(ConfigFactory.parseString(defaults))
     }

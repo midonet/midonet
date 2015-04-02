@@ -28,7 +28,7 @@ import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.storage._
-import org.midonet.conf.HostIdGenerator
+import org.midonet.conf.{MidoNodeConfigurator, HostIdGenerator}
 import org.midonet.midolman.cluster.LegacyClusterModule
 import org.midonet.midolman.cluster.serialization.SerializationModule
 import org.midonet.midolman.cluster.zookeeper.ZookeeperConnectionModule.ZookeeperReactorProvider
@@ -71,7 +71,9 @@ object ClusterNode extends App {
         System.exit(1)
     }
 
-    val conf = BrainConfig(configFile)
+    val conf = MidoNodeConfigurator(configFile).runtimeConfig(HostIdGenerator.getHostId)
+    val brainConf = new BrainConfig(conf)
+    val backendConf = new MidonetBackendConfig(conf)
 
     // Load cluster node configuration
     private val nodeId = HostIdGenerator.getHostId
@@ -80,18 +82,18 @@ object ClusterNode extends App {
     private val nodeContext = new Context(nodeId)
 
     private val minionDefs: List[MinionDef[ClusterMinion]] =
-        List (new MinionDef("heartbeat", conf.hearbeat),
-              new MinionDef("vxgw", conf.vxgw),
-              new MinionDef("neutron-importer", conf.c3po),
-              new MinionDef("topology", conf.topologyApi))
+        List (new MinionDef("heartbeat", brainConf.hearbeat),
+              new MinionDef("vxgw", brainConf.vxgw),
+              new MinionDef("neutron-importer", brainConf.c3po),
+              new MinionDef("topology", brainConf.topologyApi))
 
     // TODO: move this out to a Guice module that provides access to the
     // NeutronDB
     private val dataSrc = new BasicDataSource()
-    dataSrc.setDriverClassName(conf.c3po.jdbcDriver)
-    dataSrc.setUrl(conf.c3po.connectionString)
-    dataSrc.setUsername(conf.c3po.user)
-    dataSrc.setPassword(conf.c3po.password)
+    dataSrc.setDriverClassName(brainConf.c3po.jdbcDriver)
+    dataSrc.setUrl(brainConf.c3po.connectionString)
+    dataSrc.setUsername(brainConf.c3po.user)
+    dataSrc.setPassword(brainConf.c3po.password)
 
     private val daemon = new Daemon(nodeId, minionDefs)
     private val clusterNodeModule = new AbstractModule {
@@ -103,7 +105,7 @@ object ClusterNode extends App {
             bind(classOf[ClusterNode.Context]).toInstance(nodeContext)
 
             // Minion configurations
-            bind(classOf[BrainConfig]).toInstance(conf)
+            bind(classOf[BrainConfig]).toInstance(brainConf)
 
             // Minion definitions, used by the Daemon to start when appropriate
             minionDefs foreach { m =>
@@ -145,7 +147,7 @@ object ClusterNode extends App {
     }
 
     protected[brain] var injector = Guice.createInjector(
-        new MidonetBackendModule(conf.backend),
+        new MidonetBackendModule(conf),
         clusterNodeModule,
         dataClientDependencies
     )

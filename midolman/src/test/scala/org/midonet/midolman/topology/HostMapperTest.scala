@@ -26,6 +26,7 @@ import org.scalatest.junit.JUnitRunner
 import rx.Observable
 import rx.observers.TestObserver
 
+import org.midonet.conf.MidoConf._
 import org.midonet.cluster.data.storage.StorageWithOwnership
 import org.midonet.cluster.models.Topology.{Host, TunnelZone}
 import org.midonet.cluster.services.MidonetBackend

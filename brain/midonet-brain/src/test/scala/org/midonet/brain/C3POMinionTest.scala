@@ -103,14 +103,14 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
 
     val C3PO_CFG_OBJECT = ConfigFactory.parseString(
         s"""
-          |neutron_importer.period : 100ms
-          |neutron_importer.delay : 0
-          |neutron_importer.enabled : true
-          |neutron_importer.with : ${classOf[C3POMinion].getName}
-          |neutron_importer.threads : 1
-          |neutron_importer.connection_string : "$DB_CONNECT_STR"
-          |neutron_importer.user : ""
-          |neutron_importer.password : ""
+          |brain.neutron_importer.period : 100ms
+          |brain.neutron_importer.delay : 0
+          |brain.neutron_importer.enabled : true
+          |brain.neutron_importer.with : ${classOf[C3POMinion].getName}
+          |brain.neutron_importer.threads : 1
+          |brain.neutron_importer.connection_string : "$DB_CONNECT_STR"
+          |brain.neutron_importer.user : ""
+          |brain.neutron_importer.password : ""
           |zookeeper.root_key : "/test"
           |zookeeper.use_new_stack : true
         """.stripMargin)

@@ -143,7 +143,7 @@ public class Midolman {
         }
 
         MidoNodeConfigurator configurator =
-            MidoNodeConfigurator.forAgents(configFilePath);
+            MidoNodeConfigurator.apply(configFilePath);
         if (configurator.deployBundledConfig())
             log.info("Deployed new configuration schema into NSDB");
 
@@ -184,7 +184,7 @@ public class Midolman {
         log.info("Loaded configuration: {}", conf.root().render(renderOpts));
 
         configurator.observableRuntimeConfig(HostIdGenerator.getHostId()).
-                subscribe(new LoggerLevelWatcher());
+                subscribe(new LoggerLevelWatcher(scala.Option.apply("agent")));
 
         // fire the initialize message to an actor
         injector.getInstance(MidolmanActorsService.class).initProcessing();
