@@ -60,8 +60,8 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
     protected override def fillConfig(config: Config) = {
         super.fillConfig(ConfigFactory.parseString(
             s"""
-              |midolman.enable_bridge_arp : true
-              |bridge.mac_port_mapping_expire : "${macTtl.toMillis}ms"
+              |agent.midolman.enable_bridge_arp : true
+              |agent.bridge.mac_port_mapping_expire : "${macTtl.toMillis}ms"
             """.stripMargin).withFallback(config))
     }
 

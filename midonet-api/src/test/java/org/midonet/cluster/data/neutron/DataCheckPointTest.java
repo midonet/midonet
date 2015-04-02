@@ -30,6 +30,8 @@ import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
+import com.typesafe.config.ConfigValueFactory;
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.curator.framework.recipes.locks.InterProcessSemaphoreMutex;
 import org.apache.curator.test.TestingServer;
@@ -84,7 +86,13 @@ public class DataCheckPointTest {
     Injector injector = null;
     String zkRoot = "/test";
 
-    HierarchicalConfiguration fillConfig(HierarchicalConfiguration config) {
+    Config fillConfig(Config config) {
+        return config.withValue("zookeeper.root_key",
+                    ConfigValueFactory.fromAnyRef(zkRoot));
+    }
+
+    HierarchicalConfiguration fillLegacyConfig() {
+        HierarchicalConfiguration config = new HierarchicalConfiguration();
         config.addNodes("zookeeper",
                         Arrays.asList(new HierarchicalConfiguration.Node(
                             "root_key", zkRoot)));
@@ -98,9 +106,8 @@ public class DataCheckPointTest {
     public class TestDataClientModule extends LegacyClusterModule {
         Config config = null;
 
-        public TestDataClientModule(HierarchicalConfiguration config) {
-            this.config = new LegacyConf(config).get().
-                    withFallback(MidoTestConfigurator.bootstrap());
+        public TestDataClientModule(Config config) {
+            this.config = config.withFallback(MidoTestConfigurator.forAgents());
         }
 
         @Override
@@ -481,12 +488,11 @@ public class DataCheckPointTest {
     @Before
     public void setUp() throws InterruptedException, KeeperException {
         zkRoot = "/test_" + UUID.randomUUID();
-        HierarchicalConfiguration
-            config = fillConfig(new HierarchicalConfiguration());
+        Config config = fillConfig(ConfigFactory.empty());
         injector = Guice.createInjector(
-            new TestDataClientModule(config),
+            new TestDataClientModule(fillConfig(config)),
             new SerializationModule(),
-            new ConfigProviderModule(config),
+            new ConfigProviderModule(fillLegacyConfig()),
             new CheckpointMockZookeeperConnectionModule(),
             new NeutronClusterModule(),
             new AbstractModule() {

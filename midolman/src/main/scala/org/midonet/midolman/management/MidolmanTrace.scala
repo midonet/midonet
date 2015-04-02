@@ -133,6 +133,8 @@ object ListTraces extends Subcommand("list") with TraceCommand {
 }
 
 object MidolmanTrace extends App {
+    System.setProperty("logback.configurationFile", "logback-disabled.xml")
+
     private def getTracingBean(host: String, port: Int): Try[PacketTracingMXBean] = {
         try {
             val url = new JMXServiceURL(

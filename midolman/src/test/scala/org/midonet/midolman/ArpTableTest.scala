@@ -60,11 +60,11 @@ class ArpTableTest extends MidolmanSpec {
 
     val confStr =
         s"""
-          |datapath.max_flow_count = 10
-          |arptable.arp_retry_interval = ${ARP_RETRY_SECS}s
-          |arptable.arp_timeout = ${ARP_TIMEOUT_SECS}s
-          |arptable.arp_stale = ${ARP_STALE_SECS}s
-          |arptable.arp_expiration = ${ARP_EXPIRATION_SECS}s
+          |agent.datapath.max_flow_count = 10
+          |agent.arptable.arp_retry_interval = ${ARP_RETRY_SECS}s
+          |agent.arptable.arp_timeout = ${ARP_TIMEOUT_SECS}s
+          |agent.arptable.arp_stale = ${ARP_STALE_SECS}s
+          |agent.arptable.arp_expiration = ${ARP_EXPIRATION_SECS}s
         """.stripMargin
 
     override protected def fillConfig(config: Config) = {

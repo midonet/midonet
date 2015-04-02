@@ -416,7 +416,7 @@ public class MmCtl {
     private static Injector getInjector(String configFilePath) {
 
         MidoNodeConfigurator configurator =
-            MidoNodeConfigurator.forAgents(configFilePath);
+            MidoNodeConfigurator.apply(configFilePath);
         MidolmanConfig config = MidolmanConfigModule.createConfig(configurator);
 
         return Guice.createInjector(

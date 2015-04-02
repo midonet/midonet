@@ -3,12 +3,13 @@ mn-conf(1) -- MidoNet configuration tool
 
 ## SYNOPSIS
 
-    $ mn-conf [-t agent|brain] dump  [-h HOST_ID | -t TEMPLATE_NAME -s] [-H]
-    $ mn-conf [-t agent|brain] get   [-h HOST_ID | -t TEMPLATE_NAME -s] [-H] CONFIG_KEY
-    $ mn-conf [-t agent|brain] set   [-h HOST_ID | -t TEMPLATE_NAME] [-c] < CONFIG_FILE
-    $ mn-conf [-t agent|brain] unset [-h HOST_ID | -t TEMPLATE_NAME] CONFIG_KEY
-    $ mn-conf [-t agent|brain] template-get [-a | -h HOST_ID]
-    $ mn-conf [-t agent|brain] template-set -h HOST_ID -t TEMPLATE_NAME
+    $ mn-conf dump  [-h HOST_ID | -t TEMPLATE_NAME -s] [-H]
+    $ mn-conf get   [-h HOST_ID | -t TEMPLATE_NAME -s] [-H] CONFIG_KEY
+    $ mn-conf set   [-h HOST_ID | -t TEMPLATE_NAME] [-c] < CONFIG_FILE
+    $ mn-conf unset [-h HOST_ID | -t TEMPLATE_NAME] CONFIG_KEY
+    $ mn-conf template-get [-a | -h HOST_ID]
+    $ mn-conf template-set -h HOST_ID -t TEMPLATE_NAME
+    $ mn-conf import [-h HOST_ID | -t TEMPLATE_NAME] [--all] -f CONFIG_FILE
 
 ## DESCRIPTION
 
@@ -18,12 +19,13 @@ The configuration for a particular MidoNet node is composed of several different
 
   * *The node-specific configuration* assigned to the node based on its UUID. Options found here apply to no other MidoNet nodes. This is useful while troubleshooting the behaviour of an individual node or when there is reason for a node to have a different value on a specific configuration key.
   * *The configuration template assigned to this node*. Configuration templates allow applying sets of configuration values to groups of MidoNet nodes. For instance, one might like to assign all MidoNet agents running on the gateway hosts of a cloud the same configuration template, so they can be sized differently than agents running on hosts dedicated to compute services.
-  * *The "default" configuation template*. This template is applied, with less priority, to all nodes regardless of whether they are assigned to a different template. This is the best place to store cloud-wide configuration settings. MidoNet does not touch this template, even across upgrades, settings written here by operators remain in place until they are removed or unless they are overriden by a higher-priority configuration source.
+  * *The "default" configuration template*. This template is applied, with less priority, to all nodes regardless of whether they are assigned to a different template. This is the best place to store cloud-wide configuration settings. MidoNet does not touch this template, even across upgrades, settings written here by operators remain in place until they are removed or unless they are overridden by a higher-priority configuration source.
   * *The configuration schema*. The schema is managed by MidoNet and changes across upgrades. Thus, operators may not edit the schema. It contains the default values for all existing configuration options. Also, many configuration keys are annotated with documentation. This documentation can be found by appending the *_description* suffix to a configuration option.
 
 Note that, at runtime, MidoNet nodes will read legacy configuration files too, and they will take precedence over central repository configuration. Thus MidoNet agent will give priority to any values it finds in `/etc/midolman/midolman.conf` over the configuration sources described above. This cannot be managed with `mn-conf`, because it doesn't know if its running on the same host.
 
-Additionally, each type of MidoNet node (agents, cluster nodes) stores configuration in a separate namespace. Thus, all `mn-conf` operations need to be told which kind of node to act on. By default it will act on the MidoNet agent configuration, as that is the most common type of node.
+`mn-conf` is capable of importing the non-default values in a legacy configuation file into one of the central repository config sources described above. While the `mn-conf` configuration system is fully backwards compatible with legacy configuration files, the `import` command is a seamless mechanism to transition to the new configuration system. See below, under `import`, for a description of this feature.
+
 
 ## CONFIGURATION FORMAT
 
@@ -98,10 +100,16 @@ Queries the assignments of configuration templates to MidoNet node IDs.
 
 Assigns a configuration template to a host id.
 
-## MISCELLANEOUS OPTIONS
+`import [-h` <HOST_ID> `| -t` <TEMPLATE_NAME>`] [-a] -f` <CONFIG_FILE>
 
-  * `-t` <agent|brain>, `--type` <agent|brain>:
-    This option tells `mn-conf` which type of MidoNet node to configure or read configuration for. Allowed values are 'agent' (the default), and 'brain'.
+Imports values from a legacy configuration file into the centralized configuration repository. The default behavior is to import values that differ from the configuration schema only, but the `-a` option will make `mn-conf` import all values. `import` will automatically handle keys that have changed name, path or type. See above, in `dump`, the options for selecting the configuration source where `mn-conf` will write the imported values.
+
+   * `-a`, `--all`:
+   Import all values, instead of just those that differ from the configuration schema.
+   * `-f` <CONFIG_FILE>, `--file` <CONFIG_FILE>:
+   Path to the file were `mn-conf` will find the legacy configuration.
+
+## MISCELLANEOUS OPTIONS
 
   * `-h`, `--help`:
     Print a brief help message.
@@ -119,7 +127,23 @@ Dump the runtime configuration (minus local configuration files) of a MidoNet ag
 Create a configuration template and assign it to a particular agent:
 
     $ echo "a.config.key : 42" | mn-conf set -t "new_template"
-    $ mn-conf template-set -h a5ff1460-d00c-11e4-8830-0800200c9a66 -t new_template
+    $ mn-conf template-set -h a5ff1460-d00c-11e4-8830-0800200c9a66 -t     new_template
+
+Importing non-default values from a legacy configuration file:
+
+    $ mn-conf import -t default -f /etc/midolman/midolman.conf
+
+    Importing legacy configuration:
+    agent {
+        midolman {
+            "bgp_holdtime"="120s"
+        }
+    }
+    zookeeper {
+        "session_gracetime"="30000ms"
+    }
+    
+Notice how `mn-conf` will automatically handle keys that have been moved or renamed.
 
 ## FILES
 
