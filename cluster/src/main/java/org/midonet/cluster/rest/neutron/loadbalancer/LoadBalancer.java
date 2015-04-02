@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.client.neutron.loadbalancer;
+package org.midonet.cluster.rest.neutron.loadbalancer;
 
 import java.net.URI;
 

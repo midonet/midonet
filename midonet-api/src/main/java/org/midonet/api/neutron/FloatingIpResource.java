@@ -21,7 +21,7 @@ import org.midonet.api.rest_api.AbstractResource;
 import org.midonet.api.rest_api.ConflictHttpException;
 import org.midonet.api.rest_api.NotFoundHttpException;
 import org.midonet.api.rest_api.RestApiConfig;
-import org.midonet.client.neutron.NeutronMediaType;
+import org.midonet.cluster.rest.neutron.NeutronMediaType;
 import org.midonet.cluster.data.Rule;
 import org.midonet.cluster.data.neutron.FloatingIp;
 import org.midonet.cluster.data.neutron.L3Api;

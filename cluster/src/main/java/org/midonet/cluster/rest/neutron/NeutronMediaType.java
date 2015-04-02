@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.client.neutron;
+package org.midonet.cluster.rest.neutron;
 
 public class NeutronMediaType {
 

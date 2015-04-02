@@ -41,7 +41,7 @@ import org.midonet.api.rest_api.AbstractResource;
 import org.midonet.api.rest_api.ConflictHttpException;
 import org.midonet.api.rest_api.NotFoundHttpException;
 import org.midonet.api.rest_api.RestApiConfig;
-import org.midonet.client.neutron.loadbalancer.LBMediaType;
+import org.midonet.cluster.rest.neutron.loadbalancer.LBMediaType;
 import org.midonet.cluster.data.neutron.LoadBalancerApi;
 import org.midonet.cluster.data.neutron.loadbalancer.Member;
 import org.midonet.event.neutron.PoolMemberEvent;

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.client.neutron;
+package org.midonet.cluster.rest.neutron;
 
 import java.net.URI;
 
@@ -21,7 +21,7 @@ import com.google.common.base.Objects;
 
 import org.codehaus.jackson.annotate.JsonProperty;
 
-import org.midonet.client.neutron.loadbalancer.LoadBalancer;
+import org.midonet.cluster.rest.neutron.loadbalancer.LoadBalancer;
 import org.midonet.util.version.Since;
 
 public class Neutron {
