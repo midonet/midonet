@@ -23,8 +23,6 @@ import java.util.{List => JList, Set => JSet, HashSet => JHashSet}
 import scala.annotation.meta.field
 import scala.collection.concurrent.TrieMap
 import scala.collection.JavaConversions._
-import scala.collection.mutable
-import scala.collection.mutable.ArrayBuffer
 
 import com.google.protobuf.Descriptors.{EnumDescriptor, EnumValueDescriptor}
 import com.google.protobuf.GeneratedMessage.Builder

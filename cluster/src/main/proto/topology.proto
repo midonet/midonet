@@ -37,6 +37,7 @@ enum Type {
     VTEP = 13;
     VTEP_BINDING = 14;
     DHCP=15;
+    BGP=16;
 }
 
 message Network {
@@ -143,9 +144,10 @@ message Port {
     optional IPAddress port_address = 15;
     optional string port_mac = 16;
     repeated UUID route_ids = 17;
+    repeated UUID bgp_ids = 18;
 
     // VXLAN port specific
-    optional UUID vtep_id = 18;
+    optional UUID vtep_id = 19;
 
     // Backreferences
     repeated UUID rule_ids = 101;
@@ -357,4 +359,23 @@ message Host {
 
     // Backreference. Expected to be set from the Tunnel Zone side.
     repeated UUID tunnel_zone_ids = 101;
+}
+
+message Bgp {
+    optional UUID id = 1;
+    optional int32 local_as = 2;
+    optional int32 peer_as = 3;
+    optional IPAddress peer_address = 4;
+    repeated UUID bgp_route_ids = 5;
+
+    // Backreference
+    optional UUID port_id = 6;
+}
+
+message BgpRoute {
+    optional UUID id = 1;
+    optional IPSubnet subnet = 2;
+
+    // Backreference
+    optional UUID bgp_id = 3;
 }
