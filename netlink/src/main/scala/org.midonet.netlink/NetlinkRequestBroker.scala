@@ -274,7 +274,9 @@ final class NetlinkRequestBroker(writer: NetlinkBlockingWriter,
         }
 
         freeSequence(pos)
-        obs.onCompleted()
+        if (obs != unhandled) {
+            obs.onCompleted()
+        }
     }
 
     private def getObserver(pos: Int, seq: Int,
