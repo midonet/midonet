@@ -110,12 +110,13 @@ class ConfApiTest extends FeatureSpecLike
         super.beforeAll()
         val context = ClusterNode.Context(HostIdGenerator.getHostId, true)
         confMinion = new ConfMinion(context, new BrainConfig(config))
-        confMinion.start()
+        confMinion.startAsync().awaitRunning()
+
     }
 
     override def afterAll(): Unit = {
         super.afterAll()
-        confMinion.stop()
+        confMinion.stopAsync().awaitTerminated()
     }
 
     private def url(path: String) = s"http://127.0.0.1:$HTTP_PORT/$path"
