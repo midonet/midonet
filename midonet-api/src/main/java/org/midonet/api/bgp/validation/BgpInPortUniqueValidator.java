@@ -20,7 +20,7 @@ import com.google.inject.Inject;
 import org.midonet.api.bgp.Bgp;
 import org.midonet.cluster.DataClient;
 import org.midonet.util.serialization.SerializationException;
-import org.midonet.midolman.state.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
 
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;

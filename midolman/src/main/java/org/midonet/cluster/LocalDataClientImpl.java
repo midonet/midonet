@@ -96,7 +96,7 @@ import org.midonet.midolman.state.PoolHealthMonitorMappingStatus;
 import org.midonet.midolman.state.PortConfig;
 import org.midonet.midolman.state.PortConfigCache;
 import org.midonet.midolman.state.PortDirectory.VxLanPortConfig;
-import org.midonet.midolman.state.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.midolman.state.ZkLeaderElectionWatcher;
 import org.midonet.midolman.state.ZkManager;
 import org.midonet.midolman.state.ZkUtil;

@@ -15,6 +15,8 @@
  */
 package org.midonet.midolman.state;
 
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
+
 public class VlanPathExistsException extends StateAccessException {
     private static final long serialVersionUID = 1L;
 

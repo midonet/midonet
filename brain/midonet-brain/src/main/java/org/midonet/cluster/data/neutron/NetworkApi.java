@@ -15,14 +15,14 @@
  */
 package org.midonet.cluster.data.neutron;
 
-import org.midonet.cluster.data.Rule;
-import org.midonet.util.serialization.SerializationException;
-import org.midonet.midolman.state.StateAccessException;
-import org.midonet.midolman.state.zkManagers.BridgeZkManager;
-
-import javax.annotation.Nonnull;
 import java.util.List;
 import java.util.UUID;
+
+import javax.annotation.Nonnull;
+
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
+import org.midonet.cluster.data.Rule;
+import org.midonet.util.serialization.SerializationException;
 
 
 public interface NetworkApi {
@@ -79,8 +79,7 @@ public interface NetworkApi {
      * @return Updated Network object
      */
     Network updateNetwork(@Nonnull UUID id, @Nonnull Network network)
-            throws StateAccessException, SerializationException,
-            BridgeZkManager.VxLanPortIdUpdateException;
+            throws StateAccessException, SerializationException;
 
     /**
      * Create a new subnet data in the data store.  StatePathExistsException

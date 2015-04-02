@@ -16,13 +16,14 @@
 package org.midonet.cluster.data.neutron;
 
 
-import org.midonet.cluster.data.Rule;
-import org.midonet.util.serialization.SerializationException;
-import org.midonet.midolman.state.StateAccessException;
-
-import javax.annotation.Nonnull;
 import java.util.List;
 import java.util.UUID;
+
+import javax.annotation.Nonnull;
+
+import org.midonet.cluster.data.Rule;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
+import org.midonet.util.serialization.SerializationException;
 
 public interface SecurityGroupApi {
 

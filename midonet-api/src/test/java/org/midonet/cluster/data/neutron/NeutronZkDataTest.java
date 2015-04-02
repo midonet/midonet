@@ -25,7 +25,7 @@ import org.junit.Test;
 import org.midonet.cluster.data.Rule;
 import org.midonet.util.serialization.SerializationException;
 import org.midonet.midolman.state.PathBuilder;
-import org.midonet.midolman.state.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.packets.IPv4Subnet;
 
 public final class NeutronZkDataTest extends NeutronPluginTest {

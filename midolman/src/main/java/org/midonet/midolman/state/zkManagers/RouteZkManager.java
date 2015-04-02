@@ -40,7 +40,7 @@ import org.midonet.midolman.state.DirectoryCallbackFactory;
 import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.PortConfig;
 import org.midonet.midolman.state.PortDirectory;
-import org.midonet.midolman.state.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.midolman.state.ZkManager;
 import org.midonet.util.functors.CollectionFunctors;
 import org.midonet.util.functors.Functor;

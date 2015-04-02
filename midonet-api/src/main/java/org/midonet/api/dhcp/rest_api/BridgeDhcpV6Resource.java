@@ -31,7 +31,7 @@ import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.api.auth.AuthAction;
 import org.midonet.api.auth.AuthRole;
 import org.midonet.util.serialization.SerializationException;
-import org.midonet.midolman.state.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.dhcp.Subnet6;
 import org.midonet.packets.IPv6Subnet;
@@ -185,7 +185,7 @@ public class BridgeDhcpV6Resource extends AbstractResource {
     /**
      * Handler to deleting a DHCPV6 subnet configuration.
      *
-     * @throws org.midonet.midolman.state.StateAccessException
+     * @throws org.midonet.cluster.backend.zookeeper.StateAccessException
      *             Data access error.
      */
     @DELETE

@@ -24,7 +24,7 @@ import org.midonet.api.auth.AuthRole;
 import org.midonet.api.rest_api.AbstractResource;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.api.system_data.HostVersion;
-import org.midonet.midolman.state.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.cluster.DataClient;
 import org.midonet.util.collection.ListUtil;
 

@@ -31,7 +31,7 @@ import org.midonet.api.network.auth.PortGroupAuthorizer;
 import org.midonet.api.rest_api.*;
 import org.midonet.cluster.DataClient;
 import org.midonet.util.serialization.SerializationException;
-import org.midonet.midolman.state.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
 
 import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
@@ -70,7 +70,7 @@ public class PortGroupResource extends AbstractResource {
      *
      * @param id
      *            PortGroup ID from the request.
-     * @throws org.midonet.midolman.state.StateAccessException
+     * @throws org.midonet.cluster.backend.zookeeper.StateAccessException
      *             Data access error.
      */
     @DELETE
@@ -98,7 +98,7 @@ public class PortGroupResource extends AbstractResource {
      *
      * @param id
      *            PortGroup ID from the request.
-     * @throws org.midonet.midolman.state.StateAccessException
+     * @throws org.midonet.cluster.backend.zookeeper.StateAccessException
      *             Data access error.
      * @return A PortGroup object.
      */
@@ -133,7 +133,7 @@ public class PortGroupResource extends AbstractResource {
      *
      * @param group
      *            PortGroup object.
-     * @throws org.midonet.midolman.state.StateAccessException
+     * @throws org.midonet.cluster.backend.zookeeper.StateAccessException
      *             Data access error.
      * @return Response object with 201 status code set if successful.
      */
@@ -160,7 +160,7 @@ public class PortGroupResource extends AbstractResource {
     /**
      * Handler to getting a collection of PortGroups.
      *
-     * @throws org.midonet.midolman.state.StateAccessException
+     * @throws org.midonet.cluster.backend.zookeeper.StateAccessException
      *             Data access error.
      * @return A list of PortGroup objects.
      */

@@ -21,6 +21,7 @@ import org.apache.zookeeper.ZooDefs.Ids;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.util.serialization.SerializationException;
 import org.midonet.util.serialization.Serializer;
 import org.midonet.midolman.state.*;

@@ -32,7 +32,7 @@ import org.midonet.brain.services.vxgw.monitor.DeviceMonitor;
 import org.midonet.brain.services.vxgw.monitor.TunnelZoneMonitor;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.EntityIdSetEvent;
-import org.midonet.midolman.state.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.midolman.state.ZookeeperConnectionWatcher;
 
 /**

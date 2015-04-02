@@ -22,6 +22,8 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Set;
 
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
+
 /*
  * This class implements the leader election algorithm in Zookeeper.
  * What it achieves: picks a single node out of all registered nodes to

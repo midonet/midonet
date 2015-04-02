@@ -27,8 +27,8 @@ import org.midonet.cluster.data.neutron.SecurityGroupApi;
 import org.midonet.cluster.data.neutron.SecurityGroupRule;
 import org.midonet.event.neutron.SecurityGroupRuleEvent;
 import org.midonet.util.serialization.SerializationException;
-import org.midonet.midolman.state.StateAccessException;
-import org.midonet.midolman.state.StatePathExistsException;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.StatePathExistsException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

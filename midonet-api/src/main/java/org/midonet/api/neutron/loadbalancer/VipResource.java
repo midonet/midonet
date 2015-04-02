@@ -47,8 +47,8 @@ import org.midonet.cluster.data.neutron.loadbalancer.VIP;
 import org.midonet.event.neutron.VipEvent;
 import org.midonet.util.serialization.SerializationException;
 import org.midonet.midolman.state.NoStatePathException;
-import org.midonet.midolman.state.StateAccessException;
-import org.midonet.midolman.state.StatePathExistsException;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.StatePathExistsException;
 import org.midonet.midolman.state.zkManagers.BridgeZkManager;
 
 import static org.midonet.api.validation.MessageProperty.RESOURCE_EXISTS;

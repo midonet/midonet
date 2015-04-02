@@ -25,7 +25,7 @@ import org.midonet.client.dto.DtoTunnelZoneHost;
 import org.midonet.midolman.host.state.HostDirectory;
 import org.midonet.midolman.host.state.HostZkManager;
 import org.midonet.util.serialization.SerializationException;
-import org.midonet.midolman.state.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
 
 import java.net.URI;
 import java.util.HashMap;

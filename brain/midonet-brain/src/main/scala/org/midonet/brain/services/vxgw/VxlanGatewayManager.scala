@@ -32,6 +32,7 @@ import org.midonet.brain.services.vxgw
 import org.midonet.brain.southbound.vtep.VtepConstants.bridgeIdToLogicalSwitchName
 import org.midonet.brain.southbound.vtep.VtepNotConnectedException
 import org.midonet.cluster.DataClient
+import org.midonet.cluster.backend.zookeeper.StateAccessException
 import org.midonet.cluster.data.Bridge
 import org.midonet.cluster.data.Bridge.UNTAGGED_VLAN_ID
 import org.midonet.cluster.data.ports.VxLanPort

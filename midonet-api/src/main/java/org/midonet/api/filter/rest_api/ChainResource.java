@@ -30,7 +30,7 @@ import org.midonet.api.rest_api.*;
 import org.midonet.event.topology.ChainEvent;
 import org.midonet.cluster.DataClient;
 import org.midonet.util.serialization.SerializationException;
-import org.midonet.midolman.state.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
 
 import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;

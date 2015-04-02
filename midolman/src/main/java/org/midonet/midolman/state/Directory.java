@@ -21,6 +21,8 @@ import java.util.Set;
 
 import org.apache.zookeeper.*;
 
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
+
 public interface Directory {
 
     String getPath();

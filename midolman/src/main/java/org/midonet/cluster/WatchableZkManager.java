@@ -18,7 +18,7 @@ package org.midonet.cluster;
 import java.util.List;
 
 import org.midonet.util.serialization.SerializationException;
-import org.midonet.midolman.state.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
 
 /**
  * This interface defines the contract required to any device ZkManager that

@@ -54,7 +54,7 @@ import org.midonet.util.serialization.SerializationException;
 import org.midonet.midolman.services.MidolmanActorsService;
 import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.MockDirectory;
-import org.midonet.midolman.state.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.midolman.state.ZkPathManager;
 import org.midonet.midolman.util.guice.MockMidolmanModule;
 import org.midonet.midolman.util.mock.MockMidolmanActorsService;

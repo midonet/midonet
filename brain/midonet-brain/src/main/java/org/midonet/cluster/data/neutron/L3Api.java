@@ -17,7 +17,7 @@ package org.midonet.cluster.data.neutron;
 
 import org.midonet.cluster.data.Rule;
 import org.midonet.util.serialization.SerializationException;
-import org.midonet.midolman.state.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
 
 import javax.annotation.Nonnull;
 import java.util.List;

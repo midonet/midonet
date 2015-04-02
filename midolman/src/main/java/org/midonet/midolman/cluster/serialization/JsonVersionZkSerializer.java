@@ -37,7 +37,7 @@ import org.codehaus.jackson.type.JavaType;
 import org.midonet.midolman.SystemDataProvider;
 import org.midonet.util.serialization.SerializationException;
 import org.midonet.util.serialization.Serializer;
-import org.midonet.midolman.state.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.midolman.version.state.VersionConfig;
 import org.midonet.util.version.VersionCheckAnnotationIntrospector;
 

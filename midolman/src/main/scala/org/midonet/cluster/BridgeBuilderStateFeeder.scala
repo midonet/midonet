@@ -21,6 +21,7 @@ import javax.inject.Named
 import com.google.inject.Inject
 import org.slf4j.{Logger, LoggerFactory}
 
+import org.midonet.cluster.backend.zookeeper.StateAccessException
 import org.midonet.cluster.client.{BridgeBuilder, IpMacMap, MacLearningTable}
 import org.midonet.midolman.state._
 import org.midonet.packets.{IPv4Addr, MAC}

@@ -35,7 +35,7 @@ import org.midonet.util.serialization.Serializer;
 import org.midonet.midolman.state.AbstractZkManager;
 import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.PathBuilder;
-import org.midonet.midolman.state.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.midolman.state.ZkManager;
 
 
@@ -53,7 +53,7 @@ public class BridgeZkManager
      * Thrown in response to an invalid (i.e., user-requested) update
      * to a bridge's VxLanPortId property.
      */
-    public static class VxLanPortIdUpdateException extends Exception {
+    public static class VxLanPortIdUpdateException extends RuntimeException {
         private static final long serialVersionUID = 1L;
     }
 

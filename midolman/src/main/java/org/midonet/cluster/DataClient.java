@@ -64,7 +64,7 @@ import org.midonet.midolman.state.InvalidStateOperationException;
 import org.midonet.midolman.state.Ip4ToMacReplicatedMap;
 import org.midonet.midolman.state.MacPortMap;
 import org.midonet.midolman.state.PoolHealthMonitorMappingStatus;
-import org.midonet.midolman.state.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.midolman.state.ZkLeaderElectionWatcher;
 import org.midonet.midolman.state.ZookeeperConnectionWatcher;
 import org.midonet.midolman.state.l4lb.LBStatus;
@@ -691,7 +691,7 @@ public interface DataClient {
      *
      * @return ID of the newly created IP address group.
      *
-     * @throws org.midonet.midolman.state.StatePathExistsException
+     * @throws org.midonet.cluster.backend.zookeeper.StatePathExistsException
      *      If an IP address group with the specified ID already exists.
      */
     UUID ipAddrGroupsCreate(@Nonnull IpAddrGroup ipAddrGroup)

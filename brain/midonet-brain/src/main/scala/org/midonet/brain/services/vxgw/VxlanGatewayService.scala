@@ -34,9 +34,10 @@ import rx.{Observer, Subscription}
 import org.midonet.brain.southbound.vtep.VtepDataClientFactory
 import org.midonet.brain.{ClusterMinion, ClusterNode}
 import org.midonet.cluster.EntityIdSetEvent.Type._
+import org.midonet.cluster.backend.zookeeper.StateAccessException
 import org.midonet.cluster.{DataClient, EntityIdSetEvent}
 import org.midonet.midolman.state.Directory.DefaultTypedWatcher
-import org.midonet.midolman.state.{StateAccessException, ZookeeperConnectionWatcher}
+import org.midonet.midolman.state.ZookeeperConnectionWatcher
 import org.midonet.util.concurrent.NamedThreadFactory
 import org.midonet.util.functors._
 

@@ -23,6 +23,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import org.midonet.cluster.ZookeeperTest;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
 
 import static org.slf4j.LoggerFactory.getLogger;
 

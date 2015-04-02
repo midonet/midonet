@@ -42,7 +42,7 @@ import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.Port;
 import org.midonet.cluster.data.ports.VxLanPort;
 import org.midonet.util.serialization.SerializationException;
-import org.midonet.midolman.state.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.packets.IPv4Addr;
 
 import static org.midonet.api.validation.MessageProperty.PORT_NOT_VXLAN_PORT;

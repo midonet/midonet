@@ -24,6 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.midonet.cache.LoadingCache;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.util.serialization.SerializationException;
 import org.midonet.util.serialization.Serializer;
 import org.midonet.midolman.state.zkManagers.PortGroupZkManager;

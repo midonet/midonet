@@ -18,6 +18,7 @@ package org.midonet.midolman.state
 import java.util
 
 import org.apache.zookeeper.CreateMode
+import org.midonet.cluster.backend.zookeeper.StateAccessException
 import org.midonet.packets.{IPv4Addr, MAC}
 
 import scala.collection.JavaConversions._

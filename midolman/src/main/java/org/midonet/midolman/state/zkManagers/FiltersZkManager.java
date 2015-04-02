@@ -27,7 +27,7 @@ import org.midonet.util.serialization.SerializationException;
 import org.midonet.util.serialization.Serializer;
 import org.midonet.midolman.state.BaseZkManager;
 import org.midonet.midolman.state.PathBuilder;
-import org.midonet.midolman.state.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.midolman.state.ZkManager;
 
 /**
@@ -71,7 +71,7 @@ public class FiltersZkManager extends BaseZkManager {
      * @param id
      *            ID of port, bridge or router whose filter is to be deleted.
      * @return A list of Op objects representing the operations to perform.
-     * @throws org.midonet.midolman.state.StateAccessException
+     * @throws org.midonet.cluster.backend.zookeeper.StateAccessException
      */
     public List<Op> prepareDelete(UUID id) throws StateAccessException {
         String filterPath = paths.getFilterPath(id);
@@ -82,7 +82,7 @@ public class FiltersZkManager extends BaseZkManager {
      * Performs an atomic update on the ZooKeeper to add a new filter entry.
      *
      * @return The UUID of the newly created object.
-     * @throws org.midonet.midolman.state.StateAccessException
+     * @throws org.midonet.cluster.backend.zookeeper.StateAccessException
      */
     public void create(UUID id) throws StateAccessException,
             SerializationException {
@@ -95,7 +95,7 @@ public class FiltersZkManager extends BaseZkManager {
      *
      * @param id
      *            ID of the filter state to delete.
-     * @throws org.midonet.midolman.state.StateAccessException
+     * @throws org.midonet.cluster.backend.zookeeper.StateAccessException
      */
     public void delete(UUID id) throws StateAccessException {
         zk.multi(prepareDelete(id));

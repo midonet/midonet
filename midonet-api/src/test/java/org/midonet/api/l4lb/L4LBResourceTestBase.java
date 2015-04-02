@@ -37,7 +37,7 @@ import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.cluster.DataClient;
 import org.midonet.util.serialization.SerializationException;
 import org.midonet.midolman.state.InvalidStateOperationException;
-import org.midonet.midolman.state.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
 
 import static org.junit.Assert.assertEquals;
 

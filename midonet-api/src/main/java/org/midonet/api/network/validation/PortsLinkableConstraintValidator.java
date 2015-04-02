@@ -21,7 +21,7 @@ import org.midonet.api.network.Port;
 import org.midonet.api.network.PortFactory;
 import org.midonet.api.validation.MessageProperty;
 import org.midonet.util.serialization.SerializationException;
-import org.midonet.midolman.state.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.cluster.DataClient;
 
 import javax.validation.ConstraintValidator;

@@ -13,29 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.midonet.cluster.backend.zookeeper;
 
-package org.midonet.midolman.state;
+/**
+ * Thrown when a Zookeeper update fails due to a mismatch between the
+ * expected and actual node versions due to a concurrent update.
+ */
+public class StateVersionException extends StateAccessException {
 
-public class StateAccessException extends Exception {
+    private static final long serialVersionUID = -7471016483164721122L;
 
-    private static final long serialVersionUID = 1L;
-
-    /**
-     * Default constructor
-     */
-    public StateAccessException() {
-        super();
-    }
-
-    public StateAccessException(String message) {
-        super(message);
-    }
-
-    public StateAccessException(String message, Throwable cause) {
+    public StateVersionException(String message, Throwable cause) {
         super(message, cause);
-    }
-
-    public StateAccessException(Throwable cause) {
-        super(cause);
     }
 }

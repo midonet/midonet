@@ -29,6 +29,7 @@ import org.apache.zookeeper.Watcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.event.agent.NsdbEvent;
 import org.midonet.cluster.storage.MidonetBackendConfig;
 import org.midonet.midolman.cluster.zookeeper.ZkConnectionProvider;

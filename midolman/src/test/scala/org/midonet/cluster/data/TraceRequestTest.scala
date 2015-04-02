@@ -32,13 +32,13 @@ import org.slf4j.LoggerFactory
 import scala.collection.JavaConverters._
 
 import org.midonet.cluster.DataClient
+import org.midonet.cluster.backend.zookeeper.StateAccessException
 import org.midonet.cluster.data.ports.{BridgePort, RouterPort}
 import org.midonet.cluster.data.rules.{TraceRule => TraceRuleData}
 import org.midonet.midolman.Setup
 import org.midonet.midolman.rules.RuleResult.Action
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.state.{Directory, MockDirectory}
-import org.midonet.midolman.state.StateAccessException
 import org.midonet.midolman.util.MidolmanSpec
 
 @RunWith(classOf[JUnitRunner])

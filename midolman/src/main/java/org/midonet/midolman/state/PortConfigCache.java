@@ -20,6 +20,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.util.serialization.SerializationException;
 import org.midonet.util.serialization.Serializer;
 import org.slf4j.Logger;

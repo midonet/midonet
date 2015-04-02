@@ -31,7 +31,7 @@ import org.midonet.api.auth.AuthRole;
 import org.midonet.api.bgp.auth.BgpAuthorizer;
 import org.midonet.event.topology.BgpEvent;
 import org.midonet.util.serialization.SerializationException;
-import org.midonet.midolman.state.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.cluster.DataClient;
 
 import javax.annotation.security.PermitAll;

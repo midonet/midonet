@@ -24,7 +24,7 @@ import org.midonet.util.serialization.SerializationException;
 import org.midonet.midolman.state.AbstractZkManager;
 import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.PathBuilder;
-import org.midonet.midolman.state.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.midolman.state.ZkManager;
 import org.apache.zookeeper.Op;
 import org.slf4j.Logger;
@@ -268,7 +268,7 @@ public class RouterZkManager
      * @return A list of Op objects representing the operations to perform.
      * @throws SerializationException
      *             Serialization error occurred.
-     * @throws org.midonet.midolman.state.StateAccessException
+     * @throws org.midonet.cluster.backend.zookeeper.StateAccessException
      */
     public List<Op> prepareRouterDelete(UUID id) throws StateAccessException,
             SerializationException {

@@ -32,8 +32,9 @@ import org.midonet.brain.services.vxgw
 import org.midonet.brain.services.vxgw.TunnelZoneState.FloodingProxyEvent
 import org.midonet.brain.southbound.vtep.VtepConstants.logicalSwitchNameToBridgeId
 import org.midonet.cluster.DataClient
+import org.midonet.cluster.backend.zookeeper.StateAccessException
 import org.midonet.cluster.data.VTEP
-import org.midonet.midolman.state.{StateAccessException, ZookeeperConnectionWatcher}
+import org.midonet.midolman.state.ZookeeperConnectionWatcher
 import org.midonet.packets.IPv4Addr
 import org.midonet.util.functors._
 

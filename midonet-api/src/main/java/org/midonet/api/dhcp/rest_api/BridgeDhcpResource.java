@@ -30,7 +30,7 @@ import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.dhcp.Subnet;
 import org.midonet.util.serialization.SerializationException;
-import org.midonet.midolman.state.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.packets.IPv4Subnet;
 
 import com.google.inject.Inject;
@@ -190,7 +190,7 @@ public class BridgeDhcpResource extends AbstractResource {
     /**
      * Handler to deleting a DHCP subnet configuration.
      *
-     * @throws org.midonet.midolman.state.StateAccessException
+     * @throws org.midonet.cluster.backend.zookeeper.StateAccessException
      *             Data access error.
      */
     @DELETE

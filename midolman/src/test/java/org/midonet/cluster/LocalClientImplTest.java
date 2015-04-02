@@ -53,7 +53,7 @@ import org.midonet.midolman.layer3.Route;
 import org.midonet.util.serialization.SerializationException;
 import org.midonet.midolman.state.ArpCacheEntry;
 import org.midonet.midolman.state.Directory;
-import org.midonet.midolman.state.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.midolman.state.zkManagers.BridgeZkManager;
 import org.midonet.midolman.state.zkManagers.ChainZkManager;
 import org.midonet.midolman.state.zkManagers.ChainZkManager.ChainConfig;

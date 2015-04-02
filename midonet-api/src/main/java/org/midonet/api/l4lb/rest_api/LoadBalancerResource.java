@@ -35,8 +35,8 @@ import org.midonet.event.topology.LoadBalancerEvent;
 import org.midonet.util.serialization.SerializationException;
 import org.midonet.midolman.state.InvalidStateOperationException;
 import org.midonet.midolman.state.NoStatePathException;
-import org.midonet.midolman.state.StateAccessException;
-import org.midonet.midolman.state.StatePathExistsException;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.StatePathExistsException;
 
 import javax.annotation.security.RolesAllowed;
 import javax.ws.rs.Consumes;

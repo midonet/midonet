@@ -16,7 +16,6 @@
 package org.midonet.cluster.data.neutron;
 
 import com.google.inject.PrivateModule;
-import com.google.inject.Singleton;
 
 public class NeutronClusterApiModule extends PrivateModule {
 

@@ -17,6 +17,8 @@ package org.midonet.midolman.state;
 
 import org.apache.zookeeper.KeeperException.NoNodeException;
 
+import org.midonet.cluster.backend.zookeeper.StatePathExceptionBase;
+
 public class NoStatePathException extends StatePathExceptionBase {
     private static final long serialVersionUID = 1L;
 

@@ -25,6 +25,7 @@ import com.google.inject.name.Named
 import rx.Observable
 import rx.subjects.PublishSubject
 
+import org.midonet.cluster.backend.zookeeper.{StatePathExistsException, StateAccessException}
 import org.midonet.cluster.data.storage.{NotFoundException, OwnershipConflictException}
 import org.midonet.cluster.models.Topology.Port
 import org.midonet.cluster.services.MidonetBackend
@@ -33,7 +34,7 @@ import org.midonet.cluster.{ClusterRouterManager, DataClient}
 import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.midolman.simulation.Bridge.UntaggedVlanId
 import org.midonet.midolman.state.zkManagers.PortZkManager
-import org.midonet.midolman.state.{PortConfig, PortDirectory, StateAccessException, _}
+import org.midonet.midolman.state.{PortConfig, PortDirectory, _}
 import org.midonet.util.eventloop.Reactor
 import org.midonet.util.functors.makeRunnable
 import org.midonet.util.serialization.SerializationException

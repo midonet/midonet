@@ -28,7 +28,7 @@ import org.slf4j.LoggerFactory;
 import org.midonet.cluster.client.PortBuilder;
 import org.midonet.midolman.state.PortConfig;
 import org.midonet.midolman.state.PortConfigCache;
-import org.midonet.midolman.state.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.midolman.state.zkManagers.PortZkManager;
 import org.midonet.midolman.topology.devices.Port;
 import org.midonet.midolman.topology.devices.PortFactory;

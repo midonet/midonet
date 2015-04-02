@@ -32,7 +32,7 @@ import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.DirectoryCallback;
 import org.midonet.midolman.state.DirectoryCallbackFactory;
 import org.midonet.midolman.state.PathBuilder;
-import org.midonet.midolman.state.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.midolman.state.ZkManager;
 import org.midonet.util.functors.Functor;
 
@@ -215,7 +215,7 @@ public class ChainZkManager
      * @param id
      *            Chain ID
      * @return A list of Op objects representing the operations to perform.
-     * @throws org.midonet.midolman.state.StateAccessException
+     * @throws org.midonet.cluster.backend.zookeeper.StateAccessException
      */
     public List<Op> prepareDelete(UUID id)
             throws StateAccessException, SerializationException {

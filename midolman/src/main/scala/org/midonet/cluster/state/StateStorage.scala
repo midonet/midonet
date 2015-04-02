@@ -21,7 +21,8 @@ import javax.annotation.Nonnull
 
 import rx.Observable
 
-import org.midonet.midolman.state.{ZkConnectionAwareWatcher, Ip4ToMacReplicatedMap, StateAccessException, MacPortMap}
+import org.midonet.cluster.backend.zookeeper.StateAccessException
+import org.midonet.midolman.state.{ZkConnectionAwareWatcher, Ip4ToMacReplicatedMap, MacPortMap}
 import org.midonet.util.eventloop.Reactor
 
 /**

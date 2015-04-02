@@ -22,6 +22,7 @@ import com.google.common.base.Predicate;
 import com.google.inject.Inject;
 import org.apache.zookeeper.Op;
 
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.cluster.data.Rule;
 import org.midonet.util.serialization.SerializationException;
 import org.midonet.util.serialization.Serializer;

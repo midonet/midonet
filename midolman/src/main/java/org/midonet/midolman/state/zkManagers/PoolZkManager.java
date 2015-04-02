@@ -31,7 +31,7 @@ import org.midonet.midolman.state.l4lb.PoolLBMethod;
 import org.midonet.midolman.state.l4lb.LBStatus;
 import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.PoolHealthMonitorMappingStatus;
-import org.midonet.midolman.state.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.midolman.state.ZkManager;
 import org.midonet.midolman.state.l4lb.PoolProtocol;
 

@@ -25,7 +25,7 @@ import rx.subjects.Subject;
 import org.midonet.util.serialization.SerializationException;
 import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.NoStatePathException;
-import org.midonet.midolman.state.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.midolman.state.ZkConnectionAwareWatcher;
 import org.midonet.midolman.state.ZookeeperConnectionWatcher;
 

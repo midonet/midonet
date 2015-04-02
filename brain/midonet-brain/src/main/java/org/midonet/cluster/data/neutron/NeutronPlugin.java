@@ -29,6 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.midonet.cluster.ZookeeperLockFactory;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.cluster.data.Rule;
 import org.midonet.cluster.data.neutron.loadbalancer.HealthMonitor;
 import org.midonet.cluster.data.neutron.loadbalancer.Member;
@@ -36,12 +37,10 @@ import org.midonet.cluster.data.neutron.loadbalancer.Pool;
 import org.midonet.cluster.data.neutron.loadbalancer.PoolHealthMonitor;
 import org.midonet.cluster.data.neutron.loadbalancer.VIP;
 import org.midonet.cluster.data.util.ZkOpLock;
-import org.midonet.util.serialization.SerializationException;
 import org.midonet.midolman.state.PortConfig;
-import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkManager;
 import org.midonet.midolman.state.ZkOpList;
-import org.midonet.midolman.state.zkManagers.BridgeZkManager;
+import org.midonet.util.serialization.SerializationException;
 
 
 /**
@@ -184,8 +183,7 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
     @Override
     public Network updateNetwork(@Nonnull UUID id, @Nonnull Network network)
-        throws StateAccessException, SerializationException,
-               BridgeZkManager.VxLanPortIdUpdateException {
+        throws StateAccessException, SerializationException {
 
         List<Op> ops = new ArrayList<>();
         ZkOpLock lock = acquireLock();

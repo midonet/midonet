@@ -37,7 +37,7 @@ import org.midonet.midolman.host.state.HostZkManager;
 import org.midonet.util.serialization.SerializationException;
 import org.midonet.util.serialization.Serializer;
 import org.midonet.midolman.state.Directory;
-import org.midonet.midolman.state.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.midolman.state.zkManagers.TunnelZoneZkManager;
 import org.midonet.util.eventloop.Reactor;
 

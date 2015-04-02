@@ -16,7 +16,7 @@
 package org.midonet.api.network.validation;
 
 import com.google.inject.Inject;
-import org.midonet.midolman.state.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.cluster.DataClient;
 
 import javax.validation.ConstraintValidator;

@@ -29,7 +29,7 @@ import org.midonet.midolman.state.BaseZkManager;
 import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.PortDirectory.BridgePortConfig;
 import org.midonet.midolman.state.PortDirectory.RouterPortConfig;
-import org.midonet.midolman.state.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.midolman.state.ZkManager;
 import org.midonet.midolman.state.zkManagers.PortZkManager;
 import org.midonet.midolman.state.zkManagers.RouteZkManager;

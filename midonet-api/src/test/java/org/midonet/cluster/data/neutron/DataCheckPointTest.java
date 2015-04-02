@@ -60,7 +60,7 @@ import org.midonet.util.serialization.SerializationException;
 import org.midonet.midolman.state.CheckpointedDirectory;
 import org.midonet.midolman.state.CheckpointedMockDirectory;
 import org.midonet.midolman.state.Directory;
-import org.midonet.midolman.state.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.midolman.state.zkManagers.BridgeZkManager;
 import org.midonet.packets.ARP;
 

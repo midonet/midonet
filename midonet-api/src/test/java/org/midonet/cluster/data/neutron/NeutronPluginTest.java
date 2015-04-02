@@ -30,7 +30,7 @@ import org.slf4j.LoggerFactory;
 import org.midonet.cluster.ZookeeperTest;
 import org.midonet.cluster.data.Rule;
 import org.midonet.util.serialization.SerializationException;
-import org.midonet.midolman.state.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.packets.MAC;
 
 public abstract class NeutronPluginTest extends ZookeeperTest {

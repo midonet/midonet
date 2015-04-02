@@ -30,7 +30,7 @@ import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.api.auth.AuthAction;
 import org.midonet.api.auth.AuthRole;
 import org.midonet.util.serialization.SerializationException;
-import org.midonet.midolman.state.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.dhcp.Host;
 import org.midonet.packets.IPv4Subnet;
@@ -72,7 +72,7 @@ public class DhcpHostsResource extends AbstractResource {
      *
      * @param host
      *            DHCP host assignment object.
-     * @throws org.midonet.midolman.state.StateAccessException
+     * @throws org.midonet.cluster.backend.zookeeper.StateAccessException
      *             Data access error.
      * @returns Response object with 201 status code set if successful.
      */
@@ -186,7 +186,7 @@ public class DhcpHostsResource extends AbstractResource {
      *
      * @param mac
      *            mac address of the host.
-     * @throws org.midonet.midolman.state.StateAccessException
+     * @throws org.midonet.cluster.backend.zookeeper.StateAccessException
      *             Data access error.
      */
     @DELETE

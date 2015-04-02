@@ -43,7 +43,7 @@ import org.midonet.util.serialization.SerializationException;
 import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.InvalidStateOperationException;
 import org.midonet.midolman.state.PoolHealthMonitorMappingStatus;
-import org.midonet.midolman.state.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.midolman.state.l4lb.MappingStatusException;
 import org.midonet.midolman.state.l4lb.MappingViolationException;
 import org.midonet.midolman.state.l4lb.PoolLBMethod;
