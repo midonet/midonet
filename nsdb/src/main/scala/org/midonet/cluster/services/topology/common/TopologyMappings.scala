@@ -33,6 +33,7 @@ object TopologyMappings {
         Topology.Type.HEALTH_MONITOR -> classOf[Topology.HealthMonitor],
         Topology.Type.HOST -> classOf[Topology.Host],
         Topology.Type.IP_ADDR_GROUP -> classOf[Topology.IPAddrGroup],
+        Topology.Type.LOAD_BALANCER -> classOf[Topology.LoadBalancer],
         Topology.Type.NETWORK -> classOf[Topology.Network],
         Topology.Type.POOL -> classOf[Topology.Pool],
         Topology.Type.POOL_MEMBER -> classOf[Topology.PoolMember],
@@ -41,9 +42,9 @@ object TopologyMappings {
         Topology.Type.ROUTE -> classOf[Topology.Route],
         Topology.Type.ROUTER -> classOf[Topology.Router],
         Topology.Type.LOAD_BALANCER -> classOf[Topology.LoadBalancer],
-        Topology.Type.VIP -> classOf[Topology.Vip],
         Topology.Type.RULE -> classOf[Topology.Rule],
         Topology.Type.TUNNEL_ZONE -> classOf[Topology.TunnelZone],
+        Topology.Type.VIP -> classOf[Topology.Vip],
         Topology.Type.VTEP -> classOf[Topology.Vtep],
         Topology.Type.VTEP_BINDING -> classOf[Topology.VtepBinding]
     )

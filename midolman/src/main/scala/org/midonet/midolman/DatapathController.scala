@@ -15,28 +15,26 @@
  */
 package org.midonet.midolman
 
-import java.lang.{Integer => JInteger}
-import java.nio.channels.{AsynchronousCloseException, ClosedByInterruptException}
-import java.util.concurrent.ConcurrentHashMap
-import java.util.{Set => JSet, HashMap, UUID}
-import java.io.IOException
 import java.lang.{Boolean => JBoolean, Integer => JInteger}
-import java.nio.ByteBuffer
-import java.util.{Set => JSet, UUID}
+import java.net.InetAddress
+import java.util.concurrent.ConcurrentHashMap
+import java.util.{HashMap => JHashMap, Set => JSet, UUID}
 
-import scala.collection.JavaConverters._
 import scala.collection.JavaConversions._
-import scala.concurrent.duration._
+import scala.collection.JavaConverters._
 import scala.concurrent.Future
+import scala.concurrent.duration._
 import scala.reflect._
 
 import akka.actor._
 import akka.pattern.{after, pipe}
+
 import com.google.inject.Inject
 import com.typesafe.scalalogging.Logger
+
 import org.slf4j.LoggerFactory
+
 import rx.{Observer, Subscription}
-import rx.subjects.PublishSubject
 
 import org.midonet.cluster.data.TunnelZone.{HostConfig => TZHostConfig, Type => TunnelType}
 import org.midonet.midolman.config.MidolmanConfig
@@ -47,18 +45,17 @@ import org.midonet.midolman.host.scanner.InterfaceScanner
 import org.midonet.midolman.io._
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.services.HostIdProviderService
-import org.midonet.midolman.state.{FlowStateStorage, FlowStateStorageFactory}
+import org.midonet.midolman.state.FlowStateStorageFactory
 import org.midonet.midolman.topology.VirtualToPhysicalMapper.{TunnelZoneRequest, ZoneChanged, ZoneMembers}
 import org.midonet.midolman.topology._
 import org.midonet.midolman.topology.rcu.ResolvedHost
 import org.midonet.netlink._
 import org.midonet.odp.flows.FlowActionOutput
 import org.midonet.odp.ports._
-import org.midonet.odp.{OpenVSwitch, Datapath, DpPort, OvsConnectionOps}
+import org.midonet.odp.{Datapath, DpPort, OvsConnectionOps}
 import org.midonet.packets.{IPAddr, IPv4Addr}
 import org.midonet.sdn.flows.FlowTagger
 import org.midonet.sdn.flows.FlowTagger.FlowTag
-import org.midonet.util.concurrent.ReactiveActor.{OnCompleted, OnError, OnNext}
 import org.midonet.util.concurrent._
 
 object UnderlayResolver {
@@ -162,8 +159,8 @@ class DatapathController @Inject() (val driver: DatapathStateDriver,
 
     import org.midonet.midolman.DatapathController._
     import org.midonet.midolman.topology.VirtualToPhysicalMapper.TunnelZoneUnsubscribe
-    import context.system
-    import context.dispatcher
+
+    import context.{dispatcher, system}
 
     override def logSource = "org.midonet.datapath-control"
 
@@ -386,7 +383,7 @@ class DatapathController @Inject() (val driver: DatapathStateDriver,
         for { intf <- interfaces.asScala
               inetAddress <- intf.getInetAddresses.asScala
               zone <- zones
-              if zone._2.equalsInetAddress(inetAddress)
+              if InetAddress.getByAddress(zone._2.toBytes) == inetAddress
         } {
             val tunnelMtu = (defaultMtu - overhead).toShort
             minMtu = minMtu.min(tunnelMtu)
