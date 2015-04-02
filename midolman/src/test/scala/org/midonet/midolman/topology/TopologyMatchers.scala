@@ -18,17 +18,18 @@ package org.midonet.midolman.topology
 import scala.collection.JavaConverters._
 
 import com.google.protobuf.MessageOrBuilder
+
 import org.scalatest.Matchers
 
-import org.midonet.cluster.models.Topology.{IpAddrGroup => TopologyIPAddrGroup, LoadBalancer => TopologyLB, Network => TopologyBridge}
-import org.midonet.cluster.models.Topology.{Port => TopologyPort, PortGroup => TopologyPortGroup, Rule => TopologyRule, VIP => TopologyVIP}
+import org.midonet.cluster.models.Topology.{Bgp => TopologyBGP, BgpRoute => TopologyBGPRoute, IpAddrGroup => TopologyIPAddrGroup, LoadBalancer => TopologyLB, Network => TopologyBridge, Port => TopologyPort, PortGroup => TopologyPortGroup, Rule => TopologyRule, VIP => TopologyVIP}
 import org.midonet.cluster.util.IPAddressUtil._
 import org.midonet.cluster.util.IPSubnetUtil._
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.cluster.util.{IPSubnetUtil, RangeUtil}
+import org.midonet.midolman.routingprotocols.{BGPRoute, BGP}
 import org.midonet.midolman.rules.{Condition, ForwardNatRule, JumpRule, NatRule, NatTarget, Rule}
 import org.midonet.midolman.simulation.{Bridge, IPAddrGroup, LoadBalancer, PortGroup, VIP}
-import org.midonet.midolman.topology.TopologyMatchers.{BridgeMatcher, BridgePortMatcher, RouterPortMatcher, _}
+import org.midonet.midolman.topology.TopologyMatchers._
 import org.midonet.midolman.topology.devices.{BridgePort, Port, RouterPort, VxLanPort}
 import org.midonet.packets.MAC
 
@@ -251,6 +252,30 @@ object TopologyMatchers {
             vip.poolId shouldBe v.getPoolId.asJava
         }
     }
+
+    class BGPMatcher(bgp: BGP) extends Matchers
+                               with DeviceMatcher[TopologyBGP] {
+        override def shouldBeDeviceOf(b: TopologyBGP): Unit = {
+            bgp.id shouldBe b.getId.asJava
+            bgp.localAs shouldBe b.getLocalAs
+            bgp.peerAs shouldBe b.getPeerAs
+            bgp.peerAddress shouldBe (if (b.hasPeerAddress)
+                b.getPeerAddress.asIPv4Address else null)
+            bgp.portId shouldBe (if (b.hasPortId)
+                b.getPortId.asJava else null)
+            bgp.bgpRouteIds should contain theSameElementsAs
+                b.getBgpRouteIdsList.asScala.map(_.asJava)
+        }
+    }
+
+    class BGPRouteMatcher(route: BGPRoute)
+        extends Matchers with DeviceMatcher[TopologyBGPRoute] {
+        override def shouldBeDeviceOf(r: TopologyBGPRoute): Unit = {
+            route.id shouldBe r.getId.asJava
+            route.subnet shouldBe r.getSubnet.asJava
+            route.bgpId shouldBe r.getBgpId.asJava
+        }
+    }
 }
 
 trait TopologyMatchers {
@@ -298,4 +323,10 @@ trait TopologyMatchers {
 
     implicit def asMatcher(vip: VIP): VIPMatcher =
         new VIPMatcher(vip)
+
+    implicit def asMatcher(bgp: BGP): BGPMatcher =
+        new BGPMatcher(bgp)
+
+    implicit def asMatcher(route: BGPRoute): BGPRouteMatcher =
+        new BGPRouteMatcher(route)
 }

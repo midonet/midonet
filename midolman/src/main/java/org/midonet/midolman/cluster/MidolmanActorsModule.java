@@ -108,7 +108,6 @@ public class MidolmanActorsModule extends PrivateModule {
         bind(FlowController.class);
         bind(PacketsEntryPoint.class);
         bind(NetlinkCallbackDispatcher.class);
-        //bind(InterfaceScanner.class).to(DefaultInterfaceScanner.class);
         bind(RoutingManagerActor.class);
         bind(HealthMonitor.class);
         bind(MtuIncreaser.class);
