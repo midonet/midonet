@@ -20,6 +20,7 @@ import java.util.concurrent.{ConcurrentHashMap, Executors, ThreadFactory}
 
 import scala.concurrent.{Future, Promise}
 import scala.reflect._
+import scala.util.control.NonFatal
 
 import com.google.inject.Inject
 import rx.Observable
@@ -55,7 +56,7 @@ object VirtualTopology extends MidolmanLogging {
 
     type DeviceFactory = UUID => DeviceMapper[_]
 
-    private var self: VirtualTopology = null
+    private[topology] var self: VirtualTopology = null
 
     /**
      * Tries to get the virtual device with the specified identifier.
@@ -162,7 +163,7 @@ class VirtualTopology @Inject() (val backend: MidonetBackend,
                                  val connectionWatcher: ZkConnectionAwareWatcher,
                                  val flowInvalidator: FlowInvalidator,
                                  val actorsService: MidolmanActorsService)
-        extends MidolmanLogging {
+    extends MidolmanLogging {
 
     import org.midonet.midolman.topology.VirtualTopology._
 
@@ -185,17 +186,17 @@ class VirtualTopology @Inject() (val backend: MidonetBackend,
         new ConcurrentHashMap[UUID, Observable[_]]()
 
     private val factories = Map[ClassTag[_], DeviceFactory](
-        classTag[Port] -> (new PortMapper(_, this)),
-        classTag[RouterPort] -> (new PortMapper(_, this)),
-        classTag[BridgePort] -> (new PortMapper(_, this)),
-        classTag[VxLanPort] -> (new PortMapper(_, this)),
-        classTag[TunnelZone] -> (new TunnelZoneMapper(_, this)),
-        classTag[Host] -> (new HostMapper(_, this)),
         classTag[Bridge] -> (new BridgeMapper(_, this)(actorsService.system)),
+        classTag[BridgePort] -> (new PortMapper(_, this)),
         classTag[Chain] -> (new ChainMapper(_, this)),
+        classTag[Host] -> (new HostMapper(_, this)),
         classTag[IPAddrGroup] -> (new IPAddrGroupMapper(_, this)),
+        classTag[LoadBalancer] -> (new LoadBalancerMapper(_, this)),
+        classTag[Port] -> (new PortMapper(_, this)),
         classTag[PortGroup] -> (new PortGroupMapper(_, this)),
-        classTag[LoadBalancer] -> (new LoadBalancerMapper(_, this))
+        classTag[RouterPort] -> (new PortMapper(_, this)),
+        classTag[TunnelZone] -> (new TunnelZoneMapper(_, this)),
+        classTag[VxLanPort] -> (new PortMapper(_, this))
     )
 
     register(this)
@@ -224,4 +225,43 @@ class VirtualTopology @Inject() (val backend: MidonetBackend,
 
     private[topology] def invalidate(tag: FlowTag): Unit =
         flowInvalidator.scheduleInvalidationFor(tag)
+
+    /** Safely executes a task on the virtual topology thread. */
+    private[topology] def execute(task: => Unit) = {
+        val errorMsg = "Uncaught exception on topology thread."
+        if (Thread.currentThread.getId == threadId) {
+            try {
+                task
+            } catch {
+                case NonFatal(e) => log.error(errorMsg, e)
+            }
+        } else {
+            executor.execute(safeRunnable(task, errorMsg))
+        }
+    }
+
+    /**
+     * Checks that this method is executed on the virtual topology thread.
+     */
+    @throws[DeviceMapperException]
+    @inline
+    private[topology] def assertThread(): Unit = {
+        if (threadId != Thread.currentThread.getId) {
+            throw new DeviceMapperException(
+                s"Call expected on thread $threadId but received on " +
+                s"${Thread.currentThread().getId}")
+        }
+    }
+
+    /** Creates a safe runnable for the given task. */
+    @inline
+    private def safeRunnable(task: => Unit, msg: String) = new Runnable {
+        override def run(): Unit = {
+            try {
+                task
+            } catch {
+                case NonFatal(e) => log.error(msg, e)
+            }
+        }
+    }
 }

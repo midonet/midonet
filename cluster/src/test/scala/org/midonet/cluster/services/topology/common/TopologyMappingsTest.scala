@@ -25,37 +25,41 @@ import org.midonet.cluster.models.Topology
 @RunWith(classOf[JUnitRunner])
 class TopologyMappingsTest extends FeatureSpec with Matchers {
 
-    val types = List(Topology.Type.CHAIN,
+    val types = List(Topology.Type.BGP,
+                     Topology.Type.BGP_ROUTE,
+                     Topology.Type.CHAIN,
+                     Topology.Type.DHCP,
                      Topology.Type.HOST,
                      Topology.Type.IP_ADDR_GROUP,
+                     Topology.Type.LOAD_BALANCER,
                      Topology.Type.NETWORK,
                      Topology.Type.PORT,
                      Topology.Type.PORT_GROUP,
                      Topology.Type.ROUTE,
                      Topology.Type.ROUTER,
-                     Topology.Type.LOAD_BALANCER,
-                     Topology.Type.VIRTUAL_IP,
                      Topology.Type.RULE,
                      Topology.Type.TUNNEL_ZONE,
+                     Topology.Type.VIRTUAL_IP,
                      Topology.Type.VTEP,
-                     Topology.Type.VTEP_BINDING,
-                     Topology.Type.DHCP)
+                     Topology.Type.VTEP_BINDING)
 
-    val classes = List(classOf[Topology.Chain],
+    val classes = List(classOf[Topology.Bgp],
+                       classOf[Topology.BgpRoute],
+                       classOf[Topology.Chain],
+                       classOf[Topology.Dhcp],
                        classOf[Topology.Host],
                        classOf[Topology.IpAddrGroup],
+                       classOf[Topology.LoadBalancer],
                        classOf[Topology.Network],
                        classOf[Topology.Port],
                        classOf[Topology.PortGroup],
                        classOf[Topology.Route],
                        classOf[Topology.Router],
-                       classOf[Topology.LoadBalancer],
-                       classOf[Topology.VIP],
                        classOf[Topology.Rule],
                        classOf[Topology.TunnelZone],
+                       classOf[Topology.VIP],
                        classOf[Topology.Vtep],
-                       classOf[Topology.VtepBinding],
-                       classOf[Topology.Dhcp])
+                       classOf[Topology.VtepBinding])
 
     feature("map topology classes to type ids")
     {
@@ -67,12 +71,12 @@ class TopologyMappingsTest extends FeatureSpec with Matchers {
 
         scenario("convert from type to class") {
             types.zip(classes)
-                .forall(x => {TopologyMappings.klassOf(x._1) == Some(x._2)}) should be (true)
+                .forall(x => {TopologyMappings.klassOf(x._1) == Some(x._2)}) shouldBe true
         }
 
         scenario("convert from class to type") {
             classes.zip(types)
-                 .forall(x => {TopologyMappings.typeOf(x._1) == Some(x._2)}) should be (true)
+                 .forall(x => {TopologyMappings.typeOf(x._1) == Some(x._2)}) shouldBe true
         }
     }
 }
