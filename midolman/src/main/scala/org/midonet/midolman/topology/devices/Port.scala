@@ -16,6 +16,7 @@
 package org.midonet.midolman.topology.devices
 
 import java.util.{Objects, UUID}
+
 import javax.annotation.concurrent.Immutable
 
 import scala.collection.JavaConverters._
@@ -197,7 +198,9 @@ class RouterPort extends Port {
     @ZoomField(name = "port_mac", converter = classOf[MACConverter])
     var portMac: MAC = _
     @ZoomField(name = "route_ids", converter = classOf[UUIDConverter])
-    var routeIds: Set[UUID] = Set.empty
+    var routeIds: Set[UUID] = _
+    @ZoomField(name = "bgp_id", converter = classOf[UUIDConverter])
+    var bgpId: UUID = _
 
     private var _portAddr: IPv4Subnet = _
 
@@ -242,7 +245,7 @@ sealed class PortFactory extends ZoomConvert.Factory[Port, Topology.Port] {
 
 object PortFactory {
     @Deprecated
-    def fromPortConfig(config: PortConfig): Port = {
+    def from(config: PortConfig): Port = {
         val port = config match {
             case cfg: BridgePortConfig =>
                 val p = new BridgePort
