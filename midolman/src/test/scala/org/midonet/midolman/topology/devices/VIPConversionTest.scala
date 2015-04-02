@@ -33,7 +33,7 @@ import org.midonet.midolman.topology.{TopologyBuilder, TopologyMatchers}
 import org.midonet.packets.IPv4Addr
 
 @RunWith(classOf[JUnitRunner])
-class VipConversionTest extends FeatureSpec
+class VIPConversionTest extends FeatureSpec
                         with Matchers
                         with TopologyBuilder
                         with TopologyMatchers {

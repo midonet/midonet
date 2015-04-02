@@ -22,24 +22,26 @@ option java_outer_classname = "Topology";
 
 // One per type
 enum Type {
-    CHAIN = 1;
-    DHCP = 2;
-    HEALTH_MONITOR = 3;
-    HOST = 4;
-    IP_ADDR_GROUP = 5;
-    LOAD_BALANCER = 6;
-    NETWORK = 7;
-    POOL = 8;
-    POOL_MEMBER = 9;
-    PORT = 10;
-    PORT_GROUP = 11;
-    ROUTE = 12;
-    ROUTER = 13;
-    RULE = 14;
-    TUNNEL_ZONE = 15;
-    VIRTUAL_IP = 16;
-    VTEP = 17;
-    VTEP_BINDING = 18;
+    BGP = 1;
+    BGP_ROUTE = 2;
+    CHAIN = 3;
+    DHCP = 4;
+    HEALTH_MONITOR = 5;
+    HOST = 6;
+    IP_ADDR_GROUP = 7;
+    LOAD_BALANCER = 8;
+    NETWORK = 9;
+    POOL = 10;
+    POOL_MEMBER = 11;
+    PORT = 12;
+    PORT_GROUP = 13;
+    ROUTE = 14;
+    ROUTER = 15;
+    RULE = 16;
+    TUNNEL_ZONE = 17;
+    VIRTUAL_IP = 18;
+    VTEP = 19;
+    VTEP_BINDING = 20;
 }
 
 message Network {
@@ -150,9 +152,10 @@ message Port {
     optional IPAddress port_address = 15;
     optional string port_mac = 16;
     repeated UUID route_ids = 17;
+    repeated UUID bgp_ids = 18;
 
     // VXLAN port specific
-    optional UUID vtep_id = 18;
+    optional UUID vtep_id = 19;
 
     // Backreferences
     repeated UUID rule_ids = 101;
@@ -438,4 +441,21 @@ message HealthMonitor {
     optional int32 max_retries = 7;
 }
 
+message Bgp {
+    optional UUID id = 1;
+    optional int32 local_as = 2;
+    optional int32 peer_as = 3;
+    optional IPAddress peer_address = 4;
+    repeated UUID bgp_route_ids = 5;
 
+    // Backreference
+    optional UUID port_id = 6;
+}
+
+message BgpRoute {
+    optional UUID id = 1;
+    optional IPSubnet subnet = 2;
+
+    // Backreference
+    optional UUID bgp_id = 3;
+}
