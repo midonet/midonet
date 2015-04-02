@@ -16,18 +16,21 @@
 package org.midonet.midolman
 
 import java.lang.{Integer => JInteger}
+import java.net.InetAddress
 import java.util.concurrent.ConcurrentHashMap
-import java.util.{Set => JSet, UUID}
+import java.util.{HashMap => JHashMap, Set => JSet, UUID}
 
 import scala.collection.JavaConverters._
-import scala.concurrent.duration._
 import scala.concurrent.Future
+import scala.concurrent.duration._
 import scala.reflect._
 
 import akka.actor._
 import akka.pattern.{after, pipe}
+
 import com.google.inject.Inject
 import com.typesafe.scalalogging.Logger
+
 import org.slf4j.LoggerFactory
 
 import org.midonet.Subscription
@@ -43,8 +46,8 @@ import org.midonet.midolman.services.HostIdProviderService
 import org.midonet.midolman.state.{FlowStateStorage, FlowStateStorageFactory}
 import org.midonet.midolman.topology.VirtualToPhysicalMapper.{TunnelZoneRequest, ZoneChanged, ZoneMembers}
 import org.midonet.midolman.topology._
-import org.midonet.netlink.Callback
 import org.midonet.midolman.topology.rcu.ResolvedHost
+import org.midonet.netlink.Callback
 import org.midonet.netlink.exceptions.NetlinkException
 import org.midonet.odp.flows.FlowActionOutput
 import org.midonet.odp.ports._
@@ -153,8 +156,8 @@ class DatapathController @Inject() (val driver: DatapathStateDriver,
 
     import org.midonet.midolman.DatapathController._
     import org.midonet.midolman.topology.VirtualToPhysicalMapper.TunnelZoneUnsubscribe
-    import context.system
-    import context.dispatcher
+
+    import context.{dispatcher, system}
 
     override def logSource = "org.midonet.datapath-control"
 
@@ -371,7 +374,7 @@ class DatapathController @Inject() (val driver: DatapathStateDriver,
         for { intf <- interfaces.asScala
               inetAddress <- intf.getInetAddresses.asScala
               zone <- zones
-              if zone._2.equalsInetAddress(inetAddress)
+              if InetAddress.getByAddress(zone._2.toBytes) == inetAddress
         } {
             val tunnelMtu = (defaultMtu - overhead).toShort
             minMtu = minMtu.min(tunnelMtu)

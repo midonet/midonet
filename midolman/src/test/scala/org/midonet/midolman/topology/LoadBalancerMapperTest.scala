@@ -36,7 +36,6 @@ import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.simulation.{LoadBalancer => SimLB, VIP => SimVIP}
 import org.midonet.midolman.topology.TopologyTest.DeviceObserver
 import org.midonet.midolman.util.MidolmanSpec
-import org.midonet.packets.IPv4Addr
 
 @RunWith(classOf[JUnitRunner])
 class LoadBalancerMapperTest extends MidolmanSpec
@@ -284,9 +283,7 @@ class LoadBalancerMapperTest extends MidolmanSpec
 
     private def buildAndStoreVIP(lbId: UUID): TopologyVIP = {
         val vip = createVIP(adminStateUp = Some(true),
-                            poolId = Some(UUID.randomUUID()),
                             loadBalancerId = Some(lbId),
-                            address = Some(IPv4Addr.random),
                             sessionPersistence =
                                 Some(SessionPersistence.SOURCE_IP))
         store.create(vip)
