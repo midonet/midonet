@@ -21,13 +21,14 @@ import com.google.protobuf.MessageOrBuilder
 
 import org.scalatest.Matchers
 
-import org.midonet.cluster.models.Topology.{Chain => TopologyChain, HealthMonitor => TopologyHealthMonitor, IPAddrGroup => TopologyIPAddrGroup, LoadBalancer => TopologyLB, Network => TopologyBridge, Pool => TopologyPool, PoolMember => TopologyPoolMember, Port => TopologyPort, PortGroup => TopologyPortGroup, Route => TopologyRoute, Router => TopologyRouter, Rule => TopologyRule, VIP => TopologyVIP}
+import org.midonet.cluster.models.Topology.{Bgp => TopologyBGP, BgpRoute => TopologyBGPRoute, Chain => TopologyChain, HealthMonitor => TopologyHealthMonitor, IPAddrGroup => TopologyIPAddrGroup, LoadBalancer => TopologyLB, Network => TopologyBridge, Pool => TopologyPool, PoolMember => TopologyPoolMember, Port => TopologyPort, PortGroup => TopologyPortGroup, Route => TopologyRoute, Router => TopologyRouter, Rule => TopologyRule, VIP => TopologyVIP}
 import org.midonet.cluster.util.IPAddressUtil._
 import org.midonet.cluster.util.IPSubnetUtil._
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.cluster.util.{IPSubnetUtil, RangeUtil}
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.layer3.Route.NextHop
+import org.midonet.midolman.routingprotocols.{BGP, BGPRoute}
 import org.midonet.midolman.rules.{Condition, ForwardNatRule, JumpRule, NatRule, NatTarget, Rule}
 import org.midonet.midolman.simulation.{Bridge, Chain, IPAddrGroup, LoadBalancer, PortGroup, Router, VIP, _}
 import org.midonet.midolman.state.l4lb
@@ -331,6 +332,31 @@ object TopologyMatchers {
             healthMonitor.maxRetries shouldBe hm.getMaxRetries
         }
     }
+
+    class BGPMatcher(bgp: BGP) extends Matchers
+                                       with DeviceMatcher[TopologyBGP] {
+        override def shouldBeDeviceOf(b: TopologyBGP): Unit = {
+            bgp.id shouldBe b.getId.asJava
+            bgp.localAs shouldBe b.getLocalAs
+            bgp.peerAs shouldBe b.getPeerAs
+            bgp.peerAddress shouldBe (if (b.hasPeerAddress)
+                b.getPeerAddress.asIPv4Address else null)
+            bgp.portId shouldBe (if (b.hasPortId)
+                b.getPortId.asJava else null)
+            bgp.bgpRouteIds should contain theSameElementsAs
+            b.getBgpRouteIdsList.asScala.map(_.asJava)
+        }
+    }
+
+    class BGPRouteMatcher(route: BGPRoute)
+        extends Matchers with DeviceMatcher[TopologyBGPRoute] {
+
+        override def shouldBeDeviceOf(r: TopologyBGPRoute): Unit = {
+            route.id shouldBe r.getId.asJava
+            route.subnet shouldBe r.getSubnet.asJava
+            route.bgpId shouldBe r.getBgpId.asJava
+        }
+    }
 }
 
 trait TopologyMatchers {
@@ -394,4 +420,11 @@ trait TopologyMatchers {
 
     implicit def asMatcher(healthMonitor: HealthMonitor): HealthMonitorMatcher =
         new HealthMonitorMatcher(healthMonitor)
+
+    implicit def asMatcher(bgp: BGP): BGPMatcher =
+        new BGPMatcher(bgp)
+
+    implicit def asMatcher(route: BGPRoute): BGPRouteMatcher =
+        new BGPRouteMatcher(route)
+
 }

@@ -161,6 +161,8 @@ class RouterPort extends Port {
     var portMac: MAC = _
     @ZoomField(name = "route_ids", converter = classOf[UUIDConverter])
     var routeIds: Set[UUID] = _
+    @ZoomField(name = "bgp_ids", converter = classOf[UUIDConverter])
+    var bgpIds: Set[UUID] = _
 
     private var _portAddr: IPv4Subnet = _
 
@@ -176,7 +178,8 @@ class RouterPort extends Port {
 
     override def toString =
         s"RouterPort [${super.toString} routerId=$routerId " +
-        s"portSubnet=$portSubnet portIp=$portIp portMac=$portMac]"
+        s"portSubnet=$portSubnet portIp=$portIp portMac=$portMac " +
+        s"bgpIds=$bgpIds]"
 }
 
 sealed class PortFactory extends ZoomConvert.Factory[Port, Topology.Port] {
@@ -190,7 +193,7 @@ sealed class PortFactory extends ZoomConvert.Factory[Port, Topology.Port] {
 
 object PortFactory {
     @Deprecated
-    def fromPortConfig(config: PortConfig): Port = {
+    def from(config: PortConfig): Port = {
         val port = config match {
             case cfg: BridgePortConfig =>
                 val p = new BridgePort

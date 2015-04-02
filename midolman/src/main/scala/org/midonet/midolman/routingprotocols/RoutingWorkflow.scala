@@ -21,7 +21,6 @@ import java.util.concurrent.ConcurrentHashMap
 
 import akka.actor.ActorSystem
 
-import org.midonet.cluster.data.BGP
 import org.midonet.midolman.PacketWorkflow.{AddVirtualWildcardFlow, NoOp, SimulationResult, TemporaryDrop}
 import org.midonet.midolman.simulation.PacketContext
 import org.midonet.midolman.topology.VirtualTopologyActor
@@ -50,7 +49,7 @@ trait RoutingWorkflow {
             return TemporaryDrop
         }
 
-        val port = VirtualTopologyActor.tryAsk[RouterPort](bgp.getPortId)
+        val port = VirtualTopologyActor.tryAsk[RouterPort](bgp.portId)
         if (context.wcmatch.getEtherType == ARP.ETHERTYPE ||
             matchBgp(context, bgp, port)) {
 
@@ -74,9 +73,9 @@ trait RoutingWorkflow {
         }
 
         if (matchBgp(context, bgp, port)) {
-            context.addVirtualAction(output(bgp.getQuaggaPortNumber()))
+            context.addVirtualAction(output(bgp.quaggaPortNumber))
             if (context.wcmatch.getEtherType == ARP.ETHERTYPE) {
-               context.addVirtualAction(userspace(bgp.getUplinkPid))
+               context.addVirtualAction(userspace(bgp.uplinkPid))
             }
             AddVirtualWildcardFlow
         } else {
@@ -112,8 +111,8 @@ trait RoutingWorkflow {
         matchNetwork(fmatch, bgp, port)
 
     private def matchNetwork(fmatch: FlowMatch, bgp: BGP, port: RouterPort) =
-        (fmatch.getNetworkSrcIP == bgp.getPeerAddr &&
+        (fmatch.getNetworkSrcIP == bgp.peerAddress &&
          fmatch.getNetworkDstIP == port.portAddr.getAddress) ||
         (fmatch.getNetworkSrcIP == port.portAddr.getAddress &&
-         fmatch.getNetworkDstIP == bgp.getPeerAddr)
+         fmatch.getNetworkDstIP == bgp.peerAddress)
 }
