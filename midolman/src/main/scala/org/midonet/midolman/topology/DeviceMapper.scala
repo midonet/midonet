@@ -86,7 +86,7 @@ abstract class DeviceMapper[D <: Device](val id: UUID, vt: VirtualTopology)
                                         (implicit tag: ClassTag[D])
     extends OnSubscribe[D] with Observer[D] with MidolmanLogging {
 
-    import org.midonet.midolman.topology.DeviceMapper.SubscriptionException
+    import DeviceMapper.SubscriptionException
 
     private final val cache = BehaviorSubject.create[D]()
     private final val subscriber = Subscribers.from(cache)
