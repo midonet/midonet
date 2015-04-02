@@ -37,7 +37,6 @@ import org.midonet.midolman.topology.VirtualTopologyActor.PortRequest
 import org.midonet.midolman.topology.devices.{Port, RouterPort}
 import org.midonet.midolman.{DatapathState, Referenceable}
 import org.midonet.util.concurrent.ReactiveActor
-import org.midonet.util.concurrent.ReactiveActor.OnNext
 import org.midonet.util.eventloop.SelectLoop
 
 object RoutingManagerActor extends Referenceable {
@@ -47,32 +46,20 @@ object RoutingManagerActor extends Referenceable {
     case class BgpStatus(status : Array[String])
 }
 
-class RoutingManagerActor extends ReactiveActor[LocalPortActive]
-                          with ActorLogWithoutPath {
+class RoutingManagerActor @Inject()(override val supervisorStrategy: SupervisorStrategy,
+                                    config: MidolmanConfig,
+                                    client: Client,
+                                    dataClient: DataClient,
+                                    stateStorage: StateStorage,
+                                    connectionWatcher: ZkConnectionAwareWatcher,
+                                    @ZEBRA_SERVER_LOOP zebraLoop: SelectLoop,
+                                    flowInvalidator: FlowInvalidator,
+                                    dpState: DatapathState)
+    extends ReactiveActor[LocalPortActive] with ActorLogWithoutPath {
+
     import context.system
 
     override def logSource = "org.midonet.routing.bgp"
-
-    @Inject
-    override val supervisorStrategy: SupervisorStrategy = null
-
-    @Inject
-    var dataClient: DataClient = null
-    @Inject
-    var config: MidolmanConfig = null
-    @Inject
-    val client: Client = null
-    @Inject
-    val stateStorage: StateStorage = null
-    @Inject
-    var zkConnWatcher: ZkConnectionAwareWatcher = null
-    @Inject
-    @ZEBRA_SERVER_LOOP
-    var zebraLoop: SelectLoop = null
-    @Inject
-    var flowInvalidator: FlowInvalidator = null
-    @Inject
-    var dpState: DatapathState = null
 
     private var bgpPortIdx = 0
 
@@ -88,7 +75,7 @@ class RoutingManagerActor extends ReactiveActor[LocalPortActive]
     }
 
     override def receive = {
-        case OnNext(LocalPortActive(portID, true)) =>
+        case LocalPortActive(portID, true) =>
             log.debug(s"port $portID became active")
             if (!activePorts.contains(portID)) {
                 activePorts.add(portID)
@@ -97,10 +84,11 @@ class RoutingManagerActor extends ReactiveActor[LocalPortActive]
             }
             portHandlers.get(portID) match {
                 case None =>
-                case Some(routingHandler) => routingHandler ! PortActive(true)
+                case Some(routingHandler) =>
+                    routingHandler ! PortActive(active = true)
             }
 
-        case OnNext(LocalPortActive(portID, false)) =>
+        case LocalPortActive(portID, false) =>
             log.debug(s"port $portID became inactive")
             if (!activePorts.contains(portID)) {
                 log.error("we should have had information about port {}",
@@ -124,7 +112,7 @@ class RoutingManagerActor extends ReactiveActor[LocalPortActive]
                         //   the port is up again.
                         //   (See: ClusterManager:L040)
                     case Some(routingHandler) =>
-                        routingHandler ! PortActive(false)
+                        routingHandler ! PortActive(active = false)
                 }
             }
 
@@ -148,10 +136,11 @@ class RoutingManagerActor extends ReactiveActor[LocalPortActive]
                 portHandlers.put(
                     port.id,
                     context.actorOf(
-                        Props(new RoutingHandler(port, portIndexForHandler,
-                                    flowInvalidator, dpState, upcallConnManager,
-                                    client, dataClient, config, zkConnWatcher, zebraLoop)).
-                              withDispatcher("actors.pinned-dispatcher"),
+                        Props(new RoutingHandler(
+                            port, portIndexForHandler, flowInvalidator, dpState,
+                            upcallConnManager, client, dataClient, config,
+                            connectionWatcher, zebraLoop))
+                            .withDispatcher("actors.pinned-dispatcher"),
                         name = port.id.toString)
                 )
                 log.debug(s"RoutingHandler creation requested for port ${port.id}")
@@ -162,7 +151,7 @@ class RoutingManagerActor extends ReactiveActor[LocalPortActive]
         case ShowBgp(portID : UUID, cmd : String) =>
             portHandlers.get(portID) match {
               case Some(handler) =>
-                handler forward RoutingHandler.BGPD_SHOW(cmd)
+                handler forward RoutingHandler.BgpdShow(cmd)
               case None =>
                 sender ! BgpStatus(Array[String](s"No BGP handler is on $portID"))
             }
