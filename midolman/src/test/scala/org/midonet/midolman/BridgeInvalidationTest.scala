@@ -91,7 +91,7 @@ class BridgeInvalidationTest extends MidolmanSpec
 
     override protected def fillConfig(config: Config) = {
         super.fillConfig(config).withValue(
-            "bridge.mac_port_mapping_expire",
+            "agent.bridge.mac_port_mapping_expire",
             ConfigValueFactory.fromAnyRef(s"${macPortExpiration}ms"))
     }
 

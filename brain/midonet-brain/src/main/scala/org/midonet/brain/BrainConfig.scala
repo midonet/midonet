@@ -39,11 +39,11 @@ object BrainConfig {
             ConfigFactory.parseString(config).
                 withFallback(MidoTestConfigurator.forBrains))
 
-    def apply() = new BrainConfig(MidoNodeConfigurator.forBrains().
+    def apply() = new BrainConfig(MidoNodeConfigurator.apply().
                     runtimeConfig(HostIdGenerator.getHostId))
 
     def apply(fileName: String) =
-        new BrainConfig(MidoNodeConfigurator.forBrains(fileName).
+        new BrainConfig(MidoNodeConfigurator.apply(fileName).
             runtimeConfig(HostIdGenerator.getHostId))
 }
 
@@ -66,64 +66,70 @@ class EmbeddedClusterNodeConfig(conf: Config) {
 }
 
 class C3POConfig(val conf: Config) extends ScheduledMinionConfig[C3POMinion] {
-    override def isEnabled = conf.getBoolean("neutron_importer.enabled")
-    override def minionClass = conf.getString("neutron_importer.with")
-    override def numThreads = conf.getInt("neutron_importer.threads")
-    override def delayMs = conf.getDuration("neutron_importer.delay", TimeUnit.MILLISECONDS)
-    override def periodMs = conf.getDuration("neutron_importer.period", TimeUnit.MILLISECONDS)
-    def connectionString = conf.getString("neutron_importer.connection_string")
-    def jdbcDriver = conf.getString("neutron_importer.jdbc_driver_class")
-    def user = conf.getString("neutron_importer.user")
-    def password = conf.getString("neutron_importer.password")
+    val PREFIX = "brain.neutron_importer"
+
+    override def isEnabled = conf.getBoolean(s"$PREFIX.enabled")
+    override def minionClass = conf.getString(s"$PREFIX.with")
+    override def numThreads = conf.getInt(s"$PREFIX.threads")
+    override def delayMs = conf.getDuration(s"$PREFIX.delay", TimeUnit.MILLISECONDS)
+    override def periodMs = conf.getDuration(s"$PREFIX.period", TimeUnit.MILLISECONDS)
+    def connectionString = conf.getString(s"$PREFIX.connection_string")
+    def jdbcDriver = conf.getString(s"$PREFIX.jdbc_driver_class")
+    def user = conf.getString(s"$PREFIX.user")
+    def password = conf.getString(s"$PREFIX.password")
 }
 
 class HeartbeatConfig(val conf: Config) extends ScheduledMinionConfig[Heartbeat] {
-    override def isEnabled = conf.getBoolean("heartbeat.enabled")
-    override def minionClass = conf.getString("heartbeat.with")
-    override def numThreads = conf.getInt("heartbeat.threads")
-    override def delayMs = conf.getDuration("heartbeat.delay", TimeUnit.MILLISECONDS)
-    override def periodMs = conf.getDuration("heartbeat.period", TimeUnit.MILLISECONDS)
+    val PREFIX = "brain.heartbeat"
+    override def isEnabled = conf.getBoolean("$PREFIX.enabled")
+    override def minionClass = conf.getString(s"$PREFIX.with")
+    override def numThreads = conf.getInt(s"$PREFIX.threads")
+    override def delayMs = conf.getDuration(s"$PREFIX.delay", TimeUnit.MILLISECONDS)
+    override def periodMs = conf.getDuration(s"$PREFIX.period", TimeUnit.MILLISECONDS)
 }
 
 class VxGwConfig(val conf: Config) extends MinionConfig[VxlanGatewayService] {
-    override def isEnabled = conf.getBoolean("vxgw.enabled")
-    override def minionClass = conf.getString("vxgw.with")
+    override def isEnabled = conf.getBoolean("brain.vxgw.enabled")
+    override def minionClass = conf.getString("brain.vxgw.with")
 }
 
 class TopologyApiConfig(val conf: Config) extends MinionConfig[TopologyApiService] {
+    val PREFIX = "brain.topology_api"
 
-    override def isEnabled = conf.getBoolean("topology_api.enabled")
-    override def minionClass = conf.getString("topology_api.with")
+    override def isEnabled = conf.getBoolean(s"$PREFIX.enabled")
+    override def minionClass = conf.getString(s"$PREFIX.with")
 
-    def socketEnabled = conf.getBoolean("topology_api.socket_enabled")
-    def port = conf.getInt("topology_api.port")
-    def wsEnabled = conf.getBoolean("topology_api.ws_enabled")
-    def wsPort = conf.getInt("topology_api.ws_port")
-    def wsPath = conf.getString("topology_api.ws_path")
-    def sessionGracePeriod = conf.getDuration("topology_api.session_grace_period", TimeUnit.MILLISECONDS)
-    def sessionBufferSize = conf.getInt("topology_api.session_buffer_size")
+    def socketEnabled = conf.getBoolean(s"$PREFIX.socket_enabled")
+    def port = conf.getInt(s"$PREFIX.port")
+    def wsEnabled = conf.getBoolean(s"$PREFIX.ws_enabled")
+    def wsPort = conf.getInt(s"$PREFIX.ws_port")
+    def wsPath = conf.getString(s"$PREFIX.ws_path")
+    def sessionGracePeriod = conf.getDuration(s"$PREFIX.session_grace_period", TimeUnit.MILLISECONDS)
+    def sessionBufferSize = conf.getInt(s"$PREFIX.session_buffer_size")
 }
 
 class TopologyZoomUpdaterConfig(val conf: Config) {
-    def enableUpdates = conf.getBoolean("topology_zoom_updater.enable_updates")
-    def threads = conf.getInt("topology_zoom_updater.num_threads")
-    def period = conf.getDuration("topology_zoom_updater.period", TimeUnit.MILLISECONDS)
-    def initialRouters = conf.getInt("topology_zoom_updater.initial_routers")
-    def initialNetworksPerRouter = conf.getInt("topology_zoom_updater.initial_networks_per_router")
-    def initialPortsPerNetwork = conf.getInt("topology_zoom_updater.initial_ports_per_network")
-    def initialVteps = conf.getInt("topology_zoom_updater.initial_vteps")
-    def initialHosts = conf.getInt("topology_zoom_updater.initial_hosts")
+    val PREFIX = "brain.topology_zoom_updater"
+
+    def enableUpdates = conf.getBoolean(s"$PREFIX.enable_updates")
+    def threads = conf.getInt(s"$PREFIX.num_threads")
+    def period = conf.getDuration(s"$PREFIX.period", TimeUnit.MILLISECONDS)
+    def initialRouters = conf.getInt(s"$PREFIX.initial_routers")
+    def initialNetworksPerRouter = conf.getInt(s"$PREFIX.initial_networks_per_router")
+    def initialPortsPerNetwork = conf.getInt(s"$PREFIX.initial_ports_per_network")
+    def initialVteps = conf.getInt(s"$PREFIX.initial_vteps")
+    def initialHosts = conf.getInt(s"$PREFIX.initial_hosts")
 }
 
 class TopologySnoopyConfig(val conf: Config) {
-    def host = conf.getString("snoopy.host")
-    def port = conf.getInt("snoopy.port")
-    def wsPath = conf.getString("snoopy.ws_path")
+    def host = conf.getString("brain.snoopy.host")
+    def port = conf.getInt("brain.snoopy.port")
+    def wsPath = conf.getString("brain.snoopy.ws_path")
 }
 
 class ConfApiConfig(val conf: Config) extends MinionConfig[ConfMinion] {
-    override def isEnabled = conf.getBoolean("conf_api.enabled")
-    override def minionClass = conf.getString("conf_api.with")
+    override def isEnabled = conf.getBoolean("brain.conf_api.enabled")
+    override def minionClass = conf.getString("brain.conf_api.with")
 
-    def httpPort = conf.getInt("conf_api.http_port")
+    def httpPort = conf.getInt("brain.conf_api.http_port")
 }

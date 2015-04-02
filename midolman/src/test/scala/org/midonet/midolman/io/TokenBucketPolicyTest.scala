@@ -37,10 +37,10 @@ class TokenBucketPolicyTest extends FeatureSpec
     before {
         val confStr =
             """
-              |datapath.global_incoming_burst_capacity = 1
-              |datapath.vm_incoming_burst_capacity = 1
-              |datapath.tunnel_incoming_burst_capacity = 8
-              |datapath.vtep_incoming_burst_capacity = 1
+              |agent.datapath.global_incoming_burst_capacity = 1
+              |agent.datapath.vm_incoming_burst_capacity = 1
+              |agent.datapath.tunnel_incoming_burst_capacity = 8
+              |agent.datapath.vtep_incoming_burst_capacity = 1
             """.stripMargin
 
         policy = new TokenBucketPolicy(
@@ -107,10 +107,10 @@ class TokenBucketPolicyTest extends FeatureSpec
         scenario("Token bucket simulation") {
             val confStr =
                 """
-                  |datapath.global_incoming_burst_capacity = 256
-                  |datapath.vm_incoming_burst_capacity = 8
-                  |datapath.tunnel_incoming_burst_capacity = 16
-                  |datapath.vtep_incoming_burst_capacity = 1
+                  |agent.datapath.global_incoming_burst_capacity = 256
+                  |agent.datapath.vm_incoming_burst_capacity = 8
+                  |agent.datapath.tunnel_incoming_burst_capacity = 16
+                  |agent.datapath.vtep_incoming_burst_capacity = 1
                 """.stripMargin
 
             val multiplier = 8

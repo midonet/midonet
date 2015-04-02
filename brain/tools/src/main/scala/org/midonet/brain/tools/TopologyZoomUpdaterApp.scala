@@ -17,6 +17,7 @@
 package org.midonet.brain.tools
 
 import com.google.inject.{AbstractModule, Guice, Singleton}
+import org.midonet.conf.{HostIdGenerator, MidoNodeConfigurator}
 import org.slf4j.LoggerFactory
 
 import org.midonet.brain.BrainConfig

@@ -48,7 +48,7 @@ class BridgeFloodOptimizationsTest extends MidolmanSpec {
 
     override protected def fillConfig(config: Config) = {
         super.fillConfig(ConfigFactory.parseString(
-            "midolman.enable_bridge_arp = true").withFallback(config))
+            "agent.midolman.enable_bridge_arp = true").withFallback(config))
     }
 
     override def beforeTest(): Unit = {

@@ -23,6 +23,7 @@ import org.apache.curator.retry.ExponentialBackoffRetry
 
 import org.midonet.cluster.ZookeeperLockFactory
 import org.midonet.cluster.services.{MidonetBackend, MidonetBackendService}
+import org.midonet.conf.MidoNodeConfigurator
 
 /** This Guice module is dedicated to declare general-purpose dependencies that
   * are exposed to MidoNet components that need to access the various storage
