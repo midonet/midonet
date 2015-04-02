@@ -22,7 +22,7 @@ option java_outer_classname = "Topology";
 
 // One per type
 enum Type {
-    BGP_PEERING = 1;
+    BGP = 1;
     BGP_ROUTE = 2;
     CHAIN = 3;
     DHCP = 4;
@@ -465,7 +465,7 @@ message HealthMonitor {
     optional UUID pool_id = 101;
 }
 
-message BGP {
+message Bgp {
     optional UUID id = 1;
     optional int32 local_as = 2;
     optional int32 peer_as = 3;
@@ -476,8 +476,7 @@ message BGP {
     optional UUID port_id = 6;
 }
 
-message BGPRoute {
-
+message BgpRoute {
     optional UUID id = 1;
     optional IPSubnet subnet = 2;
 

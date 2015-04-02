@@ -32,7 +32,7 @@ import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.util.IPAddressUtil._
 import org.midonet.cluster.util.IPSubnetUtil._
 import org.midonet.cluster.util.UUIDUtil._
-import org.midonet.cluster.util._
+import org.midonet.cluster.util.{IPSubnetUtil, RangeUtil, UUIDUtil}
 import org.midonet.midolman.rules.FragmentPolicy
 import org.midonet.midolman.state.l4lb.{LBStatus => L4LBStatus}
 import org.midonet.midolman.{layer3 => l3}
@@ -77,6 +77,7 @@ trait TopologyBuilder {
                                    portSubnet: IPSubnet[_] = randomIPv4Subnet,
                                    portAddress: IPAddr = IPv4Addr.random,
                                    portMac: MAC = MAC.random,
+                                   bgpId: Option[UUID] = None,
                                    routeIds: Set[UUID] = Set.empty): Port = {
         val builder = createPortBuilder(
             id, inboundFilterId, outboundFilterId, tunnelKey, peerId, vifId,
@@ -85,6 +86,7 @@ trait TopologyBuilder {
             .setPortAddress(portAddress.asProto)
             .setPortMac(portMac.toString)
             .addAllRouteIds(routeIds.map(_.asProto).asJava)
+        if (bgpId.isDefined) builder.setBgpId(bgpId.get.asProto)
         if (routerId.isDefined) builder.setRouterId(routerId.get.asProto)
         builder.build()
     }
@@ -558,6 +560,37 @@ trait TopologyBuilder {
         builder.build()
     }
 
+    protected def createBGP(id: UUID = UUID.randomUUID,
+                            localAs: Option[Int] = None,
+                            peerAs: Option[Int] = None,
+                            peerAddress: Option[IPAddr] = None,
+                            portId: Option[UUID] = None,
+                            bgpRouteIds: Set[UUID] = Set.empty): Bgp = {
+        val builder = Bgp.newBuilder
+            .setId(id.asProto)
+            .addAllBgpRouteIds(bgpRouteIds.map(_.asProto).asJava)
+        if (localAs.isDefined)
+            builder.setLocalAs(localAs.get)
+        if (peerAs.isDefined)
+            builder.setPeerAs(peerAs.get)
+        if (peerAddress.isDefined)
+            builder.setPeerAddress(peerAddress.get.asProto)
+        if (portId.isDefined)
+            builder.setPortId(portId.get.asProto)
+        builder.build()
+    }
+
+    protected def createBGPRoute(id: UUID = UUID.randomUUID,
+                                 subnet: Option[IPSubnet[_]] = None,
+                                 bgpId: Option[UUID] = None): BgpRoute = {
+        val builder = BgpRoute.newBuilder.setId(id.asProto)
+        if (subnet.isDefined)
+            builder.setSubnet(subnet.get.asProto)
+        if (bgpId.isDefined)
+            builder.setBgpId(bgpId.get.asProto)
+        builder.build()
+    }
+
     private def createPortBuilder(id: UUID,
                                   inboundFilterId: Option[UUID],
                                   outboundFilterId: Option[UUID],
@@ -626,6 +659,8 @@ object TopologyBuilder {
             port.toBuilder.setOutboundFilterId(filterId.asProto).build()
         def setTunnelKey(tunnelKey: Long): Port =
             port.toBuilder.setTunnelKey(tunnelKey).build()
+        def setHostId(hostId: UUID): Port =
+            port.toBuilder.setHostId(hostId.asProto).build()
         def setPeerId(peerId: UUID): Port =
             port.toBuilder.setPeerId(peerId.asProto).build()
         def setVifId(vifId: UUID): Port =
@@ -642,6 +677,8 @@ object TopologyBuilder {
             port.toBuilder.setPortAddress(ipAddress.asProto).build()
         def setPortMac(mac: MAC): Port =
             port.toBuilder.setPortMac(mac.toString).build()
+        def setBgpId(bgpId: UUID): Port =
+            port.toBuilder.setBgpId(bgpId.asProto).build()
         def clearBridgeId(): Port =
             port.toBuilder.clearNetworkId().build()
         def clearRouterId(): Port =
@@ -650,19 +687,21 @@ object TopologyBuilder {
             port.toBuilder.clearInboundFilterId().build()
         def clearOutboundFilterId(): Port =
             port.toBuilder.clearOutboundFilterId().build()
+        def clearHostId(): Port =
+            port.toBuilder.clearHostId().build()
         def clearPeerId(): Port =
             port.toBuilder.clearPeerId().build()
         def clearVifId(): Port =
             port.toBuilder.clearVifId().build()
-        def clearInterfaceName: Port =
+        def clearInterfaceName(): Port =
             port.toBuilder.clearInterfaceName().build()
         def clearVlanId(): Port =
             port.toBuilder.clearVlanId().build()
-        def clearPortSubnet(ipSubnet: IPSubnet[_]): Port =
+        def clearPortSubnet(): Port =
             port.toBuilder.clearPortSubnet().build()
-        def clearPortAddress(ipAddress: IPAddr): Port =
+        def clearPortAddress(): Port =
             port.toBuilder.clearPortAddress().build()
-        def clearPortMac(mac: MAC): Port =
+        def clearPortMac(): Port =
             port.toBuilder.clearPortMac().build()
         def addRouteId(routeId: UUID): Port =
             port.toBuilder.addRouteIds(routeId.asProto).build()
@@ -811,7 +850,8 @@ object TopologyBuilder {
         def setStatus(status: LBStatus): HealthMonitor =
             healthMonitor.toBuilder.setStatus(status).build()
         def setStatus(status: L4LBStatus): HealthMonitor =
-            healthMonitor.toBuilder.setStatus(LBStatus.valueOf(status.name())).build()
+            healthMonitor.toBuilder.setStatus(LBStatus.valueOf(status.name()))
+                .build()
         def setDelay(delay: Int): HealthMonitor =
             healthMonitor.toBuilder.setDelay(delay).build()
         def setTimeout(timeout: Int): HealthMonitor =
@@ -820,6 +860,24 @@ object TopologyBuilder {
             healthMonitor.toBuilder.setMaxRetries(maxRetries).build()
         def setPoolId(poolId: UUID): HealthMonitor =
             healthMonitor.toBuilder.setPoolId(poolId.asProto).build()
+    }
+
+    class RichBgp(bgp: Bgp) {
+        def setLocalAs(as: Int): Bgp =
+            bgp.toBuilder.setLocalAs(as).build()
+        def setPeerAs(as: Int): Bgp =
+            bgp.toBuilder.setPeerAs(as).build()
+        def setPeerAddress(address: IPAddr): Bgp =
+            bgp.toBuilder.setPeerAddress(address.asProto).build()
+        def addBgpRouteId(routeId: UUID): Bgp =
+            bgp.toBuilder.addBgpRouteIds(routeId.asProto).build()
+        def clearBgpRouteIds(): Bgp =
+            bgp.toBuilder.clearBgpRouteIds().build()
+    }
+
+    class RichBgpRoute(bgpRoute: BgpRoute) {
+        def setSubnet(subnet: IPSubnet[_]): BgpRoute =
+            bgpRoute.toBuilder.setSubnet(subnet.asProto).build()
     }
 
     private val random = new Random()
@@ -857,4 +915,10 @@ object TopologyBuilder {
 
     implicit def asRichHealthMonitor(healthMonitor: HealthMonitor): RichHealthMonitor =
         new RichHealthMonitor(healthMonitor)
+
+    implicit def asRichBgp(bgp: Bgp): RichBgp = new RichBgp(bgp)
+
+    implicit def asRichBgpRoute(bgpRoute: BgpRoute): RichBgpRoute =
+        new RichBgpRoute(bgpRoute)
+
 }
