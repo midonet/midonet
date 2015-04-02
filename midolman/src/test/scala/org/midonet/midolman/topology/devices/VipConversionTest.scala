@@ -18,6 +18,8 @@ package org.midonet.midolman.topology.devices
 
 import java.util.UUID
 
+import scala.util.Random
+
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{FeatureSpec, Matchers}
@@ -29,27 +31,31 @@ import org.midonet.midolman.topology.{TopologyBuilder, TopologyMatchers}
 import org.midonet.packets.IPv4Addr
 
 @RunWith(classOf[JUnitRunner])
-class VipConversionTest extends FeatureSpec
+class VIPConversionTest extends FeatureSpec
                         with Matchers
                         with TopologyBuilder
                         with TopologyMatchers {
 
+    private val random = new Random()
+
     feature("Conversion for VIP") {
         scenario("From Protocol Buffer message") {
-            val proto = createVip(adminStateUp = Some(true),
+            val proto = createVIP(adminStateUp = Some(true),
                                   poolId = Some(UUID.randomUUID()),
-                                  address = Some("192.168.0.1"),
-                                  protocolPort = Some(7777),
-                                  isStickySourceIp = Some(true))
+                                  address = Some(IPv4Addr.random),
+                                  protocolPort = Some(random.nextInt()),
+                                  isStickySourceIp = Some(random.nextBoolean()))
             val zoomObj = ZoomConvert.fromProto(proto, classOf[VIP])
             zoomObj shouldBeDeviceOf proto
         }
 
         scenario("To Protocol Buffer message") {
-            val zoomObj = new VIP(id = UUID.randomUUID(), adminStateUp = true,
+            val zoomObj = new VIP(id = UUID.randomUUID(),
+                                  adminStateUp = random.nextBoolean(),
                                   poolId = UUID.randomUUID(),
-                                  address = IPv4Addr("192.168.0.1"),
-                                  protocolPort = 7777, isStickySourceIP = false)
+                                  address = IPv4Addr.random,
+                                  protocolPort = random.nextInt(),
+                                  isStickySourceIP = random.nextBoolean())
             val proto = ZoomConvert.toProto(zoomObj, classOf[Topology.VIP])
             zoomObj shouldBeDeviceOf proto
         }

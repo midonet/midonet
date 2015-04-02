@@ -19,6 +19,8 @@ import java.lang.{Boolean => JBoolean, Long => JLong}
 import java.util.UUID
 import java.util.concurrent.TimeUnit.MILLISECONDS
 
+import javax.annotation.Nullable
+
 import scala.collection.JavaConverters._
 import scala.collection.concurrent.{Map => CMap, TrieMap}
 import scala.collection.mutable
@@ -80,10 +82,10 @@ object BridgeMapper {
         }
         /** Completes the observable corresponding to this port state */
         def complete() = mark.onCompleted()
-        /** Gets the underlying port option for this port state */
-        def port: D = currentPort
-        /** Gets the peer port state option */
-        def peer: PortState[_ <: Port] = currentPeer
+        /** Gets the underlying port for this port state */
+        @Nullable def port: D = currentPort
+        /** Gets the peer port state */
+        @Nullable def peer: PortState[_ <: Port] = currentPeer
         /** Indicates whether the port state has received the port data */
         def isReady: Boolean = currentPort ne null
     }

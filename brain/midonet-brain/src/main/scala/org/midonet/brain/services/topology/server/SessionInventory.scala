@@ -59,6 +59,8 @@ object SessionInventory {
     /** generate an update response */
     def updateBuilder(m: Message, reqId: UUID = null): Response.Builder = {
         val u: Update = m match {
+            case h: Bgp => Update.newBuilder().setBgp(h).build()
+            case h: BgpRoute => Update.newBuilder().setBgpRoute(h).build()
             case h: Chain => Update.newBuilder().setChain(h).build()
             case h: Dhcp => Update.newBuilder().setDhcp(h).build()
             case h: Host => Update.newBuilder().setHost(h).build()

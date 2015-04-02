@@ -93,21 +93,23 @@ class SessionInventoryTest extends FeatureSpec
     feature("responses can handle payload for all defined types") {
         scenario("generate updates") {
             val testObjects: Set[Message] = Set(
+                Bgp.getDefaultInstance,
+                BgpRoute.getDefaultInstance,
                 Chain.getDefaultInstance,
+                Dhcp.getDefaultInstance,
                 Host.getDefaultInstance,
                 IpAddrGroup.getDefaultInstance,
+                LoadBalancer.getDefaultInstance,
                 Network.getDefaultInstance,
                 Port.getDefaultInstance,
                 PortGroup.getDefaultInstance,
                 Route.getDefaultInstance,
                 Router.getDefaultInstance,
-                LoadBalancer.getDefaultInstance,
-                VIP.getDefaultInstance,
                 Rule.getDefaultInstance,
                 TunnelZone.getDefaultInstance,
+                VIP.getDefaultInstance,
                 Vtep.getDefaultInstance,
-                VtepBinding.getDefaultInstance,
-                Dhcp.getDefaultInstance
+                VtepBinding.getDefaultInstance
             )
             testObjects.size shouldBe Type.values().size
 
