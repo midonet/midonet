@@ -38,6 +38,10 @@ public final class IPv4Subnet extends IPSubnet<IPv4Addr> {
         super(IPv4Addr.fromString(addr), prefixLen);
     }
 
+    public IPv4Subnet(byte[] addr, int prefixLen) {
+        super(IPv4Addr.apply(addr), prefixLen);
+    }
+
     public IPv4Subnet(String zkCidr) {
         String[] parts = zkCidr.split("_");
         this.address = IPv4Addr.fromString(parts[0]);

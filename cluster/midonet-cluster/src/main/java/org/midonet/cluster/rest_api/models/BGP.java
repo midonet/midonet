@@ -28,7 +28,7 @@ import org.midonet.cluster.models.Topology;
 import org.midonet.cluster.util.IPAddressUtil;
 import org.midonet.cluster.util.UUIDUtil;
 
-@ZoomClass(clazz = Topology.BGP.class)
+@ZoomClass(clazz = Topology.Bgp.class)
 public class BGP extends UriResource {
 
     @ZoomField(name = "id", converter = UUIDUtil.Converter.class)

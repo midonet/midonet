@@ -26,13 +26,14 @@ import org.midonet.cluster.models.Topology
 object TopologyMappings {
     /** Mapping Topology entity types to their container class */
     val typeToKlass: Map[Topology.Type, Class[_ <: Message]] = Map(
-        Topology.Type.BGP_PEERING -> classOf[Topology.BGP],
-        Topology.Type.BGP_ROUTE -> classOf[Topology.BGPRoute],
+        Topology.Type.BGP -> classOf[Topology.Bgp],
+        Topology.Type.BGP_ROUTE -> classOf[Topology.BgpRoute],
         Topology.Type.CHAIN  -> classOf[Topology.Chain],
         Topology.Type.DHCP -> classOf[Topology.Dhcp],
         Topology.Type.HEALTH_MONITOR -> classOf[Topology.HealthMonitor],
         Topology.Type.HOST -> classOf[Topology.Host],
         Topology.Type.IP_ADDR_GROUP -> classOf[Topology.IPAddrGroup],
+        Topology.Type.LOAD_BALANCER -> classOf[Topology.LoadBalancer],
         Topology.Type.NETWORK -> classOf[Topology.Network],
         Topology.Type.POOL -> classOf[Topology.Pool],
         Topology.Type.POOL_MEMBER -> classOf[Topology.PoolMember],
@@ -40,10 +41,9 @@ object TopologyMappings {
         Topology.Type.PORT_GROUP -> classOf[Topology.PortGroup],
         Topology.Type.ROUTE -> classOf[Topology.Route],
         Topology.Type.ROUTER -> classOf[Topology.Router],
-        Topology.Type.LOAD_BALANCER -> classOf[Topology.LoadBalancer],
-        Topology.Type.VIRTUAL_IP -> classOf[Topology.VIP],
         Topology.Type.RULE -> classOf[Topology.Rule],
         Topology.Type.TUNNEL_ZONE -> classOf[Topology.TunnelZone],
+        Topology.Type.VIRTUAL_IP -> classOf[Topology.VIP],
         Topology.Type.VTEP -> classOf[Topology.Vtep],
         Topology.Type.VTEP_BINDING -> classOf[Topology.VtepBinding]
     )

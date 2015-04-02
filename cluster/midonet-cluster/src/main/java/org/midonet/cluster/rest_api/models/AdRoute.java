@@ -30,7 +30,7 @@ import org.midonet.cluster.util.IPSubnetUtil;
 import org.midonet.cluster.util.UUIDUtil;
 import org.midonet.packets.IPSubnet;
 
-@ZoomClass(clazz = Topology.BGPRoute.class)
+@ZoomClass(clazz = Topology.BgpRoute.class)
 public class AdRoute extends UriResource {
 
     @ZoomField(name = "id", converter = UUIDUtil.Converter.class)
