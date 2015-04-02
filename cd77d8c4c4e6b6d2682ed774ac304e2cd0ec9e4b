@@ -22,6 +22,29 @@
       "revId": "cd77d8c4c4e6b6d2682ed774ac304e2cd0ec9e4b",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_a81dc1bf",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/collection/PathMap.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 151,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-04-02T09:30:33Z",
+      "side": 1,
+      "message": "As discussed offline, I would also remove the parent nodes recursively, if this is one is removed and the parent node has no additional children",
+      "range": {
+        "startLine": 151,
+        "startChar": 12,
+        "endLine": 151,
+        "endChar": 18
+      },
+      "revId": "cd77d8c4c4e6b6d2682ed774ac304e2cd0ec9e4b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
