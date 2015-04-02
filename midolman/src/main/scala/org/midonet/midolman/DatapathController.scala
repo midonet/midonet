@@ -16,6 +16,7 @@
 package org.midonet.midolman
 
 import java.lang.{Boolean => JBoolean, Integer => JInteger}
+import java.net.InetAddress
 import java.util.{Set => JSet, UUID}
 
 import scala.collection.JavaConverters._
@@ -476,7 +477,7 @@ class DatapathController extends Actor
         for { intf <- interfaces.asScala
               inetAddress <- intf.getInetAddresses.asScala
               zone <- host.zones
-              if zone._2.equalsInetAddress(inetAddress)
+              if InetAddress.getByAddress(zone._2.toBytes) == inetAddress
         } {
             val tunnelMtu = (defaultMtu - overhead).toShort
             minMtu = minMtu.min(tunnelMtu)
