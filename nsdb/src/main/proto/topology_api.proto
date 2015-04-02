@@ -179,24 +179,26 @@ message Response {
     }
     message Update {          // the latest known state of an entity
         oneof update {
-            Chain chain = 1;
-            Dhcp dhcp = 2;
-            HealthMonitor health_monitor = 3;
-            Host host = 4;
-            IPAddrGroup ip_addr_group = 5;
-            LoadBalancer load_balancer = 6;
-            Network network = 7;
-            Pool pool = 8;
-            PoolMember pool_member = 9;
-            Port port = 10;
-            PortGroup port_group = 11;
-            Route route = 12;
-            Router router = 13;
-            Rule rule = 14;
-            TunnelZone tunnel_zone = 15;
-            VIP vip = 16;
-            Vtep vtep = 17;
-            VtepBinding vtep_binding = 18;
+            Bgp bgp = 1;
+            BgpAdRoute bgp_ad_route = 2;
+            Chain chain = 3;
+            Dhcp dhcp = 4;
+            HealthMonitor health_monitor = 5;
+            Host host = 6;
+            IPAddrGroup ip_addr_group = 7;
+            LoadBalancer load_balancer = 8;
+            Network network = 9;
+            Pool pool = 10;
+            PoolMember pool_member = 11;
+            Port port = 12;
+            PortGroup port_group = 13;
+            Route route = 14;
+            Router router = 15;
+            Rule rule = 16;
+            TunnelZone tunnel_zone = 17;
+            VIP vip = 18;
+            Vtep vtep = 19;
+            VtepBinding vtep_binding = 20;
         }
     }
     message Snapshot {
