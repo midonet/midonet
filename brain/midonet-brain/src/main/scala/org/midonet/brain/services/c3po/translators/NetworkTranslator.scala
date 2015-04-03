@@ -15,22 +15,27 @@
  */
 package org.midonet.brain.services.c3po.translators
 
-import org.midonet.brain.services.c3po.midonet.{Create, Delete, Update}
+import java.util
+
+import org.midonet.brain.services.c3po.midonet.{Create, CreateNode, Delete, DeleteNode, Update}
 import org.midonet.brain.services.c3po.translators.RouterTranslator.{providerRouterId, providerRouterName}
 import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.Neutron.NeutronNetwork
 import org.midonet.cluster.models.Topology.{Network, Router}
+import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
+import org.midonet.midolman.state.PathBuilder
 import org.midonet.util.concurrent.toFutureOps
 
 /** Provides a Neutron model translator for Network. */
-class NetworkTranslator(storage: ReadOnlyStorage)
+class NetworkTranslator(storage: ReadOnlyStorage, pathBldr: PathBuilder)
     extends NeutronTranslator[NeutronNetwork] {
 
     override protected def translateCreate(nn: NeutronNetwork): MidoOpList = {
         val ops = new MidoOpListBuffer
         ops ++= ensureProviderRouterExists(nn)
         ops += Create(translate(nn))
+        ops ++= replMapPaths(nn.getId).map(CreateNode(_, null))
         ops.toList
     }
 
@@ -43,6 +48,7 @@ class NetworkTranslator(storage: ReadOnlyStorage)
     override protected def translateDelete(id: UUID): MidoOpList = {
         val ops = new MidoOpListBuffer
         ops += Delete(classOf[Network], id)
+        ops ++= replMapPaths(id).map(DeleteNode)
         ops.toList
     }
 
@@ -53,6 +59,14 @@ class NetworkTranslator(storage: ReadOnlyStorage)
         .setName(network.getName)
         .setAdminStateUp(network.getAdminStateUp)
         .build
+
+    /** Paths for legacy replicated maps (ARP and MAC tables). */
+    private def replMapPaths(networkId: UUID): Iterable[String] = {
+        val id = networkId.asJava
+        Iterable(pathBldr.getBridgeIP4MacMapPath(id),
+                 pathBldr.getBridgeMacPortsPath(id),
+                 pathBldr.getBridgeVlansPath(id))
+    }
 
     /**
      * Return an Option which has an operation to create the provider router

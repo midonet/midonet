@@ -21,6 +21,8 @@ import java.net.URLEncoder;
 import java.util.UUID;
 
 import org.midonet.cluster.data.Bridge;
+import org.midonet.cluster.models.Neutron;
+import org.midonet.cluster.util.UUIDUtil;
 import org.midonet.packets.IPAddr;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IPv4Subnet;
@@ -179,11 +181,24 @@ public class ZkPathManager {
         return buildBridgeMacPortsPath(id, vlanId).toString();
     }
 
+    public String getBridgeMacPortsPath(UUID id) {
+        return getBridgeMacPortsPath(id, Bridge.UNTAGGED_VLAN_ID);
+    }
+
     public String getBridgeMacPortEntryPath(UUID bridgeId, short vlanId,
                                             String macEntry) {
         StringBuilder macPortPath = buildBridgeMacPortsPath(bridgeId, vlanId);
         macPortPath.append(macEntry);
         return macPortPath.toString();
+    }
+
+    public String getBridgeMacPortEntryPath(Neutron.NeutronPort port) {
+        MAC mac = MAC.fromString(port.getMacAddress());
+        UUID portId = UUIDUtil.fromProto(port.getId());
+        UUID networkId = UUIDUtil.fromProto(port.getNetworkId());
+        return getBridgeMacPortEntryPath(
+            networkId, Bridge.UNTAGGED_VLAN_ID,
+            MacPortMap.encodePersistentPath(mac, portId));
     }
 
     /**
