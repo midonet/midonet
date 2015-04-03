@@ -44,8 +44,12 @@ object C3POStorageManager {
         val Create = Value(1)
         val Delete = Value(2)
         val Update = Value(3)
+        val CreateNode = Value(4)
+        val DeleteNode = Value(5)
+        val UpdateNode = Value(6)
 
-        private val ops = Array(Create, Delete, Update)
+        private val ops = Array(Create, Delete, Update,
+                                CreateNode, DeleteNode, UpdateNode)
         def valueOf(i: Int) = ops(i - 1)
     }
 
