@@ -36,7 +36,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
-import org.midonet.api.VendorMediaType;
+import org.midonet.brain.services.rest_api.VendorMediaType;
 import org.midonet.api.rest_api.DtoWebResource;
 import org.midonet.api.rest_api.FuncTest;
 import org.midonet.api.rest_api.Topology;
@@ -52,7 +52,6 @@ import org.midonet.client.dto.DtoRuleChain;
 import org.midonet.client.dto.DtoTenant;
 import org.midonet.midolman.state.ArpCacheEntry;
 import org.midonet.midolman.state.ArpTable;
-import org.midonet.midolman.state.zkManagers.FiltersZkManager;
 import org.midonet.midolman.state.zkManagers.RouterZkManager;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
@@ -63,13 +62,13 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
-import static org.midonet.api.VendorMediaType.APPLICATION_BRIDGE_JSON;
-import static org.midonet.api.VendorMediaType.APPLICATION_PORT_LINK_JSON;
-import static org.midonet.api.VendorMediaType.APPLICATION_PORT_V2_JSON;
-import static org.midonet.api.VendorMediaType.APPLICATION_ROUTER_COLLECTION_JSON;
-import static org.midonet.api.VendorMediaType.APPLICATION_ROUTER_COLLECTION_JSON_V2;
-import static org.midonet.api.VendorMediaType.APPLICATION_ROUTER_JSON;
-import static org.midonet.api.VendorMediaType.APPLICATION_ROUTER_JSON_V2;
+import static org.midonet.brain.services.rest_api.VendorMediaType.APPLICATION_BRIDGE_JSON;
+import static org.midonet.brain.services.rest_api.VendorMediaType.APPLICATION_PORT_LINK_JSON;
+import static org.midonet.brain.services.rest_api.VendorMediaType.APPLICATION_PORT_V2_JSON;
+import static org.midonet.brain.services.rest_api.VendorMediaType.APPLICATION_ROUTER_COLLECTION_JSON;
+import static org.midonet.brain.services.rest_api.VendorMediaType.APPLICATION_ROUTER_COLLECTION_JSON_V2;
+import static org.midonet.brain.services.rest_api.VendorMediaType.APPLICATION_ROUTER_JSON;
+import static org.midonet.brain.services.rest_api.VendorMediaType.APPLICATION_ROUTER_JSON_V2;
 
 @RunWith(Enclosed.class)
 public class TestRouter {

@@ -39,13 +39,13 @@ import static org.hamcrest.Matchers.arrayContainingInAnyOrder;
 import static org.hamcrest.Matchers.arrayWithSize;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
-import static org.midonet.api.VendorMediaType.APPLICATION_BRIDGE_JSON;
-import static org.midonet.api.VendorMediaType.APPLICATION_CHAIN_COLLECTION_JSON;
-import static org.midonet.api.VendorMediaType.APPLICATION_CHAIN_JSON;
-import static org.midonet.api.VendorMediaType.APPLICATION_PORT_V2_JSON;
-import static org.midonet.api.VendorMediaType.APPLICATION_ROUTER_JSON;
-import static org.midonet.api.VendorMediaType.APPLICATION_RULE_COLLECTION_JSON_V2;
-import static org.midonet.api.VendorMediaType.APPLICATION_RULE_JSON_V2;
+import static org.midonet.brain.services.rest_api.VendorMediaType.APPLICATION_BRIDGE_JSON;
+import static org.midonet.brain.services.rest_api.VendorMediaType.APPLICATION_CHAIN_COLLECTION_JSON;
+import static org.midonet.brain.services.rest_api.VendorMediaType.APPLICATION_CHAIN_JSON;
+import static org.midonet.brain.services.rest_api.VendorMediaType.APPLICATION_PORT_V2_JSON;
+import static org.midonet.brain.services.rest_api.VendorMediaType.APPLICATION_ROUTER_JSON;
+import static org.midonet.brain.services.rest_api.VendorMediaType.APPLICATION_RULE_COLLECTION_JSON_V2;
+import static org.midonet.brain.services.rest_api.VendorMediaType.APPLICATION_RULE_JSON_V2;
 
 public class TestChain extends JerseyTest {
 

@@ -21,7 +21,7 @@ import java.lang.annotation.Target;
 import javax.validation.Constraint;
 import javax.validation.Payload;
 
-import org.midonet.api.validation.MessageProperty;
+import org.midonet.brain.services.rest_api.validation.MessageProperty;
 
 import static java.lang.annotation.ElementType.ANNOTATION_TYPE;
 import static java.lang.annotation.ElementType.TYPE;

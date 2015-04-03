@@ -30,7 +30,7 @@ import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 import org.junit.runners.Suite;
 import org.midonet.api.rest_api.RestApiTestBase;
-import org.midonet.api.validation.MessageProperty;
+import org.midonet.brain.services.rest_api.validation.MessageProperty;
 import org.midonet.packets.Unsigned;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,11 +46,11 @@ import org.midonet.client.dto.DtoRule.DtoNatTarget;
 import org.midonet.client.dto.DtoRuleChain;
 import org.midonet.packets.ARP;
 
-import static org.midonet.api.VendorMediaType.APPLICATION_RULE_COLLECTION_JSON_V2;
-import static org.midonet.api.VendorMediaType.APPLICATION_RULE_JSON_V2;
-import static org.midonet.api.validation.MessageProperty.FRAG_POLICY_INVALID_FOR_L4_RULE;
-import static org.midonet.api.validation.MessageProperty.FRAG_POLICY_INVALID_FOR_NAT_RULE;
-import static org.midonet.api.validation.MessageProperty.FRAG_POLICY_UNDEFINED;
+import static org.midonet.brain.services.rest_api.VendorMediaType.APPLICATION_RULE_COLLECTION_JSON_V2;
+import static org.midonet.brain.services.rest_api.VendorMediaType.APPLICATION_RULE_JSON_V2;
+import static org.midonet.brain.services.rest_api.validation.MessageProperty.FRAG_POLICY_INVALID_FOR_L4_RULE;
+import static org.midonet.brain.services.rest_api.validation.MessageProperty.FRAG_POLICY_INVALID_FOR_NAT_RULE;
+import static org.midonet.brain.services.rest_api.validation.MessageProperty.FRAG_POLICY_UNDEFINED;
 
 @RunWith(Suite.class)
 @Suite.SuiteClasses({TestRule.TestRuleCreateBadRequest.class,

@@ -18,6 +18,7 @@ package org.midonet.api.network.rest_api;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+
 import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
 import javax.validation.Validator;
@@ -37,11 +38,7 @@ import javax.ws.rs.core.UriInfo;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.servlet.RequestScoped;
-import org.midonet.api.ResourceUriBuilder;
-import org.midonet.api.VendorMediaType;
-import org.midonet.api.auth.AuthAction;
-import org.midonet.api.auth.AuthRole;
-import org.midonet.api.auth.ForbiddenHttpException;
+
 import org.midonet.api.bgp.rest_api.BgpResource.PortBgpResource;
 import org.midonet.api.network.BridgePort;
 import org.midonet.api.network.Link;
@@ -56,21 +53,23 @@ import org.midonet.api.network.auth.PortAuthorizer;
 import org.midonet.api.network.auth.PortGroupAuthorizer;
 import org.midonet.api.network.auth.RouterAuthorizer;
 import org.midonet.api.rest_api.AbstractResource;
-import org.midonet.api.rest_api.BadRequestHttpException;
-import org.midonet.api.rest_api.NotFoundHttpException;
 import org.midonet.api.rest_api.ResourceFactory;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.api.vtep.VtepClusterClient;
+import org.midonet.brain.services.rest_api.ResourceUriBuilder;
+import org.midonet.brain.services.rest_api.VendorMediaType;
+import org.midonet.brain.services.rest_api.auth.AuthAction;
+import org.midonet.brain.services.rest_api.auth.AuthRole;
+import org.midonet.brain.services.rest_api.auth.ForbiddenHttpException;
+import org.midonet.brain.services.rest_api.rest_api.BadRequestHttpException;
+import org.midonet.brain.services.rest_api.rest_api.NotFoundHttpException;
 import org.midonet.cluster.DataClient;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.cluster.data.ports.VxLanPort;
 import org.midonet.event.topology.PortEvent;
-import org.midonet.util.serialization.SerializationException;
-import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.midolman.state.VlanPathExistsException;
+import org.midonet.util.serialization.SerializationException;
 
-/**
- * Root resource class for ports.
- */
 @RequestScoped
 public class PortResource extends AbstractResource {
 
@@ -91,14 +90,6 @@ public class PortResource extends AbstractResource {
         this.factory = factory;
     }
 
-    /**
-     * Handler to deleting a port.
-     *
-     * @param id
-     *            Port ID from the request.
-     * @throws StateAccessException
-     *             Data access error.
-     */
     @DELETE
     @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })
     @Path("{id}")
@@ -143,15 +134,6 @@ public class PortResource extends AbstractResource {
         return portData;
     }
 
-    /**
-     * Handler to getting a v1 port.
-     *
-     * @param id
-     *            Port ID from the request.
-     * @throws StateAccessException
-     *             Data access error.
-     * @return A Port object.
-     */
     @GET
     @Deprecated
     @PermitAll
@@ -168,15 +150,6 @@ public class PortResource extends AbstractResource {
         return port;
     }
 
-    /**
-     * Handler to getting a v2 port.
-     *
-     * @param id
-     *            Port ID from the request.
-     * @throws StateAccessException
-     *             Data access error.
-     * @return A Port object.
-     */
     @GET
     @PermitAll
     @Path("{id}")
@@ -226,16 +199,6 @@ public class PortResource extends AbstractResource {
         return ports;
     }
 
-    /**
-     * Handler to updating a port.
-     *
-     * @param id
-     *            Port ID from the request.
-     * @param port
-     *            Port object.
-     * @throws StateAccessException
-     *             Data access error.
-     */
     @PUT
     @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })
     @Path("{id}")
@@ -257,16 +220,6 @@ public class PortResource extends AbstractResource {
         portEvent.update(id, dataClient.portsGet(id));
     }
 
-    /**
-     * Handler to linking ports.
-     *
-     * @param id
-     *            Port ID from the request.
-     * @param link
-     *            Link object
-     * @throws StateAccessException
-     *             Data access error.
-     */
     @POST
     @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })
     @Path("{id}/link")
@@ -322,25 +275,11 @@ public class PortResource extends AbstractResource {
         portEvent.unlink(id, portData);
     }
 
-    /**
-     * Port resource locator for BGP.
-     *
-     * @param id
-     *            Port ID from the request.
-     * @return PortBgpResource object to handle sub-resource requests.
-     */
     @Path("/{id}" + ResourceUriBuilder.BGP)
     public PortBgpResource getBgpResource(@PathParam("id") UUID id) {
         return factory.getPortBgpResource(id);
     }
 
-    /**
-     * Port resource locator for port group.
-     *
-     * @param id
-     *            Port ID from the request.
-     * @return PortPortGroupResource object to handle sub-resource requests.
-     */
     @Path("/{id}" + ResourceUriBuilder.PORT_GROUPS)
     public PortGroupResource.PortPortGroupResource getPortGroupResource(
             @PathParam("id") UUID id) {
@@ -406,13 +345,6 @@ public class PortResource extends AbstractResource {
             }
         }
 
-        /**
-         * Handler to create a V1 bridge port.
-         *
-         * @throws StateAccessException
-         *             Data access error.
-         * @return Response object with 201 status code set if successful.
-         */
         @POST
         @Deprecated
         @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })
@@ -431,13 +363,6 @@ public class PortResource extends AbstractResource {
             return handleCreatePort(port);
         }
 
-        /**
-         * Handler to create a V2 bridge port.
-         *
-         * @throws StateAccessException
-         *             Data access error.
-         * @return Response object with 201 status code set if successful.
-         */
         @POST
         @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })
         @Consumes({ VendorMediaType.APPLICATION_PORT_V2_JSON })
@@ -453,13 +378,6 @@ public class PortResource extends AbstractResource {
             return handleCreatePort(port);
         }
 
-        /**
-         * Handler to list v1 bridge ports.
-         *
-         * @throws StateAccessException
-         *             Data access error.
-         * @return A list of Port objects.
-         */
         @GET
         @Deprecated
         @PermitAll
@@ -485,13 +403,6 @@ public class PortResource extends AbstractResource {
             return ports;
         }
 
-        /**
-         * Handler to list bridge ports.
-         *
-         * @throws StateAccessException
-         *             Data access error.
-         * @return A list of Port objects.
-         */
         @GET
         @PermitAll
         @Produces({ VendorMediaType.APPLICATION_PORT_V2_COLLECTION_JSON })
@@ -516,9 +427,6 @@ public class PortResource extends AbstractResource {
         }
     }
 
-    /**
-     * Sub-resource class for bridge's peer ports.
-     */
     @RequestScoped
     public static class BridgePeerPortResource extends AbstractResource {
 
@@ -537,13 +445,6 @@ public class PortResource extends AbstractResource {
             this.bridgeId = bridgeId;
         }
 
-        /**
-         * Handler to list bridge peer ports.
-         *
-         * @throws StateAccessException
-         *             Data access error.
-         * @return A list of Port objects.
-         */
         @GET
         @Deprecated
         @PermitAll
@@ -568,13 +469,6 @@ public class PortResource extends AbstractResource {
             return ports;
         }
 
-        /**
-         * Handler to list bridge peer ports.
-         *
-         * @throws StateAccessException
-         *             Data access error.
-         * @return A list of Port objects.
-         */
         @GET
         @PermitAll
         @Produces({ VendorMediaType.APPLICATION_PORT_V2_COLLECTION_JSON })
@@ -598,9 +492,6 @@ public class PortResource extends AbstractResource {
         }
     }
 
-    /**
-     * Sub-resource class for router's ports.
-     */
     @RequestScoped
     public static class RouterPortResource extends AbstractResource {
 
@@ -644,10 +535,6 @@ public class PortResource extends AbstractResource {
         }
 
         /**
-         * Handler to create a V1 router port.
-         *
-         * @throws StateAccessException
-         *             Data access error.
          * @return Response object with 201 status code set if successful.
          */
         @POST
@@ -669,10 +556,6 @@ public class PortResource extends AbstractResource {
         }
 
         /**
-         * Handler to create a V2 router port.
-         *
-         * @throws StateAccessException
-         *             Data access error.
          * @return Response object with 201 status code set if successful.
          */
         @POST
@@ -690,12 +573,6 @@ public class PortResource extends AbstractResource {
             return handleCreatePort(port);
         }
 
-        /**
-         * Handler to list V1 router ports.
-         *
-         *             Data access error.
-         * @return A list of Port objects.
-         */
         @GET
         @Deprecated
         @PermitAll
@@ -720,12 +597,6 @@ public class PortResource extends AbstractResource {
             return ports;
         }
 
-        /**
-         * Handler to list V2 router ports.
-         *
-         *             Data access error.
-         * @return A list of Port objects.
-         */
         @GET
         @PermitAll
         @Produces({ VendorMediaType.APPLICATION_PORT_V2_COLLECTION_JSON })
@@ -748,9 +619,6 @@ public class PortResource extends AbstractResource {
         }
     }
 
-    /**
-     * Sub-resource class for router peer ports.
-     */
     @RequestScoped
     public static class RouterPeerPortResource extends AbstractResource {
 
@@ -769,13 +637,6 @@ public class PortResource extends AbstractResource {
             this.routerId = routerId;
         }
 
-        /**
-         * Handler to list V1 router peer ports.
-         *
-         * @throws StateAccessException
-         *             Data access error.
-         * @return A list of Port objects.
-         */
         @GET
         @Deprecated
         @PermitAll
@@ -800,13 +661,6 @@ public class PortResource extends AbstractResource {
             return ports;
         }
 
-        /**
-         * Handler to list router peer ports.
-         *
-         * @throws StateAccessException
-         *             Data access error.
-         * @return A list of Port objects.
-         */
         @GET
         @PermitAll
         @Produces({ VendorMediaType.APPLICATION_PORT_V2_COLLECTION_JSON })
@@ -830,9 +684,6 @@ public class PortResource extends AbstractResource {
         }
     }
 
-    /**
-     * Sub-resource class for port group ports.
-     */
     @RequestScoped
     public static class PortGroupPortResource extends AbstractResource {
 

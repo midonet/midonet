@@ -26,7 +26,7 @@ import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
 
-import org.midonet.api.VendorMediaType;
+import org.midonet.brain.services.rest_api.VendorMediaType;
 import org.midonet.client.dto.DtoError;
 import org.midonet.client.dto.DtoLoadBalancer;
 import org.midonet.client.dto.DtoPool;
@@ -37,13 +37,13 @@ import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static javax.ws.rs.core.Response.Status.CONFLICT;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.midonet.api.VendorMediaType.APPLICATION_POOL_MEMBER_JSON;
-import static org.midonet.api.validation.MessageProperty.IP_ADDR_INVALID;
-import static org.midonet.api.validation.MessageProperty.MAX_VALUE;
-import static org.midonet.api.validation.MessageProperty.MIN_VALUE;
-import static org.midonet.api.validation.MessageProperty.NON_NULL;
-import static org.midonet.api.validation.MessageProperty.RESOURCE_EXISTS;
-import static org.midonet.api.validation.MessageProperty.RESOURCE_NOT_FOUND;
+import static org.midonet.brain.services.rest_api.VendorMediaType.APPLICATION_POOL_MEMBER_JSON;
+import static org.midonet.brain.services.rest_api.validation.MessageProperty.IP_ADDR_INVALID;
+import static org.midonet.brain.services.rest_api.validation.MessageProperty.MAX_VALUE;
+import static org.midonet.brain.services.rest_api.validation.MessageProperty.MIN_VALUE;
+import static org.midonet.brain.services.rest_api.validation.MessageProperty.NON_NULL;
+import static org.midonet.brain.services.rest_api.validation.MessageProperty.RESOURCE_EXISTS;
+import static org.midonet.brain.services.rest_api.validation.MessageProperty.RESOURCE_NOT_FOUND;
 
 @RunWith(Enclosed.class)
 public class TestPoolMember {

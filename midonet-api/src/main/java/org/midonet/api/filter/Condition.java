@@ -20,9 +20,9 @@ import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.Pattern;
 
-import org.midonet.api.UriResource;
-import org.midonet.api.rest_api.BadRequestHttpException;
-import org.midonet.api.validation.MessageProperty;
+import org.midonet.brain.services.rest_api.UriResource;
+import org.midonet.brain.services.rest_api.rest_api.BadRequestHttpException;
+import org.midonet.brain.services.rest_api.validation.MessageProperty;
 import org.midonet.midolman.rules.FragmentPolicy;
 import org.midonet.odp.flows.IPFragmentType;
 import org.midonet.packets.IPv4Addr;

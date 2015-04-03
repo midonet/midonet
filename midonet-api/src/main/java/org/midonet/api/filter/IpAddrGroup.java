@@ -15,8 +15,8 @@
  */
 package org.midonet.api.filter;
 
-import org.midonet.api.ResourceUriBuilder;
-import org.midonet.api.UriResource;
+import org.midonet.brain.services.rest_api.ResourceUriBuilder;
+import org.midonet.brain.services.rest_api.UriResource;
 
 import javax.validation.GroupSequence;
 import javax.validation.constraints.NotNull;

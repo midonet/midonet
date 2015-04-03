@@ -27,7 +27,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.midonet.api.VendorMediaType;
+import org.midonet.brain.services.rest_api.VendorMediaType;
 import org.midonet.api.rest_api.FuncTest;
 import org.midonet.client.dto.DtoBgp;
 import org.midonet.client.dto.DtoRouter;

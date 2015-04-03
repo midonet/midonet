@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+
 import javax.annotation.security.RolesAllowed;
 import javax.validation.Validator;
 import javax.ws.rs.Consumes;
@@ -35,23 +36,21 @@ import javax.ws.rs.core.UriInfo;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.servlet.RequestScoped;
-import org.midonet.api.ResourceUriBuilder;
-import org.midonet.api.VendorMediaType;
-import org.midonet.api.auth.AuthRole;
+
 import org.midonet.api.host.TunnelZoneHost;
 import org.midonet.api.host.TunnelZoneHostFactory;
 import org.midonet.api.rest_api.AbstractResource;
-import org.midonet.api.rest_api.NotFoundHttpException;
 import org.midonet.api.rest_api.RestApiConfig;
-import org.midonet.event.topology.TunnelZoneEvent;
+import org.midonet.brain.services.rest_api.ResourceUriBuilder;
+import org.midonet.brain.services.rest_api.VendorMediaType;
+import org.midonet.brain.services.rest_api.auth.AuthRole;
+import org.midonet.brain.services.rest_api.rest_api.NotFoundHttpException;
 import org.midonet.cluster.DataClient;
-import org.midonet.cluster.data.TunnelZone;
-import org.midonet.util.serialization.SerializationException;
 import org.midonet.cluster.backend.zookeeper.StateAccessException;
+import org.midonet.cluster.data.TunnelZone;
+import org.midonet.event.topology.TunnelZoneEvent;
+import org.midonet.util.serialization.SerializationException;
 
-/**
- * REST API handler for tunnel zone - host mapping.
- */
 @RequestScoped
 public class TunnelZoneHostResource extends AbstractResource {
 

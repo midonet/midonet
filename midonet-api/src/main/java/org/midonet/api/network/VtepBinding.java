@@ -21,8 +21,8 @@ import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 
-import org.midonet.api.ResourceUriBuilder;
-import org.midonet.api.UriResource;
+import org.midonet.brain.services.rest_api.ResourceUriBuilder;
+import org.midonet.brain.services.rest_api.UriResource;
 
 public class VtepBinding extends UriResource {
 

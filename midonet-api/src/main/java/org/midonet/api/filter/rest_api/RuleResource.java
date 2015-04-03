@@ -18,10 +18,17 @@ package org.midonet.api.filter.rest_api;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+
 import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
 import javax.validation.Validator;
-import javax.ws.rs.*;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
@@ -30,31 +37,29 @@ import javax.ws.rs.core.UriInfo;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.servlet.RequestScoped;
-import org.midonet.packets.MAC;
-import org.midonet.event.topology.RuleEvent;
 
-import org.midonet.api.ResourceUriBuilder;
-import org.midonet.api.VendorMediaType;
-import org.midonet.api.auth.AuthAction;
-import org.midonet.api.auth.AuthRole;
-import org.midonet.api.auth.ForbiddenHttpException;
 import org.midonet.api.filter.Rule;
 import org.midonet.api.filter.RuleFactory;
 import org.midonet.api.filter.auth.ChainAuthorizer;
 import org.midonet.api.filter.auth.RuleAuthorizer;
 import org.midonet.api.rest_api.AbstractResource;
-import org.midonet.api.rest_api.BadRequestHttpException;
-import org.midonet.api.rest_api.NotFoundHttpException;
 import org.midonet.api.rest_api.RestApiConfig;
+import org.midonet.brain.services.rest_api.ResourceUriBuilder;
+import org.midonet.brain.services.rest_api.VendorMediaType;
+import org.midonet.brain.services.rest_api.auth.AuthAction;
+import org.midonet.brain.services.rest_api.auth.AuthRole;
+import org.midonet.brain.services.rest_api.auth.ForbiddenHttpException;
+import org.midonet.brain.services.rest_api.rest_api.BadRequestHttpException;
+import org.midonet.brain.services.rest_api.rest_api.NotFoundHttpException;
 import org.midonet.cluster.DataClient;
-import org.midonet.util.serialization.SerializationException;
-import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.cluster.backend.zookeeper.StateAccessException;
+import org.midonet.event.topology.RuleEvent;
+import org.midonet.midolman.state.NoStatePathException;
+import org.midonet.packets.MAC;
+import org.midonet.util.serialization.SerializationException;
+
 import static org.midonet.cluster.data.Rule.RuleIndexOutOfBoundsException;
 
-/**
- * Root resource class for rules.
- */
 @RequestScoped
 public class RuleResource extends AbstractResource {
 
@@ -70,14 +75,6 @@ public class RuleResource extends AbstractResource {
         this.authorizer = authorizer;
     }
 
-    /**
-     * Handler to deleting a rule.
-     *
-     * @param id
-     *            Rule ID from the request.
-     * @throws StateAccessException
-     *             Data access error.
-     */
     @DELETE
     @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })
     @Path("{id}")
@@ -99,15 +96,6 @@ public class RuleResource extends AbstractResource {
         ruleEvent.delete(id);
     }
 
-    /**
-     * Handler to getting a rule.
-     *
-     * @param id
-     *            Rule ID from the request.
-     * @throws StateAccessException
-     *             Data access error.
-     * @return A Rule object.
-     */
     @GET
     @PermitAll
     @Path("{id}")
@@ -135,9 +123,6 @@ public class RuleResource extends AbstractResource {
         return rule;
     }
 
-    /**
-     * Sub-resource class for chain's rules.
-     */
     @RequestScoped
     public static class ChainRuleResource extends AbstractResource {
 
@@ -158,12 +143,6 @@ public class RuleResource extends AbstractResource {
         }
 
         /**
-         * Handler for creating a chain rule.
-         *
-         * @param rule
-         *            Rule object.
-         * @throws StateAccessException
-         *             Data access error.
          * @return Response object with 201 status code set if successful.
          */
         @POST
@@ -200,13 +179,6 @@ public class RuleResource extends AbstractResource {
             }
         }
 
-        /**
-         * Handler to list chain rules.
-         *
-         * @throws StateAccessException
-         *             Data access error.
-         * @return A list of Rule objects.
-         */
         @GET
         @PermitAll
         @Produces({ VendorMediaType.APPLICATION_RULE_COLLECTION_JSON,

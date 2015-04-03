@@ -16,39 +16,47 @@
 
 package org.midonet.api.dhcp.rest_api;
 
-import org.midonet.api.ResourceUriBuilder;
-import org.midonet.api.VendorMediaType;
-import org.midonet.api.auth.AuthAction;
-import org.midonet.api.auth.AuthRole;
-import org.midonet.api.auth.ForbiddenHttpException;
-import org.midonet.api.dhcp.DhcpSubnet;
-import org.midonet.api.network.auth.BridgeAuthorizer;
-import org.midonet.api.rest_api.AbstractResource;
-import org.midonet.api.rest_api.NotFoundHttpException;
-import org.midonet.api.rest_api.ResourceFactory;
-import org.midonet.api.rest_api.RestApiConfig;
-import org.midonet.cluster.DataClient;
-import org.midonet.cluster.data.dhcp.Subnet;
-import org.midonet.util.serialization.SerializationException;
-import org.midonet.cluster.backend.zookeeper.StateAccessException;
-import org.midonet.packets.IPv4Subnet;
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
+import javax.annotation.security.PermitAll;
+import javax.annotation.security.RolesAllowed;
+import javax.validation.Validator;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
+import javax.ws.rs.core.UriInfo;
 
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.servlet.RequestScoped;
 
-import javax.annotation.security.PermitAll;
-import javax.annotation.security.RolesAllowed;
-import javax.validation.Validator;
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.core.UriInfo;
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import org.midonet.api.dhcp.DhcpSubnet;
+import org.midonet.api.network.auth.BridgeAuthorizer;
+import org.midonet.api.rest_api.AbstractResource;
+import org.midonet.api.rest_api.ResourceFactory;
+import org.midonet.api.rest_api.RestApiConfig;
+import org.midonet.brain.services.rest_api.ResourceUriBuilder;
+import org.midonet.brain.services.rest_api.VendorMediaType;
+import org.midonet.brain.services.rest_api.auth.AuthAction;
+import org.midonet.brain.services.rest_api.auth.AuthRole;
+import org.midonet.brain.services.rest_api.auth.ForbiddenHttpException;
+import org.midonet.brain.services.rest_api.rest_api.NotFoundHttpException;
+import org.midonet.cluster.DataClient;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
+import org.midonet.cluster.data.dhcp.Subnet;
+import org.midonet.packets.IPv4Subnet;
+import org.midonet.util.serialization.SerializationException;
 
 @RequestScoped
 public class BridgeDhcpResource extends AbstractResource {
@@ -71,11 +79,6 @@ public class BridgeDhcpResource extends AbstractResource {
         this.bridgeId = bridgeId;
     }
 
-    /**
-     * Host Assignments resource locator for dhcp.
-     *
-     * @return DhcpHostsResource object to handle sub-resource requests.
-     */
     @Path("/{subnetAddr}" + ResourceUriBuilder.DHCP_HOSTS)
     public DhcpHostsResource getDhcpAssignmentsResource(
             @PathParam("subnetAddr") IPv4Subnet subnetAddr) {
@@ -83,12 +86,6 @@ public class BridgeDhcpResource extends AbstractResource {
     }
 
     /**
-     * Handler for creating a DHCP subnet configuration.
-     *
-     * @param subnet
-     *            DHCP subnet configuration object.
-     * @throws StateAccessException
-     *             Data access error.
      * @return Response object with 201 status code set if successful.
      */
     @POST
@@ -118,16 +115,6 @@ public class BridgeDhcpResource extends AbstractResource {
                        .build();
     }
 
-    /**
-     * Handler to updating a host assignment.
-     *
-     * @param subnetAddr
-     *            Identifier of the DHCP subnet configuration.
-     * @param subnet
-     *            DHCP subnet configuration object.
-     * @throws StateAccessException
-     *             Data access error.
-     */
     @PUT
     @RolesAllowed({AuthRole.ADMIN, AuthRole.TENANT_ADMIN})
     @Path("/{subnetAddr}")
@@ -150,15 +137,6 @@ public class BridgeDhcpResource extends AbstractResource {
         return Response.ok().build();
     }
 
-    /**
-     * Handler to getting a DHCP subnet configuration.
-     *
-     * @param subnetAddr
-     *            Subnet IP from the request.
-     * @throws StateAccessException
-     *             Data access error.
-     * @return A Bridge object.
-     */
     @GET
     @PermitAll
     @Path("/{subnetAddr}")
@@ -187,12 +165,6 @@ public class BridgeDhcpResource extends AbstractResource {
         return subnet;
     }
 
-    /**
-     * Handler to deleting a DHCP subnet configuration.
-     *
-     * @throws org.midonet.cluster.backend.zookeeper.StateAccessException
-     *             Data access error.
-     */
     @DELETE
     @RolesAllowed({AuthRole.ADMIN, AuthRole.TENANT_ADMIN})
     @Path("/{subnetAddr}")
@@ -208,13 +180,6 @@ public class BridgeDhcpResource extends AbstractResource {
         dataClient.dhcpSubnetsDelete(bridgeId, subnetAddr);
     }
 
-    /**
-     * Handler to list DHCP subnet configurations.
-     *
-     * @throws StateAccessException
-     *             Data access error.
-     * @return A list of DhcpSubnet objects.
-     */
     @GET
     @PermitAll
     @Produces({ VendorMediaType.APPLICATION_DHCP_SUBNET_COLLECTION_JSON,

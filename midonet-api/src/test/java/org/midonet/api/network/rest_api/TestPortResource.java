@@ -15,15 +15,12 @@
  */
 package org.midonet.api.network.rest_api;
 
-import org.midonet.api.auth.ForbiddenHttpException;
-import org.midonet.api.network.ExteriorRouterPort;
-import org.midonet.api.network.RouterPort;
-import org.midonet.api.rest_api.NotFoundHttpException;
-import org.midonet.api.rest_api.ResourceFactory;
-import org.midonet.api.auth.AuthAction;
 import org.midonet.api.network.auth.PortAuthorizer;
 import org.midonet.api.network.auth.RouterAuthorizer;
 import org.midonet.api.rest_api.RestApiConfig;
+import org.midonet.brain.services.rest_api.auth.ForbiddenHttpException;
+import org.midonet.api.rest_api.ResourceFactory;
+import org.midonet.brain.services.rest_api.auth.AuthAction;
 import org.midonet.cluster.DataClient;
 import org.junit.Before;
 import org.junit.Test;
@@ -71,7 +68,7 @@ public class TestPortResource {
     @Before
     public void setUp() throws Exception {
         testObject = new PortResource(config, uriInfo, context, auth, validator,
-                 dataClient, factory, null);
+                                      dataClient, factory, null);
     }
 
     @Test(expected = ForbiddenHttpException.class)

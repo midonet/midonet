@@ -26,8 +26,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.midonet.api.rest_api.RestApiService;
-import org.midonet.brain.services.conf.ConfMinion;
 import org.midonet.brain.ClusterNode;
+import org.midonet.brain.services.conf.ConfMinion;
 import org.midonet.brain.services.vxgw.VxlanGatewayService;
 import org.midonet.brain.southbound.vtep.VtepDataClientFactory;
 

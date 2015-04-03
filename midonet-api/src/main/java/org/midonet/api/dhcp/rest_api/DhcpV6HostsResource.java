@@ -16,36 +16,45 @@
 
 package org.midonet.api.dhcp.rest_api;
 
-import com.google.inject.Inject;
-import com.google.inject.assistedinject.Assisted;
-import com.google.inject.servlet.RequestScoped;
-import org.midonet.api.ResourceUriBuilder;
-import org.midonet.api.VendorMediaType;
-import org.midonet.api.auth.ForbiddenHttpException;
-import org.midonet.api.dhcp.DhcpV6Host;
-import org.midonet.api.network.auth.BridgeAuthorizer;
-import org.midonet.api.rest_api.AbstractResource;
-import org.midonet.api.rest_api.NotFoundHttpException;
-import org.midonet.api.rest_api.RestApiConfig;
-import org.midonet.api.auth.AuthAction;
-import org.midonet.api.auth.AuthRole;
-import org.midonet.util.serialization.SerializationException;
-import org.midonet.cluster.backend.zookeeper.StateAccessException;
-import org.midonet.cluster.DataClient;
-import org.midonet.cluster.data.dhcp.V6Host;
-import org.midonet.packets.IPv6Subnet;
-
-import javax.annotation.security.PermitAll;
-import javax.annotation.security.RolesAllowed;
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.core.UriInfo;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+
+import javax.annotation.security.PermitAll;
+import javax.annotation.security.RolesAllowed;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
+import javax.ws.rs.core.UriInfo;
+
+import com.google.inject.Inject;
+import com.google.inject.assistedinject.Assisted;
+import com.google.inject.servlet.RequestScoped;
+
+import org.midonet.api.dhcp.DhcpV6Host;
+import org.midonet.api.network.auth.BridgeAuthorizer;
+import org.midonet.api.rest_api.AbstractResource;
+import org.midonet.api.rest_api.RestApiConfig;
+import org.midonet.brain.services.rest_api.ResourceUriBuilder;
+import org.midonet.brain.services.rest_api.VendorMediaType;
+import org.midonet.brain.services.rest_api.auth.AuthAction;
+import org.midonet.brain.services.rest_api.auth.AuthRole;
+import org.midonet.brain.services.rest_api.auth.ForbiddenHttpException;
+import org.midonet.brain.services.rest_api.rest_api.NotFoundHttpException;
+import org.midonet.cluster.DataClient;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
+import org.midonet.cluster.data.dhcp.V6Host;
+import org.midonet.packets.IPv6Subnet;
+import org.midonet.util.serialization.SerializationException;
 
 @RequestScoped
 public class DhcpV6HostsResource extends AbstractResource {
@@ -68,12 +77,6 @@ public class DhcpV6HostsResource extends AbstractResource {
     }
 
     /**
-     * Handler for creating a DHCPV6 host assignment.
-     *
-     * @param host
-     *            DHCPV6 host assignment object.
-     * @throws org.midonet.cluster.backend.zookeeper.StateAccessException
-     *             Data access error.
      * @return Response object with 201 status code set if successful.
      */
     @POST
@@ -96,15 +99,6 @@ public class DhcpV6HostsResource extends AbstractResource {
                 .build();
     }
 
-    /**
-     * Handler to getting a DHCPV6 host assignment.
-     *
-     * @param clientId
-     *            clientId of the host.
-     * @throws StateAccessException
-     *             Data access error.
-     * @return A DhcpV6Host object.
-     */
     @GET
     @PermitAll
     @Path("/{clientId}")
@@ -133,16 +127,6 @@ public class DhcpV6HostsResource extends AbstractResource {
         return host;
     }
 
-    /**
-     * Handler to updating a host assignment.
-     *
-     * @param clientId
-     *            client ID of the host.
-     * @param host
-     *            Host assignment object.
-     * @throws StateAccessException
-     *             Data access error.
-     */
     @PUT
     @RolesAllowed({AuthRole.ADMIN, AuthRole.TENANT_ADMIN})
     @Path("/{clientId}")
@@ -164,14 +148,6 @@ public class DhcpV6HostsResource extends AbstractResource {
         return Response.ok().build();
     }
 
-    /**
-     * Handler to deleting a DHCP host assignment.
-     *
-     * @param clientId
-     *            clientId address of the host.
-     * @throws org.midonet.cluster.backend.zookeeper.StateAccessException
-     *             Data access error.
-     */
     @DELETE
     @RolesAllowed({AuthRole.ADMIN, AuthRole.TENANT_ADMIN})
     @Path("/{clientId}")
@@ -189,13 +165,6 @@ public class DhcpV6HostsResource extends AbstractResource {
         dataClient.dhcpV6HostDelete(bridgeId, prefix, clientId);
     }
 
-    /**
-     * Handler to list DHCPV6 host assignments.
-     *
-     * @throws StateAccessException
-     *             Data access error.
-     * @return A list of DhcpV6Host objects.
-     */
     @GET
     @PermitAll
     @Produces({ VendorMediaType.APPLICATION_DHCPV6_HOST_COLLECTION_JSON })

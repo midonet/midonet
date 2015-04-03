@@ -15,42 +15,47 @@
  */
 package org.midonet.api.bgp.rest_api;
 
-import com.google.inject.Inject;
-import com.google.inject.assistedinject.Assisted;
-import com.google.inject.servlet.RequestScoped;
-import org.midonet.api.VendorMediaType;
-import org.midonet.api.auth.ForbiddenHttpException;
-import org.midonet.api.bgp.Bgp;
-import org.midonet.api.rest_api.AbstractResource;
-import org.midonet.api.rest_api.NotFoundHttpException;
-import org.midonet.api.rest_api.ResourceFactory;
-import org.midonet.api.ResourceUriBuilder;
-import org.midonet.api.auth.AuthAction;
-import org.midonet.api.auth.AuthRole;
-import org.midonet.api.bgp.auth.BgpAuthorizer;
-import org.midonet.api.bgp.rest_api.AdRouteResource.BgpAdRouteResource;
-import org.midonet.api.network.auth.PortAuthorizer;
-import org.midonet.api.rest_api.RestApiConfig;
-import org.midonet.event.topology.BgpEvent;
-import org.midonet.util.serialization.SerializationException;
-import org.midonet.cluster.backend.zookeeper.StateAccessException;
-import org.midonet.cluster.DataClient;
-import org.midonet.cluster.data.BGP;
-
-import javax.annotation.security.PermitAll;
-import javax.annotation.security.RolesAllowed;
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.core.UriInfo;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-/**
- * Root resource class for bgps.
- */
+import javax.annotation.security.PermitAll;
+import javax.annotation.security.RolesAllowed;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
+import javax.ws.rs.core.UriInfo;
+
+import com.google.inject.Inject;
+import com.google.inject.assistedinject.Assisted;
+import com.google.inject.servlet.RequestScoped;
+
+import org.midonet.api.bgp.Bgp;
+import org.midonet.api.bgp.auth.BgpAuthorizer;
+import org.midonet.api.bgp.rest_api.AdRouteResource.BgpAdRouteResource;
+import org.midonet.api.network.auth.PortAuthorizer;
+import org.midonet.api.rest_api.AbstractResource;
+import org.midonet.api.rest_api.ResourceFactory;
+import org.midonet.api.rest_api.RestApiConfig;
+import org.midonet.brain.services.rest_api.ResourceUriBuilder;
+import org.midonet.brain.services.rest_api.VendorMediaType;
+import org.midonet.brain.services.rest_api.auth.AuthAction;
+import org.midonet.brain.services.rest_api.auth.AuthRole;
+import org.midonet.brain.services.rest_api.auth.ForbiddenHttpException;
+import org.midonet.brain.services.rest_api.rest_api.NotFoundHttpException;
+import org.midonet.cluster.DataClient;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
+import org.midonet.cluster.data.BGP;
+import org.midonet.event.topology.BgpEvent;
+import org.midonet.util.serialization.SerializationException;
+
 @RequestScoped
 public class BgpResource extends AbstractResource {
 
@@ -68,14 +73,6 @@ public class BgpResource extends AbstractResource {
         this.factory = factory;
     }
 
-    /**
-     * Handler to deleting BGP.
-     *
-     * @param id
-     *            BGP ID from the request.
-     * @throws StateAccessException
-     *             Data access error.
-     */
     @DELETE
     @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })
     @Path("{id}")
@@ -131,21 +128,11 @@ public class BgpResource extends AbstractResource {
         return bgp;
     }
 
-    /**
-     * Advertising route resource locator for chains.
-     *
-     * @param id
-     *            BGP ID from the request.
-     * @return BgpAdRouteResource object to handle sub-resource requests.
-     */
     @Path("/{id}" + ResourceUriBuilder.AD_ROUTES)
     public BgpAdRouteResource getBgpAdRouteResource(@PathParam("id") UUID id) {
         return factory.getBgpAdRouteResource(id);
     }
 
-    /**
-     * Sub-resource class for port's BGP.
-     */
     @RequestScoped
     public static class PortBgpResource extends AbstractResource {
 
@@ -166,12 +153,6 @@ public class BgpResource extends AbstractResource {
         }
 
         /**
-         * Handler for creating BGP.
-         *
-         * @param bgp
-         *            BGP object.
-         * @throws StateAccessException
-         *             Data access error.
          * @return Response object with 201 status code set if successful.
          */
         @POST
@@ -196,13 +177,6 @@ public class BgpResource extends AbstractResource {
                     .build();
         }
 
-        /**
-         * Handler to getting a list of BGPs.
-         *
-         * @throws StateAccessException
-         *             Data access error.
-         * @return A list of BGP objects.
-         */
         @GET
         @PermitAll
         @Produces({ VendorMediaType.APPLICATION_BGP_COLLECTION_JSON,

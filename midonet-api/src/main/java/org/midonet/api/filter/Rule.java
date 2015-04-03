@@ -23,14 +23,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import org.midonet.api.ResourceUriBuilder;
+import org.midonet.brain.services.rest_api.ResourceUriBuilder;
 
 import org.codehaus.jackson.annotate.JsonSubTypes;
 import org.codehaus.jackson.annotate.JsonTypeInfo;
-import org.midonet.api.rest_api.BadRequestHttpException;
-import org.midonet.api.validation.MessageProperty;
-import org.midonet.midolman.rules.FragmentPolicy;
-import org.midonet.odp.flows.IPFragmentType;
 
 /**
  * Class representing rule.

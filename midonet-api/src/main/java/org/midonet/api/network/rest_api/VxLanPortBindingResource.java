@@ -17,6 +17,7 @@ package org.midonet.api.network.rest_api;
 
 import java.util.List;
 import java.util.UUID;
+
 import javax.annotation.security.RolesAllowed;
 import javax.validation.Validator;
 import javax.ws.rs.GET;
@@ -30,25 +31,25 @@ import javax.ws.rs.core.UriInfo;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 
-import org.midonet.api.VendorMediaType;
-import org.midonet.api.auth.AuthRole;
 import org.midonet.api.network.VtepBinding;
-import org.midonet.api.rest_api.BadRequestHttpException;
-import org.midonet.api.rest_api.NotFoundHttpException;
 import org.midonet.api.rest_api.ResourceFactory;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.api.vtep.VtepClusterClient;
+import org.midonet.brain.services.rest_api.VendorMediaType;
+import org.midonet.brain.services.rest_api.auth.AuthRole;
+import org.midonet.brain.services.rest_api.rest_api.BadRequestHttpException;
+import org.midonet.brain.services.rest_api.rest_api.NotFoundHttpException;
 import org.midonet.cluster.DataClient;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.cluster.data.Port;
 import org.midonet.cluster.data.ports.VxLanPort;
-import org.midonet.util.serialization.SerializationException;
-import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.packets.IPv4Addr;
+import org.midonet.util.serialization.SerializationException;
 
-import static org.midonet.api.validation.MessageProperty.PORT_NOT_VXLAN_PORT;
-import static org.midonet.api.validation.MessageProperty.RESOURCE_NOT_FOUND;
-import static org.midonet.api.validation.MessageProperty.VTEP_BINDING_NOT_FOUND;
-import static org.midonet.api.validation.MessageProperty.getMessage;
+import static org.midonet.brain.services.rest_api.validation.MessageProperty.PORT_NOT_VXLAN_PORT;
+import static org.midonet.brain.services.rest_api.validation.MessageProperty.RESOURCE_NOT_FOUND;
+import static org.midonet.brain.services.rest_api.validation.MessageProperty.VTEP_BINDING_NOT_FOUND;
+import static org.midonet.brain.services.rest_api.validation.MessageProperty.getMessage;
 
 public class VxLanPortBindingResource extends AbstractVtepResource {
 
@@ -108,10 +109,10 @@ public class VxLanPortBindingResource extends AbstractVtepResource {
     /**
      * Gets a VxLanPort with the specified ID.
      *
-     * @throws org.midonet.api.rest_api.NotFoundHttpException
+     * @throws org.midonet.brain.services.rest_api.rest_api.NotFoundHttpException
      *         if no port with the specified ID exists.
      *
-     * @throws org.midonet.api.rest_api.BadRequestHttpException
+     * @throws org.midonet.brain.services.rest_api.rest_api.BadRequestHttpException
      *         if the port with the specified ID is not a VxLanPort.
      */
     private VxLanPort getVxLanPort(UUID vxLanPortId)

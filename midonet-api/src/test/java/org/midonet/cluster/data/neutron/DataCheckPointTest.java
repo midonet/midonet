@@ -30,6 +30,7 @@ import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.typesafe.config.Config;
+
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.curator.framework.recipes.locks.InterProcessSemaphoreMutex;
 import org.apache.curator.test.TestingServer;
@@ -40,6 +41,7 @@ import org.junit.Test;
 
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.ZookeeperLockFactory;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.cluster.config.ConfigProviderModule;
 import org.midonet.cluster.data.Chain;
 import org.midonet.cluster.data.IpAddrGroup;
@@ -56,13 +58,12 @@ import org.midonet.midolman.cluster.zookeeper.MockZookeeperConnectionModule;
 import org.midonet.midolman.rules.Condition;
 import org.midonet.midolman.rules.NatTarget;
 import org.midonet.midolman.rules.RuleResult;
-import org.midonet.util.serialization.SerializationException;
 import org.midonet.midolman.state.CheckpointedDirectory;
 import org.midonet.midolman.state.CheckpointedMockDirectory;
 import org.midonet.midolman.state.Directory;
-import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.midolman.state.zkManagers.BridgeZkManager;
 import org.midonet.packets.ARP;
+import org.midonet.util.serialization.SerializationException;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyLong;

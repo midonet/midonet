@@ -15,8 +15,8 @@
  */
 package org.midonet.api.network;
 
-import org.midonet.api.ResourceUriBuilder;
-import org.midonet.api.UriResource;
+import org.midonet.brain.services.rest_api.ResourceUriBuilder;
+import org.midonet.brain.services.rest_api.UriResource;
 import org.midonet.cluster.data.Router.Property;
 import org.midonet.util.version.Since;
 

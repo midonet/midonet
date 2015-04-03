@@ -16,8 +16,9 @@
 package org.midonet.api.network.auth;
 
 import com.google.inject.Inject;
-import org.midonet.api.auth.AuthAction;
-import org.midonet.api.auth.Authorizer;
+
+import org.midonet.brain.services.rest_api.auth.AuthAction;
+import org.midonet.brain.services.rest_api.auth.Authorizer;
 import org.midonet.util.serialization.SerializationException;
 import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.cluster.DataClient;

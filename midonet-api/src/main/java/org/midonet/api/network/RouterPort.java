@@ -23,7 +23,7 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 
 import com.google.common.base.Objects;
-import org.midonet.api.ResourceUriBuilder;
+import org.midonet.brain.services.rest_api.ResourceUriBuilder;
 import org.midonet.packets.MAC;
 import org.midonet.packets.IPv4;
 

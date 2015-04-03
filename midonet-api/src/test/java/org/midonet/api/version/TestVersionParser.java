@@ -24,6 +24,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import org.midonet.brain.services.rest_api.version.VersionParser;
+
 import static org.junit.Assert.assertEquals;
 
 @RunWith(Parameterized.class)

@@ -15,24 +15,20 @@
  */
 package org.midonet.api.host;
 
-import org.midonet.api.ResourceUriBuilder;
-import org.midonet.api.UriResource;
-import org.midonet.api.host.validation.IsHostIdInAnyTunnelZone;
-import org.midonet.api.host.validation.IsHostInterfaceUnused;
-import org.midonet.api.host.validation.IsUniqueTunnelZoneMember;
-import org.midonet.api.host.validation.IsValidHostId;
-import org.midonet.api.network.validation.IsValidPortId;
-import org.midonet.cluster.data.host.VirtualPortMapping;
+import java.net.URI;
+import java.util.UUID;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.groups.Default;
 import javax.xml.bind.annotation.XmlRootElement;
-import java.net.URI;
-import java.util.UUID;
 
-/**
- * Host interface - port map DTO
- */
+import org.midonet.api.host.validation.IsHostInterfaceUnused;
+import org.midonet.brain.services.rest_api.ResourceUriBuilder;
+import org.midonet.brain.services.rest_api.UriResource;
+import org.midonet.brain.services.rest_api.host.validation.IsHostIdInAnyTunnelZone;
+import org.midonet.brain.services.rest_api.network.validation.IsValidPortId;
+import org.midonet.cluster.data.host.VirtualPortMapping;
+
 @IsHostInterfaceUnused(groups = HostInterfacePort.HostInterfacePortCreateGroup.class)
 @XmlRootElement
 public class HostInterfacePort extends UriResource {

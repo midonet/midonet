@@ -20,20 +20,11 @@ import javax.ws.rs.core.UriInfo;
 
 import com.google.inject.Inject;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import org.midonet.api.rest_api.AbstractResource;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.cluster.data.neutron.LoadBalancerApi;
-import org.midonet.event.neutron.PoolHealthMonitorEvent;
 
 public class PoolHealthMonitorResource extends AbstractResource {
-
-    private static final Logger LOG = LoggerFactory.getLogger(
-        PoolHealthMonitorResource.class);
-    private static final PoolHealthMonitorEvent POOL_HEALTH_MONITOR_EVENT
-        = new PoolHealthMonitorEvent();
 
     private final LoadBalancerApi api;
 

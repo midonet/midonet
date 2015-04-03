@@ -23,18 +23,6 @@ import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.google.inject.multibindings.MapBinder;
 
-import org.midonet.api.auth.cloudstack.CloudStackAuthService;
-import org.midonet.api.auth.cloudstack.CloudStackClient;
-import org.midonet.api.auth.cloudstack.CloudStackConfig;
-import org.midonet.api.auth.cloudstack.CloudStackJsonParser;
-import org.midonet.api.auth.cors.CorsConfig;
-import org.midonet.api.auth.keystone.KeystoneConfig;
-import org.midonet.api.auth.keystone.v2_0.KeystoneClient;
-import org.midonet.api.auth.keystone.v2_0.KeystoneService;
-import org.midonet.api.auth.vsphere.VSphereClient;
-import org.midonet.api.auth.vsphere.VSphereConfig;
-import org.midonet.api.auth.vsphere.VSphereConfigurationException;
-import org.midonet.api.auth.vsphere.VSphereSSOService;
 import org.midonet.api.bgp.auth.AdRouteAuthorizer;
 import org.midonet.api.bgp.auth.BgpAuthorizer;
 import org.midonet.api.filter.auth.ChainAuthorizer;
@@ -44,11 +32,18 @@ import org.midonet.api.network.auth.PortAuthorizer;
 import org.midonet.api.network.auth.PortGroupAuthorizer;
 import org.midonet.api.network.auth.RouteAuthorizer;
 import org.midonet.api.network.auth.RouterAuthorizer;
+import org.midonet.brain.services.rest_api.auth.AuthException;
+import org.midonet.brain.services.rest_api.auth.AuthService;
+import org.midonet.brain.services.rest_api.auth.cors.CorsConfig;
+import org.midonet.brain.services.rest_api.auth.keystone.KeystoneConfig;
+import org.midonet.brain.services.rest_api.auth.keystone.v2_0.KeystoneClient;
+import org.midonet.brain.services.rest_api.auth.keystone.v2_0.KeystoneService;
+import org.midonet.brain.services.rest_api.auth.vsphere.VSphereClient;
+import org.midonet.brain.services.rest_api.auth.vsphere.VSphereConfig;
+import org.midonet.brain.services.rest_api.auth.vsphere.VSphereConfigurationException;
+import org.midonet.brain.services.rest_api.auth.vsphere.VSphereSSOService;
 import org.midonet.config.ConfigProvider;
 
-/**
- * Auth bindings.
- */
 public class AuthModule extends AbstractModule {
 
     @Override
@@ -77,10 +72,6 @@ public class AuthModule extends AbstractModule {
                 .to(KeystoneService.class);
 
         registeredAuthServices
-                .addBinding(AuthServiceProvider.CLOUDSTACK_PLUGIN)
-                .to(CloudStackAuthService.class);
-
-        registeredAuthServices
                 .addBinding(AuthServiceProvider.VSPHERE_PLUGIN)
                 .to(VSphereSSOService.class);
 
@@ -104,24 +95,6 @@ public class AuthModule extends AbstractModule {
                 keystoneConfig.getServicePort(),
                 keystoneConfig.getServiceProtocol(),
                 keystoneConfig.getAdminToken());
-    }
-
-    // -- CloudStack --
-    @Provides @Singleton
-    @Inject
-    CloudStackConfig provideCloudStackConfig(ConfigProvider provider) {
-        return provider.getConfig(CloudStackConfig.class);
-    }
-
-    @Provides
-    @Inject
-    CloudStackClient provideCloudStackClient(CloudStackConfig cloudStackConfig) {
-        return new CloudStackClient(
-                cloudStackConfig.getApiBaseUri()
-                        + cloudStackConfig.getApiPath(),
-                cloudStackConfig.getApiKey(),
-                cloudStackConfig.getSecretKey(),
-                new CloudStackJsonParser());
     }
 
     // -- vSphere --

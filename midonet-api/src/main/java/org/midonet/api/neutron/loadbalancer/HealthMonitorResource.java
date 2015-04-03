@@ -36,25 +36,25 @@ import com.google.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.midonet.api.auth.AuthRole;
-import org.midonet.api.neutron.NeutronUriBuilder;
 import org.midonet.api.rest_api.AbstractResource;
-import org.midonet.api.rest_api.ConflictHttpException;
-import org.midonet.api.rest_api.NotFoundHttpException;
 import org.midonet.api.rest_api.RestApiConfig;
-import org.midonet.cluster.rest.neutron.loadbalancer.LBMediaType;
-import org.midonet.cluster.data.neutron.LoadBalancerApi;
-import org.midonet.cluster.data.neutron.loadbalancer.HealthMonitor;
-import org.midonet.event.neutron.HealthMonitorEvent;
-import org.midonet.util.serialization.SerializationException;
-import org.midonet.midolman.state.NoStatePathException;
+import org.midonet.brain.services.rest_api.auth.AuthRole;
+import org.midonet.brain.services.rest_api.neutron.NeutronUriBuilder;
+import org.midonet.brain.services.rest_api.rest_api.ConflictHttpException;
+import org.midonet.brain.services.rest_api.rest_api.NotFoundHttpException;
 import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.cluster.backend.zookeeper.StatePathExistsException;
+import org.midonet.cluster.data.neutron.LoadBalancerApi;
+import org.midonet.cluster.data.neutron.loadbalancer.HealthMonitor;
+import org.midonet.cluster.rest.neutron.loadbalancer.LBMediaType;
+import org.midonet.event.neutron.HealthMonitorEvent;
+import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.zkManagers.BridgeZkManager;
+import org.midonet.util.serialization.SerializationException;
 
-import static org.midonet.api.validation.MessageProperty.RESOURCE_EXISTS;
-import static org.midonet.api.validation.MessageProperty.RESOURCE_NOT_FOUND;
-import static org.midonet.api.validation.MessageProperty.getMessage;
+import static org.midonet.brain.services.rest_api.validation.MessageProperty.RESOURCE_EXISTS;
+import static org.midonet.brain.services.rest_api.validation.MessageProperty.RESOURCE_NOT_FOUND;
+import static org.midonet.brain.services.rest_api.validation.MessageProperty.getMessage;
 
 public class HealthMonitorResource extends AbstractResource {
 

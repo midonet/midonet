@@ -15,27 +15,25 @@
  */
 package org.midonet.api.host;
 
+import java.net.URI;
+import java.util.UUID;
+
 import javax.validation.GroupSequence;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import javax.validation.groups.Default;
 import javax.xml.bind.annotation.XmlRootElement;
-import java.net.URI;
-import java.util.UUID;
 
-import org.midonet.api.ResourceUriBuilder;
-import org.midonet.api.UriResource;
 import org.midonet.api.host.TunnelZoneHost.TunnelZoneHostUnique;
 import org.midonet.api.host.validation.IsUniqueTunnelZoneMember;
-import org.midonet.api.host.validation.IsValidHostId;
-import org.midonet.api.host.validation.IsValidTunnelZoneId;
+import org.midonet.brain.services.rest_api.ResourceUriBuilder;
+import org.midonet.brain.services.rest_api.UriResource;
+import org.midonet.brain.services.rest_api.host.validation.IsValidHostId;
+import org.midonet.brain.services.rest_api.host.validation.IsValidTunnelZoneId;
 import org.midonet.cluster.data.TunnelZone.HostConfig;
 import org.midonet.packets.IPv4;
 import org.midonet.packets.IPv4Addr;
 
-/**
- * Class representing Tunnel zone - host mapping.
- */
 @IsUniqueTunnelZoneMember(groups = TunnelZoneHostUnique.class)
 @XmlRootElement
 public class TunnelZoneHost extends UriResource {
@@ -51,9 +49,6 @@ public class TunnelZoneHost extends UriResource {
             message = "is an invalid IP format")
     private String ipAddress;
 
-    /**
-     * Constructor.
-     */
     public TunnelZoneHost() {
     }
 
@@ -62,14 +57,6 @@ public class TunnelZoneHost extends UriResource {
         this.ipAddress = data.getIp().toString();
     }
 
-    /**
-     * Constructor
-     *
-     * @param tunnelZoneId
-     *            ID of the tunnel zone.
-     * @param hostId
-     *            ID of the host
-     */
     public TunnelZoneHost(UUID tunnelZoneId, UUID hostId) {
         this.tunnelZoneId = tunnelZoneId;
         this.hostId = hostId;
@@ -89,40 +76,18 @@ public class TunnelZoneHost extends UriResource {
         return data;
     }
 
-    /**
-     * Get tunnel zone ID.
-     *
-     * @return Tunnel Zone ID.
-     */
     public UUID getTunnelZoneId() {
         return tunnelZoneId;
     }
 
-    /**
-     * Set tunnel zone ID.
-     *
-     * @param tunnelZoneId
-     *            ID of the tunnel zone.
-     */
     public void setTunnelZoneId(UUID tunnelZoneId) {
         this.tunnelZoneId = tunnelZoneId;
     }
 
-    /**
-     * Get host ID
-     *
-     * @return Host ID.
-     */
     public UUID getHostId() {
         return hostId;
     }
 
-    /**
-     * Set host ID.
-     *
-     * @param hostId
-     *            Id of the host.
-     */
     public void setHostId(UUID hostId) {
         this.hostId = hostId;
     }
@@ -132,9 +97,6 @@ public class TunnelZoneHost extends UriResource {
         data.setIp(IPv4Addr.fromString(ipAddress));
     }
 
-    /**
-     * @return the self URI
-     */
     @Override
     public URI getUri() {
         if (getBaseUri() != null && tunnelZoneId != null

@@ -27,12 +27,12 @@ import com.sun.jersey.test.framework.WebAppDescriptor;
 import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.ObjectMapper;
 
-import org.midonet.api.auth.AuthConfig;
-import org.midonet.api.auth.cors.CorsConfig;
-import org.midonet.api.serialization.ObjectMapperProvider;
-import org.midonet.api.serialization.WildCardJacksonJaxbJsonProvider;
+import org.midonet.api.auth.MockAuthService;
+import org.midonet.brain.services.rest_api.auth.AuthConfig;
+import org.midonet.brain.services.rest_api.auth.cors.CorsConfig;
+import org.midonet.brain.services.rest_api.serialization.ObjectMapperProvider;
+import org.midonet.brain.services.rest_api.serialization.WildCardJacksonJaxbJsonProvider;
 import org.midonet.api.servlet.JerseyGuiceTestServletContextListener;
-import org.midonet.api.version.VersionParser;
 import org.midonet.conf.HostIdGenerator;
 
 public class FuncTest {
@@ -68,9 +68,6 @@ public class FuncTest {
             new WildCardJacksonJaxbJsonProvider(mapperProvider);
         config.getSingletons().add(jacksonJaxbJsonProvider);
 
-
-        UUID testRunUuid = UUID.randomUUID();
-
         String zkRoot = ZK_ROOT_MIDOLMAN + "_" + UUID.randomUUID();
         return new WebAppDescriptor.Builder()
                 .contextListenerClass(JerseyGuiceTestServletContextListener.class)
@@ -89,7 +86,7 @@ public class FuncTest {
                               "Location")
                 .contextParam(getConfigKey(AuthConfig.GROUP_NAME,
                                            AuthConfig.AUTH_PROVIDER),
-                              "org.midonet.api.auth.MockAuthService")
+                              MockAuthService.class.getCanonicalName())
                 .contextParam(getConfigKey("zookeeper",
                                            "zookeeper_hosts"),
                                            FuncTest.ZK_TEST_SERVER)

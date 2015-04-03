@@ -24,7 +24,7 @@ import org.midonet.cluster.data.ports.BridgePort;
 import org.midonet.util.serialization.SerializationException;
 import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.api.network.MacPort;
-import org.midonet.api.validation.MessageProperty;
+import org.midonet.brain.services.rest_api.validation.MessageProperty;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.Port;
 

@@ -53,7 +53,7 @@
     <param-name>auth-auth_provider</param-name>
     <!-- Specify the class path of the auth service -->
     <param-value>
-      org.midonet.api.auth.keystone.v2_0.KeystoneService
+      org.midonet.brain.services.rest_api.auth.keystone.v2_0.KeystoneService
     </param-value>
   </context-param>
   <context-param>

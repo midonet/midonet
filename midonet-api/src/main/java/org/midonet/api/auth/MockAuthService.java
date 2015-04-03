@@ -16,6 +16,15 @@
 package org.midonet.api.auth;
 
 import com.google.inject.Inject;
+
+import org.midonet.brain.services.rest_api.auth.AuthDataAccessException;
+import org.midonet.brain.services.rest_api.auth.AuthException;
+import org.midonet.brain.services.rest_api.auth.AuthRole;
+import org.midonet.brain.services.rest_api.auth.AuthService;
+import org.midonet.brain.services.rest_api.auth.MockTenant;
+import org.midonet.brain.services.rest_api.auth.Tenant;
+import org.midonet.brain.services.rest_api.auth.Token;
+import org.midonet.brain.services.rest_api.auth.UserIdentity;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.slf4j.Logger;
@@ -36,14 +45,6 @@ public final class MockAuthService implements AuthService {
     private final Map<String, UserIdentity> tokenMap;
     private final DataClient dataClient;
 
-    /**
-     * Create a MockAuthService object.
-     *
-     * @param config
-     *            MockAuthConfig object.
-     * @param dataClient
-     *            {@link DataClient} object to retrieve from data store
-     */
     @Inject
     public MockAuthService(MockAuthConfig config, DataClient dataClient) {
 
@@ -159,22 +160,4 @@ public final class MockAuthService implements AuthService {
         return tenantIds;
     }
 
-    public static class MockTenant implements Tenant {
-
-        private final String id;
-
-        public MockTenant(String id) {
-            this.id = id;
-        }
-
-        @Override
-        public String getId() {
-            return id;
-        }
-
-        @Override
-        public String getName() {
-            return id;
-        }
-    }
 }

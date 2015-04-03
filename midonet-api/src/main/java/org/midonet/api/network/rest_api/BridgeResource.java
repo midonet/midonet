@@ -42,12 +42,6 @@ import javax.ws.rs.core.UriInfo;
 import com.google.inject.Inject;
 import com.google.inject.servlet.RequestScoped;
 
-import org.midonet.api.ResourceUriBuilder;
-import org.midonet.api.VendorMediaType;
-import org.midonet.api.auth.AuthAction;
-import org.midonet.api.auth.AuthRole;
-import org.midonet.api.auth.Authorizer;
-import org.midonet.api.auth.ForbiddenHttpException;
 import org.midonet.api.dhcp.rest_api.BridgeDhcpResource;
 import org.midonet.api.dhcp.rest_api.BridgeDhcpV6Resource;
 import org.midonet.api.network.Bridge;
@@ -58,29 +52,32 @@ import org.midonet.api.network.MacPort;
 import org.midonet.api.network.Port;
 import org.midonet.api.network.auth.BridgeAuthorizer;
 import org.midonet.api.rest_api.AbstractResource;
-import org.midonet.api.rest_api.BadRequestHttpException;
-import org.midonet.api.rest_api.NotFoundHttpException;
 import org.midonet.api.rest_api.ResourceFactory;
 import org.midonet.api.rest_api.RestApiConfig;
-import org.midonet.api.validation.MessageProperty;
+import org.midonet.brain.services.rest_api.ResourceUriBuilder;
+import org.midonet.brain.services.rest_api.VendorMediaType;
+import org.midonet.brain.services.rest_api.auth.AuthAction;
+import org.midonet.brain.services.rest_api.auth.AuthRole;
+import org.midonet.brain.services.rest_api.auth.Authorizer;
+import org.midonet.brain.services.rest_api.auth.ForbiddenHttpException;
+import org.midonet.brain.services.rest_api.rest_api.BadRequestHttpException;
+import org.midonet.brain.services.rest_api.rest_api.NotFoundHttpException;
+import org.midonet.brain.services.rest_api.validation.MessageProperty;
 import org.midonet.cluster.DataClient;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.cluster.data.ports.VlanMacPort;
 import org.midonet.event.topology.BridgeEvent;
-import org.midonet.util.serialization.SerializationException;
-import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
+import org.midonet.util.serialization.SerializationException;
 
-import static org.midonet.api.ResourceUriBuilder.MAC_TABLE;
-import static org.midonet.api.ResourceUriBuilder.VLANS;
-import static org.midonet.api.validation.MessageProperty.NO_VXLAN_PORT;
-import static org.midonet.api.validation.MessageProperty.getMessage;
+import static org.midonet.brain.services.rest_api.ResourceUriBuilder.MAC_TABLE;
+import static org.midonet.brain.services.rest_api.ResourceUriBuilder.VLANS;
+import static org.midonet.brain.services.rest_api.validation.MessageProperty.NO_VXLAN_PORT;
+import static org.midonet.brain.services.rest_api.validation.MessageProperty.getMessage;
 import static org.midonet.cluster.data.Bridge.UNTAGGED_VLAN_ID;
 
 
-/**
- * Root resource class for Virtual bridges.
- */
 @RequestScoped
 public class BridgeResource extends AbstractResource {
 
@@ -202,55 +199,27 @@ public class BridgeResource extends AbstractResource {
         return ports;
     }
 
-    /**
-     * @return BridgePortResource object to handle sub-resource requests.
-     */
     @Path("/{id}" + ResourceUriBuilder.PORTS)
     public PortResource.BridgePortResource getPortResource(@PathParam("id") UUID id) {
         return factory.getBridgePortResource(id);
     }
 
-    /**
-     * DHCP resource locator for bridges.
-     *
-     * @return BridgeDhcpResource object to handle sub-resource requests.
-     */
     @Path("/{id}" + ResourceUriBuilder.DHCP)
     public BridgeDhcpResource getBridgeDhcpResource(@PathParam("id") UUID id) {
         return factory.getBridgeDhcpResource(id);
     }
 
-    /**
-     * DHCPV6 resource locator for bridges.
-     *
-     * @param id Bridge ID from the request.
-     * @return BridgeDhcpV6Resource object to handle sub-resource requests.
-     */
     @Path("/{id}" + ResourceUriBuilder.DHCPV6)
     public BridgeDhcpV6Resource getBridgeDhcpV6Resource(@PathParam("id") UUID id) {
         return factory.getBridgeDhcpV6Resource(id);
     }
 
-    /**
-     * Peer port resource locator for bridges.
-     *
-     * @param id Bridge ID from the request.
-     * @return BridgePeerPortResource object to handle sub-resource requests.
-     */
     @Path("/{id}" + ResourceUriBuilder.PEER_PORTS)
     public PortResource.BridgePeerPortResource getBridgePeerPortResource(
             @PathParam("id") UUID id) {
         return factory.getBridgePeerPortResource(id);
     }
 
-    /**
-     * Handler to updating a bridge.
-     *
-     * @param id Bridge ID from the request.
-     * @param bridge Bridge object.
-     * @throws StateAccessException
-     *             Data access error.
-     */
     @PUT
     @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })
     @Path("{id}")
@@ -275,12 +244,6 @@ public class BridgeResource extends AbstractResource {
     }
 
     /**
-     * Handler for creating a tenant bridge.
-     *
-     * @param bridge
-     *            Bridge object.
-     * @throws StateAccessException
-     *             Data access error.
      * @return Response object with 201 status code set if successful.
      */
     @POST
@@ -308,8 +271,7 @@ public class BridgeResource extends AbstractResource {
     /**
      * Handler to list all bridges.
      *
-     * @throws StateAccessException
-     *             Data access error.
+     * @throws StateAccessException Data access error.
      * @return A list of Bridge objects.
      */
     @GET
@@ -349,8 +311,7 @@ public class BridgeResource extends AbstractResource {
      * it returns only entries not associated with a particular VLAN and does
      * not serialize the VLAN field.
      *
-     * @throws StateAccessException
-     *             Data access error.
+     * @throws StateAccessException Data access error.
      * @return A list of MacPort objects.
      */
     @GET
@@ -389,8 +350,7 @@ public class BridgeResource extends AbstractResource {
      * @param vlanId ID of the VLAN whose MAC table is requested. Specify 0 to
      *               request MAC ports not associated with a VLAN.
      *
-     * @throws StateAccessException
-     *             Data access error.
+     * @throws StateAccessException Data access error.
      * @return A list of MacPort objects.
      */
     @GET
@@ -429,12 +389,6 @@ public class BridgeResource extends AbstractResource {
     }
 
     /**
-     * Handler for creating a MAC table entry.
-     *
-     * @param mp
-     *            MacPort entry for the mac table.
-     * @throws org.midonet.cluster.backend.zookeeper.StateAccessException
-     *             Data access error.
      * @return Response object with 201 status code set if successful.
      */
     @POST
@@ -478,23 +432,18 @@ public class BridgeResource extends AbstractResource {
         // Need to set MacPort's vlanId so getMacPort constructs the right URI.
         mp.setVlanId(vlanId);
         return Response.created(
-                ResourceUriBuilder.getMacPort(bridgeUri, mp))
-                .build();
+            ResourceUriBuilder.getMacPort(bridgeUri, mp.getMacAddr(),
+                                          mp.getVlanId(), mp.getPortId()))
+            .build();
     }
 
     /**
      * Handler to getting a MAC table entry.
      *
-     * @param id
-     *      Bridge's UUID.
-     * @param macAddress
-     *      MAC address of mapping to get, in URI format,
+     * @param id Bridge's UUID.
+     * @param macAddress MAC address of mapping to get, in URI format,
      *      e.g., 12-34-56-78-9a-bc.
-     * @param portId
-     *      UUID of port in the MAC-port mapping to get.
-     * @throws StateAccessException
-     *      Data access error.
-     * @return A MacPort object.
+     * @param portId UUID of port in the MAC-port mapping to get.
      */
     @GET
     @PermitAll
@@ -512,16 +461,10 @@ public class BridgeResource extends AbstractResource {
     /**
      * Handler to getting a MAC table entry.
      *
-     * @param id
-     *      Bridge's UUID.
-     * @param macAddress
-     *      MAC address of mapping to get, in URI format,
+     * @param id Bridge's UUID.
+     * @param macAddress MAC address of mapping to get, in URI format,
      *      e.g., 12-34-56-78-9a-bc.
-     * @param portId
-     *      UUID of port in the MAC-port mapping to get.
-     * @throws StateAccessException
-     *      Data access error.
-     * @return A MacPort object.
+     * @param portId UUID of port in the MAC-port mapping to get.
      */
     @GET
     @PermitAll
@@ -561,19 +504,6 @@ public class BridgeResource extends AbstractResource {
         return mp;
     }
 
-
-    /**
-     * Handler to deleting a MAC table entry.
-     *
-     * @param id
-     *      Bridge UUID.
-     * @param macAddress
-     *      MAC address of MAC-port mapping to delete.
-     * @param portId
-     *      UUID of port in MAC-port mapping to delete.
-     * @throws org.midonet.cluster.backend.zookeeper.StateAccessException
-     *      Data access error.
-     */
     @DELETE
     @RolesAllowed({AuthRole.ADMIN, AuthRole.TENANT_ADMIN})
     @Path("/{id}" + MAC_TABLE + "/{mac}_{portId}")
@@ -584,20 +514,6 @@ public class BridgeResource extends AbstractResource {
         deleteHelper(id, UNTAGGED_VLAN_ID, macAddress, portId);
     }
 
-    /**
-     * Handler to deleting a MAC table entry.
-     *
-     * @param id
-     *      Bridge UUID.
-     * @param vlanId
-     *      VLAN ID of MAC-port mapping to delete.
-     * @param macAddress
-     *      MAC address of MAC-port mapping to delete.
-     * @param portId
-     *      UUID of port in MAC-port mapping to delete.
-     * @throws org.midonet.cluster.backend.zookeeper.StateAccessException
-     *      Data access error.
-     */
     @DELETE
     @RolesAllowed({AuthRole.ADMIN, AuthRole.TENANT_ADMIN})
     @Path("/{id}" + VLANS + "/{vlanId}" + MAC_TABLE + "/{mac}_{portId}")
@@ -686,18 +602,14 @@ public class BridgeResource extends AbstractResource {
             IPv4Addr.fromString(mp.getIp()), MAC.fromString(mp.getMac()));
         URI bridgeUri = ResourceUriBuilder.getBridge(getBaseUri(), id);
         return Response.created(
-            ResourceUriBuilder.getIP4MacPair(bridgeUri, mp))
-            .build();
+            ResourceUriBuilder.getIP4MacPair(bridgeUri, mp.getIp(),
+                                             mp.getMac())).build();
     }
 
     /**
      * Handler to getting a ARP table entry.
      *
-     * @param IP4MacPairString
-     *            IP4MacPair entry in the ARP table.
-     * @throws StateAccessException
-     *             Data access error.
-     * @return A IP4MacPair object.
+     * @param IP4MacPairString IP4MacPair entry in the ARP table.
      */
     @GET
     @PermitAll
@@ -729,8 +641,7 @@ public class BridgeResource extends AbstractResource {
     /**
      * Handler to deleting a ARP table entry.
      *
-     * @param IP4MacPairString
-     *            IP4MacPair entry in the ARP table.
+     * @param IP4MacPairString IP4MacPair entry in the ARP table.
      * @throws org.midonet.cluster.backend.zookeeper.StateAccessException
      *             Data access error.
      */

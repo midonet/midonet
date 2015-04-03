@@ -32,15 +32,15 @@ import javax.ws.rs.core.UriInfo;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.servlet.RequestScoped;
 
-import org.midonet.api.VendorMediaType;
-import org.midonet.api.auth.AuthRole;
 import org.midonet.api.host.Interface;
 import org.midonet.api.rest_api.AbstractResource;
-import org.midonet.api.rest_api.NotFoundHttpException;
 import org.midonet.api.rest_api.RestApiConfig;
+import org.midonet.brain.services.rest_api.VendorMediaType;
+import org.midonet.brain.services.rest_api.auth.AuthRole;
+import org.midonet.brain.services.rest_api.rest_api.NotFoundHttpException;
 import org.midonet.cluster.DataClient;
-import org.midonet.util.serialization.SerializationException;
 import org.midonet.cluster.backend.zookeeper.StateAccessException;
+import org.midonet.util.serialization.SerializationException;
 
 @RequestScoped
 public class InterfaceResource extends AbstractResource {

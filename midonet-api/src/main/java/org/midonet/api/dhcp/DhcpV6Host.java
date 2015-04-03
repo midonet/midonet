@@ -16,8 +16,8 @@
 
 package org.midonet.api.dhcp;
 
-import org.midonet.api.RelativeUriResource;
-import org.midonet.api.ResourceUriBuilder;
+import org.midonet.brain.services.rest_api.RelativeUriResource;
+import org.midonet.brain.services.rest_api.ResourceUriBuilder;
 import org.midonet.cluster.data.dhcp.V6Host;
 import org.midonet.packets.IPv6Addr;
 

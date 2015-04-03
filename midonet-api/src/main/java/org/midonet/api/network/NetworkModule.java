@@ -16,12 +16,12 @@
 package org.midonet.api.network;
 
 import com.google.inject.AbstractModule;
-import org.midonet.api.network.validation.*;
+
+import org.midonet.api.network.validation.PortsLinkableConstraintValidator;
+import org.midonet.api.network.validation.RouteNextHopPortConstraintValidator;
+import org.midonet.brain.services.rest_api.network.validation.PortIdValidator;
 import org.midonet.cluster.DataClient;
 
-/**
- * Network module.
- */
 public class NetworkModule extends AbstractModule {
 
     @Override
@@ -29,7 +29,6 @@ public class NetworkModule extends AbstractModule {
 
         requireBinding(DataClient.class);
         bind(RouteNextHopPortConstraintValidator.class).asEagerSingleton();
-
         bind(PortsLinkableConstraintValidator.class).asEagerSingleton();
         bind(PortIdValidator.class).asEagerSingleton();
 

@@ -35,17 +35,17 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
-import org.midonet.api.ResourceUriBuilder;
-import org.midonet.api.VendorMediaType;
-import org.midonet.api.auth.AuthRole;
+import org.midonet.api.rest_api.RestApiConfig;
+import org.midonet.brain.services.rest_api.ResourceUriBuilder;
+import org.midonet.brain.services.rest_api.VendorMediaType;
+import org.midonet.brain.services.rest_api.auth.AuthRole;
 import org.midonet.api.network.VTEP;
 import org.midonet.api.network.VTEPPort;
-import org.midonet.api.rest_api.BadRequestHttpException;
-import org.midonet.api.rest_api.ConflictHttpException;
-import org.midonet.api.rest_api.GatewayTimeoutHttpException;
-import org.midonet.api.rest_api.NotFoundHttpException;
+import org.midonet.brain.services.rest_api.rest_api.BadRequestHttpException;
+import org.midonet.brain.services.rest_api.rest_api.ConflictHttpException;
+import org.midonet.brain.services.rest_api.rest_api.GatewayTimeoutHttpException;
+import org.midonet.brain.services.rest_api.rest_api.NotFoundHttpException;
 import org.midonet.api.rest_api.ResourceFactory;
-import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.api.vtep.VtepClusterClient;
 import org.midonet.brain.southbound.vtep.VtepNotConnectedException;
 import org.midonet.brain.southbound.vtep.model.PhysicalSwitch;
@@ -63,11 +63,11 @@ import com.google.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static org.midonet.api.validation.MessageProperty.VTEP_EXISTS;
-import static org.midonet.api.validation.MessageProperty.VTEP_HAS_BINDINGS;
-import static org.midonet.api.validation.MessageProperty.VTEP_HOST_IP_CONFLICT;
-import static org.midonet.api.validation.MessageProperty.VTEP_NOT_FOUND;
-import static org.midonet.api.validation.MessageProperty.getMessage;
+import static org.midonet.brain.services.rest_api.validation.MessageProperty.VTEP_EXISTS;
+import static org.midonet.brain.services.rest_api.validation.MessageProperty.VTEP_HAS_BINDINGS;
+import static org.midonet.brain.services.rest_api.validation.MessageProperty.VTEP_HOST_IP_CONFLICT;
+import static org.midonet.brain.services.rest_api.validation.MessageProperty.VTEP_NOT_FOUND;
+import static org.midonet.brain.services.rest_api.validation.MessageProperty.getMessage;
 
 public class VtepResource extends AbstractVtepResource {
     private final static Logger log =
@@ -78,8 +78,8 @@ public class VtepResource extends AbstractVtepResource {
                         SecurityContext context, Validator validator,
                         DataClient dataClient, ResourceFactory factory,
                         VtepClusterClient vtepClient) {
-        super(config, uriInfo, context, validator,
-              dataClient, factory, vtepClient);
+        super(config, uriInfo, context, validator, dataClient, factory,
+              vtepClient);
     }
 
     @POST

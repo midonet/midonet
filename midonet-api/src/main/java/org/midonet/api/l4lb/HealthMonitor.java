@@ -16,9 +16,9 @@
 package org.midonet.api.l4lb;
 
 import org.codehaus.jackson.annotate.JsonIgnore;
-import org.midonet.api.ResourceUriBuilder;
-import org.midonet.api.UriResource;
-import org.midonet.api.validation.VerifyEnumValue;
+import org.midonet.brain.services.rest_api.ResourceUriBuilder;
+import org.midonet.brain.services.rest_api.UriResource;
+import org.midonet.brain.services.rest_api.validation.VerifyEnumValue;
 import org.midonet.midolman.state.l4lb.HealthMonitorType;
 import org.midonet.midolman.state.l4lb.LBStatus;
 

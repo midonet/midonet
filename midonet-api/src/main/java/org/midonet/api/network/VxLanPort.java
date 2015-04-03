@@ -15,11 +15,10 @@
  */
 package org.midonet.api.network;
 
-import org.midonet.api.ResourceUriBuilder;
+import org.midonet.brain.services.rest_api.ResourceUriBuilder;
 import org.midonet.packets.IPv4Addr;
 
 import java.net.URI;
-import java.util.List;
 
 public class VxLanPort extends Port {
 
