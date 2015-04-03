@@ -57,7 +57,6 @@ public class ResourceUriBuilder {
     public static final String AD_ROUTES = "/ad_routes";
     public static final String HOSTS = "/hosts";
     public static final String INTERFACES = "/interfaces";
-    public static final String COMMANDS = "/commands";
     public static final String LINK = "/link";
     public static final String TUNNEL_ZONES = "/tunnel_zones";
     public static final String ID_TOKEN = "/{id}";
@@ -79,8 +78,6 @@ public class ResourceUriBuilder {
     public static final String MAC_ADDR = "/{macAddress}";
     public static final String PORT_ID_NO_SLASH = "{portId}";
     public static final String TENANT_ID_PARAM = "tenant_id";
-    public static final String LICENSES = "/licenses";
-    public static final String LICENSE_STATUS = "/licenses/status";
     public static final String TRACE_REQUESTS = "/traces";
 
     private ResourceUriBuilder() {
@@ -120,12 +117,6 @@ public class ResourceUriBuilder {
     public static URI getTenantPortGroups(URI baseUri, String tenantId) {
         return fromUri(getPortGroups(baseUri)).queryParam(
                 TENANT_ID_PARAM, tenantId).build();
-    }
-
-
-    public static URI getTenantIpAddrGroups(URI baseUri, String tenantId) {
-        return fromUri(getTenant(baseUri, tenantId))
-                .path(IP_ADDR_GROUPS).build();
     }
 
     public static URI getRouters(URI baseUri) {
@@ -199,16 +190,6 @@ public class ResourceUriBuilder {
     public static String macPortToUri(@NotNull String mac,
                                       @NotNull UUID portId) {
         return macToUri(mac) + "_" + portId.toString();
-    }
-
-    public static MAC macPortToMac(String macPortString) {
-        String[] parts = macPortString.split("_");
-        return macFromUri(parts[0]);
-    }
-
-    public static UUID macPortToUUID(String macPortString) {
-        String[] parts = macPortString.split("_");
-        return UUID.fromString(parts[1]);
     }
 
     public static URI getArpTable(URI bridgeUri) {
@@ -572,10 +553,6 @@ public class ResourceUriBuilder {
 
     public static String getVtepTemplate(URI baseUri) {
         return getVteps(baseUri) + IP_ADDR;
-    }
-
-    public static String getVtepBindingsTemplate(URI baseUri) {
-        return getVtepTemplate(baseUri) + BINDINGS;
     }
 
     public static String getVtepBindingTemplate(URI baseUri, String ipAddr) {
