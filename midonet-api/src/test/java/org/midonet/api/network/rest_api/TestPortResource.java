@@ -15,13 +15,12 @@
  */
 package org.midonet.api.network.rest_api;
 
-import org.midonet.api.network.auth.PortAuthorizer;
-import org.midonet.api.network.auth.RouterAuthorizer;
-import org.midonet.api.rest_api.RestApiConfig;
-import org.midonet.brain.services.rest_api.auth.ForbiddenHttpException;
-import org.midonet.api.rest_api.ResourceFactory;
-import org.midonet.brain.services.rest_api.auth.AuthAction;
-import org.midonet.cluster.DataClient;
+import java.util.UUID;
+
+import javax.validation.Validator;
+import javax.ws.rs.core.SecurityContext;
+import javax.ws.rs.core.UriInfo;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -29,12 +28,17 @@ import org.mockito.Answers;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import javax.validation.Validator;
-import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.core.UriInfo;
-import java.util.UUID;
+import org.midonet.api.network.auth.RouterAuthorizer;
+import org.midonet.api.rest_api.ResourceFactory;
+import org.midonet.api.rest_api.RestApiConfig;
+import org.midonet.brain.services.rest_api.auth.AuthAction;
+import org.midonet.brain.services.rest_api.auth.ForbiddenHttpException;
+import org.midonet.brain.services.rest_api.network.auth.PortAuthorizer;
+import org.midonet.cluster.DataClient;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 
 @RunWith(MockitoJUnitRunner.class)
 public class TestPortResource {

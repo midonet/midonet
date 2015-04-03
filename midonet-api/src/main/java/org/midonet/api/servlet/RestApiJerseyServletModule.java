@@ -34,7 +34,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.midonet.api.auth.AuthModule;
+import org.midonet.api.auth.DataclientAuthModule;
 import org.midonet.api.network.NetworkModule;
 import org.midonet.api.neutron.NeutronRestApiModule;
 import org.midonet.api.rest_api.RestApiModule;
@@ -146,7 +146,7 @@ public class RestApiJerseyServletModule extends JerseyServletModule {
 
         bind(ConfigProvider.class).toInstance(cfgProvider);
         install(new SerializationModule());
-        install(new AuthModule());
+        install(new DataclientAuthModule());
         install(new ErrorModule());
 
         installConfigApi(zkConfToConfig(zkCfg));

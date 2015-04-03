@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,40 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.api.network.auth;
+
+package org.midonet.brain.services.rest_api.network.auth;
 
 import java.util.UUID;
 
 import javax.ws.rs.core.SecurityContext;
 
-import com.google.inject.Inject;
-
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import org.midonet.api.network.Port;
-import org.midonet.api.network.PortFactory;
-import org.midonet.api.network.RouterPort;
 import org.midonet.brain.services.rest_api.auth.AuthAction;
 import org.midonet.brain.services.rest_api.auth.Authorizer;
-import org.midonet.cluster.DataClient;
 import org.midonet.cluster.backend.zookeeper.StateAccessException;
-import org.midonet.cluster.data.Bridge;
-import org.midonet.cluster.data.Router;
 import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.util.serialization.SerializationException;
 
-public class PortAuthorizer extends Authorizer<UUID> {
+import static org.slf4j.LoggerFactory.getLogger;
 
-    private final static Logger log = LoggerFactory
-            .getLogger(PortAuthorizer.class);
 
-    private final DataClient dataClient;
+public abstract class PortAuthorizer extends Authorizer<UUID> {
 
-    @Inject
-    public PortAuthorizer(DataClient dataClient) {
-        this.dataClient = dataClient;
-    }
+    private final static Logger log = getLogger(PortAuthorizer.class);
 
     @Override
     public boolean authorize(SecurityContext context, AuthAction action,
@@ -58,29 +45,25 @@ public class PortAuthorizer extends Authorizer<UUID> {
             return true;
         }
 
+        String tenantId = null;
         try {
-            org.midonet.cluster.data.Port<?, ?> portData =
-                    dataClient.portsGet(id);
-            if (portData == null) {
-                log.warn("Attempted to authorize a non-existent resource: {}",
-                        id);
-                return false;
-            }
-
-            Port port = PortFactory.convertToApiPort(portData);
-            String tenantId = null;
-            if (port instanceof RouterPort) {
-                Router router = dataClient.routersGet(port.getDeviceId());
-                tenantId = router.getProperty(Router.Property.tenant_id);
-            } else {
-                Bridge bridge =  dataClient.bridgesGet(port.getDeviceId());
-                tenantId = bridge.getProperty(Bridge.Property.tenant_id);
-            }
-            return isOwner(context, tenantId);
+            tenantId = getTenantId(id);
+        } catch (NullPointerException ex) {
+            // Not pretty, but allows removing the dependency on the cluster
+            // .data package and move the Authorizer to Brain
+            log.warn("Attempted to authorize a non-existent resource: {}", id);
+            return false;
         } catch (NoStatePathException ex) {
             // get throws an exception when the state is not found.
             log.warn("Attempted to authorize a non-existent resource: {}", id);
             return false;
         }
+
+        return isOwner(context, tenantId);
     }
+
+    protected abstract String getTenantId(UUID portId) throws
+                                                       StateAccessException,
+                                                       SerializationException;
+
 }

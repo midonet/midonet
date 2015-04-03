@@ -41,7 +41,6 @@ import com.google.inject.servlet.RequestScoped;
 
 import org.midonet.api.network.PortGroup;
 import org.midonet.api.network.PortGroupPort;
-import org.midonet.api.network.auth.PortAuthorizer;
 import org.midonet.api.network.auth.PortGroupAuthorizer;
 import org.midonet.api.rest_api.AbstractResource;
 import org.midonet.api.rest_api.ResourceFactory;
@@ -52,6 +51,7 @@ import org.midonet.brain.services.rest_api.auth.AuthAction;
 import org.midonet.brain.services.rest_api.auth.AuthRole;
 import org.midonet.brain.services.rest_api.auth.Authorizer;
 import org.midonet.brain.services.rest_api.auth.ForbiddenHttpException;
+import org.midonet.brain.services.rest_api.network.auth.PortAuthorizer;
 import org.midonet.brain.services.rest_api.rest_api.NotFoundHttpException;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.backend.zookeeper.StateAccessException;

@@ -46,9 +46,7 @@ import com.google.inject.servlet.RequestScoped;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.midonet.api.auth.MockAuthConfig;
 import org.midonet.api.network.auth.BridgeAuthorizer;
-import org.midonet.api.network.auth.PortAuthorizer;
 import org.midonet.api.network.auth.RouterAuthorizer;
 import org.midonet.api.rest_api.AbstractResource;
 import org.midonet.api.rest_api.RestApiConfig;
@@ -59,6 +57,7 @@ import org.midonet.brain.services.rest_api.auth.AuthAction;
 import org.midonet.brain.services.rest_api.auth.AuthRole;
 import org.midonet.brain.services.rest_api.auth.Authorizer;
 import org.midonet.brain.services.rest_api.auth.ForbiddenHttpException;
+import org.midonet.brain.services.rest_api.network.auth.PortAuthorizer;
 import org.midonet.brain.services.rest_api.rest_api.ConflictHttpException;
 import org.midonet.brain.services.rest_api.rest_api.NotFoundHttpException;
 import org.midonet.cluster.DataClient;
@@ -82,20 +81,13 @@ public class TraceRequestResource extends AbstractResource {
                                 BridgeAuthorizer bridgeAuthorizer,
                                 PortAuthorizer portAuthorizer,
                                 RouterAuthorizer routerAuthorizer,
-            Validator validator, DataClient dataClient,
-                                MockAuthConfig authconfig) {
+                                Validator validator, DataClient dataClient) {
         super(config, uriInfo, context, dataClient, validator);
         this.bridgeAuthorizer = bridgeAuthorizer;
         this.portAuthorizer = portAuthorizer;
         this.routerAuthorizer = routerAuthorizer;
     }
 
-    /**
-     * Handler for getting the list of traces
-     *
-     * @return The system state info
-     * @throws StateAccessException
-     */
     @GET
     @RolesAllowed({AuthRole.ADMIN, AuthRole.TENANT_ADMIN})
     @Produces({ VendorMediaType.APPLICATION_TRACE_REQUEST_COLLECTION_JSON,
@@ -143,9 +135,6 @@ public class TraceRequestResource extends AbstractResource {
         }
     }
 
-    /**
-     * Handler for deleting a trace request
-     */
     @DELETE
     @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })
     @Path("{id}")
@@ -168,9 +157,6 @@ public class TraceRequestResource extends AbstractResource {
         dataClient.traceRequestDelete(id);
     }
 
-    /**
-     * Handler to get a specific trace request
-     */
     @GET
     @PermitAll
     @Path("{id}")
@@ -198,9 +184,6 @@ public class TraceRequestResource extends AbstractResource {
         return traceRequest;
     }
 
-    /**
-     * Handler for creating a trace request
-     */
     @POST
     @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })
     @Consumes({ VendorMediaType.APPLICATION_TRACE_REQUEST_JSON,
@@ -226,9 +209,6 @@ public class TraceRequestResource extends AbstractResource {
                 ResourceUriBuilder.getTraceRequest(getBaseUri(), id)).build();
     }
 
-    /**
-     * Update the enabled status of the resource
-     */
     @PUT
     @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })
     @Path("{id}")

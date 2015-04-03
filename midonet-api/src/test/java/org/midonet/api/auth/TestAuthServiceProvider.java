@@ -76,7 +76,7 @@ public class TestAuthServiceProvider {
         final ConfigProvider cfgProvider =
             new ServletContextConfigProvider(mockServletContext);
         standardInjector = Guice.createInjector(
-                new AuthModule(),
+                new DataclientAuthModule(),
                 new AbstractModule() {
                     @Override
                     protected void configure() {
@@ -105,7 +105,7 @@ public class TestAuthServiceProvider {
 
                     }
                 },
-                Modules.override(new AuthModule()).with(
+                Modules.override(new DataclientAuthModule()).with(
                     new AbstractModule() {
                         @Override
                         protected void configure() {

@@ -55,8 +55,8 @@ public class PortFactory {
         }
     }
 
-    public static Port convertToApiPort(
-            org.midonet.cluster.data.Port<?, ?> data) {
+    public static Port
+        convertToApiPort(org.midonet.cluster.data.Port<?, ?> data) {
         if (data instanceof org.midonet.cluster.data.ports.RouterPort) {
             return new RouterPort(
                     (org.midonet.cluster.data.ports.RouterPort)data);
@@ -66,9 +66,11 @@ public class PortFactory {
         } else if (data instanceof org.midonet.cluster.data.ports.VxLanPort) {
             return new VxLanPort(
                     (org.midonet.cluster.data.ports.VxLanPort)data);
+        } else if (data == null) {
+            throw new NullPointerException("Port was null");
         } else {
             throw new UnsupportedOperationException(
-                    "Cannot instantiate this port type.");
+                "Cannot instantiate this port type.");
         }
     }
 }

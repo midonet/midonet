@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.api.auth;
+package org.midonet.brain.services.rest_api.auth;
 
 import java.net.MalformedURLException;
 
@@ -21,63 +21,26 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Inject;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
-import com.google.inject.multibindings.MapBinder;
 
-import org.midonet.api.bgp.auth.AdRouteAuthorizer;
-import org.midonet.api.bgp.auth.BgpAuthorizer;
-import org.midonet.api.filter.auth.ChainAuthorizer;
-import org.midonet.api.filter.auth.RuleAuthorizer;
-import org.midonet.api.network.auth.BridgeAuthorizer;
-import org.midonet.api.network.auth.PortAuthorizer;
-import org.midonet.api.network.auth.PortGroupAuthorizer;
-import org.midonet.api.network.auth.RouteAuthorizer;
-import org.midonet.api.network.auth.RouterAuthorizer;
-import org.midonet.brain.services.rest_api.auth.AuthException;
-import org.midonet.brain.services.rest_api.auth.AuthService;
 import org.midonet.brain.services.rest_api.auth.keystone.KeystoneConfig;
 import org.midonet.brain.services.rest_api.auth.keystone.v2_0.KeystoneClient;
-import org.midonet.brain.services.rest_api.auth.keystone.v2_0.KeystoneService;
 import org.midonet.brain.services.rest_api.auth.vsphere.VSphereClient;
 import org.midonet.brain.services.rest_api.auth.vsphere.VSphereConfig;
 import org.midonet.brain.services.rest_api.auth.vsphere.VSphereConfigurationException;
-import org.midonet.brain.services.rest_api.auth.vsphere.VSphereSSOService;
 import org.midonet.config.ConfigProvider;
 
-public class AuthModule extends AbstractModule {
+abstract public class AbstractAuthModule extends AbstractModule {
 
     @Override
     protected void configure() {
-
         requireBinding(ConfigProvider.class);
-
-        bind(AuthService.class).toProvider(
-                AuthServiceProvider.class).asEagerSingleton();
-
-        bind(AdRouteAuthorizer.class).asEagerSingleton();
-        bind(BgpAuthorizer.class).asEagerSingleton();
-        bind(BridgeAuthorizer.class).asEagerSingleton();
-        bind(ChainAuthorizer.class).asEagerSingleton();
-        bind(PortAuthorizer.class).asEagerSingleton();
-        bind(PortGroupAuthorizer.class).asEagerSingleton();
-        bind(RouteAuthorizer.class).asEagerSingleton();
-        bind(RouterAuthorizer.class).asEagerSingleton();
-        bind(RuleAuthorizer.class).asEagerSingleton();
-
-        MapBinder<String, AuthService> registeredAuthServices =
-                MapBinder.newMapBinder(binder(), String.class, AuthService.class);
-
-        registeredAuthServices
-                .addBinding(AuthServiceProvider.KEYSTONE_PLUGIN)
-                .to(KeystoneService.class);
-
-        registeredAuthServices
-                .addBinding(AuthServiceProvider.VSPHERE_PLUGIN)
-                .to(VSphereSSOService.class);
-
-        registeredAuthServices
-                .addBinding(AuthServiceProvider.MOCK_PLUGIN)
-                .to(MockAuthService.class);
+        bindAuthServices();
+        bindAuthorizers();
     }
+
+    abstract public void bindAuthServices();
+
+    abstract public void bindAuthorizers();
 
     // -- Keystone --
     @Provides @Singleton
@@ -120,13 +83,6 @@ public class AuthModule extends AbstractModule {
 
         throw new VSphereConfigurationException("Unrecognized option for " +
                 "ignore_server_cert: " + ignoreServerCertificate);
-    }
-
-    // -- Mock --
-    @Provides @Singleton
-    @Inject
-    MockAuthConfig provideMockAuthConfig(ConfigProvider provider) {
-        return provider.getConfig(MockAuthConfig.class);
     }
 
 }
