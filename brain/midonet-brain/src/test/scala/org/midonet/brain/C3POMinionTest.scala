@@ -20,6 +20,7 @@ import java.io.PrintWriter
 import java.sql.{Connection, DriverManager}
 import java.util.UUID
 import java.util.concurrent.TimeUnit
+
 import javax.sql.DataSource
 
 import scala.collection.JavaConverters._
@@ -29,9 +30,11 @@ import scala.util.{Random, Try}
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.JsonNodeFactory
 import com.typesafe.config.ConfigFactory
+
 import org.apache.curator.framework.{CuratorFramework, CuratorFrameworkFactory}
 import org.apache.curator.retry.ExponentialBackoffRetry
 import org.apache.curator.test.TestingServer
+import org.apache.zookeeper.KeeperException.NoNodeException
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{BeforeAndAfter, BeforeAndAfterAll, FlatSpec, Matchers}
@@ -39,6 +42,7 @@ import org.slf4j.LoggerFactory
 
 import org.midonet.brain.ClusterNode.Context
 import org.midonet.brain.services.c3po.C3POMinion
+import org.midonet.cluster.data.Bridge
 import org.midonet.cluster.data.neutron.NeutronResourceType.{AgentMembership => AgentMembershipType, Config => ConfigType, Network => NetworkType, NoData, Port => PortType, Router => RouterType, SecurityGroup => SecurityGroupType, Subnet => SubnetType}
 import org.midonet.cluster.data.neutron.TaskType._
 import org.midonet.cluster.data.neutron.{NeutronResourceType, TaskType}
@@ -52,9 +56,10 @@ import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.services.MidonetBackendService
 import org.midonet.cluster.storage.MidonetBackendConfig
 import org.midonet.cluster.util.UUIDUtil._
-import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil}
+import org.midonet.cluster.util.{UUIDUtil, IPAddressUtil, IPSubnetUtil}
 import org.midonet.conf.MidoTestConfigurator
-import org.midonet.packets.{IPSubnet, IPv4Subnet, UDP}
+import org.midonet.midolman.state.{MacPortMap, PathBuilder}
+import org.midonet.packets.{MAC, IPSubnet, IPv4Subnet, UDP}
 import org.midonet.util.MidonetEventually
 import org.midonet.util.concurrent.toFutureOps
 
@@ -121,6 +126,8 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
     private val zk: TestingServer = new TestingServer(ZK_PORT)
 
     protected val nodeFactory = new JsonNodeFactory(true)
+
+    protected var pathBldr: PathBuilder = _
 
     // Adapt the DriverManager interface to DataSource interface.
     // SQLite doesn't seem to provide JDBC 2.0 API.
@@ -197,7 +204,7 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
         log.info("Created and initialized the midonet_data_state table.")
     }
 
-    protected def emptyTaskAndStateTablesAndSendFlushTask() = {
+    protected def emptyTaskAndStateTablesAndFlushTopology() = {
         executeSqlStmts(EMPTY_TASK_TABLE)
         executeSqlStmts(EMPTY_STATE_TABLE)
         executeSqlStmts(INIT_STATE_ROW)
@@ -207,6 +214,17 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
         executeSqlStmts(insertTaskSql(id = 1, Flush, NoData, json = "",
                                       null, "flush_txn"))
         log.info("Inserted a flush task.")
+
+        clearReplMaps()
+    }
+
+    protected def clearReplMaps(): Unit = {
+        // All the maps are under these two.
+        for (path <- List(pathBldr.getBridgesPath, pathBldr.getRoutersPath)) {
+            try curator.delete.deletingChildrenIfNeeded.forPath(path) catch {
+                case _: NoNodeException => // Already gone/never created.
+            }
+        }
     }
 
     protected def insertTaskSql(id: Int, taskType: TaskType,
@@ -225,7 +243,8 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
         "datetime('now'))"
     }
 
-    private var curator: CuratorFramework = _
+    protected var curator: CuratorFramework = _
+    protected var backendCfg: MidonetBackendConfig = _
     protected var backend: MidonetBackendService = _
     private var c3po: C3POMinion = _
 
@@ -244,16 +263,20 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
 
             zk.start()
 
-            val cfg = new MidonetBackendConfig(MidoTestConfigurator.forBrains(C3PO_CFG_OBJECT))
+            backendCfg = new MidonetBackendConfig(
+                MidoTestConfigurator.forBrains(C3PO_CFG_OBJECT))
 
-            backend = new MidonetBackendService(cfg, curator)
+            backend = new MidonetBackendService(backendCfg, curator)
             backend.startAsync().awaitRunning()
             curator.blockUntilConnected()
 
             val nodeCtx = new Context(UUID.randomUUID())
-            c3po = new C3POMinion(nodeCtx, brainCfg, dataSrc, backend, curator)
+            c3po = new C3POMinion(nodeCtx, brainCfg, dataSrc,
+                                  backend, curator, backendCfg)
             c3po.startAsync()
             c3po.awaitRunning(2, TimeUnit.SECONDS)
+
+            pathBldr = new PathBuilder(backendCfg.rootKey)
         } catch {
             case e: Throwable =>
                 log.error("Failing setting up environment", e)
@@ -270,7 +293,7 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
         // C3PO alone, we can instead just call C3PO.flushTopology() on C3PO.
         // Calling Storage.flush() doesn't do the job as it doesn't do necessary
         // initialization.
-        emptyTaskAndStateTablesAndSendFlushTask()
+        emptyTaskAndStateTablesAndFlushTopology()
     }
 
     after {
@@ -297,7 +320,7 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
     protected def portJson(name: String, id: UUID,
                            networkId: UUID,
                            adminStateUp: Boolean = true,
-                           mac_address: String = null,
+                           macAddr: String = MAC.random().toString,
                            fixedIps: List[IPAlloc] = null,
                            deviceId: UUID = null,
                            deviceOwner: DeviceOwner = null,
@@ -308,7 +331,7 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
         p.put("id", id.toString)
         p.put("network_id", networkId.toString)
         p.put("admin_state_up", adminStateUp)
-        p.put("mac_address", mac_address)
+        p.put("mac_address", macAddr)
         if (fixedIps != null) {
             val fi = p.putArray("fixed_ips")
             for (fixedIp <- fixedIps) {
@@ -466,6 +489,27 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
 
     protected def getChains(ipg: IpAddrGroup): ChainPair =
         getChains(ipg.getInboundChainId, ipg.getOutboundChainId)
+
+    protected def checkReplTables(bridgeId: UUID, shouldExist: Boolean)
+    : Unit = {
+        val arpPath = pathBldr.getBridgeIP4MacMapPath(bridgeId)
+        val macPath = pathBldr.getBridgeMacPortsPath(bridgeId)
+        val vlansPath = pathBldr.getBridgeVlansPath(bridgeId)
+        if (shouldExist) {
+            curator.checkExists.forPath(arpPath) shouldNot be(null)
+            curator.checkExists.forPath(macPath) shouldNot be(null)
+            curator.checkExists.forPath(vlansPath) shouldNot be(null)
+        } else {
+            curator.checkExists.forPath(arpPath) shouldBe null
+            curator.checkExists.forPath(macPath) shouldBe null
+            curator.checkExists.forPath(vlansPath) shouldBe null
+        }
+    }
+
+    protected def macEntryPath(nwId: UUID, mac: String, portId: UUID) = {
+        val entry = MacPortMap.encodePersistentPath(MAC.fromString(mac), portId)
+        pathBldr.getBridgeMacPortEntryPath(nwId, Bridge.UNTAGGED_VLAN_ID, entry)
+    }
 }
 
 @RunWith(classOf[JUnitRunner])
@@ -491,6 +535,8 @@ class C3POMinionTest extends C3POMinionTestBase {
         network1.getAdminStateUp shouldBe true
         eventually(getLastProcessedIdFromTable shouldBe Some(2))
 
+        eventually(checkReplTables(network1Uuid, shouldExist = true))
+
         // Creates Network 2 and updates Network 1
         val network2Uuid = UUID.randomUUID()
         val network2Name = "corporate-network"
@@ -511,6 +557,7 @@ class C3POMinionTest extends C3POMinionTestBase {
             storage.get(classOf[Network], network2Uuid).await())
         network2.getId shouldBe toProto(network2Uuid)
         network2.getName shouldBe "corporate-network"
+        eventually(checkReplTables(network2Uuid, shouldExist = true))
 
         eventually {
             val network1a = storage.get(classOf[Network], network1Uuid).await()
@@ -526,13 +573,15 @@ class C3POMinionTest extends C3POMinionTestBase {
         eventually {
             storage.exists(classOf[Network], network1Uuid).await() shouldBe false
             getLastProcessedIdFromTable shouldBe Some(5)
+            checkReplTables(network1Uuid, shouldExist = false)
         }
 
         // Empties the Task table and flushes the Topology.
-        emptyTaskAndStateTablesAndSendFlushTask()
+        emptyTaskAndStateTablesAndFlushTopology()
 
         eventually {
             storage.exists(classOf[Network], network2Uuid).await() shouldBe false
+            checkReplTables(network2Uuid, shouldExist = false)
         }
 
         // Can create Network 1 & 2 again.
@@ -549,6 +598,8 @@ class C3POMinionTest extends C3POMinionTestBase {
                 nwExists shouldBe true
             }
             getLastProcessedIdFromTable shouldBe Some(3)
+            checkReplTables(network1Uuid, shouldExist = true)
+            checkReplTables(network2Uuid, shouldExist = true)
         }
     }
 
@@ -567,8 +618,10 @@ class C3POMinionTest extends C3POMinionTestBase {
         }
 
         // Creates a VIF port.
+        val portMac = MAC.random().toString
         val vifPortJson = portJson(name = "port1", id = vifPortUuid,
-                                   networkId = network1Uuid).toString
+                                   networkId = network1Uuid,
+                                   macAddr = portMac).toString
         executeSqlStmts(insertTaskSql(
                 id = 3, Create, PortType, vifPortJson, vifPortUuid, "tx2"))
 
@@ -580,18 +633,27 @@ class C3POMinionTest extends C3POMinionTestBase {
         val network1 = storage.get(classOf[Network], network1Uuid).await()
         network1.getPortIdsList should contain (vifPortId)
 
-        // Update the port admin status. Through the Neutron API, you cannot
-        // change the Network the port is attached to.
+        eventually(curator.checkExists.forPath(
+            macEntryPath(network1Uuid, portMac, vifPortId)) shouldNot be(null))
+
+        // Update the port admin status and MAC address. Through the Neutron
+        // API, you cannot change the Network the port is attached to.
+        val portMac2 = MAC.random().toString
         val vifPortUpdate = portJson(name = "port1", id = vifPortUuid,
                                      networkId = network1Uuid,
-                                     adminStateUp = false      // Down now.
-                                     ).toString
+                                     adminStateUp = false,      // Down now.
+                                     macAddr = portMac2).toString
         executeSqlStmts(insertTaskSql(
                 id = 4, Update, PortType, vifPortUpdate, vifPortUuid, "tx3"))
 
         eventually {
             val updatedVifPort = storage.get(classOf[Port], vifPortId).await()
             updatedVifPort.getAdminStateUp shouldBe false
+            curator.checkExists.forPath(
+                macEntryPath(network1Uuid, portMac, vifPortId)) shouldBe null
+            curator.checkExists.forPath(
+                macEntryPath(network1Uuid,
+                             portMac2, vifPortId)) shouldNot be(null)
         }
 
         // Deleting a network while ports are attached should throw exception.
@@ -605,6 +667,8 @@ class C3POMinionTest extends C3POMinionTestBase {
 
         eventually {
             storage.exists(classOf[Port], vifPortId).await() shouldBe false
+            curator.checkExists.forPath(
+                macEntryPath(network1Uuid, portMac2, vifPortId)) shouldBe null
         }
         // Back reference was cleared.
         val finalNw1 = storage.get(classOf[Network], network1Uuid).await()

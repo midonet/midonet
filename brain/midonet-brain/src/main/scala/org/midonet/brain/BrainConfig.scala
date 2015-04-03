@@ -75,6 +75,7 @@ class C3POConfig(val conf: Config) extends ScheduledMinionConfig[C3POMinion] {
     def jdbcDriver = conf.getString("neutron_importer.jdbc_driver_class")
     def user = conf.getString("neutron_importer.user")
     def password = conf.getString("neutron_importer.password")
+    def legacyZkRoot = conf.getString("zoo")
 }
 
 class HeartbeatConfig(val conf: Config) extends ScheduledMinionConfig[Heartbeat] {

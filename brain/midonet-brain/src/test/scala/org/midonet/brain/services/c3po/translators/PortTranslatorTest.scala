@@ -29,6 +29,7 @@ import org.scalatest.{BeforeAndAfter, FlatSpec, Matchers}
 
 import org.midonet.brain.services.c3po.C3POStorageManager.{OpType, Operation}
 import org.midonet.brain.services.c3po.{midonet, neutron}
+import org.midonet.cluster.data.Bridge
 import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.ModelsUtil._
@@ -36,7 +37,8 @@ import org.midonet.cluster.models.Neutron.{NeutronPort, NeutronSubnet}
 import org.midonet.cluster.models.Topology.{Chain, Dhcp, IpAddrGroup, Network, Port, Router, Rule, _}
 import org.midonet.cluster.util.UUIDUtil.randomUuidProto
 import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil, UUIDUtil}
-import org.midonet.packets.{ARP, IPv4, IPv6}
+import org.midonet.midolman.state.{MacPortMap, PathBuilder}
+import org.midonet.packets.{MAC, ARP, IPv4, IPv6}
 
 trait OpMatchers {
     /**
@@ -92,6 +94,9 @@ class PortTranslatorTest extends FlatSpec with BeforeAndAfter
                                           with OpMatchers {
     protected var storage: ReadOnlyStorage = _
     protected var translator: PortTranslator = _
+
+    protected val zkRoot = "/midonet/test"
+    protected val pathBldr = new PathBuilder(zkRoot)
 
     protected val portId = randomUuidProto
     protected val portJUuid = UUIDUtil.fromProto(portId)
@@ -204,6 +209,13 @@ class PortTranslatorTest extends FlatSpec with BeforeAndAfter
                     if c.getId == chainId && op == OpType.Update => c
         }.orNull
     }
+
+    protected def macEntryPath(nwId: UUID, mac: String, portId: UUID) = {
+        val entry = MacPortMap.encodePersistentPath(
+            MAC.fromString(mac), UUIDUtil.fromProto(portId))
+        pathBldr.getBridgeMacPortEntryPath(UUIDUtil.fromProto(networkId),
+                                           Bridge.UNTAGGED_VLAN_ID, entry)
+    }
 }
 
 /* Contains common constructs for testing VIF port CRUD translation. */
@@ -274,7 +286,7 @@ class VifPortTranslationTest extends PortTranslatorTest {
 class VifPortCreateTranslationTest extends VifPortTranslationTest {
     before {
         storage = mock(classOf[ReadOnlyStorage])
-        translator = new PortTranslator(storage)
+        translator = new PortTranslator(storage, pathBldr)
 
         when(storage.get(classOf[NeutronSubnet], nIpv4Subnet1Id))
             .thenReturn(Promise.successful(nIpv4Subnet1).future)
@@ -306,15 +318,6 @@ class VifPortCreateTranslationTest extends VifPortTranslationTest {
         midoOps should contain (midonet.Create(mPortWithChains))
 
         // Security bindings.
-        val inboundChain = mChainFromTxt(s"""
-            id { $inboundChainId }
-            name: "OS_PORT_${portJUuid}_INBOUND"
-            """)
-        val outboundChain = mChainFromTxt(s"""
-            id { $outboundChainId }
-            name: "OS_PORT_${portJUuid}_OUTBOUND"
-            """)
-
         val revFlowRuleOutbound = mRuleFromTxt(s"""
             type: LITERAL_RULE
             action: ACCEPT
@@ -432,6 +435,8 @@ class VifPortCreateTranslationTest extends VifPortTranslationTest {
         midoOps should containOp[Message] (midonet.Create(jumpRuleOut2))
         midoOps should containOp[Message] (midonet.Create(dropNonArpIn))
         midoOps should containOp[Message] (midonet.Create(dropNonArpOut))
+        midoOps should contain(
+            midonet.CreateNode(macEntryPath(networkId, mac, portId), null))
 
         // IP Address Groups.
         val ipAddrGrp1 = mIpAddrGroupFromTxt(s"""
@@ -461,7 +466,7 @@ class VifPortCreateTranslationTest extends VifPortTranslationTest {
             outbound_chain_id { $ipAddrGroup2OutChainId }
             """)
         midoOps should contain (midonet.Update(ipAddrGrp1))
-        midoOps should contain (midonet.Update(ipAddrGrp1))
+        midoOps should contain (midonet.Update(ipAddrGrp2))
     }
 
     // TODO test that VIF port CREATE creates an external network route if the
@@ -477,7 +482,7 @@ class VifPortCreateTranslationTest extends VifPortTranslationTest {
 class VifPortUpdateDeleteTranslationTest extends VifPortTranslationTest {
     before {
         storage = mock(classOf[ReadOnlyStorage])
-        translator = new PortTranslator(storage)
+        translator = new PortTranslator(storage, pathBldr)
 
         when(storage.get(classOf[Dhcp], nIpv4Subnet1Id))
             .thenReturn(Promise.successful(mIpv4DhcpWithHostAdded).future)
@@ -686,20 +691,22 @@ class VifPortUpdateDeleteTranslationTest extends VifPortTranslationTest {
         val ipAddrGrp2 = mIpAddrGroupFromTxt(s"""
             id { $sgId2 }
             ip_addr_ports {
-                ip_address { $ipv4Addr1 }
+                ip_address { $updatedFixedIp }
                 port_id { $portId }
             }
             inbound_chain_id { $ipAddrGroup2InChainId }
             outbound_chain_id { $ipAddrGroup2OutChainId }
             """)
         midoOps should contain (midonet.Update(ipAddrGrp1))
-        midoOps should contain (midonet.Update(ipAddrGrp1))
+        midoOps should contain (midonet.Update(ipAddrGrp2))
     }
 
     "DELETE VIF port with fixed IPs" should "delete the MidoNet Port" in {
         val midoOps = translator.translate(
                 neutron.Delete(classOf[NeutronPort], portId))
         midoOps should contain (midonet.Delete(classOf[Port], portId))
+        midoOps should contain (
+            midonet.DeleteNode(macEntryPath(networkId, mac, portId)))
     }
 
     "DELETE VIF port with fixed IPs" should "delete DHCP host entries and " +
@@ -717,6 +724,8 @@ class VifPortUpdateDeleteTranslationTest extends VifPortTranslationTest {
         midoOps should contain (midonet.Delete(classOf[Rule], inChainRule3))
         midoOps should contain (midonet.Delete(classOf[Chain], inboundChainId))
         midoOps should contain (midonet.Delete(classOf[Chain], outboundChainId))
+        midoOps should contain (
+            midonet.DeleteNode(macEntryPath(networkId, mac, portId)))
 
         val ipAddrGrp1 = mIpAddrGroupFromTxt(s"""
             id { $sgId1 }
@@ -729,7 +738,7 @@ class VifPortUpdateDeleteTranslationTest extends VifPortTranslationTest {
             outbound_chain_id { $ipAddrGroup2OutChainId }
             """)
         midoOps should contain (midonet.Update(ipAddrGrp1))
-        midoOps should contain (midonet.Update(ipAddrGrp1))
+        midoOps should contain (midonet.Update(ipAddrGrp2))
     }
 }
 
@@ -805,7 +814,7 @@ class DhcpPortTranslationTest extends PortTranslatorTest {
 class DhcpPortCreateTranslationTest extends DhcpPortTranslationTest {
     before {
         storage = mock(classOf[ReadOnlyStorage])
-        translator = new PortTranslator(storage)
+        translator = new PortTranslator(storage, pathBldr)
 
         def mockGet[M](clazz: Class[M], id: UUID, msg: M) =
             when(storage.get(clazz, id))
@@ -827,7 +836,7 @@ class DhcpPortCreateTranslationTest extends DhcpPortTranslationTest {
                       .asInstanceOf[List[Operation]]
 
         midoOps.size shouldBe 4
-        midoOps(0) shouldBe midonet.Create(mRouteFromTxt(s"""
+        midoOps.head shouldBe midonet.Create(mRouteFromTxt(s"""
             id { ${RouteManager.metadataServiceRouteId(peerRouterPortId)} }
             src_subnet { $ipv4Subnet1 }
             dst_subnet { ${IPSubnetUtil.toProto("169.254.169.254/32")} }
@@ -883,7 +892,7 @@ class DhcpPortUpdateDeleteTranslationTest extends DhcpPortTranslationTest {
 
     before {
         storage = mock(classOf[ReadOnlyStorage])
-        translator = new PortTranslator(storage)
+        translator = new PortTranslator(storage, pathBldr)
 
         def mockGet[M](clazz: Class[M], id: UUID, msg: M) =
             when(storage.get(clazz, id))
@@ -926,7 +935,7 @@ class DhcpPortUpdateDeleteTranslationTest extends DhcpPortTranslationTest {
 class FloatingIpPortTranslationTest extends PortTranslatorTest {
     before {
         storage = mock(classOf[ReadOnlyStorage])
-        translator = new PortTranslator(storage)
+        translator = new PortTranslator(storage, pathBldr)
 
         when(storage.get(classOf[Port], portId))
             .thenReturn(Promise.successful(midoPortBaseUp).future)
@@ -961,7 +970,7 @@ class FloatingIpPortTranslationTest extends PortTranslatorTest {
 class RouterInterfacePortTranslationTest extends PortTranslatorTest {
     before {
         storage = mock(classOf[ReadOnlyStorage])
-        translator = new PortTranslator(storage)
+        translator = new PortTranslator(storage, pathBldr)
 
         when(storage.get(classOf[Port], portId))
             .thenReturn(Promise.successful(midoPortBaseUp).future)
@@ -996,7 +1005,7 @@ class RouterInterfacePortTranslationTest extends PortTranslatorTest {
 class RouterGatewayPortTranslationTest extends PortTranslatorTest {
     before {
         storage = mock(classOf[ReadOnlyStorage])
-        translator = new PortTranslator(storage)
+        translator = new PortTranslator(storage, pathBldr)
 
         when(storage.get(classOf[Port], portId))
             .thenReturn(Promise.successful(midoPortBaseUp).future)
