@@ -30,10 +30,13 @@ import org.midonet.api.rest_api.FuncTest;
 import org.midonet.client.MidonetApi;
 import org.midonet.client.VendorMediaType;
 import org.midonet.client.resource.Router;
-import org.midonet.cluster.data.SystemState;
 import org.midonet.cluster.backend.zookeeper.StateAccessException;
+import org.midonet.cluster.data.SystemState.State;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.midonet.cluster.data.SystemState.Availability.READONLY;
+import static org.midonet.cluster.data.SystemState.Availability.READWRITE;
+import static org.midonet.cluster.data.SystemState.State.UPGRADE;
 
 public class TestSystemState extends JerseyTest {
 
@@ -59,63 +62,49 @@ public class TestSystemState extends JerseyTest {
         org.midonet.client.resource.SystemState systemState =
                 api.getSystemState();
         assertThat("The state should be 'ACTIVE'",
-                systemState.getState().equals(
-                        SystemState.State.ACTIVE.toString()));
+                systemState.getState().equals(State.ACTIVE.toString()));
         assertThat("The Availability should be 'NORMAL'",
-                systemState.getAvailability().equals(
-                        SystemState.Availability.READWRITE.toString()));
+                systemState.getAvailability().equals(READWRITE.toString()));
 
-        systemState.setAvailability(
-                SystemState.Availability.READONLY.toString());
+        systemState.setAvailability(READONLY.toString());
         systemState.update();
         org.midonet.client.resource.SystemState systemState1
                 = api.getSystemState();
 
         assertThat("The state should be 'ACTIVE'",
-                systemState1.getState().equals(
-                        SystemState.State.ACTIVE.toString()));
+                   systemState1.getState().equals(State.ACTIVE.toString()));
         assertThat("The Availability should be 'LIMITED'",
-                systemState1.getAvailability().equals(
-                        SystemState.Availability.READONLY.toString()));
+                   systemState1.getAvailability().equals(READONLY.toString()));
 
-        systemState.setState(
-                SystemState.State.UPGRADE.toString());
+        systemState.setState(UPGRADE.toString());
         systemState.update();
-        org.midonet.client.resource.SystemState systemState2
-                = api.getSystemState();
+        org.midonet.client.resource.SystemState systemState2 =
+            api.getSystemState();
 
         assertThat("The state should be 'UPGRADE'",
-                systemState2.getState().equals(
-                        SystemState.State.UPGRADE.toString()));
+                   systemState2.getState().equals(UPGRADE.toString()));
         assertThat("The availability should be 'LIMITED'",
-                systemState2.getAvailability().equals(
-                        SystemState.Availability.READONLY.toString()));
+                systemState2.getAvailability().equals(READONLY.toString()));
 
-        systemState.setAvailability(
-                SystemState.Availability.READWRITE.toString());
+        systemState.setAvailability(READWRITE.toString());
         systemState.update();
         org.midonet.client.resource.SystemState systemState3
                 = api.getSystemState();
 
         assertThat("The state should be 'UPGRADE'",
-                systemState3.getState().equals(
-                        SystemState.State.UPGRADE.toString()));
+                systemState3.getState().equals(UPGRADE.toString()));
         assertThat("The Availability should be 'NORMAL'",
-                systemState3.getAvailability().equals(
-                        SystemState.Availability.READWRITE.toString()));
+                systemState3.getAvailability().equals(READWRITE.toString()));
 
-        systemState.setState(
-                SystemState.State.ACTIVE.toString());
+        systemState.setState(State.ACTIVE.toString());
         systemState.update();
         org.midonet.client.resource.SystemState systemState4
                 = api.getSystemState();
 
         assertThat("The state should be 'ACTIVE'",
-                systemState4.getState().equals(
-                        SystemState.State.ACTIVE.toString()));
+                systemState4.getState().equals(State.ACTIVE.toString()));
         assertThat("The Availability should be 'NORMAL'",
-                systemState4.getAvailability().equals(
-                        SystemState.Availability.READWRITE.toString()));
+                systemState4.getAvailability().equals(READWRITE.toString()));
     }
 
     @Test
@@ -123,7 +112,7 @@ public class TestSystemState extends JerseyTest {
         org.midonet.client.resource.SystemState systemState =
                 api.getSystemState();
 
-        systemState.setAvailability(SystemState.Availability.READWRITE.toString());
+        systemState.setAvailability(READWRITE.toString());
         systemState.update();
 
         // In NORMAL mode, we should be able to add routers.
@@ -139,7 +128,7 @@ public class TestSystemState extends JerseyTest {
 
         // In READ-ONLY mode, we should be able to GET routers, but not add any
 
-        systemState.setAvailability(SystemState.Availability.READONLY.toString());
+        systemState.setAvailability(READONLY.toString());
         systemState.update();
 
         boolean exThrown = false;
@@ -155,7 +144,7 @@ public class TestSystemState extends JerseyTest {
 
         // After allowing writes again, we should be able to add routers again.
 
-        systemState.setAvailability(SystemState.Availability.READWRITE.toString());
+        systemState.setAvailability(READWRITE.toString());
         systemState.update();
 
         api.addRouter().tenantId("FAKE").name("SHOULDNOTEXIST_TWO").create();

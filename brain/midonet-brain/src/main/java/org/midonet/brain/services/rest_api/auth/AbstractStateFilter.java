@@ -26,7 +26,6 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 import org.slf4j.Logger;
@@ -34,20 +33,12 @@ import org.slf4j.LoggerFactory;
 
 import org.midonet.brain.services.rest_api.VendorMediaType;
 import org.midonet.brain.services.rest_api.rest_api.ResponseUtils;
-import org.midonet.cluster.DataClient;
-import org.midonet.cluster.data.SystemState;
 import org.midonet.cluster.backend.zookeeper.StateAccessException;
 
-/**
- * Servlet filter for API server state
- */
 @Singleton
-public final class StateFilter implements Filter {
+public abstract class AbstractStateFilter implements Filter {
 
-    private final static Logger log = LoggerFactory.getLogger(StateFilter.class);
-
-    @Inject
-    private DataClient dataClient;
+    private final static Logger log = LoggerFactory.getLogger(AbstractStateFilter.class);
 
     /**
      * Called by the web container to indicate to a filter that it is being
@@ -80,10 +71,9 @@ public final class StateFilter implements Filter {
                 VendorMediaType.APPLICATION_SYSTEM_STATE_JSON,
                 VendorMediaType.APPLICATION_SYSTEM_STATE_JSON_V2};
 
-        String availability;
+        boolean isReadonly;
         try {
-            SystemState systemState = dataClient.systemStateGet();
-            availability = systemState.getAvailability();
+            isReadonly = isStateReadonly();
         } catch(StateAccessException ex) {
             ResponseUtils.setErrorResponse((HttpServletResponse) response,
                     HttpServletResponse.SC_SERVICE_UNAVAILABLE,
@@ -92,10 +82,8 @@ public final class StateFilter implements Filter {
             return;
         }
         String contentType = req.getContentType();
-        if (availability.equals(
-                SystemState.Availability.READONLY.toString()) &&
-                !req.getMethod().equals("GET") &&
-                (contentType != null)) {
+        if (isReadonly &&
+            !req.getMethod().equals("GET") && (contentType != null)) {
             // Allow all GET operations in limited mode, but also allow writes
             // to the admin level data. If the content-type is null, we can not
             // filter based on this.
@@ -116,6 +104,8 @@ public final class StateFilter implements Filter {
         chain.doFilter(request, response);
         log.debug("StateFilter: exiting doFilter.");
     }
+
+    public abstract boolean isStateReadonly() throws StateAccessException;
 
     /**
      * Called by the web container to indicate to a filter that it is being

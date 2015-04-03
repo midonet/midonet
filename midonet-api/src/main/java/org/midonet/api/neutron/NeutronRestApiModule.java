@@ -21,9 +21,6 @@ import com.google.inject.assistedinject.FactoryModuleBuilder;
 import org.midonet.api.neutron.loadbalancer.LBResource;
 import org.midonet.api.neutron.loadbalancer.LBResourceFactory;
 
-/**
- * Guice module for Neutron REST API.
- */
 public class NeutronRestApiModule extends AbstractModule {
 
     @Override

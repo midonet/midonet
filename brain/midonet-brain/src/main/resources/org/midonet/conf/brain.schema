@@ -102,7 +102,7 @@ vxgw {
     enabled : false
     enabled_description : """ """
 
-    with : " "
+    with : "org.midonet.brain.services.vxgw.VxlanGatewayService"
     with_description : """ """
 }
 
@@ -181,4 +181,19 @@ conf_api {
 
     http_port: 8459
     http_port_description : """ """
+}
+
+rest_api {
+    enabled : true
+    enabled_description : """ """
+
+    with : "org.midonet.brain.services.rest_api.Vladimir"
+    with_description : """ """
+
+    http_port: 8181
+    http_port_description : """ The port where the MidoNet REST API is exposed """
+
+    base_uri: midonet-api
+    base_uri_description : """ The root uri. Entering 'midonet-api' would make
+     the API available at http://<ip>/midonet-api"""
 }

@@ -17,7 +17,7 @@ package org.midonet.brain
 
 import java.util.concurrent.TimeUnit
 
-import com.typesafe.config.{ConfigFactory, Config}
+import com.typesafe.config.{Config, ConfigFactory}
 
 import org.midonet.brain.services.c3po.C3POMinion
 import org.midonet.brain.services.conf.ConfMinion
@@ -59,6 +59,7 @@ class BrainConfig(_conf: Config) {
     val topologyUpdater = new TopologyZoomUpdaterConfig(conf)
     val snoopy = new TopologySnoopyConfig(conf)
     val confApi = new ConfApiConfig(conf)
+    val restApi = new RestApiConfig(conf)
 }
 
 class EmbeddedClusterNodeConfig(conf: Config) {
@@ -126,4 +127,12 @@ class ConfApiConfig(val conf: Config) extends MinionConfig[ConfMinion] {
     override def minionClass = conf.getString("conf_api.with")
 
     def httpPort = conf.getInt("conf_api.http_port")
+}
+
+class RestApiConfig(val conf: Config) extends MinionConfig[ConfMinion] {
+    override def isEnabled = conf.getBoolean("rest_api.enabled")
+    override def minionClass = conf.getString("rest_api.with")
+
+    def httpPort = conf.getInt("rest_api.http_port")
+    def baseUri = conf.getString("rest_api.base_uri")
 }

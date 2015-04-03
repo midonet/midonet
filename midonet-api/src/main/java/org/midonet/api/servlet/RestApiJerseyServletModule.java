@@ -35,6 +35,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.midonet.api.auth.DataclientAuthModule;
+import org.midonet.api.auth.DataClientStateFilter;
 import org.midonet.api.network.NetworkModule;
 import org.midonet.api.neutron.NeutronRestApiModule;
 import org.midonet.api.rest_api.RestApiModule;
@@ -44,7 +45,6 @@ import org.midonet.brain.services.conf.ConfMinion;
 import org.midonet.brain.services.rest_api.auth.AuthContainerRequestFilter;
 import org.midonet.brain.services.rest_api.auth.AuthFilter;
 import org.midonet.brain.services.rest_api.auth.LoginFilter;
-import org.midonet.brain.services.rest_api.auth.StateFilter;
 import org.midonet.brain.services.rest_api.auth.cors.CrossOriginResourceSharingFilter;
 import org.midonet.brain.services.rest_api.error.ErrorModule;
 import org.midonet.brain.services.rest_api.error.ExceptionFilter;
@@ -174,7 +174,7 @@ public class RestApiJerseyServletModule extends JerseyServletModule {
         filter("/*").through(CrossOriginResourceSharingFilter.class);
         filter("/login").through(LoginFilter.class);
         filter("/*").through(AuthFilter.class);
-        filter("/*").through(StateFilter.class);
+        filter("/*").through(DataClientStateFilter.class);
 
         // Register servlet
         serve("/*").with(GuiceContainer.class, servletParams);

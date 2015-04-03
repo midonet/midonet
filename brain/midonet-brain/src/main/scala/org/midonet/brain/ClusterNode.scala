@@ -82,6 +82,7 @@ object ClusterNode extends App {
     private val minionDefs: List[MinionDef[ClusterMinion]] =
         List (new MinionDef("heartbeat", conf.hearbeat),
               new MinionDef("vxgw", conf.vxgw),
+              new MinionDef("rest_api", conf.restApi),
               new MinionDef("neutron-importer", conf.c3po),
               new MinionDef("topology", conf.topologyApi))
 
@@ -107,7 +108,7 @@ object ClusterNode extends App {
 
             // Minion definitions, used by the Daemon to start when appropriate
             minionDefs foreach { m =>
-                log.info(s"Register minion: ${m.name}")
+                log.info(s"Register minion: ${m.name} ${m.cfg.minionClass}")
                 install(MinionConfig.module(m.cfg))
             }
 

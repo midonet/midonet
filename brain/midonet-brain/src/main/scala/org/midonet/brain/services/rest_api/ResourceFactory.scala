@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.brain.services.rest_api.version;
 
-/**
- *  Version of MidoNet API
- */
-public class Version {
+package org.midonet.brain.services.rest_api
 
-    /**
-     * Indicates the current version of the REST API.
-     */
-    public static final String CURRENT = "v1.10";
-
+// TODO: make identical to org.midonet.api.rest_api.ResourceFactory
+trait ResourceFactory {
 }

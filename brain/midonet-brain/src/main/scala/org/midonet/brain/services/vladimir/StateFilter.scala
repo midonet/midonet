@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.brain.services.rest_api.version;
 
-/**
- *  Version of MidoNet API
- */
-public class Version {
+package org.midonet.brain.services.vladimir
 
-    /**
-     * Indicates the current version of the REST API.
-     */
-    public static final String CURRENT = "v1.10";
+import com.google.inject.Singleton
+import org.slf4j.LoggerFactory
 
+import org.midonet.brain.services.rest_api.auth.AbstractStateFilter
+
+@Singleton
+class StateFilter extends AbstractStateFilter {
+
+    override def isStateReadonly: Boolean = {
+        LoggerFactory.getLogger(this.getClass).error("The new StateFilter is " +
+                                                     "NOT IMPLEMENTED!!")
+        false
+    }
 }

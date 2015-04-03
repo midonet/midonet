@@ -57,9 +57,6 @@ import org.midonet.brain.services.rest_api.ResourceUriBuilder;
 import org.midonet.brain.services.rest_api.VendorMediaType;
 import org.midonet.brain.services.rest_api.version.Version;
 
-/**
- * The top application resource class.
- */
 @RequestScoped
 @Path(ResourceUriBuilder.ROOT)
 public class ApplicationResource extends AbstractResource {
