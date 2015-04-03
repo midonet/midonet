@@ -27,12 +27,12 @@ import com.sun.jersey.test.framework.WebAppDescriptor;
 import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.ObjectMapper;
 
+import org.midonet.api.servlet.JerseyGuiceTestServletContextListener;
+import org.midonet.brain.services.rest_api.HttpSupport;
 import org.midonet.brain.services.rest_api.auth.AuthConfig;
 import org.midonet.brain.services.rest_api.auth.MockAuthService;
-import org.midonet.brain.services.rest_api.auth.cors.CorsConfig;
 import org.midonet.brain.services.rest_api.serialization.ObjectMapperProvider;
 import org.midonet.brain.services.rest_api.serialization.WildCardJacksonJaxbJsonProvider;
-import org.midonet.api.servlet.JerseyGuiceTestServletContextListener;
 import org.midonet.conf.HostIdGenerator;
 
 public class FuncTest {
@@ -70,30 +70,30 @@ public class FuncTest {
 
         String zkRoot = ZK_ROOT_MIDOLMAN + "_" + UUID.randomUUID();
         return new WebAppDescriptor.Builder()
-                .contextListenerClass(JerseyGuiceTestServletContextListener.class)
+                .contextListenerClass(
+                    JerseyGuiceTestServletContextListener.class)
                 .filterClass(GuiceFilter.class)
                 .servletPath("/")
-                .contextParam(getConfigKey(CorsConfig.GROUP_NAME,
-                                           CorsConfig.ALLOW_ORIGIN_KEY), "*")
-                .contextParam(getConfigKey(CorsConfig.GROUP_NAME,
-                                           CorsConfig.ALLOW_HEADERS_KEY),
+                .contextParam(HttpSupport.ACCESS_CONTROL_ALLOW_ORIGIN_KEY, "*")
+                .contextParam(HttpSupport.ACCESS_CONTROL_ALLOW_HEADERS_KEY,
                               "Origin, X-Auth-Token, Content-Type, Accept")
-                .contextParam(getConfigKey(CorsConfig.GROUP_NAME,
-                                           CorsConfig.ALLOW_METHODS_KEY),
+                .contextParam(HttpSupport.ACCESS_CONTROL_ALLOW_METHODS_KEY,
                               "GET, POST, PUT, DELETE, OPTIONS")
-                .contextParam(getConfigKey(CorsConfig.GROUP_NAME,
-                                           CorsConfig.EXPOSE_HEADERS_KEY),
+                .contextParam(HttpSupport.ACCESS_CONTROL_EXPOSE_HEADERS_KEY,
                               "Location")
                 .contextParam(getConfigKey(AuthConfig.GROUP_NAME,
                                            AuthConfig.AUTH_PROVIDER),
                               MockAuthService.class.getCanonicalName())
                 .contextParam(getConfigKey("zookeeper",
                                            "zookeeper_hosts"),
-                                           FuncTest.ZK_TEST_SERVER)
-                .contextParam(getConfigKey("zookeeper", "curator_enabled"), "true")
-                .contextParam(getConfigKey("zookeeper", "midolman_root_key"), zkRoot)
+                              FuncTest.ZK_TEST_SERVER)
+                .contextParam(getConfigKey("zookeeper", "curator_enabled"),
+                              "true")
+                .contextParam(getConfigKey("zookeeper", "midolman_root_key"),
+                              zkRoot)
                 .contextParam(getConfigKey("zookeeper", "root_key"), zkRoot)
-                .contextParam(getConfigKey("zookeeper", "use_new_stack"), "false")
+                .contextParam(getConfigKey("zookeeper", "use_new_stack"),
+                              "false")
                 .contextPath(CONTEXT_PATH).clientConfig(config);
     }
 
