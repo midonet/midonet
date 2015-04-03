@@ -20,14 +20,15 @@ import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 
-import org.midonet.brain.services.c3po.midonet.{Create, Delete, MidoOp, Update}
+import org.midonet.brain.services.c3po.midonet.{Create, CreateNode, Delete, DeleteNode, MidoOp, Update}
 import org.midonet.brain.services.c3po.translators.PortManager._
-import org.midonet.cluster.data.storage.{UpdateValidator, ReadOnlyStorage}
+import org.midonet.cluster.data.storage.{ReadOnlyStorage, UpdateValidator}
 import org.midonet.cluster.models.Commons.{IPAddress, UUID}
 import org.midonet.cluster.models.Neutron.{NeutronPort, NeutronSubnet}
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.util.DhcpUtil.asRichDhcp
 import org.midonet.cluster.util.{IPSubnetUtil, UUIDUtil}
+import org.midonet.midolman.state.PathBuilder
 import org.midonet.packets.ARP
 import org.midonet.util.concurrent.toFutureOps
 
@@ -39,7 +40,8 @@ object PortTranslator {
         "OS_PORT_" + UUIDUtil.fromProto(portId) + "_OUTBOUND"
 }
 
-class PortTranslator(protected val storage: ReadOnlyStorage)
+class PortTranslator(protected val storage: ReadOnlyStorage,
+                     protected val pathBldr: PathBuilder)
         extends NeutronTranslator[NeutronPort]
         with ChainManager with PortManager with RouteManager with RuleManager {
     import org.midonet.brain.services.c3po.translators.PortTranslator._
@@ -60,6 +62,9 @@ class PortTranslator(protected val storage: ReadOnlyStorage)
             // Generate in/outbound chain IDs from Port ID.
             midoPortBldr.setInboundFilterId(inChainId(portId))
             midoPortBldr.setOutboundFilterId(outChainId(portId))
+
+            // Add MAC->port map entry.
+            midoOps += CreateNode(pathBldr.getBridgeMacPortEntryPath(nPort))
 
             // Add new DHCP host entries
             updateDhcpEntries(nPort,
@@ -97,6 +102,7 @@ class PortTranslator(protected val storage: ReadOnlyStorage)
                               portContext.midoDhcps,
                               delDhcpHost)
             deleteSecurityBindings(nPort, mPort, portContext)
+            midoOps += DeleteNode(pathBldr.getBridgeMacPortEntryPath(nPort))
         } else if (isDhcpPort(nPort)) {
             updateDhcpEntries(nPort,
                               portContext.midoDhcps,
@@ -134,6 +140,7 @@ class PortTranslator(protected val storage: ReadOnlyStorage)
                               addDhcpHost)
             updateSecurityBindings(nPort, oldNPort, mPort, portContext)
             addMidoOps(portContext, midoOps)
+            midoOps ++= macTableUpdateOps(oldNPort, nPort)
         }
         // TODO if a DHCP port, assert that the fixed IPs haven't changed.
 
@@ -408,6 +415,17 @@ class PortTranslator(protected val storage: ReadOnlyStorage)
             .setNetworkId(nPort.getNetworkId)
             .setAdminStateUp(nPort.getAdminStateUp)
 
+    private def macTableUpdateOps(oldPort: NeutronPort,
+                                  newPort: NeutronPort): MidoOpList = {
+        val ops = new MidoOpListBuffer
+        if (newPort.getMacAddress != oldPort.getMacAddress) {
+            if (oldPort.hasMacAddress)
+                ops += DeleteNode(pathBldr.getBridgeMacPortEntryPath(oldPort))
+            if (newPort.hasMacAddress)
+                ops += CreateNode(pathBldr.getBridgeMacPortEntryPath(newPort))
+        }
+        ops.toList
+    }
 }
 
 private[translators] object PortUpdateValidator extends UpdateValidator[Port] {

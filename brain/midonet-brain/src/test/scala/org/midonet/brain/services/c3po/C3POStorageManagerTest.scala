@@ -38,6 +38,7 @@ import org.midonet.cluster.models.Neutron.{NeutronNetwork, NeutronPort, NeutronR
 import org.midonet.cluster.models.Topology.{Network, Port}
 import org.midonet.cluster.services.c3po.C3POState
 import org.midonet.cluster.util.UUIDUtil.randomUuidProto
+import org.midonet.midolman.state.PathBuilder
 
 object C3POStorageManagerTest {
     /* Matches with a list starting with specified PersistenceOps. */
@@ -59,6 +60,7 @@ class C3POStorageManagerTest extends FlatSpec with BeforeAndAfterEach {
     val portId = randomUuidProto
     val tenantId = "neutron tenant"
     val networkName = "neutron test"
+    val zkRoot = "/midonet/v1"
     val adminStateUp = true
     val neutronNetwork = NeutronNetwork.newBuilder
                                        .setId(networkId)
@@ -81,6 +83,7 @@ class C3POStorageManagerTest extends FlatSpec with BeforeAndAfterEach {
                                     .setNetworkId(networkId)
                                     .setAdminStateUp(adminStateUp)
                                     .build
+    val pathBldr = new PathBuilder(zkRoot)
 
     var storage: Storage = _
     var storageManager: C3POStorageManager = _
@@ -105,7 +108,8 @@ class C3POStorageManagerTest extends FlatSpec with BeforeAndAfterEach {
 
     def setUpNetworkTranslator() = {
         val translators: TranslatorMap = new util.HashMap()
-        translators.put(classOf[NeutronNetwork], new NetworkTranslator(storage))
+        translators.put(classOf[NeutronNetwork],
+                        new NetworkTranslator(storage, pathBldr))
         storageManager.registerTranslators(translators)
     }
 

@@ -18,8 +18,10 @@ package org.midonet.brain.services.c3po
 
 import com.google.protobuf.Message
 
+import org.midonet.brain.services.c3po.C3POStorageManager.OpType
+import org.midonet.brain.services.c3po.C3POStorageManager.OpType.OpType
 import org.midonet.brain.services.c3po.C3POStorageManager.{OpType, Operation}
-import org.midonet.cluster.data.storage.{UpdateValidator, CreateOp, DeleteOp, UpdateOp}
+import org.midonet.cluster.data.storage._
 import org.midonet.cluster.models.Commons
 
 package object midonet {
@@ -49,4 +51,19 @@ package object midonet {
                                                 ignoreIfNotExists = true)
     }
 
+    case class CreateNode(path: String, value: String = null)
+        extends MidoOp[Nothing] {
+        override val opType = OpType.CreateNode
+        override def toPersistenceOp: PersistenceOp = CreateNodeOp(path, value)
+    }
+
+    case class UpdateNode(path: String, value: String) extends MidoOp[Nothing] {
+        override val opType = OpType.UpdateNode
+        override def toPersistenceOp: PersistenceOp = UpdateNodeOp(path, value)
+    }
+
+    case class DeleteNode(path: String) extends MidoOp[Nothing] {
+        override def opType: OpType = OpType.DeleteNode
+        override def toPersistenceOp: PersistenceOp = DeleteNodeOp(path)
+    }
 }
