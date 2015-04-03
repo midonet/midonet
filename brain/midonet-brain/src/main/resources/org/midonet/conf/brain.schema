@@ -102,7 +102,7 @@ vxgw {
     enabled : false
     enabled_description : """ """
 
-    with : " "
+    with : "org.midonet.brain.services.vxgw.VxlanGatewayService"
     with_description : """ """
 }
 
