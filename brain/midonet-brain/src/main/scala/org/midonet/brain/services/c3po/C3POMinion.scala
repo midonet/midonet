@@ -20,19 +20,21 @@ import javax.sql.DataSource
 
 import com.google.inject.Inject
 import com.google.protobuf.Message
+
 import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.recipes.leader.LeaderLatch
 import org.slf4j.LoggerFactory
 
 import org.midonet.brain.services.c3po.NeutronDeserializer.toMessage
 import org.midonet.brain.services.c3po.translators._
-import org.midonet.cluster.data.neutron.DataStateUpdater
 import org.midonet.brain.{BrainConfig, ClusterNode, ScheduledClusterMinion}
-import org.midonet.cluster.data.neutron.{SqlNeutronImporter, importer}
+import org.midonet.cluster.data.neutron.{DataStateUpdater, SqlNeutronImporter, importer}
 import org.midonet.cluster.models.Neutron._
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.c3po.C3POState
+import org.midonet.cluster.storage.MidonetBackendConfig
 import org.midonet.cluster.util.UUIDUtil
+import org.midonet.midolman.state.PathBuilder
 
 /** The service that translates and imports neutron models into the MidoNet
   * backend storage
@@ -47,7 +49,8 @@ class C3POMinion @Inject()(nodeContext: ClusterNode.Context,
                            config: BrainConfig,
                            dataSrc: DataSource,
                            backend: MidonetBackend,
-                           curator: CuratorFramework)
+                           curator: CuratorFramework,
+                           backendCfg: MidonetBackendConfig)
     extends ScheduledClusterMinion(nodeContext, config.c3po) {
 
     private val log = LoggerFactory.getLogger(classOf[C3POMinion])
@@ -121,6 +124,7 @@ class C3POMinion @Inject()(nodeContext: ClusterNode.Context,
 
     private def initDataManager(): C3POStorageManager = {
         val dataMgr = new C3POStorageManager(storage)
+        val pathBldr = new PathBuilder(backendCfg.rootKey)
         List(classOf[FloatingIp] -> new FloatingIpTranslator,
              classOf[NeutronHealthMonitor] -> new HealthMonitorTranslator,
              classOf[NeutronLoadBalancerPool] -> new LoadBalancerPoolTranslator,
@@ -128,10 +132,11 @@ class C3POMinion @Inject()(nodeContext: ClusterNode.Context,
                 new LoadBalancerPoolHealthMonitorTranslator,
              classOf[NeutronLoadBalancerPoolMember] ->
                 new LoadBalancerPoolMemberTranslator,
-             classOf[NeutronNetwork] -> new NetworkTranslator(storage),
+             classOf[NeutronNetwork] ->
+                new NetworkTranslator(storage, pathBldr),
              classOf[NeutronRouter] -> new RouterTranslator(storage),
              classOf[NeutronSubnet] -> new SubnetTranslator(storage),
-             classOf[NeutronPort] -> new PortTranslator(storage),
+             classOf[NeutronPort] -> new PortTranslator(storage, pathBldr),
              classOf[SecurityGroup] -> new SecurityGroupTranslator(storage),
              classOf[AgentMembership] -> new AgentMembershipTranslator(storage),
              classOf[NeutronVIP] -> new VipTranslator,
