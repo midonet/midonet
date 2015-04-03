@@ -15,7 +15,7 @@
  */
 package org.midonet.api.auth.cors;
 
-import org.midonet.api.VendorMediaType;
+import org.midonet.brain.services.rest_api.VendorMediaType;
 import org.midonet.api.rest_api.FuncTest;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;

@@ -15,20 +15,23 @@
  */
 package org.midonet.api.neutron;
 
+import java.util.UUID;
+
+import javax.ws.rs.core.Response;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.runners.MockitoJUnitRunner;
+
 import org.midonet.api.ResourceTest;
-import org.midonet.api.rest_api.ConflictHttpException;
-import org.midonet.api.rest_api.NotFoundHttpException;
+import org.midonet.brain.services.rest_api.neutron.NeutronUriBuilder;
+import org.midonet.brain.services.rest_api.rest_api.ConflictHttpException;
+import org.midonet.brain.services.rest_api.rest_api.NotFoundHttpException;
+import org.midonet.cluster.backend.zookeeper.StatePathExistsException;
 import org.midonet.cluster.data.neutron.Router;
 import org.midonet.cluster.data.neutron.RouterInterface;
 import org.midonet.midolman.state.NoStatePathException;
-import org.midonet.cluster.backend.zookeeper.StatePathExistsException;
-import org.mockito.runners.MockitoJUnitRunner;
-
-import javax.ws.rs.core.Response;
-import java.util.UUID;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doReturn;

@@ -17,12 +17,13 @@
 package org.midonet.api.network;
 
 import java.net.URI;
+
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import javax.xml.bind.annotation.XmlRootElement;
 
-import org.midonet.api.RelativeUriResource;
-import org.midonet.api.ResourceUriBuilder;
+import org.midonet.brain.services.rest_api.RelativeUriResource;
+import org.midonet.brain.services.rest_api.ResourceUriBuilder;
 import org.midonet.packets.IPv4;
 import org.midonet.packets.MAC;
 
@@ -37,7 +38,7 @@ public class IP4MacPair extends RelativeUriResource {
     @Pattern(regexp = MAC.regex)
     protected String macAddr;
 
-    /* Default constructor - for deserialization. */
+    @SuppressWarnings("unused") // required for deserialization
     public IP4MacPair() {}
 
     public IP4MacPair(String ip, String macAddr) {
@@ -64,7 +65,7 @@ public class IP4MacPair extends RelativeUriResource {
     @Override
     public URI getUri() {
         if (getParentUri() != null && macAddr != null && ip != null) {
-            return ResourceUriBuilder.getIP4MacPair(getParentUri(), this);
+            return ResourceUriBuilder.getIP4MacPair(getParentUri(), ip, macAddr);
         } else {
             return null;
         }

@@ -36,16 +36,16 @@ import java.util.Set;
 import java.util.UUID;
 
 import static org.junit.Assert.assertEquals;
-import static org.midonet.api.VendorMediaType.APPLICATION_HEALTH_MONITOR_JSON;
-import static org.midonet.api.VendorMediaType.APPLICATION_LOAD_BALANCER_JSON;
-import static org.midonet.api.VendorMediaType.APPLICATION_POOL_COLLECTION_JSON;
-import static org.midonet.api.VendorMediaType.APPLICATION_POOL_JSON;
-import static org.midonet.api.VendorMediaType.APPLICATION_POOL_MEMBER_COLLECTION_JSON;
-import static org.midonet.api.VendorMediaType.APPLICATION_POOL_MEMBER_JSON;
-import static org.midonet.api.VendorMediaType.APPLICATION_ROUTER_JSON;
-import static org.midonet.api.VendorMediaType.APPLICATION_ROUTER_JSON_V2;
-import static org.midonet.api.VendorMediaType.APPLICATION_VIP_COLLECTION_JSON;
-import static org.midonet.api.VendorMediaType.APPLICATION_VIP_JSON;
+import static org.midonet.brain.services.rest_api.VendorMediaType.APPLICATION_HEALTH_MONITOR_JSON;
+import static org.midonet.brain.services.rest_api.VendorMediaType.APPLICATION_LOAD_BALANCER_JSON;
+import static org.midonet.brain.services.rest_api.VendorMediaType.APPLICATION_POOL_COLLECTION_JSON;
+import static org.midonet.brain.services.rest_api.VendorMediaType.APPLICATION_POOL_JSON;
+import static org.midonet.brain.services.rest_api.VendorMediaType.APPLICATION_POOL_MEMBER_COLLECTION_JSON;
+import static org.midonet.brain.services.rest_api.VendorMediaType.APPLICATION_POOL_MEMBER_JSON;
+import static org.midonet.brain.services.rest_api.VendorMediaType.APPLICATION_ROUTER_JSON;
+import static org.midonet.brain.services.rest_api.VendorMediaType.APPLICATION_ROUTER_JSON_V2;
+import static org.midonet.brain.services.rest_api.VendorMediaType.APPLICATION_VIP_COLLECTION_JSON;
+import static org.midonet.brain.services.rest_api.VendorMediaType.APPLICATION_VIP_JSON;
 
 public class L4LBTestBase extends RestApiTestBase {
 

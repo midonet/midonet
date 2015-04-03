@@ -18,15 +18,16 @@ package org.midonet.api.network;
 
 import java.net.URI;
 import java.util.UUID;
+
 import javax.validation.GroupSequence;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import javax.validation.groups.Default;
 import javax.xml.bind.annotation.XmlRootElement;
 
-import org.midonet.api.RelativeUriResource;
-import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.network.validation.MacPortValid;
+import org.midonet.brain.services.rest_api.RelativeUriResource;
+import org.midonet.brain.services.rest_api.ResourceUriBuilder;
 import org.midonet.packets.MAC;
 import org.midonet.util.version.Since;
 
@@ -63,7 +64,8 @@ public class MacPort  extends RelativeUriResource {
     @Override
     public URI getUri() {
         if (getParentUri() != null && macAddr != null) {
-            return ResourceUriBuilder.getMacPort(getParentUri(), this);
+            return ResourceUriBuilder.getMacPort(getParentUri(), macAddr,
+                                                 vlanId, portId);
         } else {
             return null;
         }

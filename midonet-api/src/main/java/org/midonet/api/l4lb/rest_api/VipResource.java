@@ -16,32 +16,10 @@
 
 package org.midonet.api.l4lb.rest_api;
 
-import com.google.inject.Inject;
-import com.google.inject.assistedinject.Assisted;
-import com.google.inject.servlet.RequestScoped;
-import org.midonet.api.ResourceUriBuilder;
-import org.midonet.api.VendorMediaType;
-import org.midonet.api.auth.AuthRole;
-import org.midonet.api.l4lb.VIP;
-import org.midonet.api.rest_api.AbstractResource;
-import org.midonet.api.rest_api.BadRequestHttpException;
-import org.midonet.api.rest_api.ConflictHttpException;
-import org.midonet.api.rest_api.NotFoundHttpException;
-import org.midonet.api.rest_api.RestApiConfig;
-import org.midonet.api.rest_api.ServiceUnavailableHttpException;
-import org.midonet.api.validation.MessageProperty;
-import org.midonet.cluster.DataClient;
-import org.midonet.event.topology.VipEvent;
-import org.midonet.util.serialization.SerializationException;
-import org.midonet.midolman.state.InvalidStateOperationException;
-import org.midonet.midolman.state.NoStatePathException;
-import org.midonet.cluster.backend.zookeeper.StateAccessException;
-import org.midonet.cluster.backend.zookeeper.StatePathExistsException;
-import org.midonet.midolman.state.l4lb.MappingStatusException;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+
 import javax.annotation.security.RolesAllowed;
 import javax.validation.Validator;
 import javax.ws.rs.Consumes;
@@ -57,7 +35,31 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
-import static org.midonet.api.validation.MessageProperty.getMessage;
+import com.google.inject.Inject;
+import com.google.inject.assistedinject.Assisted;
+import com.google.inject.servlet.RequestScoped;
+
+import org.midonet.api.l4lb.VIP;
+import org.midonet.api.rest_api.AbstractResource;
+import org.midonet.api.rest_api.RestApiConfig;
+import org.midonet.brain.services.rest_api.ResourceUriBuilder;
+import org.midonet.brain.services.rest_api.VendorMediaType;
+import org.midonet.brain.services.rest_api.auth.AuthRole;
+import org.midonet.brain.services.rest_api.rest_api.BadRequestHttpException;
+import org.midonet.brain.services.rest_api.rest_api.ConflictHttpException;
+import org.midonet.brain.services.rest_api.rest_api.NotFoundHttpException;
+import org.midonet.brain.services.rest_api.rest_api.ServiceUnavailableHttpException;
+import org.midonet.brain.services.rest_api.validation.MessageProperty;
+import org.midonet.cluster.DataClient;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.StatePathExistsException;
+import org.midonet.event.topology.VipEvent;
+import org.midonet.midolman.state.InvalidStateOperationException;
+import org.midonet.midolman.state.NoStatePathException;
+import org.midonet.midolman.state.l4lb.MappingStatusException;
+import org.midonet.util.serialization.SerializationException;
+
+import static org.midonet.brain.services.rest_api.validation.MessageProperty.getMessage;
 
 @RequestScoped
 public class VipResource extends AbstractResource {
@@ -71,13 +73,6 @@ public class VipResource extends AbstractResource {
         super(config, uriInfo, context, dataClient, validator);
     }
 
-    /**
-     * Handler to GETting a list of VIPs
-     *
-     * @return The list of the VIPs.
-     * @throws StateAccessException
-     * @throws SerializationException
-     */
     @GET
     @RolesAllowed({ AuthRole.ADMIN })
     @Produces({ VendorMediaType.APPLICATION_VIP_COLLECTION_JSON,
@@ -100,14 +95,6 @@ public class VipResource extends AbstractResource {
         return vips;
     }
 
-    /**
-     * Handler to GETing the specific VIP
-     *
-     * @param id VIP ID from the request.
-     * @return  The VIP object.
-     * @throws StateAccessException
-     * @throws SerializationException
-     */
     @GET
     @RolesAllowed({ AuthRole.ADMIN })
     @Path("{id}")
@@ -125,13 +112,6 @@ public class VipResource extends AbstractResource {
         return vip;
     }
 
-    /**
-     * Handler to DELETing a VIP
-     *
-     * @param id VIP ID from the request.
-     * @throws StateAccessException
-     * @throws SerializationException
-     */
     @DELETE
     @RolesAllowed({ AuthRole.ADMIN })
     @Path("{id}")
@@ -148,16 +128,6 @@ public class VipResource extends AbstractResource {
         }
     }
 
-    /**
-     * Handler to POSTing a VIP
-     *
-     * @param vip The requested VIP object.
-     * @return Response for the POST request.
-     * @throws StateAccessException
-     * @throws InvalidStateOperationException
-     * @throws SerializationException
-     * @throws ConflictHttpException
-     */
     @POST
     @RolesAllowed({ AuthRole.ADMIN })
     @Consumes({ VendorMediaType.APPLICATION_VIP_JSON,
@@ -183,15 +153,6 @@ public class VipResource extends AbstractResource {
         }
     }
 
-    /**
-     * Handler to PUTing a VIP
-     *
-     * @param id  The UUID of the VIP to be updated.
-     * @param vip The requested VIP object.
-     * @throws StateAccessException
-     * @throws InvalidStateOperationException
-     * @throws SerializationException
-     */
     @PUT
     @RolesAllowed({ AuthRole.ADMIN })
     @Path("{id}")
@@ -213,9 +174,6 @@ public class VipResource extends AbstractResource {
         }
     }
 
-    /**
-     * Sub-resource class for pool's VIPs.
-     */
     @RequestScoped
     public static class PoolVipResource extends AbstractResource {
         private final UUID poolId;

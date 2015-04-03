@@ -39,29 +39,29 @@ import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.servlet.RequestScoped;
 
-import org.midonet.api.ResourceUriBuilder;
-import org.midonet.api.VendorMediaType;
-import org.midonet.api.auth.AuthRole;
 import org.midonet.api.l4lb.PoolMember;
 import org.midonet.api.rest_api.AbstractResource;
-import org.midonet.api.rest_api.BadRequestHttpException;
-import org.midonet.api.rest_api.ConflictHttpException;
-import org.midonet.api.rest_api.NotFoundHttpException;
 import org.midonet.api.rest_api.RestApiConfig;
-import org.midonet.api.rest_api.ServiceUnavailableHttpException;
-import org.midonet.api.validation.MessageProperty;
+import org.midonet.brain.services.rest_api.ResourceUriBuilder;
+import org.midonet.brain.services.rest_api.VendorMediaType;
+import org.midonet.brain.services.rest_api.auth.AuthRole;
+import org.midonet.brain.services.rest_api.rest_api.BadRequestHttpException;
+import org.midonet.brain.services.rest_api.rest_api.ConflictHttpException;
+import org.midonet.brain.services.rest_api.rest_api.NotFoundHttpException;
+import org.midonet.brain.services.rest_api.rest_api.ServiceUnavailableHttpException;
+import org.midonet.brain.services.rest_api.validation.MessageProperty;
 import org.midonet.cluster.DataClient;
-import org.midonet.event.topology.PoolMemberEvent;
-import org.midonet.util.serialization.SerializationException;
-import org.midonet.midolman.state.InvalidStateOperationException;
-import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.cluster.backend.zookeeper.StatePathExistsException;
+import org.midonet.event.topology.PoolMemberEvent;
+import org.midonet.midolman.state.InvalidStateOperationException;
+import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.l4lb.LBStatus;
 import org.midonet.midolman.state.l4lb.MappingStatusException;
+import org.midonet.util.serialization.SerializationException;
 
-import static org.midonet.api.validation.MessageProperty.RESOURCE_EXISTS;
-import static org.midonet.api.validation.MessageProperty.getMessage;
+import static org.midonet.brain.services.rest_api.validation.MessageProperty.RESOURCE_EXISTS;
+import static org.midonet.brain.services.rest_api.validation.MessageProperty.getMessage;
 
 @RequestScoped
 public class PoolMemberResource extends AbstractResource {
@@ -191,9 +191,6 @@ public class PoolMemberResource extends AbstractResource {
         }
     }
 
-    /**
-     * Sub-resource class for load pool's pool members.
-     */
     @RequestScoped
     public static class PoolPoolMemberResource extends AbstractResource {
         private final UUID poolId;

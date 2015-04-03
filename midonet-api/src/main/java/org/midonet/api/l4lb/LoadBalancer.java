@@ -16,8 +16,8 @@
 
 package org.midonet.api.l4lb;
 
-import org.midonet.api.ResourceUriBuilder;
-import org.midonet.api.UriResource;
+import org.midonet.brain.services.rest_api.ResourceUriBuilder;
+import org.midonet.brain.services.rest_api.UriResource;
 
 import javax.xml.bind.annotation.XmlRootElement;
 import java.net.URI;

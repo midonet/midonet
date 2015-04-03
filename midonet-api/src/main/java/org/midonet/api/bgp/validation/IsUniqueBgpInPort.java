@@ -16,15 +16,17 @@
 
 package org.midonet.api.bgp.validation;
 
-import org.midonet.api.validation.MessageProperty;
-
-import javax.validation.Constraint;
-import javax.validation.Payload;
 import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
-import static java.lang.annotation.ElementType.*;
+import javax.validation.Constraint;
+import javax.validation.Payload;
+
+import org.midonet.brain.services.rest_api.validation.MessageProperty;
+
+import static java.lang.annotation.ElementType.ANNOTATION_TYPE;
+import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 @Target({ TYPE, ANNOTATION_TYPE })

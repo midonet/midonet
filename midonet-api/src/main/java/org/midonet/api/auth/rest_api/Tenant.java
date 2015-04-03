@@ -16,8 +16,8 @@
 package org.midonet.api.auth.rest_api;
 
 import com.google.common.base.Objects;
-import org.midonet.api.ResourceUriBuilder;
-import org.midonet.api.UriResource;
+import org.midonet.brain.services.rest_api.ResourceUriBuilder;
+import org.midonet.brain.services.rest_api.UriResource;
 
 import java.net.URI;
 
@@ -39,7 +39,7 @@ public class Tenant extends UriResource {
         this.name = name;
     }
 
-    public Tenant(org.midonet.api.auth.Tenant tenant) {
+    public Tenant(org.midonet.brain.services.rest_api.auth.Tenant tenant) {
         this.id = tenant.getId();
         this.name = tenant.getName();
     }

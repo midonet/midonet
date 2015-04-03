@@ -29,7 +29,7 @@ import org.codehaus.jackson.type.JavaType;
 import org.junit.Before;
 import org.junit.Test;
 
-import org.midonet.api.ResourceUriBuilder;
+import org.midonet.brain.services.rest_api.ResourceUriBuilder;
 import org.midonet.api.rest_api.DtoWebResource;
 import org.midonet.api.rest_api.FuncTest;
 import org.midonet.api.rest_api.Topology;
@@ -64,7 +64,6 @@ import static org.junit.Assert.fail;
 import static org.midonet.client.VendorMediaType.APPLICATION_BRIDGE_JSON;
 import static org.midonet.client.VendorMediaType.APPLICATION_HOST_COLLECTION_JSON_V3;
 import static org.midonet.client.VendorMediaType.APPLICATION_HOST_JSON_V3;
-import static org.midonet.client.VendorMediaType.APPLICATION_INTERFACE_COLLECTION_JSON;
 import static org.midonet.client.VendorMediaType.APPLICATION_PORT_V2_JSON;
 
 public class TestHost extends JerseyTest {

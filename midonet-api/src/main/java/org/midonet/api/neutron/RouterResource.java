@@ -16,11 +16,14 @@
 package org.midonet.api.neutron;
 
 import com.google.inject.Inject;
-import org.midonet.api.auth.AuthRole;
-import org.midonet.api.rest_api.AbstractResource;
-import org.midonet.api.rest_api.ConflictHttpException;
-import org.midonet.api.rest_api.NotFoundHttpException;
+
 import org.midonet.api.rest_api.RestApiConfig;
+import org.midonet.brain.services.rest_api.auth.AuthRole;
+import org.midonet.api.rest_api.AbstractResource;
+import org.midonet.brain.services.rest_api.neutron.NeutronUriBuilder;
+import org.midonet.brain.services.rest_api.rest_api.ConflictHttpException;
+import org.midonet.brain.services.rest_api.rest_api.NotFoundHttpException;
+import org.midonet.brain.services.rest_api.validation.MessageProperty;
 import org.midonet.cluster.rest.neutron.NeutronMediaType;
 import org.midonet.cluster.data.Rule;
 import org.midonet.cluster.data.neutron.L3Api;
@@ -42,14 +45,13 @@ import javax.ws.rs.core.UriInfo;
 import java.util.List;
 import java.util.UUID;
 
-import static org.midonet.api.validation.MessageProperty.*;
+import static org.midonet.brain.services.rest_api.validation.MessageProperty.*;
 
 public class RouterResource extends AbstractResource {
 
     private final static Logger log = LoggerFactory.getLogger(
             RouterResource.class);
-    private final static RouterEvent ROUTER_EVENT =
-            new RouterEvent();
+    private final static RouterEvent ROUTER_EVENT = new RouterEvent();
 
     private final L3Api api;
 
@@ -76,7 +78,7 @@ public class RouterResource extends AbstractResource {
             log.info("RouterResource.create exiting {}", r);
             return Response.created(
                     NeutronUriBuilder.getRouter(
-                            getBaseUri(), r.id)).entity(r).build();
+                        getBaseUri(), r.id)).entity(r).build();
 
         } catch (StatePathExistsException e) {
             log.error("Duplicate resource error", e);

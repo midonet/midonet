@@ -28,14 +28,14 @@ import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
 
-import org.midonet.api.VendorMediaType;
+import org.midonet.brain.services.rest_api.VendorMediaType;
 import org.midonet.api.host.rest_api.HostTopology;
 import org.midonet.api.rest_api.DtoWebResource;
 import org.midonet.api.rest_api.FuncTest;
 import org.midonet.api.rest_api.RestApiTestBase;
 import org.midonet.api.rest_api.Topology;
 import org.midonet.api.servlet.JerseyGuiceTestServletContextListener;
-import org.midonet.api.validation.MessageProperty;
+import org.midonet.brain.services.rest_api.validation.MessageProperty;
 import org.midonet.client.MidonetApi;
 import org.midonet.client.dto.DtoBridge;
 import org.midonet.client.dto.DtoBridgePort;
@@ -58,11 +58,11 @@ import org.midonet.cluster.backend.zookeeper.StateAccessException;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
-import static org.midonet.api.VendorMediaType.APPLICATION_HOST_COLLECTION_JSON_V3;
-import static org.midonet.api.VendorMediaType.APPLICATION_HOST_INTERFACE_PORT_COLLECTION_JSON;
-import static org.midonet.api.VendorMediaType.APPLICATION_HOST_INTERFACE_PORT_JSON;
-import static org.midonet.api.VendorMediaType.APPLICATION_PORT_V2_JSON;
-import static org.midonet.api.VendorMediaType.APPLICATION_ROUTER_JSON_V2;
+import static org.midonet.brain.services.rest_api.VendorMediaType.APPLICATION_HOST_COLLECTION_JSON_V3;
+import static org.midonet.brain.services.rest_api.VendorMediaType.APPLICATION_HOST_INTERFACE_PORT_COLLECTION_JSON;
+import static org.midonet.brain.services.rest_api.VendorMediaType.APPLICATION_HOST_INTERFACE_PORT_JSON;
+import static org.midonet.brain.services.rest_api.VendorMediaType.APPLICATION_PORT_V2_JSON;
+import static org.midonet.brain.services.rest_api.VendorMediaType.APPLICATION_ROUTER_JSON_V2;
 
 @RunWith(Enclosed.class)
 public class TestHostInterfacePort {

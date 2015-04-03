@@ -15,9 +15,9 @@
  */
 package org.midonet.api.host;
 
-import org.midonet.cluster.data.TunnelZone;
-
 import java.util.UUID;
+
+import org.midonet.cluster.data.TunnelZone;
 
 public class TunnelZoneHostFactory {
 

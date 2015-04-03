@@ -16,11 +16,13 @@
 package org.midonet.api.neutron;
 
 import com.google.inject.Inject;
-import org.midonet.api.auth.AuthRole;
+
+import org.midonet.api.rest_api.RestApiConfig;
+import org.midonet.brain.services.rest_api.auth.AuthRole;
 import org.midonet.api.neutron.loadbalancer.LBResource;
 import org.midonet.api.neutron.loadbalancer.LBUriBuilder;
 import org.midonet.api.rest_api.AbstractResource;
-import org.midonet.api.rest_api.RestApiConfig;
+import org.midonet.brain.services.rest_api.neutron.NeutronUriBuilder;
 import org.midonet.cluster.rest.neutron.Neutron;
 import org.midonet.cluster.rest.neutron.NeutronMediaType;
 

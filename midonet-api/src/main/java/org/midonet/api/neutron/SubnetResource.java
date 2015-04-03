@@ -15,40 +15,51 @@
  */
 package org.midonet.api.neutron;
 
-import com.google.inject.Inject;
-import org.midonet.api.auth.AuthRole;
-import org.midonet.api.rest_api.AbstractResource;
-import org.midonet.api.rest_api.ConflictHttpException;
-import org.midonet.api.rest_api.NotFoundHttpException;
-import org.midonet.api.rest_api.RestApiConfig;
-import org.midonet.cluster.rest.neutron.NeutronMediaType;
-import org.midonet.cluster.data.neutron.NetworkApi;
-import org.midonet.cluster.data.neutron.Subnet;
-import org.midonet.event.neutron.SubnetEvent;
-import org.midonet.util.serialization.SerializationException;
-import org.midonet.midolman.state.NoStatePathException;
-import org.midonet.cluster.backend.zookeeper.StateAccessException;
-import org.midonet.cluster.backend.zookeeper.StatePathExistsException;
-import org.midonet.midolman.state.zkManagers.BridgeZkManager;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.annotation.security.RolesAllowed;
-import javax.ws.rs.*;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.core.UriInfo;
 import java.util.List;
 import java.util.UUID;
 
-import static org.midonet.api.validation.MessageProperty.*;
+import javax.annotation.security.RolesAllowed;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
+import javax.ws.rs.core.UriInfo;
+
+import com.google.inject.Inject;
+
+import org.slf4j.Logger;
+
+import org.midonet.api.rest_api.AbstractResource;
+import org.midonet.api.rest_api.RestApiConfig;
+import org.midonet.brain.services.rest_api.auth.AuthRole;
+import org.midonet.brain.services.rest_api.neutron.NeutronUriBuilder;
+import org.midonet.brain.services.rest_api.rest_api.ConflictHttpException;
+import org.midonet.brain.services.rest_api.rest_api.NotFoundHttpException;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.StatePathExistsException;
+import org.midonet.cluster.data.neutron.NetworkApi;
+import org.midonet.cluster.data.neutron.Subnet;
+import org.midonet.cluster.rest.neutron.NeutronMediaType;
+import org.midonet.event.neutron.SubnetEvent;
+import org.midonet.midolman.state.NoStatePathException;
+import org.midonet.midolman.state.zkManagers.BridgeZkManager;
+import org.midonet.util.serialization.SerializationException;
+
+import static org.midonet.brain.services.rest_api.validation.MessageProperty.RESOURCE_EXISTS;
+import static org.midonet.brain.services.rest_api.validation.MessageProperty.RESOURCE_NOT_FOUND;
+import static org.midonet.brain.services.rest_api.validation.MessageProperty.getMessage;
+import static org.slf4j.LoggerFactory.getLogger;
 
 public class SubnetResource extends AbstractResource {
 
-    private final static Logger log = LoggerFactory.getLogger(
-            SubnetResource.class);
-    private final static SubnetEvent SUBNET_EVENT =
-            new SubnetEvent();
+    private final static Logger log = getLogger(SubnetResource.class);
+    private final static SubnetEvent SUBNET_EVENT = new SubnetEvent();
 
     private final NetworkApi api;
 
@@ -74,7 +85,7 @@ public class SubnetResource extends AbstractResource {
             log.info("SubnetResource.create exiting {}", sub);
             return Response.created(
                     NeutronUriBuilder.getSubnet(
-                            getBaseUri(), sub.id)).entity(sub).build();
+                        getBaseUri(), sub.id)).entity(sub).build();
 
         } catch (StatePathExistsException e) {
             log.error("Duplicate resource error", e);

@@ -69,7 +69,33 @@ dependencies {
             libraries.rx,
             libraries.scala,
             libraries.typesafeconf,
-            libraries.zookeeper
+            libraries.zookeeper,
+
+            libraries.commons_codec,
+            libraries.commons_conf,
+            libraries.commons_lang,
+            libraries.commons_lang3,
+            libraries.guice_multibind,
+            libraries.guice_servlet,
+            libraries.hamcrest_core,
+            libraries.hamcrest_lib,
+            libraries.hibernate_validator,
+            libraries.jackson_jaxrs,
+            libraries.jackson_xc,
+            libraries.jcabi,
+            libraries.jersey_bundle,
+            libraries.jersey_client,
+            libraries.jersey_core,
+            libraries.jersey_guice,
+            libraries.jersey_json,
+            libraries.jsr250,
+            libraries.jsr311,
+            libraries.persistence,
+            libraries.typesafeconf,
+            libraries.validation,
+            libraries.vmware_midoapi
+
+    runtime libraries.aspectj
 
     testCompile libraries.curator_test,
                 libraries.hamcrest_lib,

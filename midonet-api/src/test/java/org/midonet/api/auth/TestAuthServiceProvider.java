@@ -28,12 +28,15 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import org.midonet.api.auth.cloudstack.CloudStackAuthService;
-import org.midonet.api.auth.cloudstack.CloudStackConfig;
-import org.midonet.api.auth.keystone.KeystoneConfig;
-import org.midonet.api.auth.keystone.v2_0.KeystoneService;
-import org.midonet.api.auth.vsphere.VSphereConfig;
-import org.midonet.api.auth.vsphere.VSphereSSOService;
+import org.midonet.brain.services.rest_api.auth.AuthConfig;
+import org.midonet.brain.services.rest_api.auth.AuthService;
+import org.midonet.brain.services.rest_api.auth.AuthServiceProvider;
+import org.midonet.brain.services.rest_api.auth.MockAuthConfig;
+import org.midonet.brain.services.rest_api.auth.MockAuthService;
+import org.midonet.brain.services.rest_api.auth.keystone.KeystoneConfig;
+import org.midonet.brain.services.rest_api.auth.keystone.v2_0.KeystoneService;
+import org.midonet.brain.services.rest_api.auth.vsphere.VSphereConfig;
+import org.midonet.brain.services.rest_api.auth.vsphere.VSphereSSOService;
 import org.midonet.cluster.DataClient;
 import org.midonet.config.ConfigProvider;
 import org.midonet.config.providers.ServletContextConfigProvider;
@@ -50,7 +53,6 @@ import static org.mockito.Mockito.when;
  * Supported plugins:
  *
  * - Keystone
- * - CloudStack
  * - vSphere
  * - Mock
  */
@@ -145,19 +147,6 @@ public class TestAuthServiceProvider {
                 customConfigProviderInjector.getProvider(AuthService.class);
 
         assertTrue(authServiceProvider.get() instanceof KeystoneService);
-    }
-
-    @Test
-    public void testInstalledCloudStackPlugin() {
-        when(mockAuthConfig.getAuthProvider())
-                .thenReturn(AuthServiceProvider.CLOUDSTACK_PLUGIN);
-        when(mockConfigProvider.getConfig(CloudStackConfig.class))
-                .thenReturn(mock(CloudStackConfig.class));
-
-        Provider<AuthService> authServiceProvider =
-                customConfigProviderInjector.getProvider(AuthService.class);
-
-        assertTrue(authServiceProvider.get() instanceof CloudStackAuthService);
     }
 
     @Test

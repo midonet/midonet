@@ -71,13 +71,13 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.midonet.api.VendorMediaType.APPLICATION_BRIDGE_JSON;
-import static org.midonet.api.VendorMediaType.APPLICATION_HOST_INTERFACE_PORT_JSON;
-import static org.midonet.api.VendorMediaType.APPLICATION_PORTGROUP_PORT_COLLECTION_JSON;
-import static org.midonet.api.VendorMediaType.APPLICATION_PORTGROUP_PORT_JSON;
-import static org.midonet.api.VendorMediaType.APPLICATION_PORT_LINK_JSON;
-import static org.midonet.api.VendorMediaType.APPLICATION_PORT_V2_COLLECTION_JSON;
-import static org.midonet.api.VendorMediaType.APPLICATION_PORT_V2_JSON;
+import static org.midonet.brain.services.rest_api.VendorMediaType.APPLICATION_BRIDGE_JSON;
+import static org.midonet.brain.services.rest_api.VendorMediaType.APPLICATION_HOST_INTERFACE_PORT_JSON;
+import static org.midonet.brain.services.rest_api.VendorMediaType.APPLICATION_PORTGROUP_PORT_COLLECTION_JSON;
+import static org.midonet.brain.services.rest_api.VendorMediaType.APPLICATION_PORTGROUP_PORT_JSON;
+import static org.midonet.brain.services.rest_api.VendorMediaType.APPLICATION_PORT_LINK_JSON;
+import static org.midonet.brain.services.rest_api.VendorMediaType.APPLICATION_PORT_V2_COLLECTION_JSON;
+import static org.midonet.brain.services.rest_api.VendorMediaType.APPLICATION_PORT_V2_JSON;
 
 @RunWith(Enclosed.class)
 public class TestPort {

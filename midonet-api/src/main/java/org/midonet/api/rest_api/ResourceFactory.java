@@ -52,9 +52,6 @@ import org.midonet.api.system_data.rest_api.WriteVersionResource;
 import org.midonet.packets.IPv4Subnet;
 import org.midonet.packets.IPv6Subnet;
 
-/**
- * Resource factory used by Guice to inject resource classes.
- */
 public interface ResourceFactory {
 
     TenantResource getTenantResource();

@@ -15,11 +15,11 @@
  */
 package org.midonet.api.network.rest_api;
 
-import org.midonet.api.auth.AuthAction;
-import org.midonet.api.auth.ForbiddenHttpException;
-import org.midonet.api.network.auth.BridgeAuthorizer;
-import org.midonet.api.rest_api.ResourceFactory;
 import org.midonet.api.rest_api.RestApiConfig;
+import org.midonet.brain.services.rest_api.auth.AuthAction;
+import org.midonet.brain.services.rest_api.auth.ForbiddenHttpException;
+import org.midonet.brain.services.rest_api.network.auth.BridgeAuthorizer;
+import org.midonet.api.rest_api.ResourceFactory;
 import org.midonet.cluster.DataClient;
 import org.junit.Before;
 import org.junit.Test;

@@ -32,11 +32,11 @@ import org.slf4j.LoggerFactory;
 
 import org.midonet.api.network.VTEPPort;
 import org.midonet.api.network.VtepBinding;
-import org.midonet.api.rest_api.BadGatewayHttpException;
-import org.midonet.api.rest_api.BadRequestHttpException;
-import org.midonet.api.rest_api.ConflictHttpException;
-import org.midonet.api.rest_api.GatewayTimeoutHttpException;
-import org.midonet.api.rest_api.NotFoundHttpException;
+import org.midonet.brain.services.rest_api.rest_api.BadGatewayHttpException;
+import org.midonet.brain.services.rest_api.rest_api.BadRequestHttpException;
+import org.midonet.brain.services.rest_api.rest_api.ConflictHttpException;
+import org.midonet.brain.services.rest_api.rest_api.GatewayTimeoutHttpException;
+import org.midonet.brain.services.rest_api.rest_api.NotFoundHttpException;
 import org.midonet.brain.southbound.vtep.VtepDataClient;
 import org.midonet.brain.southbound.vtep.VtepDataClientFactory;
 import org.midonet.brain.southbound.vtep.VtepNotConnectedException;
@@ -53,14 +53,14 @@ import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.packets.IPv4Addr;
 
-import static org.midonet.api.validation.MessageProperty.VTEP_BINDING_NOT_FOUND;
-import static org.midonet.api.validation.MessageProperty.VTEP_INACCESSIBLE;
-import static org.midonet.api.validation.MessageProperty.VTEP_MUST_USE_SAME_TUNNEL_ZONE;
-import static org.midonet.api.validation.MessageProperty.VTEP_NOT_FOUND;
-import static org.midonet.api.validation.MessageProperty.VTEP_PORT_NOT_FOUND;
-import static org.midonet.api.validation.MessageProperty.VTEP_PORT_VLAN_PAIR_ALREADY_USED;
-import static org.midonet.api.validation.MessageProperty.VTEP_TUNNEL_IP_NOT_FOUND;
-import static org.midonet.api.validation.MessageProperty.getMessage;
+import static org.midonet.brain.services.rest_api.validation.MessageProperty.VTEP_BINDING_NOT_FOUND;
+import static org.midonet.brain.services.rest_api.validation.MessageProperty.VTEP_INACCESSIBLE;
+import static org.midonet.brain.services.rest_api.validation.MessageProperty.VTEP_MUST_USE_SAME_TUNNEL_ZONE;
+import static org.midonet.brain.services.rest_api.validation.MessageProperty.VTEP_NOT_FOUND;
+import static org.midonet.brain.services.rest_api.validation.MessageProperty.VTEP_PORT_NOT_FOUND;
+import static org.midonet.brain.services.rest_api.validation.MessageProperty.VTEP_PORT_VLAN_PAIR_ALREADY_USED;
+import static org.midonet.brain.services.rest_api.validation.MessageProperty.VTEP_TUNNEL_IP_NOT_FOUND;
+import static org.midonet.brain.services.rest_api.validation.MessageProperty.getMessage;
 import static org.midonet.brain.southbound.vtep.VtepConstants.bridgeIdToLogicalSwitchName;
 import static org.midonet.brain.southbound.vtep.VtepConstants.logicalSwitchNameToBridgeId;
 
@@ -563,7 +563,7 @@ public class VtepClusterClient {
      * Tries to store a binding in the Midonet store, but will throw if the
      * port/vlan is already taken by any bridge (including the given one)
      *
-     * @throws org.midonet.api.rest_api.ConflictHttpException if the binding
+     * @throws org.midonet.brain.services.rest_api.rest_api.ConflictHttpException if the binding
      * already exsts.
      */
     private void tryStoreBinding(IPv4Addr mgmtIp, int mgmtPort,

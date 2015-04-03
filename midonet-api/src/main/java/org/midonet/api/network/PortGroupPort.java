@@ -15,10 +15,10 @@
  */
 package org.midonet.api.network;
 
-import org.midonet.api.UriResource;
-import org.midonet.api.network.validation.IsValidPortId;
-import org.midonet.api.ResourceUriBuilder;
-import org.midonet.api.network.validation.IsValidPortGroupId;
+import org.midonet.brain.services.rest_api.UriResource;
+import org.midonet.brain.services.rest_api.network.validation.IsValidPortId;
+import org.midonet.brain.services.rest_api.ResourceUriBuilder;
+import org.midonet.brain.services.rest_api.network.validation.IsValidPortGroupId;
 
 import javax.validation.GroupSequence;
 import javax.validation.constraints.NotNull;

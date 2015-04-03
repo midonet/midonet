@@ -15,20 +15,18 @@
  */
 package org.midonet.api.network;
 
-import org.midonet.api.ResourceUriBuilder;
-import org.midonet.api.UriResource;
-import org.midonet.api.network.validation.IsValidPortId;
-import org.midonet.api.network.validation.PortsLinkable;
+import java.net.URI;
+import java.util.UUID;
 
 import javax.validation.GroupSequence;
 import javax.validation.groups.Default;
 import javax.xml.bind.annotation.XmlRootElement;
-import java.net.URI;
-import java.util.UUID;
 
-/**
- * Port link DTO
- */
+import org.midonet.api.network.validation.PortsLinkable;
+import org.midonet.brain.services.rest_api.ResourceUriBuilder;
+import org.midonet.brain.services.rest_api.UriResource;
+import org.midonet.brain.services.rest_api.network.validation.IsValidPortId;
+
 @PortsLinkable(groups = Link.LinkCreateGroupExtended.class)
 @XmlRootElement
 public class Link extends UriResource {

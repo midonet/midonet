@@ -26,20 +26,19 @@ import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
+import org.midonet.brain.services.rest_api.rest_api.BadRequestHttpException;
+import org.midonet.brain.services.rest_api.rest_api.NotFoundHttpException;
 import org.midonet.cluster.DataClient;
-import org.midonet.cluster.data.Bridge;
-import org.midonet.util.serialization.SerializationException;
-import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.cluster.backend.zookeeper.StateAccessException;
+import org.midonet.cluster.data.Bridge;
+import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.packets.IPv4Addr;
+import org.midonet.util.serialization.SerializationException;
 
-import static org.midonet.api.validation.MessageProperty.IP_ADDR_INVALID_WITH_PARAM;
-import static org.midonet.api.validation.MessageProperty.RESOURCE_NOT_FOUND;
-import static org.midonet.api.validation.MessageProperty.getMessage;
+import static org.midonet.brain.services.rest_api.validation.MessageProperty.IP_ADDR_INVALID_WITH_PARAM;
+import static org.midonet.brain.services.rest_api.validation.MessageProperty.RESOURCE_NOT_FOUND;
+import static org.midonet.brain.services.rest_api.validation.MessageProperty.getMessage;
 
-/**
- * Base resource class.
- */
 public abstract class AbstractResource {
 
     protected final RestApiConfig config;

@@ -38,12 +38,12 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
-import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.rest_api.DtoWebResource;
 import org.midonet.api.rest_api.FuncTest;
 import org.midonet.api.rest_api.RestApiTestBase;
 import org.midonet.api.rest_api.Topology;
-import org.midonet.api.validation.MessageProperty;
+import org.midonet.brain.services.rest_api.ResourceUriBuilder;
+import org.midonet.brain.services.rest_api.validation.MessageProperty;
 import org.midonet.client.dto.DtoApplication;
 import org.midonet.client.dto.DtoBridge;
 import org.midonet.client.dto.DtoBridgePort;
@@ -278,7 +278,7 @@ public class TestBridge {
                 throws URISyntaxException {
             dtoResource.deleteAndVerifyNoContent(
                     ResourceUriBuilder.getMacPort(
-                            bridge.getUri(), vlanId, macAddr, portId),
+                            bridge.getUri(), macAddr, vlanId, portId),
                     APPLICATION_MAC_PORT_JSON_V2);
         }
 
@@ -287,7 +287,7 @@ public class TestBridge {
                 throws URISyntaxException {
             return dtoResource.deleteAndVerifyNotFound(
                     ResourceUriBuilder.getMacPort(
-                            bridgeUri, vlanId, macAddr, portId),
+                            bridgeUri, macAddr, vlanId, portId),
                     APPLICATION_JSON_V5);
         }
 
@@ -296,7 +296,7 @@ public class TestBridge {
                 throws URISyntaxException {
             return dtoResource.getAndVerifyOk(
                     ResourceUriBuilder.getMacPort(
-                            bridgeUri, vlanId, macAddr, portId),
+                        bridgeUri, macAddr, vlanId, portId),
                     APPLICATION_MAC_PORT_JSON_V2, DtoMacPort.class);
         }
 
@@ -305,7 +305,7 @@ public class TestBridge {
                 throws URISyntaxException {
             return dtoResource.getAndVerifyNotFound(
                     ResourceUriBuilder.getMacPort(
-                            bridgeUri, vlanId, macAddr, portId),
+                        bridgeUri, macAddr, vlanId, portId),
                     APPLICATION_MAC_PORT_JSON_V2);
         }
 
@@ -314,7 +314,7 @@ public class TestBridge {
                 throws URISyntaxException {
             return dtoResource.getAndVerifyBadRequest(
                     ResourceUriBuilder.getMacPort(
-                            bridgeUri, vlanId, macAddr, portId),
+                        bridgeUri, macAddr, vlanId, portId),
                     APPLICATION_MAC_PORT_JSON_V2);
         }
 

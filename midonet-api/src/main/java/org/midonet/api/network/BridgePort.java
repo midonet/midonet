@@ -19,7 +19,7 @@ import java.net.URI;
 import java.util.UUID;
 
 import com.google.common.base.Objects;
-import org.midonet.api.ResourceUriBuilder;
+import org.midonet.brain.services.rest_api.ResourceUriBuilder;
 
 /**
  * Class representing a bridge port.

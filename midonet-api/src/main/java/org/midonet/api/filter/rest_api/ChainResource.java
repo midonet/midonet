@@ -15,38 +15,47 @@
  */
 package org.midonet.api.filter.rest_api;
 
-import com.google.inject.Inject;
-import com.google.inject.servlet.RequestScoped;
-import org.midonet.api.ResourceUriBuilder;
-import org.midonet.api.VendorMediaType;
-import org.midonet.api.auth.AuthAction;
-import org.midonet.api.auth.AuthRole;
-import org.midonet.api.auth.Authorizer;
-import org.midonet.api.auth.ForbiddenHttpException;
-import org.midonet.api.filter.Chain;
-import org.midonet.api.filter.auth.ChainAuthorizer;
-import org.midonet.api.filter.rest_api.RuleResource.ChainRuleResource;
-import org.midonet.api.rest_api.*;
-import org.midonet.event.topology.ChainEvent;
-import org.midonet.cluster.DataClient;
-import org.midonet.util.serialization.SerializationException;
-import org.midonet.cluster.backend.zookeeper.StateAccessException;
-
-import javax.annotation.security.PermitAll;
-import javax.annotation.security.RolesAllowed;
-import javax.validation.Validator;
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.core.UriInfo;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-/**
- * Root resource class for chains.
- */
+import javax.annotation.security.PermitAll;
+import javax.annotation.security.RolesAllowed;
+import javax.validation.Validator;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
+import javax.ws.rs.core.UriInfo;
+
+import com.google.inject.Inject;
+import com.google.inject.servlet.RequestScoped;
+
+import org.midonet.api.filter.Chain;
+import org.midonet.api.filter.rest_api.RuleResource.ChainRuleResource;
+import org.midonet.api.rest_api.AbstractResource;
+import org.midonet.api.rest_api.ResourceFactory;
+import org.midonet.api.rest_api.RestApiConfig;
+import org.midonet.brain.services.rest_api.ResourceUriBuilder;
+import org.midonet.brain.services.rest_api.VendorMediaType;
+import org.midonet.brain.services.rest_api.auth.AuthAction;
+import org.midonet.brain.services.rest_api.auth.AuthRole;
+import org.midonet.brain.services.rest_api.auth.Authorizer;
+import org.midonet.brain.services.rest_api.auth.ForbiddenHttpException;
+import org.midonet.brain.services.rest_api.filter.auth.ChainAuthorizer;
+import org.midonet.brain.services.rest_api.rest_api.NotFoundHttpException;
+import org.midonet.cluster.DataClient;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
+import org.midonet.event.topology.ChainEvent;
+import org.midonet.util.serialization.SerializationException;
+
 @RequestScoped
 public class ChainResource extends AbstractResource {
 
@@ -65,14 +74,6 @@ public class ChainResource extends AbstractResource {
         this.factory = factory;
     }
 
-    /**
-     * Handler to deleting a chain.
-     *
-     * @param id
-     *            Chain ID from the request.
-     * @throws StateAccessException
-     *             Data access error.
-     */
     @DELETE
     @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })
     @Path("{id}")
@@ -94,15 +95,6 @@ public class ChainResource extends AbstractResource {
         chainEvent.delete(id);
     }
 
-    /**
-     * Handler to getting a chain.
-     *
-     * @param id
-     *            Chain ID from the request.
-     * @throws StateAccessException
-     *             Data access error.
-     * @return A Chain object.
-     */
     @GET
     @PermitAll
     @Path("{id}")
@@ -131,25 +123,12 @@ public class ChainResource extends AbstractResource {
         return chain;
     }
 
-    /**
-     * Rule resource locator for chains.
-     *
-     * @param id
-     *            Chain ID from the request.
-     * @return ChainRuleResource object to handle sub-resource requests.
-     */
     @Path("/{id}" + ResourceUriBuilder.RULES)
     public ChainRuleResource getRuleResource(@PathParam("id") UUID id) {
         return factory.getChainRuleResource(id);
     }
 
     /**
-     * Handler for creating a tenant chain.
-     *
-     * @param chain
-     *            Chain object.
-     * @throws StateAccessException
-     *             Data access error.
      * @return Response object with 201 status code set if successful.
      */
     @POST
@@ -173,13 +152,6 @@ public class ChainResource extends AbstractResource {
                 .build();
     }
 
-    /**
-     * Handler to getting a collection of chains.
-     *
-     * @throws StateAccessException
-     *             Data access error.
-     * @return A list of Chain objects.
-     */
     @GET
     @PermitAll
     @Produces({ VendorMediaType.APPLICATION_CHAIN_COLLECTION_JSON,

@@ -16,19 +16,8 @@
 
 package org.midonet.api.system_data.rest_api;
 
-import com.google.inject.Inject;
-import com.google.inject.servlet.RequestScoped;
-import org.midonet.api.ResourceUriBuilder;
-import org.midonet.api.VendorMediaType;
-import org.midonet.api.auth.AuthRole;
-import org.midonet.api.rest_api.AbstractResource;
-import org.midonet.api.rest_api.RestApiConfig;
-import org.midonet.api.system_data.HostVersion;
-import org.midonet.cluster.backend.zookeeper.StateAccessException;
-import org.midonet.cluster.DataClient;
-import org.midonet.util.collection.ListUtil;
-
-import com.google.common.base.Function;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.annotation.security.RolesAllowed;
 import javax.ws.rs.GET;
@@ -36,12 +25,21 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
-import java.util.ArrayList;
-import java.util.List;
 
-/**
- * Root Resource class for System State Data
- */
+import com.google.common.base.Function;
+import com.google.inject.Inject;
+import com.google.inject.servlet.RequestScoped;
+
+import org.midonet.api.rest_api.AbstractResource;
+import org.midonet.api.rest_api.RestApiConfig;
+import org.midonet.brain.services.rest_api.ResourceUriBuilder;
+import org.midonet.brain.services.rest_api.VendorMediaType;
+import org.midonet.brain.services.rest_api.auth.AuthRole;
+import org.midonet.brain.services.rest_api.system_data.HostVersion;
+import org.midonet.cluster.DataClient;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
+import org.midonet.util.collection.ListUtil;
+
 @RequestScoped
 public class HostVersionResource extends AbstractResource {
 
@@ -51,12 +49,6 @@ public class HostVersionResource extends AbstractResource {
         super(config, uriInfo, context, dataClient);
     }
 
-    /**
-     * Handler for GET requests to the system state data
-     *
-     * @return The system state info
-     * @throws StateAccessException
-     */
     @GET
     @RolesAllowed({AuthRole.ADMIN})
     @Produces({VendorMediaType.APPLICATION_HOST_VERSION_JSON, MediaType.APPLICATION_JSON})

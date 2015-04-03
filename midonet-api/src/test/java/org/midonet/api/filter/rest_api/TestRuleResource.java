@@ -15,10 +15,10 @@
  */
 package org.midonet.api.filter.rest_api;
 
-import org.midonet.api.auth.AuthAction;
-import org.midonet.api.auth.ForbiddenHttpException;
-import org.midonet.api.filter.auth.RuleAuthorizer;
 import org.midonet.api.rest_api.RestApiConfig;
+import org.midonet.brain.services.rest_api.auth.AuthAction;
+import org.midonet.brain.services.rest_api.auth.ForbiddenHttpException;
+import org.midonet.brain.services.rest_api.filter.auth.RuleAuthorizer;
 import org.midonet.cluster.DataClient;
 import org.junit.Before;
 import org.junit.Test;
@@ -56,7 +56,7 @@ public class TestRuleResource {
     @Before
     public void setUp() throws Exception {
         testObject = new RuleResource(config, uriInfo, context, auth,
-                dataClient);
+                                      dataClient);
     }
 
     @Test(expected = ForbiddenHttpException.class)

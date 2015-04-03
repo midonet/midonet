@@ -15,35 +15,47 @@
  */
 package org.midonet.api.network.rest_api;
 
-import com.google.inject.Inject;
-import com.google.inject.assistedinject.Assisted;
-import com.google.inject.servlet.RequestScoped;
-import org.midonet.api.ResourceUriBuilder;
-import org.midonet.api.VendorMediaType;
-import org.midonet.api.auth.AuthAction;
-import org.midonet.api.auth.AuthRole;
-import org.midonet.api.auth.Authorizer;
-import org.midonet.api.auth.ForbiddenHttpException;
-import org.midonet.api.network.PortGroup;
-import org.midonet.api.network.PortGroupPort;
-import org.midonet.api.network.auth.PortAuthorizer;
-import org.midonet.api.network.auth.PortGroupAuthorizer;
-import org.midonet.api.rest_api.*;
-import org.midonet.cluster.DataClient;
-import org.midonet.util.serialization.SerializationException;
-import org.midonet.cluster.backend.zookeeper.StateAccessException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
 import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
 import javax.validation.Validator;
-import javax.ws.rs.*;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+
+import com.google.inject.Inject;
+import com.google.inject.assistedinject.Assisted;
+import com.google.inject.servlet.RequestScoped;
+
+import org.midonet.api.network.PortGroup;
+import org.midonet.api.network.PortGroupPort;
+import org.midonet.api.network.auth.PortAuthorizer;
+import org.midonet.api.rest_api.AbstractResource;
+import org.midonet.api.rest_api.ResourceFactory;
+import org.midonet.api.rest_api.RestApiConfig;
+import org.midonet.brain.services.rest_api.ResourceUriBuilder;
+import org.midonet.brain.services.rest_api.VendorMediaType;
+import org.midonet.brain.services.rest_api.auth.AuthAction;
+import org.midonet.brain.services.rest_api.auth.AuthRole;
+import org.midonet.brain.services.rest_api.auth.Authorizer;
+import org.midonet.brain.services.rest_api.auth.ForbiddenHttpException;
+import org.midonet.brain.services.rest_api.network.auth.PortGroupAuthorizer;
+import org.midonet.brain.services.rest_api.rest_api.NotFoundHttpException;
+import org.midonet.cluster.DataClient;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
+import org.midonet.util.serialization.SerializationException;
 
 /**
  * Root resource class for port groups.
@@ -263,7 +275,7 @@ public class PortGroupResource extends AbstractResource {
             List<org.midonet.cluster.data.PortGroup> portGroupDataList =
                 fetchPortGroupsHelper();
 
-            List<PortGroup> portGroups = new ArrayList<PortGroup>();
+            List<PortGroup> portGroups = new ArrayList<>();
             if (portGroupDataList != null) {
                 for (org.midonet.cluster.data.PortGroup portGroupData :
                     portGroupDataList) {

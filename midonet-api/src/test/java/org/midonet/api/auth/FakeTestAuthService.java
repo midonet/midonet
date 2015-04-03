@@ -18,6 +18,12 @@ package org.midonet.api.auth;
 import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 
+import org.midonet.brain.services.rest_api.auth.AuthException;
+import org.midonet.brain.services.rest_api.auth.AuthService;
+import org.midonet.brain.services.rest_api.auth.Tenant;
+import org.midonet.brain.services.rest_api.auth.Token;
+import org.midonet.brain.services.rest_api.auth.UserIdentity;
+
 /**
  * This class is for testing purpose.
  * Used by the {@code TestAuthServiceProvider} to test the fallback mechanism

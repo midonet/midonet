@@ -26,13 +26,12 @@ import javax.validation.constraints.Null;
 import javax.validation.groups.Default;
 import javax.xml.bind.annotation.XmlRootElement;
 
-import org.midonet.api.ResourceUriBuilder;
-import org.midonet.api.UriResource;
+import org.midonet.brain.services.rest_api.ResourceUriBuilder;
+import org.midonet.brain.services.rest_api.UriResource;
 import org.midonet.api.network.validation.IsVxlanPortIdIntact;
-import org.midonet.api.validation.MessageProperty;
+import org.midonet.brain.services.rest_api.validation.MessageProperty;
 import org.midonet.cluster.data.Bridge.Property;
 import org.midonet.util.version.Since;
-import org.midonet.util.version.Until;
 
 /**
  * Class representing Virtual Bridge.

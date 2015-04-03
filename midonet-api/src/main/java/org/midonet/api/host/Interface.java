@@ -15,19 +15,17 @@
  */
 package org.midonet.api.host;
 
-import org.midonet.api.ResourceUriBuilder;
-import org.midonet.api.UriResource;
-import org.midonet.midolman.host.state.HostDirectory;
-import org.midonet.packets.MAC;
-
-import javax.xml.bind.annotation.XmlRootElement;
 import java.net.InetAddress;
 import java.net.URI;
 import java.util.UUID;
 
-/**
- * @author Mihai ClaudiuToader <mtoader@midokura.com> Date: 1/30/12
- */
+import javax.xml.bind.annotation.XmlRootElement;
+
+import org.midonet.brain.services.rest_api.ResourceUriBuilder;
+import org.midonet.brain.services.rest_api.UriResource;
+import org.midonet.midolman.host.state.HostDirectory;
+import org.midonet.packets.MAC;
+
 @XmlRootElement
 public class Interface extends UriResource {
 

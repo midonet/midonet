@@ -15,12 +15,11 @@
  */
 package org.midonet.api.host;
 
-import org.midonet.api.host.validation.UniqueTunnelZoneName;
-import org.midonet.api.ResourceUriBuilder;
-import org.midonet.api.UriResource;
-import org.codehaus.jackson.annotate.JsonSubTypes;
-import org.codehaus.jackson.annotate.JsonTypeInfo;
-import org.midonet.api.validation.AllowedValue;
+import org.midonet.brain.services.rest_api.host.validation.UniqueTunnelZoneName;
+import org.midonet.brain.services.rest_api.ResourceUriBuilder;
+import org.midonet.brain.services.rest_api.UriResource;
+import org.midonet.brain.services.rest_api.validation.AllowedValue;
+import org.midonet.cluster.rest.midonet.TunnelZoneType;
 
 import javax.validation.GroupSequence;
 import javax.validation.constraints.NotNull;
@@ -58,16 +57,6 @@ public class TunnelZone extends UriResource {
     public TunnelZone() {
     }
 
-    /**
-     * Constructor
-     *
-     * @param id
-     *            ID of the tunnel zone.
-     * @param name
-     *            Name of the tunnel zone.
-     * @param type
-     *            Type of the tunnel zone.
-     */
     public TunnelZone(UUID id, String name, String type) {
         super();
         this.id = id;
@@ -75,12 +64,6 @@ public class TunnelZone extends UriResource {
         this.type = type;
     }
 
-    /**
-     * Tunnel zone constructor
-     *
-     * @param tunnelZoneData
-     *            TunnelZone data object
-     */
     public TunnelZone(
             org.midonet.cluster.data.TunnelZone tunnelZoneData) {
         this(UUID.fromString(tunnelZoneData.getId().toString()),

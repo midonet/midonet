@@ -42,12 +42,6 @@ import javax.ws.rs.core.UriInfo;
 import com.google.inject.Inject;
 import com.google.inject.servlet.RequestScoped;
 
-import org.midonet.api.ResourceUriBuilder;
-import org.midonet.api.VendorMediaType;
-import org.midonet.api.auth.AuthAction;
-import org.midonet.api.auth.AuthRole;
-import org.midonet.api.auth.Authorizer;
-import org.midonet.api.auth.ForbiddenHttpException;
 import org.midonet.api.dhcp.rest_api.BridgeDhcpResource;
 import org.midonet.api.dhcp.rest_api.BridgeDhcpV6Resource;
 import org.midonet.api.network.Bridge;
@@ -56,31 +50,34 @@ import org.midonet.api.network.Bridge.BridgeUpdateGroupSequence;
 import org.midonet.api.network.IP4MacPair;
 import org.midonet.api.network.MacPort;
 import org.midonet.api.network.Port;
-import org.midonet.api.network.auth.BridgeAuthorizer;
 import org.midonet.api.rest_api.AbstractResource;
-import org.midonet.api.rest_api.BadRequestHttpException;
-import org.midonet.api.rest_api.NotFoundHttpException;
 import org.midonet.api.rest_api.ResourceFactory;
 import org.midonet.api.rest_api.RestApiConfig;
-import org.midonet.api.validation.MessageProperty;
+import org.midonet.brain.services.rest_api.ResourceUriBuilder;
+import org.midonet.brain.services.rest_api.VendorMediaType;
+import org.midonet.brain.services.rest_api.auth.AuthAction;
+import org.midonet.brain.services.rest_api.auth.AuthRole;
+import org.midonet.brain.services.rest_api.auth.Authorizer;
+import org.midonet.brain.services.rest_api.auth.ForbiddenHttpException;
+import org.midonet.brain.services.rest_api.network.auth.BridgeAuthorizer;
+import org.midonet.brain.services.rest_api.rest_api.BadRequestHttpException;
+import org.midonet.brain.services.rest_api.rest_api.NotFoundHttpException;
+import org.midonet.brain.services.rest_api.validation.MessageProperty;
 import org.midonet.cluster.DataClient;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.cluster.data.ports.VlanMacPort;
 import org.midonet.event.topology.BridgeEvent;
-import org.midonet.util.serialization.SerializationException;
-import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
+import org.midonet.util.serialization.SerializationException;
 
-import static org.midonet.api.ResourceUriBuilder.MAC_TABLE;
-import static org.midonet.api.ResourceUriBuilder.VLANS;
-import static org.midonet.api.validation.MessageProperty.NO_VXLAN_PORT;
-import static org.midonet.api.validation.MessageProperty.getMessage;
+import static org.midonet.brain.services.rest_api.ResourceUriBuilder.MAC_TABLE;
+import static org.midonet.brain.services.rest_api.ResourceUriBuilder.VLANS;
+import static org.midonet.brain.services.rest_api.validation.MessageProperty.NO_VXLAN_PORT;
+import static org.midonet.brain.services.rest_api.validation.MessageProperty.getMessage;
 import static org.midonet.cluster.data.Bridge.UNTAGGED_VLAN_ID;
 
 
-/**
- * Root resource class for Virtual bridges.
- */
 @RequestScoped
 public class BridgeResource extends AbstractResource {
 
@@ -478,23 +475,18 @@ public class BridgeResource extends AbstractResource {
         // Need to set MacPort's vlanId so getMacPort constructs the right URI.
         mp.setVlanId(vlanId);
         return Response.created(
-                ResourceUriBuilder.getMacPort(bridgeUri, mp))
-                .build();
+            ResourceUriBuilder.getMacPort(bridgeUri, mp.getMacAddr(),
+                                          mp.getVlanId(), mp.getPortId()))
+            .build();
     }
 
     /**
      * Handler to getting a MAC table entry.
      *
-     * @param id
-     *      Bridge's UUID.
-     * @param macAddress
-     *      MAC address of mapping to get, in URI format,
+     * @param id Bridge's UUID.
+     * @param macAddress MAC address of mapping to get, in URI format,
      *      e.g., 12-34-56-78-9a-bc.
-     * @param portId
-     *      UUID of port in the MAC-port mapping to get.
-     * @throws StateAccessException
-     *      Data access error.
-     * @return A MacPort object.
+     * @param portId UUID of port in the MAC-port mapping to get.
      */
     @GET
     @PermitAll
@@ -512,16 +504,10 @@ public class BridgeResource extends AbstractResource {
     /**
      * Handler to getting a MAC table entry.
      *
-     * @param id
-     *      Bridge's UUID.
-     * @param macAddress
-     *      MAC address of mapping to get, in URI format,
+     * @param id Bridge's UUID.
+     * @param macAddress MAC address of mapping to get, in URI format,
      *      e.g., 12-34-56-78-9a-bc.
-     * @param portId
-     *      UUID of port in the MAC-port mapping to get.
-     * @throws StateAccessException
-     *      Data access error.
-     * @return A MacPort object.
+     * @param portId UUID of port in the MAC-port mapping to get.
      */
     @GET
     @PermitAll
@@ -686,18 +672,14 @@ public class BridgeResource extends AbstractResource {
             IPv4Addr.fromString(mp.getIp()), MAC.fromString(mp.getMac()));
         URI bridgeUri = ResourceUriBuilder.getBridge(getBaseUri(), id);
         return Response.created(
-            ResourceUriBuilder.getIP4MacPair(bridgeUri, mp))
-            .build();
+            ResourceUriBuilder.getIP4MacPair(bridgeUri, mp.getIp(),
+                                             mp.getMac())).build();
     }
 
     /**
      * Handler to getting a ARP table entry.
      *
-     * @param IP4MacPairString
-     *            IP4MacPair entry in the ARP table.
-     * @throws StateAccessException
-     *             Data access error.
-     * @return A IP4MacPair object.
+     * @param IP4MacPairString IP4MacPair entry in the ARP table.
      */
     @GET
     @PermitAll
@@ -729,8 +711,7 @@ public class BridgeResource extends AbstractResource {
     /**
      * Handler to deleting a ARP table entry.
      *
-     * @param IP4MacPairString
-     *            IP4MacPair entry in the ARP table.
+     * @param IP4MacPairString IP4MacPair entry in the ARP table.
      * @throws org.midonet.cluster.backend.zookeeper.StateAccessException
      *             Data access error.
      */

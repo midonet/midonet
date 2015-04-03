@@ -15,6 +15,9 @@
  */
 package org.midonet.api.network;
 
+import java.net.URI;
+import java.util.UUID;
+
 import javax.validation.GroupSequence;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
@@ -23,22 +26,16 @@ import javax.validation.constraints.Pattern;
 import javax.validation.groups.Default;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
-import java.net.URI;
-import java.util.UUID;
 
-import org.midonet.midolman.layer3.Route.NextHop;
-import org.midonet.api.UriResource;
-import org.midonet.api.ResourceUriBuilder;
-import org.midonet.api.validation.AllowedValue;
 import org.midonet.api.network.Route.RouteExtended;
 import org.midonet.api.network.validation.NextHopPortValid;
-import org.midonet.packets.IPv4Addr;
+import org.midonet.brain.services.rest_api.ResourceUriBuilder;
+import org.midonet.brain.services.rest_api.UriResource;
+import org.midonet.brain.services.rest_api.validation.AllowedValue;
+import org.midonet.midolman.layer3.Route.NextHop;
 import org.midonet.packets.IPv4;
+import org.midonet.packets.IPv4Addr;
 
-
-/**
- * Class representing route.
- */
 @NextHopPortValid(groups = RouteExtended.class)
 @XmlRootElement
 public class Route extends UriResource {
@@ -78,18 +75,9 @@ public class Route extends UriResource {
     @Min(0)
     private int weight;
 
-    /**
-     * Constructor
-     */
     public Route() {
     }
 
-    /**
-     * Constructor
-     *
-     * @param data
-     *            org.midonet.cluster.data.Route object
-     */
     public Route(org.midonet.cluster.data.Route data) {
         this.id = data.getId();
         this.dstNetworkAddr = data.getDstNetworkAddr();

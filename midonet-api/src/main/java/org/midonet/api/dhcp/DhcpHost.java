@@ -17,8 +17,8 @@
 package org.midonet.api.dhcp;
 
 import com.google.common.base.Preconditions;
-import org.midonet.api.RelativeUriResource;
-import org.midonet.api.ResourceUriBuilder;
+import org.midonet.brain.services.rest_api.RelativeUriResource;
+import org.midonet.brain.services.rest_api.ResourceUriBuilder;
 import org.midonet.cluster.data.dhcp.ExtraDhcpOpt;
 import org.midonet.cluster.data.dhcp.Host;
 import org.midonet.packets.IPv4Addr;

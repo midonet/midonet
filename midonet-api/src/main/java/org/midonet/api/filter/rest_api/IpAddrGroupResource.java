@@ -15,42 +15,52 @@
  */
 package org.midonet.api.filter.rest_api;
 
-import com.google.inject.Inject;
-import com.google.inject.assistedinject.Assisted;
-import com.google.inject.servlet.RequestScoped;
-import org.midonet.api.ResourceUriBuilder;
-import org.midonet.api.VendorMediaType;
-import org.midonet.api.auth.AuthRole;
-import org.midonet.api.filter.IpAddrGroup;
-import org.midonet.api.filter.IpAddrGroupAddr;
-import org.midonet.api.filter.Ipv4AddrGroupAddr;
-import org.midonet.api.filter.Ipv6AddrGroupAddr;
-import org.midonet.api.rest_api.*;
-import org.midonet.api.validation.MessageProperty;
-import org.midonet.cluster.DataClient;
-import org.midonet.util.serialization.SerializationException;
-import org.midonet.midolman.state.NoStatePathException;
-import org.midonet.cluster.backend.zookeeper.StateAccessException;
-import org.midonet.cluster.backend.zookeeper.StatePathExistsException;
-import org.midonet.packets.IPAddr$;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.annotation.security.PermitAll;
-import javax.annotation.security.RolesAllowed;
-import javax.validation.Validator;
-import javax.ws.rs.*;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.core.UriInfo;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-/**
- * Root resource class for IP addr groups.
- */
+import javax.annotation.security.PermitAll;
+import javax.annotation.security.RolesAllowed;
+import javax.validation.Validator;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
+import javax.ws.rs.core.UriInfo;
+
+import com.google.inject.Inject;
+import com.google.inject.assistedinject.Assisted;
+import com.google.inject.servlet.RequestScoped;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import org.midonet.api.filter.IpAddrGroup;
+import org.midonet.api.filter.IpAddrGroupAddr;
+import org.midonet.api.filter.Ipv4AddrGroupAddr;
+import org.midonet.api.filter.Ipv6AddrGroupAddr;
+import org.midonet.api.rest_api.AbstractResource;
+import org.midonet.api.rest_api.ResourceFactory;
+import org.midonet.api.rest_api.RestApiConfig;
+import org.midonet.brain.services.rest_api.ResourceUriBuilder;
+import org.midonet.brain.services.rest_api.VendorMediaType;
+import org.midonet.brain.services.rest_api.auth.AuthRole;
+import org.midonet.brain.services.rest_api.rest_api.BadRequestHttpException;
+import org.midonet.brain.services.rest_api.rest_api.NotFoundHttpException;
+import org.midonet.brain.services.rest_api.validation.MessageProperty;
+import org.midonet.cluster.DataClient;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.StatePathExistsException;
+import org.midonet.midolman.state.NoStatePathException;
+import org.midonet.packets.IPAddr$;
+import org.midonet.util.serialization.SerializationException;
+
 @RequestScoped
 public class IpAddrGroupResource extends AbstractResource {
 
@@ -68,14 +78,6 @@ public class IpAddrGroupResource extends AbstractResource {
         this.factory = factory;
     }
 
-    /**
-     * Handler to deleting an IP addr group.
-     *
-     * @param id
-     *            IpAddrGroup ID from the request.
-     * @throws org.midonet.cluster.backend.zookeeper.StateAccessException
-     *             Data access error.
-     */
     @DELETE
     @RolesAllowed({ AuthRole.ADMIN })
     @Path("{id}")
@@ -94,15 +96,6 @@ public class IpAddrGroupResource extends AbstractResource {
         }
     }
 
-    /**
-     * Handler to getting an IP addr group.
-     *
-     * @param id
-     *            IpAddrGroup ID from the request.
-     * @throws org.midonet.cluster.backend.zookeeper.StateAccessException
-     *             Data access error.
-     * @return A IpAddrGroup object.
-     */
     @GET
     @PermitAll
     @Path("{id}")
@@ -125,15 +118,6 @@ public class IpAddrGroupResource extends AbstractResource {
         return group;
     }
 
-    /**
-     * Handler for creating an IP addr group.
-     *
-     * @param group
-     *            IpAddrGroup object.
-     * @throws org.midonet.cluster.backend.zookeeper.StateAccessException
-     *             Data access error.
-     * @return Response object with 201 status code set if successful.
-     */
     @POST
     @RolesAllowed({ AuthRole.ADMIN })
     @Consumes({ VendorMediaType.APPLICATION_IP_ADDR_GROUP_JSON })
@@ -153,13 +137,6 @@ public class IpAddrGroupResource extends AbstractResource {
         }
     }
 
-    /**
-     * Handler to getting a collection of IpAddrGroup.
-     *
-     * @throws org.midonet.cluster.backend.zookeeper.StateAccessException
-     *             Data access error.
-     * @return A list of IpAddrGroup objects.
-     */
     @GET
     @PermitAll
     @Produces({ VendorMediaType.APPLICATION_IP_ADDR_GROUP_COLLECTION_JSON })
@@ -178,29 +155,12 @@ public class IpAddrGroupResource extends AbstractResource {
         return groups;
     }
 
-    /**
-     * IP addr group addr resource locator
-     *
-     * @param id
-     *            IP addr group ID from the request.
-     * @return IpAddrGroupAddrResource object to handle sub-resource requests.
-     */
     @Path("/{id}" + ResourceUriBuilder.IP_ADDRS)
     public IpAddrGroupAddrResource getIpAddrGroupAddrResource(
             @PathParam("id") UUID id) {
         return factory.getIpAddrGroupAddrResource(id);
     }
 
-    /**
-     * IP addr group addr resource locator that includes version
-     *
-     * @param id
-     *            IP addr group ID from the request.
-     * @param version
-     *            Version of the IP address
-     * @return IpAddrGroupAddrVersionResource object to handle sub-resource
-     *          requests.
-     */
     @Path("/{id}" + ResourceUriBuilder.VERSIONS + "/{version}"
             + ResourceUriBuilder.IP_ADDRS)
     public IpAddrGroupAddrVersionResource getIpAddrGroupAddrVersionResource(
@@ -211,9 +171,6 @@ public class IpAddrGroupResource extends AbstractResource {
         return factory.getIpAddrGroupAddrVersionResource(id, version);
     }
 
-    /**
-     * Sub-resource class for IP addr group addresses
-     */
     @RequestScoped
     public static class IpAddrGroupAddrResource extends AbstractResource {
 
@@ -279,9 +236,6 @@ public class IpAddrGroupResource extends AbstractResource {
         }
     }
 
-    /**
-     * Sub-resource class for IP addr group addresses with version
-     */
     @RequestScoped
     public static class IpAddrGroupAddrVersionResource
             extends IpAddrGroupAddrResource {

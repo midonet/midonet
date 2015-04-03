@@ -15,8 +15,8 @@
  */
 package org.midonet.api.bgp;
 
-import org.midonet.api.UriResource;
-import org.midonet.api.ResourceUriBuilder;
+import org.midonet.brain.services.rest_api.UriResource;
+import org.midonet.brain.services.rest_api.ResourceUriBuilder;
 
 import javax.xml.bind.annotation.XmlRootElement;
 import java.net.InetAddress;

@@ -15,11 +15,9 @@
  */
 package org.midonet.api.network;
 
-import org.midonet.api.ResourceUriBuilder;
 import org.midonet.cluster.Client;
 import org.midonet.cluster.data.Port;
 
-import java.net.URI;
 import java.util.UUID;
 
 /**

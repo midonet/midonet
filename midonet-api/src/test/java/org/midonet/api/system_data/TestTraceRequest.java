@@ -32,9 +32,9 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.midonet.api.ResourceUriBuilder;
-import static org.midonet.api.auth.AuthFilter.HEADER_X_AUTH_TOKEN;
-import org.midonet.api.auth.MockAuthConfig;
+import org.midonet.brain.services.rest_api.ResourceUriBuilder;
+import static org.midonet.brain.services.rest_api.auth.AuthFilter.HEADER_X_AUTH_TOKEN;
+import org.midonet.brain.services.rest_api.auth.MockAuthConfig;
 import org.midonet.api.filter.Condition;
 import org.midonet.api.rest_api.DtoWebResource;
 import org.midonet.api.rest_api.FuncTest;

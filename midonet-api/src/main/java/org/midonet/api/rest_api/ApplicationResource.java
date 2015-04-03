@@ -25,9 +25,10 @@ import javax.ws.rs.core.UriInfo;
 
 import com.google.inject.Inject;
 import com.google.inject.servlet.RequestScoped;
-import org.midonet.api.Application;
-import org.midonet.api.ResourceUriBuilder;
-import org.midonet.api.VendorMediaType;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import org.midonet.api.auth.rest_api.TenantResource;
 import org.midonet.api.bgp.rest_api.AdRouteResource;
 import org.midonet.api.bgp.rest_api.BgpResource;
@@ -51,9 +52,10 @@ import org.midonet.api.system_data.rest_api.HostVersionResource;
 import org.midonet.api.system_data.rest_api.SystemStateResource;
 import org.midonet.api.system_data.rest_api.TraceRequestResource;
 import org.midonet.api.system_data.rest_api.WriteVersionResource;
-import org.midonet.api.version.Version;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.midonet.brain.services.rest_api.Application;
+import org.midonet.brain.services.rest_api.ResourceUriBuilder;
+import org.midonet.brain.services.rest_api.VendorMediaType;
+import org.midonet.brain.services.rest_api.version.Version;
 
 /**
  * The top application resource class.

@@ -17,17 +17,15 @@ package org.midonet.api.system_data;
 
 import java.net.URI;
 import java.util.UUID;
-import javax.xml.bind.annotation.XmlRootElement;
 
 import javax.validation.constraints.NotNull;
+import javax.xml.bind.annotation.XmlRootElement;
 
-import org.midonet.api.ResourceUriBuilder;
-import org.midonet.api.UriResource;
 import org.midonet.api.filter.Condition;
-
+import org.midonet.brain.services.rest_api.ResourceUriBuilder;
+import org.midonet.brain.services.rest_api.UriResource;
 import org.midonet.cluster.data.TraceRequest.DeviceType;
 
-/* Class representing trace info */
 @XmlRootElement
 public class TraceRequest extends UriResource {
 
@@ -53,6 +51,7 @@ public class TraceRequest extends UriResource {
     @NotNull
     private boolean enabled;
 
+    @SuppressWarnings("unused")
     public TraceRequest() {
         super();
     }
@@ -178,9 +177,6 @@ public class TraceRequest extends UriResource {
             + ", enabled=" + enabled + "}";
     }
 
-    /**
-     * @return the self URI
-     */
     @Override
     public URI getUri() {
         if (getBaseUri() != null && id != null) {

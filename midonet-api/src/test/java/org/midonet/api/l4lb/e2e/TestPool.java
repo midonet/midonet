@@ -29,8 +29,8 @@ import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
 
-import org.midonet.api.VendorMediaType;
-import org.midonet.api.rest_api.ServiceUnavailableHttpException;
+import org.midonet.brain.services.rest_api.VendorMediaType;
+import org.midonet.brain.services.rest_api.rest_api.ServiceUnavailableHttpException;
 import org.midonet.client.dto.DtoError;
 import org.midonet.client.dto.DtoHealthMonitor;
 import org.midonet.client.dto.DtoLoadBalancer;
@@ -44,13 +44,13 @@ import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static javax.ws.rs.core.Response.Status.CONFLICT;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
-import static org.midonet.api.VendorMediaType.APPLICATION_POOL_COLLECTION_JSON;
-import static org.midonet.api.VendorMediaType.APPLICATION_POOL_JSON;
-import static org.midonet.api.VendorMediaType.APPLICATION_POOL_MEMBER_COLLECTION_JSON;
-import static org.midonet.api.VendorMediaType.APPLICATION_VIP_COLLECTION_JSON;
-import static org.midonet.api.VendorMediaType.APPLICATION_VIP_JSON;
-import static org.midonet.api.validation.MessageProperty.RESOURCE_EXISTS;
-import static org.midonet.api.validation.MessageProperty.RESOURCE_NOT_FOUND;
+import static org.midonet.brain.services.rest_api.VendorMediaType.APPLICATION_POOL_COLLECTION_JSON;
+import static org.midonet.brain.services.rest_api.VendorMediaType.APPLICATION_POOL_JSON;
+import static org.midonet.brain.services.rest_api.VendorMediaType.APPLICATION_POOL_MEMBER_COLLECTION_JSON;
+import static org.midonet.brain.services.rest_api.VendorMediaType.APPLICATION_VIP_COLLECTION_JSON;
+import static org.midonet.brain.services.rest_api.VendorMediaType.APPLICATION_VIP_JSON;
+import static org.midonet.brain.services.rest_api.validation.MessageProperty.RESOURCE_EXISTS;
+import static org.midonet.brain.services.rest_api.validation.MessageProperty.RESOURCE_NOT_FOUND;
 
 @RunWith(Enclosed.class)
 public class TestPool {

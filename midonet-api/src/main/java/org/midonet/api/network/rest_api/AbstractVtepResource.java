@@ -18,6 +18,7 @@ package org.midonet.api.network.rest_api;
 import java.net.URI;
 import java.util.List;
 import java.util.UUID;
+
 import javax.validation.Validator;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
@@ -26,17 +27,17 @@ import com.google.inject.Inject;
 
 import org.midonet.api.network.VtepBinding;
 import org.midonet.api.rest_api.AbstractResource;
-import org.midonet.api.rest_api.NotFoundHttpException;
 import org.midonet.api.rest_api.ResourceFactory;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.api.vtep.VtepClusterClient;
+import org.midonet.brain.services.rest_api.rest_api.NotFoundHttpException;
 import org.midonet.cluster.DataClient;
-import org.midonet.util.serialization.SerializationException;
-import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.cluster.backend.zookeeper.StateAccessException;
+import org.midonet.midolman.state.NoStatePathException;
+import org.midonet.util.serialization.SerializationException;
 
-import static org.midonet.api.validation.MessageProperty.VTEP_NOT_FOUND;
-import static org.midonet.api.validation.MessageProperty.getMessage;
+import static org.midonet.brain.services.rest_api.validation.MessageProperty.VTEP_NOT_FOUND;
+import static org.midonet.brain.services.rest_api.validation.MessageProperty.getMessage;
 
 abstract public class AbstractVtepResource extends AbstractResource {
 
