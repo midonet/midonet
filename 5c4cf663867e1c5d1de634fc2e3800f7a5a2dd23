@@ -260,6 +260,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_2518d780",
+        "filename": "cluster/src/main/proto/topology.proto",
+        "patchSetId": 10
+      },
+      "lineNbr": 382,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-03T00:26:04Z",
+      "side": 1,
+      "message": "Would lb_status help?",
+      "parentUuid": "1a106d94_da49e88c",
+      "range": {
+        "startLine": 382,
+        "startChar": 22,
+        "endLine": 382,
+        "endChar": 28
+      },
+      "revId": "5c4cf663867e1c5d1de634fc2e3800f7a5a2dd23",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_3a263c17",
         "filename": "cluster/src/main/proto/topology_api.proto",
         "patchSetId": 10
@@ -471,6 +495,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_65092f31",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/PoolMapper.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-03T00:26:04Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_1a86e0b9",
+      "range": {
+        "startLine": 98,
+        "startChar": 27,
+        "endLine": 98,
+        "endChar": 37
+      },
+      "revId": "5c4cf663867e1c5d1de634fc2e3800f7a5a2dd23",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_9a9ad012",
         "filename": "midolman/src/test/scala/org/midonet/midolman/topology/PoolMapper.scala",
         "patchSetId": 10
@@ -529,6 +577,30 @@
       "writtenOn": "2015-03-31T15:56:32Z",
       "side": 1,
       "message": "Add a similar test for pools?",
+      "range": {
+        "startLine": 551,
+        "startChar": 8,
+        "endLine": 551,
+        "endChar": 16
+      },
+      "revId": "5c4cf663867e1c5d1de634fc2e3800f7a5a2dd23",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_850c2b44",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/VirtualTopologyRedirectorTest.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 551,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-03T00:26:04Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_1a7420ce",
       "range": {
         "startLine": 551,
         "startChar": 8,
