@@ -15,46 +15,57 @@
  */
 package org.midonet.brain.services.c3po.translators
 
+import java.util.UUID
+
 import org.junit.runner.RunWith
 import org.mockito.Mockito.mock
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{FlatSpec, Matchers}
 
 import org.midonet.brain.services.c3po.{midonet, neutron}
+import org.midonet.cluster.data.Bridge
 import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.models.Neutron.NeutronNetwork
 import org.midonet.cluster.models.Topology.Network
 import org.midonet.cluster.util.UUIDUtil
+import org.midonet.midolman.state.PathBuilder
 
 /**
  * Tests the Neutron Network model conversion layer.
  */
 @RunWith(classOf[JUnitRunner])
 class NetworkTranslatorTest extends FlatSpec with Matchers {
-    val storage: ReadOnlyStorage = mock(classOf[ReadOnlyStorage])
-    val translator: NetworkTranslator = new NetworkTranslator(storage)
-
+    val zkRoot = "/midonet/v1"
     val tenantId = "neutron tenant"
     val networkName = "neutron test"
     val adminStateUp = true
 
-    def genId = UUIDUtil.randomUuidProto
+    def genId() = UUIDUtil.randomUuidProto
+
+    val storage: ReadOnlyStorage = mock(classOf[ReadOnlyStorage])
+    val pathBldr: PathBuilder = new PathBuilder(zkRoot)
+    val translator: NetworkTranslator = new NetworkTranslator(storage, pathBldr)
 
     val sampleNetwork = NeutronNetwork.newBuilder()
-                                       .setId(genId)
+                                       .setId(genId())
                                        .setTenantId(tenantId)
                                        .setName(networkName)
                                        .setAdminStateUp(adminStateUp)
-                                       .build
+                                       .build()
 
     "Network CREATE" should "produce Mido Network CREATE" in {
+        val id = UUIDUtil.fromProto(sampleNetwork.getId)
         val midoOps = translator.translate(neutron.Create(sampleNetwork))
-        midoOps should contain only midonet.Create(Network.newBuilder()
-                                                .setId(sampleNetwork.getId)
-                                                .setTenantId(tenantId)
-                                                .setName(networkName)
-                                                .setAdminStateUp(adminStateUp)
-                                                .build)
+        val midoNetwork = Network.newBuilder().setId(sampleNetwork.getId)
+                                              .setTenantId(tenantId)
+                                              .setName(networkName)
+                                              .setAdminStateUp(adminStateUp)
+                                              .build()
+        midoOps should contain only(
+            midonet.Create(midoNetwork),
+            midonet.CreateNode(pathBldr.getBridgeIP4MacMapPath(id), null),
+            midonet.CreateNode(pathBldr.getBridgeMacPortsPath(id), null),
+            midonet.CreateNode(pathBldr.getBridgeVlansPath(id), null))
     }
 
     // TODO Test that NetworkTranslator ensures the provider router if
@@ -82,11 +93,16 @@ class NetworkTranslatorTest extends FlatSpec with Matchers {
     }
 
     "Network DELETE" should "produce a corresponding Mido Network DELETE" in {
-        val id = genId
+        val id = genId()
         val midoOps =
             translator.translate(neutron.Delete(classOf[NeutronNetwork], id))
 
-        midoOps should contain only midonet.Delete(classOf[Network], id)
+        val juuid = UUIDUtil.fromProto(id)
+        midoOps should contain only(
+            midonet.Delete(classOf[Network], id),
+            midonet.DeleteNode(pathBldr.getBridgeIP4MacMapPath(juuid)),
+            midonet.DeleteNode(pathBldr.getBridgeMacPortsPath(juuid)),
+            midonet.DeleteNode(pathBldr.getBridgeVlansPath(juuid)))
 
         // TODO Verify external network is also deleted.
     }
