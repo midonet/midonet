@@ -14,24 +14,6 @@
     <param-value>http://localhost:8080/midonet-api</param-value>
   </context-param>
 
-  <!-- CORS configuration -->
-  <context-param>
-    <param-name>cors-access_control_allow_origin</param-name>
-    <param-value>*</param-value>
-  </context-param>
-  <context-param>
-    <param-name>cors-access_control_allow_headers</param-name>
-    <param-value>Origin, X-Auth-Token, Content-Type, Accept, Authorization</param-value>
-  </context-param>
-  <context-param>
-    <param-name>cors-access_control_allow_methods</param-name>
-    <param-value>GET, POST, PUT, DELETE, OPTIONS</param-value>
-  </context-param>
-  <context-param>
-    <param-name>cors-access_control_expose_headers</param-name>
-    <param-value>Location</param-value>
-  </context-param>
-
   <!-- Auth configuration -->
   <context-param>
     <param-name>auth-auth_provider</param-name>

@@ -27,7 +27,6 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 import org.slf4j.Logger;
@@ -45,9 +44,6 @@ public final class CrossOriginResourceSharingFilter implements Filter {
 
     private final static Logger log =
             LoggerFactory.getLogger(CrossOriginResourceSharingFilter.class);
-
-    @Inject
-    private CorsConfig config;
 
     /**
      * Called by the web container to indicate to a filter that it is being
@@ -94,12 +90,11 @@ public final class CrossOriginResourceSharingFilter implements Filter {
 
         // This should be added in response to both the preflight and the
         // actual request
-        response.addHeader(HttpSupport.ACCESS_CONTROL_ALLOW_ORIGIN_KEY,
-                config.getAccessControlAllowOrigin());
+        response.addHeader(HttpSupport.ACCESS_CONTROL_ALLOW_ORIGIN_KEY, "*");
         response.addHeader(HttpSupport.ACCESS_CONTROL_ALLOW_METHODS_KEY,
-                config.getAccessControlAllowMethods());
+                           "GET, POST, PUT, DELETE, OPTIONS");
         response.addHeader(HttpSupport.ACCESS_CONTROL_EXPOSE_HEADERS_KEY,
-                config.getAccessControlExposeHeaders());
+                           "Location");
 
         if (HttpSupport.OPTIONS_METHOD.equalsIgnoreCase(
                 request.getMethod())) {
@@ -107,11 +102,11 @@ public final class CrossOriginResourceSharingFilter implements Filter {
             // TODO: Credentials are ignored.  Handle credentials when the
             // allow origin header is not wild-carded.
             response.addHeader(HttpSupport.ACCESS_CONTROL_ALLOW_CREDENTIALS_KEY,
-                    null);
+                               null);
             response.addHeader(HttpSupport.ACCESS_CONTROL_ALLOW_HEADERS_KEY,
-                    config.getAccessControlAllowHeaders());
-            log.debug("CrossOriginResourceSharingFilter.doFilter: exiting " +
-                    "after handling OPTION.");
+                               "Origin, X-Auth-Token, Content-Type, Accept");
+            log.debug("CrossOriginResourceSharingFilter.doFilter: exiting" +
+                      "after handling OPTION.");
             return;
         }
         filterChain.doFilter(request, response);

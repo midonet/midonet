@@ -34,7 +34,6 @@ import org.midonet.api.network.auth.RouteAuthorizer;
 import org.midonet.api.network.auth.RouterAuthorizer;
 import org.midonet.brain.services.rest_api.auth.AuthException;
 import org.midonet.brain.services.rest_api.auth.AuthService;
-import org.midonet.brain.services.rest_api.auth.cors.CorsConfig;
 import org.midonet.brain.services.rest_api.auth.keystone.KeystoneConfig;
 import org.midonet.brain.services.rest_api.auth.keystone.v2_0.KeystoneClient;
 import org.midonet.brain.services.rest_api.auth.keystone.v2_0.KeystoneService;
@@ -130,9 +129,4 @@ public class AuthModule extends AbstractModule {
         return provider.getConfig(MockAuthConfig.class);
     }
 
-    @Provides @Singleton
-    @Inject
-    CorsConfig provideCorsConfig(ConfigProvider provider) {
-        return provider.getConfig(CorsConfig.class);
-    }
 }
