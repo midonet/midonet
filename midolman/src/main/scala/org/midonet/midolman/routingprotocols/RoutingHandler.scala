@@ -20,6 +20,7 @@ import java.util.UUID
 
 import scala.collection.JavaConversions._
 import scala.collection.mutable
+import scala.concurrent.duration._
 
 import akka.actor.{Actor, ActorRef, Stash}
 import akka.pattern.pipe
@@ -58,6 +59,7 @@ object RoutingHandler {
     // BgpdProcess will notify via these messages
     case object BGPD_READY
     case object BGPD_DEAD
+    case object FETCH_BGPD_STATUS
     case class BGPD_SHOW(cmd : String)
 
     case class PortActive(active: Boolean)
@@ -270,8 +272,14 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
         // Subscribe to the VTA for updates to the Port configuration.
         VirtualTopologyActor ! PortRequest(rport.id, update = true)
 
+        system.scheduler.schedule(5 seconds, 30 seconds, self, FETCH_BGPD_STATUS)
+
         log.debug("({}) Started", phase)
     }
+
+    private var bgpdStartupTime = 0L
+
+    def scheduleEarlyStatusCheck = system.scheduler.scheduleOnce(5 seconds, self, FETCH_BGPD_STATUS)
 
     override def postStop() {
         super.postStop()
@@ -350,6 +358,7 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
                         bgpVty.setPeer(bgp.getLocalAS,
                                        bgp.getPeerAddr,
                                        bgp.getPeerAS)
+                        scheduleEarlyStatusCheck
                     }
 
                 case _ =>
@@ -387,6 +396,8 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
                         peerRoutes.clear()
                         stopBGP()
                     }
+
+                    scheduleEarlyStatusCheck
                 case Started =>
                     log.warn("({}) RemoveBgpSession({}) unknown id", phase, bgpID)
 
@@ -444,6 +455,9 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
                     context.system.eventStream.publish(
                         BGPD_STATUS(rport.id, true))
 
+                    bgpdStartupTime = System.currentTimeMillis
+                    scheduleEarlyStatusCheck
+
                 case _ =>
                     log.error("({}) BGP_READY expected only while Starting", phase)
             }
@@ -463,6 +477,29 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
                 case _ =>
                     log.error("({}) unexpected BGPD_DEAD message", phase)
             }
+
+        case FETCH_BGPD_STATUS => bgps.headOption foreach {
+            case (id, bgp) =>
+                log.debug("querying bgpd neighbour information")
+                try {
+                    var status: String = "bgpd daemon is not ready"
+                    if (bgpVty ne null) {
+                        status = bgpVty.showGeneric("nei").
+                            filterNot(_.startsWith("bgpd#")).
+                            filterNot(_.startsWith("show ip bgp nei")).
+                            foldRight("")((a, b) => s"$a\n$b")
+                    }
+                    dataClient.bgpSetStatus(id, status)
+                } catch {
+                    case e: Exception =>
+                        log.warn("Failed to check bgpd status", e)
+                }
+            }
+            // Refresh every 5 seconds in the 1st two minutes of bgpd lifetime
+            if (System.currentTimeMillis - bgpdStartupTime < 120000L)
+                scheduleEarlyStatusCheck
+
+
         case BGPD_SHOW(cmd) =>
             if (bgpVty != null)
                 sender ! BgpStatus(bgpVty.showGeneric(cmd).toArray)
@@ -489,6 +526,7 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
                             log.debug("({}) Advertise: unknown BGP {}",
                                       phase, rt.getBgpId)
                     }
+                    scheduleEarlyStatusCheck
 
                 case _ =>
                     log.debug("({}) Advertise: stashing", phase)
@@ -511,6 +549,7 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
                                              rt.getNwPrefix.getHostAddress,
                                              rt.getPrefixLength)
                     }
+                    scheduleEarlyStatusCheck
 
                 case _ =>
                     log.debug("({}) StopAdvertising: stashing", phase)
@@ -546,6 +585,7 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
                     log.debug("({}) announcing we've added a peer route", phase)
                     context.system.eventStream.publish(
                         new PEER_ROUTE_ADDED(rport.deviceId, route))
+                    scheduleEarlyStatusCheck
 
                 case _ =>
                     log.debug("({}) AddPeerRoute: ignoring", phase)
@@ -870,6 +910,7 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
             adRoutes.add(adRoute)
             log.debug("({}) added advertised route: {}", phase, adRoute)
         }
+        scheduleEarlyStatusCheck
     }
 
     private def createDpPort(port: String): Unit = {

@@ -22,6 +22,7 @@ import java.util.UUID;
 
 import org.midonet.midolman.state.DirectoryCallback;
 import org.midonet.midolman.state.DirectoryCallbackFactory;
+import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.util.functors.Functor;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
@@ -172,4 +173,20 @@ public class BgpZkManager extends AbstractZkManager<UUID, BGP.Data> {
             SerializationException {
         zk.multi(prepareDelete(id));
     }
+
+    public void setStatus(UUID id, String status) throws StateAccessException {
+        String path = paths.getBgpPath(id) + "/status";
+        log.debug("Setting BGP session status at {} to {}", path, status);
+        zk.ensureEphemeral(path, status.getBytes());
+    }
+
+    public String getStatus(UUID id) throws StateAccessException {
+        String path = paths.getBgpPath(id) + "/status";
+        try {
+            return new String(zk.get(path));
+        } catch (NoStatePathException e) {
+            return "DOWN";
+        }
+    }
+
 }
