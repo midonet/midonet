@@ -51,6 +51,15 @@ public class BGP extends Entity.Base<UUID, BGP.Data, BGP> {
         return this;
     }
 
+    public String getStatus() {
+        return getData().status;
+    }
+
+    public BGP setStatus(String status) {
+        getData().status = status;
+        return this;
+    }
+
     public int getLocalAS() {
         return getData().localAS;
     }
@@ -136,6 +145,7 @@ public class BGP extends Entity.Base<UUID, BGP.Data, BGP> {
         * an IPv4 address as a human-readable string, and length is a positive
         * integer.
         */
+        public String status = "";
         public int localAS;
         public IPv4Addr peerAddr;
         public int peerAS;
