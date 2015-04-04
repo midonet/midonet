@@ -1520,6 +1520,10 @@ class Bgp(ObjectType):
                                  value_type = IPv4Address(),
                                  getter = 'get_peer_addr',
                                  setter = 'peer_addr'))
+        self.put_attr(SingleAttr(name = 'status',
+                                 value_type = StringType(),
+                                 getter = 'get_status',
+                                 show = False))
         self.put_attr(Collection(name = 'route',
                                  element_type = AdRoute,
                                  list_method = 'get_ad_routes',
