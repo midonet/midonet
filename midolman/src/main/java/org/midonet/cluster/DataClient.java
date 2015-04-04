@@ -96,6 +96,9 @@ public interface DataClient {
 
 
     /* BGP related methods */
+    void bgpSetStatus(@Nonnull UUID id, @Nonnull String status)
+            throws StateAccessException, SerializationException;
+
     @CheckForNull BGP bgpGet(UUID id)
             throws StateAccessException, SerializationException;
 
