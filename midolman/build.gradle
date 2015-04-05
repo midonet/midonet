@@ -283,7 +283,6 @@ task manpages() {
         String outputFile = filename.replaceAll(/.ronn/, ".gz")
         logger.info(" ...$filename -> $outputFile")
         project.exec {
-            println "Building manual page: ${outputFile}"
             commandLine "bash", "-c"
             commandLine += "ronn --pipe --roff src/man/${filename} | gzip -c > ${buildDir}/man/${outputFile}"
             workingDir project.projectDir
