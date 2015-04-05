@@ -19,6 +19,7 @@ package org.midonet.conf
 import java.io._
 import java.net.{URL, URI}
 import java.util.UUID
+import java.util.concurrent.TimeUnit
 import java.util.zip.ZipInputStream
 
 import com.typesafe.scalalogging.Logger
@@ -641,6 +642,7 @@ class ZookeeperSchema(zk: CuratorFramework, path: String,
  * @param filename
  */
 class LegacyConf(val filename: String) extends MidoConf {
+
     val log = Logger(LoggerFactory.getLogger("org.midonet.conf"))
 
     private val iniconf: HierarchicalINIConfiguration = new HierarchicalINIConfiguration()
@@ -648,6 +650,48 @@ class LegacyConf(val filename: String) extends MidoConf {
     iniconf.setFileName(filename)
     iniconf.setThrowExceptionOnMissing(false)
     iniconf.load()
+
+    private val movedDurations: Map[String, (String, TimeUnit)] = Map(
+            "zookeeper.session_timeout" ->
+                ("zookeeper.session_timeout", TimeUnit.MILLISECONDS),
+            "zookeeper.session_gracetime" ->
+                ("zookeeper.session_gracetime", TimeUnit.MILLISECONDS),
+            "agent.bridge.mac_port_mapping_expire_millis" ->
+                ("agent.bridge.mac_port_mapping_expire", TimeUnit.MILLISECONDS),
+            "agent.arptable.arp_retry_interval_seconds" ->
+                ("agent.arptable.arp_retry_interval", TimeUnit.SECONDS),
+            "agent.arptable.arp_timeout_seconds" ->
+                ("agent.arptable.arp_timeout", TimeUnit.SECONDS),
+            "agent.arptable.arp_stale_seconds" ->
+                ("agent.arptable.arp_stale", TimeUnit.SECONDS),
+            "agent.arptable.arp_expiration_seconds" ->
+                ("agent.arptable.arp_expiration", TimeUnit.SECONDS),
+            "agent.midolman.bgp_keepalive" ->
+                ("agent.midolman.bgp_keepalive", TimeUnit.SECONDS),
+            "agent.midolman.bgp_holdtime" ->
+                ("agent.midolman.bgp_holdtime", TimeUnit.SECONDS),
+            "agent.midolman.bgp_connect_retry" ->
+                ("agent.midolman.bgp_connect_retry", TimeUnit.SECONDS))
+
+    private def translate(key: String, value: String): (String, String) = {
+        movedDurations.get(key) match {
+            case Some((newkey, TimeUnit.MILLISECONDS)) =>
+                val newval = s"${value}ms"
+                log.info(s"$filename: Translated legacy configuration value from " +
+                         s"{$key : $value} to { $newkey : $newval }")
+                (newkey, newval)
+
+            case Some((newkey, TimeUnit.SECONDS)) =>
+                val newval = s"${value}s"
+                log.info(s"$filename: Translated legacy configuration value from " +
+                    s"{$key : $value} to { $newkey : $newval }")
+                (newkey, newval)
+
+            case Some((newkey, _)) => (key, value) // other time units unused
+
+            case None => (key, value)
+        }
+    }
 
     def get: Config = {
         def makeKey(key: String) =
@@ -657,9 +701,11 @@ class LegacyConf(val filename: String) extends MidoConf {
         for (section <- iniconf.getSections;
              key <- iniconf.getSection(section).getKeys) {
 
-            val newkey = makeKey(s"$section.$key")
-            val newval = iniconf.getSection(section).getString(key)
-            log.info(s"found legacy configuration key $newkey with value $newval")
+            val (newkey, newval) = translate(
+                    makeKey(s"$section.$key"),
+                    iniconf.getSection(section).getString(key))
+
+            log.info(s"$filename: found legacy config key { $newkey : $newval }")
             config = config.withValue(newkey, (newval, s"file://$filename"))
         }
 
