@@ -159,6 +159,46 @@ object DeployBundledConfig extends Subcommand("deploy") with ConfCommand {
     }
 }
 
+object ImportConf extends ConfigWriter("import") with ConfCommand {
+    descr("Imports a legacy configuration file into the selected configuration source.")
+
+    val renderOpts = ConfigRenderOptions.defaults().setOriginComments(false).
+                                                    setComments(false).
+                                                    setJson(false).
+                                                    setFormatted(true)
+
+    val filename = opt[String]("file", short = 'f', required = true, descr =
+        "Path to the file to be imported. ")
+    val importAll = opt[Boolean]("all", short = 'a', default = Some(false), descr =
+        "Import all the values present in the config file even if they do not "+
+            "differ from the configuration schema.")
+
+    override def run(configurator: MidoNodeConfigurator) = {
+        val newConf = new LegacyConf(filename.get.get).get
+        val dest = makeConfig(configurator)
+
+        var toImport = newConf
+
+        if (! importAll.get.get) {
+            val schemas = configurator.mergedSchemas().resolve()
+            toImport = ConfigFactory.empty
+
+            for (entry <- newConf.entrySet) {
+                val k = entry.getKey
+                if (! schemas.hasPath(k) || schemas.getString(k) != newConf.getString(k)) {
+                    toImport = toImport.withValue(k, entry.getValue)
+                }
+            }
+        }
+
+        println("Importing legacy configuration:")
+        println(toImport.root().render(renderOpts))
+
+        dest.mergeAndSet(toImport)
+        ConfCommand.SUCCESS
+    }
+}
+
 object SetConf extends ConfigWriter("set") with ConfCommand {
     descr("Accepts configuration from stdin and writes it to the selected configuration store.")
 
@@ -364,6 +404,7 @@ object MidoConfTool extends App {
         val unset = UnsetConf
         val templateGet = GetTemplate
         val templateSet = SetTemplate
+        val importConf = ImportConf
 
         printedName = "mn-conf"
         footer("Copyright (c) 2015 Midokura SARL, All Rights Reserved.")
