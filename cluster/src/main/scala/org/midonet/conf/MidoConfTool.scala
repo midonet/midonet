@@ -351,6 +351,8 @@ abstract class ConfigQuery(name: String) extends Subcommand(name) {
 }
 
 object MidoConfTool extends App {
+    System.setProperty("logback.configurationFile", "logback-disabled.xml")
+
     def date = System.currentTimeMillis()
     val opts = new ScallopConf(args) {
 
