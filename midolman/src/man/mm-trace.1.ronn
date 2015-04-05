@@ -1,0 +1,111 @@
+mm-trace(1) -- MidoNet flow tracing tool
+========================================
+
+## SYNOPSIS
+
+    $ mm-trace add [--debug | --trace] [--limit NUMBER] [TRACE_SPEC]
+    $ mm-trace remove [--debug | --trace] [--limit NUMBER] [TRACE_SPEC]
+    $ mm-trace flush [--dead-only]
+    $ mm-trace list [--live-only]
+
+
+## DESCRIPTION
+
+`mm-trace` gives access to the MidoNet agent's flow tracing capabilities. Thanks to flow tracing, operators can learn how a network packet travels through the MidoNet virtual topology, which devices it traverses, how the packet is modified and why and where the packet is forwarded to or whether it is dropped.
+
+`mm-trace` works by registering flow traces with the local MidoNet agent. These will be stored in memory and matched against processed packets. If a matching trace is found for a packet, the packet will be traced. Storing traces in the local agent's memory has two important consequences:
+
+ * Traces are not distributed. They do not work across the entire cloud. One has to know which agent is going to process the packets to be traced and run `mm-trace` against that agent.
+ * Trace request do not survive agent reboots, they are not persistent. However, their results are persistent, they are output to a local log file.
+
+The goal of flow tracing is to learn what and why MidoNet does when it encounters a certain packet. This decision is made by the MidoNet agent when a packet misses the kernel's datapath flow table. MidoNet agent only ever sees the first packet of each flow. Thus, *packets that match the kernel's datapath flow table are invisible to flow tracing*. To trace a packet that would hit a datapath flow, one may wait until the datapath flow has expired or cause a virtual network topology change that will invalidate the offending flow.
+
+A trace will match a finite number of packets before it becomes "dead", at that point it will be disabled. The default packet limit for a new trace is 1.
+
+## SUBCOMMANDS
+
+`add [--debug`, `-d | --trace`, `-t]` `[--limit` <NUMBER>, `-l` <NUMBER>`]` <TRACE_SPEC>
+
+Adds a new trace:
+
+  * `--debug`, `-d`:
+    Traces at DEBUG level.
+  * `--trace`, `-t`:
+    Traces at TRACE level, more verbose than DEBUG.
+  * `--limit` <NUMBER>, `-l` <NUMBER>:
+    Specifies the number of packets to match before disabling this trace.
+
+<TRACE_SPEC> is a list of field matches to select which packet(s) to trace:
+
+  * `--ethertype` <ETHERTYPE>:
+    Match the ETHERTYPE field.
+  * `--mac-src` <MAC>:
+    Match a source Ethernet address.
+  * `--mac-dst` <MAC>:
+    Match a destination IPv4 address.
+  * `--ip-protocol` <ETHERTYPE>:
+    Match the IPv4 protocol field.
+  * `--ip-src` <ADDRESS>:
+    Match a source IPv4 address.
+  * `--ip-dst` <ADDRESS>:
+    Match a destination IPv4 address.
+  * `--src-port` <PORT>:
+    Match a source TCP or UDP port number.
+  * `--dst-port` <PORT>:
+    Match a destination TCP or UDP port number.
+
+
+`remove [--debug`, `-d | --trace`, `-t]` `[--limit` <NUMBER>, `-l` <NUMBER>`]` <TRACE_SPEC>
+
+Removes an existing trace, the trace must be specified with the same options that were used to create it (see the `add` command above), or as printed by the `list` command.
+
+
+`flush [--dead-only]`
+
+Forget all traces. This does not remove trace results produced so far, because those will have been printed to traces log file, `mm-trace.log`.
+
+  * `--dead-only`:
+    This option will make `mm-trace` flush only disabled traces, those that have already matched as many packets as specified in their `limit` attribute.
+
+`list [--live-only]`
+
+Prints a list of existing traces. The output of `list` is identical to the input of `add` and `remove`.
+
+  * `--live-only`:
+    Print only traces that are active, still able to match packets to be traced.
+
+
+## MISCELLANEOUS OPTIONS
+
+  * `--help`:
+    Print a brief help message.
+  * `--host` <HOSTNAME>, `-h` <HOSTNAME>:
+    Specifies the hostname or ip address of the MidoNet agent that mm-trace will operate on. Defaults to _localhost_.
+  * `--port` <PORT>, `-p` <PORT>:
+    Specifies the TCP port number where MidoNet agent is listening. Defaults to 7200. `mm-trace` communicates with MidoNet agent using JMX.
+
+
+## EXAMPLES
+
+    $ mm-trace add -d --ip-dst 192.168.25.1
+    $ mm-trace list
+    mm-trace --debug --limit 1 --ip-dst 192.168.25.1
+    $ mm-trace flush --dead-only
+    Removed 0 tracer(s)
+    $ mm-trace remove -d --ip-dst 192.168.25.1
+    Removed 1 tracer(s)new_template
+    $ mm-trace list
+    $
+
+## FILES
+
+The MidoNet agent prints all flow traces to a dedicated log file, `/var/log/midolman/mm-trace.log`.
+
+
+## COPYRIGHT
+
+mm-trace is Copyright (C) 2015 Midokura SARL.
+
+## SEE ALSO
+
+midonet-cli(1), mn-conf(1)
