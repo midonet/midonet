@@ -1,0 +1,90 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_7a4edd70",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/TransactionManager.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 126,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-04-06T23:40:32Z",
+      "side": 1,
+      "message": "s/CreateNode/CreateNodeOp/",
+      "range": {
+        "startLine": 126,
+        "startChar": 20,
+        "endLine": 126,
+        "endChar": 30
+      },
+      "revId": "abf9e1252d8b6a4c6e8e69ceff92e1903089836a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_5a51610d",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/TransactionManager.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-04-06T23:40:32Z",
+      "side": 1,
+      "message": "s/UpdateNode/UpdateNodeOp/",
+      "range": {
+        "startLine": 127,
+        "startChar": 50,
+        "endLine": 127,
+        "endChar": 60
+      },
+      "revId": "abf9e1252d8b6a4c6e8e69ceff92e1903089836a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_1a3089e7",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/TransactionManager.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 128,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-04-06T23:40:32Z",
+      "side": 1,
+      "message": "s/with/will/",
+      "range": {
+        "startLine": 128,
+        "startChar": 67,
+        "endLine": 128,
+        "endChar": 71
+      },
+      "revId": "abf9e1252d8b6a4c6e8e69ceff92e1903089836a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_ba585533",
+        "filename": "cluster/src/test/scala/org/midonet/cluster/data/storage/ZoomNodeTests.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-04-06T23:40:32Z",
+      "side": 1,
+      "message": "Why don\u0027t you also check the value of  \"/key1\" key?",
+      "revId": "abf9e1252d8b6a4c6e8e69ceff92e1903089836a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
