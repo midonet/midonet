@@ -478,7 +478,8 @@ class ListAttr(SingleAttr):
                  writeable = True, show = True, optional = False):
         super(ListAttr, self).__init__(name, StringType(),
                                        getter, setter,
-                                       writeable, show, optional)
+                                       writeable, show, optional,
+                                       inv_getter, inv_setter)
         self.element_type = element_type
 
     def _api_to_cli(self, value):
