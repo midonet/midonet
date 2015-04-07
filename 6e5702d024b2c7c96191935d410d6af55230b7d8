@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_80ea4c0d",
+        "filename": "midolman/src/main/resources/org/midonet/conf/templates/agent/gateway-medium.conf",
+        "patchSetId": 2
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-04-07T15:04:27Z",
+      "side": 1,
+      "message": "extra line :p",
+      "revId": "6e5702d024b2c7c96191935d410d6af55230b7d8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
