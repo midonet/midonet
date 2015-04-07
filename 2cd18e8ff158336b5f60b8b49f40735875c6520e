@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_9aaf5994",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingHandler.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 500,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-04-07T08:08:46Z",
+      "side": 1,
+      "message": "should the check be inside scheduleEarlyStatusCheck? also, using the nanoclock so this can one day be tested? :p",
+      "revId": "2cd18e8ff158336b5f60b8b49f40735875c6520e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
