@@ -59,7 +59,7 @@ dependencies {
             libraries.guice_multibind, libraries.vmware_midoapi,
             libraries.jcabi, libraries.scala, libraries.protobuf
 
-    runtime libraries.aspectj
+    runtime libraries.aspectj, project(':midolman')
 
     testCompile libraries.hamcrest_integration, libraries.grizzly_servlet,
                 libraries.jersey_grizzly, libraries.jersey_test_grizzly,
