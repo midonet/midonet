@@ -1,0 +1,140 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_404cd470",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/BrainConfig.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-04-07T15:03:15Z",
+      "side": 1,
+      "message": "s/.apply/",
+      "revId": "9b45d6b8aca33f05417e6981620a7dbe648dc88e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_609f50b5",
+        "filename": "cluster/src/main/scala/org/midonet/conf/MidoConf.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-04-07T15:03:15Z",
+      "side": 1,
+      "message": "setAsSchema method name one a trait named Schema sounds weird. should it be called write? and the tait WritableSchema?",
+      "revId": "9b45d6b8aca33f05417e6981620a7dbe648dc88e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_a0a948e1",
+        "filename": "cluster/src/main/scala/org/midonet/conf/MidoConfTool.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 182,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-04-07T15:03:15Z",
+      "side": 1,
+      "message": "extra space",
+      "revId": "9b45d6b8aca33f05417e6981620a7dbe648dc88e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_00b01c42",
+        "filename": "cluster/src/main/scala/org/midonet/conf/MidoConfTool.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 188,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-04-07T15:03:15Z",
+      "side": 1,
+      "message": "extra space",
+      "revId": "9b45d6b8aca33f05417e6981620a7dbe648dc88e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_e0aa20d1",
+        "filename": "midolman/conf/midolman.conf",
+        "patchSetId": 3
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-04-07T15:03:15Z",
+      "side": 1,
+      "message": "FULLY",
+      "revId": "9b45d6b8aca33f05417e6981620a7dbe648dc88e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_40ba1424",
+        "filename": "midolman/conf/midolman.conf",
+        "patchSetId": 3
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-04-07T15:03:15Z",
+      "side": 1,
+      "message": "close the parenthesis )",
+      "revId": "9b45d6b8aca33f05417e6981620a7dbe648dc88e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_80836c55",
+        "filename": "midolman/src/main/java/org/midonet/midolman/Midolman.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 146,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-04-07T15:03:15Z",
+      "side": 1,
+      "message": "s/.apply/",
+      "revId": "9b45d6b8aca33f05417e6981620a7dbe648dc88e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_60863067",
+        "filename": "midolman/src/main/java/org/midonet/midolman/Midolman.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 187,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-04-07T15:03:15Z",
+      "side": 1,
+      "message": "Some(\"agent\")?",
+      "revId": "9b45d6b8aca33f05417e6981620a7dbe648dc88e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
