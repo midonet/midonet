@@ -1,0 +1,582 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_85effe86",
+        "filename": "netlink/src/main/java/org/midonet/netlink/rtnetlink/Addr.java",
+        "patchSetId": 9
+      },
+      "lineNbr": 178,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-04-07T14:38:42Z",
+      "side": 1,
+      "message": "we don\u0027t change the byte order, do we?",
+      "revId": "6fd480ae672dfe8348a1d40e65aa656e71a38625",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_e5fd123d",
+        "filename": "netlink/src/main/java/org/midonet/netlink/rtnetlink/Addr.java",
+        "patchSetId": 9
+      },
+      "lineNbr": 203,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-04-07T14:38:42Z",
+      "side": 1,
+      "message": "wow identation! \n\nif (id \u003d\u003d Attr.IFA_ADDRESS) {\n  switch (ifa.family) ...\n}",
+      "revId": "6fd480ae672dfe8348a1d40e65aa656e71a38625",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_c5e9f681",
+        "filename": "netlink/src/main/java/org/midonet/netlink/rtnetlink/Addr.java",
+        "patchSetId": 9
+      },
+      "lineNbr": 222,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-04-07T14:38:42Z",
+      "side": 1,
+      "message": "idem",
+      "revId": "6fd480ae672dfe8348a1d40e65aa656e71a38625",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_45fd063a",
+        "filename": "netlink/src/main/java/org/midonet/netlink/rtnetlink/Addr.java",
+        "patchSetId": 9
+      },
+      "lineNbr": 246,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-04-07T14:38:42Z",
+      "side": 1,
+      "message": "idem",
+      "revId": "6fd480ae672dfe8348a1d40e65aa656e71a38625",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_25f8ca48",
+        "filename": "netlink/src/main/java/org/midonet/netlink/rtnetlink/Addr.java",
+        "patchSetId": 9
+      },
+      "lineNbr": 270,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-04-07T14:38:42Z",
+      "side": 1,
+      "message": "idem",
+      "revId": "6fd480ae672dfe8348a1d40e65aa656e71a38625",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_254a8aac",
+        "filename": "netlink/src/main/java/org/midonet/netlink/rtnetlink/Link.java",
+        "patchSetId": 9
+      },
+      "lineNbr": 236,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-04-07T14:38:42Z",
+      "side": 1,
+      "message": "lets assume is not null",
+      "revId": "6fd480ae672dfe8348a1d40e65aa656e71a38625",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_c5d296d1",
+        "filename": "netlink/src/main/java/org/midonet/netlink/rtnetlink/Link.java",
+        "patchSetId": 9
+      },
+      "lineNbr": 238,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-04-07T14:38:42Z",
+      "side": 1,
+      "message": "instead of an if, i\u0027m starting to think it\u0027s better to catch a BufferOverflowException and then return null",
+      "revId": "6fd480ae672dfe8348a1d40e65aa656e71a38625",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_454fc6bd",
+        "filename": "netlink/src/main/java/org/midonet/netlink/rtnetlink/Link.java",
+        "patchSetId": 9
+      },
+      "lineNbr": 251,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-04-07T14:38:42Z",
+      "side": 1,
+      "message": "why is this needed if we don\u0027t change the order?",
+      "revId": "6fd480ae672dfe8348a1d40e65aa656e71a38625",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_a5d5daba",
+        "filename": "netlink/src/main/java/org/midonet/netlink/rtnetlink/Link.java",
+        "patchSetId": 9
+      },
+      "lineNbr": 286,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-04-07T14:38:42Z",
+      "side": 1,
+      "message": "again, i don\u0027t see what makes this needed?",
+      "revId": "6fd480ae672dfe8348a1d40e65aa656e71a38625",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_05dcaee3",
+        "filename": "netlink/src/main/java/org/midonet/netlink/rtnetlink/Link.java",
+        "patchSetId": 9
+      },
+      "lineNbr": 304,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-04-07T14:38:42Z",
+      "side": 1,
+      "message": "idem",
+      "revId": "6fd480ae672dfe8348a1d40e65aa656e71a38625",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_e5d6b2c2",
+        "filename": "netlink/src/main/java/org/midonet/netlink/rtnetlink/Link.java",
+        "patchSetId": 9
+      },
+      "lineNbr": 321,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-04-07T14:38:42Z",
+      "side": 1,
+      "message": "idem",
+      "revId": "6fd480ae672dfe8348a1d40e65aa656e71a38625",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_45e6a6b5",
+        "filename": "netlink/src/main/java/org/midonet/netlink/rtnetlink/Link.java",
+        "patchSetId": 9
+      },
+      "lineNbr": 349,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-04-07T14:38:42Z",
+      "side": 1,
+      "message": "idem",
+      "revId": "6fd480ae672dfe8348a1d40e65aa656e71a38625",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_6599221f",
+        "filename": "netlink/src/main/java/org/midonet/netlink/rtnetlink/Neigh.java",
+        "patchSetId": 9
+      },
+      "lineNbr": 164,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-04-07T14:38:42Z",
+      "side": 1,
+      "message": "idem",
+      "revId": "6fd480ae672dfe8348a1d40e65aa656e71a38625",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_c5a0d645",
+        "filename": "netlink/src/main/java/org/midonet/netlink/rtnetlink/Neigh.java",
+        "patchSetId": 9
+      },
+      "lineNbr": 216,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-04-07T14:38:42Z",
+      "side": 1,
+      "message": "idem",
+      "revId": "6fd480ae672dfe8348a1d40e65aa656e71a38625",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_a5a31a4e",
+        "filename": "netlink/src/main/java/org/midonet/netlink/rtnetlink/Neigh.java",
+        "patchSetId": 9
+      },
+      "lineNbr": 241,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-04-07T14:38:42Z",
+      "side": 1,
+      "message": "idem",
+      "revId": "6fd480ae672dfe8348a1d40e65aa656e71a38625",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_058aeebe",
+        "filename": "netlink/src/main/java/org/midonet/netlink/rtnetlink/Neigh.java",
+        "patchSetId": 9
+      },
+      "lineNbr": 258,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-04-07T14:38:42Z",
+      "side": 1,
+      "message": "idem",
+      "revId": "6fd480ae672dfe8348a1d40e65aa656e71a38625",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_e584f2b2",
+        "filename": "netlink/src/main/java/org/midonet/netlink/rtnetlink/Route.java",
+        "patchSetId": 9
+      },
+      "lineNbr": 205,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-04-07T14:38:42Z",
+      "side": 1,
+      "message": "idem",
+      "revId": "6fd480ae672dfe8348a1d40e65aa656e71a38625",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_a5bafa6b",
+        "filename": "netlink/src/main/java/org/midonet/netlink/rtnetlink/Route.java",
+        "patchSetId": 9
+      },
+      "lineNbr": 218,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-04-07T14:38:42Z",
+      "side": 1,
+      "message": "suggestion: replace single case switch with an if",
+      "revId": "6fd480ae672dfe8348a1d40e65aa656e71a38625",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_4594e6e1",
+        "filename": "netlink/src/main/java/org/midonet/netlink/rtnetlink/Route.java",
+        "patchSetId": 9
+      },
+      "lineNbr": 249,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-04-07T14:38:42Z",
+      "side": 1,
+      "message": "idem",
+      "revId": "6fd480ae672dfe8348a1d40e65aa656e71a38625",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_258f2ace",
+        "filename": "netlink/src/main/java/org/midonet/netlink/rtnetlink/Route.java",
+        "patchSetId": 9
+      },
+      "lineNbr": 266,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-04-07T14:38:42Z",
+      "side": 1,
+      "message": "idem",
+      "revId": "6fd480ae672dfe8348a1d40e65aa656e71a38625",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_05b14e8f",
+        "filename": "netlink/src/main/java/org/midonet/netlink/rtnetlink/Route.java",
+        "patchSetId": 9
+      },
+      "lineNbr": 287,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-04-07T14:38:42Z",
+      "side": 1,
+      "message": "idem",
+      "revId": "6fd480ae672dfe8348a1d40e65aa656e71a38625",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_45ab461d",
+        "filename": "netlink/src/main/java/org/midonet/netlink/rtnetlink/Route.java",
+        "patchSetId": 9
+      },
+      "lineNbr": 328,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-04-07T14:38:42Z",
+      "side": 1,
+      "message": "idem",
+      "revId": "6fd480ae672dfe8348a1d40e65aa656e71a38625",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_25a60a54",
+        "filename": "netlink/src/main/java/org/midonet/netlink/rtnetlink/Route.java",
+        "patchSetId": 9
+      },
+      "lineNbr": 364,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-04-07T14:38:42Z",
+      "side": 1,
+      "message": "idem",
+      "revId": "6fd480ae672dfe8348a1d40e65aa656e71a38625",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_45822695",
+        "filename": "netlink/src/main/scala/org.midonet.netlink/NetlinkConnection.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-04-07T14:38:42Z",
+      "side": 1,
+      "message": "we name our constants LIKE_THIS",
+      "revId": "6fd480ae672dfe8348a1d40e65aa656e71a38625",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_c56e1601",
+        "filename": "netlink/src/main/scala/org.midonet.netlink/NetlinkConnection.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-04-07T14:38:42Z",
+      "side": 1,
+      "message": "what does this do? how is it supposed to be used?",
+      "revId": "6fd480ae672dfe8348a1d40e65aa656e71a38625",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_e57232e2",
+        "filename": "netlink/src/main/scala/org.midonet.netlink/NetlinkConnection.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-04-07T14:38:42Z",
+      "side": 1,
+      "message": "what if seq is FULL?",
+      "revId": "6fd480ae672dfe8348a1d40e65aa656e71a38625",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_45598659",
+        "filename": "netlink/src/main/scala/org.midonet.netlink/NetlinkConnection.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 123,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-04-07T14:38:42Z",
+      "side": 1,
+      "message": "shouldn\u0027t the retryTable be thread safe? is the reader thread the same as the write thread?\n\nand why not simply pass the prepare funciton to the retry observer so it can call sendRetryRequest? then you wouldn\u0027t even need the if",
+      "revId": "6fd480ae672dfe8348a1d40e65aa656e71a38625",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_85325e0e",
+        "filename": "netlink/src/main/scala/org.midonet.netlink/NetlinkConnection.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 129,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-04-07T14:38:42Z",
+      "side": 1,
+      "message": "lots of duplicated code",
+      "revId": "6fd480ae672dfe8348a1d40e65aa656e71a38625",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_e559925c",
+        "filename": "netlink/src/main/scala/org.midonet.netlink/NetlinkConnection.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 156,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-04-07T14:38:42Z",
+      "side": 1,
+      "message": "we shouldn\u0027t create a new timer for every request",
+      "revId": "6fd480ae672dfe8348a1d40e65aa656e71a38625",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_45306601",
+        "filename": "netlink/src/main/scala/org.midonet.netlink/NetlinkConnection.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 182,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-04-07T14:38:42Z",
+      "side": 1,
+      "message": "isn\u0027t this all duplicated? why can\u0027t a RetryObserver[T] be a RetryObserver[Set[T]]?\n\nif they can\u0027t, they can at least share a trait that would eliminate a lot of duplicated code",
+      "revId": "6fd480ae672dfe8348a1d40e65aa656e71a38625",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_e52072b2",
+        "filename": "netlink/src/main/scala/org.midonet.netlink/NetlinkConnection.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 252,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-04-07T14:38:42Z",
+      "side": 1,
+      "message": "i confess don\u0027t understand the usefulness of this. is there any example of a consumer? \n\ni think it would be preferable to pass each T via on next instead of having onNext take all the Ts. we shouldn\u0027t impose an intermediary collection on the consumer",
+      "revId": "6fd480ae672dfe8348a1d40e65aa656e71a38625",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_252baa95",
+        "filename": "netlink/src/main/scala/org.midonet.netlink/NetlinkMessageWrapper.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-04-07T14:38:42Z",
+      "side": 1,
+      "message": "hum.. what was the reasoning for having the nltype and flags as arguments in this method when they are not part of genl? why not add them to apply() as well?",
+      "revId": "6fd480ae672dfe8348a1d40e65aa656e71a38625",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_a5167a53",
+        "filename": "netlink/src/main/scala/org.midonet.netlink/NetlinkRequestBroker.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 271,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-04-07T14:38:42Z",
+      "side": 1,
+      "message": "this if is ugly and slows down the code. can\u0027t we have a ctor argument that specifies the header size?",
+      "revId": "6fd480ae672dfe8348a1d40e65aa656e71a38625",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_e507d21b",
+        "filename": "netlink/src/main/scala/org.midonet.netlink/NetlinkRequestBroker.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 283,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-04-07T14:38:42Z",
+      "side": 1,
+      "message": "isn\u0027t this wrong? if a caller passes a default observer, it should expect that it completes whenever the reply completes.",
+      "revId": "6fd480ae672dfe8348a1d40e65aa656e71a38625",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
