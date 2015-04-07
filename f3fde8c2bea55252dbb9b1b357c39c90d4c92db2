@@ -1,0 +1,250 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_20e39834",
+        "filename": "brain/midonet-brain/src/main/resources/org/midonet/conf/schemas/brain.conf",
+        "patchSetId": 4
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-07T16:21:45Z",
+      "side": 1,
+      "message": "Is this needed now?",
+      "range": {
+        "startLine": 49,
+        "startChar": 0,
+        "endLine": 52,
+        "endChar": 5
+      },
+      "revId": "f3fde8c2bea55252dbb9b1b357c39c90d4c92db2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_40917498",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/TopologyApiServiceApp.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-07T16:21:45Z",
+      "side": 1,
+      "message": "Change not needed.",
+      "revId": "f3fde8c2bea55252dbb9b1b357c39c90d4c92db2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_00213c4d",
+        "filename": "brain/tools/src/main/scala/org/midonet/brain/tools/TopologyZoomUpdaterApp.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-07T16:21:45Z",
+      "side": 1,
+      "message": "Same here.",
+      "range": {
+        "startLine": 20,
+        "startChar": 0,
+        "endLine": 20,
+        "endChar": 63
+      },
+      "revId": "f3fde8c2bea55252dbb9b1b357c39c90d4c92db2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_e0c5003e",
+        "filename": "cluster/src/main/scala/org/midonet/conf/MidoConf.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-07T16:21:45Z",
+      "side": 1,
+      "message": "Not used",
+      "range": {
+        "startLine": 31,
+        "startChar": 41,
+        "endLine": 31,
+        "endChar": 66
+      },
+      "revId": "f3fde8c2bea55252dbb9b1b357c39c90d4c92db2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_20eef8b4",
+        "filename": "cluster/src/main/scala/org/midonet/conf/MidoConf.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 217,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-07T16:21:45Z",
+      "side": 1,
+      "message": "Is this a duplicate of the first one, or is there something missing in the path? BTW, is any of the ensure path for \"/config\" needed?",
+      "range": {
+        "startLine": 217,
+        "startChar": 8,
+        "endLine": 217,
+        "endChar": 67
+      },
+      "revId": "f3fde8c2bea55252dbb9b1b357c39c90d4c92db2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_40bfb4fb",
+        "filename": "cluster/src/test/scala/org/midonet/cluster/util/CuratorTestFramework.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-07T16:21:45Z",
+      "side": 1,
+      "message": "Not needed.",
+      "revId": "f3fde8c2bea55252dbb9b1b357c39c90d4c92db2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_e09ea053",
+        "filename": "midolman/src/main/scala/org/midonet/cluster/storage/MidonetBackendModule.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-07T16:21:45Z",
+      "side": 1,
+      "message": "Not needed.",
+      "revId": "f3fde8c2bea55252dbb9b1b357c39c90d4c92db2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_c09a8462",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/config/MidolmanConfig.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-07T16:21:45Z",
+      "side": 1,
+      "message": "Should these keys be specified in agent.conf?",
+      "range": {
+        "startLine": 92,
+        "startChar": 0,
+        "endLine": 93,
+        "endChar": 84
+      },
+      "revId": "f3fde8c2bea55252dbb9b1b357c39c90d4c92db2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_c083a402",
+        "filename": "midolman/src/man/mn-conf.1.ronn",
+        "patchSetId": 4
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-07T16:21:45Z",
+      "side": 1,
+      "message": "typo: overridden",
+      "range": {
+        "startLine": 22,
+        "startChar": 387,
+        "endLine": 22,
+        "endChar": 396
+      },
+      "revId": "f3fde8c2bea55252dbb9b1b357c39c90d4c92db2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_8089ac28",
+        "filename": "midolman/src/man/mn-conf.1.ronn",
+        "patchSetId": 4
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-07T16:21:45Z",
+      "side": 1,
+      "message": "typo: configuration",
+      "range": {
+        "startLine": 22,
+        "startChar": 19,
+        "endLine": 22,
+        "endChar": 31
+      },
+      "revId": "f3fde8c2bea55252dbb9b1b357c39c90d4c92db2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_80a24cac",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/HostMapperTest.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-07T16:21:45Z",
+      "side": 1,
+      "message": "Not needed.",
+      "revId": "f3fde8c2bea55252dbb9b1b357c39c90d4c92db2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_20c4385e",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/HostMapperTest.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-07T16:21:45Z",
+      "side": 1,
+      "message": "Not needed.",
+      "revId": "f3fde8c2bea55252dbb9b1b357c39c90d4c92db2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
