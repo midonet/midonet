@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_204a78ac",
+        "filename": "brain/midonet-brain/src/main/resources/org/midonet/conf/schemas/brain.conf",
+        "patchSetId": 4
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-04-07T23:42:19Z",
+      "side": 1,
+      "message": "up to you guys. I just moved what was in it.",
+      "parentUuid": "1a106d94_20e39834",
+      "range": {
+        "startLine": 49,
+        "startChar": 0,
+        "endLine": 52,
+        "endChar": 5
+      },
+      "revId": "f3fde8c2bea55252dbb9b1b357c39c90d4c92db2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_40917498",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/TopologyApiServiceApp.scala",
         "patchSetId": 4
@@ -36,6 +60,24 @@
       "writtenOn": "2015-04-07T16:21:45Z",
       "side": 1,
       "message": "Change not needed.",
+      "revId": "f3fde8c2bea55252dbb9b1b357c39c90d4c92db2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_9761ef3b",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/TopologyApiServiceApp.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-04-07T23:42:19Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_40917498",
       "revId": "f3fde8c2bea55252dbb9b1b357c39c90d4c92db2",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -88,6 +130,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_d75b6785",
+        "filename": "cluster/src/main/scala/org/midonet/conf/MidoConf.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-04-07T23:42:19Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_e0c5003e",
+      "range": {
+        "startLine": 31,
+        "startChar": 41,
+        "endLine": 31,
+        "endChar": 66
+      },
+      "revId": "f3fde8c2bea55252dbb9b1b357c39c90d4c92db2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_20eef8b4",
         "filename": "cluster/src/main/scala/org/midonet/conf/MidoConf.scala",
         "patchSetId": 4
@@ -99,6 +165,30 @@
       "writtenOn": "2015-04-07T16:21:45Z",
       "side": 1,
       "message": "Is this a duplicate of the first one, or is there something missing in the path? BTW, is any of the ensure path for \"/config\" needed?",
+      "range": {
+        "startLine": 217,
+        "startChar": 8,
+        "endLine": 217,
+        "endChar": 67
+      },
+      "revId": "f3fde8c2bea55252dbb9b1b357c39c90d4c92db2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_77643349",
+        "filename": "cluster/src/main/scala/org/midonet/conf/MidoConf.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 217,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-04-07T23:42:19Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_20eef8b4",
       "range": {
         "startLine": 217,
         "startChar": 8,
@@ -156,6 +246,30 @@
       "writtenOn": "2015-04-07T16:21:45Z",
       "side": 1,
       "message": "Should these keys be specified in agent.conf?",
+      "range": {
+        "startLine": 92,
+        "startChar": 0,
+        "endLine": 93,
+        "endChar": 84
+      },
+      "revId": "f3fde8c2bea55252dbb9b1b357c39c90d4c92db2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_574f77bd",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/config/MidolmanConfig.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-04-07T23:42:19Z",
+      "side": 1,
+      "message": "No, they are obsolete.",
+      "parentUuid": "1a106d94_c09a8462",
       "range": {
         "startLine": 92,
         "startChar": 0,
