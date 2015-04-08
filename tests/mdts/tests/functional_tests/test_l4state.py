@@ -85,7 +85,7 @@ def get_random_port_num():
 #   * This chain will apply to all traffic:
 #      * input-port == 2 | input-port == 3  ---> REV_DNAT && ACCEPT
 #      * input-port == 1 && src = 192.168.0.1 && dst == 21.42.84.168
-#           && is-forwarwd flow ---> DNAT to 172.16.42.1:80 && ACCEPT
+#           && is-forward flow ---> DNAT to 172.16.42.1:80 && ACCEPT
 #      * ----> DROP
 #
 ##############################################################################
@@ -145,14 +145,14 @@ def teardown():
     VTM.destroy()
 
 def check_forward_flow(src_port_no):
-    dst_mac = mac_for(downlink_port());
+    dst_mac = mac_for(downlink_port())
     f = downlink_iface().send_udp(dst_mac, '21.42.84.168', 41,
                                      src_port=src_port_no, dst_port=1080)
     expect_forward()
     wait_on_futures([f])
 
 def check_return_flow(port, iface, dst_port_no, dropped = False):
-    dst_mac = mac_for(port);
+    dst_mac = mac_for(port)
     f = iface.send_udp(dst_mac, '192.168.0.1', 41,
                           src_port=80, dst_port=dst_port_no,
                           src_ipv4 = '172.16.42.1')
@@ -168,7 +168,7 @@ def forward_filter():
 def expect_forward():
     assert_that(left_uplink_iface(),
             receives(forward_filter(), within_sec(5)),
-                     'Foward flow is DNATed and gets through.')
+                     'Forward flow is DNATed and gets through.')
 
 def return_filter(dst_port_no):
     filter_ = 'udp'
@@ -214,6 +214,7 @@ def test_distributed_l4():
     for i in range(0, 4):
         check_forward_flow(port_num)
         check_return_flow(left_uplink_port(), left_uplink_iface(), port_num)
+        check_return_flow(right_uplink_port(), right_uplink_iface(), port_num)
         time.sleep(30)
 
 @attr(version="v1.6.0", slow=False)
