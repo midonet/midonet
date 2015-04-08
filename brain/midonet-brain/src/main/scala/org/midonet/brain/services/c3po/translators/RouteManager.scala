@@ -149,4 +149,12 @@ object RouteManager {
      * address using the Floating IP ID. */
     def fipGatewayRouteId(fipId: UUID): UUID =
         fipId.xorWith(0xa5257b5f7d8e49bbL, 0xa3d08db68f649715L)
+
+    /** ID of SNAT rule for a Floating IP address. */
+    def fipSnatRuleId(fipId: UUID): UUID =
+        fipId.xorWith(0xf515a8fd119a4b82L, 0x81e9b793d68a3b9eL)
+
+    /** ID of DNAT rule for a Floating IP address. */
+    def fipDnatRuleId(fipId: UUID): UUID =
+        fipId.xorWith(0xe40c77c188694ac0L, 0x9a8e6c1863e2232eL)
 }

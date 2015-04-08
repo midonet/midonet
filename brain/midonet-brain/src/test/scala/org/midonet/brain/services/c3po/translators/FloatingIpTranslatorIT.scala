@@ -18,6 +18,8 @@ package org.midonet.brain.services.c3po.translators
 
 import java.util.UUID
 
+import scala.collection.JavaConverters._
+
 import com.fasterxml.jackson.databind.JsonNode
 
 import org.junit.runner.RunWith
@@ -36,14 +38,14 @@ import org.midonet.packets.IPv4Subnet
 import org.midonet.util.concurrent.toFutureOps
 
 @RunWith(classOf[JUnitRunner])
-class FloatingIpTranslatorIT extends C3POMinionTestBase {
+class FloatingIpTranslatorIT extends C3POMinionTestBase with ChainManager {
     private def floatingIpJson(id: UUID,
-                                 floatingNetworkId: UUID,
-                                 floatingIpAddress: String,
-                                 routerId: UUID = null,
-                                 portId: UUID = null,
-                                 fixedIpAddress: String = null,
-                                 tenantId: String = null): JsonNode = {
+                               floatingNetworkId: UUID,
+                               floatingIpAddress: String,
+                               routerId: UUID = null,
+                               portId: UUID = null,
+                               fixedIpAddress: String = null,
+                               tenantId: String = null): JsonNode = {
         val fip = nodeFactory.objectNode
         fip.put("id", id.toString)
         fip.put("floating_ip_address", floatingIpAddress)
@@ -137,7 +139,8 @@ class FloatingIpTranslatorIT extends C3POMinionTestBase {
 
         // #7 Attach a subnet to the external Network
         val extSubnetId = UUID.randomUUID()
-        val extSubnetCidr = IPv4Subnet.fromCidr("172.24.4.0/24").toString
+        val extSubnet = IPv4Subnet.fromCidr("172.24.4.0/24")
+        val extSubnetCidr = extSubnet.toString
         val extSubnetGwIp = "172.24.4.1"
         val extSubnetJson = subnetJson(extSubnetId, extNetworkId, "admin",
                                        name = "subnet", cidr = extSubnetCidr,
@@ -260,6 +263,49 @@ class FloatingIpTranslatorIT extends C3POMinionTestBase {
             rgwPort.getRouteIdsList contains fipRouteId  shouldBe true
         }
 
+        // Tests that SNAT / DNAT rules for the floating IP have been set.
+        val tRouter = storage.get(classOf[Router], tRouterId).await()
+        val inboundChainId = inChainId(tRouterId)
+        val outboundChainId = outChainId(tRouterId)
+        tRouter.getInboundFilterId shouldBe inboundChainId
+        tRouter.getOutboundFilterId shouldBe outboundChainId
+        val inChain = storage.get(classOf[Chain], inboundChainId).await()
+        val outChain = storage.get(classOf[Chain], outboundChainId).await()
+        val snatRuleId = RouteManager.fipSnatRuleId(fipId)
+        val dnatRuleId = RouteManager.fipDnatRuleId(fipId)
+        inChain.getRuleIdsList.asScala should contain(dnatRuleId)
+        outChain.getRuleIdsList.asScala should contain(snatRuleId)
+        // SNAT
+        val snat = storage.get(classOf[Rule], snatRuleId).await()
+        snat.getChainId shouldBe outboundChainId
+        snat.getAction shouldBe Rule.Action.ACCEPT
+        snat.getOutPortIdsCount shouldBe 1
+        snat.getOutPortIds(0) shouldBe toProto(rgwPortId)
+        snat.getNwSrcIp.getAddress shouldBe fixedIp
+        val snatRule = snat.getNatRuleData
+        snatRule.getDnat shouldBe false
+        snatRule.getNatTargetsCount shouldBe 1
+        val snatTarget = snatRule.getNatTargets(0)
+        snatTarget.getNwStart.getAddress shouldBe fipIp
+        snatTarget.getNwEnd.getAddress shouldBe fipIp
+        snatTarget.getTpStart shouldBe 1
+        snatTarget.getTpEnd shouldBe 65535
+        // DNAT
+        val dnat = storage.get(classOf[Rule], dnatRuleId).await()
+        dnat.getChainId shouldBe inboundChainId
+        dnat.getAction shouldBe Rule.Action.ACCEPT
+        dnat.getInPortIdsCount shouldBe 1
+        dnat.getInPortIds(0) shouldBe toProto(rgwPortId)
+        dnat.getNwDstIp.getAddress shouldBe fipIp
+        val dnatRule = dnat.getNatRuleData
+        dnatRule.getDnat shouldBe true
+        dnatRule.getNatTargetsCount shouldBe 1
+        val dnatTarget = dnatRule.getNatTargets(0)
+        dnatTarget.getNwStart.getAddress shouldBe fixedIp
+        dnatTarget.getNwEnd.getAddress shouldBe fixedIp
+        dnatTarget.getTpStart shouldBe 1
+        dnatTarget.getTpEnd shouldBe 65535
+
         // #14 Deleting a Floating IP should clear the GW route.
         executeSqlStmts(insertTaskSql(
                 id = 14, Delete, FloatingIpType, json = "", fipId, "tx14"))
@@ -270,5 +316,11 @@ class FloatingIpTranslatorIT extends C3POMinionTestBase {
         storage.exists(classOf[Route], fipRouteId).await() shouldBe false
         rgwPort = storage.get(classOf[Port], rgwPortId).await()
         rgwPort.getRouteIdsList contains fipRouteId  shouldBe false
+        storage.exists(classOf[Rule], snatRuleId).await() shouldBe false
+        storage.exists(classOf[Rule], dnatRuleId).await() shouldBe false
+        val inChainNoNat = storage.get(classOf[Chain], inboundChainId).await()
+        val outChainNoNat = storage.get(classOf[Chain], outboundChainId).await()
+        inChainNoNat.getRuleIdsList.contains(dnatRuleId) shouldBe false
+        outChainNoNat.getRuleIdsList.contains(snatRuleId) shouldBe false
     }
 }
