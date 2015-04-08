@@ -52,6 +52,11 @@ CONFIGURE_LOGGING=${CONFIGURE_LOGGING:-True}
 
 # Whether use screen to run services or not
 USE_SCREEN=${USE_SCREEN:-True}
+USE_CLUSTER=${USE_CLUSTER:-False}
 
 # Directory where all the service files will live
 SERVICE_DIR=${SERVICE_DIR:-$DEVMIDO_DIR/status}
+
+# Credentials for accessing the DB that contains the tasks table
+TASKS_DB_PASSWORD=${TASKS_DB_PASSWORD:-$MIDO_PASSWORD}
+TASKS_DB_USER=${TASKS_DB_USER:-root}
