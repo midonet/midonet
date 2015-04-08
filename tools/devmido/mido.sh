@@ -174,6 +174,7 @@ is_package_installed ncurses-dev || install_package ncurses-dev
 is_package_installed openjdk-7-jdk || install_package openjdk-7-jdk
 is_package_installed python-pip || install_package python-pip
 is_package_installed wget || install_package wget
+is_package_installed ruby-ronn || install_pacakge ruby-ronn
 
 
 # Zookeeper
@@ -266,10 +267,11 @@ cp -r $AGENT_BUILD_DIR $DEPS_DIR/dep
 # Place our executables in /usr/local/bin
 MM_CTL="/usr/local/bin/mm-ctl"
 MM_DPCTL="/usr/local/bin/mm-dpctl"
+MN_CONF="/usr/local/bin/mn-conf"
 sed -e "s@%DEPS_DIR%@$DEPS_DIR@" \
     -e "s@%TOP_DIR%@$TOP_DIR@" \
-    $DEVMIDO_DIR/binproxy | sudo tee $MM_CTL $MM_DPCTL
-sudo chmod +x $MM_CTL $MM_DPCTL
+    $DEVMIDO_DIR/binproxy | sudo tee $MM_CTL $MM_DPCTL $MN_CONF
+sudo chmod +x $MM_CTL $MM_DPCTL $MN_CONF
 
 # Create the midolman's conf dir in case it doesn't exist
 if [ ! -d $AGENT_CONF_DIR ]; then
@@ -280,11 +282,12 @@ fi
 if [ ! -f $AGENT_CONF_DIR/logback-dpctl.xml ]; then
     sudo cp $TOP_DIR/midolman/conf/logback-dpctl.xml $AGENT_CONF_DIR/
 fi
-if [ ! -f $AGENT_CONF_DIR/midolman.conf ]; then
-    MIDO_CONF=$TOP_DIR/midolman/conf/midolman.conf
-    iniset $MIDO_CONF cluster enabled true
-    sudo cp $MIDO_CONF $AGENT_CONF_DIR/
-fi
+
+MIDO_CONF=$TOP_DIR/midolman/conf/midolman.conf
+cp $MIDO_CONF ${MIDO_CONF}.edited
+iniset ${MIDO_CONF}.edited cluster enabled true
+iniset ${MIDO_CONF}.edited cluster tasks_db_connection "mysql://localhost:3306/neutron?user=${NEUTRON_DB_USER}&password=${NEUTRON_DB_PASSWORD}"
+sudo mv ${MIDO_CONF}.edited $AGENT_CONF_DIR/midolman.conf
 
 # put config to the classpath and set loglevel to DEBUG for Midolman
 cp  $TOP_DIR/midolman/src/test/resources/logback-test.xml  \
@@ -298,14 +301,12 @@ if [ "$USE_CLUSTER" = "True" ]; then
     CLUSTER_LOG=$TOP_DIR/brain/midonet-brain/conf/logback.xml
     cp $CLUSTER_LOG.dev $TOP_DIR/brain/midonet-brain/build/resources/main/logback.xml
 
-    CLUSTER_CONF=$TOP_DIR/brain/midonet-brain/conf/cluster.conf
-
-    iniset $CLUSTER_CONF midonet-backend enabled true
-    iniset $CLUSTER_CONF neutron-importer enabled true
-    iniset $CLUSTER_CONF neutron-importer connection_str jdbc:mysql://localhost:3306/neutron
-    iniset $CLUSTER_CONF neutron-importer password $MIDO_PASSWORD
+    # For some reason, I can not directly redirect to mn-conf
+    # echo "agent.cluster.tasks_db_connection = \"mysql://$NEUTRON_DB_USER:$NEUTRON_DB_PASSWORD@localhost:3306/neutron\"" | mn-conf set -t default
 
     run_process midonet-cluster "cd $TOP_DIR && ./gradlew :brain:midonet-brain:run"
+
+
 else
     # MidoNet API
     # -----------
