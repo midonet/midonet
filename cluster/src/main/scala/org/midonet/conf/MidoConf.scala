@@ -364,7 +364,7 @@ class MidoNodeConfigurator(zk: CuratorFramework,
             withFallback(centralConfig(node)).
             withFallback(mergedBundledSchemas)
 
-    def runtimeConfig: Config = runtimeConfig(HostIdGenerator.getHostId())
+    def runtimeConfig: Config = runtimeConfig(HostIdGenerator.getHostId)
 
     /**
      * Return an Observable on the runtime configuration that a particular
