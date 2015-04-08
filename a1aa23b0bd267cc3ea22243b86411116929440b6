@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_59820695",
+        "filename": "brain/midonet-brain/src/main/resources/org/midonet/conf/schemas/brain.conf",
+        "patchSetId": 1
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-04-08T23:07:51Z",
+      "side": 1,
+      "message": "Review that this is adequate.",
+      "range": {
+        "startLine": 21,
+        "startChar": 24,
+        "endLine": 21,
+        "endChar": 28
+      },
+      "revId": "a1aa23b0bd267cc3ea22243b86411116929440b6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
