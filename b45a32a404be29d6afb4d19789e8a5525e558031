@@ -1,0 +1,113 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_48f87649",
+        "filename": "cluster/src/main/proto/topology.proto",
+        "patchSetId": 17
+      },
+      "lineNbr": 399,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-08T12:59:05Z",
+      "side": 1,
+      "message": "max_retries?",
+      "range": {
+        "startLine": 399,
+        "startChar": 19,
+        "endLine": 399,
+        "endChar": 29
+      },
+      "revId": "b45a32a404be29d6afb4d19789e8a5525e558031",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_a8964aee",
+        "filename": "midolman/src/main/java/org/midonet/midolman/state/l4lb/HealthMonitorType.java",
+        "patchSetId": 17
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-08T12:59:05Z",
+      "side": 1,
+      "message": "Is this needed?",
+      "range": {
+        "startLine": 27,
+        "startChar": 0,
+        "endLine": 31,
+        "endChar": 5
+      },
+      "revId": "b45a32a404be29d6afb4d19789e8a5525e558031",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_c87106e2",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PoolHealthMonitorMapper.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-08T12:59:05Z",
+      "side": 1,
+      "message": "Minor comment: import order.",
+      "revId": "b45a32a404be29d6afb4d19789e8a5525e558031",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_28789ac3",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PoolHealthMonitorMapper.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-08T12:59:05Z",
+      "side": 1,
+      "message": "Maybe in the future we can remove this, and make the mapper independent of the virtual topology. The only place where this is used is in the HealthMonitorConfigWatcher, which subscribes to notifications from the health monitor. Since the mapper implements OnSubscribe, maybe there it would suffice:\n\n  Observable.create(mapper).subscribe(...)",
+      "range": {
+        "startLine": 33,
+        "startChar": 0,
+        "endLine": 39,
+        "endChar": 63
+      },
+      "revId": "b45a32a404be29d6afb4d19789e8a5525e558031",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_e845e270",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PoolHealthMonitorMapper.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-08T12:59:05Z",
+      "side": 1,
+      "message": "Does this mean an update?",
+      "range": {
+        "startLine": 70,
+        "startChar": 21,
+        "endLine": 70,
+        "endChar": 26
+      },
+      "revId": "b45a32a404be29d6afb4d19789e8a5525e558031",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
