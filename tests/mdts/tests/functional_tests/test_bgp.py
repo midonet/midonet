@@ -216,7 +216,7 @@ def ping_inet(count=3, interval=1, retry=True, retry_count=2, port=2):
         f1 = sender.ping_ipv4_addr('1.1.1.1', interval=interval, count=count)
         wait_on_futures([f1])
     except subprocess.CalledProcessError as e:
-        # FIXME: Further Investivagion Needed
+        # FIXME: Further Investigation Needed
         # The first several ping attempts occasionally fail, so try it again.
         # What does it really mean? Some timing issue or even bug in midolman?
         if retry and retry_count > 0:
