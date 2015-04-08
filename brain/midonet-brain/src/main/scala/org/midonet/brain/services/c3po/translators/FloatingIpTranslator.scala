@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,17 +16,102 @@
 
 package org.midonet.brain.services.c3po.translators
 
-import com.google.protobuf.Message
+import scala.collection.JavaConverters._
 
-import org.midonet.brain.services.c3po.midonet.MidoOp
+import org.midonet.brain.services.c3po.midonet.{Create, Delete, MidoOp}
+import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.Neutron.FloatingIp
+import org.midonet.cluster.models.Topology.{Port, Route, Router}
+import org.midonet.cluster.util.IPSubnetUtil
+import org.midonet.util.concurrent.toFutureOps
 
 /** Provides a Neutron model translator for FloatingIp. */
-class FloatingIpTranslator extends NeutronTranslator[FloatingIp]{
-    override protected def translateCreate(nm: FloatingIp): MidoOpList = List()
+class FloatingIpTranslator(protected val readOnlyStorage: ReadOnlyStorage)
+        extends NeutronTranslator[FloatingIp] with RouteManager {
+    import org.midonet.brain.services.c3po.translators.FloatingIpTranslator._
+    import org.midonet.brain.services.c3po.translators.RouteManager._
+    import org.midonet.brain.services.c3po.translators.RouterTranslator._
+    implicit val storage: ReadOnlyStorage = readOnlyStorage
 
-    override protected def translateDelete(id: UUID): MidoOpList = List()
+    override protected def translateCreate(fip: FloatingIp): MidoOpList = {
+        // If a port is not assigned, there's nothing to do.
+        if (!fip.hasPortId) return List()
 
-    override protected def translateUpdate(nm: FloatingIp): MidoOpList = List()
+        val midoOps = new MidoOpListBuffer
+
+        midoOps ++= generateGwRouteCreateOp(fip)
+
+        // TODO Add SNAT and DNAT rules to the tenant router, and adds it at the
+        // 1st position of the rule chain.
+
+        midoOps.toList
+    }
+
+    override protected def translateDelete(id: UUID): MidoOpList = {
+        val midoOps = new MidoOpListBuffer
+
+        val fip = storage.get(classOf[FloatingIp], id).await()
+        if (fip.hasPortId) {
+            midoOps += Delete(classOf[Route], fipGatewayRouteId(id))
+        }
+
+        // TODO Delete SNAT and DNAT rules.
+
+        midoOps.toList
+    }
+
+    override protected def translateUpdate(fip: FloatingIp): MidoOpList = {
+        val midoOps = new MidoOpListBuffer
+        val oldFip = storage.get(classOf[FloatingIp], fip.getId).await()
+
+        if (!oldFip.hasPortId && fip.hasPortId) {
+            midoOps ++= generateGwRouteCreateOp(fip)
+        } else if (oldFip.hasPortId && !fip.hasPortId) {
+            midoOps += Delete(classOf[Route], fipGatewayRouteId(fip.getId))
+        }
+        // If the Floating IP is kept associated, no need to update the route.
+
+        // TODO Update SNAT/DNAT rules.
+
+        midoOps.toList
+    }
+
+    /* Generates a Create Op for the GW route. */
+    private def generateGwRouteCreateOp(fip: FloatingIp)
+    : Option[Create[Route]] = {
+        // Find a gateway port, where a gateway port is a port on the tenant
+        // router that's linked to a port on the provider router.
+        val provRtrPeer = findPeerRouterPort(fip.getRouterId, providerRouterId)
+        provRtrPeer.map { p =>
+            Create(newNextHopPortRoute(p.peer.getId,
+                                       id = fipGatewayRouteId(fip.getId),
+                                       dstSubnet = IPSubnetUtil.fromAddr(
+                                               fip.getFloatingIpAddress))) }
+    }
+}
+
+object FloatingIpTranslator {
+    import org.midonet.brain.services.c3po.translators.RouterTranslator._
+    case class PeerPort(port: Port, peer: Port)
+
+    def findPeerRouterPort(routerId: UUID, peerRouterId: UUID)
+                          (implicit storage: ReadOnlyStorage)
+                          : Option[PeerPort] = {
+        val router = storage.get(classOf[Router], routerId).await()
+        // Read all Router Port data concurrently for better latency.
+        val rPortFutures = router.getPortIdsList.asScala
+                                 .map(storage.get(classOf[Port], _))
+        for (rPortFuture <- rPortFutures) {
+            val routerPort = rPortFuture.await()
+            if (routerPort.hasPeerId) {
+                val peerPort = storage.get(classOf[Port], routerPort.getPeerId)
+                                      .await()
+                if (peerPort.getRouterId == peerRouterId) {
+                    return Some(PeerPort(routerPort, peerPort))
+                }
+            }
+        }
+        None
+    }
 }
