@@ -74,7 +74,7 @@ public class MmCtl {
 
         private final String val;
 
-        private TASK_TYPE(String val) {
+        TASK_TYPE(String val) {
             this.val = val;
         }
     }
@@ -84,7 +84,7 @@ public class MmCtl {
 
         private final String val;
 
-        private DATA_TYPE(String val) { this.val = val; }
+        DATA_TYPE(String val) { this.val = val; }
     }
 
     private final String INSERT_TASK =

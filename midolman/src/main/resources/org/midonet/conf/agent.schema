@@ -68,16 +68,16 @@ bridge {
 }
 
 arptable {
-    arp_retry_interval = 10s
+    arp_retry_interval : 10s
     arp_retry_interval_description : """ """
 
-    arp_timeout = 60s
+    arp_timeout : 60s
     arp_timeout_description : """ """
 
-    arp_stale = 1800s
+    arp_stale : 1800s
     arp_stale_description : """ """
 
-    arp_expiration = 3600s
+    arp_expiration : 3600s
     arp_expiration_description : """ """
 }
 
@@ -233,11 +233,11 @@ haproxy_health_monitor {
 Health monitor is disabled by default. Please change the following value to
 true to activate it.
 """
-    namespace_cleanup = false
+    namespace_cleanup : false
 
-    namespace_suffix = "_hm"
+    namespace_suffix : "_hm"
 
-    haproxy_file_loc = "/etc/midolman/l4lb/"
+    haproxy_file_loc : "/etc/midolman/l4lb/"
 }
 
 loggers {
@@ -282,4 +282,16 @@ logger for all bridges and their mac learning tables"""
     org.midonet.netlink : "INFO"
     org.midonet.io.select-loop : "INFO"
     org.midonet.io.htb : "INFO"
+}
+
+cluster {
+    enabled : false
+    enabled_description : """
+Used by the mm-ctl tool. When enabled, it will try to communicate via the API
+server. Otherwise, it will use the cluster database."""
+
+    tasks_db_connection : " "
+    tasks_db_connection_description : """
+Used by the mm-ctl tool. This is the connection string used to connect to the
+cluster database where the task entries are located."""
 }
