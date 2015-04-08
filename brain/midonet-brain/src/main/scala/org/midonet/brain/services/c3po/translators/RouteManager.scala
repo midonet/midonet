@@ -95,32 +95,58 @@ trait RouteManager {
     }
 }
 
+/**
+ * Provides utility methods for creating and modifying a Topology.Route object.
+ * Defines a series of deterministic ID generator methods such as localRouterId,
+ * and gatewayRouteId.
+ *
+ * The deterministic ID generators derive a new ID for a "subordinate" object
+ * (e.g. local Route ID for a given port) by XORing the UUID of an "owner"
+ * object, in this case the port, with another pre-generated random UUID,
+ * hard-coded as two long integers in each method body. This saves us at least 1
+ * ZK round trip, say, when you want to look up a local route for a port but you
+ * only have a port ID. This helps us in house-keeping all the subordinate
+ * objects when modifying an owner object but cannot use field binding, or saves
+ * us from searching through the topology graph to find an object in question.
+ */
 object RouteManager {
     val META_DATA_SRVC = IPSubnetUtil.toProto(MetaDataService.IPv4_ADDRESS)
     val DEFAULT_WEIGHT = 100
 
     /**
-     * Tests whether route is to a port, i.e., next hop is PORT or LOCAL
-     * rather than REJECT or BLACKHOLE
-     */
+     * Tests whether the route is to a port, i.e., next hop is PORT or LOCAL
+     * rather than REJECT or BLACKHOLE */
     protected def isToPort(route: RouteOrBuilder): Boolean =
         route.getNextHop == NextHop.LOCAL || route.getNextHop == NextHop.PORT
 
-    /** ID of local route to port, based on port's ID. */
+    /**
+     * Deterministically derives an ID for a local route to the port using the
+     * port ID. */
     def localRouteId(portId: UUID): UUID =
         portId.xorWith(0x13bd079b6c0e43fbL, 0x80fe647e6e718b72L)
 
-    /** ID of next-hop route from tenant router to provider router via
-      * gateway port, or vice-versa.
-      */
+    /**
+     * Deterministically derives an ID for a next-hop route from tenant router
+     * to provider router via gateway port, or vice-versa, using the gateway
+     * port ID. */
     def gatewayRouteId(gwPortId: UUID): UUID =
         gwPortId.xorWith(0x6ba5df84b8a44ab4L, 0x90adb3f665e7850dL)
 
     /**
-     * ID of next-hop route to the subnet / router interface port. */
+     * Deterministically derives an ID for a next-hop route to the subnet of the
+     * router interface port using the router interface port ID. */
     def routerInterfaceRouteId(rifPortId: UUID): UUID =
         rifPortId.xorWith(0xb288abe0c5744762L, 0xb3a04b12442bb179L)
 
+    /**
+     * Deterministically derives an ID for a Metadata Service route using the
+     * DHCP port ID. */
     def metadataServiceRouteId(dhcpPortId: UUID): UUID =
         dhcpPortId.xorWith(0xa0132e5a1583461cL, 0xa752d8609a517a6cL)
+
+    /**
+     * Deterministically derives an ID for a next-hop route for a Floating IP
+     * address using the Floating IP ID. */
+    def fipGatewayRouteId(fipId: UUID): UUID =
+        fipId.xorWith(0xa5257b5f7d8e49bbL, 0xa3d08db68f649715L)
 }
