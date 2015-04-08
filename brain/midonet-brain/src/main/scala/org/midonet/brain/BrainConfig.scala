@@ -81,7 +81,7 @@ class C3POConfig(val conf: Config) extends ScheduledMinionConfig[C3POMinion] {
 
 class HeartbeatConfig(val conf: Config) extends ScheduledMinionConfig[Heartbeat] {
     val PREFIX = "brain.heartbeat"
-    override def isEnabled = conf.getBoolean("$PREFIX.enabled")
+    override def isEnabled = conf.getBoolean(s"$PREFIX.enabled")
     override def minionClass = conf.getString(s"$PREFIX.with")
     override def numThreads = conf.getInt(s"$PREFIX.threads")
     override def delayMs = conf.getDuration(s"$PREFIX.delay", TimeUnit.MILLISECONDS)
