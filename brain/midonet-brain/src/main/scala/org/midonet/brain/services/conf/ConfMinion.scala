@@ -40,8 +40,6 @@ class ConfMinion @Inject()(nodeContext: ClusterNode.Context, config: BrainConfig
 
     override def doStart(): Unit = {
         val configurator = MidoNodeConfigurator(config.conf)
-        if (configurator.deployBundledConfig())
-            log.info("Deployed new configuration schemas for brain MidoNet nodes")
 
         log.info(s"Starting configuration API service at ${config.confApi.httpPort}")
 
