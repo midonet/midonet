@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_8d2c4004",
+        "filename": "netlink/src/main/scala/org.midonet.netlink/NetlinkMessageWrapper.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-04-08T09:49:48Z",
+      "side": 1,
+      "message": "can this be private again? it was like that so the caller was forced to use the constructors in the NetlinkMessageWrapper object.",
+      "revId": "9aa7bf5eb723bdc11d3d4ad8e8b50b1840f7f764",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
