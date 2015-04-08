@@ -20,6 +20,7 @@ from mdts.lib.resource_base import ResourceBase
 
 
 class PortGroup(ResourceBase):
+    bool_val = {'true': True, 'false': False}
 
     def __init__(self, api, context, data):
         """ Initializes a port group. 
@@ -36,6 +37,7 @@ class PortGroup(ResourceBase):
     def build(self):
         self._mn_resource = self._api.add_port_group()
         self._mn_resource.name(self._data.get('name'))
+        self._mn_resource.stateful(self._data.get('stateful', 'false'))
         self._mn_resource.tenant_id(self._get_tenant_id())
         self._mn_resource.create()
 
@@ -46,6 +48,10 @@ class PortGroup(ResourceBase):
     def get_id(self):
         """ Returns the resource ID specified in the topology data. """
         return self._data.get('id')
+
+    def is_stateful(self):
+        """ Returns whether the port group is stateful. """
+        return self.bool_val.get(self._data.get('stateful', 'false'))
 
     def get_ports(self):
         """ Returns a list of ports in this port group. """
