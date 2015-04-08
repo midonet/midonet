@@ -23,12 +23,13 @@ import javax.sql.DataSource
 import com.codahale.metrics.{JmxReporter, MetricRegistry}
 import com.google.inject.name.Names
 import com.google.inject.{AbstractModule, Guice}
+import com.typesafe.config.ConfigFactory
 import org.apache.commons.dbcp2.BasicDataSource
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.storage._
-import org.midonet.conf.{MidoNodeConfigurator, HostIdGenerator}
+import org.midonet.conf.{HostIdGenerator, MidoNodeConfigurator}
 import org.midonet.midolman.cluster.LegacyClusterModule
 import org.midonet.midolman.cluster.serialization.SerializationModule
 import org.midonet.midolman.cluster.zookeeper.ZookeeperConnectionModule.ZookeeperReactorProvider
@@ -71,21 +72,39 @@ object ClusterNode extends App {
         System.exit(1)
     }
 
-    val conf = MidoNodeConfigurator(configFile).runtimeConfig(HostIdGenerator.getHostId)
-    val brainConf = new BrainConfig(conf)
-    val backendConf = new MidonetBackendConfig(conf)
+    val configurator = MidoNodeConfigurator(configFile)
+    if (configurator.deployBundledConfig()) {
+        log.info("Deployed new configuration schema into NSDB")
+    }
 
+    // TODO: this chunk here is required so that we override the NDSB
+    //       settings and enable the new storage stack when running 2.0 code
+    //       in development.  When the new storage stack is released, we should
+    //       remove it.
+    val CLUSTER_NODE_CONF_OVERRIDES = ConfigFactory.parseString(
+        """
+          |zookeeper {
+          |    use_new_stack = true
+          |    curator_enabled = true
+          |}
+        """.stripMargin)
     // Load cluster node configuration
     private val nodeId = HostIdGenerator.getHostId
+    configurator.centralPerNodeConfig(nodeId)
+                .mergeAndSet(CLUSTER_NODE_CONF_OVERRIDES )
+
+    val brainConf = new BrainConfig(configurator.runtimeConfig)
 
     // Prepare the Cluster node context for injection
     private val nodeContext = new Context(nodeId)
 
-    private val minionDefs: List[MinionDef[ClusterMinion]] =
-        List (new MinionDef("heartbeat", brainConf.hearbeat),
-              new MinionDef("vxgw", brainConf.vxgw),
-              new MinionDef("neutron-importer", brainConf.c3po),
-              new MinionDef("topology", brainConf.topologyApi))
+    private val minionDefs: List[MinionDef[ClusterMinion]] = List (
+        new MinionDef("heartbeat", brainConf.hearbeat),
+        new MinionDef("vxgw", brainConf.vxgw),
+        new MinionDef("neutron-importer", brainConf.c3po),
+        new MinionDef("conf_api", brainConf.conf),
+        new MinionDef("topology", brainConf.topologyApi)
+    )
 
     // TODO: move this out to a Guice module that provides access to the
     // NeutronDB
@@ -147,7 +166,7 @@ object ClusterNode extends App {
     }
 
     protected[brain] var injector = Guice.createInjector(
-        new MidonetBackendModule(conf),
+        new MidonetBackendModule(brainConf.backend),
         clusterNodeModule,
         dataClientDependencies
     )
