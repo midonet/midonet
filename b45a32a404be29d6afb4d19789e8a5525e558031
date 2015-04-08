@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_43ffb9aa",
+        "filename": "cluster/src/main/proto/topology.proto",
+        "patchSetId": 17
+      },
+      "lineNbr": 399,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-04-08T17:07:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_48f87649",
+      "range": {
+        "startLine": 399,
+        "startChar": 19,
+        "endLine": 399,
+        "endChar": 29
+      },
+      "revId": "b45a32a404be29d6afb4d19789e8a5525e558031",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_a8964aee",
         "filename": "midolman/src/main/java/org/midonet/midolman/state/l4lb/HealthMonitorType.java",
         "patchSetId": 17
@@ -36,6 +60,30 @@
       "writtenOn": "2015-04-08T12:59:05Z",
       "side": 1,
       "message": "Is this needed?",
+      "range": {
+        "startLine": 27,
+        "startChar": 0,
+        "endLine": 31,
+        "endChar": 5
+      },
+      "revId": "b45a32a404be29d6afb4d19789e8a5525e558031",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_630475c0",
+        "filename": "midolman/src/main/java/org/midonet/midolman/state/l4lb/HealthMonitorType.java",
+        "patchSetId": 17
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-04-08T17:07:06Z",
+      "side": 1,
+      "message": "Apparently not. Removed.",
+      "parentUuid": "1a106d94_a8964aee",
       "range": {
         "startLine": 27,
         "startChar": 0,
@@ -65,6 +113,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_e35985ff",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PoolHealthMonitorMapper.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-04-08T17:07:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_c87106e2",
+      "revId": "b45a32a404be29d6afb4d19789e8a5525e558031",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_28789ac3",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PoolHealthMonitorMapper.scala",
         "patchSetId": 17
@@ -88,6 +154,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_03f5c1ca",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PoolHealthMonitorMapper.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-04-08T17:07:06Z",
+      "side": 1,
+      "message": "This is also required to extend from the DeviceMapper superclass, apart from that and the HealthMonitorConfigWatcher, I don\u0027t think it is used anywhere else...",
+      "parentUuid": "1a106d94_28789ac3",
+      "range": {
+        "startLine": 33,
+        "startChar": 0,
+        "endLine": 39,
+        "endChar": 63
+      },
+      "revId": "b45a32a404be29d6afb4d19789e8a5525e558031",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_e845e270",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PoolHealthMonitorMapper.scala",
         "patchSetId": 17
@@ -99,6 +189,30 @@
       "writtenOn": "2015-04-08T12:59:05Z",
       "side": 1,
       "message": "Does this mean an update?",
+      "range": {
+        "startLine": 70,
+        "startChar": 21,
+        "endLine": 70,
+        "endChar": 26
+      },
+      "revId": "b45a32a404be29d6afb4d19789e8a5525e558031",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_635635d4",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PoolHealthMonitorMapper.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-04-08T17:07:06Z",
+      "side": 1,
+      "message": "Actually, yes. It\u0027s an updated entry for the global pool health monitor map.",
+      "parentUuid": "1a106d94_e845e270",
       "range": {
         "startLine": 70,
         "startChar": 21,
