@@ -16,6 +16,8 @@
 
 package org.midonet.brain.services.c3po.translators
 
+import scala.collection.JavaConverters._
+
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.Topology.Chain
 import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
@@ -39,5 +41,13 @@ trait ChainManager {
         val bldr = Chain.newBuilder.setId(id).setName(name)
         ruleIds.foreach(bldr.addRuleIds)
         bldr.build()
+    }
+
+    /** Returns a new Chain with the specified rule deleted if exists. */
+    protected def removeRule(chain: Chain, ruleId: UUID): Chain = {
+        val removeRuleIdx = chain.getRuleIdsList.asScala.indexOf(ruleId)
+        if (removeRuleIdx >= 0)
+            chain.toBuilder().removeRuleIds(removeRuleIdx).build
+        else chain
     }
 }
