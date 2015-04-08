@@ -2,6 +2,23 @@
   "comments": [
     {
       "key": {
+        "uuid": "1a106d94_6dc0e4e0",
+        "filename": "netlink/src/main/scala/org.midonet.netlink/NetlinkConnection.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 157,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-04-08T10:21:35Z",
+      "side": 1,
+      "message": "this is a concurrency bug. only 1 thread can call sendRetyrRequest.\n\nI have a request: delete the NetlinkConnection class and all of its subclasses, because they\u0027re hiding the NetlinkRequestBroker and it\u0027s threading requirements. Let the DefaultInterfaceScanner use the NetlinkRequestBroker and RtnetlinkProtocol directly. There is no such concept as a Netlink connection anyway.",
+      "revId": "9aa7bf5eb723bdc11d3d4ad8e8b50b1840f7f764",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_8d2c4004",
         "filename": "netlink/src/main/scala/org.midonet.netlink/NetlinkMessageWrapper.scala",
         "patchSetId": 10
