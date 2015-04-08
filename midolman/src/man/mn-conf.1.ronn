@@ -177,4 +177,4 @@ mn-conf is Copyright (C) 2015 Midokura SARL.
 
 ## SEE ALSO
 
-midonet-cli(1)
+midonet-cli(1), mm-trace(1)
