@@ -123,4 +123,8 @@ object RouteManager {
 
     def metadataServiceRouteId(dhcpPortId: UUID): UUID =
         dhcpPortId.xorWith(0xa0132e5a1583461cL, 0xa752d8609a517a6cL)
+
+    /** ID of next-hop route for a Floating IP address. */
+    def fipGatewayRouteId(fipId: UUID): UUID =
+        fipId.xorWith(0xa5257b5f7d8e49bbL, 0xa3d08db68f649715L)
 }

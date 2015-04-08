@@ -33,18 +33,6 @@ import org.midonet.util.concurrent.toFutureOps
 
 @RunWith(classOf[JUnitRunner])
 class PortBindingTranslatorIT extends C3POMinionTestBase {
-    protected def portBindingJson(id: UUID,
-                                  hostId: UUID,
-                                  interfaceName: String,
-                                  portId: UUID): JsonNode = {
-        val pb = nodeFactory.objectNode
-        pb.put("id", id.toString)
-        pb.put("host_id", hostId.toString)
-        pb.put("interface_name", interfaceName)
-        pb.put("port_id", portId.toString)
-        pb
-    }
-
     it should "handle Port Binding" in {
         // Creates a Network.
         val network1Uuid = UUID.randomUUID()
