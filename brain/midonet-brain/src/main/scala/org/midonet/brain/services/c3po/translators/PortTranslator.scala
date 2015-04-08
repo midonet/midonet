@@ -25,6 +25,7 @@ import org.midonet.brain.services.c3po.translators.PortManager._
 import org.midonet.cluster.data.storage.{UpdateValidator, ReadOnlyStorage}
 import org.midonet.cluster.models.Commons.{IPAddress, UUID}
 import org.midonet.cluster.models.Neutron.{NeutronPort, NeutronSubnet}
+import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner._
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.util.DhcpUtil.asRichDhcp
 import org.midonet.cluster.util.{IPSubnetUtil, UUIDUtil}
@@ -403,10 +404,14 @@ class PortTranslator(protected val storage: ReadOnlyStorage)
         None
     } else None
 
-    private def translateNeutronPort(nPort: NeutronPort): Port.Builder =
-        Port.newBuilder.setId(nPort.getId)
-            .setNetworkId(nPort.getNetworkId)
-            .setAdminStateUp(nPort.getAdminStateUp)
+    private def translateNeutronPort(nPort: NeutronPort): Port.Builder = {
+        val portBldr = Port.newBuilder.setId(nPort.getId)
+                           .setAdminStateUp(nPort.getAdminStateUp)
+        nPort.getDeviceOwner match {
+            case ROUTER_GATEWAY => portBldr.setRouterId(nPort.getDeviceId)
+            case _ => portBldr.setNetworkId(nPort.getNetworkId)
+        }
+    }
 
 }
 

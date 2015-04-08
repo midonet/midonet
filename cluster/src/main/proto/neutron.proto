@@ -78,8 +78,8 @@ message NeutronPort {
         ROUTER_INTERFACE = 3;
         NOVA=4;
     }
-    optional DeviceOwner device_owner = 8;
-    optional string device_id = 9;
+    optional DeviceOwner device_owner = 8 [default = NOVA];
+    optional UUID device_id = 9;
     optional string status = 10;
 
     repeated UUID security_groups = 11;
