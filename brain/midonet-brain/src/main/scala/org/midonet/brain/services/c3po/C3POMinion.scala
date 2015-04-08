@@ -125,7 +125,7 @@ class C3POMinion @Inject()(nodeContext: ClusterNode.Context,
     private def initDataManager(): C3POStorageManager = {
         val dataMgr = new C3POStorageManager(storage)
         val pathBldr = new PathBuilder(backendCfg.rootKey)
-        List(classOf[FloatingIp] -> new FloatingIpTranslator,
+        List(classOf[FloatingIp] -> new FloatingIpTranslator(storage),
              classOf[NeutronHealthMonitor] -> new HealthMonitorTranslator,
              classOf[NeutronLoadBalancerPool] -> new LoadBalancerPoolTranslator,
              classOf[NeutronLoadBalancerPoolHealthMonitor] ->
