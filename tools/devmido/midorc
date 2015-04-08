@@ -52,6 +52,14 @@ CONFIGURE_LOGGING=${CONFIGURE_LOGGING:-True}
 
 # Whether use screen to run services or not
 USE_SCREEN=${USE_SCREEN:-True}
+USE_CLUSTER=${USE_CLUSTER:-False}
 
 # Directory where all the service files will live
 SERVICE_DIR=${SERVICE_DIR:-$DEVMIDO_DIR/status}
+
+# NEUTRON_DB_PASSWORD. It is important to do the differenciation between
+# MIDO_PASSWORD, because the latter references to the service user. We have to
+# be scrict with this, because Stackforge gate sets the database password
+# different from our default 'gogomid0' and our plugin sets the service one
+NEUTRON_DB_PASSWORD=${NEUTRON_DB_PASSWORD:-$MIDO_PASSWORD}
+NEUTRON_DB_USER=${NEUTRON_DB_USER:-root}
