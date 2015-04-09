@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_60458616",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PoolMapper.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 117,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-04-09T11:17:52Z",
+      "side": 1,
+      "message": "shouldn\u0027t we have a distinctUntilChanged at the end of the observable pipe? There might be modifications to the topology objects that do not affect the simulation objects (e.g. healthMonitorId is not used in this patch)",
+      "range": {
+        "startLine": 117,
+        "startChar": 0,
+        "endLine": 117,
+        "endChar": 52
+      },
+      "revId": "87ae9544c67348b7e70f758beccc913d4ff2b10a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_c0f9dac9",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/PoolMapperTest.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-04-09T11:17:52Z",
+      "side": 1,
+      "message": "extra white spaces",
+      "range": {
+        "startLine": 57,
+        "startChar": 0,
+        "endLine": 57,
+        "endChar": 4
+      },
+      "revId": "87ae9544c67348b7e70f758beccc913d4ff2b10a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
