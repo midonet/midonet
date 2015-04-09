@@ -36,6 +36,7 @@ public class Bgp extends UriResource {
     private String peerAddr = null;
     private int peerAS;
     private UUID portId = null;
+    private String status;
 
     /**
      * Default constructor
@@ -51,7 +52,8 @@ public class Bgp extends UriResource {
     public Bgp(BGP data) {
         this(data.getId(), data.getLocalAS(),
                 data.getPeerAddr().toString(),
-                data.getPeerAS(), data.getPortId());
+                data.getPeerAS(), data.getPortId(),
+                data.getStatus());
     }
 
     /**
@@ -63,12 +65,17 @@ public class Bgp extends UriResource {
      * @param peerAS Peer AS number
      * @param portId Port ID
      */
-    public Bgp(UUID id, int localAS, String peerAddr, int peerAS, UUID portId) {
+    public Bgp(UUID id, int localAS, String peerAddr, int peerAS, UUID portId, String status) {
         this.id = id;
         this.localAS = localAS;
         this.peerAddr = peerAddr;
         this.peerAS = peerAS;
         this.portId = portId;
+        this.status = status;
+    }
+
+    public Bgp(UUID id, int localAS, String peerAddr, int peerAS, UUID portId) {
+        this(id, localAS, peerAddr, peerAS, portId, "");
     }
 
     /**
@@ -106,6 +113,14 @@ public class Bgp extends UriResource {
      */
     public void setLocalAS(int localAS) {
         this.localAS = localAS;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 
     /**
@@ -198,6 +213,7 @@ public class Bgp extends UriResource {
                 .setId(this.id)
                 .setPortId(this.portId)
                 .setLocalAS(this.localAS)
+                .setStatus(this.status)
                 .setPeerAddr(IPv4Addr.fromString(this.peerAddr))
                 .setPeerAS(this.getPeerAS());
     }

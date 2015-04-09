@@ -362,7 +362,7 @@ class MidoNodeConfigurator(zk: CuratorFramework,
     def runtimeConfig(node: UUID): Config =
         localOnlyConfig.
             withFallback(centralConfig(node)).
-            withFallback(mergedBundledSchemas)
+            withFallback(mergedBundledSchemas).resolve()
 
     def runtimeConfig: Config = runtimeConfig(HostIdGenerator.getHostId())
 
@@ -373,7 +373,7 @@ class MidoNodeConfigurator(zk: CuratorFramework,
     def observableRuntimeConfig(node: UUID): Observable[Config] = {
         combine(Observable.just(localOnlyConfig),
                 combine(observableCentralConfig(node),
-                        Observable.just(mergedBundledSchemas)))
+                        Observable.just(mergedBundledSchemas))) map makeFunc1(_.resolve())
     }
 
     /**
