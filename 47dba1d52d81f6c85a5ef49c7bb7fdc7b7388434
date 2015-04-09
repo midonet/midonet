@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_c6af32e2",
+        "filename": "tools/devmido/mido.sh",
+        "patchSetId": 4
+      },
+      "lineNbr": 300,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-04-09T15:47:22Z",
+      "side": 1,
+      "message": "I think this is not quite right.  Assuming that you always want to re-create /etc/midonet/midolman.conf, which I think is ok, you\u0027d want the following lines before the \u0027if\u0027 block:\n\nMIDO_CONF\u003d$TOP_DIR/midolman/conf/midolman.conf\ncp $MIDO_CONF ${MIDO_CONF}.edited\n\nand you want to keep the following lines inside here:\n\niniset ${MIDO_CONF}.edited cluster enabled true\niniset ${MIDO_CONF}.edited cluster tasks_db_connection \"mysql://localhost:3306/neutron?user\u003d${TASKS_DB_USER}\u0026password\u003d${TASKS_DB_PASSWORD}\"\n\nAnd then you want to put the following after the if block:\n\nsudo mv ${MIDO_CONF}.edited $AGENT_CONF_DIR/midolman.conf\n\nAND you want to move the following command after you do the \u0027mv\u0027 command above:\n\nrun_process midolman \"./gradlew -a :midolman:runWithSudo\"\n\nDoes that make sense?",
+      "revId": "47dba1d52d81f6c85a5ef49c7bb7fdc7b7388434",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
