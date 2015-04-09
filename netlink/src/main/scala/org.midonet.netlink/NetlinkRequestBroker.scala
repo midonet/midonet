@@ -70,11 +70,24 @@ final class NetlinkRequestBroker(writer: NetlinkBlockingWriter,
                                  maxRequestSize: Int,
                                  readBuf: ByteBuffer,
                                  clock: NanoClock,
-                                 timeout: Duration = 10 seconds) {
+                                 timeout: Duration = 10 seconds,
+                                 notifications: Observer[ByteBuffer] = null) {
     import NetlinkRequestBroker._
 
     val capacity = Util.findNextPositivePowerOfTwo(maxPendingRequests)
     private val mask = capacity - 1
+
+    private val notificationObserver =
+        if (notifications ne null) {
+            new Observer[ByteBuffer] {
+                override def onCompleted(): Unit = { }
+                override def onError(e: Throwable): Unit = { }
+                override def onNext(t: ByteBuffer): Unit =
+                    notifications.onNext(t)
+            }
+        } else {
+            NOOP
+        }
 
     /**
      * The pre-allocated buffer. Each request is assigned a slice from this buffer.
@@ -242,7 +255,7 @@ final class NetlinkRequestBroker(writer: NetlinkBlockingWriter,
             val seq = readBuf.getInt(NetlinkMessage.NLMSG_SEQ_OFFSET)
             val pos = seq & mask
             val obs = getObserver(pos, seq, unhandled)
-            freeSequence(pos)
+            freeSequence(pos, seq)
             obs.onError(e)
             0
         } finally {
@@ -273,17 +286,18 @@ final class NetlinkRequestBroker(writer: NetlinkBlockingWriter,
             }
         }
 
-        freeSequence(pos)
+        freeSequence(pos, seq)
         obs.onCompleted()
     }
 
     private def getObserver(pos: Int, seq: Int,
                             unhandled: Observer[ByteBuffer]): Observer[ByteBuffer] =
-        if (seq == UPCALL_SEQ || sequences(pos) != seq) {
-            unhandled
-        } else {
+        if (seq == UPCALL_SEQ)
+            notificationObserver
+        else if (sequences(pos) == seq)
             observers(pos)
-        }
+        else
+            unhandled
 
     private def doTimeoutExpiration(): Unit = {
         val currentTime = clock.tick
@@ -298,6 +312,11 @@ final class NetlinkRequestBroker(writer: NetlinkBlockingWriter,
             i += 1
         }
     }
+
+    private def freeSequence(pos: Int, seq: Int): Unit =
+        if (sequences(pos) == seq)  {
+            freeSequence(pos)
+        }
 
     private def freeSequence(pos: Int): Unit = {
         // Synchronizes with the producer thread. For theoretical correctness,
