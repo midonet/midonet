@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_e3c34055",
+        "filename": "tools/devmido/mido.sh",
+        "patchSetId": 3
+      },
+      "lineNbr": 287,
+      "author": {
+        "id": 1002749
+      },
+      "writtenOn": "2015-04-09T14:36:38Z",
+      "side": 1,
+      "message": "Not necessary but better. `midolman.conf` file is under git index and previous approach set the file as modified after stacking. This way we can avoid an eventual undesired commit change.",
+      "parentUuid": "1a106d94_435fb4e5",
+      "revId": "65a5b09537775339ba1c24d8f252a9606a98fb52",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_8359ac00",
         "filename": "tools/devmido/mido.sh",
         "patchSetId": 3
@@ -36,6 +54,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_c3956441",
+        "filename": "tools/devmido/mido.sh",
+        "patchSetId": 3
+      },
+      "lineNbr": 305,
+      "author": {
+        "id": 1002749
+      },
+      "writtenOn": "2015-04-09T14:36:38Z",
+      "side": 1,
+      "message": "I don\u0027t understand what do you mean, sorry.",
+      "parentUuid": "1a106d94_8359ac00",
+      "revId": "65a5b09537775339ba1c24d8f252a9606a98fb52",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_036dbc98",
         "filename": "tools/devmido/midorc",
         "patchSetId": 3
@@ -47,6 +83,24 @@
       "writtenOn": "2015-04-09T14:20:52Z",
       "side": 1,
       "message": "This should be submitted in a separate patch.\n\nTo be consistent with the cluster, rename it to TASKS_DB_PASSWORD and TASKS_DB_USER. (though not a big deal, I\u0027ve been trying to avoid midonet/cluster referencing neutron to give indication that it only cares about some database that has \u0027tasks\u0027 table.)\n\nI\u0027m also confused about the explanation.  I think you could just say \"Credentials for accessing the DB that contains the tasks table\", and not refer to Stackforge at all.",
+      "revId": "65a5b09537775339ba1c24d8f252a9606a98fb52",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_e3718045",
+        "filename": "tools/devmido/midorc",
+        "patchSetId": 3
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 1002749
+      },
+      "writtenOn": "2015-04-09T14:36:38Z",
+      "side": 1,
+      "message": "ok.",
+      "parentUuid": "1a106d94_036dbc98",
       "revId": "65a5b09537775339ba1c24d8f252a9606a98fb52",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
