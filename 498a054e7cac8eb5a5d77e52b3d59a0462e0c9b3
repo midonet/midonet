@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_40004a01",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/Daemon.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-04-09T08:39:33Z",
+      "side": 1,
+      "message": "I wouldn\u0027t, I\u0027d like to keep services protected from each other as much as possible. That is, if one breaks then others shouldn\u0027t be affected.",
+      "range": {
+        "startLine": 69,
+        "startChar": 23,
+        "endLine": 69,
+        "endChar": 27
+      },
+      "revId": "498a054e7cac8eb5a5d77e52b3d59a0462e0c9b3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_dd01c107",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/Daemon.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-04-09T08:39:33Z",
+      "side": 1,
+      "message": "warn? (don\u0027t bother, we can change it later)",
+      "range": {
+        "startLine": 75,
+        "startChar": 20,
+        "endLine": 75,
+        "endChar": 25
+      },
+      "revId": "498a054e7cac8eb5a5d77e52b3d59a0462e0c9b3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
