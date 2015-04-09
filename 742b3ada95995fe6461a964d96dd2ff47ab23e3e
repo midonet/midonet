@@ -1,0 +1,331 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_06e82a0f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/PoolHealthMonitorMapManager.scala",
+        "patchSetId": 20
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-09T17:01:09Z",
+      "side": 1,
+      "message": "This is not necessary. The old managers don\u0027t need to access the new virtual topology. When the new topology is enabled, the VirtualTopologyRedirector redirects all requests either to the new VirtualTopology instead of the legacy VirtualTopologyActor (which will create the manager).\n\nTo use the new topology, you need to add to the VirtualTopologyRedirector a case for the pool health monitor request. There is also a test scenario at the end of the VirtualTopologyRedirectorTest that checks whether the new mappers are enabled.",
+      "range": {
+        "startLine": 46,
+        "startChar": 0,
+        "endLine": 52,
+        "endChar": 16
+      },
+      "revId": "742b3ada95995fe6461a964d96dd2ff47ab23e3e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_c6c45294",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/PoolMember.scala",
+        "patchSetId": 20
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-09T17:01:09Z",
+      "side": 1,
+      "message": "I think all non-primitive fields should not be null. If any would be, then the alternative is throwing an IllegalArgumentException here.",
+      "range": {
+        "startLine": 57,
+        "startChar": 4,
+        "endLine": 58,
+        "endChar": 38
+      },
+      "revId": "742b3ada95995fe6461a964d96dd2ff47ab23e3e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_06bf8afc",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/PoolMember.scala",
+        "patchSetId": 20
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-09T17:01:09Z",
+      "side": 1,
+      "message": "Also override hashCode.",
+      "revId": "742b3ada95995fe6461a964d96dd2ff47ab23e3e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_463862a0",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/LoadBalancerMapper.scala",
+        "patchSetId": 20
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-09T17:01:09Z",
+      "side": 1,
+      "message": "Is it ever allowed a LB without a router? Although not set, there should be a binding between the LB routerId and the router loadBalancerId.",
+      "range": {
+        "startLine": 73,
+        "startChar": 27,
+        "endLine": 75,
+        "endChar": 37
+      },
+      "revId": "742b3ada95995fe6461a964d96dd2ff47ab23e3e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_66b8fee5",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PoolHealthMonitorMapper.scala",
+        "patchSetId": 20
+      },
+      "lineNbr": 153,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-09T17:01:09Z",
+      "side": 1,
+      "message": "Add an assertThread() here to catch any errors during testing, if necessary. We could later replace this with no-op.",
+      "revId": "742b3ada95995fe6461a964d96dd2ff47ab23e3e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_66e11efe",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PoolHealthMonitorMapper.scala",
+        "patchSetId": 20
+      },
+      "lineNbr": 156,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-09T17:01:09Z",
+      "side": 1,
+      "message": "Here and for all log messages below: use {} instead of string interpolation.",
+      "range": {
+        "startLine": 156,
+        "startChar": 34,
+        "endLine": 156,
+        "endChar": 72
+      },
+      "revId": "742b3ada95995fe6461a964d96dd2ff47ab23e3e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_26be06d5",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PoolHealthMonitorMapper.scala",
+        "patchSetId": 20
+      },
+      "lineNbr": 204,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-09T17:01:09Z",
+      "side": 1,
+      "message": "Not necessary: updates from the VirtualTopology should be scheduled on the VT thread.",
+      "range": {
+        "startLine": 204,
+        "startChar": 20,
+        "endLine": 204,
+        "endChar": 44
+      },
+      "revId": "742b3ada95995fe6461a964d96dd2ff47ab23e3e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_06c94a78",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PoolHealthMonitorMapper.scala",
+        "patchSetId": 20
+      },
+      "lineNbr": 207,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-09T17:01:09Z",
+      "side": 1,
+      "message": "Not needed: all updates arrive only from the VT or the funnel.",
+      "range": {
+        "startLine": 207,
+        "startChar": 12,
+        "endLine": 207,
+        "endChar": 36
+      },
+      "revId": "742b3ada95995fe6461a964d96dd2ff47ab23e3e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_e6718e45",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PoolHealthMonitorMapper.scala",
+        "patchSetId": 20
+      },
+      "lineNbr": 215,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-09T17:01:09Z",
+      "side": 1,
+      "message": "Since everything is synchronized on the vt thread, couldn\u0027t this be mutable?",
+      "range": {
+        "startLine": 215,
+        "startChar": 12,
+        "endLine": 215,
+        "endChar": 62
+      },
+      "revId": "742b3ada95995fe6461a964d96dd2ff47ab23e3e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_c67c5223",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PoolHealthMonitorMapper.scala",
+        "patchSetId": 20
+      },
+      "lineNbr": 226,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-09T17:01:09Z",
+      "side": 1,
+      "message": "Indent these 2 lines?",
+      "range": {
+        "startLine": 225,
+        "startChar": 0,
+        "endLine": 226,
+        "endChar": 11
+      },
+      "revId": "742b3ada95995fe6461a964d96dd2ff47ab23e3e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_06778a3b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PoolHealthMonitorMapper.scala",
+        "patchSetId": 20
+      },
+      "lineNbr": 231,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-09T17:01:09Z",
+      "side": 1,
+      "message": "assertThread here",
+      "revId": "742b3ada95995fe6461a964d96dd2ff47ab23e3e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_46906243",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PoolHealthMonitorMapper.scala",
+        "patchSetId": 20
+      },
+      "lineNbr": 251,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-09T17:01:09Z",
+      "side": 1,
+      "message": "Why not checking this in the update entry above?",
+      "range": {
+        "startLine": 246,
+        "startChar": 38,
+        "endLine": 251,
+        "endChar": 9
+      },
+      "revId": "742b3ada95995fe6461a964d96dd2ff47ab23e3e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_46898225",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PoolHealthMonitorMapper.scala",
+        "patchSetId": 20
+      },
+      "lineNbr": 254,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-09T17:01:09Z",
+      "side": 1,
+      "message": "Not used.",
+      "range": {
+        "startLine": 254,
+        "startChar": 4,
+        "endLine": 254,
+        "endChar": 45
+      },
+      "revId": "742b3ada95995fe6461a964d96dd2ff47ab23e3e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_c6957241",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/PoolHealthMonitor.scala",
+        "patchSetId": 20
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-09T17:01:09Z",
+      "side": 1,
+      "message": "Both vips and members are available as arrays. Any reason for using Iterable here? Could we use array to save the conversion?",
+      "range": {
+        "startLine": 35,
+        "startChar": 29,
+        "endLine": 36,
+        "endChar": 62
+      },
+      "revId": "742b3ada95995fe6461a964d96dd2ff47ab23e3e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_6613de0d",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/TopologyBuilder.scala",
+        "patchSetId": 20
+      },
+      "lineNbr": 562,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-09T17:01:09Z",
+      "side": 1,
+      "message": "Minor comment: the intention of this class was to provide methods complementary to the ones in VirtualConfigurationBuilders but also to be strong typed (i.e. not reference fields by their protobuf names, such that renaming a proto field requires to search all string constants). If the latter is fine, maybe we could use the existing ProtobufUtil.protoFromTxt (see PortTranslatorTest for usage)?",
+      "range": {
+        "startLine": 562,
+        "startChar": 18,
+        "endLine": 562,
+        "endChar": 38
+      },
+      "revId": "742b3ada95995fe6461a964d96dd2ff47ab23e3e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
