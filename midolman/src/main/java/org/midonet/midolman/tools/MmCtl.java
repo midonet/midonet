@@ -306,6 +306,13 @@ public class MmCtl {
         } else {
             try {
                 dataClient.hostsDelVrnPortMapping(hostId, portId);
+            } catch (IllegalArgumentException e) {
+                log.error(e.getMessage());
+                // An IllegalArgumentException can be thrown if the port we
+                // are trying to unbind has already been deleted from the
+                // topology. Because a deletion of a port will also remove
+                // the bindings, this becomes a NO-OP.
+                return MM_CTL_RET_CODE.SUCCESS.getResult();
             } catch (StateAccessException e) {
                 return MM_CTL_RET_CODE.STATE_ERROR.getResult(e);
             } catch (Exception e) {
