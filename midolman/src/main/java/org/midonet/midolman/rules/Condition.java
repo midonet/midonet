@@ -331,104 +331,62 @@ public class Condition extends BaseConfig {
                 negate ^ (null == pktField || range.isInside(pktField));
     }
 
+    private void formatField(StringBuilder sb, boolean inverted, String name, Object value) {
+        if (value != null) {
+            sb.append(name);
+            sb.append(inverted ? "=!" : "=");
+            sb.append(value.toString());
+            sb.append(" ");
+        }
+    }
+
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder("Condition [");
-        if (conjunctionInv)
-            sb.append("conjunctionInv=true, ");
+        sb.append(conjunctionInv ? "! (" : "(");
+
         if (matchForwardFlow)
-            sb.append("matchForwardFlow=true, ");
+            sb.append("forward-flow ");
+
         if (matchReturnFlow)
-            sb.append("matchReturnFlow=true, ");
+            sb.append("return-flow ");
+
         if (inPortIds != null && !inPortIds.isEmpty()) {
-            sb.append("inPortIds={");
+            sb.append("input-ports=");
+            sb.append(inPortInv ? "!{" : "{");
             for (UUID id : inPortIds) {
                 sb.append(id.toString()).append(",");
             }
-            sb.append("}, ");
-            if (inPortInv)
-                sb.append("inPortInv=").append(inPortInv).append(", ");
+            sb.append("} ");
         }
         if (outPortIds != null && !outPortIds.isEmpty()) {
-            sb.append("outPortIds={");
+            sb.append("output-ports=");
+            sb.append(outPortInv ? "!{" : "{");
             for (UUID id : outPortIds) {
                 sb.append(id.toString()).append(",");
             }
-            sb.append("}, ");
-            if (outPortInv)
-                sb.append("outPortInv=").append(outPortInv).append(", ");
+            sb.append("} ");
         }
-        if (portGroup != null) {
-            sb.append("portGroup=").append(portGroup).append(", ");
-            if (invPortGroup)
-                sb.append("invPortGroup=true, ");
-        }
-        if (ipAddrGroupIdDst != null) {
-            sb.append("ipAddrGroupIdDst=").append(ipAddrGroupIdDst).append(
-                    ", ");
-            if (invIpAddrGroupIdDst)
-                sb.append("invIpAddrGroupIdDst=true, ");
-        }
-        if (ipAddrGroupIdSrc != null) {
-            sb.append("ipAddrGroupIdSrc=").append(ipAddrGroupIdSrc).append(
-                    ", ");
-            if (invIpAddrGroupIdSrc)
-                sb.append("invIpAddrGroupIdSrc=true, ");
-        }
-        if (null != etherType) {
-            sb.append("etherType=").append(etherType.intValue()).append(", ");
-            if(invDlType)
-                sb.append("invEthType").append(invDlType).append(", ");
-        }
-        if (null != ethSrc) {
-            sb.append("ethSrc=").append(ethSrc).append(", ");
-            if (ethSrcMask != NO_MASK)
-                sb.append("ethSrcMask=").append(MAC.maskToString(ethSrcMask))
-                        .append(", ");
-            if(invDlSrc)
-                sb.append("invDlSrc").append(invDlSrc).append(", ");
-        }
-        if (null != ethDst) {
-            sb.append("ethDst=").append(ethDst).append(", ");
-            if(invDlDst)
-                sb.append("invDlDst").append(invDlDst).append(", ");
-        }
-        if (null != nwTos) {
-            sb.append("nwTos=").append(nwTos).append(", ");
-            if(nwTosInv)
-                sb.append("nwTosInv").append(nwTosInv).append(", ");
-        }
-        if (null != nwProto) {
-            sb.append("nwProto=").append(nwProto).append(", ");
-            if(nwProtoInv)
-                sb.append("nwProtoInv").append(nwProtoInv).append(", ");
-        }
-        if (null != nwSrcIp) {
-            sb.append("nwSrcIp=").append(nwSrcIp.toString()).append(", ");
-            if(nwSrcInv)
-                sb.append("nwSrcInv").append(nwSrcInv).append(", ");
-        }
-        if (null != nwDstIp) {
-            sb.append("nwDstIp=").append(nwDstIp.toString()).append(", ");
-            if(nwDstInv)
-                sb.append("nwDstInv").append(nwDstInv).append(", ");
-        }
-        if (null != tpSrc) {
-            sb.append("tpSrc=").append(tpSrc).append(", ");
-            if(tpSrcInv)
-                sb.append("tpSrcInv").append(tpSrcInv).append(", ");
-        }
-        if (null != tpDst) {
-            sb.append("tpDst=").append(tpDst).append(", ");
-            if(tpDstInv)
-                sb.append("tpDstInv").append(tpDstInv).append(", ");
-        }
-        if (null != traversedDevice) {
-            sb.append("traversedDev=").append(traversedDevice).append(", ");
-            if(traversedDeviceInv)
-                sb.append("traversedDevInv").append(traversedDeviceInv).append(", ");
-        }
-        sb.append("]");
+
+        formatField(sb, invPortGroup, "port-group", portGroup);
+        formatField(sb, invIpAddrGroupIdSrc, "ip-src-group", ipAddrGroupIdSrc);
+        formatField(sb, invIpAddrGroupIdDst, "ip-dst-group", ipAddrGroupIdDst);
+        formatField(sb, invDlType, "ethertype", etherType);
+        formatField(sb, invDlSrc, "mac-src", (ethSrcMask != NO_MASK) ?
+                ethSrc.toString() + "/" + MAC.maskToString(ethSrcMask) :
+                ethSrc);
+        formatField(sb, invDlDst, "mac-dst", (dlDstMask != NO_MASK) ?
+                ethDst.toString() + "/" + MAC.maskToString(dlDstMask) :
+                ethDst);
+        formatField(sb, nwTosInv, "tos", nwTos);
+        formatField(sb, nwProtoInv, "proto", nwProto);
+        formatField(sb, nwSrcInv, "ip-src", nwSrcIp);
+        formatField(sb, nwDstInv, "ip-dst", nwDstIp);
+        formatField(sb, tpSrcInv, "port-src", tpSrc);
+        formatField(sb, tpDstInv, "port-dst", tpDst);
+        formatField(sb, traversedDeviceInv, "traversed-dev", traversedDevice);
+
+        sb.append(")]");
         return sb.toString();
     }
 

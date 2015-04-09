@@ -33,7 +33,7 @@ class RouteBalancer[IP <: IPAddr](val rTable: RoutingTableWrapper[IP]) {
     val lookups: AtomicLong = new AtomicLong()
 
     def lookup(mmatch: FlowMatch, logger: Logger): Route = {
-        val routes = rTable.lookup(mmatch)
+        val routes = rTable.lookup(mmatch, logger.underlying)
         routes.size match {
             case 0 => null
             case 1 =>

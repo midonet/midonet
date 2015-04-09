@@ -19,6 +19,8 @@ import collection.{Set => ROSet, mutable, Iterable}
 import collection.JavaConversions._
 import java.util.UUID
 
+import org.slf4j.Logger
+
 import org.midonet.cluster.Client
 import org.midonet.cluster.client.ArpCache
 import org.midonet.midolman.topology.VirtualTopologyActor.InvalidateFlowsByTag
@@ -36,11 +38,12 @@ class RoutingTableWrapper[IP <: IPAddr](val rTable: RoutingTableIfc[IP]) {
 
     import collection.JavaConversions._
 
-    def lookup(wmatch: FlowMatch): Iterable[Route] =
+    def lookup(wmatch: FlowMatch, logger: Logger): Iterable[Route] =
     // TODO (ipv6) de facto implementation for ipv4, that explains
     // the casts at this point.
         rTable.lookup(wmatch.getNetworkSrcIP.asInstanceOf[IP],
-                      wmatch.getNetworkDstIP.asInstanceOf[IP])
+                      wmatch.getNetworkDstIP.asInstanceOf[IP],
+                      logger)
 }
 
 object RouterManager {

@@ -173,8 +173,8 @@ public abstract class Rule extends BaseConfig {
                         boolean isPortFilter) {
         if (condition.matches(pktCtx, isPortFilter)) {
             pktCtx.jlog().debug(
-                    "Condition matched on device {} chain {} with action {}",
-                    ownerId, chainId, action);
+                    "Condition matched on device {} chain {} with action {} and match {}",
+                    ownerId, chainId, action, condition);
 
             if (meter != null)
                 pktCtx.addFlowTag(meter);
