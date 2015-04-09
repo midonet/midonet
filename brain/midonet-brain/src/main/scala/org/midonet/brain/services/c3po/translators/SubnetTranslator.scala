@@ -22,8 +22,7 @@ import org.midonet.brain.services.c3po.midonet.{Create, Delete, Update}
 import org.midonet.brain.services.c3po.neutron
 import org.midonet.cluster.data.neutron.DeviceOwner
 import org.midonet.cluster.data.storage.ReadOnlyStorage
-import org.midonet.cluster.models.Commons
-import org.midonet.cluster.models.Commons.UUID
+import org.midonet.cluster.models.Commons.{IPAddress, IPSubnet, UUID}
 import org.midonet.cluster.models.Neutron.{NeutronPort, NeutronRoute, NeutronSubnet}
 import org.midonet.cluster.models.Topology.{Dhcp, Network}
 import org.midonet.cluster.models.Topology.Dhcp.Opt121Route
@@ -43,15 +42,19 @@ class SubnetTranslator(val storage: ReadOnlyStorage)
                     neutron.Create(ns), msg = "Cannot handle an IPv6 Subnet.")
 
         val dhcp = Dhcp.newBuilder
-            .setId(ns.getId)
-            .setNetworkId(ns.getNetworkId)
-            .setDefaultGateway(ns.getGatewayIp)
-            .setServerAddress(ns.getGatewayIp)
-            .setEnabled(ns.getEnableDhcp)
-            .setSubnetAddress(IPSubnetUtil.toProto(ns.getCidr))
+                       .setId(ns.getId)
+                       .setNetworkId(ns.getNetworkId)
+        if (ns.hasGatewayIp) {
+            dhcp.setDefaultGateway(ns.getGatewayIp)
+            dhcp.setServerAddress(ns.getGatewayIp)
+        }
+        if (ns.hasCidr)
+            dhcp.setSubnetAddress(IPSubnetUtil.toProto(ns.getCidr))
+        if (ns.hasEnableDhcp)
+            dhcp.setEnabled(ns.getEnableDhcp)
 
         for (addr <- ns.getDnsNameserversList.asScala)
-            dhcp.addDnsServerAddress(IPAddressUtil.toProto(addr))
+            dhcp.addDnsServerAddress(addr)
 
         addHostRoutes(dhcp, ns.getHostRoutesList.asScala)
 
@@ -77,40 +80,32 @@ class SubnetTranslator(val storage: ReadOnlyStorage)
             .clearOpt121Routes()
 
         for (addr <- ns.getDnsNameserversList.asScala)
-            newDhcp.addDnsServerAddress(IPAddressUtil.toProto(addr))
+            newDhcp.addDnsServerAddress(addr)
 
         addHostRoutes(newDhcp, ns.getHostRoutesList.asScala)
 
         getDhcpPortIp(ns.getNetworkId).foreach({ip =>
             newDhcp.addOpt121Routes(
-                opt121FromHostRoute(RouteManager.META_DATA_SRVC,
-                                    ip.getAddress))})
+                opt121FromHostRoute(RouteManager.META_DATA_SRVC, ip))})
 
         // TODO: connect to provider router if external
         List(Update(newDhcp.build))
     }
 
     private def addHostRoutes(dhcp: Dhcp.Builder,
-                              hostRoutes: mutable.Buffer[NeutronRoute]) = {
+                              hostRoutes: mutable.Buffer[NeutronRoute]) {
         for (hostRoute <- hostRoutes) {
-            val opt121Route = opt121FromHostRoute(hostRoute.getDestination,
-                                                  hostRoute.getNexthop)
-            dhcp.addOpt121Routes(opt121Route)
+            dhcp.addOpt121RoutesBuilder().setDstSubnet(hostRoute.getDestination)
+                                         .setGateway(hostRoute.getNexthop)
         }
     }
 
-    private def opt121FromHostRoute(dest: Commons.IPSubnet, nexthop: String)
+    private def opt121FromHostRoute(dest: IPSubnet, nexthop: IPAddress)
         : Opt121Route.Builder = {
-        val nhAddr = IPAddressUtil.toProto(nexthop)
-        Opt121Route.newBuilder().setDstSubnet(dest).setGateway(nhAddr)
+        Opt121Route.newBuilder().setDstSubnet(dest).setGateway(nexthop)
     }
 
-    private def opt121FromHostRoute(dest: String, nexthop: String)
-        : Opt121Route.Builder = {
-        opt121FromHostRoute(IPSubnetUtil.toProto(dest), nexthop)
-    }
-
-    private def getDhcpPortIp(networkId: UUID): Option[Commons.IPAddress] = {
+    private def getDhcpPortIp(networkId: UUID): Option[IPAddress] = {
 
         val network = storage.get(classOf[Network], networkId).await()
         val ports = network.getPortIdsList

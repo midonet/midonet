@@ -27,9 +27,9 @@ import com.google.protobuf.Message
 
 import org.slf4j.LoggerFactory
 
-import org.midonet.cluster.models.Commons.{IPAddress, UUID}
+import org.midonet.cluster.models.Commons.{IPAddress, IPSubnet, UUID}
 import org.midonet.cluster.models.Neutron.{SecurityGroupRule => NeutronSecurityGroupRule, _}
-import org.midonet.cluster.util.{IPAddressUtil, UUIDUtil}
+import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil, UUIDUtil}
 
 /**
  * Converts Neutron JSON to corresponding Protobuf messages defined in
@@ -121,6 +121,8 @@ object NeutronDeserializer {
                 parseUuid(node.asText)
             case "org.midonet.cluster.models.IPAddress" =>
                 parseIpAddr(node.asText)
+            case "org.midonet.cluster.models.IPSubnet" =>
+                parseIpSubnet(node.asText)
             case "org.midonet.cluster.models.NeutronHealthMonitor.Pool" =>
                 toMessage(node, classOf[NeutronHealthMonitor.Pool])
             case "org.midonet.cluster.models.NeutronPort.IPAllocation" =>
@@ -161,6 +163,13 @@ object NeutronDeserializer {
         try IPAddressUtil.toProto(str) catch {
             case ex: Exception => throw new NeutronDeserializationException(
                 s"Couldn't parse IP address: $str", ex)
+        }
+    }
+
+    private def parseIpSubnet(str: String): IPSubnet = {
+        try IPSubnetUtil.toProto(str) catch {
+            case ex: Exception => throw new NeutronDeserializationException(
+                s"Couldn't parse IP subnet: $str", ex)
         }
     }
 
