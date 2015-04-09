@@ -104,6 +104,24 @@
       "revId": "65a5b09537775339ba1c24d8f252a9606a98fb52",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_c3ca844e",
+        "filename": "tools/devmido/midorc",
+        "patchSetId": 3
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 1002749
+      },
+      "writtenOn": "2015-04-09T14:41:08Z",
+      "side": 1,
+      "message": "No.. no ok. If I am using the NEUTRON_DB_PASSWORD (or TASKS_DB_PASSWORD) in the mido.sh... why I should submit this in a different patch?",
+      "parentUuid": "1a106d94_036dbc98",
+      "revId": "65a5b09537775339ba1c24d8f252a9606a98fb52",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
