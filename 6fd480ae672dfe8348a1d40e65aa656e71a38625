@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_3def3589",
+        "filename": "netlink/src/main/java/org/midonet/netlink/rtnetlink/Addr.java",
+        "patchSetId": 9
+      },
+      "lineNbr": 178,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-04-09T08:10:06Z",
+      "side": 1,
+      "message": "We don\u0027t for excuses it\u0027s not written by me originally.",
+      "parentUuid": "1a106d94_85effe86",
+      "revId": "6fd480ae672dfe8348a1d40e65aa656e71a38625",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_e5fd123d",
         "filename": "netlink/src/main/java/org/midonet/netlink/rtnetlink/Addr.java",
         "patchSetId": 9
@@ -30,6 +48,24 @@
       "writtenOn": "2015-04-07T14:38:42Z",
       "side": 1,
       "message": "wow identation! \n\nif (id \u003d\u003d Attr.IFA_ADDRESS) {\n  switch (ifa.family) ...\n}",
+      "revId": "6fd480ae672dfe8348a1d40e65aa656e71a38625",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_1df2396f",
+        "filename": "netlink/src/main/java/org/midonet/netlink/rtnetlink/Addr.java",
+        "patchSetId": 9
+      },
+      "lineNbr": 203,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-04-09T08:10:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_e5fd123d",
       "revId": "6fd480ae672dfe8348a1d40e65aa656e71a38625",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -53,6 +89,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_7de9ad7f",
+        "filename": "netlink/src/main/java/org/midonet/netlink/rtnetlink/Addr.java",
+        "patchSetId": 9
+      },
+      "lineNbr": 222,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-04-09T08:10:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_c5e9f681",
+      "revId": "6fd480ae672dfe8348a1d40e65aa656e71a38625",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_45fd063a",
         "filename": "netlink/src/main/java/org/midonet/netlink/rtnetlink/Addr.java",
         "patchSetId": 9
@@ -64,6 +118,24 @@
       "writtenOn": "2015-04-07T14:38:42Z",
       "side": 1,
       "message": "idem",
+      "revId": "6fd480ae672dfe8348a1d40e65aa656e71a38625",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_5decb18f",
+        "filename": "netlink/src/main/java/org/midonet/netlink/rtnetlink/Addr.java",
+        "patchSetId": 9
+      },
+      "lineNbr": 246,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-04-09T08:10:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_45fd063a",
       "revId": "6fd480ae672dfe8348a1d40e65aa656e71a38625",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -87,6 +159,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_bd02053c",
+        "filename": "netlink/src/main/java/org/midonet/netlink/rtnetlink/Addr.java",
+        "patchSetId": 9
+      },
+      "lineNbr": 270,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-04-09T08:10:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_25f8ca48",
+      "revId": "6fd480ae672dfe8348a1d40e65aa656e71a38625",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_254a8aac",
         "filename": "netlink/src/main/java/org/midonet/netlink/rtnetlink/Link.java",
         "patchSetId": 9
@@ -98,6 +188,24 @@
       "writtenOn": "2015-04-07T14:38:42Z",
       "side": 1,
       "message": "lets assume is not null",
+      "revId": "6fd480ae672dfe8348a1d40e65aa656e71a38625",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_fdfc7d40",
+        "filename": "netlink/src/main/java/org/midonet/netlink/rtnetlink/Link.java",
+        "patchSetId": 9
+      },
+      "lineNbr": 236,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-04-09T08:10:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_254a8aac",
       "revId": "6fd480ae672dfe8348a1d40e65aa656e71a38625",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -121,6 +229,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_9dfd893e",
+        "filename": "netlink/src/main/java/org/midonet/netlink/rtnetlink/Link.java",
+        "patchSetId": 9
+      },
+      "lineNbr": 238,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-04-09T08:10:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_c5d296d1",
+      "revId": "6fd480ae672dfe8348a1d40e65aa656e71a38625",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_454fc6bd",
         "filename": "netlink/src/main/java/org/midonet/netlink/rtnetlink/Link.java",
         "patchSetId": 9
@@ -132,6 +258,24 @@
       "writtenOn": "2015-04-07T14:38:42Z",
       "side": 1,
       "message": "why is this needed if we don\u0027t change the order?",
+      "revId": "6fd480ae672dfe8348a1d40e65aa656e71a38625",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_ddf70158",
+        "filename": "netlink/src/main/java/org/midonet/netlink/rtnetlink/Link.java",
+        "patchSetId": 9
+      },
+      "lineNbr": 251,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-04-09T08:10:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_454fc6bd",
       "revId": "6fd480ae672dfe8348a1d40e65aa656e71a38625",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -155,6 +299,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_3d9615f1",
+        "filename": "netlink/src/main/java/org/midonet/netlink/rtnetlink/Link.java",
+        "patchSetId": 9
+      },
+      "lineNbr": 286,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-04-09T08:10:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_a5d5daba",
+      "revId": "6fd480ae672dfe8348a1d40e65aa656e71a38625",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_05dcaee3",
         "filename": "netlink/src/main/java/org/midonet/netlink/rtnetlink/Link.java",
         "patchSetId": 9
@@ -166,6 +328,24 @@
       "writtenOn": "2015-04-07T14:38:42Z",
       "side": 1,
       "message": "idem",
+      "revId": "6fd480ae672dfe8348a1d40e65aa656e71a38625",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_1d99991f",
+        "filename": "netlink/src/main/java/org/midonet/netlink/rtnetlink/Link.java",
+        "patchSetId": 9
+      },
+      "lineNbr": 304,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-04-09T08:10:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_05dcaee3",
       "revId": "6fd480ae672dfe8348a1d40e65aa656e71a38625",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -189,6 +369,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_7da08d43",
+        "filename": "netlink/src/main/java/org/midonet/netlink/rtnetlink/Link.java",
+        "patchSetId": 9
+      },
+      "lineNbr": 321,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-04-09T08:10:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_e5d6b2c2",
+      "revId": "6fd480ae672dfe8348a1d40e65aa656e71a38625",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_45e6a6b5",
         "filename": "netlink/src/main/java/org/midonet/netlink/rtnetlink/Link.java",
         "patchSetId": 9
@@ -200,6 +398,24 @@
       "writtenOn": "2015-04-07T14:38:42Z",
       "side": 1,
       "message": "idem",
+      "revId": "6fd480ae672dfe8348a1d40e65aa656e71a38625",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_5da3114f",
+        "filename": "netlink/src/main/java/org/midonet/netlink/rtnetlink/Link.java",
+        "patchSetId": 9
+      },
+      "lineNbr": 349,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-04-09T08:10:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_45e6a6b5",
       "revId": "6fd480ae672dfe8348a1d40e65aa656e71a38625",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -223,6 +439,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_3dbd7569",
+        "filename": "netlink/src/main/java/org/midonet/netlink/rtnetlink/Neigh.java",
+        "patchSetId": 9
+      },
+      "lineNbr": 164,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-04-09T08:10:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_6599221f",
+      "revId": "6fd480ae672dfe8348a1d40e65aa656e71a38625",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_c5a0d645",
         "filename": "netlink/src/main/java/org/midonet/netlink/rtnetlink/Neigh.java",
         "patchSetId": 9
@@ -234,6 +468,24 @@
       "writtenOn": "2015-04-07T14:38:42Z",
       "side": 1,
       "message": "idem",
+      "revId": "6fd480ae672dfe8348a1d40e65aa656e71a38625",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_1dc079df",
+        "filename": "netlink/src/main/java/org/midonet/netlink/rtnetlink/Neigh.java",
+        "patchSetId": 9
+      },
+      "lineNbr": 216,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-04-09T08:10:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_c5a0d645",
       "revId": "6fd480ae672dfe8348a1d40e65aa656e71a38625",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -257,6 +509,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_7db7ed86",
+        "filename": "netlink/src/main/java/org/midonet/netlink/rtnetlink/Neigh.java",
+        "patchSetId": 9
+      },
+      "lineNbr": 241,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-04-09T08:10:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_a5a31a4e",
+      "revId": "6fd480ae672dfe8348a1d40e65aa656e71a38625",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_058aeebe",
         "filename": "netlink/src/main/java/org/midonet/netlink/rtnetlink/Neigh.java",
         "patchSetId": 9
@@ -268,6 +538,24 @@
       "writtenOn": "2015-04-07T14:38:42Z",
       "side": 1,
       "message": "idem",
+      "revId": "6fd480ae672dfe8348a1d40e65aa656e71a38625",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_5dbaf16e",
+        "filename": "netlink/src/main/java/org/midonet/netlink/rtnetlink/Neigh.java",
+        "patchSetId": 9
+      },
+      "lineNbr": 258,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-04-09T08:10:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_058aeebe",
       "revId": "6fd480ae672dfe8348a1d40e65aa656e71a38625",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -291,6 +579,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_9dabc91d",
+        "filename": "netlink/src/main/java/org/midonet/netlink/rtnetlink/Route.java",
+        "patchSetId": 9
+      },
+      "lineNbr": 205,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-04-09T08:10:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_e584f2b2",
+      "revId": "6fd480ae672dfe8348a1d40e65aa656e71a38625",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_a5bafa6b",
         "filename": "netlink/src/main/java/org/midonet/netlink/rtnetlink/Route.java",
         "patchSetId": 9
@@ -302,6 +608,24 @@
       "writtenOn": "2015-04-07T14:38:42Z",
       "side": 1,
       "message": "suggestion: replace single case switch with an if",
+      "revId": "6fd480ae672dfe8348a1d40e65aa656e71a38625",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_7d452d6f",
+        "filename": "netlink/src/main/java/org/midonet/netlink/rtnetlink/Route.java",
+        "patchSetId": 9
+      },
+      "lineNbr": 218,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-04-09T08:10:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_a5bafa6b",
       "revId": "6fd480ae672dfe8348a1d40e65aa656e71a38625",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -325,6 +649,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_fdaabd17",
+        "filename": "netlink/src/main/java/org/midonet/netlink/rtnetlink/Route.java",
+        "patchSetId": 9
+      },
+      "lineNbr": 249,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-04-09T08:10:06Z",
+      "side": 1,
+      "message": "We\u0027re changing the buffer\u0027s order here.",
+      "parentUuid": "1a106d94_4594e6e1",
+      "revId": "6fd480ae672dfe8348a1d40e65aa656e71a38625",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_258f2ace",
         "filename": "netlink/src/main/java/org/midonet/netlink/rtnetlink/Route.java",
         "patchSetId": 9
@@ -336,6 +678,24 @@
       "writtenOn": "2015-04-07T14:38:42Z",
       "side": 1,
       "message": "idem",
+      "revId": "6fd480ae672dfe8348a1d40e65aa656e71a38625",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_dda54148",
+        "filename": "netlink/src/main/java/org/midonet/netlink/rtnetlink/Route.java",
+        "patchSetId": 9
+      },
+      "lineNbr": 266,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-04-09T08:10:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_258f2ace",
       "revId": "6fd480ae672dfe8348a1d40e65aa656e71a38625",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -359,6 +719,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_3d645521",
+        "filename": "netlink/src/main/java/org/midonet/netlink/rtnetlink/Route.java",
+        "patchSetId": 9
+      },
+      "lineNbr": 287,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-04-09T08:10:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_05b14e8f",
+      "revId": "6fd480ae672dfe8348a1d40e65aa656e71a38625",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_45ab461d",
         "filename": "netlink/src/main/java/org/midonet/netlink/rtnetlink/Route.java",
         "patchSetId": 9
@@ -370,6 +748,24 @@
       "writtenOn": "2015-04-07T14:38:42Z",
       "side": 1,
       "message": "idem",
+      "revId": "6fd480ae672dfe8348a1d40e65aa656e71a38625",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_1d67d926",
+        "filename": "netlink/src/main/java/org/midonet/netlink/rtnetlink/Route.java",
+        "patchSetId": 9
+      },
+      "lineNbr": 328,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-04-09T08:10:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_45ab461d",
       "revId": "6fd480ae672dfe8348a1d40e65aa656e71a38625",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -393,6 +789,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_7d6ecd02",
+        "filename": "netlink/src/main/java/org/midonet/netlink/rtnetlink/Route.java",
+        "patchSetId": 9
+      },
+      "lineNbr": 364,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-04-09T08:10:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_25a60a54",
+      "revId": "6fd480ae672dfe8348a1d40e65aa656e71a38625",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_45822695",
         "filename": "netlink/src/main/scala/org.midonet.netlink/NetlinkConnection.scala",
         "patchSetId": 9
@@ -404,6 +818,24 @@
       "writtenOn": "2015-04-07T14:38:42Z",
       "side": 1,
       "message": "we name our constants LIKE_THIS",
+      "revId": "6fd480ae672dfe8348a1d40e65aa656e71a38625",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_5d7151df",
+        "filename": "netlink/src/main/scala/org.midonet.netlink/NetlinkConnection.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-04-09T08:10:06Z",
+      "side": 1,
+      "message": "That\u0027s totally different from Scala\u0027s official convention. Did we define our convention somewhere with agreements with other? And what is the reason we don\u0027t follow that?\nhttp://docs.scala-lang.org/style/naming-conventions.html#constants-values-variable-and-methods",
+      "parentUuid": "1a106d94_45822695",
       "revId": "6fd480ae672dfe8348a1d40e65aa656e71a38625",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -546,6 +978,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_3d4bb588",
+        "filename": "netlink/src/main/scala/org.midonet.netlink/NetlinkMessageWrapper.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-04-09T08:10:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_252baa95",
+      "revId": "6fd480ae672dfe8348a1d40e65aa656e71a38625",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_a5167a53",
         "filename": "netlink/src/main/scala/org.midonet.netlink/NetlinkRequestBroker.scala",
         "patchSetId": 9
@@ -563,6 +1013,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_fd811d90",
+        "filename": "netlink/src/main/scala/org.midonet.netlink/NetlinkRequestBroker.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 271,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-04-09T08:10:06Z",
+      "side": 1,
+      "message": "I just let this initialised in the constructor. The header size should be automatically determined based on the protocol.",
+      "parentUuid": "1a106d94_a5167a53",
+      "revId": "6fd480ae672dfe8348a1d40e65aa656e71a38625",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_e507d21b",
         "filename": "netlink/src/main/scala/org.midonet.netlink/NetlinkRequestBroker.scala",
         "patchSetId": 9
@@ -574,6 +1042,24 @@
       "writtenOn": "2015-04-07T14:38:42Z",
       "side": 1,
       "message": "isn\u0027t this wrong? if a caller passes a default observer, it should expect that it completes whenever the reply completes.",
+      "revId": "6fd480ae672dfe8348a1d40e65aa656e71a38625",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_9d72a9e1",
+        "filename": "netlink/src/main/scala/org.midonet.netlink/NetlinkRequestBroker.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 283,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-04-09T08:10:06Z",
+      "side": 1,
+      "message": "As I posted in another patch, this forces us to instantiate exact the same Observer every time when I call handleReply even though I just want to put the generic handler for the notifications.",
+      "parentUuid": "1a106d94_e507d21b",
       "revId": "6fd480ae672dfe8348a1d40e65aa656e71a38625",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
