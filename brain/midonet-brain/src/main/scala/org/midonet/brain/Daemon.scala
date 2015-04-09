@@ -18,6 +18,9 @@ package org.midonet.brain
 
 import java.util.UUID
 
+import scala.util.{Success, Failure, Try}
+import scala.util.control.NonFatal
+
 import com.google.common.util.concurrent.AbstractService
 import com.google.common.util.concurrent.Service.State
 import com.google.inject.{AbstractModule, Module, Singleton}
@@ -37,25 +40,12 @@ final protected class Daemon(val nodeId: UUID,
     override def doStart(): Unit = {
         log.info(s"MidoNet cluster daemon starting on host $nodeId")
         var nMinions = 0
-        minions foreach { m =>
-            MinionConfig.minionClass(m.cfg) match {
-                case Some(klass) if m.cfg.isEnabled =>
-                    try {
-                        log.info(s"Minion '${m.name}' enabled with $klass")
-                        ClusterNode.injector.getInstance(klass)
-                                            .startAsync().awaitRunning()
-                        nMinions = nMinions + 1
-                    } catch {
-                        case t: Throwable =>
-                            log.warn(s"Minion ${m.name} failed to start", t)
-                            // TODO: not sure we want to stop?
-                    }
-                case Some(klass) =>
-                    log.info(s"Minion '${m.name}' is disabled")
-                case _ =>
-                    log.error(s"Minion '${m.name}' has an invalid class")
-            }
+        for (m <- minions) {
+            if (!m.cfg.isEnabled)
+                log.info(s"Minion '${m.name}' is disabled")
+            else if (startMinion(m)) nMinions += 1
         }
+
         if (nMinions == 0) {
             log.error("No minions enabled. Check midonet cluster config file " +
                       "to ensure that some services are enabled")
@@ -65,12 +55,35 @@ final protected class Daemon(val nodeId: UUID,
         }
     }
 
+    private def startMinion(m: MinionDef[ClusterMinion]): Boolean = {
+        MinionConfig.minionClass(m.cfg) match {
+            case Success(Some(klass)) =>
+                try {
+                    log.info(s"Minion '${m.name}' enabled with $klass")
+                    ClusterNode.injector.getInstance(klass)
+                                        .startAsync().awaitRunning()
+                    return true
+                } catch {
+                    case NonFatal(ex) =>
+                        log.warn(s"Minion ${m.name} failed to start", ex)
+                    // TODO: not sure we want to stop?
+                }
+            case Failure(ex) =>
+                log.error(s"Could not load class '${m.cfg.minionClass}' for " +
+                          s"minion '${m.name}'", ex)
+            case Success(None) =>
+                log.error(s"No class specified for minion '${m.name}'")
+        }
+        false
+    }
+
 
     /** Disband Minions */
     override def doStop(): Unit = {
         log info "Daemon terminates.."
-        for (m <- minions if m.cfg.isEnabled) {
-            val klass = MinionConfig.minionClass(m.cfg).get
+        for (m <- minions if m.cfg.isEnabled;
+             opt <- MinionConfig.minionClass(m.cfg);
+             klass <- opt) {
             val minion = ClusterNode.injector.getInstance(klass)
             if (minion.isRunning) {
                 try {
@@ -107,7 +120,7 @@ object MinionConfig {
 
     /** Extract the Minion class from the config, if present. */
     final def minionClass[M <: ClusterMinion](m: MinionConfig[M])
-    : Option[Class[M]] = {
+    : Try[Option[Class[M]]] = Try {
         Option.apply(m.minionClass) map { s =>
             Class.forName(s.replaceAll("\\.\\.", ".")).asInstanceOf[Class[M]]
         }
@@ -117,11 +130,9 @@ object MinionConfig {
       * defined in a given MinionConfig. */
     final def module[M <: ClusterMinion](m: MinionConfig[M]): Module = {
         new AbstractModule() {
-            override def configure(): Unit = {
-                MinionConfig.minionClass(m) map { minionClass =>
-                    bind(minionClass).in(classOf[Singleton])
-                }
-            }
+            override def configure(): Unit =
+                for (opt <- minionClass(m); klass <- opt)
+                    bind(klass).in(classOf[Singleton])
         }
     }
 }
