@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_835b6c86",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-09T15:56:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_3d2d7547",
+      "range": {
+        "startLine": 20,
+        "startChar": 0,
+        "endLine": 22,
+        "endChar": 54
+      },
+      "revId": "a9d01c68f86d4e865facda3ded8f0a7bfb9631aa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_fd1abd15",
         "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
         "patchSetId": 5
@@ -36,6 +60,30 @@
       "writtenOn": "2015-04-09T02:54:31Z",
       "side": 1,
       "message": "Don\u0027t these need to be volatile?",
+      "range": {
+        "startLine": 76,
+        "startChar": 4,
+        "endLine": 77,
+        "endChar": 24
+      },
+      "revId": "a9d01c68f86d4e865facda3ded8f0a7bfb9631aa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_c3544456",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-09T15:56:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_fd1abd15",
       "range": {
         "startLine": 76,
         "startChar": 4,
@@ -65,6 +113,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_660d9e37",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-09T15:56:10Z",
+      "side": 1,
+      "message": "Made it private to package (it is used in unit tests)",
+      "parentUuid": "1a106d94_7d27ed64",
+      "revId": "a9d01c68f86d4e865facda3ded8f0a7bfb9631aa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_5de151fd",
         "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
         "patchSetId": 5
@@ -76,6 +142,24 @@
       "writtenOn": "2015-04-09T02:54:31Z",
       "side": 1,
       "message": "hostReady will not be true until createHost runs, but createHost (indirectly) waits on interfaceLatch, so in most of the cases interfaceDataUpdater.updateInterfacesData will not be called? Is that OK?",
+      "revId": "a9d01c68f86d4e865facda3ded8f0a7bfb9631aa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_83a08c44",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-09T15:56:10Z",
+      "side": 1,
+      "message": "Good point, now I am updating the interfaces in legacy storage when creating the host. I added the following line at the end of the createLegacy method:\n\n interfaceDataUpdater.updateInterfacesData(hostId, null, currentInterfaces.asJava)\n\nI am also storing now the previous set of interfaces, such that in the scanner callback I am updating the host only if the interfaces have changed.",
+      "parentUuid": "1a106d94_5de151fd",
       "revId": "a9d01c68f86d4e865facda3ded8f0a7bfb9631aa",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -99,6 +183,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_e3a50048",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-09T15:56:10Z",
+      "side": 1,
+      "message": "In the new model, the set of interfaces are updates with the Host object. Hence, by calling createNewStack here, I am updating the set of hosts in the host proto. Should I change the method name?\n\nBtw, any comments on how the interfaces are stored are welcomed.",
+      "parentUuid": "1a106d94_1dd7d924",
+      "revId": "a9d01c68f86d4e865facda3ded8f0a7bfb9631aa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_5df791f5",
         "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
         "patchSetId": 5
@@ -110,6 +212,30 @@
       "writtenOn": "2015-04-09T02:54:31Z",
       "side": 1,
       "message": "You can remove this now that it\u0027s called from doStart().",
+      "range": {
+        "startLine": 165,
+        "startChar": 8,
+        "endLine": 165,
+        "endChar": 18
+      },
+      "revId": "a9d01c68f86d4e865facda3ded8f0a7bfb9631aa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_c37724d3",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 165,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-09T15:56:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_5df791f5",
       "range": {
         "startLine": 165,
         "startChar": 8,
@@ -145,6 +271,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_233558f7",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 238,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-09T15:56:10Z",
+      "side": 1,
+      "message": "But store.create in the first catch may still throw an exception, isn\u0027t it?",
+      "parentUuid": "1a106d94_bddde572",
+      "range": {
+        "startLine": 236,
+        "startChar": 8,
+        "endLine": 238,
+        "endChar": 17
+      },
+      "revId": "a9d01c68f86d4e865facda3ded8f0a7bfb9631aa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_9de2a9ff",
         "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
         "patchSetId": 5
@@ -168,6 +318,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_83136c65",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 303,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-09T15:56:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_9de2a9ff",
+      "range": {
+        "startLine": 303,
+        "startChar": 24,
+        "endLine": 303,
+        "endChar": 36
+      },
+      "revId": "a9d01c68f86d4e865facda3ded8f0a7bfb9631aa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_fd03ddb5",
         "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
         "patchSetId": 5
@@ -179,6 +353,30 @@
       "writtenOn": "2015-04-09T02:54:31Z",
       "side": 1,
       "message": "I tested locally and this should work:\n\n\ninterfaces.toList.flatMap(_.getInetAddresses.asScala).toSeq",
+      "range": {
+        "startLine": 323,
+        "startChar": 8,
+        "endLine": 327,
+        "endChar": 17
+      },
+      "revId": "a9d01c68f86d4e865facda3ded8f0a7bfb9631aa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_03077c1d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 327,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-09T15:56:10Z",
+      "side": 1,
+      "message": "Ah, flatMap. Done.",
+      "parentUuid": "1a106d94_fd03ddb5",
       "range": {
         "startLine": 323,
         "startChar": 8,
