@@ -45,15 +45,15 @@ message NeutronSubnet {
         optional IPAddress end = 2;
     }
     repeated IPAllocationPool allocation_pools = 8;
-    repeated string dns_nameservers = 9;
+    repeated IPAddress dns_nameservers = 9;
     repeated NeutronRoute host_routes = 10;
     optional bool enable_dhcp = 11;
     optional bool shared = 12;
 }
 
 message NeutronRoute {
-    optional string destination = 1;
-    optional string nexthop = 2;
+    optional IPSubnet destination = 1;
+    optional IPAddress nexthop = 2;
 }
 
 message NeutronPort {
