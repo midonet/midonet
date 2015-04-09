@@ -43,12 +43,16 @@ class SubnetTranslator(val storage: ReadOnlyStorage)
                     neutron.Create(ns), msg = "Cannot handle an IPv6 Subnet.")
 
         val dhcp = Dhcp.newBuilder
-            .setId(ns.getId)
-            .setNetworkId(ns.getNetworkId)
-            .setDefaultGateway(ns.getGatewayIp)
-            .setServerAddress(ns.getGatewayIp)
-            .setEnabled(ns.getEnableDhcp)
-            .setSubnetAddress(IPSubnetUtil.toProto(ns.getCidr))
+                       .setId(ns.getId)
+                       .setNetworkId(ns.getNetworkId)
+        if (ns.hasGatewayIp) {
+            dhcp.setDefaultGateway(ns.getGatewayIp)
+            dhcp.setServerAddress(ns.getGatewayIp)
+        }
+        if (ns.hasCidr)
+            dhcp.setSubnetAddress(IPSubnetUtil.toProto(ns.getCidr))
+        if (ns.hasEnableDhcp)
+            dhcp.setEnabled(ns.getEnableDhcp)
 
         for (addr <- ns.getDnsNameserversList.asScala)
             dhcp.addDnsServerAddress(IPAddressUtil.toProto(addr))
