@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_03dc9c11",
+        "filename": "tools/devmido/mido.sh",
+        "patchSetId": 3
+      },
+      "lineNbr": 287,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-04-09T14:54:57Z",
+      "side": 1,
+      "message": "Makes sense, thanks for the clarification.",
+      "parentUuid": "1a106d94_e3c34055",
+      "revId": "65a5b09537775339ba1c24d8f252a9606a98fb52",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_8359ac00",
         "filename": "tools/devmido/mido.sh",
         "patchSetId": 3
@@ -66,6 +84,24 @@
       "side": 1,
       "message": "I don\u0027t understand what do you mean, sorry.",
       "parentUuid": "1a106d94_8359ac00",
+      "revId": "65a5b09537775339ba1c24d8f252a9606a98fb52",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_4305f478",
+        "filename": "tools/devmido/mido.sh",
+        "patchSetId": 3
+      },
+      "lineNbr": 305,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-04-09T14:54:57Z",
+      "side": 1,
+      "message": "Don\u0027t you have to set \u0027cluster\u0027 to \u0027enabled\u0027 only if USE_CLUSTER is set to \u0027True\u0027?",
+      "parentUuid": "1a106d94_c3956441",
       "revId": "65a5b09537775339ba1c24d8f252a9606a98fb52",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -119,6 +155,24 @@
       "side": 1,
       "message": "No.. no ok. If I am using the NEUTRON_DB_PASSWORD (or TASKS_DB_PASSWORD) in the mido.sh... why I should submit this in a different patch?",
       "parentUuid": "1a106d94_036dbc98",
+      "revId": "65a5b09537775339ba1c24d8f252a9606a98fb52",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_e3722010",
+        "filename": "tools/devmido/midorc",
+        "patchSetId": 3
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-04-09T14:54:57Z",
+      "side": 1,
+      "message": "Using the variable doesn\u0027t necessarily justify it.  It seems to me that here, you are addressing the problem of re-using the same environment variable for both neutron DB and midonet cli.  The rest of the changes I see are to address the configuration of the cluster.  Sounds to me like we have two distinct issues getting addressed.\n\nThat said, I\u0027m ok putting them in the same patch as long as you mention both changes in the commit message",
+      "parentUuid": "1a106d94_c3ca844e",
       "revId": "65a5b09537775339ba1c24d8f252a9606a98fb52",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
