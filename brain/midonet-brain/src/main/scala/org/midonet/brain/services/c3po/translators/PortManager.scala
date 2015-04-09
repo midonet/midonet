@@ -22,6 +22,7 @@ import org.midonet.cluster.models.Commons.{IPAddress, IPSubnet, IPVersion, UUID}
 import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner
 import org.midonet.cluster.models.Neutron.NeutronPortOrBuilder
 import org.midonet.cluster.models.Topology.{Port, PortOrBuilder}
+import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
 import org.midonet.packets.MAC
 
 /**
@@ -113,4 +114,8 @@ object PortManager {
     val LL_GW_IP_1 = IPAddress.newBuilder()
                      .setAddress("169.254.255.1")
                      .setVersion(IPVersion.V4).build()
+
+    /** ID of Router Interface port peer. */
+    def routerInterfacePortPeerId(portId: UUID): UUID =
+        portId.xorWith(0x9c30300ec91f4f19L, 0x88449d37e61b60f0L)
 }
