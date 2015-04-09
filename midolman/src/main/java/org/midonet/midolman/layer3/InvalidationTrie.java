@@ -31,7 +31,7 @@ import org.midonet.packets.IPv4Subnet;
 public class InvalidationTrie extends RoutesTrie {
 
     private final static Logger log = LoggerFactory.getLogger(
-        InvalidationTrie.class);
+        "org.midonet.devices.router");
 
      // TODO(ross) if in the routing table there's a route that is a child of the
      // route corresponding to the node we pass, we shouldn't invalidate the ip

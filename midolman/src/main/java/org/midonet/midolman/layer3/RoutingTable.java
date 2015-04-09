@@ -35,11 +35,15 @@ import org.midonet.packets.IPv4Subnet;
  */
 class RoutingTable extends RoutesTrie {
 
-    private final static Logger log = LoggerFactory.getLogger(RoutingTable.class);
+    private final static Logger log = LoggerFactory.getLogger("org.midonet.devices.router");
 
     Iterable<Route> lookup(int src, int dst) {
-        if (log.isDebugEnabled()) {
-            log.debug(String.format("lookup: src %s dst %s in table with %d routes",
+        return lookup(src, dst, log);
+    }
+
+    Iterable<Route> lookup(int src, int dst, Logger logger) {
+        if (logger.isDebugEnabled()) {
+            logger.debug(String.format("lookup: src %s dst %s in table with %d routes",
                                     IPv4Addr.intToString(src),
                                     IPv4Addr.intToString(dst),
                                     numRoutes));
@@ -67,8 +71,8 @@ class RoutingTable extends RoutesTrie {
                 break;
         }
 
-        if (log.isDebugEnabled()) {
-            log.debug(String.format("lookup: return %s for src %s dst %s",
+        if (logger.isDebugEnabled()) {
+            logger.debug(String.format("lookup: return %s for src %s dst %s",
                       ret.toString(),
                       IPv4Addr.intToString(src),
                       IPv4Addr.intToString(dst)));

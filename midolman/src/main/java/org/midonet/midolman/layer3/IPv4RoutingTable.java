@@ -16,6 +16,8 @@
 
 package org.midonet.midolman.layer3;
 
+import org.slf4j.Logger;
+
 import org.midonet.packets.IPv4Addr;
 
 /**
@@ -37,6 +39,10 @@ public class IPv4RoutingTable implements RoutingTableIfc<IPv4Addr> {
 
     public Iterable<Route> lookup(IPv4Addr src, IPv4Addr dst) {
         return legacyTable.lookup(src.toInt(), dst.toInt());
+    }
+
+    public Iterable<Route> lookup(IPv4Addr src, IPv4Addr dst, Logger logger) {
+        return legacyTable.lookup(src.toInt(), dst.toInt(), logger);
     }
 
 }
