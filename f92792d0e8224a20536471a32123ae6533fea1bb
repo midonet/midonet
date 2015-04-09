@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_c068babc",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/vtep/model/MacEntry.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-04-09T09:18:39Z",
+      "side": 1,
+      "message": "Do we really need these here? Wouldn\u0027t it be enough with having the uuid with msb \u003d ip / lsb \u003d mac (or reverse?).\n\nOne reason for this is that AFAIK, the usage we need is to delete rows based on mac-ip (regardless of other details). If we hash the ls and location in, then that lookup fails.",
+      "range": {
+        "startLine": 36,
+        "startChar": 8,
+        "endLine": 37,
+        "endChar": 56
+      },
+      "revId": "f92792d0e8224a20536471a32123ae6533fea1bb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_80f402f3",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/vtep/model/PhysicalPort.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-04-09T09:18:39Z",
+      "side": 1,
+      "message": "this won\u0027t really prevent external mutations no? you need a copy, not a wrapper",
+      "range": {
+        "startLine": 83,
+        "startChar": 44,
+        "endLine": 83,
+        "endChar": 67
+      },
+      "revId": "f92792d0e8224a20536471a32123ae6533fea1bb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_60f746f6",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/vtep/model/PhysicalSwitch.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-04-09T09:18:39Z",
+      "side": 1,
+      "message": "ditto",
+      "range": {
+        "startLine": 97,
+        "startChar": 37,
+        "endLine": 97,
+        "endChar": 47
+      },
+      "revId": "f92792d0e8224a20536471a32123ae6533fea1bb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
