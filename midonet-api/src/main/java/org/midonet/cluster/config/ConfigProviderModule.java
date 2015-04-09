@@ -51,7 +51,7 @@ public class ConfigProviderModule extends PrivateModule {
         expose(ZookeeperConfig.class);
 
         log.info("config start -----------------------");
-        Map<String, Object> allConf = new TreeMap(provider.getAll());
+        Map<String, Object> allConf = new TreeMap<>(provider.getAll());
         for (Map.Entry<String, Object> confValue : allConf.entrySet()) {
             log.info(" {} = {}", confValue.getKey(), confValue.getValue());
         }
