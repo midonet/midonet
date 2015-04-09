@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_a09e5e52",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/ClusterNode.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-04-09T10:57:00Z",
+      "side": 1,
+      "message": "remove",
+      "range": {
+        "startLine": 79,
+        "startChar": 34,
+        "endLine": 79,
+        "endChar": 60
+      },
+      "revId": "af449b58c1d1d51257f3c7e9ad0627a325c77441",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_00ae5285",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/conf/ConfMinion.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-04-09T10:57:00Z",
+      "side": 1,
+      "message": "Bad, this has to move to the rest api, in any case.",
+      "range": {
+        "startLine": 42,
+        "startChar": 0,
+        "endLine": 42,
+        "endChar": 8
+      },
+      "revId": "af449b58c1d1d51257f3c7e9ad0627a325c77441",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
