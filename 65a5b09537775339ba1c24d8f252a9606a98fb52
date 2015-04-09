@@ -108,6 +108,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_c32564c3",
+        "filename": "tools/devmido/mido.sh",
+        "patchSetId": 3
+      },
+      "lineNbr": 305,
+      "author": {
+        "id": 1002749
+      },
+      "writtenOn": "2015-04-09T15:26:05Z",
+      "side": 1,
+      "message": "I was not sure (actually I was confused with different conversations with agent/cluster teams). You are right. I\u0027ll move it",
+      "parentUuid": "1a106d94_4305f478",
+      "revId": "65a5b09537775339ba1c24d8f252a9606a98fb52",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_036dbc98",
         "filename": "tools/devmido/midorc",
         "patchSetId": 3
@@ -173,6 +191,24 @@
       "side": 1,
       "message": "Using the variable doesn\u0027t necessarily justify it.  It seems to me that here, you are addressing the problem of re-using the same environment variable for both neutron DB and midonet cli.  The rest of the changes I see are to address the configuration of the cluster.  Sounds to me like we have two distinct issues getting addressed.\n\nThat said, I\u0027m ok putting them in the same patch as long as you mention both changes in the commit message",
       "parentUuid": "1a106d94_c3ca844e",
+      "revId": "65a5b09537775339ba1c24d8f252a9606a98fb52",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_e32a208f",
+        "filename": "tools/devmido/midorc",
+        "patchSetId": 3
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 1002749
+      },
+      "writtenOn": "2015-04-09T15:26:05Z",
+      "side": 1,
+      "message": "Pedantic, but true :) Let me keep the same patch, cause I\u0027m afraid of break something stupidily now that I\u0027ve proved that works",
+      "parentUuid": "1a106d94_e3722010",
       "revId": "65a5b09537775339ba1c24d8f252a9606a98fb52",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
