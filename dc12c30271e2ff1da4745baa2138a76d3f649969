@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_bd0cc543",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/services/c3po/translators/SubnetTranslatorTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-04-09T08:36:05Z",
+      "side": 1,
+      "message": "The translator has a couple of branches in it. Maybe there should be better test coverage of the different options, even just one test that takes all the opposite branches?",
+      "range": {
+        "startLine": 56,
+        "startChar": 0,
+        "endLine": 59,
+        "endChar": 5
+      },
+      "revId": "dc12c30271e2ff1da4745baa2138a76d3f649969",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
