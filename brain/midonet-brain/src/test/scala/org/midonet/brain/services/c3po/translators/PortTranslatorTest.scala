@@ -35,6 +35,7 @@ import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.ModelsUtil._
 import org.midonet.cluster.models.Neutron.{NeutronPort, NeutronSubnet}
 import org.midonet.cluster.models.Topology.{Chain, Dhcp, IpAddrGroup, Network, Port, Router, Rule, _}
+import org.midonet.cluster.util.IPSubnetUtil.univSubnet4
 import org.midonet.cluster.util.UUIDUtil.randomUuidProto
 import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil, UUIDUtil}
 import org.midonet.midolman.state.{MacPortMap, PathBuilder}
@@ -104,18 +105,16 @@ class PortTranslatorTest extends FlatSpec with BeforeAndAfter
     protected val tenantId = "neutron tenant"
     protected val mac = "00:11:22:33:44:55"
 
-    protected val portBase = s"""
+    protected def portBase(portId: UUID = portId,
+                           adminStateUp: Boolean = false) = s"""
         id { $portId }
         network_id { $networkId }
         tenant_id: 'neutron tenant'
         mac_address: '$mac'
+        admin_state_up: ${if (adminStateUp) "true" else "false"}
         """
-    protected val portBaseDown = portBase + """
-        admin_state_up: false
-        """
-    protected val portBaseUp = portBase + """
-        admin_state_up: true
-        """
+    protected val portBaseDown = portBase(adminStateUp = false)
+    protected val portBaseUp = portBase(adminStateUp = true)
 
     protected val vifPortUp = nPortFromTxt(portBaseUp)
 
@@ -196,6 +195,12 @@ class PortTranslatorTest extends FlatSpec with BeforeAndAfter
             dhcp_ids { $nIpv6Subnet1Id }
         """
     val mNetworkWithSubnets = mNetworkFromTxt(midoNetworkWithSubnets)
+
+    val midoNetworkWithIpv4Subnet = s"""
+            $midoNetworkBase
+            dhcp_ids { $nIpv4Subnet1Id }
+        """
+    val mNetworkWithIpv4Subnet = mNetworkFromTxt(midoNetworkWithIpv4Subnet)
 
     /* Finds an operation on Chain with the specified chain ID, and returns a
      * first one found.
@@ -966,8 +971,113 @@ class FloatingIpPortTranslationTest extends PortTranslatorTest {
     }
 }
 
-@RunWith(classOf[JUnitRunner])
 class RouterInterfacePortTranslationTest extends PortTranslatorTest {
+    protected val deviceId = java.util.UUID.randomUUID
+    protected val routerId = UUIDUtil.toProto(deviceId)
+    protected val routerIfPortIp = IPAddressUtil.toProto("127.0.0.2")
+    protected val routerIfPortUp = nPortFromTxt(portBaseUp + s"""
+        fixed_ips {
+            ip_address { $routerIfPortIp }
+            subnet_id { $nIpv4Subnet1Id }
+        }
+        device_owner: ROUTER_INTERFACE
+        device_id: "$deviceId"
+        """)
+}
+
+@RunWith(classOf[JUnitRunner])
+class RouterInterfacePortCreateTranslationTest
+        extends RouterInterfacePortTranslationTest {
+    import org.midonet.brain.services.c3po.translators.PortManager._
+    import org.midonet.brain.services.c3po.translators.RouteManager._
+    before {
+        storage = mock(classOf[ReadOnlyStorage])
+        translator = new PortTranslator(storage, pathBldr)
+
+        when(storage.get(classOf[Dhcp], nIpv4Subnet1Id))
+            .thenReturn(Promise.successful(mIpv4Dhcp).future)
+    }
+
+    private val routerPeerPortId = routerInterfacePortPeerId(portId)
+    private val routerPeerPort = mPortFromTxt(s"""
+        id { $routerPeerPortId }
+        router_id { $routerId }
+        peer_id { $portId }
+        admin_state_up: true
+        port_subnet { $ipv4Subnet1 }
+        port_address { $routerIfPortIp }
+        """)
+
+    private val rppRouteId = routerInterfaceRouteId(portId)
+    private val routerPeerPortRoute = mRouteFromTxt(s"""
+        id { $rppRouteId }
+        src_subnet { $univSubnet4 }
+        dst_subnet { $ipv4Subnet1 }
+        next_hop: PORT
+        next_hop_port_id { $routerPeerPortId }
+        weight: ${RouteManager.DEFAULT_WEIGHT}
+        """)
+
+    "Router interface port CREATE" should "create a normal Network port" in {
+        when(storage.get(classOf[Network], networkId))
+            .thenReturn(Promise.successful(mNetworkWithIpv4Subnet).future)
+
+        val midoOps = translator.translate(neutron.Create(routerIfPortUp))
+        midoOps should contain inOrderOnly (midonet.Create(midoPortBaseUp),
+                                            midonet.Create(routerPeerPort),
+                                            midonet.Create(routerPeerPortRoute))
+    }
+
+    private val dhcpPortId = randomUuidProto
+    private val dhcpPort = nPortFromTxt(
+        portBase(portId = dhcpPortId, adminStateUp = true) + s"""
+        device_owner: DHCP
+        fixed_ips {
+          ip_address { $ipv4Addr1 }
+          subnet_id { $nIpv4Subnet1Id }
+        }
+        """)
+
+    private val dummyVifPortId = randomUuidProto
+    private val dummyVifPort =
+        nPortFromTxt(portBase(dummyVifPortId, adminStateUp = true))
+
+    private val mNetworkWithIpv4SubnetAndDhcpPort = mNetworkFromTxt(s"""
+            $midoNetworkBase
+            dhcp_ids { $nIpv4Subnet1Id }
+            port_ids { $dummyVifPortId }
+            port_ids { $dhcpPortId }
+        """)
+
+    private val metaDataSvcRoute = mRouteFromTxt(s"""
+            id { ${metadataServiceRouteId(routerPeerPortId)} }
+            src_subnet { $ipv4Subnet1 }
+            dst_subnet { ${IPSubnetUtil.toProto("169.254.169.254/32")} }
+            next_hop: PORT
+            next_hop_port_id { $routerPeerPortId }
+            next_hop_gateway { $ipv4Addr1 }
+            weight: 100
+            """)
+
+    "Router interface port CREATE" should "add a route to Meta Data Service " +
+    "when a DHCP port exists with the network" in {
+        when(storage.get(classOf[Network], networkId))
+            .thenReturn(Promise.successful(mNetworkWithIpv4SubnetAndDhcpPort)
+                               .future)
+        when(storage.get(classOf[NeutronPort], dhcpPortId))
+            .thenReturn(Promise.successful(dhcpPort).future)
+        when(storage.get(classOf[NeutronPort], dummyVifPortId))
+            .thenReturn(Promise.successful(dummyVifPort).future)
+
+        val midoOps = translator.translate(neutron.Create(routerIfPortUp))
+        midoOps should contain (midonet.Create(metaDataSvcRoute))
+    }
+}
+
+@RunWith(classOf[JUnitRunner])
+class RouterInterfacePortUpdateDeleteTranslationTest
+        extends RouterInterfacePortTranslationTest {
+    import org.midonet.brain.services.c3po.translators.PortManager._
     before {
         storage = mock(classOf[ReadOnlyStorage])
         translator = new PortTranslator(storage, pathBldr)
@@ -978,26 +1088,21 @@ class RouterInterfacePortTranslationTest extends PortTranslatorTest {
             .thenReturn(Promise.successful(midoNetwork).future)
     }
 
-    private val routerIfPortUp = nPortFromTxt(portBaseUp + """
-        device_owner: ROUTER_INTERFACE
-        """)
-
-    "Router interface port CREATE" should "create a normal Network port" in {
-        val midoOps = translator.translate(neutron.Create(routerIfPortUp))
-        midoOps should contain only midonet.Create(midoPortBaseUp)
-    }
-
     "Router interface port UPDATE" should "NOT update Port" in {
         val midoOps = translator.translate(neutron.Update(routerIfPortUp))
         midoOps shouldBe empty
      }
 
-    "Router interface port DELETE" should "delete the MidoNet Port" in {
+    "Router interface port DELETE" should "delete both MidoNet Router " +
+    "Interface Network Port and its peer Router Port" in {
         when(storage.get(classOf[NeutronPort], portId))
             .thenReturn(Promise.successful(routerIfPortUp).future)
         val midoOps = translator.translate(
                 neutron.Delete(classOf[NeutronPort], portId))
-        midoOps should contain (midonet.Delete(classOf[Port], portId))
+        midoOps should contain only (
+                midonet.Delete(classOf[Port], portId),
+                midonet.Delete(classOf[Port], routerInterfacePortPeerId(portId))
+                )
     }
 }
 
