@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_3d0615cf",
+        "filename": "netlink/src/main/scala/org.midonet.netlink/NetlinkConnection.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 157,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-04-09T01:59:53Z",
+      "side": 1,
+      "message": "That means all rtnetlink methods defined in RtnelinkConnection would be moved DefaultInterfaceScanner despite they could be used somewhere else. Moving everything to DefaultInterfaceScanner seems too much for me.\n\nHow about to delete sendRequest and sendRetryRequest, and even NetlinkConnection. I want to leave RtnetlinkConnection, although probably the naming was really bad, because it shows what operations are available to the clients.",
+      "parentUuid": "1a106d94_6dc0e4e0",
+      "revId": "9aa7bf5eb723bdc11d3d4ad8e8b50b1840f7f764",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_8d2c4004",
         "filename": "netlink/src/main/scala/org.midonet.netlink/NetlinkMessageWrapper.scala",
         "patchSetId": 10
@@ -30,6 +48,24 @@
       "writtenOn": "2015-04-08T09:49:48Z",
       "side": 1,
       "message": "can this be private again? it was like that so the caller was forced to use the constructors in the NetlinkMessageWrapper object.",
+      "revId": "9aa7bf5eb723bdc11d3d4ad8e8b50b1840f7f764",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_7d59adfd",
+        "filename": "netlink/src/main/scala/org.midonet.netlink/NetlinkMessageWrapper.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-04-09T01:59:53Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_8d2c4004",
       "revId": "9aa7bf5eb723bdc11d3d4ad8e8b50b1840f7f764",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
