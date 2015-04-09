@@ -19,6 +19,16 @@ class NetlinkRequestBrokerTest extends FeatureSpec
                                with ShouldMatchers
                                with OneInstancePerTest {
 
+    class CountingObserver extends Observer[ByteBuffer] {
+        var onNextCalls = 0
+        var onErrorCalls = 0
+        var onCompletedCalls = 0
+
+        override def onCompleted(): Unit = onCompletedCalls += 1
+        override def onError(e: Throwable): Unit = onErrorCalls += 1
+        override def onNext(t: ByteBuffer): Unit = onNextCalls += 1
+    }
+
     val maxRequests = 8
     val replyBuf = ByteBuffer.allocate(1024)
 
@@ -34,19 +44,10 @@ class NetlinkRequestBrokerTest extends FeatureSpec
     val reader = new NetlinkReader(channel)
     val writer = new MockNetlinkWriter
     val clock = new MockClock
+    val notifications = new CountingObserver()
     val broker = new NetlinkRequestBroker(writer,reader, maxRequests, 512,
                                           ByteBuffer.allocate(1024), clock,
-                                          timeout = 1 milli)
-
-    class CountingObserver extends Observer[ByteBuffer] {
-        var onNextCalls = 0
-        var onErrorCalls = 0
-        var onCompletedCalls = 0
-
-        override def onCompleted(): Unit = onCompletedCalls += 1
-        override def onError(e: Throwable): Unit = onErrorCalls += 1
-        override def onNext(t: ByteBuffer): Unit = onNextCalls += 1
-    }
+                                          timeout = 1 milli, notifications)
 
     before {
         replyBuf.clear()
@@ -211,7 +212,18 @@ class NetlinkRequestBrokerTest extends FeatureSpec
             obs.onCompletedCalls should be (1)
         }
 
-        scenario ("An upcall packet is passed into a catch-all Observer") {
+        scenario ("An upcall packet is passed into the notifications observer") {
+            val size = NetlinkMessage.GENL_HEADER_SIZE + 16
+            NetlinkMessage.writeHeader(replyBuf, size, 16, 0, 0, 0, 0, 0)
+            replyBuf.limit(size)
+
+            broker.readReply()
+
+            notifications.onNextCalls should be (1)
+            notifications.onCompletedCalls should be (0)
+        }
+
+        scenario ("A reply without a registered observer is passed into a catch-all Observer") {
             val obs = new CountingObserver {
                 override def onNext(buf: ByteBuffer) = {
                     buf.remaining() should be (16)
@@ -219,7 +231,7 @@ class NetlinkRequestBrokerTest extends FeatureSpec
                 }
             }
             val size = NetlinkMessage.GENL_HEADER_SIZE + 16
-            NetlinkMessage.writeHeader(replyBuf, size, 16, 0, 0, 0, 0, 0)
+            NetlinkMessage.writeHeader(replyBuf, size, 16, 0, 1, 0, 0, 0)
             replyBuf.limit(size)
 
             broker.readReply(obs)
