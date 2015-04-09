@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_605bc62e",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/Daemon.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-04-09T09:01:10Z",
+      "side": 1,
+      "message": "I think that\u0027s your TODO, but I\u0027m happy to remove it.",
+      "parentUuid": "1a106d94_40004a01",
+      "range": {
+        "startLine": 69,
+        "startChar": 23,
+        "endLine": 69,
+        "endChar": 27
+      },
+      "revId": "498a054e7cac8eb5a5d77e52b3d59a0462e0c9b3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_dd01c107",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/Daemon.scala",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2015-04-09T08:39:33Z",
       "side": 1,
       "message": "warn? (don\u0027t bother, we can change it later)",
+      "range": {
+        "startLine": 75,
+        "startChar": 20,
+        "endLine": 75,
+        "endChar": 25
+      },
+      "revId": "498a054e7cac8eb5a5d77e52b3d59a0462e0c9b3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_a03c9ec0",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/Daemon.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-04-09T09:01:10Z",
+      "side": 1,
+      "message": "I don\u0027t know if it\u0027s even possible to reach this without us screwing up pretty badly. The string in the config has to be null, which I think means that it can\u0027t be specified at all anywhere in the config hierarchy. We\u0027d have to leave it out of the schema.\n\nAnyway, if the minion is enabled and no class is specified, that seems like as much of an error to me as the minion being enabled and an invalid class name being specified.\n\nYou know, this is really just a special case of the general error of the string specified not being a valid class. what if we just leave the Option out of minionClass() and just let Class.forName() throw a NullPointerException, which we wrap in a Failure() and handle above?",
+      "parentUuid": "1a106d94_dd01c107",
       "range": {
         "startLine": 75,
         "startChar": 20,
