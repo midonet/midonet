@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_2c5f05e7",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/services/c3po/translators/SubnetTranslatorTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-04-10T05:30:55Z",
+      "side": 1,
+      "message": "No need to change in this patch, but shouldn\u0027t this be called dns_server_addresses?",
+      "range": {
+        "startLine": 95,
+        "startChar": 8,
+        "endLine": 95,
+        "endChar": 26
+      },
+      "revId": "274104deb08e10692f56bc5ba100f764e24cbbff",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
