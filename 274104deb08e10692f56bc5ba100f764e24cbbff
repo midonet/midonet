@@ -22,6 +22,30 @@
       "revId": "274104deb08e10692f56bc5ba100f764e24cbbff",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_2c2d4547",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/services/c3po/translators/SubnetTranslatorTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-04-10T05:49:05Z",
+      "side": 1,
+      "message": "To be consistent with other protos, yes it should be in plural form. But from the Protocol Buffer readability point of view, it\u0027s actually more appropriate to give to a repeated field a singular name. It was me that I gave those plural form names, so my fault.",
+      "parentUuid": "1a106d94_2c5f05e7",
+      "range": {
+        "startLine": 95,
+        "startChar": 8,
+        "endLine": 95,
+        "endChar": 26
+      },
+      "revId": "274104deb08e10692f56bc5ba100f764e24cbbff",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
