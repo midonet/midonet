@@ -24,7 +24,7 @@ import org.midonet.midolman.logging.FlowTracingContext
 import org.midonet.midolman.simulation.PacketContext
 import org.midonet.midolman.state.FlowState.FlowStateKey
 import org.midonet.odp.FlowMatch
-import org.midonet.packets.{MAC, IPAddr}
+import org.midonet.packets.{MAC, IPAddr, ICMP}
 import org.midonet.sdn.state.FlowStateTransaction
 
 object TraceState {
@@ -39,13 +39,23 @@ object TraceState {
     object TraceKey {
         def fromFlowMatch(flowMatch: FlowMatch): TraceKey = {
             flowMatch.doNotTrackSeenFields()
+            val srcPort =
+                if (flowMatch.getNetworkProto == ICMP.PROTOCOL_NUMBER)
+                    flowMatch.getIcmpIdentifier
+                else
+                    flowMatch.getSrcPort
+            val dstPort =
+                if (flowMatch.getNetworkProto == ICMP.PROTOCOL_NUMBER)
+                    flowMatch.getIcmpIdentifier
+                else
+                    flowMatch.getDstPort
+
             val key = TraceKey(flowMatch.getEthSrc, flowMatch.getEthDst,
                                flowMatch.getEtherType,
                                flowMatch.getNetworkSrcIP,
                                flowMatch.getNetworkDstIP,
                                flowMatch.getNetworkProto,
-                               flowMatch.getSrcPort,
-                               flowMatch.getDstPort)
+                               srcPort, dstPort)
             flowMatch.doTrackSeenFields()
             key
         }
