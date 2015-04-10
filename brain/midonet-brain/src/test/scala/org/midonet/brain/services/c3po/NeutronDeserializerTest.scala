@@ -117,7 +117,7 @@ class NeutronDeserializerTest extends FunSuite with Matchers {
     }
 
     // Interesting features:
-    // 1. Contains nested message defintion and a repeated field of that type.
+    // 1. Contains nested message definitions and a repeated field of that type.
     // 2. IPAddress fields.
     test("NeutronSubnet deserialization") {
         // Skipping a bunch of fields since they're basically the same as
@@ -150,8 +150,13 @@ class NeutronDeserializerTest extends FunSuite with Matchers {
         subnet.getName shouldBe "Test subnet"
         subnet.getGatewayIp.getVersion shouldBe Commons.IPVersion.V4
         subnet.getGatewayIp.getAddress shouldBe "123.45.67.89"
-        subnet.getDnsNameserversList should contain inOrder("100.0.0.1", "200.0.0.1")
-        subnet.getAllocationPoolsCount shouldBe 2
+        subnet.getDnsNameserversList.size shouldBe 2
+        val dnsAddr1 = subnet.getDnsNameserversList.get(0)
+        val dnsAddr2 = subnet.getDnsNameserversList.get(1)
+        dnsAddr1.getAddress shouldBe "100.0.0.1"
+        dnsAddr1.getVersion shouldBe Commons.IPVersion.V4
+        dnsAddr2.getAddress shouldBe "200.0.0.1"
+        dnsAddr2.getVersion shouldBe Commons.IPVersion.V4
 
         val pool1 = subnet.getAllocationPools(0)
         pool1.getStart.getVersion shouldBe Commons.IPVersion.V4
