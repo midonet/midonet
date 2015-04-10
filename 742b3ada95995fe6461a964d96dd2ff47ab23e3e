@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_cc53d137",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/PoolHealthMonitorMapManager.scala",
+        "patchSetId": 20
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-04-10T17:31:37Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_06e82a0f",
+      "range": {
+        "startLine": 46,
+        "startChar": 0,
+        "endLine": 52,
+        "endChar": 16
+      },
+      "revId": "742b3ada95995fe6461a964d96dd2ff47ab23e3e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_c6c45294",
         "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/PoolMember.scala",
         "patchSetId": 20
@@ -36,6 +60,30 @@
       "writtenOn": "2015-04-09T17:01:09Z",
       "side": 1,
       "message": "I think all non-primitive fields should not be null. If any would be, then the alternative is throwing an IllegalArgumentException here.",
+      "range": {
+        "startLine": 57,
+        "startChar": 4,
+        "endLine": 58,
+        "endChar": 38
+      },
+      "revId": "742b3ada95995fe6461a964d96dd2ff47ab23e3e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_8c59d95d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/PoolMember.scala",
+        "patchSetId": 20
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-04-10T17:31:37Z",
+      "side": 1,
+      "message": "Not sure if we should force an IP here. My guess is that it is probably better to fix the equals in NatTarget",
+      "parentUuid": "1a106d94_c6c45294",
       "range": {
         "startLine": 57,
         "startChar": 4,
@@ -65,6 +113,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_ac5e5543",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/PoolMember.scala",
+        "patchSetId": 20
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-04-10T17:31:37Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_06bf8afc",
+      "revId": "742b3ada95995fe6461a964d96dd2ff47ab23e3e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_463862a0",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/LoadBalancerMapper.scala",
         "patchSetId": 20
@@ -76,6 +142,30 @@
       "writtenOn": "2015-04-09T17:01:09Z",
       "side": 1,
       "message": "Is it ever allowed a LB without a router? Although not set, there should be a binding between the LB routerId and the router loadBalancerId.",
+      "range": {
+        "startLine": 73,
+        "startChar": 27,
+        "endLine": 75,
+        "endChar": 37
+      },
+      "revId": "742b3ada95995fe6461a964d96dd2ff47ab23e3e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_ac25b5c3",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/LoadBalancerMapper.scala",
+        "patchSetId": 20
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-04-10T17:31:37Z",
+      "side": 1,
+      "message": "Created a zoom binding between router and loadbalancer, but there is still the possibility that both router and load balancer information can be created without being assigned to each other.\n\n(For the record, the code allow load balancer configs not assigned to any particular router)",
+      "parentUuid": "1a106d94_463862a0",
       "range": {
         "startLine": 73,
         "startChar": 27,
@@ -105,6 +195,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_6c13bd66",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PoolHealthMonitorMapper.scala",
+        "patchSetId": 20
+      },
+      "lineNbr": 153,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-04-10T17:31:37Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_66b8fee5",
+      "revId": "742b3ada95995fe6461a964d96dd2ff47ab23e3e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_66e11efe",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PoolHealthMonitorMapper.scala",
         "patchSetId": 20
@@ -116,6 +224,30 @@
       "writtenOn": "2015-04-09T17:01:09Z",
       "side": 1,
       "message": "Here and for all log messages below: use {} instead of string interpolation.",
+      "range": {
+        "startLine": 156,
+        "startChar": 34,
+        "endLine": 156,
+        "endChar": 72
+      },
+      "revId": "742b3ada95995fe6461a964d96dd2ff47ab23e3e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_3700ee00",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PoolHealthMonitorMapper.scala",
+        "patchSetId": 20
+      },
+      "lineNbr": 156,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-04-10T17:31:37Z",
+      "side": 1,
+      "message": "Scala complains about type ambiguity when issuing log messages with more than 1 argument (probably a type conflict with the java interface). I will replace interpolation with concatenation (which maybe a little bit more efficient)",
+      "parentUuid": "1a106d94_66e11efe",
       "range": {
         "startLine": 156,
         "startChar": 34,
@@ -151,6 +283,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_570daa36",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PoolHealthMonitorMapper.scala",
+        "patchSetId": 20
+      },
+      "lineNbr": 204,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-04-10T17:31:37Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_26be06d5",
+      "range": {
+        "startLine": 204,
+        "startChar": 20,
+        "endLine": 204,
+        "endChar": 44
+      },
+      "revId": "742b3ada95995fe6461a964d96dd2ff47ab23e3e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_06c94a78",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PoolHealthMonitorMapper.scala",
         "patchSetId": 20
@@ -162,6 +318,30 @@
       "writtenOn": "2015-04-09T17:01:09Z",
       "side": 1,
       "message": "Not needed: all updates arrive only from the VT or the funnel.",
+      "range": {
+        "startLine": 207,
+        "startChar": 12,
+        "endLine": 207,
+        "endChar": 36
+      },
+      "revId": "742b3ada95995fe6461a964d96dd2ff47ab23e3e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_b7133e5b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PoolHealthMonitorMapper.scala",
+        "patchSetId": 20
+      },
+      "lineNbr": 207,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-04-10T17:31:37Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_06c94a78",
       "range": {
         "startLine": 207,
         "startChar": 12,
@@ -197,6 +377,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_f71db667",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PoolHealthMonitorMapper.scala",
+        "patchSetId": 20
+      },
+      "lineNbr": 215,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-04-10T17:31:37Z",
+      "side": 1,
+      "message": "These mappings are sent away to the observer, so they could be modified by the consumers. If mutable, then I should make a copy before emitting the updates...",
+      "parentUuid": "1a106d94_e6718e45",
+      "range": {
+        "startLine": 215,
+        "startChar": 12,
+        "endLine": 215,
+        "endChar": 62
+      },
+      "revId": "742b3ada95995fe6461a964d96dd2ff47ab23e3e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_c67c5223",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PoolHealthMonitorMapper.scala",
         "patchSetId": 20
@@ -208,6 +412,30 @@
       "writtenOn": "2015-04-09T17:01:09Z",
       "side": 1,
       "message": "Indent these 2 lines?",
+      "range": {
+        "startLine": 225,
+        "startChar": 0,
+        "endLine": 226,
+        "endChar": 11
+      },
+      "revId": "742b3ada95995fe6461a964d96dd2ff47ab23e3e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_d7187a77",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PoolHealthMonitorMapper.scala",
+        "patchSetId": 20
+      },
+      "lineNbr": 226,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-04-10T17:31:37Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_c67c5223",
       "range": {
         "startLine": 225,
         "startChar": 0,
@@ -237,6 +465,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_37274eb8",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PoolHealthMonitorMapper.scala",
+        "patchSetId": 20
+      },
+      "lineNbr": 231,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-04-10T17:31:37Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_06778a3b",
+      "revId": "742b3ada95995fe6461a964d96dd2ff47ab23e3e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_46906243",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PoolHealthMonitorMapper.scala",
         "patchSetId": 20
@@ -248,6 +494,30 @@
       "writtenOn": "2015-04-09T17:01:09Z",
       "side": 1,
       "message": "Why not checking this in the update entry above?",
+      "range": {
+        "startLine": 246,
+        "startChar": 38,
+        "endLine": 251,
+        "endChar": 9
+      },
+      "revId": "742b3ada95995fe6461a964d96dd2ff47ab23e3e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_d72fda86",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PoolHealthMonitorMapper.scala",
+        "patchSetId": 20
+      },
+      "lineNbr": 251,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-04-10T17:31:37Z",
+      "side": 1,
+      "message": "good point. Done.",
+      "parentUuid": "1a106d94_46906243",
       "range": {
         "startLine": 246,
         "startChar": 38,
@@ -283,6 +553,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_d746ba4e",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PoolHealthMonitorMapper.scala",
+        "patchSetId": 20
+      },
+      "lineNbr": 254,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-04-10T17:31:37Z",
+      "side": 1,
+      "message": "Oops... leftover from previous code: removed",
+      "parentUuid": "1a106d94_46898225",
+      "range": {
+        "startLine": 254,
+        "startChar": 4,
+        "endLine": 254,
+        "endChar": 45
+      },
+      "revId": "742b3ada95995fe6461a964d96dd2ff47ab23e3e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_c6957241",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/PoolHealthMonitor.scala",
         "patchSetId": 20
@@ -306,6 +600,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_9763a2dc",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/PoolHealthMonitor.scala",
+        "patchSetId": 20
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-04-10T17:31:37Z",
+      "side": 1,
+      "message": "I thought an scala array was also an iterable. I\u0027ll look for the uses and change to array if the consumers don\u0027t need it.\nUpdate: looks like the consumer iterates over it, so I guess it\u0027s fine doing the conversion here. What do you think?",
+      "parentUuid": "1a106d94_c6957241",
+      "range": {
+        "startLine": 35,
+        "startChar": 29,
+        "endLine": 36,
+        "endChar": 62
+      },
+      "revId": "742b3ada95995fe6461a964d96dd2ff47ab23e3e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_6613de0d",
         "filename": "midolman/src/test/scala/org/midonet/midolman/topology/TopologyBuilder.scala",
         "patchSetId": 20
@@ -317,6 +635,30 @@
       "writtenOn": "2015-04-09T17:01:09Z",
       "side": 1,
       "message": "Minor comment: the intention of this class was to provide methods complementary to the ones in VirtualConfigurationBuilders but also to be strong typed (i.e. not reference fields by their protobuf names, such that renaming a proto field requires to search all string constants). If the latter is fine, maybe we could use the existing ProtobufUtil.protoFromTxt (see PortTranslatorTest for usage)?",
+      "range": {
+        "startLine": 562,
+        "startChar": 18,
+        "endLine": 562,
+        "endChar": 38
+      },
+      "revId": "742b3ada95995fe6461a964d96dd2ff47ab23e3e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_b7afbee2",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/TopologyBuilder.scala",
+        "patchSetId": 20
+      },
+      "lineNbr": 562,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-04-10T17:31:37Z",
+      "side": 1,
+      "message": "Oh, I wasn\u0027t aware of the intention. I\u0027ll check the ProtobufUtil and change the code accordingly.\nDone.",
+      "parentUuid": "1a106d94_6613de0d",
       "range": {
         "startLine": 562,
         "startChar": 18,
