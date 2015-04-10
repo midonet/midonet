@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_ac6db534",
+        "filename": "midolman/src/main/java/org/midonet/midolman/host/interfaces/InterfaceDescription.java",
+        "patchSetId": 6
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-10T08:27:20Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_2c838557",
+      "revId": "b77b0cf6fe2570ecb31ed96e8e781ad7ace520bc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_acaf75e2",
         "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
         "patchSetId": 6
@@ -30,6 +48,24 @@
       "writtenOn": "2015-04-10T02:26:52Z",
       "side": 1,
       "message": "I think you need to check backendConfig.useNewStack here too. Otherwise, (backendConfig.useNetStack \u003d\u003d true \u0026\u0026 oldInterfaces \u003d\u003d currentInterface) will reach here.",
+      "revId": "b77b0cf6fe2570ecb31ed96e8e781ad7ace520bc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_2c7a65f1",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-10T08:27:20Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_acaf75e2",
       "revId": "b77b0cf6fe2570ecb31ed96e8e781ad7ace520bc",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -59,6 +95,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_4c87e1d7",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 235,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-10T08:27:20Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_8caa79d0",
+      "range": {
+        "startLine": 235,
+        "startChar": 16,
+        "endLine": 235,
+        "endChar": 30
+      },
+      "revId": "b77b0cf6fe2570ecb31ed96e8e781ad7ace520bc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_6ca61d12",
         "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
         "patchSetId": 6
@@ -70,6 +130,30 @@
       "writtenOn": "2015-04-10T02:26:52Z",
       "side": 1,
       "message": "This try-catch should be moved inside the catch clause above. It\u0027s not clear to see where the exception comes from.",
+      "range": {
+        "startLine": 265,
+        "startChar": 8,
+        "endLine": 272,
+        "endChar": 9
+      },
+      "revId": "b77b0cf6fe2570ecb31ed96e8e781ad7ace520bc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_0c7de9e7",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 272,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-10T08:27:20Z",
+      "side": 1,
+      "message": "Don\u0027t we need another try ... catch for the store.create in the catch above? Am I missing something? The logic is:\n\ntry {\n  try {\n    update()\n  } catch { // if not found\n    create()\n  }\n} catch { // if create/update fails with any other exception catch here\n  ...\n}",
+      "parentUuid": "1a106d94_6ca61d12",
       "range": {
         "startLine": 265,
         "startChar": 8,
