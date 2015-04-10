@@ -694,7 +694,8 @@ class LegacyConf(val filename: String) extends MidoConf {
 
     def get: Config = {
         def makeKey(key: String) =
-            if (key.startsWith("zookeeper.")) key else s"agent.$key"
+            if (key.startsWith("zookeeper.") ||
+                    key.startsWith("cassandra.")) key else s"agent.$key"
 
         var config = ConfigFactory.empty()
         for (section <- iniconf.getSections;

@@ -22,7 +22,7 @@ import com.typesafe.config.{ConfigException, ConfigFactory, Config}
 import com.typesafe.scalalogging.Logger
 import org.slf4j.LoggerFactory
 
-import org.midonet.cluster.storage.MidonetBackendConfig
+import org.midonet.cluster.storage.{CassandraConfig,MidonetBackendConfig}
 import org.midonet.conf.{HostIdGenerator, MidoNodeConfigurator, MidoTestConfigurator}
 
 object MidolmanConfig {
@@ -80,7 +80,7 @@ class MidolmanConfig(_conf: Config, val schema: Config = ConfigFactory.empty()) 
     val bridge = new BridgeConfig(conf, schema)
     val router = new RouterConfig(conf, schema)
     val zookeeper = new MidonetBackendConfig(conf)
-    val cassandra = new CassandraConfig(conf, schema)
+    val cassandra = new CassandraConfig(conf)
     val datapath = new DatapathConfig(conf, schema)
     val arptable = new ArpTableConfig(conf, schema)
     val healthMonitor = new HealthMonitorConfig(conf, schema)
@@ -99,12 +99,6 @@ class BridgeConfig(val conf: Config, val schema: Config) extends TypeFailureFall
 
 class RouterConfig(val conf: Config, val schema: Config) extends TypeFailureFallback {
     def maxBgpPeerRoutes = conf.getInt("agent.router.max_bgp_peer_routes")
-}
-
-class CassandraConfig(val conf: Config, val schema: Config) extends TypeFailureFallback {
-    def servers = getString("agent.cassandra.servers")
-    def cluster = getString("agent.cassandra.cluster")
-    def replication_factor = getInt("agent.cassandra.replication_factor")
 }
 
 class DatapathConfig(val conf: Config, val schema: Config) extends TypeFailureFallback {

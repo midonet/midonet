@@ -34,3 +34,9 @@ class MidonetBackendConfig(val conf: Config) {
     def retryMs = conf.getDuration("zookeeper.base_retry", TimeUnit.MILLISECONDS)
     def useNewStack = conf.getBoolean("zookeeper.use_new_stack")
 }
+
+class CassandraConfig(val conf: Config) {
+    def servers = conf.getString("cassandra.servers")
+    def cluster = conf.getString("cassandra.cluster")
+    def replication_factor = conf.getInt("cassandra.replication_factor")
+}
