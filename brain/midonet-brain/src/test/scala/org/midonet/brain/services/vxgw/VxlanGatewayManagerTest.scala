@@ -165,7 +165,9 @@ class VxlanGatewayManagerTest extends FlatSpec with Matchers
             vtepConfigs should have size 1
         }
 
-        val vtep1 = vtepPool.fishIfExists(vteps.ip1, vteps.vtepPort).get
+        val vtep1 = eventually {
+            vtepPool.fishIfExists(vteps.ip1, vteps.vtepPort).get
+        }
         val vtep1MacRemotes = vtepConfigs(0).macRemoteUpdater
         vtep1.memberships should have size 1
         vtep1.memberships(0).name shouldBe mgr.lsName
@@ -213,7 +215,9 @@ class VxlanGatewayManagerTest extends FlatSpec with Matchers
             vtepConfigs should have size 2
         }
 
-        val vtep2 = vtepPool.fishIfExists(vteps.ip2, vteps.vtepPort).get
+        val vtep2 = eventually {
+            vtepPool.fishIfExists(vteps.ip2, vteps.vtepPort).get
+        }
         val vtep2MacRemotes = vtepConfigs(1).macRemoteUpdater
 
         Then("a new VTEP joins the Vxlan Gateway")
@@ -347,7 +351,9 @@ class VxlanGatewayManagerTest extends FlatSpec with Matchers
             vtepConfigs should have size 1
         }
 
-        val vtep1 = vtepPool.fishIfExists(vteps.ip1, vteps.vtepPort).get
+        val vtep1 = eventually {
+            vtepPool.fishIfExists(vteps.ip1, vteps.vtepPort).get
+        }
         val vtep1MacRemotes = vtepConfigs(0).macRemoteUpdater
         vtep1.memberships should have size 1
         vtep1.memberships(0).name shouldBe mgr.lsName
