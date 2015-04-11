@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_fc4916b8",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopology.scala",
+        "patchSetId": 22
+      },
+      "lineNbr": 191,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-04-11T21:00:56Z",
+      "side": 1,
+      "message": "do we actually need another thread? is it just to offload from the topology thread?",
+      "revId": "6120d9f46ea574dec0be7734df14b062bbc30616",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
