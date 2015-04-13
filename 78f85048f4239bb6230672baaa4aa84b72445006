@@ -16,6 +16,24 @@
       "revId": "78f85048f4239bb6230672baaa4aa84b72445006",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_6b86fa14",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Coordinator.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 300,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-04-13T17:01:26Z",
+      "side": 0,
+      "message": "we lost SendPacket, so the comment would only read: \"Complete the simulation by emitting the packet from the specified list of virtual ports.\" I think it\u0027s already obvious from the method. I\u0027d prefer to have to maintain comments :/",
+      "parentUuid": "1a106d94_8b27f663",
+      "revId": "78f85048f4239bb6230672baaa4aa84b72445006",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
