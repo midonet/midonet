@@ -157,7 +157,7 @@ project.ext {
         disruptor: "com.lmax:disruptor:3.3.0"
     ]
 
-    timestamp = new Date().format("YYYYMMddHHmm")
+    timestamp = new Date().format("yyyyMMddHHmm")
     gitrev = getGitSHA()
     debVersion = midonetVersion.replaceAll(/SNAPSHOT$/, "${timestamp}.${gitrev}").
                                 replaceAll(/-/, "~")
