@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_abbf52fb",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/PoolMapperTest.scala",
+        "patchSetId": 18
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-04-13T15:05:35Z",
+      "side": 1,
+      "message": "Is this used?",
+      "range": {
+        "startLine": 19,
+        "startChar": 0,
+        "endLine": 19,
+        "endChar": 16
+      },
+      "revId": "37cbbf05f1fbbf68a9654abbfce6295b30e54ef5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
