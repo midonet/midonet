@@ -22,8 +22,11 @@ import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext}
 
 import com.google.protobuf.{Message, MessageOrBuilder}
+
 import org.slf4j.LoggerFactory
 
+import org.midonet.brain.services.rest_api.MidonetMediaTypes
+import org.midonet.brain.services.rest_api.MidonetMediaTypes.DtoClass
 import org.midonet.brain.services.rest_api.models.{Host, UriResource}
 import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.models.Topology
@@ -42,16 +45,18 @@ class ResourceRenderer(backend: MidonetBackend) {
       * the specialized transformation, if it exists, or the default 1-1
       * transformation via ZoomConvert otherwise.
       */
-    def from[T >: Null <: UriResource, U <: MessageOrBuilder]
-        (proto: U, pojoClass: Class[T], baseUri: URI): T = {
+    def from(proto: MessageOrBuilder, dtoClass: DtoClass, parentId: String,
+             baseUri: URI): UriResource = {
         if (proto == null) {
             throw new NullPointerException
         }
-        val d: UriResource = render(proto).getOrElse {
-            ZoomConvert.fromProto(proto, pojoClass)
+        val obj: UriResource = render(proto).getOrElse {
+            ZoomConvert.fromProto(proto, dtoClass)
         }
-        d.setBaseUri(baseUri)
-        d.asInstanceOf[T]
+        val dtoAttr = MidonetMediaTypes.DtoToDtoAttributes(dtoClass)
+        obj.setBaseUri(baseUri)
+        obj.setParentId(parentId)
+        obj
     }
 
     /** Deconstruct the Protobuf(s) from the corresponding DTO, using

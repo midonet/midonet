@@ -16,15 +16,53 @@
 
 package org.midonet.brain.services.rest_api
 
-import com.google.protobuf.Message
+import java.lang.annotation.Annotation
+import java.lang.reflect.Field
+import java.util.UUID
 
+import scala.collection.mutable
+
+import com.google.protobuf.Descriptors.Descriptor
+import com.google.protobuf.GeneratedMessage.Builder
+import com.google.protobuf.MessageOrBuilder
+
+import org.midonet.brain.services.rest_api.annotation.{ParentId, ResourceId, Subresource, Resource}
 import org.midonet.brain.services.rest_api.models._
-import org.midonet.cluster.data.ZoomObject
-import org.midonet.cluster.models.Topology
+import org.midonet.cluster.data.{ZoomField, ZoomClass}
+import org.midonet.cluster.models.Commons
+import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.util.collection.Bimap
 
-/** All the MediaTypes offered by MidoNet */
+/** All the MediaTypes offered by MidoNet, plus some utility lookups into maps
+  * between domains. */
 object MidonetMediaTypes {
+
+    type DtoClass = Class[_ >: Null <: UriResource]
+    type DtoPath = Seq[String]
+    private type ZoomBuilder = Builder[_ <: Builder[_ <: AnyRef]]
+
+    private final val BuilderMethod = "newBuilder"
+    private final val StringClass = classOf[String]
+    private final val UuidClass = classOf[UUID]
+
+    final val dtos = Set[DtoClass](
+        classOf[Bridge],
+        classOf[BridgePort],
+        classOf[Host],
+        classOf[Interface],
+        classOf[Port],
+        classOf[TunnelZone],
+        classOf[TunnelZoneHost]
+    )
+
+    case class DtoAttribute(clazz: DtoClass, resource: Resource, zoom: ZoomClass,
+                            id: FieldAttribute, parent: FieldAttribute,
+                            subresources: Map[String, FieldAttribute])
+    case class FieldAttribute(field: Field, subsresource: Subresource,
+                              zoom: ZoomField)
+
+    final val DtoToDtoAttributes = getDtoToDtoAttributes
+    final val ResourceToDtoAttributes = getResourceToDtoAttributes
 
     final val APPLICATION_JSON_V4 = "application/vnd.org.midonet.Application-v4+json"
     final val APPLICATION_JSON_V5 = "application/vnd.org.midonet.Application-v5+json"
@@ -140,6 +178,7 @@ object MidonetMediaTypes {
     final val APPLICATION_TRACE_REQUEST_JSON = "application/vnd.org.midonet.TraceRequest-v1+json"
     final val APPLICATION_TRACE_REQUEST_COLLECTION_JSON = "application/vnd.org.midonet.collection.TraceRequest-v1+json"
 
+    /*
     val resourceOf = Map[String, Class[_ <: UriResource]] (
         APPLICATION_BRIDGE_COLLECTION_JSON -> classOf[Bridge],
         APPLICATION_BRIDGE_COLLECTION_JSON_V2 -> classOf[Bridge],
@@ -160,9 +199,14 @@ object MidonetMediaTypes {
         APPLICATION_ROUTER_JSON -> classOf[Router],
         APPLICATION_ROUTER_JSON_V2 -> classOf[Router],
         APPLICATION_TUNNEL_ZONE_COLLECTION_JSON -> classOf[TunnelZone],
-        APPLICATION_TUNNEL_ZONE_JSON -> classOf[TunnelZone]
-    )
+        APPLICATION_TUNNEL_ZONE_JSON -> classOf[TunnelZone],
+        APPLICATION_TUNNEL_ZONE_HOST_COLLECTION_JSON -> classOf[TunnelZoneHost],
+        APPLICATION_TUNNEL_ZONE_HOST_JSON -> classOf[TunnelZoneHost],
+        APPLICATION_GRE_TUNNEL_ZONE_HOST_COLLECTION_JSON -> classOf[TunnelZoneHost],
+        APPLICATION_GRE_TUNNEL_ZONE_HOST_JSON -> classOf[TunnelZoneHost]
+    )*/
 
+    /*
     // TODO: This should be redundant, by looking at the key's annotations
     val zoomFor = Bimap(Map[Class[_ <: ZoomObject], Class[_ <: Message]] (
         classOf[BridgePort] -> classOf[Topology.Port],
@@ -172,7 +216,7 @@ object MidonetMediaTypes {
         classOf[RouterPort] -> classOf[Topology.Port],
         classOf[Router] -> classOf[Topology.Router],
         classOf[TunnelZone] -> classOf[Topology.TunnelZone]
-    ))
+    ))*/
 
     import ResourceUris._
     val resourceNames = Bimap[String, String](Map(
@@ -229,10 +273,122 @@ object MidonetMediaTypes {
         APPLICATION_TRACE_REQUEST_JSON -> TRACE_REQUESTS
     ))
 
-    def resourceFromName(resName: String): String =
-        resourceNames.inverse.get(resName).orNull
+    def getMessageDescriptor(dtoAttr: DtoAttribute): Descriptor = {
+        dtoAttr.zoom.clazz
+            .getMethod(BuilderMethod).invoke(null).asInstanceOf[ZoomBuilder]
+            .getDescriptorForType
+    }
 
-    def protoFromResName(resName: String): Class[_ <: Message] = {
-        zoomFor.get(resourceOf.get(resourceFromName(resName)).orNull).orNull
+    def getMessageId(obj: MessageOrBuilder, dtoAttr: DtoAttribute): String = {
+        val idDescriptor = getMessageDescriptor(dtoAttr)
+            .findFieldByName(dtoAttr.id.zoom.name)
+        obj.getField(idDescriptor) match {
+            case id: Commons.UUID => id.asJava.toString
+            case id: String => id
+        }
+    }
+
+    private def getDtoToDtoAttributes: Map[DtoClass, DtoAttribute] = {
+        val map = new mutable.HashMap[DtoClass, DtoAttribute]
+        for (clazz <- dtos) {
+            val attr = getDtoAttribute(clazz)
+            if (attr ne null) {
+                map += clazz -> attr
+            }
+        }
+        map.toMap
+    }
+
+    private def getResourceToDtoAttributes: Map[DtoPath, DtoAttribute] = {
+        val map = new mutable.HashMap[DtoPath, DtoAttribute]
+        for (clazz <- dtos) {
+            val attr = getDtoAttribute(clazz)
+            if (attr ne null) {
+                map += getDtoPath(clazz) -> attr
+            }
+        }
+        map.toMap
+    }
+
+    private def getDtoAttribute(clazz: DtoClass): DtoAttribute = {
+        val resource = getAnnotation(clazz, classOf[Resource])
+        if (resource ne null) {
+            DtoAttribute(
+                clazz, resource,
+                getAnnotation(clazz, classOf[ZoomClass]),
+                getDtoId(clazz),
+                getDtoParent(clazz),
+                getDtoSubresources(clazz))
+        } else null
+    }
+
+    private def getDtoPath(clazz: DtoClass): DtoPath = {
+        var c: Class[_] = clazz
+        var list = List[String]()
+        while (classOf[UriResource] != c) {
+            val resource = c.getAnnotation(classOf[Resource])
+            list = resource.name() +: list
+            c = resource.parent()
+        }
+        list
+    }
+
+    private def getDtoId(clazz: DtoClass): FieldAttribute = {
+        var c: Class[_] = clazz
+        while (classOf[UriResource] isAssignableFrom c) {
+            for (field <- c.getDeclaredFields) {
+                if (field.getAnnotation(classOf[ResourceId]) ne null) {
+                    return FieldAttribute(
+                        field, field.getAnnotation(classOf[Subresource]),
+                        field.getAnnotation(classOf[ZoomField]))
+                }
+            }
+            c = c.getSuperclass
+        }
+        null
+    }
+
+    private def getDtoParent(clazz: DtoClass): FieldAttribute = {
+        var c: Class[_] = clazz
+        while (classOf[UriResource] isAssignableFrom c) {
+            for (field <- c.getDeclaredFields) {
+                if (field.getAnnotation(classOf[ParentId]) ne null) {
+                    return FieldAttribute(
+                        field, field.getAnnotation(classOf[Subresource]),
+                        field.getAnnotation(classOf[ZoomField]))
+                }
+            }
+            c = c.getSuperclass
+        }
+        null
+    }
+
+    private def getDtoSubresources(clazz: DtoClass)
+    : Map[String, FieldAttribute] = {
+        var c: Class[_] = clazz
+        val subresources = new mutable.HashMap[String, FieldAttribute]
+        while (classOf[UriResource] isAssignableFrom c) {
+            for (field <- c.getDeclaredFields) {
+                val subresource = field.getAnnotation(classOf[Subresource])
+                if (subresource ne null) {
+                    subresources += subresource.name -> FieldAttribute(
+                        field, subresource,
+                        field.getAnnotation(classOf[ZoomField]))
+                }
+            }
+            c = c.getSuperclass
+        }
+        subresources.toMap
+    }
+
+    private def getAnnotation[T >: Null <: Annotation]
+                             (clazz: DtoClass, annotationClass: Class[T]): T = {
+        var c: Class[_] = clazz
+        while (classOf[UriResource] isAssignableFrom c) {
+            val annotation = c.getAnnotation(annotationClass)
+            if (annotation != null) return annotation
+            else c = c.getSuperclass
+        }
+        null
     }
 }

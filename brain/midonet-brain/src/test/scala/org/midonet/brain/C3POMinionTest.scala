@@ -56,7 +56,7 @@ import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.services.MidonetBackendService
 import org.midonet.cluster.storage.MidonetBackendConfig
 import org.midonet.cluster.util.UUIDUtil._
-import org.midonet.cluster.util.{UUIDUtil, IPAddressUtil, IPSubnetUtil}
+import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil}
 import org.midonet.conf.MidoTestConfigurator
 import org.midonet.midolman.state.{MacPortMap, PathBuilder}
 import org.midonet.packets.{MAC, IPSubnet, IPv4Subnet, UDP}
@@ -495,7 +495,7 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
     protected def getChains(inChainId: Commons.UUID,
                             outChainId: Commons.UUID): ChainPair = {
         val fs = storage.getAll(classOf[Chain], List(inChainId, outChainId))
-        val chains = fs.map(_.await())
+        val chains = fs.await()
         ChainPair(chains(0), chains(1))
     }
 
@@ -718,7 +718,7 @@ class C3POMinionTest extends C3POMinionTestBase {
         outChain1.getRuleIdsCount should be(2)
         val outChain1Rules = storage.getAll(classOf[Rule],
                                             outChain1.getRuleIdsList.asScala)
-                                    .map(_.await())
+                                    .await()
         outChain1Rules(0).getId should be(toProto(rule1Id))
         outChain1Rules(0).getTpDst.getStart should be(15000)
         outChain1Rules(0).getTpDst.getEnd should be(15500)
@@ -756,7 +756,7 @@ class C3POMinionTest extends C3POMinionTestBase {
         }
 
         val ipg1aRules = storage.getAll(classOf[Rule],
-                                        List(rule1Id, rule3Id)).map(_.await())
+                                        List(rule1Id, rule3Id)).await()
 
         val inChain1aRule1 = ipg1aRules(0)
         inChain1aRule1.getId should be(toProto(rule1Id))
