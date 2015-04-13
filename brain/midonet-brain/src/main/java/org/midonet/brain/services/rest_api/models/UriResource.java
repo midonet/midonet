@@ -16,6 +16,7 @@
 
 package org.midonet.brain.services.rest_api.models;
 
+import java.lang.reflect.Field;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,6 +26,8 @@ import javax.ws.rs.core.UriBuilder;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlTransient;
 
+import org.midonet.brain.services.rest_api.annotation.Resource;
+import org.midonet.brain.services.rest_api.annotation.ResourceId;
 import org.midonet.cluster.data.ZoomObject;
 
 public abstract class UriResource extends ZoomObject {
@@ -36,42 +39,74 @@ public abstract class UriResource extends ZoomObject {
         this.baseUri = baseUri;
     }
 
-    protected URI uriFor(String s) {
-        return UriBuilder.fromUri(baseUri).path(s).build();
-    }
-
-    @XmlTransient
-    protected List<URI> toUris(String prefix, List<UUID> ids) {
-        if (ids == null) {
-            return new ArrayList<>(0);
-        }
-        List<URI> uris = new ArrayList<>(ids.size());
-        for (UUID id : ids) {
-            uris.add(buildUri(prefix, id));
-        }
-        return uris;
-    }
-
     /**
      * Retrieve the URI of this resource.
      */
     @XmlElement(name = "uri")
-    abstract public String getUri();
-
-    /**
-     * Builds the URI for the given sub resource node.
-     */
-    @XmlTransient
-    protected URI buildUri(String node) {
-        // TODO: make this properly
-        return UriBuilder.fromUri(getUri()).path(node).build();
+    final public URI getUri() {
+        return UriBuilder.fromUri(baseUri).segment(getPath(), getId()).build();
     }
 
     @XmlTransient
-    private URI buildUri(String node, UUID id) {
-        // TODO: make this properly
-        return UriBuilder.fromUri(getUri()).segment(node)
-            .segment(id.toString()).build();
+    final protected URI getUriFor(String path) {
+        return UriBuilder.fromUri(getUri()).segment(path).build();
+    }
+
+    @XmlTransient
+    final protected URI getUriFor(String path, UUID id) {
+        return UriBuilder.fromUri(baseUri).segment(path, id.toString()).build();
+    }
+
+    @XmlTransient
+    final protected List<URI> getUrisFor(String path, List<UUID> ids) {
+        List<URI> uris = new ArrayList<>(ids.size());
+        for (UUID id : ids) {
+            uris.add(getUriFor(path, id));
+        }
+        return uris;
+    }
+
+    @XmlTransient
+    private String getId() {
+        try {
+            return getIdField(getClass()).get(this).toString();
+        } catch (IllegalAccessException e) {
+            return null;
+        }
+    }
+
+    @XmlTransient
+    public void setId(UUID id) throws IllegalAccessException {
+        getIdField(getClass()).set(this, id);
+    }
+
+    @XmlTransient
+    private String getPath() {
+        return getPath(getClass());
+    }
+
+    private static Field getIdField(Class<?> clazz) {
+        for (Field field : clazz.getDeclaredFields()) {
+            if (field.getAnnotation(ResourceId.class) != null) {
+                return field;
+            }
+        }
+        if (UriResource.class.isAssignableFrom(clazz.getSuperclass())) {
+            return getIdField(clazz.getSuperclass());
+        } else {
+            throw new RuntimeException();
+        }
+    }
+
+    private static String getPath(Class<?> clazz) {
+        Resource resource = clazz.getAnnotation(Resource.class);
+        if (null != resource) {
+            return resource.path();
+        } else if (UriResource.class.isAssignableFrom(clazz.getSuperclass())) {
+            return getPath(clazz.getSuperclass());
+        } else  {
+            throw new RuntimeException();
+        }
     }
 
 }

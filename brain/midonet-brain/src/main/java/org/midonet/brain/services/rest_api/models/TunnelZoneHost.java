@@ -17,38 +17,32 @@ package org.midonet.brain.services.rest_api.models;
 
 import java.util.UUID;
 
-import javax.validation.GroupSequence;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
-import javax.validation.groups.Default;
 import javax.xml.bind.annotation.XmlRootElement;
 
+import org.midonet.brain.services.rest_api.annotation.Resource;
+import org.midonet.brain.services.rest_api.annotation.ResourceId;
 import org.midonet.packets.IPv4;
 
-// TODO: @IsUniqueTunnelZoneMember(groups = TunnelZoneHostUnique.class)
-// TODO: not used in ZOOM
 @XmlRootElement
-public class TunnelZoneHost {
 
-    // TODO: @IsValidTunnelZoneId
+//@Subresource(clazz = Topology.TunnelZone.class, field = "hosts")
+@Resource(path = ResourceUris.HOSTS)
+public class TunnelZoneHost extends UriResource {
+
     private UUID tunnelZoneId;
-
-    // TODO: @IsValidHostId
+    @ResourceId
     private UUID hostId;
 
     @NotNull
     @Pattern(regexp = IPv4.regex, message = "is an invalid IP format")
     private String ipAddress;
 
-    /**
-     * Interface used for validating a tunnel zone on creates.
-     */
-    public interface TunnelZoneHostUnique { }
+    //@Override
+    //public String getUri() {
+    //    return uriFor(ResourceUris.TUNNEL_ZONES + "/" + tunnelZoneId + "/" +
+    //                  ResourceUris.HOSTS + "/" + hostId).toString();
+    //}
 
-    /**
-     * Interface that defines the ordering of validation groups for tunnel zone
-     * create.
-     */
-    @GroupSequence({ Default.class, TunnelZoneHostUnique.class })
-    public interface TunnelZoneHostCreateGroupSequence { }
 }

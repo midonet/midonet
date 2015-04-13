@@ -53,7 +53,7 @@ public class TunnelZone extends UriResource {
     public String name;
 
     // TODO: fix this
-    // @NotNull
+    @NotNull
     // TODO: @AllowedValue(values = { TunnelZoneType.GRE, TunnelZoneType.VxLAN, TunnelZoneType.VTEP })
     public String type;
 
@@ -62,22 +62,21 @@ public class TunnelZone extends UriResource {
 
     @Override
     public void beforeToProto() {
-        _type = TunnelZoneType.GRE;
+        _type = TunnelZoneType.valueOf(type.toUpperCase());
     }
 
     @Override
     public void afterFromProto(MessageOrBuilder tzProto) {
-        type = this._type.toString();
+        type = this._type.toString().toLowerCase();
     }
 
     public URI getHosts() {
-        return UriBuilder.fromPath(getUri())
-                         .segment(ResourceUris.HOSTS).build();
+        return getUriFor(ResourceUris.HOSTS);
     }
 
-    @Override
-    public String getUri() {
-        return uriFor(ResourceUris.TUNNEL_ZONES + "/" + id).toString();
-    }
+    //@Override
+    //public String getUri() {
+    //    return uriFor(ResourceUris.TUNNEL_ZONES + "/" + id).toString();
+    //}
 
 }
