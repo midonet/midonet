@@ -211,6 +211,30 @@
       "revId": "b77b0cf6fe2570ecb31ed96e8e781ad7ace520bc",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_700d4737",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 272,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-04-13T09:54:37Z",
+      "side": 1,
+      "message": "my two cents: I don\u0027t like much the idea of repeating the code catching  ObjectExists | ReferenceConflict | OwnershipConflict (but I don\u0027t have a strong opinion on it)",
+      "parentUuid": "1a106d94_351621a8",
+      "range": {
+        "startLine": 265,
+        "startChar": 8,
+        "endLine": 272,
+        "endChar": 9
+      },
+      "revId": "b77b0cf6fe2570ecb31ed96e8e781ad7ace520bc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
