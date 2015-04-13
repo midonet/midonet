@@ -13,65 +13,40 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.midonet.brain.services.rest_api.models;
 
-import java.net.URI;
-import java.util.List;
 import java.util.UUID;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlTransient;
-
-import scala.collection.mutable.HashSet;
-import scala.collection.immutable.Set;
 
 import org.midonet.brain.services.rest_api.annotation.Resource;
 import org.midonet.brain.services.rest_api.annotation.ResourceId;
-import org.midonet.brain.services.rest_api.annotation.Subresource;
 import org.midonet.cluster.data.ZoomClass;
-import org.midonet.cluster.data.ZoomEnum;
-import org.midonet.cluster.data.ZoomEnumValue;
 import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.models.Topology;
 import org.midonet.cluster.util.UUIDUtil;
 
 @XmlRootElement
-@Resource(name = ResourceUris.TUNNEL_ZONES)
-@ZoomClass(clazz = Topology.TunnelZone.class)
-public class TunnelZone extends UriResource {
+@Resource(name = ResourceUris.CHAINS)
+@ZoomClass(clazz = Topology.Chain.class)
+public class Chain extends UriResource {
 
-    @ZoomEnum(clazz = Topology.TunnelZone.Type.class)
-    public enum TunnelZoneType {
-        @ZoomEnumValue(value = "GRE") gre,
-        @ZoomEnumValue(value = "VXLAN") vxlan,
-        @ZoomEnumValue(value = "VTEP") vtep
-    }
+    public static final int MIN_CHAIN_NAME_LEN = 1;
+    public static final int MAX_CHAIN_NAME_LEN = 255;
 
-    @NotNull
     @ResourceId
     @ZoomField(name = "id", converter = UUIDUtil.Converter.class)
     public UUID id;
 
     @NotNull
-    @Size(min = 1, max = 255)
-    // TODO: @UniqueTunnelZoneName
+    public String tenantId;
+
+    @NotNull
+    @Size(min = MIN_CHAIN_NAME_LEN, max = MAX_CHAIN_NAME_LEN)
     @ZoomField(name = "name")
     public String name;
 
-    // TODO: fix this
-    @NotNull
-    // TODO: @AllowedValue(values = { TunnelZoneType.GRE, TunnelZoneType.VxLAN, TunnelZoneType.VTEP })
-    @ZoomField(name = "type")
-    public TunnelZoneType type;
-
-    @XmlTransient
-    @Subresource(name = ResourceUris.HOSTS)
-    @ZoomField(name = "hosts")
-    public List<TunnelZoneHost> hosts;
-
-    public URI getHosts() {
-        return getUriFor(ResourceUris.HOSTS);
-    }
 }
