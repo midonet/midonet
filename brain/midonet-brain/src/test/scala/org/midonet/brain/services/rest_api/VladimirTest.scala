@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-package org.midonet.brain.services.vladimir
+package org.midonet.brain.services.rest_api
 
 import com.typesafe.config.ConfigFactory
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{BeforeAndAfter, BeforeAndAfterAll, _}
 
+import org.midonet.brain.services.conf.ZookeeperTestSuite
 import org.midonet.brain.services.rest_api.Vladimir
 import org.midonet.brain.{BrainConfig, ClusterNode}
-import org.midonet.brain.services.conf.ZookeeperTestSuite
-import org.midonet.cluster.services.{MidonetBackendService, MidonetBackend}
+import org.midonet.cluster.services.{MidonetBackend, MidonetBackendService}
 import org.midonet.conf.{HostIdGenerator, MidoNodeConfigurator}
 
 @RunWith(classOf[JUnitRunner])

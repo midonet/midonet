@@ -26,6 +26,7 @@ import org.midonet.cluster.models.Topology;
 import org.midonet.cluster.util.UUIDUtil;
 
 @XmlRootElement(name = "router")
+
 @ZoomClass(clazz = Topology.Router.class)
 public class Router extends UriResource {
 
@@ -53,13 +54,4 @@ public class Router extends UriResource {
         adminStateUp = true;
     }
 
-    @Override
-    public void setBaseUri(URI baseUri) {
-        super.setBaseUri(baseUri);
-    }
-
-    @Override
-    public String getUri() {
-        return ResourceUris.ROUTERS;
-    }
 }

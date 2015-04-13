@@ -20,22 +20,42 @@ import java.util.UUID;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
-// TODO: Has no correspondence in Zoom, can be removed?
+import org.midonet.cluster.data.ZoomClass;
+import org.midonet.cluster.data.ZoomEnum;
+import org.midonet.cluster.data.ZoomEnumValue;
+import org.midonet.cluster.data.ZoomField;
+import org.midonet.cluster.models.Topology;
+import org.midonet.cluster.util.IPAddressUtil;
+
+@ZoomClass(clazz = Topology.Host.Interface.class)
 @XmlRootElement
 public class Interface {
 
     public UUID hostId;
+    @ZoomField(name = "name")
     public String name;
+    @ZoomField(name = "mac")
     public String mac;
+    @ZoomField(name = "mtu")
     public int mtu;
     public int status;
+    @ZoomField(name = "type")
     public Type type;
     public String endpoint;
     public String portType;
+    @ZoomField(name = "addresses", converter = IPAddressUtil.Converter.class)
     public InetAddress[] addresses;
 
+    @ZoomEnum(clazz = Topology.Host.Interface.Type.class)
     public enum Type {
-        Physical, Virtual, Tunnel, Unknown
+        @ZoomEnumValue(value = "PHYSICAL")
+        Physical,
+        @ZoomEnumValue(value = "VIRTUAL")
+        Virtual,
+        @ZoomEnumValue(value = "TUNNEL")
+        Tunnel,
+        @ZoomEnumValue(value = "UNKNOWN")
+        Unknown
     }
 
 }

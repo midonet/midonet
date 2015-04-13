@@ -22,13 +22,21 @@ import java.util.UUID;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 
+import org.midonet.brain.services.rest_api.annotation.Resource;
+import org.midonet.brain.services.rest_api.annotation.ResourceId;
+import org.midonet.brain.services.rest_api.annotation.Subresource;
+import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;
+import org.midonet.cluster.models.Topology;
 import org.midonet.cluster.util.UUIDUtil.Converter;
 import org.midonet.util.version.Since;
 
 @XmlRootElement(name = "bridge")
+@Resource(path = ResourceUris.BRIDGES)
+@ZoomClass(clazz = Topology.Network.class)
 public class Bridge extends UriResource {
 
+    @ResourceId
     @ZoomField(name = "id", converter = Converter.class)
     public UUID id;
 
@@ -54,6 +62,7 @@ public class Bridge extends UriResource {
     public List<UUID> vxLanPortIds = null;
 
     @ZoomField(name = "port_ids", converter = Converter.class)
+    @Subresource(path = ResourceUris.PORTS)
     @XmlTransient
     public List<UUID> portIds = null;
 
@@ -65,13 +74,8 @@ public class Bridge extends UriResource {
         adminStateUp = true;
     }
 
-    @Override
-    public String getUri() {
-        return uriFor(ResourceUris.BRIDGES + "/" + id).toString();
-    }
-
     public URI getPorts() {
-        return buildUri(ResourceUris.PORTS);
+        return getUriFor(ResourceUris.PORTS);
     }
 
     public String getVlanMacTableTemplate() {
@@ -87,22 +91,18 @@ public class Bridge extends UriResource {
     }
 
     public URI getPeerPorts() {
-        return buildUri("peer_ports");
+        return getUriFor("peer_ports");
     }
     public URI getMacTable() {
-        return buildUri("mac_table");
+        return getUriFor("mac_table");
     }
     public URI getArpTable() {
-        return buildUri("/arp_table");
+        return getUriFor("arp_table");
     }
-    public URI getDhcpSubnets() {
-        return buildUri("/dhcp");
-    }
-    public URI getDhcpSubnet6s() {
-        return buildUri("/dhcpV6");
-    }
+    public URI getDhcpSubnets() { return getUriFor("dhcp"); }
+    public URI getDhcpSubnet6s() { return getUriFor("dhcpV6"); }
     public List<URI> getVxLanPorts() {
-        return toUris(ResourceUris.PORTS, vxLanPortIds);
+        return getUrisFor(ResourceUris.PORTS, vxLanPortIds);
     }
 
 }

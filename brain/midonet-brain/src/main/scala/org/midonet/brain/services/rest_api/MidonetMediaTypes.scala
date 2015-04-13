@@ -16,15 +16,29 @@
 
 package org.midonet.brain.services.rest_api
 
-import com.google.protobuf.Message
+import scala.collection.mutable
 
+import com.google.protobuf.MessageOrBuilder
+
+import org.midonet.brain.services.rest_api.annotation.Resource
 import org.midonet.brain.services.rest_api.models._
-import org.midonet.cluster.data.ZoomObject
-import org.midonet.cluster.models.Topology
+import org.midonet.cluster.data.ZoomClass
 import org.midonet.util.collection.Bimap
 
-/** All the MediaTypes offered by MidoNet */
+/** All the MediaTypes offered by MidoNet, plus some utility lookups into maps
+  * between domains. */
 object MidonetMediaTypes {
+
+    final val dtos = Set[Class[_ >: Null <: UriResource]](
+        classOf[Bridge],
+        classOf[Host],
+        classOf[Port]
+    )
+
+    final val dtoToPath = _dtoToResource
+    final val dtoToZoom = _dtoToZoom
+    final val pathToDto = _resourceToDto
+    final val pathToZoom = _resourceToZoom
 
     final val APPLICATION_JSON_V4 = "application/vnd.org.midonet.Application-v4+json"
     final val APPLICATION_JSON_V5 = "application/vnd.org.midonet.Application-v5+json"
@@ -140,6 +154,7 @@ object MidonetMediaTypes {
     final val APPLICATION_TRACE_REQUEST_JSON = "application/vnd.org.midonet.TraceRequest-v1+json"
     final val APPLICATION_TRACE_REQUEST_COLLECTION_JSON = "application/vnd.org.midonet.collection.TraceRequest-v1+json"
 
+    /*
     val resourceOf = Map[String, Class[_ <: UriResource]] (
         APPLICATION_BRIDGE_COLLECTION_JSON -> classOf[Bridge],
         APPLICATION_BRIDGE_COLLECTION_JSON_V2 -> classOf[Bridge],
@@ -160,9 +175,14 @@ object MidonetMediaTypes {
         APPLICATION_ROUTER_JSON -> classOf[Router],
         APPLICATION_ROUTER_JSON_V2 -> classOf[Router],
         APPLICATION_TUNNEL_ZONE_COLLECTION_JSON -> classOf[TunnelZone],
-        APPLICATION_TUNNEL_ZONE_JSON -> classOf[TunnelZone]
-    )
+        APPLICATION_TUNNEL_ZONE_JSON -> classOf[TunnelZone],
+        APPLICATION_TUNNEL_ZONE_HOST_COLLECTION_JSON -> classOf[TunnelZoneHost],
+        APPLICATION_TUNNEL_ZONE_HOST_JSON -> classOf[TunnelZoneHost],
+        APPLICATION_GRE_TUNNEL_ZONE_HOST_COLLECTION_JSON -> classOf[TunnelZoneHost],
+        APPLICATION_GRE_TUNNEL_ZONE_HOST_JSON -> classOf[TunnelZoneHost]
+    )*/
 
+    /*
     // TODO: This should be redundant, by looking at the key's annotations
     val zoomFor = Bimap(Map[Class[_ <: ZoomObject], Class[_ <: Message]] (
         classOf[BridgePort] -> classOf[Topology.Port],
@@ -172,7 +192,7 @@ object MidonetMediaTypes {
         classOf[RouterPort] -> classOf[Topology.Port],
         classOf[Router] -> classOf[Topology.Router],
         classOf[TunnelZone] -> classOf[Topology.TunnelZone]
-    ))
+    ))*/
 
     import ResourceUris._
     val resourceNames = Bimap[String, String](Map(
@@ -229,10 +249,38 @@ object MidonetMediaTypes {
         APPLICATION_TRACE_REQUEST_JSON -> TRACE_REQUESTS
     ))
 
-    def resourceFromName(resName: String): String =
-        resourceNames.inverse.get(resName).orNull
+    private def _dtoToResource: Map[Class[_ <: UriResource], String] = {
+        val map = new mutable.HashMap[Class[_ <: UriResource], String]
+        for (clazz <- dtos) {
+            map += clazz -> clazz.getAnnotation(classOf[Resource]).path
+        }
+        map.toMap
+    }
 
-    def protoFromResName(resName: String): Class[_ <: Message] = {
-        zoomFor.get(resourceOf.get(resourceFromName(resName)).orNull).orNull
+    private def _dtoToZoom
+    : Map[Class[_ <: UriResource], Class[_ <: MessageOrBuilder]] = {
+        val map = new mutable.HashMap[Class[_ <: UriResource],
+            Class[_ <: MessageOrBuilder]]
+        for (clazz <- dtos) {
+            map += clazz -> clazz.getAnnotation(classOf[ZoomClass]).clazz
+        }
+        map.toMap
+    }
+
+    private def _resourceToDto: Map[String, Class[_ >: Null <: UriResource]] = {
+        val map = new mutable.HashMap[String, Class[_ >: Null <: UriResource]]
+        for (clazz <- dtos) {
+            map += clazz.getAnnotation(classOf[Resource]).path -> clazz
+        }
+        map.toMap
+    }
+
+    private def _resourceToZoom: Map[String, Class[_ <: MessageOrBuilder]] = {
+        val map = new mutable.HashMap[String, Class[_ <: MessageOrBuilder]]
+        for (clazz <- dtos) {
+            map += clazz.getAnnotation(classOf[Resource]).path ->
+                   clazz.getAnnotation(classOf[ZoomClass]).clazz
+        }
+        map.toMap
     }
 }

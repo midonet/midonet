@@ -1,0 +1,32 @@
+AcceptRule <: Rule
+AdRoute                                 /ad_routes/{id}
+                                        /bgps/{id}/ad_routes/{id}
+Application                             /
+Bgp                                     /bgps/{id}
+Bridge                                  /bridges/{id}
+BridgePort <: Port
+Chain                                   /chains/{id}
+Condition
+DropRule <: Rule
+ForwardDnatRule <: ForwardNatRule
+ForwardNatRule <: NatRule
+ForwardSnatRule <: ForwardNatRule
+JumpRule <: Rule
+NatRule <: Rule
+Port                                    /ports/{id}
+RejectRule <: Rule
+ReturnRule <: Rule
+ReverseDnatRule <: NatRule
+ReverseSnatRule <: NatRule
+Rule <: Condition                       /rules/{id}
+                                        /chains/{id}/rules{id}
+TraceRule <: Rule
+TunnelZone                              /tunnel-zones/{id}
+TunnelZoneHost                          /tunnel-zones/{id}/{hosts}/{id}
+
+/tenants
+/routers?tenant_id={id}
+/bridges?tenant_id={id}
+/
+
+AdRoute
