@@ -16,7 +16,8 @@
 
 package org.midonet.brain.services.rest_api.models;
 
-import org.codehaus.jackson.annotate.JsonAutoDetect;
+import com.fasterxml.jackson.databind.MapperFeature;
+
 import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.ObjectMapper;
 
@@ -78,6 +79,7 @@ public final class ResourceUris {
     public static final ObjectMapper objectMapper = new ObjectMapper();
     static {
         objectMapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        objectMapper.configure(DeserializationConfig.Feature.USE_GETTERS_AS_SETTERS, false);
         /*
         objectMapper.setVisibilityChecker(objectMapper.getVisibilityChecker()
                                                        .withFieldVisibility(JsonAutoDetect.Visibility.ANY));

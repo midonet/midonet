@@ -75,9 +75,9 @@ abstract class MidonetBackend extends AbstractService {
 
         ownershipStore.registerClass(classOf[Host], OwnershipType.Exclusive)
 
-        store.declareBinding(classOf[Network], "port_ids", ERROR,
+        store.declareBinding(classOf[Network], "port_ids", CASCADE,
                              classOf[Port], "network_id", CLEAR)
-        store.declareBinding(classOf[Network], "dhcp_ids", ERROR,
+        store.declareBinding(classOf[Network], "dhcp_ids", CASCADE,
                              classOf[Dhcp], "network_id", CLEAR)
 
         store.declareBinding(classOf[Port], "peer_id", CLEAR,
@@ -87,13 +87,16 @@ abstract class MidonetBackend extends AbstractService {
         store.declareBinding(classOf[Port], "host_id", CLEAR,
                              classOf[Host], "port_ids", CLEAR)
 
-        store.declareBinding(classOf[Router], "port_ids", ERROR,
+        store.declareBinding(classOf[Router], "port_ids", CASCADE,
                              classOf[Port], "router_id", CLEAR)
         store.declareBinding(classOf[Router], "route_ids", CASCADE,
                              classOf[Route], "router_id", CLEAR)
 
         store.declareBinding(classOf[Host], "tunnel_zone_ids", CLEAR,
                              classOf[TunnelZone], "host_ids", CLEAR)
+
+        store.declareBinding(classOf[Chain], "rule_ids", CASCADE,
+                             classOf[Rule], "chain_id", CLEAR)
 
         store.declareBinding(classOf[Pool], "pool_member_ids", ERROR,
                              classOf[PoolMember], "pool_id", CLEAR)

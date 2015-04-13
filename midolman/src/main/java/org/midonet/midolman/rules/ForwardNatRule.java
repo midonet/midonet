@@ -21,7 +21,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.protobuf.MessageOrBuilder;
+import com.google.protobuf.Message;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -75,7 +75,7 @@ public class ForwardNatRule extends NatRule {
         return targets;
     }
 
-    public void afterFromProto(MessageOrBuilder message) {
+    public void afterFromProto(Message message) {
         super.afterFromProto(message);
 
         setNatTargets(targetsSet);

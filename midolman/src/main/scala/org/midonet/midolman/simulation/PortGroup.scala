@@ -18,7 +18,7 @@ package org.midonet.midolman.simulation
 
 import java.util.UUID
 
-import com.google.protobuf.MessageOrBuilder
+import com.google.protobuf.Message
 
 import org.midonet.cluster.data.ZoomConvert.ScalaZoomField
 import org.midonet.cluster.data.ZoomObject
@@ -41,7 +41,7 @@ class PortGroup(@ScalaZoomField(name = "id", converter = classOf[UUIDConverter])
     def this() = this(null, null, false, null)
     override def deviceTag = _deviceTag
 
-    override def afterFromProto(proto: MessageOrBuilder): Unit = {
+    override def afterFromProto(proto: Message): Unit = {
         _deviceTag = FlowTagger.tagForDevice(id)
     }
 }

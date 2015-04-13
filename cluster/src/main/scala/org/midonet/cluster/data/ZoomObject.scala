@@ -17,7 +17,7 @@ package org.midonet.cluster.data
 
 import java.lang.reflect.Field
 
-import com.google.protobuf.MessageOrBuilder
+import com.google.protobuf.Message
 
 /**
  * Represents the base class for an object stored in the ZOOM storage.
@@ -30,7 +30,7 @@ abstract class ZoomObject {
      * @param clazz The message class.
      * @return The object instance.
      */
-    final def toProto[T <: MessageOrBuilder](clazz: Class[T]): T = {
+    final def toProto[T <: Message](clazz: Class[T]): T = {
         ZoomConvert.toProto(this, clazz)
     }
 
@@ -38,7 +38,7 @@ abstract class ZoomObject {
      * When overridden in a derived class, allows the execution of custom tasks
      * after the conversion of the object from a Protocol Buffers message.
      */
-    protected[data] def afterFromProto(proto: MessageOrBuilder): Unit = {
+    protected[data] def afterFromProto(proto: Message): Unit = {
     }
 
     /**
