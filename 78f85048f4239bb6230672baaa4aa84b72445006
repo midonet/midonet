@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_8b27f663",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Coordinator.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 300,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-04-13T16:18:05Z",
+      "side": 0,
+      "message": "why are we losing these comments?",
+      "revId": "78f85048f4239bb6230672baaa4aa84b72445006",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}

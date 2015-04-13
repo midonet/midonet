@@ -1,0 +1,89 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_cbc44e94",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/PacketWorkflow.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 435,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-04-13T16:18:05Z",
+      "side": 1,
+      "message": "this should be INFO or DEBUG.",
+      "revId": "eae62a34b9a0675f4dfbaa55158eca715982b9ed",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_4b385ea0",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/PacketWorkflow.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 494,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-04-13T16:18:05Z",
+      "side": 1,
+      "message": "is this message pre-translation now?\n\nshould we output to context.log too?",
+      "revId": "eae62a34b9a0675f4dfbaa55158eca715982b9ed",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_cbf9eec9",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/datapath/DatapathChannel.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-04-13T16:18:05Z",
+      "side": 1,
+      "message": "why the two PacketContext vars?",
+      "revId": "eae62a34b9a0675f4dfbaa55158eca715982b9ed",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_abf472cf",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/datapath/DatapathChannel.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-04-13T16:18:05Z",
+      "side": 1,
+      "message": "why duplicate datapathId (which is a constant across mm) and \"supportsMegaflow\" (same thing) for every object in the ring buffer?\n\nIn other words, why don\u0027t we just have RingBuffer[PacketContext] ?",
+      "revId": "eae62a34b9a0675f4dfbaa55158eca715982b9ed",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_2b30829d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Coordinator.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 308,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-04-13T16:18:05Z",
+      "side": 1,
+      "message": "why no longer \"SendPacket\"?",
+      "revId": "eae62a34b9a0675f4dfbaa55158eca715982b9ed",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
