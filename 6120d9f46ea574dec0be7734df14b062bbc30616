@@ -16,6 +16,24 @@
       "revId": "6120d9f46ea574dec0be7734df14b062bbc30616",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_908443d5",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopology.scala",
+        "patchSetId": 22
+      },
+      "lineNbr": 191,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-13T12:55:40Z",
+      "side": 1,
+      "message": "I would assume yes. Previously, the I/O ops were scheduled on the Reactor, which is based on a thread pool. I tried to replicate the same here, where I/O for a device (in this case, is writing to the ARP cache) will not block the notification of other devices.",
+      "parentUuid": "1a106d94_fc4916b8",
+      "revId": "6120d9f46ea574dec0be7734df14b062bbc30616",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
