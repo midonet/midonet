@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_d5b06d8d",
+        "filename": "netlink/src/main/scala/org.midonet.netlink/NetlinkConnection.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 157,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-04-13T09:31:43Z",
+      "side": 1,
+      "message": "I\u0027ll leave it up to up, but I thought everything was already in RtnetlinkProtocol? RtnelinkConnection just wraps around the broker by providing convenience ops. That\u0027s nice, but as a downside, it hides too much of the broker, namely it\u0027s threading model and ability to batch.",
+      "parentUuid": "1a106d94_3d0615cf",
+      "revId": "9aa7bf5eb723bdc11d3d4ad8e8b50b1840f7f764",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_8d2c4004",
         "filename": "netlink/src/main/scala/org.midonet.netlink/NetlinkMessageWrapper.scala",
         "patchSetId": 10
