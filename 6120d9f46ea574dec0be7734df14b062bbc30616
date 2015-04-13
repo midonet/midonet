@@ -2,6 +2,190 @@
   "comments": [
     {
       "key": {
+        "uuid": "1a106d94_b5d691c1",
+        "filename": "midolman/src/main/java/org/midonet/midolman/layer3/Route.java",
+        "patchSetId": 22
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-04-13T12:57:49Z",
+      "side": 1,
+      "message": "false /*learned*/",
+      "range": {
+        "startLine": 106,
+        "startChar": 84,
+        "endLine": 106,
+        "endChar": 89
+      },
+      "revId": "6120d9f46ea574dec0be7734df14b062bbc30616",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_75ec1990",
+        "filename": "midolman/src/main/java/org/midonet/midolman/layer3/RoutingTable.java",
+        "patchSetId": 22
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-04-13T12:57:49Z",
+      "side": 1,
+      "message": "needed?",
+      "range": {
+        "startLine": 44,
+        "startChar": 12,
+        "endLine": 44,
+        "endChar": 35
+      },
+      "revId": "6120d9f46ea574dec0be7734df14b062bbc30616",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_95e9d582",
+        "filename": "midolman/src/main/java/org/midonet/midolman/layer3/RoutingTable.java",
+        "patchSetId": 22
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-04-13T12:57:49Z",
+      "side": 1,
+      "message": "Is this needed?",
+      "range": {
+        "startLine": 73,
+        "startChar": 12,
+        "endLine": 73,
+        "endChar": 35
+      },
+      "revId": "6120d9f46ea574dec0be7734df14b062bbc30616",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_75a3794f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingManagerActor.scala",
+        "patchSetId": 22
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-04-13T12:57:49Z",
+      "side": 1,
+      "message": "Why was the if statement and the assignment to bgpPortIdx removed? What\u0027s the reasoning behind this?",
+      "range": {
+        "startLine": 89,
+        "startChar": 17,
+        "endLine": 89,
+        "endChar": 25
+      },
+      "revId": "6120d9f46ea574dec0be7734df14b062bbc30616",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_7571b9df",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BridgeMapper.scala",
+        "patchSetId": 22
+      },
+      "lineNbr": 282,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-04-13T12:57:49Z",
+      "side": 1,
+      "message": "Does this implicitly build a finite duration object?",
+      "range": {
+        "startLine": 282,
+        "startChar": 24,
+        "endLine": 282,
+        "endChar": 68
+      },
+      "revId": "6120d9f46ea574dec0be7734df14b062bbc30616",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_f553e936",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterManager.scala",
+        "patchSetId": 22
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-04-13T12:57:49Z",
+      "side": 1,
+      "message": "Please indent with code or put comment above method declaration.",
+      "range": {
+        "startLine": 45,
+        "startChar": 4,
+        "endLine": 46,
+        "endChar": 31
+      },
+      "revId": "6120d9f46ea574dec0be7734df14b062bbc30616",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_354e2197",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterManager.scala",
+        "patchSetId": 22
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-04-13T12:57:49Z",
+      "side": 1,
+      "message": "same",
+      "range": {
+        "startLine": 50,
+        "startChar": 4,
+        "endLine": 51,
+        "endChar": 31
+      },
+      "revId": "6120d9f46ea574dec0be7734df14b062bbc30616",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_7516d956",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterMapper.scala",
+        "patchSetId": 22
+      },
+      "lineNbr": 290,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-04-13T12:57:49Z",
+      "side": 1,
+      "message": "Pass the logger to lookup",
+      "range": {
+        "startLine": 290,
+        "startChar": 29,
+        "endLine": 290,
+        "endChar": 36
+      },
+      "revId": "6120d9f46ea574dec0be7734df14b062bbc30616",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_fc4916b8",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopology.scala",
         "patchSetId": 22
@@ -31,6 +215,259 @@
       "side": 1,
       "message": "I would assume yes. Previously, the I/O ops were scheduled on the Reactor, which is based on a thread pool. I tried to replicate the same here, where I/O for a device (in this case, is writing to the ARP cache) will not block the notification of other devices.",
       "parentUuid": "1a106d94_fc4916b8",
+      "revId": "6120d9f46ea574dec0be7734df14b062bbc30616",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_d06d1b34",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopologyRedirector.scala",
+        "patchSetId": 22
+      },
+      "lineNbr": 139,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-04-13T12:57:49Z",
+      "side": 1,
+      "message": "There\u0027s no VirtualTopologyRedirector test for router requests.",
+      "range": {
+        "startLine": 139,
+        "startChar": 8,
+        "endLine": 139,
+        "endChar": 32
+      },
+      "revId": "6120d9f46ea574dec0be7734df14b062bbc30616",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_1077b33b",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/BridgeMapperTest.scala",
+        "patchSetId": 22
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-04-13T12:57:49Z",
+      "side": 1,
+      "message": "eventIdx?",
+      "range": {
+        "startLine": 108,
+        "startChar": 34,
+        "endLine": 108,
+        "endChar": 39
+      },
+      "revId": "6120d9f46ea574dec0be7734df14b062bbc30616",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_f0a81779",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/ChainMapperTest.scala",
+        "patchSetId": 22
+      },
+      "lineNbr": 186,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-04-13T12:57:49Z",
+      "side": 1,
+      "message": "Is this still needed?",
+      "range": {
+        "startLine": 186,
+        "startChar": 12,
+        "endLine": 186,
+        "endChar": 55
+      },
+      "revId": "6120d9f46ea574dec0be7734df14b062bbc30616",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_10c5f33b",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/HostMapperTest.scala",
+        "patchSetId": 22
+      },
+      "lineNbr": 159,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-04-13T12:57:49Z",
+      "side": 1,
+      "message": "needed?",
+      "range": {
+        "startLine": 159,
+        "startChar": 12,
+        "endLine": 159,
+        "endChar": 59
+      },
+      "revId": "6120d9f46ea574dec0be7734df14b062bbc30616",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_50de4b12",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/IPAddrGroupMapperTest.scala",
+        "patchSetId": 22
+      },
+      "lineNbr": 145,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-04-13T12:57:49Z",
+      "side": 1,
+      "message": "needed?",
+      "range": {
+        "startLine": 145,
+        "startChar": 12,
+        "endLine": 145,
+        "endChar": 55
+      },
+      "revId": "6120d9f46ea574dec0be7734df14b062bbc30616",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_3008ef90",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/LoadBalancerMapperTest.scala",
+        "patchSetId": 22
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-04-13T12:57:49Z",
+      "side": 1,
+      "message": "Could you please remove this?",
+      "range": {
+        "startLine": 56,
+        "startChar": 0,
+        "endLine": 56,
+        "endChar": 4
+      },
+      "revId": "6120d9f46ea574dec0be7734df14b062bbc30616",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_90ff2367",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/LoadBalancerMapperTest.scala",
+        "patchSetId": 22
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-04-13T12:57:49Z",
+      "side": 1,
+      "message": "same comment",
+      "range": {
+        "startLine": 57,
+        "startChar": 58,
+        "endLine": 57,
+        "endChar": 59
+      },
+      "revId": "6120d9f46ea574dec0be7734df14b062bbc30616",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_d0f87b7e",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/PortMapperTest.scala",
+        "patchSetId": 22
+      },
+      "lineNbr": 285,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-04-13T12:57:49Z",
+      "side": 1,
+      "message": "needed?",
+      "range": {
+        "startLine": 285,
+        "startChar": 12,
+        "endLine": 285,
+        "endChar": 56
+      },
+      "revId": "6120d9f46ea574dec0be7734df14b062bbc30616",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_10f3339f",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/RouterMapperTest.scala",
+        "patchSetId": 22
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-04-13T12:57:49Z",
+      "side": 1,
+      "message": "eventIdx?",
+      "range": {
+        "startLine": 125,
+        "startChar": 34,
+        "endLine": 125,
+        "endChar": 39
+      },
+      "revId": "6120d9f46ea574dec0be7734df14b062bbc30616",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_f0edb7b8",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/RouterMapperTest.scala",
+        "patchSetId": 22
+      },
+      "lineNbr": 143,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-04-13T12:57:49Z",
+      "side": 1,
+      "message": "needed?",
+      "range": {
+        "startLine": 143,
+        "startChar": 8,
+        "endLine": 143,
+        "endChar": 52
+      },
+      "revId": "6120d9f46ea574dec0be7734df14b062bbc30616",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_102173fb",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/VirtualTopologyTest.scala",
+        "patchSetId": 22
+      },
+      "lineNbr": 427,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-04-13T12:57:49Z",
+      "side": 1,
+      "message": "needed?",
+      "range": {
+        "startLine": 426,
+        "startChar": 12,
+        "endLine": 427,
+        "endChar": 36
+      },
       "revId": "6120d9f46ea574dec0be7734df14b062bbc30616",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
