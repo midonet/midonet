@@ -16,47 +16,41 @@
 
 package org.midonet.brain.services.rest_api
 
-import java.net.URI
 import java.util
-import java.util.UUID
+import java.util.{List => JList, UUID}
+
 import javax.ws.rs._
+import javax.ws.rs.core.Response.Status
 import javax.ws.rs.core._
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
+import scala.concurrent.{Await, ExecutionContext}
 import scala.concurrent.duration._
-import scala.concurrent.{Await, ExecutionContext, Future}
 
 import com.google.common.util.concurrent.MoreExecutors._
+import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
-import com.google.protobuf.Message
+import com.google.protobuf.MessageOrBuilder
+
 import org.eclipse.jetty.http.HttpStatus
 import org.slf4j.LoggerFactory
 
 import org.midonet.brain.services.rest_api.MidonetMediaTypes._
-import org.midonet.brain.services.rest_api.models.{Port, ResourceUris, UriResource}
+import org.midonet.brain.services.rest_api.models.{ResourceUris, UriResource}
 import org.midonet.cluster.data.ZoomConvert
-import org.midonet.cluster.data.storage.NotFoundException
-import org.midonet.cluster.models.Commons
-import org.midonet.cluster.util.UUIDUtil.toProto
+import org.midonet.cluster.data.storage.{ObjectExistsException, ReferenceConflictException, ObjectReferencedException, NotFoundException}
+import org.midonet.cluster.models.{Topology, Commons}
+import org.midonet.cluster.services.MidonetBackend
+import org.midonet.cluster.util.UUIDUtil
+import org.midonet.cluster.util.UUIDUtil._
 
 @Path("/")
 @RequestScoped
-class MidonetResource {
+class MidonetResource @Inject()(implicit backend: MidonetBackend) {
 
     private implicit val ec = ExecutionContext.fromExecutor(sameThreadExecutor())
-    private val log = LoggerFactory.getLogger(classOf[MidonetResource])
-
-    // TODO: do this properly, still haven't figured out how to inject in the
-    //       server startup
-    //
-    // TODO: actually, it would be nice to have a wrapper for Storage with
-    //       translation to HTTP errors
-    //
-    // @Context
-    // var backend: MidonetBackend =
-    // _
-    val backend = Vladimir.backend.store
-    val renderer = Vladimir.resRenderer
+    private final val log = LoggerFactory.getLogger(classOf[MidonetResource])
+    private final val timeout = 5 seconds
 
     @Context
     var uriInfo: UriInfo = _
@@ -71,183 +65,190 @@ class MidonetResource {
 
     @GET
     @Path("/{resource}/{id}")
-    def get(@PathParam("id")id: UUID,
-            @PathParam("resource")resource: String,
+    def get(@PathParam("id") id: String,
+            @PathParam("resource") resource: String,
             @HeaderParam("accept") acceptMedia: String) = {
-
         log.debug(s"GET $resource with id $id for media type $acceptMedia")
-        // TODO: I suspect this cast below is due to dodgy invariants in
-        //       ZoomConver
-        val dtoClass = MidonetMediaTypes.resourceOf(acceptMedia)
-                                        .asInstanceOf[Class[UriResource]]
-        val zoomClass = MidonetMediaTypes.zoomFor.get(dtoClass).orNull
-        val o = Await.result(backend.get(zoomClass, id), 3.seconds)
-        renderer.from(o, dtoClass, uriInfo.getBaseUri)
+        getResource(resource, id)
+    }
+
+    @GET
+    @Path("/{resource}/{id}/{subresource}/{sid}")
+    def get(@PathParam("id") id: String,
+            @PathParam("sid") sid: String,
+            @PathParam("resource") resource: String,
+            @PathParam("subresource") subresource: String,
+            @HeaderParam("accept") acceptMedia: String) = {
+        log.debug(s"GET $resource with id $id for media type $acceptMedia")
+        getResource(resource, id, subresource, sid)
+    }
+
+    @GET
+    @Path("/{resource}/{id}/{subresource}/{sid}/{subsubresource}/{ssid}")
+    def get(@PathParam("id") id: String,
+            @PathParam("sid") sid: String,
+            @PathParam("sid") ssid: String,
+            @PathParam("resource") resource: String,
+            @PathParam("subresource") subresource: String,
+            @PathParam("subsubresource") subsubresource: String,
+            @HeaderParam("accept") acceptMedia: String) = {
+        log.debug(s"GET $resource with id $id for media type $acceptMedia")
+        getResource(resource, id, subresource, sid, subsubresource, ssid)
     }
 
     @GET
     @Path("/{resource}$")
-    @Produces(Array( // Sweet love of god.. no, it's not doable
-            APPLICATION_AD_ROUTE_COLLECTION_JSON,
-            APPLICATION_BGP_COLLECTION_JSON,
-            APPLICATION_BRIDGE_COLLECTION_JSON,
-            APPLICATION_BRIDGE_COLLECTION_JSON_V2,
-            APPLICATION_BRIDGE_COLLECTION_JSON_V3,
-            APPLICATION_CHAIN_COLLECTION_JSON,
-            APPLICATION_HEALTH_MONITOR_COLLECTION_JSON,
-            APPLICATION_HOST_COLLECTION_JSON_V2,
-            APPLICATION_HOST_COLLECTION_JSON_V3,
-            APPLICATION_INTERFACE_COLLECTION_JSON,
-            APPLICATION_IP_ADDR_GROUP_ADDR_COLLECTION_JSON,
-            APPLICATION_IP_ADDR_GROUP_COLLECTION_JSON,
-            APPLICATION_LOAD_BALANCER_COLLECTION_JSON,
-            APPLICATION_POOL_COLLECTION_JSON,
-            APPLICATION_POOL_MEMBER_COLLECTION_JSON,
-            APPLICATION_PORTGROUP_COLLECTION_JSON,
-            APPLICATION_PORTGROUP_PORT_COLLECTION_JSON,
-            APPLICATION_PORT_COLLECTION_JSON,
-            APPLICATION_PORT_V2_COLLECTION_JSON,
-            APPLICATION_ROUTER_COLLECTION_JSON,
-            APPLICATION_ROUTER_COLLECTION_JSON_V2,
-            APPLICATION_TRACE_REQUEST_COLLECTION_JSON,
-            APPLICATION_TUNNEL_ZONE_COLLECTION_JSON,
-            APPLICATION_VIP_COLLECTION_JSON,
-            APPLICATION_VTEP_BINDING_COLLECTION_JSON,
-            APPLICATION_VTEP_COLLECTION_JSON,
-            APPLICATION_VTEP_PORT_COLLECTION_JSON,
-            MediaType.APPLICATION_JSON))
-    def list(@PathParam("resource")res: String,
-             @HeaderParam("Accept")acceptMedia: String): util.List[Object] = {
-        log.info(s"LIST: $res")
-        // TODO: I suspect this cast below is due to dodgy invariants in
-        //       ZoomConvert
-        val dtoClass = MidonetMediaTypes.resourceOf(acceptMedia)
-                                        .asInstanceOf[Class[UriResource]]
-        val zoomClass = MidonetMediaTypes.zoomFor.get(dtoClass).orNull
-        log.debug(s"Request collection for: $acceptMedia, target class: " +
-                  s"${dtoClass.getName}, zoom class: ${zoomClass.getName}")
-        val n = Await.result(backend.getAll(zoomClass), 3.seconds)
-        n.map { renderer.from(_, dtoClass, uriInfo.getBaseUri) }.toList
+    @Produces(Array(APPLICATION_AD_ROUTE_COLLECTION_JSON,
+                    APPLICATION_BGP_COLLECTION_JSON,
+                    APPLICATION_BRIDGE_COLLECTION_JSON,
+                    APPLICATION_BRIDGE_COLLECTION_JSON_V2,
+                    APPLICATION_BRIDGE_COLLECTION_JSON_V3,
+                    APPLICATION_CHAIN_COLLECTION_JSON,
+                    APPLICATION_HEALTH_MONITOR_COLLECTION_JSON,
+                    APPLICATION_HOST_COLLECTION_JSON_V2,
+                    APPLICATION_HOST_COLLECTION_JSON_V3,
+                    APPLICATION_INTERFACE_COLLECTION_JSON,
+                    APPLICATION_IP_ADDR_GROUP_ADDR_COLLECTION_JSON,
+                    APPLICATION_IP_ADDR_GROUP_COLLECTION_JSON,
+                    APPLICATION_LOAD_BALANCER_COLLECTION_JSON,
+                    APPLICATION_POOL_COLLECTION_JSON,
+                    APPLICATION_POOL_MEMBER_COLLECTION_JSON,
+                    APPLICATION_PORTGROUP_COLLECTION_JSON,
+                    APPLICATION_PORTGROUP_PORT_COLLECTION_JSON,
+                    APPLICATION_PORT_COLLECTION_JSON,
+                    APPLICATION_PORT_V2_COLLECTION_JSON,
+                    APPLICATION_ROUTER_COLLECTION_JSON,
+                    APPLICATION_ROUTER_COLLECTION_JSON_V2,
+                    APPLICATION_TRACE_REQUEST_COLLECTION_JSON,
+                    APPLICATION_TUNNEL_ZONE_COLLECTION_JSON,
+                    APPLICATION_VIP_COLLECTION_JSON,
+                    APPLICATION_VTEP_BINDING_COLLECTION_JSON,
+                    APPLICATION_VTEP_COLLECTION_JSON,
+                    APPLICATION_VTEP_PORT_COLLECTION_JSON,
+                    MediaType.APPLICATION_JSON))
+    def list(@PathParam("resource") resource: String,
+             @HeaderParam("Accept") acceptMedia: String): util.List[UriResource] = {
+        log.info(s"LIST: $resource")
+        listResource(resource).asJava
     }
 
     @GET
-    @Path("/{mainresource}/{id}/{subresource}")
-    @Produces(Array(APPLICATION_PORT_COLLECTION_JSON,
-                    APPLICATION_PORT_V2_COLLECTION_JSON,
+    @Path("/{resource}/{id}/{subresource}")
+    @Produces(Array(APPLICATION_DHCP_HOST_COLLECTION_JSON,
+                    APPLICATION_DHCP_HOST_COLLECTION_JSON_V2,
+                    APPLICATION_DHCP_SUBNET_COLLECTION_JSON,
+                    APPLICATION_DHCP_SUBNET_COLLECTION_JSON_V2,
+                    APPLICATION_DHCPV6_HOST_COLLECTION_JSON,
+                    APPLICATION_DHCPV6_SUBNET_COLLECTION_JSON,
+                    APPLICATION_GRE_TUNNEL_ZONE_HOST_COLLECTION_JSON,
+                    APPLICATION_HOST_INTERFACE_PORT_COLLECTION_JSON,
+                    APPLICATION_INTERFACE_COLLECTION_JSON,
                     APPLICATION_IP4_MAC_COLLECTION_JSON,
+                    APPLICATION_MAC_PORT_COLLECTION_JSON,
+                    APPLICATION_MAC_PORT_COLLECTION_JSON_V2,
+                    APPLICATION_PORT_COLLECTION_JSON,
+                    APPLICATION_PORT_V2_COLLECTION_JSON,
                     APPLICATION_ROUTE_COLLECTION_JSON,
                     APPLICATION_RULE_COLLECTION_JSON,
                     APPLICATION_RULE_COLLECTION_JSON_V2,
-                    APPLICATION_DHCP_SUBNET_COLLECTION_JSON,
-                    APPLICATION_DHCP_SUBNET_COLLECTION_JSON_V2,
-                    APPLICATION_DHCP_HOST_COLLECTION_JSON,
-                    APPLICATION_DHCP_HOST_COLLECTION_JSON_V2,
-                    APPLICATION_DHCPV6_SUBNET_COLLECTION_JSON,
-                    APPLICATION_DHCPV6_HOST_COLLECTION_JSON,
                     APPLICATION_TUNNEL_ZONE_HOST_COLLECTION_JSON,
-                    APPLICATION_GRE_TUNNEL_ZONE_HOST_COLLECTION_JSON,
-                    APPLICATION_HOST_INTERFACE_PORT_COLLECTION_JSON,
-                    APPLICATION_MAC_PORT_COLLECTION_JSON,
-                    APPLICATION_MAC_PORT_COLLECTION_JSON_V2,
                     MediaType.APPLICATION_JSON))
-    def list(@PathParam("id")id: UUID,
-             @PathParam("mainresource") mainRes: String,
-             @PathParam("subresource") subRes: String,
-             @HeaderParam("Accept")accepts: String)
+    def list(@PathParam("id") id: String,
+             @PathParam("resource") resource: String,
+             @PathParam("subresource") subresource: String,
+             @HeaderParam("Accept") accepts: String)
     : util.List[UriResource] = {
         log.debug(s"LIST: $accepts")
-        val mainProtoClass = protoFromResName(mainRes)
-        val subClass = MidonetMediaTypes.resourceOf(accepts)
-                                        .asInstanceOf[Class[UriResource]]
-        val subProtoClass = MidonetMediaTypes.zoomFor.get(subClass).orNull
-        val allSubRes = backend.get(mainProtoClass, id).flatMap { proto =>
-            val fieldDesc = proto.getDescriptorForType.findFieldByName("port_ids")
-            val data = proto.getField(fieldDesc) match {
-                case l: util.List[_] => l map {
-                    case uuid: Commons.UUID => backend.get(subProtoClass, uuid)
-                    case _ => null
-                }
-                case _ => List.empty
-            }
-            Future.sequence(data.filterNot(_ == null))
-        } map { allProtos => allProtos map { proto =>
-            renderer.from(proto, subClass, uriInfo.getBaseUri) }
-        }
-        Await.result(allSubRes, 3.seconds).toList
+        listResource(resource, id, subresource).asJava
     }
 
-    @POST
-    @Path("/{mainresource}/{id}/{subresource}")
-    @Consumes(Array(APPLICATION_PORT_JSON,
-                    APPLICATION_PORT_V2_JSON,
+    @GET
+    @Path("/{resource}/{id}/{subresource}/{sid}/{subsubresource}")
+    @Produces(Array(APPLICATION_DHCP_HOST_COLLECTION_JSON,
+                    APPLICATION_DHCP_HOST_COLLECTION_JSON_V2,
+                    APPLICATION_DHCPV6_HOST_COLLECTION_JSON,
                     MediaType.APPLICATION_JSON))
-    def create(@PathParam("id") id: UUID,
-               @PathParam("mainresource") mainRes: String,
-               @PathParam("subresource") subRes: String,
-               @HeaderParam("Content-Type")contentType: String,
-               data: String): Response = {
-        log.debug(s"CREATE a sub-resource $subRes of main type $mainRes: $id")
-        val mainZoomClass = protoFromResName(mainRes)
-
-        try {
-            Await.result(backend.get(mainZoomClass, id), 3.seconds)
-        } catch {
-            case e: NotFoundException =>
-                return Response.status(HttpStatus.NOT_FOUND_404)
-                               .`type`(mainRes).build()
-            case _: Throwable =>
-                return Response.serverError().`type`(mainRes).build()
-        }
-
-        val subClass = MidonetMediaTypes.resourceOf(contentType)
-        val zoomClass = MidonetMediaTypes.zoomFor.get(subClass).orNull
-        val dto = deserialize(data, subClass)
-        dto match {
-            case p: Port => p.setDeviceId(id)
-        }
-
-        create(UUID.randomUUID(), dto, subRes, zoomClass)
+    def list(@PathParam("id") id: String,
+             @PathParam("sid") sid: String,
+             @PathParam("resource") resource: String,
+             @PathParam("subresource") subresource: String,
+             @PathParam("subsubresource") subsubresource: String,
+             @HeaderParam("Accept") accepts: String)
+    : util.List[UriResource] = {
+        log.debug(s"LIST: $accepts")
+        listResource(resource, id, subresource, sid, subsubresource).asJava
     }
 
     @POST
     @Path("/{resource}$")
-    @Consumes(Array(
-        APPLICATION_TENANT_JSON,
-        APPLICATION_ROUTER_JSON_V2,
-        APPLICATION_ROUTER_JSON,
-        APPLICATION_BRIDGE_JSON,
-        APPLICATION_BRIDGE_JSON_V2,
-        APPLICATION_BRIDGE_JSON_V3,
-        APPLICATION_HOST_JSON_V2,
-        APPLICATION_HOST_JSON_V3,
-        APPLICATION_PORT_LINK_JSON,
-        APPLICATION_PORTGROUP_JSON,
-        APPLICATION_PORTGROUP_PORT_JSON,
-        APPLICATION_CHAIN_JSON,
-        APPLICATION_RULE_JSON,
-        APPLICATION_RULE_JSON_V2,
-        APPLICATION_BGP_JSON,
-        APPLICATION_AD_ROUTE_JSON,
-        APPLICATION_DHCP_SUBNET_JSON,
-        APPLICATION_DHCP_SUBNET_JSON_V2,
-        APPLICATION_DHCPV6_SUBNET_JSON,
-        APPLICATION_TUNNEL_ZONE_JSON,
-        APPLICATION_HEALTH_MONITOR_JSON,
-        APPLICATION_LOAD_BALANCER_JSON,
-        APPLICATION_POOL_MEMBER_JSON,
-        APPLICATION_POOL_JSON,
-        APPLICATION_VIP_JSON,
-        APPLICATION_VTEP_JSON,
-        APPLICATION_IP_ADDR_GROUP_JSON,
-        APPLICATION_TRACE_REQUEST_JSON,
-        MediaType.APPLICATION_JSON))
-    def create(@HeaderParam("Content-Type")contentType: String,
-               @PathParam("resource")resource: String,
+    @Consumes(Array(APPLICATION_AD_ROUTE_JSON,
+                    APPLICATION_BGP_JSON,
+                    APPLICATION_BRIDGE_JSON,
+                    APPLICATION_BRIDGE_JSON_V2,
+                    APPLICATION_BRIDGE_JSON_V3,
+                    APPLICATION_CHAIN_JSON,
+                    APPLICATION_HEALTH_MONITOR_JSON,
+                    APPLICATION_HOST_JSON_V2,
+                    APPLICATION_HOST_JSON_V3,
+                    APPLICATION_IP_ADDR_GROUP_JSON,
+                    APPLICATION_LOAD_BALANCER_JSON,
+                    APPLICATION_POOL_MEMBER_JSON,
+                    APPLICATION_POOL_JSON,
+                    APPLICATION_PORT_LINK_JSON,
+                    APPLICATION_PORTGROUP_JSON,
+                    APPLICATION_PORTGROUP_PORT_JSON,
+                    APPLICATION_ROUTER_JSON,
+                    APPLICATION_ROUTER_JSON_V2,
+                    APPLICATION_RULE_JSON,
+                    APPLICATION_RULE_JSON_V2,
+                    APPLICATION_TENANT_JSON,
+                    APPLICATION_TRACE_REQUEST_JSON,
+                    APPLICATION_TUNNEL_ZONE_JSON,
+                    APPLICATION_VIP_JSON,
+                    APPLICATION_VTEP_JSON,
+                    MediaType.APPLICATION_JSON))
+    def create(@HeaderParam("Content-Type") contentType: String,
+               @PathParam("resource") resource: String,
                data: String): Response = {
         log.debug(s"CREATE a $contentType")
-        val dto = deserialize(data, MidonetMediaTypes.resourceOf(contentType))
-        val zoomClass = MidonetMediaTypes.zoomFor.get(dto.getClass).orNull
-        create(UUID.randomUUID(), dto, resource, zoomClass)
+        createResource(data, resource)
+    }
+
+    @POST
+    @Path("/{resource}/{id}/{subresource}")
+    @Consumes(Array(APPLICATION_DHCP_SUBNET_JSON,
+                    APPLICATION_DHCP_SUBNET_JSON_V2,
+                    APPLICATION_DHCPV6_SUBNET_JSON,
+                    APPLICATION_GRE_TUNNEL_ZONE_HOST_JSON,
+                    APPLICATION_PORT_JSON,
+                    APPLICATION_PORT_V2_JSON,
+                    APPLICATION_TUNNEL_ZONE_HOST_JSON,
+                    MediaType.APPLICATION_JSON))
+    def create(@PathParam("id") id: String,
+               @PathParam("resource") resource: String,
+               @PathParam("subresource") subresource: String,
+               @HeaderParam("Content-Type") contentType: String,
+               data: String): Response = {
+        log.debug(s"CREATE a sub-resource $subresource of main type " +
+                  s"$resource: $id")
+        createResource(data, resource, id, subresource)
+    }
+
+    @POST
+    @Path("/{resource}/{id}/{subresource}/{sid}/{subsubresource}")
+    @Consumes(Array(APPLICATION_DHCP_HOST_JSON,
+                    APPLICATION_DHCP_HOST_JSON_V2,
+                    APPLICATION_DHCPV6_HOST_JSON))
+    def create(@PathParam("id") id: String,
+               @PathParam("sid") sid: String,
+               @PathParam("resource") resource: String,
+               @PathParam("subresource") subresource: String,
+               @PathParam("subsubresource") subsubresource: String,
+               @HeaderParam("Content-Type") contentType: String,
+               data: String): Response = {
+        log.debug(s"CREATE a sub-sub-resource $subsubresource of main type " +
+                  s"$resource/$subresource: $id/$sid")
+        createResource(data, resource, id, subresource, sid, subsubresource)
     }
 
     @PUT
@@ -282,61 +283,307 @@ class MidonetResource {
         APPLICATION_IP_ADDR_GROUP_JSON,
         APPLICATION_TRACE_REQUEST_JSON,
         MediaType.APPLICATION_JSON))
-    def update(@PathParam("id") id: UUID,
-               @PathParam("resource")resource: String,
-               @HeaderParam("Content-Type")contentType: String,
+    def update(@PathParam("id") id: String,
+               @PathParam("resource") resource: String,
+               @HeaderParam("Content-Type") contentType: String,
                data: String): Response = {
         log.debug(s"UPDATE a $contentType with $data")
-        val dto = deserialize(data, MidonetMediaTypes.resourceOf(contentType))
-        val zoomClass = MidonetMediaTypes.zoomFor.get(dto.getClass).orNull
-        val newProto = renderer.to(dto, zoomClass)
-        try {
-            backend.update(newProto)
-            Response.ok().build()
-        } catch {
-            case nfe: NotFoundException =>
-                Response.status(HttpStatus.NOT_FOUND_404)
-                       .`type`(resource).build()
-            case _: Throwable =>
-                Response.serverError().build()
-        }
+        updateResource(data, resource, id)
     }
 
     @DELETE
     @Path("/{resource}/{id}")
-    def delete(@PathParam("id") id: UUID,
-               @PathParam("resource") resourceName: String): Unit = {
-        log.debug(s"DELETE $resourceName with id $id")
-        backend.delete(MidonetMediaTypes.protoFromResName(resourceName), id)
+    def delete(@PathParam("id") id: String,
+               @PathParam("resource") resource: String): Response = {
+        log.debug(s"DELETE $resource with id $id")
+        val dtoAttr = MidonetMediaTypes.ResourceAttributes(Seq(resource))
+        tryWithResponse {
+            backend.store.delete(dtoAttr.zoom.clazz, id)
+            Response.ok().build()
+        }
+        // TODO: deleteResource(resource, id)
     }
 
-    private def deserialize[T <: UriResource](data: String, dtoClass: Class[T])
-    : T = {
-        // TODO: make this into a provider or something, I had to put it there
-        //       because scala doesn't manage to read the types
-        ResourceUris.objectMapper.readValue(data, dtoClass)
-    }
-
-    private def create(id: UUID, dto: UriResource, resName: String,
-                       zoomClass: Class[_ <: Message]): Response = {
-        try {
-            val zoom = ZoomConvert.toProto(dto, zoomClass)
-            val idField = zoom.getDescriptorForType.findFieldByName("id")
-            val zoomWithId = zoom.toBuilder
-                                 .setField(idField, toProto(id))
-                                 .build()
-            backend.create(zoomWithId)
-            Response.created(uriFor(resName, id)).build()
-        } catch {
-            case t: Throwable =>
-                log.error("Create failed: ", t)
-                Response.serverError().build()
+    private def getResource(args: String*): UriResource = {
+        listResource(args: _*).lastOption getOrElse {
+            throw new WebApplicationException(Status.NOT_FOUND)
         }
     }
 
-    private def uriFor(resName: String, id: UUID): URI = {
-        UriBuilder.fromUri(uriInfo.getBaseUri)
-                  .segment(resName)
-                  .segment(id.toString).build() // TODO: use path and so on
+    private def listResource(args: String*): Seq[UriResource] = {
+        if (args.length == 0) {
+            throw new WebApplicationException(Status.INTERNAL_SERVER_ERROR)
+        }
+
+        var index = 0
+        var parentId: String = null
+        var dtoAttr: DtoAttribute = null
+        var list: Seq[MessageOrBuilder] = null
+        var path = List[String]()
+        val uri = UriBuilder.fromUri(uriInfo.getBaseUri)
+        do {
+            val resource = args(index)
+            val id = if (index + 1 < args.length) args(index + 1) else null
+            path = path :+ resource
+
+            // Get the resource attribute.
+            dtoAttr = MidonetMediaTypes.ResourceAttributes(path)
+            if (dtoAttr eq null) {
+                throw new WebApplicationException(Status.INTERNAL_SERVER_ERROR)
+            }
+
+            if (index + 2 < args.length) {
+                val obj = if (list eq null) tryWithException {
+                    Await.result(backend.store.get(dtoAttr.zoom.clazz,
+                                                   dtoAttr.getProtoId(id)),
+                                 timeout)
+                } else {
+                    list.find(dtoAttr.getId(_) == dtoAttr.getProtoId(id)) match {
+                        case Some(o) => o
+                        case None => throw new WebApplicationException(Status.NOT_FOUND)
+                    }
+                }
+                uri.segment(resource, id)
+                parentId = dtoAttr.getId(obj)
+                list = listSubresource(
+                    obj, dtoAttr, path :+ args(index + 2),
+                    if (index + 3 < args.length) args(index + 3) else null)
+            } else if (list eq null) {
+                list = if (id eq null)
+                    Await.result(backend.store.getAll(dtoAttr.zoom.clazz),
+                                 timeout)
+                else tryWithException {
+                    Seq(Await.result(backend.store.get(dtoAttr.zoom.clazz, id),
+                                     timeout))
+                }
+            }
+            index += 2
+        } while (index < args.length)
+        // Convert the list elements to the corresponding DTO, and initialize
+        // the fields: base URI, parent ID and ownership.
+        list.map(obj => {
+            val dto = ZoomConvert.fromProto(obj, dtoAttr.clazz)
+            dto.setBaseUri(uri.build())
+            dtoAttr.setParentId(dto, parentId)
+            if (dtoAttr.ownership ne null) tryWithException {
+                val owners = Await.result(backend.ownershipStore.getOwners(
+                    dtoAttr.zoom.clazz, dto.getId), timeout)
+                dtoAttr.setOwners(dto, owners)
+            }
+            dto
+        })
+    }
+
+    @throws[WebApplicationException]
+    private def listSubresource(obj: MessageOrBuilder, dtoAttr: DtoAttribute,
+                                path: Seq[String], id: String)
+    : Seq[MessageOrBuilder] = {
+        val fieldDescriptor = dtoAttr.getSubresourceDescriptor(path.last)
+        if (fieldDescriptor.isRepeated) {
+            if (fieldDescriptor.getMessageType == Commons.UUID.getDescriptor) {
+                val subAttr = MidonetMediaTypes.ResourceAttributes(path)
+                // The inner list is referenced via the UUIDs.
+                if (id eq null) {
+                    val ids = obj.getField(fieldDescriptor)
+                        .asInstanceOf[JList[Commons.UUID]].asScala
+                    Await.result(backend.store.getAll(subAttr.zoom.clazz, ids),
+                                 timeout)
+                }
+                else tryWithException {
+                    Seq(Await.result(backend.store.get(subAttr.zoom.clazz,
+                                                       subAttr.getProtoId(id)),
+                                     timeout))
+                }
+            } else {
+                // The inner list is embedded.
+                obj.getField(fieldDescriptor)
+                    .asInstanceOf[JList[MessageOrBuilder]].asScala
+            }
+        } else throw new WebApplicationException(Status.INTERNAL_SERVER_ERROR)
+    }
+
+    private def createResource(data: String, args: String*): Response = {
+        if (args.length == 0 || args.length % 2 == 0) {
+            return Response.status(HttpStatus.INTERNAL_SERVER_ERROR_500).build()
+        }
+
+        val resources = for (index <- 0 until args.length by 2) yield args(index)
+        val ids = for (index <- 1 until args.length by 2) yield args(index)
+        var index = ids.length
+        var dtoAttr: DtoAttribute = null
+        var dto: UriResource = null
+        var obj: MessageOrBuilder = null
+        var path = resources
+        var response: Response = null
+
+        do {
+            // Get the resource attribute
+            dtoAttr = MidonetMediaTypes.ResourceAttributes(path)
+            if (index == ids.length) {
+                // Create the child resource from the data in the backend store.
+                dto = ResourceUris.objectMapper.readValue(data, dtoAttr.clazz)
+                dtoAttr.generateId(dto)
+                if (index > 0) {
+                    dtoAttr.setParentId(dto, ids(index - 1))
+                }
+                obj = ZoomConvert.toProto(dto, dtoAttr.zoom.clazz)
+                response = tryWithResponse {
+                    if (dtoAttr.isStorable) {
+                        backend.store.create(obj)
+                    }
+                    val uri = UriBuilder.fromUri(uriInfo.getBaseUri)
+                                        .segment(args: _*).segment(dto.getId)
+                                        .build()
+                    Response.created(uri).build()
+                }
+            } else {
+                // Add the child resource to its parent resource and update
+                // the parent resource in the backend store.
+                response = tryWithResponse {
+                    // TODO: Use backreferences to update this.
+                    if (obj.isInstanceOf[Topology.TunnelZone.HostToIp]) {
+                        val tunnelZoneHost = obj.asInstanceOf[Topology.TunnelZone.HostToIp]
+                        var host = Await.result(backend.store.get(classOf[Topology.Host],
+                                                                  tunnelZoneHost.getHostId),
+                                                timeout)
+                        host = host.toBuilder
+                                   .addTunnelZoneIds(UUIDUtil.toProto(ids(index)))
+                                   .build()
+                        backend.store.update(host)
+                    }
+
+
+                    obj = createSubresource(path, ids(index),
+                                            resources(index + 1), obj)
+                    if ((obj ne null) && dtoAttr.isStorable) {
+                        backend.store.update(obj)
+                    }
+                    response
+                }
+            }
+
+            path = path.dropRight(1)
+            index -= 1
+        } while (index >= 0 && (obj ne null))
+        response
+    }
+
+    private def createSubresource(path: DtoPath, id: String,
+                                  subresource: String, child: MessageOrBuilder)
+    : MessageOrBuilder = {
+        val parentAttr = MidonetMediaTypes.ResourceAttributes(path)
+        val childAttr = MidonetMediaTypes.ResourceAttributes(path :+ subresource)
+        val fieldDescriptor = parentAttr.getSubresourceDescriptor(subresource)
+        val parent = Await.result(backend.store.get(parentAttr.zoom.clazz,
+                                                    parentAttr.getProtoId(id)),
+                                  timeout)
+        if (fieldDescriptor.isRepeated) {
+            if (fieldDescriptor.getMessageType == Commons.UUID.getDescriptor) {
+                // The child object is referenced via a list of UUIDs.
+                val childId = childAttr.getProtoId(child)
+                val referencingIds = parent.getField(fieldDescriptor)
+                    .asInstanceOf[JList[Commons.UUID]].asScala
+                    .map(_.asJava.toString)
+
+                if (referencingIds.contains(childId)) return null
+                parentAttr.newBuilder(parent)
+                          .addRepeatedField(fieldDescriptor, childId)
+                          .build()
+            } else {
+                // Validate that a child with the same ID does not exist.
+                if (childAttr.hasProtoId(child)) {
+                    // The child object is embedded in a list of messages.
+                    val childId = childAttr.getProtoId(child)
+                    val childrenIds = parent.getField(fieldDescriptor)
+                        .asInstanceOf[JList[MessageOrBuilder]]
+                        .asScala.map(childAttr.getProtoId)
+                    if (childrenIds.contains(childId)) {
+                        throw new WebApplicationException(Status.CONFLICT)
+                    }
+                }
+                parentAttr.newBuilder(parent)
+                          .addRepeatedField(fieldDescriptor, child)
+                          .build()
+            }
+        } else throw new WebApplicationException(Status.INTERNAL_SERVER_ERROR)
+    }
+
+    private def updateResource(data: String, args: String*): Response = {
+        ???
+    }
+
+    private def updateSubresource(path: DtoPath, id: String,
+                                  subresource: String, child: MessageOrBuilder)
+    : MessageOrBuilder = {
+        val parentAttr = MidonetMediaTypes.ResourceAttributes(path)
+        val childAttr = MidonetMediaTypes.ResourceAttributes(path :+ subresource)
+        val fieldDescriptor = parentAttr.getSubresourceDescriptor(subresource)
+        //val idDescriptor =
+        val parent = Await.result(backend.store.get(parentAttr.zoom.clazz, id),
+                                  timeout)
+        if (fieldDescriptor.isRepeated) {
+            if (fieldDescriptor.getMessageType == Commons.UUID.getDescriptor) {
+                // The child object is referenced via a list of UUIDs.
+                val childId = childAttr.getId(child)
+                val referencingIds = parent.getField(fieldDescriptor)
+                    .asInstanceOf[JList[Commons.UUID]].asScala
+                    .map(_.asJava.toString)
+
+                if (referencingIds.contains(childId)) return null
+                parentAttr.newBuilder(parent)
+                    .addRepeatedField(fieldDescriptor,
+                                      UUID.fromString(childId).asProto)
+                    .build()
+            } else {
+                // The child object is embedded in a list of messages.
+                //val childId = childAttr.getId(child)
+                //val children = parent.getField(fieldDescriptor)
+                //                     .asInstanceOf[JList[MessageOrBuilder]]
+                //                     .asScala
+
+                parentAttr.newBuilder(parent)
+                    .addRepeatedField(fieldDescriptor, child)
+                    .build()
+            }
+        } else throw new WebApplicationException(Status.INTERNAL_SERVER_ERROR)
+    }
+
+    private def deleteResource(args: String*): Response = {
+        ???
+    }
+
+    private def tryWithException[T](f: => T): T = {
+        try {
+            f
+        } catch {
+            case e: NotFoundException =>
+                throw new WebApplicationException(Status.NOT_FOUND)
+            case e: ObjectReferencedException =>
+                throw new WebApplicationException(Status.NOT_ACCEPTABLE)
+            case e: ReferenceConflictException =>
+                throw new WebApplicationException(Status.CONFLICT)
+            case e: ObjectExistsException =>
+                throw new WebApplicationException(Status.CONFLICT)
+        }
+    }
+
+    private def tryWithResponse[R](f: => Response): Response = {
+        try {
+            f
+        } catch {
+            /*
+            case e: NotFoundException =>
+                val i = 0
+                Response.status(HttpStatus.NOT_FOUND_404).build()
+            case e: ObjectReferencedException =>
+                Response.status(HttpStatus.NOT_ACCEPTABLE_406).build()
+            case e: ReferenceConflictException =>
+                Response.status(HttpStatus.CONFLICT_409).build()
+            case e: ObjectExistsException =>
+                Response.status(HttpStatus.CONFLICT_409).build()*/
+            case e: Throwable =>
+                log.error("Error", e)
+                throw e
+        }
     }
 }

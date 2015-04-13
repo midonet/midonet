@@ -23,7 +23,7 @@ import org.scalatest.{BeforeAndAfter, BeforeAndAfterAll, _}
 
 import org.midonet.brain.{BrainConfig, ClusterNode}
 import org.midonet.brain.services.conf.ZookeeperTestSuite
-import org.midonet.cluster.services.{MidonetBackendService, MidonetBackend}
+import org.midonet.cluster.services.{MidonetBackend, MidonetBackendService}
 import org.midonet.conf.{HostIdGenerator, MidoNodeConfigurator}
 
 @RunWith(classOf[JUnitRunner])

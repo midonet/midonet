@@ -16,62 +16,151 @@
 
 package org.midonet.brain.services.rest_api.models;
 
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Array;
+import java.lang.reflect.Field;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
+import javax.annotation.Nullable;
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlTransient;
 
+import org.midonet.brain.services.rest_api.annotation.Resource;
+import org.midonet.brain.services.rest_api.annotation.ResourceId;
+import org.midonet.brain.services.rest_api.annotation.Subresource;
 import org.midonet.cluster.data.ZoomObject;
 
 public abstract class UriResource extends ZoomObject {
 
     private URI baseUri = null;
 
-    @XmlTransient
-    public void setBaseUri(URI baseUri) {
-        this.baseUri = baseUri;
+    /** Retrieve the URI of this resource. */
+    @XmlElement(name = "uri")
+    final public URI getUri() {
+        Resource resource = getResource();
+        String id = getId();
+        if (null == resource || null == id)
+            throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
+        return UriBuilder.fromUri(baseUri).segment(resource.name(), id).build();
     }
 
-    protected URI uriFor(String s) {
-        return UriBuilder.fromUri(baseUri).path(s).build();
+    final protected URI getUriFor(String path) {
+        return UriBuilder.fromUri(getUri()).segment(path).build();
     }
 
-    @XmlTransient
-    protected List<URI> toUris(String prefix, List<UUID> ids) {
-        if (ids == null) {
-            return new ArrayList<>(0);
-        }
+    final protected URI getUriFor(String path, UUID id) {
+        return UriBuilder.fromUri(baseUri).segment(path, id.toString()).build();
+    }
+
+    final protected List<URI> getUrisFor(String path, List<UUID> ids) {
         List<URI> uris = new ArrayList<>(ids.size());
         for (UUID id : ids) {
-            uris.add(buildUri(prefix, id));
+            uris.add(getUriFor(path, id));
         }
         return uris;
     }
 
-    /**
-     * Retrieve the URI of this resource.
-     */
-    @XmlElement(name = "uri")
-    abstract public String getUri();
-
-    /**
-     * Builds the URI for the given sub resource node.
-     */
-    @XmlTransient
-    protected URI buildUri(String node) {
-        // TODO: make this properly
-        return UriBuilder.fromUri(getUri()).path(node).build();
+    public void setBaseUri(URI baseUri) throws IllegalAccessException {
+        this.baseUri = baseUri;
+        setSubresourcesUri(getUri());
     }
 
     @XmlTransient
-    private URI buildUri(String node, UUID id) {
-        // TODO: make this properly
-        return UriBuilder.fromUri(getUri()).segment(node)
-            .segment(id.toString()).build();
+    @Nullable
+    final public String getId() {
+        Field field = getField(getClass(), ResourceId.class);
+        if (null == field) return null;
+        try {
+            return Objects.toString(field.get(this), null);
+        } catch (IllegalAccessException e) {
+            return null;
+        }
     }
 
+    private void setSubresourcesUri(URI uri) throws IllegalAccessException {
+        Class<?> c = getClass();
+        do {
+            for (Field field : c.getDeclaredFields()) {
+                if (field.getAnnotation(Subresource.class) == null) continue;
+                setFieldUri(field, uri);
+            }
+            c = c.getSuperclass();
+        } while (UriResource.class.isAssignableFrom(c.getSuperclass()));
+    }
+
+    @SuppressWarnings("unchecked")
+    private void setFieldUri(Field field, URI uri)
+        throws IllegalAccessException {
+        if (isUriResource(field.getType())) {
+            ((UriResource)field.get(this)).setBaseUri(uri);
+        } else if (isUriResourceArray(field.getType())) {
+            Object array = field.get(this);
+            for (int index = 0; index < Array.getLength(array); index++) {
+                ((UriResource)Array.get(array, index)).setBaseUri(uri);
+            }
+        } else if (isUriResourceList(field.getGenericType())) {
+            List<UriResource> list = (List<UriResource>) field.get(this);
+            for (UriResource resource : list) {
+                resource.setBaseUri(uri);
+            }
+        }
+    }
+
+    @XmlTransient
+    @Nullable
+    final public Resource getResource() {
+        return getResource(getClass());
+    }
+
+    private static Field getField(Class<?> clazz,
+                                  Class<? extends Annotation> annotationClass) {
+        Class<?> c = clazz;
+        do {
+            for (Field field : c.getDeclaredFields()) {
+                if (field.getAnnotation(annotationClass) != null) {
+                    return field;
+                }
+            }
+            c = c.getSuperclass();
+        } while (UriResource.class.isAssignableFrom(c.getSuperclass()));
+        return null;
+    }
+
+    private static Resource getResource(Class<?> clazz) {
+        Class<?> c = clazz;
+        do {
+            Resource resource = c.getAnnotation(Resource.class);
+            if (null != resource) {
+                return resource;
+            }
+            c = c.getSuperclass();
+        } while (UriResource.class.isAssignableFrom(c.getSuperclass()));
+        return null;
+    }
+
+    private static Boolean isUriResource(Class<?> clazz) {
+        return UriResource.class.isAssignableFrom(clazz);
+    }
+
+    private static Boolean isUriResourceArray(Class<?> clazz) {
+        return clazz.isArray() &&
+               UriResource.class.isAssignableFrom(clazz.getComponentType());
+    }
+
+    private static Boolean isUriResourceList(Type type) {
+        ParameterizedType paramType = (ParameterizedType)type;
+        return (null != paramType) &&
+               List.class.isAssignableFrom((Class<?>)paramType.getRawType()) &&
+               UriResource.class.isAssignableFrom(
+                   (Class<?>)paramType.getActualTypeArguments()[0]);
+    }
 }
