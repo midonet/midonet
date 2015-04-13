@@ -79,7 +79,9 @@ message NeutronPort {
         NOVA=4;
     }
     optional DeviceOwner device_owner = 8 [default = NOVA];
-    optional UUID device_id = 9;
+    // Device ID may be a composite ID.
+    // E.g. for a DHCP port, it is: "dhcp" + HOST_ID + "-" + NETWORK_ID
+    optional string device_id = 9;
     optional string status = 10;
 
     repeated UUID security_groups = 11;
