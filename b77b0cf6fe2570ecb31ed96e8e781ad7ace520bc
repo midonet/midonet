@@ -187,6 +187,30 @@
       "revId": "b77b0cf6fe2570ecb31ed96e8e781ad7ace520bc",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_351621a8",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 272,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-13T08:43:29Z",
+      "side": 1,
+      "message": "Ah.. I see it now. But then the first catch, would also need to catch all exceptions (ObjectExists, ReferenceConflict, ...), since they may be thrown by update(), right? Is it something like this:\n\n  try {\n    update()\n  } catch {\n    case e: NotFound \u003d\u003e\n      try {\n        create()\n      } catch {\n        case e @ (_: ObjectExists | _: ReferenceConflict | _: OwnershipConflict) \u003d\u003e false\n      }\n    case e @ (_: ObjectExists | _: ReferenceConflict | _: OwnershipConflict) \u003d\u003e false\n  }",
+      "parentUuid": "1a106d94_55059d78",
+      "range": {
+        "startLine": 265,
+        "startChar": 8,
+        "endLine": 272,
+        "endChar": 9
+      },
+      "revId": "b77b0cf6fe2570ecb31ed96e8e781ad7ace520bc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
