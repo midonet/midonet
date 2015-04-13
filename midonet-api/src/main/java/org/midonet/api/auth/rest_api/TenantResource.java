@@ -47,7 +47,7 @@ import org.midonet.api.serialization.ViewMixinProvider;
 import org.midonet.api.serialization.Views;
 import org.midonet.cluster.auth.AuthException;
 import org.midonet.cluster.auth.AuthService;
-import org.midonet.cluster.rest_api.VendorMediaType;
+import org.midonet.cluster.services.rest_api.VendorMediaType;
 
 /**
  * Root resource class for tenants

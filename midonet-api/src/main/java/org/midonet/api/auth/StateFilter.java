@@ -34,11 +34,11 @@ import org.slf4j.LoggerFactory;
 
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.SystemState;
-import org.midonet.cluster.rest_api.VendorMediaType;
+import org.midonet.cluster.services.rest_api.VendorMediaType;
 import org.midonet.midolman.state.StateAccessException;
 
 import static javax.servlet.http.HttpServletResponse.*;
-import static org.midonet.cluster.rest_api.ResponseUtils.*;
+import static org.midonet.cluster.services.rest_api.ResponseUtils.*;
 
 /**
  * Servlet filter for API server state

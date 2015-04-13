@@ -22,7 +22,7 @@ import javax.ws.rs.{POST, Path, Produces}
 import com.google.inject.servlet.RequestScoped
 
 import org.midonet.cluster.auth.Token
-import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
+import org.midonet.cluster.services.rest_api.MidonetTypes._
 
 @Path("login")
 @RequestScoped
@@ -38,5 +38,3 @@ class LoginResource {
     }
 
 }
-
-

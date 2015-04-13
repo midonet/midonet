@@ -19,7 +19,7 @@ package org.midonet.api.l4lb.rest_api;
 import com.google.inject.Inject;
 import com.google.inject.servlet.RequestScoped;
 import org.midonet.api.ResourceUriBuilder;
-import org.midonet.cluster.rest_api.VendorMediaType;
+import org.midonet.cluster.services.rest_api.VendorMediaType;
 import org.midonet.api.auth.AuthRole;
 import org.midonet.api.l4lb.HealthMonitor;
 import org.midonet.api.l4lb.Pool;

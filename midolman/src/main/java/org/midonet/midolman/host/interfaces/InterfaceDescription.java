@@ -91,7 +91,7 @@ public class InterfaceDescription extends ZoomObject {
     protected int mtu;
     @ZoomField(name = "endpoint")
     protected Endpoint endpoint;
-    @ZoomField(name = "port_type", converter = DpPortTypeConverter.class)
+    @ZoomField(name = "port_type", converter = DpPortTypeMapConverter.class)
     protected DpPort.Type portType;
     //protected ... other
     protected Map<String, String> properties;
@@ -236,10 +236,10 @@ public class InterfaceDescription extends ZoomObject {
     /** A converter for the datapath port type. We cannot use ZOOM annotations
      * because the DpPort.Type enumeration is found in the ODP module, which
      * does not import cluster. */
-    public static class DpPortTypeConverter
+    public static class DpPortTypeMapConverter
         extends EnumConverter<DpPort.Type, Interface.DpPortType> {
 
-        public DpPortTypeConverter() {
+        public DpPortTypeMapConverter() {
             add(DpPort.Type.NetDev, Interface.DpPortType.NET_DEV_DP);
             add(DpPort.Type.Internal, Interface.DpPortType.INTERNAL_DP);
             add(DpPort.Type.Gre, Interface.DpPortType.GRE_DP);

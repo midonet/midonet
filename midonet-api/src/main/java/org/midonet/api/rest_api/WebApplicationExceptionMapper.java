@@ -20,7 +20,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.ExceptionMapper;
 import javax.ws.rs.ext.Provider;
 
-import org.midonet.cluster.rest_api.ResponseUtils;
+import org.midonet.cluster.services.rest_api.ResponseUtils;
 
 /**
  * ExceptionMapper provider class to handle WebApplicationException.

@@ -18,7 +18,7 @@ package org.midonet.api.auth;
 import javax.ws.rs.WebApplicationException;
 
 import static javax.ws.rs.core.Response.Status.FORBIDDEN;
-import static org.midonet.cluster.rest_api.ResponseUtils.buildErrorResponse;
+import static org.midonet.cluster.services.rest_api.ResponseUtils.buildErrorResponse;
 
 /**
  * WebApplicationException class to represent 403 status.

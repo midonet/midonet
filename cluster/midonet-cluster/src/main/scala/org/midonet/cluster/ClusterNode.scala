@@ -91,7 +91,7 @@ object ClusterNode extends App {
     // Load cluster node configuration
     private val nodeId = HostIdGenerator.getHostId
     configurator.centralPerNodeConfig(nodeId)
-                .mergeAndSet(CLUSTER_NODE_CONF_OVERRIDES )
+                .mergeAndSet(CLUSTER_NODE_CONF_OVERRIDES)
 
     val clusterConf = new ClusterConfig(configurator.runtimeConfig)
 

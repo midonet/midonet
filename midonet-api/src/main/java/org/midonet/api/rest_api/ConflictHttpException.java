@@ -23,7 +23,7 @@ import org.midonet.midolman.state.StatePathExceptionBase.NodeInfo;
 import org.midonet.midolman.state.StatePathExistsException;
 
 import static javax.ws.rs.core.Response.Status.CONFLICT;
-import static org.midonet.cluster.rest_api.ResponseUtils.buildErrorResponse;
+import static org.midonet.cluster.services.rest_api.ResponseUtils.buildErrorResponse;
 
 /**
  * WebApplicationException class to represent 409 status.
