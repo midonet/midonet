@@ -21,20 +21,34 @@ import javax.validation.constraints.NotNull;
 import javax.validation.groups.Default;
 import javax.xml.bind.annotation.XmlRootElement;
 
-// TODO: @IsHostInterfaceUnused(groups = HostInterfacePort.HostInterfacePortCreateGroup.class)
-// doesn't support direct translation to zoom
-@XmlRootElement
-public class HostInterfacePort {
+import org.midonet.brain.services.rest_api.annotation.ParentId;
+import org.midonet.brain.services.rest_api.annotation.Resource;
+import org.midonet.brain.services.rest_api.annotation.ResourceId;
+import org.midonet.cluster.data.ZoomClass;
+import org.midonet.cluster.data.ZoomField;
+import org.midonet.cluster.models.Topology;
+import org.midonet.cluster.util.UUIDUtil;
 
-    @NotNull
-    // TODO: @IsHostIdInAnyTunnelZone(groups = HostInterfacePortCreateGroup.class)
-    public UUID hostId;
+// TODO: @IsHostInterfaceUnused(groups = HostInterfacePort.HostInterfacePortCreateGroup.class)
+@XmlRootElement
+@Resource(name = ResourceUris.PORTS, parents = { Host.class })
+@ZoomClass(clazz = Topology.Port.class)
+public class HostInterfacePort extends UriResource {
 
     // TODO: @IsValidPortId
     @NotNull
+    @ResourceId
+    @ZoomField(name = "id", converter = UUIDUtil.Converter.class)
     public UUID portId;
 
+    @NotNull
+    @ParentId
+    @ZoomField(name = "host_id", converter = UUIDUtil.Converter.class)
+    // TODO: @IsHostIdInAnyTunnelZone(groups = HostInterfacePortCreateGroup.class)
+    public UUID hostId;
+
     @NotNull(groups = HostInterfacePortCreateGroup.class)
+    @ZoomField(name = "interface_name")
     public String interfaceName;
 
     // This group is used for validating the create process in which

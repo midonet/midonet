@@ -16,7 +16,6 @@
 
 package org.midonet.brain.services.rest_api.models;
 
-import org.codehaus.jackson.annotate.JsonAutoDetect;
 import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.ObjectMapper;
 

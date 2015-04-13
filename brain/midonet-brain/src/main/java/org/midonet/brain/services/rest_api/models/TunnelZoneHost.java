@@ -17,38 +17,35 @@ package org.midonet.brain.services.rest_api.models;
 
 import java.util.UUID;
 
-import javax.validation.GroupSequence;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
-import javax.validation.groups.Default;
 import javax.xml.bind.annotation.XmlRootElement;
 
+import org.midonet.brain.services.rest_api.annotation.ParentId;
+import org.midonet.brain.services.rest_api.annotation.Resource;
+import org.midonet.brain.services.rest_api.annotation.ResourceId;
+import org.midonet.cluster.data.ZoomClass;
+import org.midonet.cluster.data.ZoomField;
+import org.midonet.cluster.models.Topology;
+import org.midonet.cluster.util.IPAddressUtil;
+import org.midonet.cluster.util.UUIDUtil;
 import org.midonet.packets.IPv4;
 
-// TODO: @IsUniqueTunnelZoneMember(groups = TunnelZoneHostUnique.class)
-// TODO: not used in ZOOM
 @XmlRootElement
-public class TunnelZoneHost {
+@Resource(name = ResourceUris.HOSTS, parents = { TunnelZone.class })
+@ZoomClass(clazz = Topology.TunnelZone.HostToIp.class)
+public class TunnelZoneHost extends UriResource {
 
-    // TODO: @IsValidTunnelZoneId
-    private UUID tunnelZoneId;
+    @ParentId
+    public UUID tunnelZoneId;
 
-    // TODO: @IsValidHostId
-    private UUID hostId;
+    @ResourceId
+    @ZoomField(name = "host_id", converter = UUIDUtil.Converter.class)
+    public UUID hostId;
 
     @NotNull
     @Pattern(regexp = IPv4.regex, message = "is an invalid IP format")
-    private String ipAddress;
+    @ZoomField(name = "ip", converter = IPAddressUtil.Converter.class)
+    public String ipAddress;
 
-    /**
-     * Interface used for validating a tunnel zone on creates.
-     */
-    public interface TunnelZoneHostUnique { }
-
-    /**
-     * Interface that defines the ordering of validation groups for tunnel zone
-     * create.
-     */
-    @GroupSequence({ Default.class, TunnelZoneHostUnique.class })
-    public interface TunnelZoneHostCreateGroupSequence { }
 }

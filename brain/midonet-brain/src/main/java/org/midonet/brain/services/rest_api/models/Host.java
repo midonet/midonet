@@ -15,6 +15,8 @@
  */
 package org.midonet.brain.services.rest_api.models;
 
+import java.net.InetAddress;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -23,14 +25,28 @@ import javax.annotation.Nonnull;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
 
+import com.google.protobuf.Message;
+
+import org.midonet.brain.services.rest_api.annotation.Ownership;
+import org.midonet.brain.services.rest_api.annotation.Resource;
+import org.midonet.brain.services.rest_api.annotation.ResourceId;
+import org.midonet.brain.services.rest_api.annotation.Subresource;
+import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;
+import org.midonet.cluster.models.Topology;
 import org.midonet.cluster.util.UUIDUtil;
+import org.midonet.util.version.Since;
+import org.midonet.util.version.Until;
 
 // Doesn't support direct translation to ZOOM
 @XmlRootElement
+@Resource(name = ResourceUris.HOSTS)
+@ZoomClass(clazz = Topology.Host.class)
 public class Host extends UriResource {
 
+    @ResourceId
     @ZoomField(name = "id", converter = UUIDUtil.Converter.class)
     public UUID id;
 
@@ -38,10 +54,14 @@ public class Host extends UriResource {
     @ZoomField(name = "name")
     public String name;
 
-    @ZoomField(name = "addresses")
-    public List<String> addresses = new ArrayList<>();
+    public List<String> addresses;
 
-    // Not a ZOOM field, as this is stored as a State node
+    @XmlTransient
+    @ZoomField(name = "interfaces")
+    @Subresource(name = ResourceUris.INTERFACES)
+    public List<Interface> interfaces;
+
+    @Ownership
     public boolean alive;
 
     /*
@@ -56,10 +76,29 @@ public class Host extends UriResource {
     @Min(0)
     @Max(65535)
     @ZoomField(name = "flooding_proxy_weight")
-    public Integer floodingProxyWeight = 0;
+    public Integer floodingProxyWeight;
+
+    @Subresource(name = ResourceUris.PORTS, merge = true)
+    @ZoomField(name = "port_ids", converter = UUIDUtil.Converter.class)
+    public List<UUID> portIds;
 
     @Override
-    public String getUri() {
-        return uriFor(ResourceUris.HOSTS + "/" + id).toString();
+    public void afterFromProto(Message proto) {
+        addresses = new ArrayList<>();
+        for (Interface iface : interfaces) {
+            for (InetAddress address : iface.addresses) {
+                addresses.add(address.toString());
+            }
+        }
     }
+
+    @Since("3")
+    public List<Interface> getHostInterfaces() {
+        return interfaces;
+    }
+
+    @Until("3")
+    public URI getInterfaces() { return getUriFor(ResourceUris.INTERFACES); }
+
+    public URI getPorts() { return getUriFor(ResourceUris.PORTS); }
 }
