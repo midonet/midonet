@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "1a106d94_d5022d3d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Pool.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 212,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-04-13T09:13:29Z",
+      "side": 1,
+      "message": "As in the case of pool member, I think this should depend on id only...",
+      "range": {
+        "startLine": 209,
+        "startChar": 4,
+        "endLine": 212,
+        "endChar": 1
+      },
+      "revId": "2098ad65b7e091d9e19e9c2016300f9dbf3242e3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_95d275d0",
         "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/PoolMember.scala",
         "patchSetId": 17
@@ -18,6 +41,52 @@
         "startChar": 4,
         "endLine": 82,
         "endChar": 60
+      },
+      "revId": "2098ad65b7e091d9e19e9c2016300f9dbf3242e3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_55963df1",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PoolMapper.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-04-13T09:13:29Z",
+      "side": 1,
+      "message": "isn\u0027t .distinctUntilChanged() enough?",
+      "range": {
+        "startLine": 119,
+        "startChar": 8,
+        "endLine": 119,
+        "endChar": 42
+      },
+      "revId": "2098ad65b7e091d9e19e9c2016300f9dbf3242e3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_f5f76957",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PoolMapper.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 133,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-04-13T09:13:29Z",
+      "side": 1,
+      "message": "I think the distinctUntilChanged operator for observables does exactly this (but not 100% sure).",
+      "range": {
+        "startLine": 133,
+        "startChar": 16,
+        "endLine": 133,
+        "endChar": 30
       },
       "revId": "2098ad65b7e091d9e19e9c2016300f9dbf3242e3",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
