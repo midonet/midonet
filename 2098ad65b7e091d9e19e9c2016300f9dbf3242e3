@@ -96,6 +96,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_6bcefab5",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/PoolMember.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-04-13T15:05:01Z",
+      "side": 1,
+      "message": "I see. Yes you are right (as usual ;-)",
+      "parentUuid": "1a106d94_906e0300",
+      "range": {
+        "startLine": 80,
+        "startChar": 4,
+        "endLine": 82,
+        "endChar": 60
+      },
+      "revId": "2098ad65b7e091d9e19e9c2016300f9dbf3242e3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_55963df1",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PoolMapper.scala",
         "patchSetId": 17
@@ -178,6 +202,30 @@
       "side": 1,
       "message": "Yes, you\u0027re right! However, here I wanted to avoid the logging of creating a new pool when such a pool is not emitted from the mapper, just in case this would make the debugging easier.",
       "parentUuid": "1a106d94_f5f76957",
+      "range": {
+        "startLine": 133,
+        "startChar": 16,
+        "endLine": 133,
+        "endChar": 30
+      },
+      "revId": "2098ad65b7e091d9e19e9c2016300f9dbf3242e3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_abd8f27f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PoolMapper.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 133,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-04-13T15:05:01Z",
+      "side": 1,
+      "message": "ok",
+      "parentUuid": "1a106d94_304e2f97",
       "range": {
         "startLine": 133,
         "startChar": 16,
