@@ -13,30 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.midonet.brain.services.rest_api.models;
 
 import java.util.UUID;
 
-import javax.xml.bind.annotation.XmlElement;
-
-import org.midonet.brain.services.rest_api.annotation.ParentId;
-import org.midonet.brain.services.rest_api.annotation.Resource;
 import org.midonet.cluster.data.ZoomField;
+import org.midonet.cluster.data.ZoomOneOf;
 import org.midonet.cluster.util.UUIDUtil;
 
-@Resource(name = ResourceUris.PORTS, parents = { Bridge.class })
-public class BridgePort extends Port {
+@ZoomOneOf(name = "jump_rule_data")
+public class JumpRule extends Rule {
 
-    @ZoomField(name = "vlan_id")
-    public short vlanId;
+    @ZoomField(name = "jump_chain_name")
+    public String jumpChainName;
+    @ZoomField(name = "jump_to", converter = UUIDUtil.Converter.class)
+    public UUID jumpChainId;
 
-    @XmlElement(name = "deviceId")
-    @ZoomField(name = "network_id", converter = UUIDUtil.Converter.class)
-    @ParentId
-    public UUID networkId;
+    public JumpRule() {
+        super(RuleType.JUMP, RuleAction.JUMP);
+    }
 
+    @Override
     public String getType() {
-        return PortType.BRIDGE;
+        return Rule.Jump;
     }
 
 }

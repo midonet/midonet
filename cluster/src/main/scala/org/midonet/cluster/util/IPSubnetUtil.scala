@@ -3,9 +3,10 @@
  */
 package org.midonet.cluster.util
 
-import java.lang.reflect.Type
+import java.lang.reflect.{ParameterizedType, Type}
 
 import org.midonet.cluster.data.ZoomConvert
+import org.midonet.cluster.data.ZoomConvert.ConvertException
 import org.midonet.cluster.models.Commons
 import org.midonet.cluster.models.Commons.{IPVersion, IPAddress}
 import org.midonet.packets.{IPv6Subnet, IPv4Subnet, IPSubnet}
@@ -14,6 +15,11 @@ import org.midonet.packets.{IPv6Subnet, IPv4Subnet, IPSubnet}
  * Utility methods and converters for the IPSubnet message.
  */
 object IPSubnetUtil {
+
+    private final val StringClass = classOf[String]
+    private final val IPSubnetClass = classOf[IPSubnet[_]]
+    private final val IPv4SubnetClass = classOf[IPv4Subnet]
+    private final val IPv6SubnetClass = classOf[IPv6Subnet]
 
     implicit def toProto(subnet: IPSubnet[_]): Commons.IPSubnet = {
         val version = subnet match {
@@ -74,15 +80,23 @@ object IPSubnetUtil {
     }
 
     sealed class Converter
-            extends ZoomConvert.Converter[IPSubnet[_], Commons.IPSubnet] {
+            extends ZoomConvert.Converter[Any, Commons.IPSubnet] {
 
-        override def toProto(value: IPSubnet[_],
-                             clazz: Type): Commons.IPSubnet =
-            IPSubnetUtil.toProto(value)
+        override def toProto(value: Any,
+                             clazz: Type): Commons.IPSubnet = value match {
+            case subnet: String => IPSubnetUtil.toProto(subnet)
+            case subnet: IPSubnet[_] => IPSubnetUtil.toProto(subnet)
+            case _ => throw new ConvertException(s"Unsupported value $value")
+        }
 
         override def fromProto(value: Commons.IPSubnet,
-                               clazz: Type): IPSubnet[_] =
-            IPSubnetUtil.fromProto(value)
+                               clazz: Type): Any = clazz match {
+            case StringClass => s"${value.getAddress}/${value.getPrefixLength}"
+            case IPv4SubnetClass => IPSubnetUtil.fromProto(value)
+            case IPv6SubnetClass => IPSubnetUtil.fromProto(value)
+            case t: ParameterizedType if t.getRawType == IPSubnetClass =>
+                IPSubnetUtil.fromProto(value)
+        }
     }
 
     val univSubnet4 = Commons.IPSubnet.newBuilder()

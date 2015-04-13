@@ -17,8 +17,10 @@ package org.midonet.brain.services.rest_api.models;
 
 import java.util.UUID;
 
+import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlTransient;
 
+import org.midonet.brain.services.rest_api.annotation.ParentId;
 import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.util.UUIDUtil;
 
@@ -33,21 +35,22 @@ public class VxLanPort extends Port {
     @ZoomField(name = "vni", converter = UUIDUtil.Converter.class)
     public int vni;
 
+    @XmlElement(name = "deviceId")
     @ZoomField(name = "network_id", converter = UUIDUtil.Converter.class)
-    @XmlTransient
+    @ParentId
     public UUID networkId;
 
     public String getType() {
         return PortType.VXLAN;
     }
 
-    @Override
-    public UUID getDeviceId() {
-        return networkId;
-    }
-
-    @Override
-    public void setDeviceId(UUID id) {
-        networkId = id;
-    }
+//    @Override
+//    public UUID getDeviceId() {
+//        return networkId;
+//    }
+//
+//    @Override
+//    public void setDeviceId(UUID id) {
+//        networkId = id;
+//    }
 }
