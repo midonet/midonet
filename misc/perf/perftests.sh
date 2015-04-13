@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Copyright 2014-2015 Midokura SARL
+# Copyright 2015 Midokura SARL
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -169,7 +169,6 @@ source_config() {
 assert_dependencies() {
     which vconfig || err_exit "vconfig not installed (apt-get install vlan)"
     which midonet-cli || err_exit "midonet-cli not installed"
-    which nmap || err_exit "nmap not installed"
     which rrdtool || err_exit "rrdtool not installed"
     test -f $MIDONET_SRC_DIR/midolman/build.gradle || err_exit "directory $MIDONET_SRC_DIR not a midonet code checkout"
     test -f $HOME/.midonetrc || err_exit ".midonetrc not found in $HOME"
@@ -364,41 +363,46 @@ connectivity_check() {
 
 warm_up() {
     test_phase "Warming up midolman"
-    # 1000 pkts/sec, 5000 packets, 10 scans
-    i=0
-    while [ $i -lt 10 ] ; do
-        let i=i+1
-        generate_traffic 5000 1000
-    done
-    sleep 90
+    generate_traffic 1500 # 1500 pkts/sec
+    sleep 10
 }
 
 test_throughput() {
-    test_phase "Find max throughput in 65k port scans"
+    test_phase "Find max throughput by sending at a constant rate for 1 minute"
     rate=9000
     while [ $rate -le $THROUGHPUT_SCAN_MAX_RATE ] ; do
-        generate_traffic 65000 $rate
-        generate_traffic 65000 $rate
-        generate_traffic 65000 $rate
+        generate_traffic $rate
+        sleep 5
         let rate=rate+1000
     done
 }
 
-long_running_tests() {
-    rate=$LONG_RUNNING_SCAN_RATE
-    iterations=$LONG_RUNNING_SCAN_ITERATIONS
-    test_phase "Long running tests: $iterations 50k port-scans at $rate ports/sec"
-    sleep 120
-    i=0
-    while [ $i -lt $iterations ] ; do
-        let i=i+1
-        generate_traffic 50000 $rate
-    done
+generate_traffic() {
+    if [ -z $1 ] ; then
+        err_exit "Usage: generate_traffic RATE"
+    fi
+
+    rate="$1"
+    delay="$((1000000000 / $rate))"
+    count="$((60 * rate))"
+
+    srcif="${TOPOLOGY_SOURCE_NETNS}ns"
+    dstif="${TOPOLOGY_DEST_NETNS}ns"
+
+    echo "-----------------------------"
+    echo "Generating traffic"
+    echo "         rate: $rate pkt/s"
+    echo "      packets: $count"
+    echo "        delay: $delay ns"
+    echo "-----------------------------"
+
+    ip netns exec $TOPOLOGY_SOURCE_NETNS $LOADGEN 0 $srcif $TOPOLOGY_DEST_MAC \
+        $count $delay || err_exit "generate traffic"
 }
 
-generate_traffic() {
+generate_traffic_with_capture() {
     if [ -z $1 ] || [ -z $2 ] ; then
-        err_exit "Usage: generate_traffic NUM_PACKETS RATE"
+        err_exit "Usage: generate_traffic_with_tcpdump NUM_PACKETS RATE"
     fi
 
     count="$1"
@@ -408,13 +412,12 @@ generate_traffic() {
     srcif="${TOPOLOGY_SOURCE_NETNS}ns"
     dstif="${TOPOLOGY_DEST_NETNS}ns"
 
-    echo "--------------------------------------"
+    echo "-----------------------------"
     echo "Generating traffic"
-    echo "           target mac: $mac"
-    echo "    number of packets: $count"
-    echo "                 rate: $rate pkt/s"
-    echo "                delay: $delay ns"
-    echo "--------------------------------------"
+    echo "         rate: $rate pkt/s"
+    echo "      packets: $count"
+    echo "        delay: $delay ns"
+    echo "-----------------------------"
 
     tcpdump_out=mktemp || err_exit "preparing tcp dump"
     trap 'rm -rf "$tcpdump_out"' EXIT INT TERM HUP
@@ -728,7 +731,6 @@ if [ "$setup_only" != "yes" ] ; then
     warm_up
 
     test_throughput
-    long_running_tests
     stop_jmxtrans
     midolman_heapdump
 
