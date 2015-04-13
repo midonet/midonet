@@ -592,10 +592,10 @@ class ZookeeperObjectMapper(
     }
 
     override def getAll[T](clazz: Class[T], ids: Seq[_ <: ObjId])
-    : Seq[Future[T]] = {
+    : Future[Seq[T]] = {
         assertBuilt()
         assert(isRegistered(clazz))
-        ids.map { id => get(clazz, id) }
+        Future.sequence(ids.map(get(clazz, _)))
     }
 
     /**
@@ -610,7 +610,7 @@ class ZookeeperObjectMapper(
             override def processResult(client: CuratorFramework,
                                        evt: CuratorEvent): Unit = {
                 assert(CuratorEventType.CHILDREN == evt.getType)
-                Future.sequence(getAll(clazz, evt.getChildren)).onComplete {
+                getAll(clazz, evt.getChildren).onComplete {
                     case Success(l) => all trySuccess l
                     case Failure(t) => all tryFailure t
                 }
