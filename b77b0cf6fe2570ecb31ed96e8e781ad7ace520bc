@@ -163,6 +163,30 @@
       "revId": "b77b0cf6fe2570ecb31ed96e8e781ad7ace520bc",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_55059d78",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 272,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-04-13T08:21:06Z",
+      "side": 1,
+      "message": "What I had in mind is like the following:\n\ntry {\n  update()\n} catch { // if not found\n  try {\n    create()\n  } catch { // if create/update fails with any other exception catch here\n    ...\n  }\n}\n\nI think this way it is clearer what the second catch clause is trying to handle.",
+      "parentUuid": "1a106d94_0c7de9e7",
+      "range": {
+        "startLine": 265,
+        "startChar": 8,
+        "endLine": 272,
+        "endChar": 9
+      },
+      "revId": "b77b0cf6fe2570ecb31ed96e8e781ad7ace520bc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
