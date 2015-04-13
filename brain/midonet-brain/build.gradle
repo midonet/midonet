@@ -84,6 +84,7 @@ dependencies {
 // Note that the path is relative to the midonet-brain submodule.
 run {
     mainClassName = "org.midonet.brain.ClusterNode"
+    systemProperties System.getProperties()
     if (project.hasProperty("conf")) {
         args = [conf]
     } else {
