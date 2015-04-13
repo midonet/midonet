@@ -2,6 +2,75 @@
   "comments": [
     {
       "key": {
+        "uuid": "1a106d94_0f015105",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PoolMapper.scala",
+        "patchSetId": 18
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-04-13T19:17:59Z",
+      "side": 1,
+      "message": "what\u0027s the case when the zoom observable might emit a dupe item?",
+      "range": {
+        "startLine": 51,
+        "startChar": 12,
+        "endLine": 51,
+        "endChar": 35
+      },
+      "revId": "37cbbf05f1fbbf68a9654abbfce6295b30e54ef5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_ab07521c",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PoolMapper.scala",
+        "patchSetId": 18
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-04-13T19:17:59Z",
+      "side": 1,
+      "message": "what\u0027s different from distinctUntilChanged?",
+      "range": {
+        "startLine": 119,
+        "startChar": 9,
+        "endLine": 119,
+        "endChar": 41
+      },
+      "revId": "37cbbf05f1fbbf68a9654abbfce6295b30e54ef5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_0b07861d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PoolMapper.scala",
+        "patchSetId": 18
+      },
+      "lineNbr": 133,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-04-13T19:17:59Z",
+      "side": 1,
+      "message": "This has side effects as it changes the device ref, the name is misleading, no?",
+      "range": {
+        "startLine": 133,
+        "startChar": 16,
+        "endLine": 133,
+        "endChar": 30
+      },
+      "revId": "37cbbf05f1fbbf68a9654abbfce6295b30e54ef5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_abbf52fb",
         "filename": "midolman/src/test/scala/org/midonet/midolman/topology/PoolMapperTest.scala",
         "patchSetId": 18
