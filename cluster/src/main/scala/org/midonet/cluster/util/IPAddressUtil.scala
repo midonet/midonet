@@ -84,24 +84,17 @@ object IPAddressUtil {
     def toInetAddress(addr: Commons.IPAddress): InetAddress =
         InetAddress.getByName(addr.getAddress)
 
-    implicit def richString(str: String) = new {
-        def asProtoIPAddress: Commons.IPAddress = str
-    }
+    implicit def richAddressString(str: String): RichAddresString =
+        new RichAddresString(str)
 
-    implicit def richIPAddress(addr: IPAddr) = new {
-        def asProto: Commons.IPAddress = addr
-    }
+    implicit def richIPAddress(addr: IPAddr): RichIPAddress =
+        new RichIPAddress(addr)
 
-    implicit def richInetAddress(addr: InetAddress) = new {
-        def asProto: Commons.IPAddress = IPAddressUtil.toProto(addr)
-    }
+    implicit def richInetAddress(addr: InetAddress): RichInetAddress =
+        new RichInetAddress(addr)
 
-    implicit def richProtoIPAddress(addr: Commons.IPAddress) = new {
-        def asString: String = addr.getAddress
-        def asIPv4Address: IPv4Addr = IPAddressUtil.toIPv4Addr(addr)
-        def asIPv6Address: IPv6Addr = IPAddressUtil.toIPv6Addr(addr)
-        def asInetAddress: InetAddress = IPAddressUtil.toInetAddress(addr)
-    }
+    implicit def richProtoIPAddress(addr: Commons.IPAddress): RichProtoIPAddress =
+        new RichProtoIPAddress(addr)
 
     sealed class Converter
             extends ZoomConvert.Converter[Any, Commons.IPAddress] {
@@ -127,7 +120,25 @@ object IPAddressUtil {
                     throw new ConvertException(s"Unsupported class $clazz")
             }
         }
+    }
 
+    final class RichAddresString(str: String) {
+        def asProtoIPAddress: Commons.IPAddress = str
+    }
+
+    final class RichIPAddress(addr:IPAddr) {
+        def asProto: Commons.IPAddress = addr
+    }
+
+    final class RichInetAddress(addr: InetAddress) {
+        def asProto: Commons.IPAddress = IPAddressUtil.toProto(addr)
+    }
+
+    final class RichProtoIPAddress(addr: Commons.IPAddress) {
+        def asString: String = addr.getAddress
+        def asIPv4Address: IPv4Addr = IPAddressUtil.toIPv4Addr(addr)
+        def asIPv6Address: IPv6Addr = IPAddressUtil.toIPv6Addr(addr)
+        def asInetAddress: InetAddress = IPAddressUtil.toInetAddress(addr)
     }
 
 }

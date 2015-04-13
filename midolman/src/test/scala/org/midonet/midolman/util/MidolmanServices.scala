@@ -66,7 +66,7 @@ trait MidolmanServices {
     }
 
     implicit def hostId: UUID =
-        injector.getInstance(classOf[HostIdProviderService]).getHostId
+        injector.getInstance(classOf[HostIdProviderService]).hostId
 
     def mockDpConn()(implicit ec: ExecutionContext, as: ActorSystem) = {
         dpConn().asInstanceOf[MockOvsDatapathConnection]
