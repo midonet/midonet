@@ -29,7 +29,8 @@ import org.midonet.packets.IPv4Subnet;
 import org.midonet.packets.IPv6Subnet;
 import org.midonet.packets.MAC;
 
-public class ResourceUriBuilder {
+public class
+    ResourceUriBuilder {
 
     public static final String ROOT = "/";
     public static final String TENANTS = "/tenants";

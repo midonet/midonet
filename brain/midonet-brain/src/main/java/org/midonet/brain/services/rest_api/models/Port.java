@@ -23,6 +23,8 @@ import javax.xml.bind.annotation.XmlRootElement;
 import org.codehaus.jackson.annotate.JsonSubTypes;
 import org.codehaus.jackson.annotate.JsonTypeInfo;
 
+import org.midonet.brain.services.rest_api.annotation.Resource;
+import org.midonet.brain.services.rest_api.annotation.ResourceId;
 import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomConvert;
 import org.midonet.cluster.data.ZoomField;
@@ -41,9 +43,11 @@ import org.midonet.util.version.Since;
         @JsonSubTypes.Type(value = ExteriorRouterPort.class, name = PortType.EXTERIOR_ROUTER),
         @JsonSubTypes.Type(value = InteriorRouterPort.class, name = PortType.INTERIOR_ROUTER),
         @JsonSubTypes.Type(value = VxLanPort.class, name = PortType.VXLAN)})
+@Resource(path = ResourceUris.PORTS)
 @ZoomClass(clazz = Topology.Port.class, factory = Port.PortFactory.class)
 public abstract class Port extends UriResource {
 
+    @ResourceId
     @ZoomField(name = "id", converter = UUIDUtil.Converter.class)
     public UUID id;
 
@@ -89,10 +93,10 @@ public abstract class Port extends UriResource {
         }
     }
 
-    @Override
-    public String getUri() {
-        return ResourceUris.PORTS;
-    }
+    //@Override
+    //public String getUri() {
+    //    return ResourceUris.PORTS;
+    //}
 
 }
 

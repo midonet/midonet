@@ -15,6 +15,7 @@
  */
 package org.midonet.brain.services.rest_api.models;
 
+import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -24,13 +25,22 @@ import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.xml.bind.annotation.XmlRootElement;
 
+import com.google.protobuf.MessageOrBuilder;
+
+import org.midonet.brain.services.rest_api.annotation.Resource;
+import org.midonet.brain.services.rest_api.annotation.ResourceId;
+import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;
+import org.midonet.cluster.models.Topology;
 import org.midonet.cluster.util.UUIDUtil;
 
 // Doesn't support direct translation to ZOOM
 @XmlRootElement
+@Resource(path = ResourceUris.HOSTS)
+@ZoomClass(clazz = Topology.Host.class)
 public class Host extends UriResource {
 
+    @ResourceId
     @ZoomField(name = "id", converter = UUIDUtil.Converter.class)
     public UUID id;
 
@@ -38,10 +48,11 @@ public class Host extends UriResource {
     @ZoomField(name = "name")
     public String name;
 
-    @ZoomField(name = "addresses")
-    public List<String> addresses = new ArrayList<>();
+    public List<String> addresses;
 
-    // Not a ZOOM field, as this is stored as a State node
+    @ZoomField(name = "interfaces")
+    public List<Interface> interfaces;
+
     public boolean alive;
 
     /*
@@ -59,7 +70,12 @@ public class Host extends UriResource {
     public Integer floodingProxyWeight = 0;
 
     @Override
-    public String getUri() {
-        return uriFor(ResourceUris.HOSTS + "/" + id).toString();
+    public void afterFromProto(MessageOrBuilder proto) {
+        addresses = new ArrayList<>();
+        for (Interface iface : interfaces) {
+            for (InetAddress address : iface.addresses) {
+                addresses.add(address.toString());
+            }
+        }
     }
 }

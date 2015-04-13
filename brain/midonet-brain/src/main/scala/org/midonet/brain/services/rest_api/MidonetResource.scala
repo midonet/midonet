@@ -19,16 +19,19 @@ package org.midonet.brain.services.rest_api
 import java.net.URI
 import java.util
 import java.util.UUID
+
 import javax.ws.rs._
 import javax.ws.rs.core._
 
 import scala.collection.JavaConversions._
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.util.control.NonFatal
 
 import com.google.common.util.concurrent.MoreExecutors._
 import com.google.inject.servlet.RequestScoped
-import com.google.protobuf.Message
+import com.google.protobuf.MessageOrBuilder
+
 import org.eclipse.jetty.http.HttpStatus
 import org.slf4j.LoggerFactory
 
@@ -37,7 +40,6 @@ import org.midonet.brain.services.rest_api.models.{Port, ResourceUris, UriResour
 import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.data.storage.NotFoundException
 import org.midonet.cluster.models.Commons
-import org.midonet.cluster.util.UUIDUtil.toProto
 
 @Path("/")
 @RequestScoped
@@ -76,13 +78,10 @@ class MidonetResource {
             @HeaderParam("accept") acceptMedia: String) = {
 
         log.debug(s"GET $resource with id $id for media type $acceptMedia")
-        // TODO: I suspect this cast below is due to dodgy invariants in
-        //       ZoomConver
-        val dtoClass = MidonetMediaTypes.resourceOf(acceptMedia)
-                                        .asInstanceOf[Class[UriResource]]
-        val zoomClass = MidonetMediaTypes.zoomFor.get(dtoClass).orNull
-        val o = Await.result(backend.get(zoomClass, id), 3.seconds)
-        renderer.from(o, dtoClass, uriInfo.getBaseUri)
+        val dtoClass = MidonetMediaTypes.pathToDto(resource)
+        val zoomClass = MidonetMediaTypes.pathToZoom(resource)
+        val obj = Await.result(backend.get(zoomClass, id), 3 seconds)
+        renderer.from(obj, dtoClass, uriInfo.getBaseUri)
     }
 
     @GET
@@ -116,22 +115,19 @@ class MidonetResource {
             APPLICATION_VTEP_COLLECTION_JSON,
             APPLICATION_VTEP_PORT_COLLECTION_JSON,
             MediaType.APPLICATION_JSON))
-    def list(@PathParam("resource")res: String,
+    def list(@PathParam("resource")resource: String,
              @HeaderParam("Accept")acceptMedia: String): util.List[Object] = {
-        log.info(s"LIST: $res")
-        // TODO: I suspect this cast below is due to dodgy invariants in
-        //       ZoomConvert
-        val dtoClass = MidonetMediaTypes.resourceOf(acceptMedia)
-                                        .asInstanceOf[Class[UriResource]]
-        val zoomClass = MidonetMediaTypes.zoomFor.get(dtoClass).orNull
+        log.info(s"LIST: $resource")
+        val dtoClass = MidonetMediaTypes.pathToDto(resource)
+        val zoomClass = MidonetMediaTypes.pathToZoom(resource)
         log.debug(s"Request collection for: $acceptMedia, target class: " +
                   s"${dtoClass.getName}, zoom class: ${zoomClass.getName}")
         val n = Await.result(backend.getAll(zoomClass), 3.seconds)
-        n.map { renderer.from(_, dtoClass, uriInfo.getBaseUri) }.toList
+        n.map { renderer.from(_, dtoClass, uriInfo.getBaseUri) } toList
     }
 
     @GET
-    @Path("/{mainresource}/{id}/{subresource}")
+    @Path("/{resource}/{id}/{subresource}")
     @Produces(Array(APPLICATION_PORT_COLLECTION_JSON,
                     APPLICATION_PORT_V2_COLLECTION_JSON,
                     APPLICATION_IP4_MAC_COLLECTION_JSON,
@@ -151,27 +147,31 @@ class MidonetResource {
                     APPLICATION_MAC_PORT_COLLECTION_JSON_V2,
                     MediaType.APPLICATION_JSON))
     def list(@PathParam("id")id: UUID,
-             @PathParam("mainresource") mainRes: String,
+             @PathParam("resource") mainRes: String,
              @PathParam("subresource") subRes: String,
-             @HeaderParam("Accept")accepts: String)
+             @HeaderParam("Accept") accepts: String)
     : util.List[UriResource] = {
         log.debug(s"LIST: $accepts")
-        val mainProtoClass = protoFromResName(mainRes)
-        val subClass = MidonetMediaTypes.resourceOf(accepts)
-                                        .asInstanceOf[Class[UriResource]]
-        val subProtoClass = MidonetMediaTypes.zoomFor.get(subClass).orNull
-        val allSubRes = backend.get(mainProtoClass, id).flatMap { proto =>
+        val dtoClass = MidonetMediaTypes.pathToDto(mainRes)
+        val zoomClass = MidonetMediaTypes.pathToZoom(mainRes)
+        val subDtoClass = MidonetMediaTypes.pathToDto(subRes)
+        val subZoomClass = MidonetMediaTypes.pathToZoom(subRes)
+
+        val obj = Await.result(backend.get(zoomClass, id), 3 seconds)
+        val dto = renderer.from(obj, dtoClass, uriInfo.getBaseUri)
+
+        val allSubRes = backend.get(zoomClass, id).flatMap { proto =>
             val fieldDesc = proto.getDescriptorForType.findFieldByName("port_ids")
             val data = proto.getField(fieldDesc) match {
                 case l: util.List[_] => l map {
-                    case uuid: Commons.UUID => backend.get(subProtoClass, uuid)
+                    case uuid: Commons.UUID => backend.get(subZoomClass, uuid)
                     case _ => null
                 }
                 case _ => List.empty
             }
             Future.sequence(data.filterNot(_ == null))
         } map { allProtos => allProtos map { proto =>
-            renderer.from(proto, subClass, uriInfo.getBaseUri) }
+            renderer.from(proto, subDtoClass, uriInfo.getBaseUri) }
         }
         Await.result(allSubRes, 3.seconds).toList
     }
@@ -187,10 +187,10 @@ class MidonetResource {
                @HeaderParam("Content-Type")contentType: String,
                data: String): Response = {
         log.debug(s"CREATE a sub-resource $subRes of main type $mainRes: $id")
-        val mainZoomClass = protoFromResName(mainRes)
+        val mainProtoClass = MidonetMediaTypes.pathToZoom(mainRes)
 
         try {
-            Await.result(backend.get(mainZoomClass, id), 3.seconds)
+            Await.result(backend.get(mainProtoClass, id), 3.seconds)
         } catch {
             case e: NotFoundException =>
                 return Response.status(HttpStatus.NOT_FOUND_404)
@@ -199,14 +199,14 @@ class MidonetResource {
                 return Response.serverError().`type`(mainRes).build()
         }
 
-        val subClass = MidonetMediaTypes.resourceOf(contentType)
-        val zoomClass = MidonetMediaTypes.zoomFor.get(subClass).orNull
-        val dto = deserialize(data, subClass)
+        val subDtoClass = MidonetMediaTypes.pathToDto(subRes)
+        val subZoomClass = MidonetMediaTypes.pathToZoom(subRes)
+        val dto = deserialize(data, subDtoClass)
         dto match {
             case p: Port => p.setDeviceId(id)
         }
 
-        create(UUID.randomUUID(), dto, subRes, zoomClass)
+        create(UUID.randomUUID(), dto, subRes, subZoomClass)
     }
 
     @POST
@@ -245,8 +245,8 @@ class MidonetResource {
                @PathParam("resource")resource: String,
                data: String): Response = {
         log.debug(s"CREATE a $contentType")
-        val dto = deserialize(data, MidonetMediaTypes.resourceOf(contentType))
-        val zoomClass = MidonetMediaTypes.zoomFor.get(dto.getClass).orNull
+        val dto = deserialize(data, MidonetMediaTypes.pathToDto(resource))
+        val zoomClass = MidonetMediaTypes.pathToZoom(resource)
         create(UUID.randomUUID(), dto, resource, zoomClass)
     }
 
@@ -287,8 +287,8 @@ class MidonetResource {
                @HeaderParam("Content-Type")contentType: String,
                data: String): Response = {
         log.debug(s"UPDATE a $contentType with $data")
-        val dto = deserialize(data, MidonetMediaTypes.resourceOf(contentType))
-        val zoomClass = MidonetMediaTypes.zoomFor.get(dto.getClass).orNull
+        val dto = deserialize(data, MidonetMediaTypes.pathToDto(resource))
+        val zoomClass = MidonetMediaTypes.pathToZoom(resource)
         val newProto = renderer.to(dto, zoomClass)
         try {
             backend.update(newProto)
@@ -307,7 +307,7 @@ class MidonetResource {
     def delete(@PathParam("id") id: UUID,
                @PathParam("resource") resourceName: String): Unit = {
         log.debug(s"DELETE $resourceName with id $id")
-        backend.delete(MidonetMediaTypes.protoFromResName(resourceName), id)
+        backend.delete(MidonetMediaTypes.pathToZoom(resourceName), id)
     }
 
     private def deserialize[T <: UriResource](data: String, dtoClass: Class[T])
@@ -318,18 +318,14 @@ class MidonetResource {
     }
 
     private def create(id: UUID, dto: UriResource, resName: String,
-                       zoomClass: Class[_ <: Message]): Response = {
+                       zoomClass: Class[_ <: MessageOrBuilder]): Response = {
         try {
-            val zoom = ZoomConvert.toProto(dto, zoomClass)
-            val idField = zoom.getDescriptorForType.findFieldByName("id")
-            val zoomWithId = zoom.toBuilder
-                                 .setField(idField, toProto(id))
-                                 .build()
-            backend.create(zoomWithId)
+            dto.setId(id)
+            backend.create(ZoomConvert.toProto(dto, zoomClass))
             Response.created(uriFor(resName, id)).build()
         } catch {
-            case t: Throwable =>
-                log.error("Create failed: ", t)
+            case NonFatal(e) =>
+                log.error("Create failed: ", e)
                 Response.serverError().build()
         }
     }
