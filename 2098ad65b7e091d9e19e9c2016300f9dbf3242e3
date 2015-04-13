@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_504beb86",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Pool.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 212,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-13T13:54:32Z",
+      "side": 1,
+      "message": "I commented on the PoolMember thread.",
+      "parentUuid": "1a106d94_d5022d3d",
+      "range": {
+        "startLine": 209,
+        "startChar": 4,
+        "endLine": 212,
+        "endChar": 1
+      },
+      "revId": "2098ad65b7e091d9e19e9c2016300f9dbf3242e3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_95d275d0",
         "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/PoolMember.scala",
         "patchSetId": 17
@@ -36,6 +60,30 @@
       "writtenOn": "2015-04-13T08:59:51Z",
       "side": 1,
       "message": "Shouldn\u0027t the hashCode be based on id only? e.g. if we have a set of pool members and update it, we probably don\u0027t want to keep together versions of the objects with different values and same id...",
+      "range": {
+        "startLine": 80,
+        "startChar": 4,
+        "endLine": 82,
+        "endChar": 60
+      },
+      "revId": "2098ad65b7e091d9e19e9c2016300f9dbf3242e3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_906e0300",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/PoolMember.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-13T13:54:32Z",
+      "side": 1,
+      "message": "In such cases shouldn\u0027t we rather use a Map[UUID, PoolMember] that explicitly makes the id the key? To my knowledge, hashCode is only used to improve performance for hash maps/sets. It is not used to exclusively compare the keys in those sets, which still uses equals (see the put method in java.util.HashMap):\n\n      public V put(K key, V value) {\n        if (table \u003d\u003d EMPTY_TABLE) {\n            inflateTable(threshold);\n        }\n        if (key \u003d\u003d null)\n            return putForNullKey(value);\n        int hash \u003d hash(key);\n        int i \u003d indexFor(hash, table.length);\n        for (Entry\u003cK,V\u003e e \u003d table[i]; e !\u003d null; e \u003d e.next) {\n            Object k;\n            if (e.hash \u003d\u003d hash \u0026\u0026 ((k \u003d e.key) \u003d\u003d key || key.equals(k))) {\n                V oldValue \u003d e.value;\n                e.value \u003d value;\n                e.recordAccess(this);\n                return oldValue;\n            }\n        }\n\n        modCount++;\n        addEntry(hash, key, value, i);\n        return null;\n    }",
+      "parentUuid": "1a106d94_95d275d0",
       "range": {
         "startLine": 80,
         "startChar": 4,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_90456372",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PoolMapper.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-13T13:54:32Z",
+      "side": 1,
+      "message": "See my reply below.",
+      "parentUuid": "1a106d94_55963df1",
+      "range": {
+        "startLine": 119,
+        "startChar": 8,
+        "endLine": 119,
+        "endChar": 42
+      },
+      "revId": "2098ad65b7e091d9e19e9c2016300f9dbf3242e3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_f5f76957",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PoolMapper.scala",
         "patchSetId": 17
@@ -82,6 +154,30 @@
       "writtenOn": "2015-04-13T09:13:29Z",
       "side": 1,
       "message": "I think the distinctUntilChanged operator for observables does exactly this (but not 100% sure).",
+      "range": {
+        "startLine": 133,
+        "startChar": 16,
+        "endLine": 133,
+        "endChar": 30
+      },
+      "revId": "2098ad65b7e091d9e19e9c2016300f9dbf3242e3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_304e2f97",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PoolMapper.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 133,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-13T13:54:32Z",
+      "side": 1,
+      "message": "Yes, you\u0027re right! However, here I wanted to avoid the logging of creating a new pool when such a pool is not emitted from the mapper, just in case this would make the debugging easier.",
+      "parentUuid": "1a106d94_f5f76957",
       "range": {
         "startLine": 133,
         "startChar": 16,
