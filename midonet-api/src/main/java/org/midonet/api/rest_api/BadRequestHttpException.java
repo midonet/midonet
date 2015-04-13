@@ -21,13 +21,13 @@ import javax.validation.ConstraintViolation;
 import javax.ws.rs.WebApplicationException;
 
 import org.midonet.api.validation.MessageProperty;
-import org.midonet.cluster.rest_api.ResponseUtils;
+import org.midonet.cluster.services.rest_api.ResponseUtils;
 import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.StatePathExceptionBase;
 
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static org.midonet.api.validation.MessageProperty.RESOURCE_NOT_FOUND;
-import static org.midonet.cluster.rest_api.ResponseUtils.buildErrorResponse;
+import static org.midonet.cluster.services.rest_api.ResponseUtils.buildErrorResponse;
 
 public class BadRequestHttpException extends WebApplicationException {
 

@@ -42,12 +42,12 @@ import static org.hamcrest.Matchers.arrayWithSize;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_PORTGROUP_COLLECTION_JSON;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_PORTGROUP_JSON;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_PORTGROUP_PORT_COLLECTION_JSON;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_PORTGROUP_PORT_JSON;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_PORT_V2_JSON;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_RULE_JSON_V2;
+import static org.midonet.cluster.services.rest_api.VendorMediaType.APPLICATION_PORTGROUP_COLLECTION_JSON;
+import static org.midonet.cluster.services.rest_api.VendorMediaType.APPLICATION_PORTGROUP_JSON;
+import static org.midonet.cluster.services.rest_api.VendorMediaType.APPLICATION_PORTGROUP_PORT_COLLECTION_JSON;
+import static org.midonet.cluster.services.rest_api.VendorMediaType.APPLICATION_PORTGROUP_PORT_JSON;
+import static org.midonet.cluster.services.rest_api.VendorMediaType.APPLICATION_PORT_V2_JSON;
+import static org.midonet.cluster.services.rest_api.VendorMediaType.APPLICATION_RULE_JSON_V2;
 
 public class TestPortGroup extends JerseyTest {
 

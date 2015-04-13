@@ -18,7 +18,7 @@ package org.midonet.api.network.rest_api;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.servlet.RequestScoped;
-import org.midonet.cluster.rest_api.VendorMediaType;
+import org.midonet.cluster.services.rest_api.VendorMediaType;
 import org.midonet.api.auth.ForbiddenHttpException;
 import org.midonet.api.network.Route;
 import org.midonet.api.rest_api.AbstractResource;

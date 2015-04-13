@@ -27,7 +27,7 @@ import org.eclipse.jetty.servlet.{DefaultServlet, ServletContextHandler}
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.services.MidonetBackend
-import org.midonet.cluster.services.rest_api.resources.{LoginResource, SystemStateResource}
+import org.midonet.cluster.services.rest_api.resources.{LoginResource, MidonetResource, SystemStateResource}
 import org.midonet.cluster.{ClusterConfig, ClusterMinion, ClusterNode}
 
 object Vladimir {
@@ -67,10 +67,11 @@ class Vladimir @Inject()(nodeContext: ClusterNode.Context,
                 Guice.createInjector(new JerseyServletModule {
                     override def configureServlets(): Unit = {
                         bind(classOf[MidonetBackend]).toInstance(backend)
+                        bind(classOf[MidonetResource])
                         bind(classOf[LoginResource])
                         bind(classOf[SystemStateResource])
 
-                        val initParams = new java.util.HashMap[String, String]
+                        val initParams = new util.HashMap[String, String]
                         initParams.put(ContainerResponseFiltersClass,
                                        classOf[CorsFilter].getName)
                         initParams.put(ContainerRequestFiltersClass,

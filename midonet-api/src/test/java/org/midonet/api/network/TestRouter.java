@@ -36,7 +36,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
-import org.midonet.cluster.rest_api.VendorMediaType;
+import org.midonet.cluster.services.rest_api.VendorMediaType;
 import org.midonet.api.rest_api.DtoWebResource;
 import org.midonet.api.rest_api.FuncTest;
 import org.midonet.api.rest_api.Topology;
@@ -62,13 +62,13 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_BRIDGE_JSON;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_PORT_LINK_JSON;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_PORT_V2_JSON;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_ROUTER_COLLECTION_JSON;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_ROUTER_COLLECTION_JSON_V2;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_ROUTER_JSON;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_ROUTER_JSON_V2;
+import static org.midonet.cluster.services.rest_api.VendorMediaType.APPLICATION_BRIDGE_JSON;
+import static org.midonet.cluster.services.rest_api.VendorMediaType.APPLICATION_PORT_LINK_JSON;
+import static org.midonet.cluster.services.rest_api.VendorMediaType.APPLICATION_PORT_V2_JSON;
+import static org.midonet.cluster.services.rest_api.VendorMediaType.APPLICATION_ROUTER_COLLECTION_JSON;
+import static org.midonet.cluster.services.rest_api.VendorMediaType.APPLICATION_ROUTER_COLLECTION_JSON_V2;
+import static org.midonet.cluster.services.rest_api.VendorMediaType.APPLICATION_ROUTER_JSON;
+import static org.midonet.cluster.services.rest_api.VendorMediaType.APPLICATION_ROUTER_JSON_V2;
 
 @RunWith(Enclosed.class)
 public class TestRouter {

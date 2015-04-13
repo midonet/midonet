@@ -35,7 +35,7 @@ import org.slf4j.LoggerFactory;
 import org.midonet.cluster.auth.AuthException;
 import org.midonet.cluster.auth.AuthService;
 import org.midonet.cluster.auth.UserIdentity;
-import org.midonet.cluster.rest_api.ResponseUtils;
+import org.midonet.cluster.services.rest_api.ResponseUtils;
 
 /**
  * Servlet filter for authentication.

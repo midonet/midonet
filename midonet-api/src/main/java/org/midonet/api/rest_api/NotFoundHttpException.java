@@ -22,7 +22,7 @@ import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.StatePathExceptionBase.NodeInfo;
 
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
-import static org.midonet.cluster.rest_api.ResponseUtils.buildErrorResponse;
+import static org.midonet.cluster.services.rest_api.ResponseUtils.buildErrorResponse;
 
 public class NotFoundHttpException extends WebApplicationException {
 

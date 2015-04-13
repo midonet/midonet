@@ -20,7 +20,7 @@ import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.servlet.RequestScoped;
 import org.midonet.api.ResourceUriBuilder;
-import org.midonet.cluster.rest_api.VendorMediaType;
+import org.midonet.cluster.services.rest_api.VendorMediaType;
 import org.midonet.api.auth.AuthRole;
 import org.midonet.api.l4lb.VIP;
 import org.midonet.api.rest_api.AbstractResource;

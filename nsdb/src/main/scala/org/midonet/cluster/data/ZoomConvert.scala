@@ -15,14 +15,14 @@
  */
 package org.midonet.cluster.data
 
-import java.lang.{Byte => JByte}
 import java.lang.reflect.{Array => JArray, Field, InvocationTargetException, ParameterizedType, Type}
+import java.lang.{Byte => JByte}
 import java.util
-import java.util.{List => JList, Set => JSet, HashSet => JHashSet}
+import java.util.{HashSet => JHashSet, List => JList, Set => JSet}
 
 import scala.annotation.meta.field
-import scala.collection.concurrent.TrieMap
 import scala.collection.JavaConversions._
+import scala.collection.concurrent.TrieMap
 
 import com.google.protobuf.Descriptors.{EnumDescriptor, EnumValueDescriptor}
 import com.google.protobuf.GeneratedMessage.Builder
@@ -593,7 +593,7 @@ object ZoomConvert {
 
         override def toProto(value: Array[_], clazz: Type): JList[_] = {
             val elClass = clazz.asInstanceOf[Class[_]].getComponentType
-            util.Arrays.asList(
+            java.util.Arrays.asList(
                 value.map(el => converter.to(el, elClass)): _*)
         }
 

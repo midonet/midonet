@@ -22,7 +22,7 @@ import javax.ws.rs.ext.Provider;
 import org.slf4j.Logger;
 
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
-import static org.midonet.cluster.rest_api.ResponseUtils.buildErrorResponse;
+import static org.midonet.cluster.services.rest_api.ResponseUtils.buildErrorResponse;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
