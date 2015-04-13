@@ -20,15 +20,19 @@ import java.util.UUID;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
+import org.midonet.brain.services.rest_api.annotation.Resource;
+import org.midonet.brain.services.rest_api.annotation.ResourceId;
 import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.models.Topology;
 import org.midonet.cluster.util.UUIDUtil;
 
 @XmlRootElement(name = "router")
+@Resource(name = ResourceUris.ROUTERS)
 @ZoomClass(clazz = Topology.Router.class)
 public class Router extends UriResource {
 
+    @ResourceId
     @ZoomField(name = "id", converter = UUIDUtil.Converter.class)
     public UUID id;
 
@@ -53,13 +57,4 @@ public class Router extends UriResource {
         adminStateUp = true;
     }
 
-    @Override
-    public void setBaseUri(URI baseUri) {
-        super.setBaseUri(baseUri);
-    }
-
-    @Override
-    public String getUri() {
-        return ResourceUris.ROUTERS;
-    }
 }

@@ -16,15 +16,191 @@
 
 package org.midonet.brain.services.rest_api
 
-import com.google.protobuf.Message
+import java.lang.annotation.Annotation
+import java.lang.reflect.Field
+import java.util.UUID
 
+import scala.collection.mutable
+import scala.collection.mutable.ArrayBuffer
+
+import com.google.protobuf.GeneratedMessage.Builder
+import com.google.protobuf.MessageOrBuilder
+
+import org.midonet.brain.services.rest_api.annotation._
 import org.midonet.brain.services.rest_api.models._
-import org.midonet.cluster.data.ZoomObject
-import org.midonet.cluster.models.Topology
+import org.midonet.cluster.data.{ZoomConvert, ZoomField, ZoomClass}
+import org.midonet.cluster.models.Commons
+import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.util.collection.Bimap
 
-/** All the MediaTypes offered by MidoNet */
+/** All the MediaTypes offered by MidoNet, plus some utility lookups into maps
+  * between domains. */
 object MidonetMediaTypes {
+
+    import ResourceUris._
+
+    type DtoClass = Class[_ >: Null <: UriResource]
+    type DtoPath = Seq[String]
+    private type ZoomBuilder = Builder[_ <: Builder[_ <: AnyRef]]
+
+    private final val BuilderMethod = "newBuilder"
+    private final val IdField = "id"
+
+    final val dtos = Set[DtoClass](
+        classOf[Bridge],
+        classOf[BridgePort],
+        classOf[Chain],
+        classOf[DhcpHost],
+        classOf[DhcpSubnet],
+        classOf[Host],
+        classOf[Interface],
+        classOf[Port],
+        classOf[Router],
+        classOf[Rule],
+        classOf[TunnelZone],
+        classOf[TunnelZoneHost]
+    )
+
+    /**
+     * An attribute containing the following information about a specific DTO
+     * resource:
+     * - the DTO resource path, containing all parent resources
+     * - the DTO class
+     * - the [[Resource]] annotation
+     * - the ZOOM Protocol Buffers class corresponding to the DTO class
+     * - the attribute for the identifier field, if it exists
+     * - the attribute for the parent identifier field, if it exists
+     * - the attribute for the ownership field, if it exists
+     * - a mapping for all fields that correspond to a sub-resource of this
+     * resource.
+     */
+    case class DtoAttribute(path: DtoPath, clazz: DtoClass, resource: Resource,
+                            zoom: ZoomClass, id: FieldAttribute,
+                            parent: FieldAttribute, ownership: FieldAttribute,
+                            subresources: Map[String, FieldAttribute]) {
+        /** Sets the identifier for the given DTO. */
+        def setId(dto: UriResource, dtoId: String): Unit = {
+            if (id eq null) return
+            if (id.field.getType == classOf[UUID])
+                parent.field.set(dto, UUID.fromString(dtoId))
+            else if (parent.field.getType == classOf[String])
+                parent.field.set(dto, dtoId)
+        }
+
+        def getProtoId(dtoId: String): String = {
+            if (id eq null) return dtoId
+            if (id.zoom eq null) return dtoId
+            if (id.field.getType == classOf[UUID]) return dtoId
+            val converter = id.zoom.converter().newInstance()
+                .asInstanceOf[ZoomConvert.Converter[Any, Commons.UUID]]
+            converter.toProto(dtoId, classOf[String]).asJava.toString
+        }
+
+        /** Generates a new identifier for the given DTO, if the DTO does not
+          * have one.*/
+        def generateId(dto: UriResource): Unit = {
+            if (id eq null) return
+            if (id.field.get(dto) == null) {
+                val uuid = UUID.randomUUID
+                if (id.field.getType == classOf[UUID])
+                    id.field.set(dto, uuid)
+                else if (id.field.getType == classOf[String])
+                    id.field.set(dto, uuid.toString)
+            }
+        }
+
+        /** Sets the parent identifier for the given DTO. */
+        def setParentId(dto: UriResource, parentId: String): Unit = {
+            if (parent eq null) return
+            if (parent.field.getType == classOf[UUID])
+                parent.field.set(dto, UUID.fromString(parentId))
+            else if (parent.field.getType == classOf[String])
+                parent.field.set(dto, parentId)
+        }
+
+        /** Sets the ownership for the given DTO. */
+        def setOwners(dto: UriResource, owners: Set[String]): Unit = {
+            if (ownership eq null) return
+            if (ownership.field.getType == classOf[Boolean])
+                ownership.field.set(dto, owners.nonEmpty)
+        }
+
+        /** Gets the Protocol Buffers descriptor corresponding to this DTO
+          * attribute. */
+        def getMessageDescriptor = {
+            zoom.clazz
+                .getMethod(BuilderMethod).invoke(null).asInstanceOf[ZoomBuilder]
+                .getDescriptorForType
+        }
+
+        /** Gets the Protocol Buffers descriptor corresponding to this DTO
+          * attribute for the given field name. */
+        def getFieldDescriptor(name: String) = {
+            getMessageDescriptor.findFieldByName(name)
+        }
+
+        /** Gets the Protocol Buffers descriptor corresponding to this DTO
+          * attribute for the given subresource. */
+        def getSubresourceDescriptor(subresource: String) = {
+            getMessageDescriptor.findFieldByName(subresources(subresource)
+                                                     .zoom.name)
+        }
+
+        /** Gets the value of the field annotated with a [[ResourceId]]
+          * annotation for the specified Protocol Buffers message. */
+        def getId(message: MessageOrBuilder): String = {
+            val idDescriptor = getFieldDescriptor(id.zoom.name)
+            message.getField(idDescriptor) match {
+                case id: Commons.UUID => id.asJava.toString
+                case id: String => id
+                case any => any.toString
+            }
+        }
+
+        def hasProtoId(message: MessageOrBuilder): Boolean = {
+            getFieldDescriptor(IdField) ne null
+        }
+
+        /** Gets the value of the `id` field for the specified Protocol Buffers
+          * message. */
+        def getProtoId(message: MessageOrBuilder): String = {
+            message.getField(getFieldDescriptor(IdField))
+                   .asInstanceOf[Commons.UUID].asJava.toString
+        }
+
+        /** Indicates whether the underlying message for this resource can be
+          * saved in storage. This is true when this is either a root resource,
+          * or when is referenced by its parent via an UUID list. */
+        def isStorable: Boolean = {
+            if (path.length == 1) return true
+            val parentAttr = ResourceAttributes(path.dropRight(1))
+            val parentDesc = parentAttr.getSubresourceDescriptor(resource.name)
+            parentDesc.isRepeated &&
+            parentDesc.getMessageType == Commons.UUID.getDescriptor
+        }
+
+        /** Returns a new Protocol Buffers builder for the current resouurce,
+          * initialized from the specified prototype. */
+        def newBuilder(prototype: MessageOrBuilder): ZoomBuilder = {
+            zoom.clazz.getMethod(BuilderMethod, zoom.clazz)
+                .invoke(null, prototype)
+                .asInstanceOf[ZoomBuilder]
+        }
+    }
+
+    /**
+     * An attribute for a field of a DTO resource, which includes the following
+     * information:
+     * - the field [[Field]] reflection instance
+     * - the [[Subresource]] annotation if this field corresponds to a sub-
+     * resource
+     * - the [[ZoomField]] annotation if this field corresponds to a Protocol
+     * Buffers message field
+     */
+    case class FieldAttribute(field: Field, subsresource: Subresource,
+                              zoom: ZoomField)
+
+    final val ResourceAttributes = getResourceAttributes
 
     final val APPLICATION_JSON_V4 = "application/vnd.org.midonet.Application-v4+json"
     final val APPLICATION_JSON_V5 = "application/vnd.org.midonet.Application-v5+json"
@@ -140,41 +316,6 @@ object MidonetMediaTypes {
     final val APPLICATION_TRACE_REQUEST_JSON = "application/vnd.org.midonet.TraceRequest-v1+json"
     final val APPLICATION_TRACE_REQUEST_COLLECTION_JSON = "application/vnd.org.midonet.collection.TraceRequest-v1+json"
 
-    val resourceOf = Map[String, Class[_ <: UriResource]] (
-        APPLICATION_BRIDGE_COLLECTION_JSON -> classOf[Bridge],
-        APPLICATION_BRIDGE_COLLECTION_JSON_V2 -> classOf[Bridge],
-        APPLICATION_BRIDGE_COLLECTION_JSON_V3 -> classOf[Bridge],
-        APPLICATION_BRIDGE_JSON -> classOf[Bridge],
-        APPLICATION_BRIDGE_JSON_V2 -> classOf[Bridge],
-        APPLICATION_BRIDGE_JSON_V3 -> classOf[Bridge],
-        APPLICATION_HOST_COLLECTION_JSON_V2 -> classOf[Host],
-        APPLICATION_HOST_COLLECTION_JSON_V3 -> classOf[Host],
-        APPLICATION_HOST_JSON_V2 -> classOf[Host],
-        APPLICATION_HOST_JSON_V3 -> classOf[Host],
-        APPLICATION_PORT_COLLECTION_JSON -> classOf[Port],
-        APPLICATION_PORT_JSON -> classOf[Port],
-        APPLICATION_PORT_V2_COLLECTION_JSON-> classOf[Port],
-        APPLICATION_PORT_V2_JSON-> classOf[Port],
-        APPLICATION_ROUTER_COLLECTION_JSON -> classOf[Router],
-        APPLICATION_ROUTER_COLLECTION_JSON_V2 -> classOf[Router],
-        APPLICATION_ROUTER_JSON -> classOf[Router],
-        APPLICATION_ROUTER_JSON_V2 -> classOf[Router],
-        APPLICATION_TUNNEL_ZONE_COLLECTION_JSON -> classOf[TunnelZone],
-        APPLICATION_TUNNEL_ZONE_JSON -> classOf[TunnelZone]
-    )
-
-    // TODO: This should be redundant, by looking at the key's annotations
-    val zoomFor = Bimap(Map[Class[_ <: ZoomObject], Class[_ <: Message]] (
-        classOf[BridgePort] -> classOf[Topology.Port],
-        classOf[Bridge] -> classOf[Topology.Network],
-        classOf[Host] -> classOf[Topology.Host],
-        classOf[Port] -> classOf[Topology.Port],
-        classOf[RouterPort] -> classOf[Topology.Port],
-        classOf[Router] -> classOf[Topology.Router],
-        classOf[TunnelZone] -> classOf[Topology.TunnelZone]
-    ))
-
-    import ResourceUris._
     val resourceNames = Bimap[String, String](Map(
         APPLICATION_BRIDGE_JSON -> BRIDGES,
         APPLICATION_BRIDGE_JSON_V2 -> BRIDGES,
@@ -229,10 +370,86 @@ object MidonetMediaTypes {
         APPLICATION_TRACE_REQUEST_JSON -> TRACE_REQUESTS
     ))
 
-    def resourceFromName(resName: String): String =
-        resourceNames.inverse.get(resName).orNull
+    private def getResourceAttributes: Map[DtoPath, DtoAttribute] = {
+        val map = new mutable.HashMap[DtoPath, DtoAttribute]
+        for (clazz <- dtos) {
+            for (attr <- getDtoAttributes(clazz)) {
+                map += attr.path -> attr
+            }
+        }
+        map.toMap
+    }
 
-    def protoFromResName(resName: String): Class[_ <: Message] = {
-        zoomFor.get(resourceOf.get(resourceFromName(resName)).orNull).orNull
+    private def getDtoAttributes(clazz: DtoClass): Seq[DtoAttribute] = {
+        val resource = getAnnotation(clazz, classOf[Resource])
+        for (path <- getDtoPaths(clazz)) yield
+            DtoAttribute(path, clazz, resource,
+                         getAnnotation(clazz, classOf[ZoomClass]),
+                         getDtoField(clazz, classOf[ResourceId]),
+                         getDtoField(clazz, classOf[ParentId]),
+                         getDtoField(clazz, classOf[Ownership]),
+                         getDtoSubresources(clazz))
+    }
+
+    private def getDtoPaths(clazz: Class[_]): Seq[DtoPath] = {
+        val resource = clazz.getAnnotation(classOf[Resource])
+        if (resource eq null) return Seq.empty
+
+        val result = new ArrayBuffer[DtoPath]()
+        for (parent <- resource.parents()) {
+            val paths = getDtoPaths(parent)
+            if (paths.nonEmpty) {
+                for (path <- getDtoPaths(parent)) {
+                    result += path :+ resource.name()
+                }
+            } else result += Seq(resource.name())
+        }
+        result
+    }
+
+    private def getDtoField(clazz: DtoClass,
+                            annotationClass: Class[_ <: Annotation])
+    : FieldAttribute = {
+        var c: Class[_] = clazz
+        while (classOf[UriResource] isAssignableFrom c) {
+            for (field <- c.getDeclaredFields) {
+                if (field.getAnnotation(annotationClass) ne null) {
+                    return FieldAttribute(
+                        field, field.getAnnotation(classOf[Subresource]),
+                        field.getAnnotation(classOf[ZoomField]))
+                }
+            }
+            c = c.getSuperclass
+        }
+        null
+    }
+
+    private def getDtoSubresources(clazz: DtoClass)
+    : Map[String, FieldAttribute] = {
+        var c: Class[_] = clazz
+        val subresources = new mutable.HashMap[String, FieldAttribute]
+        while (classOf[UriResource] isAssignableFrom c) {
+            for (field <- c.getDeclaredFields) {
+                val subresource = field.getAnnotation(classOf[Subresource])
+                if (subresource ne null) {
+                    subresources += subresource.name -> FieldAttribute(
+                        field, subresource,
+                        field.getAnnotation(classOf[ZoomField]))
+                }
+            }
+            c = c.getSuperclass
+        }
+        subresources.toMap
+    }
+
+    private def getAnnotation[T >: Null <: Annotation]
+                             (clazz: DtoClass, annotationClass: Class[T]): T = {
+        var c: Class[_] = clazz
+        while (classOf[UriResource] isAssignableFrom c) {
+            val annotation = c.getAnnotation(annotationClass)
+            if (annotation != null) return annotation
+            else c = c.getSuperclass
+        }
+        null
     }
 }
