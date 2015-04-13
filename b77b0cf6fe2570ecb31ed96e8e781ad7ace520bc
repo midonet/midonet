@@ -235,6 +235,30 @@
       "revId": "b77b0cf6fe2570ecb31ed96e8e781ad7ace520bc",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_9021e3a1",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 272,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-04-13T10:13:23Z",
+      "side": 1,
+      "message": "Oh, I was actually not seeing the update call. So we may end up with an extra try-catch. It\u0027s kind of clever to catch NFE thrown from update at where it is now. I think it\u0027s fine. Thank you for the explanation:)",
+      "parentUuid": "1a106d94_351621a8",
+      "range": {
+        "startLine": 265,
+        "startChar": 8,
+        "endLine": 272,
+        "endChar": 9
+      },
+      "revId": "b77b0cf6fe2570ecb31ed96e8e781ad7ace520bc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
