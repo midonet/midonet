@@ -19,7 +19,7 @@ import java.util.{List => JList}
 
 import scala.collection.JavaConversions._
 
-import com.google.protobuf.MessageOrBuilder
+import com.google.protobuf.Message
 
 import org.midonet.cluster.data.{ZoomConvert, ZoomObject}
 
@@ -28,13 +28,12 @@ import org.midonet.cluster.data.{ZoomConvert, ZoomObject}
  */
 object ListUtil {
 
-    def fromProto[T >: Null <: ZoomObject,
-                  U <: MessageOrBuilder](list: JList[U],
+    def fromProto[T >: Null <: ZoomObject, U <: Message](list: JList[U],
                                          clazz: Class[T]): JList[T] = {
         bufferAsJavaList(list.map(el => ZoomConvert.fromProto(el, clazz)))
     }
 
-    implicit def richProtoList[U <: MessageOrBuilder](list: JList[U]) = new {
+    implicit def richProtoList[U <: Message](list: JList[U]) = new {
         def asJava[T >: Null <: ZoomObject](clazz: Class[T]): JList[T] =
             fromProto(list, clazz)
     }

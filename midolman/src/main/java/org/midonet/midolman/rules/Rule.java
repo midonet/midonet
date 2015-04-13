@@ -20,7 +20,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import com.google.protobuf.MessageOrBuilder;
+import com.google.protobuf.Message;
 
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonProperty;
@@ -74,7 +74,7 @@ public abstract class Rule extends BaseConfig {
         this.chainId = chainId;
     }
 
-    public void afterFromProto(MessageOrBuilder proto) {
+    public void afterFromProto(Message proto) {
         condition = ZoomConvert.fromProto(proto, Condition.class);
         validateProto((Topology.Rule) proto);
     }

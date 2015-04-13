@@ -14,30 +14,27 @@
  * limitations under the License.
  */
 
-package org.midonet.brain.services.rest_api
+package org.midonet.brain.services.rest_api.resources
 
-import javax.ws.rs.core.MediaType
-import javax.ws.rs.{GET, Path, Produces}
+import javax.ws.rs.core.{MediaType, NewCookie, Response}
+import javax.ws.rs.{POST, Path, Produces}
 
 import com.google.inject.servlet.RequestScoped
 
-import org.midonet.brain.services.rest_api.models.SystemState
+import org.midonet.brain.rest_api.auth.Token
+import org.midonet.brain.services.rest_api.MidonetTypes._
 
-@Path("system_state") // TODO: why?!?? figure out how to use the ResourceUris one
+@Path("login")
 @RequestScoped
-class SystemStateResource {
+class LoginResource {
 
-    // TODO: we're cheating here, it should use a real system state, but for
-    //       MDTS we don't really care
-    @GET
-    @Produces(Array(MidonetMediaTypes.APPLICATION_SYSTEM_STATE_JSON,
-                    MidonetMediaTypes.APPLICATION_SYSTEM_STATE_JSON_V2,
+    @POST
+    @Produces(Array(APPLICATION_TOKEN_JSON,
                     MediaType.APPLICATION_JSON))
-    def get(): SystemState = {
-        val st = new SystemState()
-        st.state = "ACTIVE"
-        st.availability = "READWRITE"
-        st
+    def login() = {
+        Response.ok(new Token("999888777666", null))
+            .cookie(new NewCookie("sessionId", "999888777666"))
+            .build()
     }
 
 }

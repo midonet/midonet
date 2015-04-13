@@ -16,69 +16,79 @@
 
 package org.midonet.brain.services.rest_api
 
-import javax.ws.rs.core.Context
-import javax.ws.rs.ext.Provider
+import java.util
 
-import com.google.inject.Inject
-import com.sun.jersey.api.core.PackagesResourceConfig
-import com.sun.jersey.spi.container.servlet.ServletContainer
-import com.sun.jersey.spi.inject.SingletonTypeInjectableProvider
-import org.eclipse.jetty.server.Server
-import org.eclipse.jetty.server.nio.BlockingChannelConnector
-import org.eclipse.jetty.servlet.{ServletContextHandler, ServletHolder}
+import com.google.inject.servlet.{GuiceFilter, GuiceServletContextListener}
+import com.google.inject.{Guice, Inject, Injector}
+import com.sun.jersey.guice.JerseyServletModule
+import com.sun.jersey.guice.spi.container.servlet.GuiceContainer
+
+import org.eclipse.jetty.server.{DispatcherType, Server}
+import org.eclipse.jetty.servlet.{DefaultServlet, ServletContextHandler}
 import org.slf4j.LoggerFactory
-import org.midonet.brain.services.rest_api.render.ResourceRenderer
+
+import org.midonet.brain.services.rest_api.resources.{SystemStateResource, MidonetResource, LoginResource}
 import org.midonet.brain.{BrainConfig, ClusterMinion, ClusterNode}
 import org.midonet.cluster.services.MidonetBackend
 
 object Vladimir {
-    val rootUri = "/midonet-api"
-
-    // TODO: unnecessary when we learn how to inject in Jersey
-    var backend: MidonetBackend = _
-    var resRenderer: ResourceRenderer = _
+    final val RootUri = "/midonet-api"
+    final val ContainerResponseFiltersClass =
+        "com.sun.jersey.spi.container.ContainerResponseFilters"
+    final val ContainerRequestFiltersClass =
+        "com.sun.jersey.spi.container.ContainerRequestFilters"
+    final val LoggingFilterClass =
+        "com.sun.jersey.api.container.filter.LoggingFilter"
+    final val POJOMappingFeatureClass =
+        "com.sun.jersey.api.json.POJOMappingFeature"
 }
 
 class Vladimir @Inject()(nodeContext: ClusterNode.Context,
                          backend: MidonetBackend,
                          config: BrainConfig)
-    extends ClusterMinion(nodeContext) {
+    extends ClusterMinion(nodeContext) { 
+    
+    import Vladimir._
 
     private val log = LoggerFactory.getLogger("org.midonet.rest-api")
 
-    var server: Server = _
-
-    // TODO: unnecessary when we learn how to inject in Jersey
-    Vladimir.backend = backend
-    Vladimir.resRenderer = new ResourceRenderer(backend)
+    private var server: Server = _
 
     log.info(s"Backend: ${backend.store} ${backend.store.isBuilt}")
 
     override def doStart(): Unit = {
         log.info(s"Starting REST API service at ${config.restApi.httpPort}")
 
-        server = new Server()
-        val http = new BlockingChannelConnector()
-        http.setPort(config.restApi.httpPort)
-        server.addConnector(http)
+        server = new Server(config.restApi.httpPort)
 
-        val servletHolder = new ServletHolder(classOf[ServletContainer])
-        // Order matters, make sure that CORS is first, as it's needed for
-        // login too.
-        servletHolder.setInitParameter("com.sun.jersey.spi.container.ContainerResponseFilters",
+        val context = new ServletContextHandler(server, RootUri,
+                                                ServletContextHandler.SESSIONS)
+        context.addEventListener(new GuiceServletContextListener {
+            override def getInjector: Injector = {
+                Guice.createInjector(new JerseyServletModule {
+                    override def configureServlets(): Unit = {
+                        bind(classOf[MidonetBackend]).toInstance(backend)
+                        bind(classOf[MidonetResource])
+                        bind(classOf[LoginResource])
+                        bind(classOf[SystemStateResource])
+
+                        val initParams = new util.HashMap[String, String]
+                        initParams.put(ContainerResponseFiltersClass,
                                        classOf[CorsFilter].getName)
-        servletHolder.setInitParameter("com.sun.jersey.spi.container.ContainerRequestFilters",
-                                       "com.sun.jersey.api.container.filter.LoggingFilter")
-        servletHolder.setInitParameter("com.sun.jersey.config.property.resourceConfigClass",
-                                       classOf[PackagesResourceConfig].getName)
-        servletHolder.setInitParameter("com.sun.jersey.config.property.packages",
-                                       "org.midonet.brain.services.vladimir.api;org.codehaus.jackson.jaxrs.json")
-        servletHolder.setInitParameter("com.sun.jersey.spi.container.ContainerResponseFilters",
-                                       "com.sun.jersey.api.container.filter.LoggingFilter")
-        servletHolder.setInitParameter("com.sun.jersey.api.json.POJOMappingFeature", "true")
-        val context = new ServletContextHandler()
-        context.setContextPath(Vladimir.rootUri)
-        context.addServlet(servletHolder, "/*")
+                        initParams.put(ContainerRequestFiltersClass,
+                                       LoggingFilterClass)
+                        initParams.put(ContainerResponseFiltersClass,
+                                       LoggingFilterClass)
+                        initParams.put(POJOMappingFeatureClass, "true")
+
+                        serve("/*").`with`(classOf[GuiceContainer], initParams)
+                    }
+                })
+            }
+        })
+        context.addFilter(classOf[GuiceFilter], "/*",
+                          util.EnumSet.allOf(classOf[DispatcherType]))
+        context.addServlet(classOf[DefaultServlet], "/*")
         context.setClassLoader(Thread.currentThread().getContextClassLoader)
 
         try {
@@ -103,7 +113,3 @@ class Vladimir @Inject()(nodeContext: ClusterNode.Context,
     }
 
 }
-
-@Provider
-class MidonetBackendProvider (@Inject() backend: MidonetBackend) extends
-    SingletonTypeInjectableProvider[Context, MidonetBackend](classOf[MidonetBackend], backend)
