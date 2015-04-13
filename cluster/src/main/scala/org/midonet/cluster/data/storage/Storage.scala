@@ -173,7 +173,7 @@ trait ReadOnlyStorage {
      * futures for the objects that are cached internally, will complete
      * synchronously.
      */
-    def getAll[T](clazz: Class[T], ids: Seq[_ <: ObjId]): Seq[Future[T]]
+    def getAll[T](clazz: Class[T], ids: Seq[_ <: ObjId]): Future[Seq[T]]
 
     /**
      * Asynchronous method that gets all the instances of the specified class

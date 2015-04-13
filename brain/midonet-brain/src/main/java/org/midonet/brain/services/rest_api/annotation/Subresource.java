@@ -13,33 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.brain.services.rest_api.models;
+package org.midonet.brain.services.rest_api.annotation;
 
-import java.util.UUID;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-import org.midonet.cluster.data.ZoomField;
-import org.midonet.cluster.util.UUIDUtil;
-
-public class BridgePort extends Port {
-
-    @ZoomField(name = "vlan_id")
-    public short vlanId;
-
-    @ZoomField(name = "network_id", converter = UUIDUtil.Converter.class)
-    public UUID networkId;
-
-    public String getType() {
-        return PortType.BRIDGE;
-    }
-
-    @Override
-    public UUID getDeviceId() {
-        return networkId;
-    }
-
-    @Override
-    public void setDeviceId(UUID id) {
-        networkId = id;
-    }
-
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ ElementType.FIELD })
+public @interface Subresource {
+    String name();
 }
