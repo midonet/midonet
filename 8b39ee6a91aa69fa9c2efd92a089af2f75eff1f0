@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_f851190f",
+        "filename": "brain/midonet-brain/src/main/java/org/midonet/brain/southbound/vtep/VtepDataClientMock.java",
+        "patchSetId": 13
+      },
+      "lineNbr": 330,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-04-14T14:59:43Z",
+      "side": 1,
+      "message": "nice catch :D",
+      "revId": "8b39ee6a91aa69fa9c2efd92a089af2f75eff1f0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
