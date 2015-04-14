@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_f2cbfa1b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PoolMapper.scala",
+        "patchSetId": 18
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-14T08:42:48Z",
+      "side": 1,
+      "message": "You\u0027re right: here is not needed. Removed.\nThis was needed for port and host, to prevent emitting a duplicate item when the ownership has changed.",
+      "parentUuid": "1a106d94_0f015105",
+      "range": {
+        "startLine": 51,
+        "startChar": 12,
+        "endLine": 51,
+        "endChar": 35
+      },
+      "revId": "37cbbf05f1fbbf68a9654abbfce6295b30e54ef5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_ab07521c",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PoolMapper.scala",
         "patchSetId": 18
@@ -36,6 +60,30 @@
       "writtenOn": "2015-04-13T19:17:59Z",
       "side": 1,
       "message": "what\u0027s different from distinctUntilChanged?",
+      "range": {
+        "startLine": 119,
+        "startChar": 9,
+        "endLine": 119,
+        "endChar": 41
+      },
+      "revId": "37cbbf05f1fbbf68a9654abbfce6295b30e54ef5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_92dc46e6",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PoolMapper.scala",
+        "patchSetId": 18
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-14T08:42:48Z",
+      "side": 1,
+      "message": "I only wanted to avoid logging when a device is not emitted from the mapper (otherwise the log may be misleading during debugging).",
+      "parentUuid": "1a106d94_ab07521c",
       "range": {
         "startLine": 119,
         "startChar": 9,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_1297b6ed",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PoolMapper.scala",
+        "patchSetId": 18
+      },
+      "lineNbr": 133,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-14T08:42:48Z",
+      "side": 1,
+      "message": "Ok, so I moved this to `buildDevice()` and used `distinctUntilChanged()`.",
+      "parentUuid": "1a106d94_0b07861d",
+      "range": {
+        "startLine": 133,
+        "startChar": 16,
+        "endLine": 133,
+        "endChar": 30
+      },
+      "revId": "37cbbf05f1fbbf68a9654abbfce6295b30e54ef5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_abbf52fb",
         "filename": "midolman/src/test/scala/org/midonet/midolman/topology/PoolMapperTest.scala",
         "patchSetId": 18
@@ -82,6 +154,30 @@
       "writtenOn": "2015-04-13T15:05:35Z",
       "side": 1,
       "message": "Is this used?",
+      "range": {
+        "startLine": 19,
+        "startChar": 0,
+        "endLine": 19,
+        "endChar": 16
+      },
+      "revId": "37cbbf05f1fbbf68a9654abbfce6295b30e54ef5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_52a12e46",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/PoolMapperTest.scala",
+        "patchSetId": 18
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-14T08:42:48Z",
+      "side": 1,
+      "message": "No, removed.",
+      "parentUuid": "1a106d94_abbf52fb",
       "range": {
         "startLine": 19,
         "startChar": 0,
