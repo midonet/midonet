@@ -48,6 +48,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_d2dcfe14",
+        "filename": "midolman/src/main/java/org/midonet/midolman/layer3/RoutingTable.java",
+        "patchSetId": 22
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-14T09:09:23Z",
+      "side": 1,
+      "message": "I would assume it was to avoid calling String.format unless debugging is enabled.",
+      "parentUuid": "1a106d94_75ec1990",
+      "range": {
+        "startLine": 44,
+        "startChar": 12,
+        "endLine": 44,
+        "endChar": 35
+      },
+      "revId": "6120d9f46ea574dec0be7734df14b062bbc30616",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_95e9d582",
         "filename": "midolman/src/main/java/org/midonet/midolman/layer3/RoutingTable.java",
         "patchSetId": 22
@@ -59,6 +83,30 @@
       "writtenOn": "2015-04-13T12:57:49Z",
       "side": 1,
       "message": "Is this needed?",
+      "range": {
+        "startLine": 73,
+        "startChar": 12,
+        "endLine": 73,
+        "endChar": 35
+      },
+      "revId": "6120d9f46ea574dec0be7734df14b062bbc30616",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_b2d7c2ec",
+        "filename": "midolman/src/main/java/org/midonet/midolman/layer3/RoutingTable.java",
+        "patchSetId": 22
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-14T09:09:23Z",
+      "side": 1,
+      "message": "Same as above.",
+      "parentUuid": "1a106d94_95e9d582",
       "range": {
         "startLine": 73,
         "startChar": 12,
@@ -94,6 +142,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_12069686",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingManagerActor.scala",
+        "patchSetId": 22
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-14T09:09:23Z",
+      "side": 1,
+      "message": "What is the change? In this file I only refactored a name.",
+      "parentUuid": "1a106d94_75a3794f",
+      "range": {
+        "startLine": 89,
+        "startChar": 17,
+        "endLine": 89,
+        "endChar": 25
+      },
+      "revId": "6120d9f46ea574dec0be7734df14b062bbc30616",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_7571b9df",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BridgeMapper.scala",
         "patchSetId": 22
@@ -105,6 +177,30 @@
       "writtenOn": "2015-04-13T12:57:49Z",
       "side": 1,
       "message": "Does this implicitly build a finite duration object?",
+      "range": {
+        "startLine": 282,
+        "startChar": 24,
+        "endLine": 282,
+        "endChar": 68
+      },
+      "revId": "6120d9f46ea574dec0be7734df14b062bbc30616",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_92f9e682",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BridgeMapper.scala",
+        "patchSetId": 22
+      },
+      "lineNbr": 282,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-14T09:09:23Z",
+      "side": 1,
+      "message": "Yes, doesn\u0027t it?",
+      "parentUuid": "1a106d94_7571b9df",
       "range": {
         "startLine": 282,
         "startChar": 24,
@@ -140,6 +236,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_d24a3ec4",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterManager.scala",
+        "patchSetId": 22
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-14T09:09:23Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_f553e936",
+      "range": {
+        "startLine": 45,
+        "startChar": 4,
+        "endLine": 46,
+        "endChar": 31
+      },
+      "revId": "6120d9f46ea574dec0be7734df14b062bbc30616",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_354e2197",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterManager.scala",
         "patchSetId": 22
@@ -163,6 +283,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_b24502b5",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterManager.scala",
+        "patchSetId": 22
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-14T09:09:23Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_354e2197",
+      "range": {
+        "startLine": 50,
+        "startChar": 4,
+        "endLine": 51,
+        "endChar": 31
+      },
+      "revId": "6120d9f46ea574dec0be7734df14b062bbc30616",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_7516d956",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterMapper.scala",
         "patchSetId": 22
@@ -174,6 +318,30 @@
       "writtenOn": "2015-04-13T12:57:49Z",
       "side": 1,
       "message": "Pass the logger to lookup",
+      "range": {
+        "startLine": 290,
+        "startChar": 29,
+        "endLine": 290,
+        "endChar": 36
+      },
+      "revId": "6120d9f46ea574dec0be7734df14b062bbc30616",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_b2eea2b2",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterMapper.scala",
+        "patchSetId": 22
+      },
+      "lineNbr": 290,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-14T09:09:23Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_7516d956",
       "range": {
         "startLine": 290,
         "startChar": 29,
@@ -244,6 +412,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_d2219efc",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopologyRedirector.scala",
+        "patchSetId": 22
+      },
+      "lineNbr": 139,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-14T09:09:23Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_d06d1b34",
+      "range": {
+        "startLine": 139,
+        "startChar": 8,
+        "endLine": 139,
+        "endChar": 32
+      },
+      "revId": "6120d9f46ea574dec0be7734df14b062bbc30616",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_1077b33b",
         "filename": "midolman/src/test/scala/org/midonet/midolman/topology/BridgeMapperTest.scala",
         "patchSetId": 22
@@ -278,6 +470,30 @@
       "writtenOn": "2015-04-13T12:57:49Z",
       "side": 1,
       "message": "Is this still needed?",
+      "range": {
+        "startLine": 186,
+        "startChar": 12,
+        "endLine": 186,
+        "endChar": 55
+      },
+      "revId": "6120d9f46ea574dec0be7734df14b062bbc30616",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_3288f2e6",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/ChainMapperTest.scala",
+        "patchSetId": 22
+      },
+      "lineNbr": 186,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-14T09:09:23Z",
+      "side": 1,
+      "message": "I would say yes, awaitCompletion returns for both onCompleted and onError events. In any event, the extra check should be harmless.\n\nThe same applies to subsequent comments.",
+      "parentUuid": "1a106d94_f0a81779",
       "range": {
         "startLine": 186,
         "startChar": 12,
@@ -359,6 +575,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_92272612",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/LoadBalancerMapperTest.scala",
+        "patchSetId": 22
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-14T09:09:23Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_3008ef90",
+      "range": {
+        "startLine": 56,
+        "startChar": 0,
+        "endLine": 56,
+        "endChar": 4
+      },
+      "revId": "6120d9f46ea574dec0be7734df14b062bbc30616",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_90ff2367",
         "filename": "midolman/src/test/scala/org/midonet/midolman/topology/LoadBalancerMapperTest.scala",
         "patchSetId": 22
@@ -370,6 +610,30 @@
       "writtenOn": "2015-04-13T12:57:49Z",
       "side": 1,
       "message": "same comment",
+      "range": {
+        "startLine": 57,
+        "startChar": 58,
+        "endLine": 57,
+        "endChar": 59
+      },
+      "revId": "6120d9f46ea574dec0be7734df14b062bbc30616",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_72226a02",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/LoadBalancerMapperTest.scala",
+        "patchSetId": 22
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-14T09:09:23Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_90ff2367",
       "range": {
         "startLine": 57,
         "startChar": 58,
