@@ -45,7 +45,7 @@ project.ext {
         akkatest: "com.typesafe.akka:akka-testkit_2.11:${versions.akka}",
 
         cassandra: "com.datastax.cassandra:cassandra-driver-core:2.0.1",
-        cassandraunit: dependencies.create("org.cassandraunit:cassandra-unit:2.0.2.1") {
+        cassandraunit: dependencies.create("org.cassandraunit:cassandra-unit:2.0.2.2") {
             exclude group: 'org.slf4j', module: 'slf4j-log4j12'
             exclude group: 'org.hamcrest', module: 'hamcrest-core'
             exclude group: 'org.hamcrest', module: 'hamcrest-all'
