@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_957d501f",
+        "filename": "cluster/src/main/proto/topology.proto",
+        "patchSetId": 19
+      },
+      "lineNbr": 420,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-04-14T13:33:41Z",
+      "side": 1,
+      "message": "Why do we need two flags to active/deactivate a pool member (admin_state_up and status)?",
+      "range": {
+        "startLine": 420,
+        "startChar": 22,
+        "endLine": 420,
+        "endChar": 28
+      },
+      "revId": "e82287ccb1c1d3cab1b8302e654f8396a187ebc0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_75c6d44a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PoolMapper.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 209,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-04-14T13:33:41Z",
+      "side": 1,
+      "message": "Shouldn\u0027t you return device here? It doesn\u0027t change the behaviour it just seems more natural.",
+      "range": {
+        "startLine": 209,
+        "startChar": 8,
+        "endLine": 209,
+        "endChar": 17
+      },
+      "revId": "e82287ccb1c1d3cab1b8302e654f8396a187ebc0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
