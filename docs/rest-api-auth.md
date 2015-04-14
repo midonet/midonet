@@ -8,10 +8,10 @@ field is named 'tenantId' for legacy reasons).  MidoNet, however, does not
 provide ways to manage these owners.  That is, it does not offer API to create
 or delete owners.  The owner ID is simply a string representation of a unique
 identifier of a user managed in an external service that MidoNet is integrated
-with, such as OpenStack and CloudStack.  These external services are typically
-cloud orchestration platforms, and they have their own identity services.
-To integrate MidoNet API with these cloud orchestration services, it is
-required that the API integrates with their identity services.
+with, such as OpenStack.  These external services are typically cloud
+orchestration platforms, and they have their own identity services.  To
+integrate MidoNet API with these cloud orchestration services, it is required
+that the API integrates with their identity services.
 
 For every HTTP request that comes to MidoNet API, it must perform authentication
 (validating the user making the call) and authorization (checking the access
