@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_b5e16c9c",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 455,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-04-14T14:09:07Z",
+      "side": 1,
+      "message": "@Ryu is this right to do here, instead of the plugin?",
+      "range": {
+        "startLine": 452,
+        "startChar": 0,
+        "endLine": 455,
+        "endChar": 35
+      },
+      "revId": "64d9cc7d22e9c3a3f21fa12a70d7278f4c53d9d7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
