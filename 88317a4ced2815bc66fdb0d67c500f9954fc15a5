@@ -1,0 +1,176 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_0f283185",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/BGP.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-04-14T08:05:03Z",
+      "side": 1,
+      "message": "worth adding a comment explaining the new approach?",
+      "range": {
+        "startLine": 29,
+        "startChar": 5,
+        "endLine": 29,
+        "endChar": 15
+      },
+      "revId": "88317a4ced2815bc66fdb0d67c500f9954fc15a5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_af191d7b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/BGP.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-04-14T08:05:03Z",
+      "side": 1,
+      "message": "nit: trailing chars",
+      "revId": "88317a4ced2815bc66fdb0d67c500f9954fc15a5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_4f2229a5",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/BGPRoute.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-04-14T08:05:03Z",
+      "side": 1,
+      "message": "ditto",
+      "range": {
+        "startLine": 28,
+        "startChar": 5,
+        "endLine": 28,
+        "endChar": 15
+      },
+      "revId": "88317a4ced2815bc66fdb0d67c500f9954fc15a5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_9296064b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingHandler.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 221,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-04-14T08:05:03Z",
+      "side": 1,
+      "message": "nit: bgpMapperSubscription?\n\nAlso, does this require a volatile, or we\u0027re under the same guarantees as for the mappers?",
+      "range": {
+        "startLine": 221,
+        "startChar": 16,
+        "endLine": 221,
+        "endChar": 28
+      },
+      "revId": "88317a4ced2815bc66fdb0d67c500f9954fc15a5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_d2c51e3d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingHandler.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 328,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-04-14T08:05:03Z",
+      "side": 1,
+      "message": "I can\u0027t find these 2 cases in the original code (probably because I\u0027m blind). Where do they come from?",
+      "revId": "88317a4ced2815bc66fdb0d67c500f9954fc15a5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_d2f35e9c",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BGPMapper.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 137,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-04-14T08:05:03Z",
+      "side": 1,
+      "message": "nit:\n\nval msg \u003d if (currentBgp eq null) BGPAdded(bgp) else BGPUpdated(bgp)\nsubject onNext msg",
+      "range": {
+        "startLine": 133,
+        "startChar": 12,
+        "endLine": 137,
+        "endChar": 13
+      },
+      "revId": "88317a4ced2815bc66fdb0d67c500f9954fc15a5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_9240c6a6",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BGPMapper.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 145,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-04-14T08:05:03Z",
+      "side": 1,
+      "message": "random thought: this (and the loop below) are a very common pattern, it\u0027d be nice to factor it out to a common datastructure at some point.",
+      "range": {
+        "startLine": 139,
+        "startChar": 12,
+        "endLine": 145,
+        "endChar": 13
+      },
+      "revId": "88317a4ced2815bc66fdb0d67c500f9954fc15a5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_f2165aa6",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopology.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 248,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-04-14T08:05:03Z",
+      "side": 1,
+      "message": "assertVtThread?",
+      "range": {
+        "startLine": 248,
+        "startChar": 26,
+        "endLine": 248,
+        "endChar": 38
+      },
+      "revId": "88317a4ced2815bc66fdb0d67c500f9954fc15a5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
