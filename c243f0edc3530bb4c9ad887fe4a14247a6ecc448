@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_1584c05c",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/TopologyMatchers.scala",
+        "patchSetId": 24
+      },
+      "lineNbr": 149,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-04-14T12:04:19Z",
+      "side": 1,
+      "message": "I resisted implementing this matcher previously because the equals method in the condition class does not check that source and destination IP address groups are equal (it checks that the ip addr group ids are equal though). Should we maybe modify the equals method in the condition class? My concern is that we will use this matcher without realizing that not everything is checked for equality.",
+      "range": {
+        "startLine": 149,
+        "startChar": 10,
+        "endLine": 149,
+        "endChar": 22
+      },
+      "revId": "c243f0edc3530bb4c9ad887fe4a14247a6ecc448",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
