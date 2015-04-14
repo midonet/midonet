@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_d2823e93",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/BGP.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-14T09:05:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_0f283185",
+      "range": {
+        "startLine": 29,
+        "startChar": 5,
+        "endLine": 29,
+        "endChar": 15
+      },
+      "revId": "88317a4ced2815bc66fdb0d67c500f9954fc15a5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_af191d7b",
         "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/BGP.scala",
         "patchSetId": 6
@@ -42,6 +66,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_725a6a51",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/BGP.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-14T09:05:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_af191d7b",
+      "revId": "88317a4ced2815bc66fdb0d67c500f9954fc15a5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_4f2229a5",
         "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/BGPRoute.scala",
         "patchSetId": 6
@@ -53,6 +95,30 @@
       "writtenOn": "2015-04-14T08:05:03Z",
       "side": 1,
       "message": "ditto",
+      "range": {
+        "startLine": 28,
+        "startChar": 5,
+        "endLine": 28,
+        "endChar": 15
+      },
+      "revId": "88317a4ced2815bc66fdb0d67c500f9954fc15a5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_b27d02b4",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/BGPRoute.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-14T09:05:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_4f2229a5",
       "range": {
         "startLine": 28,
         "startChar": 5,
@@ -88,6 +154,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_d2599e5b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingHandler.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 221,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-14T09:05:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_9296064b",
+      "range": {
+        "startLine": 221,
+        "startChar": 16,
+        "endLine": 221,
+        "endChar": 28
+      },
+      "revId": "88317a4ced2815bc66fdb0d67c500f9954fc15a5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_d2c51e3d",
         "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingHandler.scala",
         "patchSetId": 6
@@ -105,6 +195,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_52b80e76",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingHandler.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 328,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-14T09:05:16Z",
+      "side": 1,
+      "message": "In the original code, the RoutingHandler is \u0027subscribed\u0027 to the VTA via a PortRequest(update \u003d true), and receives Port messages whenever the port changes. These are processed above.\n\nIn the new stack, this subscription is not necessary because the BGPMapper is already subscribed to the VT for port notifications. Here, the port updates are emitted as BGPPort(port) to make them subclasses of BGPUpdate. If needed we could make the BGPMapper emit Any updates, and emit the Port without a wrapper case class. In that case, we wouldn\u0027t need these 2 additional cases here.",
+      "parentUuid": "1a106d94_d2c51e3d",
+      "revId": "88317a4ced2815bc66fdb0d67c500f9954fc15a5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_d2f35e9c",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BGPMapper.scala",
         "patchSetId": 6
@@ -116,6 +224,30 @@
       "writtenOn": "2015-04-14T08:05:03Z",
       "side": 1,
       "message": "nit:\n\nval msg \u003d if (currentBgp eq null) BGPAdded(bgp) else BGPUpdated(bgp)\nsubject onNext msg",
+      "range": {
+        "startLine": 133,
+        "startChar": 12,
+        "endLine": 137,
+        "endChar": 13
+      },
+      "revId": "88317a4ced2815bc66fdb0d67c500f9954fc15a5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_92b1e691",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BGPMapper.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 137,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-14T09:05:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_d2f35e9c",
       "range": {
         "startLine": 133,
         "startChar": 12,
@@ -151,6 +283,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_925f2641",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BGPMapper.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 145,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-14T09:05:16Z",
+      "side": 1,
+      "message": "I agree, including the `DeviceState` could be made more generic, since it has a similar pattern throughout the mappers.",
+      "parentUuid": "1a106d94_9240c6a6",
+      "range": {
+        "startLine": 139,
+        "startChar": 12,
+        "endLine": 145,
+        "endChar": 13
+      },
+      "revId": "88317a4ced2815bc66fdb0d67c500f9954fc15a5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_f2165aa6",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopology.scala",
         "patchSetId": 6
@@ -162,6 +318,30 @@
       "writtenOn": "2015-04-14T08:05:03Z",
       "side": 1,
       "message": "assertVtThread?",
+      "range": {
+        "startLine": 248,
+        "startChar": 26,
+        "endLine": 248,
+        "endChar": 38
+      },
+      "revId": "88317a4ced2815bc66fdb0d67c500f9954fc15a5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_72ac2a36",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopology.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 248,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-14T09:05:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_f2165aa6",
       "range": {
         "startLine": 248,
         "startChar": 26,
