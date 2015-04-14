@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_128a161b",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-04-14T09:22:44Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_72926aa0",
+      "revId": "54ab8bec4a81b90d97c54c65ed36eb87dbe2f3cf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_72ab8ad6",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/PortTranslator.scala",
         "patchSetId": 1
@@ -30,6 +48,30 @@
       "writtenOn": "2015-04-14T04:58:51Z",
       "side": 1,
       "message": "Are they created anywhere?",
+      "range": {
+        "startLine": 105,
+        "startChar": 12,
+        "endLine": 105,
+        "endChar": 71
+      },
+      "revId": "54ab8bec4a81b90d97c54c65ed36eb87dbe2f3cf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_f28c9a37",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-04-14T09:22:44Z",
+      "side": 1,
+      "message": "According to Joe, no. It appears no chains are attached to those internal Network and Router Ports via Neutron API. We can assert that if needed, but it seems better to avoid extra ZK round trips.",
+      "parentUuid": "1a106d94_72ab8ad6",
       "range": {
         "startLine": 105,
         "startChar": 12,
@@ -65,6 +107,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_52848e0b",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 432,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-04-14T09:22:44Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_f2865a64",
+      "range": {
+        "startLine": 432,
+        "startChar": 23,
+        "endLine": 432,
+        "endChar": 24
+      },
+      "revId": "54ab8bec4a81b90d97c54c65ed36eb87dbe2f3cf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_92de066c",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/PortTranslator.scala",
         "patchSetId": 1
@@ -76,6 +142,30 @@
       "writtenOn": "2015-04-14T04:58:51Z",
       "side": 1,
       "message": "It can\u0027t have no subnets?",
+      "range": {
+        "startLine": 448,
+        "startChar": 9,
+        "endLine": 449,
+        "endChar": 29
+      },
+      "revId": "54ab8bec4a81b90d97c54c65ed36eb87dbe2f3cf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_72c6ea4a",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 449,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-04-14T09:22:44Z",
+      "side": 1,
+      "message": "No, it cannot have no subnets. Changed log to assert, and updated the comments accordingly.",
+      "parentUuid": "1a106d94_92de066c",
       "range": {
         "startLine": 448,
         "startChar": 9,
@@ -111,6 +201,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_b2e1829c",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 461,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-04-14T09:22:44Z",
+      "side": 1,
+      "message": "Checked with Joe, and yes, it is implicitly assumed that there\u0027s at most 1 fixed IP address per port.",
+      "parentUuid": "1a106d94_d2e87e12",
+      "range": {
+        "startLine": 461,
+        "startChar": 36,
+        "endLine": 461,
+        "endChar": 56
+      },
+      "revId": "54ab8bec4a81b90d97c54c65ed36eb87dbe2f3cf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_32cf52b2",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/PortTranslator.scala",
         "patchSetId": 1
@@ -122,6 +236,30 @@
       "writtenOn": "2015-04-14T04:58:51Z",
       "side": 1,
       "message": "This is wrong, I think. In the Midonet topology model, a route is owned by either with a port or a router, not both. Next hop routes are owned by the port, not the router.",
+      "range": {
+        "startLine": 472,
+        "startChar": 43,
+        "endLine": 472,
+        "endChar": 62
+      },
+      "revId": "54ab8bec4a81b90d97c54c65ed36eb87dbe2f3cf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_52148e4d",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 472,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-04-14T09:22:44Z",
+      "side": 1,
+      "message": "I talked with Joe, and he agreed that it seemed no longer necessary to have a reference to the router because ZOOM must have by now obsoleted that necessity, though he also mentioned that it would look more natural that the router, not the next hop port, owned routes.",
+      "parentUuid": "1a106d94_32cf52b2",
       "range": {
         "startLine": 472,
         "startChar": 43,
@@ -157,6 +295,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_1265f61d",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 482,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-04-14T09:22:44Z",
+      "side": 1,
+      "message": "Thank you, I used your 2nd solution here.",
+      "parentUuid": "1a106d94_b23062e9",
+      "range": {
+        "startLine": 478,
+        "startChar": 0,
+        "endLine": 482,
+        "endChar": 10
+      },
+      "revId": "54ab8bec4a81b90d97c54c65ed36eb87dbe2f3cf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_92c56690",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/RouteManager.scala",
         "patchSetId": 1
@@ -168,6 +330,30 @@
       "writtenOn": "2015-04-14T04:58:51Z",
       "side": 1,
       "message": "This shouldn\u0027t be here. See my comment in PortTranslator.",
+      "range": {
+        "startLine": 81,
+        "startChar": 38,
+        "endLine": 81,
+        "endChar": 59
+      },
+      "revId": "54ab8bec4a81b90d97c54c65ed36eb87dbe2f3cf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_b22b4293",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/RouteManager.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-04-14T09:22:44Z",
+      "side": 1,
+      "message": "I added this because the original code took the router ID as well. Your argument makes sense, so I\u0027ll remove the router ID here. Let\u0027s see what happens.",
+      "parentUuid": "1a106d94_92c56690",
       "range": {
         "startLine": 81,
         "startChar": 38,
