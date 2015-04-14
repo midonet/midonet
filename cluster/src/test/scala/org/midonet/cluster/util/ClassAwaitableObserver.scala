@@ -24,16 +24,21 @@ import scala.concurrent.duration.Duration
 import rx.Observable
 import rx.observers.TestObserver
 
+import org.midonet.cluster.util.ClassAwaitableObserver.ChildObserver
 import org.midonet.util.reactivex.AwaitableObserver
+
+object ClassAwaitableObserver {
+    class ChildObserver[T] extends TestObserver[T] with AwaitableObserver[T]
+}
 
 class ClassAwaitableObserver[T](awaitCount: Int) extends TestObserver[Observable[T]] {
 
-    val observers = new mutable.MutableList[TestObserver[T] with AwaitableObserver[T]]
+    val observers = new mutable.MutableList[ChildObserver[T]]
     @volatile private var counter: CountDownLatch = new CountDownLatch(awaitCount)
 
     override def onNext(value: Observable[T]) {
         super.onNext(value)
-        val obs = new TestObserver[T]() with AwaitableObserver[T]
+        val obs = new ChildObserver[T]
         observers += obs
         value.subscribe(obs)
         counter.countDown()
@@ -48,4 +53,5 @@ class ClassAwaitableObserver[T](awaitCount: Int) extends TestObserver[Observable
     def reset(newCounter: Int) {
         counter = new CountDownLatch(newCounter)
     }
+
 }

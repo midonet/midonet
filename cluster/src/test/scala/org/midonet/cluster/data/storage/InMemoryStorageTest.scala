@@ -849,6 +849,7 @@ class InMemoryStorageTest extends FeatureSpec with BeforeAndAfter
             storage.observable(classOf[PojoChain]).subscribe(obs)
             obs.await(1 second, 1) shouldBe true
             obs.observers should have size 1
+            obs.observers.get(0).get.awaitOnNext(1, 1 second)
             obs.observers.get(0).get.getOnNextEvents.get(0).name shouldBe "chain1"
 
             val chain2 = createPojoChain(name = "chain2")
