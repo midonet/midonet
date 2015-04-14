@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_35729ce5",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/vtep/model/MacEntry.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-04-14T14:24:50Z",
+      "side": 1,
+      "message": "Yeah, actually this is better since it just verifies accross the row.",
+      "parentUuid": "1a106d94_637110e0",
+      "range": {
+        "startLine": 36,
+        "startChar": 8,
+        "endLine": 37,
+        "endChar": 56
+      },
+      "revId": "f92792d0e8224a20536471a32123ae6533fea1bb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_80f402f3",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/vtep/model/PhysicalPort.scala",
         "patchSetId": 14
@@ -96,6 +120,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_b57decb3",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/vtep/model/PhysicalPort.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-04-14T14:24:50Z",
+      "side": 1,
+      "message": "Yes you\u0027re right.",
+      "parentUuid": "1a106d94_8621baa1",
+      "range": {
+        "startLine": 83,
+        "startChar": 44,
+        "endLine": 83,
+        "endChar": 67
+      },
+      "revId": "f92792d0e8224a20536471a32123ae6533fea1bb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_60f746f6",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/vtep/model/PhysicalSwitch.scala",
         "patchSetId": 14
@@ -131,6 +179,30 @@
       "side": 1,
       "message": "As in the case of maps, toSet also creates a new immutable map from the old set, AFAIK",
       "parentUuid": "1a106d94_60f746f6",
+      "range": {
+        "startLine": 97,
+        "startChar": 37,
+        "endLine": 97,
+        "endChar": 47
+      },
+      "revId": "f92792d0e8224a20536471a32123ae6533fea1bb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_154cc09d",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/vtep/model/PhysicalSwitch.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-04-14T14:24:50Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_66247eaf",
       "range": {
         "startLine": 97,
         "startChar": 37,
