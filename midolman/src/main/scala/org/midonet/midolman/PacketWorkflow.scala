@@ -432,7 +432,7 @@ class PacketWorkflow(
             UserspaceFlow
         } else if (context.hasTraceTunnelBit) {
             // don't create a flow for traced contexts on the egress host
-            context.log.warn("Skipping flow creation for traced flow on egress")
+            context.log.debug("Skipping flow creation for traced flow on egress")
             context.flowRemovedCallbacks.runAndClear()
             NoOp
         } else {
@@ -489,16 +489,11 @@ class PacketWorkflow(
 
     def processSimulationResult(context: PacketContext,
                                 result: SimulationResult): SimulationResult = {
-        resultLogger.debug(s"Simulation finished with result $result: " +
-                           s"match ${context.origMatch}, flow actions " +
-                           s"${context.flowActions}, tags ${context.flowTags}")
-        result match {
+        val res = result match {
             case AddVirtualWildcardFlow =>
                 concludeSimulation(context)
             case NoOp =>
                 context.flowRemovedCallbacks.runAndClear()
-                resultLogger.debug(s"no-op for match ${context.origMatch} " +
-                                   s"tags ${context.flowTags}")
                 NoOp
             case TemporaryDrop =>
                 context.clearFlowTags()
@@ -506,6 +501,10 @@ class PacketWorkflow(
             case Drop =>
                 addTranslatedFlow(context, FlowExpiration.FLOW_EXPIRATION)
         }
+        resultLogger.debug(s"Simulation finished with result $res: " +
+                           s"match ${context.origMatch}, flow actions " +
+                           s"${context.flowActions}, tags ${context.flowTags}")
+        res
     }
 
     private def concludeSimulation(context: PacketContext): SimulationResult = {
