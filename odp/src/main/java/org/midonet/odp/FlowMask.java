@@ -68,12 +68,6 @@ public class FlowMask extends NetlinkSerializable
     private final static int EXACT_32 = ~0;
     private final static short EXACT_16 = (short) ~0;
     private final static byte EXACT_8 = (byte) ~0;
-    private final static byte[] EXACT_ETH = new byte[FlowKeyEthernet.ETH_ALEN];
-    private final static int[] EXACT_IPV6 = new int[4];
-    static {
-        Arrays.fill(EXACT_ETH, EXACT_8);
-        Arrays.fill(EXACT_IPV6, EXACT_32);
-    }
 
     private static class MaskableFlowKeyVlan extends FlowKeyVLAN {
 
@@ -150,15 +144,6 @@ public class FlowMask extends NetlinkSerializable
         return keys[keyId & MASK];
     }
 
-    public void swap(FlowMask other) {
-        FlowKey[] tmpKeys = other.keys;
-        other.keys = keys;
-        keys = tmpKeys;
-        long tmpKeysWithMatch = other.keysWithExactMatch;
-        other.keysWithExactMatch = keysWithExactMatch;
-        keysWithExactMatch = tmpKeysWithMatch;
-    }
-
     /**
      * Calculate the flow mask from the specified FlowMatch.
      * The input port is always an exact match.
@@ -187,11 +172,11 @@ public class FlowMask extends NetlinkSerializable
         FlowKeyEthernet ethernet = key(Ethernet);
         FlowKeyEtherType ethertype = key(Ethertype);
         if (fmatch.isSeen(FlowMatch.Field.EthSrc)) {
-            ethernet.eth_src = EXACT_ETH;
+            Arrays.fill(ethernet.eth_src, EXACT_8);
             exactMatchInKey(Ethernet);
         }
         if (fmatch.isSeen(FlowMatch.Field.EthDst)) {
-            ethernet.eth_dst = EXACT_ETH;
+            Arrays.fill(ethernet.eth_dst, EXACT_8);
             exactMatchInKey(Ethernet);
         }
         if (fmatch.isSeen(FlowMatch.Field.VlanId)) {
@@ -236,10 +221,10 @@ public class FlowMask extends NetlinkSerializable
         FlowKeyIPv6 ipv6 = key(IPv6);
         ipv6.ipv6_frag = EXACT_8;
         if (fmatch.isSeen(FlowMatch.Field.NetworkSrc)) {
-            ipv6.ipv6_src = EXACT_IPV6;
+            Arrays.fill(ipv6.ipv6_src, EXACT_32);
         }
         if (fmatch.isSeen(FlowMatch.Field.NetworkDst)) {
-            ipv6.ipv6_dst = EXACT_IPV6;
+            Arrays.fill(ipv6.ipv6_dst, EXACT_32);
         }
         if (fmatch.isSeen(FlowMatch.Field.NetworkTOS)) {
             ipv6.ipv6_tclass = EXACT_8;
