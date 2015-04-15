@@ -17,6 +17,8 @@ package org.midonet.midolman.util
 
 import java.util.{LinkedList, List => JList, Queue, UUID}
 
+import org.midonet.util.UnixClock
+
 import scala.collection.JavaConversions._
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext, Future}
@@ -42,7 +44,7 @@ import org.midonet.midolman.simulation.Coordinator.Device
 import org.midonet.midolman.simulation.{Router => SimRouter}
 import org.midonet.midolman.simulation.{Coordinator, PacketContext, PacketEmitter}
 import org.midonet.midolman.state.ConnTrackState._
-import org.midonet.midolman.state.{MockStateStorage, HappyGoLuckyLeaser}
+import org.midonet.midolman.state.{ArpRequestBroker, MockStateStorage, HappyGoLuckyLeaser}
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
 import org.midonet.midolman.state.TraceState.{TraceKey, TraceContext}
 import org.midonet.midolman.topology.VirtualTopologyActor
@@ -85,8 +87,12 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
                      timeout.duration)
 
     def feedArpTable(router: SimRouter, ip: IPv4Addr, mac: MAC): Unit = {
-        router.arpTable.set(ip, mac)
+        ArpCacheHelper.feedArpCache(router, ip, mac)
     }
+
+    def throwAwayArpBroker(emitter: Queue[PacketEmitter.GeneratedPacket] = new LinkedList): ArpRequestBroker =
+        new ArpRequestBroker(new PacketEmitter(emitter, actorSystem.deadLetters),
+                             config, flowInvalidator, UnixClock.MOCK)
 
     val NO_CONNTRACK = new FlowStateTransaction[ConnTrackKey, ConnTrackValue](null)
     val NO_NAT = new FlowStateTransaction[NatKey, NatBinding](null)
@@ -97,12 +103,14 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
                          inPortNumber: Int = 0)
                         (implicit conntrackTx: FlowStateTransaction[ConnTrackKey, ConnTrackValue] = NO_CONNTRACK,
                                   natTx: FlowStateTransaction[NatKey, NatBinding] = NO_NAT,
-                                  traceTx: FlowStateTransaction[TraceKey, TraceContext] = NO_TRACE)
+                                  traceTx: FlowStateTransaction[TraceKey, TraceContext] = NO_TRACE,
+                                  arpBroker: ArpRequestBroker = throwAwayArpBroker(emitter))
     : PacketContext = {
         val fmatch = new FlowMatch(FlowKeys.fromEthernetPacket(frame))
         fmatch.setInputPortNumber(inPortNumber)
         val context = new PacketContext(-1, new Packet(frame, fmatch), fmatch)
         context.packetEmitter = new PacketEmitter(emitter, actorSystem.deadLetters)
+        context.arpBroker = arpBroker
         context.initialize(conntrackTx, natTx, HappyGoLuckyLeaser, traceTx)
         context.prepareForSimulation()
         context.inputPort = inPort
@@ -112,7 +120,8 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
 
     def simulateDevice(device: Device, frame: Ethernet, inPort: UUID)
                       (implicit conntrackTx: FlowStateTransaction[ConnTrackKey, ConnTrackValue] = NO_CONNTRACK,
-                                natTx: FlowStateTransaction[NatKey, NatBinding] = NO_NAT)
+                                natTx: FlowStateTransaction[NatKey, NatBinding] = NO_NAT,
+                                arpBroker: ArpRequestBroker = throwAwayArpBroker())
     : (PacketContext, SimulationResult) = {
         val context = packetContextFor(frame, inPort)
         force {
