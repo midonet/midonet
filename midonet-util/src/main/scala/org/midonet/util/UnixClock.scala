@@ -24,7 +24,7 @@ object UnixClock {
 
     val MOCK = new MockUnixClock()
 
-    def get: UnixClock = {
+    def apply(): UnixClock = {
         val p = System.getProperties
         val useMock: String = p.getProperty(USE_MOCK_CLOCK_PROPERTY)
         if ((useMock ne null) && useMock == "yes")
@@ -33,15 +33,12 @@ object UnixClock {
             DEFAULT
     }
 
-    def time = get.time
-    def timeNanos = get.timeNanos
-
     val USE_MOCK_CLOCK_PROPERTY = "org.midonet.internal.tests.use_mock_clock"
 }
 
 trait UnixClock {
     def time: Long
-    def timeNanos: Long = time * 1000 * 1000
+    def timeNanos: Long = System.nanoTime()
     def isMock = false
 }
 
