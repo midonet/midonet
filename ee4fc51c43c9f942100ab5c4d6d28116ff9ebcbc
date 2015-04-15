@@ -1,0 +1,123 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_6414644e",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/ArpRequestBroker.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-04-15T14:27:59Z",
+      "side": 1,
+      "message": "Do we need the trait?",
+      "revId": "ee4fc51c43c9f942100ab5c4d6d28116ff9ebcbc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_847360e6",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/ArpRequestBroker.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-04-15T14:27:59Z",
+      "side": 1,
+      "message": ": Unit",
+      "revId": "ee4fc51c43c9f942100ab5c4d6d28116ff9ebcbc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_24626c3e",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/ArpRequestBroker.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-04-15T14:27:59Z",
+      "side": 1,
+      "message": "Is this use-case still valid? It seems the reply will always be valid (it will be the opinion of this agent).",
+      "revId": "ee4fc51c43c9f942100ab5c4d6d28116ff9ebcbc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_9819007c",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/ArpRequestBroker.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 145,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-04-15T14:27:59Z",
+      "side": 1,
+      "message": "a.nextTry.compareTo(b.nextTry)?",
+      "revId": "ee4fc51c43c9f942100ab5c4d6d28116ff9ebcbc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_9830e0e9",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/ArpRequestBroker.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 186,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-04-15T14:27:59Z",
+      "side": 1,
+      "message": "MpscArrayQueue, right?",
+      "revId": "ee4fc51c43c9f942100ab5c4d6d28116ff9ebcbc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_447208e6",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/ArpRequestBroker.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 200,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-04-15T14:27:59Z",
+      "side": 1,
+      "message": "Do we really need both expiration and staleness as two distinct things?",
+      "revId": "ee4fc51c43c9f942100ab5c4d6d28116ff9ebcbc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_182510ab",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/ArpRequestBroker.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 373,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-04-15T14:27:59Z",
+      "side": 1,
+      "message": "I wouldn\u0027t retry explicitly, but would instead let new packets drive the retries.",
+      "revId": "ee4fc51c43c9f942100ab5c4d6d28116ff9ebcbc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
