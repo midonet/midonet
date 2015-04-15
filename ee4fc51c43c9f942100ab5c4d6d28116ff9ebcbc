@@ -107,6 +107,29 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_f805947a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/ArpRequestBroker.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-04-15T15:43:54Z",
+      "side": 1,
+      "message": "I think what looked weird here for me was that by passing in the Router and having a map based on the router, it looks like you\u0027re trying to retrofit a new field on the router, rather than grouping the arp entries by the router id. Perhaps this would be clearer if only the router id was passed in.",
+      "range": {
+        "startLine": 107,
+        "startChar": 17,
+        "endLine": 107,
+        "endChar": 20
+      },
+      "revId": "ee4fc51c43c9f942100ab5c4d6d28116ff9ebcbc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_9819007c",
         "filename": "midolman/src/main/scala/org/midonet/midolman/state/ArpRequestBroker.scala",
         "patchSetId": 2
