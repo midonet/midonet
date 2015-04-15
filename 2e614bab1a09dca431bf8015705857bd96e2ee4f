@@ -1,0 +1,101 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_09094995",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/PacketWorkflow.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 184,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-04-15T10:48:36Z",
+      "side": 1,
+      "message": "object type should be ArpRequestBroker",
+      "range": {
+        "startLine": 184,
+        "startChar": 28,
+        "endLine": 184,
+        "endChar": 29
+      },
+      "revId": "2e614bab1a09dca431bf8015705857bd96e2ee4f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_89f41988",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/ArpRequestBroker.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-04-15T10:48:36Z",
+      "side": 1,
+      "message": "How do routers get deleted from the map or do they live forever? Perhaps the SingleRouterArpRequestBroker could live as part of the Router object, as a ThreadLocal? The fact that you are passing in the router to each call indicates that it should be owned by the router.",
+      "revId": "2e614bab1a09dca431bf8015705857bd96e2ee4f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_292d25ff",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/ArpRequestBroker.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 111,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-04-15T10:48:36Z",
+      "side": 1,
+      "message": "This doesn\u0027t seem to be called from anywhere. Perhaps it should be called after each of the above operations.",
+      "revId": "2e614bab1a09dca431bf8015705857bd96e2ee4f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_297b65f6",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/ArpRequestBroker.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 233,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-04-15T10:48:36Z",
+      "side": 1,
+      "message": "unused",
+      "range": {
+        "startLine": 233,
+        "startChar": 44,
+        "endLine": 233,
+        "endChar": 49
+      },
+      "revId": "2e614bab1a09dca431bf8015705857bd96e2ee4f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_49d6a1c6",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/ArpRequestBroker.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 310,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-04-15T10:48:36Z",
+      "side": 1,
+      "message": "this should also remove the loops waiting for that ip",
+      "revId": "2e614bab1a09dca431bf8015705857bd96e2ee4f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
