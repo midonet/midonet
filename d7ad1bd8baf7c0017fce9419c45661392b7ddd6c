@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "1a106d94_69ea7d76",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-04-15T10:32:37Z",
+      "side": 1,
+      "message": "commit message is meaningless.",
+      "range": {
+        "startLine": 7,
+        "startChar": 13,
+        "endLine": 7,
+        "endChar": 14
+      },
+      "revId": "d7ad1bd8baf7c0017fce9419c45661392b7ddd6c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_89d7f9be",
         "filename": "brain/midonet-brain/build.gradle",
         "patchSetId": 1
