@@ -210,29 +210,6 @@ class RouterFlowInvalidationTest extends MidolmanSpec {
             new RouterInvTrieTagCountModified(IPv4Addr.fromString(ipVm2), 0)))
     }
 
-    scenario("An ARP table update invalides flows") {
-        val ipToReach = "11.11.0.2"
-        val firstMac = "02:11:22:33:48:10"
-        val secondMac = "02:11:44:66:96:20"
-
-        // add a route from ipSource to ipToReach/32, next hop is outPort
-        newRoute(router, ipSource, 32, ipToReach, 32, NextHop.PORT,
-                 outPort.getId, new IPv4Addr(NO_GATEWAY).toString, 2)
-
-        feedArpTable(simRouter, IPv4Addr.fromString(ipToReach),
-                     MAC.fromString(firstMac))
-
-        val eth = createUdpPacket(macSource, ipSource, macInPort, ipToReach)
-        val (simRes, _) = simulate(packetContextFor(eth, inPort.getId))
-        simRes should not be Drop
-
-        feedArpTable(simRouter, IPv4Addr.fromString(ipToReach),
-                     MAC.fromString(secondMac))
-
-        flowInvalidator should invalidate(
-            FlowTagger.tagForDestinationIp(router.getId, IPv4Addr.fromString(ipToReach)))
-    }
-
     private def createUdpPacket(srcMac: String, srcIp: String,
                                 dstMac: String, dstIp: String) =
         Packets.udp(

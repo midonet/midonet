@@ -24,7 +24,7 @@ import org.slf4j.LoggerFactory
 
 import org.midonet.midolman._
 import org.midonet.midolman.simulation.PacketEmitter.GeneratedPacket
-import org.midonet.midolman.state.FlowStatePackets
+import org.midonet.midolman.state.{ArpRequestBroker, FlowStatePackets}
 import org.midonet.odp.{FlowMatch, Packet}
 import org.midonet.odp.flows.FlowActions._
 import org.midonet.odp.flows.{FlowAction, FlowActions, FlowKeys}
@@ -217,6 +217,7 @@ class PacketContext(val cookie: Int,
     var inputPort: UUID = _
 
     var packetEmitter: PacketEmitter = _
+    var arpBroker: ArpRequestBroker = _
 
     // Stores the callback to call when this flow is removed.
     val flowRemovedCallbacks = new ArrayList[Callback0]()
@@ -232,8 +233,9 @@ class PacketContext(val cookie: Int,
 
     def cookieStr = s"[cookie:$cookie]"
 
-    def reset(packetEmitter: PacketEmitter): Unit = {
+    def reset(packetEmitter: PacketEmitter, arpBroker: ArpRequestBroker): Unit = {
         this.packetEmitter = packetEmitter
+        this.arpBroker = arpBroker
     }
 
     override def clear(): Unit = {
