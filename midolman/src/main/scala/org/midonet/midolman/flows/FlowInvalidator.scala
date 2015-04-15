@@ -23,6 +23,10 @@ import org.midonet.midolman.services.MidolmanActorsService
 import org.midonet.sdn.flows.FlowTagger.FlowTag
 import org.midonet.util.concurrent.WakerUpper.Parkable
 
+trait InvalidationSource {
+    def scheduleInvalidationFor(tag: FlowTag): Unit
+}
+
 object FlowInvalidator {
     private val MAX_PENDING_INVALIDATIONS = 1024
 }
@@ -30,7 +34,7 @@ object FlowInvalidator {
 // TODO: having to pass the actorsService here, ugly as it
 //       may be, is an artifact of our bootstrap process
 final class FlowInvalidator(actorsService: MidolmanActorsService,
-                            numQueues: Int) extends Parkable {
+                            numQueues: Int) extends Parkable with InvalidationSource {
     import FlowInvalidator._
 
     private val queues = new Array[MpscArrayQueue[FlowTag]](numQueues)
