@@ -22,6 +22,30 @@
       "revId": "c243f0edc3530bb4c9ad887fe4a14247a6ecc448",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_49034173",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/TopologyMatchers.scala",
+        "patchSetId": 24
+      },
+      "lineNbr": 149,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-15T09:55:58Z",
+      "side": 1,
+      "message": "Thanks Nicolas. The matcher only compares that a Chain simulation obj corresponds to a given proto message, isn\u0027t it? In what way should we compare the IP address groups?",
+      "parentUuid": "1a106d94_1584c05c",
+      "range": {
+        "startLine": 149,
+        "startChar": 10,
+        "endLine": 149,
+        "endChar": 22
+      },
+      "revId": "c243f0edc3530bb4c9ad887fe4a14247a6ecc448",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
