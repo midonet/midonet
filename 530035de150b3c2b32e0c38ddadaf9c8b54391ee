@@ -1,0 +1,113 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_18035074",
+        "filename": "cluster/src/main/java/org/midonet/cluster/data/vtep/VtepException.java",
+        "patchSetId": 15
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-15T16:03:46Z",
+      "side": 1,
+      "message": "Duplicate?",
+      "range": {
+        "startLine": 20,
+        "startChar": 0,
+        "endLine": 20,
+        "endChar": 56
+      },
+      "revId": "530035de150b3c2b32e0c38ddadaf9c8b54391ee",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_78f9a47f",
+        "filename": "cluster/src/main/java/org/midonet/cluster/data/vtep/VtepNotConnectedException.java",
+        "patchSetId": 15
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-15T16:03:46Z",
+      "side": 1,
+      "message": "Here too?",
+      "range": {
+        "startLine": 21,
+        "startChar": 0,
+        "endLine": 21,
+        "endChar": 56
+      },
+      "revId": "530035de150b3c2b32e0c38ddadaf9c8b54391ee",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_98ee20b3",
+        "filename": "cluster/src/main/java/org/midonet/cluster/data/vtep/VtepStateException.java",
+        "patchSetId": 15
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-15T16:03:46Z",
+      "side": 1,
+      "message": "Same?",
+      "revId": "530035de150b3c2b32e0c38ddadaf9c8b54391ee",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_583b0838",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/vtep/VtepDataClient.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-15T16:03:46Z",
+      "side": 1,
+      "message": "Minor comment: is there any reason this is v4 specific (I know the old one is)?",
+      "range": {
+        "startLine": 42,
+        "startChar": 25,
+        "endLine": 42,
+        "endChar": 33
+      },
+      "revId": "530035de150b3c2b32e0c38ddadaf9c8b54391ee",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_d87d38e9",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/vtep/model/LogicalSwitch.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-15T16:03:46Z",
+      "side": 1,
+      "message": "Can\u0027t case null and case other be: case _ \u003d\u003e false at the end? The same comment applies to equals for some other classes.",
+      "range": {
+        "startLine": 46,
+        "startChar": 8,
+        "endLine": 46,
+        "endChar": 26
+      },
+      "revId": "530035de150b3c2b32e0c38ddadaf9c8b54391ee",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
