@@ -311,11 +311,14 @@ class DeduplicationActor(
         while (i < pktCtxs.size) {
             val pktCtx = pktCtxs(i)
             if (!pktCtx.isStateMessage) {
-                if (pktCtx.idle)
+                if (pktCtx.idle) {
+                    MDC.put("cookie", pktCtx.cookieStr)
                     drop(pktCtx)
-                else
+                    MDC.remove("cookie")
+                } else {
                     log.warn("Pending {} was scheduled for cleanup " +
                                 "but was not idle", pktCtx.cookieStr)
+                }
             }
             i += 1
         }
