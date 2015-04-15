@@ -319,6 +319,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_7e699124",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 482,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-04-15T01:56:45Z",
+      "side": 1,
+      "message": "Added a dummy port to the Network in question to address the point you raised.",
+      "parentUuid": "1a106d94_b23062e9",
+      "range": {
+        "startLine": 478,
+        "startChar": 0,
+        "endLine": 482,
+        "endChar": 10
+      },
+      "revId": "54ab8bec4a81b90d97c54c65ed36eb87dbe2f3cf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_92c56690",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/RouteManager.scala",
         "patchSetId": 1
