@@ -294,11 +294,14 @@ class PacketWorkflow(
         var i = 0
         while (i < pktCtxs.size) {
             val pktCtx = pktCtxs(i)
-            if (pktCtx.idle)
+            if (pktCtx.idle) {
+                MDC.put("cookie", pktCtx.cookieStr)
                 drop(pktCtx)
-            else
+                MDC.remove("cookie")
+            } else {
                 log.warn(s"Pending ${pktCtx.cookieStr} was scheduled for " +
                          "cleanup but was not idle")
+            }
             i += 1
         }
     }
