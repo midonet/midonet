@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_e9f30d9c",
+        "filename": "cluster/src/main/proto/topology.proto",
+        "patchSetId": 19
+      },
+      "lineNbr": 420,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-15T10:11:26Z",
+      "side": 1,
+      "message": "I don\u0027t know, Nicolas. Here\u0027s the API:\nhttp://docs.midokura.com/docs/latest/rest-api/content/poolmember.html\n\nMaybe it is to align with the Neutron models?\nhttps://wiki.openstack.org/wiki/Neutron/LBaaS/API#Pool_Members\n\nI would ask the API team for further clarification.",
+      "parentUuid": "1a106d94_957d501f",
+      "range": {
+        "startLine": 420,
+        "startChar": 22,
+        "endLine": 420,
+        "endChar": 28
+      },
+      "revId": "e82287ccb1c1d3cab1b8302e654f8396a187ebc0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_75c6d44a",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PoolMapper.scala",
         "patchSetId": 19
@@ -36,6 +60,30 @@
       "writtenOn": "2015-04-14T13:33:41Z",
       "side": 1,
       "message": "Shouldn\u0027t you return device here? It doesn\u0027t change the behaviour it just seems more natural.",
+      "range": {
+        "startLine": 209,
+        "startChar": 8,
+        "endLine": 209,
+        "endChar": 17
+      },
+      "revId": "e82287ccb1c1d3cab1b8302e654f8396a187ebc0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_493a2137",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PoolMapper.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 209,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-15T10:11:26Z",
+      "side": 1,
+      "message": "I will update when I resubmit :P",
+      "parentUuid": "1a106d94_75c6d44a",
       "range": {
         "startLine": 209,
         "startChar": 8,
