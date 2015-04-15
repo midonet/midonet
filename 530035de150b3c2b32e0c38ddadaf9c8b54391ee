@@ -88,6 +88,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_98e1009d",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/vtep/VtepDataClient.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-04-15T16:28:21Z",
+      "side": 1,
+      "message": "the ovsdb schema only supports ipv4",
+      "parentUuid": "1a106d94_583b0838",
+      "range": {
+        "startLine": 42,
+        "startChar": 25,
+        "endLine": 42,
+        "endChar": 33
+      },
+      "revId": "530035de150b3c2b32e0c38ddadaf9c8b54391ee",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_d87d38e9",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/vtep/model/LogicalSwitch.scala",
         "patchSetId": 15
