@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_784084a5",
+        "filename": "brain/midonet-brain/build.gradle",
+        "patchSetId": 15
+      },
+      "lineNbr": 176,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-04-15T15:48:47Z",
+      "side": 1,
+      "message": "Good point, I\u0027ll remove it",
+      "parentUuid": "1a106d94_989bc071",
+      "range": {
+        "startLine": 175,
+        "startChar": 0,
+        "endLine": 176,
+        "endChar": 83
+      },
+      "revId": "13565da86b6cabd0bb93ef870352b327e533dbf4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_78a404a6",
         "filename": "brain/midonet-brain/conf/midonet-brain-env.sh",
         "patchSetId": 15
