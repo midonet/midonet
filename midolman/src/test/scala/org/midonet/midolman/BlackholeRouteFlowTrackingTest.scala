@@ -88,8 +88,8 @@ class BlackholeRouteFlowTrackingTest extends MidolmanSpec
 
         simRouter = fetchDevice(clusterRouter)
         simRouter should not be null
-        simRouter.arpTable.set(IPv4Addr(leftOtherIp), MAC.fromString(leftOtherMac))
-        simRouter.arpTable.set(IPv4Addr(rightOtherIp), MAC.fromString(rightOtherMac))
+        simRouter.arpCache.set(IPv4Addr(leftOtherIp), MAC.fromString(leftOtherMac))
+        simRouter.arpCache.set(IPv4Addr(rightOtherIp), MAC.fromString(rightOtherMac))
 
     }
 

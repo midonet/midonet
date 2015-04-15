@@ -18,6 +18,8 @@ package org.midonet.midolman
 
 import java.util.UUID
 
+import org.midonet.util.UnixClock
+
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
@@ -179,6 +181,8 @@ class PacketWorkflow(
     protected val traceStateTx = new FlowStateTransaction(traceStateTable)
     protected var replicator: FlowStateReplicator = _
 
+    protected val arpBroker = new ArpRequestBrokerImpl(genPacketEmitter, config, flowInvalidator )
+
     private val invalidateExpiredConnTrackKeys =
         new Reducer[ConnTrackKey, ConnTrackValue, Unit]() {
             override def apply(u: Unit, k: ConnTrackKey, v: ConnTrackValue) {
@@ -252,6 +256,7 @@ class PacketWorkflow(
         natStateTable.expireIdleEntries((), invalidateExpiredNatKeys)
         natLeaser.obliterateUnusedBlocks()
         traceStateTable.expireIdleEntries()
+        arpBroker.process()
     }
 
     protected def packetContext(packet: Packet): PacketContext =
@@ -267,7 +272,7 @@ class PacketWorkflow(
         val cookie = cookieGen.next
         log.debug(s"Creating new PacketContext for cookie $cookie")
         val context = new PacketContext(cookie, packet, fmatch, egressPort)
-        context.reset(genPacketEmitter)
+        context.reset(genPacketEmitter, arpBroker)
         context.initialize(connTrackTx, natTx, natLeaser, traceStateTx)
         context.log = PacketTracing.loggerFor(fmatch)
         context

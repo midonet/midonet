@@ -17,8 +17,9 @@ package org.midonet.midolman
 
 import java.util.{LinkedList, UUID}
 import com.typesafe.config.{Config, ConfigFactory}
+import org.midonet.midolman.flows.FlowInvalidator
 
-import scala.concurrent.Await
+import scala.concurrent.{Future, Await}
 import scala.concurrent.duration._
 import scala.util.{Failure, Success, Try}
 
@@ -29,7 +30,7 @@ import org.midonet.midolman.PacketWorkflow.NoOp
 import org.midonet.midolman.layer3.Route.NextHop
 import org.midonet.midolman.simulation._
 import org.midonet.midolman.simulation.PacketEmitter.GeneratedPacket
-import org.midonet.midolman.state.ArpCacheEntry
+import org.midonet.midolman.state.{ArpRequestBrokerImpl, ArpRequestBroker, ArpCacheEntry}
 import org.midonet.midolman.state.ReplicatedMap.Watcher
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.topology.devices.RouterPort
@@ -105,9 +106,14 @@ class ArpTableTest extends MidolmanSpec {
         }
 
     private val arps = new LinkedList[GeneratedPacket]()
+
+    val arpBroker = new ArpRequestBrokerImpl(new PacketEmitter(arps, actorSystem.deadLetters),
+                                             config, flowInvalidator, UnixClock.MOCK)
+
     implicit private def dummyPacketContext: PacketContext = {
         val context = new PacketContext(0, null, new FlowMatch())
         context.packetEmitter = new PacketEmitter(arps, actorSystem.deadLetters)
+        context.arpBroker = arpBroker
         context
     }
 
@@ -141,29 +147,29 @@ class ArpTableTest extends MidolmanSpec {
     def advanceAndGetTime(howManySeconds: Long): Long = {
         UnixClock.MOCK.time += howManySeconds * 1000
         scheduler.runOverdueTasks()
-        UnixClock.time
+        UnixClock().time
     }
 
     feature("ARP Table") {
         scenario("ARP request is fulfilled locally") {
             val mac = MAC.fromString("aa:bb:aa:cc:dd:cc")
-            val arpTry = Try(router.arpTable.get(hisIp, uplinkPort))
+            val arpTry = Try(arpBroker.get(hisIp, uplinkPort, router))
             expectEmitArp(uplinkPort.id, uplinkPort.portMac,
                 uplinkPort.portAddr.getAddress.toString, hisIp)
-            router.arpTable.set(hisIp, mac)
+            arpBroker.set(hisIp, mac, router)
+            arpBroker.process()
             extractMac(arpTry) should be (mac)
         }
 
         scenario("ARP request is fulfilled remotely") {
             val mac = MAC.fromString("fe:fe:fe:da:da:da")
 
-            val arpTable = router.arpTable.asInstanceOf[ArpTableImpl]
-            val arpCache = arpTable.arpCache.asInstanceOf[Watcher[IPv4Addr,
-                ArpCacheEntry]]
-
-            val macTry = Try(router.arpTable.get(hisIp, uplinkPort))
-            arpCache.processChange(hisIp, null,
-                new ArpCacheEntry(mac, UnixClock.time + 60*1000, UnixClock.time + 30*1000, 0))
+            val macTry = Try(arpBroker.get(hisIp, uplinkPort, router))
+            router.arpCache.asInstanceOf[Watcher[IPv4Addr, ArpCacheEntry]].
+                processChange(hisIp, null,
+                    new ArpCacheEntry(mac, UnixClock.MOCK.time + 60*1000,
+                                      UnixClock.MOCK.time + 30*1000, 0))
+            arpBroker.process()
             extractMac(macTry) should be (mac)
         }
 
@@ -178,7 +184,7 @@ class ArpTableTest extends MidolmanSpec {
             action should === (NoOp)
             expectReplyArp(ctx, uplinkPort.id, myMac, hisMac, myIp.toString, hisIp.toString)
 
-            val macTry = Try(router.arpTable.get(hisIp, uplinkPort))
+            val macTry = Try(arpBroker.get(hisIp, uplinkPort, router))
             extractMac(macTry) should be (hisMac)
         }
 
@@ -193,13 +199,13 @@ class ArpTableTest extends MidolmanSpec {
             action should === (NoOp)
             expectReplyArp(ctx, uplinkPort.id, myMac, hisMac, myIp.toString, hisIp)
 
-            val macTry = Try(router.arpTable.get(hisIp, uplinkPort))
+            val macTry = Try(arpBroker.get(hisIp, uplinkPort, router))
             extractMac(macTry) should be (hisMac)
         }
 
         scenario("ARP requests time out") {
 
-            val macTry = Try(router.arpTable.get(hisIp, uplinkPort))
+            val macTry = Try(arpBroker.get(hisIp, uplinkPort, router))
             expectEmitArp(uplinkPort.id, myMac, myIp, hisIp)
 
             advanceAndGetTime(ARP_RETRY_SECS - 1)
@@ -222,13 +228,13 @@ class ArpTableTest extends MidolmanSpec {
         scenario("ARP requests are retried") {
             val hisMac = MAC.fromString("77:aa:66:bb:55:cc")
 
-            val macTry = Try(router.arpTable.get(hisIp, uplinkPort))
+            val macTry = Try(arpBroker.get(hisIp, uplinkPort, router))
             expectEmitArp(uplinkPort.id, myMac, myIp, hisIp)
 
             advanceAndGetTime(ARP_RETRY_SECS)
             expectEmitArp(uplinkPort.id, myMac, myIp, hisIp)
 
-            router.arpTable.set(hisIp, hisMac)
+            arpBroker.set(hisIp, hisMac, router)
             extractMac(macTry) should be (hisMac)
 
             advanceAndGetTime(ARP_RETRY_SECS)
@@ -237,19 +243,19 @@ class ArpTableTest extends MidolmanSpec {
         scenario("ARP entries expire") {
             val mac = MAC.fromString("aa:bb:aa:cc:dd:cc")
 
-            var macTry = Try(router.arpTable.get(hisIp, uplinkPort))
+            var macTry = Try(arpBroker.get(hisIp, uplinkPort, router))
             expectEmitArp(uplinkPort.id, myMac, myIp.toString, hisIp)
-            router.arpTable.set(hisIp, mac)
+            arpBroker.set(hisIp, mac, router)
             extractMac(macTry) should be (mac)
 
             advanceAndGetTime(ARP_STALE_SECS/2)
-            router.arpTable.set(hisIp, mac)
+            arpBroker.set(hisIp, mac, router)
 
-            macTry = Try(router.arpTable.get(hisIp, uplinkPort))
+            macTry = Try(arpBroker.get(hisIp, uplinkPort, router))
             extractMac(macTry) should be (mac)
 
             advanceAndGetTime(ARP_EXPIRATION_SECS - ARP_STALE_SECS/2 + 1)
-            macTry = Try(router.arpTable.get(hisIp, uplinkPort))
+            macTry = Try(arpBroker.get(hisIp, uplinkPort, router))
             expectEmitArp(uplinkPort.id, myMac, myIp.toString, hisIp)
 
             try {
