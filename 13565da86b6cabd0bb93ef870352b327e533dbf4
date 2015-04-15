@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_989bc071",
+        "filename": "brain/midonet-brain/build.gradle",
+        "patchSetId": 15
+      },
+      "lineNbr": 176,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-15T15:35:37Z",
+      "side": 1,
+      "message": "Minor comment: is this needed for rhel7? Anyway, midolman seems to use it so it must be either needed or harmless.",
+      "range": {
+        "startLine": 175,
+        "startChar": 0,
+        "endLine": 176,
+        "endChar": 83
+      },
+      "revId": "13565da86b6cabd0bb93ef870352b327e533dbf4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_78a404a6",
+        "filename": "brain/midonet-brain/conf/midonet-brain-env.sh",
+        "patchSetId": 15
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-15T15:35:37Z",
+      "side": 1,
+      "message": "This creates a conflict with midolman installed on a same machine, which also uses port 7200 for jmx. Is that okay?",
+      "range": {
+        "startLine": 78,
+        "startChar": 0,
+        "endLine": 78,
+        "endChar": 15
+      },
+      "revId": "13565da86b6cabd0bb93ef870352b327e533dbf4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
