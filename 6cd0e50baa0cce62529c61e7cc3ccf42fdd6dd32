@@ -1,0 +1,182 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_846400e6",
+        "filename": "brain/midonet-brain/build.gradle",
+        "patchSetId": 14
+      },
+      "lineNbr": 137,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-04-15T12:41:34Z",
+      "side": 1,
+      "message": "\"Midonet Brain is MidoNet\u0027s control cluster?\n\nBtw, I thought that brain was only the importer?",
+      "range": {
+        "startLine": 137,
+        "startChar": 19,
+        "endLine": 137,
+        "endChar": 60
+      },
+      "revId": "6cd0e50baa0cce62529c61e7cc3ccf42fdd6dd32",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_647e246d",
+        "filename": "brain/midonet-brain/conf/midonet-brain-env.sh",
+        "patchSetId": 14
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-04-15T12:41:34Z",
+      "side": 1,
+      "message": "Since the min and max heap size are set to the same value, why not renaming this to HEAP_SIZE?",
+      "range": {
+        "startLine": 65,
+        "startChar": 29,
+        "endLine": 65,
+        "endChar": 42
+      },
+      "revId": "6cd0e50baa0cce62529c61e7cc3ccf42fdd6dd32",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_64a7440d",
+        "filename": "brain/midonet-brain/conf/midonet-brain-env.sh",
+        "patchSetId": 14
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-04-15T12:41:34Z",
+      "side": 1,
+      "message": "You should either set both MAX_HEAP_SIZE and HEAP_NEWSIZE or none.",
+      "range": {
+        "startLine": 67,
+        "startChar": 27,
+        "endLine": 68,
+        "endChar": 55
+      },
+      "revId": "6cd0e50baa0cce62529c61e7cc3ccf42fdd6dd32",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_84ab60d5",
+        "filename": "brain/midonet-brain/conf/midonet-brain-env.sh",
+        "patchSetId": 14
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-04-15T12:41:34Z",
+      "side": 1,
+      "message": "Please set both MAX_HEAP_SIZE and HEAP_NEWSIZE or none.",
+      "range": {
+        "startLine": 73,
+        "startChar": 10,
+        "endLine": 73,
+        "endChar": 69
+      },
+      "revId": "6cd0e50baa0cce62529c61e7cc3ccf42fdd6dd32",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_84d9a085",
+        "filename": "brain/midonet-brain/src/deb/control/control",
+        "patchSetId": 14
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-04-15T12:41:34Z",
+      "side": 1,
+      "message": "\u0027s",
+      "range": {
+        "startLine": 10,
+        "startChar": 37,
+        "endLine": 10,
+        "endChar": 38
+      },
+      "revId": "6cd0e50baa0cce62529c61e7cc3ccf42fdd6dd32",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_c4e39831",
+        "filename": "brain/midonet-brain/src/deb/control/preinst",
+        "patchSetId": 14
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-04-15T12:41:34Z",
+      "side": 1,
+      "message": "Is it purposely empty? Maybe add a comment here?",
+      "range": {
+        "startLine": 4,
+        "startChar": 0,
+        "endLine": 4,
+        "endChar": 0
+      },
+      "revId": "6cd0e50baa0cce62529c61e7cc3ccf42fdd6dd32",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_84c0807d",
+        "filename": "brain/midonet-brain/src/deb/init/midonet-brain-start",
+        "patchSetId": 14
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-04-15T12:41:34Z",
+      "side": 1,
+      "message": "If?",
+      "range": {
+        "startLine": 38,
+        "startChar": 24,
+        "endLine": 38,
+        "endChar": 25
+      },
+      "revId": "6cd0e50baa0cce62529c61e7cc3ccf42fdd6dd32",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_846ec094",
+        "filename": "brain/midonet-brain/src/rhel7/control/preinst",
+        "patchSetId": 14
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-04-15T12:41:34Z",
+      "side": 1,
+      "message": "Does this file need to exist if it\u0027s empty?",
+      "revId": "6cd0e50baa0cce62529c61e7cc3ccf42fdd6dd32",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
