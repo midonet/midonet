@@ -95,7 +95,7 @@ class ConfApiTest extends FeatureSpecLike
     private val confStr =
         s"""
           |brain.conf_api.enabled : true
-          |brain.conf_api.http_port : ${HTTP_PORT}
+          |brain.conf_api.http_port : $HTTP_PORT
         """.stripMargin
 
     override def config = ConfigFactory.parseString(confStr).withFallback(super.config)
@@ -124,7 +124,8 @@ class ConfApiTest extends FeatureSpecLike
         Request.Get(url(path)).execute().returnContent().asString())
 
     private def post(path: String, content: String) = {
-        Request.Post(url(path)).bodyString(content, ContentType.TEXT_PLAIN).execute()
+        Request.Post(url(path)).bodyString(content, ContentType.TEXT_PLAIN)
+            .execute().discardContent()
     }
 
     private def delete(path: String) =
