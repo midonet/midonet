@@ -2,6 +2,23 @@
   "comments": [
     {
       "key": {
+        "uuid": "1a106d94_44b048f4",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/PacketWorkflow.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-04-15T13:12:58Z",
+      "side": 1,
+      "message": "needed?",
+      "revId": "2e614bab1a09dca431bf8015705857bd96e2ee4f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_09094995",
         "filename": "midolman/src/main/scala/org/midonet/midolman/PacketWorkflow.scala",
         "patchSetId": 1
@@ -19,6 +36,57 @@
         "endLine": 184,
         "endChar": 29
       },
+      "revId": "2e614bab1a09dca431bf8015705857bd96e2ee4f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_e4a054a1",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/ArpRequestBroker.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-04-15T13:12:58Z",
+      "side": 1,
+      "message": "But we already have a broker! Conductor? :p",
+      "revId": "2e614bab1a09dca431bf8015705857bd96e2ee4f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_84f40088",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/ArpRequestBroker.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-04-15T13:12:58Z",
+      "side": 1,
+      "message": "can the context be explicit? also rename to context for overall consistency.",
+      "revId": "2e614bab1a09dca431bf8015705857bd96e2ee4f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_a4d2dcfd",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/ArpRequestBroker.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-04-15T13:12:58Z",
+      "side": 1,
+      "message": "The indentation is off. This is probably because you renamed the class. I\u0027ve now started writing this as:\nclass ArpRequestBrokerImpl(\n         emitter: PacketEmitter, \n         ....)",
       "revId": "2e614bab1a09dca431bf8015705857bd96e2ee4f",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -95,6 +163,74 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_c4727848",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/ArpRequestBroker.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 123,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-04-15T13:12:58Z",
+      "side": 1,
+      "message": "nanoclock?",
+      "revId": "2e614bab1a09dca431bf8015705857bd96e2ee4f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_c4d718ec",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/ArpRequestBroker.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-04-15T13:12:58Z",
+      "side": 1,
+      "message": "ThreadLocalRandom.current()?",
+      "revId": "2e614bab1a09dca431bf8015705857bd96e2ee4f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_e4dcd414",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/ArpRequestBroker.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 148,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-04-15T13:12:58Z",
+      "side": 1,
+      "message": "space after Q",
+      "revId": "2e614bab1a09dca431bf8015705857bd96e2ee4f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_c4eef8b3",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/ArpRequestBroker.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 201,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-04-15T13:12:58Z",
+      "side": 1,
+      "message": "bookkeeping",
+      "revId": "2e614bab1a09dca431bf8015705857bd96e2ee4f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_04bbf0c4",
         "filename": "midolman/src/main/scala/org/midonet/midolman/state/ArpRequestBroker.scala",
         "patchSetId": 1
@@ -152,6 +288,29 @@
         "startChar": 44,
         "endLine": 233,
         "endChar": 49
+      },
+      "revId": "2e614bab1a09dca431bf8015705857bd96e2ee4f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_6437444f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/ArpRequestBroker.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 302,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-04-15T13:12:58Z",
+      "side": 1,
+      "message": ":D",
+      "range": {
+        "startLine": 302,
+        "startChar": 16,
+        "endLine": 302,
+        "endChar": 29
       },
       "revId": "2e614bab1a09dca431bf8015705857bd96e2ee4f",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
