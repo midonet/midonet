@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_7821a44c",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/ArpRequestBroker.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-04-15T15:07:56Z",
+      "side": 1,
+      "message": "guess not.",
+      "parentUuid": "1a106d94_6414644e",
+      "revId": "ee4fc51c43c9f942100ab5c4d6d28116ff9ebcbc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_847360e6",
         "filename": "midolman/src/main/scala/org/midonet/midolman/state/ArpRequestBroker.scala",
         "patchSetId": 2
@@ -53,6 +71,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_3828cc33",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/ArpRequestBroker.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-04-15T15:07:56Z",
+      "side": 1,
+      "message": "It is unless you add replies cache to the broker. Because get() goes to the replicated map, a newly learned mac will remain null in all local threads until the zk callback is fired.",
+      "parentUuid": "1a106d94_24626c3e",
+      "revId": "ee4fc51c43c9f942100ab5c4d6d28116ff9ebcbc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_9819007c",
         "filename": "midolman/src/main/scala/org/midonet/midolman/state/ArpRequestBroker.scala",
         "patchSetId": 2
@@ -64,6 +100,24 @@
       "writtenOn": "2015-04-15T14:27:59Z",
       "side": 1,
       "message": "a.nextTry.compareTo(b.nextTry)?",
+      "revId": "ee4fc51c43c9f942100ab5c4d6d28116ff9ebcbc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_581ca813",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/ArpRequestBroker.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 145,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-04-15T15:07:56Z",
+      "side": 1,
+      "message": ":)",
+      "parentUuid": "1a106d94_9819007c",
       "revId": "ee4fc51c43c9f942100ab5c4d6d28116ff9ebcbc",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -87,6 +141,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_38df2c3d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/ArpRequestBroker.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 186,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-04-15T15:07:56Z",
+      "side": 1,
+      "message": "why M, it would be S.\n\nBut, what size? i didn\u0027t want to cap it for something so such low volume.",
+      "parentUuid": "1a106d94_9830e0e9",
+      "revId": "ee4fc51c43c9f942100ab5c4d6d28116ff9ebcbc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_447208e6",
         "filename": "midolman/src/main/scala/org/midonet/midolman/state/ArpRequestBroker.scala",
         "patchSetId": 2
@@ -104,6 +176,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_18e23003",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/ArpRequestBroker.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 200,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-04-15T15:07:56Z",
+      "side": 1,
+      "message": "Yes.",
+      "parentUuid": "1a106d94_447208e6",
+      "revId": "ee4fc51c43c9f942100ab5c4d6d28116ff9ebcbc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_182510ab",
         "filename": "midolman/src/main/scala/org/midonet/midolman/state/ArpRequestBroker.scala",
         "patchSetId": 2
@@ -115,6 +205,24 @@
       "writtenOn": "2015-04-15T14:27:59Z",
       "side": 1,
       "message": "I wouldn\u0027t retry explicitly, but would instead let new packets drive the retries.",
+      "revId": "ee4fc51c43c9f942100ab5c4d6d28116ff9ebcbc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_58e30805",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/ArpRequestBroker.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 373,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-04-15T15:07:56Z",
+      "side": 1,
+      "message": "mmm. Fair point, but:\n\nwhile it complicates the retry timing logic a bit, it doesn\u0027t provide anything. For a lowly wanted entry, we just emit about 4 or 5 extra ARPs. For a highly sought after entry, we\u0027ll still emit all of the requests.",
+      "parentUuid": "1a106d94_182510ab",
       "revId": "ee4fc51c43c9f942100ab5c4d6d28116ff9ebcbc",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
