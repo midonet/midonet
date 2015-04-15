@@ -49,7 +49,7 @@ import org.midonet.cluster.data.{Port => VPort}
 import org.midonet.cluster.services.MidostoreSetupService
 import org.midonet.midolman.DatapathController.{DatapathReady, Initialize}
 import org.midonet.midolman.DeduplicationActor.{DiscardPacket, EmitGeneratedPacket, HandlePackets}
-import org.midonet.midolman.FlowController.{AddWildcardFlow, FlowUpdateCompleted, WildcardFlowAdded, WildcardFlowRemoved}
+import org.midonet.midolman.FlowController._
 import org.midonet.midolman.PacketWorkflow.PacketIn
 import org.midonet.midolman._
 import org.midonet.midolman.guice._
@@ -65,6 +65,7 @@ import org.midonet.midolman.host.interfaces.InterfaceDescription
 import org.midonet.midolman.host.scanner.InterfaceScanner
 import org.midonet.midolman.services.{HostIdProviderService, MidolmanActorsService, MidolmanService}
 import org.midonet.midolman.simulation.PacketContext
+import org.midonet.midolman.state.ArpRequestBroker
 import org.midonet.midolman.topology.{LocalPortActive, VirtualToPhysicalMapper, VirtualTopologyActor}
 import org.midonet.midolman.util.guice.{MockMidolmanModule, OutgoingMessage, TestableMidolmanActorsModule}
 import org.midonet.midolman.util.mock.MockInterfaceScanner
@@ -128,6 +129,9 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
 
     implicit protected def system: ActorSystem = actors
     implicit protected def executor: ExecutionContext = actors.dispatcher
+
+    val arpBroker = new ArpRequestBroker(PacketsEntryPoint ! _,
+        FlowController ! InvalidateFlowsByTag(_), (_) => {}, 1, 3, 5, 10)
 
     protected def newProbe(): TestProbe = {
         new TestProbe(actors)
@@ -526,7 +530,7 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
             override implicit protected def system: ActorSystem = actors
             override protected val dpState: DatapathState = self.dpState
         }
-        val pktCtx = new PacketContext(Left(-1), null, None, wcMatch)
+        val pktCtx = new PacketContext(Left(-1), null, None, wcMatch, arpBroker)
         pktCtx.inputPort = inputPort
         dpState.getDpPortNumberForVport(pktCtx.inputPort) map { port =>
             wcMatch.setInputPortNumber(port.toShort)

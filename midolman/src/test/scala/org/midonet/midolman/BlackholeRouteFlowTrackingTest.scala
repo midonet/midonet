@@ -32,6 +32,7 @@ import org.midonet.midolman.simulation.Router
 import org.midonet.midolman.simulation.Coordinator.{TemporaryDropAction, ToPortAction}
 import org.midonet.midolman.simulation.CustomMatchers
 import org.midonet.midolman.topology.VirtualTopologyActor
+import org.midonet.midolman.util.ArpCacheHelper._
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.MessageAccumulator
 import org.midonet.packets.{IPv4Addr, MAC}
@@ -89,8 +90,8 @@ class BlackholeRouteFlowTrackingTest extends MidolmanSpec {
 
         simRouter = fetchDevice(clusterRouter)
         simRouter should not be null
-        simRouter.arpTable.set(IPv4Addr(leftOtherIp), MAC.fromString(leftOtherMac))
-        simRouter.arpTable.set(IPv4Addr(rightOtherIp), MAC.fromString(rightOtherMac))
+        feedArpCache(simRouter, IPv4Addr(leftOtherIp), MAC.fromString(leftOtherMac))
+        feedArpCache(simRouter, IPv4Addr(rightOtherIp), MAC.fromString(rightOtherMac))
 
     }
 

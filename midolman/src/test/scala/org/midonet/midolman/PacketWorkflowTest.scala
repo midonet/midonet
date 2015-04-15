@@ -37,6 +37,7 @@ import org.slf4j.helpers.NOPLogger
 import org.midonet.midolman.DeduplicationActor.ActionsCache
 import org.midonet.midolman.io.DatapathConnectionPool
 import org.midonet.midolman.simulation.PacketContext
+import org.midonet.midolman.state.ArpRequestBroker
 import org.midonet.odp._
 import org.midonet.odp.flows._
 import org.midonet.odp.protos.{OvsDatapathConnection, MockOvsDatapathConnection}
@@ -54,7 +55,7 @@ object PacketWorkflowTest {
     val config = ConfigProvider.providerForIniConfig(new HierarchicalConfiguration)
         .getConfig(classOf[MidolmanConfig])
 
-    def forCookie(testKit: ActorRef, pkt: Packet, cookie: Int)
+    def forCookie(testKit: ActorRef, pkt: Packet, cookie: Int, arpBroker: ArpRequestBroker)
         (implicit system: ActorSystem): (PacketContext, PacketWorkflow) = {
         val dpCon = OvsDatapathConnection.
                 createMock().asInstanceOf[MockOvsDatapathConnection]
@@ -71,7 +72,7 @@ object PacketWorkflowTest {
         dpCon.flowsSubscribe(flowListener)
         val dpState = new DatapathStateManager(null)(null, null)
         val wcMatch = WildcardMatch.fromFlowMatch(pkt.getMatch)
-        val pktCtx = new PacketContext(Left(cookie), pkt, None, wcMatch)
+        val pktCtx = new PacketContext(Left(cookie), pkt, None, wcMatch, arpBroker)
         val wf = new PacketWorkflow(dpState, null, null, dpConPool,
                                     CallbackExecutor.Immediate,
                                     new ActionsCache(log = NoLogging), null,
@@ -130,11 +131,14 @@ class PacketWorkflowTest extends TestKit(ActorSystem("PacketWorkflowTest"))
 
     system.actorOf(Props(new ForwarderParent), "midolman")
 
+    val arpBroker = new ArpRequestBroker(PacketsEntryPoint ! _,
+        FlowController ! InvalidateFlowsByTag(_), (_) => {}, 1, 3, 5, 10)
+
     feature("a PacketWorkflow queries the wildcard table to find matches") {
 
         scenario("Userspace-only tagged packets do not generate kernel flows") {
             Given("a PkWf object with a userspace Packet")
-            val (pktCtx, pkfw) = PacketWorkflowTest.forCookie(self, packet(true), cookie)
+            val (pktCtx, pkfw) = PacketWorkflowTest.forCookie(self, packet(true), cookie, arpBroker)
 
             When("the PkWf finds a wildcardflow for the match")
             pkfw.handleWildcardTableMatch(pktCtx, wcFlow(true))
@@ -146,7 +150,7 @@ class PacketWorkflowTest extends TestKit(ActorSystem("PacketWorkflowTest"))
 
         scenario("Non Userspace-only tagged packets generate kernel flows") {
             Given("a PkWf object with a userspace Packet")
-            val (pktCtx, pkfw) = PacketWorkflowTest.forCookie(self, packet(false), cookie)
+            val (pktCtx, pkfw) = PacketWorkflowTest.forCookie(self, packet(false), cookie, arpBroker)
 
             When("the PkWf finds a wildcardflow for the match")
             pkfw.handleWildcardTableMatch(pktCtx, wcFlow(false))
@@ -164,7 +168,7 @@ class PacketWorkflowTest extends TestKit(ActorSystem("PacketWorkflowTest"))
 
         scenario("A Simulation returns SendPacket") {
             Given("a PkWf object")
-            val (pktCtx, pkfw) = PacketWorkflowTest.forCookie(self, packet(), cookie)
+            val (pktCtx, pkfw) = PacketWorkflowTest.forCookie(self, packet(), cookie, arpBroker)
 
             When("the simulation layer returns SendPacket")
             pkfw.processSimulationResult(pktCtx, SendPacket(List(output)))
@@ -176,7 +180,7 @@ class PacketWorkflowTest extends TestKit(ActorSystem("PacketWorkflowTest"))
 
         scenario("A Simulation returns NoOp") {
             Given("a PkWf object")
-            val (pktCtx, pkfw) = PacketWorkflowTest.forCookie(self, packet(), cookie)
+            val (pktCtx, pkfw) = PacketWorkflowTest.forCookie(self, packet(), cookie, arpBroker)
 
             When("the simulation layer returns NoOp")
             pkfw.processSimulationResult(pktCtx, NoOp)
@@ -187,7 +191,7 @@ class PacketWorkflowTest extends TestKit(ActorSystem("PacketWorkflowTest"))
 
         scenario("A Simulation returns Drop for userspace only match") {
             Given("a PkWf object with a userspace only match")
-            val (pktCtx, pkfw) = PacketWorkflowTest.forCookie(self, packet(true), cookie)
+            val (pktCtx, pkfw) = PacketWorkflowTest.forCookie(self, packet(true), cookie, arpBroker)
 
             When("the simulation layer returns Drop")
             pkfw.processSimulationResult(pktCtx, Drop)
@@ -199,7 +203,7 @@ class PacketWorkflowTest extends TestKit(ActorSystem("PacketWorkflowTest"))
 
         scenario("A Simulation returns Drop") {
             Given("a PkWf object with a match which is not userspace only")
-            val (pktCtx, pkfw) = PacketWorkflowTest.forCookie(self, packet(false), cookie)
+            val (pktCtx, pkfw) = PacketWorkflowTest.forCookie(self, packet(false), cookie, arpBroker)
 
             When("the simulation layer returns Drop")
             pkfw.processSimulationResult(pktCtx, Drop)
@@ -212,7 +216,7 @@ class PacketWorkflowTest extends TestKit(ActorSystem("PacketWorkflowTest"))
 
         scenario("A Simulation returns TemporaryDrop for userspace only match") {
             Given("a PkWf object with a userspace only match")
-            val (pktCtx, pkfw) = PacketWorkflowTest.forCookie(self, packet(true), cookie)
+            val (pktCtx, pkfw) = PacketWorkflowTest.forCookie(self, packet(true), cookie, arpBroker)
 
             When("the simulation layer returns Drop")
             pkfw.processSimulationResult(pktCtx, TemporaryDrop)
@@ -225,7 +229,7 @@ class PacketWorkflowTest extends TestKit(ActorSystem("PacketWorkflowTest"))
 
         scenario("A Simulation returns TemporaryDrop") {
             Given("a PkWf object with a match which is not userspace only")
-            val (pktCtx, pkfw) = PacketWorkflowTest.forCookie(self, packet(false), cookie)
+            val (pktCtx, pkfw) = PacketWorkflowTest.forCookie(self, packet(false), cookie, arpBroker)
 
             When("the simulation layer returns Drop")
             pkfw.processSimulationResult(pktCtx, TemporaryDrop)
@@ -239,7 +243,7 @@ class PacketWorkflowTest extends TestKit(ActorSystem("PacketWorkflowTest"))
         scenario("A Simulation returns AddVirtualWildcardFlow " +
                  "for userspace only match") {
             Given("a PkWf object")
-            val (pktCtx, pkfw) = PacketWorkflowTest.forCookie(self, packet(true), cookie)
+            val (pktCtx, pkfw) = PacketWorkflowTest.forCookie(self, packet(true), cookie, arpBroker)
 
             When("the simulation layer returns AddVirtualWildcardFlow")
             val result =
@@ -256,7 +260,7 @@ class PacketWorkflowTest extends TestKit(ActorSystem("PacketWorkflowTest"))
 
         scenario("A Simulation returns AddVirtualWildcardFlow") {
             Given("a PkWf object")
-            val (pktCtx, pkfw) = PacketWorkflowTest.forCookie(self, packet(false), cookie)
+            val (pktCtx, pkfw) = PacketWorkflowTest.forCookie(self, packet(false), cookie, arpBroker)
 
             When("the simulation layer returns AddVirtualWildcardFlow")
             val result = AddVirtualWildcardFlow(wcFlow())

@@ -866,7 +866,8 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
             bgpVty.setNetwork(bgp.getLocalAS, adRoute.getNwPrefix.getHostAddress,
                 adRoute.getPrefixLength)
             adRoutes.add(adRoute)
-            log.debug("({}) added advertised route: {}", phase, adRoute)
+            log.debug(s"($phase) added advertised route: " +
+                s"${adRoute.getData.nwPrefix}/${adRoute.getData.prefixLength}")
         }
     }
 
@@ -878,7 +879,7 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
         def addVirtualWildcardFlow(wcMatch: WildcardMatch,
                                    actions: List[FlowAction],
                                    inputPort: UUID = null): Unit = {
-            val pktCtx = new PacketContext(Left(-1), null, None, wcMatch)
+            val pktCtx = new PacketContext(Left(-1), null, None, wcMatch, null)
             pktCtx.addFlowTag(FlowTagger.tagForBgp(bgp.getId))
             pktCtx.inputPort = inputPort
             try {

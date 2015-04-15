@@ -29,6 +29,7 @@ import org.slf4j.LoggerFactory
 
 import org.midonet.midolman.state.FlowStatePackets
 import org.midonet.odp.flows.{FlowActions, FlowKeys, FlowAction}
+import org.midonet.midolman.state.ArpRequestBroker
 import org.midonet.odp.flows.FlowActions._
 import org.midonet.odp.Packet
 import org.midonet.packets._
@@ -55,7 +56,8 @@ object PacketContext {
 class PacketContext(val cookieOrEgressPort: Either[Int, UUID],
                     val packet: Packet,
                     val parentCookie: Option[Int],
-                    val origMatch: WildcardMatch)
+                    val origMatch: WildcardMatch,
+                    val arpBroker: ArpRequestBroker)
                    (implicit actorSystem: ActorSystem) {
     var log = PacketContext.defaultLog
 

@@ -25,7 +25,7 @@ import org.midonet.midolman.FlowController
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.layer3.{RoutingTableIfc, InvalidationTrie, Route}
-import org.midonet.midolman.simulation.{ArpTable, ArpTableImpl, Router}
+import org.midonet.midolman.simulation.Router
 import org.midonet.midolman.topology.RouterManager._
 import org.midonet.midolman.topology.builders.RouterBuilderImpl
 import org.midonet.packets.{IPAddr, IPv4Addr, MAC}
@@ -96,7 +96,6 @@ class RouterManager(id: UUID, val client: Client, val config: MidolmanConfig)
     private var changed = false
     private var rTable: RoutingTableWrapper[IPv4Addr] = null
     private var arpCache: ArpCache = null
-    private var arpTable: ArpTable = null
     // This trie is to store the tag that represent the ip destination to be
     // able to do flow invalidation properly when a route is added or deleted
     private val dstIpTagTrie: InvalidationTrie = new InvalidationTrie()
@@ -107,7 +106,7 @@ class RouterManager(id: UUID, val client: Client, val config: MidolmanConfig)
     def topologyReady() {
         log.debug("Sending a Router to the VTA")
 
-        val router = new Router(id, cfg, rTable, new TagManagerImpl, arpTable)
+        val router = new Router(id, cfg, rTable, new TagManagerImpl, arpCache)
 
         // Not using context.actorFor("..") because in tests it will
         // bypass the probes and make it harder to fish for these messages
@@ -142,9 +141,6 @@ class RouterManager(id: UUID, val client: Client, val config: MidolmanConfig)
 
             if (arpCache == null && newArpCache != null) {
                 arpCache = newArpCache
-                arpTable = new ArpTableImpl(arpCache, config,
-                    (ip: IPv4Addr, oldMac: MAC, newMac: MAC) => invalidateFlowsByIp(ip))
-                arpTable.start()
             } else if (arpCache != newArpCache) {
                 throw new RuntimeException("Trying to re-set the arp cache")
             }
