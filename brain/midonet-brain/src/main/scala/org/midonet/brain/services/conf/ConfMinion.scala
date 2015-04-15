@@ -28,7 +28,7 @@ import org.eclipse.jetty.servlet.{ServletHolder, ServletContextHandler}
 import org.slf4j.LoggerFactory
 
 import org.midonet.brain.{ClusterMinion, BrainConfig, ClusterNode}
-import org.midonet.conf.{ObservableConf, MidoNodeConfigurator}
+import org.midonet.conf.MidoNodeConfigurator
 
 class ConfMinion @Inject()(nodeContext: ClusterNode.Context, config: BrainConfig)
         extends ClusterMinion(nodeContext) {
