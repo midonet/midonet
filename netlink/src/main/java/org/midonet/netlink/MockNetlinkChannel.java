@@ -77,9 +77,15 @@ public class MockNetlinkChannel extends NetlinkChannel {
 
     @Override
     public int write(ByteBuffer src) throws IOException {
-        written.add(src);
+        final int size = src.remaining();
+        final ByteBuffer clone = src.isDirect()
+                               ? ByteBuffer.allocateDirect(size)
+                               : ByteBuffer.allocate(size);
+        clone.order(src.order());
+        clone.put(src);
+        written.add(clone);
         packetsWritten.incrementAndGet();
-        return src.remaining();
+        return size;
     }
 
     @Override
