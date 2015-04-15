@@ -339,11 +339,18 @@ class DatapathController extends Actor
 
     def ensureDeletePort(port: DpPort, conn: OvsConnectionOps): Future[DpPort] =
         conn.delPort(port, datapath) recoverWith {
+            case ex: NetlinkException if isPortMissing(ex) =>
+                Future.successful(port)
             case ex: Throwable =>
                 log.warn("retrying deletion of " + port.getName +
                          " because of {}", ex)
                 after(1 second, system.scheduler)(ensureDeletePort(port, conn))
         }
+
+    private def isPortMissing(ex: NetlinkException) = ex.getErrorCodeEnum match {
+        case ErrorCode.ENODEV | ErrorCode.ENOENT | ErrorCode.ENXIO => true
+        case _ => false
+    }
 
     def makeTunnelPort[P <: DpPort](t: ChannelType)(portFact: () => P)
                                    (implicit tag: ClassTag[P]): Future[P] =
