@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_38856cd0",
+        "filename": "brain/midonet-brain/src/main/java/org/midonet/brain/services/rest_api/models/Bridge.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-04-15T15:57:25Z",
+      "side": 1,
+      "message": "we can check whether we actually need this (I think not)",
+      "range": {
+        "startLine": 34,
+        "startChar": 0,
+        "endLine": 34,
+        "endChar": 32
+      },
+      "revId": "98ed210efd296f6cef3dfaafe95cc5a6faf8a0e0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_188870e6",
+        "filename": "brain/midonet-brain/src/main/java/org/midonet/brain/services/rest_api/models/Bridge.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-04-15T15:57:25Z",
+      "side": 1,
+      "message": "did you do anything special to make sure this actually is serialized to the json? I remember it wasn\u0027t possible unless you meddled with properties in the serialization config (I may have done it myself, and forgot)",
+      "range": {
+        "startLine": 93,
+        "startChar": 15,
+        "endLine": 93,
+        "endChar": 27
+      },
+      "revId": "98ed210efd296f6cef3dfaafe95cc5a6faf8a0e0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_f87ab4ef",
+        "filename": "brain/midonet-brain/src/main/java/org/midonet/brain/services/vladimir/Resources",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-04-15T15:57:25Z",
+      "side": 1,
+      "message": "move to /main/resources?",
+      "revId": "98ed210efd296f6cef3dfaafe95cc5a6faf8a0e0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
