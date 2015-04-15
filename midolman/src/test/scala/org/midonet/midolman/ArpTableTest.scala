@@ -141,7 +141,7 @@ class ArpTableTest extends MidolmanSpec {
     def advanceAndGetTime(howManySeconds: Long): Long = {
         UnixClock.MOCK.time += howManySeconds * 1000
         scheduler.runOverdueTasks()
-        UnixClock.time
+        UnixClock().time
     }
 
     feature("ARP Table") {
@@ -163,7 +163,7 @@ class ArpTableTest extends MidolmanSpec {
 
             val macTry = Try(router.arpTable.get(hisIp, uplinkPort))
             arpCache.processChange(hisIp, null,
-                new ArpCacheEntry(mac, UnixClock.time + 60*1000, UnixClock.time + 30*1000, 0))
+                new ArpCacheEntry(mac, UnixClock().time + 60*1000, UnixClock().time + 30*1000, 0))
             extractMac(macTry) should be (mac)
         }
 
