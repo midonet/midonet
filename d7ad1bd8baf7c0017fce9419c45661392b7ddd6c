@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_89d7f9be",
+        "filename": "brain/midonet-brain/build.gradle",
+        "patchSetId": 1
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-04-15T10:27:32Z",
+      "side": 1,
+      "message": "Does this assign System.getProperties() to variable systemProperties?",
+      "range": {
+        "startLine": 87,
+        "startChar": 4,
+        "endLine": 87,
+        "endChar": 43
+      },
+      "revId": "d7ad1bd8baf7c0017fce9419c45661392b7ddd6c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
