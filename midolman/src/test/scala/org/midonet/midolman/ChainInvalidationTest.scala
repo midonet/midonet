@@ -28,6 +28,7 @@ import org.midonet.midolman.simulation.{Router, Bridge}
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.MessageAccumulator
+import org.midonet.midolman.util.ArpCacheHelper._
 import org.midonet.packets.{IPv4Addr, IPSubnet, IPv4Subnet, MAC}
 import org.midonet.sdn.flows.FlowTagger
 import org.midonet.midolman.layer3.Route.NextHop
@@ -111,7 +112,7 @@ class BridgeWithOneVm(val subnet: IPSubnet[IPv4Addr],
             routerPortOutFilter)
 
         bridge.vlanMacTableMap(0.toShort).add(vmMac, vmPort.getId)
-        router.arpTable.set(vmIp, vmMac)
+        feedArpCache(router, vmIp, vmMac)
     }
 }
 

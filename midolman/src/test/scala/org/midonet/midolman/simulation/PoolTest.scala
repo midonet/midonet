@@ -30,6 +30,7 @@ import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.state.NatState.{NatKey, NatBinding}
 import org.midonet.midolman.state.l4lb.LBStatus
 import org.midonet.midolman.topology.VirtualTopologyActor
+import org.midonet.midolman.util.ArpCacheHelper._
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.MessageAccumulator
 import org.midonet.odp.flows.{FlowActionSetKey, FlowKeyIPv4}
@@ -187,10 +188,10 @@ class PoolTest extends MidolmanSpec {
         val topo = fetchTopologyList(itemsToLoad)
 
         // Seed the ARP table
-        val arpTable = topo.collect({ case r: Router => r.arpTable}).head
-        arpTable.set(ipClientSide.getAddress, macClientSide)
+        val arpCache = topo.collect({ case r: Router => r.arpCache}).head
+        feedArpCache(arpCache, ipClientSide.getAddress, macClientSide)
         (0 until numBackends) foreach {
-            n => arpTable.set(ipsBackendSide(n).getAddress, macsBackendSide(n))
+            n => feedArpCache(arpCache, ipsBackendSide(n).getAddress, macsBackendSide(n))
         }
 
         val natTable = new ShardedFlowStateTable[NatKey, NatBinding]().addShard()

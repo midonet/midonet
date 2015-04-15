@@ -124,10 +124,10 @@ class DatapathConfig(val conf: Config, val schema: Config) extends TypeFailureFa
 class ArpTableConfig(val conf: Config, val schema: Config) extends TypeFailureFallback {
     val PREFIX = "agent.arptable"
 
-    def retryInterval = getDuration(s"$PREFIX.arp_retry_interval", TimeUnit.SECONDS)
-    def timeout = getDuration(s"$PREFIX.arp_timeout", TimeUnit.SECONDS)
-    def stale = getDuration(s"$PREFIX.arp_stale", TimeUnit.SECONDS)
-    def expiration = getDuration(s"$PREFIX.arp_expiration", TimeUnit.SECONDS)
+    def retryInterval = getDuration(s"$PREFIX.arp_retry_interval", TimeUnit.MILLISECONDS)
+    def timeout = getDuration(s"$PREFIX.arp_timeout", TimeUnit.MILLISECONDS)
+    def stale = getDuration(s"$PREFIX.arp_stale", TimeUnit.MILLISECONDS)
+    def expiration = getDuration(s"$PREFIX.arp_expiration", TimeUnit.MILLISECONDS)
 }
 
 class HealthMonitorConfig(val conf: Config, val schema: Config) extends TypeFailureFallback {

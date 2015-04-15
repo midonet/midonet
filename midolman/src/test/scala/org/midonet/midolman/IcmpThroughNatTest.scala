@@ -30,6 +30,7 @@ import org.midonet.midolman.simulation.Coordinator.ToPortAction
 import org.midonet.midolman.simulation.{Bridge, Router}
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
 import org.midonet.midolman.topology.VirtualTopologyActor
+import org.midonet.midolman.util.ArpCacheHelper._
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.MessageAccumulator
 import org.midonet.packets.{IPv4Subnet, MAC, IPv4Addr}
@@ -91,8 +92,8 @@ class IcmpThroughNatTest extends MidolmanSpec {
                       clusterRouter, clusterBridge)
 
         val router = fetchDevice[Router](clusterRouter)
-        router.arpTable.set(IPv4Addr(leftIp), leftMac)
-        router.arpTable.set(IPv4Addr(rightIp), rightMac)
+        feedArpCache(router, IPv4Addr(leftIp), leftMac)
+        feedArpCache(router, IPv4Addr(rightIp), rightMac)
 
         newRoute(clusterRouter,
                  "0.0.0.0", 0,
