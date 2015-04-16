@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_f1648f23",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 460,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-04-16T02:08:01Z",
+      "side": 1,
+      "message": "Changed to \"is\".\n\nAlso changed to log.error and added a check if DHCP is missing or not. If missing, the new code will throw IllegalStateException, which will cause C3PO to keep trying the same task over and over as you pointed out. That would be better, I think, than a raising unfriendly index out of bound exception or worse creating a peer port with an empty subnet address.",
+      "parentUuid": "1a106d94_c95e1112",
+      "range": {
+        "startLine": 460,
+        "startChar": 22,
+        "endLine": 460,
+        "endChar": 25
+      },
+      "revId": "52783eb38add97cd595cd30b8ce35cc1ff5431d6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_296085a4",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/PortTranslator.scala",
         "patchSetId": 4
@@ -36,6 +60,30 @@
       "writtenOn": "2015-04-15T08:41:58Z",
       "side": 1,
       "message": "As discussed, if this isn\u0027t true, the assert will throw an AssertionError, and we\u0027ll just keep trying and failing to translate this over and over. Flushing won\u0027t help, since it\u0027s Neutron giving us bad (or at least unexpected) data, so we should probably just log an error or warning. I\u0027d say error, because this is something we expect never to happen.",
+      "range": {
+        "startLine": 470,
+        "startChar": 0,
+        "endLine": 471,
+        "endChar": 73
+      },
+      "revId": "52783eb38add97cd595cd30b8ce35cc1ff5431d6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_d167d323",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 471,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-04-16T02:08:01Z",
+      "side": 1,
+      "message": "Changed to log.error as you suggested.",
+      "parentUuid": "1a106d94_296085a4",
       "range": {
         "startLine": 470,
         "startChar": 0,
