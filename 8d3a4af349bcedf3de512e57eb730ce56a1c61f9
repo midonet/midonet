@@ -16,6 +16,24 @@
       "revId": "8d3a4af349bcedf3de512e57eb730ce56a1c61f9",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_a7c0192b",
+        "filename": "brain/midonet-brain/src/main/java/org/midonet/brain/services/vladimir/Resources",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-16T13:34:13Z",
+      "side": 1,
+      "message": "This is not needed: removed.",
+      "parentUuid": "1a106d94_a442dc3b",
+      "revId": "8d3a4af349bcedf3de512e57eb730ce56a1c61f9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
