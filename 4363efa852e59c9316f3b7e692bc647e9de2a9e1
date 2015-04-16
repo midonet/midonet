@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_0cb832c7",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/LoadBalancerMapperTest.scala",
+        "patchSetId": 25
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-04-16T09:09:38Z",
+      "side": 1,
+      "message": "Could you please remove this?",
+      "range": {
+        "startLine": 56,
+        "startChar": 0,
+        "endLine": 56,
+        "endChar": 4
+      },
+      "revId": "4363efa852e59c9316f3b7e692bc647e9de2a9e1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_ecbaf6be",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/LoadBalancerMapperTest.scala",
+        "patchSetId": 25
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-04-16T09:09:38Z",
+      "side": 1,
+      "message": "same here",
+      "range": {
+        "startLine": 57,
+        "startChar": 58,
+        "endLine": 57,
+        "endChar": 59
+      },
+      "revId": "4363efa852e59c9316f3b7e692bc647e9de2a9e1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_0c067286",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/LoadBalancerMapperTest.scala",
+        "patchSetId": 25
+      },
+      "lineNbr": 140,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-04-16T09:09:38Z",
+      "side": 1,
+      "message": "I think I know why this is 6 and not 5. I\u0027ll try to fix this in the LBMapper. It\u0027s probably that it sends an identical LB twice, once because the VIPs changed they don\u0027t have the LB_id anymore, and once because the LB changed (it doesn\u0027t have the VIP ids anymore).",
+      "range": {
+        "startLine": 140,
+        "startChar": 12,
+        "endLine": 140,
+        "endChar": 50
+      },
+      "revId": "4363efa852e59c9316f3b7e692bc647e9de2a9e1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
