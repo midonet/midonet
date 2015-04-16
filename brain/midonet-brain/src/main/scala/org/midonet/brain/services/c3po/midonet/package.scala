@@ -51,6 +51,8 @@ package object midonet {
                                                 ignoreIfNotExists = true)
     }
 
+    // These below are required only for compatibility with old Replicated Maps.
+
     case class CreateNode(path: String, value: String = null)
         extends MidoOp[Nothing] {
         override val opType = OpType.CreateNode
