@@ -23,7 +23,7 @@ import org.midonet.cluster.services.c3po.neutron
 import org.midonet.cluster.data.neutron.DeviceOwner
 import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.models.Commons.{IPAddress, IPSubnet, UUID}
-import org.midonet.cluster.models.Neutron.{NeutronPort, NeutronRoute, NeutronSubnet}
+import org.midonet.cluster.models.Neutron.{NeutronNetwork, NeutronPort, NeutronRoute, NeutronSubnet}
 import org.midonet.cluster.models.Topology.{Dhcp, Network}
 import org.midonet.cluster.models.Topology.Dhcp.Opt121Route
 import org.midonet.cluster.util.DhcpUtil.asRichNeutronSubnet
@@ -37,6 +37,9 @@ class SubnetTranslator(val storage: ReadOnlyStorage)
     extends NeutronTranslator[NeutronSubnet] with RouteManager {
 
     override protected def translateCreate(ns: NeutronSubnet): MidoOpList = {
+        // Uplink networks don't exist in Midonet, nor do their subnets.
+        if (isOnUplinkNetwork(ns)) return List()
+
         if (ns.isIpv6)
             throw new TranslationException(  // Doesn't handle IPv6 yet.
                     neutron.Create(ns), msg = "Cannot handle an IPv6 Subnet.")
@@ -63,10 +66,18 @@ class SubnetTranslator(val storage: ReadOnlyStorage)
     }
 
     override protected def translateDelete(id: UUID): MidoOpList = {
-        List(Delete(classOf[Dhcp], id))
+        // If the Subnet's network is an Uplink network, it won't exist in the
+        // Midonet topology, so there's nothing to do. The more direct approach
+        // would be to check the network itself, but that requires an extra
+        // round trip to Zookeeper.
+        if (!storage.exists(classOf[Dhcp], id).await()) List()
+        else List(Delete(classOf[Dhcp], id))
     }
 
     override protected def translateUpdate(ns: NeutronSubnet): MidoOpList = {
+        // Uplink networks don't exist in Midonet, nor do their subnets.
+        if (isOnUplinkNetwork(ns)) return List()
+
         if (ns.isIpv6)
             throw new TranslationException(  // Doesn't handle IPv6 yet.
                     neutron.Update(ns), msg = "Cannot handle an IPv6 Subnet.")
@@ -122,5 +133,10 @@ class SubnetTranslator(val storage: ReadOnlyStorage)
         }
 
         None
+    }
+
+    private def isOnUplinkNetwork(ns: NeutronSubnet): Boolean = {
+        val nn = storage.get(classOf[NeutronNetwork], ns.getNetworkId).await()
+        NetworkTranslator.isUplinkNetwork(nn)
     }
 }

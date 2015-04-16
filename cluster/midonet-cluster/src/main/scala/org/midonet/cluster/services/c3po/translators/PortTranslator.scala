@@ -20,15 +20,13 @@ import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 
-import org.midonet.cluster.services.c3po.midonet.{Create, CreateNode, Delete, DeleteNode, MidoOp, Update}
-import org.midonet.cluster.services.c3po.translators.PortManager._
 import org.midonet.cluster.data.storage.{ReadOnlyStorage, UpdateValidator}
 import org.midonet.cluster.models.Commons.{IPAddress, UUID}
-import org.midonet.cluster.models.Neutron.{NeutronPort, NeutronSubnet}
+import org.midonet.cluster.models.Neutron.{NeutronNetwork, NeutronPort, NeutronSubnet}
 import org.midonet.cluster.models.Topology._
+import org.midonet.cluster.services.c3po.midonet.{Create, CreateNode, Delete, DeleteNode, MidoOp, Update}
+import org.midonet.cluster.services.c3po.translators.PortManager._
 import org.midonet.cluster.util.DhcpUtil.asRichDhcp
-import org.midonet.cluster.util.IPSubnetUtil.univSubnet4
-import org.midonet.cluster.util.UUIDUtil.fromProto
 import org.midonet.cluster.util.{IPSubnetUtil, UUIDUtil}
 import org.midonet.midolman.state.PathBuilder
 import org.midonet.packets.ARP
@@ -49,6 +47,9 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
     import org.midonet.cluster.services.c3po.translators.PortTranslator._
 
     override protected def translateCreate(nPort: NeutronPort): MidoOpList = {
+        // Uplink networks don't exist in Midonet.
+        if (isOnUplinkNetwork(nPort)) return List()
+
         val midoPortBldr: Port.Builder = if (isRouterGatewayPort(nPort)) {
             newProviderRouterGwPortBldr(nPort.getId)
         } else if (!isFloatingIpPort(nPort)) {
@@ -83,17 +84,19 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
 
         if (midoPortBldr != null) midoOps += Create(midoPortBldr.build)
 
-        // Router Interface is added only after the Router Interface creation.
-        if (isRouterInterfacePort(nPort)) midoOps ++= addRouterInterface(nPort)
-
         midoOps.toList
     }
 
     override protected def translateDelete(id: UUID): MidoOpList = {
+        val nPort = storage.get(classOf[NeutronPort], id).await()
+        if (isOnUplinkNetwork(nPort)) return List()
+
         val midoOps = new MidoOpListBuffer
 
-        val nPort = storage.get(classOf[NeutronPort], id).await()
-        if (!isFloatingIpPort(nPort)) midoOps += Delete(classOf[Port], id)
+        // Floating IP ports and ports on uplink networks have no corresponding
+        // Midonet ports.
+        if (!isFloatingIpPort(nPort) && !isOnUplinkNetwork(nPort))
+            midoOps += Delete(classOf[Port], id)
 
         if (isRouterGatewayPort(nPort)) {
             midoOps += Delete(classOf[Port],
@@ -128,6 +131,9 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
     }
 
     override protected def translateUpdate(nPort: NeutronPort): MidoOpList = {
+        // Uplink networks don't exist in Midonet.
+        if (isOnUplinkNetwork(nPort)) return List()
+
         val midoOps = new MidoOpListBuffer
 
         // It is assumed that the fixed IPs assigned to a Neutron Port will not
@@ -452,89 +458,6 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
         None
     } else None
 
-    /* Adds a Router port to the owner device (a Tenant Router) of the Router
-     * Interface port, and links it the two ports, and adds a route.*/
-    private def addRouterInterface(nPort: NeutronPort): MidoOpListBuffer = {
-        val midoOps = new MidoOpListBuffer
-        // Router ID to bind to is given as Device ID.
-        val routerId = UUIDUtil.toProto(nPort.getDeviceId)
-        // ID of the peer port (on the router) for the Router Interface Port.
-        val routerPeerPortId = routerInterfacePortPeerId(nPort.getId)
-        // Route ID to the Router Interface subnet.
-        val routerInterfaceRouteId =
-            RouteManager.routerInterfaceRouteId(nPort.getId)
-
-        // 1. Create a peer port on the Router for the Router Interface Port.
-        val peerPort = Port.newBuilder
-                           .setId(routerPeerPortId)
-                           .setRouterId(routerId)
-                           .setPeerId(nPort.getId)
-                           .setAdminStateUp(true)
-
-        // Set the peer port subnet & address.
-        // Originally, Neutron Plugin (Python plugin code) calls
-        // org.midonet.cluster.data.neutron.NeutronPlugin.addRouterItnerface(),
-        // which takes a RouterInterface object containing the subnet that the
-        // interface belongs to. However, in the new communication model there
-        // is no corresponding MidoNet task entry created for that, and we need
-        // to look up the DHCP Subnet from the Network that the Router Inteface
-        // Port is associated with.
-        // NOTE: Currently it is assumed that Network has exactly 1 subnet. We
-        // look up the first.
-        val network = storage.get(classOf[Network], nPort.getNetworkId).await()
-        if (network.getDhcpIdsCount == 0)
-            throw new IllegalStateException(
-                    "No subnet to attach a Router Interface to with Network " +
-                    s"${fromProto(nPort.getNetworkId)}.")
-        else if (network.getDhcpIdsCount > 1)
-            log.error("There is more than 1 subnet attached to Network " +
-                      s"${fromProto(nPort.getNetworkId)}, picking the first " +
-                      "subnet found for the Router Port Address.")
-
-        val subnet = storage.get(classOf[Dhcp], network.getDhcpIds(0)).await()
-        peerPort.setPortSubnet(subnet.getSubnetAddress)
-
-        // Set the peer port address.
-        // Look up the port's fixed IP address first. It is implicitly assumed
-        // that a Neutron Port has at most 1 fixed IP address.
-        if (nPort.getFixedIpsCount > 0) {
-            if (nPort.getFixedIpsCount > 1)
-                log.error("More than 1 fixed IP assigned to a Neutron Port " +
-                          s"${fromProto(nPort.getId)}")
-            peerPort.setPortAddress(nPort.getFixedIps(0).getIpAddress)
-        } else {
-            peerPort.setPortAddress(subnet.getDefaultGateway)
-        }
-
-        // 2. Add a route to the Interface subnet.
-        val rifRoute = newNextHopPortRoute(nextHopPortId = routerPeerPortId,
-                                           id = routerInterfaceRouteId,
-                                           nextHopGwIpAddr = null,
-                                           srcSubnet = univSubnet4,
-                                           dstSubnet = subnet.getSubnetAddress)
-
-        midoOps += Create(peerPort.build)
-        midoOps += Create(rifRoute)
-
-        // 3. If a DHCP port exists, add a Meta Data Service Route.
-        // For the better latency, perform get operations on all the Network
-        // ports. It may become a problem when a Network has, say, 10k ports.
-        // We may need to consider providing a back reference from Network to
-        // its DHCP Port.
-        network.getPortIdsList.asScala
-               .map(storage.get(classOf[NeutronPort], _)).map(_.await())
-               .find(isDhcpPort(_)).foreach { dhcpPort =>
-            if (dhcpPort.getFixedIpsCount > 0) {
-                midoOps += Create(newMetaDataServiceRoute(
-                        subnet.getSubnetAddress,
-                        routerPeerPortId,
-                        dhcpPort.getFixedIps(0).getIpAddress))
-            }
-        }
-
-        midoOps
-    }
-
     private def translateNeutronPort(nPort: NeutronPort): Port.Builder = {
         val bldr = Port.newBuilder.setId(nPort.getId)
             .setNetworkId(nPort.getNetworkId)
@@ -558,6 +481,11 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
                 ops += CreateNode(pathBldr.getBridgeMacPortEntryPath(newPort))
         }
         ops.toList
+    }
+
+    private def isOnUplinkNetwork(np: NeutronPort) = {
+        NetworkTranslator.isUplinkNetwork(
+            storage.get(classOf[NeutronNetwork], np.getNetworkId).await())
     }
 }
 
