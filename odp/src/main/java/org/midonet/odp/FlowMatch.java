@@ -268,6 +268,17 @@ public class FlowMatch {
                 return Arrays.equals(wcmatch1.icmpData, wcmatch2.icmpData);
             }
         },
+        UserspaceMark { // MM-custom field
+            public String toString(FlowMatch wcmatch) {
+                return "";
+            }
+            public int hashCode(FlowMatch wcmatch) {
+                return 0;
+            }
+            public boolean equals(FlowMatch wcmatch1, FlowMatch wcmatch2) {
+                return false;
+            }
+        },
         COUNT {
             public String toString(FlowMatch wcmatch) {
                 return toString() + "=" + wcmatch.inputPortNumber;
@@ -298,8 +309,10 @@ public class FlowMatch {
         }
     }
 
-    public static final long icmpFieldsMask = (1L << Field.IcmpData.ordinal()) |
-                                              (1L << Field.IcmpId.ordinal());
+    private static final long icmpFieldsMask =
+        (1L << Field.IcmpData.ordinal()) | (1L << Field.IcmpId.ordinal());
+    private static final long userspaceFieldsMask =
+        icmpFieldsMask | (1L << Field.UserspaceMark.ordinal());
 
     private int inputPortNumber = 0;
     private long tunnelKey = 0L;
@@ -410,11 +423,11 @@ public class FlowMatch {
     }
 
     public boolean userspaceFieldsSeen() {
-        return (seenFields & icmpFieldsMask) != 0;
+        return (seenFields & userspaceFieldsMask) != 0;
     }
 
-    public boolean hasUserspaceOnlyFields() {
-        return (usedFields & icmpFieldsMask) != 0;
+    public boolean hasUserspaceOnlyFields() { // Used for testing only.
+        return (usedFields & userspaceFieldsMask) != 0;
     }
 
     public void propagateSeenFieldsFrom(FlowMatch that) {
@@ -786,6 +799,10 @@ public class FlowMatch {
                 icmp.setIdentifier(icmpId);
             }
         }
+    }
+
+    public void markUserspaceOnly() {
+        fieldSeen(Field.UserspaceMark);
     }
 
     @Override

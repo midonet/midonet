@@ -287,5 +287,8 @@ class PacketContext(val cookie: Int,
     def addGeneratedPacket(uuid: UUID, ethernet: Ethernet): Unit =
         packetEmitter.schedule(GeneratedPacket(uuid, ethernet))
 
+    def markUserspaceOnly(): Unit =
+        wcmatch.markUserspaceOnly()
+
     override def toString = s"PacketContext[$cookieStr]"
 }
