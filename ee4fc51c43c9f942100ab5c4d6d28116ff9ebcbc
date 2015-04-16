@@ -218,6 +218,29 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_8c21c24f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/ArpRequestBroker.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 194,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-04-16T08:17:18Z",
+      "side": 1,
+      "message": "macDiscovered is filled as a result of a notification from the ArpCache which occurs when the replicationmap updates it\u0027s contents after a ChildrenChanged event from zookeeper. This means, that an arp response has to wait for a zookeeper write (including an fsync) before being given to the requester. This seems like a very long time given that the arp response should come back in well under a millisecond.",
+      "range": {
+        "startLine": 194,
+        "startChar": 12,
+        "endLine": 194,
+        "endChar": 26
+      },
+      "revId": "ee4fc51c43c9f942100ab5c4d6d28116ff9ebcbc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_447208e6",
         "filename": "midolman/src/main/scala/org/midonet/midolman/state/ArpRequestBroker.scala",
         "patchSetId": 2
