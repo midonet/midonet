@@ -1,0 +1,7 @@
+#!/bin/sh
+
+if [ $1 -eq 0 ]; then
+        # Package removal, not upgrade
+        systemctl --no-reload disable midonet-brain.service || true
+        systemctl stop midonet-brain.service || true
+fi
