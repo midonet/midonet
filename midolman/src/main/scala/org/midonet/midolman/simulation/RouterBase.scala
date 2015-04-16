@@ -186,13 +186,12 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
         val dstIP = context.wcmatch.getNetworkDstIP
 
         def applyTimeToLive(): SimulationResult = {
-            /* TODO(guillermo, pino): Have WildcardMatch take a DecTTLBy instead,
-             * so that there need only be one sim. run for different TTLs.  */
             if (wcmatch.isUsed(Field.NetworkTTL)) {
                 val ttl = Unsigned.unsign(wcmatch.getNetworkTTL)
                 if (ttl <= 1) {
                     sendAnswer(inPort.id, icmpErrors.timeExceededIcmp(
                         inPort, wcmatch, frame))
+                    context.markUserspaceOnly()
                     Drop
                 } else {
                     context.wcmatch.setNetworkTTL((ttl - 1).toByte)
