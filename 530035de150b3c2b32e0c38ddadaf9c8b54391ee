@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_6c6e0698",
+        "filename": "cluster/src/main/java/org/midonet/cluster/data/vtep/VtepException.java",
+        "patchSetId": 15
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-04-16T08:01:59Z",
+      "side": 1,
+      "message": "Yep. I\u0027ll clean-up imports in next patches",
+      "parentUuid": "1a106d94_18035074",
+      "range": {
+        "startLine": 20,
+        "startChar": 0,
+        "endLine": 20,
+        "endChar": 56
+      },
+      "revId": "530035de150b3c2b32e0c38ddadaf9c8b54391ee",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_78f9a47f",
         "filename": "cluster/src/main/java/org/midonet/cluster/data/vtep/VtepNotConnectedException.java",
         "patchSetId": 15
@@ -123,6 +147,30 @@
       "writtenOn": "2015-04-15T16:03:46Z",
       "side": 1,
       "message": "Can\u0027t case null and case other be: case _ \u003d\u003e false at the end? The same comment applies to equals for some other classes.",
+      "range": {
+        "startLine": 46,
+        "startChar": 8,
+        "endLine": 46,
+        "endChar": 26
+      },
+      "revId": "530035de150b3c2b32e0c38ddadaf9c8b54391ee",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_cc6d7a9a",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/vtep/model/LogicalSwitch.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-04-16T08:01:59Z",
+      "side": 1,
+      "message": "Yes. I\u0027ll try to catch those in the following patches.",
+      "parentUuid": "1a106d94_d87d38e9",
       "range": {
         "startLine": 46,
         "startChar": 8,
