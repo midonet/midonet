@@ -120,9 +120,10 @@ trait UnderlayTrafficHandler { this: PacketWorkflow =>
     private def handleFromUnderlay(context: PacketContext): SimulationResult = {
         if (context.hasTraceTunnelBit) {
             context.enableTracingOnEgress()
+            context.markUserspaceOnly()
         }
         context.log.debug(s"Received packet matching ${context.origMatch}" +
-                              " from underlay")
+                           " from underlay")
 
         val tunnelKey = context.wcmatch.getTunnelKey
         dpState.dpPortNumberForTunnelKey(tunnelKey) match {
@@ -433,11 +434,6 @@ class PacketWorkflow(
                                s"match ${context.origMatch}")
             context.flowRemovedCallbacks.runAndClear()
             UserspaceFlow
-        } else if (context.hasTraceTunnelBit) {
-            // don't create a flow for traced contexts on the egress host
-            context.log.debug("Skipping flow creation for traced flow on egress")
-            context.flowRemovedCallbacks.runAndClear()
-            NoOp
         } else {
             context.origMatch.propagateSeenFieldsFrom(context.wcmatch)
             if (context.origMatch.userspaceFieldsSeen) {
