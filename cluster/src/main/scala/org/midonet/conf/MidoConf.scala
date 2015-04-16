@@ -291,11 +291,13 @@ class MidoNodeConfigurator(zk: CuratorFramework,
     def listSchemas: Seq[String] = zk.getChildren.forPath(s"/config/schemas")
 
     def mergedSchemas(): Config = {
-        listSchemas map (schema(_).closeAfter(_.get)) reduce ((a, b) => a.withFallback(b))
+        (listSchemas map (schema(_).closeAfter(_.get))).
+            fold(ConfigFactory.empty)((a, b) => a.withFallback(b))
     }
 
     def observableMergedSchemas(): Observable[Config] = {
-        listSchemas map (schema(_).observable) reduce ((a, b) => combine(a, b))
+        (listSchemas map (schema(_).observable)).
+            fold(Observable.just(ConfigFactory.empty))((a, b) => combine(a, b))
     }
 
     /**
@@ -384,7 +386,8 @@ class MidoNodeConfigurator(zk: CuratorFramework,
         new ResourceConf(s"org/midonet/conf/$name.conf")
 
     def mergedBundledSchemas: Config = {
-        (for ((_, s) <- bundledSchemas) yield s.get) reduce ((a, b) => a.withFallback(b))
+        (for ((_, s) <- bundledSchemas) yield s.get).
+            fold(ConfigFactory.empty)((a, b) => a.withFallback(b))
     }
 
     private def deploySchemas(): Boolean = {
