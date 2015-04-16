@@ -72,7 +72,7 @@ class FloatingIpTranslatorIT extends C3POMinionTestBase with ChainManager {
         val privateSubnetCidr = "10.0.0.0/24"
         val gatewayIp = "10.0.0.1"
         val snetJson = subnetJson(
-                privateSubnetId, privateNetworkId, "tenant",
+                privateSubnetId, privateNetworkId,
                 name = "private subnet", cidr = privateSubnetCidr,
                 gatewayIp = gatewayIp).toString
         executeSqlStmts(insertTaskSql(
@@ -136,7 +136,7 @@ class FloatingIpTranslatorIT extends C3POMinionTestBase with ChainManager {
         val extSubnet = IPv4Subnet.fromCidr("172.24.4.0/24")
         val extSubnetCidr = extSubnet.toString
         val extSubnetGwIp = "172.24.4.1"
-        val extSubnetJson = subnetJson(extSubnetId, extNetworkId, "admin",
+        val extSubnetJson = subnetJson(extSubnetId, extNetworkId,
                                        name = "subnet", cidr = extSubnetCidr,
                                        gatewayIp = extSubnetGwIp).toString
         executeSqlStmts(insertTaskSql(
@@ -163,7 +163,7 @@ class FloatingIpTranslatorIT extends C3POMinionTestBase with ChainManager {
 
         // #9 Create a tenant Router.
         val tRouterId = UUID.randomUUID()
-        val tRouterJson = routerJson("router1", tRouterId, gwPortId = rgwPortId)
+        val tRouterJson = routerJson(tRouterId, gwPortId = rgwPortId)
                           .toString
         executeSqlStmts(insertTaskSql(
                 id = 9, Create, RouterType, tRouterJson, tRouterId, "tx9"))

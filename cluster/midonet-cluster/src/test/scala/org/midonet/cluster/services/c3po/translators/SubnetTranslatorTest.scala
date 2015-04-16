@@ -16,11 +16,15 @@
 
 package org.midonet.cluster.services.c3po.translators
 
+import scala.concurrent.Future
+
 import org.junit.runner.RunWith
-import org.mockito.Mockito.mock
+import org.mockito.Mockito.{mock, when}
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{BeforeAndAfter, FlatSpec, Matchers}
 
+import org.midonet.cluster.models.Neutron.{NeutronNetwork, NeutronSubnet}
+import org.midonet.cluster.models.Topology.Dhcp
 import org.midonet.cluster.services.c3po.{midonet, neutron}
 import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.models.ModelsUtil._
@@ -54,8 +58,16 @@ class SubnetTranslatorTest extends FlatSpec with BeforeAndAfter
         id { $subnetId }
         network_id { $networkId }
         """)
+    private val nTenantNetwork = nNetworkFromTxt(s"""
+        id { $networkId }
+        """)
+    private val nUplinkNetwork = nNetworkFromTxt(s"""
+        $nTenantNetwork
+        network_type: LOCAL
+        """)
 
     "Basic subnet CREATE" should "produce an equivalent Dhcp Object" in {
+        mockNetwork(nTenantNetwork)
         val midoOps = translator.translate(neutron.Create(nSubnet))
         midoOps should contain only midonet.Create(mDhcp)
     }
@@ -77,6 +89,7 @@ class SubnetTranslatorTest extends FlatSpec with BeforeAndAfter
         """)
     "CREATE subnet with a gateway IP" should "set the default gateway and " +
     "server address accordingly" in {
+        mockNetwork(nTenantNetwork)
         val midoOps = translator.translate(neutron.Create(nSubnetWithGatewayIp))
         midoOps should contain only midonet.Create(mDhcpWithDefaultGateway)
     }
@@ -98,6 +111,7 @@ class SubnetTranslatorTest extends FlatSpec with BeforeAndAfter
 
     "CREATE subnet with DNS name server IPs" should "set the DNS server " +
     "addresses accordingly" in {
+        mockNetwork(nTenantNetwork)
         val midoOps = translator.translate(neutron.Create(nSubnetWithDNS))
         midoOps should contain only midonet.Create(mDhcpWithDNS)
     }
@@ -128,7 +142,33 @@ class SubnetTranslatorTest extends FlatSpec with BeforeAndAfter
         """)
 
     "CREATE subnet with host routes" should "set Opt121 routes" in {
+        mockNetwork(nTenantNetwork)
         val midoOps = translator.translate(neutron.Create(nSubnetWithRoutes))
         midoOps should contain only midonet.Create(mDhcpWithOpt121Routs)
+    }
+
+    "CREATE subnet on uplink network" should "do nothing" in {
+        mockNetwork(nUplinkNetwork)
+        val midoOps = translator.translate(neutron.Create(nSubnetWithRoutes))
+        midoOps shouldBe empty
+    }
+
+    "UPDATE subnet on uplink network" should "do nothing" in {
+        mockNetwork(nUplinkNetwork)
+        val midoOps = translator.translate(neutron.Update(nSubnetWithRoutes))
+        midoOps shouldBe empty
+    }
+
+    "DELETE subnet on uplink network" should "do nothing" in {
+        when(storage.exists(classOf[Dhcp], subnetId))
+            .thenReturn(Future.successful(false))
+        val midoOps = translator.translate(
+            neutron.Delete(classOf[NeutronSubnet], subnetId))
+        midoOps shouldBe empty
+    }
+
+    private def mockNetwork(nn: NeutronNetwork): Unit = {
+        when(storage.get(classOf[NeutronNetwork], networkId))
+            .thenReturn(Future.successful(nn))
     }
 }

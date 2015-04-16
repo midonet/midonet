@@ -16,6 +16,7 @@
 package org.midonet.cluster.models
 
 import com.google.common.base.CaseFormat
+
 import org.scalatest.{FeatureSpec, Matchers}
 
 class TopologyModelsTest extends FeatureSpec with Matchers {

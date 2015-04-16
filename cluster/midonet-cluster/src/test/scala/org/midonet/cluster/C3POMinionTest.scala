@@ -248,6 +248,27 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
         "datetime('now'))"
     }
 
+    protected def insertCreateTask(taskId: Int,
+                                   rsrcType: NeutronResourceType[_],
+                                   json: String, rsrcId: UUID): Unit = {
+        executeSqlStmts(insertTaskSql(
+            taskId, Create, rsrcType, json, rsrcId, "txn-" + taskId))
+    }
+
+    protected def insertUpdateTask(taskId: Int,
+                                   rsrcType: NeutronResourceType[_],
+                                   json: String, rsrcId: UUID): Unit = {
+        executeSqlStmts(insertTaskSql(
+            taskId, Update, rsrcType, json, rsrcId, "txn-" + taskId))
+    }
+
+    protected def insertDeleteTask(taskId: Int,
+                                   rsrcType: NeutronResourceType[_],
+                                   rsrcId: UUID): Unit = {
+        executeSqlStmts(insertTaskSql(
+            taskId, Delete, rsrcType, "", rsrcId, "txn-" + taskId))
+    }
+
     protected var curator: CuratorFramework = _
     protected var backendCfg: MidonetBackendConfig = _
     protected var backend: MidonetBackendService = _
@@ -259,7 +280,6 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
 
     override protected def beforeAll() {
         try {
-            printf("Entered BeforeAll()")
             val retryPolicy = new ExponentialBackoffRetry(1000, 10)
             curator = CuratorFrameworkFactory.newClient(ZK_HOST, retryPolicy)
             // Initialize tasks and state tables.
@@ -322,23 +342,24 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
 
     case class IPAlloc(ipAddress: String, subnetId: String)
 
-    protected def portJson(name: String, id: UUID,
+    protected def portJson(id: UUID,
                            networkId: UUID,
+                           name: String = null,
                            adminStateUp: Boolean = true,
                            macAddr: String = MAC.random().toString,
                            fixedIps: List[IPAlloc] = null,
                            deviceId: UUID = null,
                            deviceOwner: DeviceOwner = null,
-                           tenantId: String = null,
+                           tenantId: String = "tenant",
                            securityGroups: List[UUID] = null,
                            hostId: UUID = null,
                            ifName: String = null): JsonNode = {
         val p = nodeFactory.objectNode
-        p.put("name", name)
         p.put("id", id.toString)
         p.put("network_id", networkId.toString)
         p.put("admin_state_up", adminStateUp)
         p.put("mac_address", macAddr)
+        if (name != null) p.put("name", name)
         if (fixedIps != null) {
             val fi = p.putArray("fixed_ips")
             for (fixedIp <- fixedIps) {
@@ -401,10 +422,11 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
         r
     }
 
-    protected def routerJson(name: String, id: UUID,
+    protected def routerJson(id: UUID,
+                             name: String = null,
                              adminStateUp: Boolean = true,
                              status: String = null,
-                             tenantId: String = null,
+                             tenantId: String = "tenant",
                              gwPortId: UUID = null,
                              enableSnat: Boolean = false,
                              extGwNetworkId: UUID = null): JsonNode = {
@@ -425,16 +447,31 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
         r
     }
 
-    protected def networkJson(id: UUID, tenantId: String, name: String = null,
+    protected def routerInterfaceJson(routerId: UUID, portId: UUID,
+                                      subnetId: UUID, tenantId: String = null)
+    : JsonNode = {
+        val ri = nodeFactory.objectNode
+        ri.put("id", routerId.toString)
+        ri.put("port_id", portId.toString)
+        ri.put("subnet_id", subnetId.toString)
+        if (tenantId != null) ri.put("tenant_id", tenantId)
+        ri
+    }
+
+
+    protected def networkJson(id: UUID, tenantId: String = "tenant",
+                              name: String = null,
                               shared: Boolean = false,
                               adminStateUp: Boolean = true,
-                              external: Boolean = false): JsonNode = {
+                              external: Boolean = false,
+                              uplink: Boolean = false): JsonNode = {
         val n = nodeFactory.objectNode
         n.put("id", id.toString)
-        n.put("tenant_id", tenantId)
+        if (tenantId != null) n.put("tenant_id", tenantId)
         if (name != null) n.put("name", name)
         n.put("admin_state_up", adminStateUp)
         n.put("external", external)
+        if (uplink) n.put("provider:network_type", "local")
         n
     }
 
@@ -455,12 +492,13 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
 
     protected case class HostRoute(destination: String, nextHop: String)
 
-    protected def subnetJson(id: UUID, networkId: UUID, tenantId: String,
-                           name: String = null, cidr: String = null,
-                           ipVersion: Int = 4, gatewayIp: String = null,
-                           enableDhcp: Boolean = true,
-                           dnsNameservers: List[String] = null,
-                           hostRoutes: List[HostRoute] = null): JsonNode = {
+    protected def subnetJson(id: UUID, networkId: UUID,
+                             tenantId: String = "tenant",
+                             name: String = null, cidr: String = null,
+                             ipVersion: Int = 4, gatewayIp: String = null,
+                             enableDhcp: Boolean = true,
+                             dnsNameservers: List[String] = null,
+                             hostRoutes: List[HostRoute] = null): JsonNode = {
         val s = nodeFactory.objectNode
         s.put("id", id.toString)
         s.put("network_id", networkId.toString)
@@ -682,8 +720,7 @@ class C3POMinionTest extends C3POMinionTestBase {
         // Update the port admin status and MAC address. Through the Neutron
         // API, you cannot change the Network the port is attached to.
         val portMac2 = MAC.random().toString
-        val vifPortUpdate = portJson(name = "port1", id = vifPortUuid,
-                                     networkId = network1Uuid,
+        val vifPortUpdate = portJson(id = vifPortUuid, networkId = network1Uuid,
                                      adminStateUp = false,      // Down now.
                                      macAddr = portMac2).toString
         executeSqlStmts(insertTaskSql(
@@ -822,7 +859,7 @@ class C3POMinionTest extends C3POMinionTestBase {
         val hrDest = "10.0.0.0/24"
         val hrNexthop = "10.0.0.27"
         val hostRoutes = List(HostRoute(hrDest, hrNexthop))
-        val sJson = subnetJson(sId, nId, "net tenant", name = "test sub",
+        val sJson = subnetJson(sId, nId, name = "test sub",
                                cidr = cidr.toString, gatewayIp = gatewayIp,
                                dnsNameservers = nameServers,
                                hostRoutes = hostRoutes)
@@ -851,7 +888,7 @@ class C3POMinionTest extends C3POMinionTestBase {
         // Create a DHCP port to verify that the metadata opt121 route
         val portId = UUID.randomUUID()
         val dhcpPortIp = "10.0.0.7"
-        val pJson = portJson(name = "port1", id = portId, networkId = nId,
+        val pJson = portJson(id = portId, networkId = nId,
             adminStateUp = true, deviceOwner = DeviceOwner.DHCP,
             fixedIps = List(IPAlloc(dhcpPortIp, sId.toString))).toString
         executeSqlStmts(insertTaskSql(id = 4, Create, PortType, pJson,
@@ -861,7 +898,7 @@ class C3POMinionTest extends C3POMinionTestBase {
         val cidr2 = IPv4Subnet.fromCidr("10.0.1.0/24")
         val gatewayIp2 = "10.0.1.1"
         val dnss = List("8.8.4.4")
-        val sJson2 = subnetJson(sId, nId, "net tenant", name = "test sub2",
+        val sJson2 = subnetJson(sId, nId, name = "test sub2",
                                 cidr = cidr2.toString, gatewayIp = gatewayIp2,
                                 dnsNameservers = dnss)
         executeSqlStmts(insertTaskSql(5, Update, SubnetType,
