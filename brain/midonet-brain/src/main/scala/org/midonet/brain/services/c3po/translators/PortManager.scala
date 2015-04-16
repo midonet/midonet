@@ -16,14 +16,18 @@
 
 package org.midonet.brain.services.c3po.translators
 
+import scala.collection.JavaConverters._
+
 import org.midonet.brain.services.c3po.midonet.Update
 import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.models.Commons.{IPAddress, IPSubnet, IPVersion, UUID}
 import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner
 import org.midonet.cluster.models.Neutron.NeutronPortOrBuilder
-import org.midonet.cluster.models.Topology.{Port, PortOrBuilder}
+import org.midonet.cluster.models.Topology.{Host, Port, PortOrBuilder}
+import org.midonet.cluster.util.UUIDUtil
 import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
 import org.midonet.packets.MAC
+import org.midonet.util.concurrent.toFutureOps
 
 /**
  * Contains port-related operations shared by multiple translator classes.
@@ -38,22 +42,16 @@ trait PortManager extends RouteManager {
                                         gwIpAddr: IPAddress,
                                         mac: Option[String] = None,
                                         adminStateUp: Boolean = true): Port = {
-        Port.newBuilder()
-            .setId(id)
-            .setRouterId(routerId)
+        newRouterPortBldr(id, routerId, adminStateUp = adminStateUp)
             .setPortSubnet(LL_CIDR)
             .setPortAddress(gwIpAddr)
-            .setPortMac(mac.getOrElse(MAC.random().toString))
-            .setAdminStateUp(adminStateUp).build()
+            .setPortMac(mac.getOrElse(MAC.random().toString)).build()
     }
 
     protected def newProviderRouterGwPortBldr(id: UUID): Port.Builder = {
-        Port.newBuilder()
-            .setId(id)
-            .setRouterId(RouterTranslator.providerRouterId)
+        newRouterPortBldr(id, RouterTranslator.providerRouterId)
             .setPortSubnet(LL_CIDR)
             .setPortAddress(LL_GW_IP_1)
-            .setAdminStateUp(true)
     }
 
     private def checkNoPeerId(port: PortOrBuilder): Unit = {
@@ -61,6 +59,12 @@ trait PortManager extends RouteManager {
             throw new IllegalStateException(
                 s"Port ${port.getId} already connected to ${port.getPeerId}.")
     }
+
+    protected def newRouterPortBldr(id: UUID, routerId: UUID,
+                                    adminStateUp: Boolean = true)
+    : Port.Builder = Port.newBuilder.setId(id)
+                                    .setRouterId(routerId)
+                                    .setAdminStateUp(adminStateUp)
 
     /**
      * Modifies port to set its peerId to peer's ID, and returns list of
@@ -88,6 +92,23 @@ trait PortManager extends RouteManager {
             ops ++= addLocalRouteToRouter(peer)
 
         ops.toList
+    }
+
+    /**
+     * Returns operations to bind the specified port to the specified host
+     * and interface. Port and host must exist in Midonet topology, and neither
+     * the port nor the interface may already be bound on the specified host.
+     */
+    protected def bindPortOps(hostId: UUID, portId: UUID, ifName: String)
+    : MidoOpList = {
+        val port = storage.get(classOf[Port], portId).await()
+        if (port.hasHostId) throw new IllegalStateException(
+            s"Port ${port.getId} is already bound.")
+
+        val updatedPort = port.toBuilder
+            .setHostId(hostId)
+            .setInterfaceName(ifName)
+        List(Update(updatedPort.build()))
     }
 }
 
