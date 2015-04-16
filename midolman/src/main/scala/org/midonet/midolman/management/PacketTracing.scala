@@ -16,6 +16,7 @@
 package org.midonet.midolman.management
 
 import java.lang.management._
+import java.util
 import javax.management._
 import scala.collection.immutable.List
 
@@ -28,6 +29,7 @@ import org.midonet.midolman.simulation.PacketContext
 object PacketTracing extends PacketTracingMXBean {
     val log = Logger(LoggerFactory.getLogger("org.midonet.midolman.management"))
 
+    @volatile
     var tracers: List[PacketTracer] = List.empty
 
     override def getLiveTracers = tracers.filter(_.isAlive).toArray
@@ -82,6 +84,7 @@ object PacketTracing extends PacketTracingMXBean {
                 ManagementFactory.getPlatformMBeanServer.registerMBean(this,
                     new ObjectName(PacketTracingMXBean.NAME))
                 registered = true
+                log.info(s"Registered PacketTracing JMX bean as ${PacketTracingMXBean.NAME}")
             } else {
                 flush()
             }

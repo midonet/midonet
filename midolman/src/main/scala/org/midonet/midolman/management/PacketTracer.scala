@@ -66,10 +66,10 @@ case class PacketTracer @ConstructorProperties(
 
     def matched() = matches.incrementAndGet()
 
-    def isAlive: Boolean = matches.get() > 0
+    def isAlive: Boolean = matches.get() < limit
 
     def matches(wmatch: WildcardMatch): Boolean = {
-        (matches.get() < limit) &&
+        isAlive &&
         etherTypeMatch(wmatch.getEtherType) &&
         srcMacMatch(wmatch.getEthSrc) &&
         dstMacMatch(wmatch.getEthDst) &&
