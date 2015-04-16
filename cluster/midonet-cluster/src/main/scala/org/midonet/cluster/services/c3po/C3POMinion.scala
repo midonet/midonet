@@ -25,14 +25,14 @@ import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.recipes.leader.LeaderLatch
 import org.slf4j.LoggerFactory
 
-import org.midonet.cluster.services.c3po.NeutronDeserializer.toMessage
-import org.midonet.cluster.services.c3po.translators._
-import org.midonet.cluster.{ClusterConfig, ClusterNode, ScheduledClusterMinion}
 import org.midonet.cluster.data.neutron.{DataStateUpdater, SqlNeutronImporter, importer}
 import org.midonet.cluster.models.Neutron._
 import org.midonet.cluster.services.MidonetBackend
+import org.midonet.cluster.services.c3po.NeutronDeserializer.toMessage
+import org.midonet.cluster.services.c3po.translators._
 import org.midonet.cluster.storage.MidonetBackendConfig
 import org.midonet.cluster.util.UUIDUtil
+import org.midonet.cluster.{ClusterConfig, ClusterNode, ScheduledClusterMinion}
 import org.midonet.midolman.state.PathBuilder
 
 /** The service that translates and imports neutron models into the MidoNet
@@ -134,7 +134,9 @@ class C3POMinion @Inject()(nodeContext: ClusterNode.Context,
     private def initDataManager(): C3POStorageManager = {
         val dataMgr = new C3POStorageManager(storage)
         val pathBldr = new PathBuilder(backendCfg.rootKey)
-        List(classOf[FloatingIp] -> new FloatingIpTranslator(storage),
+        List(classOf[AgentMembership] -> new AgentMembershipTranslator(storage),
+             classOf[FloatingIp] -> new FloatingIpTranslator(storage),
+             classOf[NeutronConfig] -> new ConfigTranslator(storage),
              classOf[NeutronHealthMonitor] -> new HealthMonitorTranslator,
              classOf[NeutronLoadBalancerPool] -> new LoadBalancerPoolTranslator,
              classOf[NeutronLoadBalancerPoolHealthMonitor] ->
@@ -144,13 +146,13 @@ class C3POMinion @Inject()(nodeContext: ClusterNode.Context,
              classOf[NeutronNetwork] ->
                 new NetworkTranslator(storage, pathBldr),
              classOf[NeutronRouter] -> new RouterTranslator(storage),
+             classOf[NeutronRouterInterface] ->
+                new RouterInterfaceTranslator(storage),
              classOf[NeutronSubnet] -> new SubnetTranslator(storage),
              classOf[NeutronPort] -> new PortTranslator(storage, pathBldr),
-             classOf[SecurityGroup] -> new SecurityGroupTranslator(storage),
-             classOf[AgentMembership] -> new AgentMembershipTranslator(storage),
              classOf[NeutronVIP] -> new VipTranslator,
              classOf[PortBinding] -> new PortBindingTranslator(storage),
-             classOf[NeutronConfig] -> new ConfigTranslator(storage)
+             classOf[SecurityGroup] -> new SecurityGroupTranslator(storage)
         ).asInstanceOf[List[(Class[Message], NeutronTranslator[Message])]]
          .foreach(pair => dataMgr.registerTranslator(pair._1, pair._2))
 

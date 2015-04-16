@@ -35,7 +35,7 @@ import scala.collection.JavaConverters._
 class RouterTranslatorIT extends C3POMinionTestBase {
     it should "handle router CRUD" in {
         val r1Id = UUID.randomUUID()
-        val r1Json = routerJson("router1", r1Id)
+        val r1Json = routerJson(r1Id, name = "router1")
         executeSqlStmts(insertTaskSql(2, Create, RouterType,
                                       r1Json.toString, r1Id, "tx1"))
 
@@ -51,8 +51,8 @@ class RouterTranslatorIT extends C3POMinionTestBase {
         r1Chains.outChain.getRuleIdsCount shouldBe 0
 
         val r2Id = UUID.randomUUID()
-        val r2Json = routerJson("router2", r2Id, adminStateUp = false)
-        val r1JsonV2 = routerJson("router1", r1Id, tenantId = "new-tenant")
+        val r2Json = routerJson(r2Id, name = "router2", adminStateUp = false)
+        val r1JsonV2 = routerJson(r1Id, tenantId = "new-tenant")
         executeSqlStmts(insertTaskSql(3, Create, RouterType,
                                       r2Json.toString, r2Id, "tx2"),
                         insertTaskSql(4, Update, RouterType,
@@ -87,19 +87,20 @@ class RouterTranslatorIT extends C3POMinionTestBase {
                                  external = true)
 
         val snId = UUID.randomUUID()
-        val snJson = subnetJson(snId, nwId, tenant,
+        val snJson = subnetJson(snId, nwId, tenantId = tenant,
                                 cidr = "10.0.1.0/24", gatewayIp = "10.0.1.1")
 
         val gwIpAddr = "10.0.0.1"
         val prGwPortId = UUID.randomUUID()
         val gwIpAlloc = IPAlloc(gwIpAddr, snId.toString)
-        val prGwPortJson = portJson("pr-tr-gw-port", prGwPortId, nwId,
+        val prGwPortJson = portJson(prGwPortId, nwId,
                                     fixedIps = List(gwIpAlloc),
                                     deviceId = prGwPortId,
                                     deviceOwner = DeviceOwner.ROUTER_GATEWAY)
 
         val trId = UUID.randomUUID()
-        val trJson = routerJson("tenant-router", trId, gwPortId = prGwPortId)
+        val trJson = routerJson(trId, name = "tenant-router",
+                                gwPortId = prGwPortId)
 
         val prId = RouterTranslator.providerRouterId
 
@@ -119,7 +120,7 @@ class RouterTranslatorIT extends C3POMinionTestBase {
         validateGateway(tr, prGwPortId, gwIpAddr)
 
         // Rename router and make sure everything is preserved.
-        val trV2Json = routerJson("tenant-router-v2", trId).toString
+        val trV2Json = routerJson(trId, name = "tenant-router-v2").toString
         executeSqlStmts(insertTaskSql(6, Update, RouterType,
                                       trV2Json, trId, "tx4"))
         val trV2 = eventually {

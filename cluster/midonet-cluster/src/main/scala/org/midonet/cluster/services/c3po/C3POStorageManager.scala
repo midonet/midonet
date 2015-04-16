@@ -24,6 +24,7 @@ import scala.concurrent.duration.Duration
 import scala.util.control.NonFatal
 
 import com.google.protobuf.Message
+
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.data.storage._

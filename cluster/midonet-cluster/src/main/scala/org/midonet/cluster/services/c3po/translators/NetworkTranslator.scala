@@ -15,14 +15,13 @@
  */
 package org.midonet.cluster.services.c3po.translators
 
-import java.util
-
-import org.midonet.cluster.services.c3po.midonet.{Create, CreateNode, Delete, DeleteNode, Update}
-import org.midonet.cluster.services.c3po.translators.RouterTranslator.{providerRouterId, providerRouterName}
 import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.Neutron.NeutronNetwork
+import org.midonet.cluster.models.Neutron.NeutronNetwork.NetworkType
 import org.midonet.cluster.models.Topology.{Network, Router}
+import org.midonet.cluster.services.c3po.midonet.{Create, CreateNode, Delete, DeleteNode, Update}
+import org.midonet.cluster.services.c3po.translators.RouterTranslator.{providerRouterId, providerRouterName}
 import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
 import org.midonet.midolman.state.PathBuilder
 import org.midonet.util.concurrent.toFutureOps
@@ -30,8 +29,12 @@ import org.midonet.util.concurrent.toFutureOps
 /** Provides a Neutron model translator for Network. */
 class NetworkTranslator(storage: ReadOnlyStorage, pathBldr: PathBuilder)
     extends NeutronTranslator[NeutronNetwork] {
+    import NetworkTranslator._
 
     override protected def translateCreate(nn: NeutronNetwork): MidoOpList = {
+        // Uplink networks don't exist in Midonet.
+        if (isUplinkNetwork(nn)) return List()
+
         val ops = new MidoOpListBuffer
         ops ++= ensureProviderRouterExists(nn)
         ops += Create(translate(nn))
@@ -40,12 +43,20 @@ class NetworkTranslator(storage: ReadOnlyStorage, pathBldr: PathBuilder)
     }
 
     override protected def translateUpdate(nn: NeutronNetwork): MidoOpList = {
+        // Uplink networks don't exist in Midonet, and regular networks can't
+        // be turned into uplink networks via update.
+        if (isUplinkNetwork(nn)) return List()
+
         val ops = new MidoOpListBuffer
         ops += Update(translate(nn))
         ops.toList
     }
 
     override protected def translateDelete(id: UUID): MidoOpList = {
+        // Uplink networks don't exist in Midonet.
+        val nn = storage.get(classOf[NeutronNetwork], id).await()
+        if (isUplinkNetwork(nn)) return List()
+
         val ops = new MidoOpListBuffer
         ops += Delete(classOf[Network], id)
         ops ++= replMapPaths(id).map(DeleteNode)
@@ -84,4 +95,9 @@ class NetworkTranslator(storage: ReadOnlyStorage, pathBldr: PathBuilder)
                               .setName(providerRouterName).build()))
         }
     }
+}
+
+private[translators] object NetworkTranslator {
+    def isUplinkNetwork(nn: NeutronNetwork): Boolean =
+        nn.hasNetworkType && nn.getNetworkType == NetworkType.LOCAL
 }

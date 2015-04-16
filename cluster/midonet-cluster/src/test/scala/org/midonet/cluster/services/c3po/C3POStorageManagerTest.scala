@@ -19,7 +19,7 @@ package org.midonet.cluster.services.c3po
 import java.util
 import java.util.{Map => JMap}
 
-import scala.concurrent.Promise
+import scala.concurrent.{Future, Promise}
 
 import com.google.protobuf.Message
 
@@ -30,12 +30,12 @@ import org.mockito.Mockito.{doThrow, mock, never, verify, when}
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{BeforeAndAfterEach, FlatSpec}
 
-import org.midonet.cluster.services.c3po.midonet.Create
-import org.midonet.cluster.services.c3po.translators.{NetworkTranslator, NeutronTranslator, TranslationException}
 import org.midonet.cluster.data.storage.{CreateOp, DeleteOp, PersistenceOp, Storage, StorageException, UpdateOp}
 import org.midonet.cluster.models.Commons
 import org.midonet.cluster.models.Neutron.{NeutronNetwork, NeutronPort, NeutronRoute}
 import org.midonet.cluster.models.Topology.{Network, Port}
+import org.midonet.cluster.services.c3po.midonet.Create
+import org.midonet.cluster.services.c3po.translators.{NetworkTranslator, NeutronTranslator, TranslationException}
 import org.midonet.cluster.util.UUIDUtil.randomUuidProto
 import org.midonet.midolman.state.PathBuilder
 
@@ -181,6 +181,9 @@ class C3POStorageManagerTest extends FlatSpec with BeforeAndAfterEach {
     "NeutronNetwork Delete" should "call ZOOM.multi with DeleteOp on " +
     "Mido Network" in {
         setUpNetworkTranslator()
+        when(storage.get(classOf[NeutronNetwork], networkId))
+            .thenReturn(Future.successful(NeutronNetwork.getDefaultInstance))
+
         storageManager.interpretAndExecTxn(
                 txn("txn1", c3poDelete(2, classOf[NeutronNetwork], networkId)))
 

@@ -57,6 +57,7 @@ abstract class MidonetBackend extends AbstractService {
              classOf[NeutronNetwork],
              classOf[NeutronPort],
              classOf[NeutronRouter],
+             classOf[NeutronRouterInterface],
              classOf[NeutronSubnet],
              classOf[NeutronVIP],
              classOf[Pool],

@@ -17,9 +17,10 @@
 package org.midonet.cluster
 
 import java.io.PrintWriter
-import java.sql.{Connection, DriverManager}
+import java.sql.{Connection, DriverManager, Statement}
 import java.util.UUID
 import java.util.concurrent.TimeUnit
+
 import javax.sql.DataSource
 
 import scala.collection.JavaConverters._
@@ -28,6 +29,7 @@ import scala.util.{Random, Try}
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.JsonNodeFactory
 import com.typesafe.config.ConfigFactory
+
 import org.apache.curator.framework.{CuratorFramework, CuratorFrameworkFactory}
 import org.apache.curator.retry.ExponentialBackoffRetry
 import org.apache.curator.test.TestingServer
@@ -42,7 +44,6 @@ import org.midonet.cluster.data.Bridge
 import org.midonet.cluster.data.neutron.NeutronResourceType.{AgentMembership => AgentMembershipType, Config => ConfigType, Network => NetworkType, Port => PortType, Router => RouterType, SecurityGroup => SecurityGroupType, Subnet => SubnetType}
 import org.midonet.cluster.data.neutron.TaskType._
 import org.midonet.cluster.data.neutron.{NeutronResourceType, TaskType}
-import org.midonet.cluster.data.storage.ObjectReferencedException
 import org.midonet.cluster.models.Commons
 import org.midonet.cluster.models.Commons._
 import org.midonet.cluster.models.Neutron.NeutronConfig.TunnelProtocol
@@ -104,6 +105,7 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
     private val LAST_PROCESSED_ID_COL = 1
 
     val rootPath = "/test"
+
     val C3PO_CFG_OBJECT = ConfigFactory.parseString(
         s"""
           |cluster.neutron_importer.period : 100ms
@@ -158,35 +160,28 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
     // DATA FIXTURES
     // ---------------------
 
-    protected def executeSqlStmts(sqls: String*) {
+    private def withStatement[T](fn: Statement => T) = {
         var c: Connection = null
         try {
             c = eventually(dataSrc.getConnection())
             val stmt = c.createStatement()
-            sqls.foreach(sql => eventually(stmt.executeUpdate(sql)))
+            val t = fn(stmt)
             stmt.close()
+            t
         } finally {
             if (c != null) c.close()
         }
     }
 
-    protected def getLastProcessedIdFromTable: Option[Int] = {
-        var c: Connection = null
-        var lastProcessed: Option[Int] = None
-        try {
-            c = eventually(dataSrc.getConnection())
-            val stmt = c.createStatement()
-            val result = stmt.executeQuery(LAST_PROCESSED_ID)
-
-            if (result.next())
-                lastProcessed = Some(result.getInt(LAST_PROCESSED_ID_COL))
-            stmt.close()
-        } finally {
-            if (c != null) c.close()
-        }
-        lastProcessed
+    protected def executeSqlStmts(sqls: String*): Unit = withStatement { stmt =>
+        for (sql <- sqls) eventually(stmt.executeUpdate(sql))
     }
 
+    protected def getLastProcessedIdFromTable: Option[Int] =
+        withStatement { stmt =>
+            val rs = stmt.executeQuery(LAST_PROCESSED_ID)
+            if (rs.next()) Some(rs.getInt(LAST_PROCESSED_ID_COL)) else None
+        }
 
     private def createTaskTable() = {
         // Just in case an old DB file / table exits.
@@ -224,6 +219,27 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
         "datetime('now'))"
     }
 
+    protected def insertCreateTask(taskId: Int,
+                                   rsrcType: NeutronResourceType[_],
+                                   json: String, rsrcId: UUID): Unit = {
+        executeSqlStmts(insertTaskSql(
+            taskId, Create, rsrcType, json, rsrcId, "txn-" + taskId))
+    }
+
+    protected def insertUpdateTask(taskId: Int,
+                                   rsrcType: NeutronResourceType[_],
+                                   json: String, rsrcId: UUID): Unit = {
+        executeSqlStmts(insertTaskSql(
+            taskId, Update, rsrcType, json, rsrcId, "txn-" + taskId))
+    }
+
+    protected def insertDeleteTask(taskId: Int,
+                                   rsrcType: NeutronResourceType[_],
+                                   rsrcId: UUID): Unit = {
+        executeSqlStmts(insertTaskSql(
+            taskId, Delete, rsrcType, "", rsrcId, "txn-" + taskId))
+    }
+
     protected var curator: CuratorFramework = _
     protected var backendCfg: MidonetBackendConfig = _
     protected var backend: MidonetBackendService = _
@@ -235,7 +251,9 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
 
     override protected def beforeAll() {
         try {
-            printf("Entered BeforeAll()")
+            val retryPolicy = new ExponentialBackoffRetry(1000, 10)
+            curator = CuratorFrameworkFactory.newClient(ZK_HOST, retryPolicy)
+
             // Initialize tasks and state tables.
             createTaskTable()
             createStateTable()
@@ -308,23 +326,24 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
 
     case class IPAlloc(ipAddress: String, subnetId: String)
 
-    protected def portJson(name: String, id: UUID,
+    protected def portJson(id: UUID,
                            networkId: UUID,
+                           name: String = null,
                            adminStateUp: Boolean = true,
                            macAddr: String = MAC.random().toString,
                            fixedIps: List[IPAlloc] = null,
                            deviceId: UUID = null,
                            deviceOwner: DeviceOwner = null,
-                           tenantId: String = null,
+                           tenantId: String = "tenant",
                            securityGroups: List[UUID] = null,
                            hostId: UUID = null,
                            ifName: String = null): JsonNode = {
         val p = nodeFactory.objectNode
-        p.put("name", name)
         p.put("id", id.toString)
         p.put("network_id", networkId.toString)
         p.put("admin_state_up", adminStateUp)
         p.put("mac_address", macAddr)
+        if (name != null) p.put("name", name)
         if (fixedIps != null) {
             val fi = p.putArray("fixed_ips")
             for (fixedIp <- fixedIps) {
@@ -387,10 +406,11 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
         r
     }
 
-    protected def routerJson(name: String, id: UUID,
+    protected def routerJson(id: UUID,
+                             name: String = null,
                              adminStateUp: Boolean = true,
                              status: String = null,
-                             tenantId: String = null,
+                             tenantId: String = "tenant",
                              gwPortId: UUID = null,
                              enableSnat: Boolean = false,
                              extGwNetworkId: UUID = null): JsonNode = {
@@ -406,21 +426,36 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
             if (extGwNetworkId != null)
                 egi.put("network_id", extGwNetworkId.toString)
             egi.put("enable_snat", enableSnat)
-            r.put("extenal_gateway_info", egi)
+            r.set("extenal_gateway_info", egi)
         }
         r
     }
 
-    protected def networkJson(id: UUID, tenantId: String, name: String = null,
+    protected def routerInterfaceJson(routerId: UUID, portId: UUID,
+                                      subnetId: UUID, tenantId: String = null)
+    : JsonNode = {
+        val ri = nodeFactory.objectNode
+        ri.put("id", routerId.toString)
+        ri.put("port_id", portId.toString)
+        ri.put("subnet_id", subnetId.toString)
+        if (tenantId != null) ri.put("tenant_id", tenantId)
+        ri
+    }
+
+
+    protected def networkJson(id: UUID, tenantId: String = "tenant",
+                              name: String = null,
                               shared: Boolean = false,
                               adminStateUp: Boolean = true,
-                              external: Boolean = false): JsonNode = {
+                              external: Boolean = false,
+                              uplink: Boolean = false): JsonNode = {
         val n = nodeFactory.objectNode
         n.put("id", id.toString)
-        n.put("tenant_id", tenantId)
+        if (tenantId != null) n.put("tenant_id", tenantId)
         if (name != null) n.put("name", name)
         n.put("admin_state_up", adminStateUp)
         n.put("external", external)
+        if (uplink) n.put("provider:network_type", "local")
         n
     }
 
@@ -441,12 +476,13 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
 
     protected case class HostRoute(destination: String, nextHop: String)
 
-    protected def subnetJson(id: UUID, networkId: UUID, tenantId: String,
-                           name: String = null, cidr: String = null,
-                           ipVersion: Int = 4, gatewayIp: String = null,
-                           enableDhcp: Boolean = true,
-                           dnsNameservers: List[String] = null,
-                           hostRoutes: List[HostRoute] = null): JsonNode = {
+    protected def subnetJson(id: UUID, networkId: UUID,
+                             tenantId: String = "tenant",
+                             name: String = null, cidr: String = null,
+                             ipVersion: Int = 4, gatewayIp: String = null,
+                             enableDhcp: Boolean = true,
+                             dnsNameservers: List[String] = null,
+                             hostRoutes: List[HostRoute] = null): JsonNode = {
         val s = nodeFactory.objectNode
         s.put("id", id.toString)
         s.put("network_id", networkId.toString)
@@ -647,8 +683,7 @@ class C3POMinionTest extends C3POMinionTestBase {
         // Update the port admin status and MAC address. Through the Neutron
         // API, you cannot change the Network the port is attached to.
         val portMac2 = MAC.random().toString
-        val vifPortUpdate = portJson(name = "port1", id = vifPortUuid,
-                                     networkId = network1Uuid,
+        val vifPortUpdate = portJson(id = vifPortUuid, networkId = network1Uuid,
                                      adminStateUp = false,      // Down now.
                                      macAddr = portMac2).toString
         executeSqlStmts(insertTaskSql(
@@ -782,7 +817,7 @@ class C3POMinionTest extends C3POMinionTestBase {
         val hrDest = "10.0.0.0/24"
         val hrNexthop = "10.0.0.27"
         val hostRoutes = List(HostRoute(hrDest, hrNexthop))
-        val sJson = subnetJson(sId, nId, "net tenant", name = "test sub",
+        val sJson = subnetJson(sId, nId, name = "test sub",
                                cidr = cidr.toString, gatewayIp = gatewayIp,
                                dnsNameservers = nameServers,
                                hostRoutes = hostRoutes)
@@ -811,7 +846,7 @@ class C3POMinionTest extends C3POMinionTestBase {
         // Create a DHCP port to verify that the metadata opt121 route
         val portId = UUID.randomUUID()
         val dhcpPortIp = "10.0.0.7"
-        val pJson = portJson(name = "port1", id = portId, networkId = nId,
+        val pJson = portJson(id = portId, networkId = nId,
             adminStateUp = true, deviceOwner = DeviceOwner.DHCP,
             fixedIps = List(IPAlloc(dhcpPortIp, sId.toString))).toString
         executeSqlStmts(insertTaskSql(id = 4, Create, PortType, pJson,
@@ -821,7 +856,7 @@ class C3POMinionTest extends C3POMinionTestBase {
         val cidr2 = IPv4Subnet.fromCidr("10.0.1.0/24")
         val gatewayIp2 = "10.0.1.1"
         val dnss = List("8.8.4.4")
-        val sJson2 = subnetJson(sId, nId, "net tenant", name = "test sub2",
+        val sJson2 = subnetJson(sId, nId, name = "test sub2",
                                 cidr = cidr2.toString, gatewayIp = gatewayIp2,
                                 dnsNameservers = dnss)
         executeSqlStmts(insertTaskSql(5, Update, SubnetType,

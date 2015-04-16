@@ -71,7 +71,7 @@ class PortBindingTranslatorTest extends FlatSpec with BeforeAndAfter
             id { $portId }
             host_id { $hostId }
             interface_name: "$iface_name"
-        """.stripMargin)
+        """)
 
     private def setUpPortGet(portId: UUID, hostId: UUID, iface_name: String)
     : Unit = {
@@ -131,8 +131,8 @@ class PortBindingTranslatorTest extends FlatSpec with BeforeAndAfter
         val midoOps = translator.translate(neutron.Create(binding1))
 
         midoOps should contain only
-            midonet.Update(portWithHost(
-                    newPortId, host1NoBindingsId, newIface))
+            midonet.Update(portWithHost(newPortId, host1NoBindingsId, newIface),
+                           PortUpdateValidator)
     }
 
     it should "add a new mapping at the end of the existing mappings" in {
@@ -141,8 +141,9 @@ class PortBindingTranslatorTest extends FlatSpec with BeforeAndAfter
                 neutron.Create(bindingHost2NewPortInterface))
 
         midoOps should contain only
-            midonet.Update(portWithHost(
-                    newPortId, host2With2BindingsId, newIface))
+            midonet.Update(
+                portWithHost(newPortId, host2With2BindingsId, newIface),
+                PortUpdateValidator)
     }
 
     "Port binding to a non-existing port" should "throw an exception" in {

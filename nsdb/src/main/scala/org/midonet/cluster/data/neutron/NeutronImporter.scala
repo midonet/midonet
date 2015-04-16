@@ -63,31 +63,36 @@ case class NeutronResourceType[M <: Message](id: String, clazz: Class[M])
 /** Declares the different types of supported Neutron types. */
 object NeutronResourceType extends Enumeration {
     val NoData = NeutronResourceType("NULL", classOf[Null])
+    val AgentMembership = NeutronResourceType("AGENTMEMBERSHIP",
+                                              classOf[AgentMembership])
     val Config = NeutronResourceType("CONFIG", classOf[NeutronConfig])
-    val Network = NeutronResourceType("NETWORK", classOf[NeutronNetwork])
-    val Subnet = NeutronResourceType("SUBNET", classOf[NeutronSubnet])
-    val Router = NeutronResourceType("ROUTER", classOf[NeutronRouter])
-    val Port = NeutronResourceType("PORT", classOf[NeutronPort])
     val FloatingIp = NeutronResourceType("FLOATINGIP",
                                          classOf[Neutron.FloatingIp])
+    val Network = NeutronResourceType("NETWORK", classOf[NeutronNetwork])
+    val Port = NeutronResourceType("PORT", classOf[NeutronPort])
+    val PortBinding = NeutronResourceType("PORTBINDING", classOf[PortBinding])
+    val Router = NeutronResourceType("ROUTER", classOf[NeutronRouter])
+    val RouterInterface = NeutronResourceType("ROUTERINTERFACE",
+                                              classOf[NeutronRouterInterface])
     val SecurityGroup = NeutronResourceType("SECURITYGROUP",
                                             classOf[Neutron.SecurityGroup])
     val SecurityGroupRule = NeutronResourceType(
         "SECURITYGROUPRULE", classOf[Neutron.SecurityGroupRule])
-    val PortBinding = NeutronResourceType("PORTBINDING", classOf[PortBinding])
-    val AgentMembership = NeutronResourceType(
-        "AGENTMEMBERSHIP", classOf[AgentMembership])
+    val Subnet = NeutronResourceType("SUBNET", classOf[NeutronSubnet])
 
     private val vals = Map[String, NeutronResourceType[_ <: Message]](
         NoData.id -> NoData,
         AgentMembership.id -> AgentMembership,
         Config.id -> Config,
-        Network.id -> Network, Subnet.id -> Subnet,
-        Router.id -> Router, Port.id -> Port,
         FloatingIp.id -> FloatingIp,
+        Network.id -> Network,
+        Port.id -> Port,
+        PortBinding.id -> PortBinding,
+        Router.id -> Router,
+        RouterInterface.id -> RouterInterface,
         SecurityGroup.id -> SecurityGroup,
         SecurityGroupRule.id -> SecurityGroupRule,
-        PortBinding.id -> PortBinding)
+        Subnet.id -> Subnet)
 
     def valueOf(i: String): NeutronResourceType[_ <: Message] = vals(i)
 }
