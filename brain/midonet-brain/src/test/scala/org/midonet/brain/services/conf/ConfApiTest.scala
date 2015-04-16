@@ -26,6 +26,7 @@ import org.apache.curator.test.TestingServer
 import org.apache.http.client.fluent.Request
 import org.apache.http.entity.ContentType
 import org.junit.runner.RunWith
+import org.scalatest.concurrent.Eventually
 
 import org.midonet.brain.{BrainConfig, ClusterNode}
 import org.midonet.conf.{MidoNodeConfigurator, MidoTestConfigurator, HostIdGenerator}
@@ -84,7 +85,8 @@ class ConfApiTest extends FeatureSpecLike
                             with BeforeAndAfterAll
                             with BeforeAndAfter
                             with GivenWhenThen
-                            with ZookeeperTestSuite {
+                            with ZookeeperTestSuite
+                            with Eventually {
 
     HostIdGenerator.useTemporaryHostId()
 
@@ -95,7 +97,7 @@ class ConfApiTest extends FeatureSpecLike
     private val confStr =
         s"""
           |brain.conf_api.enabled : true
-          |brain.conf_api.http_port : ${HTTP_PORT}
+          |brain.conf_api.http_port : $HTTP_PORT
         """.stripMargin
 
     override def config = ConfigFactory.parseString(confStr).withFallback(super.config)
@@ -124,7 +126,8 @@ class ConfApiTest extends FeatureSpecLike
         Request.Get(url(path)).execute().returnContent().asString())
 
     private def post(path: String, content: String) = {
-        Request.Post(url(path)).bodyString(content, ContentType.TEXT_PLAIN).execute()
+        Request.Post(url(path)).bodyString(content, ContentType.TEXT_PLAIN)
+            .execute().discardContent()
     }
 
     private def delete(path: String) =
@@ -155,9 +158,11 @@ class ConfApiTest extends FeatureSpecLike
         When("An updated set of template mappings is posted to the API")
         post("conf/template-mappings", assignment)
 
-        val mappings = get("conf/template-mappings")
         Then("getting the mappings should return the same set")
-        mappings.getString(nodeId) should be ("the_template")
+        eventually {
+            val mappings = get("conf/template-mappings")
+            mappings.getString(nodeId) should be("the_template")
+        }
 
         var runtimeConf = get(s"conf/runtime-config/$nodeId")
         intercept[ConfigException.Missing] {
@@ -168,8 +173,10 @@ class ConfApiTest extends FeatureSpecLike
         post("conf/template/the_template", template)
 
         Then("the runtime configuration for a node assigned to the template should include that content")
-        runtimeConf = get(s"conf/runtime-config/$nodeId")
-        runtimeConf.getString("the.name") should be ("seven")
+        eventually {
+            runtimeConf = get(s"conf/runtime-config/$nodeId")
+            runtimeConf.getString("the.name") should be ("seven")
+        }
     }
 
     scenario("lists templates") {
@@ -183,10 +190,12 @@ class ConfApiTest extends FeatureSpecLike
         post("conf/template/vandelay", vandelay)
 
         Then("the list of templates should contain the new templates")
-        val templates = get("conf/template-list").getStringList("templates")
-        templates should contain ("seven")
-        templates should contain ("vandelay")
-        templates should have size (2 + origSize)
+        eventually {
+            val templates = get("conf/template-list").getStringList("templates")
+            templates should contain ("seven")
+            templates should contain ("vandelay")
+            templates should have size (2 + origSize)
+        }
     }
 
     def testWritableSource(path: String) {
@@ -199,13 +208,14 @@ class ConfApiTest extends FeatureSpecLike
 
         When("A piece of configuration is POSTed")
         post(path, newTemplateStr)
-        val wrote = get(path)
 
         Then("the returned content is parsed as valid config and contains the same keys and values")
-        wrote.getDuration("foo.bar", TimeUnit.MILLISECONDS) should be (100)
-        wrote.getString("another.option") should be ("string value")
-        wrote.getInt("and.yet.another") should be (42)
-
+        eventually {
+            val wrote = get(path)
+            wrote.getDuration("foo.bar", TimeUnit.MILLISECONDS) should be (100)
+            wrote.getString("another.option") should be ("string value")
+            wrote.getInt("and.yet.another") should be (42)
+        }
         When("A piece of configuration is deleted")
         delete(path) should be (200)
         And("fetched again")
