@@ -16,6 +16,7 @@
 package org.midonet.cluster.data.storage
 
 import java.util.{List => JList}
+import scala.collection.JavaConversions._
 
 import scala.concurrent.Future
 
@@ -254,7 +255,7 @@ trait Storage extends ReadOnlyStorage {
     @throws[ObjectExistsException]
     @throws[ObjectReferencedException]
     @throws[ReferenceConflictException]
-    def multi(ops: JList[PersistenceOp]): Unit
+    final def multi(ops: JList[PersistenceOp]): Unit = multi(ops.toSeq)
 
     /**
      * Flushes the storage, deleting all the objects stored in it.

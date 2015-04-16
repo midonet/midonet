@@ -20,24 +20,9 @@ import java.util.concurrent.locks.ReentrantReadWriteLock
 import java.util.concurrent.{ConcurrentHashMap, Executors, ThreadFactory}
 import java.util.{List => JList}
 
-import scala.async.Async.async
-import scala.collection.JavaConversions._
-import scala.collection.JavaConverters._
-import scala.collection.concurrent.TrieMap
-import scala.collection.mutable
-import scala.concurrent.duration._
-import scala.concurrent.{ExecutionContext, Future}
-
 import com.google.common.collect.ArrayListMultimap
 import com.google.protobuf.Message
-
 import org.apache.zookeeper.KeeperException.BadVersionException
-
-import rx.Observable.OnSubscribe
-import rx._
-import rx.schedulers.Schedulers
-import rx.subjects.{BehaviorSubject, PublishSubject}
-
 import org.midonet.cluster.data.storage.FieldBinding.DeleteAction
 import org.midonet.cluster.data.storage.InMemoryStorage.copyObj
 import org.midonet.cluster.data.storage.OwnershipType.OwnershipType
@@ -47,6 +32,18 @@ import org.midonet.cluster.data.{Obj, ObjId}
 import org.midonet.cluster.util.ParentDeletedException
 import org.midonet.util.concurrent.Locks.{withReadLock, withWriteLock}
 import org.midonet.util.concurrent._
+import rx.Observable.OnSubscribe
+import rx._
+import rx.schedulers.Schedulers
+import rx.subjects.{BehaviorSubject, PublishSubject}
+
+import scala.async.Async.async
+import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
+import scala.collection.concurrent.TrieMap
+import scala.collection.mutable
+import scala.concurrent.duration._
+import scala.concurrent.{ExecutionContext, Future}
 
 /**
  * A simple in-memory implementation of the [[Storage]] trait, equivalent to
@@ -518,8 +515,6 @@ class InMemoryStorage extends StorageWithOwnership {
 
         manager.commit()
     }
-
-    override def multi(ops: JList[PersistenceOp]): Unit = multi(ops.asScala)
 
     override def flush(): Unit = throw new UnsupportedOperationException
 
