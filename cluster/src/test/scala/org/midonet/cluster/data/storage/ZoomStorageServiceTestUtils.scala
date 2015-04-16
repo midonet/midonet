@@ -154,17 +154,6 @@ trait ZoomStorageTester extends StorageTester
         zoom.multi(ops)
     }
 
-    /**
-     * Executes multiple create, update, and/or delete operations atomically.
-     */
-    @throws[NotFoundException]
-    @throws[ObjectExistsException]
-    @throws[ObjectReferencedException]
-    @throws[ReferenceConflictException]
-    override def multi(ops: JList[PersistenceOp]) {
-        zoom.multi(ops)
-    }
-
     override def flush(): Unit = throw new UnsupportedOperationException
 
     override def observable[T](clazz: Class[T], id: ObjId): Observable[T] = {
