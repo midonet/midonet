@@ -15,18 +15,17 @@
  */
 package org.midonet.cluster.services.c3po.translators
 
-import java.util.UUID
+import scala.concurrent.Future
 
 import org.junit.runner.RunWith
-import org.mockito.Mockito.mock
+import org.mockito.Mockito.{mock, when}
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{FlatSpec, Matchers}
 
-import org.midonet.cluster.services.c3po.{midonet, neutron}
-import org.midonet.cluster.data.Bridge
 import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.models.Neutron.NeutronNetwork
 import org.midonet.cluster.models.Topology.Network
+import org.midonet.cluster.services.c3po.{midonet, neutron}
 import org.midonet.cluster.util.UUIDUtil
 import org.midonet.midolman.state.PathBuilder
 
@@ -94,6 +93,8 @@ class NetworkTranslatorTest extends FlatSpec with Matchers {
 
     "Network DELETE" should "produce a corresponding Mido Network DELETE" in {
         val id = genId()
+        when(storage.get(classOf[NeutronNetwork], id))
+            .thenReturn(Future.successful(NeutronNetwork.getDefaultInstance))
         val midoOps =
             translator.translate(neutron.Delete(classOf[NeutronNetwork], id))
 

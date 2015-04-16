@@ -17,7 +17,7 @@
 package org.midonet.cluster.services.topology.server
 
 import java.util.UUID
-import java.util.concurrent.{TimeUnit, CountDownLatch}
+import java.util.concurrent.{CountDownLatch, TimeUnit}
 
 import scala.collection.JavaConversions._
 import scala.concurrent.duration.Duration
@@ -25,21 +25,21 @@ import scala.util.Random
 
 import com.google.protobuf.Message
 
-import io.netty.channel.{ChannelHandlerContext, ChannelFuture, ChannelFutureListener}
+import io.netty.channel.{ChannelFuture, ChannelFutureListener, ChannelHandlerContext}
 
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{FeatureSpec, Matchers}
 import org.slf4j.LoggerFactory
+
 import rx.observers.TestObserver
-
-import rx.{Observable, Observer}
 import rx.subjects.{ReplaySubject, Subject}
+import rx.{Observable, Observer}
 
-import org.midonet.cluster.models.{Topology, Commons}
+import org.midonet.cluster.models.{Commons, Topology}
 import org.midonet.cluster.rpc.Commands
-import org.midonet.cluster.services.topology.common._
 import org.midonet.cluster.services.topology.common.ProtocolFactory.State
+import org.midonet.cluster.services.topology.common._
 import org.midonet.cluster.util.UUIDUtil
 import org.midonet.util.functors.makeAction0
 import org.midonet.util.netty._
@@ -244,7 +244,7 @@ class ServerFrontEndTest extends FeatureSpec with Matchers {
             subs.unsubscribe()
 
             val events = collectionAsScalaIterable(answers.getOnNextEvents).toArray
-            events.size should be (4)
+            events.length should be (4)
             responses.zip(events)
                 .forall(x => {x._1 == x._2}) shouldBe true
         }

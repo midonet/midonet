@@ -29,6 +29,14 @@ message NeutronNetwork {
     optional string status = 6;
     repeated UUID subnets = 7;
     optional bool external = 8;
+    optional NetworkType network_type = 9;
+
+    enum NetworkType {
+        LOCAL = 0;
+        FLAT = 1;
+        VLAN = 2;
+        GRE = 3;
+    }
 }
 
 message NeutronSubnet {
