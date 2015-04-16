@@ -16,17 +16,20 @@
 package org.midonet.midolman.simulation
 
 import java.nio.{BufferOverflowException, ByteBuffer}
+import java.util
+import java.util.UUID
+
+import com.typesafe.scalalogging.Logger
+import org.midonet.cluster.DataClient
+import org.midonet.cluster.data.dhcp.{Host, Opt121, Subnet}
+import org.midonet.midolman.NotYetException
+import org.midonet.midolman.topology.devices.{BridgePort, Port}
+import org.midonet.packets._
+
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.concurrent.duration._
-
-import com.typesafe.scalalogging.Logger
-
-import org.midonet.cluster.DataClient
-import org.midonet.cluster.data.dhcp.{Subnet, Host, Opt121}
-import org.midonet.midolman.topology.devices.{RouterPort, BridgePort, Port}
-import org.midonet.packets._
 
 /**
  * DHCP option value parser based on RFC 2132
@@ -411,8 +414,10 @@ object DhcpValueParser {
 
 object DhcpImpl {
     def apply(dataClient: DataClient, inPort: Port, request: DHCP,
-              sourceMac: MAC, mtu: Option[Short], log: Logger) =
-        new DhcpImpl(dataClient, request, sourceMac, mtu, log).handleDHCP(inPort)
+              sourceMac: MAC, mtu: Option[Short], log: Logger) = {
+        val dhcpCfg = new DataClientDhcpConfig(dataClient)
+        new DhcpImpl(dhcpCfg, request, sourceMac, mtu, log).handleDHCP(inPort)
+    }
 }
 
 class DhcpException extends Exception {
@@ -422,7 +427,31 @@ class DhcpException extends Exception {
 object UnsupportedDhcpRequestException extends DhcpException {}
 object MalformedDhcpRequestException extends DhcpException {}
 
-class DhcpImpl(val dataClient: DataClient,
+/** Configurations required to execute a DHCP implementation that must be
+  * provided based on whatever storage is active.
+  */
+trait DhcpConfig {
+    @throws[NotYetException]
+    def bridgeDhcpSubnets(deviceId: UUID): util.List[Subnet]
+
+    @throws[NotYetException]
+    def dhcpHost(deviceId: UUID, subnetAddr: IPv4Subnet, srcMac: String): Option[Host]
+}
+
+/** Implementation based on the old DataClient */
+class DataClientDhcpConfig(val dataClient: DataClient) extends DhcpConfig {
+
+    override def bridgeDhcpSubnets(deviceId: UUID): util.List[Subnet] = {
+        dataClient.dhcpSubnetsGetByBridge(deviceId)
+    }
+
+    override def dhcpHost(deviceId: UUID, subnetAddr: IPv4Subnet,
+                          srcMac: String): Option[Host] = Option(
+        dataClient.dhcpHostsGet(deviceId, subnetAddr, srcMac)
+    )
+}
+
+class DhcpImpl(val dhcpConfig: DhcpConfig,
                val request: DHCP, val sourceMac: MAC,
                val mtu: Option[Short], val log: Logger) {
     import DhcpValueParser._
@@ -460,7 +489,7 @@ class DhcpImpl(val dataClient: DataClient,
     private
     def getHostAndAssignedSubnet(port: BridgePort): HostAndSubnetOptPair = {
         // TODO(pino): use an async API
-        val subnets = dataClient.dhcpSubnetsGetByBridgeEnabled(port.deviceId)
+        val subnets = dhcpConfig.bridgeDhcpSubnets(port.deviceId)
 
         // Look for the DHCP's source MAC in the list of hosts in each subnet
         var host: Option[Host] = None
@@ -469,9 +498,8 @@ class DhcpImpl(val dataClient: DataClient,
                       sourceMac, sub.getId)
             if (sub.isReplyReady) {
                 // TODO(pino): make this asynchronous?
-                host = Option(dataClient.dhcpHostsGet(port.deviceId,
-                                                    sub.getSubnetAddr,
-                                                    sourceMac.toString))
+                host = dhcpConfig.dhcpHost(port.deviceId, sub.getSubnetAddr,
+                                           sourceMac.toString)
                 host.isDefined && (host.get.getIp != null)
             } else {
                 log.warn("Can not create DHCP reply because the subnet" +
