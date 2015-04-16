@@ -151,10 +151,14 @@ class RoutingManagerActor extends Actor with ActorLogWithoutPath
                 && portHandlers.get(port.id) == None) {
                 bgpPortIdx += 1
 
+                // need to store index locally, as the props below closes over
+                // it, possibly causing multiple bgp handlers to start with the
+                // same index number
+                val portIndexForHandler = bgpPortIdx
                 portHandlers.put(
                     port.id,
                     context.actorOf(
-                        Props(new RoutingHandler(port, bgpPortIdx, datapath,
+                        Props(new RoutingHandler(port, portIndexForHandler, datapath,
                                     dpState, upcallConnManager, client,
                                     dataClient, config, zkConnWatcher, zebraLoop)).
                               withDispatcher("actors.pinned-dispatcher"),
