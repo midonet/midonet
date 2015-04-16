@@ -116,6 +116,11 @@ object RouteManager {
     def gatewayRouteId(gwPortId: UUID): UUID =
         gwPortId.xorWith(0x6ba5df84b8a44ab4L, 0x90adb3f665e7850dL)
 
+    /**
+     * ID of next-hop route to the subnet / router interface port. */
+    def routerInterfaceRouteId(rifPortId: UUID): UUID =
+        rifPortId.xorWith(0xb288abe0c5744762L, 0xb3a04b12442bb179L)
+
     def metadataServiceRouteId(dhcpPortId: UUID): UUID =
         dhcpPortId.xorWith(0xa0132e5a1583461cL, 0xa752d8609a517a6cL)
 }
