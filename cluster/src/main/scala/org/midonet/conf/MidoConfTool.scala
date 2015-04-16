@@ -219,7 +219,7 @@ object SetConf extends ConfigWriter("set") with ConfCommand {
             val key = entry.getKey
             val newVal = entry.getValue
             try {
-                val schemaVal = schema.getValue(key)
+                val schemaVal = schema.resolve().getValue(key)
                 if (!newVal.valueType().equals(schemaVal.valueType()))
                     throw new ConfigException.WrongType(newVal.origin(),
                         s"Value for $key (${newVal.render()}}) does " +
@@ -302,7 +302,7 @@ object GetConf extends ConfigQuery("get") with ConfCommand {
     val key = trailArg[String](required = true, descr = "Configuration key")
 
     override def run(configurator: MidoNodeConfigurator) = {
-        val conf = makeConfig(configurator)
+        val conf = makeConfig(configurator).resolve()
 
         try {
             if (schema.get.get) {
