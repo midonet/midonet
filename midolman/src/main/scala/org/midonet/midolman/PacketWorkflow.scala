@@ -24,14 +24,16 @@ import scala.util.{Failure, Success}
 
 import akka.actor._
 import com.typesafe.scalalogging.Logger
+
 import org.jctools.queues.MpscArrayQueue
 import org.slf4j.{LoggerFactory, MDC}
 
 import org.midonet.midolman.HostRequestProxy.FlowStateBatch
 import org.midonet.midolman.config.MidolmanConfig
-import org.midonet.midolman.datapath.{DatapathChannel, FlowProcessor}
-import org.midonet.midolman.flows.FlowExpiration.Expiration
+import org.midonet.midolman.datapath.DatapathChannel
+import org.midonet.midolman.datapath.FlowProcessor.FlowOperations
 import org.midonet.midolman.flows.{FlowExpiration, FlowInvalidator}
+import org.midonet.midolman.flows.FlowExpiration.Expiration
 import org.midonet.midolman.logging.{ActorLogWithoutPath, FlowTracingContext}
 import org.midonet.midolman.management.PacketTracing
 import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
@@ -133,7 +135,6 @@ trait UnderlayTrafficHandler { this: PacketWorkflow =>
 }
 
 class PacketWorkflow(
-            val id: Int,
             val config: MidolmanConfig,
             val hostId: UUID,
             val dpState: DatapathState,
@@ -142,7 +143,7 @@ class PacketWorkflow(
             val dpChannel: DatapathChannel,
             val dhcpConfigProvider: DhcpConfig,
             val flowInvalidator: FlowInvalidator,
-            val flowProcessor: FlowProcessor,
+            val flowOps: FlowOperations,
             val connTrackStateTable: FlowStateTable[ConnTrackKey, ConnTrackValue],
             val natStateTable: FlowStateTable[NatKey, NatBinding],
             val traceStateTable: FlowStateTable[TraceKey, TraceContext],

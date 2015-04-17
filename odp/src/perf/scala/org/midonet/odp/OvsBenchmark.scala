@@ -47,12 +47,13 @@ object OvsBenchmark {
         var channel: NetlinkChannel = _
         var protocol: OvsProtocol = _
         var writer: NetlinkWriter = _
+        var pid: Int = _
         
         @Setup
         def createNewCon(): Unit = {
             channel = new NetlinkChannelFactory().create(blocking = true)
-            protocol = new OvsProtocol(channel.getLocalAddress.getPid,
-                                              OvsBenchmark.families)
+            pid = channel.getLocalAddress.getPid
+            protocol = new OvsProtocol(OvsBenchmark.families)
             writer = new NetlinkWriter(channel)
         }
 
@@ -79,7 +80,7 @@ object OvsBenchmark {
             rand.nextBytes(ethKey.eth_src)
             rand.nextBytes(ethKey.eth_dst)
             flowBuf.clear()
-            protocol.prepareFlowCreate(0, keys, actions, null, flowBuf)
+            protocol.prepareFlowCreate(pid, 0, keys, actions, null, flowBuf)
         }
     }
 }
@@ -126,7 +127,8 @@ class PacketExecute extends OvsBenchmark {
         val wcmatch = FlowMatches.fromEthernetPacket(payload)
         val pkt = new Packet(payload, wcmatch)
         val actions = List[FlowAction](FlowActions.output(port.getPortNo))
-        channel.protocol.preparePacketExecute(datapath.getIndex, pkt, actions, pktExec)
+        channel.protocol.preparePacketExecute(
+            channel.pid, datapath.getIndex, pkt, actions, pktExec)
     }
 
     @Benchmark

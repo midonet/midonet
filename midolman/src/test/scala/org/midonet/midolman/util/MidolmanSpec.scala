@@ -21,6 +21,7 @@ import scala.collection.JavaConversions._
 
 import com.google.inject._
 import com.typesafe.config.{ConfigFactory, Config}
+import org.midonet.midolman.flows.FlowInvalidator
 
 import org.scalatest.{BeforeAndAfter, FeatureSpecLike, GivenWhenThen, Matchers, OneInstancePerTest}
 import org.midonet.cluster.services.{MidonetBackend, LegacyStorageService}
@@ -83,6 +84,9 @@ trait MidolmanSpec extends FeatureSpecLike
             injector.getInstance(classOf[MidolmanService])
                 .startAsync()
                 .awaitRunning()
+
+            injector.getInstance(classOf[FlowInvalidator])
+                .registerInvalidationTarget()
 
             beforeTest()
         } catch {

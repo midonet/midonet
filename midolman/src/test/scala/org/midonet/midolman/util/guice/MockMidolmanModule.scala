@@ -22,7 +22,7 @@ import org.midonet.util.functors.Callback
 
 class MockMidolmanModule extends MidolmanModule {
 
-    protected override def bindAllocator() {
+    protected override def bindAllocator(): Unit = {
         bind(classOf[NatBlockAllocator]).toInstance(new MockNatBlockAllocator)
         expose(classOf[NatBlockAllocator])
     }

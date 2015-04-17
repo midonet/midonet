@@ -16,36 +16,33 @@
 
 package org.midonet.midolman
 
-import java.util.{HashMap, ArrayList}
+import java.util.{ArrayList, HashMap}
 
 import akka.actor.{Actor, ActorSystem}
 
+import com.codahale.metrics.Gauge
 import org.jctools.queues.SpscArrayQueue
 
-import com.codahale.metrics.Gauge
-
 import org.midonet.midolman.config.MidolmanConfig
-import org.midonet.midolman.datapath.FlowProcessor
-import org.midonet.midolman.flows.{FlowLifecycle, FlowInvalidation}
+import org.midonet.midolman.datapath.FlowProcessor.FlowOperations
 import org.midonet.midolman.flows.FlowExpiration.Expiration
-import org.midonet.midolman.flows._
+import org.midonet.midolman.flows.{FlowInvalidation, FlowLifecycle, _}
 import org.midonet.midolman.management.Metering
-import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
 import org.midonet.midolman.monitoring.MeterRegistry
+import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
 import org.midonet.midolman.simulation.PacketContext
 import org.midonet.netlink.exceptions.NetlinkException.ErrorCode
 import org.midonet.odp.FlowMatch
-import org.midonet.util.collection.{NoOpPool, ArrayObjectPool}
-import org.midonet.util.concurrent.{Backchannel, NanoClock}
+import org.midonet.util.collection.{ArrayObjectPool, NoOpPool}
 import org.midonet.util.concurrent.WakerUpper.Parkable
+import org.midonet.util.concurrent.{Backchannel, NanoClock}
 
 trait FlowController extends FlowLifecycle with FlowInvalidation
                      with FlowExpiration with Backchannel { this: Actor =>
 
-    protected val id: Int
     protected val config: MidolmanConfig
     protected val clock: NanoClock
-    protected val flowProcessor: FlowProcessor
+    protected val flowOps: FlowOperations
     protected val flowInvalidator: FlowInvalidator
     protected val datapathId: Int
     val metrics: PacketPipelineMetrics
@@ -62,17 +59,18 @@ trait FlowController extends FlowLifecycle with FlowInvalidation
     private val oversubscriptionManagedFlowPool = new NoOpPool[ManagedFlow](
         new ManagedFlow(_))
     private val completedFlowOperations = new SpscArrayQueue[FlowOperation](
-        flowProcessor.capacity)
+        flowOps.capacity)
     private val pooledFlowOperations = new ArrayObjectPool[FlowOperation](
-        flowProcessor.capacity, new FlowOperation(self, _, completedFlowOperations))
+        flowOps.capacity, new FlowOperation(self, _, completedFlowOperations))
     private val flowRemoveCommandsToRetry = new ArrayList[FlowOperation](
-        flowProcessor.capacity)
+        flowOps.capacity)
 
+    private val invalidationTarget = flowInvalidator.registerInvalidationTarget()
     private val dpFlows = new HashMap[FlowMatch, ManagedFlow](maxFlows)
 
     metrics.currentDpFlowsMetric.register(new Gauge[Long] {
         override def getValue = dpFlows.size()
-    }, id)
+    })
 
     def tryAddFlow(context: PacketContext, expiration: Expiration): Boolean = {
         val flowMatch = context.origMatch
@@ -95,11 +93,11 @@ trait FlowController extends FlowLifecycle with FlowInvalidation
 
     override def shouldProcess() =
         completedFlowOperations.size > 0 ||
-        flowInvalidator.needsToInvalidateTags(id)
+        invalidationTarget.hasInvalidations
 
     override def process(): Unit = {
         processCompletedFlowOperations()
-        flowInvalidator.process(id, this)
+        invalidationTarget.process(this)
         checkFlowsExpiration(clock.tick)
     }
 
@@ -141,7 +139,7 @@ trait FlowController extends FlowLifecycle with FlowInvalidation
             val cmd = flowRemoveCommandsToRetry.get(i)
             val fmatch = cmd.managedFlow.flowMatch
             val seq = cmd.managedFlow.sequence
-            flowProcessor.tryEject(seq, datapathId, fmatch, cmd)
+            flowOps.tryEject(seq, datapathId, fmatch, cmd)
             i += 1
         }
         flowRemoveCommandsToRetry.clear()
@@ -202,8 +200,8 @@ trait FlowController extends FlowLifecycle with FlowInvalidation
         val flowOp = takeFlowOperation(flow)
         // Spin while we try to eject the flow. This can happen if we invalidated
         // a flow so close to its creation that it has not been created yet.
-        while (!flowProcessor.tryEject(flow.sequence, datapathId,
-                                       flow.flowMatch, flowOp)) {
+        while (!flowOps.tryEject(
+                flow.sequence, datapathId, flow.flowMatch, flowOp)) {
             processCompletedFlowOperations()
             Thread.`yield`()
         }

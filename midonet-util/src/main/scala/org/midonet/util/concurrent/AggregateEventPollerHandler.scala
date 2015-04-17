@@ -16,10 +16,11 @@
 
 package org.midonet.util.concurrent
 
-import com.lmax.disruptor.{LifecycleAware, EventPoller}
+import com.lmax.disruptor.{Sequence, LifecycleAware, EventPoller}
 
 class AggregateEventPollerHandler[T](eventHandlers: EventPoller.Handler[T]*)
-    extends EventPoller.Handler[T] with LifecycleAware {
+    extends EventPoller.Handler[T] with LifecycleAware
+                                   with SequenceReportingEventPoller {
 
     @throws(classOf[Exception])
     override def onEvent(event: T, sequence: Long, endOfBatch: Boolean): Boolean = {
@@ -45,4 +46,16 @@ class AggregateEventPollerHandler[T](eventHandlers: EventPoller.Handler[T]*)
                 aware.onShutdown()
             case _ =>
         }
+
+    override def setSequenceCallback(sequence: Sequence): Unit = {
+        var i = 0
+        while (i < eventHandlers.length) {
+            eventHandlers(i) match {
+                case e: SequenceReportingEventPoller =>
+                    e.setSequenceCallback(sequence)
+                case _ =>
+            }
+            i += 1
+        }
+    }
 }
