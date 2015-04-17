@@ -89,7 +89,7 @@ sealed class PacketExecutor(dpState: DatapathState,
         log.debug(s"Created channel with pid $pid")
     }
 
-    private val protocol = new OvsProtocol(pid, families)
+    private val protocol = new OvsProtocol(families)
 
     private val writer = new NetlinkBlockingWriter(channel)
     private val reader = new NetlinkReader(channel)
@@ -129,7 +129,7 @@ sealed class PacketExecutor(dpState: DatapathState,
     private def executePacket(datapathId: Int, packet: Packet,
                               actions: ArrayList[FlowAction]): Unit =
         try {
-            protocol.preparePacketExecute(datapathId, packet, actions, writeBuf)
+            protocol.preparePacketExecute(pid, datapathId, packet, actions, writeBuf)
             writer.write(writeBuf)
         } catch { case e: BufferOverflowException =>
             val capacity = writeBuf.capacity()

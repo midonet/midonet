@@ -64,14 +64,11 @@ public class MidolmanModule extends PrivateModule {
 
         bind(FlowInvalidator.class).toProvider(new Provider<FlowInvalidator>() {
             @Inject
-            private MidolmanConfig config;
-
-            @Inject
             private MidolmanActorsService service;
 
             @Override
             public FlowInvalidator get() {
-                return new FlowInvalidator(service, config.simulationThreads());
+                return new FlowInvalidator(service);
             }
         }).asEagerSingleton();
         expose(FlowInvalidator.class);

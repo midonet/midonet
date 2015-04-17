@@ -16,6 +16,8 @@
 
 package org.midonet.midolman.flows
 
+import java.util.ArrayList
+
 import org.jctools.queues.MpscArrayQueue
 
 import org.midonet.midolman.{CheckBackchannels, PacketsEntryPoint}
@@ -27,25 +29,47 @@ trait InvalidationSource {
     def scheduleInvalidationFor(tag: FlowTag): Unit
 }
 
+trait InvalidationTarget {
+    def process(invalidation: FlowInvalidation): Unit
+    def hasInvalidations: Boolean
+}
+
 object FlowInvalidator {
     private val MAX_PENDING_INVALIDATIONS = 1024
+
+    private final class FlowInvalidationQueue extends InvalidationTarget {
+        private[FlowInvalidator] val q =
+            new MpscArrayQueue[FlowTag](MAX_PENDING_INVALIDATIONS)
+
+        /**
+         * Processes the invalidated tags for the queue identified by the `id`
+         * parameter. Thread-safe for callers specifying different ids.
+         */
+        override def process(invalidation: FlowInvalidation): Unit = {
+            var tag: FlowTag = null
+            while ({ tag = q.poll(); tag } ne null) {
+                invalidation.invalidateFlowsFor(tag)
+            }
+        }
+
+        override def hasInvalidations: Boolean =
+            q.size() < MAX_PENDING_INVALIDATIONS
+    }
 }
 
 // TODO: having to pass the actorsService here, ugly as it
 //       may be, is an artifact of our bootstrap process
-final class FlowInvalidator(actorsService: MidolmanActorsService,
-                            numQueues: Int) extends Parkable with InvalidationSource {
+final class FlowInvalidator(actorsService: MidolmanActorsService)
+        extends Parkable with InvalidationSource {
     import FlowInvalidator._
 
-    private val queues = new Array[MpscArrayQueue[FlowTag]](numQueues)
+    private val queues = new ArrayList[FlowInvalidationQueue]()
     @volatile private var waitingFor = 0
 
-    {
-        var i = 0
-        while (i < numQueues) {
-            queues(i) = new MpscArrayQueue[FlowTag](MAX_PENDING_INVALIDATIONS)
-            i += 1
-        }
+    def registerInvalidationTarget(): InvalidationTarget = {
+        val invQ = new FlowInvalidationQueue()
+        queues.add(invQ)
+        invQ
     }
 
     /**
@@ -53,8 +77,9 @@ final class FlowInvalidator(actorsService: MidolmanActorsService,
      */
     def scheduleInvalidationFor(tag: FlowTag): Unit = {
         var i = 0
-        while (i < numQueues) {
-            while (!queues(i).offer(tag)) {
+        while (i < queues.size()) {
+            val q = queues.get(i).q
+            while (!q.offer(tag)) {
                 waitingFor = i
                 park(retries = 0)
             }
@@ -64,32 +89,17 @@ final class FlowInvalidator(actorsService: MidolmanActorsService,
     }
 
     /**
-     * Processes the invalidated tags for the queue identified by the `id`
-     * parameter. Thread-safe for callers specifying different ids.
-     */
-    def process(id: Int, invalidation: FlowInvalidation): Unit = {
-        val q = queues(id)
-        var tag: FlowTag = null
-        while ({ tag = q.poll(); tag } ne null) {
-            invalidation.invalidateFlowsFor(tag)
-        }
-    }
-
-    /**
      * Processes the invalidated tags for all queues. Not thread-safe. Also not
      * thread-safe for concurrent callers of `process`.
      */
     def processAll(invalidation: FlowInvalidation): Unit = {
         var i = 0
-        while (i < numQueues) {
-            process(i, invalidation)
+        while (i < queues.size()) {
+            queues.get(i).process(invalidation)
             i += 1
         }
     }
 
-    def needsToInvalidateTags(id: Int): Boolean =
-        queues(waitingFor).size() < MAX_PENDING_INVALIDATIONS
-
     override def shouldWakeUp(): Boolean =
-        needsToInvalidateTags(waitingFor)
+        queues.get(waitingFor).hasInvalidations
 }
