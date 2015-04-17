@@ -154,6 +154,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_64557a4f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/ArpRequestBroker.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-04-17T12:28:27Z",
+      "side": 1,
+      "message": "Ah, missed the arp cache reference.",
+      "parentUuid": "1a106d94_24438215",
+      "range": {
+        "startLine": 107,
+        "startChar": 17,
+        "endLine": 107,
+        "endChar": 20
+      },
+      "revId": "ee4fc51c43c9f942100ab5c4d6d28116ff9ebcbc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_9819007c",
         "filename": "midolman/src/main/scala/org/midonet/midolman/state/ArpRequestBroker.scala",
         "patchSetId": 2
@@ -295,6 +319,30 @@
       "side": 1,
       "message": "Totally right.  This a limitation of the current replicated map.\n\nI did think about adding a cache to this class filled by set() and cleared by processDiscoveredMacs(). But didn\u0027t get around to it. Mixed feelings between added complexity and benefit. Opinions welcome.",
       "parentUuid": "1a106d94_8c21c24f",
+      "range": {
+        "startLine": 194,
+        "startChar": 12,
+        "endLine": 194,
+        "endChar": 26
+      },
+      "revId": "ee4fc51c43c9f942100ab5c4d6d28116ff9ebcbc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_a47812f3",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/ArpRequestBroker.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 194,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-04-17T12:28:27Z",
+      "side": 1,
+      "message": "since this is something that already exists, I wouldn\u0027t change it. I guess this will change when the device tables are moved out to cass.",
+      "parentUuid": "1a106d94_045da6e9",
       "range": {
         "startLine": 194,
         "startChar": 12,
