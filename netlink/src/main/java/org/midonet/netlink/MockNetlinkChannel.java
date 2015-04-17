@@ -18,7 +18,6 @@ package org.midonet.netlink;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.spi.SelectorProvider;
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.concurrent.atomic.AtomicInteger;
