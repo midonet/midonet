@@ -1,0 +1,303 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_c1c0a0e2",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/FloatingIpTranslator.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-04-17T09:29:29Z",
+      "side": 1,
+      "message": "unused",
+      "range": {
+        "startLine": 19,
+        "startChar": 0,
+        "endLine": 19,
+        "endChar": 40
+      },
+      "revId": "ff9cd8cc559b5850aba1a8935c72fe150fe34d32",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_21b89475",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/FloatingIpTranslator.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-04-17T09:29:29Z",
+      "side": 1,
+      "message": "unused",
+      "range": {
+        "startLine": 21,
+        "startChar": 64,
+        "endLine": 21,
+        "endChar": 70
+      },
+      "revId": "ff9cd8cc559b5850aba1a8935c72fe150fe34d32",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_61b1ec8e",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/FloatingIpTranslator.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-04-17T09:29:29Z",
+      "side": 1,
+      "message": "unused",
+      "range": {
+        "startLine": 25,
+        "startChar": 57,
+        "endLine": 25,
+        "endChar": 63
+      },
+      "revId": "ff9cd8cc559b5850aba1a8935c72fe150fe34d32",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_01bbd872",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/FloatingIpTranslator.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-04-17T09:29:29Z",
+      "side": 1,
+      "message": "unused",
+      "range": {
+        "startLine": 25,
+        "startChar": 44,
+        "endLine": 25,
+        "endChar": 48
+      },
+      "revId": "ff9cd8cc559b5850aba1a8935c72fe150fe34d32",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_a1abe41b",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/FloatingIpTranslator.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-04-17T09:29:29Z",
+      "side": 1,
+      "message": "unused",
+      "range": {
+        "startLine": 33,
+        "startChar": 55,
+        "endLine": 33,
+        "endChar": 71
+      },
+      "revId": "ff9cd8cc559b5850aba1a8935c72fe150fe34d32",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_e164bc23",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/FloatingIpTranslator.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-04-17T09:29:29Z",
+      "side": 1,
+      "message": "router?",
+      "range": {
+        "startLine": 82,
+        "startChar": 12,
+        "endLine": 82,
+        "endChar": 14
+      },
+      "revId": "ff9cd8cc559b5850aba1a8935c72fe150fe34d32",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_c14ee095",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/RouteManager.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 129,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-04-17T09:29:29Z",
+      "side": 1,
+      "message": "This is kind of cryptic... ;-) What\u0027s the reasoning behind doing a xor with such two numbers?",
+      "range": {
+        "startLine": 129,
+        "startChar": 22,
+        "endLine": 129,
+        "endChar": 62
+      },
+      "revId": "ff9cd8cc559b5850aba1a8935c72fe150fe34d32",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_e1195c89",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/services/c3po/translators/FloatingIpTranslatorIT.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-04-17T09:29:29Z",
+      "side": 1,
+      "message": "IT?",
+      "range": {
+        "startLine": 39,
+        "startChar": 26,
+        "endLine": 39,
+        "endChar": 28
+      },
+      "revId": "ff9cd8cc559b5850aba1a8935c72fe150fe34d32",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_0149188b",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/services/c3po/translators/FloatingIpTranslatorIT.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-04-17T09:29:29Z",
+      "side": 1,
+      "message": "why not just private?",
+      "range": {
+        "startLine": 40,
+        "startChar": 4,
+        "endLine": 40,
+        "endChar": 13
+      },
+      "revId": "ff9cd8cc559b5850aba1a8935c72fe150fe34d32",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_213d34df",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/services/c3po/translators/FloatingIpTranslatorIT.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-04-17T09:29:29Z",
+      "side": 1,
+      "message": "If you\u0027re using the InMemoryStorage you don\u0027t need to do this because operations are blocking.",
+      "range": {
+        "startLine": 92,
+        "startChar": 8,
+        "endLine": 94,
+        "endChar": 9
+      },
+      "revId": "ff9cd8cc559b5850aba1a8935c72fe150fe34d32",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_a1300402",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/services/c3po/translators/FloatingIpTranslatorIT.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 174,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-04-17T09:29:29Z",
+      "side": 1,
+      "message": "hooked",
+      "range": {
+        "startLine": 174,
+        "startChar": 49,
+        "endLine": 174,
+        "endChar": 53
+      },
+      "revId": "ff9cd8cc559b5850aba1a8935c72fe150fe34d32",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_610d6c3e",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/services/c3po/translators/FloatingIpTranslatorTest.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-04-17T09:29:29Z",
+      "side": 1,
+      "message": "unused",
+      "range": {
+        "startLine": 127,
+        "startChar": 4,
+        "endLine": 127,
+        "endChar": 72
+      },
+      "revId": "ff9cd8cc559b5850aba1a8935c72fe150fe34d32",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_4108302d",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/services/c3po/translators/FloatingIpTranslatorTest.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 164,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-04-17T09:29:29Z",
+      "side": 1,
+      "message": "unused",
+      "range": {
+        "startLine": 164,
+        "startChar": 4,
+        "endLine": 164,
+        "endChar": 73
+      },
+      "revId": "ff9cd8cc559b5850aba1a8935c72fe150fe34d32",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
