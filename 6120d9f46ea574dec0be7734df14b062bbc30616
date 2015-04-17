@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_811ce8c2",
+        "filename": "midolman/src/main/java/org/midonet/midolman/layer3/Route.java",
+        "patchSetId": 22
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-17T08:30:51Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_b5d691c1",
+      "range": {
+        "startLine": 106,
+        "startChar": 84,
+        "endLine": 106,
+        "endChar": 89
+      },
+      "revId": "6120d9f46ea574dec0be7734df14b062bbc30616",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_75ec1990",
         "filename": "midolman/src/main/java/org/midonet/midolman/layer3/RoutingTable.java",
         "patchSetId": 22
@@ -447,6 +471,30 @@
       "writtenOn": "2015-04-13T12:57:49Z",
       "side": 1,
       "message": "eventIdx?",
+      "range": {
+        "startLine": 108,
+        "startChar": 34,
+        "endLine": 108,
+        "endChar": 39
+      },
+      "revId": "6120d9f46ea574dec0be7734df14b062bbc30616",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_c17d40e9",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/BridgeMapperTest.scala",
+        "patchSetId": 22
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-17T08:30:51Z",
+      "side": 1,
+      "message": "If you feel strongly about it I can change it. This was introduced by Duarte, and I think the name is fine. Plus, it\u0027s only a test.",
+      "parentUuid": "1a106d94_1077b33b",
       "range": {
         "startLine": 108,
         "startChar": 34,
