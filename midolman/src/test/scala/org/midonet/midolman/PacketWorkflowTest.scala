@@ -28,22 +28,20 @@ import org.slf4j.helpers.NOPLogger
 
 import org.midonet.cluster.DataClient
 import org.midonet.midolman.PacketWorkflow._
-import org.midonet.midolman.UnderlayResolver.Route
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.DatapathChannel
 import org.midonet.midolman.simulation.PacketEmitter.GeneratedPacket
 import org.midonet.midolman.simulation.{DhcpConfigFromDataclient, PacketContext}
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackKey, ConnTrackValue}
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
-import org.midonet.midolman.state.TraceState.{TraceContext, TraceKey}
-import org.midonet.midolman.state.{FlowStatePackets, HappyGoLuckyLeaser, MockFlowStateTable, MockStateStorage}
-import org.midonet.midolman.topology.rcu.ResolvedHost
+import org.midonet.midolman.state.TraceState.{TraceKey, TraceContext}
+import org.midonet.midolman.state.{MockFlowStateTable, FlowStatePackets, HappyGoLuckyLeaser, MockStateStorage}
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.MessageAccumulator
 import org.midonet.odp.flows.FlowActions.output
 import org.midonet.odp.flows.FlowKeys.tunnel
-import org.midonet.odp.flows.{FlowAction, FlowActionOutput}
-import org.midonet.odp.{Datapath, DpPort, FlowMatches, Packet}
+import org.midonet.odp.flows.FlowAction
+import org.midonet.odp.{Datapath, FlowMatches, Packet}
 import org.midonet.packets.Ethernet
 import org.midonet.packets.util.EthBuilder
 import org.midonet.packets.util.PacketBuilder.{udp, _}
@@ -366,13 +364,12 @@ class PacketWorkflowTest extends MidolmanSpec {
                       clusterDataClient: DataClient,
                       packetOut: Int => Unit,
                       override val simulationExpireMillis: Long)
-            extends PacketWorkflow(0,
-                                   injector.getInstance(classOf[MidolmanConfig]),
+            extends PacketWorkflow(injector.getInstance(classOf[MidolmanConfig]),
                                    hostId, new DatapathStateDriver(new Datapath(0, "midonet")),
                                    cookieGen, clock, dpChannel,
                                    new DhcpConfigFromDataclient(clusterDataClient),
                                    flowInvalidator,
-                                   flowProcessor,
+                                   flowProcessor.registerForFlowOperations(),
                                    conntrackTable, natTable,
                                    new ShardedFlowStateTable[TraceKey, TraceContext](),
                                    new MockStateStorage(), HappyGoLuckyLeaser,

@@ -47,6 +47,14 @@ class BackchannelEventProcessor[T >: Null](ringBuffer: RingBuffer[T],
 
     var exceptionHandler = new FatalExceptionHandler
 
+    {
+        eventHandler match {
+            case handler: SequenceReportingEventPoller =>
+                handler.setSequenceCallback(poller.getSequence)
+            case _ =>
+        }
+    }
+
     override def getSequence: Sequence =
         poller.getSequence
 

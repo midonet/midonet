@@ -274,7 +274,6 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
         }
 
         TestActorRef[PacketWorkflow](Props(new PacketWorkflow(
-            0,
             config,
             hostId,
             dpState,
@@ -283,7 +282,7 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
             dpChannel,
             new DhcpConfigFromDataclient(client),
             flowInvalidator,
-            flowProcessor,
+            flowProcessor.registerForFlowOperations(),
             conntrackTable,
             natTable,
             traceTable,

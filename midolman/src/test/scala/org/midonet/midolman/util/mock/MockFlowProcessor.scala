@@ -19,60 +19,72 @@ package org.midonet.midolman.util.mock
 import java.nio.ByteBuffer
 import java.util.{Map => JMap}
 
-import com.typesafe.scalalogging.Logger
-import org.midonet.midolman.DatapathStateDriver
-import org.midonet.odp.OpenVSwitch.Flow.Attr
-import org.midonet.odp.family.{PacketFamily, FlowFamily, PortFamily, DatapathFamily}
-import org.midonet.odp.flows.FlowKeys
-import org.slf4j.LoggerFactory
 import rx.Observer
 
+import org.slf4j.LoggerFactory
+import com.typesafe.scalalogging.Logger
+
+import org.midonet.midolman.DatapathStateDriver
 import org.midonet.midolman.datapath.FlowProcessor
-import org.midonet.netlink.{NetlinkMessage, MockNetlinkChannelFactory}
-import org.midonet.odp.{Datapath, OvsNetlinkFamilies, Flow, FlowMatch}
+import org.midonet.midolman.datapath.FlowProcessor.FlowOperations
+import org.midonet.midolman.util.{MockSelectorProvider, MockNetlinkChannelFactory}
+import org.midonet.netlink.NetlinkMessage
+import org.midonet.odp.OpenVSwitch.Flow.Attr
+import org.midonet.odp.family.{DatapathFamily, FlowFamily, PacketFamily, PortFamily}
+import org.midonet.odp.flows.FlowKeys
+import org.midonet.odp.{Datapath, Flow, FlowMatch, OvsNetlinkFamilies}
 import org.midonet.util.concurrent.MockClock
 
 class MockFlowProcessor(val flowsTable: JMap[FlowMatch, Flow] = null)
-        extends FlowProcessor(new DatapathStateDriver(new Datapath(0, "midonet")),
-                              new OvsNetlinkFamilies(new DatapathFamily(0),
-                                                     new PortFamily(0),
-                                                     new FlowFamily(0),
-                                                     new PacketFamily(0), 0, 0),
-                              10, 1023, new MockNetlinkChannelFactory,
-                              new MockClock) {
+        extends FlowProcessor(
+            new DatapathStateDriver(new Datapath(0, "midonet")),
+            new OvsNetlinkFamilies(
+                new DatapathFamily(0),
+                new PortFamily(0),
+                new FlowFamily(0),
+                new PacketFamily(0), 0, 0),
+            maxPendingRequests = 10,
+            maxRequestSize = 1023,
+            new MockNetlinkChannelFactory,
+            new MockSelectorProvider,
+            new MockClock) {
     var flowDelCb: Flow => Unit = _
 
     private val log = Logger(LoggerFactory.getLogger(
         "org.midonet.datapath.mock-flow-processor"))
 
-    override def tryEject(sequence: Long, datapathId: Int, flowMatch: FlowMatch,
-                          obs: Observer[ByteBuffer]): Boolean = {
-        if (flowDelCb ne null) {
-            flowDelCb(new Flow(flowMatch))
+    override def registerForFlowOperations() = new FlowOperations {
+        override def tryEject(sequence: Long, datapathId: Int,
+                              flowMatch: FlowMatch, obs: Observer[ByteBuffer]): Boolean = {
+            if (flowDelCb ne null) {
+                flowDelCb(new Flow(flowMatch))
+            }
+            if (flowsTable ne null) {
+                flowsTable.remove(flowMatch)
+            }
+            true
         }
-        if (flowsTable ne null) {
-            flowsTable.remove(flowMatch)
-        }
-        true
-    }
 
-    override def tryGet(datapathId: Int, flowMatch: FlowMatch,
-                        obs: Observer[ByteBuffer]): Boolean = {
-        log.debug("Try get")
-        if (flowsTable ne null) {
-            val flow = flowsTable.get(flowMatch)
-            log.debug("Got flow " + flow)
-            val buf = ByteBuffer.allocate(1024)
-            buf.putInt(datapathId)
-            NetlinkMessage.writeAttrSeq(buf, Attr.Key, flow.getMatch().getKeys,
-                                        FlowKeys.writer)
-            NetlinkMessage.writeLongAttr(buf, Attr.Used, flow.getLastUsedMillis)
-            buf.flip()
+        override def tryGet(datapathId: Int, flowMatch: FlowMatch,
+                            obs: Observer[ByteBuffer]): Boolean = {
+            log.debug("Try get")
+            if (flowsTable ne null) {
+                val flow = flowsTable.get(flowMatch)
+                log.debug("Got flow " + flow)
+                val buf = ByteBuffer.allocate(1024)
+                buf.putInt(datapathId)
+                NetlinkMessage.writeAttrSeq(buf, Attr.Key, flow.getMatch().getKeys,
+                                            FlowKeys.writer)
+                NetlinkMessage.writeLongAttr(buf, Attr.Used, flow.getLastUsedMillis)
+                buf.flip()
 
-            obs.onNext(buf)
-            obs.onCompleted()
+                obs.onNext(buf)
+                obs.onCompleted()
+            }
+            true
         }
-        true
+
+        override def capacity = 10
     }
 
     def flowDeleteSubscribe(cb: Flow => Unit): Unit =
