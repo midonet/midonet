@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_e1de7c10",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/PortBindingManager.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-04-17T08:28:40Z",
+      "side": 1,
+      "message": "Error condition. Should throw exception.",
+      "range": {
+        "startLine": 42,
+        "startChar": 33,
+        "endLine": 42,
+        "endChar": 37
+      },
+      "revId": "46973c3ced521c65b3e8efd485551d2dbf60178f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_011118ac",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/PortBindingTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-04-17T08:28:40Z",
+      "side": 1,
+      "message": "This can go away if you throw an exception from removePortBinding().",
+      "range": {
+        "startLine": 94,
+        "startChar": 36,
+        "endLine": 97,
+        "endChar": 69
+      },
+      "revId": "46973c3ced521c65b3e8efd485551d2dbf60178f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_61272c13",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 133,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-04-17T08:28:40Z",
+      "side": 1,
+      "message": "Preferred style is to align with the first parameter.",
+      "range": {
+        "startLine": 133,
+        "startChar": 16,
+        "endLine": 133,
+        "endChar": 40
+      },
+      "revId": "46973c3ced521c65b3e8efd485551d2dbf60178f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
