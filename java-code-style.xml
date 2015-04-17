@@ -530,6 +530,7 @@
         <option value="all other imports" />
       </array>
     </option>
+    <option name="DO_NOT_ALIGN_BLOCK_EXPR_PARAMS" value="true" />
   </ScalaCodeStyleSettings>
   <XML>
     <option name="XML_LEGACY_SETTINGS_IMPORTED" value="true" />
