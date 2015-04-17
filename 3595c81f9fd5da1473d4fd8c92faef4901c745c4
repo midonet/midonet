@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_013ab835",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/DhcpImpl.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 434,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-17T08:18:57Z",
+      "side": 1,
+      "message": "Do we want to throw a NotYetException here by using VirtualTopology.tryGet? Why not using VirtualTopology.get, which returns a Future?",
+      "range": {
+        "startLine": 434,
+        "startChar": 4,
+        "endLine": 434,
+        "endChar": 28
+      },
+      "revId": "3595c81f9fd5da1473d4fd8c92faef4901c745c4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
