@@ -2,6 +2,75 @@
   "comments": [
     {
       "key": {
+        "uuid": "1a106d94_81a6a851",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/DhcpImpl.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-04-17T09:13:12Z",
+      "side": 1,
+      "message": "The old import order was correct.",
+      "range": {
+        "startLine": 22,
+        "startChar": 0,
+        "endLine": 27,
+        "endChar": 28
+      },
+      "revId": "3595c81f9fd5da1473d4fd8c92faef4901c745c4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_c1670024",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/DhcpImpl.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 430,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-04-17T09:13:12Z",
+      "side": 1,
+      "message": "\"execute\" a DHCP \"implementation\" sounds weird. What does this mean anyway?",
+      "range": {
+        "startLine": 430,
+        "startChar": 31,
+        "endLine": 430,
+        "endChar": 60
+      },
+      "revId": "3595c81f9fd5da1473d4fd8c92faef4901c745c4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_8154e821",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/DhcpImpl.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 433,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-04-17T09:13:12Z",
+      "side": 1,
+      "message": "Is it \"(DHCP) Config\", \"(DHCP) Service\", or just \"DHCP\"?",
+      "range": {
+        "startLine": 433,
+        "startChar": 6,
+        "endLine": 433,
+        "endChar": 16
+      },
+      "revId": "3595c81f9fd5da1473d4fd8c92faef4901c745c4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_013ab835",
         "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/DhcpImpl.scala",
         "patchSetId": 2
@@ -18,6 +87,29 @@
         "startChar": 4,
         "endLine": 434,
         "endChar": 28
+      },
+      "revId": "3595c81f9fd5da1473d4fd8c92faef4901c745c4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_2146d47c",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/DhcpImpl.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 435,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-04-17T09:13:12Z",
+      "side": 1,
+      "message": "Can this be turned into Seq?",
+      "range": {
+        "startLine": 435,
+        "startChar": 43,
+        "endLine": 435,
+        "endChar": 52
       },
       "revId": "3595c81f9fd5da1473d4fd8c92faef4901c745c4",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
