@@ -50,6 +50,7 @@ import org.midonet.midolman.io.TokenBucketPolicy;
 import org.midonet.midolman.services.DatapathConnectionService;
 import org.midonet.netlink.NetlinkChannel;
 import org.midonet.netlink.NetlinkChannelFactory;
+import org.midonet.netlink.NetlinkSelectorProvider;
 import org.midonet.odp.OvsNetlinkFamilies;
 import org.midonet.util.concurrent.AggregateEventPollerHandler;
 import org.midonet.util.concurrent.BackchannelEventProcessor;
@@ -182,9 +183,11 @@ public class DatapathModule extends PrivateModule {
                 public FlowProcessor get() {
                     return new FlowProcessor(
                         injector.getInstance(OvsNetlinkFamilies.class),
+                        config.simulationThreads(),
                         config.datapath().globalIncomingBurstCapacity() * 2,
                         512, // Flow request size
                         injector.getInstance(NetlinkChannelFactory.class),
+                        NetlinkSelectorProvider.provider(),
                         NanoClock$.MODULE$.DEFAULT());
                 }
             })
