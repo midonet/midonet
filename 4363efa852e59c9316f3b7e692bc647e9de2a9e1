@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_644c5a43",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/LoadBalancerMapperTest.scala",
+        "patchSetId": 25
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-04-17T10:14:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_0cb832c7",
+      "range": {
+        "startLine": 56,
+        "startChar": 0,
+        "endLine": 56,
+        "endChar": 4
+      },
+      "revId": "4363efa852e59c9316f3b7e692bc647e9de2a9e1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_ecbaf6be",
         "filename": "midolman/src/test/scala/org/midonet/midolman/topology/LoadBalancerMapperTest.scala",
         "patchSetId": 25
@@ -36,6 +60,30 @@
       "writtenOn": "2015-04-16T09:09:38Z",
       "side": 1,
       "message": "same here",
+      "range": {
+        "startLine": 57,
+        "startChar": 58,
+        "endLine": 57,
+        "endChar": 59
+      },
+      "revId": "4363efa852e59c9316f3b7e692bc647e9de2a9e1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_44479e1d",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/LoadBalancerMapperTest.scala",
+        "patchSetId": 25
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-04-17T10:14:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_ecbaf6be",
       "range": {
         "startLine": 57,
         "startChar": 58,
