@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,10 @@
  * limitations under the License.
  */
 
-package org.midonet.netlink
+package org.midonet.util.concurrent
 
-class NetlinkChannelFactory {
-    def create(blocking: Boolean = false): NetlinkChannel = {
-        try {
-            val channel = Netlink.selectorProvider
-                .openNetlinkSocketChannel(NetlinkProtocol.NETLINK_GENERIC)
-            channel.connect(new Netlink.Address(0))
-            channel.configureBlocking(blocking)
-            channel
-        } catch { case e: Exception =>
-            throw new RuntimeException("Error connecting to Netlink", e)
-        }
-    }
+import com.lmax.disruptor.Sequence
+
+trait SequenceReportingEventPoller {
+    def setSequenceCallback(sequence: Sequence): Unit
 }

@@ -36,12 +36,13 @@ object DatapathBootstrap {
             channelFactory: NetlinkChannelFactory,
             families: OvsNetlinkFamilies): DatapathStateDriver = {
         val channel = channelFactory.create(blocking = false)
+        val pid = channel.getLocalAddress.getPid
         val writer = new NetlinkBlockingWriter(channel)
         val reader = new NetlinkTimeoutReader(channel, 1 minute)
         val buf = BytesUtil.instance.allocate(2 * 1024)
-        val protocol = new OvsProtocol(channel.getLocalAddress.getPid, families)
+        val protocol = new OvsProtocol(families)
         try {
-            protocol.prepareDatapathDel(0, config.datapathName, buf)
+            protocol.prepareDatapathDel(pid, 0, config.datapathName, buf)
             try {
                 writeAndRead(writer, reader, buf)
             } catch {
@@ -50,7 +51,7 @@ object DatapathBootstrap {
                     throw new DatapathBootstrapError("Failed to delete the datapath", t)
             }
             buf.clear()
-            protocol.prepareDatapathCreate(config.datapathName, buf)
+            protocol.prepareDatapathCreate(pid, config.datapathName, buf)
             try {
                 writeAndRead(writer, reader, buf)
             } catch { case t: Throwable =>
