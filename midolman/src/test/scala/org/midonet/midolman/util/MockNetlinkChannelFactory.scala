@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,15 @@
  * limitations under the License.
  */
 
-package org.midonet.netlink
+package org.midonet.midolman.util
 
-class NetlinkChannelFactory {
-    def create(blocking: Boolean = false): NetlinkChannel = {
-        try {
-            val channel = Netlink.selectorProvider
-                .openNetlinkSocketChannel(NetlinkProtocol.NETLINK_GENERIC)
-            channel.connect(new Netlink.Address(0))
-            channel.configureBlocking(blocking)
-            channel
-        } catch { case e: Exception =>
-            throw new RuntimeException("Error connecting to Netlink", e)
-        }
-    }
+import org.midonet.netlink.{MockNetlinkChannel, NetlinkChannelFactory, NetlinkProtocol}
+
+class MockNetlinkChannelFactory extends NetlinkChannelFactory {
+    val channel = new MockNetlinkChannel(
+            new MockSelectorProvider,
+            NetlinkProtocol.NETLINK_GENERIC)
+    channel.configureBlocking(false)
+
+    override def create(blocking: Boolean = false) = channel
 }

@@ -21,26 +21,26 @@ import java.util.UUID
 import scala.concurrent.ExecutionContext
 
 import akka.actor.ActorSystem
+
 import com.codahale.metrics.{MetricFilter, MetricRegistry}
 
 import com.google.inject.Injector
-import org.midonet.netlink.{MockNetlinkChannel, NetlinkChannelFactory}
-import org.midonet.sdn.flows.FlowTagger.FlowTag
 
-import org.slf4j.helpers.NOPLogger
 import com.typesafe.scalalogging.Logger
+import org.slf4j.helpers.NOPLogger
 
-import org.midonet.cluster.Client
-import org.midonet.cluster.DataClient
+import org.midonet.cluster.{Client, DataClient}
 import org.midonet.cluster.state.StateStorage
 import org.midonet.midolman.config.MidolmanConfig
-import org.midonet.midolman.datapath.{FlowProcessor, DatapathChannel}
+import org.midonet.midolman.datapath.{DatapathChannel, FlowProcessor}
 import org.midonet.midolman.flows.{FlowInvalidation, FlowInvalidator}
 import org.midonet.midolman.io.UpcallDatapathConnectionManager
 import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
 import org.midonet.midolman.services.HostIdProviderService
-import org.midonet.midolman.util.mock.{MockFlowProcessor, MockDatapathChannel, MockUpcallDatapathConnectionManager}
-import org.midonet.odp.protos.{OvsDatapathConnection, MockOvsDatapathConnection}
+import org.midonet.midolman.util.mock.{MockDatapathChannel, MockFlowProcessor, MockUpcallDatapathConnectionManager}
+import org.midonet.netlink.{MockNetlinkChannel, NetlinkChannelFactory}
+import org.midonet.odp.protos.{MockOvsDatapathConnection, OvsDatapathConnection}
+import org.midonet.sdn.flows.FlowTagger.FlowTag
 import org.midonet.util.concurrent.MockClock
 
 trait MidolmanServices {
@@ -63,7 +63,7 @@ trait MidolmanServices {
     def metrics = {
         val metricsReg = injector.getInstance(classOf[MetricRegistry])
         metricsReg.removeMatching(MetricFilter.ALL)
-        new PacketPipelineMetrics(metricsReg, 1)
+        new PacketPipelineMetrics(metricsReg)
     }
 
     implicit def hostId: UUID =
@@ -84,10 +84,13 @@ trait MidolmanServices {
     def mockNetlinkChannel =
         mockNetlinkChannelFactory.create().asInstanceOf[MockNetlinkChannel]
 
-    def flowProcessor = {
+    def mockSelectorProvider = new MockSelectorProvider
+
+    def mockSelector = mockSelectorProvider.openSelector()
+
+    def flowProcessor =
         injector.getInstance(classOf[FlowProcessor])
                 .asInstanceOf[MockFlowProcessor]
-    }
 
     def flowInvalidator =
         injector.getInstance(classOf[FlowInvalidator])

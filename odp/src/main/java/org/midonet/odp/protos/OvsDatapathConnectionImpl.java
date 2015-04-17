@@ -57,16 +57,16 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         LoggerFactory.getLogger("org.midonet.netlink.odp-conn");
 
     private OvsProtocol protocol;
+    private int pid;
     private PacketFamily packetFamily;
-    private boolean initialized;
     private BatchCollector<Packet> notificationHandler;
 
     public OvsDatapathConnectionImpl(NetlinkChannel channel,
                                      OvsNetlinkFamilies ovsNetlinkFamilies,
                                      BufferPool sendPool) {
         super(channel, sendPool);
-        protocol = new OvsProtocol(channel.getLocalAddress().getPid(),
-                                   ovsNetlinkFamilies);
+        pid = channel.getLocalAddress().getPid();
+        protocol = new OvsProtocol(ovsNetlinkFamilies);
         packetFamily = ovsNetlinkFamilies.packetFamily();
     }
 
@@ -168,7 +168,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         }
 
         ByteBuffer buf = getBuffer();
-        protocol.prepareDatapathGet(0, name, buf);
+        protocol.prepareDatapathGet(pid, 0, name, buf);
         sendNetlinkMessage(buf, callback, Datapath.deserializer, timeoutMillis);
     }
 
@@ -183,7 +183,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         }
 
         ByteBuffer buf = getBuffer();
-        protocol.prepareDatapathGet(datapathId, null, buf);
+        protocol.prepareDatapathGet(pid, datapathId, null, buf);
         sendNetlinkMessage(buf, callback, Datapath.deserializer, timeoutMillis);
     }
 
@@ -191,7 +191,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
     protected void _doDatapathsEnumerate(@Nonnull Callback<Set<Datapath>> callback,
                                          long timeoutMillis) {
         ByteBuffer buf = getBuffer();
-        protocol.prepareDatapathEnumerate(buf);
+        protocol.prepareDatapathEnumerate(pid, buf);
         sendMultiAnswerNetlinkMessage(buf, callback, Datapath.deserializer,
                                       timeoutMillis);
     }
@@ -201,7 +201,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
                                       @Nonnull Callback<Datapath> callback,
                                       long timeoutMillis) {
         ByteBuffer buf = getBuffer();
-        protocol.prepareDatapathCreate(name, buf);
+        protocol.prepareDatapathCreate(pid, name, buf);
         sendNetlinkMessage(buf, callback, Datapath.deserializer, timeoutMillis);
     }
 
@@ -216,7 +216,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         }
 
         ByteBuffer buf = getBuffer();
-        protocol.prepareDatapathDel(0, name, buf);
+        protocol.prepareDatapathDel(pid, 0, name, buf);
         sendNetlinkMessage(buf, callback, Datapath.deserializer, timeoutMillis);
     }
 
@@ -231,7 +231,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         }
 
         ByteBuffer buf = getBuffer();
-        protocol.prepareDatapathDel(datapathId, null, buf);
+        protocol.prepareDatapathDel(pid, datapathId, null, buf);
         sendNetlinkMessage(buf, callback, Datapath.deserializer, timeoutMillis);
     }
 
@@ -259,7 +259,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
 
         int datapathId = datapath == null ? 0 : datapath.getIndex();
         ByteBuffer buf = getBuffer();
-        protocol.prepareDpPortGet(datapathId, portId, name, buf);
+        protocol.prepareDpPortGet(pid, datapathId, portId, name, buf);
         sendNetlinkMessage(buf, callback, DpPort.deserializer, timeoutMillis);
     }
 
@@ -271,7 +271,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
 
         int datapathId = datapath == null ? 0 : datapath.getIndex();
         ByteBuffer buf = getBuffer();
-        protocol.prepareDpPortDelete(datapathId, port, buf);
+        protocol.prepareDpPortDelete(pid, datapathId, port, buf);
         sendNetlinkMessage(buf, callback, DpPort.deserializer, timeoutMillis);
     }
 
@@ -290,7 +290,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         }
 
         ByteBuffer buf = getBuffer();
-        protocol.prepareDpPortCreate(datapathId, port, buf);
+        protocol.prepareDpPortCreate(pid, datapathId, port, buf);
         sendNetlinkMessage(buf, callback, DpPort.deserializer, timeoutMillis);
     }
 
@@ -300,7 +300,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
                                      @Nonnull Callback<Set<DpPort>> callback,
                                      long timeoutMillis) {
         ByteBuffer buf = getBuffer();
-        protocol.prepareDpPortEnum(datapath.getIndex(), buf);
+        protocol.prepareDpPortEnum(pid, datapath.getIndex(), buf);
         sendMultiAnswerNetlinkMessage(buf, callback, DpPort.deserializer,
                                       timeoutMillis);
     }
@@ -311,7 +311,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
                                   @Nonnull Callback<DpPort> callback,
                                   long timeoutMillis) {
         ByteBuffer buf = getBuffer();
-        protocol.prepareDpPortCreate(datapath.getIndex(), port, buf);
+        protocol.prepareDpPortCreate(pid, datapath.getIndex(), port, buf);
         sendNetlinkMessage(buf, callback, DpPort.deserializer, timeoutMillis);
     }
 
@@ -329,7 +329,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         }
 
         ByteBuffer buf = getBuffer();
-        protocol.prepareFlowEnum(datapathId, buf);
+        protocol.prepareFlowEnum(pid, datapathId, buf);
         sendMultiAnswerNetlinkMessage(buf, callback, Flow.deserializer,
                                       timeoutMillis);
     }
@@ -350,7 +350,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
 
         ByteBuffer buf = getBuffer();
         FlowMask mask = datapath.supportsMegaflow() ? flow.getMask() : null;
-        protocol.prepareFlowCreate(datapathId, flow.getMatch().getKeys(),
+        protocol.prepareFlowCreate(pid, datapathId, flow.getMatch().getKeys(),
                                    flow.getActions(), mask, buf);
         sendNetlinkMessage(buf, callback, Flow.deserializer, timeoutMillis);
     }
@@ -370,7 +370,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         }
 
         ByteBuffer buf = getBuffer();
-        protocol.prepareFlowDelete(datapathId, keys, buf);
+        protocol.prepareFlowDelete(pid, datapathId, keys, buf);
         sendNetlinkMessage(buf, callback, Flow.deserializer, timeoutMillis);
     }
 
@@ -388,7 +388,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         }
 
         ByteBuffer buf = getBuffer();
-        protocol.prepareFlowFlush(datapathId, buf);
+        protocol.prepareFlowFlush(pid, datapathId, buf);
         sendNetlinkMessage(buf, callback, alwaysTrueReader, timeoutMillis);
     }
 
@@ -406,7 +406,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         }
 
         ByteBuffer buf = getBuffer();
-        protocol.prepareFlowGet(datapathId, match, buf);
+        protocol.prepareFlowGet(pid, datapathId, match, buf);
         sendNetlinkMessage(buf, callback, Flow.deserializer, timeoutMillis);
     }
 
@@ -435,7 +435,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         }
 
         ByteBuffer buf = getBuffer();
-        protocol.prepareFlowSet(datapathId, datapath.supportsMegaflow(), flow, buf);
+        protocol.prepareFlowSet(pid, datapathId, datapath.supportsMegaflow(), flow, buf);
         sendNetlinkMessage(buf, callback, Flow.deserializer, timeoutMillis);
     }
 
@@ -478,7 +478,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         }
 
         ByteBuffer buf = getBuffer();
-        protocol.preparePacketExecute(datapathId, packet, actions, buf);
+        protocol.preparePacketExecute(pid, datapathId, packet, actions, buf);
         sendNetlinkMessage(buf, callback, alwaysTrueReader, timeoutMillis);
     }
 }

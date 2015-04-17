@@ -123,7 +123,7 @@ class PacketsEntryPoint extends Actor with ActorLogWithoutPath {
     override def preStart(): Unit = {
         super.preStart()
         NUM_WORKERS = config.simulationThreads
-        metrics = new PacketPipelineMetrics(metricsRegistry, NUM_WORKERS)
+        metrics = new PacketPipelineMetrics(metricsRegistry)
 
         connTrackStateTable = new ShardedFlowStateTable(clock)
         natStateTable = new ShardedFlowStateTable(clock)
@@ -172,7 +172,7 @@ class PacketsEntryPoint extends Actor with ActorLogWithoutPath {
             dpChannel,
             dhcpConfig,
             flowInvalidator,
-            flowProcessor,
+            flowProcessor.registerForFlowOperations(),
             connTrackStateTable.addShard(log = shardLogger(connTrackStateTable)),
             natStateTable.addShard(log = shardLogger(natStateTable)),
             traceStateTable.addShard(log = shardLogger(traceStateTable)),
