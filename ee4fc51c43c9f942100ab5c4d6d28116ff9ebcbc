@@ -130,6 +130,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_24438215",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/ArpRequestBroker.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-04-17T10:17:28Z",
+      "side": 1,
+      "message": "Actually, what I needed to get a hold of was two things, the router id and its arpCache. I could just pass the Id, but then this class would depend on the VirtualTopologyActor, I wanted to avoid that dependency.\n\nStill open to suggestions :\\",
+      "parentUuid": "1a106d94_f805947a",
+      "range": {
+        "startLine": 107,
+        "startChar": 17,
+        "endLine": 107,
+        "endChar": 20
+      },
+      "revId": "ee4fc51c43c9f942100ab5c4d6d28116ff9ebcbc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_9819007c",
         "filename": "midolman/src/main/scala/org/midonet/midolman/state/ArpRequestBroker.scala",
         "patchSetId": 2
@@ -218,6 +242,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_04464623",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/ArpRequestBroker.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 186,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-04-17T10:17:28Z",
+      "side": 1,
+      "message": "will change.",
+      "parentUuid": "1a106d94_1887d010",
+      "revId": "ee4fc51c43c9f942100ab5c4d6d28116ff9ebcbc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_8c21c24f",
         "filename": "midolman/src/main/scala/org/midonet/midolman/state/ArpRequestBroker.scala",
         "patchSetId": 2
@@ -229,6 +271,30 @@
       "writtenOn": "2015-04-16T08:17:18Z",
       "side": 1,
       "message": "macDiscovered is filled as a result of a notification from the ArpCache which occurs when the replicationmap updates it\u0027s contents after a ChildrenChanged event from zookeeper. This means, that an arp response has to wait for a zookeeper write (including an fsync) before being given to the requester. This seems like a very long time given that the arp response should come back in well under a millisecond.",
+      "range": {
+        "startLine": 194,
+        "startChar": 12,
+        "endLine": 194,
+        "endChar": 26
+      },
+      "revId": "ee4fc51c43c9f942100ab5c4d6d28116ff9ebcbc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_045da6e9",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/ArpRequestBroker.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 194,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-04-17T10:17:28Z",
+      "side": 1,
+      "message": "Totally right.  This a limitation of the current replicated map.\n\nI did think about adding a cache to this class filled by set() and cleared by processDiscoveredMacs(). But didn\u0027t get around to it. Mixed feelings between added complexity and benefit. Opinions welcome.",
+      "parentUuid": "1a106d94_8c21c24f",
       "range": {
         "startLine": 194,
         "startChar": 12,
