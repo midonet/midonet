@@ -219,7 +219,7 @@ class PortBindingTranslatorTest extends FlatSpec with BeforeAndAfter
         """)
 
         midoOps should contain inOrderOnly(
-            midonet.Update(host2With1Binding),
-            midonet.Update(portWithNoHost(portYOnHost2Id)))
+            midonet.Update(portWithNoHost(portYOnHost2Id)),
+            midonet.Update(host2With1Binding))
     }
 }

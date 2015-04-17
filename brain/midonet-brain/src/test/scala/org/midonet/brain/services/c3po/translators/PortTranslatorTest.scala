@@ -33,7 +33,7 @@ import org.midonet.cluster.data.Bridge
 import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.ModelsUtil._
-import org.midonet.cluster.models.Neutron.{NeutronPort, NeutronSubnet}
+import org.midonet.cluster.models.Neutron.{PortBinding, NeutronPort, NeutronSubnet}
 import org.midonet.cluster.models.Topology.{Chain, Dhcp, IpAddrGroup, Network, Port, Router, Rule, _}
 import org.midonet.cluster.util.IPSubnetUtil.univSubnet4
 import org.midonet.cluster.util.UUIDUtil.randomUuidProto
@@ -305,6 +305,8 @@ class VifPortCreateTranslationTest extends VifPortTranslationTest {
             .thenReturn(Promise.successful(ipAddrGroup1).future)
         when(storage.get(classOf[IpAddrGroup], sgId2))
             .thenReturn(Promise.successful(ipAddrGroup2).future)
+        when(storage.exists(classOf[PortBinding], portId))
+            .thenReturn(Promise.successful(false).future)
     }
 
     "Fixed IPs for a new VIF port" should "add hosts to DHCPs" in {
@@ -509,6 +511,8 @@ class VifPortUpdateDeleteTranslationTest extends VifPortTranslationTest {
         mockGet(classOf[IpAddrGroup], sgId2, ipAddrGroup2)
         mockGet(classOf[Chain], inboundChainId, inboundChain)
         mockGet(classOf[Chain], outboundChainId, outboundChain)
+        when(storage.exists(classOf[PortBinding], portId))
+            .thenReturn(Promise.successful(false).future)
     }
 
     "VIF port UPDATE" should "update port admin state" in {
@@ -833,6 +837,8 @@ class DhcpPortCreateTranslationTest extends DhcpPortTranslationTest {
         mockGet(classOf[Port], portWithPeerId, mPortWithRPortPeer)
         mockGet(classOf[Port], peerRouterPortId, mRouterPort)
         mockGet(classOf[Router], routerId, mRouterWithGwPort)
+        when(storage.exists(classOf[PortBinding], portId))
+            .thenReturn(Promise.successful(false).future)
     }
 
     "DHCP port CREATE" should "configure DHCP" in {
@@ -915,6 +921,8 @@ class DhcpPortUpdateDeleteTranslationTest extends DhcpPortTranslationTest {
         mockGet(classOf[Router], routerId, mRouterWithMDSRoute)
         mockGet(classOf[Route], routeId, mRoute)
         mockGet(classOf[Route], mdsRouteId, mMDSRoute)
+        when(storage.exists(classOf[PortBinding], portId))
+            .thenReturn(Promise.successful(false).future)
     }
 
     "DHCP port UPDATE" should "update port admin state" in {
@@ -946,6 +954,8 @@ class FloatingIpPortTranslationTest extends PortTranslatorTest {
             .thenReturn(Promise.successful(midoPortBaseUp).future)
         when(storage.get(classOf[Network], networkId))
             .thenReturn(Promise.successful(midoNetwork).future)
+        when(storage.exists(classOf[PortBinding], portId))
+            .thenReturn(Promise.successful(false).future)
     }
 
     protected val fipPortUp = nPortFromTxt(portBaseUp + """
@@ -993,7 +1003,6 @@ class RouterInterfacePortCreateTranslationTest
     before {
         storage = mock(classOf[ReadOnlyStorage])
         translator = new PortTranslator(storage, pathBldr)
-
         when(storage.get(classOf[Dhcp], nIpv4Subnet1Id))
             .thenReturn(Promise.successful(mIpv4Dhcp).future)
     }
@@ -1116,6 +1125,8 @@ class RouterGatewayPortTranslationTest extends PortTranslatorTest {
             .thenReturn(Promise.successful(midoPortBaseUp).future)
         when(storage.get(classOf[Network], networkId))
             .thenReturn(Promise.successful(midoNetwork).future)
+        when(storage.exists(classOf[PortBinding], portId))
+            .thenReturn(Promise.successful(false).future)
     }
 
     private val routerGatewayPort = nPortFromTxt(portBaseUp + """
@@ -1139,5 +1150,61 @@ class RouterGatewayPortTranslationTest extends PortTranslatorTest {
         val midoOps = translator.translate(
                 neutron.Delete(classOf[NeutronPort], portId))
         midoOps should contain (midonet.Delete(classOf[Port], portId))
+    }
+}
+
+@RunWith(classOf[JUnitRunner])
+class PortBindingDeleteTranslationTest extends PortTranslatorTest {
+    val hostId = randomUuidProto
+    val randomPort = nPortFromTxt(portBaseUp + """
+        device_owner: ROUTER_GATEWAY
+                                             """)
+
+    before {
+        storage = mock(classOf[ReadOnlyStorage])
+        translator = new PortTranslator(storage, pathBldr)
+
+
+        val interfaceName = "discodancing"
+
+        val host = mHostFromTxt(s"""
+            id { $hostId }
+            port_bindings {
+                port_id { $portId }
+                interface_name: "$interfaceName"
+            }
+        """)
+
+        val portBinding = PortBinding.newBuilder()
+            .setId(portId)
+            .setHostId(hostId)
+            .setInterfaceName(interfaceName)
+            .setPortId(portId).build()
+
+        when(storage.get(classOf[NeutronPort], portId))
+           .thenReturn(Promise.successful(randomPort).future)
+        when(storage.get(classOf[Port], portId))
+            .thenReturn(Promise.successful(midoPortBaseUp).future)
+        when(storage.get(classOf[Network], networkId))
+            .thenReturn(Promise.successful(midoNetwork).future)
+
+        when(storage.get(classOf[PortBinding], portId))
+            .thenReturn(Promise.successful(portBinding).future)
+        when(storage.get(classOf[Host], hostId))
+            .thenReturn(Promise.successful(host).future)
+        when(storage.exists(classOf[PortBinding], portId))
+            .thenReturn(Promise.successful(true).future)
+    }
+
+    "Port Delete" should " remove any binding associated with port" in {
+
+        val midoOps = translator.translate(
+            neutron.Delete(classOf[NeutronPort], portId))
+
+        val newHost = mHostFromTxt(s"""
+            id { $hostId }
+        """)
+
+        midoOps should contain (midonet.Update(newHost))
     }
 }

@@ -24,7 +24,7 @@ import org.midonet.brain.services.c3po.midonet.{Create, CreateNode, Delete, Dele
 import org.midonet.brain.services.c3po.translators.PortManager._
 import org.midonet.cluster.data.storage.{ReadOnlyStorage, UpdateValidator}
 import org.midonet.cluster.models.Commons.{IPAddress, UUID}
-import org.midonet.cluster.models.Neutron.{NeutronPort, NeutronSubnet}
+import org.midonet.cluster.models.Neutron.{PortBinding, NeutronPort, NeutronSubnet}
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.util.DhcpUtil.asRichDhcp
 import org.midonet.cluster.util.{IPSubnetUtil, UUIDUtil}
@@ -45,7 +45,8 @@ object PortTranslator {
 class PortTranslator(protected val storage: ReadOnlyStorage,
                      protected val pathBldr: PathBuilder)
         extends NeutronTranslator[NeutronPort]
-        with ChainManager with PortManager with RouteManager with RuleManager {
+        with ChainManager with PortManager with RouteManager with RuleManager
+        with PortBindingManager {
     import org.midonet.brain.services.c3po.translators.PortTranslator._
 
     override protected def translateCreate(nPort: NeutronPort): MidoOpList = {
@@ -123,13 +124,20 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
             midoOps ++= deleteMetaDataServiceRoute(nPort)
         }
         addMidoOps(portContext, midoOps)
+        if (storage.exists(classOf[PortBinding], id).await()) {
+            // If a Port Binding exists for this port, then it should be
+            // deleted. There is no use case where a port binding should
+            // exist for a port that does not.
+            val binding = storage.get(classOf[PortBinding], id).await()
+            midoOps ++= removePortBinding(binding.getHostId, binding.getPortId,
+                binding.getInterfaceName)
+        }
 
         midoOps.toList
     }
 
     override protected def translateUpdate(nPort: NeutronPort): MidoOpList = {
         val midoOps = new MidoOpListBuffer
-
         // It is assumed that the fixed IPs assigned to a Neutron Port will not
         // be changed.
         val portId = nPort.getId

@@ -16,9 +16,11 @@
 
 package org.midonet.brain.services.c3po.translators
 
+import com.google.protobuf.Message
+
 import scala.collection.JavaConverters._
 
-import org.midonet.brain.services.c3po.midonet.Update
+import org.midonet.brain.services.c3po.midonet.{MidoOp, Update}
 import org.midonet.brain.services.c3po.neutron
 import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.models.Commons.UUID
@@ -30,8 +32,8 @@ import org.midonet.util.concurrent.toFutureOps
 /**
  * Translate port binding.
  */
-class PortBindingTranslator(storage: ReadOnlyStorage)
-        extends NeutronTranslator[PortBinding] {
+class PortBindingTranslator(protected val storage: ReadOnlyStorage)
+        extends NeutronTranslator[PortBinding] with PortBindingManager {
     /**
      * Creates a new port binding of a port to a host / interface, producing
      * an UPDATE operation on a corresponding host.
@@ -82,26 +84,26 @@ class PortBindingTranslator(storage: ReadOnlyStorage)
      * the host.
      */
     override protected def translateDelete(id: UUID): MidoOpList = {
+        val midoOps = new MidoOpListBuffer
         val binding = storage.get(classOf[PortBinding], id).await()
-        val hostFtr = storage.get(classOf[Host], binding.getHostId)
-        val portFtr = storage.get(classOf[Port], binding.getPortId)
 
-        val updatedHost = hostFtr.await().toBuilder
-        val bindingToDelete = updatedHost.getPortBindingsList.asScala
-            .indexWhere(bdg =>
-                bdg.getPortId == binding.getPortId &&
-                bdg.getInterfaceName == binding.getInterfaceName)
-        if (bindingToDelete < 0)
+        midoOps += clearPortBindingFromPort(binding.getPortId)
+
+        val remOp = removePortBinding(binding.getHostId, binding.getPortId,
+                                      binding.getInterfaceName)
+        midoOps += remOp.getOrElse {
             throw new TranslationException(
-                    neutron.Delete(classOf[PortBinding], binding.getId),
-                    msg = "Trying to delete a non-existing port binding")
+                neutron.Delete(classOf[PortBinding], binding.getId),
+                msg = "Trying to delete a non-existing port binding")
+        }
 
-        updatedHost.removePortBindings(bindingToDelete)
+        midoOps.toList
+    }
 
-        val updatedPort = portFtr.await().toBuilder
+    private def clearPortBindingFromPort(id: UUID):MidoOp[_ <: Message] = {
+        val updatedPort = storage.get(classOf[Port], id).await().toBuilder
         updatedPort.clearHostId()
         updatedPort.clearInterfaceName()
-
-        List(Update(updatedHost.build()), Update(updatedPort.build()))
+        Update(updatedPort.build())
     }
 }
