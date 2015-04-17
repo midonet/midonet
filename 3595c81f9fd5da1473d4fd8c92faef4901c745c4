@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_6469fabd",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/DhcpImpl.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-04-17T12:33:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_81a6a851",
+      "range": {
+        "startLine": 22,
+        "startChar": 0,
+        "endLine": 27,
+        "endChar": 28
+      },
+      "revId": "3595c81f9fd5da1473d4fd8c92faef4901c745c4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_c1670024",
         "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/DhcpImpl.scala",
         "patchSetId": 2
@@ -36,6 +60,30 @@
       "writtenOn": "2015-04-17T09:13:12Z",
       "side": 1,
       "message": "\"execute\" a DHCP \"implementation\" sounds weird. What does this mean anyway?",
+      "range": {
+        "startLine": 430,
+        "startChar": 31,
+        "endLine": 430,
+        "endChar": 60
+      },
+      "revId": "3595c81f9fd5da1473d4fd8c92faef4901c745c4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_4464bee4",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/DhcpImpl.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 430,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-04-17T12:33:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_c1670024",
       "range": {
         "startLine": 430,
         "startChar": 31,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_c49f0eb3",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/DhcpImpl.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 433,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-04-17T12:33:08Z",
+      "side": 1,
+      "message": "This gives access to DHCP configurations, so it seemed fitting.",
+      "parentUuid": "1a106d94_8154e821",
+      "range": {
+        "startLine": 433,
+        "startChar": 6,
+        "endLine": 433,
+        "endChar": 16
+      },
+      "revId": "3595c81f9fd5da1473d4fd8c92faef4901c745c4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_013ab835",
         "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/DhcpImpl.scala",
         "patchSetId": 2
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_64b0da43",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/DhcpImpl.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 434,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-04-17T12:33:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_013ab835",
+      "range": {
+        "startLine": 434,
+        "startChar": 4,
+        "endLine": 434,
+        "endChar": 28
+      },
+      "revId": "3595c81f9fd5da1473d4fd8c92faef4901c745c4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_2146d47c",
         "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/DhcpImpl.scala",
         "patchSetId": 2
@@ -105,6 +201,30 @@
       "writtenOn": "2015-04-17T09:13:12Z",
       "side": 1,
       "message": "Can this be turned into Seq?",
+      "range": {
+        "startLine": 435,
+        "startChar": 43,
+        "endLine": 435,
+        "endChar": 52
+      },
+      "revId": "3595c81f9fd5da1473d4fd8c92faef4901c745c4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_04aac6d3",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/DhcpImpl.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 435,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-04-17T12:33:08Z",
+      "side": 1,
+      "message": "it will require casting and so on for the current implementation, I can refactor this later when I provide the new zoom based impl.",
+      "parentUuid": "1a106d94_2146d47c",
       "range": {
         "startLine": 435,
         "startChar": 43,
