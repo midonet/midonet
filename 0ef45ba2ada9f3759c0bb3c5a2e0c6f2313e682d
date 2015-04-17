@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_81c4e85f",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/midonet/package.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-04-17T07:13:49Z",
+      "side": 1,
+      "message": "This probably shouldn\u0027t be a JavaDoc. Or if it is, it should be on each class.",
+      "range": {
+        "startLine": 54,
+        "startChar": 0,
+        "endLine": 56,
+        "endChar": 8
+      },
+      "revId": "0ef45ba2ada9f3759c0bb3c5a2e0c6f2313e682d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_e1895c27",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/InMemoryStorage.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-04-17T07:13:49Z",
+      "side": 1,
+      "message": "I think this is wrong. Did you update IDEA and not copy java-code-style.xml over again? Apparently you have to do that.",
+      "revId": "0ef45ba2ada9f3759c0bb3c5a2e0c6f2313e682d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_c18c2038",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/Storage.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-04-17T07:13:49Z",
+      "side": 1,
+      "message": "Here too.",
+      "range": {
+        "startLine": 21,
+        "startChar": 0,
+        "endLine": 23,
+        "endChar": 30
+      },
+      "revId": "0ef45ba2ada9f3759c0bb3c5a2e0c6f2313e682d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
