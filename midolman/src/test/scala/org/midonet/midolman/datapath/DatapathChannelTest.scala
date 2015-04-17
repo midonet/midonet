@@ -29,8 +29,8 @@ import org.scalatest.concurrent.Eventually._
 
 import org.midonet.midolman.datapath.DisruptorDatapathChannel.PacketContextHolder
 import org.midonet.midolman.flows.{FlowOperation, ManagedFlow}
-import org.midonet.midolman.util.MidolmanSpec
-import org.midonet.netlink.{MockNetlinkChannelFactory, NetlinkMessage}
+import org.midonet.midolman.util.{MockNetlinkChannelFactory, MidolmanSpec}
+import org.midonet.netlink.NetlinkMessage
 import org.midonet.odp._
 import org.midonet.odp.family.{DatapathFamily, FlowFamily, PacketFamily, PortFamily}
 import org.midonet.odp.flows.{FlowKey, FlowKeys, FlowAction, FlowActions}
@@ -43,14 +43,15 @@ import org.midonet.util.concurrent.{EventPollerHandlerAdapter, BackchannelEventP
 class DatapathChannelTest extends MidolmanSpec {
 
     val factory = new MockNetlinkChannelFactory
-    val nlChannel = factory.channel
+    val nlChannel = factory.create()
     nlChannel.setPid(10)
 
     val capacity = 128
 
     val ovsFamilies = new OvsNetlinkFamilies(new DatapathFamily(1), new PortFamily(2),
                                              new FlowFamily(3), new PacketFamily(4), 5, 6)
-    private val fp = new FlowProcessor(ovsFamilies, 1024, 2048, factory, clock)
+    private val fp = new FlowProcessor(
+        ovsFamilies, 1, 1024, 2048, factory, mockSelectorProvider, clock)
     val ringBuffer = RingBuffer.createSingleProducer[PacketContextHolder](
         DisruptorDatapathChannel.Factory, capacity)
     val processors = Array(new BackchannelEventProcessor[PacketContextHolder](
@@ -158,7 +159,7 @@ class DatapathChannelTest extends MidolmanSpec {
             val managedFlow = new ManagedFlow(null)
             managedFlow.flowMatch.reset(context.origMatch)
             flowDelete.reset(FlowOperation.DELETE, managedFlow, retries = 0)
-            fp.tryEject(sequence = 1, datapathId, managedFlow.flowMatch,
+            fp.tryEject(0, 1, datapathId, managedFlow.flowMatch,
                         flowDelete) should be (false)
 
             nlChannel.packetsWritten.get() should be (1)
@@ -171,7 +172,7 @@ class DatapathChannelTest extends MidolmanSpec {
             }
 
             eventually {
-                fp.tryEject(1, datapathId, managedFlow.flowMatch,
+                fp.tryEject(0, 1, datapathId, managedFlow.flowMatch,
                             flowDelete) should be (true)
             }
 

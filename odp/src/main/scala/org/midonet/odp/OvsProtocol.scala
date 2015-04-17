@@ -28,8 +28,7 @@ import org.midonet.odp.flows.{FlowAction, FlowActions, FlowKey, FlowKeys}
  * TODO: When there are no Java callers, these methods can directly
  *       receive a NetlinkMessageWrapper.
  */
-sealed class OvsProtocol(pid: Int,
-                         families: OvsNetlinkFamilies) {
+final class OvsProtocol(val families: OvsNetlinkFamilies) {
 
     private val datapathFamily = families.datapathFamily
     private val portFamily = families.portFamily
@@ -43,12 +42,12 @@ sealed class OvsProtocol(pid: Int,
         message
     }
 
-    def enum(buf: ByteBuffer, datapathId: Int, ctx: NetlinkRequestContext): Unit =
+    def enum(buf: ByteBuffer, pid: Int, datapathId: Int, ctx: NetlinkRequestContext) =
         messageFor(buf, datapathId, ctx)
             .withFlags(NLFlag.REQUEST | NLFlag.Get.DUMP)
             .finalize(pid)
 
-    def prepareDatapathGet(datapathId: Int, name: String, buf: ByteBuffer): Unit = {
+    def prepareDatapathGet(pid: Int, datapathId: Int, name: String, buf: ByteBuffer): Unit = {
         import org.midonet.odp.OpenVSwitch.Datapath.Attr
 
         val message = messageFor(buf, datapathId, datapathFamily.contextGet)
@@ -59,10 +58,10 @@ sealed class OvsProtocol(pid: Int,
         message.finalize(pid)
     }
 
-    def prepareDatapathEnumerate(buf: ByteBuffer): Unit =
-        enum(buf, 0, datapathFamily.contextGet)
+    def prepareDatapathEnumerate(pid: Int, buf: ByteBuffer): Unit =
+        enum(buf, 0, pid, datapathFamily.contextGet)
 
-    def prepareDatapathCreate(name: String, buf: ByteBuffer): Unit = {
+    def prepareDatapathCreate(pid: Int, name: String, buf: ByteBuffer): Unit = {
         import org.midonet.odp.OpenVSwitch.Datapath.Attr
 
         val message = messageFor(buf, 0, datapathFamily.contextNew)
@@ -74,7 +73,7 @@ sealed class OvsProtocol(pid: Int,
         message.finalize(pid)
     }
 
-    def prepareDatapathDel(datapathId: Int, name: String, buf: ByteBuffer): Unit = {
+    def prepareDatapathDel(pid: Int, datapathId: Int, name: String, buf: ByteBuffer): Unit = {
         import org.midonet.odp.OpenVSwitch.Datapath.Attr
 
         val message = messageFor(buf, datapathId, datapathFamily.contextDel)
@@ -85,7 +84,7 @@ sealed class OvsProtocol(pid: Int,
         message.finalize(pid)
     }
 
-    def prepareDpPortGet(datapathId: Int, portId: Integer,
+    def prepareDpPortGet(pid: Int, datapathId: Int, portId: Integer,
                          portName: String, buf: ByteBuffer): Unit = {
         import org.midonet.odp.OpenVSwitch.Port.Attr
 
@@ -101,20 +100,20 @@ sealed class OvsProtocol(pid: Int,
         message.finalize(pid)
     }
 
-    def prepareDpPortEnum(datapathId: Int, buf: ByteBuffer): Unit =
-        enum(buf, datapathId, portFamily.contextGet)
+    def prepareDpPortEnum(pid: Int, datapathId: Int, buf: ByteBuffer): Unit =
+        enum(buf, pid, datapathId, portFamily.contextGet)
 
-    def prepareDpPortCreate(datapathId: Int, port: DpPort, buf: ByteBuffer): Unit =
-        portRequest(buf, datapathId, port, portFamily.contextNew)
+    def prepareDpPortCreate(pid: Int, datapathId: Int, port: DpPort, buf: ByteBuffer): Unit =
+        portRequest(buf, pid, datapathId, port, portFamily.contextNew)
 
-    def prepareDpPortSet(datapathId: Int, port: DpPort, buf: ByteBuffer): Unit =
-        portRequest(buf, datapathId, port, portFamily.contextSet)
+    def prepareDpPortSet(pid: Int, datapathId: Int, port: DpPort, buf: ByteBuffer): Unit =
+        portRequest(buf, pid, datapathId, port, portFamily.contextSet)
 
-    def prepareDpPortDelete(datapathId: Int, port: DpPort, buf: ByteBuffer): Unit =
-        portRequest(buf, datapathId, port, portFamily.contextDel)
+    def prepareDpPortDelete(pid: Int, datapathId: Int, port: DpPort, buf: ByteBuffer): Unit =
+        portRequest(buf, pid, datapathId, port, portFamily.contextDel)
 
-    private def portRequest(buf: ByteBuffer, datapathId: Int, port: DpPort,
-                            ctx: NetlinkRequestContext): Unit = {
+    private def portRequest(buf: ByteBuffer, pid: Int, datapathId: Int,
+                            port: DpPort, ctx: NetlinkRequestContext): Unit = {
         import org.midonet.odp.OpenVSwitch.Port.Attr
 
         val message = messageFor(buf, datapathId, ctx)
@@ -124,7 +123,8 @@ sealed class OvsProtocol(pid: Int,
         message.finalize(pid)
     }
 
-    def prepareFlowGet(datapathId: Int, fmatch: FlowMatch, buf: ByteBuffer): Unit = {
+    def prepareFlowGet(pid: Int, datapathId: Int, fmatch: FlowMatch,
+                       buf: ByteBuffer): Unit = {
         import org.midonet.odp.OpenVSwitch.Flow.Attr
 
         val message = messageFor(buf, datapathId, flowFamily.contextGet)
@@ -133,10 +133,10 @@ sealed class OvsProtocol(pid: Int,
         message.finalize(pid)
     }
 
-    def prepareFlowEnum(datapathId: Int, buf: ByteBuffer): Unit =
-        enum(buf, datapathId, flowFamily.contextGet)
+    def prepareFlowEnum(pid: Int, datapathId: Int, buf: ByteBuffer): Unit =
+        enum(buf, pid, datapathId, flowFamily.contextGet)
 
-    def prepareFlowCreate(datapathId: Int, keys: JList[FlowKey],
+    def prepareFlowCreate(pid: Int, datapathId: Int, keys: JList[FlowKey],
                           actions: JList[FlowAction], flowMask: FlowMask,
                           buf: ByteBuffer): Unit = {
         import org.midonet.odp.OpenVSwitch.Flow.Attr
@@ -154,7 +154,7 @@ sealed class OvsProtocol(pid: Int,
         message.finalize(pid)
     }
 
-    def prepareFlowSet(datapathId: Int, supportsFlowMask: Boolean,
+    def prepareFlowSet(pid: Int, datapathId: Int, supportsFlowMask: Boolean,
                        flow: Flow, buf: ByteBuffer): Unit = {
         import org.midonet.odp.OpenVSwitch.Flow.Attr
 
@@ -171,8 +171,8 @@ sealed class OvsProtocol(pid: Int,
         message.finalize(pid)
     }
 
-    def prepareFlowDelete(datapathId: Int, keys: java.lang.Iterable[FlowKey],
-                          buf: ByteBuffer): Unit = {
+    def prepareFlowDelete(pid: Int, datapathId: Int,
+                          keys: java.lang.Iterable[FlowKey], buf: ByteBuffer): Unit = {
         import org.midonet.odp.OpenVSwitch.Flow.Attr
 
         val message = messageFor(buf, datapathId, flowFamily.contextDel)
@@ -181,14 +181,14 @@ sealed class OvsProtocol(pid: Int,
         message.finalize(pid)
     }
 
-    def prepareFlowFlush(datapathId: Int, buf: ByteBuffer): Unit = {
+    def prepareFlowFlush(pid: Int, datapathId: Int, buf: ByteBuffer): Unit = {
         val message = messageFor(buf, datapathId, flowFamily.contextDel)
             .withFlags(NLFlag.REQUEST | NLFlag.ACK)
         message.finalize(pid)
     }
 
-    def preparePacketExecute(datapathId: Int, packet: Packet, actions: JList[FlowAction],
-                             buf: ByteBuffer): Unit = {
+    def preparePacketExecute(pid: Int, datapathId: Int, packet: Packet,
+                             actions: JList[FlowAction], buf: ByteBuffer): Unit = {
         import org.midonet.odp.OpenVSwitch.Packet.Attr
 
         val message = messageFor(buf, datapathId, packetFamily.contextExec)

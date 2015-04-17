@@ -32,7 +32,7 @@ import org.midonet.midolman.io.UpcallDatapathConnectionManager;
 import org.midonet.midolman.util.mock.MockDatapathChannel;
 import org.midonet.midolman.util.mock.MockFlowProcessor;
 import org.midonet.midolman.util.mock.MockUpcallDatapathConnectionManager;
-import org.midonet.netlink.MockNetlinkChannelFactory;
+import org.midonet.midolman.util.MockNetlinkChannelFactory;
 import org.midonet.netlink.NetlinkChannelFactory;
 import org.midonet.odp.Flow;
 import org.midonet.odp.FlowMatch;

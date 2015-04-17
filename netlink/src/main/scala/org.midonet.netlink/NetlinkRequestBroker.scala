@@ -64,8 +64,8 @@ object NetlinkRequestBroker {
  *
  * TODO: Use @Contended on some of these fields when on java 8
  */
-final class NetlinkRequestBroker(writer: NetlinkBlockingWriter,
-                                 reader: NetlinkReader,
+final class NetlinkRequestBroker(val writer: NetlinkBlockingWriter,
+                                 val reader: NetlinkReader,
                                  maxPendingRequests: Int,
                                  maxRequestSize: Int,
                                  readBuf: ByteBuffer,
