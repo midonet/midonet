@@ -506,6 +506,13 @@ def getGitSHA() {
     }
 }
 
+// Retuns true if dep is a single-module dependency whose classes url contains
+// libname.
+def dependencyFor(dep, libname) {
+    if (!(dep instanceof org.gradle.plugins.ide.idea.model.SingleEntryModuleLibrary)) return false
+    dep.classes.url.head().contains(libname)
+}
+
 task wrapper(type: Wrapper) {
     description 'Generate wrapper, which is distributed as part of source to alleviate the need of installing gradle'
     gradleVersion = '2.2'

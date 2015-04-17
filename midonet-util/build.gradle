@@ -36,6 +36,17 @@ jar {
     }
 }
 
+// Export these libraries so the project can compile in IDEA. For some reason
+// Gradle's IDEA plugin doesn't automatically export them.
+idea.module.iml.whenMerged { module ->
+    module.dependencies.each { dep ->
+        ['akka-actor', 'jackson-core-asl', 'jackson-mapper-asl',
+         'rxjava', 'scala-logging'].each { lib ->
+            if (dependencyFor(dep, lib)) dep.exported = true
+        }
+    }
+}
+
 sourceSets {
     main {
         scala { srcDirs = ['src/main/scala', 'src/main/java'] }

@@ -67,6 +67,14 @@ dependencies {
                 libraries.test_frameworks
 }
 
+// Export this library so the project can compile in IDEA. For some reason
+// Gradle's IDEA plugin doesn't automatically export it.
+idea.module.iml.whenMerged { module ->
+    module.dependencies.each { dep ->
+        if (dependencyFor(dep, 'cassandra-driver-core')) dep.exported = true
+    }
+}
+
 cobertura {
     coverageSourceDirs << sourceSets.main.java.srcDirs
     coverageSourceDirs << sourceSets.main.scala.srcDirs
