@@ -68,6 +68,30 @@
       "revId": "4363efa852e59c9316f3b7e692bc647e9de2a9e1",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_01ec78c6",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/LoadBalancerMapperTest.scala",
+        "patchSetId": 25
+      },
+      "lineNbr": 140,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-04-17T08:02:28Z",
+      "side": 1,
+      "message": "Not sure. I think it\u0027s because of the change I made to removeVipsFromLoadBalancer. To accomodate to the new zoom binding, instead of clearing the back-references in the load balancer, I remove the load-balancer references from the vips; as there are two vips, this means you receive two updates instead of one (I\u0027m not sure just if removing the back-references from the load balancer should clear the references in the vip - it didn\u0027t seem to work that way...)",
+      "parentUuid": "1a106d94_0c067286",
+      "range": {
+        "startLine": 140,
+        "startChar": 12,
+        "endLine": 140,
+        "endChar": 50
+      },
+      "revId": "4363efa852e59c9316f3b7e692bc647e9de2a9e1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
