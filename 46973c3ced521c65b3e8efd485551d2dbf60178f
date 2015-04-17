@@ -2,6 +2,69 @@
   "comments": [
     {
       "key": {
+        "uuid": "1a106d94_61dc4ce5",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/PortBindingManager.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-04-17T08:43:15Z",
+      "side": 1,
+      "message": "This should come below the scala import.",
+      "revId": "46973c3ced521c65b3e8efd485551d2dbf60178f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_21e9b4b8",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/PortBindingManager.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-04-17T08:43:15Z",
+      "side": 1,
+      "message": "removePortBinding is actually an operation to remove port binding from Host, therefore it\u0027d rather be HostManager.",
+      "range": {
+        "startLine": 32,
+        "startChar": 6,
+        "endLine": 32,
+        "endChar": 24
+      },
+      "revId": "46973c3ced521c65b3e8efd485551d2dbf60178f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_81734814",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/PortBindingManager.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-04-17T08:43:15Z",
+      "side": 1,
+      "message": "Functions in XXXModelManager should not return ops but XXXModel (in this case Host), so this should return an updated host. The get on Host should be called outside, and the host should be passed as a param.",
+      "range": {
+        "startLine": 36,
+        "startChar": 8,
+        "endLine": 36,
+        "endChar": 25
+      },
+      "revId": "46973c3ced521c65b3e8efd485551d2dbf60178f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_e1de7c10",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/PortBindingManager.scala",
         "patchSetId": 1
@@ -19,6 +82,23 @@
         "endLine": 42,
         "endChar": 37
       },
+      "revId": "46973c3ced521c65b3e8efd485551d2dbf60178f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_015f5873",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/PortBindingTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-04-17T08:43:15Z",
+      "side": 1,
+      "message": "The intention in the original code is that we make parallel calls for get() on PortBinding, Host, and Port so that they would be executed concurrently. The benefit is still valid in the new code as well. You call get() on PortBinding, Host, and Port, and pass the retrieved Host object to removePortBinding as I suggested in PortBindingManager.scala.",
       "revId": "46973c3ced521c65b3e8efd485551d2dbf60178f",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -48,6 +128,69 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_a12124fd",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/PortBindingTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-04-17T08:43:15Z",
+      "side": 1,
+      "message": "This should be thrown from within removePortBinding.",
+      "range": {
+        "startLine": 95,
+        "startChar": 12,
+        "endLine": 97,
+        "endChar": 67
+      },
+      "revId": "46973c3ced521c65b3e8efd485551d2dbf60178f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_814508b5",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-04-17T08:43:15Z",
+      "side": 1,
+      "message": "Can you place this after NeutronSubnet?",
+      "range": {
+        "startLine": 27,
+        "startChar": 43,
+        "endLine": 27,
+        "endChar": 54
+      },
+      "revId": "46973c3ced521c65b3e8efd485551d2dbf60178f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_e1131cb6",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-04-17T08:43:15Z",
+      "side": 1,
+      "message": "A typical trick to save 1 ZK round trip is to call get() without calling exists() first and catch NotFoundException. If the binding exists you can just call removePortBinding(), and if an exception is thrown, you do nothing.",
+      "revId": "46973c3ced521c65b3e8efd485551d2dbf60178f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_61272c13",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/PortTranslator.scala",
         "patchSetId": 1
@@ -64,6 +207,29 @@
         "startChar": 16,
         "endLine": 133,
         "endChar": 40
+      },
+      "revId": "46973c3ced521c65b3e8efd485551d2dbf60178f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_c116e0a6",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/services/c3po/translators/PortTranslatorTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-04-17T08:43:15Z",
+      "side": 1,
+      "message": "Ditto.",
+      "range": {
+        "startLine": 36,
+        "startChar": 43,
+        "endLine": 36,
+        "endChar": 54
       },
       "revId": "46973c3ced521c65b3e8efd485551d2dbf60178f",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
