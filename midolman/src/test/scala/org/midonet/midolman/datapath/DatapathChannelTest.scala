@@ -20,7 +20,7 @@ import java.nio.ByteBuffer
 import java.util.{UUID, ArrayList}
 
 import akka.testkit.TestProbe
-import com.lmax.disruptor.RingBuffer
+import com.lmax.disruptor.{Sequence, RingBuffer}
 import org.jctools.queues.SpscArrayQueue
 
 import org.junit.runner.RunWith
@@ -31,8 +31,8 @@ import org.scalatest.concurrent.Eventually._
 
 import org.midonet.midolman.datapath.DisruptorDatapathChannel.PacketContextHolder
 import org.midonet.midolman.flows.{FlowOperation, ManagedFlow}
-import org.midonet.midolman.util.MidolmanSpec
-import org.midonet.netlink.{MockNetlinkChannelFactory, NetlinkMessage}
+import org.midonet.midolman.util.{MockNetlinkChannelFactory, MidolmanSpec}
+import org.midonet.netlink.NetlinkMessage
 import org.midonet.odp._
 import org.midonet.odp.family.{DatapathFamily, FlowFamily, PacketFamily, PortFamily}
 import org.midonet.odp.flows.{FlowKey, FlowKeys, FlowAction, FlowActions}
@@ -45,7 +45,7 @@ import org.midonet.util.concurrent.{EventPollerHandlerAdapter, BackchannelEventP
 class DatapathChannelTest extends MidolmanSpec {
 
     val factory = new MockNetlinkChannelFactory
-    val nlChannel = factory.channel
+    val nlChannel = factory.create()
     nlChannel.setPid(10)
 
     val capacity = 128
@@ -55,8 +55,12 @@ class DatapathChannelTest extends MidolmanSpec {
     val datapathId = 11
     val datapath = new Datapath(datapathId, "midonet",
                                 new Stats(0, 0, 0, 0), new MegaflowStats(0, 0))
-    private val fp = new FlowProcessor(
-        new DatapathStateDriver(datapath), ovsFamilies, 1024, 2048, factory, clock)
+    val fp = new FlowProcessor(
+        new DatapathStateDriver(datapath), ovsFamilies, 1024, 2048, factory,
+        mockSelectorProvider, clock)
+    val sequence = new Sequence()
+    fp.setSequenceCallback(sequence)
+    val flowOps = fp.registerForFlowOperations()
     val ringBuffer = RingBuffer.createSingleProducer[PacketContextHolder](
         DisruptorDatapathChannel.Factory, capacity)
     val processors = Array(new BackchannelEventProcessor[PacketContextHolder](
@@ -164,12 +168,13 @@ class DatapathChannelTest extends MidolmanSpec {
             val managedFlow = new ManagedFlow(null)
             managedFlow.flowMatch.reset(context.origMatch)
             flowDelete.reset(FlowOperation.DELETE, managedFlow, retries = 0)
-            fp.tryEject(sequence = 1, datapathId, managedFlow.flowMatch,
-                        flowDelete) should be (false)
+            flowOps.tryEject(1, datapathId, managedFlow.flowMatch,
+                             flowDelete) should be (false)
 
             nlChannel.packetsWritten.get() should be (1)
 
             context.flow.sequence = 1
+            sequence.set(1)
             dpChannel.handoff(context)
 
             eventually {
@@ -177,8 +182,8 @@ class DatapathChannelTest extends MidolmanSpec {
             }
 
             eventually {
-                fp.tryEject(1, datapathId, managedFlow.flowMatch,
-                            flowDelete) should be (true)
+                flowOps.tryEject(1, datapathId, managedFlow.flowMatch,
+                                 flowDelete) should be (true)
             }
 
             eventually {

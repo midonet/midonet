@@ -42,10 +42,8 @@ class NetlinkBlockingWriter(channel: NetlinkChannel) extends NetlinkWriter(chann
     private val timeout = (100 millis).toMillis
     private val selector = channel.selector()
 
-    {
-        if (!channel.isBlocking)
-            channel.register(selector, SelectionKey.OP_WRITE)
-    }
+    if (!channel.isBlocking)
+        channel.register(selector, SelectionKey.OP_WRITE)
 
     /**
      * Writes into the underlying channel, blocking regardless of the channel

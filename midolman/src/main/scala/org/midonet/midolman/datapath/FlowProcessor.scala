@@ -16,36 +16,119 @@
 
 package org.midonet.midolman.datapath
 
+import java.nio.channels.{Selector, SelectionKey}
+import java.nio.channels.spi.SelectorProvider
 import java.nio.{BufferOverflowException, ByteBuffer}
 import java.util.ArrayList
 
-import com.lmax.disruptor.{Sequencer, LifecycleAware, EventPoller}
-import org.midonet.midolman.DatapathState
+import com.lmax.disruptor._
 import rx.Observer
 
-import org.slf4j.LoggerFactory
 import com.typesafe.scalalogging.Logger
+import org.slf4j.LoggerFactory
 
+import org.midonet.midolman.DatapathState
 import org.midonet.midolman.datapath.DisruptorDatapathChannel._
 import org.midonet.netlink._
 import org.midonet.netlink.exceptions.NetlinkException
-import org.midonet.odp._
 import org.midonet.odp.flows.{FlowAction, FlowKey}
-import org.midonet.Util
-import org.midonet.util.concurrent.{NanoClock, Backchannel}
+import org.midonet.odp.{FlowMask, FlowMatch, OvsNetlinkFamilies, OvsProtocol}
+import org.midonet.util.concurrent.{SequenceReportingEventPoller, Backchannel, NanoClock}
 
 object FlowProcessor {
-    private val unsafe = Util.getUnsafe
-
-    /**
-     * Used for unsafe access to the lastSequence field, so we can do a volatile
-     * read on the writer thread while avoiding doing a volatile write to it
-     * from the producer thread.
-     */
-    private val sequenceAddress = unsafe.objectFieldOffset(
-        classOf[FlowProcessor].getDeclaredField("lastSequence"))
-
     private val MAX_BUF_CAPACITY = 4 * 1024 * 1024
+
+    trait FlowOperations {
+        def tryEject(
+                flowSequence: Long,
+                datapathId: Int,
+                flowMatch: FlowMatch,
+                obs: Observer[ByteBuffer]): Boolean
+
+        def tryGet(
+                datapathId: Int,
+                flowMatch: FlowMatch,
+                obs: Observer[ByteBuffer]): Boolean
+
+        def capacity: Int
+    }
+
+    protected[FlowProcessor] class FlowOps (
+        protocol: OvsProtocol,
+        channelFactory: NetlinkChannelFactory,
+        selector: Selector,
+        maxPendingRequests: Int,
+        maxRequestSize: Int,
+        clock: NanoClock,
+        sequence: Sequence) extends FlowOperations {
+
+        // The channel must be non-blocking so that one broker doesn't
+        // block another.
+        private[FlowProcessor] val channel = channelFactory.create(blocking = false)
+        private val pid = channel.getLocalAddress.getPid
+
+        {
+            channel.register(selector, SelectionKey.OP_READ)
+        }
+
+        private[FlowProcessor] val broker = new NetlinkRequestBroker(
+                new NetlinkBlockingWriter(channel),
+                new NetlinkReader(channel),
+                maxPendingRequests,
+                maxRequestSize,
+                BytesUtil.instance.allocateDirect(64 * 1024),
+                clock)
+
+        override def capacity = broker.capacity
+
+        /**
+         * Tries to eject a flow only if the corresponding Disruptor sequence is
+         * greater than the one specified, meaning that the corresponding flow
+         * create operation hasn't been completed yet.
+         */
+        override def tryEject(
+                flowSequence: Long,
+                datapathId: Int,
+                flowMatch: FlowMatch,
+                obs: Observer[ByteBuffer]): Boolean = {
+            var brokerSeq = 0
+            val disruptorSeq = sequence.get()
+            if (disruptorSeq >= flowSequence && { brokerSeq = broker.nextSequence()
+                                                  brokerSeq } != NetlinkRequestBroker.FULL) {
+                try {
+                    val buf = broker.get(brokerSeq)
+                    protocol.prepareFlowDelete(
+                        pid, datapathId, flowMatch.getKeys, buf)
+                    broker.publishRequest(brokerSeq, obs)
+                } catch { case e: Throwable =>
+                    obs.onError(e)
+                }
+                true
+            } else {
+                false
+            }
+        }
+
+        override def tryGet(
+                   datapathId: Int,
+                   flowMatch: FlowMatch,
+                   obs: Observer[ByteBuffer]): Boolean = {
+            var seq = 0
+            if ({ seq = broker.nextSequence(); seq } != NetlinkRequestBroker.FULL) {
+                try {
+                    val buf = broker.get(seq)
+                    protocol.prepareFlowGet(
+                        pid, datapathId, flowMatch, buf)
+                    broker.publishRequest(seq, obs)
+                } catch { case e: Throwable =>
+                    obs.onError(e)
+                }
+                true
+            } else {
+                false
+            }
+        }
+    }
 }
 
 class FlowProcessor(dpState: DatapathState,
@@ -53,8 +136,10 @@ class FlowProcessor(dpState: DatapathState,
                     maxPendingRequests: Int,
                     maxRequestSize: Int,
                     channelFactory: NetlinkChannelFactory,
+                    selectorProvider: SelectorProvider,
                     clock: NanoClock)
     extends EventPoller.Handler[PacketContextHolder]
+    with SequenceReportingEventPoller
     with Backchannel
     with LifecycleAware {
 
@@ -64,30 +149,39 @@ class FlowProcessor(dpState: DatapathState,
         "org.midonet.datapath.flow-processor"))
 
     private val datapathId = dpState.datapath.getIndex
-    private val supportsMegaflow = dpState.datapath.supportsMegaflow()
+    private val supportsMegaflow = dpState.datapath.supportsMegaflow
 
     private var writeBuf = BytesUtil.instance.allocateDirect(64 * 1024)
-    private val channel = channelFactory.create(blocking = true)
-    private val pid = channel.getLocalAddress.getPid
+    private val mainChannel = channelFactory.create(blocking = true)
+    private val selector = selectorProvider.openSelector()
+    private val pid = mainChannel.getLocalAddress.getPid
+    private val writer = new NetlinkWriter(mainChannel)
 
     {
         log.debug(s"Created channel with pid $pid")
     }
 
-    private val writer = new NetlinkBlockingWriter(channel)
-    private val broker = new NetlinkRequestBroker(
-        writer,
-        new NetlinkReader(channel),
-        maxPendingRequests,
-        maxRequestSize,
-        BytesUtil.instance.allocateDirect(64 * 1024),
-        clock)
-
-    private val protocol = new OvsProtocol(pid, families)
-
+    private val protocol = new OvsProtocol(families)
     private val flowMask = new FlowMask()
+    private var sequence: Sequence = _
 
-    private var lastSequence = Sequencer.INITIAL_CURSOR_VALUE
+    private val flowOps = new ArrayList[FlowOps]()
+
+    def registerForFlowOperations(): FlowOperations = {
+        val ops = new FlowOps(
+            protocol,
+            channelFactory,
+            selector,
+            maxPendingRequests,
+            maxRequestSize,
+            clock,
+            sequence)
+        flowOps.add(ops)
+        ops
+    }
+
+    override def setSequenceCallback(sequence: Sequence): Unit =
+        this.sequence = sequence
 
     override def onEvent(event: PacketContextHolder, sequence: Long,
                          endOfBatch: Boolean): Boolean = {
@@ -110,8 +204,6 @@ class FlowProcessor(dpState: DatapathState,
                 flowMask.clear()
                 writeBuf.clear()
             }
-
-            lastSequence = sequence
         }
         true
     }
@@ -119,7 +211,7 @@ class FlowProcessor(dpState: DatapathState,
     private def writeFlow(datapathId: Int, keys: ArrayList[FlowKey],
                           actions: ArrayList[FlowAction], mask: FlowMask): Unit =
         try {
-            protocol.prepareFlowCreate(datapathId, keys, actions, mask, writeBuf)
+            protocol.prepareFlowCreate(pid, datapathId, keys, actions, mask, writeBuf)
             writer.write(writeBuf)
         } catch { case e: BufferOverflowException =>
             val capacity = writeBuf.capacity()
@@ -131,54 +223,26 @@ class FlowProcessor(dpState: DatapathState,
             writeFlow(datapathId, keys, actions, mask)
         }
 
-    def capacity = broker.capacity
-
-    def hasPendingOperations = broker.hasRequestsToWrite
-
-    /**
-     * Tries to eject a flow only if the corresponding Disruptor sequence is
-     * greater than the one specified, meaning that the corresponding flow
-     * create operation hasn't been completed yet.
-     */
-    def tryEject(sequence: Long, datapathId: Int, flowMatch: FlowMatch,
-                 obs: Observer[ByteBuffer]): Boolean = {
-        var brokerSeq = 0
-        val disruptorSeq = unsafe.getLongVolatile(this, sequenceAddress)
-        if (disruptorSeq >= sequence && { brokerSeq = broker.nextSequence()
-                                          brokerSeq } != NetlinkRequestBroker.FULL) {
-            try {
-                protocol.prepareFlowDelete(datapathId, flowMatch.getKeys, broker.get(brokerSeq))
-                broker.publishRequest(brokerSeq, obs)
-            } catch { case e: Throwable =>
-                obs.onError(e)
-            }
-            true
-        } else {
-            false
+    def hasPendingOperations: Boolean = {
+        var i = 0
+        while (i < flowOps.size) {
+            if (flowOps.get(i).broker.hasRequestsToWrite)
+                return true
+            i += 1
         }
-    }
-
-    def tryGet(datapathId: Int, flowMatch: FlowMatch,
-               obs: Observer[ByteBuffer]): Boolean = {
-        var seq = 0
-        if ({ seq = broker.nextSequence(); seq } != NetlinkRequestBroker.FULL) {
-            try {
-                protocol.prepareFlowGet(datapathId, flowMatch, broker.get(seq))
-                broker.publishRequest(seq, obs)
-            } catch { case e: Throwable =>
-                obs.onError(e)
-            }
-            true
-        } else {
-            false
-        }
+        false
     }
 
     override def shouldProcess(): Boolean =
-        broker.hasRequestsToWrite
+        hasPendingOperations
 
-    override def process(): Unit =
-        broker.writePublishedRequests()
+    override def process(): Unit = {
+        var i = 0
+        while (i < flowOps.size()) {
+            flowOps.get(i).broker.writePublishedRequests()
+            i += 1
+        }
+    }
 
     val defaultObserver = new Observer[ByteBuffer] {
         override def onCompleted(): Unit =
@@ -196,15 +260,35 @@ class FlowProcessor(dpState: DatapathState,
     }
 
     val replies = new Thread("flow-processor-replies") {
+        private def channelsClosed: Boolean = {
+            var i = 0
+            while (i < flowOps.size()) {
+                if (flowOps.get(i).channel.isOpen)
+                    return false
+                i += 1
+            }
+            true
+        }
+
         override def run(): Unit =
-            while (channel.isOpen) {
+            while (!channelsClosed) {
+                var i = 0
+                while (i < flowOps.size()) {
+                    try {
+                        flowOps.get(i).broker.readReply(defaultObserver)
+                    } catch { case t: Throwable =>
+                        log.debug(s"Error while reading replies in partition $i", t)
+                    }
+                    i += 1
+                }
+
                 try {
-                    broker.readReply(defaultObserver)
+                    selector.select()
                 } catch { case t: Throwable =>
-                    log.debug("Error while reading replies", t)
+                    log.debug("Error while waiting for replies", t)
                 }
             }
-    }
+        }
 
     override def onStart(): Unit = {
         replies.setDaemon(true)
@@ -212,7 +296,12 @@ class FlowProcessor(dpState: DatapathState,
     }
 
     override def onShutdown(): Unit = {
-        channel.close()
-        replies.interrupt()
+        mainChannel.close()
+        var i = 0
+        while (i < flowOps.size()) {
+            flowOps.get(i).channel.close()
+            i += 1
+        }
+        selector.wakeup()
     }
 }
