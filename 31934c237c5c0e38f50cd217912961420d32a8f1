@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_87735814",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/BGP.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-04-17T16:17:26Z",
+      "side": 1,
+      "message": "This seems superfluous.",
+      "range": {
+        "startLine": 31,
+        "startChar": 47,
+        "endLine": 32,
+        "endChar": 20
+      },
+      "revId": "31934c237c5c0e38f50cd217912961420d32a8f1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_e7616c3a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/BGP.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-04-17T16:17:26Z",
+      "side": 1,
+      "message": "place this on the next line?",
+      "range": {
+        "startLine": 43,
+        "startChar": 16,
+        "endLine": 43,
+        "endChar": 79
+      },
+      "revId": "31934c237c5c0e38f50cd217912961420d32a8f1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_275c247e",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/BGP.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-04-17T16:17:26Z",
+      "side": 1,
+      "message": "name parameters?",
+      "range": {
+        "startLine": 59,
+        "startChar": 22,
+        "endLine": 59,
+        "endChar": 50
+      },
+      "revId": "31934c237c5c0e38f50cd217912961420d32a8f1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_a74f74bc",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/BGPRoute.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-04-17T16:17:26Z",
+      "side": 1,
+      "message": "superfluous?",
+      "range": {
+        "startLine": 30,
+        "startChar": 55,
+        "endLine": 31,
+        "endChar": 29
+      },
+      "revId": "31934c237c5c0e38f50cd217912961420d32a8f1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_8754f821",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/BGPRoute.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-04-17T16:17:26Z",
+      "side": 1,
+      "message": "name parameters?",
+      "range": {
+        "startLine": 55,
+        "startChar": 22,
+        "endLine": 55,
+        "endChar": 38
+      },
+      "revId": "31934c237c5c0e38f50cd217912961420d32a8f1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
