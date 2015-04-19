@@ -1,0 +1,106 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_fb2aa12a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/ArpRequestBroker.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 215,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-04-19T09:40:15Z",
+      "side": 1,
+      "message": "eek, i see this is still a concurrentlinkedqueue :/",
+      "revId": "9bc243ed5ba3517f2ce7daaef329566430d7a72e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_5b21354c",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/ArpRequestBroker.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 257,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-04-19T09:40:15Z",
+      "side": 1,
+      "message": "arpLoopIsReady would need to be thread-safe, since this is called by the waker-upper. easiest way to do that is to have a volatile field holding the soonest time when we should arp. although we can discuss if it\u0027s really needed; i think there would have to be a spurious wake up of the simulation thread while its registered in the waker upper.",
+      "revId": "9bc243ed5ba3517f2ce7daaef329566430d7a72e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_7bffd1aa",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/ArpRequestBroker.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 279,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-04-19T09:40:15Z",
+      "side": 1,
+      "message": "I would re-write this as:\n\nif ((cacheEntry ne null) \u0026\u0026 (cacheEntry.macAddr ne null) {\n  if (clock.time \u003e (cacheEntry.stale + stalenessJitter)) \n    arpForAddress(ip, port)\n  cacheEntry.macAddr\n} else {\n  arpForAddress(ip, port)\n  throw new ...\n}\n\nLess overall branching.",
+      "revId": "9bc243ed5ba3517f2ce7daaef329566430d7a72e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_1b285d33",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/ArpRequestBroker.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 281,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-04-19T09:40:15Z",
+      "side": 1,
+      "message": "I don\u0027t like it that we are always creating a new promise. We should get first to check if there\u0027s already a promise.\n\nI also don\u0027t like that. I think the ArpLoop should have a Promise, so we don\u0027t need the arpWaiters. Since we have to query the arpLoops in get(), I would re-write get as:\n\nif ((cacheEntry ne null) \u0026\u0026 (cacheEntry.macAddr ne null) {\n  if (clock.time \u003e (cacheEntry.stale + stalenessJitter)) \n    arpForAddress(ip, port)\n  cacheEntry.macAddr\n} else {\n  val loop \u003d arpForAddress(ip, port)\n  throw new NotYetException(loop.future)\n}",
+      "revId": "9bc243ed5ba3517f2ce7daaef329566430d7a72e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_bb30299f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/ArpRequestBroker.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 294,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-04-19T09:40:15Z",
+      "side": 1,
+      "message": "What about first-emit jitter?",
+      "revId": "9bc243ed5ba3517f2ce7daaef329566430d7a72e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_3b1c3913",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/ArpRequestBroker.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 378,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-04-19T09:40:15Z",
+      "side": 1,
+      "message": "check if they\u0027re the same?",
+      "revId": "9bc243ed5ba3517f2ce7daaef329566430d7a72e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
