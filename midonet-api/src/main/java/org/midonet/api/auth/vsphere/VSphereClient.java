@@ -20,15 +20,17 @@ import java.net.URL;
 import java.rmi.RemoteException;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
+
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 
 import com.google.common.base.Objects;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.midonet.brain.rest_api.auth.AuthException;
+import org.midonet.cluster.auth.AuthException;
 
 public class VSphereClient {
 
