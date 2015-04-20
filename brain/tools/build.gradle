@@ -24,7 +24,7 @@ repositories {
 
 jar {
     manifest {
-        attributes 'Implementation-Title': 'Midonet Brain Tools',
+        attributes 'Implementation-Title': 'Midonet Cluster Tools',
         'Implementation-Version': version
     }
 }
@@ -43,7 +43,7 @@ sourceSets {
 dependencies {
     compile project(':cluster'),
             project(':midonet-util'),
-            project(':brain:midonet-brain'),
+            project(':brain:midonet-cluster'),
             project(':midolman'), // temporary for MidonetBackendModule
             libraries.commons_conf,
             libraries.guava,
@@ -61,8 +61,8 @@ dependencies {
 // Runs the zookeeper updater for topology data. This tool provides a way
 // to populate ZooKeeper with topology objects, for use in testing other
 // components. Use -Pconf=conf/topology-zoomupdater.conf to start it up
-// pointing a the sample config file in brain/midonet-brain/conf.
-// Note that the path is relative to the midonet-brain submodule
+// pointing a the sample config file in brain/midonet-cluster/conf.
+// Note that the path is relative to the midonet-cluster submodule
 task runTopologyZoomUpdater(type: JavaExec) {
     description = 'Run the Topology API Zoom updater app'
     classpath sourceSets.main.runtimeClasspath
