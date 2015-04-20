@@ -10,7 +10,7 @@ TODO
 
 ## VTEP support
 
-The midonet-brain currently provides a simple API for interaction with an
+The midonet-cluster currently provides a simple API for interaction with an
 OVSDB instance holding a VTEP schema.  This depends internally on a custom fork
 of the odl-ovsdb plugin, modified to run outside of an OSGI container.
 
@@ -41,7 +41,7 @@ use it to build the right dependency packages.
 
 Simply execute the following command from the root directory of the clone:
 
-    ./gradlew brain:midonet-brain:run -Pbrain/midonet-brain/conf/cluster.conf
+    ./gradlew brain:midonet-cluster:run -Pbrain/midonet-cluster/conf/cluster.conf
 
 You want to have a logback.xml file in the classpath. You'll find a sample one
-in brain/midonet-brain/conf/logback.xml.
+in brain/midonet-cluster/conf/logback.xml.

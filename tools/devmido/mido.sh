@@ -303,10 +303,10 @@ if [[ "$USE_CLUSTER" = "True" ]]; then
 
     # MidoNet Cluster
     # ---------------
-    CLUSTER_LOG=$TOP_DIR/brain/midonet-brain/conf/logback.xml
-    cp $CLUSTER_LOG.dev $TOP_DIR/brain/midonet-brain/build/resources/main/logback.xml
+    CLUSTER_LOG=$TOP_DIR/brain/midonet-cluster/conf/logback.xml
+    cp $CLUSTER_LOG.dev $TOP_DIR/brain/midonet-cluster/build/resources/main/logback.xml
 
-    run_process midonet-cluster "cd $TOP_DIR && ./gradlew :brain:midonet-brain:run"
+    run_process midonet-cluster "cd $TOP_DIR && ./gradlew :brain:midonet-cluster:run"
 
 else
     # MidoNet API
