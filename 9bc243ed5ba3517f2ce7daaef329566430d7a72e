@@ -36,6 +36,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_6d47164c",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/ArpRequestBroker.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 257,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-04-20T17:10:09Z",
+      "side": 1,
+      "message": "let\u0027s discuss F2F. ...but:\n\nmacsDiscovered:  this is thread-safe already.\n\n\narpLoopQ: this is not. however: maybe we can ignore it in shouldProcess() just as I did with expirations since we get guaranteed calls at flow invalidation check time? How frequent are those? I think Anything below 5 seconds could work. OTOH, adding a volatile with the time would be as easy as what I did in v1.8, with the scheduleOnce() calls, I could add it.\n\n\nUPDATE: done.",
+      "parentUuid": "1a106d94_5b21354c",
+      "revId": "9bc243ed5ba3517f2ce7daaef329566430d7a72e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_7bffd1aa",
         "filename": "midolman/src/main/scala/org/midonet/midolman/state/ArpRequestBroker.scala",
         "patchSetId": 4
@@ -47,6 +65,24 @@
       "writtenOn": "2015-04-19T09:40:15Z",
       "side": 1,
       "message": "I would re-write this as:\n\nif ((cacheEntry ne null) \u0026\u0026 (cacheEntry.macAddr ne null) {\n  if (clock.time \u003e (cacheEntry.stale + stalenessJitter)) \n    arpForAddress(ip, port)\n  cacheEntry.macAddr\n} else {\n  arpForAddress(ip, port)\n  throw new ...\n}\n\nLess overall branching.",
+      "revId": "9bc243ed5ba3517f2ce7daaef329566430d7a72e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_0d7022a4",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/ArpRequestBroker.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 279,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-04-20T17:10:09Z",
+      "side": 1,
+      "message": "Done, similar, more readable:\n\n      if (shouldArp(cacheEntry)) {\n            arpForAddress(ip, port)\n            if ((cacheEntry ne null) \u0026\u0026 (cacheEntry.macAddr ne null))\n                cacheEntry.macAddr\n            else\n                throw new NotYetException(waitForArpEntry(ip), s\"MAC for IP $ip unknown, suspending during ARP\")\n        } else {\n            cacheEntry.macAddr\n        }",
+      "parentUuid": "1a106d94_7bffd1aa",
       "revId": "9bc243ed5ba3517f2ce7daaef329566430d7a72e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -70,6 +106,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_4d697abd",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/ArpRequestBroker.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 281,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-04-20T17:10:09Z",
+      "side": 1,
+      "message": "I had thought about single promise but didn\u0027t get around to it, will do.\n\n\nUPDATE: no, will do in a second patch, when we remove setAndGet, because removing arpWaiters breaks setAndGet, which waits for an entry for which we are not ARPing.",
+      "parentUuid": "1a106d94_1b285d33",
+      "revId": "9bc243ed5ba3517f2ce7daaef329566430d7a72e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_bb30299f",
         "filename": "midolman/src/main/scala/org/midonet/midolman/state/ArpRequestBroker.scala",
         "patchSetId": 4
@@ -87,6 +141,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_ed72e6ab",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/ArpRequestBroker.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 294,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-04-20T17:10:09Z",
+      "side": 1,
+      "message": "there is none, IMHO packet senders provide it for us, and I didn\u0027t want to delay them.",
+      "parentUuid": "1a106d94_bb30299f",
+      "revId": "9bc243ed5ba3517f2ce7daaef329566430d7a72e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_3b1c3913",
         "filename": "midolman/src/main/scala/org/midonet/midolman/state/ArpRequestBroker.scala",
         "patchSetId": 4
@@ -98,6 +170,24 @@
       "writtenOn": "2015-04-19T09:40:15Z",
       "side": 1,
       "message": "check if they\u0027re the same?",
+      "revId": "9bc243ed5ba3517f2ce7daaef329566430d7a72e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_8d6372db",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/ArpRequestBroker.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 378,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-04-20T17:10:09Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_3b1c3913",
       "revId": "9bc243ed5ba3517f2ce7daaef329566430d7a72e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
