@@ -1,10 +1,10 @@
 [Unit]
-Description=MidoNet controller node
+Description=MidoNet Control cluster node
 After=network.target
 
 [Service]
 Type=simple
-ExecStart=/usr/share/midonet-brain/midonet-brain-start
+ExecStart=/usr/share/midonet-cluster/midonet-cluster-start
 # JVM exits with 143 when killed by SIGTERM, which is
 # considered successful termination
 SuccessExitStatus=143

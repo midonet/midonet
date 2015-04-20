@@ -70,7 +70,7 @@ MAX_HEAP_SIZE="2048M"
 HEAP_NEWSIZE="1024M"
 
 if [ "x$MAX_HEAP_SIZE" = "x" ] ||  [ "x$HEAP_NEWSIZE" = "x" ]; then
-    echo "please set MAX_HEAP_SIZE and HEAP_NEWSIZE, or none (see midonet-brain-env.sh)"
+    echo "please set MAX_HEAP_SIZE and HEAP_NEWSIZE, or none (see midonet-cluster-env.sh)"
     exit 1
 fi
 
@@ -98,7 +98,7 @@ JVM_OPTS="$JVM_OPTS -XX:ThreadPriorityPolicy=42"
 JVM_OPTS="$JVM_OPTS -Xms${MAX_HEAP_SIZE}"
 JVM_OPTS="$JVM_OPTS -Xmx${MAX_HEAP_SIZE}"
 JVM_OPTS="$JVM_OPTS -Xmn${HEAP_NEWSIZE}"
-JVM_OPTS="$JVM_OPTS -XX:HeapDumpPath=/var/log/midonet-brain/"
+JVM_OPTS="$JVM_OPTS -XX:HeapDumpPath=/var/log/midonet-cluster/"
 JVM_OPTS="$JVM_OPTS -XX:+HeapDumpOnOutOfMemoryError"
 JVM_OPTS="$JVM_OPTS -XX:OnOutOfMemoryError=\"kill;-3;%p\""
 
@@ -121,7 +121,7 @@ JVM_OPTS="$JVM_OPTS -XX:PretenureSizeThreshold=2m"
 # JVM_OPTS="$JVM_OPTS -XX:+PrintClassHistogram"
 # JVM_OPTS="$JVM_OPTS -XX:+PrintTenuringDistribution"
 # JVM_OPTS="$JVM_OPTS -XX:+PrintGCApplicationStoppedTime"
-# JVM_OPTS="$JVM_OPTS -Xloggc:/var/log/midonet-brain/gc-`date +%Y%m%d_%H%M%S`.log"
+# JVM_OPTS="$JVM_OPTS -Xloggc:/var/log/midonet-cluster/gc-`date +%Y%m%d_%H%M%S`.log"
 
 # uncomment to have the JVM listen for remote debuggers/profilers on port 1414
 # JVM_OPTS="$JVM_OPTS -Xdebug -Xnoagent -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=1414"
@@ -155,7 +155,7 @@ fi
 
 if [ "$MIDOLMAN_HPROF" = "1" ] ; then
     DATE=$(date +'%H%M%S')
-    HPROF_FILENAME=${HPROF_FILENAME:-/tmp/midonet-brain-$DATE.hprof}
+    HPROF_FILENAME=${HPROF_FILENAME:-/tmp/midonet-cluster-$DATE.hprof}
     JVM_OPTS="$JVM_OPTS -agentlib:hprof=cpu=samples,depth=100,interval=1,lineno=y,thread=y,file=$HPROF_FILENAME"
 fi
 
