@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_ea5bec2b",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/services/topology/server/SessionInventoryTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 554,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-04-20T11:13:22Z",
+      "side": 1,
+      "message": "Why is this a comment?",
+      "range": {
+        "startLine": 554,
+        "startChar": 12,
+        "endLine": 554,
+        "endChar": 38
+      },
+      "revId": "431d9665dbf34ed2bb5645055680b5b3de3517f2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
