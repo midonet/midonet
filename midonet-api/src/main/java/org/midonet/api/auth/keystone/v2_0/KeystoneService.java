@@ -30,19 +30,19 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.midonet.api.auth.AuthRole;
-import org.midonet.brain.rest_api.auth.AuthService;
 import org.midonet.api.auth.keystone.KeystoneConfig;
-import org.midonet.brain.rest_api.auth.AuthException;
-import org.midonet.brain.rest_api.auth.InvalidCredentialsException;
-import org.midonet.brain.rest_api.auth.KeystoneAccess;
-import org.midonet.brain.rest_api.auth.KeystoneAuthCredentials;
-import org.midonet.brain.rest_api.auth.KeystoneTenant;
-import org.midonet.brain.rest_api.auth.KeystoneTenantList;
-import org.midonet.brain.rest_api.auth.Tenant;
-import org.midonet.brain.rest_api.auth.Token;
-import org.midonet.brain.rest_api.auth.UserIdentity;
-import org.midonet.brain.southbound.keystone.v2_0.KeystoneClient;
-import org.midonet.brain.southbound.keystone.v2_0.KeystoneInvalidFormatException;
+import org.midonet.cluster.auth.AuthException;
+import org.midonet.cluster.auth.AuthService;
+import org.midonet.cluster.auth.InvalidCredentialsException;
+import org.midonet.cluster.auth.KeystoneAccess;
+import org.midonet.cluster.auth.KeystoneAuthCredentials;
+import org.midonet.cluster.auth.KeystoneTenant;
+import org.midonet.cluster.auth.KeystoneTenantList;
+import org.midonet.cluster.auth.Tenant;
+import org.midonet.cluster.auth.Token;
+import org.midonet.cluster.auth.UserIdentity;
+import org.midonet.cluster.auth.keystone.v2_0.KeystoneClient;
+import org.midonet.cluster.auth.keystone.v2_0.KeystoneInvalidFormatException;
 
 /**
  * Keystone Service.

@@ -94,10 +94,10 @@ reasons:
 - Efficient encoding and decoding.
 - Backwards compatible decoding of different versions of the schema.
 
-### MN State Propagation Cluster
+### MN State Propagation 
 
 After Neutron high-level models have been imported/synced into low-level
-models and stored in MidoNet's backend storage, the Cluster needs to
+models and stored in MidoNet's backend storage, the cluster needs to
 make this data available to:
 - Agents, who need to retrieve low-level models for configuration and
   state, as well as subscribe to changes.
@@ -111,9 +111,9 @@ the gradual deployment of the new storage pipeline are to maintain a
 single line of development in MN, making all necessary changes directly
 in trunk and ensuring backwards compatibility at all times.
 
-Cluster elements meant for use by other MidoNet components such as
-client libraries or APIs are developed under /cluster.  Internal
-services to the cluster live under /brain/midonet-brain.
+Elements meant for use by other MidoNet components such as client
+libraries or APIs are developed under /nsdb.  Internal services to the
+cluster live under /cluster/midonet-cluster.
 
 ### Phase 1
 
@@ -154,7 +154,7 @@ The data contained in each `task` entry will be modelled using an IDL
 expressing the full Neutron model, plus MidoNet-specific Vendor
 Extensions. This enables sharing the same model in different components
 written in different languages (Python on the Neutron side, Java/Scala
-on the Cluster side).  The Protobuf models will be encoded using JSON in
+on the cluster side).  The Protobuf models will be encoded using JSON in
 order to facilitate debugging by directly querying NeutronDB.
 
 Neutron Protobuf models can be examined at
@@ -168,7 +168,7 @@ mutations in MidoNet's storage.
 
 For its translation abilities, this component is being developed under
 codename C3PO after the Star Wars character.  It's being developed under
-`org.midonet.brain.services.c3po`.
+`org.midonet.cluster.services.c3po`.
 
 The low-level model definitions for MidoNet can be found at
 `cluster/src/main/proto/topology.proto`, forming MidoNet's low-level
@@ -176,7 +176,7 @@ domain.
 
 This storage will remain based on Zookeeper since it provides strong
 consistency guarantees, as well as ordered notifications on data updates
-which are fundamental for the State Propagation Cluster.  We will
+which are fundamental for the State Propagation cluster.  We will
 however store the encoded Protobuf messages directly in the storage, and
 provide an ORM-like tool, Zookeeper Object Mapper (ZOOM) able to perform
 typed CRUD operations on any plain Java object (POJO) and thus
@@ -222,7 +222,7 @@ There are two important considerations to this work:
   between agent and cluster at the Storage interface implemented by
   ZOOM.  As part of later phases, the ZOOM-based implementation may be
   replaced by one based on an RPC that will interact with a distributed
-  Cluster for access to topology and subscriptions.  In practise, this
+  cluster for access to topology and subscriptions.  In practise, this
   will involve moving most of the ZOOM-based implementation to the
   cluster nodes, behind the RPC server-side interface serving the
   Topology API.
@@ -234,10 +234,10 @@ There are two important considerations to this work:
 
 #### Topology API
 
-The Topology API (`org.midonet.brain.services.topology`) will provide an
-RPC mechanism that can be used to access the low-level models.  The
+The Topology API (`org.midonet.cluster.services.topology`) will provide
+an RPC mechanism that can be used to access the low-level models.  The
 Topology API exposes a simple API defined using Protobuf messages in
-`cluster/src/main/proto/topology_api.proto`.  A client may use these
+`nsdb/src/main/proto/topology_api.proto`.  A client may use these
 messages to Get or Subscribe to different entities in the topology.
 There will be two interfaces to access this API implemented with Netty
 adapters: one with WebSockets to be used by the MidoNet Manager; a

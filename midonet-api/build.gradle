@@ -32,9 +32,9 @@ repositories {
 }
 
 dependencies {
-    compile project(':cluster'), project(':midolman'),
-            project(':midonet-client'), project(':brain:odl-ovsdb:ovsdb'),
-            project(':brain:midonet-brain'), project(':odp')
+    compile project(':nsdb'), project(':midolman'),
+            project(':midonet-client'), project(':cluster:odl-ovsdb:ovsdb'),
+            project(':cluster:midonet-cluster'), project(':odp')
     compile(project(':midonet-util')) {
         exclude group: 'com.sun', module: 'tools'
     }

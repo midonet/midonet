@@ -180,10 +180,10 @@ The VxLAN Gateway Service is a cluster service that runs temporarily
 within the MidoNet API for practical reasons until the MidoNet Cluster
 is deployed independently.  By default, MidoNet APIs do not run the
 service.  Enabling it requires a change in the web.xml configuration
-file, look for the `midobrain-vxgw_enabled` property and set it to true.
+file, look for the `midocluster-vxgw_enabled` property and set it to true.
 
 This service is modelled as an ordinary Guice service at
-org.midonet.brain.services.vxgw.VxlanGatewayHA.scala.  This simply takes
+org.midonet.cluster.services.vxgw.VxlanGatewayHA.scala.  This simply takes
 care of orchestrating two auxiliary processes:
 
 - The VtepController class implements the functionality required to open
@@ -218,7 +218,7 @@ will be created to handle further coordination tasks.
 
 ### VxLAN Gateway Manager
 
-The org.midonet.brain.services.vxgw.VxlanGatewayManager is responsible
+The org.midonet.cluster.services.vxgw.VxlanGatewayManager is responsible
 to handle all coordination functions between MidoNet and all hardware
 VTEPs bound to it that are strictly relevant for that bridge.
 

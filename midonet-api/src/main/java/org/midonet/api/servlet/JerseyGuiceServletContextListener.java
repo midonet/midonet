@@ -26,10 +26,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.midonet.api.rest_api.RestApiService;
-import org.midonet.brain.services.conf.ConfMinion;
-import org.midonet.brain.ClusterNode;
-import org.midonet.brain.services.vxgw.VxlanGatewayService;
-import org.midonet.brain.southbound.vtep.VtepDataClientFactory;
+import org.midonet.cluster.services.conf.ConfMinion;
+import org.midonet.cluster.ClusterNode;
+import org.midonet.cluster.services.vxgw.VxlanGatewayService;
+import org.midonet.cluster.southbound.vtep.VtepDataClientFactory;
 
 public class JerseyGuiceServletContextListener extends
         GuiceServletContextListener {
@@ -77,7 +77,7 @@ public class JerseyGuiceServletContextListener extends
             log.warn("initializeApplication: skip embedded Cluster node - "
                      + "Control functions for VxLAN Gateway will be inactive. "
                      + "If this is not intentional, change the"
-                     + "midobrain.vxgw_enabled property in the application's "
+                     + "midocluster.vxgw_enabled property in the application's "
                      + "web.xml");
         }
 
