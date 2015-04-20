@@ -355,6 +355,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_9b30cd02",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/RouteManager.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 129,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-04-20T01:21:15Z",
+      "side": 1,
+      "message": "Added a general description on deterministic ID generators as a class comment, and short descriptions to each method.",
+      "parentUuid": "1a106d94_04cf66b1",
+      "range": {
+        "startLine": 129,
+        "startChar": 22,
+        "endLine": 129,
+        "endChar": 62
+      },
+      "revId": "ff9cd8cc559b5850aba1a8935c72fe150fe34d32",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_e1195c89",
         "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/services/c3po/translators/FloatingIpTranslatorIT.scala",
         "patchSetId": 7
