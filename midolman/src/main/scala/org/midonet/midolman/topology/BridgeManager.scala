@@ -146,7 +146,8 @@ import org.midonet.midolman.topology.BridgeManager._
             if (config.bridgeArpEnabled) ip4MacMap else null,
             flowCounts, Option(cfg.inboundFilter), Option(cfg.outboundFilter),
             vlanBridgePeerPortId, exteriorVxlanPortIds, flowRemovedCallback,
-            macToLogicalPortId, rtrIpToMac, vlanToPort, exteriorPorts)
+            macToLogicalPortId, rtrIpToMac, vlanToPort, exteriorPorts,
+            List.empty) // not used in 1.x storage stack
 
         VirtualTopologyActor ! bridge
         if (changed) {

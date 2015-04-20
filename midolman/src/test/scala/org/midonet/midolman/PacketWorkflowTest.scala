@@ -21,25 +21,22 @@ import scala.concurrent.Promise
 
 import akka.actor.Props
 import akka.testkit.TestActorRef
-import org.midonet.sdn.state.ShardedFlowStateTable
-
-import org.slf4j.helpers.NOPLogger
 import com.typesafe.scalalogging.Logger
-
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
+import org.slf4j.helpers.NOPLogger
 
 import org.midonet.cluster.DataClient
 import org.midonet.midolman.PacketWorkflow._
 import org.midonet.midolman.UnderlayResolver.Route
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.DatapathChannel
-import org.midonet.midolman.simulation.PacketContext
 import org.midonet.midolman.simulation.PacketEmitter.GeneratedPacket
+import org.midonet.midolman.simulation.{DhcpConfigFromDataclient, PacketContext}
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackKey, ConnTrackValue}
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
-import org.midonet.midolman.state.TraceState.{TraceKey, TraceContext}
-import org.midonet.midolman.state.{MockFlowStateTable, FlowStatePackets, HappyGoLuckyLeaser, MockStateStorage}
+import org.midonet.midolman.state.TraceState.{TraceContext, TraceKey}
+import org.midonet.midolman.state.{FlowStatePackets, HappyGoLuckyLeaser, MockFlowStateTable, MockStateStorage}
 import org.midonet.midolman.topology.rcu.ResolvedHost
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.MessageAccumulator
@@ -50,6 +47,7 @@ import org.midonet.odp.{Datapath, DpPort, FlowMatches, Packet}
 import org.midonet.packets.Ethernet
 import org.midonet.packets.util.EthBuilder
 import org.midonet.packets.util.PacketBuilder.{udp, _}
+import org.midonet.sdn.state.ShardedFlowStateTable
 
 @RunWith(classOf[JUnitRunner])
 class PacketWorkflowTest extends MidolmanSpec {
@@ -385,7 +383,9 @@ class PacketWorkflowTest extends MidolmanSpec {
             extends PacketWorkflow(0,
                                    injector.getInstance(classOf[MidolmanConfig]),
                                    cookieGen, clock, dpChannel,
-                                   clusterDataClient, flowInvalidator, flowProcessor,
+                                   _ => new DhcpConfigFromDataclient(clusterDataClient),
+                                   flowInvalidator,
+                                   flowProcessor,
                                    conntrackTable, natTable,
                                    new ShardedFlowStateTable[TraceKey, TraceContext](),
                                    new MockStateStorage(), HappyGoLuckyLeaser,

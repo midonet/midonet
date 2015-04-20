@@ -17,45 +17,41 @@ package org.midonet.midolman.util
 
 import java.util.{LinkedList, List => JList, Queue, UUID}
 
-import org.midonet.util.UnixClock
-
 import scala.collection.JavaConversions._
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.reflect.ClassTag
 
-import akka.actor.{Props, ActorSystem}
+import akka.actor.{ActorSystem, Props}
 import akka.pattern.ask
 import akka.testkit.TestActorRef
 import akka.util.Timeout
 import akka.util.Timeout.durationToTimeout
-
 import com.google.inject.Injector
 
 import org.midonet.cluster.DataClient
 import org.midonet.cluster.data._
-import org.midonet.midolman.datapath.DatapathChannel
-import org.midonet.midolman.host.interfaces.InterfaceDescription
-import org.midonet.midolman.topology.rcu.ResolvedHost
-import org.midonet.midolman._
 import org.midonet.midolman.PacketWorkflow.SimulationResult
 import org.midonet.midolman.UnderlayResolver.{Route => UnderlayRoute}
+import org.midonet.midolman._
+import org.midonet.midolman.datapath.DatapathChannel
+import org.midonet.midolman.host.interfaces.InterfaceDescription
 import org.midonet.midolman.simulation.Coordinator.Device
-import org.midonet.midolman.simulation.{Router => SimRouter}
-import org.midonet.midolman.simulation.{Coordinator, PacketContext, PacketEmitter}
+import org.midonet.midolman.simulation.{Coordinator, DhcpConfigFromDataclient, PacketContext, PacketEmitter, Router => SimRouter}
 import org.midonet.midolman.state.ConnTrackState._
-import org.midonet.midolman.state.{ArpRequestBroker, MockStateStorage, HappyGoLuckyLeaser}
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
-import org.midonet.midolman.state.TraceState.{TraceKey, TraceContext}
+import org.midonet.midolman.state.TraceState.{TraceContext, TraceKey}
+import org.midonet.midolman.state.{ArpRequestBroker, HappyGoLuckyLeaser, MockStateStorage}
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.topology.VirtualTopologyActor.{BridgeRequest, ChainRequest, IPAddrGroupRequest, PortRequest, RouterRequest}
-import org.midonet.odp.flows.{FlowAction, FlowActionOutput, FlowKeys}
+import org.midonet.midolman.topology.rcu.ResolvedHost
 import org.midonet.odp._
-import org.midonet.odp.flows._
+import org.midonet.odp.flows.{FlowAction, FlowActionOutput, FlowKeys, _}
 import org.midonet.odp.ports.InternalPort
-import org.midonet.packets.{IPv4Addr, MAC, Ethernet, IPv4, ICMP, TCP, UDP}
 import org.midonet.packets.util.AddressConversions._
-import org.midonet.sdn.state.{FlowStateTable, ShardedFlowStateTable, FlowStateTransaction}
+import org.midonet.packets.{Ethernet, ICMP, IPv4, IPv4Addr, MAC, TCP, UDP}
+import org.midonet.sdn.state.{FlowStateTable, FlowStateTransaction, ShardedFlowStateTable}
+import org.midonet.util.UnixClock
 
 trait VirtualTopologyHelper { this: MidolmanServices =>
 
@@ -242,7 +238,7 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
             new CookieGenerator(0, 1),
             clock,
             dpChannel,
-            client,
+            _ => new DhcpConfigFromDataclient(client),
             flowInvalidator,
             flowProcessor,
             conntrackTable,
