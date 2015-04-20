@@ -131,6 +131,10 @@ class HostService @Inject()(config: MidolmanConfig,
 
         // If the cluster storage is enabled, delete the ownership.
         if (backendConfig.useNewStack) {
+            if (ownerSubscription ne null) {
+                ownerSubscription.unsubscribe()
+                ownerSubscription = null
+            }
             try {
                 store.deleteOwner(classOf[Host], hostId, ownerId.toString)
             } catch {
