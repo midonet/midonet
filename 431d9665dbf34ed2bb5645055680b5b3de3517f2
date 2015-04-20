@@ -22,6 +22,30 @@
       "revId": "431d9665dbf34ed2bb5645055680b5b3de3517f2",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_8a6358db",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/services/topology/server/SessionInventoryTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 554,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-04-20T11:23:12Z",
+      "side": 1,
+      "message": "There is a chance for the processing of the unwatch and the following updates to be out of order, so we might have more than 4 events... but then that line could be deleted, so good catch!\n\nOn second thoughts, I\u0027ll move the awaitOnNext up so the test is actually deterministic...",
+      "parentUuid": "1a106d94_ea5bec2b",
+      "range": {
+        "startLine": 554,
+        "startChar": 12,
+        "endLine": 554,
+        "endChar": 38
+      },
+      "revId": "431d9665dbf34ed2bb5645055680b5b3de3517f2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
