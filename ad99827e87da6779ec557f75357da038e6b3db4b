@@ -2,6 +2,52 @@
   "comments": [
     {
       "key": {
+        "uuid": "1a106d94_567d8c1b",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/ChainManager.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-04-20T07:39:15Z",
+      "side": 1,
+      "message": "Is there any reason we should ever expect not to find it, or is that an error?",
+      "range": {
+        "startLine": 49,
+        "startChar": 8,
+        "endLine": 49,
+        "endChar": 31
+      },
+      "revId": "ad99827e87da6779ec557f75357da038e6b3db4b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_3678d02a",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/FloatingIpTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-04-20T07:39:15Z",
+      "side": 1,
+      "message": "This sounds more like an error. It shouldn\u0027t ever happen, should it?",
+      "range": {
+        "startLine": 43,
+        "startChar": 16,
+        "endLine": 43,
+        "endChar": 20
+      },
+      "revId": "ad99827e87da6779ec557f75357da038e6b3db4b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_16b2f4e5",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/FloatingIpTranslator.scala",
         "patchSetId": 2
@@ -13,6 +59,75 @@
       "writtenOn": "2015-04-20T06:32:30Z",
       "side": 1,
       "message": "You have to update the NAT rules if the associated fixed IP was changed.",
+      "revId": "ad99827e87da6779ec557f75357da038e6b3db4b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_36cd705e",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/FloatingIpTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-04-20T07:39:15Z",
+      "side": 1,
+      "message": "We don\u0027t need to do this, do we? We can just use ChainManager.inChainId() and .outChainId()",
+      "range": {
+        "startLine": 99,
+        "startChar": 8,
+        "endLine": 99,
+        "endChar": 75
+      },
+      "revId": "ad99827e87da6779ec557f75357da038e6b3db4b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_f6ebd8ad",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/FloatingIpTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 143,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-04-20T07:39:15Z",
+      "side": 1,
+      "message": "You don\u0027t need to change it in this patch, but after seeing this, I think we should use the bindings for rules. When we want to add to the end, we can just create the rule with the chain ID. Otherwise, we can create the rule without the chain ID and then update the chain\u0027s rule list (which will set the rule\u0027s chainId). Then when we want to delete a rule we can just delete it and not mess with the chain.",
+      "range": {
+        "startLine": 142,
+        "startChar": 0,
+        "endLine": 143,
+        "endChar": 64
+      },
+      "revId": "ad99827e87da6779ec557f75357da038e6b3db4b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_96dc2414",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/RouteManager.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 157,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-04-20T07:39:15Z",
+      "side": 1,
+      "message": "I think \u0027c\u0027 would be better here.",
+      "range": {
+        "startLine": 157,
+        "startChar": 35,
+        "endLine": 157,
+        "endChar": 36
+      },
       "revId": "ad99827e87da6779ec557f75357da038e6b3db4b",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
