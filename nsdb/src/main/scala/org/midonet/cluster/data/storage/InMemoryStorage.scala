@@ -246,6 +246,7 @@ class InMemoryStorage extends StorageWithOwnership {
         private var ownersUpdate: Notification[Set[String]] = null
 
         updateOwners(initOwnerOps)
+        emitUpdates()
 
         def value = ref.get
         def version = ver.get
@@ -290,6 +291,7 @@ class InMemoryStorage extends StorageWithOwnership {
             if (!ver.compareAndSet(version, version + 1))
                 throw new BadVersionException
 
+            updateOwners(ownerOps)
             instanceUpdate = Notification.createOnCompleted()
             ownersUpdate = Notification.createOnError(new ParentDeletedException(
                 s"${clazz.getSimpleName}/${id.toString}"))
@@ -356,7 +358,7 @@ class InMemoryStorage extends StorageWithOwnership {
                             clazz.toString, id.toString, o)
                     case TxDeleteOwner(o) => owners -= o
                 }
-                streamOwners.onNext(owners.keySet.toSet)
+                ownersUpdate = Notification.createOnNext(owners.keySet.toSet)
             }
         }
     }
@@ -373,7 +375,7 @@ class InMemoryStorage extends StorageWithOwnership {
         }
 
         /* Write lock, execution on the IO thread */
-        override def commit(): Unit =  async[Unit](writeLock {
+        override def commit(): Unit = async[Unit](writeLock {
             // This write lock is used to synchronize atomic writes with
             // concurrent reads of object snapshots, which cannot be lock-free.
 
