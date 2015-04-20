@@ -507,6 +507,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_76a6c854",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/BridgeMapperTest.scala",
+        "patchSetId": 22
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-04-20T09:52:23Z",
+      "side": 1,
+      "message": "It\u0027s ok like that we can change it later.",
+      "parentUuid": "1a106d94_c17d40e9",
+      "range": {
+        "startLine": 108,
+        "startChar": 34,
+        "endLine": 108,
+        "endChar": 39
+      },
+      "revId": "6120d9f46ea574dec0be7734df14b062bbc30616",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_f0a81779",
         "filename": "midolman/src/test/scala/org/midonet/midolman/topology/ChainMapperTest.scala",
         "patchSetId": 22
