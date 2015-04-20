@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "1a106d94_566e2c30",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 3
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-04-20T08:46:32Z",
+      "side": 1,
+      "message": "I did not see that in the patch...",
+      "range": {
+        "startLine": 9,
+        "startChar": 57,
+        "endLine": 10,
+        "endChar": 61
+      },
+      "revId": "fe2de49b97ef141631b68b1d708c026ccbac5605",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_9677043a",
         "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/DhcpImpl.scala",
         "patchSetId": 3
