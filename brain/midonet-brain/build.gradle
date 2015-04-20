@@ -21,7 +21,7 @@ apply from: "${rootProject.projectDir}/git.gradle"
 
 jar {
     manifest {
-        attributes 'Implementation-Title': 'Midonet Brain',
+        attributes 'Implementation-Title': 'MidoNet Cluster',
         'Implementation-Version': version
     }
 }
@@ -89,41 +89,41 @@ task preparePkg(type: Copy, dependsOn: installApp) {
     from("${buildDir}/install/${project.name}") {
         include "**/*"
         exclude "bin"
-        into "/usr/share/midonet-brain"
+        into "/usr/share/midonet-cluster"
     }
     from("conf") {
-        into "etc/midonet-brain"
+        into "etc/midonet-cluster"
     }
-    from("src/deb/init/midonet-brain.conf") {
+    from("src/deb/init/midonet-cluster.conf") {
         into "etc/init"
     }
-    from("src/deb/init/midonet-brain-start") {
-        into "usr/share/midonet-brain"
+    from("src/deb/init/midonet-cluster-start") {
+        into "usr/share/midonet-cluster"
     }
-    from("src/deb/init/midonet-brain-env.sh") {
-        into "usr/share/midonet-brain"
+    from("src/deb/init/midonet-cluster-env.sh") {
+        into "usr/share/midonet-cluster"
     }
     into "${pkgDestDir}"
     doLast {
-        new File("${pkgDestDir}/usr/share/midonet-brain/lib/${project.name}-${midonetVersion}.jar")
-            .renameTo("${pkgDestDir}/usr/share/midonet-brain/${project.name}-${midonetVersion}.jar")
-        new File("${pkgDestDir}/usr/share/midonet-brain/lib")
-            .renameTo("${pkgDestDir}/usr/share/midonet-brain/dep")
+        new File("${pkgDestDir}/usr/share/midonet-cluster/lib/${project.name}-${midonetVersion}.jar")
+            .renameTo("${pkgDestDir}/usr/share/midonet-cluster/${project.name}-${midonetVersion}.jar")
+        new File("${pkgDestDir}/usr/share/midonet-cluster/lib")
+            .renameTo("${pkgDestDir}/usr/share/midonet-cluster/dep")
     }
 }
 
 task rhel7Prepare(type: Copy, dependsOn: installApp) {
-    from("src/rhel7/systemd/midonet-brain.service") {
+    from("src/rhel7/systemd/midonet-cluster.service") {
         into "usr/lib/systemd/system"
     }
     into "${pkgDestDir}"
 }
 
 task rhel6Prepare(type: Copy, dependsOn: installApp) {
-    from("src/rhel6/init.d/midonet-brain") {
+    from("src/rhel6/init.d/midonet-cluster") {
         into "etc/init.d"
     }
-    from("src/rhel6/init/midonet-brain.conf") {
+    from("src/rhel6/init/midonet-cluster.conf") {
         into "etc/init"
     }
     into "${pkgDestDir}"
@@ -134,11 +134,11 @@ packaging {
     maintainer = project.maintainer
     vendor = project.vendor
     url = project.url
-    description = 'Midonet Brain is MidoNet control cluster'
+    description = 'MidoNet Cluster is MidoNet's control cluster'
     dependencies = []
-    confFiles = ['/etc/midonet-brain/logback.xml',
-                 '/etc/midonet-brain/midonet-brain.conf',
-                 '/etc/midonet-brain/midonet-brain-env.sh']
+    confFiles = ['/etc/midonet-cluster/logback.xml',
+                 '/etc/midonet-cluster/midonet-cluster.conf',
+                 '/etc/midonet-cluster/midonet-cluster-env.sh']
     fpmOpts = ['-a', 'all',
                '--category', 'network',
                '--url', 'http://www.midonet.org',
@@ -203,24 +203,24 @@ mainClassName = "org.midonet.brain.ClusterNode"
 // EXECUTION TASKS //
 /////////////////////
 
-// Runs the cluster daemon, locally. use -Pconf=conf/midonet-brain.conf to
-// start it up pointing at the sample config file in brain/midonet-brain/conf -
-// Note that the path is relative to the midonet-brain submodule.
+// Runs the cluster daemon, locally. use -Pconf=conf/midonet-cluster.conf to
+// start it up pointing at the sample config file in brain/midonet-cluster/conf -
+// Note that the path is relative to the midonet-cluster submodule.
 run {
     mainClassName = "org.midonet.brain.ClusterNode"
     systemProperties System.getProperties()
     if (project.hasProperty("conf")) {
         args = [conf]
     } else {
-        args = ["conf/midonet-brain.conf"]
+        args = ["conf/midonet-cluster.conf"]
     }
 }
 
 // Runs the zookeeper updater for topology data. This tool provides a way
 // to populate ZooKeeper with topology objects, for use in testing other
 // components. Use -Pconf=conf/topology-zkupdater.conf to start it up
-// pointing a the sample config file in brain/midonet-brain/conf.
-// Note that the path is relative to the midonet-brain submodule
+// pointing a the sample config file in brain/midonet-cluster/conf.
+// Note that the path is relative to the midonet-cluster submodule
 task runTopologyZoomUpdater(type: JavaExec) {
     description = 'Run the Topology API Zoom updater app'
     classpath sourceSets.main.runtimeClasspath
@@ -233,9 +233,9 @@ task runTopologyZoomUpdater(type: JavaExec) {
 }
 
 // Runs the Topology API service in stand-alone mode.
-// Use -Pconf=conf/midonet-brain.conf to start it pointing at the sample config file
-// in brain/midonet-brain/conf
-// Note that the path is relative to the midonet-brain submodule.
+// Use -Pconf=conf/midonet-cluster.conf to start it pointing at the sample config file
+// in brain/midonet-cluster/conf
+// Note that the path is relative to the midonet-cluster submodule.
 task runTopologyApi(type: JavaExec) {
     description = 'Run the Topology API Service - standalone'
     classpath sourceSets.main.runtimeClasspath
@@ -243,14 +243,14 @@ task runTopologyApi(type: JavaExec) {
     if (project.hasProperty("conf")) {
         args = [conf]
     } else {
-        args = ["conf/midonet-brain.conf"]
+        args = ["conf/midonet-cluster.conf"]
     }
 }
 
 // Runs a topology text-based client that dumps updates made to the topology
 // Use -Pconf=conf/topology-client.conf to start it up pointing at the sample
-// config file in brain/midonet-brain/conf (note that the path is relative to
-// the midonet-brain submodule
+// config file in brain/midonet-cluster/conf (note that the path is relative to
+// the midonet-cluster submodule
 task runTopologySnoopy(type: JavaExec) {
     description = 'Run the Topology Snoopy client'
     classpath sourceSets.main.runtimeClasspath
