@@ -15,33 +15,25 @@
  */
 package org.midonet.api.auth;
 
-import com.sun.jersey.spi.container.ContainerRequest;
-import com.sun.jersey.spi.container.ContainerRequestFilter;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.Context;
 
-import org.midonet.brain.rest_api.auth.UserIdentity;
+import com.sun.jersey.spi.container.ContainerRequest;
+import com.sun.jersey.spi.container.ContainerRequestFilter;
 
-/**
- * Class to implement auth request filter.
- */
+import org.midonet.cluster.auth.UserIdentity;
+
+import static org.midonet.api.auth.AuthFilter.USER_IDENTITY_ATTR_KEY;
+
 public class AuthContainerRequestFilter implements ContainerRequestFilter {
 
     @Context
     HttpServletRequest hsr;
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see
-     * com.sun.jersey.spi.container.ContainerRequestFilter#filter(com.sun.jersey
-     * .spi.container.ContainerRequest)
-     */
     @Override
     public ContainerRequest filter(ContainerRequest req) {
         UserIdentity user = (UserIdentity) hsr
-                .getAttribute(AuthFilter.USER_IDENTITY_ATTR_KEY);
+            .getAttribute(USER_IDENTITY_ATTR_KEY);
         req.setSecurityContext(new UserIdentitySecurityContext(user));
         return req;
     }

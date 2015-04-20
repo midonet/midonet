@@ -16,13 +16,14 @@
 package org.midonet.api.auth;
 
 import java.util.List;
+
 import javax.servlet.http.HttpServletRequest;
 
-import org.midonet.brain.rest_api.auth.AuthException;
-import org.midonet.brain.rest_api.auth.AuthService;
-import org.midonet.brain.rest_api.auth.Tenant;
-import org.midonet.brain.rest_api.auth.Token;
-import org.midonet.brain.rest_api.auth.UserIdentity;
+import org.midonet.cluster.auth.AuthException;
+import org.midonet.cluster.auth.AuthService;
+import org.midonet.cluster.auth.Tenant;
+import org.midonet.cluster.auth.Token;
+import org.midonet.cluster.auth.UserIdentity;
 
 /**
  * This class is for testing purpose.
@@ -30,15 +31,13 @@ import org.midonet.brain.rest_api.auth.UserIdentity;
  */
 public class FakeTestAuthService implements AuthService {
     @Override
-    public UserIdentity getUserIdentityByToken(String token)
-            throws AuthException {
+    public UserIdentity getUserIdentityByToken(String t) throws AuthException {
         return null;
     }
 
     @Override
     public Token login(String username, String password,
-                       HttpServletRequest request)
-            throws AuthException {
+                       HttpServletRequest request) throws AuthException {
         return null;
     }
 
@@ -48,8 +47,7 @@ public class FakeTestAuthService implements AuthService {
     }
 
     @Override
-    public List<Tenant> getTenants(HttpServletRequest request)
-            throws AuthException {
+    public List<Tenant> getTenants(HttpServletRequest r) throws AuthException {
         return null;
     }
 }

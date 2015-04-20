@@ -39,9 +39,9 @@ import org.midonet.api.network.auth.PortAuthorizer;
 import org.midonet.api.network.auth.PortGroupAuthorizer;
 import org.midonet.api.network.auth.RouteAuthorizer;
 import org.midonet.api.network.auth.RouterAuthorizer;
-import org.midonet.brain.rest_api.auth.AuthException;
-import org.midonet.brain.rest_api.auth.AuthService;
-import org.midonet.brain.southbound.keystone.v2_0.KeystoneClient;
+import org.midonet.cluster.auth.AuthException;
+import org.midonet.cluster.auth.AuthService;
+import org.midonet.cluster.auth.keystone.v2_0.KeystoneClient;
 import org.midonet.config.ConfigProvider;
 
 /**

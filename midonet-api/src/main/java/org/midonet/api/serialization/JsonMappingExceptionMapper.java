@@ -15,12 +15,14 @@
  */
 package org.midonet.api.serialization;
 
-import org.midonet.brain.services.rest_api.ResponseUtils;
-import org.codehaus.jackson.map.JsonMappingException;
-
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.ExceptionMapper;
 import javax.ws.rs.ext.Provider;
+
+import org.codehaus.jackson.map.JsonMappingException;
+
+import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
+import static org.midonet.cluster.rest_api.ResponseUtils.buildErrorResponse;
 
 /**
  * ExceptionMapper provider class to handle JsonMappingException.
@@ -31,10 +33,9 @@ public class JsonMappingExceptionMapper implements
 
     @Override
     public Response toResponse(JsonMappingException e) {
-        return ResponseUtils.buildErrorResponse(
-                Response.Status.BAD_REQUEST.getStatusCode(),
-                "Invalid fields or values were passed in that could not be" +
-                        " deserialized into a known object.  Please check" +
-                        " fields such as 'type'.");
+        return buildErrorResponse(BAD_REQUEST.getStatusCode(),
+            "Invalid fields or values were passed in that could not be" +
+            " deserialized into a known object.  Please check" +
+            " fields such as 'type'.");
     }
 }
