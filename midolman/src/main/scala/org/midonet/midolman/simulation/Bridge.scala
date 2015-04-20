@@ -85,6 +85,7 @@ object Bridge {
   * @param flowRemovedCallbackGen
   * @param macToLogicalPortId
   * @param ipToMac
+  * @param subnetIds only used for the new storage
   * @param actorSystem
   */
 class Bridge(val id: UUID,
@@ -101,7 +102,8 @@ class Bridge(val id: UUID,
              val macToLogicalPortId: ROMap[MAC, UUID],
              val ipToMac: ROMap[IPAddr, MAC],
              val vlanToPort: VlanPortMap,
-             val exteriorPorts: List[UUID])
+             val exteriorPorts: List[UUID],
+             val subnetIds: List[UUID])
             (implicit val actorSystem: ActorSystem) extends Coordinator.Device
                                                     with VirtualDevice {
 

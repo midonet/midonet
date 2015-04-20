@@ -19,28 +19,26 @@ package org.midonet.midolman
 import scala.collection.immutable
 import scala.concurrent.duration._
 
-import akka.actor._
-import akka.actor.{Actor, ActorRef, Props}
+import akka.actor.{Actor, ActorRef, Props, _}
 import akka.event.LoggingReceive
-
 import com.codahale.metrics.MetricRegistry
-
 import com.google.inject.Inject
-
 import com.typesafe.scalalogging.Logger
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.DataClient
 import org.midonet.midolman.HostRequestProxy.FlowStateBatch
 import org.midonet.midolman.config.MidolmanConfig
-import org.midonet.midolman.datapath.{FlowProcessor, DatapathChannel}
+import org.midonet.midolman.datapath.{DatapathChannel, FlowProcessor}
 import org.midonet.midolman.flows.FlowInvalidator
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
+import org.midonet.midolman.simulation.{DhcpConfig, DhcpConfigFromDataclient, DhcpConfigFromZoom}
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackKey, ConnTrackValue}
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
+import org.midonet.midolman.state.TraceState.{TraceContext, TraceKey}
 import org.midonet.midolman.state.{FlowStateStorageFactory, NatBlockAllocator, NatLeaser}
-import org.midonet.midolman.state.TraceState.{TraceKey, TraceContext}
+import org.midonet.midolman.topology.VirtualTopology
 import org.midonet.sdn.state.ShardedFlowStateTable
 import org.midonet.util.StatisticalCounter
 import org.midonet.util.concurrent.NanoClock
@@ -80,6 +78,9 @@ class PacketsEntryPoint extends Actor with ActorLogWithoutPath
 
     @Inject
     var clusterDataClient: DataClient = null
+
+    @Inject
+    var vt: VirtualTopology = null
 
     @Inject
     override val supervisorStrategy: SupervisorStrategy = null
@@ -148,9 +149,17 @@ class PacketsEntryPoint extends Actor with ActorLogWithoutPath
 
     protected def propsForWorker(index: Int) = {
         val cookieGen = new CookieGenerator(index, NUM_WORKERS)
+        val dhcpConfigProvider: Unit => DhcpConfig = _ => {
+            if (config.zookeeper.useNewStack) {
+                new DhcpConfigFromZoom(vt)
+            } else {
+                new DhcpConfigFromDataclient(clusterDataClient)
+            }
+        }
         Props(
             classOf[PacketWorkflow],
-            index, config, cookieGen, clock, dpChannel, clusterDataClient,
+            index, config, cookieGen, clock, dpChannel,
+            dhcpConfigProvider,
             flowInvalidator, flowProcessor,
             connTrackStateTable.addShard(log = shardLogger(connTrackStateTable)),
             natStateTable.addShard(log = shardLogger(natStateTable)),
