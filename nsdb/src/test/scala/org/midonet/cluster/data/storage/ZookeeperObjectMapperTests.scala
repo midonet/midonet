@@ -1243,6 +1243,22 @@ class ZookeeperObjectMapperTests extends Suite
             Set(owner3.toString),
             Set.empty)
     }
+
+    def testSubsribeOwnerUpdateMulti(): Unit = {
+        val state = new SharedState
+        val owner = UUID.randomUUID.toString
+        val obs = new TestObserver[Set[String]] with AwaitableObserver[Set[String]]
+        zom.create(state, owner)
+        zom.ownersObservable(classOf[SharedState], state.id).subscribe(obs)
+        obs.awaitOnNext(1, 1 second) shouldBe true
+        obs.getOnNextEvents.get(0) should contain only owner
+        zom.multi(Seq(DeleteWithOwnerOp(classOf[SharedState], state.id, owner),
+                      CreateWithOwnerOp(state, owner),
+                      DeleteWithOwnerOp(classOf[SharedState], state.id, owner),
+                      CreateWithOwnerOp(state, owner)))
+        obs.awaitOnNext(2, 1 second) shouldBe true
+        obs.getOnNextEvents.get(1) should contain only owner
+    }
 }
 
 private object ZookeeperObjectMapperTests {
