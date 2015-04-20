@@ -15,20 +15,27 @@
  */
 package org.midonet.api.auth;
 
+import java.io.IOException;
+
+import javax.servlet.Filter;
+import javax.servlet.FilterChain;
+import javax.servlet.FilterConfig;
+import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import org.midonet.brain.services.rest_api.ResponseUtils;
-import org.midonet.brain.rest_api.auth.AuthException;
-import org.midonet.brain.rest_api.auth.AuthService;
-import org.midonet.brain.rest_api.auth.UserIdentity;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.servlet.*;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
+import org.midonet.brain.auth.AuthException;
+import org.midonet.brain.auth.AuthService;
+import org.midonet.brain.auth.UserIdentity;
+import org.midonet.brain.rest_api.ResponseUtils;
 
 /**
  * Servlet filter for authentication.
@@ -72,16 +79,11 @@ public final class AuthFilter implements Filter {
      * through the chain due to a client request for a resource at the end of
      * the chain.
      *
-     * @param request
-     *            Request passed along the chain.
-     * @param response
-     *            Response passed along the chain.
-     * @param chain
-     *            Filter chain to keep the request going.
-     * @throws IOException
-     *             Auth client IO error.
-     * @throws ServletException
-     *             A servlet error.
+     * @param request Request passed along the chain.
+     * @param response Response passed along the chain.
+     * @param chain Filter chain to keep the request going.
+     * @throws IOException Auth client IO error.
+     * @throws ServletException A servlet error.
      */
     @Override
     public void doFilter(ServletRequest request, ServletResponse response,
@@ -110,7 +112,7 @@ public final class AuthFilter implements Filter {
             // This is the case where a token was invalid.  Challenge the
             // client to submit Basic auth credentials.
             ResponseUtils.setAuthErrorResponse((HttpServletResponse) response,
-                    "Authentication error");
+                                               "Authentication error");
         }
 
         log.debug("AuthFilter: exiting doFilter.");

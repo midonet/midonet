@@ -15,21 +15,27 @@
  */
 package org.midonet.api.auth;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import javax.servlet.http.HttpServletRequest;
+
 import com.google.inject.Inject;
 
-import org.midonet.brain.rest_api.auth.AuthDataAccessException;
-import org.midonet.brain.rest_api.auth.AuthException;
-import org.midonet.brain.rest_api.auth.AuthService;
-import org.midonet.brain.rest_api.auth.Tenant;
-import org.midonet.brain.rest_api.auth.Token;
-import org.midonet.brain.rest_api.auth.UserIdentity;
-import org.midonet.cluster.DataClient;
-import org.midonet.midolman.state.StateAccessException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.servlet.http.HttpServletRequest;
-import java.util.*;
+import org.midonet.brain.auth.AuthDataAccessException;
+import org.midonet.brain.auth.AuthException;
+import org.midonet.brain.auth.AuthService;
+import org.midonet.brain.auth.Tenant;
+import org.midonet.brain.auth.Token;
+import org.midonet.brain.auth.UserIdentity;
+import org.midonet.cluster.DataClient;
+import org.midonet.midolman.state.StateAccessException;
 
 /**
  * Configurable auth client that skips authentication but allows setting of
@@ -43,20 +49,12 @@ public final class MockAuthService implements AuthService {
     private final Map<String, UserIdentity> tokenMap;
     private final DataClient dataClient;
 
-    /**
-     * Create a MockAuthService object.
-     *
-     * @param config
-     *            MockAuthConfig object.
-     * @param dataClient
-     *            {@link DataClient} object to retrieve from data store
-     */
     @Inject
     public MockAuthService(MockAuthConfig config, DataClient dataClient) {
 
         this.config = config;
         this.dataClient = dataClient;
-        this.tokenMap = new HashMap<String, UserIdentity>();
+        this.tokenMap = new HashMap<>();
         String token = config.getAdminToken();
         if (token != null && token.length() > 0) {
             setRoles(token, AuthRole.ADMIN);

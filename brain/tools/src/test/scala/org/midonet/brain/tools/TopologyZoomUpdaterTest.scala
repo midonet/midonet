@@ -21,7 +21,7 @@ import org.junit.runner.RunWith
 import org.scalatest.{BeforeAndAfter, Matchers, FeatureSpec}
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.brain.{BrainConfig, TopologyZoomUpdaterConfig}
+import org.midonet.brain.ClusterConfig
 import org.midonet.cluster.data.storage.{Storage, InMemoryStorage, StorageWithOwnership}
 import org.midonet.cluster.models.Topology
 import org.midonet.cluster.services.MidonetBackend
@@ -65,8 +65,8 @@ class TopologyZoomUpdaterTest extends FeatureSpec
         """.stripMargin
 
     before {
-        val config = new BrainConfig(MidoTestConfigurator.
-                forBrains(ConfigFactory.parseString(CONFIG_STRING)))
+        val config = new ClusterConfig(MidoTestConfigurator.
+                forClusters(ConfigFactory.parseString(CONFIG_STRING)))
 
         backend = new InMemoryMidonetBackendService
         backend.startAsync().awaitRunning()

@@ -19,7 +19,7 @@ package org.midonet.brain.tools
 import com.google.inject.{AbstractModule, Guice, Singleton}
 import org.slf4j.LoggerFactory
 
-import org.midonet.brain.BrainConfig
+import org.midonet.brain.ClusterConfig
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.storage.MidonetBackendModule
 
@@ -31,7 +31,7 @@ object TopologyZoomUpdaterApp extends App {
     private val log = LoggerFactory.getLogger(this.getClass)
 
     private val cfgFile = args(0)
-    private val config = BrainConfig(cfgFile)
+    private val config = ClusterConfig(cfgFile)
 
     private val topologyZkUpdaterModule = new AbstractModule {
         override def configure(): Unit = {

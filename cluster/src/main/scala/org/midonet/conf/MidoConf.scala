@@ -183,13 +183,13 @@ object MidoTestConfigurator {
                     MidoNodeConfigurator.bootstrapConfig())
     }
 
-    def forBrains(): Config = forBrains(ConfigFactory.empty)
+    def forClusters(): Config = forClusters(ConfigFactory.empty)
 
-    def forBrains(overrides: String): Config = forBrains(ConfigFactory.parseString(overrides))
+    def forClusters(overrides: String): Config = forClusters(ConfigFactory.parseString(overrides))
 
-    def forBrains(overrides: Config): Config = {
+    def forClusters(overrides: Config): Config = {
         overrides.withFallback(
-            new ResourceConf(s"org/midonet/conf/schemas/brain.conf").get).withFallback(
+            new ResourceConf(s"org/midonet/conf/schemas/cluster.conf").get).withFallback(
                 new ResourceConf(s"org/midonet/conf/schemas/nsdb.conf").get).withFallback(
                     MidoNodeConfigurator.bootstrapConfig())
     }

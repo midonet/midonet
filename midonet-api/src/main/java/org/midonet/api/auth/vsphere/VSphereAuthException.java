@@ -15,7 +15,7 @@
  */
 package org.midonet.api.auth.vsphere;
 
-import org.midonet.brain.rest_api.auth.AuthException;
+import org.midonet.brain.auth.AuthException;
 
 public class VSphereAuthException extends AuthException {
 
