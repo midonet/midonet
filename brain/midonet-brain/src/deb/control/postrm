@@ -1,9 +1,0 @@
-#!/bin/sh
-
-# MidoNet
-
-if [ "$1" = purge ]; then
-    test -h /etc/init.d/midonet-brain && rm /etc/init.d/midonet-brain
-fi
-
-exit 0
