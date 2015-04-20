@@ -76,12 +76,12 @@ class ArpRequestBrokerTest extends Suite
 
     var packetsEmitted = 0
 
-    private val HIS_IP = "180.0.1.1"
+    private val THEIR_IP = "180.0.1.1"
     private val NW_ADDR = "180.0.1.0"
     private val NW_CIDR = "180.0.1.2/24"
     private val MY_IP = "180.0.1.2"
     private val MY_MAC = MAC.fromString("02:0a:08:06:04:02")
-    private val HIS_MAC = MAC.random()
+    private val THEIR_MAC = MAC.random()
 
     val port = new RouterPort
     port.id = UUID.randomUUID()
@@ -176,7 +176,7 @@ class ArpRequestBrokerTest extends Suite
         val pkt = arps.poll()
         pkt.egressPort should === (port.id)
         val arpReq: Ethernet = { eth addr MY_MAC -> eth_bcast } <<
-            { arp.req mac MY_MAC -> eth_zero ip MY_IP --> HIS_IP}
+            { arp.req mac MY_MAC -> eth_zero ip MY_IP --> THEIR_IP}
         pkt.eth should === (arpReq)
         arps should be ('empty)
     }
@@ -184,7 +184,7 @@ class ArpRequestBrokerTest extends Suite
     private def addMoreWaiters(waiters: List[Future[MAC]], howMany: Int = 10): List[Future[MAC]] = {
         if (howMany > 0) {
             val NotYetException(macFuture, _) = intercept[NotYetException] {
-                arpBroker.get(HIS_IP, port, router)
+                arpBroker.get(THEIR_IP, port, router)
             }
             addMoreWaiters(macFuture.asInstanceOf[Future[MAC]] :: waiters, howMany-1)
         } else {
@@ -250,14 +250,14 @@ class ArpRequestBrokerTest extends Suite
             }
         }
 
-        arpBroker.set(HIS_IP, HIS_MAC, router)
+        arpBroker.set(THEIR_IP, THEIR_MAC, router)
         eventually {
-            arpBroker.get(HIS_IP, port, router) should be (HIS_MAC)
+            arpBroker.get(THEIR_IP, port, router) should be (THEIR_MAC)
         }
 
         arpBroker.process()
         for (f <- futures) {
-            f.value should be (Some(Success(HIS_MAC)))
+            f.value should be (Some(Success(THEIR_MAC)))
         }
     }
 
@@ -265,44 +265,44 @@ class ArpRequestBrokerTest extends Suite
         val futures = addMoreWaiters(List.empty)
         arpBroker.process()
 
-        ArpCacheHelper.feedArpCache(remoteArpCache, HIS_IP, HIS_MAC)
+        ArpCacheHelper.feedArpCache(remoteArpCache, THEIR_IP, THEIR_MAC)
         eventually {
-            arpBroker.get(HIS_IP, port, router) should be (HIS_MAC)
+            arpBroker.get(THEIR_IP, port, router) should be (THEIR_MAC)
             arpBroker.process()
             for (f <- futures) {
-                eventually { f.value should be (Some(Success(HIS_MAC))) }
+                eventually { f.value should be (Some(Success(THEIR_MAC))) }
             }
         }
     }
 
     def testInvalidatesFlowsRemotely(): Unit ={
-        intercept[NotYetException] { arpBroker.get(HIS_IP, port, router) }
-        ArpCacheHelper.feedArpCache(remoteArpCache, HIS_IP, HIS_MAC)
-        eventually { arpBroker.get(HIS_IP, port, router) should be (HIS_MAC) }
+        intercept[NotYetException] { arpBroker.get(THEIR_IP, port, router) }
+        ArpCacheHelper.feedArpCache(remoteArpCache, THEIR_IP, THEIR_MAC)
+        eventually { arpBroker.get(THEIR_IP, port, router) should be (THEIR_MAC) }
 
-        ArpCacheHelper.feedArpCache(remoteArpCache, HIS_IP, MAC.random())
+        ArpCacheHelper.feedArpCache(remoteArpCache, THEIR_IP, MAC.random())
         eventually {
             arpBroker.process()
             invalidations should have size 1
-            invalidations.poll() should be (FlowTagger.tagForDestinationIp(routerId, HIS_IP))
+            invalidations.poll() should be (FlowTagger.tagForDestinationIp(routerId, THEIR_IP))
         }
     }
 
     def testInvalidatesFlowsLocally(): Unit = {
-        arpBroker.set(HIS_IP, HIS_MAC, router)
-        eventually { arpBroker.get(HIS_IP, port, router) should be (HIS_MAC) }
+        arpBroker.set(THEIR_IP, THEIR_MAC, router)
+        eventually { arpBroker.get(THEIR_IP, port, router) should be (THEIR_MAC) }
 
-        arpBroker.set(HIS_IP, MAC.random(), router)
+        arpBroker.set(THEIR_IP, MAC.random(), router)
         eventually {
             arpBroker.process()
             invalidations should have size 1
-            invalidations.poll() should be (FlowTagger.tagForDestinationIp(routerId, HIS_IP))
+            invalidations.poll() should be (FlowTagger.tagForDestinationIp(routerId, THEIR_IP))
         }
     }
 
     def testArpForStaleEntries(): Unit = {
-        arpBroker.set(HIS_IP, HIS_MAC, router)
-        eventually { arpBroker.get(HIS_IP, port, router) should be (HIS_MAC) }
+        arpBroker.set(THEIR_IP, THEIR_MAC, router)
+        eventually { arpBroker.get(THEIR_IP, port, router) should be (THEIR_MAC) }
         arpBroker.process()
         arpBroker.shouldProcess() should be (false)
 
@@ -311,7 +311,7 @@ class ArpRequestBrokerTest extends Suite
         arpBroker.process()
         arps should be ('empty)
 
-        arpBroker.get(HIS_IP, port, router) should be (HIS_MAC)
+        arpBroker.get(THEIR_IP, port, router) should be (THEIR_MAC)
         expectEmitArp()
 
         clock.time += (ARP_RETRY * RETRY_MAX_BASE_JITTER).toLong
@@ -319,7 +319,7 @@ class ArpRequestBrokerTest extends Suite
         arpBroker.process()
         expectEmitArp()
 
-        arpBroker.set(HIS_IP, MAC.random(), router)
+        arpBroker.set(THEIR_IP, MAC.random(), router)
         eventually { arpBroker.shouldProcess() should be (true) }
         arpBroker.process()
         clock.time += (ARP_RETRY * RETRY_MAX_BASE_JITTER).toLong * 2
@@ -333,15 +333,15 @@ class ArpRequestBrokerTest extends Suite
     }
 
     def testExpiresEntries(): Unit = {
-        arpBroker.set(HIS_IP, HIS_MAC, router)
-        eventually { arpBroker.get(HIS_IP, port, router) should be (HIS_MAC) }
+        arpBroker.set(THEIR_IP, THEIR_MAC, router)
+        eventually { arpBroker.get(THEIR_IP, port, router) should be (THEIR_MAC) }
         arpBroker.process()
         arps.clear()
 
         clock.time += ARP_EXPIRATION
         arpBroker.process()
         eventually {
-            arpCache.get(HIS_IP) should be (null)
+            arpCache.get(THEIR_IP) should be (null)
         }
         arps should be ('empty)
     }

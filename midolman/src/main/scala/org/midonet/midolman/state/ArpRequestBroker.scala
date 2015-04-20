@@ -332,6 +332,7 @@ class SingleRouterArpRequestBroker(id: UUID,
                                                now + STALE_TIME, 0)
             arpCache.add(ip, entry)
             expiryQ.add((entry.expiry, ip))
+            scheduleNextProcessCall()
         }
     }
 
@@ -349,7 +350,13 @@ class SingleRouterArpRequestBroker(id: UUID,
         while ((!expiryQ.isEmpty) && (expiryQ.peek()._1 <= clock.time)) {
             val (_, ip) = expiryQ.poll()
             val entry = arpCache.get(ip)
-            // This is racy because the remove() op is not CAS
+
+            /* This is racy because the remove() op is not CAS.
+             * This means we could delete an entry written just now by another
+             * node that refreshed the arp cache entry. The result would be
+             * that MidoNet would have to ARP again, and in this case the race
+             * would not be possible because there would be no expirer to
+             * race with the writer. */
             if (entry.expiry <= clock.time)
                 arpCache.remove(ip)
         }
@@ -393,7 +400,7 @@ class SingleRouterArpRequestBroker(id: UUID,
     private def processNewMacs(): Unit = while (!macsDiscovered.isEmpty) {
         val MacChange(ip, oldMac, newMac) = macsDiscovered.poll()
         if (newMac ne null) {
-            if (oldMac ne null) {
+            if ((oldMac ne null) && (newMac != oldMac)) {
                 log.debug("Invalidating flows for {} in router {}", ip, id)
                 invalidator(FlowTagger.tagForDestinationIp(id, ip))
             }
