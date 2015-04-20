@@ -17,13 +17,12 @@
 package org.midonet.midolman.host.services
 
 import java.net.{InetAddress, UnknownHostException}
-import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.{AtomicBoolean, AtomicReference}
 import java.util.concurrent.{CountDownLatch, TimeUnit}
 import java.util.{Set => JSet, UUID}
 
 import scala.collection.JavaConverters._
-import scala.collection.mutable.ListBuffer
-import scala.concurrent.Await
+import scala.concurrent.{Future, Await}
 import scala.concurrent.duration._
 import scala.util.control.NonFatal
 
@@ -45,7 +44,7 @@ import org.midonet.midolman.Midolman
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.host.interfaces.InterfaceDescription
 import org.midonet.midolman.host.scanner.InterfaceScanner
-import org.midonet.midolman.host.services.HostService.HostIdAlreadyInUseException
+import org.midonet.midolman.host.services.HostService.{HostIdAlreadyInUseException, OwnershipState}
 import org.midonet.midolman.host.state.HostDirectory.{Metadata => HostMetadata}
 import org.midonet.midolman.host.state.HostZkManager
 import org.midonet.midolman.host.updater.InterfaceDataUpdater
@@ -57,10 +56,36 @@ import org.midonet.netlink.Callback
 import org.midonet.netlink.exceptions.NetlinkException
 
 object HostService {
+    object OwnershipState extends Enumeration {
+        type State = Value
+        val Acquiring, Acquired, Released = Value
+    }
+
     class HostIdAlreadyInUseException(message: String)
         extends Exception(message)
+
 }
 
+/**
+ * A service that upon start creates or updates a [[Host]] entry in the topology
+ * storage for this instance of the MidoNet agent. The service also monitors
+ * and updates the set of interfaces of the host.
+ *
+ * To prevent multiple instances of the agent from different physical hosts,
+ * using the same host identifier, the [[HostService]] leverages an ownership
+ * mechanism to indicate whether the host is in use. In both MidoNet 1.x and 2.x
+ * this uses a ZooKeeper ephemeral node, to indicate the presence of a host.
+ * In 2.x this is done via the [[StorageWithOwnership]] interface.
+ *
+ * The host ownership also indicates whether the host is active.
+ *
+ * In MidoNet 2.x, the [[HostService]] also monitors the host ownership to
+ * detect topology changes. If the ownership is lost, the service will attempt
+ * to reacquire ownership using the same retry policy as the one specified in
+ * the configuration. If reacquiring the ownership fails, then the
+ * [[HostService]] shuts down according to the behavior specified in the
+ * `shutdown()` method.
+ */
 class HostService @Inject()(config: MidolmanConfig,
                             backendConfig: MidonetBackendConfig,
                             backend: MidonetBackend,
@@ -69,6 +94,8 @@ class HostService @Inject()(config: MidolmanConfig,
                             hostZkManager: HostZkManager,
                             zkManager: ZkManager)
     extends AbstractService with HostIdProviderService with MidolmanLogging {
+
+    import scala.concurrent.ExecutionContext.Implicits.global
 
     private final val store = backend.ownershipStore
 
@@ -83,14 +110,42 @@ class HostService @Inject()(config: MidolmanConfig,
     @volatile private var oldInterfaces: Set[InterfaceDescription] = null
     @volatile private var ownerSubscription: Subscription = null
 
-    private[services] val ownerId = UUID.randomUUID
-
-    override def logSource = s"org.midonet.host.host-$hostId"
+    override def logSource = s"org.midonet.host.host-service"
 
     override def hostId: UUID = hostIdInternal
 
+    private val ownerState = new AtomicReference(OwnershipState.Released)
+    private val ownerObserver = new Observer[Set[String]] {
+        override def onCompleted(): Unit = {
+            recreateHostInV2OrShutdown()
+        }
+        override def onError(e: Throwable): Unit = {
+            recreateHostInV2OrShutdown()
+        }
+        override def onNext(o: Set[String]): Unit = o.headOption match {
+            case Some(id) =>
+                // Reacquire ownership if the hostname has changed.
+                try {
+                    val host = Await.result(store.get(classOf[Host], hostId),
+                                            timeout)
+                    if (host.getName != hostName) {
+                        recreateHostInV2OrShutdown()
+                    }
+                } catch {
+                    case NonFatal(e) => recreateHostInV2OrShutdown()
+                }
+            case None =>
+                recreateHostInV2OrShutdown()
+        }
+    }
+
+    /**
+     * Starts the host service, by setting the interface scanner callback to
+     * update the host interfaces, getting the host name, creating the host
+     * in storage, and monitoring the host ownership.
+     */
     override def doStart(): Unit = {
-        log.info("Starting MidoNet Agent host service")
+        log.info("Starting MidoNet agent host service")
         try {
             scanner.register(new Callback[JSet[InterfaceDescription]] {
                 override def onSuccess(data: JSet[InterfaceDescription])
@@ -103,7 +158,7 @@ class HostService @Inject()(config: MidolmanConfig,
                         return
                     }
                     if (backendConfig.useNewStack) {
-                        createOrUpdateInNewStack()
+                        createInV2()
                     } else {
                         interfaceDataUpdater
                             .updateInterfacesData(hostId, null, data)
@@ -116,17 +171,23 @@ class HostService @Inject()(config: MidolmanConfig,
             createHost()
             monitorOwnership()
             notifyStarted()
-            log.info("MidoNet Agent host service started")
+            log.info("MidoNet agent host service started")
         }
         catch {
             case NonFatal(e) =>
-                log.error("MidoNet Agent host service failed to start", e)
+                log.error("MidoNet agent host service failed to start", e)
                 notifyFailed(e)
         }
     }
 
+    /**
+     * Stops the host service, by shutting down the interface scanner. In
+     * MidoNet 2.x, the method also terminates the ownership monitoring, and
+     * removes the ownership entry from the topology store.
+     */
     override def doStop(): Unit = {
-        log.info("Stopping MidoNet Agent host service")
+        log.info("Stopping MidoNet agent host service")
+        ownerState.set(OwnershipState.Released)
         scanner.shutdown()
 
         // If the cluster storage is enabled, delete the ownership.
@@ -136,33 +197,37 @@ class HostService @Inject()(config: MidolmanConfig,
                 ownerSubscription = null
             }
             try {
-                store.deleteOwner(classOf[Host], hostId, ownerId.toString)
+                store.deleteOwner(classOf[Host], hostId, hostId.toString)
             } catch {
-                case e @ (_: NotFoundException |
-                          _: OwnershipConflictException) =>
-                    log.error("MidoNet Agent host service failed to cleanup " +
-                              "host ownership")
+                case NonFatal(e) =>
+                    log.warn("MidoNet agent host service failed to cleanup " +
+                             "host ownership", e)
             }
         } else {
-            // Disconnect from zookeeper: this will cause the ephemeral nodes to
+            // Disconnect from ZooKeeper: this will cause the ephemeral nodes to
             // disappear.
             zkManager.disconnect()
         }
 
         notifyStopped()
-        log.info("MidoNet Agent host service stopped")
+        log.info("MidoNet agent host service stopped")
     }
 
     /**
-     * Scans the host and identifies the host ID.
+     * Shuts down the MidoNet agent. You can override this method in a derived
+     * class to provide a different behavior.
      */
+    def shutdown() = {
+        System.exit(Midolman.MIDOLMAN_ERROR_CODE_LOST_HOST_OWNERSHIP)
+    }
+
+    /** Scans the host and identifies the host ID. */
     @throws[IllegalStateException]
     @throws[PropertiesFileNotWritableException]
     private def identifyHost(): Unit = {
         log.debug("Identifying host")
         if (!interfacesLatch.await(1, TimeUnit.SECONDS)) {
-            throw new IllegalStateException(
-                "Timeout while waiting for interfaces")
+            throw new IllegalStateException("Timeout while waiting for interfaces")
         }
         hostIdInternal = HostIdGenerator.getHostId
         try {
@@ -179,38 +244,27 @@ class HostService @Inject()(config: MidolmanConfig,
     private def createHost(): Unit = {
         var retries: Int = config.host.retriesForUniqueId
         while (!create() && { retries -= 1; retries } >= 0) {
-            log.warn("Host identifier already in use: waiting for it to be " +
-                     "released.")
+            log.warn("Host identifier already in use: waiting to be released.")
             Thread.sleep(config.host.waitTimeForUniqueId)
         }
         if (retries < 0) {
-            log.error("Couldn't take ownership of the in-use host ID")
-            throw new HostService.HostIdAlreadyInUseException(
+            log.error("Could not acquire ownership: host already in use")
+            throw new HostIdAlreadyInUseException(
                 s"Host identifier $hostId appears to already be taken")
-        }
-    }
-
-    private def createHostOrExit(): Unit = {
-        try {
-            Thread.sleep(config.host.waitTimeForUniqueId)
-            createHost()
-        } catch {
-            case NonFatal(e) =>
-                System.exit(Midolman.MIDOLMAN_ERROR_CODE_LOST_HOST_OWNERSHIP)
         }
     }
 
     @throws[StateAccessException]
     @throws[SerializationException]
     private def create(): Boolean = {
-        hostReady.set(createLegacy() && createOrUpdateInNewStack())
+        hostReady.set(createInV1() && createInV2())
         hostReady.get
     }
 
-    /** Creates the host in the legacy storage. */
+    /** Creates the host in v1.x storage. */
     @throws[StateAccessException]
     @throws[SerializationException]
-    private def createLegacy(): Boolean = {
+    private def createInV1(): Boolean = {
         if (backendConfig.useNewStack)
             return true
         log.debug("Creating/updating host in legacy storage")
@@ -236,44 +290,82 @@ class HostService @Inject()(config: MidolmanConfig,
         true
     }
 
-    /** Creates the host in the backend storage. */
-    private def createOrUpdateInNewStack(): Boolean = {
+    /** Creates the host in v2.x storage. */
+    private def createInV2(): Boolean = {
         if (!backendConfig.useNewStack)
             return true
+        // Only try to acquire ownership if it has been lost.
+        if (!ownerState.compareAndSet(OwnershipState.Released,
+                                      OwnershipState.Acquiring))
+            return false
         log.debug("Creating host in backend storage with owner identifier {}",
-                  ownerId)
+                  hostId)
         try {
+            // Get the current host if it exists.
+            val future = store.exists(classOf[Host], hostId) flatMap { exists =>
+                if (exists) store.get(classOf[Host], hostId)
+                else Future.successful(null)
+            }
+            val currentHost = Await.result(future, timeout)
             // If the host entry exists
-            try {
-                // Read the current host.
-                val currentHost =
-                    Await.result(store.get(classOf[Host], hostId), timeout)
-                val host = currentHost.toBuilder
+            if (currentHost ne null) {
+                val newHost = currentHost.toBuilder
                     .setName(hostName)
                     .clearInterfaces()
                     .addAllInterfaces(getInterfaces.asJava)
                     .build()
+
+                if (currentHost.getName != newHost.getName) {
+                    log.error("Failed to create host {} with name {} because " +
+                              "the host exists with name {}", hostId,
+                              newHost.getName, currentHost.getName)
+                    ownerState.set(OwnershipState.Released)
+                    return false
+                }
+
                 // Take ownership and update host in storage.
-                store.update(host, ownerId.toString, validator = null)
-            } catch {
-                case e: NotFoundException =>
-                    // Create a new host.
-                    val host = Host.newBuilder
-                        .setId(hostId.asProto)
-                        .setName(hostName)
-                        .addAllInterfaces(getInterfaces.asJava)
-                        .build()
-                    // Create the host object.
-                    store.create(host, ownerId)
+                store.update(newHost, hostId.toString, validator = null)
+            } else {
+                // Create a new host.
+                val host = Host.newBuilder
+                    .setId(hostId.asProto)
+                    .setName(hostName)
+                    .addAllInterfaces(getInterfaces.asJava)
+                    .build()
+                store.create(host, hostId)
             }
+            ownerState.set(OwnershipState.Acquired)
             true
         } catch {
             case e @ (_: ObjectExistsException |
                       _: ReferenceConflictException |
                       _: OwnershipConflictException) =>
-                log.debug("Failed to create host in backend storage with " +
-                          "owner identifier {}", ownerId, e)
+                log.error("Failed to create host in backend storage with " +
+                          "owner identifier {}", hostId, e)
+                ownerState.set(OwnershipState.Released)
                 false
+        }
+    }
+
+    private def recreateHostInV2OrShutdown(): Unit = {
+        // Only reacquire ownership if the current state is Acquired.
+        if (!ownerState.compareAndSet(OwnershipState.Acquired,
+                                      OwnershipState.Released)) return
+
+        log.warn("Lost ownership of host: attempting to reacquire in {} ms",
+                 Long.box(config.host.waitTimeForUniqueId))
+
+        try {
+            Thread.sleep(config.host.waitTimeForUniqueId)
+            createHost()
+        } catch {
+            case NonFatal(e) => shutdown()
+        }
+
+        // If the ownership observer has been unsubscribed because of a terminal
+        // observable notification, re-subscribe.
+        if (ownerSubscription.isUnsubscribed) {
+            monitorOwnership()
         }
     }
 
@@ -282,46 +374,14 @@ class HostService @Inject()(config: MidolmanConfig,
      * ownership when the ownership changes.
      */
     private def monitorOwnership(): Unit = {
-        // Only available for backend storage.
+        // Only available for V2 storage.
         if (!backendConfig.useNewStack) return
 
-        if (null != ownerSubscription) {
-            ownerSubscription.unsubscribe()
-            ownerSubscription = null
-        }
-
         log.debug("Monitoring host ownership")
-        ownerSubscription = store.ownersObservable(classOf[Host], hostId).subscribe(
-            new Observer[Set[String]] {
-                override def onCompleted(): Unit = {
-                    log.warn("Lost ownership of host: attempting to retake " +
-                             "ownership in {} ms",
-                             Long.box(config.host.waitTimeForUniqueId))
-                    createHostOrExit()
-                    monitorOwnership()
-                }
-                override def onError(e: Throwable): Unit = {
-                    log.warn("Lost ownership of host: attempting to retake " +
-                             "ownership in {} ms",
-                             Long.box(config.host.waitTimeForUniqueId), e)
-                    createHostOrExit()
-                    monitorOwnership()
-                }
-                override def onNext(o: Set[String]): Unit = o.headOption match {
-                    case Some(id) if id != ownerId.toString =>
-                        log.warn("Lost host ownership to owner {}: attempting " +
-                                 "to retake ownership in {} ms",
-                                 Long.box(config.host.waitTimeForUniqueId))
-                        createHostOrExit()
-                    case None =>
-                        log.warn("Lost ownership of host: attempting to retake " +
-                                 "ownership in {} ms",
-                                 Long.box(config.host.waitTimeForUniqueId))
-                        createHostOrExit()
-                    case _ => log.debug("Host ownership updated")
-                }
-            })
+        ownerSubscription = store.ownersObservable(classOf[Host], hostId)
+            .subscribe(ownerObserver)
     }
+
 
     /** Returns the current set of interfaces for this host as a set of protocol
       * buffers messages. */
@@ -333,4 +393,5 @@ class HostService @Inject()(config: MidolmanConfig,
     private def getInterfaceAddresses: Seq[InetAddress] = {
         currentInterfaces.toList.flatMap(_.getInetAddresses.asScala).toSeq
     }
+
 }
