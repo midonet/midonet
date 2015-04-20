@@ -15,10 +15,10 @@
  */
 package org.midonet.api.auth.keystone;
 
+import org.midonet.api.auth.AuthConfig;
 import org.midonet.config.ConfigGroup;
 import org.midonet.config.ConfigInt;
 import org.midonet.config.ConfigString;
-import org.midonet.api.auth.AuthConfig;
 
 /**
  * Config interface for Keystone.
