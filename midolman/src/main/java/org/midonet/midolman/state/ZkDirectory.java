@@ -312,7 +312,8 @@ public class ZkDirectory implements Directory {
 
     @Override
     public void asyncDelete(String relativePath, final DirectoryCallback.Void callback) {
-        zk.getZooKeeper().delete(relativePath, -1, new AsyncCallback.VoidCallback() {
+        String absPath = getAbsolutePath(relativePath);
+        zk.getZooKeeper().delete(absPath, -1, new AsyncCallback.VoidCallback() {
             @Override
             public void processResult(int rc, String path, Object ctx) {
                 if (rc == KeeperException.Code.OK.intValue()) {
