@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_0dcca2bb",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/ArpRequestBroker.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-04-20T17:29:00Z",
+      "side": 1,
+      "message": "Well I moved some code from the old ArpTableImpl, though it\u0027s barely recognizable now.",
+      "parentUuid": "1a106d94_cd9c4ac3",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "6a8671c690cb73937701f4bf3dde643f49cd0bef",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_2d3d1ebc",
         "filename": "midolman/src/main/scala/org/midonet/midolman/state/ArpRequestBroker.scala",
         "patchSetId": 5
@@ -36,6 +60,30 @@
       "writtenOn": "2015-04-20T16:59:04Z",
       "side": 1,
       "message": "maybe add a line on what the ill effects of the race would be.",
+      "range": {
+        "startLine": 325,
+        "startChar": 35,
+        "endLine": 325,
+        "endChar": 36
+      },
+      "revId": "6a8671c690cb73937701f4bf3dde643f49cd0bef",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_edce66b3",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/ArpRequestBroker.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 325,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-04-20T17:29:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_2d3d1ebc",
       "range": {
         "startLine": 325,
         "startChar": 35,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_add46e47",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/ArpRequestBrokerTest.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-04-20T17:29:00Z",
+      "side": 1,
+      "message": "I always say yes to Seinfeld referential comments.",
+      "parentUuid": "1a106d94_cd83aa54",
+      "range": {
+        "startLine": 85,
+        "startChar": 16,
+        "endLine": 85,
+        "endChar": 23
+      },
+      "revId": "6a8671c690cb73937701f4bf3dde643f49cd0bef",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_0d7e626b",
         "filename": "midolman/src/test/scala/org/midonet/midolman/ArpRequestBrokerTest.scala",
         "patchSetId": 5
@@ -82,6 +154,24 @@
       "writtenOn": "2015-04-20T16:59:04Z",
       "side": 1,
       "message": "why 2?",
+      "revId": "6a8671c690cb73937701f4bf3dde643f49cd0bef",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_cdd1ea58",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/ArpRequestBrokerTest.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 255,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-04-20T17:29:00Z",
+      "side": 1,
+      "message": "Because we don\u0027t know the actual jitter and it sits somewhere between 0.75 and 1.25 (and increasing with each iteration). In this test, we increment the time by MAX_BASE_JITTER (1.25) plus the retry-no modifier. If the actual jitter is 0.75, two arps could fit in a single test loop increment:\n\nARP with 0.75 base jitter at: 0.75, 1.6, 2,55.\n\nTest loop starts uses 1.25 as the base jitter, and tests at: 1.25, 2.60, 4.05.\n\nthus it would get two arps in the second iteration: those emitted at 1.6 and 2.55.",
+      "parentUuid": "1a106d94_0d7e626b",
       "revId": "6a8671c690cb73937701f4bf3dde643f49cd0bef",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
