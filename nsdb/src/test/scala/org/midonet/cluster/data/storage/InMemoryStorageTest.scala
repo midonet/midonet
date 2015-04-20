@@ -1485,13 +1485,13 @@ class InMemoryStorageTest extends FeatureSpec with BeforeAndAfter
                 Set(owner.toString), Set(owner.toString))
         }
 
-        scenario("Test subscribe exclusive ownerhip on delete") {
+        scenario("Test subscribe exclusive ownership on delete") {
             val state = new ExclusiveState
             val owner = UUID.randomUUID
             val obs = makeObservable[Set[String]](assertThread)
             storage.create(state, owner)
             storage.ownersObservable(classOf[ExclusiveState], state.id).subscribe(obs)
-            obs.awaitOnNext(1, 1 second) shouldBe (true)
+            obs.awaitOnNext(1, 1 second) shouldBe true
             storage.delete(classOf[ExclusiveState], state.id, owner)
             obs.awaitCompletion(1 second)
             obs.getOnNextEvents should contain only Set(owner.toString)
@@ -1595,6 +1595,22 @@ class InMemoryStorageTest extends FeatureSpec with BeforeAndAfter
                 Set(owner2.toString, owner3.toString),
                 Set(owner3.toString),
                 Set.empty)
+        }
+
+        scenario("Test subscribe owner multi") {
+            val state = new SharedState
+            val owner = UUID.randomUUID.toString
+            val obs = new TestObserver[Set[String]] with AwaitableObserver[Set[String]]
+            storage.create(state, owner)
+            storage.ownersObservable(classOf[SharedState], state.id).subscribe(obs)
+            obs.awaitOnNext(1, 1 second) shouldBe true
+            obs.getOnNextEvents.get(0) should contain only owner
+            storage.multi(Seq(DeleteWithOwnerOp(classOf[SharedState], state.id, owner),
+                              CreateWithOwnerOp(state, owner),
+                              DeleteWithOwnerOp(classOf[SharedState], state.id, owner),
+                              CreateWithOwnerOp(state, owner)))
+            obs.awaitOnNext(2, 1 second) shouldBe true
+            obs.getOnNextEvents.get(1) should contain only owner
         }
     }
 
