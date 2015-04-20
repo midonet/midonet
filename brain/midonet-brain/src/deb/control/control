@@ -1,4 +1,4 @@
-Package: midonet-brain
+Package: midonet-cluster
 Version: [[version]]
 Section: misc
 Priority: optional
@@ -7,5 +7,5 @@ Depends: java7-runtime-headless
 Conflicts:
 Recommends: java7-jdk
 Maintainer: MidoNet <midonet-user@midonet.org>
-Description: Midonet-Brain is MidoNet's Control cluster
+Description: midonet-cluster is MidoNet's Control cluster
 Distribution: development

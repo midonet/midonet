@@ -24,7 +24,7 @@ repositories {
 
 jar {
     manifest {
-        attributes 'Implementation-Title': 'Midonet Brain Tools',
+        attributes 'Implementation-Title': 'Midonet Cluster Tools',
         'Implementation-Version': version
     }
 }

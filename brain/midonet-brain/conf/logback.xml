@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright 2014 Midokura SARL
+  ~ Copyright 2015 Midokura SARL
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -19,13 +19,13 @@
     <jmxConfigurator/>
 
     <appender name="LOG-FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${midonet-brain.log.dir}midonet-brain.log</file>
+        <file>${midonet-cluster.log.dir}midonet-cluster.log</file>
         <append>true</append>
         <encoder>
             <pattern>%d{yyyy.MM.dd HH:mm:ss.SSS} %-4level [%thread] %logger{0} %m%n%rEx</pattern>
         </encoder>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-                <fileNamePattern>${midonet-brain.log.dir}midonet-brain.%d{yyyy-MM-dd}.log</fileNamePattern>
+                <fileNamePattern>${midonet-cluster.log.dir}midonet-cluster.%d{yyyy-MM-dd}.log</fileNamePattern>
                 <maxHistory>7</maxHistory>
         </rollingPolicy>
     </appender>

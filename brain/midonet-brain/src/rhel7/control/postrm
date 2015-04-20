@@ -3,5 +3,5 @@
 systemctl daemon-reload
 if [ $1 -ge 1 ]; then
         # Package upgrade, not uninstall
-        systemctl try-restart midonet-brain.service
+        systemctl try-restart midonet-cluster.service
 fi
