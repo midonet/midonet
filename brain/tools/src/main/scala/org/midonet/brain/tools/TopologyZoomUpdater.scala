@@ -33,9 +33,9 @@ import com.google.protobuf.Message
 
 import org.slf4j.LoggerFactory
 
+import org.midonet.brain.{TopologyZoomUpdaterConfig, ClusterConfig}
 import org.midonet.brain.tools.TopologyEntity._
 import org.midonet.brain.tools.TopologyZoomUpdater._
-import org.midonet.brain.{BrainConfig, TopologyZoomUpdaterConfig}
 import org.midonet.cluster.data.storage.StorageWithOwnership
 import org.midonet.cluster.models.Topology.Host.{Interface, PortBinding}
 import org.midonet.cluster.models.Topology.IPAddrGroup.IPAddrPorts
@@ -89,7 +89,7 @@ object TopologyZoomUpdater {
     def randomId: Commons.UUID = UUIDUtil.randomUuidProto
 }
 class TopologyZoomUpdater @Inject()(val backend: MidonetBackend,
-                                    val brainConf: BrainConfig)
+                                    val brainConf: ClusterConfig)
     extends AbstractService {
     private val cfg: TopologyZoomUpdaterConfig = brainConf.topologyUpdater
 

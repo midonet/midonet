@@ -111,6 +111,8 @@ class ObservableNodeCache(zk: CuratorFramework,
                 case _ =>
             }
         }
+
+        Observable.never().toBlocking.toFuture
     }
 
     nodeCache.getListenable.addListener(nodeCacheListener)
