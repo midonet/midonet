@@ -46,10 +46,10 @@ import org.midonet.api.neutron.NeutronRestApiModule;
 import org.midonet.api.rest_api.RestApiModule;
 import org.midonet.api.serialization.SerializationModule;
 import org.midonet.api.validation.ValidationModule;
-import org.midonet.brain.BrainConfig;
+import org.midonet.brain.ClusterConfig;
 import org.midonet.brain.ClusterNode;
+import org.midonet.brain.auth.LoginFilter;
 import org.midonet.brain.services.conf.ConfMinion;
-import org.midonet.brain.rest_api.auth.LoginFilter;
 import org.midonet.cluster.config.ZookeeperConfig;
 import org.midonet.cluster.data.neutron.NeutronClusterApiModule;
 import org.midonet.cluster.storage.MidonetBackendModule;
@@ -189,7 +189,7 @@ public class RestApiJerseyServletModule extends JerseyServletModule {
     protected void installConfigApi(Config zkConf) {
         try {
             UUID hostId = HostIdGenerator.getHostId();
-            BrainConfig brainConf = new BrainConfig(zkConf.withFallback(
+            ClusterConfig brainConf = new ClusterConfig(zkConf.withFallback(
                 MidoNodeConfigurator.apply(zkConf).runtimeConfig(hostId)));
             ClusterNode.Context ctx = new ClusterNode.Context(hostId, true);
             bind(ConfMinion.class).toInstance(new ConfMinion(ctx, brainConf));

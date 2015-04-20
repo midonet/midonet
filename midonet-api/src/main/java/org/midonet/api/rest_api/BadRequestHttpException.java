@@ -15,53 +15,34 @@
  */
 package org.midonet.api.rest_api;
 
-import org.midonet.api.validation.MessageProperty;
-import org.midonet.brain.services.rest_api.ResponseUtils;
-import org.midonet.midolman.state.NoStatePathException;
-import org.midonet.midolman.state.StatePathExceptionBase;
-
 import java.util.Set;
 
 import javax.validation.ConstraintViolation;
 import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.Response;
 
-/**
- * WebApplicationException class to represent 400 status.
- */
+import org.midonet.api.validation.MessageProperty;
+import org.midonet.brain.rest_api.ResponseUtils;
+import org.midonet.midolman.state.NoStatePathException;
+import org.midonet.midolman.state.StatePathExceptionBase;
+
+import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
+import static org.midonet.api.validation.MessageProperty.RESOURCE_NOT_FOUND;
+import static org.midonet.brain.rest_api.ResponseUtils.buildErrorResponse;
+
 public class BadRequestHttpException extends WebApplicationException {
 
     private static final long serialVersionUID = 1L;
 
-    /**
-     * Create a BadRequestHttpException object with no message.
-     */
     public BadRequestHttpException() {
         this("");
     }
 
-    /**
-     * Create a BadRequestHttpException object with a message.
-     *
-     * @param message
-     *            Error message.
-     */
     public BadRequestHttpException(String message) {
-        super(ResponseUtils.buildErrorResponse(
-            Response.Status.BAD_REQUEST.getStatusCode(), message));
+        super(buildErrorResponse(BAD_REQUEST.getStatusCode(), message));
     }
 
-    /**
-     * Create a BadRequestHttpException object with a message.
-     *
-     * @param e
-     *            Throwable object
-     * @param message
-     *            Error message.
-     */
     public BadRequestHttpException(Throwable e, String message) {
-        super(e, ResponseUtils.buildErrorResponse(
-                Response.Status.BAD_REQUEST.getStatusCode(), message));
+        super(e, buildErrorResponse(BAD_REQUEST.getStatusCode(), message));
     }
 
     public BadRequestHttpException(Throwable e) {
@@ -79,12 +60,10 @@ public class BadRequestHttpException extends WebApplicationException {
     private static String getMessage(NoStatePathException ex) {
         StatePathExceptionBase.NodeInfo node = ex.getNodeInfo();
         if (node == null) {
-            return MessageProperty.getMessage(
-                MessageProperty.RESOURCE_NOT_FOUND);
+            return MessageProperty.getMessage(RESOURCE_NOT_FOUND);
         } else {
             return MessageProperty.getMessage(
-                MessageProperty.RESOURCE_NOT_FOUND, node.nodeType.name,
-                node.id);
+                RESOURCE_NOT_FOUND, node.nodeType.name, node.id);
         }
     }
 }

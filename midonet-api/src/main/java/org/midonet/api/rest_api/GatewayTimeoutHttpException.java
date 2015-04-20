@@ -18,7 +18,7 @@ package org.midonet.api.rest_api;
 
 import javax.ws.rs.WebApplicationException;
 
-import org.midonet.brain.services.rest_api.ResponseUtils;
+import org.midonet.brain.rest_api.ResponseUtils;
 
 /**
  * WebApplicationException class to represent 504 status. Thrown when

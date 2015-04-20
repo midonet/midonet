@@ -15,10 +15,10 @@
  */
 package org.midonet.api.auth;
 
-import org.midonet.brain.services.rest_api.ResponseUtils;
-
 import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.Response;
+
+import static javax.ws.rs.core.Response.Status.FORBIDDEN;
+import static org.midonet.brain.rest_api.ResponseUtils.buildErrorResponse;
 
 /**
  * WebApplicationException class to represent 403 status.
@@ -32,7 +32,6 @@ public class ForbiddenHttpException extends WebApplicationException {
     }
 
     public ForbiddenHttpException(String message) {
-        super(ResponseUtils.buildErrorResponse(
-                Response.Status.FORBIDDEN.getStatusCode(), message));
+        super(buildErrorResponse(FORBIDDEN.getStatusCode(), message));
     }
 }

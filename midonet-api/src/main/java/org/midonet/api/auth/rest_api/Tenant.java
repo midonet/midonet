@@ -15,11 +15,12 @@
  */
 package org.midonet.api.auth.rest_api;
 
+import java.net.URI;
+
 import com.google.common.base.Objects;
+
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.UriResource;
-
-import java.net.URI;
 
 /**
  * Class representing a tenant object in the identity service.  This is the
@@ -39,7 +40,7 @@ public class Tenant extends UriResource {
         this.name = name;
     }
 
-    public Tenant(org.midonet.brain.rest_api.auth.Tenant tenant) {
+    public Tenant(org.midonet.brain.auth.Tenant tenant) {
         this.id = tenant.getId();
         this.name = tenant.getName();
     }
