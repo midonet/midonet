@@ -17,6 +17,7 @@ package org.midonet.brain.southbound.vtep;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
@@ -27,17 +28,17 @@ import javax.annotation.concurrent.Immutable;
 import org.apache.commons.lang3.tuple.Pair;
 import org.opendaylight.controller.sal.utils.Status;
 import org.opendaylight.ovsdb.lib.message.TableUpdates;
-import org.opendaylight.ovsdb.lib.notation.UUID;
 import org.opendaylight.ovsdb.plugin.StatusWithUuid;
 
 import rx.Observable;
 import rx.Subscription;
 
-import org.midonet.brain.southbound.vtep.model.LogicalSwitch;
-import org.midonet.brain.southbound.vtep.model.McastMac;
-import org.midonet.brain.southbound.vtep.model.PhysicalPort;
-import org.midonet.brain.southbound.vtep.model.PhysicalSwitch;
-import org.midonet.brain.southbound.vtep.model.UcastMac;
+import org.midonet.cluster.data.vtep.model.LogicalSwitch;
+import org.midonet.cluster.data.vtep.model.McastMac;
+import org.midonet.cluster.data.vtep.model.PhysicalPort;
+import org.midonet.cluster.data.vtep.model.PhysicalSwitch;
+import org.midonet.cluster.data.vtep.model.UcastMac;
+import org.midonet.cluster.data.vtep.model.VtepMAC;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
 import org.midonet.util.functors.Callback;
@@ -88,8 +89,7 @@ public interface VtepDataClient {
      * @param psId The physical switch identifier.
      * @return The list of physical ports.
      */
-    public @Nonnull List<PhysicalPort> listPhysicalPorts(
-        org.opendaylight.ovsdb.lib.notation.UUID psId)
+    public @Nonnull List<PhysicalPort> listPhysicalPorts(UUID psId)
         throws VtepNotConnectedException;
 
     /**

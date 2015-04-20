@@ -18,7 +18,6 @@ package org.midonet.api.network.rest_api;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 import javax.annotation.security.RolesAllowed;
@@ -48,9 +47,9 @@ import org.midonet.api.rest_api.ResourceFactory;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.api.vtep.VtepClusterClient;
 import org.midonet.brain.southbound.vtep.VtepNotConnectedException;
-import org.midonet.brain.southbound.vtep.model.PhysicalSwitch;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.host.Host;
+import org.midonet.cluster.data.vtep.model.PhysicalSwitch;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.NodeNotEmptyStateException;
@@ -62,6 +61,8 @@ import com.google.inject.Inject;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static scala.collection.JavaConversions.asJavaCollection;
 
 import static org.midonet.api.validation.MessageProperty.VTEP_EXISTS;
 import static org.midonet.api.validation.MessageProperty.VTEP_HAS_BINDINGS;
@@ -102,8 +103,8 @@ public class VtepResource extends AbstractVtepResource {
 
             // Check all management and tunnel IPs configured for the physical
             // switch.
-            addIpsToList(vtepIps, ps.mgmtIps);
-            addIpsToList(vtepIps, ps.tunnelIps);
+            addIpsToList(vtepIps, ps.mgmtIpStrings());
+            addIpsToList(vtepIps, ps.tunnelIpStrings());
 
         } catch(GatewayTimeoutHttpException | VtepNotConnectedException e) {
             log.warn("Cannot verify conflicts between hosts and VTEP IPs "
@@ -215,8 +216,8 @@ public class VtepResource extends AbstractVtepResource {
     }
 
     private static void addIpsToList(List<InetAddress> list,
-                                  Collection<String> ips) {
-        for (String ip : ips) {
+                                  scala.collection.Iterable<String> ips) {
+        for (String ip : asJavaCollection(ips)) {
             addIpToList(list, ip);
         }
     }

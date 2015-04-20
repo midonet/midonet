@@ -29,6 +29,7 @@ import org.slf4j.LoggerFactory;
 import rx.Subscription;
 import rx.functions.Action1;
 
+import org.midonet.cluster.data.vtep.model.VtepEndPoint;
 import org.midonet.packets.IPv4Addr;
 
 public class VtepDataClientFactory {
