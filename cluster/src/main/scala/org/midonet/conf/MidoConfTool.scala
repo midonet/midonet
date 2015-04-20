@@ -209,7 +209,7 @@ object SetConf extends ConfigWriter("set") with ConfCommand {
 
     override def run(configurator: MidoNodeConfigurator) = {
         val parseOpts = ConfigParseOptions.defaults().setOriginDescription("STDIN")
-        val schema = configurator.mergedSchemas()
+        val schema = configurator.mergedSchemas().resolve()
         val zkConf = makeConfig(configurator)
 
         val reader = new InputStreamReader(System.in)
@@ -302,7 +302,7 @@ object GetConf extends ConfigQuery("get") with ConfCommand {
     val key = trailArg[String](required = true, descr = "Configuration key")
 
     override def run(configurator: MidoNodeConfigurator) = {
-        val conf = makeConfig(configurator)
+        val conf = makeConfig(configurator).resolve()
 
         try {
             if (schema.get.get) {
