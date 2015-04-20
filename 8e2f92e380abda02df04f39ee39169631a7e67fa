@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_b67de0e9",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/InMemoryStorage.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-04-20T08:31:45Z",
+      "side": 1,
+      "message": "This still looks different from what I get when I use the settings in java-code-style.xml, which has blank lines between the com, org, and rx imports.",
+      "range": {
+        "startLine": 30,
+        "startChar": 0,
+        "endLine": 36,
+        "endChar": 52
+      },
+      "revId": "8e2f92e380abda02df04f39ee39169631a7e67fa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
