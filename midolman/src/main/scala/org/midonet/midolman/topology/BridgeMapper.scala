@@ -19,6 +19,7 @@ import java.lang.{Boolean => JBoolean, Long => JLong}
 import java.util.UUID
 import java.util.concurrent.TimeUnit.MILLISECONDS
 
+import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
 import scala.collection.concurrent.{Map => CMap, TrieMap}
 import scala.collection.mutable
@@ -719,12 +720,14 @@ final class BridgeMapper(bridgeId: UUID, implicit val vt: VirtualTopology)
             if (bridge.hasOutboundFilterId) Some(bridge.getOutboundFilterId)
             else None,
             vlanBridgePeerPortId,
-            bridge.getVxlanPortIdsList.asScala.map(_.asJava),
+            bridge.getVxlanPortIdsList.map(_.asJava),
             flowCallbackGenerator,
             oldRouterMacPortMap,
             routerIpToMacMap.toMap,
             vlanPortMap,
-            exteriorPorts.toList)
+            exteriorPorts.toList,
+            br.getDhcpIdsList.map(_.asJava).toList
+        )
 
         log.debug("Bridge ready: {}", device)
 
