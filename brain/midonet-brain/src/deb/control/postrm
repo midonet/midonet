@@ -3,7 +3,7 @@
 # MidoNet
 
 if [ "$1" = purge ]; then
-    test -h /etc/init.d/midonet-brain && rm /etc/init.d/midonet-brain
+    test -h /etc/init.d/midonet-cluster && rm /etc/init.d/midonet-cluster
 fi
 
 exit 0
