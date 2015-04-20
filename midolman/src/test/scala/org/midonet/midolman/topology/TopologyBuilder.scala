@@ -31,7 +31,7 @@ import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.util.IPAddressUtil._
 import org.midonet.cluster.util.IPSubnetUtil._
 import org.midonet.cluster.util.UUIDUtil._
-import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil, RangeUtil, UUIDUtil}
+import org.midonet.cluster.util._
 import org.midonet.midolman.rules.FragmentPolicy
 import org.midonet.midolman.state.l4lb.{LBStatus => L4LBStatus}
 import org.midonet.packets._
@@ -138,19 +138,48 @@ trait TopologyBuilder {
                                inboundFilterId: Option[UUID] = None,
                                outboundFilterId: Option[UUID] = None,
                                portIds: Set[UUID] = Set.empty,
-                               vxlanPortIds: Set[UUID] = Set.empty): Network = {
+                               vxlanPortIds: Set[UUID] = Set.empty,
+                               dhcpIds: Seq[UUID] = Seq.empty): Network = {
         val builder = Network.newBuilder
             .setId(id.asProto)
             .setAdminStateUp(adminStateUp)
             .setTunnelKey(tunnelKey)
             .addAllPortIds(portIds.map(_.asProto).asJava)
             .addAllVxlanPortIds(vxlanPortIds.map(_.asProto).asJava)
+            .addAllDhcpIds(dhcpIds.map(_.asProto).asJava)
         if (tenantId.isDefined) builder.setTenantId(tenantId.get)
         if (name.isDefined) builder.setName(name.get)
         if (inboundFilterId.isDefined)
             builder.setInboundFilterId(inboundFilterId.get.asProto)
         if (outboundFilterId.isDefined)
             builder.setOutboundFilterId(outboundFilterId.get.asProto)
+        builder.build()
+    }
+
+    protected def createDhcp(networkId: UUID,
+                             id: UUID = UUID.randomUUID,
+                             defaultGw: IPAddr = IPv4Addr.random,
+                             serverAddr: IPAddr = IPv4Addr.random,
+                             subnetAddr: IPSubnet[_] = IPv4Addr.random.subnet(24),
+                             enabled: Boolean = true,
+                             mtu: Int = 1024): Dhcp = {
+        val builder = Dhcp.newBuilder()
+            .setId(id.asProto)
+            .setNetworkId(networkId.asProto)
+            .setDefaultGateway(defaultGw.asProto)
+            .setEnabled(enabled)
+            .setInterfaceMtu(mtu)
+            .setSubnetAddress(subnetAddr.asProto)
+            .setServerAddress(serverAddr.asProto)
+        builder.build()
+    }
+
+    protected def createDhcpHost(name: String, mac: MAC, ip: IPAddr)
+    : Dhcp.Host = {
+        val builder = Dhcp.Host.newBuilder()
+                               .setName(name)
+                               .setMac(mac.toString)
+                               .setIpAddress(ip.asProto)
         builder.build()
     }
 

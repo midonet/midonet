@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -413,9 +413,8 @@ object DhcpValueParser {
 }
 
 object DhcpImpl {
-    def apply(dataClient: DataClient, inPort: Port, request: DHCP,
+    def apply(dhcpCfg: DhcpConfig, inPort: Port, request: DHCP,
               sourceMac: MAC, mtu: Option[Short], log: Logger) = {
-        val dhcpCfg = new DataClientDhcpConfig(dataClient)
         new DhcpImpl(dhcpCfg, request, sourceMac, mtu, log).handleDHCP(inPort)
     }
 }
@@ -436,7 +435,7 @@ trait DhcpConfig {
 }
 
 /** Implementation based on the old DataClient */
-class DataClientDhcpConfig(val dataClient: DataClient) extends DhcpConfig {
+class DhcpConfigFromDataclient(val dataClient: DataClient) extends DhcpConfig {
 
     override def bridgeDhcpSubnets(deviceId: UUID): util.List[Subnet] = {
         dataClient.dhcpSubnetsGetByBridge(deviceId)

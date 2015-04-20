@@ -16,6 +16,7 @@
 package org.midonet.cluster.data.dhcp;
 
 import java.util.List;
+import java.util.Objects;
 
 import org.midonet.cluster.data.Entity;
 import org.midonet.packets.IPv4Addr;
@@ -129,5 +130,33 @@ public class Subnet extends Entity.Base<String, Subnet.Data, Subnet> {
                     ", enabled=" + enabled +
                     '}';
         }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+
+            Data data = (Data) o;
+            return Objects.equals(interfaceMTU, data.interfaceMTU) &&
+                   Objects.equals(subnetAddr, data.subnetAddr) &&
+                   Objects.equals(serverAddr, data.serverAddr) &&
+                   Objects.equals(defaultGateway, data.defaultGateway) &&
+                   Objects.equals(opt121Routes, data.opt121Routes) &&
+                   Objects.equals(dnsServerAddrs, data.dnsServerAddrs) &&
+                   Objects.equals(enabled, data.enabled);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(interfaceMTU, subnetAddr, serverAddr,
+                                defaultGateway, opt121Routes, dnsServerAddrs,
+                                enabled);
+        }
     }
+
+
 }

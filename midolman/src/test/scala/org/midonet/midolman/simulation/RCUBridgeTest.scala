@@ -86,7 +86,7 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with Matchers {
                             flowCount, Option(inFilterId), Option(outFilterId),
                             vlanBridgePortId, Seq.empty[UUID],
                             flowRemovedCallbackGen, rtrMacToLogicalPortId,
-                            rtrIpToMac, vlanToPort, List(brPort.id))
+                            rtrIpToMac, vlanToPort, List(brPort.id), List.empty)
 
         brPort.hostId = UUID.randomUUID()
         brPort.interfaceName = "eth0"
