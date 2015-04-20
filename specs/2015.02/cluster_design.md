@@ -113,7 +113,7 @@ in trunk and ensuring backwards compatibility at all times.
 
 Cluster elements meant for use by other MidoNet components such as
 client libraries or APIs are developed under /cluster.  Internal
-services to the cluster live under /brain/midonet-brain.
+services to the cluster live under /brain/midonet-cluster.
 
 ### Phase 1
 
