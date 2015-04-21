@@ -216,6 +216,7 @@ debian.doFirst {
     project.packaging.version = project.debVersion
     project.packaging.fpmOpts = project.packaging.fpmOpts.clone()
     project.packaging.fpmOpts.addAll([
+        '-d', 'python',
         '-d', 'quagga (>= 0.99.21)',
         '-d', 'java7-runtime-headless',
         '-d', 'iproute (>= 20111117-1ubuntu2.1)',
@@ -233,6 +234,7 @@ rpm.doFirst {
     project.packaging.iteration = project.rpmRelease
     project.packaging.fpmOpts = project.packaging.fpmOpts.clone()
     project.packaging.fpmOpts.addAll([
+        '-d', 'python',
         '-d', 'quagga >= 0.99.21',
         '-d', 'iproute',
         '--after-install', "${project.projectDir}/src/rhel6/control/postinst"])
