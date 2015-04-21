@@ -410,6 +410,7 @@ class SingleRouterArpRequestBroker(id: UUID,
 
     private def makeArpRequest(srcMac: MAC, srcIp: IPv4Addr, dstIp: IPv4Addr): Ethernet = {
         import org.midonet.packets.util.PacketBuilder._
+        log.debug(s"Sending ARP request for $srcIp")
 
         { eth addr srcMac -> eth_bcast } <<
             { arp.req mac srcMac -> eth_zero ip srcIp --> dstIp}
