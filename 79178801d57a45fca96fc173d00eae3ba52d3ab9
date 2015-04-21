@@ -16,6 +16,24 @@
       "revId": "79178801d57a45fca96fc173d00eae3ba52d3ab9",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_23c08f7b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/ArpRequestBroker.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 282,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-04-21T10:55:50Z",
+      "side": 1,
+      "message": "we are arping if it\u0027s stale, because shouldArp checks for that.\n\nand... we are only duplicating a branch if we should arp, a corner path.",
+      "parentUuid": "1a106d94_e0482d89",
+      "revId": "79178801d57a45fca96fc173d00eae3ba52d3ab9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
