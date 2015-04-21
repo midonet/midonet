@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_feb56aee",
+        "filename": "midolman/build.gradle",
+        "patchSetId": 1
+      },
+      "lineNbr": 237,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-04-21T16:01:45Z",
+      "side": 1,
+      "message": "is python 2.7 available on rhel6? and do we need any feature from 2.7 which isn\u0027t in 2.6?",
+      "range": {
+        "startLine": 237,
+        "startChar": 28,
+        "endLine": 237,
+        "endChar": 30
+      },
+      "revId": "b36a836e957c1866c5730ecc78ff68910b0995f9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
