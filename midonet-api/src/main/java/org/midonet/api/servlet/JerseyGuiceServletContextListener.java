@@ -29,6 +29,7 @@ import org.midonet.api.rest_api.RestApiService;
 import org.midonet.brain.services.conf.ConfMinion;
 import org.midonet.brain.ClusterNode;
 import org.midonet.brain.services.vxgw.VxlanGatewayService;
+import org.midonet.brain.services.flowtracing.FlowTracingMinion;
 import org.midonet.brain.southbound.vtep.VtepDataClientFactory;
 
 public class JerseyGuiceServletContextListener extends
@@ -81,6 +82,7 @@ public class JerseyGuiceServletContextListener extends
                      + "web.xml");
         }
 
+        startFlowTracingService();
     }
 
     protected void startConfApi() {
@@ -93,8 +95,26 @@ public class JerseyGuiceServletContextListener extends
         injector.getInstance(ConfMinion.class).stopAsync().awaitTerminated();
     }
 
+    protected void startFlowTracingService() {
+        log.info("Launch embedded flow tracing web socket service");
+        try {
+            injector.getInstance(FlowTracingMinion.class)
+                .startAsync();
+        } catch (Throwable t) {
+            log.error("Caught exception", t);
+        }
+    }
+
+    protected void stopFlowTracingService() {
+        log.info("Stopping embedded flow tracing web socket service");
+        injector.getInstance(FlowTracingMinion.class)
+            .stopAsync().awaitTerminated();
+    }
+
     protected void destroyApplication() {
         log.debug("destroyApplication: entered");
+
+        stopFlowTracingService();
 
         ClusterNode.Context ctx = injector.getInstance(ClusterNode.Context.class);
         if (ctx.embed()) {

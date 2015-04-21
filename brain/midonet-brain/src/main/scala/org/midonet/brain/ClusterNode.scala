@@ -85,7 +85,8 @@ object ClusterNode extends App {
         List (new MinionDef("heartbeat", brainConf.hearbeat),
               new MinionDef("vxgw", brainConf.vxgw),
               new MinionDef("neutron-importer", brainConf.c3po),
-              new MinionDef("topology", brainConf.topologyApi))
+              new MinionDef("topology", brainConf.topologyApi),
+              new MinionDef("flow-tracing", brainConf.flowTracing))
 
     // TODO: move this out to a Guice module that provides access to the
     // NeutronDB
@@ -182,4 +183,3 @@ object ClusterNode extends App {
     }
 
 }
-

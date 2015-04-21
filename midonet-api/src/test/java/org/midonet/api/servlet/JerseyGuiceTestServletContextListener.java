@@ -138,6 +138,12 @@ public class JerseyGuiceTestServletContextListener extends
     protected void stopConfApi() { }
 
     @Override
+    protected void startFlowTracingService() { }
+
+    @Override
+    protected void stopFlowTracingService() { }
+
+    @Override
     protected Injector getInjector() {
         log.debug("getInjector: entered.");
 
