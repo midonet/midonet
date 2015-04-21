@@ -22,7 +22,6 @@ import scala.concurrent.Future
 import org.apache.curator.utils.EnsurePath
 import org.apache.zookeeper.KeeperException
 import org.scalatest.Suite
-
 import rx.Observable
 
 import org.midonet.cluster.data.storage.FieldBinding.DeleteAction
@@ -153,8 +152,6 @@ trait ZoomStorageTester extends StorageTester
     override def multi(ops: Seq[PersistenceOp]) {
         zoom.multi(ops)
     }
-
-    override def flush(): Unit = throw new UnsupportedOperationException
 
     override def observable[T](clazz: Class[T], id: ObjId): Observable[T] = {
         zoom.observable(clazz, id)
