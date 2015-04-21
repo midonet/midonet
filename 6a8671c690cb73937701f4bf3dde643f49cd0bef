@@ -175,6 +175,24 @@
       "revId": "6a8671c690cb73937701f4bf3dde643f49cd0bef",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_006f49fe",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/ArpRequestBrokerTest.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 255,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-04-21T09:15:54Z",
+      "side": 1,
+      "message": "We should have a JitterAbstractFactory that we pass to the ArpRequestBroker to configure the jitter.",
+      "parentUuid": "1a106d94_cdd1ea58",
+      "revId": "6a8671c690cb73937701f4bf3dde643f49cd0bef",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
