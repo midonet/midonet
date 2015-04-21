@@ -89,6 +89,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_60a6fd54",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/ArpRequestBroker.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 279,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-04-21T09:14:18Z",
+      "side": 1,
+      "message": "that means shouldArp is still duplicating the checks \"cacheEntry ne null) \u0026\u0026 (cacheEntry.macAddr ne null)\", which was my main concern.\n\nthe re-write seems wrong, because we\u0027re not ARPing when the entry is stale. \n\na more readable version would be:\n\nval mac \u003d arpIfNeeded(...)\nif (mac ne null) {\n  cacheEntry.macAddr\n} else {\n   throw new ...\n}",
+      "parentUuid": "1a106d94_0d7022a4",
+      "revId": "9bc243ed5ba3517f2ce7daaef329566430d7a72e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_1b285d33",
         "filename": "midolman/src/main/scala/org/midonet/midolman/state/ArpRequestBroker.scala",
         "patchSetId": 4
@@ -124,6 +142,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_80ab391c",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/ArpRequestBroker.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 281,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-04-21T09:14:18Z",
+      "side": 1,
+      "message": "oki",
+      "parentUuid": "1a106d94_4d697abd",
+      "revId": "9bc243ed5ba3517f2ce7daaef329566430d7a72e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_bb30299f",
         "filename": "midolman/src/main/scala/org/midonet/midolman/state/ArpRequestBroker.scala",
         "patchSetId": 4
@@ -153,6 +189,24 @@
       "side": 1,
       "message": "there is none, IMHO packet senders provide it for us, and I didn\u0027t want to delay them.",
       "parentUuid": "1a106d94_bb30299f",
+      "revId": "9bc243ed5ba3517f2ce7daaef329566430d7a72e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_c0641124",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/ArpRequestBroker.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 294,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-04-21T09:14:18Z",
+      "side": 1,
+      "message": "oki, agreed",
+      "parentUuid": "1a106d94_ed72e6ab",
       "revId": "9bc243ed5ba3517f2ce7daaef329566430d7a72e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
