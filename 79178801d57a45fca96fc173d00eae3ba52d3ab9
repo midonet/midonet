@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_e0482d89",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/ArpRequestBroker.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 282,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-04-21T09:23:02Z",
+      "side": 1,
+      "message": "that means shouldArp is still duplicating the checks \"cacheEntry ne null) \u0026\u0026 (cacheEntry.macAddr ne null)\", which was my main concern.\n\nthe re-write seems wrong, because we\u0027re not ARPing when the entry is stale\n \ngoing back to my original proposal:\n\nval cacheEntry \u003d arpCache.get(ip)\nif ((cacheEntry ne null) \u0026\u0026 (cacheEntry.macAddr ne null) {\n  arpIfStale(ip, port)\n  cacheEntry.macAddr\n} else {\n  arpForAddress(ip, port)\n  throw new ...\n}\n\nIt\u0027s very readable :)",
+      "revId": "79178801d57a45fca96fc173d00eae3ba52d3ab9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
