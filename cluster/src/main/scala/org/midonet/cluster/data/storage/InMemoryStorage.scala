@@ -516,8 +516,6 @@ class InMemoryStorage extends StorageWithOwnership {
         manager.commit()
     }
 
-    override def flush(): Unit = throw new UnsupportedOperationException
-
     override def observable[T](clazz: Class[T], id: ObjId): Observable[T] = {
         assertBuilt()
         assert(isRegistered(clazz))
