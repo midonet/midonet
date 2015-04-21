@@ -20,6 +20,8 @@ import java.util.{ArrayList, List, Objects, UUID}
 
 import org.slf4j.{LoggerFactory,MDC}
 
+import com.datastax.driver.core.utils.UUIDs
+
 import org.midonet.midolman.logging.FlowTracingContext
 import org.midonet.midolman.simulation.PacketContext
 import org.midonet.midolman.state.FlowState.FlowStateKey
@@ -63,7 +65,7 @@ object TraceState {
         val requests: List[UUID] = new ArrayList[UUID](1)
 
         def enabled: Boolean = flowTraceId != null
-        def enable(flowTraceId: UUID = UUID.randomUUID): TraceContext = {
+        def enable(flowTraceId: UUID = UUIDs.timeBased): TraceContext = {
             this.flowTraceId = flowTraceId
             this
         }
