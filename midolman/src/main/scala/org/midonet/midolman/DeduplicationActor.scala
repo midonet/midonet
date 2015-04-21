@@ -45,7 +45,7 @@ import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
 import org.midonet.midolman.simulation.{ArpTimeoutException, PacketContext}
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackKey, ConnTrackValue}
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
-import org.midonet.midolman.state.{FlowStatePackets, FlowStateReplicator, FlowStateStorage, NatLeaser}
+import org.midonet.midolman.state._
 import org.midonet.netlink.exceptions.NetlinkException
 import org.midonet.odp.flows.FlowAction
 import org.midonet.odp.{Datapath, FlowMatch, Packet}
@@ -67,6 +67,8 @@ object DeduplicationActor {
      * be forwarded. */
     case class EmitGeneratedPacket(egressPort: UUID, eth: Ethernet,
                                    parentCookie: Option[Int] = None)
+
+    case class ProcessArpTables()
 
     case class RestartWorkflow(pktCtx: PacketContext, error: Throwable)
 
@@ -178,6 +180,14 @@ class DeduplicationActor(
     protected val natTx = new FlowStateTransaction(natStateTable)
     protected var replicator: FlowStateReplicator = _
 
+
+    protected var arpBroker: ArpRequestBroker = new ArpRequestBroker(
+        PacketsEntryPoint ! _,
+        FlowController ! InvalidateFlowsByTag(_),
+        context.system.scheduler.scheduleOnce(_, self, ProcessArpTables()),
+        config.getArpRetryIntervalSeconds, config.getArpTimeoutSeconds,
+        config.getArpStaleSeconds, config.getArpExpirationSeconds)
+
     protected var workflow: PacketHandler = _
     private val cbExecutor: CallbackExecutor = new CallbackExecutor(
         QueueFactory.newQueue[Callback0](createBoundedSpsc(2048)),
@@ -220,6 +230,9 @@ class DeduplicationActor(
         case m: FlowStateBatch =>
             replicator.importFromStorage(m)
 
+        case ProcessArpTables() =>
+            arpBroker.process()
+
         case HandlePackets(packets) =>
             actionsCache.clearProcessedFlowMatches()
 
@@ -234,6 +247,7 @@ class DeduplicationActor(
             }
 
             cbExecutor.run()
+            arpBroker.process()
 
         case CallbackExecutor.CheckCallbacks =>
             cbExecutor.run()
@@ -280,7 +294,7 @@ class DeduplicationActor(
         val wcMatch = WildcardMatch.fromFlowMatch(packet.getMatch)
 
         val pktCtx = new PacketContext(cookieOrEgressPort, packet,
-                                       parentCookie, wcMatch)
+                                       parentCookie, wcMatch, arpBroker)
         pktCtx.state.initialize(connTrackTx, natTx, natLeaser)
         pktCtx.log = PacketTracing.loggerFor(wcMatch)
         pktCtx

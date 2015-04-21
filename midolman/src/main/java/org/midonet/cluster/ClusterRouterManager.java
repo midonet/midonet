@@ -133,7 +133,7 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
                .setLoadBalancer(config.loadBalancer);
 
         if (!isUpdate) {
-            builder.setArpCache(new ArpCacheImpl(arpTable, id));
+            builder.setArpCache(new ArpCacheImpl(arpTable, id, reactorLoop));
             arpTable.start();
             // note that the following may trigger a call to builder.build()
             // it should be the last call in the !isUpdate code path.
@@ -507,17 +507,19 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
     }
 
 
-    class ArpCacheImpl implements ArpCache,
+    public static class ArpCacheImpl implements ArpCache,
             ArpTable.Watcher<IPv4Addr, ArpCacheEntry> {
 
         public final UUID routerId;
         ArpTable arpTable;
+        Reactor reactor;
         private final Set<Callback3<IPv4Addr, MAC, MAC>> listeners =
                         new LinkedHashSet<Callback3<IPv4Addr, MAC, MAC>>();
 
-        ArpCacheImpl(ArpTable arpTable, UUID routerId) {
+        public ArpCacheImpl(ArpTable arpTable, UUID routerId, Reactor reactor) {
             this.routerId = routerId;
             this.arpTable = arpTable;
+            this.reactor = reactor;
             this.arpTable.addWatcher(this);
         }
 
@@ -558,7 +560,7 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
 
         @Override
         public void add(final IPv4Addr ipAddr, final ArpCacheEntry entry) {
-            reactorLoop.submit(new Runnable() {
+            reactor.submit(new Runnable() {
 
                 @Override
                 public void run() {
@@ -573,7 +575,7 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
 
         @Override
         public void remove(final IPv4Addr ipAddr) {
-            reactorLoop.submit(new Runnable() {
+            reactor.submit(new Runnable() {
 
                 @Override
                 public void run() {

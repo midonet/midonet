@@ -127,7 +127,7 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with Matchers {
         val origMatch = ingressMatch.clone
         val context = new PacketContext(Right(UUID.randomUUID()),
                                         Packet.fromEthernet(Ethernet.random()),
-                                        None, ingressMatch)
+                                        None, ingressMatch, null)
         context.prepareForSimulation(0)
         context.inPortId = brPort.id
         val result = bridge.process(context)
@@ -155,7 +155,7 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with Matchers {
         val origMatch = ingressMatch.clone
         val context = new PacketContext(Right(rtr2port),
                                         Packet.fromEthernet(frame),
-                                        None, ingressMatch)
+                                        None, ingressMatch, null)
         context.inputPort = rtr2port
         context.prepareForSimulation(0)
         context.inPortId = rtr2port
@@ -179,7 +179,7 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with Matchers {
         val origMatch = ingressMatch.clone
         val context = new PacketContext(Right(UUID.randomUUID()),
                                         Packet.fromEthernet(Ethernet.random()),
-                                        None, ingressMatch)
+                                        None, ingressMatch, null)
         context.prepareForSimulation(0)
         val result = bridge.process(context)
 
@@ -210,7 +210,7 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with Matchers {
         val origMatch = ingressMatch.clone
         val context = new PacketContext(Right(UUID.randomUUID()),
                                         Packet.fromEthernet(frame),
-                                        None, ingressMatch)
+                                        None, ingressMatch, null)
         context.prepareForSimulation(0)
         val result = bridge.process(context)
 
@@ -229,7 +229,7 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with Matchers {
                 .setEthDst(MAC.fromString("0a:de:57:16:a3:06"))
         val origMatch = ingressMatch.clone
         val context = new PacketContext(Right(UUID.randomUUID()), null,
-                                        None, ingressMatch)
+                                        None, ingressMatch, null)
         context.prepareForSimulation(0)
         val result = bridge.process(context)
 

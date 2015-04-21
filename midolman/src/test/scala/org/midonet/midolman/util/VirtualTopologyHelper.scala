@@ -28,14 +28,16 @@ import org.scalatest.Assertions
 
 import org.midonet.cluster.client.{Port => SimPort}
 import org.midonet.cluster.data._
-import org.midonet.midolman.NotYetException
+import org.midonet.midolman.{PacketsEntryPoint, NotYetException}
 import org.midonet.midolman.PacketWorkflow.SimulationResult
 import org.midonet.midolman.simulation.Coordinator.{Device, Action}
 import org.midonet.midolman.simulation.{Coordinator, PacketContext}
+import org.midonet.midolman.simulation.{Router => SimRouter}
 import org.midonet.midolman.state.ConnTrackState._
 import org.midonet.midolman.state.NatState.NatKey
+import org.midonet.midolman.state.ArpRequestBroker
 import org.midonet.midolman.topology.VirtualTopologyActor
-import org.midonet.packets.Ethernet
+import org.midonet.packets.{MAC, IPv4Addr, Ethernet}
 import org.midonet.sdn.flows.WildcardMatch
 import org.midonet.odp.Packet
 import org.midonet.sdn.state.FlowStateTransaction
@@ -77,15 +79,24 @@ trait VirtualTopologyHelper {
                                      { VirtualTopologyActor ? _ }),
                      timeout.duration)
 
+    def feedArpTable(router: SimRouter, ip: IPv4Addr, mac: MAC): Unit = {
+        ArpCacheHelper.feedArpCache(router, ip, mac)
+    }
+
     val NO_CONNTRACK = new FlowStateTransaction[ConnTrackKey, ConnTrackValue](null)
     val NO_NAT = new FlowStateTransaction[NatKey, NatBinding](null)
 
+    def throwAwayArpBroker: ArpRequestBroker = {
+        new ArpRequestBroker(PacketsEntryPoint ! _, (_) => {}, (_) => {}, 1, 3, 5, 10)
+    }
+
     def packetContextFor(frame: Ethernet, inPort: UUID)
                         (implicit conntrackTx: FlowStateTransaction[ConnTrackKey, ConnTrackValue] = NO_CONNTRACK,
-                                  natTx: FlowStateTransaction[NatKey, NatBinding] = NO_NAT)
+                                  natTx: FlowStateTransaction[NatKey, NatBinding] = NO_NAT,
+                                  arpBroker: ArpRequestBroker = throwAwayArpBroker)
     : PacketContext = {
         val context = new PacketContext(Left(1), Packet.fromEthernet(frame),
-                                        None, WildcardMatch.fromEthernetPacket(frame))
+                                        None, WildcardMatch.fromEthernetPacket(frame), arpBroker)
         context.state.initialize(conntrackTx, natTx, HappyGoLuckyLeaser)
         context.prepareForSimulation(0)
         context.inputPort = inPort
@@ -95,7 +106,8 @@ trait VirtualTopologyHelper {
 
     def simulateDevice(device: Device, frame: Ethernet, inPort: UUID)
                       (implicit conntrackTx: FlowStateTransaction[ConnTrackKey, ConnTrackValue] = NO_CONNTRACK,
-                                natTx: FlowStateTransaction[NatKey, NatBinding] = NO_NAT)
+                                natTx: FlowStateTransaction[NatKey, NatBinding] = NO_NAT,
+                                arpBroker: ArpRequestBroker = throwAwayArpBroker)
     : (PacketContext, Action) = {
         val ctx = packetContextFor(frame, inPort)
         force {

@@ -17,6 +17,8 @@ package org.midonet.midolman.simulation
 
 import java.util.UUID
 
+import org.midonet.cluster.client.ArpCache
+
 import scala.concurrent.ExecutionContext
 
 import akka.actor.ActorSystem
@@ -40,7 +42,7 @@ class Router(override val id: UUID,
              override val cfg: RouterConfig,
              override val rTable: RoutingTableWrapper[IPv4Addr],
              override val routerMgrTagger: TagManager,
-             val arpTable: ArpTable)
+             val arpCache: ArpCache)
             (implicit system: ActorSystem)
         extends RouterBase[IPv4Addr](id, cfg, rTable, routerMgrTagger) {
 
@@ -109,7 +111,7 @@ class Router(override val id: UUID,
         if (tpa == spa && tha == MAC.fromString("00:00:00:00:00:00")) {
             context.log.debug("Received a gratuitous ARP request from {}", spa)
             // TODO(pino, gontanon): check whether the refresh is needed?
-            arpTable.set(spa, sha)
+            context.arpBroker.set(spa, sha, this)
             return
         }
         if (!inPort.portAddr.getAddress.equals(tpa)) {
@@ -119,9 +121,9 @@ class Router(override val id: UUID,
         }
 
         // Attempt to refresh the router's arp table.
-        arpTable.setAndGet(spa, pkt.getSenderHardwareAddress, inPort).onSuccess { case _ =>
-            context.log.debug("replying to ARP request from {} for {} with own mac {}",
-                Array[Object](spa, tpa, inPort.portMac))
+        context.arpBroker.setAndGet(spa, pkt.getSenderHardwareAddress, inPort, this).onSuccess { case _ =>
+            context.log.debug(s"replying to ARP request from $spa for $tpa " +
+                              s"with own mac ${inPort.portMac}")
 
             // Construct the reply, reversing src/dst fields from the request.
             val eth = ARP.makeArpReply(inPort.portMac, sha,
@@ -171,7 +173,7 @@ class Router(override val id: UUID,
             return
         }
 
-        arpTable.set(spa, sha)
+        context.arpBroker.set(spa, sha, this)
     }
 
     override protected def isIcmpEchoRequest(mmatch: WildcardMatch): Boolean = {
@@ -216,12 +218,12 @@ class Router(override val id: UUID,
                            (implicit context: PacketContext): MAC = {
 
         if (port.isInterior) {
-            return arpTable.get(nextHopIP, port)
+            return context.arpBroker.get(nextHopIP, port, this)
         }
 
         port.nwSubnet match {
             case extAddr: IPv4Subnet if extAddr.containsAddress(nextHopIP) =>
-                arpTable.get(nextHopIP, port)
+                context.arpBroker.get(nextHopIP, port, this)
             case extAddr: IPv4Subnet =>
                 context.log.warn("cannot get MAC for {} - address not" +
                             "in network segment of port {} ({})",
@@ -331,7 +333,8 @@ class Router(override val id: UUID,
                     // Apply post-routing (egress) chain.
                     val egrMatch = WildcardMatch.fromEthernetPacket(eth)
                     val egrPktContext = new PacketContext(
-                        Right(outPort.id), Packet.fromEthernet(eth), None, egrMatch)
+                        Right(outPort.id), Packet.fromEthernet(eth), None,
+                        egrMatch, context.arpBroker)
                     egrPktContext.outPortId = outPort.id
 
                     // Try to apply the outFilter
