@@ -114,6 +114,144 @@
       "revId": "31934c237c5c0e38f50cd217912961420d32a8f1",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_837863f3",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BGPMapper.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-04-21T14:09:25Z",
+      "side": 1,
+      "message": "bgpSubject or something that characterizes more what this subject is about?",
+      "range": {
+        "startLine": 73,
+        "startChar": 20,
+        "endLine": 73,
+        "endChar": 27
+      },
+      "revId": "31934c237c5c0e38f50cd217912961420d32a8f1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_03eab374",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BGPMapper.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 272,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-04-21T14:09:25Z",
+      "side": 1,
+      "message": "Could you provide an explanation/graph of how the BGPMapper works. At the moment it\u0027s kind of hard for me to get the global picture.",
+      "range": {
+        "startLine": 272,
+        "startChar": 12,
+        "endLine": 272,
+        "endChar": 21
+      },
+      "revId": "31934c237c5c0e38f50cd217912961420d32a8f1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_035c737d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BGPMapper.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 289,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-04-21T14:09:25Z",
+      "side": 1,
+      "message": "bgpSubject or a name that characterizes more what this subject is for?",
+      "range": {
+        "startLine": 289,
+        "startChar": 16,
+        "endLine": 289,
+        "endChar": 23
+      },
+      "revId": "31934c237c5c0e38f50cd217912961420d32a8f1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_63f8c749",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopology.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 229,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-04-21T14:09:25Z",
+      "side": 1,
+      "message": "Executes a task on the virtual topology thread and log non-fatal exceptions raised?",
+      "range": {
+        "startLine": 229,
+        "startChar": 8,
+        "endLine": 229,
+        "endChar": 61
+      },
+      "revId": "31934c237c5c0e38f50cd217912961420d32a8f1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_a3675f24",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/TopologyMatchers.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-04-21T14:09:25Z",
+      "side": 1,
+      "message": "Split this on multiple lines?",
+      "range": {
+        "startLine": 24,
+        "startChar": 0,
+        "endLine": 24,
+        "endChar": 43
+      },
+      "revId": "31934c237c5c0e38f50cd217912961420d32a8f1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_637d67b1",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/devices/BGPRouteConversionTest.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-04-21T14:09:25Z",
+      "side": 1,
+      "message": "unused",
+      "range": {
+        "startLine": 5,
+        "startChar": 0,
+        "endLine": 5,
+        "endChar": 24
+      },
+      "revId": "31934c237c5c0e38f50cd217912961420d32a8f1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
