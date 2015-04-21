@@ -34,6 +34,24 @@
       "revId": "79178801d57a45fca96fc173d00eae3ba52d3ab9",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_43dcabe4",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/ArpRequestBroker.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 282,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-04-21T13:23:56Z",
+      "side": 1,
+      "message": "ah it\u0027s true!\n\ni still like my version better! less idententation :D",
+      "parentUuid": "1a106d94_23c08f7b",
+      "revId": "79178801d57a45fca96fc173d00eae3ba52d3ab9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
