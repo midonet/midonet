@@ -15,8 +15,6 @@
  */
 package org.midonet.cluster.data.storage
 
-import java.util.{List => JList}
-
 import scala.concurrent.Future
 
 import rx.Observable
@@ -31,8 +29,7 @@ sealed trait PersistenceOp
 case class CreateOp(obj: Obj) extends PersistenceOp
 
 private[storage]
-case class CreateWithOwnerOp(obj: Obj, owner: String)
-    extends PersistenceOp
+case class CreateWithOwnerOp(obj: Obj, owner: String) extends PersistenceOp
 
 case class UpdateOp[T <: Obj](obj: T, validator: UpdateValidator[T])
     extends PersistenceOp
@@ -50,8 +47,7 @@ object UpdateOp {
 }
 
 case class DeleteOp(clazz: Class[_], id: ObjId,
-                    ignoreIfNotExists: Boolean = false)
-    extends PersistenceOp
+                    ignoreIfNotExists: Boolean = false) extends PersistenceOp
 
 private[storage]
 case class DeleteWithOwnerOp(clazz: Class[_], id: ObjId, owner: String)
@@ -61,22 +57,29 @@ private[storage]
 case class DeleteOwnerOp(clazz: Class[_], id: ObjId, owner: String)
     extends PersistenceOp
 
+
 /**
  * Operation to create a node with the specified value at the specified path.
  * The node must not already exist. Ancestor nodes need not exist, and will be
  * created as needed to provide a path from the root to the new node.
+ *
+ * Only required to support writes into the old Replicated maps.
  */
 case class CreateNodeOp(path: String, value: String) extends PersistenceOp
 
 /**
  * Operation to update the value of the node at the specified path. The node
  * must already exist.
+ *
+ * Only required to support writes into the old Replicated maps.
  */
 case class UpdateNodeOp(path: String, value: String) extends PersistenceOp
 
 /**
  * Operation to delete the node at the specified path. The node must already
  * exist. If any descendant nodes exist, they will be recursively deleted.
+ *
+ * Only required to support writes into the old Replicated maps.
  */
 case class DeleteNodeOp(path: String) extends PersistenceOp
 
@@ -245,16 +248,6 @@ trait Storage extends ReadOnlyStorage {
     @throws[ObjectReferencedException]
     @throws[ReferenceConflictException]
     def multi(ops: Seq[PersistenceOp]): Unit
-
-    /**
-     * Synchronous method that executes multiple create, update, and/or delete
-     * operations atomically.
-     */
-    @throws[NotFoundException]
-    @throws[ObjectExistsException]
-    @throws[ObjectReferencedException]
-    @throws[ReferenceConflictException]
-    def multi(ops: JList[PersistenceOp]): Unit
 
     /**
      * Flushes the storage, deleting all the objects stored in it.

@@ -709,15 +709,6 @@ class ZookeeperObjectMapper(
     }
 
     /**
-     * Executes multiple create, update, and/or delete operations atomically.
-     */
-    @throws[NotFoundException]
-    @throws[ObjectExistsException]
-    @throws[ObjectReferencedException]
-    @throws[ReferenceConflictException]
-    override def multi(ops: JList[PersistenceOp]): Unit = multi(ops.asScala)
-
-    /**
      * Flushes all the data in the storage by bumping the data set path version.
      *
      * TODO: move this operation out, this is a C3PO op, not a ZOOM op.
