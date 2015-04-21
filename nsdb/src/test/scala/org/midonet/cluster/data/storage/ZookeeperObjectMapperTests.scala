@@ -485,63 +485,6 @@ class ZookeeperObjectMapperTests extends Suite
         zom.getPath(classOf[PojoBridge]) should equal (s"$ZK_ROOT/1/PojoBridge")
     }
 
-    def testVersionBump() {
-        zom.getPath(classOf[PojoBridge]) should equal (s"$ZK_ROOT/1/PojoBridge")
-        zom.flush()
-        zom.getPath(classOf[PojoBridge]) should equal (s"$ZK_ROOT/2/PojoBridge")
-    }
-
-    def testZoomInheritsVersionNum() {
-        zom.getPath(classOf[PojoBridge]) should equal (s"$ZK_ROOT/1/PojoBridge")
-        zom.flush()
-
-        val zom2 = new ZookeeperObjectMapper(ZK_ROOT, curator)
-        initAndBuildZoom(zom2)
-        zom2.getPath(classOf[PojoBridge]) should equal (s"$ZK_ROOT/2/PojoBridge")
-    }
-
-    def testZoomNotifiedVersionNumBump() {
-        val zom2 = new ZookeeperObjectMapper(ZK_ROOT, curator)
-        initAndBuildZoom(zom2)
-
-        zom2.getPath(classOf[PojoBridge]) should equal (s"$ZK_ROOT/1/PojoBridge")
-
-        zom.flush()
-
-        zom2.getPath(classOf[PojoBridge]) should equal (s"$ZK_ROOT/2/PojoBridge")
-    }
-
-    def testFlushResetsWatcher() {
-        zom.flush()
-        val zom2 = new ZookeeperObjectMapper(ZK_ROOT, curator)
-        initAndBuildZoom(zom2)
-
-        zom2.flush()
-        zom.getPath(classOf[PojoBridge]) should equal (s"$ZK_ROOT/3/PojoBridge")
-
-        zom.flush()
-        zom2.getPath(classOf[PojoBridge]) should equal (s"$ZK_ROOT/4/PojoBridge")
-    }
-
-    def testFlush() {
-        val bridge = pojoBridge()
-        val port = pojoPort(bridgeId = bridge.id)
-        zom.multi(List(CreateOp(bridge), CreateOp(port)))
-        await(zom.exists(classOf[PojoBridge], bridge.id)) should equal (true)
-        await(zom.exists(classOf[PojoPort], port.id)) should equal (true)
-
-        zom.flush()
-        await(zom.exists(classOf[PojoBridge], bridge.id)) should equal (false)
-        await(zom.exists(classOf[PojoPort], port.id)) should equal (false)
-
-        // After flushing, ZOOM should be able to store new objects again.
-        val bridge2 = pojoBridge()
-        val port2 = pojoPort(bridgeId = bridge2.id)
-        zom.multi(List(CreateOp(bridge2), CreateOp(port2)))
-        await(zom.exists(classOf[PojoBridge], bridge2.id)) should equal (true)
-        await(zom.exists(classOf[PojoPort], port2.id)) should equal (true)
-    }
-
     def testCreateExclusiveOwner(): Unit = {
         val state = new ExclusiveState
         val owner = UUID.randomUUID

@@ -23,7 +23,6 @@ import java.util.concurrent.TimeUnit
 import javax.sql.DataSource
 
 import scala.collection.JavaConverters._
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.{Random, Try}
 
 import com.fasterxml.jackson.databind.JsonNode
@@ -39,20 +38,19 @@ import org.scalatest.{BeforeAndAfter, BeforeAndAfterAll, FlatSpec, Matchers}
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.ClusterNode.Context
-import org.midonet.cluster.services.c3po.C3POMinion
 import org.midonet.cluster.data.Bridge
-import org.midonet.cluster.data.neutron.NeutronResourceType.{AgentMembership => AgentMembershipType, Config => ConfigType, Network => NetworkType, NoData, Port => PortType, SecurityGroup => SecurityGroupType, Subnet => SubnetType}
+import org.midonet.cluster.data.neutron.NeutronResourceType.{AgentMembership => AgentMembershipType, Config => ConfigType, Network => NetworkType, Port => PortType, Router => RouterType, SecurityGroup => SecurityGroupType, Subnet => SubnetType}
 import org.midonet.cluster.data.neutron.TaskType._
 import org.midonet.cluster.data.neutron.{NeutronResourceType, TaskType}
 import org.midonet.cluster.data.storage.ObjectReferencedException
 import org.midonet.cluster.models.Commons
-import org.midonet.cluster.models.Commons.{EtherType, Protocol, RuleDirection}
+import org.midonet.cluster.models.Commons._
 import org.midonet.cluster.models.Neutron.NeutronConfig.TunnelProtocol
 import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner
-import org.midonet.cluster.models.Neutron.SecurityGroup
+import org.midonet.cluster.models.Neutron._
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.services.MidonetBackendService
-import org.midonet.cluster.services.c3po.C3POState
+import org.midonet.cluster.services.c3po.C3POMinion
 import org.midonet.cluster.storage.MidonetBackendConfig
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil}
@@ -105,6 +103,7 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
         "SELECT last_processed_task_id FROM midonet_data_state WHERE id = 1"
     private val LAST_PROCESSED_ID_COL = 1
 
+    val rootPath = "/test"
     val C3PO_CFG_OBJECT = ConfigFactory.parseString(
         s"""
           |cluster.neutron_importer.period : 100ms
@@ -115,7 +114,7 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
           |cluster.neutron_importer.connection_string : "$DB_CONNECT_STR"
           |cluster.neutron_importer.user : ""
           |cluster.neutron_importer.password : ""
-          |zookeeper.root_key : "/test"
+          |zookeeper.root_key : "$rootPath"
           |zookeeper.use_new_stack : true
         """.stripMargin)
 
@@ -203,26 +202,6 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
         log.info("Created and initialized the midonet_data_state table.")
     }
 
-    protected def emptyTaskAndStateTablesAndFlushTopology() = {
-        executeSqlStmts(EMPTY_TASK_TABLE)
-        executeSqlStmts(EMPTY_STATE_TABLE)
-        executeSqlStmts(INIT_STATE_ROW)
-        log.info("Emptied the task/state tables.")
-
-        // A flush task must have an id of 1 by spec.
-        executeSqlStmts(insertTaskSql(id = 1, Flush, NoData, json = "",
-                                      null, "flush_txn"))
-        log.info("Inserted a flush task.")
-
-        clearReplMaps()
-
-        // Wait for flush to finish before starting next test.
-        eventually {
-            val state = storage.get(classOf[C3POState], C3POState.ID).await()
-            state.lastProcessedTaskId shouldBe C3POState.NO_TASKS_PROCESSED
-        }
-    }
-
     protected def clearReplMaps(): Unit = {
         // All the maps are under these two.
         for (path <- List(pathBldr.getBridgesPath, pathBldr.getRoutersPath)) {
@@ -236,12 +215,9 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
                                 dataType: NeutronResourceType[_],
                                 json: String, resourceId: UUID,
                                 txnId: String): String = {
-        val taskTypeStr = if (taskType != null) s"'${taskType.id}'"
-        else "NULL"
-        val dataTypeStr = if (dataType != null) s"'${dataType.id}'"
-        else "NULL"
-        val rsrcIdStr = if (resourceId != null) s"'$resourceId'"
-        else "NULL"
+        val taskTypeStr = if (taskType != null) s"'${taskType.id}'" else "NULL"
+        val dataTypeStr = if (dataType != null) s"'${dataType.id}'" else "NULL"
+        val rsrcIdStr = if (resourceId != null) s"'$resourceId'" else "NULL"
 
         "INSERT INTO midonet_tasks values(" +
         s"$id, $taskTypeStr, $dataTypeStr, '$json', $rsrcIdStr, '$txnId', " +
@@ -260,28 +236,11 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
     override protected def beforeAll() {
         try {
             printf("Entered BeforeAll()")
-            val retryPolicy = new ExponentialBackoffRetry(1000, 10)
-            curator = CuratorFrameworkFactory.newClient(ZK_HOST, retryPolicy)
             // Initialize tasks and state tables.
             createTaskTable()
             createStateTable()
 
             zk.start()
-
-            backendCfg = new MidonetBackendConfig(
-                MidoTestConfigurator.forClusters(C3PO_CFG_OBJECT))
-
-            backend = new MidonetBackendService(backendCfg, curator)
-            backend.startAsync().awaitRunning()
-            curator.blockUntilConnected()
-
-            val nodeCtx = new Context(UUID.randomUUID())
-            c3po = new C3POMinion(nodeCtx, clusterCfg, dataSrc,
-                                  backend, curator, backendCfg)
-            c3po.startAsync()
-            c3po.awaitRunning(2, TimeUnit.SECONDS)
-
-            pathBldr = new PathBuilder(backendCfg.rootKey)
         } catch {
             case e: Throwable =>
                 log.error("Failing setting up environment", e)
@@ -292,17 +251,44 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
     protected def storage = backend.store
 
     before {
-        // Empties the task table and flush the topology before each test run.
-        // NOTE: Closing the ZK Testing Server doesn't work because the Curator
-        // client loses the connection. If we convert the test so that it runs
-        // C3PO alone, we can instead just call C3PO.flushTopology() on C3PO.
-        // Calling Storage.flush() doesn't do the job as it doesn't do necessary
-        // initialization.
-        emptyTaskAndStateTablesAndFlushTopology()
+        curator = CuratorFrameworkFactory.newClient(ZK_HOST,
+            new ExponentialBackoffRetry(1000, 10)
+        )
+        backendCfg = new MidonetBackendConfig(
+            MidoTestConfigurator.forClusters(C3PO_CFG_OBJECT)
+        )
+
+        pathBldr = new PathBuilder(backendCfg.rootKey)
+        backend = new MidonetBackendService(backendCfg, curator)
+        backend.startAsync().awaitRunning()
+        curator.blockUntilConnected()
+
+        val nodeCtx = new Context(UUID.randomUUID())
+        c3po = new C3POMinion(nodeCtx, clusterCfg, dataSrc, backend, curator,
+                              backendCfg)
+        c3po.startAsync()
+        c3po.awaitRunning(5, TimeUnit.SECONDS)
     }
 
     after {
-        // curator.delete().deletingChildrenIfNeeded().forPath("/")
+
+        // The importer stops
+        c3po.stopAsync()
+        c3po.awaitTerminated(5, TimeUnit.SECONDS)
+
+        // Clean the task table
+        executeSqlStmts(EMPTY_TASK_TABLE)
+        executeSqlStmts(EMPTY_STATE_TABLE)
+        executeSqlStmts(INIT_STATE_ROW)
+
+        log.info("Emptied the task/state tables.")
+
+        // Make sure that ZK is pristine (not only data, but stuff like
+        // nodes used for leader election
+        curator.delete().deletingChildrenIfNeeded().forPath(rootPath)
+        log.info("ZK is clean")
+
+        clearReplMaps()
     }
 
     override protected def afterAll() {
@@ -619,31 +605,10 @@ class C3POMinionTest extends C3POMinionTestBase {
             checkReplTables(network1Uuid, shouldExist = false)
         }
 
-        // Empties the Task table and flushes the Topology.
-        emptyTaskAndStateTablesAndFlushTopology()
-
         eventually {
-            storage.exists(classOf[Network], network2Uuid).await() shouldBe false
-            checkReplTables(network2Uuid, shouldExist = false)
+            storage.exists(classOf[Network], network2Uuid).await() shouldBe true
         }
 
-        // Can create Network 1 & 2 again.
-        executeSqlStmts(
-                insertTaskSql(id = 2, Create, NetworkType,
-                              network1Json.toString, network1Uuid, "tx4"),
-                insertTaskSql(id = 3, Create, NetworkType,
-                              network2Json.toString, network2Uuid,  "tx4"))
-
-        eventually {
-            // Both networks should exist.
-            for (id <- List(network1Uuid, network2Uuid);
-                 nwExists <- storage.exists(classOf[Network], id)) {
-                nwExists shouldBe true
-            }
-            getLastProcessedIdFromTable shouldBe Some(3)
-            checkReplTables(network1Uuid, shouldExist = true)
-            checkReplTables(network2Uuid, shouldExist = true)
-        }
     }
 
     it should "execute VIF port CRUD tasks" in {
