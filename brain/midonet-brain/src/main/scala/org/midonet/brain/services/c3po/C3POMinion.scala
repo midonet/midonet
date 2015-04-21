@@ -66,6 +66,16 @@ class C3POMinion @Inject()(nodeContext: ClusterNode.Context,
                                               nodeContext.nodeId.toString)
     leaderLatch.start()
 
+    override def doStop(): Unit = {
+        if (leaderLatch.hasLeadership) {
+            log.info("Leader shutting down, releasing leadership")
+        } else {
+            log.info("Non leader shutting down, removing myself from pool")
+        }
+        leaderLatch.close()
+        super.doStop()
+    }
+
     protected override val runnable = new Runnable {
         override def run(): Unit = try {
             if (!leaderLatch.hasLeadership) {

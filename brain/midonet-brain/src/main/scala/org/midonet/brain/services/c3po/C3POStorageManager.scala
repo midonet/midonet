@@ -17,7 +17,7 @@
 package org.midonet.brain.services.c3po
 
 import java.util.concurrent.TimeUnit
-import java.util.{HashMap => JHashMap, Map => JMap, UUID => JUUID}
+import java.util.{HashMap => JHashMap, Map => JMap}
 
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
@@ -120,12 +120,26 @@ final class C3POStorageManager(storage: Storage) {
 
     /** Flushes the current storage preparing for a reimport. */
     @throws[ProcessingException]
-    def flushTopology(): Unit = try {
-        storage.flush()
-        initStorageManagerState()
-    } catch {
-        case e: Throwable => throw new ProcessingException("Flushing failed", e)
-    }
+    def flushTopology(): Unit = // try {
+        throw new NotImplementedError("Flush is not implemented")
+        // TODO:
+        //
+        // - GET the curr storage version node from ZK (e.g., /zoom/currVer)
+        // - Create a new root path in ZK at currVersion + 1
+        // - WRITE the curr storage version node to ZK at /zoom/currVer
+        //
+        // Changes in the /zoom/currVer node should be watched by clients, not
+        // by zoom itself. When a new version appears, they should close their
+        // zoom instances and reinitialize a new one pointing at the new root.
+        //
+        // In most cases, this will imply a restart (e.g, the agent restarts
+        // and starts pointing at the right place)
+        //
+        // old code:
+        //    initStorageManagerState()
+        // } catch {
+        //     case e: Throwable => throw new ProcessingException("Flushing failed", e)
+        // }
 
     /** Interprets a single transaction of external model operations,
       * translating into the corresponding operations in the internal model, and

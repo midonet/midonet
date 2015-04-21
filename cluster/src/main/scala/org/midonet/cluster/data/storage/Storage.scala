@@ -250,12 +250,6 @@ trait Storage extends ReadOnlyStorage {
     def multi(ops: Seq[PersistenceOp]): Unit
 
     /**
-     * Flushes the storage, deleting all the objects stored in it.
-     */
-    @throws[StorageException]
-    def flush(): Unit
-
-    /**
      * Provide an Observable that emits updates to the specified object
      * asynchronously. Note that an implementation may chose to cache
      * the observable for each given object in order for several callers
