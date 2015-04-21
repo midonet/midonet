@@ -53,9 +53,9 @@ Your review will now appear on [GerritHub][gerrithub]. After committers
 approve your change and the code is tested, it'll get merged into the
 main repository.
 
-Feel free to join other MidoNet developers at #midonet on
-irc.freenode.net, or our the Development [mailing list][dev-mail]. We'll
-be happy to help you get set up.
+Feel free to join other MidoNet developers on our public
+[Slack chat channel][slack], or our Development
+[mailing list][dev-mail]. We'll be happy to help you get set up.
 
 [jira]: http://midonet.atlassian.net
     "MidoNet Issue tracking"
@@ -63,6 +63,8 @@ be happy to help you get set up.
     "GerritHub"
 [dev-guide]: http://wiki.midonet.org/Developer%27s%20Guide
     "MidoNet developers guide"
+[slack]: http://slack.midonet.org
+    "MidoNet Public Slack"
 [dev-mail]: http://lists.midonet.org/listinfo/midonet-dev
     "MidoNet developers mailing list"
 
