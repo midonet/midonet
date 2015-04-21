@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_e0af8d92",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/FloatingIpTranslator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-04-21T08:17:02Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_0028e932",
+      "range": {
+        "startLine": 74,
+        "startChar": 12,
+        "endLine": 74,
+        "endChar": 18
+      },
+      "revId": "3e0a0725faa48c1b150f0d6a9356887d70893a07",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_00110905",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/FloatingIpTranslator.scala",
         "patchSetId": 3
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_00ad899c",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/FloatingIpTranslator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-04-21T08:17:02Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_00110905",
+      "range": {
+        "startLine": 93,
+        "startChar": 41,
+        "endLine": 93,
+        "endChar": 42
+      },
+      "revId": "3e0a0725faa48c1b150f0d6a9356887d70893a07",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_e02aed2a",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/RouteManager.scala",
         "patchSetId": 3
@@ -59,6 +107,30 @@
       "writtenOn": "2015-04-21T07:00:39Z",
       "side": 1,
       "message": "I was just joking. I didn\u0027t think you\u0027d actually change it.",
+      "range": {
+        "startLine": 157,
+        "startChar": 35,
+        "endLine": 157,
+        "endChar": 36
+      },
+      "revId": "3e0a0725faa48c1b150f0d6a9356887d70893a07",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_80c9797a",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/translators/RouteManager.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 157,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-04-21T08:17:02Z",
+      "side": 1,
+      "message": "Darng! you got me :P",
+      "parentUuid": "1a106d94_e02aed2a",
       "range": {
         "startLine": 157,
         "startChar": 35,
