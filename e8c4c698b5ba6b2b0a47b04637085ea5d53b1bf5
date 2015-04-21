@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_cd328a0f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/datapath/DatapathBootstrap.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-04-21T02:09:56Z",
+      "side": 1,
+      "message": "Please remove \"s\" because there\u0027s not string interpolation.",
+      "revId": "e8c4c698b5ba6b2b0a47b04637085ea5d53b1bf5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_ad358ef8",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/datapath/DatapathBootstrap.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-04-21T02:09:56Z",
+      "side": 1,
+      "message": "Please remove \"s\" because there\u0027s not string interpolation.",
+      "revId": "e8c4c698b5ba6b2b0a47b04637085ea5d53b1bf5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_0d3dc2de",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/datapath/FlowProcessor.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-04-21T02:09:56Z",
+      "side": 1,
+      "message": "It could be better to put the comment a line above because it exceeds 80 characters limitation.",
+      "revId": "e8c4c698b5ba6b2b0a47b04637085ea5d53b1bf5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
