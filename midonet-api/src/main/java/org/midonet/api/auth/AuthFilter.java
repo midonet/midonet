@@ -18,6 +18,9 @@ package org.midonet.api.auth;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import org.midonet.api.rest_api.ResponseUtils;
+import org.midonet.brain.southbound.auth.AuthException;
+import org.midonet.brain.southbound.auth.UserIdentity;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

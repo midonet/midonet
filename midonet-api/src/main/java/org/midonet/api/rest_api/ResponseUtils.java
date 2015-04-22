@@ -19,7 +19,7 @@ import org.codehaus.jackson.JsonEncoding;
 import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.map.ObjectMapper;
-import org.midonet.api.HttpSupport;
+import org.midonet.util.http.HttpSupport;
 import org.midonet.api.VendorMediaType;
 import org.midonet.api.error.ErrorEntity;
 import org.midonet.api.validation.ValidationErrorEntity;

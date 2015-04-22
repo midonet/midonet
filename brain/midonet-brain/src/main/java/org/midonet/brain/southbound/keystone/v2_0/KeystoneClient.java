@@ -13,22 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.api.auth.keystone.v2_0;
+package org.midonet.brain.southbound.keystone.v2_0;
+
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 import com.google.inject.Inject;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientHandlerException;
 import com.sun.jersey.api.client.UniformInterfaceException;
 import com.sun.jersey.api.client.WebResource;
+
 import org.apache.commons.lang3.StringUtils;
-import org.midonet.api.auth.keystone.KeystoneBadCredsException;
-import org.midonet.api.auth.keystone.KeystoneConnectionException;
-import org.midonet.api.auth.keystone.KeystoneServerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
+import org.midonet.brain.southbound.auth.KeystoneAccess;
+import org.midonet.brain.southbound.auth.KeystoneAuthCredentials;
+import org.midonet.brain.southbound.auth.KeystoneTenant;
+import org.midonet.brain.southbound.auth.KeystoneTenantList;
 
 /**
  * Keystone Client V2.0
@@ -56,9 +59,6 @@ public class KeystoneClient {
         this.adminToken = adminToken;
     }
 
-    /**
-     * @return the serviceUrl
-     */
     public String getServiceUrl() {
         return new StringBuilder(this.protocol).append("://")
                 .append(this.host).append(":").append(
@@ -66,18 +66,10 @@ public class KeystoneClient {
                 .append("/v2.0").toString();
     }
 
-    /**
-     * @return the tokens URL
-     */
     private String getTokensUrl() {
         return new StringBuilder(getServiceUrl()).append("/tokens").toString();
     }
 
-    /**
-     * @return the tokens URL
-     *
-     * @param token Token to append to the URL
-     */
     private String getTokensUrl(String token) {
         return new StringBuilder(getTokensUrl()).append("/").append(token)
                 .toString();
@@ -112,7 +104,7 @@ public class KeystoneClient {
 
     public KeystoneAccess createToken(KeystoneAuthCredentials credentials)
             throws KeystoneServerException, KeystoneConnectionException,
-            KeystoneBadCredsException {
+                   KeystoneBadCredsException {
 
         Client client = Client.create();
         WebResource resource = client.resource(getTokensUrl());

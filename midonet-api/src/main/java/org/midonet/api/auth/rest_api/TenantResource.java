@@ -26,6 +26,8 @@ import org.midonet.api.rest_api.ResourceFactory;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.api.serialization.ViewMixinProvider;
 import org.midonet.api.serialization.Views;
+import org.midonet.brain.southbound.auth.AuthException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -118,7 +120,8 @@ public class TenantResource extends AbstractResource {
                     "Not authorized to view this tenant.");
         }
 
-        org.midonet.api.auth.Tenant authTenant = authService.getTenant(id);
+        org.midonet.brain.southbound.auth.Tenant
+            authTenant = authService.getTenant(id);
         if (authTenant == null) {
             throw new NotFoundHttpException(
                     "The requested resource was not found.");
@@ -140,11 +143,11 @@ public class TenantResource extends AbstractResource {
     public List<Tenant> list() throws AuthException {
         log.debug("TenantResource.list: entered");
 
-        List<org.midonet.api.auth.Tenant> authTenants =
+        List<org.midonet.brain.southbound.auth.Tenant> authTenants =
                 authService.getTenants(this.reqContext);
         List<Tenant> tenants = new ArrayList<>();
         if (authTenants != null) {
-            for (org.midonet.api.auth.Tenant authTenant : authTenants) {
+            for (org.midonet.brain.southbound.auth.Tenant authTenant : authTenants) {
                 Tenant tenant = new Tenant(authTenant);
                 tenant.setBaseUri(getBaseUri());
                 tenants.add(tenant);

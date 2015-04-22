@@ -13,16 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.api.auth;
+package org.midonet.brain.southbound.auth;
+
+import org.midonet.brain.southbound.auth.AuthException;
 
 /**
- * Interface representing a tenant object in the identity service.  This is the
- * generic MidoNet representation of tenant models from various identity
- * services that it could integrate with..
+ * AuthException class to represent no token.
  */
-public interface Tenant {
+public class InvalidCredentialsException extends AuthException {
 
-    String getId();
+    private static final long serialVersionUID = 1L;
 
-    String getName();
+    public InvalidCredentialsException(String message) {
+        super(message);
+    }
 }

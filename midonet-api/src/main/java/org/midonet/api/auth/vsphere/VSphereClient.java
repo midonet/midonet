@@ -28,7 +28,7 @@ import com.google.common.base.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.midonet.api.auth.AuthException;
+import org.midonet.brain.southbound.auth.AuthException;
 
 public class VSphereClient {
 

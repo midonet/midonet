@@ -28,11 +28,11 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import org.midonet.api.auth.AuthException;
+import org.midonet.brain.southbound.auth.AuthException;
 import org.midonet.api.auth.AuthRole;
-import org.midonet.api.auth.Tenant;
-import org.midonet.api.auth.Token;
-import org.midonet.api.auth.UserIdentity;
+import org.midonet.brain.southbound.auth.Tenant;
+import org.midonet.brain.southbound.auth.Token;
+import org.midonet.brain.southbound.auth.UserIdentity;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.when;

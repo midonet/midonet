@@ -13,45 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.api.auth;
+package org.midonet.brain.southbound.auth;
 
-/**
- * AuthException class.
- */
 public abstract class AuthException extends Exception {
 
     private static final long serialVersionUID = 1L;
 
-    /**
-     * Create an AuthException object with a message.
-     *
-     * @param message
-     *            Error message.
-     */
     public AuthException(String message) {
         super(message);
     }
 
-    /**
-     * Create an AuthException object with no message and wrap a
-     * Throwable object.
-     *
-     * @param e
-     *            Throwable object
-     */
     public AuthException(Throwable e) {
         super(e);
     }
 
-    /**
-     * Create an AuthException object with a message and wrap a
-     * Throwable object.
-     *
-     * @param message
-     *            Error message.
-     * @param e
-     *            Throwable object
-     */
     public AuthException(String message, Throwable e) {
         super(message, e);
     }

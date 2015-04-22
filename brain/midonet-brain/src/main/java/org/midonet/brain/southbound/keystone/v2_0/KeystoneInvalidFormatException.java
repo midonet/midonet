@@ -13,23 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.api.auth.vsphere;
+package org.midonet.brain.southbound.keystone.v2_0;
 
 import org.midonet.brain.southbound.auth.AuthException;
 
-public class VSphereAuthException extends AuthException {
+public class KeystoneInvalidFormatException extends AuthException {
 
     private static final long serialVersionUID = 1L;
 
-    public VSphereAuthException(String message) {
-        super(message);
-    }
-
-    public VSphereAuthException(Throwable e) {
-        super(e);
-    }
-
-    public VSphereAuthException(String message, Throwable e) {
+    public KeystoneInvalidFormatException(String message, Throwable e) {
         super(message, e);
     }
 }

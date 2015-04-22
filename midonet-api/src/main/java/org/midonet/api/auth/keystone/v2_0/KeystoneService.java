@@ -20,16 +20,29 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.TimeZone;
+
 import javax.servlet.http.HttpServletRequest;
 
 import com.google.inject.Inject;
+
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.midonet.api.auth.*;
+import org.midonet.api.auth.AuthRole;
+import org.midonet.api.auth.AuthService;
 import org.midonet.api.auth.keystone.KeystoneConfig;
-import org.midonet.api.auth.keystone.KeystoneInvalidFormatException;
+import org.midonet.brain.southbound.auth.AuthException;
+import org.midonet.brain.southbound.auth.InvalidCredentialsException;
+import org.midonet.brain.southbound.auth.KeystoneAccess;
+import org.midonet.brain.southbound.auth.KeystoneAuthCredentials;
+import org.midonet.brain.southbound.auth.KeystoneTenant;
+import org.midonet.brain.southbound.auth.KeystoneTenantList;
+import org.midonet.brain.southbound.auth.Tenant;
+import org.midonet.brain.southbound.auth.Token;
+import org.midonet.brain.southbound.auth.UserIdentity;
+import org.midonet.brain.southbound.keystone.v2_0.KeystoneClient;
+import org.midonet.brain.southbound.keystone.v2_0.KeystoneInvalidFormatException;
 
 /**
  * Keystone Service.
@@ -46,14 +59,6 @@ public class KeystoneService implements AuthService {
     private final KeystoneClient client;
     private final KeystoneConfig config;
 
-    /**
-     * Create a KeystoneService object from a KeystoneConfig object.
-     *
-     * @param client
-     *            KeystoneClient object
-     * @param config
-     *            KeystoneConfig object.
-     */
     @Inject
     public KeystoneService(KeystoneClient client, KeystoneConfig config) {
         this.client = client;

@@ -13,15 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.api.auth;
+package org.midonet.brain.southbound.auth;
 
 import org.codehaus.jackson.annotate.JsonProperty;
-import org.midonet.api.HttpSupport;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
+
+import org.midonet.util.http.HttpSupport;
 
 /**
  * An API token

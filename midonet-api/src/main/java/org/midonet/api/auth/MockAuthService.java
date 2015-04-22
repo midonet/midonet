@@ -16,6 +16,12 @@
 package org.midonet.api.auth;
 
 import com.google.inject.Inject;
+
+import org.midonet.brain.southbound.auth.AuthDataAccessException;
+import org.midonet.brain.southbound.auth.AuthException;
+import org.midonet.brain.southbound.auth.Tenant;
+import org.midonet.brain.southbound.auth.Token;
+import org.midonet.brain.southbound.auth.UserIdentity;
 import org.midonet.cluster.DataClient;
 import org.midonet.midolman.state.StateAccessException;
 import org.slf4j.Logger;

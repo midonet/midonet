@@ -25,7 +25,6 @@ import com.google.inject.multibindings.MapBinder;
 
 import org.midonet.api.auth.cors.CorsConfig;
 import org.midonet.api.auth.keystone.KeystoneConfig;
-import org.midonet.api.auth.keystone.v2_0.KeystoneClient;
 import org.midonet.api.auth.keystone.v2_0.KeystoneService;
 import org.midonet.api.auth.vsphere.VSphereClient;
 import org.midonet.api.auth.vsphere.VSphereConfig;
@@ -40,6 +39,8 @@ import org.midonet.api.network.auth.PortAuthorizer;
 import org.midonet.api.network.auth.PortGroupAuthorizer;
 import org.midonet.api.network.auth.RouteAuthorizer;
 import org.midonet.api.network.auth.RouterAuthorizer;
+import org.midonet.brain.southbound.auth.AuthException;
+import org.midonet.brain.southbound.keystone.v2_0.KeystoneClient;
 import org.midonet.config.ConfigProvider;
 
 /**

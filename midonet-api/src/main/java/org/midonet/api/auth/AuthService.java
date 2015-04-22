@@ -18,6 +18,11 @@ package org.midonet.api.auth;
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
+import org.midonet.brain.southbound.auth.AuthException;
+import org.midonet.brain.southbound.auth.Tenant;
+import org.midonet.brain.southbound.auth.Token;
+import org.midonet.brain.southbound.auth.UserIdentity;
+
 /**
  * Interface for auth service.
  */

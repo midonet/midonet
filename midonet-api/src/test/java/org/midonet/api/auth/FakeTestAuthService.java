@@ -18,6 +18,11 @@ package org.midonet.api.auth;
 import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 
+import org.midonet.brain.southbound.auth.AuthException;
+import org.midonet.brain.southbound.auth.Tenant;
+import org.midonet.brain.southbound.auth.Token;
+import org.midonet.brain.southbound.auth.UserIdentity;
+
 /**
  * This class is for testing purpose.
  * Used by the {@code TestAuthServiceProvider} to test the fallback mechanism

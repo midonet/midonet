@@ -31,13 +31,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.apache.commons.lang3.StringUtils;
 
-import org.midonet.api.auth.AuthException;
+import org.midonet.brain.southbound.auth.AuthException;
 import org.midonet.api.auth.AuthRole;
 import org.midonet.api.auth.AuthService;
 import org.midonet.api.auth.MockAuthService;
-import org.midonet.api.auth.Tenant;
-import org.midonet.api.auth.Token;
-import org.midonet.api.auth.UserIdentity;
+import org.midonet.brain.southbound.auth.Tenant;
+import org.midonet.brain.southbound.auth.Token;
+import org.midonet.brain.southbound.auth.UserIdentity;
 
 public class VSphereSSOService implements AuthService {
 
