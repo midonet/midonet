@@ -627,6 +627,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_133e7c28",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/PoolHealthMonitorMapperTest.scala",
+        "patchSetId": 27
+      },
+      "lineNbr": 123,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-04-22T16:17:36Z",
+      "side": 1,
+      "message": "I looked at it quickly and did not realize that you are comparing the pojo against multiple protos. Maybe this could be put in a method since the same comparisons appear multiple times.",
+      "parentUuid": "1a106d94_b307a8c9",
+      "range": {
+        "startLine": 120,
+        "startChar": 12,
+        "endLine": 123,
+        "endChar": 73
+      },
+      "revId": "3a5ab7b2b15c55910a1463a398721164a76964ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_f413cb63",
         "filename": "midolman/src/test/scala/org/midonet/midolman/topology/VirtualTopologyRedirectorTest.scala",
         "patchSetId": 27
@@ -674,6 +698,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_534474b6",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/VirtualTopologyRedirectorTest.scala",
+        "patchSetId": 27
+      },
+      "lineNbr": 590,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-04-22T16:17:36Z",
+      "side": 1,
+      "message": "Couldn\u0027t it happen here too that sometimes we just receive the non-empty map?",
+      "parentUuid": "1a106d94_930c2cef",
+      "range": {
+        "startLine": 590,
+        "startChar": 12,
+        "endLine": 590,
+        "endChar": 32
+      },
+      "revId": "3a5ab7b2b15c55910a1463a398721164a76964ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_33c6189b",
         "filename": "midolman/src/test/scala/org/midonet/midolman/topology/devices/HealthMonitorConversionTest.scala",
         "patchSetId": 27
@@ -709,6 +757,30 @@
       "side": 1,
       "message": "I prefer deterministic values whenever I can... but no problem in converting them to random.",
       "parentUuid": "1a106d94_33c6189b",
+      "range": {
+        "startLine": 42,
+        "startChar": 16,
+        "endLine": 44,
+        "endChar": 37
+      },
+      "revId": "3a5ab7b2b15c55910a1463a398721164a76964ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_d30fc486",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/devices/HealthMonitorConversionTest.scala",
+        "patchSetId": 27
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-04-22T16:17:36Z",
+      "side": 1,
+      "message": "I felt that in tests random values are a good idea.",
+      "parentUuid": "1a106d94_d3122408",
       "range": {
         "startLine": 42,
         "startChar": 16,
