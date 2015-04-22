@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 #
 # Copyright 2015 Midokura SARL
 #
@@ -27,21 +27,25 @@ import signal
 import struct
 import sys
 import tempfile
-import time
+
 
 def corefile_timestamp():
     return datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
 
+
 def timestamp():
     return datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
 
 def err(s):
     print('[wdog] ' + timestamp() + ' ' + s, file=sys.stderr)
     sys.stderr.flush()
 
+
 def msg(s):
     print('[wdog] ' + timestamp() + ' ' + s, file=sys.stdout)
     sys.stdout.flush()
+
 
 class ISelectLoopObserver:
     def __init__(self):
@@ -52,6 +56,7 @@ class ISelectLoopObserver:
 
     def on_ready(self, fd):
         pass
+
 
 class SignalsPipe:
     def __init__(self, observer):
@@ -86,6 +91,7 @@ class SignalsPipe:
                 if e.errno != errno.EINTR and e.errno != errno.EAGAIN:
                     raise e
 
+
 class SelectLoop:
     def __init__(self, observer):
         self.selfpipe = SignalsPipe(observer)
@@ -109,11 +115,12 @@ class SelectLoop:
             if err != errno.EAGAIN and err != errno.EINTR:
                 raise e
 
+
 class ProcMon(ISelectLoopObserver):
     def __init__(self, grace, dump_path, args):
         self.ticks_left = grace
         self.grace = grace
-        self.pipe_dir = tempfile.mkdtemp(prefix = 'wdog.')
+        self.pipe_dir = tempfile.mkdtemp(prefix='wdog.')
         self.pipe_path = self.pipe_dir + '/wdog.fifo'
         self.args = args
         self.child_pid = 0
@@ -128,12 +135,15 @@ class ProcMon(ISelectLoopObserver):
 
             dumps = self.list_dumps()
             if len(dumps) >= 10:
-                err('SKIPPING MEMORY DUMP, there are already %d dumps in %s' % (len(dumps), self.dump_path))
+                err('SKIPPING MEMORY DUMP, there are already %d dumps in %s' %
+                    (len(dumps), self.dump_path))
                 return
 
-            filename = "%s/core_%s_%d.hprof" % (self.dump_path, corefile_timestamp(), pid)
+            filename = "%s/core_%s_%d.hprof" % (self.dump_path,
+                                                corefile_timestamp(), pid)
             err("dumping core into %s" % filename)
-            subprocess.call(["/usr/bin/jmap", "-dump:live,format=b,file=%s" % filename, str(pid)])
+            subprocess.call(["/usr/bin/jmap", "-dump:live,format=b,file=%s" %
+                             filename, str(pid)])
             err("core dumped into %s" % filename)
         except Exception as e:
             err(e.message)
@@ -173,7 +183,6 @@ class ProcMon(ISelectLoopObserver):
                     pid, status = os.waitpid(self.child_pid, 0)
             except OSError:
                 pass
-
 
     def on_sigchld(self):
         pid, status = os.waitpid(self.child_pid, os.WNOHANG)
@@ -247,12 +256,12 @@ class ProcMon(ISelectLoopObserver):
     def open_pipe(self):
         msg('opening pipe at ' + self.pipe_path)
         try:
-            res = os.stat(self.pipe_path)
+            os.stat(self.pipe_path)
         except OSError as e:
             if e.errno != errno.ENOENT:
                 raise e
             else:
-                os.mkfifo(self.pipe_path, 0600)
+                os.mkfifo(self.pipe_path, 0o600)
 
         self.pipe = os.open(self.pipe_path, os.O_RDONLY | os.O_NONBLOCK)
         return self.pipe
@@ -267,7 +276,7 @@ class ProcMon(ISelectLoopObserver):
             os.putenv('WDOG_TIMEOUT', str(self.grace))
             os.execvp(self.args[0], self.args)
 
-        return -1 # not reached
+        return -1  # not reached
 
 usage_string = """wdog: Runs and monitors a java process
 
@@ -287,9 +296,11 @@ Giving the -d option will create a dump of the jvm heap in the given path, in
 the case where the child is killed due to being unresponsive.
 """
 
+
 def usage():
     err(usage_string)
     sys.exit(1)
+
 
 def main():
     argv.pop(0)
