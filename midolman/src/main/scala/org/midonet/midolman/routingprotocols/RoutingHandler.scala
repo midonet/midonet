@@ -210,19 +210,6 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
     var zookeeperActive = true
     var portActive = true
 
-    private var bgpdStartupTime = 0L
-    private var lastBgpdStatusCheck = 0L
-
-    def now = System.currentTimeMillis()
-
-    def bgpdStatusCheckIsDue = {
-        if (now-bgpdStartupTime > 120000L)
-            now-lastBgpdStatusCheck > 30000L
-        else
-            now-lastBgpdStatusCheck > 5000L
-    }
-
-
     override def preStart() {
         log.info("({}) Starting, port {}.", phase, rport.id)
 
@@ -285,7 +272,7 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
         // Subscribe to the VTA for updates to the Port configuration.
         VirtualTopologyActor ! PortRequest(rport.id, update = true)
 
-        system.scheduler.schedule(2 seconds, 2500 milliseconds, self, FETCH_BGPD_STATUS)
+        system.scheduler.schedule(2 seconds, 5 seconds, self, FETCH_BGPD_STATUS)
 
         log.debug("({}) Started", phase)
     }
@@ -462,8 +449,6 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
                     context.system.eventStream.publish(
                         BGPD_STATUS(rport.id, true))
 
-                    bgpdStartupTime = now
-
                 case _ =>
                     log.error("({}) BGP_READY expected only while Starting", phase)
             }
@@ -484,7 +469,7 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
                     log.error("({}) unexpected BGPD_DEAD message", phase)
             }
 
-        case FETCH_BGPD_STATUS if bgpdStatusCheckIsDue =>
+        case FETCH_BGPD_STATUS =>
             bgps.headOption foreach {
                 case (id, bgp) =>
                     log.debug("querying bgpd neighbour information")
