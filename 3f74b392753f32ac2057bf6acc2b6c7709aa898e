@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_59ee58b5",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-04-22T00:56:59Z",
+      "side": 1,
+      "message": "s/will notify/will be notified/",
+      "range": {
+        "startLine": 36,
+        "startChar": 43,
+        "endLine": 36,
+        "endChar": 54
+      },
+      "revId": "3f74b392753f32ac2057bf6acc2b6c7709aa898e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_b92cac03",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/C3POStorageManager.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 133,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-04-22T00:56:59Z",
+      "side": 1,
+      "message": "Does this mean that instance and class subscriptions are NOT closed by ZOOM upon a version bump?",
+      "range": {
+        "startLine": 131,
+        "startChar": 11,
+        "endLine": 133,
+        "endChar": 78
+      },
+      "revId": "3f74b392753f32ac2057bf6acc2b6c7709aa898e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
