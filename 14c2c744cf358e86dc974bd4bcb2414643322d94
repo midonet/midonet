@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_b9614c3b",
+        "filename": "README.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-04-22T01:34:58Z",
+      "side": 1,
+      "message": "Please remove.",
+      "range": {
+        "startLine": 57,
+        "startChar": 36,
+        "endLine": 57,
+        "endChar": 39
+      },
+      "revId": "14c2c744cf358e86dc974bd4bcb2414643322d94",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_9964504a",
+        "filename": "README.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-04-22T01:34:58Z",
+      "side": 1,
+      "message": "\"Developer\"?",
+      "range": {
+        "startLine": 57,
+        "startChar": 40,
+        "endLine": 57,
+        "endChar": 52
+      },
+      "revId": "14c2c744cf358e86dc974bd4bcb2414643322d94",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
