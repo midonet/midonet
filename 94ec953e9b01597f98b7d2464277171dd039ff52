@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_960c1aef",
+        "filename": "specs/2015.03/neutron_translation.md",
+        "patchSetId": 16
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-04-22T22:19:48Z",
+      "side": 1,
+      "message": "Right, only the neutron network, not MidoNet bridge",
+      "parentUuid": "1a106d94_80e85911",
+      "revId": "94ec953e9b01597f98b7d2464277171dd039ff52",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_b464b322",
         "filename": "specs/2015.03/neutron_translation.md",
         "patchSetId": 16
@@ -30,6 +48,30 @@
       "writtenOn": "2015-04-22T10:15:15Z",
       "side": 1,
       "message": "Per our conversation, we probably shouldn\u0027t allow changing the network type, in which case there\u0027s no translation work to do, as with create.",
+      "range": {
+        "startLine": 32,
+        "startChar": 0,
+        "endLine": 34,
+        "endChar": 21
+      },
+      "revId": "94ec953e9b01597f98b7d2464277171dd039ff52",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_f60d8ee9",
+        "filename": "specs/2015.03/neutron_translation.md",
+        "patchSetId": 16
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-04-22T22:19:48Z",
+      "side": 1,
+      "message": "What I meant here was just updating the Neutron network in ZK, not MidoNet bridge.  But you\u0027re right that we shouldn\u0027t allow changing the network type.",
+      "parentUuid": "1a106d94_b464b322",
       "range": {
         "startLine": 32,
         "startChar": 0,
@@ -65,6 +107,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_16f82ac2",
+        "filename": "specs/2015.03/neutron_translation.md",
+        "patchSetId": 16
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-04-22T22:19:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_60e39d33",
+      "range": {
+        "startLine": 38,
+        "startChar": 33,
+        "endLine": 38,
+        "endChar": 42
+      },
+      "revId": "94ec953e9b01597f98b7d2464277171dd039ff52",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_74823b95",
         "filename": "specs/2015.03/neutron_translation.md",
         "patchSetId": 16
@@ -82,6 +148,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_76019eae",
+        "filename": "specs/2015.03/neutron_translation.md",
+        "patchSetId": 16
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-04-22T22:19:48Z",
+      "side": 1,
+      "message": "It should be setting admin state down the router ports bound to the network.",
+      "parentUuid": "1a106d94_74823b95",
+      "revId": "94ec953e9b01597f98b7d2464277171dd039ff52",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_943537f9",
         "filename": "specs/2015.03/neutron_translation.md",
         "patchSetId": 16
@@ -93,6 +177,30 @@
       "writtenOn": "2015-04-22T10:15:15Z",
       "side": 1,
       "message": "Uplink network is a special case here, too, isn\u0027t it? For one, there\u0027s no Midonet network. But also, is there any chance that there will be special cleanup to do? I assume all ports will be deleted first.",
+      "range": {
+        "startLine": 44,
+        "startChar": 4,
+        "endLine": 44,
+        "endChar": 10
+      },
+      "revId": "94ec953e9b01597f98b7d2464277171dd039ff52",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_b62e7641",
+        "filename": "specs/2015.03/neutron_translation.md",
+        "patchSetId": 16
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-04-22T22:19:48Z",
+      "side": 1,
+      "message": "Right, delete the router ports.",
+      "parentUuid": "1a106d94_943537f9",
       "range": {
         "startLine": 44,
         "startChar": 4,
@@ -128,6 +236,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_36228652",
+        "filename": "specs/2015.03/neutron_translation.md",
+        "patchSetId": 16
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-04-22T22:19:48Z",
+      "side": 1,
+      "message": "DHCP ports, DHCP subnets...  IMO the Zoom should just delete them all and clean everything up.",
+      "parentUuid": "1a106d94_342603cf",
+      "range": {
+        "startLine": 46,
+        "startChar": 31,
+        "endLine": 46,
+        "endChar": 64
+      },
+      "revId": "94ec953e9b01597f98b7d2464277171dd039ff52",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_9999f021",
         "filename": "specs/2015.03/neutron_translation.md",
         "patchSetId": 16
@@ -139,6 +271,30 @@
       "writtenOn": "2015-04-22T09:23:28Z",
       "side": 1,
       "message": "\"MidoNet network\"?",
+      "range": {
+        "startLine": 79,
+        "startChar": 47,
+        "endLine": 79,
+        "endChar": 58
+      },
+      "revId": "94ec953e9b01597f98b7d2464277171dd039ff52",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_b6d5d61d",
+        "filename": "specs/2015.03/neutron_translation.md",
+        "patchSetId": 16
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-04-22T22:19:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_9999f021",
       "range": {
         "startLine": 79,
         "startChar": 47,
@@ -180,6 +336,24 @@
       "side": 1,
       "message": "We create that when translating the RouterInterface creation.",
       "parentUuid": "1a106d94_34dc43e4",
+      "revId": "94ec953e9b01597f98b7d2464277171dd039ff52",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_96da5a4a",
+        "filename": "specs/2015.03/neutron_translation.md",
+        "patchSetId": 16
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-04-22T22:19:48Z",
+      "side": 1,
+      "message": "Router gateway port is created on \u0027create port\u0027 but that\u0027s not the same as the uplink network ports.  For uplink network, a port would be on the router, not bridge, so you have to wait until \u0027router interface add\u0027 API is submitted at which point the router already exists.",
+      "parentUuid": "1a106d94_542bbf93",
       "revId": "94ec953e9b01597f98b7d2464277171dd039ff52",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -256,6 +430,54 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_569aa26e",
+        "filename": "specs/2015.03/neutron_translation.md",
+        "patchSetId": 16
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-04-22T22:19:48Z",
+      "side": 1,
+      "message": "Yes, all ports could have an IP address.  In Neutron, you could even say that it creates ports just so that it can allocate IP addresses in some cases (even when there is really no need to even have a port, like \u0027floating IP port\u0027).  It\u0027s the only way for Neutron to allocate IPs.\n\nI think you should create ARP entry for all IPs on the any type of ports.  No need to check for its type.",
+      "parentUuid": "1a106d94_14cdc75d",
+      "range": {
+        "startLine": 93,
+        "startChar": 0,
+        "endLine": 93,
+        "endChar": 31
+      },
+      "revId": "94ec953e9b01597f98b7d2464277171dd039ff52",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_769d1e66",
+        "filename": "specs/2015.03/neutron_translation.md",
+        "patchSetId": 16
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-04-22T22:19:48Z",
+      "side": 1,
+      "message": "In the future, midonet should allow multiple IP addresses per router port.  That is a limitation on MidoNet right now which will change.  MidoNet does not store IP addresses on bridge ports.  Neutron allows multiple IPs, however, but used only for IPv4 + IPv6 AFAIK.  I\u0027ll note that here.",
+      "parentUuid": "1a106d94_b419538a",
+      "range": {
+        "startLine": 93,
+        "startChar": 0,
+        "endLine": 93,
+        "endChar": 70
+      },
+      "revId": "94ec953e9b01597f98b7d2464277171dd039ff52",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_14d787c0",
         "filename": "specs/2015.03/neutron_translation.md",
         "patchSetId": 16
@@ -267,6 +489,30 @@
       "writtenOn": "2015-04-22T09:23:28Z",
       "side": 1,
       "message": "Port Translator does this for a Router Interface Port only. Do we need to do this for other ports?",
+      "range": {
+        "startLine": 124,
+        "startChar": 3,
+        "endLine": 125,
+        "endChar": 78
+      },
+      "revId": "94ec953e9b01597f98b7d2464277171dd039ff52",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_b68af618",
+        "filename": "specs/2015.03/neutron_translation.md",
+        "patchSetId": 16
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-04-22T22:19:48Z",
+      "side": 1,
+      "message": "I believe there is a case in which the DHCP port and router interface port creation may race because DHCP port is created by a separate agent (DHCP agent).  In that case, when one port is created, the other may not exist.  I will leave this here for now but will look at the current Neutron code to see if this situation is still the same.",
+      "parentUuid": "1a106d94_14d787c0",
       "range": {
         "startLine": 124,
         "startChar": 3,
@@ -296,6 +542,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_968ffa29",
+        "filename": "specs/2015.03/neutron_translation.md",
+        "patchSetId": 16
+      },
+      "lineNbr": 133,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-04-22T22:19:48Z",
+      "side": 1,
+      "message": "Yes, we need these entries for all ports since they will be used by the agents in the simulation to go from router -\u003e network -\u003e router.",
+      "parentUuid": "1a106d94_d4eccf91",
+      "revId": "94ec953e9b01597f98b7d2464277171dd039ff52",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_348a83bf",
         "filename": "specs/2015.03/neutron_translation.md",
         "patchSetId": 16
@@ -307,6 +571,30 @@
       "writtenOn": "2015-04-22T09:23:28Z",
       "side": 1,
       "message": "I think that we currently make an assumption somewhere that the IP address of Neutron Port doesn\u0027t change.",
+      "range": {
+        "startLine": 146,
+        "startChar": 3,
+        "endLine": 146,
+        "endChar": 24
+      },
+      "revId": "94ec953e9b01597f98b7d2464277171dd039ff52",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_f680eef8",
+        "filename": "specs/2015.03/neutron_translation.md",
+        "patchSetId": 16
+      },
+      "lineNbr": 146,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-04-22T22:19:48Z",
+      "side": 1,
+      "message": "Could you point me to that?  We handle this case in our current translation.",
+      "parentUuid": "1a106d94_348a83bf",
       "range": {
         "startLine": 146,
         "startChar": 3,
@@ -342,6 +630,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_d685f207",
+        "filename": "specs/2015.03/neutron_translation.md",
+        "patchSetId": 16
+      },
+      "lineNbr": 158,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-04-22T22:19:48Z",
+      "side": 1,
+      "message": "Correct",
+      "parentUuid": "1a106d94_548f3fcc",
+      "range": {
+        "startLine": 157,
+        "startChar": 3,
+        "endLine": 158,
+        "endChar": 46
+      },
+      "revId": "94ec953e9b01597f98b7d2464277171dd039ff52",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_7494fbe1",
         "filename": "specs/2015.03/neutron_translation.md",
         "patchSetId": 16
@@ -353,6 +665,30 @@
       "writtenOn": "2015-04-22T09:23:28Z",
       "side": 1,
       "message": "These are currently only done for VIF port in Port Translator.",
+      "range": {
+        "startLine": 172,
+        "startChar": 3,
+        "endLine": 174,
+        "endChar": 11
+      },
+      "revId": "94ec953e9b01597f98b7d2464277171dd039ff52",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_367e061a",
+        "filename": "specs/2015.03/neutron_translation.md",
+        "patchSetId": 16
+      },
+      "lineNbr": 174,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-04-22T22:19:48Z",
+      "side": 1,
+      "message": "I think you should do it for all of them.",
+      "parentUuid": "1a106d94_7494fbe1",
       "range": {
         "startLine": 172,
         "startChar": 3,
