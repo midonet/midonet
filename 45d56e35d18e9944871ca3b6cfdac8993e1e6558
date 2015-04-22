@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_8fba42be",
+        "filename": "tests/mmm/scripts/dump_mmm_topology.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1002749
+      },
+      "writtenOn": "2015-04-22T12:38:50Z",
+      "side": 1,
+      "message": "typical change from a python3 (u|loo)ser :D",
+      "revId": "45d56e35d18e9944871ca3b6cfdac8993e1e6558",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
