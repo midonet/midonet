@@ -1,0 +1,165 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_54029f0b",
+        "filename": "docs/arp-table.md",
+        "patchSetId": 9
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-04-22T14:01:53Z",
+      "side": 1,
+      "message": "virtual",
+      "range": {
+        "startLine": 3,
+        "startChar": 10,
+        "endLine": 3,
+        "endChar": 16
+      },
+      "revId": "70489019764b9f0bb6cb118b05485f05de5a853c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_af00de01",
+        "filename": "docs/arp-table.md",
+        "patchSetId": 9
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-04-22T14:01:53Z",
+      "side": 1,
+      "message": "virtual",
+      "range": {
+        "startLine": 5,
+        "startChar": 21,
+        "endLine": 5,
+        "endChar": 27
+      },
+      "revId": "70489019764b9f0bb6cb118b05485f05de5a853c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_532f5488",
+        "filename": "docs/arp-table.md",
+        "patchSetId": 9
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-04-22T14:01:53Z",
+      "side": 1,
+      "message": "s/virtal/virtual/g",
+      "range": {
+        "startLine": 12,
+        "startChar": 57,
+        "endLine": 12,
+        "endChar": 63
+      },
+      "revId": "70489019764b9f0bb6cb118b05485f05de5a853c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_f355a0fa",
+        "filename": "docs/arp-table.md",
+        "patchSetId": 9
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-04-22T14:01:53Z",
+      "side": 1,
+      "message": "because",
+      "range": {
+        "startLine": 21,
+        "startChar": 0,
+        "endLine": 21,
+        "endChar": 84
+      },
+      "revId": "70489019764b9f0bb6cb118b05485f05de5a853c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_b37688a2",
+        "filename": "docs/arp-table.md",
+        "patchSetId": 9
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-04-22T14:01:53Z",
+      "side": 1,
+      "message": "immediately",
+      "range": {
+        "startLine": 49,
+        "startChar": 36,
+        "endLine": 49,
+        "endChar": 47
+      },
+      "revId": "70489019764b9f0bb6cb118b05485f05de5a853c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_937b8c8b",
+        "filename": "docs/arp-table.md",
+        "patchSetId": 9
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-04-22T14:01:53Z",
+      "side": 1,
+      "message": "without",
+      "range": {
+        "startLine": 49,
+        "startChar": 48,
+        "endLine": 49,
+        "endChar": 55
+      },
+      "revId": "70489019764b9f0bb6cb118b05485f05de5a853c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_f36c80d2",
+        "filename": "docs/arp-table.md",
+        "patchSetId": 9
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-04-22T14:01:53Z",
+      "side": 1,
+      "message": "MAC is capitalized in other places, may as well here",
+      "range": {
+        "startLine": 50,
+        "startChar": 45,
+        "endLine": 50,
+        "endChar": 48
+      },
+      "revId": "70489019764b9f0bb6cb118b05485f05de5a853c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
