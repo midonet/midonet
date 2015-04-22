@@ -13,21 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.api.auth;
+package org.midonet.brain.rest_api.auth;
+
+import java.io.IOException;
+
+import javax.servlet.Filter;
+import javax.servlet.FilterChain;
+import javax.servlet.FilterConfig;
+import javax.servlet.ServletContext;
+import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import org.apache.commons.codec.binary.Base64;
+
 import org.apache.commons.lang3.StringUtils;
-import org.midonet.api.HttpSupport;
-import org.midonet.api.rest_api.ResponseUtils;
+import org.jasypt.contrib.org.apache.commons.codec_1_3.binary.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.servlet.*;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
+import org.midonet.brain.services.rest_api.ResponseUtils;
+import org.midonet.util.http.HttpSupport;
 
 /**
  * Servlet Filter to authenticate a user with username and password
@@ -63,7 +72,7 @@ public class LoginFilter implements Filter {
         String authorization = request.getHeader("authorization");
         if (StringUtils.isEmpty(authorization)) {
             ResponseUtils.setAuthErrorResponse(response,
-                    "Authorization header is not set.");
+                                               "Authorization header is not set.");
             return;
         }
 
@@ -81,11 +90,11 @@ public class LoginFilter implements Filter {
 
         // Decode base64
         String credentials = new String(Base64.decodeBase64(credentialsEnc
-                .getBytes()));
+                                                                .getBytes()));
 
         // Get the username/password
         String[] credList = credentials.split(":");
-        if (credList == null || credList.length != 2) {
+        if (credList.length != 2) {
             ResponseUtils.setAuthErrorResponse(response,
                     "Authorization header is not valid");
             return;

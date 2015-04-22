@@ -32,6 +32,7 @@ import org.midonet.api.auth.keystone.KeystoneConfig;
 import org.midonet.api.auth.keystone.v2_0.KeystoneService;
 import org.midonet.api.auth.vsphere.VSphereConfig;
 import org.midonet.api.auth.vsphere.VSphereSSOService;
+import org.midonet.brain.rest_api.auth.AuthService;
 import org.midonet.cluster.DataClient;
 import org.midonet.config.ConfigProvider;
 import org.midonet.config.providers.ServletContextConfigProvider;

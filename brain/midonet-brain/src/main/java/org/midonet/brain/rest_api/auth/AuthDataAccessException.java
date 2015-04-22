@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.api.auth;
+package org.midonet.brain.rest_api.auth;
 
 /**
  * AuthException class for error while accessing database.
@@ -22,36 +22,6 @@ public class AuthDataAccessException extends AuthException {
 
     private static final long serialVersionUID = 1L;
 
-    /**
-     * Create a AuthDataAccessException object with a message.
-     *
-     * @param message
-     *            Error message.
-     */
-    public AuthDataAccessException(String message) {
-        super(message);
-    }
-
-    /**
-     * Create a AuthDataAccessException object with no message and wrap a
-     * Throwable object.
-     *
-     * @param e
-     *            Throwable object
-     */
-    public AuthDataAccessException(Throwable e) {
-        super(e);
-    }
-
-    /**
-     * Create a AuthDataAccessException object with a message and wrap a
-     * Throwable object.
-     *
-     * @param message
-     *            Error message.
-     * @param e
-     *            Throwable object
-     */
     public AuthDataAccessException(String message, Throwable e) {
         super(message, e);
     }

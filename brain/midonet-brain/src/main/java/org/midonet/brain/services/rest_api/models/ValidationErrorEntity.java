@@ -13,22 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.api.auth;
+package org.midonet.brain.services.rest_api.models;
 
-/**
- * AuthException class to represent no token.
- */
-public class InvalidCredentialsException extends AuthException {
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
-    private static final long serialVersionUID = 1L;
+public class ValidationErrorEntity extends ErrorEntity {
 
-    /**
-     * Create a InvalidCredentialsException object with a message.
-     *
-     * @param message
-     *            Error message.
-     */
-    public InvalidCredentialsException(String message) {
-        super(message);
+    // Map of pairs <violated property, error msg>
+    private List<Map<String, String>> violations = new ArrayList<>();
+
+    public List<Map<String, String>> getViolations() {
+        return violations;
+    }
+
+    public void setViolations(List<Map<String, String>> violations) {
+        this.violations = violations;
     }
 }

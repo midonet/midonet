@@ -18,7 +18,9 @@ package org.midonet.api.auth.rest_api;
 import com.google.inject.Inject;
 import com.google.inject.servlet.RequestScoped;
 import org.codehaus.jackson.map.annotate.JsonView;
-import org.midonet.api.VendorMediaType;
+
+import org.midonet.brain.rest_api.auth.AuthService;
+import org.midonet.cluster.rest_api.VendorMediaType;
 import org.midonet.api.auth.*;
 import org.midonet.api.rest_api.AbstractResource;
 import org.midonet.api.rest_api.NotFoundHttpException;
@@ -26,6 +28,8 @@ import org.midonet.api.rest_api.ResourceFactory;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.api.serialization.ViewMixinProvider;
 import org.midonet.api.serialization.Views;
+import org.midonet.brain.rest_api.auth.AuthException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -118,7 +122,8 @@ public class TenantResource extends AbstractResource {
                     "Not authorized to view this tenant.");
         }
 
-        org.midonet.api.auth.Tenant authTenant = authService.getTenant(id);
+        org.midonet.brain.rest_api.auth.Tenant
+            authTenant = authService.getTenant(id);
         if (authTenant == null) {
             throw new NotFoundHttpException(
                     "The requested resource was not found.");
@@ -140,11 +145,11 @@ public class TenantResource extends AbstractResource {
     public List<Tenant> list() throws AuthException {
         log.debug("TenantResource.list: entered");
 
-        List<org.midonet.api.auth.Tenant> authTenants =
+        List<org.midonet.brain.rest_api.auth.Tenant> authTenants =
                 authService.getTenants(this.reqContext);
         List<Tenant> tenants = new ArrayList<>();
         if (authTenants != null) {
-            for (org.midonet.api.auth.Tenant authTenant : authTenants) {
+            for (org.midonet.brain.rest_api.auth.Tenant authTenant : authTenants) {
                 Tenant tenant = new Tenant(authTenant);
                 tenant.setBaseUri(getBaseUri());
                 tenants.add(tenant);

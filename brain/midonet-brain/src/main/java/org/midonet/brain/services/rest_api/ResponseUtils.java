@@ -13,16 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.api.rest_api;
-
-import org.codehaus.jackson.JsonEncoding;
-import org.codehaus.jackson.JsonFactory;
-import org.codehaus.jackson.JsonGenerator;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.midonet.api.HttpSupport;
-import org.midonet.api.VendorMediaType;
-import org.midonet.api.error.ErrorEntity;
-import org.midonet.api.validation.ValidationErrorEntity;
+package org.midonet.brain.services.rest_api;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -31,27 +22,26 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.ConstraintViolation;
 import javax.ws.rs.core.Response;
 
-/**
- * Utility methods for Response class.
- */
+import org.codehaus.jackson.JsonEncoding;
+import org.codehaus.jackson.JsonFactory;
+import org.codehaus.jackson.JsonGenerator;
+import org.codehaus.jackson.map.ObjectMapper;
+
+import org.midonet.brain.services.rest_api.models.ErrorEntity;
+import org.midonet.brain.services.rest_api.models.ValidationErrorEntity;
+import org.midonet.cluster.rest_api.VendorMediaType;
+import org.midonet.util.http.HttpSupport;
+
 public class ResponseUtils {
 
     private static ObjectMapper objectMapper = new ObjectMapper();
     private static JsonFactory jsonFactory = new JsonFactory(objectMapper);
 
-    /**
-     * Generate a Response object with the body set to ErrorEntity.
-     *
-     * @param status
-     *            HTTP status to set
-     * @param message
-     *            Error message
-     * @return Response object.
-     */
     public static Response buildErrorResponse(int status, String message) {
         ErrorEntity error = new ErrorEntity();
         error.setCode(status);
@@ -73,13 +63,6 @@ public class ResponseUtils {
         return response.build();
     }
 
-    /**
-     * Generate a validation error message.
-     *
-     * @param violations
-     *            Set of violations.
-     * @return Concatenated validation error message.
-     */
     public static <T> Response buildValidationErrorResponse(
             Set<ConstraintViolation<T>> violations) {
         ValidationErrorEntity errors = new ValidationErrorEntity();

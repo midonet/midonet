@@ -13,16 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.api.auth;
+package org.midonet.brain.southbound.keystone.v2_0;
 
-/**
- * Interface representing a tenant object in the identity service.  This is the
- * generic MidoNet representation of tenant models from various identity
- * services that it could integrate with..
- */
-public interface Tenant {
+import org.midonet.brain.rest_api.auth.AuthException;
 
-    String getId();
+public class KeystoneBadCredsException extends AuthException {
 
-    String getName();
+    private static final long serialVersionUID = 1L;
+
+    public KeystoneBadCredsException(String message) {
+        super(message);
+    }
+
+    public KeystoneBadCredsException(Throwable e) {
+        super(e);
+    }
+
+    public KeystoneBadCredsException(String message, Throwable e) {
+        super(message, e);
+    }
 }

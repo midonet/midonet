@@ -32,11 +32,9 @@ import com.google.inject.assistedinject.Assisted;
 import com.google.inject.servlet.RequestScoped;
 import org.midonet.packets.MAC;
 import org.midonet.event.topology.RuleEvent;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import org.midonet.api.ResourceUriBuilder;
-import org.midonet.api.VendorMediaType;
+import org.midonet.cluster.rest_api.VendorMediaType;
 import org.midonet.api.auth.AuthAction;
 import org.midonet.api.auth.AuthRole;
 import org.midonet.api.auth.ForbiddenHttpException;

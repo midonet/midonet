@@ -20,8 +20,7 @@ import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.servlet.RequestScoped;
 import org.midonet.api.ResourceUriBuilder;
-import org.midonet.api.VendorMediaType;
-import org.midonet.api.auth.Authorizer;
+import org.midonet.cluster.rest_api.VendorMediaType;
 import org.midonet.api.auth.ForbiddenHttpException;
 import org.midonet.api.dhcp.DhcpSubnet6;
 import org.midonet.api.network.auth.BridgeAuthorizer;
@@ -37,8 +36,6 @@ import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.dhcp.Subnet6;
 import org.midonet.packets.IPv6Subnet;
 import org.midonet.packets.IPv6Addr;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;

@@ -13,17 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.api.auth.keystone.v2_0;
+package org.midonet.brain.rest_api.auth;
 
-import org.codehaus.jackson.annotate.JsonIgnoreProperties;
-import org.midonet.api.auth.Tenant;
-import org.midonet.api.auth.TenantList;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
-import java.util.ArrayList;
-import java.util.List;
+
+import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 
 /**
  * Class representing the response body from the Keystone API v2.0 call to get a

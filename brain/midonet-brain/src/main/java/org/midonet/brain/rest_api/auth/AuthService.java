@@ -13,23 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.api.auth;
+package org.midonet.brain.rest_api.auth;
 
-import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
-/**
- * Interface for auth service.
- */
+import javax.servlet.http.HttpServletRequest;
+
 public interface AuthService {
 
-    /**
-     * Validate a token and return a UserIdentity object.
-     *
-     * @param token
-     *            Token to validate.
-     * @return UserIdentity object if valid if token is valid, null if invalid.
-     */
     UserIdentity getUserIdentityByToken(String token) throws AuthException;
 
     /**

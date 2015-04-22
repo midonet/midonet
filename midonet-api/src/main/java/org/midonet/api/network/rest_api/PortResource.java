@@ -38,7 +38,7 @@ import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.servlet.RequestScoped;
 import org.midonet.api.ResourceUriBuilder;
-import org.midonet.api.VendorMediaType;
+import org.midonet.cluster.rest_api.VendorMediaType;
 import org.midonet.api.auth.AuthAction;
 import org.midonet.api.auth.AuthRole;
 import org.midonet.api.auth.ForbiddenHttpException;
@@ -67,8 +67,6 @@ import org.midonet.event.topology.PortEvent;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.VlanPathExistsException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Root resource class for ports.

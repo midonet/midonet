@@ -16,6 +16,7 @@
 package org.midonet.api.rest_api;
 
 import org.midonet.api.validation.MessageProperty;
+import org.midonet.brain.services.rest_api.ResponseUtils;
 import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.StatePathExceptionBase.NodeInfo;
 
@@ -43,7 +44,9 @@ public class NotFoundHttpException extends WebApplicationException {
      *            Error message.
      */
     public NotFoundHttpException(String message) {
-        super(ResponseUtils.buildErrorResponse(Response.Status.NOT_FOUND.getStatusCode(), message));
+        super(ResponseUtils
+                  .buildErrorResponse(Response.Status.NOT_FOUND.getStatusCode(),
+                                      message));
     }
 
     public NotFoundHttpException(Throwable throwable, String message) {

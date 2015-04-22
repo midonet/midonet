@@ -21,6 +21,8 @@ import com.sun.jersey.spi.container.ContainerRequestFilter;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.Context;
 
+import org.midonet.brain.rest_api.auth.UserIdentity;
+
 /**
  * Class to implement auth request filter.
  */

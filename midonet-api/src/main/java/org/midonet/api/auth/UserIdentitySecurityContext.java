@@ -21,6 +21,8 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
+import org.midonet.brain.rest_api.auth.UserIdentity;
+
 /**
  * Security Context wrapper that uses UserIdentity class.
  */

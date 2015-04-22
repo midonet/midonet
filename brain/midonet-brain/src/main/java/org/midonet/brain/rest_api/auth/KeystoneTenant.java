@@ -13,15 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.api.auth.keystone.v2_0;
-
-import com.google.common.base.Objects;
-import org.codehaus.jackson.annotate.JsonIgnoreProperties;
-import org.midonet.api.auth.Tenant;
+package org.midonet.brain.rest_api.auth;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
+
+import com.google.common.base.Objects;
+
+import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 
 /**
  * Class representing a single tenant entity in a deserialized format

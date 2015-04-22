@@ -32,7 +32,7 @@ import javax.ws.rs.core.UriInfo;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.servlet.RequestScoped;
 
-import org.midonet.api.VendorMediaType;
+import org.midonet.cluster.rest_api.VendorMediaType;
 import org.midonet.api.auth.AuthRole;
 import org.midonet.api.host.Interface;
 import org.midonet.api.rest_api.AbstractResource;

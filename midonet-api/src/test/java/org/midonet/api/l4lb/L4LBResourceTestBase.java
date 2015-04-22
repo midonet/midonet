@@ -24,10 +24,8 @@ import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
 import org.junit.Before;
-import org.junit.runner.RunWith;
 import org.mockito.Answers;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
 
 import org.midonet.api.l4lb.rest_api.HealthMonitorResource;
 import org.midonet.api.l4lb.rest_api.LoadBalancerResource;

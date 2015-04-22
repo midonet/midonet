@@ -19,6 +19,7 @@ package org.midonet.api.rest_api;
 
 import com.google.common.collect.ImmutableMap;
 import org.midonet.api.validation.MessageProperty;
+import org.midonet.brain.services.rest_api.ResponseUtils;
 import org.midonet.midolman.state.l4lb.MappingStatusException;
 
 import java.util.HashMap;
@@ -52,8 +53,8 @@ public class ServiceUnavailableHttpException extends WebApplicationException {
      */
     public ServiceUnavailableHttpException(Long retryAfter) {
         super(ResponseUtils.buildErrorResponse(
-                Response.Status.SERVICE_UNAVAILABLE.getStatusCode(), null,
-                ImmutableMap.of(RETRY_AFTER_HEADER_KEY, (Object) retryAfter)));
+            Response.Status.SERVICE_UNAVAILABLE.getStatusCode(), null,
+            ImmutableMap.of(RETRY_AFTER_HEADER_KEY, (Object) retryAfter)));
     }
 
     /**

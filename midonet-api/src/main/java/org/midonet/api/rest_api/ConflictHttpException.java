@@ -17,6 +17,7 @@
 package org.midonet.api.rest_api;
 
 import org.midonet.api.validation.MessageProperty;
+import org.midonet.brain.services.rest_api.ResponseUtils;
 import org.midonet.midolman.state.StatePathExceptionBase.NodeInfo;
 import org.midonet.midolman.state.StatePathExistsException;
 
@@ -44,7 +45,7 @@ public class ConflictHttpException extends WebApplicationException {
      */
     public ConflictHttpException(String message) {
         super(ResponseUtils.buildErrorResponse(
-                Response.Status.CONFLICT.getStatusCode(), message));
+            Response.Status.CONFLICT.getStatusCode(), message));
     }
 
     public ConflictHttpException(Throwable throwable, String message) {

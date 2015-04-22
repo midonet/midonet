@@ -43,7 +43,7 @@ import com.google.inject.Inject;
 import com.google.inject.servlet.RequestScoped;
 
 import org.midonet.api.ResourceUriBuilder;
-import org.midonet.api.VendorMediaType;
+import org.midonet.cluster.rest_api.VendorMediaType;
 import org.midonet.api.auth.AuthAction;
 import org.midonet.api.auth.AuthRole;
 import org.midonet.api.auth.Authorizer;

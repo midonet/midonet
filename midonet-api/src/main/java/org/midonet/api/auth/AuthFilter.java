@@ -17,7 +17,11 @@ package org.midonet.api.auth;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import org.midonet.api.rest_api.ResponseUtils;
+import org.midonet.brain.services.rest_api.ResponseUtils;
+import org.midonet.brain.rest_api.auth.AuthException;
+import org.midonet.brain.rest_api.auth.AuthService;
+import org.midonet.brain.rest_api.auth.UserIdentity;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.api;
+package org.midonet.util.http;
 
 /**
  * Contains utilities for HTTP
@@ -33,13 +33,9 @@ public class HttpSupport {
     public final static String AUTH_REALM = "Midonet";
     public final static String BASIC_AUTH = "Basic";
     public final static String BASIC_AUTH_PREFIX = BASIC_AUTH + " ";
-    public final static String BASIC_AUTH_REALM = BASIC_AUTH_PREFIX
-            + AUTH_REALM;
+    public final static String BASIC_AUTH_REALM = BASIC_AUTH_PREFIX + AUTH_REALM;
     public final static String BASIC_AUTH_REALM_FIELD =
-            BASIC_AUTH_PREFIX
-            + " realm=\""
-            + BASIC_AUTH_REALM
-            + "\"";
+            BASIC_AUTH_PREFIX + " realm=\"BASIC_AUTH_REALM\"";
 
     public final static String ACCESS_CONTROL_ALLOW_ORIGIN_KEY =
             "Access-Control-Allow-Origin";
