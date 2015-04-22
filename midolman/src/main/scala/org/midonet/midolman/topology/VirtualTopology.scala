@@ -33,7 +33,7 @@ import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.flows.FlowInvalidator
 import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.midolman.services.MidolmanActorsService
-import org.midonet.midolman.simulation.{Bridge, Chain, IPAddrGroup, LoadBalancer, PortGroup}
+import org.midonet.midolman.simulation._
 import org.midonet.midolman.state.ZkConnectionAwareWatcher
 import org.midonet.midolman.topology.devices._
 import org.midonet.sdn.flows.FlowTagger.FlowTag
@@ -164,7 +164,7 @@ class VirtualTopology @Inject() (val backend: MidonetBackend,
                                  val actorsService: MidolmanActorsService)
         extends MidolmanLogging {
 
-    import org.midonet.midolman.topology.VirtualTopology._
+    import VirtualTopology._
 
     override def logSource = "org.midonet.devices.devices-service"
 
@@ -195,7 +195,8 @@ class VirtualTopology @Inject() (val backend: MidonetBackend,
         classTag[Chain] -> (new ChainMapper(_, this)),
         classTag[IPAddrGroup] -> (new IPAddrGroupMapper(_, this)),
         classTag[PortGroup] -> (new PortGroupMapper(_, this)),
-        classTag[LoadBalancer] -> (new LoadBalancerMapper(_, this))
+        classTag[LoadBalancer] -> (new LoadBalancerMapper(_, this)),
+        classTag[Pool] -> (new PoolMapper(_, this))
     )
 
     register(this)

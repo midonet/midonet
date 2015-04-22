@@ -23,21 +23,22 @@ import scala.concurrent.duration._
 
 import akka.actor.Props
 import akka.testkit.TestActorRef
+
 import com.typesafe.config.{Config, ConfigValueFactory}
+
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
+
 import rx.Observable
 import rx.observers.TestObserver
 
-import org.midonet.cluster.data.storage.{CreateOp, NotFoundException}
-import org.midonet.cluster.models.Topology.Rule.Action
+import org.midonet.cluster.data.storage.NotFoundException
 import org.midonet.cluster.models.Topology.{Port => TopologyPort}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.NotYetException
-import org.midonet.midolman.rules.{LiteralRule, RuleResult}
-import org.midonet.midolman.simulation.{Chain => SimChain, IPAddrGroup, LoadBalancer => SimLB, PortGroup}
-import org.midonet.midolman.topology.VirtualTopologyActor.{ChainRequest, IPAddrGroupRequest, LoadBalancerRequest, PortGroupRequest, PortRequest, Unsubscribe}
+import org.midonet.midolman.simulation._
+import org.midonet.midolman.topology.VirtualTopologyActor._
 import org.midonet.midolman.topology.devices.{BridgePort, Port => SimulationPort}
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.{AwaitableActor, MessageAccumulator}
@@ -69,7 +70,7 @@ class VirtualTopologyRedirectorTest extends MidolmanSpec with TopologyBuilder
 
     override def beforeTest(): Unit = {
         backend = injector.getInstance(classOf[MidonetBackend])
-        backend.isEnabled should be (true)
+        backend.isEnabled shouldBe true
         vt = injector.getInstance(classOf[VirtualTopology])
         vta = VirtualTopologyActor.as[TestableVTA]
         senderRef = TestActorRef(Props(new AwaitableActor
@@ -491,7 +492,7 @@ class VirtualTopologyRedirectorTest extends MidolmanSpec with TopologyBuilder
 
     feature("Test unsupported messages are handled by the VTA") {
         scenario("Test any message") {
-            When("Sending a null message to the VTA")
+            When("Sending any message to the VTA")
             val msg = new AnyRef
             VirtualTopologyActor ! msg
 
@@ -502,65 +503,75 @@ class VirtualTopologyRedirectorTest extends MidolmanSpec with TopologyBuilder
     }
 
     feature("Test supported devices") {
-        scenario("Test that chains are supported") {
-            val chainId = UUID.randomUUID
-            val literalRule = createLiteralRuleBuilder(id = UUID.randomUUID(),
-                                                       chainId = Some(chainId),
-                                                       action = Some(Action.ACCEPT))
-                .build()
-            val chain = createChain(chainId, Some("test-chain"),
-                                    Set(literalRule.getId))
-            backend.store.multi(List(CreateOp(literalRule), CreateOp(chain)))
+        scenario("Support for bridge") {
+            val proto = createBridge()
+            backend.store create proto
 
-            VirtualTopologyActor ! ChainRequest(chainId, update = false)
-            sender.await(timeout)
-
-            expectLast({
-                case chain: SimChain =>
-                    chain.id shouldBe chainId
-                    chain.name shouldBe "test-chain"
-                    val rule = chain.getRules.get(0)
-                    rule.getClass shouldBe classOf[LiteralRule]
-                    rule.action shouldBe RuleResult.Action.ACCEPT
-            })
-        }
-
-        scenario("Test that IP address groups are supported") {
-            val protoIpAddrGroup = createIPAddrGroupBuilder().build()
-            backend.store.create(protoIpAddrGroup)
-            VirtualTopologyActor ! IPAddrGroupRequest(protoIpAddrGroup.getId.asJava,
-                                                      update = false)
-            sender.await(timeout)
-
-            expectLast({
-                case ipAddrGroup: IPAddrGroup =>
-                    ipAddrGroup shouldBeDeviceOf protoIpAddrGroup
-            })
-        }
-
-        scenario("Test that port groups are supported") {
-            val portGroup = createPortGroup()
-            backend.store.create(portGroup)
-
-            VirtualTopologyActor ! PortGroupRequest(portGroup.getId,
-                                                    update = false)
+            VirtualTopologyActor ! BridgeRequest(proto.getId)
             sender await timeout
 
-            expectLast({ case pg: PortGroup => pg shouldBeDeviceOf portGroup })
+            expectLast({
+                case device: Bridge => device shouldBeDeviceOf proto
+            })
         }
 
-        scenario("Test that load-balancers are supported") {
-            val vip = createVip()
-            backend.store.create(vip)
-            val loadBalancer = createLB(vips = Set(vip.getId.asJava))
-            backend.store.create(loadBalancer)
-            VirtualTopologyActor ! LoadBalancerRequest(loadBalancer.getId.asJava,
-                                                       update = false)
-            sender.await(timeout)
+        scenario("Support for chain") {
+            val proto = createChain()
+            backend.store create proto
+
+            VirtualTopologyActor ! ChainRequest(proto.getId)
+            sender await timeout
 
             expectLast({
-                case simLB: SimLB =>
-                    simLB shouldBeDeviceOf loadBalancer
+                case device: Chain => device shouldBeDeviceOf proto
+            })
+        }
+
+        scenario("Support for IP address group") {
+            val proto = createIPAddrGroup()
+            backend.store create proto
+
+            VirtualTopologyActor ! IPAddrGroupRequest(proto.getId)
+            sender await timeout
+
+            expectLast({
+                case device: IPAddrGroup => device shouldBeDeviceOf proto
+            })
+        }
+
+        scenario("Support for port group") {
+            val proto = createPortGroup()
+            backend.store create proto
+
+            VirtualTopologyActor ! PortGroupRequest(proto.getId)
+            sender await timeout
+
+            expectLast({
+                case device: PortGroup => device shouldBeDeviceOf proto
+            })
+        }
+
+        scenario("Support for load balancer") {
+            val proto = createLoadBalancer()
+            backend.store create proto
+
+            VirtualTopologyActor ! LoadBalancerRequest(proto.getId)
+            sender await timeout
+
+            expectLast({
+                case device: LoadBalancer => device shouldBeDeviceOf proto
+            })
+        }
+
+        scenario("Support for pool") {
+            val proto = createPool()
+            backend.store create proto
+
+            VirtualTopologyActor ! PoolRequest(proto.getId)
+            sender await timeout
+
+            expectLast({
+                case device: Pool => device shouldBeDeviceOf proto
             })
         }
     }

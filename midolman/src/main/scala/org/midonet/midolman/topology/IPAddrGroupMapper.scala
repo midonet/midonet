@@ -20,7 +20,7 @@ import java.util.UUID
 
 import scala.collection.JavaConverters._
 
-import org.midonet.cluster.models.Topology.{IpAddrGroup => TopologyIPAddrGroup}
+import org.midonet.cluster.models.Topology.{IPAddrGroup => TopologyIPAddrGroup}
 import org.midonet.cluster.util.IPAddressUtil._
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.simulation.{IPAddrGroup => SimIPAddrGroup}
