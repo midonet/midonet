@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_4f168af2",
+        "filename": "midolman/build.gradle",
+        "patchSetId": 2
+      },
+      "lineNbr": 247,
+      "author": {
+        "id": 1003057
+      },
+      "writtenOn": "2015-04-22T12:09:37Z",
+      "side": 1,
+      "message": "The package name is \"java-1.7.0-openjdk\", but since it is not ambiguous yum will install it with just \u0027java-1.7.0\u0027. It\u0027ll work.",
+      "revId": "d2baf3abb5a07b53d83fa4ecb219a2e0f339aced",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
