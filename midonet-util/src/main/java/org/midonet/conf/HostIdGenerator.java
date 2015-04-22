@@ -171,7 +171,7 @@ public final class HostIdGenerator {
             log.debug("Wrote host id {} to {}", id, path);
         } catch (IOException e) {
             throw new PropertiesFileNotWritableException(
-                "Properties file: " + localPropertiesFile.getAbsolutePath());
+                localPropertiesFile.getAbsolutePath());
         }
     }
 
