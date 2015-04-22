@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_f483cb01",
+        "filename": "brain/vtep/build.gradle",
+        "patchSetId": 11
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-04-22T09:08:30Z",
+      "side": 1,
+      "message": "Yep. Done :-)",
+      "parentUuid": "1a106d94_193b4039",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "5a4440cd72eed7bab4dad9ea072ef73ce27054b9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_794a34c6",
         "filename": "brain/vtep/src/main/java/org/midonet/vtep/schema/LogicalSwitchTable.java",
         "patchSetId": 11
@@ -53,6 +77,30 @@
       "writtenOn": "2015-04-22T02:07:04Z",
       "side": 1,
       "message": "If we need to do a null check here, don\u0027t we need to do the same in other places?",
+      "range": {
+        "startLine": 78,
+        "startChar": 24,
+        "endLine": 78,
+        "endChar": 37
+      },
+      "revId": "5a4440cd72eed7bab4dad9ea072ef73ce27054b9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_149f8751",
+        "filename": "brain/vtep/src/main/java/org/midonet/vtep/schema/LogicalSwitchTable.java",
+        "patchSetId": 11
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-04-22T09:08:30Z",
+      "side": 1,
+      "message": "It is done inside the extractString method. The reason why there is no common methods for sets is that ovsdb uses them for different purposes. In this particular case, a set has the same semantics as an Scala Option: a null or empty set represents \u0027None\u0027 and a set with a single value is \u0027Some(...)\u0027",
+      "parentUuid": "1a106d94_d91088aa",
       "range": {
         "startLine": 78,
         "startChar": 24,
@@ -99,6 +147,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_54a9ff79",
+        "filename": "brain/vtep/src/main/java/org/midonet/vtep/schema/McastMacsTable.java",
+        "patchSetId": 11
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-04-22T09:08:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_997d70ea",
+      "revId": "5a4440cd72eed7bab4dad9ea072ef73ce27054b9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_39555c50",
         "filename": "brain/vtep/src/main/java/org/midonet/vtep/schema/McastMacsTable.java",
         "patchSetId": 11
@@ -110,6 +176,30 @@
       "writtenOn": "2015-04-22T02:07:04Z",
       "side": 1,
       "message": "can be \"protected\"?",
+      "range": {
+        "startLine": 65,
+        "startChar": 4,
+        "endLine": 65,
+        "endChar": 10
+      },
+      "revId": "5a4440cd72eed7bab4dad9ea072ef73ce27054b9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_14c66749",
+        "filename": "brain/vtep/src/main/java/org/midonet/vtep/schema/McastMacsTable.java",
+        "patchSetId": 11
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-04-22T09:08:30Z",
+      "side": 1,
+      "message": "Yes. Done.",
+      "parentUuid": "1a106d94_39555c50",
       "range": {
         "startLine": 65,
         "startChar": 4,
@@ -162,6 +252,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_74c51b3b",
+        "filename": "brain/vtep/src/main/java/org/midonet/vtep/schema/PhysicalLocatorTable.java",
+        "patchSetId": 11
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-04-22T09:08:30Z",
+      "side": 1,
+      "message": "Yes. Changed.",
+      "parentUuid": "1a106d94_b9c82c23",
+      "range": {
+        "startLine": 42,
+        "startChar": 4,
+        "endLine": 42,
+        "endChar": 13
+      },
+      "revId": "5a4440cd72eed7bab4dad9ea072ef73ce27054b9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_99cbb01d",
         "filename": "brain/vtep/src/main/java/org/midonet/vtep/schema/PhysicalLocatorTable.java",
         "patchSetId": 11
@@ -173,6 +287,30 @@
       "writtenOn": "2015-04-22T02:07:04Z",
       "side": 1,
       "message": "Does this need to be public?",
+      "range": {
+        "startLine": 62,
+        "startChar": 4,
+        "endLine": 62,
+        "endChar": 10
+      },
+      "revId": "5a4440cd72eed7bab4dad9ea072ef73ce27054b9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_34d28300",
+        "filename": "brain/vtep/src/main/java/org/midonet/vtep/schema/PhysicalLocatorTable.java",
+        "patchSetId": 11
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-04-22T09:08:30Z",
+      "side": 1,
+      "message": "Yes, this can be used from external code to generate ovsdb select operations without having to know about the specific row internals.",
+      "parentUuid": "1a106d94_99cbb01d",
       "range": {
         "startLine": 62,
         "startChar": 4,
@@ -208,6 +346,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_74dcfb12",
+        "filename": "brain/vtep/src/main/java/org/midonet/vtep/schema/PhysicalLocatorTable.java",
+        "patchSetId": 11
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-04-22T09:08:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_d9d528ba",
+      "range": {
+        "startLine": 82,
+        "startChar": 28,
+        "endLine": 82,
+        "endChar": 34
+      },
+      "revId": "5a4440cd72eed7bab4dad9ea072ef73ce27054b9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_39dc3ce4",
         "filename": "brain/vtep/src/main/java/org/midonet/vtep/schema/PhysicalPortTable.java",
         "patchSetId": 11
@@ -225,6 +387,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_54d73fed",
+        "filename": "brain/vtep/src/main/java/org/midonet/vtep/schema/PhysicalPortTable.java",
+        "patchSetId": 11
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-04-22T09:08:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_39dc3ce4",
+      "revId": "5a4440cd72eed7bab4dad9ea072ef73ce27054b9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_19d7c0c0",
         "filename": "brain/vtep/src/main/java/org/midonet/vtep/schema/PhysicalPortTable.java",
         "patchSetId": 11
@@ -236,6 +416,30 @@
       "writtenOn": "2015-04-22T02:07:04Z",
       "side": 1,
       "message": "Do those need to be public?",
+      "range": {
+        "startLine": 94,
+        "startChar": 4,
+        "endLine": 94,
+        "endChar": 10
+      },
+      "revId": "5a4440cd72eed7bab4dad9ea072ef73ce27054b9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_b405d37b",
+        "filename": "brain/vtep/src/main/java/org/midonet/vtep/schema/PhysicalPortTable.java",
+        "patchSetId": 11
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-04-22T09:08:30Z",
+      "side": 1,
+      "message": "Nop. Changed.",
+      "parentUuid": "1a106d94_19d7c0c0",
       "range": {
         "startLine": 94,
         "startChar": 4,
@@ -288,6 +492,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_94089792",
+        "filename": "brain/vtep/src/main/java/org/midonet/vtep/schema/Table.java",
+        "patchSetId": 11
+      },
+      "lineNbr": 136,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-04-22T09:08:30Z",
+      "side": 1,
+      "message": "They can be protected. Changed.",
+      "parentUuid": "1a106d94_d95ec875",
+      "range": {
+        "startLine": 136,
+        "startChar": 4,
+        "endLine": 136,
+        "endChar": 10
+      },
+      "revId": "5a4440cd72eed7bab4dad9ea072ef73ce27054b9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_1950605d",
         "filename": "brain/vtep/src/main/java/org/midonet/vtep/schema/UcastMacsTable.java",
         "patchSetId": 11
@@ -305,6 +533,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_f4ff4b65",
+        "filename": "brain/vtep/src/main/java/org/midonet/vtep/schema/UcastMacsTable.java",
+        "patchSetId": 11
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-04-22T09:08:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_1950605d",
+      "revId": "5a4440cd72eed7bab4dad9ea072ef73ce27054b9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_79e6b4b5",
         "filename": "brain/vtep/src/main/scala/org/midonet/vtep/OvsdbTranslator.scala",
         "patchSetId": 11
@@ -316,6 +562,30 @@
       "writtenOn": "2015-04-22T02:07:04Z",
       "side": 1,
       "message": "Perhaps it\u0027s a bit more readable if you rename java.util.UUID to JUUID or JavaUUID? Otherwise, I don\u0027t think you need to qualify with util since you\u0027ve already renamed ovsdb.lib.notation.UID to OvsdbUUID.",
+      "range": {
+        "startLine": 33,
+        "startChar": 34,
+        "endLine": 33,
+        "endChar": 43
+      },
+      "revId": "5a4440cd72eed7bab4dad9ea072ef73ce27054b9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_54ee1fb5",
+        "filename": "brain/vtep/src/main/scala/org/midonet/vtep/OvsdbTranslator.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-04-22T09:08:30Z",
+      "side": 1,
+      "message": "Done for the UUID. (I\u0027m leaving the util.Set/util.Map because it makes easier to see if we are dealing with Scala or Java collections...)",
+      "parentUuid": "1a106d94_79e6b4b5",
       "range": {
         "startLine": 33,
         "startChar": 34,
@@ -351,6 +621,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_b42cb303",
+        "filename": "brain/vtep/src/main/scala/org/midonet/vtep/OvsdbTranslator.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-04-22T09:08:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_59e13899",
+      "range": {
+        "startLine": 39,
+        "startChar": 65,
+        "endLine": 39,
+        "endChar": 66
+      },
+      "revId": "5a4440cd72eed7bab4dad9ea072ef73ce27054b9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_b9ef8c86",
         "filename": "brain/vtep/src/main/scala/org/midonet/vtep/OvsdbTranslator.scala",
         "patchSetId": 11
@@ -362,6 +656,24 @@
       "writtenOn": "2015-04-22T02:07:04Z",
       "side": 1,
       "message": "To me, fromOvsdb should require inSet to be non-null, or otherwise it should return null for a null input.",
+      "revId": "5a4440cd72eed7bab4dad9ea072ef73ce27054b9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_54457fb1",
+        "filename": "brain/vtep/src/main/scala/org/midonet/vtep/OvsdbTranslator.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-04-22T09:08:30Z",
+      "side": 1,
+      "message": "I admit that would be most logical, but ovsdb has a loose way to represent things and may represent an empty set by just setting the value to null. One of my goals here is to normalize the representation, so that from our code\u0027s perspective, an empty set is always represented as an actual empty set, not null.",
+      "parentUuid": "1a106d94_b9ef8c86",
       "revId": "5a4440cd72eed7bab4dad9ea072ef73ce27054b9",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -385,6 +697,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_b47af3ee",
+        "filename": "brain/vtep/src/main/scala/org/midonet/vtep/OvsdbTranslator.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-04-22T09:08:30Z",
+      "side": 1,
+      "message": "The case for toOvsdb is slightly different: with the new vtep code, the inSet should never be null. Nevertheless, the legacy code don\u0027t necessarily follow this convention, so I prefer to leave the check here as a safety net. I agree that this should be removed once the migration is completed. I\u0027ve added a note in the object javadoc explaining this.",
+      "parentUuid": "1a106d94_99f2906d",
+      "revId": "5a4440cd72eed7bab4dad9ea072ef73ce27054b9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_f9e90481",
         "filename": "brain/vtep/src/main/scala/org/midonet/vtep/OvsdbTranslator.scala",
         "patchSetId": 11
@@ -396,6 +726,24 @@
       "writtenOn": "2015-04-22T02:07:04Z",
       "side": 1,
       "message": "Ditto.",
+      "revId": "5a4440cd72eed7bab4dad9ea072ef73ce27054b9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_947d37ea",
+        "filename": "brain/vtep/src/main/scala/org/midonet/vtep/OvsdbTranslator.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-04-22T09:08:30Z",
+      "side": 1,
+      "message": "Ditto",
+      "parentUuid": "1a106d94_f9e90481",
       "revId": "5a4440cd72eed7bab4dad9ea072ef73ce27054b9",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -425,6 +773,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_54e1ff98",
+        "filename": "brain/vtep/src/main/scala/org/midonet/vtep/OvsdbTranslator.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-04-22T09:08:30Z",
+      "side": 1,
+      "message": "It is :-)\nHere I\u0027m using some arcane knowledge about the internals of the ovsdb schemas: all the maps we have to convert for our purposes are, in fact, (short -\u003e UUID) maps, represented internally as (Long -\u003e OvsdbUUID) maps. They are eventually converted into (Integer -\u003e UUID) to avoid some Java-Scala conversion issues with the \u0027Short\u0027 type.\nUnfortunately, the ovsdb interface removes all data about the map key and value types, so the unsafe cast is necessary (either at the collection level or the key-value level).",
+      "parentUuid": "1a106d94_19fea038",
+      "range": {
+        "startLine": 56,
+        "startChar": 12,
+        "endLine": 56,
+        "endChar": 72
+      },
+      "revId": "5a4440cd72eed7bab4dad9ea072ef73ce27054b9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_d9ec0892",
         "filename": "brain/vtep/src/main/scala/org/midonet/vtep/OvsdbTranslator.scala",
         "patchSetId": 11
@@ -442,6 +814,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_3403a343",
+        "filename": "brain/vtep/src/main/scala/org/midonet/vtep/OvsdbTranslator.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 63,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-04-22T09:08:30Z",
+      "side": 1,
+      "message": "The comment above also applies here: Ip lists are represented internally as string sets, but this type information is not present in the values returned by ovsdb.\n\n(Oh, if the comment is about the null checking, the previous comments also apply)",
+      "parentUuid": "1a106d94_d9ec0892",
+      "revId": "5a4440cd72eed7bab4dad9ea072ef73ce27054b9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_79fd143a",
         "filename": "brain/vtep/src/test/scala/org/midonet/vtep/OvsdbTranslatorTest.scala",
         "patchSetId": 11
@@ -453,6 +843,24 @@
       "writtenOn": "2015-04-22T02:07:04Z",
       "side": 1,
       "message": "This tests that fromOvsdb is an inverse function of toOvsdb, but doesn\u0027t necessarily test that toOvsdb does a correct conversion.",
+      "revId": "5a4440cd72eed7bab4dad9ea072ef73ce27054b9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_14fe6738",
+        "filename": "brain/vtep/src/test/scala/org/midonet/vtep/OvsdbTranslatorTest.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-04-22T09:08:30Z",
+      "side": 1,
+      "message": "Good point! fixed.",
+      "parentUuid": "1a106d94_79fd143a",
       "revId": "5a4440cd72eed7bab4dad9ea072ef73ce27054b9",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
