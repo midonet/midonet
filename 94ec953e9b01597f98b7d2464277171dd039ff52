@@ -19,6 +19,29 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_b464b322",
+        "filename": "specs/2015.03/neutron_translation.md",
+        "patchSetId": 16
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-04-22T10:15:15Z",
+      "side": 1,
+      "message": "Per our conversation, we probably shouldn\u0027t allow changing the network type, in which case there\u0027s no translation work to do, as with create.",
+      "range": {
+        "startLine": 32,
+        "startChar": 0,
+        "endLine": 34,
+        "endChar": 21
+      },
+      "revId": "94ec953e9b01597f98b7d2464277171dd039ff52",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_60e39d33",
         "filename": "specs/2015.03/neutron_translation.md",
         "patchSetId": 16
@@ -35,6 +58,69 @@
         "startChar": 33,
         "endLine": 38,
         "endChar": 42
+      },
+      "revId": "94ec953e9b01597f98b7d2464277171dd039ff52",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_74823b95",
+        "filename": "specs/2015.03/neutron_translation.md",
+        "patchSetId": 16
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-04-22T10:15:15Z",
+      "side": 1,
+      "message": "Can you toggle admin_state_up for an uplink network? Not sure how we would implement that in Midonet. Disable all the edge routers, maybe?",
+      "revId": "94ec953e9b01597f98b7d2464277171dd039ff52",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_943537f9",
+        "filename": "specs/2015.03/neutron_translation.md",
+        "patchSetId": 16
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-04-22T10:15:15Z",
+      "side": 1,
+      "message": "Uplink network is a special case here, too, isn\u0027t it? For one, there\u0027s no Midonet network. But also, is there any chance that there will be special cleanup to do? I assume all ports will be deleted first.",
+      "range": {
+        "startLine": 44,
+        "startChar": 4,
+        "endLine": 44,
+        "endChar": 10
+      },
+      "revId": "94ec953e9b01597f98b7d2464277171dd039ff52",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_342603cf",
+        "filename": "specs/2015.03/neutron_translation.md",
+        "patchSetId": 16
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-04-22T10:15:15Z",
+      "side": 1,
+      "message": "What kinds of resources can still be around at this point?",
+      "range": {
+        "startLine": 46,
+        "startChar": 31,
+        "endLine": 46,
+        "endChar": 64
       },
       "revId": "94ec953e9b01597f98b7d2464277171dd039ff52",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
@@ -82,6 +168,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_542bbf93",
+        "filename": "specs/2015.03/neutron_translation.md",
+        "patchSetId": 16
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-04-22T10:15:15Z",
+      "side": 1,
+      "message": "We create that when translating the RouterInterface creation.",
+      "parentUuid": "1a106d94_34dc43e4",
+      "revId": "94ec953e9b01597f98b7d2464277171dd039ff52",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_14cdc75d",
         "filename": "specs/2015.03/neutron_translation.md",
         "patchSetId": 16
@@ -116,6 +220,30 @@
       "writtenOn": "2015-04-22T09:23:28Z",
       "side": 1,
       "message": "Currently we make an assumption that at most 1 IP is assigned to a port. Can we document that here or is there anywhere else that\u0027s documented?",
+      "range": {
+        "startLine": 93,
+        "startChar": 0,
+        "endLine": 93,
+        "endChar": 70
+      },
+      "revId": "94ec953e9b01597f98b7d2464277171dd039ff52",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_b419538a",
+        "filename": "specs/2015.03/neutron_translation.md",
+        "patchSetId": 16
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-04-22T10:15:15Z",
+      "side": 1,
+      "message": "Even better, can we enforce this and change the model to have a single IP address?",
+      "parentUuid": "1a106d94_d4020f6e",
       "range": {
         "startLine": 93,
         "startChar": 0,
@@ -231,6 +359,23 @@
         "endLine": 174,
         "endChar": 11
       },
+      "revId": "94ec953e9b01597f98b7d2464277171dd039ff52",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_cf0d5a39",
+        "filename": "specs/2015.03/neutron_translation.md",
+        "patchSetId": 16
+      },
+      "lineNbr": 202,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-04-22T10:15:15Z",
+      "side": 1,
+      "message": "Isn\u0027t the peer_id also set equal to gw_port_id?",
       "revId": "94ec953e9b01597f98b7d2464277171dd039ff52",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
