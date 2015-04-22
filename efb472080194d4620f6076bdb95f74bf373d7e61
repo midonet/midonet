@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_4fe32a33",
+        "filename": "brain/midonet-brain/src/deb/control/control",
+        "patchSetId": 4
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-04-22T11:07:28Z",
+      "side": 1,
+      "message": "Yes, to match the package name",
+      "parentUuid": "1a106d94_8fed2228",
+      "range": {
+        "startLine": 10,
+        "startChar": 13,
+        "endLine": 10,
+        "endChar": 28
+      },
+      "revId": "efb472080194d4620f6076bdb95f74bf373d7e61",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_2fdeae6d",
         "filename": "brain/midonet-brain/src/main/resources/org/midonet/conf/schemas/brain.conf",
         "patchSetId": 4
@@ -36,6 +60,30 @@
       "writtenOn": "2015-04-22T11:04:50Z",
       "side": 1,
       "message": "Unrelated: isn\u0027t this config the same as vxgw below? Is it for backwards compatibility?",
+      "range": {
+        "startLine": 49,
+        "startChar": 4,
+        "endLine": 52,
+        "endChar": 5
+      },
+      "revId": "efb472080194d4620f6076bdb95f74bf373d7e61",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_afd1fe58",
+        "filename": "brain/midonet-brain/src/main/resources/org/midonet/conf/schemas/brain.conf",
+        "patchSetId": 4
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-04-22T11:07:28Z",
+      "side": 1,
+      "message": "Not really, this is for the embedded service in the midonet-api",
+      "parentUuid": "1a106d94_2fdeae6d",
       "range": {
         "startLine": 49,
         "startChar": 4,
