@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_33dd78e1",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/FlowController.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 142,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-04-22T16:53:16Z",
+      "side": 1,
+      "message": "Using the id like this is very fragile. It implies implicit agreement between the flowcontroller, and flowprocessor and the simulation threads.\n\nIt would be better to have a call like flowprocessor#newPartition() : Int, which the adds a partition to the flow processor and returns the index. This can then be called by the flowcontroller on initialization.",
+      "range": {
+        "startLine": 142,
+        "startChar": 35,
+        "endLine": 142,
+        "endChar": 37
+      },
+      "revId": "b0110b82f3eba588ba943f1aa996546de1448676",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
