@@ -18,12 +18,13 @@ package org.midonet.conf
 import java.io.InputStreamReader
 import java.lang.{Short => JShort, Integer => JInt, Byte => JByte}
 import java.util.UUID
-
 import scala.util.{Failure, Success, Try}
 import scala.collection.JavaConversions._
 
 import com.typesafe.config._
 import org.rogach.scallop._
+
+import org.midonet.conf.HostIdGenerator.PropertiesFileNotWritableException
 
 object ConfCommand {
     val SUCCESS = 0
@@ -104,13 +105,14 @@ object GetTemplate extends TemplateCommand("template-get") with ConfCommand {
 }
 
 abstract class TemplateCommand(name: String) extends Subcommand(name) {
-    val hostId = opt[String]("host", short = 'h', descr = "A MidoNet host id")
+    val hostId = opt[String]("host", short = 'h',
+                    descr = "A MidoNet host id, defaults to the local host id.")
 
     def getHost: Option[String] = {
-        if (hostId.isDefined)
+        if (hostId.isDefined && (hostId.get.get != "local"))
             hostId.get
         else
-            Option(HostIdGenerator.getIdFromPropertiesFile) map (_.toString)
+            Option(HostIdGenerator.getHostId()) map (_.toString)
     }
 }
 
@@ -260,7 +262,7 @@ object UnsetConf extends ConfigWriter("unset") with ConfCommand {
 abstract class ConfigWriter(name: String) extends Subcommand(name) {
     val hostId = opt[String]("host", short = 'h', descr =
         "Modify per-host configuration for the host with the given host id. "+
-        "'local' will resolve to the local host id.")
+        "'local' will resolve to the local host id.", default = Some("local"))
     val template = opt[String]("template", short = 't', descr =
         "Modifies configuration values in this template.")
     mutuallyExclusive(hostId, template)
@@ -269,7 +271,7 @@ abstract class ConfigWriter(name: String) extends Subcommand(name) {
         implicit def cfgOptToNaked(opt: Option[Config]): Config = opt.getOrElse(ConfigFactory.empty)
 
         val hostOpt: Option[UUID] = hostId.get flatMap { h =>
-            Option(if (h == "local") HostIdGenerator.getIdFromPropertiesFile else UUID.fromString(h))
+            Option(if (h == "local") HostIdGenerator.getHostId() else UUID.fromString(h))
         }
         val templateNameOpt: Option[String] = template.get
 
@@ -306,8 +308,12 @@ object GetConf extends ConfigQuery("get") with ConfCommand {
 
         try {
             if (schema.get.get) {
-                val s = conf.getString(s"${key.get.get}.description")
-                println(s"$s")
+                try {
+                    val s = conf.getString(s"${key.get.get}_description")
+                    println(s"$s\n")
+                } catch {
+                    case e: ConfigException.Missing => // ignored.
+                }
             }
 
             val v = conf.getValue(key.get.get).render(renderOpts)
@@ -330,7 +336,7 @@ abstract class ConfigQuery(name: String) extends Subcommand(name) {
                                                     setJson(false).
                                                     setFormatted(true)
 
-    val hostId = opt[String]("host", short = 'h', descr =
+    val hostId = opt[String]("host", short = 'h', default = Some("local"), descr =
         "Queries configuration for a particular MidoNet node, defaults to the " +
         "midonet host id of the local host. If the default is overridden by this "+
         "option, local config-file based sources (which are deprecated) will be "+
@@ -354,9 +360,14 @@ abstract class ConfigQuery(name: String) extends Subcommand(name) {
     mutuallyExclusive(hostOnly, schema)
 
     def makeConfig(configurator: MidoNodeConfigurator) = {
+        def stringToUUID(str: String) = if (str == "local")
+                                          HostIdGenerator.getHostId()
+                                        else
+                                          UUID.fromString(str)
+
         implicit def cfgOptToNaked(opt: Option[Config]): Config = opt.getOrElse(ConfigFactory.empty)
 
-        val hostOpt: Option[UUID] = hostId.get map UUID.fromString orElse Option(HostIdGenerator.getIdFromPropertiesFile)
+        val hostOpt: Option[UUID] = hostId.get map stringToUUID orElse Option(HostIdGenerator.getHostId())
         var conf = ConfigFactory.empty
 
         val templateOnly: Boolean = template.get.isDefined
@@ -421,10 +432,17 @@ object MidoConfTool extends App {
     } getOrElse Failure(invalidEx) match {
         case Success(retcode) =>
             retcode
-        case Failure(e) =>
-            System.err.println("[mn-conf] Failed: " + e.getMessage)
-            throw e
-            1
+        case Failure(e) => e match {
+            case prop: PropertiesFileNotWritableException =>
+                System.err.println("[mn-conf] Failed: this host doesn't yet have a host id assigned and mn-conf failed to generate one.")
+                System.err.println(s"[mn-conf] mn-conf failed to store a new host id at ${e.getMessage}.")
+                System.err.println("[mn-conf] Please retry as root.")
+                2
+            case other =>
+                System.err.println("[mn-conf] Failed: " + e.getMessage)
+                throw e
+                1
+        }
     }
 
     System.exit(ret)
