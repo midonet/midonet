@@ -293,6 +293,10 @@ cp $MIDO_CONF ${MIDO_CONF}.edited
 
 if [[ "$USE_CLUSTER" = "True" ]]; then
 
+    # Copy over the brain config
+    mkdir $TOP_DIR/conf
+    cp brain/midonet-brain/conf/midonet-brain.conf $TOP_DIR/conf
+
     # Configure the attributes for mm-ctl
     iniset ${MIDO_CONF}.edited cluster enabled true
     iniset ${MIDO_CONF}.edited cluster tasks_db_connection "mysql://localhost:3306/neutron?user=${TASKS_DB_USER}&password=${TASKS_DB_PASSWORD}"
