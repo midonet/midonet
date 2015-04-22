@@ -48,6 +48,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_134afc25",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/ZoomConvert.scala",
+        "patchSetId": 27
+      },
+      "lineNbr": 243,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-04-22T14:59:39Z",
+      "side": 1,
+      "message": "With the previous code, if a field was not present, it was always set to null in the pojo, even if it had a default value defined in the protobuf specs. Now it uses the default value when the field is not present. This is particularly useful for enumerations, where one of the values is assumed to be the default (instead of null)",
+      "parentUuid": "1a106d94_f4a0eb44",
+      "range": {
+        "startLine": 243,
+        "startChar": 48,
+        "endLine": 243,
+        "endChar": 74
+      },
+      "revId": "3a5ab7b2b15c55910a1463a398721164a76964ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_1485c7ac",
         "filename": "cluster/src/test/scala/org/midonet/cluster/models/TopologyModelsTest.scala",
         "patchSetId": 27
@@ -128,6 +152,30 @@
       "writtenOn": "2015-04-22T14:33:26Z",
       "side": 1,
       "message": "Thanks for fixing this!",
+      "range": {
+        "startLine": 73,
+        "startChar": 27,
+        "endLine": 75,
+        "endChar": 37
+      },
+      "revId": "3a5ab7b2b15c55910a1463a398721164a76964ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_5350f4d3",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/LoadBalancerMapper.scala",
+        "patchSetId": 27
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-04-22T14:59:39Z",
+      "side": 1,
+      "message": "You are most welcome :-)",
+      "parentUuid": "1a106d94_142147b4",
       "range": {
         "startLine": 73,
         "startChar": 27,
@@ -508,6 +556,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_b36048a6",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/PoolHealthMonitorMapperTest.scala",
+        "patchSetId": 27
+      },
+      "lineNbr": 111,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-04-22T14:59:39Z",
+      "side": 1,
+      "message": "Not necessarily... if the mapper has had time to process the information from zoom, we may received a filled-in map on subscribe (the behaviour subject returns only the last value)",
+      "parentUuid": "1a106d94_73e53037",
+      "range": {
+        "startLine": 111,
+        "startChar": 12,
+        "endLine": 111,
+        "endChar": 67
+      },
+      "revId": "3a5ab7b2b15c55910a1463a398721164a76964ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_93d70c4b",
         "filename": "midolman/src/test/scala/org/midonet/midolman/topology/PoolHealthMonitorMapperTest.scala",
         "patchSetId": 27
@@ -519,6 +591,30 @@
       "writtenOn": "2015-04-22T14:33:26Z",
       "side": 1,
       "message": "Why not implementing a matcher for PoolHealthMonitor?",
+      "range": {
+        "startLine": 120,
+        "startChar": 12,
+        "endLine": 123,
+        "endChar": 73
+      },
+      "revId": "3a5ab7b2b15c55910a1463a398721164a76964ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_b307a8c9",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/PoolHealthMonitorMapperTest.scala",
+        "patchSetId": 27
+      },
+      "lineNbr": 123,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-04-22T14:59:39Z",
+      "side": 1,
+      "message": "Because it does not correspond to a single protobuf object, and some of the protobuf fields are not relevant for all the tests, so I preferred doing it explicitly to have better control on what I was checking... But I don\u0027t have a strong opinion on it. Do you think it would be advantageous to change it?",
+      "parentUuid": "1a106d94_93d70c4b",
       "range": {
         "startLine": 120,
         "startChar": 12,
@@ -554,6 +650,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_930c2cef",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/VirtualTopologyRedirectorTest.scala",
+        "patchSetId": 27
+      },
+      "lineNbr": 590,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-04-22T14:59:39Z",
+      "side": 1,
+      "message": "Because the VirtualTopologyActor will send the empty map at the beginning, before sending the filled-in map.",
+      "parentUuid": "1a106d94_f413cb63",
+      "range": {
+        "startLine": 590,
+        "startChar": 12,
+        "endLine": 590,
+        "endChar": 32
+      },
+      "revId": "3a5ab7b2b15c55910a1463a398721164a76964ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_33c6189b",
         "filename": "midolman/src/test/scala/org/midonet/midolman/topology/devices/HealthMonitorConversionTest.scala",
         "patchSetId": 27
@@ -565,6 +685,30 @@
       "writtenOn": "2015-04-22T14:33:26Z",
       "side": 1,
       "message": "random values?",
+      "range": {
+        "startLine": 42,
+        "startChar": 16,
+        "endLine": 44,
+        "endChar": 37
+      },
+      "revId": "3a5ab7b2b15c55910a1463a398721164a76964ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_d3122408",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/devices/HealthMonitorConversionTest.scala",
+        "patchSetId": 27
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-04-22T14:59:39Z",
+      "side": 1,
+      "message": "I prefer deterministic values whenever I can... but no problem in converting them to random.",
+      "parentUuid": "1a106d94_33c6189b",
       "range": {
         "startLine": 42,
         "startChar": 16,
