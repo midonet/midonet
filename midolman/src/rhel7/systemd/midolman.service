@@ -9,7 +9,7 @@ ExecStart=/usr/share/midolman/midolman-start
 # JVM exits with 143 when killed by SIGTERM, which is
 # considered successful termination
 SuccessExitStatus=143
-KillMode=process
+KillMode=control-group
 Restart=on-failure
 
 [Install]
