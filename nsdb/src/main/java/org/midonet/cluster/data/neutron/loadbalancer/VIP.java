@@ -20,46 +20,64 @@ import java.util.UUID;
 import com.google.common.base.Objects;
 
 import org.codehaus.jackson.annotate.JsonProperty;
+import org.midonet.cluster.data.ZoomField;
+import org.midonet.cluster.util.IPAddressUtil;
+import org.midonet.cluster.util.UUIDUtil.Converter;
 
 public class VIP {
 
+    @ZoomField(name = "address", converter = IPAddressUtil.Converter.class)
     public String address;
 
     @JsonProperty("admin_state_up")
+    @ZoomField(name = "admin_state_up")
     public boolean adminStateUp;
 
     @JsonProperty("connection_limit")
+    @ZoomField(name = "connection_limit")
     public int connectionLimit;
 
+    @ZoomField(name = "description")
     public String description;
 
+    @ZoomField(name = "id", converter = Converter.class)
     public UUID id;
 
+    @ZoomField(name = "name")
     public String name;
 
     @JsonProperty("pool_id")
+    @ZoomField(name = "pool_id", converter = Converter.class)
     public UUID poolId;
 
     @JsonProperty("port_id")
+    @ZoomField(name = "port_id", converter = Converter.class)
     public UUID portId;
 
+    @ZoomField(name = "protocol")
     public String protocol;
 
     @JsonProperty("protocol_port")
+    @ZoomField(name = "protocol_port")
     public int protocolPort;
 
     @JsonProperty("session_persistence")
+    @ZoomField(name = "session_persistence")
     public SessionPersistence sessionPersistence;
 
+    @ZoomField(name = "status")
     public String status;
 
     @JsonProperty("status_description")
+    @ZoomField(name = "status_description")
     public String statusDescription;
 
     @JsonProperty("subnet_id")
+    @ZoomField(name = "subnet_id", converter = Converter.class)
     public UUID subnetId;
 
     @JsonProperty("tenant_id")
+    @ZoomField(name = "tenant_id")
     public String tenantId;
 
     @Override
