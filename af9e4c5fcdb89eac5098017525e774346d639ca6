@@ -1,0 +1,106 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_076d96cc",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/DatapathController.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 259,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-04-23T13:04:40Z",
+      "side": 1,
+      "message": "why is it lazy?",
+      "revId": "af9e4c5fcdb89eac5098017525e774346d639ca6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_e7715aa9",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/DatapathController.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 263,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-04-23T13:04:40Z",
+      "side": 1,
+      "message": "why not a PublishSubject?",
+      "revId": "af9e4c5fcdb89eac5098017525e774346d639ca6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_476aeeb3",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/DatapathController.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 285,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-04-23T13:04:40Z",
+      "side": 1,
+      "message": "Note that there is no concept of dangling port.",
+      "revId": "af9e4c5fcdb89eac5098017525e774346d639ca6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_c7841e60",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/DatapathController.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 292,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-04-23T13:04:40Z",
+      "side": 1,
+      "message": "This is not called by the DatapathController thread, is it? If not, it needs to be because dpState is not thread safe. \n\nI\u0027d consider using the ReactiveActor trait in midonet-util.",
+      "revId": "af9e4c5fcdb89eac5098017525e774346d639ca6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_2767f2ea",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/DatapathController.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 293,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-04-23T13:04:40Z",
+      "side": 1,
+      "message": "I\u0027d just do dpState.recreateIfNeeded(notifiedPort) and drop the comment, as you already wrote it in the DatapathPortEntangler.",
+      "revId": "af9e4c5fcdb89eac5098017525e774346d639ca6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_e77f9a64",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/DatapathController.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 305,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-04-23T13:04:40Z",
+      "side": 1,
+      "message": "it seems you\u0027re just aliasing notificationSubject. what\u0027s the point?",
+      "revId": "af9e4c5fcdb89eac5098017525e774346d639ca6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
