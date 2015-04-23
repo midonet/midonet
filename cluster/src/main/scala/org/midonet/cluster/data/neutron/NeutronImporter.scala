@@ -28,7 +28,7 @@ import com.google.protobuf.Message
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.data.neutron.importer.Transaction
-import org.midonet.cluster.models.Neutron
+import org.midonet.cluster.models.{Neutron => ModelNeutron}
 import org.midonet.cluster.models.Neutron._
 
 /**
@@ -69,11 +69,11 @@ object NeutronResourceType extends Enumeration {
     val Router = NeutronResourceType("ROUTER", classOf[NeutronRouter])
     val Port = NeutronResourceType("PORT", classOf[NeutronPort])
     val FloatingIp = NeutronResourceType("FLOATINGIP",
-                                         classOf[Neutron.FloatingIp])
+                                         classOf[ModelNeutron.FloatingIp])
     val SecurityGroup = NeutronResourceType("SECURITYGROUP",
-                                            classOf[Neutron.SecurityGroup])
+                                            classOf[ModelNeutron.SecurityGroup])
     val SecurityGroupRule = NeutronResourceType(
-        "SECURITYGROUPRULE", classOf[Neutron.SecurityGroupRule])
+        "SECURITYGROUPRULE", classOf[ModelNeutron.SecurityGroupRule])
     val PortBinding = NeutronResourceType("PORTBINDING", classOf[PortBinding])
     val AgentMembership = NeutronResourceType(
         "AGENTMEMBERSHIP", classOf[AgentMembership])
