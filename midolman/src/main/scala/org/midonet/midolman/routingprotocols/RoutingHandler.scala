@@ -18,7 +18,6 @@ package org.midonet.midolman.routingprotocols
 import java.io.File
 import java.util.UUID
 
-import scala.collection.JavaConversions._
 import scala.collection.mutable
 import scala.concurrent.duration._
 
@@ -46,7 +45,6 @@ import org.midonet.quagga.ZebraProtocol.RIBType
 import org.midonet.quagga._
 import org.midonet.sdn.flows.FlowTagger
 import org.midonet.util.eventloop.SelectLoop
-import org.midonet.util.process.ProcessHelper
 
 object RoutingHandler {
     val BGP_TCP_PORT: Short = 179
@@ -131,33 +129,24 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
 
     override def logSource = s"org.midonet.routing.bgp.bgp-$bgpIdx"
 
-    private final val BGP_NETDEV_PORT_NAME: String =
-        "mbgp%d".format(bgpIdx)
-    private final val BGP_NETDEV_PORT_MIRROR_NAME: String =
-        "mbgp%d_m".format(bgpIdx)
-    private final val BGP_VTY_PORT_NAME: String =
-        "mbgp%d_vty".format(bgpIdx)
-    private final val BGP_VTY_PORT_MIRROR_NAME: String =
-        "mbgp%d_vtym".format(bgpIdx)
-    private final val BGP_VTY_BRIDGE_NAME: String =
-        "mbgp%d_br".format(bgpIdx)
-    private final val BGP_VTY_LOCAL_IP: String =
-        IPv4Addr.intToString(BGP_IP_INT_PREFIX + 1 + 4 * bgpIdx)
-    private final val BGP_VTY_MIRROR_IP: String =
-        IPv4Addr.intToString(BGP_IP_INT_PREFIX + 2 + 4 * bgpIdx)
-    private final val BGP_VTY_MASK_LEN: Int = 30
-    private final val BGP_NETWORK_NAMESPACE: String =
-        "mbgp%d_ns".format(bgpIdx)
-    private final val ZSERVE_API_SOCKET =
-        "/var/run/quagga/zserv%d.api".format(bgpIdx)
-    private final val BGP_VTY_PORT: Int = 2605 + bgpIdx
+    private final val BGP_NETDEV_PORT_NAME = s"mbgp$bgpIdx"
+    private final val BGP_NETDEV_PORT_MIRROR_NAME = s"mbgp${bgpIdx}_m"
+
+    private final val BGP_VTY_LOCAL_IP =
+        new IPv4Subnet(IPv4Addr.fromInt(BGP_IP_INT_PREFIX + 1 + 4 * bgpIdx), 30)
+
+    private final val BGP_VTY_MIRROR_IP =
+        new IPv4Subnet(IPv4Addr.fromInt(BGP_IP_INT_PREFIX + 2 + 4 * bgpIdx), 30)
+
+    private final val ZSERVE_API_SOCKET = s"/var/run/quagga/zserv${bgpIdx}.api"
+    private final val BGP_VTY_PORT = 2605 + bgpIdx
 
     private var zebra: ActorRef = null
     private var bgpVty: BgpConnection = null
 
     private var theBgpSession: Option[BGP] = None
 
-    private val adRoutes = mutable.Set[AdRoute]()
+    private var adRoutes = Set[AdRoute]()
     private val peerRoutes = mutable.Map[Route, UUID]()
     private var socketAddress: AfUnix.Address = null
 
@@ -218,6 +207,9 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
             case Disabling => AllStates
             case Enabling => AllStates
             case Disabled => AllStates
+        }
+        theBgpSession foreach {
+            bgp => dataClient.bgpSetStatus(bgp.getId, next.toString)
         }
         _phase = next
         context.become(receive)
@@ -354,24 +346,7 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
                     log.error("({}) unexpected BGPD_DEAD message", phase)
             }
 
-        case FETCH_BGPD_STATUS =>
-            theBgpSession foreach {
-                case bgp =>
-                    log.debug("querying bgpd neighbour information")
-                    try {
-                        var status: String = "bgpd daemon is not ready"
-                        if (bgpVty ne null) {
-                            status = bgpVty.showGeneric("nei").
-                                filterNot(_.startsWith("bgpd#")).
-                                filterNot(_.startsWith("show ip bgp nei")).
-                                foldRight("")((a, b) => s"$a\n$b")
-                        }
-                        dataClient.bgpSetStatus(bgp.getId, status)
-                    } catch {
-                        case e: Exception =>
-                            log.warn("Failed to check bgpd status", e)
-                    }
-            }
+        case FETCH_BGPD_STATUS => // ignored
 
         case BGPD_SHOW(cmd) =>
             if (bgpVty != null)
@@ -408,7 +383,7 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
 
         case ZookeeperActive(false) =>
             log.info("({}) Disconnected from Zookeeper", phase)
-            zookeeperActive = true
+            zookeeperActive = false
             disable()
 
         case m =>
@@ -429,7 +404,7 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
             unstashAll()
 
             bgpVty = new BgpVtyConnection(
-                addr = BGP_VTY_MIRROR_IP,
+                addr = BGP_VTY_MIRROR_IP.getAddress.toString,
                 port = BGP_VTY_PORT,
                 password = "zebra_password",
                 keepAliveTime = config.bgpKeepAlive,
@@ -441,8 +416,7 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
                 bgpVty.setDebug(isEnabled = true)
 
             theBgpSession foreach {
-                // Use the bgpVty to set up sessions with all these peers
-                create(rport.portAddr.getAddress, _)
+                createSession(rport.portAddr.getAddress, _)
             }
 
             // BGP routes are added on:
@@ -489,17 +463,37 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
                     "up so far", phase)
         }
 
+        case FETCH_BGPD_STATUS if bgpdProcess ne null =>
+            theBgpSession foreach {
+                case bgp =>
+                    log.debug("querying bgpd neighbour information")
+                    try {
+                        var status: String = "bgpd daemon is not ready"
+                        if ((bgpVty ne null) && bgpdProcess.isAlive) {
+                            status = bgpVty.showGeneric("nei").
+                                filterNot(_.startsWith("bgpd#")).
+                                filterNot(_.startsWith("show ip bgp nei")).
+                                foldRight("")((a, b) => s"$a\n$b")
+                        }
+                        dataClient.bgpSetStatus(bgp.getId, status)
+                    } catch {
+                        case e: Exception =>
+                            log.warn("Failed to check bgpd status", e)
+                    }
+            }
+
         case RemoveBgpSession(bgpID) => theBgpSession match {
             case Some(bgp) if bgp.getId == bgpID =>
                 log.info(s"($phase) Removing BGP session $bgpID")
+                transition(Stopping)
                 theBgpSession = None
+
                 bgpVty.deletePeer(bgp.getLocalAS, bgp.getPeerAddr)
                 RoutingWorkflow.routerPortToBgp.remove(bgp.getPortId)
                 RoutingWorkflow.inputPortToBgp.remove(bgp.getQuaggaPortNumber)
                 invalidateFlows(bgp)
 
                 // If this is the last BGP for ths port, tear everything down.
-                transition(Stopping)
                 peerRoutes.values foreach {
                     routeId => deleteRoute(routeId)
                 }
@@ -516,7 +510,7 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
         case AdvertiseRoute(rt) => theBgpSession match {
             case Some(bgp) if bgp.getId == rt.getBgpId =>
                 log.info(s"({$phase}) Advertise: ${rt.getNwPrefix}/${rt.getPrefixLength}")
-                adRoutes.add(rt)
+                adRoutes += rt
                 bgpVty.setNetwork(bgp.getLocalAS, rt.getNwPrefix.getHostAddress, rt.getPrefixLength)
 
             case Some(bgp) =>
@@ -530,7 +524,7 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
         case StopAdvertisingRoute(rt) =>
             log.info(s"({$phase}) StopAdvertising: " +
                      s"${rt.getNwPrefix}/${rt.getPrefixLength}")
-            adRoutes.remove(rt)
+            adRoutes -= rt
             theBgpSession match {
                 case Some(bgp) if bgp.getId == rt.getBgpId =>
                     bgpVty.deleteNetwork(bgp.getLocalAS,
@@ -587,12 +581,17 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
 
         case NewBgpSession(bgp) => theBgpSession match {
             case Some(bgp) =>
-                log.info(s"($phase) New BGP session.")
                 log.error(s"($phase) This should be the first BGP connection but" +
                     " there were already other connections configured")
 
             case None =>
+                log.info(s"($phase) New BGP session ${bgp}")
                 theBgpSession = Some(bgp)
+                adRoutes = adRoutes filter (bgp.getId == _.getBgpId)
+                bgpdProcess = new BgpdProcess(bgpIdx,
+                                    BGP_VTY_LOCAL_IP, BGP_VTY_MIRROR_IP,
+                                    rport.portAddr, rport.portMac,
+                                    BGP_VTY_PORT, config)
                 startBGP()
                 transition(Starting)
         }
@@ -693,43 +692,7 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
     private def startBGP() {
         log.debug("({}) preparing environment for bgpd", phase)
 
-        // In Linux interface names can be at most 15 characters long
-        List(
-            BGP_NETDEV_PORT_NAME,
-            BGP_NETDEV_PORT_MIRROR_NAME,
-            BGP_VTY_PORT_NAME,
-            BGP_VTY_PORT_MIRROR_NAME
-        ).withFilter{ _.length > 15 }.foreach { itf =>
-            log.error("({}) Interface name can be at most 15 chars: {}", phase, itf)
-            return
-        }
-
-        // If there was a bgpd running in a previous execution and wasn't
-        // properly stopped, it may still be running -> kill it
-        val bgpdPidFile = "/var/run/quagga/bgpd." + BGP_VTY_PORT + ".pid"
-        val file = new File(bgpdPidFile)
-        if (file.exists()) {
-            log.debug("({}) found bgpd pid file", phase)
-            val source = scala.io.Source.fromFile(bgpdPidFile)
-            val lines = source.getLines()
-
-            // we only expect one pid stored here
-            if (lines.hasNext) {
-                val cmdLine = "kill -9 " + lines.next()
-                log.debug("({}) killing lingering bgpd: {}", phase, cmdLine)
-                ProcessHelper.executeCommandLine(cmdLine)
-            }
-        }
-
         val socketFile = new File(ZSERVE_API_SOCKET)
-        val socketDir = socketFile.getParentFile
-        if (!socketDir.exists()) {
-            log.debug("({}) Creating socket dir at {}", phase, socketDir.getAbsolutePath)
-            socketDir.mkdirs()
-            // Set permission to let quagga daemons write.
-            socketDir.setWritable(true, false)
-        }
-
         if (socketFile.exists()) {
             log.debug("({}) Deleting socket file at {}", phase, socketFile.getAbsolutePath)
             socketFile.delete()
@@ -742,91 +705,20 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
 
 
         /* Bgp namespace configuration */
+        bgpdProcess.prepare()
 
-        val bgpNS = BGP_NETWORK_NAMESPACE
-
-        log.debug("({}) Creating namespace: {}", phase, bgpNS)
-        IP.ensureNamespace(bgpNS)
-
-        /* Bgp interface configuration */
-        log.debug("({}) Setting up bgp interface: {}", phase, BGP_NETDEV_PORT_NAME)
-
-        val bgpPort = BGP_NETDEV_PORT_NAME
-        val bgpMirror = BGP_NETDEV_PORT_MIRROR_NAME
-        val (bgpMac, bgpIp) = (rport.portMac.toString, rport.portAddr.toString)
-
-        IP.ensureNoInterface(bgpPort)
-        IP.preparePair(bgpPort, bgpMirror, bgpNS)
-        IP.configureMac(bgpMirror, bgpMac, bgpNS)
-        IP.configureIp(bgpMirror, bgpIp, bgpNS)
-
-        // wake up loopback inside network namespace
-        IP.execIn(bgpNS, " ifconfig lo up")
-        IP.configureUp(bgpPort)
-
-        // Add port to datapath
-        log.debug("({}) Adding port to datapath: {}", phase, BGP_NETDEV_PORT_NAME)
+        log.debug(s"($phase) Adding port to datapath: $BGP_NETDEV_PORT_NAME")
         createDpPort(BGP_NETDEV_PORT_NAME)
 
-        /* VTY interface configuration */
-        log.debug("({}) Setting up vty interface: {}", phase, BGP_VTY_PORT_NAME)
-
-        val vtyPort = BGP_VTY_PORT_NAME
-        val vtyMirror = BGP_VTY_PORT_MIRROR_NAME
-        val vtyLocalIp = BGP_VTY_LOCAL_IP + "/" + BGP_VTY_MASK_LEN
-        val vtyMirrorIp = BGP_VTY_MIRROR_IP + "/" + BGP_VTY_MASK_LEN
-
-        IP.ensureNoInterface(vtyPort)
-        IP.preparePair(vtyPort, vtyMirror, bgpNS)
-        IP.configureUp(vtyMirror, bgpNS)
-        IP.configureIp(vtyMirror, vtyMirrorIp, bgpNS)
-        IP.configureUp(vtyPort)
-
-        /* bridge configuration */
-        log.debug("({}) Setting up bridge for vty: {}", phase, BGP_VTY_BRIDGE_NAME)
-        val bgpBridge = BGP_VTY_BRIDGE_NAME
-
-        // Create a bridge for VTY communication
-        BRCTL.addBr(bgpBridge)
-
-        // Add VTY interface to VTY bridge
-        BRCTL.addItf(bgpBridge, vtyPort)
-
-        // Set up bridge as local VTY interface
-        IP.configureIp(bgpBridge, vtyLocalIp)
-
-        // Bring up bridge interface for VTY
-        IP.configureUp(bgpBridge)
-
-        log.debug("({}) prepared environment for bgpd", phase)
+        log.debug(s"($phase) prepared environment for bgpd")
     }
 
     private def stopBGP() {
-        log.debug("({}) stopping bgpd", phase)
-
-        if (bgpdProcess != null) {
-            log.debug("({}) bgpd is running, stop", phase)
-            bgpdProcess.stop()
-        }
-
         log.debug("({}) stopping zebra server", phase)
         context.stop(zebra)
 
-        log.debug("({}) cleaning up bgpd environment", phase)
-        // delete vty interface pair
-        IP.deleteItf(BGP_VTY_PORT_NAME)
-
-        // get vty bridge down
-        IP.configureDown(BGP_VTY_BRIDGE_NAME )
-
-        // delete vty bridge
-        BRCTL.deleteBr(BGP_VTY_BRIDGE_NAME)
-
-        // delete bgp interface pair
-        IP.deleteItf(BGP_NETDEV_PORT_NAME)
-
-        // delete network namespace
-        IP.deleteNS(BGP_NETWORK_NAMESPACE)
+        log.debug("({}) stopping bgpd", phase)
+        bgpdProcess.stop()
 
         // Delete port from datapath
         dpPorts.get(BGP_NETDEV_PORT_NAME) foreach removeDpPort
@@ -857,19 +749,11 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
         RoutingWorkflow.inputPortToBgp.put(bgp.getQuaggaPortNumber, bgp)
         invalidateFlows(bgp)
 
-        bgpdProcess = new BgpdProcess(self, BGP_VTY_PORT,
-            rport.portAddr.getAddress.toString, socketAddress,
-            BGP_NETWORK_NAMESPACE, config)
-        val didStart = bgpdProcess.start()
-        if (didStart) {
+        if (bgpdProcess.start())
             self ! BGPD_READY
-            log.debug("({}) bgpd process did start", phase)
-        } else {
-            log.debug("({}) bgpd process did not start", phase)
-        }
     }
 
-    def create(localAddr: IPAddr, bgp: BGP) {
+    private def createSession(localAddr: IPAddr, bgp: BGP) {
         log.debug(s"({$phase}) create bgp session to peer " +
                   s"AS ${bgp.getPeerAS} at ${bgp.getPeerAddr}")
         bgpVty.setAs(bgp.getLocalAS)
@@ -881,7 +765,6 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
             // silently ignored
             bgpVty.setNetwork(bgp.getLocalAS, adRoute.getNwPrefix.getHostAddress,
                 adRoute.getPrefixLength)
-            adRoutes.add(adRoute)
             log.debug(s"($phase) added advertised route: " +
                 s"${adRoute.getData.nwPrefix}/${adRoute.getData.prefixLength}")
         }
@@ -910,87 +793,3 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
     }
 }
 
-object IP { /* wrapper to ip commands => TODO: implement with RTNETLINK */
-
-    val exec: String => Int =
-        ProcessHelper.executeCommandLine(_).returnValue
-
-    val execNoErrors: String => Int =
-        ProcessHelper.executeCommandLine(_, true).returnValue
-
-    val execGetOutput: String => java.util.List[String] =
-        ProcessHelper.executeCommandLine(_).consoleOutput
-
-    val link: String => Int =
-        s => exec("ip link " + s)
-
-    val ifaceExists: String => Int =
-        s => execNoErrors("ip link show " + s)
-
-    val netns: String => Int =
-        s => exec("ip netns " + s)
-
-    val netnsGetOutput: String => java.util.List[String] =
-        s => execGetOutput("ip netns " + s)
-
-    def execIn(ns: String, cmd: String): Int =
-        if (ns == "") exec(cmd) else netns("exec " + ns + " " + cmd)
-
-    def addNS(ns: String) = netns("add " + ns)
-
-    def deleteNS(ns: String) = netns("del " + ns)
-
-    def namespaceExist(ns: String) =
-        ProcessHelper.executeCommandLine("ip netns list")
-            .consoleOutput.exists(_.contains(ns))
-
-    /** Create a network namespace with name "ns" if it does not already exist.
-     *  Do not try to delete an old network namespace with same name, because
-     *  trying to do so when there's a process still running or interfaces
-     *  still using it, it can lead to namespace corruption.
-     */
-    def ensureNamespace(ns: String): Int =
-        if (!namespaceExist(ns)) addNS(ns) else 0
-
-    /** checks if an interface exists and deletes if it does */
-    def ensureNoInterface(itf: String) =
-        if (ifaceExists(itf) == 0) IP.deleteItf(itf) else 0
-
-    def deleteItf(itf: String) = link(" delete " + itf)
-
-    def interfaceExistsInNs(ns: String, interface: String): Boolean =
-        if (!namespaceExist(ns)) false
-        else netns("exec " + ns + " ip link show " + interface) == 0
-
-    /** creates an interface anad put a mirror in given network namespace */
-    def preparePair(itf: String, mirror: String, ns: String) =
-        link("add name " + itf + " type veth peer name " + mirror) |
-        link("set " + mirror + " netns " + ns)
-
-    /** wake up local interface with given name */
-    def configureUp(itf: String, ns: String = "") =
-        execIn(ns, "ip link set dev " + itf + " up")
-
-    /** wake up local interface with given name */
-    def configureDown(itf: String, ns: String = "") =
-        execIn(ns, "ip link set dev " + itf + " down")
-
-    /** Configure the mac address of given interface */
-    def configureMac(itf: String, mac: String, ns: String = "") =
-        execIn(ns, " ip link set dev " + itf + " up address " + mac)
-
-    /** Configure the ip address of given interface */
-    def configureIp(itf: String, ip: String, ns: String = "") =
-        execIn(ns, " ip addr add " + ip + " dev " + itf)
-
-}
-
-object BRCTL { /* wrapper to brctl commands => TODO: implement with RTNETLINK */
-
-    def addBr(br: String) = IP.exec("brctl addbr " + br)
-
-    def deleteBr(br: String) = IP.exec("brctl delbr " + br)
-
-    def addItf(br: String, it: String) = IP.exec("brctl addif " + br + " " + it)
-
-}

@@ -30,13 +30,13 @@ import org.midonet.midolman.l4lb.HaproxyHealthMonitor._
 import org.midonet.midolman.l4lb.HaproxyHealthMonitor.CheckHealth
 import org.midonet.midolman.l4lb.HaproxyHealthMonitor.ConfigUpdate
 import org.midonet.midolman.logging.ActorLogWithoutPath
-import org.midonet.midolman.routingprotocols.IP
 import org.midonet.midolman.layer3.Route.NextHop.PORT
 import org.midonet.midolman.state.PoolHealthMonitorMappingStatus
 import org.midonet.midolman.state.l4lb.LBStatus
 import LBStatus.{INACTIVE => MemberInactive}
 import LBStatus.{ACTIVE => MemberActive}
 import org.midonet.netlink.{AfUnix, NetlinkSelectorProvider, UnixDomainChannel}
+import org.midonet.util.process.ProcessHelper
 
 import scala.collection.JavaConversions._
 import scala.collection.mutable.HashSet
@@ -458,4 +458,79 @@ class HaproxyHealthMonitor(var config: PoolConfig,
     def setPoolMapStatus(status: PoolHealthMonitorMappingStatus) {
         dataClient.poolSetMapStatus(config.id, status)
     }
+}
+
+object IP { /* wrapper to ip commands => TODO: implement with RTNETLINK */
+
+    val exec: String => Int =
+        ProcessHelper.executeCommandLine(_).returnValue
+
+    val execNoErrors: String => Int =
+        ProcessHelper.executeCommandLine(_, true).returnValue
+
+    val execGetOutput: String => java.util.List[String] =
+        ProcessHelper.executeCommandLine(_).consoleOutput
+
+    val link: String => Int =
+        s => exec("ip link " + s)
+
+    val ifaceExists: String => Int =
+        s => execNoErrors("ip link show " + s)
+
+    val netns: String => Int =
+        s => exec("ip netns " + s)
+
+    val netnsGetOutput: String => java.util.List[String] =
+        s => execGetOutput("ip netns " + s)
+
+    def execIn(ns: String, cmd: String): Int =
+        if (ns == "") exec(cmd) else netns("exec " + ns + " " + cmd)
+
+    def addNS(ns: String) = netns("add " + ns)
+
+    def deleteNS(ns: String) = netns("del " + ns)
+
+    def namespaceExist(ns: String) =
+        ProcessHelper.executeCommandLine("ip netns list")
+            .consoleOutput.exists(_.contains(ns))
+
+    /** Create a network namespace with name "ns" if it does not already exist.
+      *  Do not try to delete an old network namespace with same name, because
+      *  trying to do so when there's a process still running or interfaces
+      *  still using it, it can lead to namespace corruption.
+      */
+    def ensureNamespace(ns: String): Int =
+        if (!namespaceExist(ns)) addNS(ns) else 0
+
+    /** checks if an interface exists and deletes if it does */
+    def ensureNoInterface(itf: String) =
+        if (ifaceExists(itf) == 0) IP.deleteItf(itf) else 0
+
+    def deleteItf(itf: String) = link(" delete " + itf)
+
+    def interfaceExistsInNs(ns: String, interface: String): Boolean =
+        if (!namespaceExist(ns)) false
+        else netns("exec " + ns + " ip link show " + interface) == 0
+
+    /** creates an interface anad put a mirror in given network namespace */
+    def preparePair(itf: String, mirror: String, ns: String) =
+        link("add name " + itf + " type veth peer name " + mirror) |
+            link("set " + mirror + " netns " + ns)
+
+    /** wake up local interface with given name */
+    def configureUp(itf: String, ns: String = "") =
+        execIn(ns, "ip link set dev " + itf + " up")
+
+    /** wake up local interface with given name */
+    def configureDown(itf: String, ns: String = "") =
+        execIn(ns, "ip link set dev " + itf + " down")
+
+    /** Configure the mac address of given interface */
+    def configureMac(itf: String, mac: String, ns: String = "") =
+        execIn(ns, " ip link set dev " + itf + " up address " + mac)
+
+    /** Configure the ip address of given interface */
+    def configureIp(itf: String, ip: String, ns: String = "") =
+        execIn(ns, " ip addr add " + ip + " dev " + itf)
+
 }
