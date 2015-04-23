@@ -56,6 +56,7 @@ import org.midonet.midolman.io.TokenBucketPolicy;
 import org.midonet.midolman.services.DatapathConnectionService;
 import org.midonet.netlink.NetlinkChannel;
 import org.midonet.netlink.NetlinkChannelFactory;
+import org.midonet.netlink.NetlinkProtocol;
 import org.midonet.odp.Datapath;
 import org.midonet.odp.OvsNetlinkFamilies;
 import org.midonet.util.concurrent.AggregateEventPollerHandler;
@@ -190,7 +191,8 @@ public class DatapathModule extends PrivateModule {
 
                 @Override
                 public OvsNetlinkFamilies get() {
-                    NetlinkChannel channel = factory.create(true);
+                    NetlinkChannel channel = factory.create(
+                            true, NetlinkProtocol.NETLINK_GENERIC, false);
                     try {
                         try {
                             OvsNetlinkFamilies families = OvsNetlinkFamilies.discover(channel);
