@@ -16,11 +16,22 @@
 
 package org.midonet.netlink
 
+import NetlinkProtocol.{NETLINK_GENERIC, NETLINK_ROUTE}
+
 class NetlinkChannelFactory {
-    def create(blocking: Boolean = false): NetlinkChannel = {
+    def create(blocking: Boolean = false,
+               protocol: NetlinkProtocol = NETLINK_GENERIC): NetlinkChannel = {
         try {
-            val channel = Netlink.selectorProvider
-                .openNetlinkSocketChannel(NetlinkProtocol.NETLINK_GENERIC)
+            val channel = protocol match {
+                case NETLINK_ROUTE =>
+                    Netlink.selectorProvider
+                        .openNetlinkSocketChannel(
+                            protocol, NetlinkUtil.DEFAULT_RTNETLINK_GROUPS)
+                case _ =>
+                    Netlink.selectorProvider
+                        .openNetlinkSocketChannel(
+                            protocol, NetlinkUtil.DEFAULT_OVS_GROUPS)
+            }
             channel.connect(new Netlink.Address(0))
             channel.configureBlocking(blocking)
             channel
@@ -35,5 +46,6 @@ class MockNetlinkChannelFactory extends NetlinkChannelFactory {
     val channel: MockNetlinkChannel = new MockNetlinkChannel(Netlink.selectorProvider,
                                                              NetlinkProtocol.NETLINK_GENERIC)
 
-    override def create(blocking: Boolean = false) = channel
+    override def create(blocking: Boolean = false,
+                        protocol: NetlinkProtocol = NETLINK_GENERIC) = channel
 }

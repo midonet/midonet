@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,7 +35,7 @@ public class BufferPool {
     private static final Logger log = LoggerFactory.getLogger(BufferPool.class);
 
     /** dummy object used as the unique value in the concurrent buffer "set". */
-    private static final Object PRESENT = new Object();
+    protected static final Object PRESENT = new Object();
 
     private final int maxBuffers;
     private final int bufSize;
