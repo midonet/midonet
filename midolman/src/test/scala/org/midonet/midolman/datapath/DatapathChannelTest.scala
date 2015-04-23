@@ -31,8 +31,8 @@ import org.scalatest.concurrent.Eventually._
 
 import org.midonet.midolman.datapath.DisruptorDatapathChannel.PacketContextHolder
 import org.midonet.midolman.flows.{FlowOperation, ManagedFlow}
-import org.midonet.midolman.util.MidolmanSpec
-import org.midonet.netlink.{MockNetlinkChannelFactory, NetlinkMessage}
+import org.midonet.midolman.util.{MockNetlinkChannelFactory, MidolmanSpec}
+import org.midonet.netlink.NetlinkMessage
 import org.midonet.odp._
 import org.midonet.odp.family.{DatapathFamily, FlowFamily, PacketFamily, PortFamily}
 import org.midonet.odp.flows.{FlowKey, FlowKeys, FlowAction, FlowActions}
