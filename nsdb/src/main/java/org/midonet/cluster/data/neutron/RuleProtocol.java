@@ -20,6 +20,10 @@ import com.google.common.primitives.Ints;
 import org.codehaus.jackson.annotate.JsonCreator;
 import org.codehaus.jackson.annotate.JsonValue;
 
+import org.midonet.cluster.data.ZoomEnum;
+import org.midonet.cluster.models.Commons;
+
+@ZoomEnum(clazz = Commons.Protocol.class)
 public enum RuleProtocol {
 
     TCP("tcp", org.midonet.packets.TCP.PROTOCOL_NUMBER),
@@ -30,7 +34,7 @@ public enum RuleProtocol {
     private final String value;
     private final byte number;
 
-    private RuleProtocol(final String value, final byte number) {
+    RuleProtocol(final String value, final byte number) {
         this.value = value;
         this.number = number;
     }
@@ -65,12 +69,7 @@ public enum RuleProtocol {
     @JsonCreator
     public static RuleProtocol forValue(String v) {
         if (v == null) return null;
-
         Integer num = Ints.tryParse(v);
-        if (num != null) {
-            return forNumValue(num.byteValue());
-        } else {
-            return forStrValue(v);
-        }
+        return (num != null) ? forNumValue(num.byteValue()) : forStrValue(v);
     }
 }

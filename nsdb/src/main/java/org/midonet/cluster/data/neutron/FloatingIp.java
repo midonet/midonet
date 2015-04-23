@@ -18,6 +18,9 @@ package org.midonet.cluster.data.neutron;
 import com.google.common.base.Objects;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonProperty;
+import org.midonet.cluster.data.ZoomField;
+import org.midonet.cluster.util.IPAddressUtil;
+import org.midonet.cluster.util.UUIDUtil.Converter;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IPv4Subnet;
 
@@ -38,24 +41,33 @@ public class FloatingIp {
         this.fixedIpAddress = fixedIpAddress;
     }
 
+    @ZoomField(name = "id", converter = Converter.class)
     public UUID id;
 
     @JsonProperty("floating_ip_address")
+    @ZoomField(name = "floating_ip_address",
+               converter = IPAddressUtil.Converter.class)
     public String floatingIpAddress;
 
     @JsonProperty("floating_network_id")
+    @ZoomField(name = "floating_network_id", converter = Converter.class)
     public UUID floatingNetworkId;
 
     @JsonProperty("router_id")
+    @ZoomField(name = "router_id", converter = Converter.class)
     public UUID routerId;
 
     @JsonProperty("port_id")
+    @ZoomField(name = "port_id", converter = Converter.class)
     public UUID portId;
 
     @JsonProperty("fixed_ip_address")
+    @ZoomField(name = "fixed_ip_address",
+               converter = IPAddressUtil.Converter.class)
     public String fixedIpAddress;
 
     @JsonProperty("tenant_id")
+    @ZoomField(name = "tenant_id")
     public String tenantId;
 
     @Override

@@ -19,6 +19,8 @@ import com.google.common.base.Objects;
 import org.apache.commons.collections4.ListUtils;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonProperty;
+import org.midonet.cluster.data.ZoomField;
+import org.midonet.cluster.util.UUIDUtil.Converter;
 import org.midonet.util.collection.ListUtil;
 
 import java.util.ArrayList;
@@ -38,16 +40,21 @@ public class SecurityGroup {
         this.securityGroupRules = rules;
     }
 
+    @ZoomField(name = "id", converter = Converter.class)
     public UUID id;
 
+    @ZoomField(name = "name")
     public String name;
 
+    @ZoomField(name = "description")
     public String description;
 
     @JsonProperty("tenant_id")
+    @ZoomField(name = "tenant_id")
     public String tenantId;
 
     @JsonProperty("security_group_rules")
+    @ZoomField(name = "security_group_rules")
     public List<SecurityGroupRule> securityGroupRules = new ArrayList<>();
 
     @Override
