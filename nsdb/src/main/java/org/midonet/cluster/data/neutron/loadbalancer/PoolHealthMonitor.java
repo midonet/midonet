@@ -18,9 +18,12 @@ package org.midonet.cluster.data.neutron.loadbalancer;
 import java.util.UUID;
 
 import com.google.common.base.Objects;
+import org.midonet.cluster.data.ZoomField;
+import org.midonet.cluster.util.UUIDUtil.Converter;
 
 public class PoolHealthMonitor {
 
+    @ZoomField(name = "id", converter = Converter.class)
     public UUID id;
 
     @Override

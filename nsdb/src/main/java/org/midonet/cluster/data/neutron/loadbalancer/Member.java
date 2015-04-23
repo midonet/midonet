@@ -20,30 +20,42 @@ import java.util.UUID;
 import com.google.common.base.Objects;
 
 import org.codehaus.jackson.annotate.JsonProperty;
+import org.midonet.cluster.data.ZoomField;
+import org.midonet.cluster.util.IPAddressUtil;
+import org.midonet.cluster.util.UUIDUtil.Converter;
 
 public class Member {
 
+    @ZoomField(name = "address", converter = IPAddressUtil.Converter.class)
     public String address;
 
     @JsonProperty("admin_state_up")
+    @ZoomField(name = "admin_state_up")
     public boolean adminStateUp;
 
+    @ZoomField(name = "id", converter = Converter.class)
     public UUID id;
 
     @JsonProperty("pool_id")
+    @ZoomField(name = "pool_id", converter = Converter.class)
     public UUID poolId;
 
     @JsonProperty("protocol_port")
+    @ZoomField(name = "protocol_port")
     public int protocolPort;
 
+    @ZoomField(name = "status")
     public String status;
 
     @JsonProperty("status_description")
+    @ZoomField(name = "status_description")
     public String statusDescription;
 
     @JsonProperty("tenant_id")
+    @ZoomField(name = "tenant_id")
     public String tenantId;
 
+    @ZoomField(name = "weight")
     public int weight;
 
     @Override

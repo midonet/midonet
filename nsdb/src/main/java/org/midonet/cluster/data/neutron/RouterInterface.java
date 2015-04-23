@@ -17,6 +17,8 @@ package org.midonet.cluster.data.neutron;
 
 import com.google.common.base.Objects;
 import org.codehaus.jackson.annotate.JsonProperty;
+import org.midonet.cluster.data.ZoomField;
+import org.midonet.cluster.util.UUIDUtil.Converter;
 
 import java.util.UUID;
 
@@ -32,15 +34,19 @@ public class RouterInterface {
         this.subnetId = subnetId;
     }
 
+    @ZoomField(name = "id", converter = Converter.class)
     public UUID id;
 
     @JsonProperty("tenant_id")
+    @ZoomField(name = "tenant_id")
     public String tenantId;
 
     @JsonProperty("port_id")
+    @ZoomField(name = "port_id", converter = Converter.class)
     public UUID portId;
 
     @JsonProperty("subnet_id")
+    @ZoomField(name = "subnet_id", converter = Converter.class)
     public UUID subnetId;
 
     @Override
