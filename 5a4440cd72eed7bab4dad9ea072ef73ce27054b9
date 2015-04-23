@@ -845,6 +845,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_fcfc4d74",
+        "filename": "brain/vtep/src/main/scala/org/midonet/vtep/OvsdbTranslator.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-04-23T12:46:20Z",
+      "side": 1,
+      "message": "I\u0027ve added the comment as you suggest. Setting the type to Long was a way to indicate which was the actual value of the key, and making the cast explicit, but since it is now explained in the comment, I think it\u0027s safe to convert it directly to Integer (and I have changed it accordingly).",
+      "parentUuid": "1a106d94_160b0a2b",
+      "range": {
+        "startLine": 56,
+        "startChar": 12,
+        "endLine": 56,
+        "endChar": 72
+      },
+      "revId": "5a4440cd72eed7bab4dad9ea072ef73ce27054b9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_d9ec0892",
         "filename": "brain/vtep/src/main/scala/org/midonet/vtep/OvsdbTranslator.scala",
         "patchSetId": 11
