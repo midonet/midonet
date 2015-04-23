@@ -18,6 +18,8 @@ package org.midonet.cluster.data.neutron;
 import com.google.common.base.Objects;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonProperty;
+import org.midonet.cluster.data.ZoomField;
+import org.midonet.cluster.util.UUIDUtil.Converter;
 
 import java.util.UUID;
 
@@ -35,20 +37,29 @@ public class Router {
         this.adminStateUp = adminStateUp;
     }
 
+    @ZoomField(name = "id",converter = Converter.class)
     public UUID id;
+
+    @ZoomField(name = "name")
     public String name;
+
+    @ZoomField(name = "status")
     public String status;
 
     @JsonProperty("tenant_id")
+    @ZoomField(name = "tenant_id")
     public String tenantId;
 
     @JsonProperty("admin_state_up")
+    @ZoomField(name = "admin_state_up")
     public boolean adminStateUp;
 
     @JsonProperty("gw_port_id")
+    @ZoomField(name = "gw_port_id", converter = Converter.class)
     public UUID gwPortId;
 
     @JsonProperty("external_gateway_info")
+    @ZoomField(name = "external_gateway_info")
     public ExternalGatewayInfo externalGatewayInfo;
 
     @Override

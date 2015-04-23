@@ -18,17 +18,22 @@ package org.midonet.cluster.data.neutron;
 import org.codehaus.jackson.annotate.JsonCreator;
 import org.codehaus.jackson.annotate.JsonValue;
 
+import org.midonet.cluster.data.ZoomEnum;
+import org.midonet.cluster.data.ZoomEnumValue;
+import org.midonet.cluster.models.Neutron;
+
+@ZoomEnum(clazz = Neutron.NeutronPort.DeviceOwner.class)
 public enum DeviceOwner {
 
-    DHCP("network:dhcp"),
-    FLOATINGIP("network:floatingip"),
-    ROUTER_GW("network:router_gateway"),
-    ROUTER_INTF("network:router_interface"),
-    NOVA("compute:nova");
+    @ZoomEnumValue(value = "network:dhcp") DHCP("network:dhcp"),
+    @ZoomEnumValue(value = "network:floatingip") FLOATINGIP("network:floatingip"),
+    @ZoomEnumValue(value = "network:router_gateway") ROUTER_GW("network:router_gateway"),
+    @ZoomEnumValue(value = "network:router_interface") ROUTER_INTF("network:router_interface"),
+    @ZoomEnumValue(value = "compute:nova") NOVA("compute:nova");
 
     private final String value;
 
-    private DeviceOwner(final String value) {
+    DeviceOwner(final String value) {
         this.value = value;
     }
 
@@ -38,6 +43,7 @@ public enum DeviceOwner {
     }
 
     @JsonCreator
+    @SuppressWarnings("unused")
     public static DeviceOwner forValue(String v) {
         if (v == null) return null;
 

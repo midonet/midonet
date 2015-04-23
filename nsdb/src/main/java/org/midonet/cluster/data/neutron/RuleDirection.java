@@ -18,6 +18,10 @@ package org.midonet.cluster.data.neutron;
 import org.codehaus.jackson.annotate.JsonCreator;
 import org.codehaus.jackson.annotate.JsonValue;
 
+import org.midonet.cluster.data.ZoomEnum;
+import org.midonet.cluster.models.Commons;
+
+@ZoomEnum(clazz = Commons.RuleDirection.class)
 public enum RuleDirection {
 
     EGRESS("egress"),
@@ -25,7 +29,7 @@ public enum RuleDirection {
 
     private final String value;
 
-    private RuleDirection(final String value) {
+    RuleDirection(final String value) {
         this.value = value;
     }
 
