@@ -15,34 +15,55 @@
  */
 package org.midonet.midolman.host.guice;
 
+import com.google.inject.Inject;
+import com.google.inject.Injector;
 import com.google.inject.PrivateModule;
+import com.google.inject.Provider;
+import com.google.inject.Singleton;
 
 import org.midonet.midolman.config.MidolmanConfig;
-import org.midonet.midolman.host.sensor.IpAddrInterfaceSensor;
-import org.midonet.midolman.host.sensor.IpTuntapInterfaceSensor;
-import org.midonet.midolman.host.sensor.NetlinkInterfaceSensor;
-import org.midonet.midolman.host.sensor.SysfsInterfaceSensor;
+import org.midonet.midolman.host.scanner.DefaultInterfaceScanner;
+import org.midonet.midolman.host.scanner.InterfaceScanner;
 import org.midonet.midolman.host.services.HostService;
 import org.midonet.midolman.host.state.HostZkManager;
 import org.midonet.midolman.host.updater.DefaultInterfaceDataUpdater;
 import org.midonet.midolman.host.updater.InterfaceDataUpdater;
 import org.midonet.midolman.services.HostIdProviderService;
-
-import javax.inject.Singleton;
+import org.midonet.netlink.NetlinkChannelFactory;
+import org.midonet.netlink.NetlinkUtil;
+import org.midonet.util.concurrent.NanoClock$;
 
 /**
  * Module to configure dependencies for the host.
  */
 public class HostModule extends PrivateModule {
+    protected void bindInterfaceScanner() {
+        bind(InterfaceScanner.class)
+                .toProvider(new Provider<InterfaceScanner>() {
+                    @Inject
+                    Injector injector;
+
+                    @Override
+                    public InterfaceScanner get() {
+                        return new DefaultInterfaceScanner(
+                                injector.getInstance(
+                                        NetlinkChannelFactory.class),
+                                NetlinkUtil.DEFAULT_MAX_REQUESTS(),
+                                NetlinkUtil.DEFAULT_MAX_REQUEST_SIZE(),
+                                NanoClock$.MODULE$.DEFAULT());
+                    }
+                })
+                .in(Singleton.class);
+    }
 
     @Override
     protected void configure() {
         binder().requireExplicitBindings();
 
-        //bind(InterfaceScanner.class).to(DefaultInterfaceScanner.class);
-        bind(InterfaceDataUpdater.class).to(DefaultInterfaceDataUpdater.class);
+        bindInterfaceScanner();
+        expose(InterfaceScanner.class);
 
-        //expose(InterfaceScanner.class);
+        bind(InterfaceDataUpdater.class).to(DefaultInterfaceDataUpdater.class);
         expose(InterfaceDataUpdater.class);
 
         requireBinding(MidolmanConfig.class);
@@ -61,14 +82,5 @@ public class HostModule extends PrivateModule {
             .in(Singleton.class);
 
         expose(HostService.class);
-
-        bind(IpAddrInterfaceSensor.class);
-        expose(IpAddrInterfaceSensor.class);
-        bind(IpTuntapInterfaceSensor.class);
-        expose(IpTuntapInterfaceSensor.class);
-        bind(SysfsInterfaceSensor.class);
-        expose(SysfsInterfaceSensor.class);
-        bind(NetlinkInterfaceSensor.class);
-        expose(NetlinkInterfaceSensor.class);
     }
 }
