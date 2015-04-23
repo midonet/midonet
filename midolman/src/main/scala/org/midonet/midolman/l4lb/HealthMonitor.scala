@@ -33,7 +33,6 @@ import org.midonet.midolman.l4lb.HaproxyHealthMonitor.{ConfigUpdate, RouterAdded
 import org.midonet.midolman.l4lb.HealthMonitor.{ConfigAdded, ConfigDeleted, ConfigUpdated, RouterChanged}
 import org.midonet.midolman.l4lb.HealthMonitorConfigWatcher.BecomeHaproxyNode
 import org.midonet.midolman.logging.ActorLogWithoutPath
-import org.midonet.midolman.routingprotocols.IP
 import org.midonet.midolman.state.PoolHealthMonitorMappingStatus
 import org.midonet.midolman.state.ZkLeaderElectionWatcher.ExecuteOnBecomingLeader
 
