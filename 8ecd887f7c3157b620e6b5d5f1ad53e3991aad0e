@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_f9245f61",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-04-23T07:32:17Z",
+      "side": 1,
+      "message": "they are just media types no?",
+      "range": {
+        "startLine": 9,
+        "startChar": 43,
+        "endLine": 9,
+        "endChar": 63
+      },
+      "revId": "8ecd887f7c3157b620e6b5d5f1ad53e3991aad0e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_b92e6741",
+        "filename": "cluster/src/main/java/org/midonet/cluster/data/neutron/loadbalancer/LBMediaType.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-04-23T07:32:17Z",
+      "side": 1,
+      "message": "Just curious: why are these in a separate file, not in NeutronMediaType?",
+      "revId": "8ecd887f7c3157b620e6b5d5f1ad53e3991aad0e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
