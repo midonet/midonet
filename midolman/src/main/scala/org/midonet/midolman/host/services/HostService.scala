@@ -17,19 +17,18 @@
 package org.midonet.midolman.host.services
 
 import java.net.{InetAddress, UnknownHostException}
+import java.util.UUID
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.{CountDownLatch, TimeUnit}
-import java.util.{Set => JSet, UUID}
 
+import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
-import scala.collection.mutable.ListBuffer
 import scala.concurrent.Await
 import scala.concurrent.duration._
 import scala.util.control.NonFatal
 
 import com.google.common.util.concurrent.AbstractService
 import com.google.inject.Inject
-
 import rx.{Observer, Subscription}
 
 import org.midonet.cluster.data.ZoomConvert
@@ -45,7 +44,6 @@ import org.midonet.midolman.Midolman
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.host.interfaces.InterfaceDescription
 import org.midonet.midolman.host.scanner.InterfaceScanner
-import org.midonet.midolman.host.services.HostService.HostIdAlreadyInUseException
 import org.midonet.midolman.host.state.HostDirectory.{Metadata => HostMetadata}
 import org.midonet.midolman.host.state.HostZkManager
 import org.midonet.midolman.host.updater.InterfaceDataUpdater
@@ -53,10 +51,10 @@ import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.midolman.serialization.SerializationException
 import org.midonet.midolman.services.HostIdProviderService
 import org.midonet.midolman.state.{StateAccessException, ZkManager}
-import org.midonet.netlink.Callback
-import org.midonet.netlink.exceptions.NetlinkException
 
 object HostService {
+    val InterfacesTimeoutInSecs = 2
+
     class HostIdAlreadyInUseException(message: String)
         extends Exception(message)
 }
@@ -69,6 +67,7 @@ class HostService @Inject()(config: MidolmanConfig,
                             hostZkManager: HostZkManager,
                             zkManager: ZkManager)
     extends AbstractService with HostIdProviderService with MidolmanLogging {
+    import HostService._
 
     private final val store = backend.ownershipStore
 
@@ -92,11 +91,17 @@ class HostService @Inject()(config: MidolmanConfig,
     override def doStart(): Unit = {
         log.info("Starting MidoNet Agent host service")
         try {
-            scanner.register(new Callback[JSet[InterfaceDescription]] {
-                override def onSuccess(data: JSet[InterfaceDescription])
-                : Unit = {
+            scanner.start()
+            scanner.subscribe(new Observer[Set[InterfaceDescription]] {
+                override def onCompleted(): Unit = {
+                    log.debug("Interface updating is completed.")
+                }
+                override def onError(t: Throwable): Unit = {
+                    log.error("Got the error: {}", t)
+                }
+                override def onNext(data: Set[InterfaceDescription]): Unit = {
                     oldInterfaces = currentInterfaces
-                    currentInterfaces = data.asScala.toSet
+                    currentInterfaces = data
                     interfacesLatch.countDown()
                     // Do not update the interfaces if the host is not ready
                     if (!hostReady.get() || oldInterfaces == currentInterfaces) {
@@ -109,9 +114,7 @@ class HostService @Inject()(config: MidolmanConfig,
                             .updateInterfacesData(hostId, null, data)
                     }
                 }
-                override def onError(e: NetlinkException): Unit = { }
             })
-            scanner.start()
             identifyHost()
             createHost()
             monitorOwnership()
@@ -127,7 +130,7 @@ class HostService @Inject()(config: MidolmanConfig,
 
     override def doStop(): Unit = {
         log.info("Stopping MidoNet Agent host service")
-        scanner.shutdown()
+        scanner.stop()
 
         // If the cluster storage is enabled, delete the ownership.
         if (backendConfig.useNewStack) {
@@ -160,7 +163,7 @@ class HostService @Inject()(config: MidolmanConfig,
     @throws[PropertiesFileNotWritableException]
     private def identifyHost(): Unit = {
         log.debug("Identifying host")
-        if (!interfacesLatch.await(1, TimeUnit.SECONDS)) {
+        if (!interfacesLatch.await(InterfacesTimeoutInSecs, TimeUnit.SECONDS)) {
             throw new IllegalStateException(
                 "Timeout while waiting for interfaces")
         }
@@ -185,7 +188,7 @@ class HostService @Inject()(config: MidolmanConfig,
         }
         if (retries < 0) {
             log.error("Couldn't take ownership of the in-use host ID")
-            throw new HostService.HostIdAlreadyInUseException(
+            throw new HostIdAlreadyInUseException(
                 s"Host identifier $hostId appears to already be taken")
         }
     }

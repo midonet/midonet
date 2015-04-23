@@ -20,17 +20,28 @@ import NetlinkProtocol.{NETLINK_GENERIC, NETLINK_ROUTE}
 
 class NetlinkChannelFactory {
     def create(blocking: Boolean = false,
-               protocol: NetlinkProtocol = NETLINK_GENERIC): NetlinkChannel = {
+               protocol: NetlinkProtocol = NETLINK_GENERIC,
+               notification: Boolean = false): NetlinkChannel = {
         try {
             val channel = protocol match {
                 case NETLINK_ROUTE =>
-                    Netlink.selectorProvider
-                        .openNetlinkSocketChannel(
-                            protocol, NetlinkUtil.DEFAULT_RTNETLINK_GROUPS)
+                    if (notification) {
+                        Netlink.selectorProvider
+                            .openNetlinkSocketChannel(
+                                protocol, NetlinkUtil.DEFAULT_RTNETLINK_GROUPS)
+                    } else {
+                        Netlink.selectorProvider
+                            .openNetlinkSocketChannel(protocol)
+                    }
                 case _ =>
-                    Netlink.selectorProvider
-                        .openNetlinkSocketChannel(
-                            protocol, NetlinkUtil.DEFAULT_OVS_GROUPS)
+                    if (notification) {
+                        Netlink.selectorProvider
+                            .openNetlinkSocketChannel(
+                                protocol, NetlinkUtil.DEFAULT_OVS_GROUPS)
+                    } else {
+                        Netlink.selectorProvider
+                            .openNetlinkSocketChannel(protocol)
+                    }
             }
             channel.connect(new Netlink.Address(0))
             channel.configureBlocking(blocking)
@@ -41,11 +52,3 @@ class NetlinkChannelFactory {
     }
 }
 
-class MockNetlinkChannelFactory extends NetlinkChannelFactory {
-
-    val channel: MockNetlinkChannel = new MockNetlinkChannel(Netlink.selectorProvider,
-                                                             NetlinkProtocol.NETLINK_GENERIC)
-
-    override def create(blocking: Boolean = false,
-                        protocol: NetlinkProtocol = NETLINK_GENERIC) = channel
-}
