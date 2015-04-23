@@ -18,6 +18,8 @@ package org.midonet.midolman
 import java.util.UUID
 
 import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
+
 import org.midonet.cluster.data.host.Host
 import org.midonet.cluster.data.ports.BridgePort
 import org.midonet.cluster.data.{Bridge => ClusterBridge, TunnelZone}
@@ -29,11 +31,10 @@ import org.midonet.midolman.io.UpcallDatapathConnectionManager
 import org.midonet.midolman.services.HostIdProviderService
 import org.midonet.midolman.state.FlowStateStorageFactory
 import org.midonet.midolman.topology.{LocalPortActive, VirtualToPhysicalMapper, VirtualTopologyActor}
-import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.{MessageAccumulator, MockInterfaceScanner, MockUpcallDatapathConnectionManager}
+import org.midonet.midolman.util.{MidolmanSpec, MockNetlinkChannelFactory}
 import org.midonet.odp.ports.VxLanTunnelPort
 import org.midonet.packets.IPv4Addr
-import org.scalatest.junit.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
 class DatapathControllerPortCreationTest extends MidolmanSpec {
@@ -59,7 +60,8 @@ class DatapathControllerPortCreationTest extends MidolmanSpec {
             injector.getInstance(classOf[UpcallDatapathConnectionManager]),
             flowInvalidator,
             clock,
-            injector.getInstance(classOf[FlowStateStorageFactory]))))
+            injector.getInstance(classOf[FlowStateStorageFactory]),
+            new MockNetlinkChannelFactory)))
 
     override def beforeTest() {
         testableDpc = DatapathController.as[DatapathController]
