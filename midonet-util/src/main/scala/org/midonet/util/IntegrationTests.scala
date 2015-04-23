@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,15 +15,27 @@
  */
 package org.midonet.util
 
-import scala.concurrent.Await
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import java.nio.ByteBuffer
+
 import scala.concurrent.duration.DurationInt
-import scala.util.{Try, Success, Failure}
+import scala.concurrent.{Await, Future, Promise}
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.util.{Failure, Success, Try}
+
+import rx.Observer
+
+import org.midonet.util.reactivex.AwaitableObserver
 
 object IntegrationTests {
+    val OK = "ok"
 
-    type TestSuite = Seq[(String, Future[Any])]
+    object UnexpectedResultException extends RuntimeException
+    object TestPrepareException extends RuntimeException
+
+    type Test = (String, Future[Any])
+    type TestSuite = Seq[Test]
+    type LazyTest = () => Test
+    type LazyTestSuite = Seq[() => Test]
 
     type Report = Seq[(String, Try[String])]
 
@@ -33,21 +45,60 @@ object IntegrationTests {
 
     def printTest(info: (String, Try[String])) = info match {
         case (desc, Success(msg)) =>
-            Console println "[o] " + desc
+            Console println Console.GREEN + "[o] " + desc + Console.RESET
             true
         case (desc, Failure(ex)) =>
-            Console println "[x] " + desc
+            Console println Console.RED + "[x] " + desc + Console.RESET
             ex.printStackTrace
             false
     }
 
     def runSuite(ts: TestSuite): Report = toReport(ts)
 
-    def toReport(ts: TestSuite): Stream[(String,Try[String])] = ts match {
+    def toReport(ts: TestSuite): Stream[(String, Try[String])] = ts match {
         case Nil => Stream.empty
         case (d,t) :: tail =>
             val r = Try(Await.result(t, 2 seconds)) map { case _ => "passed" }
             (d,r) #:: (if (r.isSuccess) toReport(tail) else Stream.empty)
     }
 
+    def runLazySuite(ts: LazyTestSuite): Report = toReportLazy(ts)
+
+    def toReportLazy(ts: LazyTestSuite): Stream[(String, Try[String])] =
+        ts match {
+            case Nil => Stream.empty
+            case h :: tail =>
+                val (d, test) = h()
+                val r = Try(Await.result(test, 2.seconds)).map(_ => "passed")
+                (d, r) #:: (if (r.isSuccess) toReportLazy(tail) else Stream.empty)
+        }
+
+    object TestObserver {
+        def apply[T](condition: T => Boolean)
+                    (implicit promise: Promise[String] = Promise[String]()) =
+            new TestObserver[T] with AwaitableObserver[T] {
+                override var check = condition
+            }
+    }
+
+    abstract class TestObserver[T](implicit promise: Promise[String])
+        extends Observer[T] {
+        var check: T => Boolean
+
+        def test: Future[String] = promise.future
+        override def onCompleted(): Unit = { promise.trySuccess(OK) }
+        override def onError(t: Throwable): Unit = { promise.tryFailure(t) }
+        override def onNext(resource: T): Unit = try {
+            if (!check(resource)) {
+                promise.tryFailure(UnexpectedResultException)
+            }
+        } catch {
+            case t: Throwable => promise.failure(t)
+        }
+    }
+
+    implicit
+    def closureToTestObserver[T](closure: T => Boolean)
+                                (implicit p: Promise[String]): TestObserver[T] =
+        TestObserver.apply(closure)
 }
