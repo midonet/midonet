@@ -25,6 +25,7 @@ import rx.Observer
 
 import org.midonet.netlink.exceptions.NetlinkException
 import org.midonet.Util
+import org.midonet.netlink.rtnetlink.Rtnetlink
 import org.midonet.util.concurrent.NanoClock
 
 object NetlinkRequestBroker {
@@ -76,6 +77,12 @@ final class NetlinkRequestBroker(writer: NetlinkBlockingWriter,
 
     val capacity = Util.findNextPositivePowerOfTwo(maxPendingRequests)
     private val mask = capacity - 1
+    private val headerSize: Int =
+        if (reader.channel.getProtocol == NetlinkProtocol.NETLINK_GENERIC) {
+            NetlinkMessage.GENL_HEADER_SIZE
+        } else {
+            NetlinkMessage.HEADER_SIZE
+        }
 
     private val notificationObserver =
         if (notifications ne null) {
@@ -253,14 +260,13 @@ final class NetlinkRequestBroker(writer: NetlinkBlockingWriter,
         val obs = getObserver(pos, seq, unhandled)
 
         val `type` = readBuf.getShort(start + NetlinkMessage.NLMSG_TYPE_OFFSET)
-        if (`type` >= NLMessageType.NLMSG_MIN_TYPE &&
-            size >= NetlinkMessage.GENL_HEADER_SIZE) {
+        if (`type` >= NLMessageType.NLMSG_MIN_TYPE && size >= headerSize) {
 
             val flags = readBuf.getShort(start + NetlinkMessage.NLMSG_FLAGS_OFFSET)
 
             val oldLimit = readBuf.limit()
             readBuf.limit(start + size)
-            readBuf.position(start + NetlinkMessage.GENL_HEADER_SIZE)
+            readBuf.position(start + headerSize)
             obs.onNext(readBuf)
             readBuf.limit(oldLimit)
 
