@@ -1,0 +1,157 @@
+#!/bin/bash -x
+
+# Copyright 2015 Midokura SARL
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+bgpd_up() {
+    bgpd=/usr/sbin/bgpd
+    pidfile="/var/run/quagga/bgpd.${vtyport}.pid"
+    if [ ! -x $bgpd ] ; then
+        bgpd=/usr/lib/quagga/bgpd
+        if [ ! -x $bgpd ] ; then
+            echo "Could not find bgpd, looked in /usr/lib/quagga and /usr/sbin"
+            exit 3
+        fi
+    fi
+
+    kill_namespace_pids
+
+    exec ip netns exec $namespace $bgpd --vty_port $vtyport \
+                                        --config_file $config_file \
+                                        --pid_file $pidfile \
+                                        --socket $api_socket
+}
+
+bgpd_prepare() {
+    echo "Creating namespace: $namespace"
+    ip netns add $namespace
+
+    echo "Preparing bgpd veth pair"
+    ip link add name $netdev_port_name type veth peer name $netdev_port_mirror_name
+    ip link set $netdev_port_mirror_name netns $namespace
+    ip netns exec $namespace ip link set dev $netdev_port_mirror_name up address $router_mac
+    ip netns exec $namespace ip address add $router_ip dev $netdev_port_mirror_name
+    ip netns exec $namespace ifconfig lo up
+    ip link set dev $netdev_port_name up
+
+    echo "Preparing vty veth pair"
+    ip link add name $vty_port_name type veth peer name $vty_port_mirror_name
+    ip link set $vty_port_mirror_name netns $namespace
+    ip netns exec $namespace ip link set dev $vty_port_mirror_name up
+    ip netns exec $namespace ip address add $remote_vty_ip dev $vty_port_mirror_name
+    ip link set dev $vty_port_name up
+
+    echo "Preparing vty bridge"
+    brctl addbr $vty_bridge_name
+    brctl addif $vty_bridge_name $vty_port_name
+    ip address add $local_vty_ip dev $vty_bridge_name
+    ip link set dev $vty_bridge_name up
+}
+
+delete_iface_in_ns() {
+    iface=1
+    ip netns exec $namespace ip link show $iface >/dev/null 2>&1 && \
+        ip netns exec $namespace ip link delete $iface
+}
+
+kill_namespace_pids() {
+    ip netns pids $namespace | while read pid ; do
+        echo "Killing process in namespace, with pid $pid and command line \"`ps -o cmd= $pid`\""
+        kill -9 $pid
+    done
+}
+
+bgpd_down() {
+    if [ -e "/var/run/netns/$namespace" ] ; then
+        echo "Found namespace, cleaning up: $namespace"
+        kill_namespace_pids
+        delete_iface_in_ns $netdev_port_mirror_name
+        delete_iface_in_ns $vty_port_mirror_name
+        ip netns delete $namespace
+    fi
+
+    ip link show $vty_bridge_name >/dev/null 2>&1
+    if [ $? -eq 0 ] ; then
+        echo "Found bridge, cleaning up: $vty_bridge_name"
+        ip link show $vty_port_name >/dev/null 2>&1 && \
+            brctl delif $vty_bridge_name $vty_port_name
+        ip link set $vty_bridge_name down
+        brctl delbr $vty_bridge_name
+    fi
+    ip link show $vty_port_name >/dev/null 2>&1 && \
+        ip link delete $vty_port_name
+    true
+}
+
+usage() {
+    echo "Usage: $0 prepare INDEX LOCAL_VTY_IP REMOTE_VTY_IP ROUTER_IP ROUTER_MAC"
+    echo "       $0 up INDEX VTY_PORT_NUMBER BGPD_CONFIG_FILE"
+    echo "       $0 down INDEX"
+    exit 1
+}
+
+
+########### script body ###########
+
+index=$2
+
+if [ -z "$index" ] ; then
+    usage
+fi
+
+netdev_port_name="mbgp$index"
+netdev_port_mirror_name="mbgp${index}_m"
+vty_port_name="mbgp${index}_vty"
+vty_port_mirror_name="mbgp${index}_vtym"
+vty_bridge_name="mbgp${index}_br"
+namespace="mbgp${index}_ns"
+socketdir="/var/run/quagga"
+api_socket="$socketdir/zserv${index}.api"
+
+case "$1" in
+    prepare)
+        local_vty_ip=$3
+        remote_vty_ip=$4
+        router_ip=$5
+        router_mac=$6
+
+        if [ -z "$remote_vty_ip" ] || [ -z "$local_vty_ip" ] ; then
+            usage
+        fi
+        if [ -z "$router_ip" ] || [ -z "$router_mac" ] ; then
+            usage
+        fi
+
+        bgpd_down
+        bgpd_prepare
+        ;;
+
+    up)
+        vtyport=$3
+        config_file=$4
+        if [ -z "$config_file" ] || [ -z "$vtyport" ] ; then
+            usage
+        fi
+        bgpd_up
+        ;;
+
+    down)
+        bgpd_down
+        exit 0
+        ;;
+
+    *)
+        usage
+        ;;
+esac

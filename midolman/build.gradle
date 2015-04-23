@@ -147,6 +147,9 @@ task preparePkg(type: Copy, dependsOn: installApp) {
     from("src/deb/bin/mn-conf") {
         into "usr/bin"
     }
+    from("src/lib/midolman/bgpd-helper") {
+        into "usr/lib/midolman"
+    }
     from("src/deb/init/midolman-prepare") {
         into "usr/share/midolman"
     }
