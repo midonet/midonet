@@ -111,6 +111,26 @@ trait DatapathPortEntangler {
         })
 
     /**
+     * Recreate OVS datapath port. This SHOULD be called only when the datapath
+     * port is deleted from the datapath by other programs.
+     *
+     * @param port the OVS datapath port to be recreated.
+     */
+    def recreateDpPortIfNeeded(port: DpPort): Unit =
+        conveyor handle (port.getName, () => {
+            val ifname = port.getName
+            log.debug(s"Recreating port $ifname because it was removed and " +
+                "the DP didn't request the removal")
+            if (interfaceToTriad.containsKey(ifname)) {
+                val triad@DpTriad(_, isUp, _, _, _, _) =
+                    interfaceToTriad.get(ifname)
+                addDpPort(triad)
+            } else {
+                Future.successful(null)
+            }
+        })
+
+    /**
      * Register new interfaces, update their status or delete them.
      */
     def updateInterfaces(itfs: JSet[InterfaceDescription]): Unit = {
@@ -175,8 +195,6 @@ trait DatapathPortEntangler {
             tryCreateDpPort(triad)
         } else if (!isUp) {
             deleteInterface(triad)
-        } else if ((triad.dpPort ne null) && isDangling(itf, isUp)) {
-            updateDangling(triad)
         } else {
             Future successful null
         }
@@ -197,17 +215,6 @@ trait DatapathPortEntangler {
             interfaceToTriad.put(ifname, status)
         }
         status
-    }
-
-    private def isDangling(itf: InterfaceDescription, isUp: Boolean): Boolean =
-        itf.getEndpoint != InterfaceDescription.Endpoint.UNKNOWN &&
-        itf.getEndpoint != InterfaceDescription.Endpoint.DATAPATH &&
-        isUp
-
-    private def updateDangling(triad: DpTriad): Future[_] = {
-        log.debug(s"Recreating port ${triad.ifname} because it was removed " +
-                   "and the DP didn't request the removal")
-        tryRemoveDpPort(triad) continue { _ => tryCreateDpPort(triad) } unwrap
     }
 
     private def deleteInterface(triad: DpTriad): Future[_] =
