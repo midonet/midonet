@@ -95,8 +95,8 @@ trait ZoomStorageTester extends StorageTester
 
     @throws(classOf[NotFoundException])
     @throws(classOf[ReferenceConflictException])
-    override def update[T <: Obj](o: T, validator: UpdateValidator[T]) {
-        zoom.update(o)
+    override def update[T <: Obj](o: T, validator: UpdateValidator[T] = null) {
+        zoom.update(o, validator)
     }
 
     @throws[NotFoundException]

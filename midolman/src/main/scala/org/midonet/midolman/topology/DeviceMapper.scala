@@ -18,19 +18,48 @@ package org.midonet.midolman.topology
 import java.util.UUID
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicReference}
 
+import javax.annotation.Nullable
+
+import scala.collection.mutable
 import scala.reflect.ClassTag
 
 import rx.Observable.OnSubscribe
 import rx.observers.Subscribers
-import rx.subjects.BehaviorSubject
+import rx.subjects.{BehaviorSubject, PublishSubject}
 import rx.{Observable, Observer, Subscriber}
 
 import org.midonet.midolman.logging.MidolmanLogging
+import org.midonet.midolman.topology.DeviceMapper.DeviceState
 import org.midonet.midolman.topology.VirtualTopology.Device
+import org.midonet.util.functors._
 
 object DeviceMapper {
     protected[topology] val SubscriptionException =
         new IllegalStateException("Device observable not connected")
+
+    /**
+     * Stores the state for a device of type T.
+     */
+    protected[topology] final class DeviceState[T >: Null <: Device]
+        (id: UUID)(implicit tag: ClassTag[T]) {
+
+        private var currentDevice: T = null
+        private val mark = PublishSubject.create[T]
+
+        /** The device observable, notifications on the VT thread. */
+        val observable = VirtualTopology
+            .observable[T](id)
+            .doOnNext(makeAction1(currentDevice = _))
+            .takeUntil(mark)
+
+        /** Completes the observable corresponding to this device state */
+        def complete() = mark.onCompleted()
+        /** Gets the current device or null, if none is set. */
+        @Nullable
+        def device: T = currentDevice
+        /** Indicates whether the device state has received the device data */
+        def isReady: Boolean = currentDevice ne null
+    }
 }
 
 /**
@@ -123,6 +152,36 @@ abstract class DeviceMapper[D <: Device](id: UUID, vt: VirtualTopology)
                 tag.runtimeClass, id,
                 s"Call expected on thread ${vt.threadId} but received on " +
                 s"${Thread.currentThread().getId}")
+        }
+    }
+
+    /**
+     * Synchronize devices with the new list of deviceIds. Complete and remove
+     * the device state for any devices whose IDs are not in deviceIds, and
+     * create, add to devices, and publish to devicesObserver a new DeviceState
+     * for any IDs not already in devices.
+     *
+     * @param deviceIds New list of device IDs.
+     * @param devices Current map of device IDs to device states.
+     * @param devicesObserver Observer for publishing device observables.
+     * @tparam T Device type.
+     */
+    protected def updateDeviceState[T >: Null <: Device](
+            deviceIds: Set[UUID], devices: mutable.Map[UUID, DeviceState[T]],
+            devicesObserver: Observer[Observable[T]])
+            (implicit tag: ClassTag[T]): Unit = {
+        // Complete and remove observables for devices no longer needed.
+        for ((id, state) <- devices.toList if !deviceIds.contains(id)) {
+            state.complete()
+            devices -= id
+        }
+
+        // Create state for new devices, and publish their observables to the
+        // aggregate observer.
+        for (id <- deviceIds if !devices.contains(id)) {
+            val state = new DeviceState[T](id)
+            devices(id) = state
+            devicesObserver.onNext(state.observable)
         }
     }
 }

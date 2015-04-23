@@ -54,12 +54,13 @@ import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner
 import org.midonet.cluster.models.Neutron.SecurityGroup
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.services.MidonetBackendService
+import org.midonet.cluster.services.c3po.C3POState
 import org.midonet.cluster.storage.MidonetBackendConfig
 import org.midonet.cluster.util.UUIDUtil._
-import org.midonet.cluster.util.{UUIDUtil, IPAddressUtil, IPSubnetUtil}
+import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil}
 import org.midonet.conf.MidoTestConfigurator
 import org.midonet.midolman.state.{MacPortMap, PathBuilder}
-import org.midonet.packets.{MAC, IPSubnet, IPv4Subnet, UDP}
+import org.midonet.packets.{IPSubnet, IPv4Subnet, MAC, UDP}
 import org.midonet.util.MidonetEventually
 import org.midonet.util.concurrent.toFutureOps
 
@@ -216,6 +217,12 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
         log.info("Inserted a flush task.")
 
         clearReplMaps()
+
+        // Wait for flush to finish before starting next test.
+        eventually {
+            val state = storage.get(classOf[C3POState], C3POState.ID).await()
+            state.lastProcessedTaskId shouldBe C3POState.NO_TASKS_PROCESSED
+        }
     }
 
     protected def clearReplMaps(): Unit = {
@@ -325,7 +332,9 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
                            deviceId: UUID = null,
                            deviceOwner: DeviceOwner = null,
                            tenantId: String = null,
-                           securityGroups: List[UUID] = null): JsonNode = {
+                           securityGroups: List[UUID] = null,
+                           hostId: UUID = null,
+                           ifName: String = null): JsonNode = {
         val p = nodeFactory.objectNode
         p.put("name", name)
         p.put("id", id.toString)
@@ -348,6 +357,9 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
             val sgList = p.putArray("security_groups")
             securityGroups.foreach(sgid => sgList.add(sgid.toString))
         }
+        if (hostId != null) p.put("binding:host_id", hostId.toString)
+        if (ifName != null)
+            p.putObject("binding:profile").put("interface_name", ifName)
         p
     }
 
@@ -521,6 +533,27 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
     protected def macEntryPath(nwId: UUID, mac: String, portId: UUID) = {
         val entry = MacPortMap.encodePersistentPath(MAC.fromString(mac), portId)
         pathBldr.getBridgeMacPortEntryPath(nwId, Bridge.UNTAGGED_VLAN_ID, entry)
+    }
+
+    protected def checkPortBinding(hostId: UUID, portId: UUID,
+                                   interfaceName: String): Unit = {
+        val hostFtr = storage.get(classOf[Host], hostId)
+        val portFtr = storage.get(classOf[Port], portId)
+        val (host, port) = (hostFtr.await(), portFtr.await())
+        host.getPortIdsList.asScala.map(_.asJava) should contain only portId
+        port.getHostId.asJava shouldBe hostId
+        port.getInterfaceName shouldBe interfaceName
+    }
+
+    protected def createHost(hostId: UUID = null): Host = {
+        val id = if (hostId != null) hostId else UUID.randomUUID()
+        val host = Host.newBuilder.setId(id).build()
+        backend.ownershipStore.create(host, id)
+        host
+    }
+
+    protected def deleteHost(hostId: UUID): Unit = {
+        backend.ownershipStore.delete(classOf[Host], hostId, hostId)
     }
 }
 
