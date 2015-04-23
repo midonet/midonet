@@ -19,13 +19,21 @@ import com.google.common.base.Objects;
 import com.google.common.collect.ComparisonChain;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonProperty;
+
+import org.midonet.cluster.data.ZoomClass;
+import org.midonet.cluster.data.ZoomField;
+import org.midonet.cluster.data.ZoomObject;
+import org.midonet.cluster.models.Neutron;
+import org.midonet.cluster.util.UUIDUtil.Converter;
 import org.midonet.packets.ICMP;
 import org.midonet.packets.IPv4Subnet;
 import org.midonet.util.Range;
 
 import java.util.UUID;
 
-public class SecurityGroupRule implements Comparable<SecurityGroupRule> {
+@ZoomClass(clazz = Neutron.SecurityGroupRule.class)
+public class SecurityGroupRule extends ZoomObject
+                               implements Comparable<SecurityGroupRule> {
 
     public SecurityGroupRule() {}
 
@@ -38,30 +46,40 @@ public class SecurityGroupRule implements Comparable<SecurityGroupRule> {
         this.protocol = protocol;
     }
 
+    @ZoomField(name = "id", converter = Converter.class)
     public UUID id;
 
     @JsonProperty("security_group_id")
+    @ZoomField(name = "security_group_id", converter = Converter.class)
     public UUID securityGroupId;
 
     @JsonProperty("remote_group_id")
+    @ZoomField(name = "remote_group_id", converter = Converter.class)
     public UUID remoteGroupId;
 
+    @ZoomField(name = "direction")
     public RuleDirection direction;
 
+    @ZoomField(name = "protocol")
     public RuleProtocol protocol;
 
     @JsonProperty("port_range_min")
+    @ZoomField(name = "port_range_min")
     public Integer portRangeMin;
 
     @JsonProperty("port_range_max")
+    @ZoomField(name = "port_range_max")
     public Integer portRangeMax;
 
+    @ZoomField(name = "ethertype")
     public RuleEthertype ethertype;
 
     @JsonProperty("remote_ip_prefix")
+    @ZoomField(name = "remote_ip_prefix")
     public String remoteIpPrefix;
 
     @JsonProperty("tenant_id")
+    @ZoomField(name = "tenant_id")
     public String tenantId;
 
     @Override

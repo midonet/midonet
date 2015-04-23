@@ -19,6 +19,11 @@ import java.util.UUID;
 
 import com.google.common.base.Objects;
 
+import org.midonet.cluster.data.ZoomClass;
+import org.midonet.cluster.data.ZoomField;
+import org.midonet.cluster.models.Neutron;
+import org.midonet.cluster.util.UUIDUtil.Converter;
+
 public class PoolHealthMonitor {
 
     public UUID id;
