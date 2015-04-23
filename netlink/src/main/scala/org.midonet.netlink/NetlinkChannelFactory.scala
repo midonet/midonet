@@ -16,11 +16,18 @@
 
 package org.midonet.netlink
 
+import org.midonet.netlink.NetlinkProtocol.NETLINK_GENERIC
+import org.midonet.netlink.NetlinkUtil.NO_NOTIFICATION
+
 class NetlinkChannelFactory {
-    def create(blocking: Boolean = false): NetlinkChannel = {
+    def create(blocking: Boolean = false,
+               protocol: NetlinkProtocol = NETLINK_GENERIC,
+               notificationGroups: Int = NO_NOTIFICATION): NetlinkChannel = {
         try {
             val channel = Netlink.selectorProvider
-                .openNetlinkSocketChannel(NetlinkProtocol.NETLINK_GENERIC)
+                .openNetlinkSocketChannel(
+                    protocol, notificationGroups)
+
             channel.connect(new Netlink.Address(0))
             channel.configureBlocking(blocking)
             channel
@@ -35,5 +42,7 @@ class MockNetlinkChannelFactory extends NetlinkChannelFactory {
     val channel: MockNetlinkChannel = new MockNetlinkChannel(Netlink.selectorProvider,
                                                              NetlinkProtocol.NETLINK_GENERIC)
 
-    override def create(blocking: Boolean = false) = channel
+    override def create(blocking: Boolean = false,
+                        protocol: NetlinkProtocol = NETLINK_GENERIC,
+                        notificationGroups: Int = NO_NOTIFICATION) = channel
 }
