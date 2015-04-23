@@ -20,9 +20,6 @@ import java.util.UUID
 
 import scala.collection.JavaConversions._
 
-import akka.actor.Actor.emptyBehavior
-import akka.actor.{Actor, Props}
-import akka.testkit.TestActorRef
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
@@ -33,6 +30,10 @@ import org.midonet.midolman.topology.devices.{Host => DevicesHost}
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.MessageAccumulator
 import org.midonet.packets.IPv4Addr
+
+import akka.actor.Actor.emptyBehavior
+import akka.actor.{Actor, Props}
+import akka.testkit.TestActorRef
 
 @RunWith(classOf[JUnitRunner])
 class VirtualToPhysicalMapperTest extends MidolmanSpec
@@ -56,7 +57,7 @@ class VirtualToPhysicalMapperTest extends MidolmanSpec
             new Subscriber(request) with MessageAccumulator)).underlyingActor
 
     private def toDevicesHost(dataHost: DataHost): DevicesHost = {
-        val protoHost = createHost(dataHost.getId, Map.empty,
+        val protoHost = createHost(dataHost.getId, Set.empty,
                                    dataHost.getTunnelZones.toSet)
         val devicesHost = ZoomConvert.fromProto(protoHost, classOf[DevicesHost])
         devicesHost.alive = dataHost.getIsAlive

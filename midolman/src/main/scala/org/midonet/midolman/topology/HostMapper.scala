@@ -17,50 +17,21 @@
 package org.midonet.midolman.topology
 
 import java.util.UUID
-import javax.annotation.Nullable
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 
 import com.google.common.annotations.VisibleForTesting
+
 import rx.Observable
 import rx.subjects.PublishSubject
 
 import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.models.Topology.{Host => TopologyHost}
 import org.midonet.cluster.util.UUIDUtil._
-import org.midonet.midolman.topology.HostMapper.TunnelZoneState
-import org.midonet.midolman.topology.devices.{Host => SimulationHost, TunnelZone}
-import org.midonet.packets.IPAddr
-import org.midonet.util.functors.{makeAction0, makeAction1, makeFunc1}
-
-object HostMapper {
-
-    /**
-     * Stores the state for a tunnel zone.
-     */
-    private final class TunnelZoneState(tunnelZoneId: UUID) {
-
-        private var currentTunnelZone: TunnelZone = null
-        private val mark = PublishSubject.create[TunnelZone]
-
-        /** The tunnel zone-observable, notifications on the VT thread. */
-        val observable = VirtualTopology
-            .observable[TunnelZone](tunnelZoneId)
-            .doOnNext(makeAction1(currentTunnelZone = _))
-            .takeUntil(mark)
-
-        /** Completes the observable corresponding to this tunnel zone state */
-        def complete() = mark.onCompleted()
-        /** Gets the current tunnel zone or null, if none is set. */
-        @Nullable
-        def tunnelZone: TunnelZone = currentTunnelZone
-        /** Indicates whether the tunnel zone state has received the tunnel
-          * zone data */
-        def isReady: Boolean = currentTunnelZone ne null
-    }
-
-}
+import org.midonet.midolman.topology.DeviceMapper.DeviceState
+import org.midonet.midolman.topology.devices.{Host => SimulationHost, Port, TunnelZone}
+import org.midonet.util.functors.{makeAction0, makeFunc1}
 
 /**
  * A class that implements the [[DeviceMapper]] for a [[SimulationHost]]
@@ -77,6 +48,15 @@ final class HostMapper(hostId: UUID, vt: VirtualTopology)
         PublishSubject.create[Observable[TunnelZone]]()
     private val tunnelZones = mutable.Map[UUID, TunnelZoneState]()
 
+    private val portsSubject = PublishSubject.create[Observable[Port]]()
+    private val ports = mutable.Map[UUID, PortState]()
+
+    /** Stores the state for a tunnel zone. */
+    type TunnelZoneState = DeviceState[TunnelZone]
+
+    /** Stores the state for a port. */
+    type PortState = DeviceState[Port]
+
     /**
      * @return True iff the HostMapper is observing updates to the given tunnel
      *         zone.
@@ -84,6 +64,10 @@ final class HostMapper(hostId: UUID, vt: VirtualTopology)
     @VisibleForTesting
     protected[topology] def isObservingTunnel(tunnelId: UUID): Boolean =
         tunnelZones.contains(tunnelId)
+
+    @VisibleForTesting
+    protected[topology] def isObservingPort(portId: UUID): Boolean =
+        ports.contains(portId)
 
     /**
      * Processes the host, tunnel zone and alive status updates and indicates
@@ -106,25 +90,12 @@ final class HostMapper(hostId: UUID, vt: VirtualTopology)
             case host: TopologyHost =>
                 log.debug("Update for host {}", hostId)
 
-                val tunnelZoneIds = Set(
-                    host.getTunnelZoneIdsList.asScala.map(_.asJava).toArray: _*)
-
-                // Complete the observables for the tunnel zones no longer part
-                // of this host.
-                for ((tunnelZoneId, tunnelZoneState) <- tunnelZones.toList
-                     if !tunnelZoneIds.contains(tunnelZoneId)) {
-                    tunnelZoneState.complete()
-                    tunnelZones -= tunnelZoneId
-                }
-
-                // Create state for the new tunnel zones of this host, and
-                // notify their observable on the tunnel zones observable.
-                for (tunnelZoneId <- tunnelZoneIds
-                     if !tunnelZones.contains(tunnelZoneId)) {
-                    val tunnelZoneState = new TunnelZoneState(tunnelZoneId)
-                    tunnelZones += tunnelZoneId -> tunnelZoneState
-                    tunnelZonesSubject onNext tunnelZoneState.observable
-                }
+                updateDeviceState(
+                    host.getTunnelZoneIdsList.asScala.map(_.asJava).toSet,
+                    tunnelZones, tunnelZonesSubject)
+                updateDeviceState(
+                    host.getPortIdsList.asScala.map(_.asJava).toSet,
+                    ports, portsSubject)
 
                 currentHost = host
             case a: Boolean =>
@@ -132,35 +103,39 @@ final class HostMapper(hostId: UUID, vt: VirtualTopology)
                 alive = Some(a)
             case tunnelZone: TunnelZone if tunnelZones.contains(tunnelZone.id) =>
                 log.debug("Update for tunnel zone {}", tunnelZone.id)
+            case port: Port if ports.contains(port.id) =>
+                log.debug("Update for port {}", port.id)
             case _ => log.warn("Unexpected update: ignoring")
         }
 
         val ready = (currentHost ne null) && alive.isDefined &&
-                    tunnelZones.count(!_._2.isReady) == 0
+                    tunnelZones.forall(_._2.isReady) &&
+                    ports.forall(_._2.isReady)
         log.debug("Host {} ready: {}", hostId, Boolean.box(ready))
         ready
     }
 
     /**
      * A map function that creates the host simulation device from the current
-     * host, tunnel-zones and alive information.
+     * host, tunnel-zones, ports and alive information.
      */
     private def deviceUpdated(update: Any): SimulationHost = {
         log.debug("Processing and creating host {} device", hostId)
         assertThread()
 
         // Compute the tunnel zones to IP mapping for this host.
-        val tunnelZoneIps = new mutable.HashMap[UUID, IPAddr]()
-        for ((tunnelZoneId, tunnelZoneState) <- tunnelZones) {
-            tunnelZoneState.tunnelZone.hosts get hostId match {
-                case Some(addr) => tunnelZoneIps += tunnelZoneId -> addr
-                case None =>
-            }
-        }
+        val tzIps = for ((tunnelZoneId, tunnelZoneState) <- tunnelZones;
+                         addr <- tunnelZoneState.device.hosts.get(hostId))
+            yield tunnelZoneId -> addr
+
+        // Compute the port bindings for this host.
+        val portBdgs = for ((id, state) <- ports)
+            yield id -> state.device.interfaceName
 
         val host = ZoomConvert.fromProto(currentHost, classOf[SimulationHost])
         host.alive = alive.get
-        host.tunnelZones = tunnelZoneIps.toMap
+        host.tunnelZones = tzIps.toMap
+        host.portBindings = portBdgs.toMap
         host
     }
 
@@ -175,6 +150,9 @@ final class HostMapper(hostId: UUID, vt: VirtualTopology)
         tunnelZonesSubject.onCompleted()
         tunnelZones.values.foreach(_.complete())
         tunnelZones.clear()
+        portsSubject.onCompleted()
+        ports.values.foreach(_.complete())
+        ports.clear()
     }
 
     /**
@@ -208,6 +186,7 @@ final class HostMapper(hostId: UUID, vt: VirtualTopology)
     // emitting any updates.
     protected override lazy val observable: Observable[SimulationHost] =
         Observable.merge[Any](Observable.merge(tunnelZonesSubject),
+                              Observable.merge(portsSubject),
                               aliveObservable,
                               hostObservable)
                   .filter(makeFunc1(isHostReady))

@@ -24,17 +24,18 @@ import scala.collection.mutable
 import scala.concurrent._
 import scala.concurrent.duration.DurationInt
 
-import akka.actor.ActorSystem
-import akka.testkit.{ImplicitSender, TestKit}
-import com.typesafe.config.{ConfigValueFactory, Config}
+import com.typesafe.config.{Config, ConfigValueFactory}
+
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
+
 import rx.Observable
 import rx.observers.TestObserver
 
 import org.midonet.cluster.data.TunnelZone.HostConfig
 import org.midonet.cluster.data.storage.StorageWithOwnership
 import org.midonet.cluster.data.{TunnelZone => OldTunnel, ZoomConvert}
+import org.midonet.cluster.models.Commons
 import org.midonet.cluster.models.Topology.TunnelZone.HostToIp
 import org.midonet.cluster.models.Topology.{Host => ProtoHost, TunnelZone => ProtoTunnelZone}
 import org.midonet.cluster.services.MidonetBackend
@@ -47,6 +48,9 @@ import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.MessageAccumulator
 import org.midonet.packets.{IPAddr, IPv4Addr}
 import org.midonet.util.reactivex.AwaitableObserver
+
+import akka.actor.ActorSystem
+import akka.testkit.{ImplicitSender, TestKit}
 
 @RunWith(classOf[JUnitRunner])
 class VTPMRedirectorTest extends TestKit(ActorSystem("VTPMRedirectorTest"))
@@ -85,9 +89,7 @@ class VTPMRedirectorTest extends TestKit(ActorSystem("VTPMRedirectorTest"))
     }
 
     private def buildAndStoreHost: ProtoHost = {
-        val protoHost = createHost(UUID.randomUUID(),
-                                   Map(UUID.randomUUID() -> "eth0"),
-                                   Set.empty)
+        val protoHost = createHost(UUID.randomUUID())
         store.create(protoHost, protoHost.getId.asJava.toString)
         protoHost
     }
@@ -109,10 +111,9 @@ class VTPMRedirectorTest extends TestKit(ActorSystem("VTPMRedirectorTest"))
     }
 
     private def addTunnelToHost(host: ProtoHost, tzId: UUID): ProtoHost = {
-        val hosts = host.getPortBindingsList.map(portToInterface =>
-            (portToInterface.getPortId.asJava, portToInterface.getInterfaceName)
-        ).toMap
-        val updatedHost = createHost(host.getId, hosts, Set(tzId))
+        val portIds = host.getPortIdsList.toSet.map(
+            (id: Commons.UUID) => id.asJava)
+        val updatedHost = createHost(host.getId, portIds, Set(tzId))
         store.update(updatedHost, updatedHost.getId.asJava.toString,
                      validator = null)
         updatedHost

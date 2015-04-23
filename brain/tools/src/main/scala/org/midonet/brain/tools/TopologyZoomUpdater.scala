@@ -37,7 +37,7 @@ import org.midonet.brain.tools.TopologyEntity._
 import org.midonet.brain.tools.TopologyZoomUpdater._
 import org.midonet.brain.{BrainConfig, TopologyZoomUpdaterConfig}
 import org.midonet.cluster.data.storage.StorageWithOwnership
-import org.midonet.cluster.models.Topology.Host.{Interface, PortBinding}
+import org.midonet.cluster.models.Topology.Host.Interface
 import org.midonet.cluster.models.Topology.IPAddrGroup.IPAddrPorts
 import org.midonet.cluster.models.{Commons, Topology}
 import org.midonet.cluster.services.MidonetBackend
@@ -499,18 +499,14 @@ class Port(p: Topology.Port)(implicit storage: StorageWithOwnership)
     }
 
     def setHost(h: Host): Port = {
-        if (model.hasHostId) {
-            Host.get(model.getHostId) foreach {_.removePort(this)}
-        }
         if (h == null) {
             getVtepBindings.foreach({_.delete()})
             clearField("host_id")
-            this
+            clearField("interface_name")
         } else {
-            h.addPort(this)
             setField("host_id", h.getId)
-            update()
         }
+        update()
     }
 
     def getVtepBindings: Iterable[VtepBinding] = {
@@ -751,11 +747,6 @@ class TunnelZone(p: Topology.TunnelZone)(implicit storage: StorageWithOwnership)
     def model = proto.asInstanceOf[Topology.TunnelZone]
     def getId: Commons.UUID = getId(classOf[Commons.UUID])
 
-    override def delete(): Unit = {
-        getHosts foreach {_.removeTunnelZone(this)}
-        super.delete()
-    }
-
     private def makeHostToIp(h: Host): Topology.TunnelZone.HostToIp =
         Topology.TunnelZone.HostToIp.newBuilder()
             .setHostId(h.getId)
@@ -763,7 +754,6 @@ class TunnelZone(p: Topology.TunnelZone)(implicit storage: StorageWithOwnership)
             .build()
 
     def addHost(h: Host): TunnelZone = {
-        h.addTunnelZone(this)
         setRepeatedField("hosts",
             model.getHostsList.filterNot({_.getHostId == h.getId}).toSet +
             makeHostToIp(h))
@@ -774,7 +764,6 @@ class TunnelZone(p: Topology.TunnelZone)(implicit storage: StorageWithOwnership)
     }
 
     def removeHost(h: Host): TunnelZone = {
-        h.removeTunnelZone(this)
         setRepeatedField("hosts",
                          model.getHostsList.filterNot({_.getHostId == h.getId}))
         setRepeatedField("host_ids",
@@ -903,48 +892,15 @@ class Host(p: Topology.Host)(implicit storage: StorageWithOwnership)
 
     override def create(): this.type = super.create(owner)
     override def update(): this.type = super.update(owner)
-    override def delete(): Unit = {
-        getTunnelZones foreach {_.removeHost(this)}
-        getPorts foreach {_.setHost(null)}
-        super.delete(owner)
-    }
+    override def delete(): Unit = super.delete(owner)
 
     def address: String =
         IPAddressUtil.toIPAddr(model.getInterfaces(0).getAddresses(0)).toString
 
-    def addTunnelZone(tz: TunnelZone): Host = {
-        setRepeatedField("tunnel_zone_ids",
-                         model.getTunnelZoneIdsList.toSet + tz.getId)
-        update(owner)
-    }
-
-    def removeTunnelZone(tz: TunnelZone): Host = {
-        setRepeatedField("tunnel_zone_ids",
-                         model.getTunnelZoneIdsList.toSet - tz.getId)
-        update(owner)
-    }
-
     def getTunnelZones: Iterable[TunnelZone] =
         model.getTunnelZoneIdsList flatMap {TunnelZone.get(_)}
 
-    def addPort(p: Port): Host = {
-        setRepeatedField("port_bindings",
-            model.getPortBindingsList
-                .filterNot({_.getPortId == p.getId}).toSet +
-            PortBinding.newBuilder()
-                .setPortId(p.getId).setInterfaceName("if0").build())
-        update(owner)
-    }
-
-    def removePort(p: Port): Host = {
-        setRepeatedField("port_bindings",
-            model.getPortBindingsList
-                .filterNot({_.getPortId == p.getId}))
-        update(owner)
-    }
-
-    def getPorts: Iterable[Port] =
-        model.getPortBindingsList map {_.getPortId} flatMap {Port.get(_)}
+    def getPorts: Iterable[Port] = model.getPortIdsList flatMap {Port.get(_)}
 }
 
 /**

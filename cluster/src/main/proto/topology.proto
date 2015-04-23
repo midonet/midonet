@@ -387,15 +387,13 @@ message Host {
     }
     repeated Interface interfaces = 3;
 
-    message PortBinding {
-        optional UUID port_id = 1;
-        optional string interface_name = 2;
-    }
-    repeated PortBinding port_bindings = 4;
-    optional int32 flooding_proxy_weight = 5;
+    optional int32 flooding_proxy_weight = 4;
 
     // Backreference. Expected to be set from the Tunnel Zone side.
     repeated UUID tunnel_zone_ids = 101;
+
+    // Backreference. Expected to be set from the Port side.
+    repeated UUID port_ids = 102;
 }
 
 message Pool {
