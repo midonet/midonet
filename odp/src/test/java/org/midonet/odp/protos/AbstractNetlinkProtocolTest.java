@@ -37,6 +37,7 @@ import org.midonet.netlink.NLMessageType;
 import org.midonet.netlink.Netlink;
 import org.midonet.netlink.NetlinkChannel;
 import org.midonet.netlink.NetlinkMessage;
+import org.midonet.netlink.NetlinkProtocol;
 import org.midonet.odp.OvsNetlinkFamilies;
 import org.midonet.util.Bucket;
 
@@ -56,6 +57,8 @@ public abstract class AbstractNetlinkProtocolTest {
 
     protected void setUp(final byte[][] responses) throws Exception {
         PowerMockito.when(channel.selector()).thenReturn(null);
+        PowerMockito.when(channel.getProtocol())
+                .thenReturn(NetlinkProtocol.NETLINK_GENERIC);
 
         Netlink.Address remote = new Netlink.Address(0);
         Netlink.Address local = new Netlink.Address(uplinkPid());
