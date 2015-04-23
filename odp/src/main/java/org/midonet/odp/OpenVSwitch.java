@@ -29,6 +29,11 @@ public interface OpenVSwitch {
 
     String headerVersion    = "2.1.2";
 
+    interface Type {
+        short OVS_DATAPATH = 0x1a;
+        short OVS_PORT = 0x1b;
+    }
+
     public interface Datapath {
 
         //#define OVS_DATAPATH_FAMILY   "ovs_datapath"

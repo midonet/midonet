@@ -126,8 +126,12 @@ trait DatapathPortEntangler {
         while (toDelete.hasNext) {
             val ifname = toDelete.next()
             if (!itfs.contains(ifname)) {
-                conveyor.handle(ifname, () => deleteInterface(
-                    interfaceToTriad.get(ifname)))
+                conveyor.handle(ifname, () =>
+                    if (interfaceToTriad.containsKey(ifname)) {
+                        deleteInterface(interfaceToTriad.get(ifname))
+                    } else {
+                        Future.successful(null)
+                    })
             }
         }
     }
@@ -175,8 +179,6 @@ trait DatapathPortEntangler {
             tryCreateDpPort(triad)
         } else if (!isUp) {
             deleteInterface(triad)
-        } else if ((triad.dpPort ne null) && isDangling(itf, isUp)) {
-            updateDangling(triad)
         } else {
             Future successful null
         }
@@ -197,17 +199,6 @@ trait DatapathPortEntangler {
             interfaceToTriad.put(ifname, status)
         }
         status
-    }
-
-    private def isDangling(itf: InterfaceDescription, isUp: Boolean): Boolean =
-        itf.getEndpoint != InterfaceDescription.Endpoint.UNKNOWN &&
-        itf.getEndpoint != InterfaceDescription.Endpoint.DATAPATH &&
-        isUp
-
-    private def updateDangling(triad: DpTriad): Future[_] = {
-        log.debug(s"Recreating port ${triad.ifname} because it was removed " +
-                   "and the DP didn't request the removal")
-        tryRemoveDpPort(triad) continue { _ => tryCreateDpPort(triad) } unwrap
     }
 
     private def deleteInterface(triad: DpTriad): Future[_] =
