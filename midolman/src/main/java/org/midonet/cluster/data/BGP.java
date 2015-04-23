@@ -183,13 +183,14 @@ public class BGP extends Entity.Base<UUID, BGP.Data, BGP> {
 
         @Override
         public String toString() {
-            return "Data{" +
-                    "localAS=" + localAS +
-                    ", peerAddr=" + peerAddr +
-                    ", peerAS=" + peerAS +
-                    ", portId=" + portId +
-                    ", properties=" + properties +
-                    '}';
+            return "(" +
+                    "local-AS=" + localAS +
+                    ", peer-AS=" + peerAS +
+                    ", peer=" + peerAddr +
+                    ", port=" + portId +
+                    ((properties != null && !properties.isEmpty()) ?
+                        ", properties=" + properties : "") +
+                    ')';
         }
     }
 }
