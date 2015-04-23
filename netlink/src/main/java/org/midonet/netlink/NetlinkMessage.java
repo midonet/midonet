@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,7 +35,7 @@ public final class NetlinkMessage {
     static public final int NLMSG_TYPE_SIZE = 2;
     static public final int NLMSG_FLAGS_OFFSET = NLMSG_TYPE_OFFSET + NLMSG_TYPE_SIZE;
     static public final int NLMSG_FLAGS_SIZE = 2;
-    static public final int NLMSG_SEQ_OFFSET =  NLMSG_FLAGS_OFFSET + NLMSG_FLAGS_SIZE;;
+    static public final int NLMSG_SEQ_OFFSET =  NLMSG_FLAGS_OFFSET + NLMSG_FLAGS_SIZE;
     static public final int NLMSG_SEQ_SIZE =  4;
     static public final int NLMSG_PID_OFFSET = NLMSG_SEQ_OFFSET + NLMSG_SEQ_SIZE;
     static public final int NLMSG_PID_SIZE = 4;
@@ -287,6 +287,24 @@ public final class NetlinkMessage {
         buf.position(start);
     }
 
+    /**
+     * Scan through a ByteBuffer containing a single nested netlink attribute
+     * and calls a user given handler for the attribute, aligning the buffer
+     * position and limit at the edges of the attribute value. It is assumed
+     * that the buffer original position is pointing at a nested attribute
+     * header.
+     */
+    public static void scanNestedAttribute(ByteBuffer buf,
+                                           AttributeHandler handler) {
+        int start = buf.position();
+        int end = buf.limit();
+        short attrLen = buf.getShort();  // This is always 1 for the nested len.
+        short attrId = nested(buf.getShort());
+        buf.limit(end);
+        handler.use(buf, attrId);
+        buf.position(start);
+    }
+
     /** Scans through a ByteBuffer containing a sequence of netlink attributes
      *  and stop when the user given attribute id is found, returning the
      *  position within the ByteBuffer of the attribute value associated to
@@ -390,8 +408,7 @@ public final class NetlinkMessage {
     }
 
     public static void writeHeader(ByteBuffer buf, int size, short commandFamily,
-                                   short flags, int seq, int pid, byte command,
-                                   byte version) {
+                                   short flags, int seq, int pid) {
         int pos = buf.position();
 
         // netlink header section
@@ -400,6 +417,14 @@ public final class NetlinkMessage {
         buf.putShort(pos + NLMSG_FLAGS_OFFSET, flags);
         buf.putInt(pos + NLMSG_SEQ_OFFSET, seq);
         buf.putInt(pos + NLMSG_PID_OFFSET, pid);
+    }
+
+    public static void writeHeader(ByteBuffer buf, int size, short commandFamily,
+                                   short flags, int seq, int pid, byte command,
+                                   byte version) {
+        int pos = buf.position();
+
+        writeHeader(buf, size, commandFamily, flags, seq, pid);
 
         // generic netlink (genl) header section
         buf.put(pos + GENL_CMD_OFFSET, command);
