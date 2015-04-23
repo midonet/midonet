@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -93,6 +93,14 @@ public class NetlinkSelectorProvider extends SelectorProvider {
         String type = "org.midonet.netlink.NetlinkChannelImpl";
         Class[] argTypes = {SelectorProvider.class, NetlinkProtocol.class};
         Object[] args = {this, prot};
+
+        return (NetlinkChannel) makeInstanceOf(type, argTypes, args);
+    }
+
+    public NetlinkChannel openNetlinkSocketChannel(NetlinkProtocol prot, int groups) {
+        String type = "org.midonet.netlink.NetlinkChannelImpl";
+        Class[] argTypes = {SelectorProvider.class, NetlinkProtocol.class, int.class};
+        Object[] args = {this, prot, groups};
 
         return (NetlinkChannel) makeInstanceOf(type, argTypes, args);
     }
