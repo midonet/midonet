@@ -16,74 +16,80 @@
 
 package org.midonet.quagga
 
-import java.nio.file.{Files, Paths, Path}
 import java.util.concurrent.TimeUnit
 
-import akka.actor.ActorRef
+import org.midonet.packets.{IPv4Subnet, MAC}
 import org.slf4j.LoggerFactory
 
 import org.midonet.midolman.config.MidolmanConfig
-import org.midonet.netlink.AfUnix
 import org.midonet.util.process.ProcessHelper
 
-class BgpdProcess(routingHandler: ActorRef, vtyPortNumber: Int,
-                  listenAddress: String, socketAddress: AfUnix.Address,
-                  networkNamespace: String, val config: MidolmanConfig) {
-    private final val log = LoggerFactory.getLogger(this.getClass)
+case class BgpdProcess(bgpIndex: Int, localVtyIp: IPv4Subnet, remoteVtyIp: IPv4Subnet,
+                       routerIp: IPv4Subnet, routerMac: MAC, vtyPortNumber: Int,
+                       config: MidolmanConfig) {
+    private final val log = LoggerFactory.getLogger(s"org.midonet.routing.bgpd-helper-$bgpIndex")
+
+    val BGPD_HELPER = "/usr/lib/midolman/bgpd-helper"
+
     var bgpdProcess: Process = null
 
-    var BGPD_KNOWN_PATHS = List("/usr/sbin/bgpd", "/usr/lib/quagga/bgpd")
+    def prepare(): Boolean = {
+        val cmd = s"$BGPD_HELPER prepare $bgpIndex $localVtyIp $remoteVtyIp $routerIp $routerMac"
+        ProcessHelper.executeCommandLine(cmd).returnValue match {
+            case 0 =>
+                log.info(s"Successfully prepared environment for bgpd-$bgpIndex")
+                true
+            case err =>
+                log.warn(s"Failed to prepare environment for bgpd-$bgpIndex, exit status $err")
+                false
+        }
+    }
 
-    def findBgpd: String = {
-        val found = BGPD_KNOWN_PATHS filter (p => Files.isExecutable(Paths.get(p)))
-        if (found.isEmpty)
-            throw new Exception(s"Could not find bgpd executable, looked in: $BGPD_KNOWN_PATHS")
-        else
-            found.head
+    def stop(): Boolean = {
+        val cmd = s"$BGPD_HELPER down $bgpIndex"
+        ProcessHelper.executeCommandLine(cmd).returnValue match {
+            case 0 =>
+                log.info(s"Successfully stopped bgpd-$bgpIndex")
+                true
+            case err =>
+                log.warn(s"Failed to stop bgpd-$bgpIndex, exit status $err")
+                false
+        }
+    }
+
+    def isAlive: Boolean = {
+        if (bgpdProcess ne null) {
+            try {
+                bgpdProcess.exitValue()
+                false
+            } catch {
+                case e: IllegalThreadStateException =>
+                true
+            }
+        } else {
+            false
+        }
     }
 
     def start(): Boolean = {
-        log.debug("Starting bgpd process. Vty: {}", vtyPortNumber)
+        val cmd = s"$BGPD_HELPER up $bgpIndex $vtyPortNumber ${config.bgpdConfigPath}"
 
-        val bgpdCmdLine = "ip netns exec " + networkNamespace +
-            " " + findBgpd +
-            " --vty_port " + vtyPortNumber +
-            //" --vty_addr 127.0.0.1" +
-            " --config_file " + config.bgpdConfigPath + "/bgpd.conf" +
-            " --pid_file /var/run/quagga/bgpd." + vtyPortNumber + ".pid " +
-            " --socket " + socketAddress.getPath
-
-        log.debug("bgpd command line: {}", bgpdCmdLine)
-
+        log.debug(s"Starting bgpd process. vty: $vtyPortNumber")
+        log.debug(s"bgpd command line: $cmd")
         val daemonRunConfig =
-            ProcessHelper.newDemonProcess(bgpdCmdLine, log, "bgpd-" + vtyPortNumber)
-
+            ProcessHelper.newDemonProcess(cmd, log, "bgpd-" + vtyPortNumber)
         bgpdProcess = daemonRunConfig.run()
 
-        //TODO(abel) it's not enough to launch the process to send a ready
-        //TODO(abel) check if it succeeded
         log.debug("Sleeping 5 seconds because we need bgpd to boot up")
         TimeUnit.SECONDS.sleep(5)
-
-        if (bgpdProcess != null) {
+        bgpdProcess.waitFor()
+        if (isAlive) {
             log.debug("bgpd process started. Vty: {}", vtyPortNumber)
             true
         } else {
-            log.debug("bgpdProcess is null, won't sent BGPD_READY")
+            log.warn("bgpd process is failed to start")
             false
         }
-
-    }
-
-    def stop() {
-        log.debug("Stopping bgpd process. Vty: {}", vtyPortNumber)
-
-        if (bgpdProcess != null)
-            bgpdProcess.destroy()
-        else
-            log.warn("Couldn't kill bgpd (" + vtyPortNumber + ") because it wasn't started")
-
-        log.debug("bgpd process stopped. Vty: {}", vtyPortNumber)
     }
 }
 
