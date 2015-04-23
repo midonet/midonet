@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_9c8f192a",
+        "filename": "cluster/src/main/java/org/midonet/cluster/data/neutron/ExternalGatewayInfo.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-04-23T11:13:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_396f172d",
+      "range": {
+        "startLine": 24,
+        "startChar": 0,
+        "endLine": 24,
+        "endChar": 6
+      },
+      "revId": "1236dfd0e9d133e50303a791b349a7e9a69f8909",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_39d39705",
         "filename": "cluster/src/main/java/org/midonet/cluster/data/neutron/ExternalGatewayInfo.java",
         "patchSetId": 1
@@ -42,6 +66,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_fc80cdf8",
+        "filename": "cluster/src/main/java/org/midonet/cluster/data/neutron/ExternalGatewayInfo.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-04-23T11:13:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_39d39705",
+      "revId": "1236dfd0e9d133e50303a791b349a7e9a69f8909",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_d901a36b",
         "filename": "cluster/src/main/java/org/midonet/cluster/data/neutron/FloatingIp.java",
         "patchSetId": 1
@@ -53,6 +95,24 @@
       "writtenOn": "2015-04-23T08:51:28Z",
       "side": 1,
       "message": "This requires an IPAddressUtil.Converter",
+      "revId": "1236dfd0e9d133e50303a791b349a7e9a69f8909",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_3c7ee519",
+        "filename": "cluster/src/main/java/org/midonet/cluster/data/neutron/FloatingIp.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-04-23T11:13:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_d901a36b",
       "revId": "1236dfd0e9d133e50303a791b349a7e9a69f8909",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -129,6 +189,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_1c7b2929",
+        "filename": "cluster/src/main/java/org/midonet/cluster/data/neutron/IPAllocation.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-04-23T11:13:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_7947cfbc",
+      "range": {
+        "startLine": 27,
+        "startChar": 0,
+        "endLine": 27,
+        "endChar": 27
+      },
+      "revId": "1236dfd0e9d133e50303a791b349a7e9a69f8909",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_79f06f91",
         "filename": "cluster/src/main/java/org/midonet/cluster/data/neutron/IPAllocation.java",
         "patchSetId": 1
@@ -140,6 +224,30 @@
       "writtenOn": "2015-04-23T08:51:28Z",
       "side": 1,
       "message": "IPAddressUtil.Converter",
+      "range": {
+        "startLine": 37,
+        "startChar": 15,
+        "endLine": 37,
+        "endChar": 34
+      },
+      "revId": "1236dfd0e9d133e50303a791b349a7e9a69f8909",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_5c712143",
+        "filename": "cluster/src/main/java/org/midonet/cluster/data/neutron/IPAllocation.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-04-23T11:13:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_79f06f91",
       "range": {
         "startLine": 37,
         "startChar": 15,
@@ -175,6 +283,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_3ca545a2",
+        "filename": "cluster/src/main/java/org/midonet/cluster/data/neutron/Port.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-04-23T11:13:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_594493b6",
+      "range": {
+        "startLine": 84,
+        "startChar": 16,
+        "endLine": 84,
+        "endChar": 28
+      },
+      "revId": "1236dfd0e9d133e50303a791b349a7e9a69f8909",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_b97b07f4",
         "filename": "cluster/src/main/java/org/midonet/cluster/data/neutron/Port.java",
         "patchSetId": 1
@@ -186,6 +318,30 @@
       "writtenOn": "2015-04-23T08:51:28Z",
       "side": 1,
       "message": "The enum for DeviceOwner requires a @ZoomEnum annotation to indicate the equivalent ProtoBuf enum, and each field need a @ZoomEnumField annotation to indicate the corresponding enum field. Although in this case, I\u0027m not sure whether it would work because DeviceOwner takes constructor arguments. We have to test this one.",
+      "range": {
+        "startLine": 92,
+        "startChar": 11,
+        "endLine": 92,
+        "endChar": 22
+      },
+      "revId": "1236dfd0e9d133e50303a791b349a7e9a69f8909",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_fcae0d80",
+        "filename": "cluster/src/main/java/org/midonet/cluster/data/neutron/Port.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-04-23T11:13:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_b97b07f4",
       "range": {
         "startLine": 92,
         "startChar": 11,
@@ -221,6 +377,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_7cab3d75",
+        "filename": "cluster/src/main/java/org/midonet/cluster/data/neutron/Port.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-04-23T11:13:59Z",
+      "side": 1,
+      "message": "You mean in this class (Port) or in ExtraDhcpOpt?",
+      "parentUuid": "1a106d94_f90a9f77",
+      "range": {
+        "startLine": 107,
+        "startChar": 16,
+        "endLine": 107,
+        "endChar": 28
+      },
+      "revId": "1236dfd0e9d133e50303a791b349a7e9a69f8909",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_196cdb34",
         "filename": "cluster/src/main/java/org/midonet/cluster/data/neutron/Router.java",
         "patchSetId": 1
@@ -232,6 +412,30 @@
       "writtenOn": "2015-04-23T08:51:28Z",
       "side": 1,
       "message": "Needs a ZoomClass annotation.",
+      "range": {
+        "startLine": 63,
+        "startChar": 11,
+        "endLine": 63,
+        "endChar": 30
+      },
+      "revId": "1236dfd0e9d133e50303a791b349a7e9a69f8909",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_dcb351e7",
+        "filename": "cluster/src/main/java/org/midonet/cluster/data/neutron/Router.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 63,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-04-23T11:13:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_196cdb34",
       "range": {
         "startLine": 63,
         "startChar": 11,
@@ -267,6 +471,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_7cc21d35",
+        "filename": "cluster/src/main/java/org/midonet/cluster/data/neutron/SecurityGroup.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-04-23T11:13:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_d95d237b",
+      "range": {
+        "startLine": 58,
+        "startChar": 16,
+        "endLine": 58,
+        "endChar": 33
+      },
+      "revId": "1236dfd0e9d133e50303a791b349a7e9a69f8909",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_3956f75c",
         "filename": "cluster/src/main/java/org/midonet/cluster/data/neutron/SecurityGroupRule.java",
         "patchSetId": 1
@@ -278,6 +506,30 @@
       "writtenOn": "2015-04-23T08:51:28Z",
       "side": 1,
       "message": "Needs a ZoomClass annotation.",
+      "range": {
+        "startLine": 30,
+        "startChar": 13,
+        "endLine": 30,
+        "endChar": 30
+      },
+      "revId": "1236dfd0e9d133e50303a791b349a7e9a69f8909",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_bcdf750c",
+        "filename": "cluster/src/main/java/org/midonet/cluster/data/neutron/SecurityGroupRule.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-04-23T11:13:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_3956f75c",
       "range": {
         "startLine": 30,
         "startChar": 13,
@@ -313,6 +565,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_bc065584",
+        "filename": "cluster/src/main/java/org/midonet/cluster/data/neutron/SecurityGroupRule.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-04-23T11:13:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_19533b6c",
+      "range": {
+        "startLine": 55,
+        "startChar": 11,
+        "endLine": 55,
+        "endChar": 24
+      },
+      "revId": "1236dfd0e9d133e50303a791b349a7e9a69f8909",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_794cefc8",
         "filename": "cluster/src/main/java/org/midonet/cluster/data/neutron/SecurityGroupRule.java",
         "patchSetId": 1
@@ -324,6 +600,30 @@
       "writtenOn": "2015-04-23T08:51:28Z",
       "side": 1,
       "message": "The same for enum.",
+      "range": {
+        "startLine": 58,
+        "startChar": 11,
+        "endLine": 58,
+        "endChar": 23
+      },
+      "revId": "1236dfd0e9d133e50303a791b349a7e9a69f8909",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_7cd97d21",
+        "filename": "cluster/src/main/java/org/midonet/cluster/data/neutron/SecurityGroupRule.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-04-23T11:13:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_794cefc8",
       "range": {
         "startLine": 58,
         "startChar": 11,
@@ -359,6 +659,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_1cd049f5",
+        "filename": "cluster/src/main/java/org/midonet/cluster/data/neutron/SecurityGroupRule.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-04-23T11:13:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_b9c94728",
+      "range": {
+        "startLine": 69,
+        "startChar": 11,
+        "endLine": 69,
+        "endChar": 24
+      },
+      "revId": "1236dfd0e9d133e50303a791b349a7e9a69f8909",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_d9d403bf",
         "filename": "cluster/src/main/java/org/midonet/cluster/data/neutron/Subnet.java",
         "patchSetId": 1
@@ -376,6 +700,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_bc2db500",
+        "filename": "cluster/src/main/java/org/midonet/cluster/data/neutron/Subnet.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-04-23T11:13:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_d9d403bf",
+      "revId": "1236dfd0e9d133e50303a791b349a7e9a69f8909",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_39dd57e1",
         "filename": "cluster/src/main/java/org/midonet/cluster/data/neutron/Subnet.java",
         "patchSetId": 1
@@ -387,6 +729,30 @@
       "writtenOn": "2015-04-23T08:51:28Z",
       "side": 1,
       "message": "Needs ZoomClass annotation.",
+      "range": {
+        "startLine": 81,
+        "startChar": 16,
+        "endLine": 81,
+        "endChar": 32
+      },
+      "revId": "1236dfd0e9d133e50303a791b349a7e9a69f8909",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_5ceda1b6",
+        "filename": "cluster/src/main/java/org/midonet/cluster/data/neutron/Subnet.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-04-23T11:13:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_39dd57e1",
       "range": {
         "startLine": 81,
         "startChar": 16,
@@ -422,6 +788,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_9c32795d",
+        "filename": "cluster/src/main/java/org/midonet/cluster/data/neutron/Subnet.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-04-23T11:13:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_19da1be8",
+      "range": {
+        "startLine": 89,
+        "startChar": 16,
+        "endLine": 89,
+        "endChar": 21
+      },
+      "revId": "1236dfd0e9d133e50303a791b349a7e9a69f8909",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_79e34fa4",
         "filename": "cluster/src/main/java/org/midonet/cluster/data/neutron/loadbalancer/HealthMonitor.java",
         "patchSetId": 1
@@ -433,6 +823,30 @@
       "writtenOn": "2015-04-23T08:51:28Z",
       "side": 1,
       "message": "Needs ZoomClass annotation.",
+      "range": {
+        "startLine": 47,
+        "startChar": 16,
+        "endLine": 47,
+        "endChar": 33
+      },
+      "revId": "1236dfd0e9d133e50303a791b349a7e9a69f8909",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_3c41c5a9",
+        "filename": "cluster/src/main/java/org/midonet/cluster/data/neutron/loadbalancer/HealthMonitor.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-04-23T11:13:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_79e34fa4",
       "range": {
         "startLine": 47,
         "startChar": 16,
@@ -462,6 +876,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_1c3e8928",
+        "filename": "cluster/src/main/java/org/midonet/cluster/data/neutron/loadbalancer/Member.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-04-23T11:13:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_b9f02768",
+      "revId": "1236dfd0e9d133e50303a791b349a7e9a69f8909",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_99f56b59",
         "filename": "cluster/src/main/java/org/midonet/cluster/data/neutron/loadbalancer/VIP.java",
         "patchSetId": 1
@@ -473,6 +905,24 @@
       "writtenOn": "2015-04-23T08:51:28Z",
       "side": 1,
       "message": "Needs an IPAddressUtil.Converter",
+      "revId": "1236dfd0e9d133e50303a791b349a7e9a69f8909",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_7c47bdbc",
+        "filename": "cluster/src/main/java/org/midonet/cluster/data/neutron/loadbalancer/VIP.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-04-23T11:13:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_99f56b59",
       "revId": "1236dfd0e9d133e50303a791b349a7e9a69f8909",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
