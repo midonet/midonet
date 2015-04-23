@@ -27,9 +27,10 @@ object GenlProtocol {
                           pid: Int,
                           ctx: NetlinkRequestContext,
                           buf: ByteBuffer): Unit = {
-        val message = NetlinkMessageWrapper(buf)
-                        .withContext(ctx)
-                        .withFlags(flags)
+        val message: NetlinkMessageWrapper =
+            NetlinkMessageWrapper.genl(buf, ctx.command, ctx.version)
+                .withType(ctx.commandFamily)
+                .withFlags(flags)
 
         NetlinkMessage.writeStringAttr(buf, AttrKey.FAMILY_NAME, name)
 
