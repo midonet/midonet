@@ -127,6 +127,25 @@ trait DatapathPortEntangler {
         })
 
     /**
+     * Recreate OVS datapath port. This SHOULD be called only when the datapath
+     * port is deleted from the datapath by other programs.
+     *
+     * @param port the OVS datapath port to be recreated.
+     */
+    def recreateDpPortIfNeeded(port: DpPort): Unit =
+        conveyor handle (port.getName, () => {
+            val ifname = port.getName
+            log.debug(s"Recreating port $ifname because it was removed and " +
+                "the DP didn't request the removal")
+            val recreateDpPortFutureOption: Option[Future[_]] = for {
+                _ <- interfaceToDpPort.get(ifname)
+                _ <- interfaceToVport.get(ifname)
+                ifDesc <- interfaceToDescription.get(ifname) if ifDesc.isUp
+            } yield addDpPort(ifname)
+            recreateDpPortFutureOption.getOrElse(Future.successful(null))
+        })
+
+    /**
      * Register new interfaces, update their status or delete them.
      */
     def updateInterfaces(itfs: JSet[InterfaceDescription]): Unit = {
@@ -219,9 +238,7 @@ trait DatapathPortEntangler {
         val dpPort = interfaceToDpPort get ifname
         val vPort = interfaceToVport get ifname
         if (dpPort.isDefined && vPort.isDefined) {
-            if (isDangling(itf, isUp)) {
-                updateDangling(dpPort.get, ifname)
-            } else if (isUp != wasUp) {
+            if (isUp != wasUp) {
                 changeStatus(dpPort.get, itf, isUp)
             } else {
                 Future successful null
@@ -229,17 +246,6 @@ trait DatapathPortEntangler {
         } else {
             tryCreateDpPort(ifname) // In case we failed to create it before
         }
-    }
-
-    private def isDangling(itf: InterfaceDescription, isUp: Boolean): Boolean =
-        itf.getEndpoint != InterfaceDescription.Endpoint.UNKNOWN &&
-        itf.getEndpoint != InterfaceDescription.Endpoint.DATAPATH &&
-        isUp
-
-    private def updateDangling(dpPort: DpPort, name: String): Future[_] = {
-        log.debug(s"Recreating port $name because it was removed and the DP " +
-                   "didn't request the removal")
-        deleteInterface(name) continue { _ => tryCreateDpPort(name) } unwrap
     }
 
     private def changeStatus(dpPort: DpPort, itf: InterfaceDescription,

@@ -56,7 +56,8 @@ class TestableSelectorBasedRtnetlinkConnection(channel: NetlinkChannel,
     val testNotificationObserver: NotificationTestObserver =
         TestableNotificationObserver
     override lazy val notificationChannel =
-        (new NetlinkChannelFactory).create(false, NetlinkProtocol.NETLINK_ROUTE)
+        (new NetlinkChannelFactory).create(false, NetlinkProtocol.NETLINK_ROUTE,
+            notification = true)
 
     @throws[IOException]
     @throws[InterruptedException]

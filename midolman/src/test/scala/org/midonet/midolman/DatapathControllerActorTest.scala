@@ -16,6 +16,8 @@
 
 package org.midonet.midolman
 
+import org.midonet.netlink.{NetlinkChannelFactory, NetlinkProtocol}
+
 import scala.concurrent.{ExecutionContext, Future}
 
 import akka.actor._
@@ -31,7 +33,7 @@ import org.midonet.midolman.io.{ChannelType, UpcallDatapathConnectionManager}
 import org.midonet.midolman.state.{FlowStateStorageFactory, MockStateStorage}
 import org.midonet.midolman.topology.rcu.ResolvedHost
 import org.midonet.midolman.topology.VirtualToPhysicalMapper
-import org.midonet.midolman.util.MidolmanSpec
+import org.midonet.midolman.util.{MockNetlinkChannelFactory, MidolmanSpec}
 import org.midonet.midolman.util.mock.MessageAccumulator
 import org.midonet.odp.{Datapath, DpPort}
 import org.midonet.odp.ports._
@@ -63,7 +65,7 @@ class DatapathControllerActorTest extends MidolmanSpec {
             ConfigValueFactory.fromAnyRef(TestDhcpMtu)))
     }
 
-    class TestableDpC extends DatapathController {
+    class TestableDpC extends DatapathController(new MockNetlinkChannelFactory) {
         override def storageFactory = new FlowStateStorageFactory() {
             override def create() = new MockStateStorage()
         }
@@ -71,6 +73,9 @@ class DatapathControllerActorTest extends MidolmanSpec {
         datapath = new Datapath(0, "midonet")
 
         config = MidolmanConfig.forTests("agent.datapath.vxlan_udp_port = 4444")
+
+        override lazy val notificationChannel =
+            netlinkChannelFactory.create(false, NetlinkProtocol.NETLINK_GENERIC)
 
         upcallConnManager = new UpcallDatapathConnectionManager {
             var ports = Set.empty[DpPort]
