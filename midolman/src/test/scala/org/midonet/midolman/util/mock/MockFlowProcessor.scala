@@ -20,16 +20,17 @@ import java.nio.ByteBuffer
 import java.util.{Map => JMap}
 
 import com.typesafe.scalalogging.Logger
-import org.midonet.midolman.DatapathStateDriver
-import org.midonet.odp.OpenVSwitch.Flow.Attr
-import org.midonet.odp.family.{PacketFamily, FlowFamily, PortFamily, DatapathFamily}
-import org.midonet.odp.flows.FlowKeys
 import org.slf4j.LoggerFactory
 import rx.Observer
 
+import org.midonet.midolman.DatapathStateDriver
 import org.midonet.midolman.datapath.FlowProcessor
-import org.midonet.netlink.{NetlinkMessage, MockNetlinkChannelFactory}
-import org.midonet.odp.{Datapath, OvsNetlinkFamilies, Flow, FlowMatch}
+import org.midonet.midolman.util.MockNetlinkChannelFactory
+import org.midonet.netlink.NetlinkMessage
+import org.midonet.odp.OpenVSwitch.Flow.Attr
+import org.midonet.odp.family.{DatapathFamily, FlowFamily, PacketFamily, PortFamily}
+import org.midonet.odp.flows.FlowKeys
+import org.midonet.odp.{Datapath, Flow, FlowMatch, OvsNetlinkFamilies}
 import org.midonet.util.concurrent.MockClock
 
 class MockFlowProcessor(val flowsTable: JMap[FlowMatch, Flow] = null)
