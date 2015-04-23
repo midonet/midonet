@@ -23,6 +23,9 @@ import java.util.{Set => JSet, UUID}
 
 import javax.annotation.Nullable
 
+import java.util.UUID
+import java.util.concurrent.{CountDownLatch, TimeUnit}
+
 import scala.collection.JavaConverters._
 import scala.concurrent.Await
 import scala.concurrent.duration._
@@ -67,6 +70,8 @@ object HostService {
         val Acquiring, Acquired, Released = Value
     }
 
+    val InterfacesTimeoutInSecs = 3
+
     class HostIdAlreadyInUseException(message: String)
         extends Exception(message)
 
@@ -101,6 +106,7 @@ class HostService @Inject()(config: MidolmanConfig,
                             zkManager: ZkManager,
                             @Named("directoryReactor") reactor: Reactor)
     extends AbstractService with HostIdProviderService with MidolmanLogging {
+    import HostService._
 
     private final val store = backend.ownershipStore
 
@@ -112,27 +118,7 @@ class HostService @Inject()(config: MidolmanConfig,
     private val interfacesLatch = new CountDownLatch(1)
     @volatile private var currentInterfaces: Set[InterfaceDescription] = null
     @volatile private var oldInterfaces: Set[InterfaceDescription] = null
-    @volatile private var scannerSubscription: MnSubscription = null
-    private val scannerCallback = new Callback[JSet[InterfaceDescription]] {
-        override def onSuccess(data: JSet[InterfaceDescription])
-        : Unit = {
-            oldInterfaces = currentInterfaces
-            currentInterfaces = data.asScala.toSet
-            interfacesLatch.countDown()
-            // Do not update if the interfaces have not changed or if the
-            // service has not yet acquired the host ownership.
-            if ((oldInterfaces == currentInterfaces) ||
-                (ownerState.get != OwnershipState.Acquired)) {
-                return
-            }
-            if (backendConfig.useNewStack) {
-                updateInterfacesInV2()
-            } else {
-                updateInterfacesInV1()
-            }
-        }
-        override def onError(e: NetlinkException): Unit = { }
-    }
+    @volatile private var scannerSubscription: Subscription = null
 
     private val ownerState = new AtomicReference(OwnershipState.Released)
     @volatile private var ownerSubscription: Subscription = null
@@ -169,8 +155,31 @@ class HostService @Inject()(config: MidolmanConfig,
     override def doStart(): Unit = {
         log.info("Starting MidoNet agent host service")
         try {
-            scannerSubscription = scanner.register(scannerCallback)
             scanner.start()
+            scanner.subscribe(new Observer[Set[InterfaceDescription]] {
+                override def onCompleted(): Unit = {
+                    log.debug("Interface updating is completed.")
+                }
+                override def onError(t: Throwable): Unit = {
+                    log.error("Got the error: {}", t)
+                }
+                override def onNext(data: Set[InterfaceDescription]): Unit = {
+                    oldInterfaces = currentInterfaces
+                    currentInterfaces = data
+                    interfacesLatch.countDown()
+                    // Do not update if the interfaces have not changed or if the
+                    // service has not yet acquired the host ownership.
+                    if ((oldInterfaces == currentInterfaces) ||
+                        (ownerState.get != OwnershipState.Acquired)) {
+                        return
+                    }
+                    if (backendConfig.useNewStack) {
+                        updateInterfacesInV2()
+                    } else {
+                        updateInterfacesInV1()
+                    }
+                }
+            })
             identifyHost()
             createHost()
             notifyStarted()
@@ -191,7 +200,7 @@ class HostService @Inject()(config: MidolmanConfig,
     override def doStop(): Unit = {
         log.info("Stopping MidoNet agent host service")
         ownerState.set(OwnershipState.Released)
-        scanner.shutdown()
+        scanner.stop()
 
         if (scannerSubscription ne null) {
             scannerSubscription.unsubscribe()
@@ -209,7 +218,7 @@ class HostService @Inject()(config: MidolmanConfig,
             } catch {
                 case NonFatal(e) =>
                     log.warn("MidoNet agent host service failed to cleanup " +
-                             "host ownership", e)
+                        "host ownership", e)
             }
         } else {
             // Disconnect from ZooKeeper: this will cause the ephemeral nodes to
@@ -234,12 +243,13 @@ class HostService @Inject()(config: MidolmanConfig,
     @throws[PropertiesFileNotWritableException]
     private def identifyHost(): Unit = {
         log.debug("Identifying host")
-        if (!interfacesLatch.await(3, TimeUnit.SECONDS)) {
-            throw new IllegalStateException("Timeout while waiting for interfaces")
+        if (!interfacesLatch.await(InterfacesTimeoutInSecs, TimeUnit.SECONDS)) {
+            throw new IllegalStateException(
+                "Timeout while waiting for interfaces")
         }
         hostIdInternal = HostIdGenerator.getHostId
         try {
-           hostName = InetAddress.getLocalHost.getHostName
+            hostName = InetAddress.getLocalHost.getHostName
         } catch {
             case e: UnknownHostException =>
         }
@@ -254,13 +264,23 @@ class HostService @Inject()(config: MidolmanConfig,
         val maxAttempts = config.host.retriesForUniqueId + 1
         while (!create() && { attempts += 1; attempts } < maxAttempts) {
             log.warn("Host ID already in use: waiting for it to be released " +
-                     "({} of {}).", Int.box(attempts), Int.box(maxAttempts - 1))
+                "({} of {}).", Int.box(attempts), Int.box(maxAttempts - 1))
             Thread.sleep(config.host.waitTimeForUniqueId)
         }
         if (attempts >= maxAttempts) {
             log.error("Could not acquire ownership: host already in use")
             throw new HostIdAlreadyInUseException(
                 s"Host ID $hostId appears to already be taken")
+        }
+    }
+
+    private def createHostOrExit(): Unit = {
+        try {
+            Thread.sleep(config.host.waitTimeForUniqueId)
+            createHost()
+        } catch {
+            case NonFatal(e) =>
+                System.exit(Midolman.MIDOLMAN_ERROR_CODE_LOST_HOST_OWNERSHIP)
         }
     }
 
@@ -311,7 +331,7 @@ class HostService @Inject()(config: MidolmanConfig,
             return true
         // Only try to acquire ownership if it has been lost.
         if (!ownerState.compareAndSet(OwnershipState.Released,
-                                      OwnershipState.Acquiring))
+            OwnershipState.Acquiring))
             return false
         log.debug("Creating host in backend storage with owner ID {}", hostId)
         try {
@@ -321,8 +341,8 @@ class HostService @Inject()(config: MidolmanConfig,
             if (currentHost ne null) {
                 if (currentHost.getName != hostName) {
                     log.error("Failed to create host {} with name {} because " +
-                              "the host exists with name {}", hostId,
-                              hostName, currentHost.getName)
+                        "the host exists with name {}", hostId,
+                        hostName, currentHost.getName)
                     ownerState.set(OwnershipState.Released)
                     return false
                 }
@@ -354,7 +374,7 @@ class HostService @Inject()(config: MidolmanConfig,
                       _: ReferenceConflictException |
                       _: OwnershipConflictException) =>
                 log.error("Failed to create host in backend storage with " +
-                          "owner identifier {}", hostId, e)
+                    "owner identifier {}", hostId, e)
                 ownerState.set(OwnershipState.Released)
                 false
             case NonFatal(e) =>
@@ -366,10 +386,10 @@ class HostService @Inject()(config: MidolmanConfig,
     private def recreateHostInV2OrShutdown(): Unit = {
         // Only reacquire ownership if the current state is Acquired.
         if (!ownerState.compareAndSet(OwnershipState.Acquired,
-                                      OwnershipState.Released)) return
+            OwnershipState.Released)) return
 
         log.warn("Lost ownership of host: attempting to reacquire in {} ms",
-                 Long.box(config.host.waitTimeForUniqueId))
+            Long.box(config.host.waitTimeForUniqueId))
 
         try {
             Thread.sleep(config.host.waitTimeForUniqueId)
@@ -401,7 +421,7 @@ class HostService @Inject()(config: MidolmanConfig,
     private def updateInterfacesInV1(): Unit = {
         log.debug("Updating host interfaces {}: {}", hostId, currentInterfaces)
         interfaceDataUpdater.updateInterfacesData(hostId, null,
-                                                  currentInterfaces.asJava)
+            currentInterfaces.asJava)
     }
 
     /**
@@ -421,7 +441,7 @@ class HostService @Inject()(config: MidolmanConfig,
                       _: ReferenceConflictException |
                       _: OwnershipConflictException) =>
                 log.error("Failed to create host in backend storage with " +
-                          "owner identifier {}", hostId, e)
+                    "owner identifier {}", hostId, e)
                 recreateHostInV2OrShutdown()
         }
     }
