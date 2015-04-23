@@ -113,6 +113,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_b6331613",
+        "filename": "brain/vtep/src/main/java/org/midonet/vtep/schema/LogicalSwitchTable.java",
+        "patchSetId": 11
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-04-23T03:08:56Z",
+      "side": 1,
+      "message": "Thank you for the explanation, it\u0027s interesting.",
+      "parentUuid": "1a106d94_149f8751",
+      "range": {
+        "startLine": 78,
+        "startChar": 24,
+        "endLine": 78,
+        "endChar": 37
+      },
+      "revId": "5a4440cd72eed7bab4dad9ea072ef73ce27054b9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_19222001",
         "filename": "brain/vtep/src/main/java/org/midonet/vtep/schema/MacsTable.java",
         "patchSetId": 11
@@ -785,6 +809,30 @@
       "side": 1,
       "message": "It is :-)\nHere I\u0027m using some arcane knowledge about the internals of the ovsdb schemas: all the maps we have to convert for our purposes are, in fact, (short -\u003e UUID) maps, represented internally as (Long -\u003e OvsdbUUID) maps. They are eventually converted into (Integer -\u003e UUID) to avoid some Java-Scala conversion issues with the \u0027Short\u0027 type.\nUnfortunately, the ovsdb interface removes all data about the map key and value types, so the unsafe cast is necessary (either at the collection level or the key-value level).",
       "parentUuid": "1a106d94_19fea038",
+      "range": {
+        "startLine": 56,
+        "startChar": 12,
+        "endLine": 56,
+        "endChar": 72
+      },
+      "revId": "5a4440cd72eed7bab4dad9ea072ef73ce27054b9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_160b0a2b",
+        "filename": "brain/vtep/src/main/scala/org/midonet/vtep/OvsdbTranslator.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-04-23T03:08:56Z",
+      "side": 1,
+      "message": "Perhaps it\u0027s better to add a comment that all the maps are internally short to UUID, otherwise we\u0027ll for sure lose information when converting Long to Integer. Why are we not casting to Integer directly instead of Long in the first place?",
+      "parentUuid": "1a106d94_54e1ff98",
       "range": {
         "startLine": 56,
         "startChar": 12,
