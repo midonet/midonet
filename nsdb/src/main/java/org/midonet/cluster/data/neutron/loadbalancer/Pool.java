@@ -26,46 +26,63 @@ import org.apache.commons.collections4.ListUtils;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonProperty;
 
+import org.midonet.cluster.data.ZoomField;
+import org.midonet.cluster.util.UUIDUtil.Converter;
 import org.midonet.util.collection.ListUtil;
 
 public class Pool {
 
     @JsonProperty("admin_state_up")
+    @ZoomField(name = "admin_state_up")
     public boolean adminStateUp;
 
+    @ZoomField(name = "description")
     public String description;
 
     @JsonProperty("health_monitors")
+    @ZoomField(name = "health_monitors", converter = Converter.class)
     public List<UUID> healthMonitors;
 
+    @ZoomField(name = "id", converter = Converter.class)
     public UUID id;
 
     @JsonProperty("lb_method")
+    @ZoomField(name = "lb_method")
     public String lbMethod;
 
+    @ZoomField(name = "members", converter = Converter.class)
     public List<UUID> members;
 
+    @ZoomField(name = "name")
     public String name;
 
+    @ZoomField(name = "protocol")
     public String protocol;
 
+    @ZoomField(name = "provider")
     public String provider;
 
     @JsonProperty("router_id")
+    @ZoomField(name = "router_id", converter = Converter.class)
     public UUID routerId;
 
+    @ZoomField(name = "status")
     public String status;
 
     @JsonProperty("status_description")
+    @ZoomField(name = "status_description")
     public String statusDescription;
 
     @JsonProperty("subnet_id")
+    @ZoomField(name = "subnet_id", converter = Converter.class)
     public UUID subnetId;
 
     @JsonProperty("tenant_id")
+    @ZoomField(name = "tenant_id")
     public String tenantId;
 
     @JsonProperty("vip_id")
+    @ZoomField(name = "vip_id", converter = Converter.class)
     public UUID vipId;
 
 

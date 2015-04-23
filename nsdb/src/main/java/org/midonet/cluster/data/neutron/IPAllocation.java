@@ -18,10 +18,17 @@ package org.midonet.cluster.data.neutron;
 import com.google.common.base.Objects;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonProperty;
+
+import org.midonet.cluster.data.ZoomClass;
+import org.midonet.cluster.data.ZoomField;
+import org.midonet.cluster.models.Neutron;
+import org.midonet.cluster.util.IPAddressUtil;
+import org.midonet.cluster.util.UUIDUtil.Converter;
 import org.midonet.packets.*;
 
 import java.util.UUID;
 
+@ZoomClass(clazz = Neutron.NeutronPort.IPAllocation.class)
 public class IPAllocation {
 
     public IPAllocation() {}
@@ -32,9 +39,11 @@ public class IPAllocation {
     }
 
     @JsonProperty("ip_address")
+    @ZoomField(name = "ip_address", converter = IPAddressUtil.Converter.class)
     public String ipAddress;
 
     @JsonProperty("subnet_id")
+    @ZoomField(name = "subnet_id", converter = Converter.class)
     public UUID subnetId;
 
     @Override
