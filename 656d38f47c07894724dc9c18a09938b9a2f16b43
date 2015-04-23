@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_b99787eb",
+        "filename": "specs/2015.02/tracing_api.md",
+        "patchSetId": 7
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-04-23T08:54:28Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_43e24ed6",
+      "revId": "656d38f47c07894724dc9c18a09938b9a2f16b43",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_e3f7fa8a",
         "filename": "specs/2015.02/tracing_api.md",
         "patchSetId": 7
@@ -30,6 +48,24 @@
       "writtenOn": "2015-02-03T14:57:27Z",
       "side": 1,
       "message": "Alternatively, its possible to maintain trace state as part of the trace metadata.",
+      "revId": "656d38f47c07894724dc9c18a09938b9a2f16b43",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_999c4b11",
+        "filename": "specs/2015.02/tracing_api.md",
+        "patchSetId": 7
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-04-23T08:54:28Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_e3f7fa8a",
       "revId": "656d38f47c07894724dc9c18a09938b9a2f16b43",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
