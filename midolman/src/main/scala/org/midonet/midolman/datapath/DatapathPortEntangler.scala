@@ -111,6 +111,32 @@ trait DatapathPortEntangler {
         })
 
     /**
+     * Recreate OVS datapath port. This SHOULD be called only when the datapath
+     * port is deleted from the datapath outside the management of Midolman.
+     *
+     * @param port the OVS datapath port to be recreated.
+     */
+    def recreateDpPortIfNeeded(port: DpPort): Unit =
+        conveyor handle (port.getName, () => {
+            val portNo = port.getPortNo
+            if (dpPortNumToTriad.contains(portNo)) {
+                log.debug(s"Recreating port #$portNo because it was removed " +
+                    "and the DPC didn't request the removal")
+                val triad@DpTriad(_, isUp, _, _, _, _) =
+                    dpPortNumToTriad.get(portNo)
+                if (isUp) {
+                    dpPortNumToTriad.remove(portNo)
+                    addDpPort(triad)
+                } else {
+                    log.debug(s"The port #$portNo is not up, so did nothing")
+                    Future.successful(null)
+                }
+            } else {
+                Future.successful(null)
+            }
+        })
+
+    /**
      * Register new interfaces, update their status or delete them.
      */
     def updateInterfaces(itfs: JSet[InterfaceDescription]): Unit = {
@@ -126,8 +152,12 @@ trait DatapathPortEntangler {
         while (toDelete.hasNext) {
             val ifname = toDelete.next()
             if (!itfs.contains(ifname)) {
-                conveyor.handle(ifname, () => deleteInterface(
-                    interfaceToTriad.get(ifname)))
+                conveyor.handle(ifname, () =>
+                    if (interfaceToTriad.containsKey(ifname)) {
+                        deleteInterface(interfaceToTriad.get(ifname))
+                    } else {
+                        Future.successful(null)
+                    })
             }
         }
     }
@@ -175,8 +205,6 @@ trait DatapathPortEntangler {
             tryCreateDpPort(triad)
         } else if (!isUp) {
             deleteInterface(triad)
-        } else if ((triad.dpPort ne null) && isDangling(itf, isUp)) {
-            updateDangling(triad)
         } else {
             Future successful null
         }
@@ -197,17 +225,6 @@ trait DatapathPortEntangler {
             interfaceToTriad.put(ifname, status)
         }
         status
-    }
-
-    private def isDangling(itf: InterfaceDescription, isUp: Boolean): Boolean =
-        itf.getEndpoint != InterfaceDescription.Endpoint.UNKNOWN &&
-        itf.getEndpoint != InterfaceDescription.Endpoint.DATAPATH &&
-        isUp
-
-    private def updateDangling(triad: DpTriad): Future[_] = {
-        log.debug(s"Recreating port ${triad.ifname} because it was removed " +
-                   "and the DP didn't request the removal")
-        tryRemoveDpPort(triad) continue { _ => tryCreateDpPort(triad) } unwrap
     }
 
     private def deleteInterface(triad: DpTriad): Future[_] =
